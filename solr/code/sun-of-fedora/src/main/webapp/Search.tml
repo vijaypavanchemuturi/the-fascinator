@@ -1,0 +1,90 @@
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:t="http://tapestry.apache.org/schema/tapestry_5_0_0.xsd">
+  <head>
+    <title>USQ Solr Portal Demo</title>
+    <link rel="stylesheet" type="text/css" href="${stylesheet}" />
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+  </head>
+  <body>
+    <h1>USQ Solr Portal Demo</h1>
+    <div class="search">
+      <form t:type="form" t:context="query">
+        <input type="text" class="search-field" t:type="textfield" t:value="query" />
+        <input type="submit" value="Search" t:type="submit" />
+        &#160;[<a t:type="actionlink" t:id="configure">settings</a>]
+      </form>
+    </div>
+    <div class="facet-limits">
+      <t:if t:test="facetLimits">
+        <h2>Selected facets</h2><p>[<a t:type="actionlink" t:id="clearfacets">clear all</a>]</p>
+        <ul>
+          <li t:type="loop" t:source="facetLimits" t:value="facetLimit">
+            ${facetLimitClean} [<a t:type="actionlink" t:id="removefacet" t:context="facetLimit">remove</a>]
+          </li>
+        </ul>
+      </t:if>
+    </div>
+    <div class="facets">
+      <t:if t:test="showResults">
+        <h1>Facets</h1>
+        <div t:type="loop" t:source="response.facetLists" t:value="facetList">
+          <h2 class="facet-title">${facetList.name}</h2>
+          <ul t:type="loop" t:source="facetList.facets" t:value="facet">
+            <li class="facet-value">
+              <a t:type="actionlink"
+                 t:id="addfacet"
+                 t:context="facet">${facet.value}</a>
+              &#160;(${facet.count})
+            </li>
+          </ul>
+        </div>
+        <t:parameter t:name="else">
+          <p>No results found</p>
+        </t:parameter>
+      </t:if>
+    </div>
+    <div class="results">
+      <t:if t:test="showResults">
+        <h1>Results</h1>
+        <div class="pagination">
+          <t:if t:test="showFirst">
+            <a t:type="actionlink" t:id="firstpage">First</a>&#160;
+          </t:if>
+          <t:loop t:source="pagination?.pages" t:value="page">
+            <t:if test="page.selected">
+              [${page.value}]
+              <t:parameter t:name="else">
+                <a class="page"
+                   t:type="actionlink"
+                   t:id="selectpage"
+                   t:context="page.value">${page.value}</a>&#160;
+              </t:parameter>
+            </t:if>
+          </t:loop>
+          <t:if t:test="showLast">
+            <a t:type="actionlink" t:id="lastpage">Last</a>
+          </t:if>
+        </div>
+        <p>Results ${pagination.startNum} to ${pagination.endNum} of ${pagination.totalFound} (<em>${response.queryTime}</em> seconds)</p>
+        <ol start="${pagination.startNum}">
+          <li t:type="loop" t:source="response.result.docs" t:value="doc">
+            <h2 class="doc-title">${doc.title}</h2>
+            <p class="doc-id">${doc.id}</p>
+            <t:loop t:source="doc.identifiers" t:value="identifier">
+              <t:if test="identifierLink">
+                <a class="identifier" href="${identifier}">${identifier}</a>
+                <t:parameter t:name="else">${identifier}</t:parameter>
+              </t:if>
+              <br/>
+            </t:loop>
+            <p class="doc-description">
+              <t:if t:test="doc.description">
+                ${doc.description}
+                <t:parameter t:name="else">No description</t:parameter>
+              </t:if>
+            </p>
+          </li>
+        </ol>
+      </t:if>
+    </div>
+  </body>
+</html>
