@@ -21,4 +21,12 @@ public interface Configuration {
     public void setFacetCount(int facetCount);
 
     public int getFacetCount();
+
+    public void setRegistryBaseUrl(String registryBaseUrl);
+
+    public String getRegistryBaseUrl();
+
+    public void setRegistryUser(String registryUser);
+
+    public String getRegistryUser();
 }

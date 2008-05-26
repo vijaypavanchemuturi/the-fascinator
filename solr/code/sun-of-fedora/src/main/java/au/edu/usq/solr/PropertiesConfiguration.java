@@ -27,6 +27,12 @@ public class PropertiesConfiguration implements Configuration {
 
     private static final int FACET_COUNT = 25;
 
+    private static final String REGISTRY_BASE_URL_KEY = "registry.base.url";
+
+    private static final String REGISTRY_USER_KEY = "registry.user";
+
+    private static final String REGISTRY_PASSWORD_KEY = "registry.password";
+
     private Logger log = Logger.getLogger(PropertiesConfiguration.class);
 
     private Properties props;
@@ -88,6 +94,22 @@ public class PropertiesConfiguration implements Configuration {
 
     public int getFacetCount() {
         return getIntProperty(FACET_COUNT_KEY);
+    }
+
+    public void setRegistryBaseUrl(String registryBaseUrl) {
+        setProperty(REGISTRY_BASE_URL_KEY, registryBaseUrl);
+    }
+
+    public String getRegistryBaseUrl() {
+        return getProperty(REGISTRY_BASE_URL_KEY);
+    }
+
+    public void setRegistryUser(String registryUser) {
+        setProperty(REGISTRY_USER_KEY, registryUser);
+    }
+
+    public String getRegistryUser() {
+        return getProperty(REGISTRY_USER_KEY);
     }
 
     private void setProperty(String key, String value) {

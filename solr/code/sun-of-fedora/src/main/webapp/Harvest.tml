@@ -5,26 +5,78 @@
   </head>
   <body>
     <h1>USQ Solr Portal Demo</h1>
+    <ul>
+      <li><a href="search">Search</a></li>
+      <li><a href="config">Configuration</a></li>
+    </ul>
     <h2>Harvest Metadata (via OAI-PMH)</h2>
     <form t:type="form">
       <table>
       <tr>
-        <td>Solr base URL</td>
+        <th colspan="2">Solr</th>
+      </tr>
+      <tr>
+        <td>Base URL</td>
         <td>
           <input type="text" size="40" t:type="textfield" t:value="config.solrBaseUrl"/>
         </td>
       </tr>
       <tr>
-        <td>Repository base URL</td>
+        <th colspan="2">Registry</th>
+      </tr>
+      <tr>
+        <td>Base URL</td>
+        <td>
+          <input type="text" size="40" t:type="textfield" t:value="config.registryBaseUrl"/>
+        </td>
+      </tr>
+      <tr>
+        <td>Username</td>
+        <td>
+          <input type="text" size="10" t:type="textfield" t:value="config.registryUser"/>
+        </td>
+      </tr>
+      <tr>
+        <td>Password</td>
+        <td>
+          <input type="password" size="10" t:type="passwordfield" t:value="registryPassword"/>
+        </td>
+      </tr>
+      <tr>
+        <th colspan="2">Repository</th>
+      </tr>
+      <tr>
+        <td>Type</td>
+        <td>
+          <select t:type="select" t:value="reposType" t:blankOption="NEVER"/>
+        </td>
+      </tr>
+      <tr>
+        <td>Name</td>
+        <td>
+          <input type="text" size="25" t:type="textfield" t:value="reposName"/>
+        </td>
+      </tr>
+      <tr>
+        <td>Base URL</td>
         <td>
           <input type="text" size="40" t:type="textfield" t:value="reposUrl"/>
         </td>
       </tr>
       <tr>
-        <td>Repository name</td>
+        <td>Username</td>
         <td>
-          <input type="text" size="25" t:type="textfield" t:value="reposName"/>
+          <input type="text" size="10" t:type="textfield" t:value="reposUser"/>
         </td>
+      </tr>
+      <tr>
+        <td>Password</td>
+        <td>
+          <input type="password" size="10" t:type="passwordfield" t:value="reposPassword"/>
+        </td>
+      </tr>
+      <tr>
+        <th colspan="2">Options</th>
       </tr>
       <tr>
         <td>Request limit</td>
@@ -32,12 +84,9 @@
           <input type="text" size="10" t:type="textfield" t:value="limit"/>
         </td>
       </tr>
-      <tr>
-        <td colspan="2">
-          <input type="submit" value="Start" t:type="submit"/>
-        </td>
-      </tr>
       </table>
+      <br/>
+      <input type="submit" value="Start" t:type="submit"/>
     </form>
   </body>
 </html>

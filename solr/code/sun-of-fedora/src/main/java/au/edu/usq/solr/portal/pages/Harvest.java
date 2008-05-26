@@ -9,9 +9,17 @@ import org.apache.tapestry.annotations.Path;
 import org.apache.tapestry.ioc.annotations.Inject;
 
 import au.edu.usq.solr.Configuration;
-import au.edu.usq.solr.util.Harvester;
+import au.edu.usq.solr.harvest.Fedora30Registry;
+import au.edu.usq.solr.harvest.Harvester;
+import au.edu.usq.solr.harvest.OaiPmhHarvester;
+import au.edu.usq.solr.harvest.Registry;
+import au.edu.usq.solr.harvest.VitalFedoraHarvester;
 
 public class Harvest {
+
+    public enum RepositoryType {
+        OAI_PMH, VITAL_FEDORA
+    };
 
     private Logger log = Logger.getLogger(Harvest.class);
 
@@ -22,18 +30,38 @@ public class Harvest {
     @ApplicationState
     private Configuration config;
 
-    private String reposUrl;
+    private String registryPassword;
+
+    private RepositoryType reposType;
 
     private String reposName;
+
+    private String reposUrl;
+
+    private String reposUser;
+
+    private String reposPassword;
 
     private int limit;
 
     void onSubmit() {
         log.info("Start harvesting");
         try {
-            Harvester harvester = new Harvester(config.getSolrBaseUrl()
-                    + "/update");
-            harvester.harvest(reposUrl, reposName, limit);
+            String solrUpdateUrl = config.getSolrBaseUrl() + "/update";
+            Registry registry = new Fedora30Registry(
+                config.getRegistryBaseUrl(), config.getRegistryUser(),
+                registryPassword);
+            Harvester harvester = null;
+            if (reposType == RepositoryType.OAI_PMH) {
+                harvester = new OaiPmhHarvester(solrUpdateUrl, registry, limit);
+            } else if (reposType == RepositoryType.VITAL_FEDORA) {
+                harvester = new VitalFedoraHarvester(solrUpdateUrl, registry,
+                    limit);
+            }
+            if (harvester != null) {
+                harvester.setAuthentication(reposUser, reposPassword);
+                harvester.harvest(reposName, reposUrl);
+            }
         } catch (MalformedURLException e) {
             log.error("Invalid Solr URL", e);
         } catch (Exception e) {
@@ -57,12 +85,20 @@ public class Harvest {
         this.config = config;
     }
 
-    public String getReposUrl() {
-        return reposUrl;
+    public String getRegistryPassword() {
+        return registryPassword;
     }
 
-    public void setReposUrl(String reposUrl) {
-        this.reposUrl = reposUrl;
+    public void setRegistryPassword(String registryPassword) {
+        this.registryPassword = registryPassword;
+    }
+
+    public RepositoryType getReposType() {
+        return reposType;
+    }
+
+    public void setReposType(RepositoryType reposType) {
+        this.reposType = reposType;
     }
 
     public String getReposName() {
@@ -71,6 +107,30 @@ public class Harvest {
 
     public void setReposName(String reposName) {
         this.reposName = reposName;
+    }
+
+    public String getReposUrl() {
+        return reposUrl;
+    }
+
+    public void setReposUrl(String reposUrl) {
+        this.reposUrl = reposUrl;
+    }
+
+    public String getReposUser() {
+        return reposUser;
+    }
+
+    public void setReposUser(String reposUser) {
+        this.reposUser = reposUser;
+    }
+
+    public String getReposPassword() {
+        return reposPassword;
+    }
+
+    public void setReposPassword(String reposPassword) {
+        this.reposPassword = reposPassword;
     }
 
     public int getLimit() {
