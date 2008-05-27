@@ -2,10 +2,14 @@ package au.edu.usq.solr;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 
 import org.apache.log4j.Logger;
+
+import au.edu.usq.solr.portal.Portal;
 
 public class PropertiesConfiguration implements Configuration {
 
@@ -33,9 +37,17 @@ public class PropertiesConfiguration implements Configuration {
 
     private static final String REGISTRY_PASSWORD_KEY = "registry.password";
 
+    private static final String PORTAL_NAME_KEY = "portal.name.";
+
+    private static final String PORTAL_FACETS_KEY = "portal.facets.";
+
     private Logger log = Logger.getLogger(PropertiesConfiguration.class);
 
     private Properties props;
+
+    private Map<String, Portal> portalMap;
+
+    private List<Portal> portals;
 
     public PropertiesConfiguration() {
         loadDefaults();
@@ -126,5 +138,27 @@ public class PropertiesConfiguration implements Configuration {
 
     private int getIntProperty(String key) {
         return Integer.parseInt(getProperty(key));
+    }
+
+    public List<Portal> getPortals() {
+        if (portals == null) {
+            portals = new ArrayList<Portal>();
+            portals.add(Portal.getDefaultPortal());
+            Iterator it = props.keySet().iterator();
+            while (it.hasNext()) {
+                String key = it.next().toString();
+                if (key.startsWith(PORTAL_NAME_KEY)) {
+                    String num = key.substring(key.lastIndexOf('.') + 1);
+                    String name = getProperty(PORTAL_NAME_KEY + num);
+                    String query = getProperty(PORTAL_FACETS_KEY + num);
+                    portals.add(new Portal(name, query));
+                }
+            }
+        }
+        return portals;
+    }
+
+    public void setPortals(List<Portal> portals) {
+        this.portals = portals;
     }
 }

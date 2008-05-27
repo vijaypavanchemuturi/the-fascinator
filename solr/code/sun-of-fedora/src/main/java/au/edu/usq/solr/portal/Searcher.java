@@ -34,14 +34,21 @@ public class Searcher {
 
     private Configuration config;
 
+    private Portal portal;
+
     public Searcher(Configuration config) {
         this.config = config;
         solrBaseUrl = config.getSolrBaseUrl();
         recordsPerPage = config.getRecordsPerPage();
         start = 0;
+        portal = null;
         searchFields = new ArrayList<String>();
         facetLimits = new ArrayList<String>();
         facetFields = new ArrayList<String>();
+    }
+
+    public void setPortal(Portal portal) {
+        this.portal = portal;
     }
 
     public void setStart(int start) {
@@ -95,6 +102,10 @@ public class Searcher {
         StringBuilder url = new StringBuilder(solrBaseUrl);
         url.append("/select?q=");
         url.append(URLEncoder.encode(query, "UTF-8"));
+        if (portal != null) {
+            url.append("&fq=");
+            url.append(portal.getEncodedQuery());
+        }
         for (String limit : facetLimits) {
             url.append("&fq=");
             url.append(URLEncoder.encode(limit, "UTF-8"));

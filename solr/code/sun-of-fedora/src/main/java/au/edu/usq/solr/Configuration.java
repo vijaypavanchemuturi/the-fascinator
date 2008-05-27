@@ -2,6 +2,8 @@ package au.edu.usq.solr;
 
 import java.util.List;
 
+import au.edu.usq.solr.portal.Portal;
+
 public interface Configuration {
 
     public void setSolrBaseUrl(String solrBaseUrl);
@@ -29,4 +31,8 @@ public interface Configuration {
     public void setRegistryUser(String registryUser);
 
     public String getRegistryUser();
+
+    public List<Portal> getPortals();
+
+    public void setPortals(List<Portal> portals);
 }

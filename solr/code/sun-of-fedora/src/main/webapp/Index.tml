@@ -1,0 +1,36 @@
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:t="http://tapestry.apache.org/schema/tapestry_5_0_0.xsd">
+  <head>
+    <title>USQ Solr Portal Demo</title>
+    <link rel="stylesheet" type="text/css" href="${stylesheet}" />
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+  </head>
+  <body>
+    <h1>USQ Solr Portal Demo</h1>
+    <h2>Portals</h2>
+    <t:loop t:source="config.portals" t:value="portal">
+      <a href="search/${portal.name}">${portal.name}</a> [${portal.query}]<br/>
+    </t:loop>
+    <h2>Create portal</h2>
+    <form t:type="form">
+      <table>
+        <tr>
+          <th>Name</th>
+          <td>
+            <input type="text" size="20" t:type="textfield" t:value="name"/>
+          </td>
+        </tr>
+        <tr>
+          <th>Query</th>
+          <td>
+            <input type="text" size="40" t:type="textfield" t:value="query"/>
+          </td>
+        </tr>
+        <tr>
+          <td colspan="2">
+            <input type="submit" value="Add portal" t:type="submit"/>
+          </td>
+        </tr>
+      </table>
+    </form>
+  </body>
+</html>

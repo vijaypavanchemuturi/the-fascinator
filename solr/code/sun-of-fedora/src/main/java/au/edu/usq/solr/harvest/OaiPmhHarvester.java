@@ -1,6 +1,5 @@
 package au.edu.usq.solr.harvest;
 
-
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
@@ -30,10 +29,8 @@ import org.pdfbox.util.PDFTextStripper;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
-import au.edu.usq.solr.util.OaiDcContext;
-
-
 import ORG.oclc.oai.harvester2.verb.ListRecords;
+import au.edu.usq.solr.util.OaiDcContext;
 
 public class OaiPmhHarvester implements Harvester {
 
@@ -170,6 +167,14 @@ public class OaiPmhHarvester implements Harvester {
                 } else {
                     log.info("Extracting text from " + url);
                     stripper.writeText(pddoc, out);
+                }
+                // HACK for usq eprints throttle the pdf downloads
+                if (url.startsWith("http://eprints.usq.edu.au/")) {
+                    try {
+                        log.debug("Waiting 5 seconds before next request");
+                        Thread.sleep(5000);
+                    } catch (InterruptedException e) {
+                    }
                 }
                 pddoc.close();
             }

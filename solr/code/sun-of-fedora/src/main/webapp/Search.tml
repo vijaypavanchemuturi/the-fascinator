@@ -7,7 +7,8 @@
   <body>
     <h1>USQ Solr Portal Demo</h1>
     <div class="search">
-      <form t:type="form" t:context="query">
+      <p><a t:type="pagelink" t:page="index">Portal</a>: ${portal}</p>
+      <form t:type="form" t:context="context">
         <input type="text" class="search-field" t:type="textfield" t:value="query" />
         <input type="submit" value="Search" t:type="submit" />
         &#160;[<a t:type="actionlink" t:id="configure">settings</a>]
@@ -15,10 +16,11 @@
     </div>
     <div class="facet-limits">
       <t:if t:test="facetLimits">
-        <h2>Selected facets</h2><p>[<a t:type="actionlink" t:id="clearfacets">clear all</a>]</p>
+        <h2>Selected facets</h2>
+        [<a t:type="actionlink" t:id="clearfacets">clear all</a>]
         <ul>
           <li t:type="loop" t:source="facetLimits" t:value="facetLimit">
-            ${facetLimitClean} [<a t:type="actionlink" t:id="removefacet" t:context="facetLimit">remove</a>]
+            ${facetLimitClean} [<a t:type="actionlink" t:id="removefacet">remove</a>]
           </li>
         </ul>
       </t:if>

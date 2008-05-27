@@ -18,13 +18,16 @@ import au.edu.usq.solr.model.Response;
 import au.edu.usq.solr.model.SolrDoc;
 import au.edu.usq.solr.portal.Page;
 import au.edu.usq.solr.portal.Pagination;
+import au.edu.usq.solr.portal.Portal;
 import au.edu.usq.solr.portal.Searcher;
 
 public class Search {
 
     private Logger log = Logger.getLogger(Search.class);
 
-    private static final String SEARCH_ALL = "*:*";
+    private static final String PORTAL_ALL = "all";
+
+    private static final String QUERY_ALL = "*:*";
 
     @Inject
     @Path(value = "context:css/default.css")
@@ -32,6 +35,10 @@ public class Search {
 
     @ApplicationState
     private Configuration config;
+
+    private String[] context;
+
+    private String portal;
 
     private String query;
 
@@ -62,14 +69,21 @@ public class Search {
         return "config";
     }
 
-    void onActivate() {
-        onActivate(query == null ? SEARCH_ALL : query);
-    }
+    void onActivate(Object[] params) {
+        if (params.length == 0) {
+            portal = PORTAL_ALL;
+        }
+        if (params.length >= 1) {
+            portal = params[0].toString();
+        }
+        if (params.length == 2) {
+            query = params[1].toString();
+        }
+        if (query == null || params.length == 1) {
+            query = QUERY_ALL;
+        }
 
-    void onActivate(String query) {
-        log.info("onActivate: " + query);
-
-        this.query = SEARCH_ALL.equals(query) ? null : query;
+        log.info("onActivate: " + portal + "/" + query);
         pageNum = Math.max(pageNum, 1);
 
         if (facetLimits == null) {
@@ -82,7 +96,21 @@ public class Search {
         searcher.setFacetCount(config.getFacetCount());
         searcher.setFacetFields(config.getFacetFieldList());
 
+        Portal found = null;
+        for (Portal p : config.getPortals()) {
+            if (portal.equals(p.getName().toLowerCase())) {
+                found = p;
+                break;
+            }
+        }
+        if (found == null) {
+            log.debug("Portal '" + portal + "' not found, using ALL");
+            found = Portal.getDefaultPortal();
+        }
+        searcher.setPortal(found);
+
         for (String facetLimit : facetLimits) {
+            log.info("facetLimit: " + facetLimit);
             searcher.addFacetLimit(facetLimit);
         }
 
@@ -94,10 +122,20 @@ public class Search {
         } else {
             selectFirstPage();
         }
+
+        if (QUERY_ALL.equals(query)) {
+            query = null;
+        }
     }
 
-    String onPassivate() {
-        return query;
+    String[] onPassivate() {
+        String p = portal == null ? PORTAL_ALL : portal;
+        String q = query == null ? QUERY_ALL : query;
+        if (query == null) {
+            return new String[] { p };
+        } else {
+            return new String[] { p, q };
+        }
     }
 
     public boolean getShowResults() {
@@ -113,7 +151,7 @@ public class Search {
 
     public boolean getShowLast() {
         return (pagination.getLastPage() > 5)
-                && (pageNum != pagination.getLastPage());
+            && (pageNum != pagination.getLastPage());
     }
 
     @OnEvent(component = "addfacet")
@@ -190,8 +228,16 @@ public class Search {
         this.stylesheet = stylesheet;
     }
 
+    public String getPortal() {
+        return portal;
+    }
+
+    public void setPortal(String portal) {
+        this.portal = portal;
+    }
+
     public String getQuery() {
-        return query;
+        return QUERY_ALL.equals(query) ? "" : query;
     }
 
     public void setQuery(String query) {
@@ -260,5 +306,13 @@ public class Search {
 
     public void setPagination(Pagination pagination) {
         this.pagination = pagination;
+    }
+
+    public String[] getContext() {
+        return context;
+    }
+
+    public void setContext(String[] context) {
+        this.context = context;
     }
 }
