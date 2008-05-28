@@ -43,6 +43,17 @@ public class Portal implements Comparable<Portal> {
         return URLEncoder.encode(query, "UTF8");
     }
 
+    @Override
+    public boolean equals(Object that) {
+        if (this == that) {
+            return true;
+        }
+        if (that instanceof Portal) {
+            return name.equals(((Portal) that).getName());
+        }
+        return false;
+    }
+
     public int compareTo(Portal that) {
         return name.compareTo(that.getName());
     }

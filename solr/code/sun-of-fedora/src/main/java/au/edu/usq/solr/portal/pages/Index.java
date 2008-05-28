@@ -1,5 +1,7 @@
 package au.edu.usq.solr.portal.pages;
 
+import java.util.Set;
+
 import org.apache.log4j.Logger;
 import org.apache.tapestry.Asset;
 import org.apache.tapestry.annotations.ApplicationState;
@@ -33,7 +35,12 @@ public class Index {
 
     void onSubmit() {
         if (name != null && query != null) {
-            config.getPortals().add(new Portal(name, query));
+            Set<Portal> portals = config.getPortals();
+            Portal newPortal = new Portal(name, query);
+            if (portals.contains(newPortal)) {
+                portals.remove(newPortal);
+            }
+            portals.add(newPortal);
         }
         log.info(String.format("name=%s,query=%s", name, query));
     }
