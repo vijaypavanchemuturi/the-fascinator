@@ -3,7 +3,7 @@ package au.edu.usq.solr.portal;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 
-public class Portal {
+public class Portal implements Comparable<Portal> {
 
     private static Portal defaultPortal = null;
 
@@ -41,5 +41,9 @@ public class Portal {
 
     public String getEncodedQuery() throws UnsupportedEncodingException {
         return URLEncoder.encode(query, "UTF8");
+    }
+
+    public int compareTo(Portal that) {
+        return name.compareTo(that.getName());
     }
 }

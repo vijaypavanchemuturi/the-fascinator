@@ -1,6 +1,7 @@
 package au.edu.usq.solr;
 
 import java.util.List;
+import java.util.Set;
 
 import au.edu.usq.solr.portal.Portal;
 
@@ -32,7 +33,7 @@ public interface Configuration {
 
     public String getRegistryUser();
 
-    public List<Portal> getPortals();
+    public Set<Portal> getPortals();
 
-    public void setPortals(List<Portal> portals);
+    public void setPortals(Set<Portal> portals);
 }

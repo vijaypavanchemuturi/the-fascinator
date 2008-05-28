@@ -98,7 +98,7 @@ public class Search {
 
         Portal found = null;
         for (Portal p : config.getPortals()) {
-            if (portal.equals(p.getName().toLowerCase())) {
+            if (portal.equals(p.getName())) {
                 found = p;
                 break;
             }

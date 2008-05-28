@@ -6,6 +6,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
+import java.util.TreeSet;
 
 import org.apache.log4j.Logger;
 
@@ -47,7 +49,7 @@ public class PropertiesConfiguration implements Configuration {
 
     private Map<String, Portal> portalMap;
 
-    private List<Portal> portals;
+    private Set<Portal> portals;
 
     public PropertiesConfiguration() {
         loadDefaults();
@@ -140,9 +142,9 @@ public class PropertiesConfiguration implements Configuration {
         return Integer.parseInt(getProperty(key));
     }
 
-    public List<Portal> getPortals() {
+    public Set<Portal> getPortals() {
         if (portals == null) {
-            portals = new ArrayList<Portal>();
+            portals = new TreeSet<Portal>();
             portals.add(Portal.getDefaultPortal());
             Iterator it = props.keySet().iterator();
             while (it.hasNext()) {
@@ -158,7 +160,7 @@ public class PropertiesConfiguration implements Configuration {
         return portals;
     }
 
-    public void setPortals(List<Portal> portals) {
+    public void setPortals(Set<Portal> portals) {
         this.portals = portals;
     }
 }
