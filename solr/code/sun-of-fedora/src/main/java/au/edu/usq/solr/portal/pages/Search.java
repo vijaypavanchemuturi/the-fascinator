@@ -105,6 +105,7 @@ public class Search {
         }
         if (found == null) {
             log.debug("Portal '" + portal + "' not found, using ALL");
+            portal = PORTAL_ALL;
             found = Portal.getDefaultPortal();
         }
         searcher.setPortal(found);
@@ -172,7 +173,11 @@ public class Search {
             s.append("/");
             s.append(limit);
         }
-        return s.toString().substring(1);
+        String t = s.toString();
+        if (t.length() > 0) {
+            t = t.substring(1);
+        }
+        return t;
     }
 
     @OnEvent(component = "clearfacets")

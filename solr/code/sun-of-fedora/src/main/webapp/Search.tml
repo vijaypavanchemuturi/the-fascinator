@@ -20,7 +20,7 @@
         [<a t:type="actionlink" t:id="clearfacets">clear all</a>]
         <ul>
           <li t:type="loop" t:source="facetLimits" t:value="facetLimit">
-            ${facetLimitClean} [<a t:type="actionlink" t:id="removefacet">remove</a>]
+            ${facetLimitClean} [<a t:type="actionlink" t:id="removefacet" t:context="facetLimit">remove</a>]
           </li>
         </ul>
       </t:if>
