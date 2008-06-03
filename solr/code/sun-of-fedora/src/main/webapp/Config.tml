@@ -15,24 +15,6 @@
         </td>
       </tr>
       <tr>
-        <td>Facets</td>
-        <td>
-          <input type="text" size="60" t:type="textfield" t:value="config.facetFields"/>
-        </td>
-      </tr>
-      <tr>
-        <td>Facet count</td>
-        <td>
-          <input type="text" size="10" t:type="textfield" t:value="config.facetCount"/>
-        </td>
-      </tr>
-      <tr>
-        <td>Records per page</td>
-        <td>
-          <input type="text" size="10" t:type="textfield" t:value="config.recordsPerPage"/>
-        </td>
-      </tr>
-      <tr>
         <td colspan="2">
           <input type="submit" value="Update" t:type="submit"/>
         </td>

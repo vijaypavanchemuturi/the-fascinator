@@ -20,27 +20,41 @@ package au.edu.usq.solr.portal;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.tapestry.beaneditor.Validate;
 
 public class Portal implements Comparable<Portal> {
 
-    private static Portal defaultPortal = null;
-
     private String name;
+
+    private String description;
 
     private String query;
 
-    public static Portal getDefaultPortal() {
-        if (defaultPortal == null) {
-            defaultPortal = new Portal("all", "");
-        }
-        return defaultPortal;
-    }
+    private int recordsPerPage;
+
+    private int facetCount;
+
+    private Map<String, String> facetFields;
 
     public Portal(String name, String query) {
-        this.name = name;
-        this.query = query;
+        this(name, name.substring(0, 1).toUpperCase() + name.substring(1),
+            query);
     }
 
+    public Portal(String name, String description, String query) {
+        this.name = name;
+        this.description = description;
+        this.query = query;
+        this.recordsPerPage = 25;
+        this.facetCount = 25;
+    }
+
+    @Validate("required")
     public String getName() {
         return name;
     }
@@ -49,6 +63,15 @@ public class Portal implements Comparable<Portal> {
         this.name = name;
     }
 
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    @Validate("required")
     public String getQuery() {
         return query;
     }
@@ -59,6 +82,37 @@ public class Portal implements Comparable<Portal> {
 
     public String getEncodedQuery() throws UnsupportedEncodingException {
         return URLEncoder.encode(query, "UTF8");
+    }
+
+    public int getRecordsPerPage() {
+        return recordsPerPage;
+    }
+
+    public void setRecordsPerPage(int recordsPerPage) {
+        this.recordsPerPage = recordsPerPage;
+    }
+
+    public int getFacetCount() {
+        return facetCount;
+    }
+
+    public void setFacetCount(int facetCount) {
+        this.facetCount = facetCount;
+    }
+
+    public Map<String, String> getFacetFields() {
+        if (facetFields == null) {
+            facetFields = new HashMap<String, String>();
+        }
+        return facetFields;
+    }
+
+    public void setFacetFields(Map<String, String> facetFields) {
+        this.facetFields = facetFields;
+    }
+
+    public List<String> getFacetFieldList() {
+        return new ArrayList<String>(getFacetFields().keySet());
     }
 
     @Override

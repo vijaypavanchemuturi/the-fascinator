@@ -18,30 +18,24 @@
  */
 package au.edu.usq.solr;
 
-import java.util.List;
 import java.util.Set;
 
 import au.edu.usq.solr.portal.Portal;
+import au.edu.usq.solr.portal.PortalManager;
 
 public interface Configuration {
+
+    public PortalManager getPortalManager();
 
     public void setSolrBaseUrl(String solrBaseUrl);
 
     public String getSolrBaseUrl();
 
-    public void setRecordsPerPage(int recordsPerPage);
+    public void setCurrentPortal(Portal portal);
 
-    public int getRecordsPerPage();
+    public Portal getCurrentPortal();
 
-    public void setFacetFields(String facetFields);
-
-    public String getFacetFields();
-
-    public List<String> getFacetFieldList();
-
-    public void setFacetCount(int facetCount);
-
-    public int getFacetCount();
+    public Set<Portal> getPortals();
 
     public void setRegistryBaseUrl(String registryBaseUrl);
 
@@ -51,7 +45,7 @@ public interface Configuration {
 
     public String getRegistryUser();
 
-    public Set<Portal> getPortals();
+    public String getProperty(String key);
 
-    public void setPortals(Set<Portal> portals);
+    public void setProperty(String key, String value);
 }

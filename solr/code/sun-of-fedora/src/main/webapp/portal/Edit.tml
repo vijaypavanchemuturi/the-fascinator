@@ -1,0 +1,24 @@
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:t="http://tapestry.apache.org/schema/tapestry_5_0_0.xsd">
+  <head>
+    <title>USQ Solr Portal Demo</title>
+    <link rel="stylesheet" type="text/css" href="${stylesheet}" />
+  </head>
+  <body>
+    <h1>USQ Solr Portal Demo</h1>
+    <h2>Edit Portal</h2>
+    <t:beaneditform t:id="editportal" t:object="portal" t:submitlabel="Save changes">
+      <t:parameter t:name="name">
+        <t:label t:for="name"/>
+        <t:textfield t:id="name" t:value="portal.name" t:readonly="true"/>
+      </t:parameter>
+      <t:parameter t:name="description">
+        <t:label t:for="description"/>
+        <t:textfield t:id="description" t:size="40" t:value="portal.description"/>
+      </t:parameter>
+      <t:parameter t:name="query">
+        <t:label t:for="query"/>
+        <t:textfield t:id="query" t:size="60" t:value="portal.query"/>
+      </t:parameter>
+    </t:beaneditform>
+  </body>
+</html>

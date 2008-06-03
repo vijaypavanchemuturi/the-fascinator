@@ -16,16 +16,22 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-package au.edu.usq.solr.portal.pages;
+package au.edu.usq.solr.portal.pages.portal;
 
+import org.apache.log4j.Logger;
 import org.apache.tapestry.Asset;
 import org.apache.tapestry.annotations.ApplicationState;
+import org.apache.tapestry.annotations.InjectPage;
 import org.apache.tapestry.annotations.Path;
+import org.apache.tapestry.annotations.Persist;
 import org.apache.tapestry.ioc.annotations.Inject;
 
 import au.edu.usq.solr.Configuration;
+import au.edu.usq.solr.portal.Portal;
 
-public class Config {
+public class Create {
+
+    private Logger log = Logger.getLogger(Create.class);
 
     @Inject
     @Path(value = "context:css/default.css")
@@ -34,9 +40,11 @@ public class Config {
     @ApplicationState
     private Configuration config;
 
-    String onSubmit() {
-        return "index";
-    }
+    @InjectPage
+    private Edit editPage;
+
+    @Persist
+    private Portal portal;
 
     public Asset getStylesheet() {
         return stylesheet;
@@ -46,11 +54,39 @@ public class Config {
         this.stylesheet = stylesheet;
     }
 
+    Object onActivate(Object[] params) {
+        if (params.length == 0) {
+            if (portal == null) {
+                portal = new Portal("", "", "");
+            }
+        } else if (params.length == 1) {
+            String portalName = params[0].toString();
+            editPage.setPortalName(portalName);
+            return editPage;
+        }
+        return null;
+    }
+
+    String onSuccess() {
+        config.getPortalManager().addPortal(portal);
+        config.getPortalManager().save();
+        portal = null;
+        return "index";
+    }
+
     public Configuration getConfig() {
         return config;
     }
 
     public void setConfig(Configuration config) {
         this.config = config;
+    }
+
+    public Portal getPortal() {
+        return portal;
+    }
+
+    public void setPortal(Portal portal) {
+        this.portal = portal;
     }
 }

@@ -16,16 +16,20 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-package au.edu.usq.solr.portal.pages;
+package au.edu.usq.solr.portal.pages.portal;
 
+import org.apache.log4j.Logger;
 import org.apache.tapestry.Asset;
 import org.apache.tapestry.annotations.ApplicationState;
 import org.apache.tapestry.annotations.Path;
 import org.apache.tapestry.ioc.annotations.Inject;
 
 import au.edu.usq.solr.Configuration;
+import au.edu.usq.solr.portal.Portal;
 
-public class Config {
+public class Edit {
+
+    private Logger log = Logger.getLogger(Edit.class);
 
     @Inject
     @Path(value = "context:css/default.css")
@@ -34,9 +38,9 @@ public class Config {
     @ApplicationState
     private Configuration config;
 
-    String onSubmit() {
-        return "index";
-    }
+    private String portalName;
+
+    private Portal portal;
 
     public Asset getStylesheet() {
         return stylesheet;
@@ -52,5 +56,38 @@ public class Config {
 
     public void setConfig(Configuration config) {
         this.config = config;
+    }
+
+    String onActivate(Object[] params) {
+        if (params.length > 0) {
+            portalName = params[0].toString();
+            portal = config.getPortalManager().getPortal(portalName);
+        }
+        return portal == null ? "index" : null;
+    }
+
+    String onPassivate() {
+        return portalName;
+    }
+
+    String onSuccess() {
+        config.getPortalManager().save();
+        return "index";
+    }
+
+    public String getPortalName() {
+        return portalName;
+    }
+
+    public void setPortalName(String portalName) {
+        this.portalName = portalName;
+    }
+
+    public Portal getPortal() {
+        return portal;
+    }
+
+    public void setPortal(Portal portal) {
+        this.portal = portal;
     }
 }

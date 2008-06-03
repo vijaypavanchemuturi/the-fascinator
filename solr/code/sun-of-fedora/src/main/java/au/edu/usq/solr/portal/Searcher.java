@@ -57,7 +57,7 @@ public class Searcher {
     public Searcher(Configuration config) {
         this.config = config;
         solrBaseUrl = config.getSolrBaseUrl();
-        recordsPerPage = config.getRecordsPerPage();
+        recordsPerPage = config.getCurrentPortal().getRecordsPerPage();
         start = 0;
         portal = null;
         searchFields = new ArrayList<String>();

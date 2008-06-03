@@ -23,7 +23,7 @@ import org.apache.tapestry.services.ApplicationStateContribution;
 import org.apache.tapestry.services.ApplicationStateCreator;
 
 import au.edu.usq.solr.Configuration;
-import au.edu.usq.solr.PropertiesConfiguration;
+import au.edu.usq.solr.DefaultConfiguration;
 
 public class AppModule {
 
@@ -31,7 +31,7 @@ public class AppModule {
         MappedConfiguration<Class<Configuration>, ApplicationStateContribution> config) {
         ApplicationStateCreator<Configuration> creator = new ApplicationStateCreator<Configuration>() {
             public Configuration create() {
-                return new PropertiesConfiguration();
+                return new DefaultConfiguration();
             }
         };
         config.add(Configuration.class, new ApplicationStateContribution(

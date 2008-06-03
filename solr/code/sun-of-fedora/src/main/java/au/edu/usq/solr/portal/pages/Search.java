@@ -24,10 +24,11 @@ import java.util.Set;
 import org.apache.log4j.Logger;
 import org.apache.tapestry.Asset;
 import org.apache.tapestry.annotations.ApplicationState;
+import org.apache.tapestry.annotations.InjectPage;
 import org.apache.tapestry.annotations.OnEvent;
-import org.apache.tapestry.annotations.Path;
 import org.apache.tapestry.annotations.Persist;
 import org.apache.tapestry.ioc.annotations.Inject;
+import org.apache.tapestry.services.AssetSource;
 
 import au.edu.usq.solr.Configuration;
 import au.edu.usq.solr.model.Facet;
@@ -38,6 +39,7 @@ import au.edu.usq.solr.portal.Page;
 import au.edu.usq.solr.portal.Pagination;
 import au.edu.usq.solr.portal.Portal;
 import au.edu.usq.solr.portal.Searcher;
+import au.edu.usq.solr.portal.pages.portal.Create;
 
 public class Search {
 
@@ -48,15 +50,14 @@ public class Search {
     private static final String QUERY_ALL = "*:*";
 
     @Inject
-    @Path(value = "context:css/default.css")
-    private Asset stylesheet;
+    private AssetSource assetSource;
 
     @ApplicationState
     private Configuration config;
 
     private String[] context;
 
-    private String portal;
+    private String portalName;
 
     private String query;
 
@@ -83,16 +84,17 @@ public class Search {
     @Persist
     private Pagination pagination;
 
-    String onActionFromConfigure() {
-        return "config";
-    }
+    @InjectPage(value = "portal/create")
+    private Create createPortalPage;
 
     void onActivate(Object[] params) {
+        for (Object o : params)
+            log.debug(o + ":" + o.getClass());
         if (params.length == 0) {
-            portal = PORTAL_ALL;
+            portalName = PORTAL_ALL;
         }
         if (params.length >= 1) {
-            portal = params[0].toString();
+            portalName = params[0].toString();
         }
         if (params.length == 2) {
             query = params[1].toString();
@@ -101,33 +103,35 @@ public class Search {
             query = QUERY_ALL;
         }
 
-        log.info("onActivate: " + portal + "/" + query);
+        log.info("onActivate: " + getPortalName() + "/" + query);
         pageNum = Math.max(pageNum, 1);
 
         if (facetLimits == null) {
             facetLimits = new HashSet<String>();
         }
 
-        int recordsPerPage = config.getRecordsPerPage();
+        Portal currentPortal = config.getCurrentPortal();
+        int recordsPerPage = currentPortal.getRecordsPerPage();
 
         Searcher searcher = new Searcher(config);
-        searcher.setFacetCount(config.getFacetCount());
-        searcher.setFacetFields(config.getFacetFieldList());
+        searcher.setFacetCount(currentPortal.getFacetCount());
+        searcher.setFacetFields(currentPortal.getFacetFieldList());
 
         Portal found = null;
         for (Portal p : config.getPortals()) {
-            if (portal.equals(p.getName())) {
+            if (portalName.equals(p.getName())) {
                 found = p;
                 break;
             }
         }
         if (found == null) {
-            log.debug("Portal '" + portal + "' not found, using ALL");
-            portal = PORTAL_ALL;
-            found = Portal.getDefaultPortal();
+            log.debug("Portal '" + portalName + "' not found, using ALL");
+            portalName = PORTAL_ALL;
+            found = config.getPortalManager().getDefaultPortal();
         }
+        config.setCurrentPortal(found);
         searcher.setPortal(found);
-
+        log.debug("portal=" + portalName);
         for (String facetLimit : facetLimits) {
             log.info("facetLimit: " + facetLimit);
             searcher.addFacetLimit(facetLimit);
@@ -148,7 +152,7 @@ public class Search {
     }
 
     String[] onPassivate() {
-        String p = portal == null ? PORTAL_ALL : portal;
+        String p = portalName == null ? PORTAL_ALL : portalName;
         String q = query == null ? QUERY_ALL : query;
         if (query == null) {
             return new String[] { p };
@@ -176,19 +180,19 @@ public class Search {
     @OnEvent(component = "addfacet")
     void addFacetLimit(Object[] limits) {
         selectFirstPage();
-        facetLimits.add(parseFacetLimits(limits));
+        facetLimits.add(parseFacetLimits(limits, '/'));
     }
 
     @OnEvent(component = "removefacet")
     void removeFacetLimit(Object[] limits) {
         selectFirstPage();
-        facetLimits.remove(parseFacetLimits(limits));
+        facetLimits.remove(parseFacetLimits(limits, '/'));
     }
 
-    private String parseFacetLimits(Object[] limits) {
+    private String parseFacetLimits(Object[] limits, char sep) {
         StringBuilder s = new StringBuilder();
         for (Object limit : limits) {
-            s.append("/");
+            s.append(sep);
             s.append(limit);
         }
         String t = s.toString();
@@ -202,6 +206,22 @@ public class Search {
     void clearFacetLimits() {
         selectFirstPage();
         facetLimits.clear();
+    }
+
+    @OnEvent(component = "createportal")
+    Object createFromSelected() {
+        String[] facetArray = facetLimits.toArray(new String[] {});
+        String limits = parseFacetLimits(facetArray, '+');
+        String portalName = facetArray[facetArray.length - 1];
+        portalName = portalName.substring(portalName.indexOf(':') + 2,
+            portalName.length() - 1);
+        Portal current = config.getCurrentPortal();
+        if (current != null && !"".equals(current.getQuery())) {
+            limits = current.getQuery() + "+" + limits;
+        }
+        Portal portal = new Portal(portalName, limits);
+        createPortalPage.setPortal(portal);
+        return createPortalPage;
     }
 
     @OnEvent(component = "selectpage")
@@ -244,19 +264,26 @@ public class Search {
     }
 
     public Asset getStylesheet() {
-        return stylesheet;
+        Asset asset;
+        try {
+            String stylesheet = "/portal/" + portalName + "/style.css";
+            asset = assetSource.getAsset(null, stylesheet, null);
+        } catch (Exception e) {
+            log.warn(e.getMessage());
+            asset = assetSource.getAsset(null, "context:css/default.css", null);
+        }
+        return asset;
     }
 
     public void setStylesheet(Asset stylesheet) {
-        this.stylesheet = stylesheet;
     }
 
-    public String getPortal() {
-        return portal;
+    public String getPortalName() {
+        return portalName;
     }
 
-    public void setPortal(String portal) {
-        this.portal = portal;
+    public void setPortalName(String portal) {
+        this.portalName = portal;
     }
 
     public String getQuery() {
@@ -337,5 +364,14 @@ public class Search {
 
     public void setContext(String[] context) {
         this.context = context;
+    }
+
+    public String getFacetListDisplayName() {
+        String name = getFacetList().getName();
+        return config.getCurrentPortal().getFacetFields().get(name);
+    }
+
+    public Configuration getConfig() {
+        return config;
     }
 }

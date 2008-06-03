@@ -18,13 +18,14 @@
  */
 package au.edu.usq.solr.portal.pages;
 
-import java.util.Set;
-
 import org.apache.log4j.Logger;
 import org.apache.tapestry.Asset;
+import org.apache.tapestry.ComponentResources;
 import org.apache.tapestry.annotations.ApplicationState;
 import org.apache.tapestry.annotations.Path;
+import org.apache.tapestry.beaneditor.BeanModel;
 import org.apache.tapestry.ioc.annotations.Inject;
+import org.apache.tapestry.services.BeanModelSource;
 
 import au.edu.usq.solr.Configuration;
 import au.edu.usq.solr.portal.Portal;
@@ -42,26 +43,13 @@ public class Index {
 
     private Portal portal;
 
-    private String name;
+    @Inject
+    private ComponentResources resources;
 
-    private String query;
+    @Inject
+    private BeanModelSource beanModelSource;
 
-    String onActivate(String portalName) {
-        log.info("set portal to " + portalName);
-        return "search";
-    }
-
-    void onSubmit() {
-        if (name != null && query != null) {
-            Set<Portal> portals = config.getPortals();
-            Portal newPortal = new Portal(name, query);
-            if (portals.contains(newPortal)) {
-                portals.remove(newPortal);
-            }
-            portals.add(newPortal);
-        }
-        log.info(String.format("name=%s,query=%s", name, query));
-    }
+    private BeanModel<Portal> model;
 
     public Asset getStylesheet() {
         return stylesheet;
@@ -87,19 +75,19 @@ public class Index {
         this.portal = portal;
     }
 
-    public String getName() {
-        return name;
+    public boolean isEditable() {
+        return !portal.equals(config.getPortalManager().getDefaultPortal());
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public BeanModel<Portal> getModel() {
+        if (model == null) {
+            model = beanModelSource.create(Portal.class, true, resources);
+            model.add("edit", null);
+        }
+        return model;
     }
 
-    public String getQuery() {
-        return query;
-    }
-
-    public void setQuery(String query) {
-        this.query = query;
+    public void setModel(BeanModel<Portal> model) {
+        this.model = model;
     }
 }

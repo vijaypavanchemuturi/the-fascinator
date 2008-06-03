@@ -7,11 +7,10 @@
   <body>
     <h1>USQ Solr Portal Demo</h1>
     <div class="search">
-      <p><a t:type="pagelink" t:page="index">Portal</a>: ${portal}</p>
+      <p><a t:type="pagelink" t:page="index">Portal</a>: ${config.currentPortal.description}</p>
       <form t:type="form" t:context="context">
         <input type="text" class="search-field" t:type="textfield" t:value="query" />
         <input type="submit" value="Search" t:type="submit" />
-        &#160;[<a t:type="actionlink" t:id="configure">settings</a>]
       </form>
     </div>
     <div class="facet-limits">
@@ -23,13 +22,14 @@
             ${facetLimitClean} [<a t:type="actionlink" t:id="removefacet" t:context="facetLimit">remove</a>]
           </li>
         </ul>
+        [<a t:type="actionlink" t:id="createportal">create portal from selected</a>]
       </t:if>
     </div>
     <div class="facets">
       <t:if t:test="showResults">
         <h1>Facets</h1>
         <div t:type="loop" t:source="response.facetLists" t:value="facetList">
-          <h2 class="facet-title">${facetList.name}</h2>
+          <h2 class="facet-title">${facetListDisplayName}</h2>
           <ul t:type="loop" t:source="facetList.facets" t:value="facet">
             <li class="facet-value">
               <a t:type="actionlink"

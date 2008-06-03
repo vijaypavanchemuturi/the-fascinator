@@ -6,31 +6,18 @@
   </head>
   <body>
     <h1>USQ Solr Portal Demo</h1>
+    <p><a t:type="pagelink" t:page="config">Configuration</a></p>
     <h2>Portals</h2>
-    <t:loop t:source="config.portals" t:value="portal">
-      <a href="search/${portal.name}">${portal.name}</a> [${portal.query}]<br/>
-    </t:loop>
-    <h2>Create portal</h2>
-    <form t:type="form">
-      <table>
-        <tr>
-          <th>Name</th>
-          <td>
-            <input type="text" size="20" t:type="textfield" t:value="name"/>
-          </td>
-        </tr>
-        <tr>
-          <th>Query</th>
-          <td>
-            <input type="text" size="40" t:type="textfield" t:value="query"/>
-          </td>
-        </tr>
-        <tr>
-          <td colspan="2">
-            <input type="submit" value="Add portal" t:type="submit"/>
-          </td>
-        </tr>
-      </table>
-    </form>
+    <t:grid t:source="config.portals" t:row="portal" t:model="model" t:include="name,query,edit">
+      <t:parameter t:name="namecell">
+        <a t:type="pagelink" t:page="search" t:context="portal.name">${portal.description}</a>
+      </t:parameter>
+      <t:parameter t:name="editcell">
+        <t:if t:test="editable">
+          <a t:type="pagelink" t:page="portal/edit" t:context="portal.name">Edit</a>
+        </t:if>
+      </t:parameter>
+    </t:grid>
+    <p><a t:type="pagelink" t:page="portal/create">Create portal</a></p>
   </body>
 </html>
