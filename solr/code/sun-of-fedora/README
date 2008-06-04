@@ -1,4 +1,49 @@
-Solr Portal
-===========
+Sun of Fedora
+=============
 
-TODO
+This application is a web portal front-end for searching institutional
+repositories. It is based on the Apache Solr indexing software.
+
+Requirements
+============
+
+  * Java 5 (or greater)
+  * Apache Tomcat 5 (or greater)
+  * Maven 2
+
+Installation
+============
+
+1. Check out the source code and change to the directory it was checked out to
+
+   svn co https://rubric-central.usq.edu.au/solrsvn/public/sun-of-fedora
+   cd sun-of-fedora
+
+2. Copy the sample portal configuration to ~/.sun-of-fedora directory. Where
+   '~' is the home directory for that user that runs the Tomcat app server.
+
+   cp src/main/resources/sample_portals.xml ~/.sun-of-fedora
+
+   Note: If you wish to use a different directory to store the configuration,
+   set the SUN_OF_FEDORA_HOME environment variable to point to that directory.
+
+3. Build the web package using Maven. This will create target/sun-of-fedora.war.
+
+   mvn compile war:war
+
+4. Copy the web package to your Tomcat's webapps directory.
+
+   cp target/sun-of-fedora.war /opt/fedora/tomcat/webapps
+
+5. Startup Tomcat and open a browser to http://$server:$port/sun-of-fedora to
+   test if the application was deployed correctly.
+
+Portal-specific stylesheets
+===========================
+Each portal can be given a distinct look by using a different CSS. The CSS file
+must be named 'style.css' and placed in the following directory:
+
+  $TOMCAT_HOME/webapps/sun-of-fedora/WEB-INF/classes/portal/$PORTAL_NAME
+
+where $PORTAL_NAME is the name of the portal that stylesheet applies to.
+
