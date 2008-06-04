@@ -83,7 +83,6 @@ a:hover {
 }
 /***logo ***/
 div.logo{
-	width: 67px; height: 55px;
 	background: url('/sun-of-fedora/images/logo-sub.gif');
 	margin: 4 4 4 4;
 	padding-top: 5px;
