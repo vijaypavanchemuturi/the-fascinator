@@ -84,6 +84,7 @@ a:hover {
 /***logo ***/
 div.logo{
 	background: url('/sun-of-fedora/images/logo-sub.gif');
+	background-repeat: no-repeat;
 	margin: 4 4 4 4;
 	padding-top: 5px;
 	padding-left: 5px;
