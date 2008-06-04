@@ -84,7 +84,7 @@ a:hover {
 /***logo ***/
 div.logo{
 	background: url('/sun-of-fedora/images/eprints/USQAustralia_logo2.gif');
-	background-repeat: none;
+	background-repeat: no-repeat;
 	margin: 4 4 4 4;
 	padding-top: 5px;
 	padding-left: 5px;
