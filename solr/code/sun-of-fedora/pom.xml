@@ -88,6 +88,13 @@
       <systemPath>${basedir}/lib/trippi-1.2-core.jar</systemPath>
     </dependency>
     <dependency>
+      <groupId>fedoracommons</groupId>
+      <artifactId>jrdf</artifactId>
+      <version>0.3.4.3</version>
+      <scope>system</scope>
+      <systemPath>${basedir}/lib/jrdf-0.3.4.3.jar</systemPath>
+    </dependency>
+    <dependency>
       <groupId>javax.xml</groupId>
       <artifactId>jaxrpc-api</artifactId>
       <version>1.1</version>

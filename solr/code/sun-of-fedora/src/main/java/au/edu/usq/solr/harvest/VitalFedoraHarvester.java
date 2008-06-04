@@ -22,13 +22,24 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.xml.transform.Source;
+import javax.xml.transform.Templates;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.stream.StreamResult;
+import javax.xml.transform.stream.StreamSource;
+
 import org.apache.axis.types.NonNegativeInteger;
 import org.apache.log4j.Logger;
+import org.apache.solr.util.SimplePostTool;
 
 import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.rdf.model.ModelFactory;
@@ -43,8 +54,11 @@ import fedora.server.types.gen.FieldSearchQuery;
 import fedora.server.types.gen.FieldSearchResult;
 import fedora.server.types.gen.ListSession;
 import fedora.server.types.gen.ObjectFields;
+import fedora.server.utilities.StreamUtility;
 
 public class VitalFedoraHarvester implements Harvester {
+
+    private static final String TMP_DIR = System.getProperty("java.io.tmpdir");
 
     private Logger log = Logger.getLogger(VitalFedoraHarvester.class);
 
@@ -57,6 +71,10 @@ public class VitalFedoraHarvester implements Harvester {
     private String username;
 
     private String password;
+
+    private Transformer dcToSolr;
+
+    private SimplePostTool postTool;
 
     public VitalFedoraHarvester(String solrUpdateUrl, Registry registry,
         int requestLimit) throws Exception {
@@ -71,7 +89,16 @@ public class VitalFedoraHarvester implements Harvester {
     }
 
     public void harvest(String name, String url) throws HarvesterException {
+        postTool = new SimplePostTool(solrUpdateUrl);
+
         try {
+            TransformerFactory tf = TransformerFactory.newInstance();
+            Templates t = tf.newTemplates(new StreamSource(
+                getClass().getResourceAsStream("/xsl/dc_solr.xsl")));
+            dcToSolr = t.newTransformer();
+            dcToSolr.setParameter("repository-name", name);
+            dcToSolr.setParameter("tmp-dir", TMP_DIR);
+
             FedoraClient client = new FedoraClient(url, username, password);
             FedoraAPIA access = client.getAPIA();
             registry.connect();
@@ -98,6 +125,8 @@ public class VitalFedoraHarvester implements Harvester {
                     result = null;
                 }
             }
+            log.info("Commiting solr index...");
+            postTool.commit(new OutputStreamWriter(System.out));
         } catch (Exception e) {
             throw new HarvesterException(e);
         }
@@ -107,6 +136,8 @@ public class VitalFedoraHarvester implements Harvester {
         throws Exception {
         FedoraAPIA access = client.getAPIA();
         DatastreamDef[] dsDefs = access.listDatastreams(pid, "");
+        File dcFile = File.createTempFile("solrdc", ".xml");
+        dcToSolr.setParameter("has-full-text", false);
         for (DatastreamDef dsDef : dsDefs) {
             // data model is specific to USQ VITAL test repos
             // DC = dublin core
@@ -129,7 +160,35 @@ public class VitalFedoraHarvester implements Harvester {
                 if (dsId.equals("DC")) {
                     options.put("dsLabel", "Dublin Core (Source)");
                     options.put("controlGroup", "X");
-                    registry.addDatastream(newPid, "DC0", data, options);
+                    FileOutputStream fos = new FileOutputStream(dcFile);
+                    StreamUtility.pipeStream(data, fos, 4096);
+                    fos.close();
+                    FileInputStream fis = new FileInputStream(dcFile);
+                    registry.addDatastream(newPid, "DC0", fis, options);
+                    fis.close();
+                } else if (dsId.equals("FULLTEXT")) {
+                    dcToSolr.setParameter("has-full-text", true);
+                    File tmpFile = File.createTempFile("fulltext", ".txt");
+                    FileOutputStream fos = new FileOutputStream(tmpFile);
+                    StreamUtility.pipeStream(data, fos, 4096);
+                    fos.close();
+                    String fname = pid.replace(":", ".").replace("/", "_")
+                        + ".fulltext.xml";
+                    File fullTextFile = new File(TMP_DIR, fname);
+                    log.debug("fullTextFile=" + fullTextFile);
+                    OutputStream fOut = new FileOutputStream(fullTextFile);
+                    Writer osw = new OutputStreamWriter(fOut, "UTF8");
+                    osw.write("<?xml version='1.0' encoding='UTF-8'?>\n");
+                    osw.write("<fulltext><![CDATA[");
+                    FileInputStream fis = new FileInputStream(tmpFile);
+                    StreamUtility.pipeStream(fis, fOut, 4096);
+                    osw.write("]]></fulltext>");
+                    osw.close();
+                    options.put("dsLabel", dsDef.getLabel());
+                    options.put("controlGroup", "M");
+                    fis.reset();
+                    registry.addDatastream(newPid, "FULLTEXT", fis, options);
+                    fis.close();
                 } else {
                     options.put("dsLabel", dsDef.getLabel());
                     options.put("controlGroup", "M");
@@ -164,6 +223,14 @@ public class VitalFedoraHarvester implements Harvester {
                 in.close();
             }
         }
+
+        // index to solr
+        Source source = new StreamSource(dcFile);
+        File solrDocFile = File.createTempFile("solrdoc", ".xml");
+        log.debug("solrDocFile=" + solrDocFile);
+        dcToSolr.setParameter("doc-id", pid);
+        dcToSolr.transform(source, new StreamResult(solrDocFile));
+        postTool.postFile(solrDocFile, new OutputStreamWriter(System.out));
     }
 
     public static void main(String[] args) {
@@ -171,7 +238,7 @@ public class VitalFedoraHarvester implements Harvester {
             System.out.println("Usage: "
                 + VitalFedoraHarvester.class.getCanonicalName()
                 + " <solrUpdateUrl> "
-                + "<registryUrl> <registryUser> <registryPassword>"
+                + "<registryUrl> <registryUser> <registryPassword> "
                 + "<repBaseUrl> <repUser> <repPassword> <repName> "
                 + "[requestLimit]");
         } else {

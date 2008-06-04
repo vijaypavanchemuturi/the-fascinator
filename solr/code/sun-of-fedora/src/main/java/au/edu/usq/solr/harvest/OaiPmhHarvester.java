@@ -91,7 +91,7 @@ public class OaiPmhHarvester implements Harvester {
         try {
             TransformerFactory tf = TransformerFactory.newInstance();
             Templates t = tf.newTemplates(new StreamSource(
-                getClass().getResourceAsStream("/xsl/dc_solr.xsl")));
+                getClass().getResourceAsStream("/xsl/oai_dc_solr.xsl")));
 
             Transformer dcToSolr = t.newTransformer();
             dcToSolr.setParameter("repository-name", name);
