@@ -24,7 +24,6 @@ import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
-import java.io.Writer;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
@@ -175,18 +174,20 @@ public class VitalFedoraHarvester implements Harvester {
                     String fname = pid.replace(":", ".").replace("/", "_")
                         + ".fulltext.xml";
                     File fullTextFile = new File(TMP_DIR, fname);
-                    log.debug("fullTextFile=" + fullTextFile);
+                    log.info("fullTextFile=" + fullTextFile);
                     OutputStream fOut = new FileOutputStream(fullTextFile);
-                    Writer osw = new OutputStreamWriter(fOut, "UTF8");
-                    osw.write("<?xml version='1.0' encoding='UTF-8'?>\n");
-                    osw.write("<fulltext><![CDATA[");
+                    fOut.write("<?xml version='1.0' encoding='UTF-8'?>\n".getBytes());
+                    fOut.write("<fulltext><![CDATA[".getBytes());
                     FileInputStream fis = new FileInputStream(tmpFile);
                     StreamUtility.pipeStream(fis, fOut, 4096);
-                    osw.write("]]></fulltext>");
-                    osw.close();
+                    fis.close();
+                    fOut.close();
+                    fOut = new FileOutputStream(fullTextFile, true);
+                    fOut.write("]]></fulltext>".getBytes());
+                    fOut.close();
                     options.put("dsLabel", dsDef.getLabel());
                     options.put("controlGroup", "M");
-                    fis.reset();
+                    fis = new FileInputStream(tmpFile);
                     registry.addDatastream(newPid, "FULLTEXT", fis, options);
                     fis.close();
                 } else {
