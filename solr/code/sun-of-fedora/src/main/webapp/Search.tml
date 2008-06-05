@@ -5,7 +5,22 @@
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
   </head>
   <body>
-    <h1>USQ Solr Portal Demo</h1>
+  <div id="container">
+        <div id="nav">
+                <ul>
+                        <li class="home"><a href="/sun-of-fedora">home</a></li>
+                        <li><a href="/sun-of-fedora">advanced search</a></li>
+                        <li><a href="/sun-of-fedora">alerts</a></li>
+                        <li><a href="/sun-of-fedora">statistics</a></li>
+                        <li><a href="/sun-of-fedora/config">settings</a></li>
+                        <li><a href="/sun-of-fedora">about</a></li>
+                        <li><a href="/sun-of-fedora">contact</a></li>
+                </ul>
+        </div>
+        </div>
+        <div id="search_bar"></div>
+        <div class="logo"/>
+   <!-- <h1>USQ Solr Portal Demo</h1>-->
     <div class="search">
       <p><a t:type="pagelink" t:page="index">Portal</a>: ${config.currentPortal.description}</p>
       <form t:type="form" t:context="context">
