@@ -22,11 +22,11 @@
         <div id="search_bar"></div>
         <div class="logo"/>
    <!-- <h1>USQ Solr Portal Demo</h1>-->
-
+      <p><a t:type="pagelink" t:page="index">Portal</a>: ${config.currentPortal.description}</p>
 
     <div class="search">
      <h3 class="search">Search for:</h3>
-      <p><a t:type="pagelink" t:page="index">Portal</a>: ${config.currentPortal.description}</p>
+
       <form t:type="form" t:context="context">
         <input type="text" class="search-field" t:type="textfield" t:value="query" />
         <input class="search_button" type="submit" value="Search" t:type="submit" />
