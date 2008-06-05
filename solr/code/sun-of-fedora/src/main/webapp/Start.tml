@@ -6,7 +6,7 @@
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
   </head>
   <body>
-    <div t:type="VelocityPanel" t:dir="'default'" t:template="'header.vm'"/>
+    <div t:type="VelocityPanel" t:path="'default'" t:template="'header.vm'"/>
     <h2>Portals</h2>
     <div class="portal-list">
       <ul t:type="loop" t:source="state.portals" t:value="portal">
@@ -25,6 +25,6 @@
         <input class="search-button" type="submit" value="Go" t:id="search" t:type="submit"/>
       </form>
     </div>
-    <div t:type="VelocityPanel" t:dir="'default'" t:template="'footer.vm'"/>
+    <div t:type="VelocityPanel" t:path="'default'" t:template="'footer.vm'"/>
   </body>
 </html>

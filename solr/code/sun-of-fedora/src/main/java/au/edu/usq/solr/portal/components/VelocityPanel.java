@@ -38,7 +38,7 @@ import org.apache.tapestry.runtime.Component;
 public class VelocityPanel {
 
     @Parameter(required = true)
-    private String dir;
+    private String path;
 
     @Parameter(required = true)
     private String template;
@@ -56,7 +56,7 @@ public class VelocityPanel {
 
     @BeginRender
     public void render(MarkupWriter writer) {
-        Resource templateResource = new URIResource(dir + '/' + template);
+        Resource templateResource = new URIResource(path + '/' + template);
         Component page = resources.getPage();
         Map<String, Object> context = new HashMap<String, Object>();
         context.put("contextPath", contextPath);

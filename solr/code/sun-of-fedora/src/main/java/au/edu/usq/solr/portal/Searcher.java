@@ -127,7 +127,7 @@ public class Searcher {
         }
         url.append("&facet=true");
         if (facetMinCount > 0) {
-            url.append("&facet.mincount");
+            url.append("&facet.mincount=");
             url.append(facetMinCount);
         }
         if (facetLimit > 0) {

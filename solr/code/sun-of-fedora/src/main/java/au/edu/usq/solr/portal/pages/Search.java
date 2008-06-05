@@ -114,6 +114,7 @@ public class Search {
 
         Searcher searcher = new Searcher(state.getSolrBaseUrl());
         searcher.setRows(recordsPerPage);
+        searcher.setFacetMinCount(2);
         searcher.setFacetLimit(currentPortal.getFacetCount());
         searcher.setFacetFields(currentPortal.getFacetFieldList());
 

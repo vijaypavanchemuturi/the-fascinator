@@ -11,6 +11,6 @@
     </ul>
   </div>
   <div id="search_bar">
-    <a href="$[contextPath}">Portal</a>: $page.state.currentPortal.description
+    <a href="${contextPath}">Portal</a>: $page.state.currentPortal.description
   </div>
 </div>

@@ -86,10 +86,13 @@ div.logo{
   background: url('/sun-of-fedora/images/logo-sub.gif');
   background-repeat: no-repeat;
   height: 110px;
+  width: 150px;
   margin: 4 4 4 4;
   padding-top: 5px;
   padding-left: 5px;
-  padding-bottom: 55px;
+  padding-bottom: 55px
+  position: relative;
+  float: left;
 }
 /***form****/
 form{
