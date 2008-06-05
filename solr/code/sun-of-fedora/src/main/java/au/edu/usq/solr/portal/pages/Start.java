@@ -16,22 +16,38 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-package au.edu.usq.solr.portal.pages.portal;
+package au.edu.usq.solr.portal.pages;
 
+import org.apache.tapestry.Asset;
 import org.apache.tapestry.annotations.ApplicationState;
+import org.apache.tapestry.annotations.InjectPage;
+import org.apache.tapestry.annotations.OnEvent;
+import org.apache.tapestry.ioc.annotations.Inject;
+import org.apache.tapestry.services.AssetSource;
 
 import au.edu.usq.solr.portal.Portal;
 import au.edu.usq.solr.portal.State;
-import au.edu.usq.solr.portal.pages.Start;
 
-public class Edit {
+public class Start {
 
     @ApplicationState
     private State state;
 
-    private String portalName;
+    @Inject
+    private AssetSource assetSource;
+
+    @InjectPage
+    private Search searchPage;
 
     private Portal portal;
+
+    private String query;
+
+    @OnEvent(component = "searchForm", value = "submit")
+    Object onSubmit() {
+        searchPage.setQuery(query);
+        return searchPage;
+    }
 
     public State getState() {
         return state;
@@ -41,29 +57,15 @@ public class Edit {
         this.state = state;
     }
 
-    Object onActivate(Object[] params) {
-        if (params.length > 0) {
-            portalName = params[0].toString();
-            portal = state.getPortalManager().getPortal(portalName);
+    public Asset getStylesheet() {
+        Asset asset = null;
+        try {
+            String stylesheet = "/portal/default/style.css";
+            asset = assetSource.getAsset(null, stylesheet, null);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-        return portal == null ? Start.class : null;
-    }
-
-    String onPassivate() {
-        return portalName;
-    }
-
-    Object onSuccess() {
-        state.getPortalManager().save();
-        return Start.class;
-    }
-
-    public String getPortalName() {
-        return portalName;
-    }
-
-    public void setPortalName(String portalName) {
-        this.portalName = portalName;
+        return asset;
     }
 
     public Portal getPortal() {
@@ -72,5 +74,17 @@ public class Edit {
 
     public void setPortal(Portal portal) {
         this.portal = portal;
+    }
+
+    public String getQuery() {
+        return query;
+    }
+
+    public void setQuery(String query) {
+        this.query = query;
+    }
+
+    public boolean isEditable() {
+        return !portal.equals(state.getPortalManager().getDefaultPortal());
     }
 }

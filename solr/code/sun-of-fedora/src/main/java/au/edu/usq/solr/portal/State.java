@@ -16,7 +16,7 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-package au.edu.usq.solr;
+package au.edu.usq.solr.portal;
 
 import java.io.IOException;
 import java.util.Properties;
@@ -25,22 +25,15 @@ import java.util.TreeSet;
 
 import org.apache.log4j.Logger;
 
-import au.edu.usq.solr.portal.Portal;
-import au.edu.usq.solr.portal.PortalManager;
-
-public class DefaultConfiguration implements Configuration {
+public class State {
 
     private static final String DEFAULT_RESOURCE = "/config.properties";
 
     private static final String SOLR_BASE_URL_KEY = "solr.base.url";
 
-    private static final String SOLR_BASE_URL = "http://localhost:8983/solr";
+    private static final String SOLR_BASE_URL = "http://localhost:8080/solr";
 
-    private static final String REGISTRY_BASE_URL_KEY = "registry.base.url";
-
-    private static final String REGISTRY_USER_KEY = "registry.user";
-
-    private Logger log = Logger.getLogger(DefaultConfiguration.class);
+    private Logger log = Logger.getLogger(State.class);
 
     private Properties props;
 
@@ -48,7 +41,7 @@ public class DefaultConfiguration implements Configuration {
 
     private Portal currentPortal;
 
-    public DefaultConfiguration() {
+    public State() {
         loadDefaults();
     }
 
@@ -77,6 +70,10 @@ public class DefaultConfiguration implements Configuration {
         return getProperty(SOLR_BASE_URL_KEY);
     }
 
+    public String getPortalName() {
+        return getCurrentPortal().getName();
+    }
+
     public Portal getCurrentPortal() {
         if (currentPortal == null) {
             currentPortal = getPortalManager().getDefaultPortal();
@@ -90,22 +87,6 @@ public class DefaultConfiguration implements Configuration {
 
     public Set<Portal> getPortals() {
         return new TreeSet<Portal>(getPortalManager().getPortals().values());
-    }
-
-    public void setRegistryBaseUrl(String registryBaseUrl) {
-        setProperty(REGISTRY_BASE_URL_KEY, registryBaseUrl);
-    }
-
-    public String getRegistryBaseUrl() {
-        return getProperty(REGISTRY_BASE_URL_KEY);
-    }
-
-    public void setRegistryUser(String registryUser) {
-        setProperty(REGISTRY_USER_KEY, registryUser);
-    }
-
-    public String getRegistryUser() {
-        return getProperty(REGISTRY_USER_KEY);
     }
 
     public String getProperty(String key) {

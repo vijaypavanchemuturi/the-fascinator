@@ -18,41 +18,29 @@
  */
 package au.edu.usq.solr.portal.pages.portal;
 
-import org.apache.log4j.Logger;
-import org.apache.tapestry.Asset;
 import org.apache.tapestry.annotations.ApplicationState;
 import org.apache.tapestry.annotations.InjectPage;
-import org.apache.tapestry.annotations.Path;
 import org.apache.tapestry.annotations.Persist;
 import org.apache.tapestry.ioc.annotations.Inject;
+import org.slf4j.Logger;
 
-import au.edu.usq.solr.Configuration;
 import au.edu.usq.solr.portal.Portal;
+import au.edu.usq.solr.portal.State;
+import au.edu.usq.solr.portal.pages.Start;
 
 public class Create {
 
-    private Logger log = Logger.getLogger(Create.class);
-
     @Inject
-    @Path(value = "context:css/default.css")
-    private Asset stylesheet;
+    private Logger log;
 
     @ApplicationState
-    private Configuration config;
+    private State state;
 
     @InjectPage
     private Edit editPage;
 
     @Persist
     private Portal portal;
-
-    public Asset getStylesheet() {
-        return stylesheet;
-    }
-
-    public void setStylesheet(Asset stylesheet) {
-        this.stylesheet = stylesheet;
-    }
 
     Object onActivate(Object[] params) {
         if (params.length == 0) {
@@ -67,19 +55,19 @@ public class Create {
         return null;
     }
 
-    String onSuccess() {
-        config.getPortalManager().addPortal(portal);
-        config.getPortalManager().save();
+    Object onSuccess() {
+        state.getPortalManager().addPortal(portal);
+        state.getPortalManager().save();
         portal = null;
-        return "index";
+        return Start.class;
     }
 
-    public Configuration getConfig() {
-        return config;
+    public State getState() {
+        return state;
     }
 
-    public void setConfig(Configuration config) {
-        this.config = config;
+    public void setState(State config) {
+        this.state = config;
     }
 
     public Portal getPortal() {

@@ -30,9 +30,9 @@ import org.apache.log4j.Logger;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
-public class SolrDoc {
+public class Document {
 
-    private Logger log = Logger.getLogger(SolrDoc.class);
+    private Logger log = Logger.getLogger(Document.class);
 
     private String id;
 
@@ -42,7 +42,7 @@ public class SolrDoc {
 
     private String description;
 
-    public SolrDoc(Element elem) {
+    public Document(Element elem) {
         XPathFactory xpf = XPathFactory.newInstance();
         XPath xpath = xpf.newXPath();
         try {

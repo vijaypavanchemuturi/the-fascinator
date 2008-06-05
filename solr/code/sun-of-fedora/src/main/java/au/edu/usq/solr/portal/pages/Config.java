@@ -23,7 +23,7 @@ import org.apache.tapestry.annotations.ApplicationState;
 import org.apache.tapestry.annotations.Path;
 import org.apache.tapestry.ioc.annotations.Inject;
 
-import au.edu.usq.solr.Configuration;
+import au.edu.usq.solr.portal.State;
 
 public class Config {
 
@@ -32,7 +32,7 @@ public class Config {
     private Asset stylesheet;
 
     @ApplicationState
-    private Configuration config;
+    private State config;
 
     String onSubmit() {
         return "index";
@@ -46,11 +46,11 @@ public class Config {
         this.stylesheet = stylesheet;
     }
 
-    public Configuration getConfig() {
+    public State getConfig() {
         return config;
     }
 
-    public void setConfig(Configuration config) {
+    public void setConfig(State config) {
         this.config = config;
     }
 }

@@ -18,6 +18,7 @@
  */
 package au.edu.usq.solr.portal.pages;
 
+import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -30,15 +31,15 @@ import org.apache.tapestry.annotations.Persist;
 import org.apache.tapestry.ioc.annotations.Inject;
 import org.apache.tapestry.services.AssetSource;
 
-import au.edu.usq.solr.Configuration;
+import au.edu.usq.solr.model.Document;
 import au.edu.usq.solr.model.Facet;
 import au.edu.usq.solr.model.FacetList;
 import au.edu.usq.solr.model.Response;
-import au.edu.usq.solr.model.SolrDoc;
 import au.edu.usq.solr.portal.Page;
 import au.edu.usq.solr.portal.Pagination;
 import au.edu.usq.solr.portal.Portal;
 import au.edu.usq.solr.portal.Searcher;
+import au.edu.usq.solr.portal.State;
 import au.edu.usq.solr.portal.pages.portal.Create;
 
 public class Search {
@@ -53,7 +54,7 @@ public class Search {
     private AssetSource assetSource;
 
     @ApplicationState
-    private Configuration config;
+    private State state;
 
     private String[] context;
 
@@ -63,7 +64,7 @@ public class Search {
 
     private Response response;
 
-    private SolrDoc doc;
+    private Document doc;
 
     private String identifier;
 
@@ -88,8 +89,6 @@ public class Search {
     private Create createPortalPage;
 
     void onActivate(Object[] params) {
-        for (Object o : params)
-            log.debug(o + ":" + o.getClass());
         if (params.length == 0) {
             portalName = PORTAL_ALL;
         }
@@ -110,15 +109,16 @@ public class Search {
             facetLimits = new HashSet<String>();
         }
 
-        Portal currentPortal = config.getCurrentPortal();
+        Portal currentPortal = state.getCurrentPortal();
         int recordsPerPage = currentPortal.getRecordsPerPage();
 
-        Searcher searcher = new Searcher(config);
-        searcher.setFacetCount(currentPortal.getFacetCount());
+        Searcher searcher = new Searcher(state.getSolrBaseUrl());
+        searcher.setRows(recordsPerPage);
+        searcher.setFacetLimit(currentPortal.getFacetCount());
         searcher.setFacetFields(currentPortal.getFacetFieldList());
 
         Portal found = null;
-        for (Portal p : config.getPortals()) {
+        for (Portal p : state.getPortals()) {
             if (portalName.equals(p.getName())) {
                 found = p;
                 break;
@@ -127,18 +127,23 @@ public class Search {
         if (found == null) {
             log.debug("Portal '" + portalName + "' not found, using ALL");
             portalName = PORTAL_ALL;
-            found = config.getPortalManager().getDefaultPortal();
+            found = state.getPortalManager().getDefaultPortal();
         }
-        config.setCurrentPortal(found);
-        searcher.setPortal(found);
+        state.setCurrentPortal(found);
+        searcher.setBaseFacetQuery(found.getQuery());
         log.debug("portal=" + portalName);
         for (String facetLimit : facetLimits) {
             log.info("facetLimit: " + facetLimit);
-            searcher.addFacetLimit(facetLimit);
+            searcher.addFacetQuery(facetLimit);
         }
 
         searcher.setStart((pageNum - 1) * recordsPerPage);
-        response = searcher.find(query);
+        try {
+            response = searcher.find(query);
+        } catch (IOException e) {
+            // TODO exception page
+            e.printStackTrace();
+        }
         if (response != null) {
             int numFound = response.getResult().getNumFound();
             pagination = new Pagination(pageNum, numFound, recordsPerPage);
@@ -159,6 +164,14 @@ public class Search {
         } else {
             return new String[] { p, q };
         }
+    }
+
+    public String[] getContext() {
+        return context;
+    }
+
+    public void setContext(String[] context) {
+        this.context = context;
     }
 
     public boolean getShowResults() {
@@ -215,7 +228,7 @@ public class Search {
         String portalName = facetArray[facetArray.length - 1];
         portalName = portalName.substring(portalName.indexOf(':') + 2,
             portalName.length() - 1);
-        Portal current = config.getCurrentPortal();
+        Portal current = state.getCurrentPortal();
         if (current != null && !"".equals(current.getQuery())) {
             limits = current.getQuery() + "+" + limits;
         }
@@ -302,11 +315,11 @@ public class Search {
         this.response = response;
     }
 
-    public SolrDoc getDoc() {
+    public Document getDoc() {
         return doc;
     }
 
-    public void setDoc(SolrDoc doc) {
+    public void setDoc(Document doc) {
         this.doc = doc;
     }
 
@@ -358,20 +371,12 @@ public class Search {
         this.pagination = pagination;
     }
 
-    public String[] getContext() {
-        return context;
-    }
-
-    public void setContext(String[] context) {
-        this.context = context;
-    }
-
     public String getFacetListDisplayName() {
         String name = getFacetList().getName();
-        return config.getCurrentPortal().getFacetFields().get(name);
+        return state.getCurrentPortal().getFacetFields().get(name);
     }
 
-    public Configuration getConfig() {
-        return config;
+    public State getState() {
+        return state;
     }
 }

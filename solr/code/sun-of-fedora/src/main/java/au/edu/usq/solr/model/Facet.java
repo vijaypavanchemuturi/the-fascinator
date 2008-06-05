@@ -22,25 +22,20 @@ import org.w3c.dom.Element;
 
 public class Facet {
 
-    private FacetList facetList;
+    private String name;
 
     private String value;
 
     private int count;
 
-    public Facet(FacetList facetList, Element elem) {
-        this(facetList, elem.getAttribute("name"),
-            Integer.parseInt(elem.getTextContent()));
-    }
-
-    public Facet(FacetList facetList, String value, int count) {
-        this.facetList = facetList;
-        this.value = value;
-        this.count = count;
+    public Facet(String name, Element elem) {
+        this.name = name;
+        this.value = elem.getAttribute("name");
+        this.count = Integer.parseInt(elem.getTextContent());
     }
 
     public String getName() {
-        return facetList.getName();
+        return name;
     }
 
     public String getValue() {

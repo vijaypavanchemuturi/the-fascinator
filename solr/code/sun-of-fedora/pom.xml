@@ -16,12 +16,11 @@
   You should have received a copy of the GNU General Public License along
   with this program; if not, write to the Free Software Foundation, Inc.,
   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
--->
-<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+--><project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <modelVersion>4.0.0</modelVersion>
   <groupId>au.edu.usq</groupId>
   <artifactId>sun-of-fedora</artifactId>
-  <version>0.2.1</version>
+  <version>0.3</version>
   <packaging>war</packaging>
   <name>USQ Solr Portal Demo</name>
   <dependencies>
@@ -31,9 +30,24 @@
       <version>${tapestry-release-version}</version>
     </dependency>
     <dependency>
+      <groupId>org.apache.tapestry</groupId>
+      <artifactId>t5c-contrib</artifactId>
+      <version>0.5.11</version>
+    </dependency>
+    <dependency>
       <groupId>commons-httpclient</groupId>
       <artifactId>commons-httpclient</artifactId>
       <version>3.1</version>
+    </dependency>
+    <dependency>
+      <groupId>javax.xml.bind</groupId>
+      <artifactId>jaxb-api</artifactId>
+      <version>2.1</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.velocity</groupId>
+      <artifactId>velocity</artifactId>
+      <version>1.5</version>
     </dependency>
   </dependencies>
   <build>
@@ -78,8 +92,20 @@
           </webResources>
         </configuration>
       </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>jaxb2-maven-plugin</artifactId>
+        <version>1.2</version>
+      </plugin>
     </plugins>
   </build>
+  <repositories>
+    <repository>
+      <id>t5components</id>
+      <name>T5Components Maven Repository</name>
+      <url>http://87.193.218.134:8080/t5components/maven-repository</url>
+    </repository>
+  </repositories>
   <properties>
     <tapestry-release-version>5.0.11</tapestry-release-version>
   </properties>

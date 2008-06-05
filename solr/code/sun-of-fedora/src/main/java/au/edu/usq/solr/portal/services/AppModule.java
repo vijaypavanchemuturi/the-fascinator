@@ -19,23 +19,14 @@
 package au.edu.usq.solr.portal.services;
 
 import org.apache.tapestry.ioc.MappedConfiguration;
-import org.apache.tapestry.services.ApplicationStateContribution;
-import org.apache.tapestry.services.ApplicationStateCreator;
-
-import au.edu.usq.solr.Configuration;
-import au.edu.usq.solr.DefaultConfiguration;
+import org.apache.tapestry.ioc.Resource;
+import org.apache.tapestry.ioc.internal.util.ClasspathResource;
 
 public class AppModule {
 
-    public void contributeApplicationStateManager(
-        MappedConfiguration<Class<Configuration>, ApplicationStateContribution> config) {
-        ApplicationStateCreator<Configuration> creator = new ApplicationStateCreator<Configuration>() {
-            public Configuration create() {
-                return new DefaultConfiguration();
-            }
-        };
-        config.add(Configuration.class, new ApplicationStateContribution(
-            "session", creator));
+    public void contributeVelocityService(
+        MappedConfiguration<String, Resource> configuration) {
+        Resource velocityProps = new ClasspathResource("/velocity.properties");
+        configuration.add("velocity.configuration", velocityProps);
     }
-
 }

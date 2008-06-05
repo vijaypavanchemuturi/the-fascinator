@@ -25,11 +25,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.HttpException;
 import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.log4j.Logger;
 
-import au.edu.usq.solr.Configuration;
 import au.edu.usq.solr.model.Response;
 
 public class Searcher {
@@ -38,80 +36,71 @@ public class Searcher {
 
     private String solrBaseUrl;
 
+    private String baseFacetQuery;
+
     private int start;
 
-    private int recordsPerPage;
+    private int rows;
 
-    private List<String> searchFields;
+    private int facetMinCount;
 
-    private List<String> facetLimits;
+    private int facetLimit;
+
+    private List<String> facetQueries;
 
     private List<String> facetFields;
 
-    private int facetCount;
-
-    private Configuration config;
-
-    private Portal portal;
-
-    public Searcher(Configuration config) {
-        this.config = config;
-        solrBaseUrl = config.getSolrBaseUrl();
-        recordsPerPage = config.getCurrentPortal().getRecordsPerPage();
+    public Searcher(String solrBaseUrl) {
+        this.solrBaseUrl = solrBaseUrl;
+        baseFacetQuery = "";
         start = 0;
-        portal = null;
-        searchFields = new ArrayList<String>();
-        facetLimits = new ArrayList<String>();
+        rows = 25;
+        facetMinCount = 1;
+        facetQueries = new ArrayList<String>();
         facetFields = new ArrayList<String>();
     }
 
-    public void setPortal(Portal portal) {
-        this.portal = portal;
+    public void setBaseFacetQuery(String baseFacetQuery) {
+        this.baseFacetQuery = baseFacetQuery;
     }
 
     public void setStart(int start) {
         this.start = start;
     }
 
-    public void setRecordsPerPage(int numResults) {
-        this.recordsPerPage = numResults;
+    public void setRows(int rows) {
+        this.rows = rows;
     }
 
-    public void addSearchField(String field) {
-        searchFields.add(field);
+    public void setFacetMinCount(int facetMinCount) {
+        this.facetMinCount = facetMinCount;
     }
 
-    public void addFacetLimit(String facetLimit) {
-        facetLimits.add(facetLimit);
-    }
-
-    public void addFacetField(String field) {
-        facetFields.add(field);
-    }
-
-    public void setFacetCount(int facetCount) {
-        this.facetCount = facetCount;
+    public void setFacetLimit(int facetLimit) {
+        this.facetLimit = facetLimit;
     }
 
     public void setFacetFields(List<String> facetFields) {
         this.facetFields = facetFields;
     }
 
-    public Response find(String query) {
+    public void addFacetQuery(String facetQuery) {
+        facetQueries.add(facetQuery);
+    }
+
+    public void addFacetField(String facetField) {
+        facetFields.add(facetField);
+    }
+
+    public Response find(String query) throws IOException {
         Response response = null;
-        try {
-            String queryUrl = getUrl(query);
-            log.info("queryUrl = " + queryUrl);
-            GetMethod method = new GetMethod(queryUrl);
-            HttpClient client = new HttpClient();
-            int status = client.executeMethod(method);
-            if (status == 200) {
-                response = new Response(method.getResponseBodyAsStream());
-            }
-        } catch (HttpException e) {
-            log.error("HTTP exception", e);
-        } catch (IOException e) {
-            log.error("IO exception", e);
+        String queryUrl = getUrl(query);
+        log.info("Query URL: " + queryUrl);
+        GetMethod method = new GetMethod(queryUrl);
+        HttpClient client = new HttpClient();
+        int status = client.executeMethod(method);
+        if (status == 200) {
+            response = new Response(method.getResponseBodyAsStream());
         }
         return response;
     }
@@ -120,40 +109,35 @@ public class Searcher {
         StringBuilder url = new StringBuilder(solrBaseUrl);
         url.append("/select?q=");
         url.append(URLEncoder.encode(query, "UTF-8"));
-        if (portal != null) {
+        if (baseFacetQuery != null && !"".equals(baseFacetQuery)) {
             url.append("&fq=");
-            url.append(portal.getEncodedQuery());
+            url.append(URLEncoder.encode(baseFacetQuery, "UTF-8"));
         }
-        for (String limit : facetLimits) {
+        for (String facetQuery : facetQueries) {
             url.append("&fq=");
-            url.append(URLEncoder.encode(limit, "UTF-8"));
+            url.append(URLEncoder.encode(facetQuery, "UTF-8"));
         }
         if (start > 0) {
             url.append("&start=");
             url.append(start);
         }
-        if (recordsPerPage > -1) {
+        if (rows > 0) {
             url.append("&rows=");
-            url.append(recordsPerPage);
+            url.append(rows);
         }
         url.append("&facet=true");
-        url.append("&facet.mincount=1");
-        if (facetCount > 0) {
-            url.append("&facet.limit=");
-            url.append(facetCount);
+        if (facetMinCount > 0) {
+            url.append("&facet.mincount");
+            url.append(facetMinCount);
         }
-        for (String field : facetFields) {
+        if (facetLimit > 0) {
+            url.append("&facet.limit=");
+            url.append(facetLimit);
+        }
+        for (String facetField : facetFields) {
             url.append("&facet.field=");
-            url.append(URLEncoder.encode(field, "UTF-8"));
+            url.append(URLEncoder.encode(facetField, "UTF-8"));
         }
         return url.toString();
-    }
-
-    public Configuration getConfig() {
-        return config;
-    }
-
-    public void setConfig(Configuration config) {
-        this.config = config;
     }
 }

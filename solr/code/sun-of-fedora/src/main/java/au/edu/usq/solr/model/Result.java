@@ -32,7 +32,7 @@ public class Result {
 
     private int start;
 
-    private List<SolrDoc> docs;
+    private List<Document> docs;
 
     public Result(Element elem) {
         this(elem.getAttribute("name"),
@@ -41,7 +41,7 @@ public class Result {
         NodeList docNodes = elem.getElementsByTagName("doc");
         for (int i = 0; i < docNodes.getLength(); i++) {
             Element docElem = (Element) docNodes.item(i);
-            docs.add(new SolrDoc(docElem));
+            docs.add(new Document(docElem));
         }
     }
 
@@ -49,7 +49,7 @@ public class Result {
         this.name = name;
         this.numFound = numFound;
         this.start = start;
-        docs = new ArrayList<SolrDoc>();
+        docs = new ArrayList<Document>();
     }
 
     public String getName() {
@@ -68,7 +68,7 @@ public class Result {
         return start;
     }
 
-    public List<SolrDoc> getDocs() {
+    public List<Document> getDocs() {
         return docs;
     }
 }

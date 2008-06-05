@@ -5,34 +5,15 @@
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
   </head>
   <body>
-
-  <div id="container">
-        <div id="nav">
-                <ul>
-                        <li class="home"><a href="/sun-of-fedora">home</a></li>
-                        <li><a href="/sun-of-fedora">advanced search</a></li>
-                        <li><a href="/sun-of-fedora/harvest">harvest</a></li>
-                        <li><a href="/sun-of-fedora/portal/create">new portal</a></li>
-                        <li><a href="/sun-of-fedora/config">settings</a></li>
-                        <li><a href="/sun-of-fedora">about</a></li>
-                        <li><a href="/sun-of-fedora">contact</a></li>
-                </ul>
-        </div>
-        </div>
-        <div id="search_bar"></div>
-        <div class="logo"/>
-   <!-- <h1>USQ Solr Portal Demo</h1>-->
-      <p><a t:type="pagelink" t:page="index">Portal</a>: ${config.currentPortal.description}</p>
-
+    <div t:type="VelocityPanel" t:dir="state.portalName" t:template="'header.vm'"/>
+    <div t:type="VelocityPanel" t:dir="state.portalName" t:template="'banner.vm'"/>
     <div class="search">
-     <h3 class="search">Search for:</h3>
-
+      <h3 class="search">Search for:</h3>
       <form t:type="form" t:context="context">
         <input type="text" class="search-field" t:type="textfield" t:value="query" />
-        <input class="search_button" type="submit" value="Search" t:type="submit" />
+        <input class="search-button" type="submit" value="Search" t:type="submit" />
       </form>
     </div>
-
     <div class="facet-limits">
       <t:if t:test="facetLimits">
           <h3 class="facets">Selected facets</h3>

@@ -1,0 +1,16 @@
+<div id="container">
+  <div id="nav">
+    <ul>
+      <li class="home">
+        <a href="${contextPath}">home</a>
+      </li>
+      <li><a href="${contextPath}portal/create">new portal</a></li>
+      <li><a href="${contextPath}config">settings</a></li>
+      <li><a href="">about</a></li>
+      <li><a href="mailto:someone@usq.edu.au">contact</a></li>
+    </ul>
+  </div>
+  <div id="search_bar">
+  </div>
+</div>
+<h1>Sun of Fedora</h1>
