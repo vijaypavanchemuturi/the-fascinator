@@ -1,9 +1,27 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:t="http://tapestry.apache.org/schema/tapestry_5_0_0.xsd">
   <head>
     <title>USQ Solr Portal Demo</title>
-    <link rel="stylesheet" type="text/css" href="${stylesheet}" />
+   <link rel="stylesheet" type="text/css" href="${stylesheet}" />
   </head>
   <body>
+  <div id="container">
+	<div id="nav">
+		<ul>
+			<li class="home"><a href="/sun-of-fedora">home</a></li>
+			<li><a href="/sun-of-fedora">advanced search</a></li>
+			<li><a href="/sun-of-fedora">alerts</a></li>
+			<li><a href="/sun-of-fedora">statistics</a></li>
+			<li><a href="/sun-of-fedora/config">settings</a></li>
+			<li><a href="/sun-of-fedora">about</a></li>
+			<li><a href="/sun-of-fedora">contact</a></li>
+		</ul>
+	</div>
+	</div>
+	<div id="search_bar">	
+	</div>
+	<div class="logo">
+	</div>
+	<div class="form">
     <h1>USQ Solr Portal Demo</h1>
     <h2>Configuration</h2>
     <form t:type="form">
@@ -16,10 +34,13 @@
       </tr>
       <tr>
         <td colspan="2">
-          <input type="submit" value="Update" t:type="submit"/>
+          <input class="update_config" type="submit" value="Update" t:type="submit"/>
         </td>
       </tr>
       </table>
     </form>
+    </div>
+      <div class="footer">
+    </div>
   </body>
 </html>
