@@ -86,7 +86,7 @@
       </tr>
       </table>
       <br/>
-      <input type="submit" value="Start" t:type="submit"/>
+      <input class="start_harvest" type="submit" value="Start" t:type="submit"/>
     </form>
   </body>
 </html>
