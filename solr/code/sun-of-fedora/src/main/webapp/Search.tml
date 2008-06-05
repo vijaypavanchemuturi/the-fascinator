@@ -5,6 +5,7 @@
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
   </head>
   <body>
+
   <div id="container">
         <div id="nav">
                 <ul>
@@ -21,16 +22,20 @@
         <div id="search_bar"></div>
         <div class="logo"/>
    <!-- <h1>USQ Solr Portal Demo</h1>-->
+
+
     <div class="search">
+     <h3 class="facets">Search for:</h3>
       <p><a t:type="pagelink" t:page="index">Portal</a>: ${config.currentPortal.description}</p>
       <form t:type="form" t:context="context">
         <input type="text" class="search-field" t:type="textfield" t:value="query" />
-        <input type="submit" value="Search" t:type="submit" />
+        <input search_button type="submit" value="Search" t:type="submit" />
       </form>
     </div>
+
     <div class="facet-limits">
       <t:if t:test="facetLimits">
-        <h2>Selected facets</h2>
+          <h3 class="facets">Selected facets</h3>
         [<a t:type="actionlink" t:id="clearfacets">clear all</a>]
         <ul>
           <li t:type="loop" t:source="facetLimits" t:value="facetLimit">
@@ -42,11 +47,11 @@
     </div>
     <div class="facets">
       <t:if t:test="showResults">
-        <h1>Facets</h1>
-        <div t:type="loop" t:source="response.facetLists" t:value="facetList">
+       <!-- <h1>Facets</h1>
+  -->      <div t:type="loop" t:source="response.facetLists" t:value="facetList">
           <h2 class="facet-title">${facetListDisplayName}</h2>
           <ul t:type="loop" t:source="facetList.facets" t:value="facet">
-            <li class="facet-value">
+            <li class="facets">
               <a t:type="actionlink"
                  t:id="addfacet"
                  t:context="facet">${facet.value}</a>
