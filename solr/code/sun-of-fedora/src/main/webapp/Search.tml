@@ -29,7 +29,7 @@
       <p><a t:type="pagelink" t:page="index">Portal</a>: ${config.currentPortal.description}</p>
       <form t:type="form" t:context="context">
         <input type="text" class="search-field" t:type="textfield" t:value="query" />
-        <input search_button type="submit" value="Search" t:type="submit" />
+        <input class="search_button" type="submit" value="Search" t:type="submit" />
       </form>
     </div>
 
