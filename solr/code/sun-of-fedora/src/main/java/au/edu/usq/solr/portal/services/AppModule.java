@@ -18,15 +18,52 @@
  */
 package au.edu.usq.solr.portal.services;
 
+import org.apache.tapestry.internal.services.ContextResource;
+import org.apache.tapestry.internal.services.RequestPathOptimizer;
 import org.apache.tapestry.ioc.MappedConfiguration;
 import org.apache.tapestry.ioc.Resource;
-import org.apache.tapestry.ioc.internal.util.ClasspathResource;
+import org.apache.tapestry.ioc.annotations.InjectService;
+import org.apache.tapestry.services.ApplicationStateContribution;
+import org.apache.tapestry.services.ApplicationStateCreator;
+import org.apache.tapestry.services.AssetFactory;
+import org.apache.tapestry.services.Context;
+import org.apache.tapestry.services.Request;
+
+import au.edu.usq.solr.portal.State;
 
 public class AppModule {
 
+    public void contributeApplicationStateManager(
+        MappedConfiguration<Class<State>, ApplicationStateContribution> configuration,
+        @InjectService("Context")
+        final Context context) {
+        ApplicationStateCreator<State> creator = new ApplicationStateCreator<State>() {
+            public State create() {
+                return new State(context);
+            }
+        };
+        configuration.add(State.class, new ApplicationStateContribution(
+            "session", creator));
+    }
+
     public void contributeVelocityService(
-        MappedConfiguration<String, Resource> configuration) {
-        Resource velocityProps = new ClasspathResource("/velocity.properties");
+        MappedConfiguration<String, Resource> configuration,
+        @InjectService("Context")
+        Context context) {
+        Resource velocityProps = new ContextResource(context,
+            "/WEB-INF/velocity.properties");
         configuration.add("velocity.configuration", velocityProps);
+    }
+
+    public AssetFactory buildVelocityAssetFactory(Request request,
+        Context context, RequestPathOptimizer optimizer) {
+        return new VelocityAssetFactory(request, context, optimizer);
+    }
+
+    public void contributeAssetSource(
+        MappedConfiguration<String, AssetFactory> configuration,
+        @InjectService("VelocityAssetFactory")
+        AssetFactory velocityAssetFactory) {
+        configuration.add("velocity", velocityAssetFactory);
     }
 }

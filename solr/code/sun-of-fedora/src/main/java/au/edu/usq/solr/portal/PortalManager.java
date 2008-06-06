@@ -36,10 +36,10 @@ public class PortalManager {
         portals = new HashMap<String, Portal>();
         String sunOfFedoraHome = System.getenv("SUN_OF_FEDORA_HOME");
         if (sunOfFedoraHome == null) {
-            sunOfFedoraHome = System.getProperty("user.home");
+            sunOfFedoraHome = System.getProperty("user.home") + File.separator
+                + SUN_OF_FEDORA_HOME_DIR;
         }
-        portalFile = new File(sunOfFedoraHome + File.separator
-            + SUN_OF_FEDORA_HOME_DIR, PORTALS_XML);
+        portalFile = new File(sunOfFedoraHome, PORTALS_XML);
         log.debug("Loading portals from " + portalFile);
 
         try {

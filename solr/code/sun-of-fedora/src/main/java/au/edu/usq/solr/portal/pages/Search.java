@@ -25,6 +25,7 @@ import java.util.Set;
 import org.apache.log4j.Logger;
 import org.apache.tapestry.Asset;
 import org.apache.tapestry.annotations.ApplicationState;
+import org.apache.tapestry.annotations.IncludeStylesheet;
 import org.apache.tapestry.annotations.InjectPage;
 import org.apache.tapestry.annotations.OnEvent;
 import org.apache.tapestry.annotations.Persist;
@@ -42,6 +43,7 @@ import au.edu.usq.solr.portal.Searcher;
 import au.edu.usq.solr.portal.State;
 import au.edu.usq.solr.portal.pages.portal.Create;
 
+@IncludeStylesheet("context:css/default.css")
 public class Search {
 
     private Logger log = Logger.getLogger(Search.class);
@@ -278,15 +280,16 @@ public class Search {
     }
 
     public Asset getStylesheet() {
-        Asset asset;
+        String cssPath = portalName + "/style.css";
+        String assetPath = "velocity:" + cssPath;
+        Asset stylesheet = assetSource.getClasspathAsset(assetPath);
         try {
-            String stylesheet = "/portal/" + portalName + "/style.css";
-            asset = assetSource.getAsset(null, stylesheet, null);
+            log.info("stylesheeturl:" + stylesheet);
         } catch (Exception e) {
-            log.warn(e.getMessage());
-            asset = assetSource.getAsset(null, "context:css/default.css", null);
+            // TODO Auto-generated catch block
+            e.printStackTrace();
         }
-        return asset;
+        return stylesheet;
     }
 
     public void setStylesheet(Asset stylesheet) {

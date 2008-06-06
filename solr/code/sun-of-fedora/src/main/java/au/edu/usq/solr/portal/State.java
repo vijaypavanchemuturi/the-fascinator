@@ -18,16 +18,18 @@
  */
 package au.edu.usq.solr.portal;
 
-import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
 import java.util.Properties;
 import java.util.Set;
 import java.util.TreeSet;
 
 import org.apache.log4j.Logger;
+import org.apache.tapestry.services.Context;
 
 public class State {
 
-    private static final String DEFAULT_RESOURCE = "/config.properties";
+    private static final String DEFAULT_RESOURCE = "/WEB-INF/config.properties";
 
     private static final String SOLR_BASE_URL_KEY = "solr.base.url";
 
@@ -41,15 +43,14 @@ public class State {
 
     private Portal currentPortal;
 
-    public State() {
-        loadDefaults();
-    }
-
-    private void loadDefaults() {
+    public State(Context context) {
         props = new Properties();
         try {
-            props.load(getClass().getResourceAsStream(DEFAULT_RESOURCE));
-        } catch (IOException e) {
+            URL configProps = context.getResource(DEFAULT_RESOURCE);
+            InputStream configIn = configProps.openStream();
+            props.load(configIn);
+            configIn.close();
+        } catch (Exception e) {
             log.warn("Failed to load defaults", e);
             setSolrBaseUrl(SOLR_BASE_URL);
         }

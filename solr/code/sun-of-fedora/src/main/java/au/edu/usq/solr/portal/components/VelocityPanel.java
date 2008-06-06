@@ -37,10 +37,13 @@ import org.apache.tapestry.runtime.Component;
 
 public class VelocityPanel {
 
-    @Parameter(required = true)
+    @Parameter(value = "'default'")
+    private String fallbackPath;
+
+    @Parameter(value = "'default'")
     private String path;
 
-    @Parameter(required = true)
+    @Parameter(required = true, defaultPrefix = "literal")
     private String template;
 
     @Inject
@@ -63,7 +66,12 @@ public class VelocityPanel {
         context.put("page", page);
         context.put("context", page.getComponentResources());
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        service.mergeDataWithResource(templateResource, out, context);
+        try {
+            service.mergeDataWithResource(templateResource, out, context);
+        } catch (RuntimeException re) {
+            templateResource = new URIResource(fallbackPath + '/' + template);
+            service.mergeDataWithResource(templateResource, out, context);
+        }
         writer.writeRaw(out.toString());
     }
 }

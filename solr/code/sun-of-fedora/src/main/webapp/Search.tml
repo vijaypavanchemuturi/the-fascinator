@@ -5,8 +5,8 @@
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
   </head>
   <body>
-    <div t:type="VelocityPanel" t:path="state.portalName" t:template="'header.vm'"/>
-    <div t:type="VelocityPanel" t:path="state.portalName" t:template="'banner.vm'"/>
+    <div t:type="VelocityPanel" t:path="state.portalName" t:template="header.vm"/>
+    <div t:type="VelocityPanel" t:path="state.portalName" t:template="banner.vm"/>
     <div class="search">
       <h3 class="search">Search for:</h3>
       <form t:type="form" t:context="context">
@@ -70,7 +70,7 @@
         <p>Results ${pagination.startNum} to ${pagination.endNum} of ${pagination.totalFound} (<em>${response.queryTime}</em> seconds)</p>
         <ol start="${pagination.startNum}">
           <li t:type="loop" t:source="response.result.docs" t:value="doc">
-            <div t:type="VelocityPanel" t:path="state.portalName" t:template="'item-summary.vm'"/>
+            <div t:type="VelocityPanel" t:path="state.portalName" t:template="item-summary.vm"/>
 <!-- 
             <h2 class="doc-title">${doc.title}</h2>
             <p class="doc-id">${doc.id}</p>

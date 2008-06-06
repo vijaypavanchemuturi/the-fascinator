@@ -18,12 +18,9 @@
  */
 package au.edu.usq.solr.portal.pages;
 
-import org.apache.tapestry.Asset;
 import org.apache.tapestry.annotations.ApplicationState;
 import org.apache.tapestry.annotations.InjectPage;
 import org.apache.tapestry.annotations.OnEvent;
-import org.apache.tapestry.ioc.annotations.Inject;
-import org.apache.tapestry.services.AssetSource;
 
 import au.edu.usq.solr.portal.Portal;
 import au.edu.usq.solr.portal.State;
@@ -32,9 +29,6 @@ public class Start {
 
     @ApplicationState
     private State state;
-
-    @Inject
-    private AssetSource assetSource;
 
     @InjectPage
     private Search searchPage;
@@ -51,21 +45,6 @@ public class Start {
 
     public State getState() {
         return state;
-    }
-
-    public void setState(State state) {
-        this.state = state;
-    }
-
-    public Asset getStylesheet() {
-        Asset asset = null;
-        try {
-            String stylesheet = "/portal/default/style.css";
-            asset = assetSource.getAsset(null, stylesheet, null);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return asset;
     }
 
     public Portal getPortal() {
