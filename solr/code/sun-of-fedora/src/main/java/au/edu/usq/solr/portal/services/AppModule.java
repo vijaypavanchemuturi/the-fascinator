@@ -18,6 +18,8 @@
  */
 package au.edu.usq.solr.portal.services;
 
+import java.util.Map;
+
 import org.apache.tapestry.internal.services.ContextResource;
 import org.apache.tapestry.internal.services.RequestPathOptimizer;
 import org.apache.tapestry.ioc.MappedConfiguration;
@@ -33,6 +35,19 @@ import au.edu.usq.solr.portal.State;
 
 public class AppModule {
 
+    private static final String PORTALS_DIR_KEY = "portals.dir";
+
+    public PortalManager buildPortalManager(Map<String, Resource> configuration) {
+        return new PortalManagerImpl(configuration.get(PORTALS_DIR_KEY));
+    }
+
+    public void contributePortalManager(Context context,
+        MappedConfiguration<String, Resource> configuration) {
+        Resource configProps = new ContextResource(context,
+            "/WEB-INF/config.properties");
+        configuration.add(PORTALS_DIR_KEY, configProps);
+    }
+
     public void contributeApplicationStateManager(
         MappedConfiguration<Class<State>, ApplicationStateContribution> configuration,
         @InjectService("Context")
@@ -47,9 +62,7 @@ public class AppModule {
     }
 
     public void contributeVelocityService(
-        MappedConfiguration<String, Resource> configuration,
-        @InjectService("Context")
-        Context context) {
+        MappedConfiguration<String, Resource> configuration, Context context) {
         Resource velocityProps = new ContextResource(context,
             "/WEB-INF/velocity.properties");
         configuration.add("velocity.configuration", velocityProps);

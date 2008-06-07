@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<portal name="usq">
+  <description>USQ ePrints</description>
+  <query>repository_name:"USQ ePrints"</query>
+  <facet-fields>
+    <field name="f_creator">Author</field>
+    <field name="f_subject">Course</field>
+  </facet-fields>
+</portal>

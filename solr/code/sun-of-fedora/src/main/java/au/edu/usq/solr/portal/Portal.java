@@ -18,28 +18,46 @@
  */
 package au.edu.usq.solr.portal;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
+
 import org.apache.tapestry.beaneditor.Validate;
 
+import au.edu.usq.solr.util.FacetFieldsAdapter;
+
+@XmlRootElement
+@XmlAccessorType(XmlAccessType.NONE)
 public class Portal implements Comparable<Portal> {
 
+    @XmlAttribute
     private String name;
 
+    @XmlElement
     private String description;
 
+    @XmlElement
     private String query;
 
-    private int recordsPerPage;
+    @XmlElement(name = "records-per-page")
+    private int recordsPerPage = 10;
 
-    private int facetCount;
+    @XmlElement(name = "facet-count")
+    private int facetCount = 25;
 
+    @XmlElement(name = "facet-fields")
+    @XmlJavaTypeAdapter(FacetFieldsAdapter.class)
     private Map<String, String> facetFields;
+
+    public Portal() {
+    }
 
     public Portal(String name, String query) {
         this(name, name.substring(0, 1).toUpperCase() + name.substring(1),
@@ -50,8 +68,6 @@ public class Portal implements Comparable<Portal> {
         this.name = name;
         this.description = description;
         this.query = query;
-        this.recordsPerPage = 25;
-        this.facetCount = 25;
     }
 
     @Validate("required")
@@ -80,10 +96,6 @@ public class Portal implements Comparable<Portal> {
         this.query = query;
     }
 
-    public String getEncodedQuery() throws UnsupportedEncodingException {
-        return URLEncoder.encode(query, "UTF8");
-    }
-
     public int getRecordsPerPage() {
         return recordsPerPage;
     }
@@ -101,9 +113,6 @@ public class Portal implements Comparable<Portal> {
     }
 
     public Map<String, String> getFacetFields() {
-        if (facetFields == null) {
-            facetFields = new HashMap<String, String>();
-        }
         return facetFields;
     }
 
@@ -112,7 +121,7 @@ public class Portal implements Comparable<Portal> {
     }
 
     public List<String> getFacetFieldList() {
-        return new ArrayList<String>(getFacetFields().keySet());
+        return new ArrayList<String>(facetFields.keySet());
     }
 
     @Override
@@ -128,5 +137,10 @@ public class Portal implements Comparable<Portal> {
 
     public int compareTo(Portal that) {
         return name.compareTo(that.getName());
+    }
+
+    @Override
+    public String toString() {
+        return getDescription() + " [" + getName() + "]";
     }
 }

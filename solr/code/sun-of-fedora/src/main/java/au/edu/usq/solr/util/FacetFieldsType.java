@@ -16,41 +16,30 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-package au.edu.usq.solr.portal.pages;
+package au.edu.usq.solr.util;
 
-import org.apache.tapestry.Asset;
-import org.apache.tapestry.annotations.ApplicationState;
-import org.apache.tapestry.annotations.Path;
-import org.apache.tapestry.ioc.annotations.Inject;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
-import au.edu.usq.solr.portal.State;
+import javax.xml.bind.annotation.XmlElement;
 
-public class Config {
+public class FacetFieldsType {
 
-    @Inject
-    @Path(value = "context:css/default.css")
-    private Asset stylesheet;
+    @XmlElement
+    private List<FacetFieldsEntryType> field;
 
-    @ApplicationState
-    private State config;
-
-    Object onSubmit() {
-        return Start.class;
+    public FacetFieldsType() {
     }
 
-    public Asset getStylesheet() {
-        return stylesheet;
+    public FacetFieldsType(Map<String, String> map) {
+        field = new ArrayList<FacetFieldsEntryType>();
+        for (String key : map.keySet()) {
+            field.add(new FacetFieldsEntryType(key, map.get(key)));
+        }
     }
 
-    public void setStylesheet(Asset stylesheet) {
-        this.stylesheet = stylesheet;
-    }
-
-    public State getConfig() {
-        return config;
-    }
-
-    public void setConfig(State config) {
-        this.config = config;
+    public List<FacetFieldsEntryType> getEntries() {
+        return field;
     }
 }

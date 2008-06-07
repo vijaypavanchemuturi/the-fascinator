@@ -1,0 +1,10 @@
+#
+# Solr base URL
+#
+solr.base.url=http://rspilot.usq.edu.au:8080/solr
+
+#
+# Portal configuration directory. This is normally the same directory as
+# the location of the velocity templates.
+#
+portals.dir=src/main/config/portal

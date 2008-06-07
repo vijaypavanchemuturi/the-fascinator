@@ -22,22 +22,22 @@ import org.apache.tapestry.annotations.ApplicationState;
 import org.apache.tapestry.annotations.InjectPage;
 import org.apache.tapestry.annotations.Persist;
 import org.apache.tapestry.ioc.annotations.Inject;
-import org.slf4j.Logger;
 
 import au.edu.usq.solr.portal.Portal;
 import au.edu.usq.solr.portal.State;
 import au.edu.usq.solr.portal.pages.Start;
+import au.edu.usq.solr.portal.services.PortalManager;
 
 public class Create {
-
-    @Inject
-    private Logger log;
 
     @ApplicationState
     private State state;
 
     @InjectPage
     private Edit editPage;
+
+    @Inject
+    private PortalManager portalManager;
 
     @Persist
     private Portal portal;
@@ -56,8 +56,7 @@ public class Create {
     }
 
     Object onSuccess() {
-        state.getPortalManager().addPortal(portal);
-        state.getPortalManager().save();
+        portalManager.add(portal);
         portal = null;
         return Start.class;
     }
@@ -66,8 +65,8 @@ public class Create {
         return state;
     }
 
-    public void setState(State config) {
-        this.state = config;
+    public void setState(State state) {
+        this.state = state;
     }
 
     public Portal getPortal() {

@@ -19,15 +19,20 @@
 package au.edu.usq.solr.portal.pages.portal;
 
 import org.apache.tapestry.annotations.ApplicationState;
+import org.apache.tapestry.ioc.annotations.Inject;
 
 import au.edu.usq.solr.portal.Portal;
 import au.edu.usq.solr.portal.State;
 import au.edu.usq.solr.portal.pages.Start;
+import au.edu.usq.solr.portal.services.PortalManager;
 
 public class Edit {
 
     @ApplicationState
     private State state;
+
+    @Inject
+    private PortalManager portalManager;
 
     private String portalName;
 
@@ -44,7 +49,7 @@ public class Edit {
     Object onActivate(Object[] params) {
         if (params.length > 0) {
             portalName = params[0].toString();
-            portal = state.getPortalManager().getPortal(portalName);
+            portal = portalManager.get(portalName);
         }
         return portal == null ? Start.class : null;
     }
@@ -54,7 +59,7 @@ public class Edit {
     }
 
     Object onSuccess() {
-        state.getPortalManager().save();
+        portalManager.save(portalName);
         return Start.class;
     }
 

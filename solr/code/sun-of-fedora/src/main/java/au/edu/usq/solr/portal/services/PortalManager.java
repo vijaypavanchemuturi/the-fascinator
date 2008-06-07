@@ -16,41 +16,25 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-package au.edu.usq.solr.portal.pages;
+package au.edu.usq.solr.portal.services;
 
-import org.apache.tapestry.Asset;
-import org.apache.tapestry.annotations.ApplicationState;
-import org.apache.tapestry.annotations.Path;
-import org.apache.tapestry.ioc.annotations.Inject;
+import java.util.Map;
 
-import au.edu.usq.solr.portal.State;
+import au.edu.usq.solr.portal.Portal;
 
-public class Config {
+public interface PortalManager {
 
-    @Inject
-    @Path(value = "context:css/default.css")
-    private Asset stylesheet;
+    public static final String DEFAULT_PORTAL_NAME = "default";
 
-    @ApplicationState
-    private State config;
+    public Map<String, Portal> getPortals();
 
-    Object onSubmit() {
-        return Start.class;
-    }
+    public Portal getDefault();
 
-    public Asset getStylesheet() {
-        return stylesheet;
-    }
+    public Portal get(String name);
 
-    public void setStylesheet(Asset stylesheet) {
-        this.stylesheet = stylesheet;
-    }
+    public void add(Portal portal);
 
-    public State getConfig() {
-        return config;
-    }
+    public void remove(String name);
 
-    public void setConfig(State config) {
-        this.config = config;
-    }
+    public void save(String portalName);
 }

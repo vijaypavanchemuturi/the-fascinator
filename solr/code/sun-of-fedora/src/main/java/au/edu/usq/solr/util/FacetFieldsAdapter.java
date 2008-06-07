@@ -16,41 +16,29 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-package au.edu.usq.solr.portal.pages;
+package au.edu.usq.solr.util;
 
-import org.apache.tapestry.Asset;
-import org.apache.tapestry.annotations.ApplicationState;
-import org.apache.tapestry.annotations.Path;
-import org.apache.tapestry.ioc.annotations.Inject;
+import java.util.HashMap;
+import java.util.Map;
 
-import au.edu.usq.solr.portal.State;
+import javax.xml.bind.annotation.adapters.XmlAdapter;
 
-public class Config {
+public class FacetFieldsAdapter extends
+    XmlAdapter<FacetFieldsType, Map<String, String>> {
 
-    @Inject
-    @Path(value = "context:css/default.css")
-    private Asset stylesheet;
-
-    @ApplicationState
-    private State config;
-
-    Object onSubmit() {
-        return Start.class;
+    @Override
+    public FacetFieldsType marshal(Map<String, String> facetFields)
+        throws Exception {
+        return new FacetFieldsType(facetFields);
     }
 
-    public Asset getStylesheet() {
-        return stylesheet;
-    }
-
-    public void setStylesheet(Asset stylesheet) {
-        this.stylesheet = stylesheet;
-    }
-
-    public State getConfig() {
-        return config;
-    }
-
-    public void setConfig(State config) {
-        this.config = config;
+    @Override
+    public Map<String, String> unmarshal(FacetFieldsType fields)
+        throws Exception {
+        Map<String, String> map = new HashMap<String, String>();
+        for (FacetFieldsEntryType entry : fields.getEntries()) {
+            map.put(entry.getName(), entry.getLabel());
+        }
+        return map;
     }
 }

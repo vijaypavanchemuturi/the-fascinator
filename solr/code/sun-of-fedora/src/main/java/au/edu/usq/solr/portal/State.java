@@ -21,8 +21,6 @@ package au.edu.usq.solr.portal;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.Properties;
-import java.util.Set;
-import java.util.TreeSet;
 
 import org.apache.log4j.Logger;
 import org.apache.tapestry.services.Context;
@@ -39,9 +37,7 @@ public class State {
 
     private Properties props;
 
-    private PortalManager portalManager;
-
-    private Portal currentPortal;
+    private Portal portal;
 
     public State(Context context) {
         props = new Properties();
@@ -56,13 +52,6 @@ public class State {
         }
     }
 
-    public PortalManager getPortalManager() {
-        if (portalManager == null) {
-            portalManager = new PortalManager();
-        }
-        return portalManager;
-    }
-
     public void setSolrBaseUrl(String solrBaseUrl) {
         setProperty(SOLR_BASE_URL_KEY, solrBaseUrl);
     }
@@ -72,22 +61,15 @@ public class State {
     }
 
     public String getPortalName() {
-        return getCurrentPortal().getName();
+        return getPortal().getName();
     }
 
-    public Portal getCurrentPortal() {
-        if (currentPortal == null) {
-            currentPortal = getPortalManager().getDefaultPortal();
-        }
-        return currentPortal;
+    public Portal getPortal() {
+        return portal;
     }
 
-    public void setCurrentPortal(Portal currentPortal) {
-        this.currentPortal = currentPortal;
-    }
-
-    public Set<Portal> getPortals() {
-        return new TreeSet<Portal>(getPortalManager().getPortals().values());
+    public void setPortal(Portal currentPortal) {
+        this.portal = currentPortal;
     }
 
     public String getProperty(String key) {

@@ -18,6 +18,8 @@
  */
 package au.edu.usq.solr.portal.pages;
 
+import static au.edu.usq.solr.portal.services.PortalManager.DEFAULT_PORTAL_NAME;
+
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
@@ -42,18 +44,20 @@ import au.edu.usq.solr.portal.Portal;
 import au.edu.usq.solr.portal.Searcher;
 import au.edu.usq.solr.portal.State;
 import au.edu.usq.solr.portal.pages.portal.Create;
+import au.edu.usq.solr.portal.services.PortalManager;
 
 @IncludeStylesheet("context:css/default.css")
 public class Search {
 
     private Logger log = Logger.getLogger(Search.class);
 
-    private static final String PORTAL_ALL = "all";
-
     private static final String QUERY_ALL = "*:*";
 
     @Inject
     private AssetSource assetSource;
+
+    @Inject
+    private PortalManager portalManager;
 
     @ApplicationState
     private State state;
@@ -92,7 +96,7 @@ public class Search {
 
     void onActivate(Object[] params) {
         if (params.length == 0) {
-            portalName = PORTAL_ALL;
+            portalName = DEFAULT_PORTAL_NAME;
         }
         if (params.length >= 1) {
             portalName = params[0].toString();
@@ -104,49 +108,36 @@ public class Search {
             query = QUERY_ALL;
         }
 
-        log.info("onActivate: " + getPortalName() + "/" + query);
+        Portal found = portalManager.get(portalName);
+        if (found == null) {
+            log.debug("Portal '" + portalName + "' not found, using DEFAULT");
+            portalName = DEFAULT_PORTAL_NAME;
+            found = portalManager.getDefault();
+        }
+        state.setPortal(found);
+
+        int recordsPerPage = found.getRecordsPerPage();
         pageNum = Math.max(pageNum, 1);
 
-        if (facetLimits == null) {
-            facetLimits = new HashSet<String>();
-        }
-
-        Portal currentPortal = state.getCurrentPortal();
-        int recordsPerPage = currentPortal.getRecordsPerPage();
-
         Searcher searcher = new Searcher(state.getSolrBaseUrl());
+        searcher.setBaseFacetQuery(found.getQuery());
         searcher.setRows(recordsPerPage);
         searcher.setFacetMinCount(2);
-        searcher.setFacetLimit(currentPortal.getFacetCount());
-        searcher.setFacetFields(currentPortal.getFacetFieldList());
+        searcher.setFacetLimit(found.getFacetCount());
+        searcher.setFacetFields(found.getFacetFieldList());
+        searcher.setStart((pageNum - 1) * recordsPerPage);
 
-        Portal found = null;
-        for (Portal p : state.getPortals()) {
-            if (portalName.equals(p.getName())) {
-                found = p;
-                break;
-            }
-        }
-        if (found == null) {
-            log.debug("Portal '" + portalName + "' not found, using ALL");
-            portalName = PORTAL_ALL;
-            found = state.getPortalManager().getDefaultPortal();
-        }
-        state.setCurrentPortal(found);
-        searcher.setBaseFacetQuery(found.getQuery());
-        log.debug("portal=" + portalName);
-        for (String facetLimit : facetLimits) {
-            log.info("facetLimit: " + facetLimit);
+        for (String facetLimit : getFacetLimits()) {
             searcher.addFacetQuery(facetLimit);
         }
 
-        searcher.setStart((pageNum - 1) * recordsPerPage);
         try {
             response = searcher.find(query);
         } catch (IOException e) {
-            // TODO exception page
-            e.printStackTrace();
+            // TODO friendly response page
+            log.error("Search failed", e);
         }
+
         if (response != null) {
             int numFound = response.getResult().getNumFound();
             pagination = new Pagination(pageNum, numFound, recordsPerPage);
@@ -160,7 +151,7 @@ public class Search {
     }
 
     String[] onPassivate() {
-        String p = portalName == null ? PORTAL_ALL : portalName;
+        String p = portalName == null ? DEFAULT_PORTAL_NAME : portalName;
         String q = query == null ? QUERY_ALL : query;
         if (query == null) {
             return new String[] { p };
@@ -231,7 +222,7 @@ public class Search {
         String portalName = facetArray[facetArray.length - 1];
         portalName = portalName.substring(portalName.indexOf(':') + 2,
             portalName.length() - 1);
-        Portal current = state.getCurrentPortal();
+        Portal current = state.getPortal();
         if (current != null && !"".equals(current.getQuery())) {
             limits = current.getQuery() + "+" + limits;
         }
@@ -352,6 +343,9 @@ public class Search {
     }
 
     public Set<String> getFacetLimits() {
+        if (facetLimits == null) {
+            facetLimits = new HashSet<String>();
+        }
         return facetLimits;
     }
 
@@ -377,7 +371,7 @@ public class Search {
 
     public String getFacetListDisplayName() {
         String name = getFacetList().getName();
-        return state.getCurrentPortal().getFacetFields().get(name);
+        return state.getPortal().getFacetFields().get(name);
     }
 
     public State getState() {

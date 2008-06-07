@@ -18,17 +18,25 @@
  */
 package au.edu.usq.solr.portal.pages;
 
+import java.util.Set;
+import java.util.TreeSet;
+
 import org.apache.tapestry.annotations.ApplicationState;
 import org.apache.tapestry.annotations.InjectPage;
 import org.apache.tapestry.annotations.OnEvent;
+import org.apache.tapestry.ioc.annotations.Inject;
 
 import au.edu.usq.solr.portal.Portal;
 import au.edu.usq.solr.portal.State;
+import au.edu.usq.solr.portal.services.PortalManager;
 
 public class Start {
 
     @ApplicationState
     private State state;
+
+    @Inject
+    private PortalManager portalManager;
 
     @InjectPage
     private Search searchPage;
@@ -63,7 +71,11 @@ public class Start {
         this.query = query;
     }
 
+    public Set<Portal> getPortals() {
+        return new TreeSet<Portal>(portalManager.getPortals().values());
+    }
+
     public boolean isEditable() {
-        return !portal.equals(state.getPortalManager().getDefaultPortal());
+        return !portal.equals(portalManager.getDefault());
     }
 }
