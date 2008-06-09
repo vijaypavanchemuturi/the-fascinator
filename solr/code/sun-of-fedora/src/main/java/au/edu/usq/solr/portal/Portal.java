@@ -142,6 +142,9 @@ public class Portal implements Comparable<Portal> {
         if ("default".equals(name)) {
             return -1;
         }
+        if ("default".equals(that.getName())) {
+            return 1;
+        }
         return description.compareTo(that.getDescription());
     }
 

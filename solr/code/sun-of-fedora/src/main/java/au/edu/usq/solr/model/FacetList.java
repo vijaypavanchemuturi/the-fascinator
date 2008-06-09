@@ -52,6 +52,9 @@ public class FacetList implements Comparable<FacetList> {
         if ("repository_name".equals(name)) {
             return -1;
         }
+        if ("repository_name".equals(that.getName())) {
+            return 1;
+        }
         return name.compareTo(that.getName());
     }
 }
