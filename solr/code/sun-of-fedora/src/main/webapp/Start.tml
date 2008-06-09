@@ -20,6 +20,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:t="http://tapestry.apache.org/schema/tapestry_5_0_0.xsd">
   <head>
     <title>${message:app.name}</title>
+    <link rel="icon" href="favicon.ico" type="image/x-icon"/>
     <link rel="stylesheet" type="text/css" href="${asset:velocity:default/style.css}"/>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
   </head>
