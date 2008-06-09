@@ -13,7 +13,7 @@ input.textfield, .t-beaneditor-row input {
 
 input.button, .t-beaneditor-submit {
   background-color: #1F4F76;
-  background-image: url('../usq/images/blue_bar.png');
+  background-image: url('images/blue_bar.png');
   color: white;
   padding-left: 4px;
   padding-right: 4px;
@@ -48,7 +48,7 @@ input.button:hover {
 
 /* Navigation bar */
 .nav-bar {
-  background-image: url('../usq/images/blue_bar.png');
+  background-image: url('images/blue_bar.png');
   font-size: 1.1em;
   font-weight: bold;
   margin: 0;
@@ -154,7 +154,7 @@ input.button:hover {
 }
 
 .no-result {
-  background-image: url('../usq/images/orange_back.png');
+  background-image: url('images/orange_back.png');
   border: solid 1px #FFC080;
   margin-bottom: 1.5em;
   margin-right: 2%;
@@ -170,7 +170,7 @@ input.button:hover {
 /* Search header */
 
 .search-header {
-  background: #FFEFBE url('../usq/images/eprints_test.jpg') no-repeat left;
+  background: #FFEFBE url('images/eprints_test.jpg') no-repeat left;
   float: right;
   margin-bottom: 1em;
   margin-right: 1em;
@@ -181,7 +181,7 @@ input.button:hover {
 }
 
 .search-header-no-result {
-  background: #FFEFBE url('../usq/images/eprints_test.jpg') no-repeat left;
+  background: #FFEFBE url('images/eprints_test.jpg') no-repeat left;
   margin-bottom: 1em;
   margin-right: 2%;
   padding: 0.5em;
