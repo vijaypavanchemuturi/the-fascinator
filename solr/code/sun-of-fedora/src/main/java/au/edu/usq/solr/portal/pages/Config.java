@@ -18,39 +18,26 @@
  */
 package au.edu.usq.solr.portal.pages;
 
-import org.apache.tapestry.Asset;
 import org.apache.tapestry.annotations.ApplicationState;
-import org.apache.tapestry.annotations.Path;
-import org.apache.tapestry.ioc.annotations.Inject;
+import org.apache.tapestry.annotations.IncludeStylesheet;
 
 import au.edu.usq.solr.portal.State;
 
+@IncludeStylesheet("context:css/default.css")
 public class Config {
 
-    @Inject
-    @Path(value = "context:css/default.css")
-    private Asset stylesheet;
-
     @ApplicationState
-    private State config;
+    private State state;
 
     Object onSubmit() {
         return Start.class;
     }
 
-    public Asset getStylesheet() {
-        return stylesheet;
+    public State getState() {
+        return state;
     }
 
-    public void setStylesheet(Asset stylesheet) {
-        this.stylesheet = stylesheet;
-    }
-
-    public State getConfig() {
-        return config;
-    }
-
-    public void setConfig(State config) {
-        this.config = config;
+    public void setState(State config) {
+        this.state = config;
     }
 }

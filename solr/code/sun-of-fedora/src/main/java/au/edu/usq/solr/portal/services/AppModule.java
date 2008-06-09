@@ -20,6 +20,7 @@ package au.edu.usq.solr.portal.services;
 
 import java.util.Map;
 
+import org.apache.tapestry.contrib.services.TemplateService;
 import org.apache.tapestry.internal.services.ContextResource;
 import org.apache.tapestry.internal.services.RequestPathOptimizer;
 import org.apache.tapestry.ioc.MappedConfiguration;
@@ -28,6 +29,7 @@ import org.apache.tapestry.ioc.annotations.InjectService;
 import org.apache.tapestry.services.ApplicationStateContribution;
 import org.apache.tapestry.services.ApplicationStateCreator;
 import org.apache.tapestry.services.AssetFactory;
+import org.apache.tapestry.services.AssetSource;
 import org.apache.tapestry.services.Context;
 import org.apache.tapestry.services.Request;
 
@@ -46,6 +48,14 @@ public class AppModule {
         Resource configProps = new ContextResource(context,
             "/WEB-INF/config.properties");
         configuration.add(PORTALS_DIR_KEY, configProps);
+    }
+
+    public VelocityResourceLocator buildVelocityResourceLocator(
+        @InjectService("VelocityService")
+        TemplateService templateService, @InjectService("AssetSource")
+        AssetSource assetSource) {
+        return new VelocityResourceLocator(templateService, assetSource,
+            PortalManagerImpl.DEFAULT_PORTAL_NAME);
     }
 
     public void contributeApplicationStateManager(

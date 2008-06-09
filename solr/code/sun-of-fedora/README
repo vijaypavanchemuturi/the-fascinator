@@ -19,31 +19,40 @@ Installation
    svn co https://rubric-central.usq.edu.au/solrsvn/public/sun-of-fedora
    cd sun-of-fedora
 
-2. Copy the sample portal configuration to ~/.sun-of-fedora directory. Where
-   '~' is the home directory for that user that runs the Tomcat app server.
+2. Copy the sample portal configuration directory to new directory, e.g.
 
-   cp src/main/resources/sample_portals.xml ~/.sun-of-fedora
+   cp -r src/main/config /opt/sun-of-fedora
 
-   Note: If you wish to use a different directory to store the configuration,
-   set the SUN_OF_FEDORA_HOME environment variable to point to that directory.
+3. Copy the same configuration files
 
-3. Build the web package using Maven. This will create target/sun-of-fedora.war.
+   cd src/main/webapp/WEB-INF
+   cp config.properties.sample config.properties
+   cp velocity.properties.sample velocity.properties
+
+   Then set the portals.dir in config.properties and file.resource.loader.path
+   in velocity.properties to the destination directory in step 2 above
+
+4. Build the web package using Maven. This will create the web archive:
+   target/sun-of-fedora.war
 
    mvn compile war:war
 
-4. Copy the web package to your Tomcat's webapps directory.
+5. Copy the web package to your Tomcat's webapps directory.
 
    cp target/sun-of-fedora.war /opt/fedora/tomcat/webapps
 
-5. Startup Tomcat and open a browser to http://$server:$port/sun-of-fedora to
+6. Startup Tomcat and open a browser to http://$server:$port/sun-of-fedora to
    test if the application was deployed correctly.
 
-Portal-specific stylesheets
-===========================
-Each portal can be given a distinct look by using a different CSS. The CSS file
-must be named 'style.css' and placed in the following directory:
+Portal customisation
+====================
+Each portal can be given a distinct look and feel by using Velocity templates
+and stylesheets (CSS). The templates are located in the portal configuration
+directory (see Step 2 of Installation section). The default look and feel is
+located in the 'default' directory and provides an example of how the templates
+are written.
 
-  $TOMCAT_HOME/webapps/sun-of-fedora/WEB-INF/classes/portal/$PORTAL_NAME
-
-where $PORTAL_NAME is the name of the portal that stylesheet applies to.
+When a portal is created in the webapp, a new directory is created with the
+portal.xml configuration file. Templates can be copied from the 'default'
+directory and customised as required.
 

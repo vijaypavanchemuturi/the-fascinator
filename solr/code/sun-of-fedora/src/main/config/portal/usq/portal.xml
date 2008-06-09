@@ -1,9 +1,12 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <portal name="usq">
-  <description>USQ ePrints</description>
-  <query>repository_name:"USQ ePrints"</query>
-  <facet-fields>
-    <field name="f_creator">Author</field>
-    <field name="f_subject">Course</field>
-  </facet-fields>
+    <description>University of Southern Queensland</description>
+    <query>repository_name:&quot;USQ ePrints&quot;</query>
+    <records-per-page>25</records-per-page>
+    <facet-count>50</facet-count>
+    <facet-fields>
+        <field name="f_creator">Author</field>
+        <field name="f_type">Format</field>
+        <field name="f_subject">Course</field>
+    </facet-fields>
 </portal>

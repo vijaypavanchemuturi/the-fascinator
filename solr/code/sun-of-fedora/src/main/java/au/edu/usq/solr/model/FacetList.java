@@ -24,7 +24,7 @@ import java.util.List;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
-public class FacetList {
+public class FacetList implements Comparable<FacetList> {
 
     private String name;
 
@@ -46,5 +46,12 @@ public class FacetList {
 
     public List<Facet> getFacets() {
         return facets;
+    }
+
+    public int compareTo(FacetList that) {
+        if ("repository_name".equals(name)) {
+            return -1;
+        }
+        return name.compareTo(that.getName());
     }
 }

@@ -19,6 +19,7 @@
 package au.edu.usq.solr.portal.pages.portal;
 
 import org.apache.tapestry.annotations.ApplicationState;
+import org.apache.tapestry.annotations.IncludeStylesheet;
 import org.apache.tapestry.annotations.InjectPage;
 import org.apache.tapestry.annotations.Persist;
 import org.apache.tapestry.ioc.annotations.Inject;
@@ -28,6 +29,7 @@ import au.edu.usq.solr.portal.State;
 import au.edu.usq.solr.portal.pages.Start;
 import au.edu.usq.solr.portal.services.PortalManager;
 
+@IncludeStylesheet("context:css/default.css")
 public class Create {
 
     @ApplicationState
@@ -57,6 +59,7 @@ public class Create {
 
     Object onSuccess() {
         portalManager.add(portal);
+        portalManager.save(portal);
         portal = null;
         return Start.class;
     }

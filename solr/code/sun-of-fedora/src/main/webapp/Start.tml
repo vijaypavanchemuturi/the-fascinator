@@ -19,15 +19,24 @@
  -->
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:t="http://tapestry.apache.org/schema/tapestry_5_0_0.xsd">
   <head>
-    <title>USQ Solr Portal Demo</title>
-    <link rel="stylesheet" type="text/css" href="${asset:context:css/default.css}"/>
+    <title>${message:app.name}</title>
     <link rel="stylesheet" type="text/css" href="${asset:velocity:default/style.css}"/>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
   </head>
   <body>
     <div t:type="VelocityPanel" t:template="header.vm"/>
-    <h2>Portals</h2>
+    <div t:type="VelocityPanel" t:template="welcome.vm"/>
+    <div class="start-search">
+      <h2>Search</h2>
+      <p>Enter a keyword to search through all portals.</p>
+      <form t:type="form" t:id="searchForm" t:context="query">
+        <input class="search-textfield" type="text" t:type="textfield" t:value="query"/>
+        <input class="button" type="submit" value="Go" t:id="search" t:type="submit"/>
+      </form>
+    </div>
     <div class="portal-list">
+      <h2>Portals</h2>
+      <p>Select a specific portal to search.</p>
       <ul t:type="loop" t:source="portals" t:value="portal">
         <li>
           <a t:type="pagelink" t:page="search" t:context="portal.name">${portal.description}</a>
@@ -36,13 +45,6 @@
           </t:if>
         </li>
       </ul>
-    </div>
-    <div class="start-search">
-      <h2>Search</h2>
-      <form t:type="form" t:id="searchForm" t:context="query">
-        <input class="search-field" type="text" t:type="textfield" t:value="query"/>
-        <input class="search-button" type="submit" value="Go" t:id="search" t:type="submit"/>
-      </form>
     </div>
     <div t:type="VelocityPanel" t:template="footer.vm"/>
   </body>

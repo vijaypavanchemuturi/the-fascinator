@@ -20,8 +20,8 @@ package au.edu.usq.solr.model;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -43,12 +43,12 @@ public class Response {
 
     private long queryTime;
 
-    private List<FacetList> facetLists;
+    private Set<FacetList> facetLists;
 
     private Result result;
 
     public Response(InputStream in) {
-        facetLists = new ArrayList<FacetList>();
+        facetLists = new TreeSet<FacetList>();
         process(in);
     }
 
@@ -56,7 +56,7 @@ public class Response {
         return queryTime / 1000.0;
     }
 
-    public List<FacetList> getFacetLists() {
+    public Set<FacetList> getFacetLists() {
         return facetLists;
     }
 

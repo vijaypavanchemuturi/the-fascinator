@@ -1,7 +1,24 @@
+#
+# set this to the portal configuration directory, where the portal.xml and
+# velocity templates (*.vm) exist
+#
+# note: for development purposes this can be left as-is if deployed using jetty
+#
+file.resource.loader.path = src/main/config/portal
+
+#
+# template cache is turned off for development purposes. set to true for
+# faster performance (e.g. for production deployment)
+#
+file.resource.loader.cache = false
+
+#
+# The lines below should not need to be changed
+#
 resource.loader = file
 
 file.resource.loader.description = Velocity File Resource Loader
 file.resource.loader.class = org.apache.velocity.runtime.resource.loader.FileResourceLoader
-file.resource.loader.path = src/main/config/portal
-file.resource.loader.cache = false
 file.resource.loader.modificationCheckInterval = 0
+
+velocimacro.library = portal-library.vm

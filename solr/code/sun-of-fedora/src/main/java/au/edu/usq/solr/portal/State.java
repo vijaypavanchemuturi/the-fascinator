@@ -68,8 +68,8 @@ public class State {
         return portal;
     }
 
-    public void setPortal(Portal currentPortal) {
-        this.portal = currentPortal;
+    public void setPortal(Portal portal) {
+        this.portal = portal;
     }
 
     public String getProperty(String key) {

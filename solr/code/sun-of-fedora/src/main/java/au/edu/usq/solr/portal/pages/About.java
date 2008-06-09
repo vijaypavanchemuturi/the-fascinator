@@ -16,25 +16,28 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-package au.edu.usq.solr.portal.services;
+package au.edu.usq.solr.portal.pages;
 
-import java.util.Map;
+import org.apache.tapestry.annotations.ApplicationState;
+import org.apache.tapestry.annotations.IncludeStylesheet;
 
-import au.edu.usq.solr.portal.Portal;
+import au.edu.usq.solr.portal.State;
 
-public interface PortalManager {
+@IncludeStylesheet("context:css/default.css")
+public class About {
 
-    public static final String DEFAULT_PORTAL_NAME = "default";
+    @ApplicationState
+    private State state;
 
-    public Map<String, Portal> getPortals();
+    Object onSubmit() {
+        return Start.class;
+    }
 
-    public Portal getDefault();
+    public State getState() {
+        return state;
+    }
 
-    public Portal get(String name);
-
-    public void add(Portal portal);
-
-    public void remove(String name);
-
-    public void save(Portal portal);
+    public void setState(State config) {
+        this.state = config;
+    }
 }

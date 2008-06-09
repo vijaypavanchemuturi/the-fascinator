@@ -1,0 +1,5 @@
+#macro(actionlink $event $param)
+  #set($paramlist = [$param])
+  #set($paramarray = $paramlist.toArray())
+  $context.createActionLink($event, false, $paramarray)
+#end

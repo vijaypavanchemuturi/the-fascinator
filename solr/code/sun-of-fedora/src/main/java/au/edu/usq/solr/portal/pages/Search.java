@@ -22,6 +22,7 @@ import static au.edu.usq.solr.portal.services.PortalManager.DEFAULT_PORTAL_NAME;
 
 import java.io.IOException;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
@@ -32,7 +33,7 @@ import org.apache.tapestry.annotations.InjectPage;
 import org.apache.tapestry.annotations.OnEvent;
 import org.apache.tapestry.annotations.Persist;
 import org.apache.tapestry.ioc.annotations.Inject;
-import org.apache.tapestry.services.AssetSource;
+import org.apache.tapestry.services.Request;
 
 import au.edu.usq.solr.model.Document;
 import au.edu.usq.solr.model.Facet;
@@ -45,6 +46,7 @@ import au.edu.usq.solr.portal.Searcher;
 import au.edu.usq.solr.portal.State;
 import au.edu.usq.solr.portal.pages.portal.Create;
 import au.edu.usq.solr.portal.services.PortalManager;
+import au.edu.usq.solr.portal.services.VelocityResourceLocator;
 
 @IncludeStylesheet("context:css/default.css")
 public class Search {
@@ -52,9 +54,6 @@ public class Search {
     private Logger log = Logger.getLogger(Search.class);
 
     private static final String QUERY_ALL = "*:*";
-
-    @Inject
-    private AssetSource assetSource;
 
     @Inject
     private PortalManager portalManager;
@@ -94,7 +93,34 @@ public class Search {
     @InjectPage(value = "portal/create")
     private Create createPortalPage;
 
+    @Inject
+    private Request httpRequest;
+
+    @Inject
+    private org.apache.tapestry.services.Response httpResponse;
+
+    @Inject
+    private VelocityResourceLocator locator;
+
     void onActivate(Object[] params) {
+        // handle forms from velocity templates
+        List<String> paramNames = httpRequest.getParameterNames();
+        if (!paramNames.isEmpty() && !paramNames.contains("t:ac")) {
+            String portalValue = httpRequest.getParameter("portal");
+            String queryValue = httpRequest.getParameter("query");
+            String redirectPath = httpRequest.getContextPath() + "/search/"
+                + portalValue;
+            if (queryValue != null && !"".equals(queryValue)) {
+                redirectPath += "/" + queryValue;
+            }
+            try {
+                selectFirstPage();
+                httpResponse.sendRedirect(redirectPath);
+                return;
+            } catch (IOException e) {
+            }
+        }
+        // normal tapestry processing
         if (params.length == 0) {
             portalName = DEFAULT_PORTAL_NAME;
         }
@@ -168,7 +194,7 @@ public class Search {
         this.context = context;
     }
 
-    public boolean getShowResults() {
+    public boolean getHasResults() {
         if (response != null) {
             return response.getResult().getNumFound() > 0;
         }
@@ -184,13 +210,13 @@ public class Search {
             && (pageNum != pagination.getLastPage());
     }
 
-    @OnEvent(component = "addfacet")
+    @OnEvent(value = "addfacet")
     void addFacetLimit(Object[] limits) {
         selectFirstPage();
         facetLimits.add(parseFacetLimits(limits, '/'));
     }
 
-    @OnEvent(component = "removefacet")
+    @OnEvent(value = "removefacet")
     void removeFacetLimit(Object[] limits) {
         selectFirstPage();
         facetLimits.remove(parseFacetLimits(limits, '/'));
@@ -209,39 +235,40 @@ public class Search {
         return t;
     }
 
-    @OnEvent(component = "clearfacets")
+    @OnEvent(value = "clearfacets")
     void clearFacetLimits() {
         selectFirstPage();
         facetLimits.clear();
     }
 
-    @OnEvent(component = "createportal")
+    @OnEvent(value = "createportal")
     Object createFromSelected() {
         String[] facetArray = facetLimits.toArray(new String[] {});
         String limits = parseFacetLimits(facetArray, '+');
-        String portalName = facetArray[facetArray.length - 1];
-        portalName = portalName.substring(portalName.indexOf(':') + 2,
-            portalName.length() - 1);
+        String newPortalName = facetArray[facetArray.length - 1];
+        newPortalName = newPortalName.substring(newPortalName.indexOf(':') + 2,
+            newPortalName.length() - 1);
+        newPortalName = newPortalName.toLowerCase().replaceAll(" ", "");
         Portal current = state.getPortal();
         if (current != null && !"".equals(current.getQuery())) {
             limits = current.getQuery() + "+" + limits;
         }
-        Portal portal = new Portal(portalName, limits);
+        Portal portal = new Portal(newPortalName, limits);
         createPortalPage.setPortal(portal);
         return createPortalPage;
     }
 
-    @OnEvent(component = "selectpage")
+    @OnEvent(value = "selectpage")
     void selectPage(int pageNum) {
         this.pageNum = pageNum;
     }
 
-    @OnEvent(component = "firstpage")
+    @OnEvent(value = "firstpage")
     void selectFirstPage() {
         this.pageNum = 1;
     }
 
-    @OnEvent(component = "lastpage")
+    @OnEvent(value = "lastpage")
     void selectLastPage() {
         this.pageNum = pagination.getLastPage();
     }
@@ -270,17 +297,8 @@ public class Search {
         this.page = page;
     }
 
-    public Asset getStylesheet() {
-        String cssPath = portalName + "/style.css";
-        String assetPath = "velocity:" + cssPath;
-        Asset stylesheet = assetSource.getClasspathAsset(assetPath);
-        try {
-            log.info("stylesheeturl:" + stylesheet);
-        } catch (Exception e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-        return stylesheet;
+    public String getStylesheet() {
+        return locator.getLocation(portalName, "style.css");
     }
 
     public void setStylesheet(Asset stylesheet) {
@@ -290,8 +308,8 @@ public class Search {
         return portalName;
     }
 
-    public void setPortalName(String portal) {
-        this.portalName = portal;
+    public void setPortalName(String portalName) {
+        this.portalName = portalName;
     }
 
     public String getQuery() {
@@ -376,5 +394,16 @@ public class Search {
 
     public State getState() {
         return state;
+    }
+
+    public boolean isSelectedFacet(String facet) {
+        for (String selected : facetLimits) {
+            int pos = selected.indexOf(':');
+            String value = selected.substring(pos + 1).replaceAll("\"", "");
+            if (facet.equals(value)) {
+                return true;
+            }
+        }
+        return false;
     }
 }

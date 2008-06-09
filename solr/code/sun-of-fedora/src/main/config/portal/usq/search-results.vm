@@ -1,0 +1,7 @@
+<div class="search-results">
+  #foreach($item in $page.response.result.docs)
+    <div class="#if($velocityCount % 2 == 0)even#{else}odd#end">
+      #parse($locator.getLocation('search-item.vm'))
+    </div>
+  #end
+</div>

@@ -50,12 +50,17 @@ public class Pagination {
 
         pages = new ArrayList<Page>();
 
+        int pageSize = 10;
+        int halfPageSize = pageSize / 2;
         int startPage = 0;
-        if (page >= 5) {
-            startPage = page - 5;
+        int endPage = page + (halfPageSize - 1);
+        if (page >= halfPageSize) {
+            startPage = page - halfPageSize;
         }
-
-        int endPage = Math.min(lastPage, page + 5);
+        if (page < halfPageSize) {
+            endPage = pageSize - 1;
+        }
+        endPage = Math.min(lastPage, endPage);
 
         for (int i = startPage; i < endPage; i++) {
             Page p = new Page();

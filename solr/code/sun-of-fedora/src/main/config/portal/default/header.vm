@@ -1,16 +1,21 @@
-<div id="container">
-  <div id="nav">
-    <ul>
-      <li class="home">
-        <a href="${contextPath}">home</a>
-      </li>
-      <li><a href="${contextPath}portal/create">new portal</a></li>
-      <li><a href="${contextPath}config">settings</a></li>
-      <li><a href="">about</a></li>
-      <li><a href="mailto:someone@usq.edu.au">contact</a></li>
-    </ul>
-  </div>
-  <div id="search_bar">
-    <a href="${contextPath}">Portal</a>: $page.state.portal.description
-  </div>
+<!-- BEGIN header.vm -->
+<div class="nav-bar">
+  <ul>
+    <li class="home"><a href="${contextPath}">home</a></li>
+    <li><a href="${contextPath}portal/create">new portal</a></li>
+    <li><a href="${contextPath}config">settings</a></li>
+    <li><a href="${contextPath}about">about</a></li>
+    <li><a href="mailto:">contact</a></li>
+  </ul>
 </div>
+<div class="portal-bar">
+  #set($beforeLastSlash = $context.pageName.lastIndexOf('/'))
+  #set($afterLastSlash = $beforeLastSlash + 1)
+  #set($pageName = $context.pageName.substring($afterLastSlash))
+  #if($pageName == "Search" && $page.state.portal.description)
+    $page.state.portal.description
+  #else
+    $pageName
+  #end
+</div>
+<!-- END header.vm -->

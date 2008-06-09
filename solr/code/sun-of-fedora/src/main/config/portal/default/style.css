@@ -1,264 +1,226 @@
-body {
-  margin: 0;
-  padding: 0;
-  background-color: #F2F8EF;
-  font-family: Helvetica, Arial, sans-serif;
-  font-size: 0.8em;
+/* General */
+input.textfield, .t-beaneditor-row input {
+  border: solid black 1px;
 }
 
-container {
+input.button, .t-beaneditor-submit {
+  background-color: #94BB4D;
+  border: solid black 1px;
+  color: white;
+  padding-left: 4px;
+  padding-right: 4px;
+}
+
+input.button:hover {
+  background-color: #C3562E;
+}
+
+/* Start page */
+.welcome, .start-search, .portal-list {
+  padding-left: 1em;
+}
+
+.portal-list ul {
   font-size: 1.2em;
-}
-/*********** Header *********/
-#nav {
-  padding-left: 15px;
-  padding-top: 5px;
-  padding-bottom: 5px;
-  background-color: #293962;
-  font-weight: bold;
-  border-bottom: dashed white 1px;
-}
-#nav ul {
-  margin: 0;
-  padding: 0;
-  display:inline;
+  list-style: none;
+  padding-left: 1em;
+  margin: 0.25em;
 }
 
-#nav ul li{
+.portal-list a.portal-edit {
+  color: #94BB4D;
+  font-size: 0.75em;
+  padding-left: 0.5em;
+}
+
+/* Config page */
+.config {
+  padding-left: 1em;
+}
+
+/* Navigation bar */
+.nav-bar {
+  background-color: #293962;
+  border-bottom: dashed white 1px;
+  font-weight: bold;
+  padding-bottom: 5px;
+  padding-top: 5px;
+  padding-left: 15px;
+}
+
+.nav-bar ul {
+  margin: 0;
+  padding: 0;
+  display: inline;
+}
+
+.nav-bar ul li{
+  display: inline;
   margin: 0;
   padding: 0;
   padding: 2px 15px 5px;
-  display:inline;
-  list-style:none;
-}
-#nav li, #nav a { 
-  display:inline;
-  color: white;
-  text-decoration: none;
-  font-weight:inherit;
+  list-style: none;
 }
 
-#nav li {
+.nav-bar li, .nav-bar a { 
+  color: white;
+  display:inline;
+  font-weight: inherit;
+  text-decoration: none;
+}
+
+.nav-bar li {
   padding-right: 20px;
 }
 
-nav .home {
+.nav-bar .home {
   margin-right: 1.5em;
 }
 
-/********** General text styling ***********/
-h1,h2,h3,h4,h5,h6 {
-  color: #C3562E;
-  text-decoration: none;
-}
-
-h1 {
-  font-size: 1.67em;
-}
-
-h2 {
-  font-size: 1.5em;
-}
-
-h3 {
-  font-size: 1.33em;
-}
-
-h4 {
-  font-size: 1.17em;
-}
-th {
-    text-align: left;
-}
-
-
-/** links **/
-a:link, a:visited {
-  text-decoration: none;
-  color: #00A;
-}
-
-a:hover {
-  text-decoration: underline;
-}
-/***logo ***/
-div.logo{
-  background: url('/sun-of-fedora/images/logo-sub.gif');
-  background-repeat: no-repeat;
-  height: 110px;
-  width: 150px;
-  margin: 4 4 4 4;
-  padding-top: 5px;
-  padding-left: 5px;
-  padding-bottom: 55px
-  position: relative;
-  float: left;
-}
-/***form****/
-form{
-  margin-left: 54px;
-
-}
-
-/*********** Search bar ***********/
-#search_bar, #search_bar a {
+/* Portal bar */
+.portal-bar {
   background-color: #C3562E;
+  color: white;
+  padding-bottom: 5px;
+  padding-top: 5px;
+  padding-right: 5px;
   text-align: right;
   text-decoration: none;
-  color: white;
-  padding-right: 5px;
-  padding-top: 5px;
-  padding-bottom: 5px;
-  height: 1.5em;
 }
 
-#search_bar label:after {
-  content: ": ";
-}
-
-#search_bar a:hover {
-  text-decoration: underline;
-}
-
-/********** Front page search ***********/
-
-.portal-list ul {
-  list-style-type: none;
-  margin: 0;
-}
-
-.portal-list ul li a.portal-edit {
-  padding-left: 0.5em;
-  font-size: 0.7em;
-  color: #94BB4D;
-}
-
-div.search {
-    padding-top: 25px;
-  padding-left: 5px;
-  margin-left: 20%;
-  width: 50%;
-  }
-.search h3{
-   font-size: 1.17em;
-   color: #000;
-}
-
-input {
-  background-color: white;
-  border: solid black 1px;
-  padding: 4;
-}
-input.search-field{
-  width: 400px;
-}
-input.search-button, input.add_portal, input.update_config {
-  background-color: #94bb4d;
-  border: solid black 1px;
-  color: white;
-  margin-left: 0.5em;
-  padding: 3;
-}
-input.search-button:hover {
-  background: #E4C8B5;
-}
-input.add_portal:hover {
-  background: #E4C8B5;
-}
-input.update_config:hover {
-  background: #E4C8B5;
-}
-input.add_portal, input.update_config{
-    margin-top: 24px;
-  margin-left: 54px;
-}
-
-
-
-/*portals**/
-.portals{
+/* Facets */
+.facets {
   background-color: #F2F8EF;
-  margin-left: 14px;
-
-}
-.portals h2 {
-  padding-left: 10px;
-  margin-top: 20px;
-  font-size: 1.17em;
-    color: #000;
-}
-
-/***facets ***/
-div.facets {
-    background-color: #F2F8EF;
   float: right;
-  width: 20%;
-  padding-left: 2em;
-  margin-right: 2.5%;
-  position: relative;
+  width: 25%;
+}
 
+.facets h3 {
+  clear: both;
+  margin-bottom: 0;
+  margin-top: 0;
+  padding-bottom: 0;
+  padding-top: 0;
 }
-.facets h3{
-   font-size: 1.17em;
-   color: #000;
-}
-.facets h4{
-   font-size: 1.17em;
-   color: #000;
+
+.facets h4 {
+  color: #000;
+  margin-bottom: 0;
 }
 
 .facets ul {
-/*border-bottom: solid #AAA 1px;*/
-  /*border-bottom: 1px solid #E2EED8;*/
-  padding: 0px;
-  margin: 0px;
-}
-.facets li{
-    margin-left: 24px;
-  padding-top: 4px;
-  padding-bottom: 4px;
-    color: #0000AA;
-}
-div.results {
-    position: absolute;
-    left: 1em;
-  width: 70%;
-}
-div.pagination {
-    float: right;
-    padding-right: 1em;
-    padding-bottom: 1em;
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
 }
 
-
-p.doc-id {
-    font-style: italic;
+.facets li {
+  border-bottom: 1px solid #E2EED8;
+  margin: 0;
+  padding-top: 3px;
+  padding-bottom: 3px;
+  color: #666;
 }
 
-/*** footer ***/
-#footer a {
-  color: black;
+.facets ul li a.deselect {
+  color: #94BB4D;
+  font-size: 0.75em;
 }
 
-#footer a:hover {
-  text-decoration: underline;
+.facets a.action {
+  color: #94BB4D;
+  font-size: 0.9em;
 }
 
+/* Search */
 
-#footer{
-  background-color: #CCC;
-  clear: both;
-  border-bottom: dashed black 1px;
-  padding-left: 5px;
-  font-size: 0.8em;
-  padding-left:15px;
-  padding-top:5px;
-  padding-bottom:5px;
+.search {
+  margin-left: 2%;
 }
 
+/* Search header */
 
-#logo_footer {
-  clear: both;
-  padding-left: 50px;
-  padding-bottom: 50px;
+.search-header {
+  background: #E4C8B5;
+  margin-bottom: 1em;
+  padding-bottom: 0.25em;
+  padding-left: 1em;
+  padding-top: 0.5em;
+  width: 72%;
+}
+
+input.search-textfield {
+  border: solid black 1px;
+  font-size: 1.1em;
+  width: 20em;
+}
+
+/* Paging */
+
+.paging {
+  margin-left: 0;
+  padding-left: 0;
+}
+
+.paging li {
+  display: inline;
+}
+
+.paging li a {
+  padding-left: 0.3em;
+  padding-right: 0.3em;
+  border: solid #E4C8B5 1px;
+}
+
+.paging .selected-page a, .paging a:hover {
+  background: #FFF;
+  border: solid #C3562E 1px;
+  padding-left: 0.3em;
+  padding-right: 0.3em;
+}
+
+/* Search results */
+.search-results {
+  background-color: #F2F8EF;
+  width: 73%;
+}
+
+/* Search item */
+.item {
+  padding-top: 0.5em;
+  padding-left: 0.5em;
+  padding-right: 0.5em;
+}
+
+.odd, .even {
+  border-top: solid #B0CB90 1px;
+  padding-bottom: 0.5em;
+  padding-top: 0.5em;
+}
+
+.search-results .odd {
+  background-color: #F2F8EF;
+}
+
+.search-results .even {
+  background-color: #E2EED8;
+}
+
+.item h2 {
+  color: #559;
+  font-weight: bold;
+  margin-top: 0;
+}
+
+.item ul {
+  list-style: none;
+  margin-left: 0;
+  padding-left: 0;
+}
+
+/* Tapestry overrides */
+.beaneditor {
+  padding-left: 1em;
+  padding-right: 1em;
+  width: 80%;
 }

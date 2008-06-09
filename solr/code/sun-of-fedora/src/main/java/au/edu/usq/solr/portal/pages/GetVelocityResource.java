@@ -18,6 +18,9 @@
  */
 package au.edu.usq.solr.portal.pages;
 
+import javax.activation.MimetypesFileTypeMap;
+
+import org.apache.tapestry.StreamResponse;
 import org.apache.tapestry.contrib.services.TemplateService;
 import org.apache.tapestry.contrib.utils.VelocityMarker;
 import org.apache.tapestry.ioc.annotations.Inject;
@@ -25,14 +28,14 @@ import org.apache.tapestry.util.TextStreamResponse;
 import org.apache.velocity.runtime.RuntimeSingleton;
 import org.apache.velocity.runtime.resource.ContentResource;
 
+import au.edu.usq.solr.util.BinaryStreamResponse;
+
 /**
  * Gets resources using Velocity resource loaders.
  * 
  * @author Oliver Lucido
  */
 public class GetVelocityResource {
-
-    private static final String MIME_TYPE = "text/plain";
 
     @Inject
     @VelocityMarker
@@ -51,12 +54,21 @@ public class GetVelocityResource {
             }
             try {
                 ContentResource resource = RuntimeSingleton.getContent(path);
-                String data = resource.getData().toString();
-                return new TextStreamResponse(MIME_TYPE, data);
+                MimetypesFileTypeMap typeMap = new MimetypesFileTypeMap();
+                String mimeType = typeMap.getContentType(path);
+                StreamResponse response = null;
+                if (mimeType.startsWith("text/")) {
+                    response = new TextStreamResponse(mimeType,
+                        resource.getData().toString());
+                } else {
+                    response = new BinaryStreamResponse(mimeType,
+                        resource.getResourceLoader().getResourceStream(path));
+                }
+                return response;
             } catch (Exception e) {
                 // ignore exceptions
             }
         }
-        return new TextStreamResponse(MIME_TYPE, "");
+        return new TextStreamResponse("text/plain", "");
     }
 }

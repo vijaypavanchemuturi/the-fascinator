@@ -1,0 +1,25 @@
+<!-- BEGIN search-item.vm -->
+<div class="item">
+  <h2>$item.title</h2>
+  <ul>
+    #foreach($id in $item.identifiers)
+      <li>
+        #if($id.startsWith("http://"))
+          <a href="$id">$id</a>
+        #else
+          $id
+        #end
+      </li>
+    #end
+  </ul>
+  <p class="item-description">
+    <strong>Description</strong>
+    <br/>
+    #if($item.description)
+      $item.description
+    #else
+      No description
+    #end
+  </p>
+</div>
+<!-- END search-item.vm -->

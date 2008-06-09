@@ -1,248 +1,280 @@
+/* General */
 body {
-    margin: 0;
-	padding: 0;
-	background-color: #f3f5fa;
-	font-family:'Times New Roman', 'Helvetica Neue', Helvetica, Arial, sans-serif;
-    font-size: 0.9em;
-}
-
-container {
-	font-size: 1.2em;
-}
-/*********** Header *********/
-#nav {
-	padding-left: 15px;
-	padding-top: 5px;
-	padding-bottom: 5px;
-	background-color: #293962;
-	font-weight: bold;
-	border-bottom: dashed white 1px;
-}
-#nav ul {
-	margin: 0;
-	padding: 0;
-	display:inline;
-}
-
-#nav ul li{
-	margin: 0;
-	padding: 0;
-	padding: 2px 15px 5px;
-	display:inline;
-	list-style:none;
-}
-#nav li, #nav a {	
-	display:inline;
-	color: white;
-	text-decoration: none;
-	font-weight:inherit;
-}
-
-#nav li {
-	padding-right: 20px;
-}
-
-nav .home {
-	margin-right: 1.5em;
-}
-
-/********** General text styling ***********/
-h1,h2,h3,h4,h5,h6 {
-	color: #f9bb00;
-	text-decoration: none;
+  background-color: white;
 }
 
 h1 {
-	font-size: 1.67em;
+  color: black;
 }
 
-h2 {
-	font-size: 1.5em;
+input.textfield, .t-beaneditor-row input {
+  border: solid #606060 1px;
 }
 
-h3 {
-	font-size: 1.33em;
+input.button, .t-beaneditor-submit {
+  background-color: #1F4F76;
+  background-image: url('../usq/images/blue_bar.png');
+  color: white;
+  padding-left: 4px;
+  padding-right: 4px;
 }
 
-h4 {
-	font-size: 1.17em;
-}
-th {
-    text-align: left;
+input.button:hover {
+  background-color: #3266CC;
 }
 
-
-/** links **/
-a:link, a:visited {
-	text-decoration: none;
-	color: #00A;
+/* Start page */
+.welcome, .start-search, .portal-list {
+  padding-left: 1em;
 }
 
-a:hover {
-	text-decoration: underline;
-}
-/***logo ***/
-div.logo{
-	background: url('/sun-of-fedora/images/eprints/USQAustralia_logo2.gif');
-	background-repeat: no-repeat;
-	margin: 4 4 4 4;
-	padding-top: 5px;
-	padding-left: 5px;
-	padding-bottom: 55px;
-}
-/***form****/
-form{
-	margin-left: 54px;
-
+.portal-list ul {
+  font-size: 1.2em;
+  list-style: none;
+  padding-left: 1em;
+  margin: 0.25em;
 }
 
-/*********** Search bar ***********/
-#search_bar, #search_bar a {
-	background-color: #3266cc;
-	text-align: right;
-	text-decoration: none;
-	color: white;
-	padding-right: 5px;
-	padding-top: 5px;
-	padding-bottom: 5px;
-	height: 1.5em;
+.portal-list a.portal-edit {
+  color: #94BB4D;
+  font-size: 0.75em;
+  padding-left: 0.5em;
 }
 
-#search_bar label:after {
-	content: ": ";
+/* Config page */
+.config {
+  padding-left: 1em;
 }
 
-#search_bar a:hover {
-	text-decoration: underline;
+/* Navigation bar */
+.nav-bar {
+  background-image: url('../usq/images/blue_bar.png');
+  font-size: 1.1em;
+  font-weight: bold;
+  margin: 0;
+  padding-bottom: 3px;
+  padding-left: 15px;
+  padding-top: 3px;
 }
 
-/********** Front page search ***********/
-div.search {
-    padding-top: 5px;
-	padding-left: 5px;
-	margin-left: 20%;
-	width: 50%;
-	}
-
-input {
-	background-color: white;
-	border: solid black 1px;
-}
-input.search-field{
-	width: 400px;
-}
-input.search_button, input.add_portal, input.update_config, input.start_harvest {
-	background-color: #1f4f76;
-	border: solid black 1px;
-	color: white;
-	padding: 4 4 4 4;
-}
-input.search_button:hover {
-	background: #e6eaf5;
-}
-input.add_portal:hover {
-	background: #e6eaf5
-}
-input.update_config:hover {
-	background: #e6eaf5
-}
-input.start_harvest:hover {
-	background: #e6eaf5
-}
-input.add_portal, input.update_config, input.start_harvest{
-    margin-top: 24px;
-	margin-left: 54px;
+.nav-bar ul {
+  margin: 0;
+  padding: 0;
+  display: inline;
 }
 
-
-
-/*portals**/
-.portals{
-	background-color: #F2F8EF;
-	margin-left: 14px;
-
-}
-.portals h2 {
-	padding-left: 10px;
-	margin-top: 20px;
-	font-size: 1.17em;
-    color: #000;
+.nav-bar ul li {
+  display: inline;
+  margin: 0;
+  padding: 3px;
+  list-style: none;
 }
 
-/***facets ***/
-div.facets {
-    background-color: #f3f5fa;
-	float: left;
-	width: 15%;
-	padding-left: 10px;
-	margin-top: 20px;
-	margin-right: 5%;
-	position: absolute;
+.nav-bar li, .nav-bar a {
+  color: white;
+  display:inline;
+  font-weight: inherit;
+  margin: 0;
+  padding: 3px;
+  text-decoration: none;
+}
 
+.nav-bar a:hover {
+  background-color: #279AE2;
+  margin: 0;
+  padding: 3px;
 }
-.facets h3{
-   font-size: 1.17em;
-   color: #000;
+
+.nav-bar li {
+  border: 1px solid; 
 }
-.facets h4{
-   font-size: 1.17em;
-   color: #000;
+
+.nav-bar .home {
+  border: none;
+  margin-right: 1.5em;
+}
+
+/* Portal bar */
+.portal-bar {
+  background-color: #FFF;
+  color: white;
+  height: 63px;
+}
+
+/* Facets */
+.facets {
+  background-color: white;
+  float: left;
+  width: 25%;
+}
+
+.facets h3 {
+  clear: both;
+  color: black;
+  margin-bottom: 0;
+  margin-top: 0;
+  padding-bottom: 0;
+  padding-top: 0;
+}
+
+.facets h4 {
+  color: #FF9900;
+  margin-bottom: 0;
+  padding-left: 0.8em;
+  padding-bottom: 0;
 }
 
 .facets ul {
-/*border-bottom: solid #AAA 1px;*/
-	/*border-bottom: 1px solid #E2EED8;*/
-	padding: 0px;
-	margin: 0px;
-}
-.facets li{
-    margin-left: 24px;
-	padding-top: 4px;
-	padding-bottom: 4px;
-    color: #0000AA;
-	list-style-type:none;
-}
-div.results {
-    position: absolute;
-	margin-top: 100px;
-    left: 19em;
-	width: 70%;
-}
-div.pagination {
-    float: right;
-    padding-right: 1em;
-    padding-bottom: 1em;
+  border: solid 1px #D8DBEF;
+  list-style-type: disc;
+  padding-left: 2em;
 }
 
-
-p.doc-id {
-    font-style: italic;
+.facets li {
+  margin: 0;
+  padding-top: 3px;
+  padding-bottom: 3px;
+  color: #666;
 }
 
-/*** footer ***/
-#footer a {
-	color: black;
+.facets ul li a.deselect {
+  color: #269AE3;
+  font-size: 0.75em;
 }
 
-#footer a:hover {
-	text-decoration: underline;
+.facets a.action {
+  color: #269AE3;
+  font-size: 0.9em;
 }
 
+/* Search */
 
-#footer{
-	background-color: #CCC;
-	clear: both;
-	border-bottom: dashed black 1px;
-	padding-left: 5px;
-	font-size: 0.8em;
-	padding-left:15px;
-	padding-top:5px;
-	padding-bottom:5px;
+.search {
+  margin-left: 2%;
 }
 
+.no-result {
+  background-image: url('../usq/images/orange_back.png');
+  border: solid 1px #FFC080;
+  margin-bottom: 1.5em;
+  margin-right: 2%;
+  padding-left: 1.5em;
 
-#logo_footer {
-	clear: both;
-	padding-left: 50px;
-	padding-bottom: 50px;
+}
+
+.no-result img {
+  padding: 10px;
+  vertical-align: middle;
+}
+
+/* Search header */
+
+.search-header {
+  background: #FFEFBE url('../usq/images/eprints_test.jpg') no-repeat left;
+  float: right;
+  margin-bottom: 1em;
+  margin-right: 1em;
+  padding-bottom: 0.25em;
+  padding-right: 1em;
+  padding-top: 0.5em;
+  width: 72%;
+}
+
+.search-header-no-result {
+  background: #FFEFBE url('../usq/images/eprints_test.jpg') no-repeat left;
+  margin-bottom: 1em;
+  margin-right: 2%;
+  padding: 0.5em;
+}
+
+.search-form {
+  padding-left: 17em;
+}
+
+input.search-textfield {
+  border: solid #606060 1px;
+  font-size: 1.1em;
+  width: 20em;
+}
+
+/* Paging */
+
+.paging {
+  margin-left: 0;
+  padding-left: 0;
+}
+
+.paging li {
+  display: inline;
+}
+
+.paging li a {
+  padding-left: 0.3em;
+  padding-right: 0.3em;
+  border: solid #E4C8B5 1px;
+}
+
+.paging .selected-page a, .paging a:hover {
+  background: #FFF;
+  border: solid #3266CC 1px;
+  padding-left: 0.3em;
+  padding-right: 0.3em;
+}
+
+/* Search results */
+.search-results {
+  background-color: white;
+  float: right;
+  margin-right: 1em;
+  margin-bottom: 1em;
+  width: 73%;
+}
+
+/* Search item */
+.item {
+  padding-top: 0.5em;
+  padding-left: 0.5em;
+  padding-right: 0.5em;
+}
+
+.odd, .even {
+  border-top: solid #269AE3 1px;
+  padding-bottom: 0.5em;
+  padding-top: 0.5em;
+}
+
+.search-results .odd {
+  background-color: white;
+}
+
+.search-results .even {
+  background-color: #D8DBEF;
+}
+
+.item h2 {
+  color: #559;
+  font-weight: bold;
+  margin-top: 0;
+}
+
+.item ul {
+  list-style: none;
+  margin-left: 0;
+  padding-left: 0;
+}
+
+/* Tapestry overrides */
+.beaneditor {
+  padding-left: 1em;
+  padding-right: 1em;
+  width: 80%;
+}
+
+/* Footer */
+.footer {
+  border-top: solid 1px #808080;
+  clear: both;
+  float: bottom;
+  margin: 1em;
+  padding: 1em;
 }

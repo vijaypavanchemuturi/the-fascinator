@@ -22,6 +22,7 @@ import java.util.Set;
 import java.util.TreeSet;
 
 import org.apache.tapestry.annotations.ApplicationState;
+import org.apache.tapestry.annotations.IncludeStylesheet;
 import org.apache.tapestry.annotations.InjectPage;
 import org.apache.tapestry.annotations.OnEvent;
 import org.apache.tapestry.ioc.annotations.Inject;
@@ -30,6 +31,7 @@ import au.edu.usq.solr.portal.Portal;
 import au.edu.usq.solr.portal.State;
 import au.edu.usq.solr.portal.services.PortalManager;
 
+@IncludeStylesheet("context:css/default.css")
 public class Start {
 
     @ApplicationState

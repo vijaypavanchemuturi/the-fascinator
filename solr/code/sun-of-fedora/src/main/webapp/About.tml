@@ -24,23 +24,7 @@
   </head>
   <body>
     <div t:type="VelocityPanel" t:template="header.vm"/>
-    <div class="beaneditor">
-      <h2>Edit Portal</h2>
-      <t:beaneditform t:id="editportal" t:object="portal" t:submitlabel="Save changes">
-        <t:parameter t:name="name">
-          <t:label t:for="name"/>
-          <t:textfield t:id="name" t:value="portal.name" t:readonly="true"/>
-        </t:parameter>
-        <t:parameter t:name="description">
-          <t:label t:for="description"/>
-          <t:textfield t:id="description" t:size="40" t:value="portal.description"/>
-        </t:parameter>
-        <t:parameter t:name="query">
-          <t:label t:for="query"/>
-          <t:textfield t:id="query" t:size="60" t:value="portal.query"/>
-        </t:parameter>
-      </t:beaneditform>
-    </div>
+    <div t:type="VelocityPanel" t:template="about.vm"/>
     <div t:type="VelocityPanel" t:template="footer.vm"/>
   </body>
 </html>

@@ -1,0 +1,47 @@
+<!-- BEGIN footer.vm -->
+<div class="footer">
+  <table width="100%" cellspacing="0" cellpadding="1" border="0">
+    <tr>
+      <td align="left">
+        <a href="http://www.usq.edu.au/aboutsite/default.htm">Privacy</a>
+        | ABN: 40 234 732 081
+      </td>
+      <td align="right">
+        <a href="http://www.usq.edu.au/aboutsite/default.htm">
+          &#xA9; University of Southern Queensland 2007
+        </a>
+      </td>
+    </tr>
+    <tr>
+      <td align="left">
+        CRICOS:
+        <a
+          href="http://cricos.dest.gov.au/Institution/InstitutionDetails.aspx?ProviderID=244">
+          QLD 00244B
+        </a>
+        |
+        <a
+          href="http://cricos.dest.gov.au/Institution/InstitutionDetails.aspx?ProviderID=2225">
+          NSW 02225M
+        </a>
+      </td>
+      <td align="right">
+        Updated 16 October 2007 |
+        <a href="http://eprints.usq.edu.au/contact.html">
+          ePrints Administrator
+        </a>
+      </td>
+    </tr>
+    <tr>
+      <td colspan="2">
+        <div style="float: right; margin-left: 1em">
+          <a href="http://eprints.org/software/">
+            <img src="$locator.getLocation('images/smleprintslogo.gif')" border="0" />
+          </a>
+        </div>
+      </td>
+    </tr>
+  </table>
+</div>
+<!-- END footer.vm -->
+

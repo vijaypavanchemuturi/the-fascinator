@@ -95,17 +95,17 @@ public class PortalManagerImpl implements PortalManager {
         // TODO
     }
 
-    public void save(String name) {
-        Portal portal = get(name);
-        File portalFile = new File(new File(portalsDir, name), PORTAL_XML);
-        if (portalFile.exists()) {
-            try {
-                jaxbM.marshal(portal, portalFile);
-                log.info("Saved portal: " + portal);
-            } catch (JAXBException e) {
-                throw new RuntimeException(e);
-            }
+    public void save(Portal portal) {
+        String portalName = portal.getName();
+        File portalFile = new File(new File(portalsDir, portalName), PORTAL_XML);
+        portalFile.getParentFile().mkdirs();
+        try {
+            jaxbM.marshal(portal, portalFile);
+            log.info("Saved portal: " + portal);
+        } catch (JAXBException e) {
+            throw new RuntimeException(e);
         }
+        // TODO copy velocity templates
     }
 
     private void load() {

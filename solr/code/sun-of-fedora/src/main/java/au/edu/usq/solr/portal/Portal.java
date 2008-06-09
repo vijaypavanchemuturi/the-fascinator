@@ -19,6 +19,7 @@
 package au.edu.usq.solr.portal;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -57,6 +58,7 @@ public class Portal implements Comparable<Portal> {
     private Map<String, String> facetFields;
 
     public Portal() {
+        this("", "", "");
     }
 
     public Portal(String name, String query) {
@@ -68,6 +70,7 @@ public class Portal implements Comparable<Portal> {
         this.name = name;
         this.description = description;
         this.query = query;
+        facetFields = new HashMap<String, String>();
     }
 
     @Validate("required")
@@ -136,7 +139,10 @@ public class Portal implements Comparable<Portal> {
     }
 
     public int compareTo(Portal that) {
-        return name.compareTo(that.getName());
+        if ("default".equals(name)) {
+            return -1;
+        }
+        return description.compareTo(that.getDescription());
     }
 
     @Override

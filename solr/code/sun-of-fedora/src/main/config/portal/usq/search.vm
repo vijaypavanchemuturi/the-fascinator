@@ -1,0 +1,20 @@
+<!-- BEGIN search.vm -->
+<div class="search">
+  #if($page.hasResults)
+    <h1>Search Results</h1>
+    #parse($locator.getLocation('facets.vm'))
+    #parse($locator.getLocation('search-header.vm'))
+    #parse($locator.getLocation('search-results.vm'))
+  #else
+    <h1>No Results</h1>
+    <div class="no-result">
+      <img src="$locator.getLocation('images/warning.png')"/>
+      <span>No results were found that match your search on "<strong>$!page.query</strong>".</span>
+    </div>
+    #parse($locator.getLocation('search-header.vm'))
+    #if(!$page.facetLimits.empty)
+      <p>The search may be too narrow. <a class="clear" href="#actionlink('clearfacets' 'cf')">Clear selected facets</a>.</p>
+    #end
+  #end
+</div>
+<!-- END search.vm -->

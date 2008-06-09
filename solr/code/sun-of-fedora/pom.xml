@@ -20,9 +20,9 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>au.edu.usq</groupId>
   <artifactId>sun-of-fedora</artifactId>
-  <version>0.3</version>
+  <version>0.5</version>
   <packaging>war</packaging>
-  <name>USQ Solr Portal Demo</name>
+  <name>Sun of Fedora</name>
   <dependencies>
     <dependency>
       <groupId>org.apache.tapestry</groupId>
@@ -83,13 +83,15 @@
         <artifactId>maven-war-plugin</artifactId>
         <configuration>
           <archiveClasses>true</archiveClasses>
+          <!--  Include system scoped libraries -->
+          <!--
           <webResources>
-            <!--  Include system scoped libraries -->
             <resource>
               <directory>lib</directory>
               <targetPath>WEB-INF/lib</targetPath>
             </resource>
           </webResources>
+          -->
         </configuration>
       </plugin>
     </plugins>

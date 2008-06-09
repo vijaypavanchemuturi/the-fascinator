@@ -16,25 +16,34 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-package au.edu.usq.solr.portal.services;
+package au.edu.usq.solr.util;
 
-import java.util.Map;
+import java.io.IOException;
+import java.io.InputStream;
 
-import au.edu.usq.solr.portal.Portal;
+import org.apache.tapestry.StreamResponse;
+import org.apache.tapestry.services.Response;
 
-public interface PortalManager {
+public class BinaryStreamResponse implements StreamResponse {
 
-    public static final String DEFAULT_PORTAL_NAME = "default";
+    private String contentType;
 
-    public Map<String, Portal> getPortals();
+    private InputStream stream;
 
-    public Portal getDefault();
+    public BinaryStreamResponse(String contentType, InputStream stream) {
+        this.contentType = contentType;
+        this.stream = stream;
+    }
 
-    public Portal get(String name);
+    public String getContentType() {
+        return contentType;
+    }
 
-    public void add(Portal portal);
+    public InputStream getStream() throws IOException {
+        return stream;
+    }
 
-    public void remove(String name);
-
-    public void save(Portal portal);
+    public void prepareResponse(Response response) {
+        // nothing
+    }
 }

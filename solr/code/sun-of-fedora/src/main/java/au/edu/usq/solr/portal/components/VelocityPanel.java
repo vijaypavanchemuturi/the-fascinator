@@ -22,6 +22,7 @@ import java.io.ByteArrayOutputStream;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.log4j.Logger;
 import org.apache.tapestry.Asset;
 import org.apache.tapestry.ComponentResources;
 import org.apache.tapestry.MarkupWriter;
@@ -35,7 +36,11 @@ import org.apache.tapestry.ioc.Resource;
 import org.apache.tapestry.ioc.annotations.Inject;
 import org.apache.tapestry.runtime.Component;
 
+import au.edu.usq.solr.portal.services.VelocityResourceLocator;
+
 public class VelocityPanel {
+
+    private Logger log = Logger.getLogger(VelocityPanel.class);
 
     @Parameter(value = "'default'")
     private String fallbackPath;
@@ -57,18 +62,24 @@ public class VelocityPanel {
     @VelocityMarker
     private TemplateService service;
 
+    @Inject
+    private VelocityResourceLocator locator;
+
     @BeginRender
     public void render(MarkupWriter writer) {
+        locator.setDefaultPath(path);
         Resource templateResource = new URIResource(path + '/' + template);
         Component page = resources.getPage();
         Map<String, Object> context = new HashMap<String, Object>();
         context.put("contextPath", contextPath);
         context.put("page", page);
         context.put("context", page.getComponentResources());
+        context.put("locator", locator);
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         try {
             service.mergeDataWithResource(templateResource, out, context);
         } catch (RuntimeException re) {
+            log.warn("Render failed: " + re.getMessage() + ", trying fallback");
             templateResource = new URIResource(fallbackPath + '/' + template);
             service.mergeDataWithResource(templateResource, out, context);
         }
