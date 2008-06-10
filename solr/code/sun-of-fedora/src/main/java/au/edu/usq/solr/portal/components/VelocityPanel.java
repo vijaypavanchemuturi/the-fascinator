@@ -26,6 +26,7 @@ import org.apache.log4j.Logger;
 import org.apache.tapestry.Asset;
 import org.apache.tapestry.ComponentResources;
 import org.apache.tapestry.MarkupWriter;
+import org.apache.tapestry.annotations.ApplicationState;
 import org.apache.tapestry.annotations.BeginRender;
 import org.apache.tapestry.annotations.Parameter;
 import org.apache.tapestry.annotations.Path;
@@ -36,6 +37,7 @@ import org.apache.tapestry.ioc.Resource;
 import org.apache.tapestry.ioc.annotations.Inject;
 import org.apache.tapestry.runtime.Component;
 
+import au.edu.usq.solr.portal.State;
 import au.edu.usq.solr.portal.services.VelocityResourceLocator;
 
 public class VelocityPanel {
@@ -50,6 +52,9 @@ public class VelocityPanel {
 
     @Parameter(required = true, defaultPrefix = "literal")
     private String template;
+
+    @ApplicationState
+    private State state;
 
     @Inject
     @Path("context:/")
@@ -70,9 +75,13 @@ public class VelocityPanel {
         locator.setDefaultPath(path);
         Resource templateResource = new URIResource(path + '/' + template);
         Component page = resources.getPage();
+        String pageName = resources.getPageName().toLowerCase();
         Map<String, Object> context = new HashMap<String, Object>();
         context.put("contextPath", contextPath);
         context.put("page", page);
+        context.put("user", state.getProperty("user"));
+        context.put("role", state.getProperty("role"));
+        context.put("pageName", pageName);
         context.put("context", page.getComponentResources());
         context.put("locator", locator);
         ByteArrayOutputStream out = new ByteArrayOutputStream();

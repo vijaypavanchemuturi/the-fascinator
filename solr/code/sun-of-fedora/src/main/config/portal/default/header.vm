@@ -2,17 +2,21 @@
 <div class="nav-bar">
   <ul>
     <li class="home"><a href="${contextPath}">home</a></li>
-    <li><a href="${contextPath}portal/create">new portal</a></li>
-    <li><a href="${contextPath}config">settings</a></li>
+    #if($role == "admin")
+      <li><a href="${contextPath}logout">logout</a>: <span class="user">$user</span></li>
+      <li><a href="${contextPath}portal/create">new portal</a></li>
+      <li><a href="${contextPath}config">settings</a></li>
+    #else
+      #if($pageName != "login")
+        <li><a href="${contextPath}login">login</a></li>
+      #end
+    #end
     <li><a href="${contextPath}about">about</a></li>
     <li><a href="mailto:">contact</a></li>
   </ul>
 </div>
 <div class="portal-bar">
-  #set($beforeLastSlash = $context.pageName.lastIndexOf('/'))
-  #set($afterLastSlash = $beforeLastSlash + 1)
-  #set($pageName = $context.pageName.substring($afterLastSlash))
-  #if($pageName == "Search" && $page.state.portal.description)
+  #if($pageName == "search" && $page.state.portal.description)
     $page.state.portal.description
   #else
     $pageName

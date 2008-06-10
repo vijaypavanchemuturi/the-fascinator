@@ -79,4 +79,8 @@ public class State {
     public void setProperty(String key, String value) {
         props.setProperty(key, value);
     }
+
+    public void remove(String key) {
+        props.remove(key);
+    }
 }

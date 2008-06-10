@@ -37,8 +37,15 @@
 <div class="nav-bar">
   <ul>
     <li class="home"><a href="${contextPath}">Home</a></li>
-    <li><a href="${contextPath}portal/create">New Portal</a></li>
-    <li><a href="${contextPath}config">Settings</a></li>
+    #if($role == "admin")
+      <li><a href="${contextPath}logout">Logout</a>: <span class="user">$user</span></li>
+      <li><a href="${contextPath}portal/create">New Portal</a></li>
+      <li><a href="${contextPath}config">Settings</a></li>
+    #else
+      #if($pageName != "login")
+        <li><a href="${contextPath}login">Login</a></li>
+      #end
+    #end
     <li><a href="${contextPath}about">About</a></li>
     <li><a href="mailto:">Contact</a></li>
   </ul>

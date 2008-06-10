@@ -3,8 +3,10 @@
   <h3>Narrow Search</h3>
   #if(!$page.facetLimits.empty)
     <a class="action" href="#actionlink('clearfacets' 'cf')">clear selection</a>
-    <span class="action-sep">|</span>
-    <a class="action" href="#actionlink('createportal' 'cp')">create portal</a>
+    #if($role == "admin")
+      <span class="action-sep">|</span>
+      <a class="action" href="#actionlink('createportal' 'cp')">create portal</a>
+    #end
   #end
   #foreach($facetlist in $page.response.facetLists)
     #if(!$facetlist.facets.empty)

@@ -15,6 +15,15 @@ input.button:hover {
   background-color: #C3562E;
 }
 
+.error-message {
+  color: red;
+}
+
+/* Login */
+.login, .logout {
+  padding-left: 1em;
+}
+
 /* Start page */
 .welcome, .start-search, .portal-list {
   padding-left: 1em;
@@ -75,6 +84,10 @@ input.button:hover {
 
 .nav-bar .home {
   margin-right: 1.5em;
+}
+
+.nav-bar .user {
+  color: #94BB4D;
 }
 
 /* Portal bar */
