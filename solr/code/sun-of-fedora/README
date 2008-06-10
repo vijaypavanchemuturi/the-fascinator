@@ -14,26 +14,35 @@ Requirements
 Installation
 ============
 
-1. Check out the source code and change to the directory it was checked out to
+1. Check out the source code.
 
    svn co https://rubric-central.usq.edu.au/solrsvn/public/sun-of-fedora
    cd sun-of-fedora
 
-2. Copy the sample portal configuration directory to new directory, e.g.
+2. Check out the default portal configuration.
 
-   cp -r src/main/config /opt/sun-of-fedora
+   mkdir /opt/sun-of-fedora
+   cd /opt/sun-of-fedora
+   svn co https://rubric-central.usq.edu.au/solrsvn/solr/code/sun-of-fedora/src/main/config/portal
 
-3. Copy the same configuration files
+   Alternatively, skip this step and use the full path to src/main/config/portal
+   in Step 3.
+
+3. Copy the sample configuration files and configure them to use the directory
+   in Step 2 above.
 
    cd src/main/webapp/WEB-INF
    cp config.properties.sample config.properties
    cp velocity.properties.sample velocity.properties
 
-   Then set the portals.dir in config.properties and file.resource.loader.path
-   in velocity.properties to the destination directory in step 2 above
+   config.properties:
+     portals.dir = /opt/sun-of-fedora/portal
+
+   velocity.properties:
+     file.resource.loader.path = /opt/sun-of-fedora/portal
 
 4. Build the web package using Maven. This will create the web archive:
-   target/sun-of-fedora.war
+   target/sun-of-fedora.war.
 
    mvn compile war:war
 
