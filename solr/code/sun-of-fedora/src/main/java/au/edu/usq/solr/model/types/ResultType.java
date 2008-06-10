@@ -16,48 +16,34 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-package au.edu.usq.solr.model;
+package au.edu.usq.solr.model.types;
 
-import java.util.ArrayList;
 import java.util.List;
 
-import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
 
-public class Result {
+@XmlRootElement(name = "result")
+@XmlAccessorType(XmlAccessType.NONE)
+public class ResultType {
 
+    @XmlAttribute
     private String name;
 
+    @XmlAttribute
     private int numFound;
 
+    @XmlAttribute
     private int start;
 
-    private List<Document> docs;
-
-    public Result(Element elem) {
-        this(elem.getAttribute("name"),
-            Integer.parseInt(elem.getAttribute("numFound")),
-            Integer.parseInt(elem.getAttribute("start")));
-        NodeList docNodes = elem.getElementsByTagName("doc");
-        for (int i = 0; i < docNodes.getLength(); i++) {
-            Element docElem = (Element) docNodes.item(i);
-            docs.add(new Document(docElem));
-        }
-    }
-
-    public Result(String name, int numFound, int start) {
-        this.name = name;
-        this.numFound = numFound;
-        this.start = start;
-        docs = new ArrayList<Document>();
-    }
+    @XmlElement(name = "doc")
+    private List<DocumentType> items;
 
     public String getName() {
         return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
     }
 
     public int getNumFound() {
@@ -68,7 +54,7 @@ public class Result {
         return start;
     }
 
-    public List<Document> getDocs() {
-        return docs;
+    public List<DocumentType> getItems() {
+        return items;
     }
 }

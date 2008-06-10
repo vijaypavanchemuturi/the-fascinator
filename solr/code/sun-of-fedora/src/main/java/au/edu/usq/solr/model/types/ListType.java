@@ -16,70 +16,82 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-package au.edu.usq.solr.model;
+package au.edu.usq.solr.model.types;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.TreeSet;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlElements;
 import javax.xml.bind.annotation.XmlRootElement;
 
-import au.edu.usq.solr.model.types.ListType;
-import au.edu.usq.solr.model.types.ResultType;
+import au.edu.usq.solr.util.MapEntryType;
 
-@XmlRootElement
+@XmlRootElement(name = "lst")
 @XmlAccessorType(XmlAccessType.NONE)
-public class Response {
+public class ListType {
+
+    @XmlAttribute
+    private String name;
 
     @XmlElement(name = "lst")
     private List<ListType> lists;
 
     private Map<String, ListType> listMap;
 
-    @XmlElement
-    private ResultType result;
+    @XmlElement(name = "arr")
+    private List<ArrayType> arrays;
 
-    private Set<FacetList> facetLists;
+    private Map<String, ArrayType> arrayMap;
 
-    public Response() {
+    @XmlElements( { @XmlElement(name = "int"), @XmlElement(name = "str") })
+    private List<MapEntryType> values;
+
+    private Map<String, String> valueMap;
+
+    public String getName() {
+        return name;
     }
 
-    public double getQueryTime() {
-        return Long.parseLong(getListValue("responseHeader", "QTime")) / 1000.0;
+    public List<ListType> getLists() {
+        return lists;
     }
 
-    private String getListValue(String listName, String valueName) {
-        return getList(listName).getValue(valueName);
-    }
-
-    private ListType getList(String name) {
+    public ListType getList(String name) {
         if (listMap == null) {
             listMap = new HashMap<String, ListType>();
-            for (ListType list : lists) {
-                listMap.put(list.getName(), list);
+            for (ListType entry : lists) {
+                listMap.put(entry.getName(), entry);
             }
         }
         return listMap.get(name);
     }
 
-    public ResultType getResult() {
-        return result;
-    }
-
-    public Set<FacetList> getFacetLists() {
-        if (facetLists == null) {
-            facetLists = new TreeSet<FacetList>();
-            ListType fields = getList("facet_counts").getList("facet_fields");
-            for (ListType list : fields.getLists()) {
-                facetLists.add(new FacetList(list.getName(), list.getValues()));
+    public ArrayType getArray(String name) {
+        if (arrayMap == null) {
+            arrayMap = new HashMap<String, ArrayType>();
+            for (ArrayType entry : arrays) {
+                arrayMap.put(entry.getName(), entry);
             }
         }
-        System.out.println("facetLists:" + facetLists);
-        return facetLists;
+        return arrayMap.get(name);
+    }
+
+    public List<MapEntryType> getValues() {
+        return values;
+    }
+
+    public String getValue(String name) {
+        if (valueMap == null) {
+            valueMap = new HashMap<String, String>();
+            for (MapEntryType entry : values) {
+                valueMap.put(entry.getName(), entry.getValue());
+            }
+        }
+        return valueMap.get(name);
     }
 }

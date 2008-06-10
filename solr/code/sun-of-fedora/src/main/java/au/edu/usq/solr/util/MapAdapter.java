@@ -18,28 +18,26 @@
  */
 package au.edu.usq.solr.util;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
 import java.util.Map;
 
-import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.adapters.XmlAdapter;
 
-public class FacetFieldsType {
+public class MapAdapter extends
+    XmlAdapter<MapEntryListType, Map<String, String>> {
 
-    @XmlElement
-    private List<FacetFieldsEntryType> field;
-
-    public FacetFieldsType() {
+    @Override
+    public MapEntryListType marshal(Map<String, String> map) throws Exception {
+        return new MapEntryListType(map);
     }
 
-    public FacetFieldsType(Map<String, String> map) {
-        field = new ArrayList<FacetFieldsEntryType>();
-        for (String key : map.keySet()) {
-            field.add(new FacetFieldsEntryType(key, map.get(key)));
+    @Override
+    public Map<String, String> unmarshal(MapEntryListType entryList)
+        throws Exception {
+        Map<String, String> map = new HashMap<String, String>();
+        for (MapEntryType entry : entryList.getEntries()) {
+            map.put(entry.getName(), entry.getValue());
         }
-    }
-
-    public List<FacetFieldsEntryType> getEntries() {
-        return field;
+        return map;
     }
 }

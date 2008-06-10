@@ -14,9 +14,11 @@
       <ul>
       #foreach($facet in $facetlist.facets)
         <li>
-          <a href="#actionlink('addfacet', $facet)">$facet.value</a> ($facet.count)
           #if($page.isSelectedFacet($facet.value))
+            $facet.value ($facet.count)
             <a class="deselect" href="#actionlink('removefacet' $facet)">deselect</a>
+          #else
+            <a href="#actionlink('addfacet', $facet)">$facet.value</a> ($facet.count)
           #end
         </li>
       #end

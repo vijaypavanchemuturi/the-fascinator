@@ -16,29 +16,32 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-package au.edu.usq.solr.util;
+package au.edu.usq.solr.model.types;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.List;
 
-import javax.xml.bind.annotation.adapters.XmlAdapter;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlElements;
+import javax.xml.bind.annotation.XmlRootElement;
 
-public class FacetFieldsAdapter extends
-    XmlAdapter<FacetFieldsType, Map<String, String>> {
+@XmlRootElement(name = "arr")
+@XmlAccessorType(XmlAccessType.NONE)
+public class ArrayType {
 
-    @Override
-    public FacetFieldsType marshal(Map<String, String> facetFields)
-        throws Exception {
-        return new FacetFieldsType(facetFields);
+    @XmlAttribute
+    private String name;
+
+    @XmlElements( { @XmlElement(name = "int"), @XmlElement(name = "str") })
+    private List<String> values;
+
+    public String getName() {
+        return name;
     }
 
-    @Override
-    public Map<String, String> unmarshal(FacetFieldsType fields)
-        throws Exception {
-        Map<String, String> map = new HashMap<String, String>();
-        for (FacetFieldsEntryType entry : fields.getEntries()) {
-            map.put(entry.getName(), entry.getLabel());
-        }
-        return map;
+    public List<String> getValues() {
+        return values;
     }
 }

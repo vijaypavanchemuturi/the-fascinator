@@ -24,6 +24,10 @@ import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Unmarshaller;
+
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.log4j.Logger;
@@ -92,7 +96,7 @@ public class Searcher {
         facetFields.add(facetField);
     }
 
-    public Response find(String query) throws IOException {
+    public Response find(String query) throws IOException, JAXBException {
         Response response = null;
         String queryUrl = getUrl(query);
         log.info("Query URL: " + queryUrl);
@@ -100,7 +104,9 @@ public class Searcher {
         HttpClient client = new HttpClient();
         int status = client.executeMethod(method);
         if (status == 200) {
-            response = new Response(method.getResponseBodyAsStream());
+            JAXBContext jc = JAXBContext.newInstance(Response.class);
+            Unmarshaller um = jc.createUnmarshaller();
+            response = (Response) um.unmarshal(method.getResponseBodyAsStream());
         }
         return response;
     }

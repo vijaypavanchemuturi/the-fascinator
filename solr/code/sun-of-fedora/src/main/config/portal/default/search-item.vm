@@ -1,8 +1,8 @@
 <!-- BEGIN search-item.vm -->
 <div class="item">
-  <h2>$item.title</h2>
+  <h2>$item.field("title")</h2>
   <ul>
-    #foreach($id in $item.identifiers)
+    #foreach($id in $item.fields("identifier"))
       <li>
         #if($id.startsWith("http://"))
           <a href="$id">$id</a>
@@ -15,8 +15,8 @@
   <p class="item-description">
     <strong>Description</strong>
     <br/>
-    #if($item.description)
-      $item.description
+    #if($item.field("description"))
+      $item.field("description")
     #else
       No description
     #end

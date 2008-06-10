@@ -21,8 +21,7 @@ package au.edu.usq.solr.model;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
+import au.edu.usq.solr.util.MapEntryType;
 
 public class FacetList implements Comparable<FacetList> {
 
@@ -30,13 +29,11 @@ public class FacetList implements Comparable<FacetList> {
 
     private List<Facet> facets;
 
-    public FacetList(Element elem) {
-        name = elem.getAttribute("name");
+    public FacetList(String name, List<MapEntryType> entries) {
+        this.name = name;
         facets = new ArrayList<Facet>();
-        NodeList facetNodes = elem.getElementsByTagName("int");
-        for (int i = 0; i < facetNodes.getLength(); i++) {
-            Element facetElem = (Element) facetNodes.item(i);
-            facets.add(new Facet(name, facetElem));
+        for (MapEntryType entry : entries) {
+            facets.add(new Facet(name, entry));
         }
     }
 

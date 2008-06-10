@@ -16,22 +16,25 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-package au.edu.usq.solr.model;
+package au.edu.usq.solr.util;
 
-import au.edu.usq.solr.util.MapEntryType;
+import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlValue;
 
-public class Facet {
+public class MapEntryType {
 
+    @XmlAttribute
     private String name;
 
+    @XmlValue
     private String value;
 
-    private int count;
+    public MapEntryType() {
+    }
 
-    public Facet(String name, MapEntryType entry) {
+    public MapEntryType(String name, String value) {
         this.name = name;
-        this.value = entry.getName();
-        this.count = Integer.parseInt(entry.getValue());
+        this.value = value;
     }
 
     public String getName() {
@@ -40,14 +43,5 @@ public class Facet {
 
     public String getValue() {
         return value;
-    }
-
-    public int getCount() {
-        return count;
-    }
-
-    @Override
-    public String toString() {
-        return getName() + ":\"" + getValue() + "\"";
     }
 }

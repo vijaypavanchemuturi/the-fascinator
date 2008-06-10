@@ -1,8 +1,8 @@
 <!-- BEGIN search-item.vm -->
 <div class="item">
-  <h2>$item.title</h2>
+  <h2>$item.field("title")</h2>
   <ul>
-    #foreach($id in $item.identifiers)
+    #foreach($id in $item.fields("identifier"))
       <li>
         #if($id.startsWith("http://"))
           <a href="$id">$id</a>

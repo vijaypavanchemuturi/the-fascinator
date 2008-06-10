@@ -18,30 +18,28 @@
  */
 package au.edu.usq.solr.util;
 
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlValue;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
-public class FacetFieldsEntryType {
+import javax.xml.bind.annotation.XmlElement;
 
-    @XmlAttribute
-    private String name;
+public class MapEntryListType {
 
-    @XmlValue
-    private String label;
+    @XmlElement(name = "field")
+    private List<MapEntryType> entries;
 
-    public FacetFieldsEntryType() {
+    public MapEntryListType() {
     }
 
-    public FacetFieldsEntryType(String name, String label) {
-        this.name = name;
-        this.label = label;
+    public MapEntryListType(Map<String, String> map) {
+        entries = new ArrayList<MapEntryType>();
+        for (String key : map.keySet()) {
+            entries.add(new MapEntryType(key, map.get(key)));
+        }
     }
 
-    public String getName() {
-        return name;
-    }
-
-    public String getLabel() {
-        return label;
+    public List<MapEntryType> getEntries() {
+        return entries;
     }
 }

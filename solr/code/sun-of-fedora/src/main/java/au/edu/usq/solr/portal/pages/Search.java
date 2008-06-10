@@ -25,6 +25,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import javax.xml.bind.JAXBException;
+
 import org.apache.log4j.Logger;
 import org.apache.tapestry.Asset;
 import org.apache.tapestry.annotations.ApplicationState;
@@ -35,10 +37,10 @@ import org.apache.tapestry.annotations.Persist;
 import org.apache.tapestry.ioc.annotations.Inject;
 import org.apache.tapestry.services.Request;
 
-import au.edu.usq.solr.model.Document;
 import au.edu.usq.solr.model.Facet;
 import au.edu.usq.solr.model.FacetList;
 import au.edu.usq.solr.model.Response;
+import au.edu.usq.solr.model.types.DocumentType;
 import au.edu.usq.solr.portal.Page;
 import au.edu.usq.solr.portal.Pagination;
 import au.edu.usq.solr.portal.Portal;
@@ -69,7 +71,7 @@ public class Search {
 
     private Response response;
 
-    private Document doc;
+    private DocumentType doc;
 
     private String identifier;
 
@@ -160,8 +162,9 @@ public class Search {
         try {
             response = searcher.find(query);
         } catch (IOException e) {
-            // TODO friendly response page
-            log.error("Search failed", e);
+            log.error("Error reading response", e);
+        } catch (JAXBException e) {
+            log.error("Error parsing response", e);
         }
 
         if (response != null) {
@@ -328,11 +331,11 @@ public class Search {
         this.response = response;
     }
 
-    public Document getDoc() {
+    public DocumentType getDoc() {
         return doc;
     }
 
-    public void setDoc(Document doc) {
+    public void setDoc(DocumentType doc) {
         this.doc = doc;
     }
 

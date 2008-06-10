@@ -32,7 +32,7 @@ import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
 import org.apache.tapestry.beaneditor.Validate;
 
-import au.edu.usq.solr.util.FacetFieldsAdapter;
+import au.edu.usq.solr.util.MapAdapter;
 
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.NONE)
@@ -54,7 +54,7 @@ public class Portal implements Comparable<Portal> {
     private int facetCount = 25;
 
     @XmlElement(name = "facet-fields")
-    @XmlJavaTypeAdapter(FacetFieldsAdapter.class)
+    @XmlJavaTypeAdapter(MapAdapter.class)
     private Map<String, String> facetFields;
 
     public Portal() {
