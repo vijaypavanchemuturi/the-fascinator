@@ -78,6 +78,7 @@ public class Start {
     }
 
     public boolean isEditable() {
-        return !portal.equals(portalManager.getDefault());
+        boolean hasPermission = "admin".equals(state.getProperty("role"));
+        return hasPermission && !portal.equals(portalManager.getDefault());
     }
 }
