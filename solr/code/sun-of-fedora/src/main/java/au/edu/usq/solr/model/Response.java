@@ -79,7 +79,6 @@ public class Response {
                 facetLists.add(new FacetList(list.getName(), list.getValues()));
             }
         }
-        System.out.println("facetLists:" + facetLists);
         return facetLists;
     }
 }

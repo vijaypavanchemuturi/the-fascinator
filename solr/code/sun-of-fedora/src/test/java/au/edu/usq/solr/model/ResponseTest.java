@@ -25,8 +25,6 @@ import javax.xml.bind.Unmarshaller;
 import org.junit.Assert;
 import org.junit.Test;
 
-import au.edu.usq.solr.model.types.ArrayType;
-
 public class ResponseTest {
 
     @Test
@@ -40,12 +38,13 @@ public class ResponseTest {
     }
 
     @Test
-    public void arrayType() throws JAXBException {
-        JAXBContext jc = JAXBContext.newInstance(ArrayType.class);
+    public void response2() throws JAXBException {
+        JAXBContext jc = JAXBContext.newInstance(Response.class);
         Unmarshaller um = jc.createUnmarshaller();
-        ArrayType array = (ArrayType) um.unmarshal(getClass().getResourceAsStream(
-            "/array.xml"));
-        Assert.assertEquals("facet.field", array.getName());
-        Assert.assertEquals(4, array.getValues().size());
+        Response response = (Response) um.unmarshal(getClass().getResourceAsStream(
+            "/response2.xml"));
+        Assert.assertEquals(0.558, response.getQueryTime(), 0.0);
+        Assert.assertEquals(10, response.getResult().getItems().size());
+        Assert.assertEquals(4, response.getFacetLists().size());
     }
 }

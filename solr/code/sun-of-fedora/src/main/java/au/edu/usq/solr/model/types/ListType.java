@@ -18,6 +18,7 @@
  */
 package au.edu.usq.solr.model.types;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -82,6 +83,9 @@ public class ListType {
     }
 
     public List<MapEntryType> getValues() {
+        if (values == null) {
+            values = new ArrayList<MapEntryType>();
+        }
         return values;
     }
 
