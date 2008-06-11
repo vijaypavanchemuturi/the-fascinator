@@ -25,6 +25,8 @@ import java.util.Properties;
 import org.apache.log4j.Logger;
 import org.apache.tapestry.services.Context;
 
+import au.edu.usq.solr.portal.services.PortalManager;
+
 public class State {
 
     private static final String DEFAULT_RESOURCE = "/WEB-INF/config.properties";
@@ -61,7 +63,10 @@ public class State {
     }
 
     public String getPortalName() {
-        return getPortal().getName();
+        if (portal == null) {
+            return PortalManager.DEFAULT_PORTAL_NAME;
+        }
+        return portal.getName();
     }
 
     public Portal getPortal() {

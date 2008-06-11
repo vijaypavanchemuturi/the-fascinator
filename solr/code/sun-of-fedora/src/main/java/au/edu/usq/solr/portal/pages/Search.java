@@ -122,6 +122,8 @@ public class Search {
             } catch (IOException e) {
             }
         }
+
+        log.info("Current portal: " + state.getPortalName());
         // normal tapestry processing
         if (params.length == 0) {
             portalName = DEFAULT_PORTAL_NAME;
@@ -141,6 +143,10 @@ public class Search {
             log.debug("Portal '" + portalName + "' not found, using DEFAULT");
             portalName = DEFAULT_PORTAL_NAME;
             found = portalManager.getDefault();
+        }
+        if (!portalName.equals(state.getPortalName())) {
+            // clear facets if changing portals
+            getFacetLimits().clear();
         }
         state.setPortal(found);
 

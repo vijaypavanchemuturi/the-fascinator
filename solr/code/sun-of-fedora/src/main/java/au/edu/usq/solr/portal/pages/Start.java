@@ -47,6 +47,10 @@ public class Start {
 
     private String query;
 
+    void onActivate() {
+        searchPage.getFacetLimits().clear();
+    }
+
     @OnEvent(component = "searchForm", value = "submit")
     Object onSubmit() {
         searchPage.setQuery(query);
