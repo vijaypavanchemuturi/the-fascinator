@@ -53,6 +53,11 @@ public class Start {
         return searchPage;
     }
 
+    @OnEvent(component = "delete")
+    void onDelete(String portalName) {
+        portalManager.remove(portalName);
+    }
+
     public State getState() {
         return state;
     }

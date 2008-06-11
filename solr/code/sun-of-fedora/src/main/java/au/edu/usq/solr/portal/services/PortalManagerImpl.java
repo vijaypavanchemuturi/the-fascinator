@@ -57,14 +57,16 @@ public class PortalManagerImpl implements PortalManager {
             jaxbM = ctx.createMarshaller();
             jaxbM.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
             jaxbU = ctx.createUnmarshaller();
-            portals = new HashMap<String, Portal>();
-            load();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
     public Map<String, Portal> getPortals() {
+        if (portals == null) {
+            portals = new HashMap<String, Portal>();
+            load();
+        }
         return portals;
     }
 
@@ -88,11 +90,15 @@ public class PortalManagerImpl implements PortalManager {
         if (!portalName.equals("default") && facetFields.isEmpty()) {
             facetFields.putAll(getDefault().getFacetFields());
         }
-        portals.put(portalName, portal);
+        getPortals().put(portalName, portal);
     }
 
     public void remove(String name) {
-        // TODO
+        // delete the portal.xml
+        File portalDir = new File(portalsDir, name);
+        File portalFile = new File(portalDir, PORTAL_XML);
+        portalFile.delete();
+        getPortals().remove(name);
     }
 
     public void save(Portal portal) {

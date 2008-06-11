@@ -41,6 +41,12 @@ input.button:hover {
   padding-left: 0.5em;
 }
 
+.portal-list a.portal-delete {
+  color: #A00000;
+  font-size: 0.75em;
+  padding-left: 0.5em;
+}
+
 /* Config page */
 .config {
   padding-left: 1em;
