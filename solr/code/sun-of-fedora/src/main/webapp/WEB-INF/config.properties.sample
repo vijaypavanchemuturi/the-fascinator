@@ -8,3 +8,9 @@ solr.base.url=http://rspilot.usq.edu.au:8080/solr
 # the location of the velocity templates.
 #
 portals.dir=src/main/config/portal
+
+#
+# LDAP authentication
+#
+ldap.base.url=ldap://rubric-idp.usq.edu.au:389
+ldap.base.dn=ou=tech-team,dc=rubric,dc=edu,dc=au

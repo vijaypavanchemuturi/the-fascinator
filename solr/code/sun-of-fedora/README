@@ -29,7 +29,7 @@ Installation
    in Step 3.
 
 3. Copy the sample configuration files and configure them to use the directory
-   in Step 2 above.
+   in Step 2 above. Also configure your LDAP settings in config.properties.
 
    cd src/main/webapp/WEB-INF
    cp config.properties.sample config.properties

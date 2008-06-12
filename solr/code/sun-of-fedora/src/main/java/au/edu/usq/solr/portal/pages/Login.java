@@ -18,15 +18,24 @@
  */
 package au.edu.usq.solr.portal.pages;
 
+import javax.naming.NamingException;
+
+import org.apache.log4j.Logger;
 import org.apache.tapestry.annotations.ApplicationState;
 import org.apache.tapestry.annotations.IncludeStylesheet;
 import org.apache.tapestry.annotations.InjectPage;
-import org.apache.tapestry.annotations.Persist;
 
 import au.edu.usq.solr.portal.State;
+import au.edu.usq.solr.util.LdapAuthentication;
 
 @IncludeStylesheet("context:css/default.css")
 public class Login {
+
+    private static final String FAILED = "failed";
+
+    private static final String RETRY = "retry";
+
+    private Logger log = Logger.getLogger(Login.class);
 
     @ApplicationState
     private State state;
@@ -36,25 +45,38 @@ public class Login {
 
     private boolean cancelled;
 
-    @Persist
-    private String message;
+    private boolean failed;
 
     private String username;
 
     private String password;
 
+    Object onActivate(Object[] params) {
+        if (state.getProperty("role") != null) {
+            return startPage;
+        }
+        failed = false;
+        if (params.length > 0) {
+            String param = params[0].toString();
+            failed = FAILED.equals(param) || RETRY.equals(param);
+        }
+        return null;
+    }
+
     Object onSuccess() {
-        message = null;
         if (!cancelled) {
             if (login()) {
                 state.setProperty("user", username);
                 state.setProperty("role", "admin");
             } else {
-                message = "Invalid username or password!";
                 return null;
             }
         }
         return startPage;
+    }
+
+    String onPassivate() {
+        return failed ? FAILED : RETRY;
     }
 
     void onSelectedFromLogin() {
@@ -66,20 +88,26 @@ public class Login {
     }
 
     private boolean login() {
-        System.out.println("username: " + username);
-        return username != null && !"".equals(username);
+        boolean result = false;
+        if (username != null && password != null) {
+            try {
+                LdapAuthentication ldap = new LdapAuthentication(
+                    state.getProperty("ldap.base.url"),
+                    state.getProperty("ldap.base.dn"));
+                result = ldap.authenticate(username, password);
+            } catch (NamingException e) {
+                log.error("Could not establish connection", e);
+            }
+        }
+        return result;
     }
 
     public State getState() {
         return state;
     }
 
-    public String getMessage() {
-        return message;
-    }
-
-    public boolean isFailed() {
-        return message != null;
+    public boolean getFailed() {
+        return failed;
     }
 
     public String getUsername() {
