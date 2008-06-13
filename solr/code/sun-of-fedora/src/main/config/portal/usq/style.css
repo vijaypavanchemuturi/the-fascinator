@@ -85,6 +85,10 @@ input.button:hover {
   text-decoration: none;
 }
 
+.nav-bar a:visited {
+ color: white;
+ }
+
 .nav-bar a:hover {
   background-color: #279AE2;
   margin: 0;
@@ -111,7 +115,7 @@ input.button:hover {
 .facets {
   background-color: white;
   float: left;
-  width: 25%;
+  width: 24%;
 }
 
 .facets h3 {
@@ -206,7 +210,7 @@ input.search-textfield {
 /* Paging */
 
 .paging {
-  margin-left: 0;
+  margin-left: 10;
   padding-left: 0;
 }
 
