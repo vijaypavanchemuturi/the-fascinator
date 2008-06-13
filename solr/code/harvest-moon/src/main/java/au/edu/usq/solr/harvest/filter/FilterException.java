@@ -16,38 +16,20 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-package au.edu.usq.solr.harvest.fedora.types;
+package au.edu.usq.solr.harvest.filter;
 
-import java.util.List;
+public class FilterException extends Exception {
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
-
-@XmlRootElement(name = "objectDatastreams")
-@XmlAccessorType(XmlAccessType.NONE)
-public class ObjectDatastreamsType {
-
-    @XmlAttribute
-    private String pid;
-
-    @XmlAttribute(name = "baseURL")
-    private String baseUrl;
-
-    public String getPid() {
-        return pid;
+    public FilterException(String message) {
+        super(message);
     }
 
-    public String getBaseUrl() {
-        return baseUrl;
+    public FilterException(Throwable cause) {
+        super(cause);
     }
 
-    @XmlElement(name = "datastream")
-    private List<DatastreamType> datastreams;
-
-    public List<DatastreamType> getDatastreams() {
-        return datastreams;
+    public FilterException(String message, Throwable cause) {
+        super(message, cause);
     }
+
 }

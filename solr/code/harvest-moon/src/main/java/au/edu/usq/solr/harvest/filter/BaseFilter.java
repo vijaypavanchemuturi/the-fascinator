@@ -16,40 +16,47 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-package au.edu.usq.solr.harvest.fedora.types;
+package au.edu.usq.solr.harvest.filter;
 
-import java.util.Date;
+import java.io.InputStream;
+import java.io.OutputStream;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
+public abstract class BaseFilter implements Filter {
 
-@XmlAccessorType(XmlAccessType.NONE)
-public class ListSessionType {
+    private String name;
 
-    @XmlElement(namespace = ResultType.NAMESPACE)
-    private String token;
+    private boolean stopOnFailure;
 
-    @XmlElement(namespace = ResultType.NAMESPACE)
-    private int cursor;
-
-    @XmlElement(name = "expirationDate", namespace = ResultType.NAMESPACE)
-    private Date expirationDate;
-
-    public String getToken() {
-        return token;
+    public BaseFilter(String name) {
+        this(name, false);
     }
 
-    public int getCursor() {
-        return cursor;
+    public BaseFilter(String name, boolean stopOnFailure) {
+        this.name = name;
+        this.stopOnFailure = stopOnFailure;
     }
 
-    public Date getExpirationDate() {
-        return expirationDate;
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public boolean getStopOnFailure() {
+        return stopOnFailure;
+    }
+
+    public void setStopOnFailure(boolean stopOnFailure) {
+        this.stopOnFailure = stopOnFailure;
     }
 
     @Override
     public String toString() {
-        return token + ":" + cursor;
+        return getName();
     }
+
+    public abstract void filter(String id, InputStream in, OutputStream out)
+        throws FilterException;
 }

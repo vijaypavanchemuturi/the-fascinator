@@ -16,34 +16,33 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-package au.edu.usq.solr.harvest.fedora.types;
+package au.edu.usq.solr.index;
 
 import java.util.List;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
 
-@XmlRootElement(name = "result", namespace = ResultType.NAMESPACE)
+@XmlRootElement(name = "add")
 @XmlAccessorType(XmlAccessType.NONE)
-public class ResultType {
+public class AddDocType {
 
-    public static final String NAMESPACE = "http://www.fedora.info/definitions/1/0/types/";
+    @XmlAttribute(name = "allowDups")
+    private boolean allowDups = false;
 
-    @XmlElement(name = "listSession", namespace = NAMESPACE)
-    private ListSessionType listSession;
+    @XmlElementWrapper(name = "doc")
+    @XmlElement(name = "field")
+    private List<FieldType> fields;
 
-    @XmlElementWrapper(name = "resultList", namespace = NAMESPACE)
-    @XmlElement(name = "objectFields", namespace = NAMESPACE)
-    private List<ObjectFieldType> objectFields;
-
-    public ListSessionType getListSession() {
-        return listSession;
+    public boolean isAllowDups() {
+        return allowDups;
     }
 
-    public List<ObjectFieldType> getObjectFields() {
-        return objectFields;
+    public List<FieldType> getFields() {
+        return fields;
     }
 }

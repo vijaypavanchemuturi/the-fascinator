@@ -63,6 +63,22 @@
       <artifactId>mail</artifactId>
       <version>1.4</version>
     </dependency>
+    <dependency>
+      <groupId>com.sun.xml.bind</groupId>
+      <artifactId>jaxb-impl</artifactId>
+      <version>2.1.3</version>
+    </dependency>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.4</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>jaxen</groupId>
+      <artifactId>jaxen</artifactId>
+      <version>1.1.1</version>
+    </dependency>
     <!-- local dependencies (not available from maven repositories) -->
     <dependency>
       <groupId>org.apache.lucene.solr</groupId>
@@ -100,14 +116,11 @@
       <systemPath>${basedir}/lib/jrdf-0.3.4.3.jar</systemPath>
     </dependency>
     <dependency>
-      <groupId>com.sun.xml.bind</groupId>
-      <artifactId>jaxb-impl</artifactId>
-      <version>2.1.3</version>
-    </dependency>
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <version>4.4</version>
+      <groupId>oai4j</groupId>
+      <artifactId>oaj4j-client</artifactId>
+      <version>0.6b1</version>
+      <scope>system</scope>
+      <systemPath>${basedir}/lib/oai4j-0.6b1.jar</systemPath>
     </dependency>
   </dependencies>
 </project>
