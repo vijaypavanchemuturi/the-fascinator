@@ -26,23 +26,30 @@ import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 
-import au.edu.usq.solr.harvest.filter.BaseFilter;
+import au.edu.usq.solr.harvest.filter.BaseSolrFilter;
 import au.edu.usq.solr.harvest.filter.FilterException;
 import au.edu.usq.solr.index.AddDocType;
 import au.edu.usq.solr.index.FieldType;
 
-public class AddFieldFilter extends BaseFilter {
+public class AddFieldFilter extends BaseSolrFilter {
 
     private FieldType field;
+
+    public AddFieldFilter(String fieldName) {
+        this(fieldName, "");
+    }
 
     public AddFieldFilter(String fieldName, String value) {
         super("AddField");
         field = new FieldType(fieldName, value);
     }
 
+    public void setValue(String value) {
+        field.setValue(value);
+    }
+
     @Override
-    public void filter(String id, InputStream in, OutputStream out)
-        throws FilterException {
+    public void filter(InputStream in, OutputStream out) throws FilterException {
         try {
             JAXBContext jc = JAXBContext.newInstance(AddDocType.class);
             Unmarshaller u = jc.createUnmarshaller();

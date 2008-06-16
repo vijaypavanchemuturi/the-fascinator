@@ -24,25 +24,23 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.nio.ByteBuffer;
-import java.nio.channels.Channels;
-import java.nio.channels.ReadableByteChannel;
-import java.nio.channels.WritableByteChannel;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.log4j.Logger;
 
+import au.edu.usq.solr.util.StreamUtils;
+
 public class FilterManager {
 
     private Logger log = Logger.getLogger(FilterManager.class);
 
-    private List<Filter> filters;
+    private List<SolrFilter> filters;
 
     private File workDir;
 
     public FilterManager() {
-        filters = new ArrayList<Filter>();
+        filters = new ArrayList<SolrFilter>();
         workDir = new File(System.getProperty("java.io.tmpdir"));
     }
 
@@ -50,23 +48,25 @@ public class FilterManager {
         this.workDir = workDir;
     }
 
-    public void addFilter(Filter filter) {
+    public void addFilter(SolrFilter filter) {
         filters.add(filter);
     }
 
-    public void run(String id, InputStream in, OutputStream out)
-        throws IOException {
+    public void removeFilter(SolrFilter filter) {
+        filters.remove(filter);
+    }
+
+    public void run(InputStream in, OutputStream out) throws IOException {
         File tmpFile = null;
         File lastTmpFile = null;
         InputStream tmpIn = in;
-        log.info("Processing " + id + "...");
-        for (Filter filter : filters) {
-            log.debug("Running " + filter + "...");
+        for (SolrFilter filter : filters) {
+            log.info("Running " + filter + "...");
             try {
                 lastTmpFile = tmpFile;
                 tmpFile = File.createTempFile("filter", ".xml", workDir);
                 OutputStream tmpOut = new FileOutputStream(tmpFile);
-                filter.filter(id, tmpIn, tmpOut);
+                filter.filter(tmpIn, tmpOut);
                 tmpOut.close();
                 tmpIn.close();
                 if (lastTmpFile != null) {
@@ -82,23 +82,8 @@ public class FilterManager {
                 }
             }
         }
-        copyStream(tmpIn, out);
+        StreamUtils.copyStream(tmpIn, out);
         tmpFile.delete();
     }
 
-    private void copyStream(InputStream in, OutputStream out)
-        throws IOException {
-        ReadableByteChannel src = Channels.newChannel(in);
-        WritableByteChannel dest = Channels.newChannel(out);
-        ByteBuffer buffer = ByteBuffer.allocateDirect(16 * 1024);
-        while (src.read(buffer) != -1) {
-            buffer.flip();
-            dest.write(buffer);
-            buffer.compact();
-        }
-        buffer.flip();
-        while (buffer.hasRemaining()) {
-            dest.write(buffer);
-        }
-    }
 }

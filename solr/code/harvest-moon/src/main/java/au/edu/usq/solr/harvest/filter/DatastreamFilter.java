@@ -16,44 +16,15 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-package au.edu.usq.solr.index;
+package au.edu.usq.solr.harvest.filter;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlValue;
+import au.edu.usq.solr.harvest.fedora.types.DatastreamType;
 
-@XmlAccessorType(XmlAccessType.NONE)
-public class FieldType {
+public interface DatastreamFilter {
 
-    @XmlAttribute(name = "name")
-    private String name;
+    public String getName();
 
-    @XmlValue
-    private String value;
+    public void setName(String name);
 
-    public FieldType() {
-    }
-
-    public FieldType(String name, String value) {
-        this.name = name;
-        this.value = value;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public String getValue() {
-        return value;
-    }
-
-    public void setValue(String value) {
-        this.value = value;
-    }
-
-    @Override
-    public String toString() {
-        return name + ": " + value;
-    }
+    public boolean isFullTextStream(DatastreamType datastream);
 }

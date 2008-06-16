@@ -16,44 +16,21 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-package au.edu.usq.solr.index;
+package au.edu.usq.solr.harvest.filter;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlValue;
+import java.io.InputStream;
+import java.io.OutputStream;
 
-@XmlAccessorType(XmlAccessType.NONE)
-public class FieldType {
+public interface SolrFilter {
 
-    @XmlAttribute(name = "name")
-    private String name;
+    public String getName();
 
-    @XmlValue
-    private String value;
+    public void setName(String name);
 
-    public FieldType() {
-    }
+    public boolean getStopOnFailure();
 
-    public FieldType(String name, String value) {
-        this.name = name;
-        this.value = value;
-    }
+    public void setStopOnFailure(boolean stopOnFailure);
 
-    public String getName() {
-        return name;
-    }
-
-    public String getValue() {
-        return value;
-    }
-
-    public void setValue(String value) {
-        this.value = value;
-    }
-
-    @Override
-    public String toString() {
-        return name + ": " + value;
-    }
+    public void filter(InputStream in, OutputStream out)
+        throws FilterException;
 }

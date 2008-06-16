@@ -16,21 +16,24 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-package au.edu.usq.solr.harvest.filter;
+package au.edu.usq.solr.harvest.fedora.types;
 
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.util.List;
 
-public interface Filter {
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
 
-    public String getName();
+@XmlRootElement(name = "pidList")
+@XmlAccessorType(XmlAccessType.NONE)
+public class PidListType {
 
-    public void setName(String name);
+    @XmlElement(name = "pid")
+    private List<String> pids;
 
-    public boolean getStopOnFailure();
+    public List<String> getPids() {
+        return pids;
+    }
 
-    public void setStopOnFailure(boolean stopOnFailure);
-
-    public void filter(String id, InputStream in, OutputStream out)
-        throws FilterException;
 }

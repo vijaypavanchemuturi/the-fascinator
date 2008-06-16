@@ -21,17 +21,17 @@ package au.edu.usq.solr.harvest.filter;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-public abstract class BaseFilter implements Filter {
+public abstract class BaseSolrFilter implements SolrFilter {
 
     private String name;
 
     private boolean stopOnFailure;
 
-    public BaseFilter(String name) {
+    public BaseSolrFilter(String name) {
         this(name, false);
     }
 
-    public BaseFilter(String name, boolean stopOnFailure) {
+    public BaseSolrFilter(String name, boolean stopOnFailure) {
         this.name = name;
         this.stopOnFailure = stopOnFailure;
     }
@@ -57,6 +57,6 @@ public abstract class BaseFilter implements Filter {
         return getName();
     }
 
-    public abstract void filter(String id, InputStream in, OutputStream out)
+    public abstract void filter(InputStream in, OutputStream out)
         throws FilterException;
 }

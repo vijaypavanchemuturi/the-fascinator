@@ -32,10 +32,10 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 
-import au.edu.usq.solr.harvest.filter.BaseFilter;
+import au.edu.usq.solr.harvest.filter.BaseSolrFilter;
 import au.edu.usq.solr.harvest.filter.FilterException;
 
-public class StylesheetFilter extends BaseFilter {
+public class StylesheetFilter extends BaseSolrFilter {
 
     private Transformer transformer;
 
@@ -61,7 +61,7 @@ public class StylesheetFilter extends BaseFilter {
     }
 
     @Override
-    public void filter(String id, InputStream in, OutputStream out)
+    public void filter(InputStream in, OutputStream out)
         throws FilterException {
         Source source = new StreamSource(in);
         Result result = new StreamResult(out);

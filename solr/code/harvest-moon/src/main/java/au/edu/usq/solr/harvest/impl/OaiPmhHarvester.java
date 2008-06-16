@@ -48,11 +48,9 @@ import se.kb.oai.pmh.ResumptionToken;
 import au.edu.usq.solr.harvest.Harvester;
 import au.edu.usq.solr.harvest.HarvesterException;
 import au.edu.usq.solr.harvest.Registry;
-import au.edu.usq.solr.harvest.filter.Filter;
-import au.edu.usq.solr.harvest.filter.FilterException;
 import au.edu.usq.solr.harvest.filter.FilterManager;
+import au.edu.usq.solr.harvest.filter.SolrFilter;
 import au.edu.usq.solr.harvest.filter.impl.AddFieldFilter;
-import au.edu.usq.solr.harvest.filter.impl.AddIdentifierFilter;
 import au.edu.usq.solr.harvest.filter.impl.StylesheetFilter;
 import au.edu.usq.solr.util.NullWriter;
 import au.edu.usq.solr.util.OaiDcNsContext;
@@ -65,13 +63,13 @@ public class OaiPmhHarvester implements Harvester {
 
     private static final String TMP_DIR = System.getProperty("java.io.tmpdir");
 
-    private final URL solrUpdateUrl;
+    private URL solrUpdateUrl;
 
-    private final int requestLimit;
+    private int requestLimit;
 
     private FilterManager filterManager;
 
-    private final XPath xp;
+    private XPath xp;
 
     public OaiPmhHarvester(String solrUpdateUrl, Registry registry,
         int requestLimit) throws MalformedURLException {
@@ -82,6 +80,7 @@ public class OaiPmhHarvester implements Harvester {
         XPathFactory xpf = XPathFactory.newInstance();
         xp = xpf.newXPath();
         xp.setNamespaceContext(new OaiDcNsContext());
+
     }
 
     public void setAuthentication(String username, String password) {
@@ -97,7 +96,26 @@ public class OaiPmhHarvester implements Harvester {
         workDir.mkdirs();
         try {
             log.info("Starting harvest from [" + url + "]");
-            setupFilters(name);
+
+            SolrFilter dcToSolr = new StylesheetFilter(
+                getClass().getResourceAsStream("/xsl/dc_solr.xsl"));
+            dcToSolr.setName("Dublin Core To Solr");
+
+            AddFieldFilter addIdFilter = new AddFieldFilter("id");
+            AddFieldFilter addFullTextFilter = new AddFieldFilter("full_text");
+
+            filterManager = new FilterManager();
+            filterManager.setWorkDir(new File(TMP_DIR, name));
+            filterManager.addFilter(dcToSolr);
+            filterManager.addFilter(addIdFilter);
+            filterManager.addFilter(new AddFieldFilter("repository_name", name));
+
+            // class - image, document, etc
+            // filterManager.addFilter(new AddFieldFilter("class", "Document"));
+
+            // discoverable
+            // filterManager.addFilter(new AddFieldFilter("discoverable",
+            // "true"));
 
             RecordsList records;
             ResumptionToken token = null;
@@ -122,9 +140,11 @@ public class OaiPmhHarvester implements Harvester {
                     InputStream in = new ByteArrayInputStream(
                         record.getMetadataAsString().getBytes("UTF-8"));
                     String id = record.getHeader().getIdentifier();
+                    addIdFilter.setValue(id);
+                    log.info("Processing " + id + "...");
                     File solrFile = File.createTempFile("solr", ".xml", workDir);
                     OutputStream out = new FileOutputStream(solrFile);
-                    filterManager.run(id, in, out);
+                    filterManager.run(in, out);
                     out.close();
                     postTool.postFile(solrFile, NullWriter.getInstance());
                     solrFile.delete();
@@ -153,6 +173,7 @@ public class OaiPmhHarvester implements Harvester {
                 // osw.write("]]></fulltext>");
                 // osw.close();
                 // }
+
             } while ((token != null) && (count < requestLimit));
 
             log.info("Harvest from [" + url + "] completed in "
@@ -165,26 +186,6 @@ public class OaiPmhHarvester implements Harvester {
                 workDir.delete();
             }
         }
-    }
-
-    private void setupFilters(String name) throws FilterException {
-        Filter dcToSolr = new StylesheetFilter(getClass().getResourceAsStream(
-            "/xsl/dc_solr.xsl"));
-        dcToSolr.setName("Dublin Core To Solr");
-
-        filterManager = new FilterManager();
-        filterManager.setWorkDir(new File(TMP_DIR, name));
-
-        filterManager.addFilter(dcToSolr);
-        filterManager.addFilter(new AddIdentifierFilter("id"));
-        filterManager.addFilter(new AddFieldFilter("repository_name", name));
-
-        // full text
-        // filterManager.addFilter(new AddFieldFilter("full_text", fullText));
-        // class - image, document, etc
-        // filterManager.addFilter(new AddFieldFilter("class", "Document"));
-        // discoverable
-        // filterManager.addFilter(new AddFieldFilter("discoverable", "true"));
     }
 
     private void getFullText(Element record, Writer out) {
