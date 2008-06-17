@@ -10,4 +10,9 @@
     <field name="f_subject">Subject</field>
     <field name="f_type">Type</field>
   </facet-fields>
+  <roles>
+    <role id="admin">
+      <users>lucido dye</users>
+    </role>
+  </roles>
 </portal>

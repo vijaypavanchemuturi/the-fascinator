@@ -45,6 +45,9 @@ public class Create {
     private Portal portal;
 
     Object onActivate(Object[] params) {
+        if (!"admin".equals(state.getProperty("role"))) {
+            return Start.class;
+        }
         if (params.length == 0) {
             if (portal == null) {
                 portal = new Portal("", "", "");

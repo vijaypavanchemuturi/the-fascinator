@@ -27,9 +27,11 @@ import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
+import org.apache.log4j.Logger;
 import org.apache.tapestry.beaneditor.Validate;
 
 import au.edu.usq.solr.util.MapAdapter;
@@ -37,6 +39,8 @@ import au.edu.usq.solr.util.MapAdapter;
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.NONE)
 public class Portal implements Comparable<Portal> {
+
+    private Logger log = Logger.getLogger(Portal.class);
 
     @XmlAttribute
     private String name;
@@ -57,6 +61,12 @@ public class Portal implements Comparable<Portal> {
     @XmlJavaTypeAdapter(MapAdapter.class)
     private Map<String, String> facetFields;
 
+    @XmlElementWrapper(name = "roles")
+    @XmlElement(name = "role")
+    private List<Role> roles;
+
+    private Map<String, Role> roleMap;
+
     public Portal() {
         this("", "", "");
     }
@@ -71,6 +81,7 @@ public class Portal implements Comparable<Portal> {
         this.description = description;
         this.query = query;
         facetFields = new HashMap<String, String>();
+        roles = new ArrayList<Role>();
     }
 
     @Validate("required")
@@ -90,7 +101,6 @@ public class Portal implements Comparable<Portal> {
         this.description = description;
     }
 
-    @Validate("required")
     public String getQuery() {
         return query;
     }
@@ -125,6 +135,24 @@ public class Portal implements Comparable<Portal> {
 
     public List<String> getFacetFieldList() {
         return new ArrayList<String>(facetFields.keySet());
+    }
+
+    public List<Role> getRoles() {
+        return roles;
+    }
+
+    public Role getRole(String id) {
+        if (roleMap != null && !roleMap.containsKey(id)) {
+            // the role ids could have changed so reset the map
+            roleMap = null;
+        }
+        if (roleMap == null) {
+            roleMap = new HashMap<String, Role>();
+            for (Role role : roles) {
+                roleMap.put(role.getId(), role);
+            }
+        }
+        return roleMap.get(id);
     }
 
     @Override

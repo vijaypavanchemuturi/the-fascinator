@@ -55,6 +55,11 @@ input.button:hover {
   padding-left: 1em;
 }
 
+/* Users page */
+.users {
+  padding-left: 1em;
+}
+
 /* Navigation bar */
 .nav-bar {
   background-color: #293962;
@@ -244,4 +249,14 @@ input.search-textfield {
   padding-left: 1em;
   padding-right: 1em;
   width: 80%;
+}
+
+.roles {
+  padding-left: 1em;
+}
+
+.roles a.role-delete {
+  color: #A00000;
+  font-size: 0.75em;
+  padding-left: 0.5em;
 }

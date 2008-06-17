@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- 
+  Sun of Fedora - Solr Portal
+  Copyright (C) 2008  University of Southern Queensland
+  
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation; either version 2 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU General Public License along
+  with this program; if not, write to the Free Software Foundation, Inc.,
+  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ -->
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:t="http://tapestry.apache.org/schema/tapestry_5_0_0.xsd">
+  <head>
+    <title>${message:app.name}</title>
+    <link rel="stylesheet" type="text/css" href="${asset:velocity:default/style.css}"/>
+    <script language="javascript" type="text/javascript">
+    function checkDelete(desc) {
+      return confirm("Are you sure you want to delete the '" + desc + "' role?")
+    }
+    </script>
+  </head>
+  <body>
+    <div t:type="VelocityPanel" t:template="header.vm"/>
+    <div class="roles">
+      <h2>Edit Access Roles for '${portal.description}'</h2>
+      <p><a t:type="pagelink" t:page="portal/edit" t:context="portal.name">Set portal properties...</a></p>
+      <form t:type="form" t:id="editForm">
+        <h3>Current Roles</h3>
+        <table>
+          <tr t:type="loop" t:source="portal.roles" t:value="role" t:encoder="encoder">
+            <td><input type="text" size="10" t:type="textfield" t:value="role.id"/></td>
+            <td><input type="text" size="40" t:type="textfield" t:value="role.users"/></td>
+            <td><a class="role-delete" onclick="return checkDelete('${role.id}')"
+                   t:id="delete" t:type="actionlink" t:context="role.id">delete</a></td>
+          </tr>
+          <tr>
+            <td colspan="3">
+              <input type="submit" class="button" value="Save changes" t:type="submit"/>
+            </td>
+          </tr>
+        </table>
+      </form>
+      <form t:type="form" t:id="newForm">
+        <h3>New Role</h3>
+        <table>
+          <tr>
+            <th>Name</th>
+            <th>Users</th>
+          </tr>
+          <tr>
+            <td><input type="text" size="10" t:type="textfield" t:value="newRole.id"/></td>
+            <td><input type="text" size="40" t:type="textfield" t:value="newRole.users"/></td>
+          </tr>
+          <tr>
+            <td colspan="2">
+              <input type="submit" class="button" value="Add role" t:type="submit"/>
+            </td>
+          </tr>
+        </table>
+      </form>
+    </div>
+    <div t:type="VelocityPanel" t:template="footer.vm"/>
+  </body>
+</html>

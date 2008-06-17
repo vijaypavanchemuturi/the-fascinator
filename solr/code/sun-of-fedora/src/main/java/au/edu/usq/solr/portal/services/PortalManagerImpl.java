@@ -38,6 +38,8 @@ public class PortalManagerImpl implements PortalManager {
 
     private static final String PORTAL_XML = "portal.xml";
 
+    private static final String GROUPS_XML = "groups.xml";
+
     private Logger log = Logger.getLogger(PortalManagerImpl.class);
 
     private Map<String, Portal> portals;
@@ -65,7 +67,7 @@ public class PortalManagerImpl implements PortalManager {
     public Map<String, Portal> getPortals() {
         if (portals == null) {
             portals = new HashMap<String, Portal>();
-            load();
+            loadPortals();
         }
         return portals;
     }
@@ -79,7 +81,7 @@ public class PortalManagerImpl implements PortalManager {
         if (getPortals().containsKey(name)) {
             portal = getPortals().get(name);
         } else {
-            portal = load(name);
+            portal = loadPortal(name);
         }
         return portal;
     }
@@ -114,7 +116,7 @@ public class PortalManagerImpl implements PortalManager {
         // TODO copy velocity templates
     }
 
-    private void load() {
+    private void loadPortals() {
         File[] portalDirs = portalsDir.listFiles(new FileFilter() {
             public boolean accept(File file) {
                 String name = file.getName();
@@ -122,11 +124,11 @@ public class PortalManagerImpl implements PortalManager {
             }
         });
         for (File dir : portalDirs) {
-            load(dir.getName());
+            loadPortal(dir.getName());
         }
     }
 
-    private Portal load(String name) {
+    private Portal loadPortal(String name) {
         Portal portal = null;
         File portalFile = new File(new File(portalsDir, name), PORTAL_XML);
         if (portalFile.exists()) {

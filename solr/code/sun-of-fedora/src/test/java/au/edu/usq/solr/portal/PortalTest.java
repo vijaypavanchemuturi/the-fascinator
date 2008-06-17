@@ -19,6 +19,7 @@
 package au.edu.usq.solr.portal;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.xml.bind.JAXBContext;
@@ -55,5 +56,12 @@ public class PortalTest {
         map.put("f_type", "Type");
         Map<String, String> facetFields = portal.getFacetFields();
         Assert.assertEquals(map, facetFields);
+
+        List<Role> roles = portal.getRoles();
+        Assert.assertEquals(1, roles.size());
+
+        Role admin = portal.getRole("admin");
+        Assert.assertEquals(2, admin.getUserList().size());
+        Assert.assertTrue(admin.getUsers().contains("lucido"));
     }
 }

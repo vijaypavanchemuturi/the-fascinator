@@ -18,17 +18,25 @@
  */
 package au.edu.usq.solr.portal.pages.portal;
 
+import java.util.List;
+
+import org.apache.log4j.Logger;
+import org.apache.tapestry.PrimaryKeyEncoder;
 import org.apache.tapestry.annotations.ApplicationState;
 import org.apache.tapestry.annotations.IncludeStylesheet;
+import org.apache.tapestry.annotations.OnEvent;
 import org.apache.tapestry.ioc.annotations.Inject;
 
 import au.edu.usq.solr.portal.Portal;
+import au.edu.usq.solr.portal.Role;
 import au.edu.usq.solr.portal.State;
 import au.edu.usq.solr.portal.pages.Start;
 import au.edu.usq.solr.portal.services.PortalManager;
 
 @IncludeStylesheet("context:css/default.css")
-public class Edit {
+public class Roles {
+
+    private Logger log = Logger.getLogger(Roles.class);
 
     @ApplicationState
     private State state;
@@ -39,6 +47,27 @@ public class Edit {
     private String portalName;
 
     private Portal portal;
+
+    private Role role;
+
+    private Role newRole;
+
+    private PrimaryKeyEncoder<String, Role> encoder = new PrimaryKeyEncoder<String, Role>() {
+        public String toKey(Role value) {
+            return value.getId();
+        }
+
+        public void prepareForKeys(List<String> keys) {
+        }
+
+        public Role toValue(String key) {
+            return portal.getRole(key);
+        }
+    };
+
+    public PrimaryKeyEncoder<String, Role> getEncoder() {
+        return encoder;
+    }
 
     public State getState() {
         return state;
@@ -63,9 +92,22 @@ public class Edit {
         return portalName;
     }
 
-    Object onSuccess() {
+    void onSuccessFromEditForm() {
         portalManager.save(portal);
-        return Start.class;
+    }
+
+    void onSuccessFromNewForm() {
+        portal.getRoles().add(newRole);
+    }
+
+    @OnEvent(component = "delete")
+    void onDelete(String id) {
+        Role roleToDelete = portal.getRole(id);
+        if (roleToDelete != null) {
+            log.info("Deleting " + roleToDelete.getId());
+            portal.getRoles().remove(roleToDelete);
+            portalManager.save(portal);
+        }
     }
 
     public String getPortalName() {
@@ -82,5 +124,24 @@ public class Edit {
 
     public void setPortal(Portal portal) {
         this.portal = portal;
+    }
+
+    public Role getRole() {
+        return role;
+    }
+
+    public void setRole(Role role) {
+        this.role = role;
+    }
+
+    public Role getNewRole() {
+        if (newRole == null) {
+            newRole = new Role("");
+        }
+        return newRole;
+    }
+
+    public void setNewRole(Role newRole) {
+        this.newRole = newRole;
     }
 }

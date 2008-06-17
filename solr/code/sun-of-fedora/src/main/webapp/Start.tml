@@ -48,6 +48,8 @@
           <a t:type="pagelink" t:page="search" t:context="portal.name">${portal.description}</a>
           <t:if t:test="editable">
             <a class="portal-edit" t:type="pagelink" t:page="portal/edit" t:context="portal.name">edit</a>
+          </t:if>
+          <t:if t:test="deletable">
             <a class="portal-delete" onclick="return checkDelete('${portal.description}')"
                t:type="actionlink" t:id="delete" t:context="portal.name">delete</a>
           </t:if>

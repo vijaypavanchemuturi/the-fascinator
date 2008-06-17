@@ -29,6 +29,13 @@ public class Config {
     @ApplicationState
     private State state;
 
+    Object onActivate(Object[] params) {
+        if (!"admin".equals(state.getProperty("role"))) {
+            return Start.class;
+        }
+        return null;
+    }
+
     Object onSubmit() {
         return Start.class;
     }
@@ -37,7 +44,7 @@ public class Config {
         return state;
     }
 
-    public void setState(State config) {
-        this.state = config;
+    public void setState(State state) {
+        this.state = state;
     }
 }
