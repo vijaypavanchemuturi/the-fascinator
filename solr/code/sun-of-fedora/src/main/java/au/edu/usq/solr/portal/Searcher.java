@@ -54,6 +54,8 @@ public class Searcher {
 
     private List<String> facetFields;
 
+    private List<String> sortFields;
+
     public Searcher(String solrBaseUrl) {
         this.solrBaseUrl = solrBaseUrl;
         baseFacetQuery = "";
@@ -62,6 +64,7 @@ public class Searcher {
         facetMinCount = 1;
         facetQueries = new ArrayList<String>();
         facetFields = new ArrayList<String>();
+        sortFields = new ArrayList<String>();
     }
 
     public void setBaseFacetQuery(String baseFacetQuery) {
@@ -96,6 +99,10 @@ public class Searcher {
         facetFields.add(facetField);
     }
 
+    public void addSortField(String sortField) {
+        sortFields.add(sortField);
+    }
+
     public Response find(String query) throws IOException, JAXBException {
         Response response = null;
         String queryUrl = getUrl(query);
@@ -123,6 +130,7 @@ public class Searcher {
             url.append("&fq=");
             url.append(URLEncoder.encode(facetQuery, "UTF-8"));
         }
+        url.append("&fl=score");
         if (start > 0) {
             url.append("&start=");
             url.append(start);
@@ -143,6 +151,10 @@ public class Searcher {
         for (String facetField : facetFields) {
             url.append("&facet.field=");
             url.append(URLEncoder.encode(facetField, "UTF-8"));
+        }
+        for (String sortField : sortFields) {
+            url.append("&sort=");
+            url.append(URLEncoder.encode(sortField, "UTF-8"));
         }
         return url.toString();
     }

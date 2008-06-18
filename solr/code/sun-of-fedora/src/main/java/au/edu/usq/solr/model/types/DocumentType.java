@@ -38,6 +38,11 @@ public class DocumentType {
 
     private Map<String, ArrayType> arrayMap;
 
+    @XmlElement(name = "float")
+    private List<MapEntryType> floats;
+
+    private Map<String, Float> floatMap;
+
     @XmlElement(name = "str")
     private List<MapEntryType> values;
 
@@ -51,6 +56,16 @@ public class DocumentType {
             }
         }
         return arrayMap.get(name);
+    }
+
+    public Float getFloat(String name) {
+        if (floatMap == null) {
+            floatMap = new HashMap<String, Float>();
+            for (MapEntryType entry : floats) {
+                floatMap.put(entry.getName(), new Float(entry.getValue()));
+            }
+        }
+        return floatMap.get(name);
     }
 
     public String getValue(String name) {

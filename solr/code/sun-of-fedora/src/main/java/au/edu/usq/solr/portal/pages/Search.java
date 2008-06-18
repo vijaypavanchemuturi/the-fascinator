@@ -107,6 +107,9 @@ public class Search {
     @Inject
     private VelocityResourceLocator locator;
 
+    @Persist
+    private String sortField;
+
     void onActivate(Object[] params) {
         // handle forms from velocity templates
         List<String> paramNames = httpRequest.getParameterNames();
@@ -149,6 +152,7 @@ public class Search {
         }
         if (!portalName.equals(state.getPortalName())) {
             // clear facets if changing portals
+            sortField = null;
             getFacetLimits().clear();
         }
         state.setPortal(found);
@@ -163,6 +167,12 @@ public class Search {
         searcher.setFacetLimit(found.getFacetCount());
         searcher.setFacetFields(found.getFacetFieldList());
         searcher.setStart((pageNum - 1) * recordsPerPage);
+
+        // sorting
+        log.info("sortField: " + sortField);
+        if (sortField != null) {
+            searcher.addSortField(sortField);
+        }
 
         // access
         if ("admin".equals(state.getProperty("role"))) {
@@ -246,6 +256,12 @@ public class Search {
     public boolean getShowLast() {
         return (pagination.getLastPage() > 5)
             && (pageNum != pagination.getLastPage());
+    }
+
+    @OnEvent(value = "sort")
+    void sort(String field) {
+        log.info("sorting by field: " + field);
+        sortField = field;
     }
 
     @OnEvent(value = "showdetail")
