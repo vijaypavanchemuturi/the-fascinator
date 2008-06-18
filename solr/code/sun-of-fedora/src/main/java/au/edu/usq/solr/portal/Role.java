@@ -39,6 +39,9 @@ public class Role implements Serializable {
     @XmlList
     private List<String> users;
 
+    @XmlElement
+    private String query;
+
     public Role() {
     }
 
@@ -69,9 +72,19 @@ public class Role implements Serializable {
 
     public void setUsers(String userString) {
         users.clear();
-        StringTokenizer st = new StringTokenizer(userString, " ");
-        while (st.hasMoreElements()) {
-            users.add(st.nextElement().toString());
+        if (userString != null && !"".equals(userString)) {
+            StringTokenizer st = new StringTokenizer(userString, " ");
+            while (st.hasMoreElements()) {
+                users.add(st.nextElement().toString());
+            }
         }
+    }
+
+    public String getQuery() {
+        return query;
+    }
+
+    public void setQuery(String query) {
+        this.query = query;
     }
 }

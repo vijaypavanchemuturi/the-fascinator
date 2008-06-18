@@ -36,12 +36,23 @@
         <form t:type="form" t:id="editForm">
           <h3>Current Roles</h3>
           <table>
-            <tr t:type="loop" t:source="portal.roles" t:value="role" t:encoder="encoder">
-              <td><input type="text" size="10" t:type="textfield" t:value="role.id"/></td>
-              <td><input type="text" size="40" t:type="textfield" t:value="role.users"/></td>
-              <td><a class="role-delete" onclick="return checkDelete('${role.id}')"
-                     t:id="delete" t:type="actionlink" t:context="role.id">delete</a></td>
+            <t:loop t:source="portal.roles" t:value="role" t:encoder="encoder">
+            <tr>
+              <th colspan="3"><h4>${role.id}</h4></th>
             </tr>
+            <tr>
+              <th>Users</th>
+              <td>
+                <input type="text" size="50" t:type="textfield" t:value="role.users"/>
+                <a class="role-delete" onclick="return checkDelete('${role.id}')"
+                   t:id="delete" t:type="actionlink" t:context="role.id">delete</a>
+              </td>
+            </tr>
+            <tr>
+              <th>Query</th>
+              <td><input type="text" size="50" t:type="textfield" t:value="role.query"/></td>
+            </tr>
+            </t:loop>
             <tr>
               <td colspan="3">
                 <input type="submit" class="button" value="Save changes" t:type="submit"/>

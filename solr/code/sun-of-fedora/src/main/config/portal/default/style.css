@@ -17,6 +17,11 @@ input.button:hover {
   background-color: #C3562E;
 }
 
+th h4 {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
 .error-message {
   color: red;
 }

@@ -1,6 +1,6 @@
 <!-- BEGIN search-item.vm -->
 <div class="item">
-  <h2><a href="#actionlink('showdetail' $item.field('id'))">$item.field("title")</a></h2>
+  <h2><a href="#actionlink('showdetail' $item.field('pid'))">$item.field("title")</a></h2>
   <ul>
     #foreach($id in $item.fields("identifier"))
       <li>

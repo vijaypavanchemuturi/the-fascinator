@@ -10,5 +10,14 @@
         <user name="f_subject">Course</user>
         <user name="f_creator">Author</user>
     </facet-fields>
-    <roles/>
+    <roles>
+        <role id="admin">
+            <users>lucido</users>
+            <query>group_access:&quot;guest&quot; OR group_access:&quot;admin&quot;</query>
+        </role>
+        <role id="guest">
+            <users>anyone</users>
+            <query>group_access:&quot;guest&quot;</query>
+        </role>
+    </roles>
 </portal>

@@ -88,6 +88,7 @@ public class FedoraRestClient {
                 Unmarshaller um = jc.createUnmarshaller();
                 result = (ResultType) um.unmarshal(method.getResponseBodyAsStream());
             }
+            method.releaseConnection();
         } catch (JAXBException jaxbe) {
             log.error(jaxbe);
         }
@@ -108,6 +109,7 @@ public class FedoraRestClient {
                 Unmarshaller um = jc.createUnmarshaller();
                 result = (ResultType) um.unmarshal(method.getResponseBodyAsStream());
             }
+            method.releaseConnection();
         } catch (JAXBException jaxbe) {
             log.error(jaxbe);
         }
@@ -155,6 +157,7 @@ public class FedoraRestClient {
         log.info("uri: " + uri);
         log.info("status: " + status);
         log.info("response: " + method.getResponseBodyAsString());
+        method.releaseConnection();
     }
 
     // Management methods (Fedora 3.0+ compatible)
@@ -182,6 +185,7 @@ public class FedoraRestClient {
                 Unmarshaller um = jc.createUnmarshaller();
                 result = (PidListType) um.unmarshal(method.getResponseBodyAsStream());
             }
+            method.releaseConnection();
         } catch (JAXBException jaxbe) {
             log.error(jaxbe);
         }
@@ -218,6 +222,7 @@ public class FedoraRestClient {
         }
         method.setRequestEntity(request);
         client.executeMethod(method);
+        method.releaseConnection();
     }
 
     public void addDatastream(String pid, String dsId, String dsLabel,
@@ -256,6 +261,7 @@ public class FedoraRestClient {
         int status = client.executeMethod(method);
         log.info("status: " + status);
         log.info("response: " + method.getResponseBodyAsString());
+        method.releaseConnection();
     }
 
     private void addParam(StringBuilder uri, Map<String, String> options,

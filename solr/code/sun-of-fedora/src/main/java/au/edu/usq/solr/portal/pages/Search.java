@@ -43,6 +43,7 @@ import au.edu.usq.solr.model.types.DocumentType;
 import au.edu.usq.solr.portal.Page;
 import au.edu.usq.solr.portal.Pagination;
 import au.edu.usq.solr.portal.Portal;
+import au.edu.usq.solr.portal.Role;
 import au.edu.usq.solr.portal.Searcher;
 import au.edu.usq.solr.portal.State;
 import au.edu.usq.solr.portal.pages.portal.Create;
@@ -162,6 +163,31 @@ public class Search {
         searcher.setFacetLimit(found.getFacetCount());
         searcher.setFacetFields(found.getFacetFieldList());
         searcher.setStart((pageNum - 1) * recordsPerPage);
+
+        // access
+        if ("admin".equals(state.getProperty("role"))) {
+            Role adminRole = found.getRole("admin");
+            if (adminRole != null) {
+                String accessQ = adminRole.getQuery();
+                log.info("accessQ: " + accessQ);
+                searcher.addFacetQuery(accessQ);
+            } else {
+                String accessQ = "group_access:\"guest\"";
+                log.info("accessQ: " + accessQ);
+                searcher.addFacetQuery(accessQ);
+            }
+        } else {
+            Role guestRole = found.getRole("guest");
+            if (guestRole != null) {
+                String accessQ = guestRole.getQuery();
+                log.info("accessQ: " + accessQ);
+                searcher.addFacetQuery(accessQ);
+            } else {
+                String accessQ = "group_access:\"guest\"";
+                log.info("accessQ: " + accessQ);
+                searcher.addFacetQuery(accessQ);
+            }
+        }
 
         for (String facetLimit : getFacetLimits()) {
             log.info("facetLimit: " + facetLimit);
