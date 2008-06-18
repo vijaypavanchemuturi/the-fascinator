@@ -61,7 +61,6 @@ public class FilterManager {
         File lastTmpFile = null;
         InputStream tmpIn = in;
         for (SolrFilter filter : filters) {
-            log.info("Running " + filter + "...");
             try {
                 lastTmpFile = tmpFile;
                 tmpFile = File.createTempFile("filter", ".xml", workDir);

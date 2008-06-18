@@ -87,7 +87,7 @@ public class FedoraRestHarvester implements Harvester {
         postTool = new SimplePostTool(new URL(solrUpdateUrl));
     }
 
-    public void setAuthentication(String username, String password) {
+    public void authenticate(String username, String password) {
         // TODO
     }
 
@@ -258,7 +258,7 @@ public class FedoraRestHarvester implements Harvester {
                     regPass);
                 Harvester harvester = new FedoraRestHarvester(solrUpdateUrl,
                     registry, dsFilter, limit);
-                harvester.setAuthentication(repUser, repPass);
+                harvester.authenticate(repUser, repPass);
                 harvester.harvest(repName, repUrl);
             } catch (Exception e) {
                 System.err.println("Failed to harvest");

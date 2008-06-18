@@ -26,12 +26,16 @@ import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 
+import org.apache.log4j.Logger;
+
 import au.edu.usq.solr.harvest.filter.BaseSolrFilter;
 import au.edu.usq.solr.harvest.filter.FilterException;
 import au.edu.usq.solr.index.AddDocType;
 import au.edu.usq.solr.index.FieldType;
 
 public class AddFieldFilter extends BaseSolrFilter {
+
+    private Logger log = Logger.getLogger(AddFieldFilter.class);
 
     private FieldType field;
 
@@ -50,6 +54,12 @@ public class AddFieldFilter extends BaseSolrFilter {
 
     @Override
     public void filter(InputStream in, OutputStream out) throws FilterException {
+        String val = field.getValue();
+        if (val.length() > 60) {
+            val = val.substring(0, 60) + "...";
+        }
+        log.info("Adding field " + field.getName() + ": " + val);
+
         try {
             JAXBContext jc = JAXBContext.newInstance(AddDocType.class);
             Unmarshaller u = jc.createUnmarshaller();

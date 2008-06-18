@@ -86,7 +86,7 @@ public class VitalFedoraHarvester implements Harvester {
         this.requestLimit = requestLimit;
     }
 
-    public void setAuthentication(String username, String password) {
+    public void authenticate(String username, String password) {
         this.username = username;
         this.password = password;
     }
@@ -270,7 +270,7 @@ public class VitalFedoraHarvester implements Harvester {
                     regPass);
                 Harvester harvester = new VitalFedoraHarvester(solrUpdateUrl,
                     registry, limit);
-                harvester.setAuthentication(repUser, repPass);
+                harvester.authenticate(repUser, repPass);
                 harvester.harvest(repName, repUrl);
             } catch (MalformedURLException e) {
                 System.err.println("Invalid Solr URL: " + e.getMessage());

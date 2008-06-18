@@ -1,0 +1,30 @@
+
+
+
+
+
+
+
+
+
+
+
+
+<oai_dc:dc xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:oai_dc="http://www.openarchives.org/OAI/2.0/oai_dc/">
+  <dc:identifier>http://rubric-vitalnew.usq.edu.au:8080/vital/access/HandleResolver/102.100.FREDTEST/26283</dc:identifier>
+  <dc:title>Rational and Heron Tetrahedra</dc:title>
+  <dc:creator>Chisholm, Catherine Rachel</dc:creator>
+  <dc:subject>heron tetrahedra</dc:subject>
+  <dc:subject>rational tetrahedra</dc:subject>
+  <dc:subject>diophantine equations</dc:subject>
+  <dc:description>Rational tetrahedra are tetrahedra with rational edges. Heron tetrahedra are tetrahedra with integer edges, integer faces areas and integer volume --- the three-dimensional analogue of Heron triangles. Of course, if a rational tetrahedron has rational face areas and volume then it is easy to scale it up to get a Heron tetrahedron. So we also use `Heron tetrahedra&apos; when we mean tetrahedra with rational edges, areas and volume. The work in this thesis is motivated by Buchholz&apos;s paper {\it Perfect Pyramids} [4]. Buchholz examined certain configurations of rational tetrahedra, looking first for tetrahedra with rational volume, and then for Heron tetrahedra. Buchholz left some of the cases he examined unsolved and Chapter 2 is largely devoted to the resolution of these. In Chapters 3 and 4 we expand upon some of Buchholz&apos;s results to find infinite families of Heron tetrahedra corresponding to rational points on certain elliptic curves. In Chapters 5 and 6 we blend the ideas of Buchholz in [4] and of Buchholz and MacDougall in [7], and consider rational tetrahedra with edges in arithmetic (AP) or geometric (GP) progression. It turns out that there are no Heron AP or GP tetrahedra, but AP tetrahedra can have rational volume. They can also have one rational face area, although only one AP tetrahedron has been found with a rational face area and rational volume. For GP tetrahedra there are still unsolved cases, but we show that if GP tetrahedra with rational volume exist, then there are only finitely many. The faces of a rational GP tetrahedron are never rational. Much of the work in these two chapters also appeared in the author&apos;s Honours thesis, but has been refined and extended here, and is included to give a more complete picture of the work on Heron tetrahedra which has been done to date. In the final chapter we use a different approach and concentrate on the face areas first, instead of the volume. To make it easier (hopefully) to find tetrahedra with all faces having rational area, we place restrictions on the types of faces and number of different faces the tetrahedra have.</dc:description>
+  <dc:description>Masters Thesis</dc:description>
+  <dc:contributor>University of Newcastle.  Mathematical and Physical Sciences.</dc:contributor>
+  <dc:date>2004</dc:date>
+  <dc:type>Australasian Digital Thesis</dc:type>
+  <dc:identifier>uon:700</dc:identifier>
+  <dc:language>eng</dc:language>
+  <dc:rights>http://www.newcastle.edu.au/copyright.html</dc:rights>
+  <dc:rights>Copyright 2004 Catherine Rachel Chisholm</dc:rights>
+</oai_dc:dc>
+                                                                                                                                                

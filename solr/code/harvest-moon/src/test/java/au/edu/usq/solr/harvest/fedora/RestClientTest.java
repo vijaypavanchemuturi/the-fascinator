@@ -1,5 +1,9 @@
 package au.edu.usq.solr.harvest.fedora;
 
+import java.io.ByteArrayOutputStream;
+import java.util.HashMap;
+import java.util.Map;
+
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.Unmarshaller;
 
@@ -34,5 +38,19 @@ public class RestClientTest {
         Assert.assertEquals(2, result.getDatastreams().size());
         DatastreamType dc = result.getDatastreams().get(0);
         Assert.assertEquals("DS1", dc.getDsid());
+    }
+
+    @Test
+    public void create() throws Exception {
+        FedoraRestClient client = new FedoraRestClient(
+            "http://localhost:8080/fedora");
+        String pid = client.createObject("Test", "uuid");
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        client.get(pid, out);
+        client.authenticate("fedoraAdmin", "fedoraAdmin");
+        Assert.assertEquals(2500, out.size());
+        Map<String, String> options = new HashMap<String, String>();
+        client.addDatastream(pid, "DC", options,
+            getClass().getResourceAsStream("/dc.xml"), "text/xml");
     }
 }

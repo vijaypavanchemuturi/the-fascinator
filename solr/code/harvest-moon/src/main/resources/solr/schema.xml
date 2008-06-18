@@ -62,7 +62,11 @@
         <field name="id" type="string" indexed="true" stored="true" required="true" />
         <field name="repository_name" type="string" indexed="true" stored="false" />
         <field name="text" type="text" indexed="true" stored="false" multiValued="true" />
-        <field name="full_text" type="text" indexed="true" stored="false" />
+        <field name="full_text" type="text" indexed="true" stored="false" multiValued="true"/>
+        <!-- sof -->
+        <field name="group_access" type="string" indexed="true" stored="false" multiValued="true"/>
+        <field name="item_class" type="string" indexed="true" stored="false" multiValued="true"/>
+        <field name="item_type" type="string" indexed="true" stored="false" multiValued="true"/>
     </fields>
     <uniqueKey>id</uniqueKey>
     <defaultSearchField>full_text</defaultSearchField>
@@ -98,5 +102,19 @@
     <copyField source="automatic_terms" dest="f_automatic_terms" />
     <copyField source="type" dest="f_type" />
     <!-- full text -->
-    <copyField source="text" dest="full_text" />
+    <copyField source="contributor" dest="full_text" />
+    <copyField source="coverage" dest="full_text" />
+    <copyField source="creator" dest="full_text" />
+    <copyField source="date" dest="full_text" />
+    <copyField source="description" dest="full_text" />
+    <copyField source="format" dest="full_text" />
+    <copyField source="identifier" dest="full_text" />
+    <copyField source="language" dest="full_text" />
+    <copyField source="publisher" dest="full_text" />
+    <copyField source="relation" dest="full_text" />
+    <copyField source="rights" dest="full_text" />
+    <copyField source="source" dest="full_text" />
+    <copyField source="subject" dest="full_text" />
+    <copyField source="title" dest="full_text" />
+    <copyField source="type" dest="full_text" />
 </schema>
