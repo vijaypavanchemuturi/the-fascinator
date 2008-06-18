@@ -1,0 +1,30 @@
+<!-- BEGIN sorting.vm -->
+
+
+<ul class="sorting">
+	<li>Order by:</li>
+	<li>
+		<a href="#actionlink('sort' 'relevance')">Relevance</a>
+	</li>
+	<li>
+		<a href="#actionlink('sort' 'title')">Title</a>
+	</li>
+	<li>
+		<a href="#actionlink('sort' 'institution')">Institution</a>
+	</li>
+	<li>
+		<a href="#actionlink('sort' 'creator')">Creator</a>
+	</li>
+	<li>
+		<a href="#actionlink('sort' 'year')">Year</a>
+	</li>
+	<li>
+		<a href="#actionlink('sort' 'subject')">Subject</a>
+	</li>
+	<li>
+		<a href="#actionlink('sort' 'type')">Type</a>
+	</li>
+</ul>
+
+<!-- END sorting.vm -->
+
