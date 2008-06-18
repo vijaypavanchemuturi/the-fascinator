@@ -55,17 +55,25 @@ public class FedoraRestClient {
 
     private String baseUrl;
 
-    private HttpClient client;
+    private String username;
+
+    private String password;
 
     public FedoraRestClient(String baseUrl) {
         this.baseUrl = baseUrl;
-        client = new HttpClient();
     }
 
     public void authenticate(String username, String password) {
+        this.username = username;
+        this.password = password;
+    }
+
+    private HttpClient getHttpClient() {
+        HttpClient client = new HttpClient();
         client.getParams().setAuthenticationPreemptive(true);
         client.getState().setCredentials(AuthScope.ANY,
             new UsernamePasswordCredentials(username, password));
+        return client;
     }
 
     // Access methods (Fedora 2.2+ compatible)
@@ -82,12 +90,14 @@ public class FedoraRestClient {
             uri.append("&xml=true");
             uri.append("&pid=true");
             GetMethod method = new GetMethod(uri.toString());
+            HttpClient client = getHttpClient();
             int status = client.executeMethod(method);
             if (status == 200) {
                 JAXBContext jc = JAXBContext.newInstance(ResultType.class);
                 Unmarshaller um = jc.createUnmarshaller();
                 result = (ResultType) um.unmarshal(method.getResponseBodyAsStream());
             }
+            method.releaseConnection();
         } catch (JAXBException jaxbe) {
             log.error(jaxbe);
         }
@@ -102,12 +112,13 @@ public class FedoraRestClient {
             uri.append(token);
             uri.append("&xml=true");
             GetMethod method = new GetMethod(uri.toString());
-            int status = client.executeMethod(method);
+            int status = getHttpClient().executeMethod(method);
             if (status == 200) {
                 JAXBContext jc = JAXBContext.newInstance(ResultType.class);
                 Unmarshaller um = jc.createUnmarshaller();
                 result = (ResultType) um.unmarshal(method.getResponseBodyAsStream());
             }
+            method.releaseConnection();
         } catch (JAXBException jaxbe) {
             log.error(jaxbe);
         }
@@ -122,12 +133,13 @@ public class FedoraRestClient {
             uri.append(pid);
             uri.append("?xml=true");
             GetMethod method = new GetMethod(uri.toString());
-            int status = client.executeMethod(method);
+            int status = getHttpClient().executeMethod(method);
             if (status == 200) {
                 JAXBContext jc = JAXBContext.newInstance(ObjectDatastreamsType.class);
                 Unmarshaller um = jc.createUnmarshaller();
                 result = (ObjectDatastreamsType) um.unmarshal(method.getResponseBodyAsStream());
             }
+            method.releaseConnection();
         } catch (JAXBException jaxbe) {
             log.error(jaxbe);
         }
@@ -148,10 +160,11 @@ public class FedoraRestClient {
             uri.append(dsId);
         }
         GetMethod method = new GetMethod(uri.toString());
-        int status = client.executeMethod(method);
+        int status = getHttpClient().executeMethod(method);
         if (status == 200) {
             StreamUtils.copyStream(method.getResponseBodyAsStream(), out);
         }
+        method.releaseConnection();
     }
 
     // Management methods (Fedora 3.0+ compatible)
@@ -173,7 +186,7 @@ public class FedoraRestClient {
             }
             uri.append("&format=xml");
             GetMethod method = new GetMethod(uri.toString());
-            int status = client.executeMethod(method);
+            int status = getHttpClient().executeMethod(method);
             if (status == 200) {
                 JAXBContext jc = JAXBContext.newInstance(PidListType.class);
                 Unmarshaller um = jc.createUnmarshaller();
@@ -214,7 +227,7 @@ public class FedoraRestClient {
             request = new FileRequestEntity(content, getMimeType(content));
         }
         method.setRequestEntity(request);
-        client.executeMethod(method);
+        getHttpClient().executeMethod(method);
     }
 
     public void addDatastream(String pid, String dsId, String dsLabel,
@@ -250,7 +263,7 @@ public class FedoraRestClient {
         RequestEntity request = new StringRequestEntity(out.toString(),
             contentType, "UTF-8");
         method.setRequestEntity(request);
-        int status = client.executeMethod(method);
+        int status = getHttpClient().executeMethod(method);
         log.info("status: " + status);
         log.info("response: " + method.getResponseBodyAsString());
     }

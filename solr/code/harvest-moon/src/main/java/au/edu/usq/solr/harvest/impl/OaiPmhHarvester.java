@@ -25,6 +25,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.List;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -35,6 +36,8 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.log4j.Logger;
 import org.apache.solr.util.SimplePostTool;
+import org.dom4j.Element;
+import org.dom4j.Node;
 
 import se.kb.oai.pmh.OaiPmhServer;
 import se.kb.oai.pmh.Record;
@@ -66,11 +69,14 @@ public class OaiPmhHarvester implements Harvester {
 
     private FilterManager filterManager;
 
+    private String dcTypeFilter;
+
     public OaiPmhHarvester(FedoraRestClient registry, String solrUpdateUrl,
-        int requestLimit) throws MalformedURLException {
+        int requestLimit, String dcTypeFilter) throws MalformedURLException {
         this.registry = registry;
         this.solrUpdateUrl = new URL(solrUpdateUrl);
         this.requestLimit = requestLimit;
+        this.dcTypeFilter = dcTypeFilter;
     }
 
     public void authenticate(String username, String password) {
@@ -91,6 +97,8 @@ public class OaiPmhHarvester implements Harvester {
             dcToSolr.setName("Dublin Core To Solr");
 
             AddFieldFilter addId = new AddFieldFilter("id");
+            AddFieldFilter addPid = new AddFieldFilter("pid");
+            AddFieldFilter addGroupAccess = new AddFieldFilter("group_access");
             AddFieldFilter addItemClass = new AddFieldFilter("item_class");
             AddFieldFilter addItemType = new AddFieldFilter("item_type");
 
@@ -98,8 +106,9 @@ public class OaiPmhHarvester implements Harvester {
             filterManager.setWorkDir(new File(TMP_DIR, name));
             filterManager.addFilter(dcToSolr);
             filterManager.addFilter(addId);
+            filterManager.addFilter(addPid);
             filterManager.addFilter(new AddFieldFilter("repository_name", name));
-            filterManager.addFilter(new AddFieldFilter("group_access", "guest"));
+            filterManager.addFilter(addGroupAccess);
             filterManager.addFilter(addItemClass);
             filterManager.addFilter(addItemType);
 
@@ -125,8 +134,34 @@ public class OaiPmhHarvester implements Harvester {
                         record.getMetadataAsString().getBytes("UTF-8"));
                     File solrFile = File.createTempFile("solr", ".xml", workDir);
                     OutputStream solrOut = new FileOutputStream(solrFile);
+
+                    // try check if object exists
+                    // FIXME this hangs after 100
+                    // String pid = null;
+                    // ResultType results = registry.findObjects(oaiId, 1);
+                    // List<ObjectFieldType> objectFields =
+                    // results.getObjectFields();
+                    // if (objectFields.isEmpty()) {
+                    // pid = registry.createObject(oaiId, "uuid");
+                    // log.info("CREATE new object: " + pid);
+                    // } else {
+                    // pid = objectFields.get(0).getPid();
+                    // log.info("UPDATE existing object: " + pid);
+                    // }
+
                     String pid = registry.createObject(oaiId, "uuid");
-                    addId.setValue(pid);
+                    addId.setValue(oaiId);
+                    addPid.setValue(pid);
+                    addGroupAccess.setValue("guest");
+                    if (dcTypeFilter != null) {
+                        List<Node> nodes = record.getMetadata().selectNodes(
+                            "//dc:type");
+                        for (Node node : nodes) {
+                            if (dcTypeFilter.equals(((Element) node).getTextTrim())) {
+                                addGroupAccess.setValue("admin");
+                            }
+                        }
+                    }
                     addItemClass.setValue("document");
                     addItemType.setValue("object");
                     filterManager.run(dcIn, solrOut);
@@ -163,6 +198,7 @@ public class OaiPmhHarvester implements Harvester {
         Option repositoryPass = new Option("p", true, "repository password");
         Option repositoryName = new Option("n", true, "repository name");
         Option requestLimit = new Option("l", true, "request limit");
+        Option dcTypeFilter = new Option("f", true, "dc:type for admin access");
 
         solrUrl.setArgName("url");
         registryUrl.setArgName("url");
@@ -173,6 +209,7 @@ public class OaiPmhHarvester implements Harvester {
         repositoryPass.setArgName("password");
         repositoryName.setArgName("name");
         requestLimit.setArgName("number");
+        dcTypeFilter.setArgName("type");
 
         Options options = new Options();
         options.addOption(solrUrl);
@@ -184,6 +221,7 @@ public class OaiPmhHarvester implements Harvester {
         options.addOption(repositoryPass);
         options.addOption(repositoryName);
         options.addOption(requestLimit);
+        options.addOption(dcTypeFilter);
 
         CommandLineParser parser = new GnuParser();
         try {
@@ -202,7 +240,7 @@ public class OaiPmhHarvester implements Harvester {
                     registry.authenticate(user, pass);
                 }
                 Harvester harvester = new OaiPmhHarvester(registry,
-                    solrUrl.getValue(), limit);
+                    solrUrl.getValue(), limit, dcTypeFilter.getValue());
                 harvester.harvest(repositoryName.getValue(),
                     repositoryUrl.getValue());
             } else {
