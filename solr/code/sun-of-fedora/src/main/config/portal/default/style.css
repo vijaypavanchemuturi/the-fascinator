@@ -186,6 +186,12 @@ input.search-textfield {
   width: 20em;
 }
 
+/* Sorting */
+.sorting {
+  margin-left: 0;
+  padding-left: 0;
+}
+
 /* Paging */
 
 .paging {

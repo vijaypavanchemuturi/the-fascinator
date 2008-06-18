@@ -11,6 +11,7 @@
   </form>
   #if($page.hasResults)
     <p>Displaying <strong>${paging.startNum}</strong> to <strong>${paging.endNum}</strong> of <strong>${paging.totalFound}</strong> records (${page.response.queryTime} seconds)</p>
+    #parse($locator.getLocation('sorting.vm'))
     #parse($locator.getLocation('paging.vm'))
   #end
 </div>
