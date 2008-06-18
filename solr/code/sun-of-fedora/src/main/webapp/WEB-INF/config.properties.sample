@@ -4,6 +4,11 @@
 solr.base.url=http://rspilot.usq.edu.au:8080/solr
 
 #
+# Registry base URL (Fedora 3.0+)
+#
+registry.url=http://localhost:8080/fedora
+
+#
 # Portal configuration directory. This is normally the same directory as
 # the location of the velocity templates.
 #

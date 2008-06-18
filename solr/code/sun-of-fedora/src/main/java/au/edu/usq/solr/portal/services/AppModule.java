@@ -37,7 +37,9 @@ import au.edu.usq.solr.portal.State;
 
 public class AppModule {
 
-    private static final String PORTALS_DIR_KEY = "portals.dir";
+    public static final String PORTALS_DIR_KEY = "portals.dir";
+
+    public static final String REGISTRY_URL_KEY = "registry.url";
 
     public PortalManager buildPortalManager(Map<String, Resource> configuration) {
         return new PortalManagerImpl(configuration.get(PORTALS_DIR_KEY));
@@ -48,6 +50,18 @@ public class AppModule {
         Resource configProps = new ContextResource(context,
             "/WEB-INF/config.properties");
         configuration.add(PORTALS_DIR_KEY, configProps);
+    }
+
+    public RegistryManager buildRegistryManager(
+        Map<String, Resource> configuration) {
+        return new RegistryManagerImpl(configuration.get(REGISTRY_URL_KEY));
+    }
+
+    public void contributeRegistryManager(Context context,
+        MappedConfiguration<String, Resource> configuration) {
+        Resource configProps = new ContextResource(context,
+            "/WEB-INF/config.properties");
+        configuration.add(REGISTRY_URL_KEY, configProps);
     }
 
     public VelocityResourceLocator buildVelocityResourceLocator(

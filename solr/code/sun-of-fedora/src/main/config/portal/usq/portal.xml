@@ -2,11 +2,13 @@
 <portal name="usq">
     <description>University of Southern Queensland</description>
     <query>repository_name:&quot;USQ ePrints&quot;</query>
+    <security-query>group_access:&quot;admin&quot;</security-query>
     <records-per-page>25</records-per-page>
     <facet-count>50</facet-count>
     <facet-fields>
-        <field name="f_creator">Author</field>
-        <field name="f_type">Format</field>
-        <field name="f_subject">Course</field>
+        <user name="f_type">Format</user>
+        <user name="f_subject">Course</user>
+        <user name="f_creator">Author</user>
     </facet-fields>
+    <roles/>
 </portal>

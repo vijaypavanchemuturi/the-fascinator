@@ -51,6 +51,12 @@ public class Portal implements Comparable<Portal> {
     @XmlElement
     private String query;
 
+    @XmlElement(name = "security-query")
+    private String securityQuery;
+
+    @XmlElement(name = "item-class")
+    private String itemClass;
+
     @XmlElement(name = "records-per-page")
     private int recordsPerPage = 10;
 
@@ -107,6 +113,22 @@ public class Portal implements Comparable<Portal> {
 
     public void setQuery(String query) {
         this.query = query;
+    }
+
+    public String getSecurityQuery() {
+        return securityQuery;
+    }
+
+    public void setSecurityQuery(String securityQuery) {
+        this.securityQuery = securityQuery;
+    }
+
+    public String getItemClass() {
+        return itemClass;
+    }
+
+    public void setItemClass(String itemClass) {
+        this.itemClass = itemClass;
     }
 
     public int getRecordsPerPage() {

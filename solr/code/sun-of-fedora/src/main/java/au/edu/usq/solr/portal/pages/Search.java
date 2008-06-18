@@ -28,7 +28,6 @@ import java.util.Set;
 import javax.xml.bind.JAXBException;
 
 import org.apache.log4j.Logger;
-import org.apache.tapestry.Asset;
 import org.apache.tapestry.annotations.ApplicationState;
 import org.apache.tapestry.annotations.IncludeStylesheet;
 import org.apache.tapestry.annotations.InjectPage;
@@ -94,6 +93,9 @@ public class Search {
 
     @InjectPage(value = "portal/create")
     private Create createPortalPage;
+
+    @InjectPage(value = "detail")
+    private Detail detailPage;
 
     @Inject
     private Request httpRequest;
@@ -162,6 +164,7 @@ public class Search {
         searcher.setStart((pageNum - 1) * recordsPerPage);
 
         for (String facetLimit : getFacetLimits()) {
+            log.info("facetLimit: " + facetLimit);
             searcher.addFacetQuery(facetLimit);
         }
 
@@ -217,6 +220,12 @@ public class Search {
     public boolean getShowLast() {
         return (pagination.getLastPage() > 5)
             && (pageNum != pagination.getLastPage());
+    }
+
+    @OnEvent(value = "showdetail")
+    Object showDetail(String uuid) {
+        detailPage.setUuid(uuid);
+        return detailPage;
     }
 
     @OnEvent(value = "addfacet")
@@ -308,9 +317,6 @@ public class Search {
 
     public String getStylesheet() {
         return locator.getLocation(portalName, "style.css");
-    }
-
-    public void setStylesheet(Asset stylesheet) {
     }
 
     public String getPortalName() {

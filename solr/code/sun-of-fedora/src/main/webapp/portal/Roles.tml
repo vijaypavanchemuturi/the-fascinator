@@ -32,22 +32,24 @@
     <div class="roles">
       <h2>Edit Access Roles for '${portal.description}'</h2>
       <p><a t:type="pagelink" t:page="portal/edit" t:context="portal.name">Set portal properties...</a></p>
-      <form t:type="form" t:id="editForm">
-        <h3>Current Roles</h3>
-        <table>
-          <tr t:type="loop" t:source="portal.roles" t:value="role" t:encoder="encoder">
-            <td><input type="text" size="10" t:type="textfield" t:value="role.id"/></td>
-            <td><input type="text" size="40" t:type="textfield" t:value="role.users"/></td>
-            <td><a class="role-delete" onclick="return checkDelete('${role.id}')"
-                   t:id="delete" t:type="actionlink" t:context="role.id">delete</a></td>
-          </tr>
-          <tr>
-            <td colspan="3">
-              <input type="submit" class="button" value="Save changes" t:type="submit"/>
-            </td>
-          </tr>
-        </table>
-      </form>
+      <t:if t:test="portal.roles">
+        <form t:type="form" t:id="editForm">
+          <h3>Current Roles</h3>
+          <table>
+            <tr t:type="loop" t:source="portal.roles" t:value="role" t:encoder="encoder">
+              <td><input type="text" size="10" t:type="textfield" t:value="role.id"/></td>
+              <td><input type="text" size="40" t:type="textfield" t:value="role.users"/></td>
+              <td><a class="role-delete" onclick="return checkDelete('${role.id}')"
+                     t:id="delete" t:type="actionlink" t:context="role.id">delete</a></td>
+            </tr>
+            <tr>
+              <td colspan="3">
+                <input type="submit" class="button" value="Save changes" t:type="submit"/>
+              </td>
+            </tr>
+          </table>
+        </form>
+      </t:if>
       <form t:type="form" t:id="newForm">
         <h3>New Role</h3>
         <table>

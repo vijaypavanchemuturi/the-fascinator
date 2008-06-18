@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <portal name="default">
     <description>Everything</description>
-    <query></query>
     <records-per-page>10</records-per-page>
     <facet-count>25</facet-count>
     <facet-fields>

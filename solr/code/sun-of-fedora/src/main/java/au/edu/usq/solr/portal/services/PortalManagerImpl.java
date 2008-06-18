@@ -54,7 +54,7 @@ public class PortalManagerImpl implements PortalManager {
         Properties props = new Properties();
         try {
             props.load(configuration.toURL().openStream());
-            portalsDir = new File(props.getProperty("portals.dir"));
+            portalsDir = new File(props.getProperty(AppModule.PORTALS_DIR_KEY));
             JAXBContext ctx = JAXBContext.newInstance(Portal.class);
             jaxbM = ctx.createMarshaller();
             jaxbM.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
