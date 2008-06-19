@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>au.edu.usq.arrow-portal</groupId>
+  <artifactId>common</artifactId>
+  <packaging>jar</packaging>
+  <name>ARROW Portal Commons</name>
+  <version>0.1</version>
+  <parent>
+    <groupId>au.edu.usq</groupId>
+    <artifactId>arrow-portal</artifactId>
+  </parent>
+  <build>
+    <finalName>common</finalName>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <configuration>
+          <source>1.5</source>
+          <target>1.5</target>
+          <optimize>true</optimize>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+</project>

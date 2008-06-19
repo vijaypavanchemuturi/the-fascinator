@@ -1,13 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <modelVersion>4.0.0</modelVersion>
-  <groupId>au.edu.usq</groupId>
+  <groupId>au.edu.usq.arrow-portal</groupId>
   <artifactId>harvest-moon</artifactId>
   <packaging>jar</packaging>
-  <name>USQ Solr Harvester</name>
-  <version>0.3</version>
-  <description/>
+  <name>Harvest Moon</name>
+  <version>0.5</version>
+  <parent>
+    <groupId>au.edu.usq</groupId>
+    <artifactId>arrow-portal</artifactId>
+  </parent>
   <dependencies>
+    <dependency>
+      <groupId>au.edu.usq.arrow-portal</groupId>
+      <artifactId>common</artifactId>
+    </dependency>
     <dependency>
       <groupId>commons-httpclient</groupId>
       <artifactId>commons-httpclient</artifactId>
