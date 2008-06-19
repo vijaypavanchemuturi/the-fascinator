@@ -16,40 +16,37 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-package au.edu.usq.solr.harvest.fedora.types;
+package au.edu.usq.solr.harvest.impl;
 
-import java.util.Date;
+import java.io.IOException;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
+import org.dom4j.Element;
 
-@XmlAccessorType(XmlAccessType.NONE)
-public class ListSessionType {
+import se.kb.oai.pmh.Record;
+import au.edu.usq.solr.harvest.Item;
 
-    @XmlElement(namespace = ResultType.NAMESPACE)
-    private String token;
+public class OaiPmhItem implements Item {
 
-    @XmlElement(namespace = ResultType.NAMESPACE)
-    private int cursor;
+    private Record record;
 
-    @XmlElement(name = "expirationDate", namespace = ResultType.NAMESPACE)
-    private Date expirationDate;
-
-    public String getToken() {
-        return token;
+    public OaiPmhItem(Record record) {
+        this.record = record;
     }
 
-    public int getCursor() {
-        return cursor;
+    public String getId() {
+        return record.getHeader().getIdentifier();
     }
 
-    public Date getExpirationDate() {
-        return expirationDate;
+    public Element getMetadata() {
+        return record.getMetadata();
     }
 
-    @Override
-    public String toString() {
-        return token + ":" + cursor;
+    public String getMetadataAsString() {
+        String metadata = null;
+        try {
+            metadata = record.getMetadataAsString();
+        } catch (IOException e) {
+        }
+        return metadata;
     }
 }

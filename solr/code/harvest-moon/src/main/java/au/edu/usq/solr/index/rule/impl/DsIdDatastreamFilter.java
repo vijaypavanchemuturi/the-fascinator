@@ -1,7 +1,7 @@
-package au.edu.usq.solr.harvest.filter.impl;
+package au.edu.usq.solr.index.rule.impl;
 
-import au.edu.usq.solr.harvest.fedora.types.DatastreamType;
-import au.edu.usq.solr.harvest.filter.BaseDatastreamFilter;
+import au.edu.usq.solr.harvest.fedora.DatastreamType;
+import au.edu.usq.solr.index.rule.BaseDatastreamFilter;
 
 public class DsIdDatastreamFilter extends BaseDatastreamFilter {
 

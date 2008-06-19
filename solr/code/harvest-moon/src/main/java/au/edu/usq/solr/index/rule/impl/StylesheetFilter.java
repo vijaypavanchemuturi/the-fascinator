@@ -16,7 +16,7 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-package au.edu.usq.solr.harvest.filter.impl;
+package au.edu.usq.solr.index.rule.impl;
 
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -32,19 +32,19 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 
-import au.edu.usq.solr.harvest.filter.BaseSolrFilter;
-import au.edu.usq.solr.harvest.filter.FilterException;
+import au.edu.usq.solr.index.rule.AbstractRule;
+import au.edu.usq.solr.index.rule.RuleException;
 
-public class StylesheetFilter extends BaseSolrFilter {
+public class StylesheetFilter extends AbstractRule {
 
     private Transformer transformer;
 
-    public StylesheetFilter(InputStream xsl) throws FilterException {
+    public StylesheetFilter(InputStream xsl) throws RuleException {
         this(xsl, null);
     }
 
     public StylesheetFilter(InputStream xsl, Map<String, String> params)
-        throws FilterException {
+        throws RuleException {
         super("Stylesheet", true);
         TransformerFactory tf = TransformerFactory.newInstance();
         try {
@@ -56,19 +56,19 @@ public class StylesheetFilter extends BaseSolrFilter {
                 }
             }
         } catch (TransformerConfigurationException tce) {
-            throw new FilterException("Failed to load stylesheet", tce);
+            throw new RuleException("Failed to load stylesheet", tce);
         }
     }
 
     @Override
     public void filter(InputStream in, OutputStream out)
-        throws FilterException {
+        throws RuleException {
         Source source = new StreamSource(in);
         Result result = new StreamResult(out);
         try {
             transformer.transform(source, result);
         } catch (TransformerException te) {
-            throw new FilterException("Failed to transform", te);
+            throw new RuleException("Failed to transform", te);
         }
     }
 }

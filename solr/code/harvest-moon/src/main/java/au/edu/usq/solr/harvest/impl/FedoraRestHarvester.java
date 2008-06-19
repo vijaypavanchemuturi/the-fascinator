@@ -41,19 +41,19 @@ import org.pdfbox.util.PDFTextStripper;
 import au.edu.usq.solr.harvest.Harvester;
 import au.edu.usq.solr.harvest.HarvesterException;
 import au.edu.usq.solr.harvest.Registry;
+import au.edu.usq.solr.harvest.fedora.DatastreamType;
 import au.edu.usq.solr.harvest.fedora.FedoraRestClient;
-import au.edu.usq.solr.harvest.fedora.types.DatastreamType;
-import au.edu.usq.solr.harvest.fedora.types.ListSessionType;
-import au.edu.usq.solr.harvest.fedora.types.ObjectDatastreamsType;
-import au.edu.usq.solr.harvest.fedora.types.ObjectFieldType;
-import au.edu.usq.solr.harvest.fedora.types.ResultType;
-import au.edu.usq.solr.harvest.filter.DatastreamFilter;
-import au.edu.usq.solr.harvest.filter.FilterException;
-import au.edu.usq.solr.harvest.filter.FilterManager;
-import au.edu.usq.solr.harvest.filter.SolrFilter;
-import au.edu.usq.solr.harvest.filter.impl.AddFieldFilter;
-import au.edu.usq.solr.harvest.filter.impl.DsIdDatastreamFilter;
-import au.edu.usq.solr.harvest.filter.impl.StylesheetFilter;
+import au.edu.usq.solr.harvest.fedora.ListSessionType;
+import au.edu.usq.solr.harvest.fedora.ObjectDatastreamsType;
+import au.edu.usq.solr.harvest.fedora.ObjectFieldType;
+import au.edu.usq.solr.harvest.fedora.ResultType;
+import au.edu.usq.solr.index.rule.DatastreamFilter;
+import au.edu.usq.solr.index.rule.RuleException;
+import au.edu.usq.solr.index.rule.RuleManager;
+import au.edu.usq.solr.index.rule.Rule;
+import au.edu.usq.solr.index.rule.impl.AddFieldRule;
+import au.edu.usq.solr.index.rule.impl.DsIdDatastreamFilter;
+import au.edu.usq.solr.index.rule.impl.StylesheetFilter;
 import au.edu.usq.solr.util.NullWriter;
 import au.edu.usq.solr.util.StreamUtils;
 
@@ -69,11 +69,11 @@ public class FedoraRestHarvester implements Harvester {
 
     private FedoraRestClient client;
 
-    private FilterManager filterManager;
+    private RuleManager filterManager;
 
-    private AddFieldFilter addIdFilter;
+    private AddFieldRule addIdFilter;
 
-    private AddFieldFilter addFullTextFilter;
+    private AddFieldRule addFullTextFilter;
 
     private SimplePostTool postTool;
 
@@ -93,17 +93,17 @@ public class FedoraRestHarvester implements Harvester {
 
     public void harvest(String name, String url) throws HarvesterException {
         try {
-            SolrFilter dcToSolr = new StylesheetFilter(
+            Rule dcToSolr = new StylesheetFilter(
                 getClass().getResourceAsStream("/xsl/dc_solr.xsl"));
             dcToSolr.setName("Dublin Core To Solr");
 
-            addIdFilter = new AddFieldFilter("id");
-            addFullTextFilter = new AddFieldFilter("full_text");
+            addIdFilter = new AddFieldRule("id");
+            addFullTextFilter = new AddFieldRule("full_text");
 
-            filterManager = new FilterManager();
+            filterManager = new RuleManager();
             filterManager.setWorkDir(new File(TMP_DIR, name));
             filterManager.addFilter(dcToSolr);
-            filterManager.addFilter(new AddFieldFilter("repository_name", name));
+            filterManager.addFilter(new AddFieldRule("repository_name", name));
             filterManager.addFilter(addIdFilter);
             filterManager.addFilter(addFullTextFilter);
 
@@ -126,7 +126,7 @@ public class FedoraRestHarvester implements Harvester {
                     results = client.resumeFindObjects(token);
                 }
             } while (token != null && count < limit);
-        } catch (FilterException fe) {
+        } catch (RuleException fe) {
             throw new HarvesterException(fe);
         } catch (IOException ioe) {
             ioe.printStackTrace();

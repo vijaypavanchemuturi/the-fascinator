@@ -16,14 +16,20 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-package au.edu.usq.solr.harvest;
+package au.edu.usq.solr.index.rule;
 
-import java.util.List;
+public class RuleException extends Exception {
 
-public interface Harvester {
+    public RuleException(String message) {
+        super(message);
+    }
 
-    public boolean hasMoreItems();
+    public RuleException(Throwable cause) {
+        super(cause);
+    }
 
-    public List<Item> getItems() throws HarvesterException;
+    public RuleException(String message, Throwable cause) {
+        super(message, cause);
+    }
 
 }

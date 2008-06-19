@@ -1,6 +1,6 @@
-package au.edu.usq.solr.harvest.filter;
+package au.edu.usq.solr.index.rule;
 
-import au.edu.usq.solr.harvest.fedora.types.DatastreamType;
+import au.edu.usq.solr.harvest.fedora.DatastreamType;
 
 public abstract class BaseDatastreamFilter implements DatastreamFilter {
 

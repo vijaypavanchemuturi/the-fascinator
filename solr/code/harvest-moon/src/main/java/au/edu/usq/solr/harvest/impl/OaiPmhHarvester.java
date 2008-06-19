@@ -18,241 +18,268 @@
  */
 package au.edu.usq.solr.harvest.impl;
 
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.MalformedURLException;
-import java.net.URL;
+import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.CommandLineParser;
-import org.apache.commons.cli.GnuParser;
-import org.apache.commons.cli.HelpFormatter;
-import org.apache.commons.cli.Option;
-import org.apache.commons.cli.Options;
-import org.apache.commons.cli.ParseException;
-import org.apache.log4j.Logger;
-import org.apache.solr.util.SimplePostTool;
-import org.dom4j.Element;
-import org.dom4j.Node;
-
+import se.kb.oai.OAIException;
 import se.kb.oai.pmh.OaiPmhServer;
 import se.kb.oai.pmh.Record;
 import se.kb.oai.pmh.RecordsList;
 import se.kb.oai.pmh.ResumptionToken;
 import au.edu.usq.solr.harvest.Harvester;
 import au.edu.usq.solr.harvest.HarvesterException;
-import au.edu.usq.solr.harvest.fedora.FedoraRestClient;
-import au.edu.usq.solr.harvest.filter.FilterManager;
-import au.edu.usq.solr.harvest.filter.SolrFilter;
-import au.edu.usq.solr.harvest.filter.impl.AddFieldFilter;
-import au.edu.usq.solr.harvest.filter.impl.StylesheetFilter;
-import au.edu.usq.solr.util.NullWriter;
+import au.edu.usq.solr.harvest.Item;
 import au.edu.usq.solr.util.OaiDcNsContext;
 
 public class OaiPmhHarvester implements Harvester {
 
-    public static final String PDF_MIME_TYPE = "application/pdf";
+    private OaiPmhServer server;
 
-    private static Logger log = Logger.getLogger(OaiPmhHarvester.class);
+    private boolean started;
 
-    private static final String TMP_DIR = System.getProperty("java.io.tmpdir");
+    private ResumptionToken token;
 
-    private FedoraRestClient registry;
+    private int numRequests;
 
-    private URL solrUpdateUrl;
+    private int maxRequests;
 
-    private int requestLimit;
-
-    private FilterManager filterManager;
-
-    private String dcTypeFilter;
-
-    public OaiPmhHarvester(FedoraRestClient registry, String solrUpdateUrl,
-        int requestLimit, String dcTypeFilter) throws MalformedURLException {
-        this.registry = registry;
-        this.solrUpdateUrl = new URL(solrUpdateUrl);
-        this.requestLimit = requestLimit;
-        this.dcTypeFilter = dcTypeFilter;
+    public OaiPmhHarvester(String url) {
+        this(url, Integer.MAX_VALUE);
     }
 
-    public void authenticate(String username, String password) {
-        // OAI-PMH is normally open access
+    public OaiPmhHarvester(String url, int maxRequests) {
+        this.maxRequests = maxRequests;
+        server = new OaiPmhServer(url);
+        started = false;
+        numRequests = 0;
     }
 
-    public void harvest(String name, String url) throws HarvesterException {
-        long startTime = System.currentTimeMillis();
-        SimplePostTool postTool = new SimplePostTool(solrUpdateUrl);
-        OaiPmhServer server = new OaiPmhServer(url);
-        File workDir = new File(TMP_DIR, name);
-        workDir.mkdirs();
+    public boolean hasMoreItems() {
+        return !started || (token != null && numRequests < maxRequests);
+    }
+
+    public List<Item> getItems() throws HarvesterException {
+        List<Item> items = new ArrayList<Item>();
+        RecordsList records;
         try {
-            log.info("Starting harvest from [" + url + "]");
-
-            SolrFilter dcToSolr = new StylesheetFilter(
-                getClass().getResourceAsStream("/xsl/dc_solr.xsl"));
-            dcToSolr.setName("Dublin Core To Solr");
-
-            AddFieldFilter addId = new AddFieldFilter("id");
-            AddFieldFilter addPid = new AddFieldFilter("pid");
-            AddFieldFilter addGroupAccess = new AddFieldFilter("group_access");
-            AddFieldFilter addItemClass = new AddFieldFilter("item_class");
-            AddFieldFilter addItemType = new AddFieldFilter("item_type");
-
-            filterManager = new FilterManager();
-            filterManager.setWorkDir(new File(TMP_DIR, name));
-            filterManager.addFilter(dcToSolr);
-            filterManager.addFilter(addId);
-            filterManager.addFilter(addPid);
-            filterManager.addFilter(new AddFieldFilter("repository_name", name));
-            filterManager.addFilter(addGroupAccess);
-            filterManager.addFilter(addItemClass);
-            filterManager.addFilter(addItemType);
-
-            RecordsList records;
-            ResumptionToken token = null;
-            int count = 0;
-            do {
-                // run the OAI-PMH command
-                count++;
-                if (token == null) {
-                    records = server.listRecords(OaiDcNsContext.OAI_DC_PREFIX);
-                } else {
-                    log.info("Continue harvest with token=" + token.getId());
-                    records = server.listRecords(token);
-                }
-                token = records.getResumptionToken();
-
-                // loop through the records, index and store in registry
-                for (Record record : records.asList()) {
-                    String oaiId = record.getHeader().getIdentifier();
-                    log.info("Processing " + oaiId + "...");
-                    InputStream dcIn = new ByteArrayInputStream(
-                        record.getMetadataAsString().getBytes("UTF-8"));
-                    File solrFile = File.createTempFile("solr", ".xml", workDir);
-                    OutputStream solrOut = new FileOutputStream(solrFile);
-
-                    // try check if object exists
-                    // FIXME this hangs after 100
-                    // String pid = null;
-                    // ResultType results = registry.findObjects(oaiId, 1);
-                    // List<ObjectFieldType> objectFields =
-                    // results.getObjectFields();
-                    // if (objectFields.isEmpty()) {
-                    // pid = registry.createObject(oaiId, "uuid");
-                    // log.info("CREATE new object: " + pid);
-                    // } else {
-                    // pid = objectFields.get(0).getPid();
-                    // log.info("UPDATE existing object: " + pid);
-                    // }
-
-                    String pid = registry.createObject(oaiId, "uuid");
-                    addId.setValue(oaiId);
-                    addPid.setValue(pid);
-                    addGroupAccess.setValue("guest");
-                    if (dcTypeFilter != null) {
-                        List<Node> nodes = record.getMetadata().selectNodes(
-                            "//dc:type");
-                        for (Node node : nodes) {
-                            if (dcTypeFilter.equals(((Element) node).getTextTrim())) {
-                                addGroupAccess.setValue("admin");
-                            }
-                        }
-                    }
-                    addItemClass.setValue("document");
-                    addItemType.setValue("object");
-                    filterManager.run(dcIn, solrOut);
-                    solrOut.close();
-                    postTool.postFile(solrFile, NullWriter.getInstance());
-                    solrFile.delete();
-                    registry.addDatastream(pid, "DC0",
-                        "Dublin Core (Original)", record.getMetadataAsString(),
-                        "text/xml");
-                }
-                postTool.commit(NullWriter.getInstance());
-            } while ((token != null) && (count < requestLimit));
-
-            log.info("Harvest from [" + url + "] completed in "
-                + (System.currentTimeMillis() - startTime) / 1000.0
-                + " seconds");
-        } catch (Exception e) {
-            throw new HarvesterException(e);
-        } finally {
-            if (workDir != null) {
-                workDir.delete();
-            }
-        }
-    }
-
-    public static void main(String[] args) {
-
-        Option solrUrl = new Option("s", true, "solr update url");
-        Option registryUrl = new Option("R", true, "registry base url");
-        Option registryUser = new Option("U", true, "registry username");
-        Option registryPass = new Option("P", true, "registry password");
-        Option repositoryUrl = new Option("r", true, "repository base url");
-        Option repositoryUser = new Option("u", true, "repository username");
-        Option repositoryPass = new Option("p", true, "repository password");
-        Option repositoryName = new Option("n", true, "repository name");
-        Option requestLimit = new Option("l", true, "request limit");
-        Option dcTypeFilter = new Option("f", true, "dc:type for admin access");
-
-        solrUrl.setArgName("url");
-        registryUrl.setArgName("url");
-        registryUser.setArgName("username");
-        registryPass.setArgName("password");
-        repositoryUrl.setArgName("url");
-        repositoryUser.setArgName("username");
-        repositoryPass.setArgName("password");
-        repositoryName.setArgName("name");
-        requestLimit.setArgName("number");
-        dcTypeFilter.setArgName("type");
-
-        Options options = new Options();
-        options.addOption(solrUrl);
-        options.addOption(registryUrl);
-        options.addOption(registryUser);
-        options.addOption(registryPass);
-        options.addOption(repositoryUrl);
-        options.addOption(repositoryUser);
-        options.addOption(repositoryPass);
-        options.addOption(repositoryName);
-        options.addOption(requestLimit);
-        options.addOption(dcTypeFilter);
-
-        CommandLineParser parser = new GnuParser();
-        try {
-            CommandLine cmdLine = parser.parse(options, args);
-            if (cmdLine.hasOption('s') && cmdLine.hasOption('r')
-                && cmdLine.hasOption('R')) {
-                int limit = Integer.MAX_VALUE;
-                if (cmdLine.hasOption('l')) {
-                    limit = Integer.parseInt(requestLimit.getValue());
-                }
-                FedoraRestClient registry = new FedoraRestClient(
-                    registryUrl.getValue());
-                String user = registryUser.getValue();
-                String pass = registryPass.getValue();
-                if (user != null && pass != null) {
-                    registry.authenticate(user, pass);
-                }
-                Harvester harvester = new OaiPmhHarvester(registry,
-                    solrUrl.getValue(), limit, dcTypeFilter.getValue());
-                harvester.harvest(repositoryName.getValue(),
-                    repositoryUrl.getValue());
+            numRequests++;
+            if (started) {
+                records = server.listRecords(token);
             } else {
-                HelpFormatter hf = new HelpFormatter();
-                hf.printHelp(OaiPmhHarvester.class.getCanonicalName(), options);
+                started = true;
+                records = server.listRecords(OaiDcNsContext.OAI_DC_PREFIX);
             }
-        } catch (ParseException pe) {
-            log.error(pe);
-        } catch (MalformedURLException mue) {
-            log.error(mue);
-        } catch (HarvesterException he) {
-            log.error(he);
+            for (Record record : records.asList()) {
+                items.add(new OaiPmhItem(record));
+            }
+            token = records.getResumptionToken();
+        } catch (OAIException oe) {
+            throw new HarvesterException(oe);
         }
+        return items;
     }
+
+    // old interface
+    //
+    // public static final String PDF_MIME_TYPE = "application/pdf";
+    //
+    // private static Logger log = Logger.getLogger(OaiPmhHarvester.class);
+    //
+    // private static final String TMP_DIR =
+    // System.getProperty("java.io.tmpdir");
+    //
+    // private FedoraRestClient registry;
+    //
+    // private URL solrUpdateUrl;
+    //
+    // private int requestLimit;
+    //
+    // private FilterManager filterManager;
+    //
+    // private String dcTypeFilter;
+    //
+    // public OaiPmhHarvester(FedoraRestClient registry, String solrUpdateUrl,
+    // int requestLimit, String dcTypeFilter) throws MalformedURLException {
+    // this.registry = registry;
+    // this.solrUpdateUrl = new URL(solrUpdateUrl);
+    // this.requestLimit = requestLimit;
+    // this.dcTypeFilter = dcTypeFilter;
+    // }
+    //
+    // public void authenticate(String username, String password) {
+    // // OAI-PMH is normally open access
+    // }
+    //
+    // public void harvest(String name, String url) throws HarvesterException {
+    // long startTime = System.currentTimeMillis();
+    // SimplePostTool postTool = new SimplePostTool(solrUpdateUrl);
+    // OaiPmhServer server = new OaiPmhServer(url);
+    // File workDir = new File(TMP_DIR, name);
+    // workDir.mkdirs();
+    // try {
+    // log.info("Starting harvest from [" + url + "]");
+    //
+    // SolrFilter dcToSolr = new StylesheetFilter(
+    // getClass().getResourceAsStream("/xsl/dc_solr.xsl"));
+    // dcToSolr.setName("Dublin Core To Solr");
+    //
+    // AddFieldFilter addId = new AddFieldFilter("id");
+    // AddFieldFilter addPid = new AddFieldFilter("pid");
+    // AddFieldFilter addGroupAccess = new AddFieldFilter("group_access");
+    // AddFieldFilter addItemClass = new AddFieldFilter("item_class");
+    // AddFieldFilter addItemType = new AddFieldFilter("item_type");
+    //
+    // filterManager = new FilterManager();
+    // filterManager.setWorkDir(new File(TMP_DIR, name));
+    // filterManager.addFilter(dcToSolr);
+    // filterManager.addFilter(addId);
+    // filterManager.addFilter(addPid);
+    // filterManager.addFilter(new AddFieldFilter("repository_name", name));
+    // filterManager.addFilter(addGroupAccess);
+    // filterManager.addFilter(addItemClass);
+    // filterManager.addFilter(addItemType);
+    //
+    // RecordsList records;
+    // ResumptionToken token = null;
+    // int count = 0;
+    // do {
+    // // run the OAI-PMH command
+    // count++;
+    // if (token == null) {
+    // records = server.listRecords(OaiDcNsContext.OAI_DC_PREFIX);
+    // } else {
+    // log.info("Continue harvest with token=" + token.getId());
+    // records = server.listRecords(token);
+    // }
+    // token = records.getResumptionToken();
+    //
+    // // loop through the records, index and store in registry
+    // for (Record record : records.asList()) {
+    // String oaiId = record.getHeader().getIdentifier();
+    // log.info("Processing " + oaiId + "...");
+    // InputStream dcIn = new ByteArrayInputStream(
+    // record.getMetadataAsString().getBytes("UTF-8"));
+    // File solrFile = File.createTempFile("solr", ".xml", workDir);
+    // OutputStream solrOut = new FileOutputStream(solrFile);
+    //
+    // // try check if object exists
+    // // FIXME this hangs after 100
+    // String pid = null;
+    // ResultType results = registry.findObjects(oaiId, 1);
+    // List<ObjectFieldType> objectFields = results.getObjectFields();
+    // if (objectFields.isEmpty()) {
+    // pid = registry.createObject(oaiId, "uuid");
+    // log.info("CREATE new object: " + pid);
+    // } else {
+    // pid = objectFields.get(0).getPid();
+    // log.info("UPDATE existing object: " + pid);
+    // }
+    //
+    // // String pid = registry.createObject(oaiId, "uuid");
+    // addId.setValue(oaiId);
+    // addPid.setValue(pid);
+    // addGroupAccess.setValue("guest");
+    // if (dcTypeFilter != null) {
+    // List<Node> nodes = record.getMetadata().selectNodes(
+    // "//dc:type");
+    // for (Node node : nodes) {
+    // if (dcTypeFilter.equals(((Element) node).getTextTrim())) {
+    // addGroupAccess.setValue("admin");
+    // }
+    // }
+    // }
+    // addItemClass.setValue("document");
+    // addItemType.setValue("object");
+    // filterManager.run(dcIn, solrOut);
+    // solrOut.close();
+    // postTool.postFile(solrFile, NullWriter.getInstance());
+    // solrFile.delete();
+    // registry.addDatastream(pid, "DC0",
+    // "Dublin Core (Original)", record.getMetadataAsString(),
+    // "text/xml");
+    // }
+    // postTool.commit(NullWriter.getInstance());
+    // } while ((token != null) && (count < requestLimit));
+    //
+    // log.info("Harvest from [" + url + "] completed in "
+    // + (System.currentTimeMillis() - startTime) / 1000.0
+    // + " seconds");
+    // } catch (Exception e) {
+    // throw new HarvesterException(e);
+    // } finally {
+    // if (workDir != null) {
+    // workDir.delete();
+    // }
+    // }
+    // }
+    //
+    // public static void main(String[] args) {
+    //
+    // Option solrUrl = new Option("s", true, "solr update url");
+    // Option registryUrl = new Option("R", true, "registry base url");
+    // Option registryUser = new Option("U", true, "registry username");
+    // Option registryPass = new Option("P", true, "registry password");
+    // Option repositoryUrl = new Option("r", true, "repository base url");
+    // Option repositoryUser = new Option("u", true, "repository username");
+    // Option repositoryPass = new Option("p", true, "repository password");
+    // Option repositoryName = new Option("n", true, "repository name");
+    // Option requestLimit = new Option("l", true, "request limit");
+    // Option dcTypeFilter = new Option("f", true, "dc:type for admin access");
+    //
+    // solrUrl.setArgName("url");
+    // registryUrl.setArgName("url");
+    // registryUser.setArgName("username");
+    // registryPass.setArgName("password");
+    // repositoryUrl.setArgName("url");
+    // repositoryUser.setArgName("username");
+    // repositoryPass.setArgName("password");
+    // repositoryName.setArgName("name");
+    // requestLimit.setArgName("number");
+    // dcTypeFilter.setArgName("type");
+    //
+    // Options options = new Options();
+    // options.addOption(solrUrl);
+    // options.addOption(registryUrl);
+    // options.addOption(registryUser);
+    // options.addOption(registryPass);
+    // options.addOption(repositoryUrl);
+    // options.addOption(repositoryUser);
+    // options.addOption(repositoryPass);
+    // options.addOption(repositoryName);
+    // options.addOption(requestLimit);
+    // options.addOption(dcTypeFilter);
+    //
+    // CommandLineParser parser = new GnuParser();
+    // try {
+    // CommandLine cmdLine = parser.parse(options, args);
+    // if (cmdLine.hasOption('s') && cmdLine.hasOption('r')
+    // && cmdLine.hasOption('R')) {
+    // int limit = Integer.MAX_VALUE;
+    // if (cmdLine.hasOption('l')) {
+    // limit = Integer.parseInt(requestLimit.getValue());
+    // }
+    // FedoraRestClient registry = new FedoraRestClient(
+    // registryUrl.getValue());
+    // String user = registryUser.getValue();
+    // String pass = registryPass.getValue();
+    // if (user != null && pass != null) {
+    // registry.authenticate(user, pass);
+    // }
+    // Harvester harvester = new OaiPmhHarvester(registry,
+    // solrUrl.getValue(), limit, dcTypeFilter.getValue());
+    // harvester.harvest(repositoryName.getValue(),
+    // repositoryUrl.getValue());
+    // } else {
+    // HelpFormatter hf = new HelpFormatter();
+    // hf.printHelp(OaiPmhHarvester.class.getCanonicalName(), options);
+    // }
+    // } catch (ParseException pe) {
+    // log.error(pe);
+    // } catch (MalformedURLException mue) {
+    // log.error(mue);
+    // } catch (HarvesterException he) {
+    // log.error(he);
+    // }
+    // }
+
 }

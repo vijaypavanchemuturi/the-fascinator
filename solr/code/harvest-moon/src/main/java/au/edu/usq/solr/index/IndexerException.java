@@ -16,19 +16,19 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-package au.edu.usq.solr.harvest.filter;
+package au.edu.usq.solr.index;
 
-public class FilterException extends Exception {
+public class IndexerException extends Exception {
 
-    public FilterException(String message) {
+    public IndexerException(String message) {
         super(message);
     }
 
-    public FilterException(Throwable cause) {
+    public IndexerException(Throwable cause) {
         super(cause);
     }
 
-    public FilterException(String message, Throwable cause) {
+    public IndexerException(String message, Throwable cause) {
         super(message, cause);
     }
 

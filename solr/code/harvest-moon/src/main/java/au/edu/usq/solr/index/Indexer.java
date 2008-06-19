@@ -16,14 +16,16 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-package au.edu.usq.solr.harvest;
+package au.edu.usq.solr.index;
 
-import java.util.List;
+import java.io.File;
+import java.io.InputStream;
 
-public interface Harvester {
+public interface Indexer {
 
-    public boolean hasMoreItems();
+    public void index(File file) throws IndexerException;
 
-    public List<Item> getItems() throws HarvesterException;
+    public void index(InputStream in) throws IndexerException;
 
+    public void commit() throws IndexerException;
 }

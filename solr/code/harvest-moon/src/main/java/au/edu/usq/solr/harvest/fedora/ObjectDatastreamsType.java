@@ -16,21 +16,38 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-package au.edu.usq.solr.harvest.filter;
+package au.edu.usq.solr.harvest.fedora;
 
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.util.List;
 
-public interface SolrFilter {
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
 
-    public String getName();
+@XmlRootElement(name = "objectDatastreams")
+@XmlAccessorType(XmlAccessType.NONE)
+public class ObjectDatastreamsType {
 
-    public void setName(String name);
+    @XmlAttribute
+    private String pid;
 
-    public boolean getStopOnFailure();
+    @XmlAttribute(name = "baseURL")
+    private String baseUrl;
 
-    public void setStopOnFailure(boolean stopOnFailure);
+    public String getPid() {
+        return pid;
+    }
 
-    public void filter(InputStream in, OutputStream out)
-        throws FilterException;
+    public String getBaseUrl() {
+        return baseUrl;
+    }
+
+    @XmlElement(name = "datastream")
+    private List<DatastreamType> datastreams;
+
+    public List<DatastreamType> getDatastreams() {
+        return datastreams;
+    }
 }

@@ -16,15 +16,21 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-package au.edu.usq.solr.harvest.filter;
+package au.edu.usq.solr.index.rule;
 
-import au.edu.usq.solr.harvest.fedora.types.DatastreamType;
+import java.io.InputStream;
+import java.io.OutputStream;
 
-public interface DatastreamFilter {
+public interface Rule {
 
     public String getName();
 
     public void setName(String name);
 
-    public boolean isFullTextStream(DatastreamType datastream);
+    public boolean getStopOnFailure();
+
+    public void setStopOnFailure(boolean stopOnFailure);
+
+    public void filter(InputStream in, OutputStream out)
+        throws RuleException;
 }

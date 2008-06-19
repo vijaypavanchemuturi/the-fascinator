@@ -16,7 +16,7 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-package au.edu.usq.solr.harvest.filter.impl;
+package au.edu.usq.solr.index.rule.impl;
 
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -28,14 +28,14 @@ import javax.xml.bind.Unmarshaller;
 
 import org.apache.log4j.Logger;
 
-import au.edu.usq.solr.harvest.filter.BaseSolrFilter;
-import au.edu.usq.solr.harvest.filter.FilterException;
 import au.edu.usq.solr.index.AddDocType;
 import au.edu.usq.solr.index.FieldType;
+import au.edu.usq.solr.index.rule.AbstractRule;
+import au.edu.usq.solr.index.rule.RuleException;
 
-public class AddFieldFilter extends BaseSolrFilter {
+public class AddFieldFilter extends AbstractRule {
 
-    private Logger log = Logger.getLogger(AddFieldFilter.class);
+    private Logger log = Logger.getLogger(AddFieldRule.class);
 
     private FieldType field;
 
@@ -53,7 +53,7 @@ public class AddFieldFilter extends BaseSolrFilter {
     }
 
     @Override
-    public void filter(InputStream in, OutputStream out) throws FilterException {
+    public void filter(InputStream in, OutputStream out) throws RuleException {
         String val = field.getValue();
         if (val.length() > 60) {
             val = val.substring(0, 60) + "...";
@@ -71,7 +71,7 @@ public class AddFieldFilter extends BaseSolrFilter {
             m.marshal(addDoc, out);
 
         } catch (JAXBException jaxbe) {
-            throw new FilterException("Failed to add field: " + field, jaxbe);
+            throw new RuleException("Failed to add field: " + field, jaxbe);
         }
     }
 }

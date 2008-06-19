@@ -16,47 +16,40 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-package au.edu.usq.solr.harvest.filter;
+package au.edu.usq.solr.harvest.fedora;
 
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.util.Date;
 
-public abstract class BaseSolrFilter implements SolrFilter {
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlElement;
 
-    private String name;
+@XmlAccessorType(XmlAccessType.NONE)
+public class ListSessionType {
 
-    private boolean stopOnFailure;
+    @XmlElement(namespace = ResultType.NAMESPACE)
+    private String token;
 
-    public BaseSolrFilter(String name) {
-        this(name, false);
+    @XmlElement(namespace = ResultType.NAMESPACE)
+    private int cursor;
+
+    @XmlElement(name = "expirationDate", namespace = ResultType.NAMESPACE)
+    private Date expirationDate;
+
+    public String getToken() {
+        return token;
     }
 
-    public BaseSolrFilter(String name, boolean stopOnFailure) {
-        this.name = name;
-        this.stopOnFailure = stopOnFailure;
+    public int getCursor() {
+        return cursor;
     }
 
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public boolean getStopOnFailure() {
-        return stopOnFailure;
-    }
-
-    public void setStopOnFailure(boolean stopOnFailure) {
-        this.stopOnFailure = stopOnFailure;
+    public Date getExpirationDate() {
+        return expirationDate;
     }
 
     @Override
     public String toString() {
-        return getName();
+        return token + ":" + cursor;
     }
-
-    public abstract void filter(InputStream in, OutputStream out)
-        throws FilterException;
 }

@@ -16,34 +16,24 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-package au.edu.usq.solr.harvest.fedora.types;
+package au.edu.usq.solr.harvest.fedora;
 
 import java.util.List;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
 
-@XmlRootElement(name = "result", namespace = ResultType.NAMESPACE)
+@XmlRootElement(name = "pidList")
 @XmlAccessorType(XmlAccessType.NONE)
-public class ResultType {
+public class PidListType {
 
-    public static final String NAMESPACE = "http://www.fedora.info/definitions/1/0/types/";
+    @XmlElement(name = "pid")
+    private List<String> pids;
 
-    @XmlElement(name = "listSession", namespace = NAMESPACE)
-    private ListSessionType listSession;
-
-    @XmlElementWrapper(name = "resultList", namespace = NAMESPACE)
-    @XmlElement(name = "objectFields", namespace = NAMESPACE)
-    private List<ObjectFieldType> objectFields;
-
-    public ListSessionType getListSession() {
-        return listSession;
+    public List<String> getPids() {
+        return pids;
     }
 
-    public List<ObjectFieldType> getObjectFields() {
-        return objectFields;
-    }
 }

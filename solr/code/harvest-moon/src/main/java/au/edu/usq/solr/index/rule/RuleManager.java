@@ -16,7 +16,7 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-package au.edu.usq.solr.harvest.filter;
+package au.edu.usq.solr.index.rule;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -31,16 +31,16 @@ import org.apache.log4j.Logger;
 
 import au.edu.usq.solr.util.StreamUtils;
 
-public class FilterManager {
+public class RuleManager {
 
-    private Logger log = Logger.getLogger(FilterManager.class);
+    private Logger log = Logger.getLogger(RuleManager.class);
 
-    private List<SolrFilter> filters;
+    private List<Rule> filters;
 
     private File workDir;
 
-    public FilterManager() {
-        filters = new ArrayList<SolrFilter>();
+    public RuleManager() {
+        filters = new ArrayList<Rule>();
         workDir = new File(System.getProperty("java.io.tmpdir"));
     }
 
@@ -48,11 +48,11 @@ public class FilterManager {
         this.workDir = workDir;
     }
 
-    public void addFilter(SolrFilter filter) {
+    public void addFilter(Rule filter) {
         filters.add(filter);
     }
 
-    public void removeFilter(SolrFilter filter) {
+    public void removeFilter(Rule filter) {
         filters.remove(filter);
     }
 
@@ -60,7 +60,7 @@ public class FilterManager {
         File tmpFile = null;
         File lastTmpFile = null;
         InputStream tmpIn = in;
-        for (SolrFilter filter : filters) {
+        for (Rule filter : filters) {
             try {
                 lastTmpFile = tmpFile;
                 tmpFile = File.createTempFile("filter", ".xml", workDir);

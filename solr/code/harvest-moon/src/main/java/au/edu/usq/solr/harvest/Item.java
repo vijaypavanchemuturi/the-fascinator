@@ -16,24 +16,16 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-package au.edu.usq.solr.harvest.fedora.types;
+package au.edu.usq.solr.harvest;
 
-import java.util.List;
+import org.dom4j.Element;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
+public interface Item {
 
-@XmlRootElement(name = "pidList")
-@XmlAccessorType(XmlAccessType.NONE)
-public class PidListType {
+    public String getId();
 
-    @XmlElement(name = "pid")
-    private List<String> pids;
+    public Element getMetadata();
 
-    public List<String> getPids() {
-        return pids;
-    }
+    public String getMetadataAsString();
 
 }

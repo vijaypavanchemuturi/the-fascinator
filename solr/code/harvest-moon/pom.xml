@@ -66,6 +66,11 @@
       <artifactId>commons-cli</artifactId>
       <version>20040117.000000</version>
     </dependency>
+    <dependency>
+      <groupId>org.python</groupId>
+      <artifactId>jython</artifactId>
+      <version>2.2.1</version>
+    </dependency>
   </dependencies>
   <build>
     <finalName>harvest-moon</finalName>

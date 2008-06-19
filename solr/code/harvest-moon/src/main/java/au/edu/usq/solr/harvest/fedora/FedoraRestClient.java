@@ -44,9 +44,6 @@ import org.apache.commons.httpclient.methods.RequestEntity;
 import org.apache.commons.httpclient.methods.StringRequestEntity;
 import org.apache.log4j.Logger;
 
-import au.edu.usq.solr.harvest.fedora.types.ObjectDatastreamsType;
-import au.edu.usq.solr.harvest.fedora.types.PidListType;
-import au.edu.usq.solr.harvest.fedora.types.ResultType;
 import au.edu.usq.solr.util.StreamUtils;
 
 public class FedoraRestClient {
