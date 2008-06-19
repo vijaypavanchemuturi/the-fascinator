@@ -35,17 +35,17 @@ import javax.xml.transform.stream.StreamSource;
 import au.edu.usq.solr.index.rule.AbstractRule;
 import au.edu.usq.solr.index.rule.RuleException;
 
-public class StylesheetFilter extends AbstractRule {
+public class TransformRule extends AbstractRule {
 
     private Transformer transformer;
 
-    public StylesheetFilter(InputStream xsl) throws RuleException {
+    public TransformRule(InputStream xsl) throws RuleException {
         this(xsl, null);
     }
 
-    public StylesheetFilter(InputStream xsl, Map<String, String> params)
+    public TransformRule(InputStream xsl, Map<String, String> params)
         throws RuleException {
-        super("Stylesheet", true);
+        super("Transform", true);
         TransformerFactory tf = TransformerFactory.newInstance();
         try {
             Templates t = tf.newTemplates(new StreamSource(xsl));
@@ -61,8 +61,7 @@ public class StylesheetFilter extends AbstractRule {
     }
 
     @Override
-    public void filter(InputStream in, OutputStream out)
-        throws RuleException {
+    public void run(InputStream in, OutputStream out) throws RuleException {
         Source source = new StreamSource(in);
         Result result = new StreamResult(out);
         try {

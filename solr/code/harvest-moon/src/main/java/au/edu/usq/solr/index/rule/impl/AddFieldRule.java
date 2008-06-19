@@ -33,17 +33,17 @@ import au.edu.usq.solr.index.FieldType;
 import au.edu.usq.solr.index.rule.AbstractRule;
 import au.edu.usq.solr.index.rule.RuleException;
 
-public class AddFieldFilter extends AbstractRule {
+public class AddFieldRule extends AbstractRule {
 
     private Logger log = Logger.getLogger(AddFieldRule.class);
 
     private FieldType field;
 
-    public AddFieldFilter(String fieldName) {
+    public AddFieldRule(String fieldName) {
         this(fieldName, "");
     }
 
-    public AddFieldFilter(String fieldName, String value) {
+    public AddFieldRule(String fieldName, String value) {
         super("AddField");
         field = new FieldType(fieldName, value);
     }
@@ -53,23 +53,15 @@ public class AddFieldFilter extends AbstractRule {
     }
 
     @Override
-    public void filter(InputStream in, OutputStream out) throws RuleException {
-        String val = field.getValue();
-        if (val.length() > 60) {
-            val = val.substring(0, 60) + "...";
-        }
-        log.info("Adding field " + field.getName() + ": " + val);
-
+    public void run(InputStream in, OutputStream out) throws RuleException {
+        log.info("Adding field " + field);
         try {
             JAXBContext jc = JAXBContext.newInstance(AddDocType.class);
             Unmarshaller u = jc.createUnmarshaller();
-
             AddDocType addDoc = (AddDocType) u.unmarshal(in);
             addDoc.getFields().add(field);
-
             Marshaller m = jc.createMarshaller();
             m.marshal(addDoc, out);
-
         } catch (JAXBException jaxbe) {
             throw new RuleException("Failed to add field: " + field, jaxbe);
         }

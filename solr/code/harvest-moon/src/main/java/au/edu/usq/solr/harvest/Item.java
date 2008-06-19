@@ -18,6 +18,8 @@
  */
 package au.edu.usq.solr.harvest;
 
+import java.util.List;
+
 import org.dom4j.Element;
 
 public interface Item {
@@ -28,4 +30,9 @@ public interface Item {
 
     public String getMetadataAsString();
 
+    public boolean hasDatastreams();
+
+    public List<Datastream> getDatastreams();
+
+    public Datastream getDatastream(String dsId);
 }

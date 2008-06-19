@@ -1,46 +1,48 @@
-from au.edu.usq.solr.harvest.rule import RuleManager
-from au.edu.usq.solr.harvest.rule.impl import StylesheetRule, AddFieldRule
+from java.lang import String
+from au.edu.usq.solr.index.rule import RuleManager
+from au.edu.usq.solr.index.rule.impl import TransformRule, AddFieldRule
 
 #
 # Available objects:
 #    self: harvester
-#    name:harvest job name
-#    item: metadata item
 #    pid : registry pid
+#    name: harvest job name
+#    item: metadata item
 #
 # Return:
 #    rules: RuleManager instance
 #
-
 rules = RuleManager()
 
 # dc to solr transform
-dcToSolr = StylesheetRule(self.getResource("/xsl/dc_solr.xsl"))
-dcToSolr.setName("Transform DC to Solr")
-rules.addRule(dcToSolr)
+rules.add(TransformRule(self.getResource("/xsl/dc_solr.xsl")))
 
 # unique identifier
-rules.addRule(AddFieldRule("id", item.getId()))
+rules.add(AddFieldRule("id", item.getId()))
 
 # registry pid
-rules.addRule(AddFieldRule("pid", pid))
+rules.add(AddFieldRule("pid", pid))
 
 # group access
 #   default to "guest"
+#   set to "admin" for ADT items
 groupAccess = AddFieldRule("group_access", "guest")
-rules.addRule(groupAccess)
-
-# set to "admin" for dc:type == Australasian Digital Thesis
+rules.add(groupAccess)
 nodes = item.getMetadata().selectNodes("//dc:type")
 for node in nodes:
     dcType = node.getText().strip()
     if dcType == "Australasian Digital Thesis":
-        print "access for %s set to admin" % item.getId()
         groupAccess.setValue("admin")
         break
 
 # item class
-rules.addRule(AddFieldRule("item_class", "document"))
+rules.add(AddFieldRule("item_class", "document"))
 
 # item type
-rules.addRule(AddFieldRule("item_type", "object"))
+rules.add(AddFieldRule("item_type", "object"))
+
+# full text - get the FULLTEXT datastream
+if item.hasDatastreams():
+    ds = item.getDatastream("FULLTEXT")
+    rules.add(AddFieldRule("full_text", String(ds.getContent())))
+

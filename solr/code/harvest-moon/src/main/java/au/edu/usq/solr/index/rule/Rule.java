@@ -31,6 +31,6 @@ public interface Rule {
 
     public void setStopOnFailure(boolean stopOnFailure);
 
-    public void filter(InputStream in, OutputStream out)
+    public void run(InputStream in, OutputStream out)
         throws RuleException;
 }

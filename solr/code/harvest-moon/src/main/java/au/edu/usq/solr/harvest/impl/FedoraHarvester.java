@@ -18,38 +18,45 @@
  */
 package au.edu.usq.solr.harvest.impl;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import se.kb.oai.OAIException;
-import se.kb.oai.pmh.OaiPmhServer;
-import se.kb.oai.pmh.Record;
-import se.kb.oai.pmh.RecordsList;
-import se.kb.oai.pmh.ResumptionToken;
 import au.edu.usq.solr.harvest.Harvester;
 import au.edu.usq.solr.harvest.HarvesterException;
 import au.edu.usq.solr.harvest.Item;
-import au.edu.usq.solr.util.OaiDcNsContext;
+import au.edu.usq.solr.harvest.fedora.FedoraRestClient;
+import au.edu.usq.solr.harvest.fedora.ObjectFieldType;
+import au.edu.usq.solr.harvest.fedora.ResultType;
 
-public class OaiPmhHarvester implements Harvester {
+public class FedoraHarvester implements Harvester {
 
-    private OaiPmhServer server;
+    private static final int DEFAULT_REQUEST_SIZE = 25;
+
+    private FedoraRestClient client;
 
     private boolean started;
 
-    private ResumptionToken token;
+    private String token;
 
     private int numRequests;
 
     private int maxRequests;
 
-    public OaiPmhHarvester(String url) {
+    private int requestSize;
+
+    public FedoraHarvester(String url) {
         this(url, Integer.MAX_VALUE);
     }
 
-    public OaiPmhHarvester(String url, int maxRequests) {
+    public FedoraHarvester(String url, int maxRequests) {
+        this(url, maxRequests, DEFAULT_REQUEST_SIZE);
+    }
+
+    public FedoraHarvester(String url, int maxRequests, int requestSize) {
         this.maxRequests = maxRequests;
-        server = new OaiPmhServer(url);
+        this.requestSize = requestSize;
+        client = new FedoraRestClient(url);
         started = false;
         numRequests = 0;
     }
@@ -60,21 +67,21 @@ public class OaiPmhHarvester implements Harvester {
 
     public List<Item> getItems() throws HarvesterException {
         List<Item> items = new ArrayList<Item>();
-        RecordsList records;
+        ResultType results;
         try {
             numRequests++;
             if (started) {
-                records = server.listRecords(token);
+                results = client.resumeFindObjects(token);
             } else {
                 started = true;
-                records = server.listRecords(OaiDcNsContext.OAI_DC_PREFIX);
+                results = client.findObjects("uon:7??", requestSize);
             }
-            for (Record record : records.asList()) {
-                items.add(new OaiPmhItem(record));
+            for (ObjectFieldType object : results.getObjectFields()) {
+                items.add(new FedoraItem(client, object));
             }
-            token = records.getResumptionToken();
-        } catch (OAIException oe) {
-            throw new HarvesterException(oe);
+            token = results.getListSession().getToken();
+        } catch (IOException ioe) {
+            throw new HarvesterException(ioe);
         }
         return items;
     }

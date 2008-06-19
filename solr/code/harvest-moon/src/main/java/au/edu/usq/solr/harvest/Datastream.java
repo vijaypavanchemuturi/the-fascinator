@@ -16,15 +16,18 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-package au.edu.usq.solr.index.rule;
+package au.edu.usq.solr.harvest;
 
-import au.edu.usq.solr.harvest.fedora.DatastreamType;
+import java.io.IOException;
 
-public interface DatastreamFilter {
+public interface Datastream {
 
-    public String getName();
+    public String getId();
 
-    public void setName(String name);
+    public String getLabel();
 
-    public boolean isFullTextStream(DatastreamType datastream);
+    public String getMimeType();
+
+    public byte[] getContent() throws IOException;
+
 }

@@ -19,13 +19,19 @@
 package au.edu.usq.solr.harvest.impl;
 
 import java.io.IOException;
+import java.util.Collections;
+import java.util.List;
 
+import org.apache.log4j.Logger;
 import org.dom4j.Element;
 
 import se.kb.oai.pmh.Record;
+import au.edu.usq.solr.harvest.Datastream;
 import au.edu.usq.solr.harvest.Item;
 
 public class OaiPmhItem implements Item {
+
+    private Logger log = Logger.getLogger(OaiPmhItem.class);
 
     private Record record;
 
@@ -45,8 +51,21 @@ public class OaiPmhItem implements Item {
         String metadata = null;
         try {
             metadata = record.getMetadataAsString();
-        } catch (IOException e) {
+        } catch (IOException ioe) {
+            log.warn(ioe);
         }
         return metadata;
+    }
+
+    public boolean hasDatastreams() {
+        return false;
+    }
+
+    public List<Datastream> getDatastreams() {
+        return Collections.emptyList();
+    }
+
+    public Datastream getDatastream(String dsId) {
+        return null;
     }
 }

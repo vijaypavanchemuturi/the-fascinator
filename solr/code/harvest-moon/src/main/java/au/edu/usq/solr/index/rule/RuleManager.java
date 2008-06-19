@@ -35,12 +35,12 @@ public class RuleManager {
 
     private Logger log = Logger.getLogger(RuleManager.class);
 
-    private List<Rule> filters;
+    private List<Rule> rules;
 
     private File workDir;
 
     public RuleManager() {
-        filters = new ArrayList<Rule>();
+        rules = new ArrayList<Rule>();
         workDir = new File(System.getProperty("java.io.tmpdir"));
     }
 
@@ -48,24 +48,24 @@ public class RuleManager {
         this.workDir = workDir;
     }
 
-    public void addFilter(Rule filter) {
-        filters.add(filter);
+    public void add(Rule rule) {
+        rules.add(rule);
     }
 
-    public void removeFilter(Rule filter) {
-        filters.remove(filter);
+    public void remove(Rule rule) {
+        rules.remove(rule);
     }
 
     public void run(InputStream in, OutputStream out) throws IOException {
         File tmpFile = null;
         File lastTmpFile = null;
         InputStream tmpIn = in;
-        for (Rule filter : filters) {
+        for (Rule rule : rules) {
             try {
                 lastTmpFile = tmpFile;
-                tmpFile = File.createTempFile("filter", ".xml", workDir);
+                tmpFile = File.createTempFile("rule", ".xml", workDir);
                 OutputStream tmpOut = new FileOutputStream(tmpFile);
-                filter.filter(tmpIn, tmpOut);
+                rule.run(tmpIn, tmpOut);
                 tmpOut.close();
                 tmpIn.close();
                 if (lastTmpFile != null) {
@@ -73,16 +73,15 @@ public class RuleManager {
                 }
                 tmpIn = new FileInputStream(tmpFile);
             } catch (Exception e) {
-                if (filter.getStopOnFailure()) {
-                    log.error("Stopping since " + filter + " failed", e);
+                if (rule.getStopOnFailure()) {
+                    log.error("Stopping since " + rule + " failed", e);
                     break;
                 } else {
-                    log.warn("Filter " + filter + " failed.", e);
+                    log.warn("Rule " + rule + " failed.", e);
                 }
             }
         }
         StreamUtils.copyStream(tmpIn, out);
         tmpFile.delete();
     }
-
 }

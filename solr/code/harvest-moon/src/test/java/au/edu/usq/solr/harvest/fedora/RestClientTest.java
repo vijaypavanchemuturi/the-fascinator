@@ -10,11 +10,6 @@ import javax.xml.bind.Unmarshaller;
 import org.junit.Assert;
 import org.junit.Test;
 
-import au.edu.usq.harvest.fedora.FedoraRestClient;
-import au.edu.usq.solr.fedora.types.DatastreamType;
-import au.edu.usq.solr.fedora.types.ObjectDatastreamsType;
-import au.edu.usq.solr.fedora.types.ResultType;
-
 public class RestClientTest {
 
     @Test

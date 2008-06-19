@@ -37,6 +37,7 @@ import javax.xml.bind.Unmarshaller;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.UsernamePasswordCredentials;
 import org.apache.commons.httpclient.auth.AuthScope;
+import org.apache.commons.httpclient.methods.DeleteMethod;
 import org.apache.commons.httpclient.methods.FileRequestEntity;
 import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.httpclient.methods.PostMethod;
@@ -66,10 +67,16 @@ public class FedoraRestClient {
     }
 
     private HttpClient getHttpClient() {
+        return getHttpClient(false);
+    }
+
+    private HttpClient getHttpClient(boolean auth) {
         HttpClient client = new HttpClient();
-        client.getParams().setAuthenticationPreemptive(true);
-        client.getState().setCredentials(AuthScope.ANY,
-            new UsernamePasswordCredentials(username, password));
+        if (auth) {
+            client.getParams().setAuthenticationPreemptive(true);
+            client.getState().setCredentials(AuthScope.ANY,
+                new UsernamePasswordCredentials(username, password));
+        }
         return client;
     }
 
@@ -189,6 +196,7 @@ public class FedoraRestClient {
                 Unmarshaller um = jc.createUnmarshaller();
                 result = (PidListType) um.unmarshal(method.getResponseBodyAsStream());
             }
+            method.releaseConnection();
         } catch (JAXBException jaxbe) {
             log.error(jaxbe);
         }
@@ -224,7 +232,8 @@ public class FedoraRestClient {
             request = new FileRequestEntity(content, getMimeType(content));
         }
         method.setRequestEntity(request);
-        getHttpClient().executeMethod(method);
+        getHttpClient(true).executeMethod(method);
+        method.releaseConnection();
     }
 
     public void addDatastream(String pid, String dsId, String dsLabel,
@@ -253,17 +262,32 @@ public class FedoraRestClient {
         addParam(uri, options, "checksumType");
         addParam(uri, options, "checksum");
         addParam(uri, options, "logMessage");
-        log.info("uri: " + uri);
         PostMethod method = new PostMethod(uri.toString());
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         StreamUtils.copyStream(content, out);
         RequestEntity request = new StringRequestEntity(out.toString(),
             contentType, "UTF-8");
         method.setRequestEntity(request);
-        int status = getHttpClient().executeMethod(method);
-        log.info("status: " + status);
-        log.info("response: " + method.getResponseBodyAsString());
+        getHttpClient(true).executeMethod(method);
+        method.releaseConnection();
     }
+
+    public void purgeObject(String pid) throws IOException {
+        purgeObject(pid, false);
+    }
+
+    public void purgeObject(String pid, boolean force) throws IOException {
+        StringBuilder uri = new StringBuilder(baseUrl);
+        uri.append("/objects/");
+        uri.append(pid);
+        uri.append("?force=");
+        uri.append(force);
+        DeleteMethod method = new DeleteMethod(uri.toString());
+        getHttpClient(true).executeMethod(method);
+        method.releaseConnection();
+    }
+
+    // Helper methods
 
     private void addParam(StringBuilder uri, Map<String, String> options,
         String name) throws IOException {

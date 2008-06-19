@@ -57,6 +57,6 @@ public abstract class AbstractRule implements Rule {
         return getName();
     }
 
-    public abstract void filter(InputStream in, OutputStream out)
+    public abstract void run(InputStream in, OutputStream out)
         throws RuleException;
 }

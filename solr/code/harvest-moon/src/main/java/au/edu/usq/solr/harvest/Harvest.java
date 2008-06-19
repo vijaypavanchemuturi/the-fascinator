@@ -18,23 +18,26 @@
  */
 package au.edu.usq.solr.harvest;
 
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.List;
 
 import org.apache.log4j.Logger;
-import org.dom4j.rule.RuleManager;
-import org.python.core.Py;
 import org.python.util.PythonInterpreter;
 
 import au.edu.usq.solr.harvest.fedora.FedoraRestClient;
-import au.edu.usq.solr.harvest.impl.OaiPmhHarvester;
+import au.edu.usq.solr.harvest.impl.FedoraHarvester;
 import au.edu.usq.solr.index.Indexer;
+import au.edu.usq.solr.index.IndexerException;
 import au.edu.usq.solr.index.impl.SolrIndexer;
 import au.edu.usq.solr.index.rule.RuleException;
+import au.edu.usq.solr.index.rule.RuleManager;
 
 public class Harvest {
-
-    private static final String TMP_DIR = System.getProperty("java.io.tmpdir");
 
     private Logger log = Logger.getLogger(Harvest.class);
 
@@ -44,6 +47,8 @@ public class Harvest {
 
     private FedoraRestClient registry;
 
+    private PythonInterpreter python;
+
     public Harvest(Harvester harvester, Indexer indexer,
         FedoraRestClient registry) {
         this.harvester = harvester;
@@ -51,37 +56,79 @@ public class Harvest {
         this.registry = registry;
     }
 
-    public void run(String name) {
+    public void run(String name, String ruleScript) {
+
+        python = new PythonInterpreter();
+        python.set("self", this);
+
         while (harvester.hasMoreItems()) {
             try {
                 List<Item> items = harvester.getItems();
                 for (Item item : items) {
                     try {
-                        processItem(name, item);
-                    } catch (RuleException re) {
-                        re.printStackTrace();
+                        processItem(name, item, ruleScript);
+                    } catch (Exception e) {
+                        log.warn("Processing failed", e);
                     }
                 }
+                indexer.commit();
             } catch (HarvesterException he) {
-                log.error(he);
+                log.error("Harvester failed", he);
+            } catch (IndexerException ie) {
+                log.error("Indexer failed", ie);
             }
         }
     }
 
-    private void processItem(String name, Item item) throws RuleException {
-        String pid = "uuid:blah";
+    private void processItem(String name, Item item, String ruleScript)
+        throws Exception {
 
-        PythonInterpreter pi = new PythonInterpreter();
-        pi.set("self", this);
-        pi.set("pid", pid);
-        pi.set("name", name);
-        pi.set("item", item);
-        pi.execfile("src/main/config/rubric-rules.py");
-        Object obj = pi.get("rules").__tojava__(RuleManager.class);
-        if (obj == Py.NoConversion) {
-            throw new RuleException("Failed to create indexing rules");
+        String itemId = item.getId();
+        String pid = null;
+        File solrFile = null;
+        String meta = item.getMetadataAsString();
+        log.info("Processing " + itemId + "...");
+        try {
+            pid = registry.createObject(itemId, "uuid");
+            InputStream dcIn = new ByteArrayInputStream(meta.getBytes("UTF-8"));
+            solrFile = File.createTempFile("solr", ".xml");
+            OutputStream solrOut = new FileOutputStream(solrFile);
+            try {
+                python.set("pid", pid);
+                python.set("name", name);
+                python.set("item", item);
+                python.execfile(ruleScript);
+                RuleManager rules = (RuleManager) python.get("rules")
+                    .__tojava__(RuleManager.class);
+                rules.run(dcIn, solrOut);
+            } catch (Exception e) {
+                throw new RuleException(e);
+            }
+            solrOut.close();
+            try {
+                indexer.index(solrFile);
+            } catch (IndexerException ie) {
+                throw new RuleException(ie);
+            }
+            solrFile.delete();
+            registry.addDatastream(pid, "DC0", "Dublin Core (Source)", meta,
+                "text/xml");
+        } catch (Exception e) {
+            if (pid != null) {
+                try {
+                    log.info("Cleaning up failed index");
+                    registry.purgeObject(pid);
+                } catch (IOException ioe) {
+                    log.warn(pid + " was not deleted after indexing failed: "
+                        + ioe.getMessage());
+                }
+            }
+            throw e;
+        } finally {
+            if (solrFile != null) {
+                solrFile.delete();
+            }
         }
-        RuleManager rules = (RuleManager) obj;
     }
 
     // Convenience methods for Jython scripts
@@ -91,13 +138,13 @@ public class Harvest {
     }
 
     public static void main(String[] args) throws Exception {
-        Harvester oaiPmh = new OaiPmhHarvester(
-            "http://rubric-vitalnew:8080/fedora/oai", 0);
+        Harvester fedora = new FedoraHarvester(
+            "http://rubric-vitalnew:8080/fedora", 0, 5);
         Indexer solr = new SolrIndexer("http://localhost:8080/solr");
         FedoraRestClient registry = new FedoraRestClient(
             "http://localhost:8080/fedora");
         registry.authenticate("fedoraAdmin", "fedoraAdmin");
-        Harvest harvest = new Harvest(oaiPmh, solr, registry);
-        harvest.run("RUBRIC");
+        Harvest harvest = new Harvest(fedora, solr, registry);
+        harvest.run("RUBRIC", "src/main/config/rubric-rules.py");
     }
 }
