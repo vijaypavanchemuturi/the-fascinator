@@ -30,15 +30,12 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 
-import org.apache.log4j.Logger;
 import org.apache.tapestry.ioc.Resource;
 
-import au.edu.usq.solr.harvest.fedora.FedoraRestClient;
+import au.edu.usq.solr.fedora.FedoraRestClient;
 import au.edu.usq.solr.util.StreamUtils;
 
 public class RegistryManagerImpl implements RegistryManager {
-
-    private Logger log = Logger.getLogger(RegistryManagerImpl.class);
 
     private FedoraRestClient client;
 

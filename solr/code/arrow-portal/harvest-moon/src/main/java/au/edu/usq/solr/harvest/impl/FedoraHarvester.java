@@ -22,12 +22,12 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import au.edu.usq.solr.fedora.FedoraRestClient;
+import au.edu.usq.solr.fedora.ObjectFieldType;
+import au.edu.usq.solr.fedora.ResultType;
 import au.edu.usq.solr.harvest.Harvester;
 import au.edu.usq.solr.harvest.HarvesterException;
 import au.edu.usq.solr.harvest.Item;
-import au.edu.usq.solr.harvest.fedora.FedoraRestClient;
-import au.edu.usq.solr.harvest.fedora.ObjectFieldType;
-import au.edu.usq.solr.harvest.fedora.ResultType;
 
 public class FedoraHarvester implements Harvester {
 

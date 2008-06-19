@@ -16,7 +16,7 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-package au.edu.usq.solr.harvest.fedora;
+package au.edu.usq.solr.fedora;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -37,6 +37,7 @@ import javax.xml.bind.Unmarshaller;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.UsernamePasswordCredentials;
 import org.apache.commons.httpclient.auth.AuthScope;
+import org.apache.commons.httpclient.methods.DeleteMethod;
 import org.apache.commons.httpclient.methods.FileRequestEntity;
 import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.httpclient.methods.PostMethod;
@@ -44,9 +45,6 @@ import org.apache.commons.httpclient.methods.RequestEntity;
 import org.apache.commons.httpclient.methods.StringRequestEntity;
 import org.apache.log4j.Logger;
 
-import au.edu.usq.solr.harvest.fedora.types.ObjectDatastreamsType;
-import au.edu.usq.solr.harvest.fedora.types.PidListType;
-import au.edu.usq.solr.harvest.fedora.types.ResultType;
 import au.edu.usq.solr.util.StreamUtils;
 
 public class FedoraRestClient {
@@ -55,17 +53,31 @@ public class FedoraRestClient {
 
     private String baseUrl;
 
-    private HttpClient client;
+    private String username;
+
+    private String password;
 
     public FedoraRestClient(String baseUrl) {
         this.baseUrl = baseUrl;
-        client = new HttpClient();
     }
 
     public void authenticate(String username, String password) {
-        client.getParams().setAuthenticationPreemptive(true);
-        client.getState().setCredentials(AuthScope.ANY,
-            new UsernamePasswordCredentials(username, password));
+        this.username = username;
+        this.password = password;
+    }
+
+    private HttpClient getHttpClient() {
+        return getHttpClient(false);
+    }
+
+    private HttpClient getHttpClient(boolean auth) {
+        HttpClient client = new HttpClient();
+        if (auth) {
+            client.getParams().setAuthenticationPreemptive(true);
+            client.getState().setCredentials(AuthScope.ANY,
+                new UsernamePasswordCredentials(username, password));
+        }
+        return client;
     }
 
     // Access methods (Fedora 2.2+ compatible)
@@ -82,6 +94,7 @@ public class FedoraRestClient {
             uri.append("&xml=true");
             uri.append("&pid=true");
             GetMethod method = new GetMethod(uri.toString());
+            HttpClient client = getHttpClient();
             int status = client.executeMethod(method);
             if (status == 200) {
                 JAXBContext jc = JAXBContext.newInstance(ResultType.class);
@@ -103,7 +116,7 @@ public class FedoraRestClient {
             uri.append(token);
             uri.append("&xml=true");
             GetMethod method = new GetMethod(uri.toString());
-            int status = client.executeMethod(method);
+            int status = getHttpClient().executeMethod(method);
             if (status == 200) {
                 JAXBContext jc = JAXBContext.newInstance(ResultType.class);
                 Unmarshaller um = jc.createUnmarshaller();
@@ -124,12 +137,13 @@ public class FedoraRestClient {
             uri.append(pid);
             uri.append("?xml=true");
             GetMethod method = new GetMethod(uri.toString());
-            int status = client.executeMethod(method);
+            int status = getHttpClient().executeMethod(method);
             if (status == 200) {
                 JAXBContext jc = JAXBContext.newInstance(ObjectDatastreamsType.class);
                 Unmarshaller um = jc.createUnmarshaller();
                 result = (ObjectDatastreamsType) um.unmarshal(method.getResponseBodyAsStream());
             }
+            method.releaseConnection();
         } catch (JAXBException jaxbe) {
             log.error(jaxbe);
         }
@@ -150,13 +164,10 @@ public class FedoraRestClient {
             uri.append(dsId);
         }
         GetMethod method = new GetMethod(uri.toString());
-        int status = client.executeMethod(method);
+        int status = getHttpClient().executeMethod(method);
         if (status == 200) {
             StreamUtils.copyStream(method.getResponseBodyAsStream(), out);
         }
-        log.info("uri: " + uri);
-        log.info("status: " + status);
-        log.info("response: " + method.getResponseBodyAsString());
         method.releaseConnection();
     }
 
@@ -179,7 +190,7 @@ public class FedoraRestClient {
             }
             uri.append("&format=xml");
             GetMethod method = new GetMethod(uri.toString());
-            int status = client.executeMethod(method);
+            int status = getHttpClient().executeMethod(method);
             if (status == 200) {
                 JAXBContext jc = JAXBContext.newInstance(PidListType.class);
                 Unmarshaller um = jc.createUnmarshaller();
@@ -221,7 +232,7 @@ public class FedoraRestClient {
             request = new FileRequestEntity(content, getMimeType(content));
         }
         method.setRequestEntity(request);
-        client.executeMethod(method);
+        getHttpClient(true).executeMethod(method);
         method.releaseConnection();
     }
 
@@ -251,18 +262,32 @@ public class FedoraRestClient {
         addParam(uri, options, "checksumType");
         addParam(uri, options, "checksum");
         addParam(uri, options, "logMessage");
-        log.info("uri: " + uri);
         PostMethod method = new PostMethod(uri.toString());
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         StreamUtils.copyStream(content, out);
         RequestEntity request = new StringRequestEntity(out.toString(),
             contentType, "UTF-8");
         method.setRequestEntity(request);
-        int status = client.executeMethod(method);
-        log.info("status: " + status);
-        log.info("response: " + method.getResponseBodyAsString());
+        getHttpClient(true).executeMethod(method);
         method.releaseConnection();
     }
+
+    public void purgeObject(String pid) throws IOException {
+        purgeObject(pid, false);
+    }
+
+    public void purgeObject(String pid, boolean force) throws IOException {
+        StringBuilder uri = new StringBuilder(baseUrl);
+        uri.append("/objects/");
+        uri.append(pid);
+        uri.append("?force=");
+        uri.append(force);
+        DeleteMethod method = new DeleteMethod(uri.toString());
+        getHttpClient(true).executeMethod(method);
+        method.releaseConnection();
+    }
+
+    // Helper methods
 
     private void addParam(StringBuilder uri, Map<String, String> options,
         String name) throws IOException {

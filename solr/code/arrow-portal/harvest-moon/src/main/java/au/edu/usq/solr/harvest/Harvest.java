@@ -29,7 +29,7 @@ import java.util.List;
 import org.apache.log4j.Logger;
 import org.python.util.PythonInterpreter;
 
-import au.edu.usq.solr.harvest.fedora.FedoraRestClient;
+import au.edu.usq.solr.fedora.FedoraRestClient;
 import au.edu.usq.solr.harvest.impl.FedoraHarvester;
 import au.edu.usq.solr.index.Indexer;
 import au.edu.usq.solr.index.IndexerException;

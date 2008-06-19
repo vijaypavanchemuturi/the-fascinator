@@ -31,7 +31,6 @@ import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
-import org.apache.log4j.Logger;
 import org.apache.tapestry.beaneditor.Validate;
 
 import au.edu.usq.solr.util.MapAdapter;
@@ -39,8 +38,6 @@ import au.edu.usq.solr.util.MapAdapter;
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.NONE)
 public class Portal implements Comparable<Portal> {
-
-    private Logger log = Logger.getLogger(Portal.class);
 
     @XmlAttribute
     private String name;

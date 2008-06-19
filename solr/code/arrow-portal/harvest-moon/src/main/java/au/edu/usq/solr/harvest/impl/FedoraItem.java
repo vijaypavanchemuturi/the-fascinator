@@ -31,12 +31,12 @@ import org.dom4j.DocumentException;
 import org.dom4j.Element;
 import org.dom4j.io.SAXReader;
 
+import au.edu.usq.solr.fedora.DatastreamType;
+import au.edu.usq.solr.fedora.FedoraRestClient;
+import au.edu.usq.solr.fedora.ObjectDatastreamsType;
+import au.edu.usq.solr.fedora.ObjectFieldType;
 import au.edu.usq.solr.harvest.Datastream;
 import au.edu.usq.solr.harvest.Item;
-import au.edu.usq.solr.harvest.fedora.DatastreamType;
-import au.edu.usq.solr.harvest.fedora.FedoraRestClient;
-import au.edu.usq.solr.harvest.fedora.ObjectDatastreamsType;
-import au.edu.usq.solr.harvest.fedora.ObjectFieldType;
 
 public class FedoraItem implements Item {
 

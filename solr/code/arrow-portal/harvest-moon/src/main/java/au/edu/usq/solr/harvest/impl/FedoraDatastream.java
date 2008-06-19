@@ -21,9 +21,9 @@ package au.edu.usq.solr.harvest.impl;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
+import au.edu.usq.solr.fedora.DatastreamType;
+import au.edu.usq.solr.fedora.FedoraRestClient;
 import au.edu.usq.solr.harvest.Datastream;
-import au.edu.usq.solr.harvest.fedora.DatastreamType;
-import au.edu.usq.solr.harvest.fedora.FedoraRestClient;
 
 public class FedoraDatastream implements Datastream {
 

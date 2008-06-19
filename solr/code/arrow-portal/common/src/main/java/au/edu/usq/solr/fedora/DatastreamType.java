@@ -16,38 +16,38 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-package au.edu.usq.solr.harvest.fedora;
-
-import java.util.List;
+package au.edu.usq.solr.fedora;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
 
-@XmlRootElement(name = "objectDatastreams")
 @XmlAccessorType(XmlAccessType.NONE)
-public class ObjectDatastreamsType {
+public class DatastreamType {
 
     @XmlAttribute
-    private String pid;
+    private String dsid;
 
-    @XmlAttribute(name = "baseURL")
-    private String baseUrl;
+    @XmlAttribute
+    private String label;
 
-    public String getPid() {
-        return pid;
+    @XmlAttribute
+    private String mimeType;
+
+    public String getDsid() {
+        return dsid;
     }
 
-    public String getBaseUrl() {
-        return baseUrl;
+    public String getLabel() {
+        return label;
     }
 
-    @XmlElement(name = "datastream")
-    private List<DatastreamType> datastreams;
+    public String getMimeType() {
+        return mimeType;
+    }
 
-    public List<DatastreamType> getDatastreams() {
-        return datastreams;
+    @Override
+    public String toString() {
+        return label;
     }
 }

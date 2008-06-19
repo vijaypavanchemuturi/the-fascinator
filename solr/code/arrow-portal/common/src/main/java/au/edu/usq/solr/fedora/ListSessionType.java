@@ -16,38 +16,40 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-package au.edu.usq.solr.harvest.fedora;
+package au.edu.usq.solr.fedora;
+
+import java.util.Date;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlElement;
 
 @XmlAccessorType(XmlAccessType.NONE)
-public class DatastreamType {
+public class ListSessionType {
 
-    @XmlAttribute
-    private String dsid;
+    @XmlElement(namespace = ResultType.NAMESPACE)
+    private String token;
 
-    @XmlAttribute
-    private String label;
+    @XmlElement(namespace = ResultType.NAMESPACE)
+    private int cursor;
 
-    @XmlAttribute
-    private String mimeType;
+    @XmlElement(name = "expirationDate", namespace = ResultType.NAMESPACE)
+    private Date expirationDate;
 
-    public String getDsid() {
-        return dsid;
+    public String getToken() {
+        return token;
     }
 
-    public String getLabel() {
-        return label;
+    public int getCursor() {
+        return cursor;
     }
 
-    public String getMimeType() {
-        return mimeType;
+    public Date getExpirationDate() {
+        return expirationDate;
     }
 
     @Override
     public String toString() {
-        return label;
+        return token + ":" + cursor;
     }
 }
