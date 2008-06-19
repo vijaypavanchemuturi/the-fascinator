@@ -19,10 +19,12 @@
 package au.edu.usq.solr.util;
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 public class LdapAuthenticationTest {
 
+    @Ignore
     @Test
     public void rubricLdap() throws Exception {
         LdapAuthentication ldap = new LdapAuthentication(
