@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import au.edu.usq.solr.fedora.FedoraRestClient;
+import au.edu.usq.solr.fedora.ListSessionType;
 import au.edu.usq.solr.fedora.ObjectFieldType;
 import au.edu.usq.solr.fedora.ResultType;
 import au.edu.usq.solr.harvest.Harvester;
@@ -79,7 +80,12 @@ public class FedoraHarvester implements Harvester {
             for (ObjectFieldType object : results.getObjectFields()) {
                 items.add(new FedoraItem(client, object));
             }
-            token = results.getListSession().getToken();
+            ListSessionType session = results.getListSession();
+            if (session != null) {
+                token = results.getListSession().getToken();
+            } else {
+                token = null;
+            }
         } catch (IOException ioe) {
             throw new HarvesterException(ioe);
         }

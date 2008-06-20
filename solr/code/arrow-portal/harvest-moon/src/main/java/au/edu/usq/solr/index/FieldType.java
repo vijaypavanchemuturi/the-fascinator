@@ -54,6 +54,10 @@ public class FieldType {
 
     @Override
     public String toString() {
-        return name + ": " + value;
+        String shortValue = value;
+        if (value.length() > 40) {
+            shortValue = value.substring(0, 40) + "...";
+        }
+        return name + ": " + shortValue;
     }
 }
