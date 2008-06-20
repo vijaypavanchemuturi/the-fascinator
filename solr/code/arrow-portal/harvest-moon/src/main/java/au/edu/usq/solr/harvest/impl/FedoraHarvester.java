@@ -74,7 +74,7 @@ public class FedoraHarvester implements Harvester {
                 results = client.resumeFindObjects(token);
             } else {
                 started = true;
-                results = client.findObjects("uon:7??", requestSize);
+                results = client.findObjects("*", requestSize);
             }
             for (ObjectFieldType object : results.getObjectFields()) {
                 items.add(new FedoraItem(client, object));

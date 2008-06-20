@@ -139,8 +139,8 @@ public class Harvest {
 
     public static void main(String[] args) throws Exception {
         Harvester fedora = new FedoraHarvester(
-            "http://rubric-vitalnew:8080/fedora", 0, 5);
-        Indexer solr = new SolrIndexer("http://localhost:8080/solr");
+            "http://rubric-vitalnew.usq.edu.au:8080/fedora");
+        Indexer solr = new SolrIndexer("http://139.86.13.108:8080/solr");
         FedoraRestClient registry = new FedoraRestClient(
             "http://localhost:8080/fedora");
         registry.authenticate("fedoraAdmin", "fedoraAdmin");
