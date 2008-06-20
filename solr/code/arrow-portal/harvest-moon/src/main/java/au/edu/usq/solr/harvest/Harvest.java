@@ -31,6 +31,7 @@ import org.python.util.PythonInterpreter;
 
 import au.edu.usq.solr.fedora.FedoraRestClient;
 import au.edu.usq.solr.harvest.impl.FedoraHarvester;
+import au.edu.usq.solr.harvest.impl.OaiPmhHarvester;
 import au.edu.usq.solr.index.Indexer;
 import au.edu.usq.solr.index.IndexerException;
 import au.edu.usq.solr.index.impl.SolrIndexer;
@@ -39,7 +40,7 @@ import au.edu.usq.solr.index.rule.RuleManager;
 
 public class Harvest {
 
-    private Logger log = Logger.getLogger(Harvest.class);
+    private static Logger log = Logger.getLogger(Harvest.class);
 
     private Harvester harvester;
 
@@ -106,11 +107,11 @@ public class Harvest {
             }
             solrOut.close();
             try {
+                log.info("solrFile=" + solrFile + ":" + solrFile.length());
                 indexer.index(solrFile);
             } catch (IndexerException ie) {
                 throw new RuleException(ie);
             }
-            solrFile.delete();
             registry.addDatastream(pid, "DC0", "Dublin Core (Source)", meta,
                 "text/xml");
         } catch (Exception e) {
@@ -138,13 +139,29 @@ public class Harvest {
     }
 
     public static void main(String[] args) throws Exception {
-        Harvester fedora = new FedoraHarvester(
-            "http://rubric-vitalnew.usq.edu.au:8080/fedora");
-        Indexer solr = new SolrIndexer("http://139.86.13.108:8080/solr");
-        FedoraRestClient registry = new FedoraRestClient(
-            "http://139.86.13.108:8080/fedora");
-        registry.authenticate("fedoraAdmin", "fedoraAdmin");
-        Harvest harvest = new Harvest(fedora, solr, registry);
-        harvest.run("RUBRIC", "harvest-moon/src/main/config/rubric-rules.py");
+        if (args.length < 8) {
+            log.info("Usage: harvest <solrurl> <regurl> <reguser> <regpass> <reptype> <repurl> <repname> <script>");
+        } else {
+            String solrUrl = args[0];
+            String regUrl = args[1];
+            String regUser = args[2];
+            String regPass = args[3];
+            String repType = args[4];
+            String repUrl = args[5];
+            String repName = args[6];
+            String script = args[7];
+
+            Harvester harvester;
+            if ("oai".equals(repType)) {
+                harvester = new OaiPmhHarvester(repUrl);
+            } else {
+                harvester = new FedoraHarvester(repUrl);
+            }
+            Indexer solr = new SolrIndexer(solrUrl);
+            FedoraRestClient registry = new FedoraRestClient(regUrl);
+            registry.authenticate(regUser, regPass);
+            Harvest harvest = new Harvest(harvester, solr, registry);
+            harvest.run(repName, script);
+        }
     }
 }

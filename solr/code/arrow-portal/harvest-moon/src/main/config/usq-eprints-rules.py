@@ -27,26 +27,12 @@ rules.add(AddFieldRule("id", item.getId()))
 rules.add(AddFieldRule("pid", pid))
 
 # group access
-#   default to "guest"
-#   set to "admin" for ADT items
-groupAccess = AddFieldRule("group_access", "guest")
+#   default to "admin"
+groupAccess = AddFieldRule("group_access", "admin")
 rules.add(groupAccess)
-nodes = item.getMetadata().selectNodes("//dc:type")
-for node in nodes:
-    dcType = node.getText().strip()
-    if dcType == "Australasian Digital Thesis":
-        groupAccess.setValue("admin")
-        break
 
 # item class
 rules.add(AddFieldRule("item_class", "document"))
 
 # item type
 rules.add(AddFieldRule("item_type", "object"))
-
-# full text - get the FULLTEXT datastream
-if item.hasDatastreams():
-    ds = item.getDatastream("FULLTEXT")
-    if ds is not None:
-        rules.add(AddFieldRule("full_text", String(ds.getContent())))
-
