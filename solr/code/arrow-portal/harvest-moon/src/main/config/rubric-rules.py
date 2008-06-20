@@ -44,5 +44,6 @@ rules.add(AddFieldRule("item_type", "object"))
 # full text - get the FULLTEXT datastream
 if item.hasDatastreams():
     ds = item.getDatastream("FULLTEXT")
-    rules.add(AddFieldRule("full_text", String(ds.getContent())))
+    if ds is not None:
+        rules.add(AddFieldRule("full_text", String(ds.getContent())))
 
