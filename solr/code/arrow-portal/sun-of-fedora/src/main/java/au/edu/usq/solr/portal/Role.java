@@ -27,7 +27,7 @@ import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlList;
+import javax.xml.bind.annotation.XmlElementWrapper;
 
 @XmlAccessorType(XmlAccessType.NONE)
 public class Role implements Serializable {
@@ -35,8 +35,8 @@ public class Role implements Serializable {
     @XmlAttribute
     private String id;
 
-    @XmlElement
-    @XmlList
+    @XmlElementWrapper(name = "users")
+    @XmlElement(name = "user")
     private List<String> users;
 
     @XmlElement
@@ -47,7 +47,6 @@ public class Role implements Serializable {
 
     public Role(String id) {
         this.id = id;
-        users = new ArrayList<String>();
     }
 
     public String getId() {
@@ -59,23 +58,26 @@ public class Role implements Serializable {
     }
 
     public List<String> getUserList() {
+        if (users == null) {
+            users = new ArrayList<String>();
+        }
         return users;
     }
 
     public String getUsers() {
         String userString = "";
-        for (String user : users) {
+        for (String user : getUserList()) {
             userString += user + " ";
         }
         return userString;
     }
 
     public void setUsers(String userString) {
-        users.clear();
+        getUserList().clear();
         if (userString != null && !"".equals(userString)) {
             StringTokenizer st = new StringTokenizer(userString, " ");
             while (st.hasMoreElements()) {
-                users.add(st.nextElement().toString());
+                getUserList().add(st.nextElement().toString());
             }
         }
     }
@@ -86,5 +88,9 @@ public class Role implements Serializable {
 
     public void setQuery(String query) {
         this.query = query;
+    }
+
+    public String toString() {
+        return id;
     }
 }

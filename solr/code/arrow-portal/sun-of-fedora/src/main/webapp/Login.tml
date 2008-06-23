@@ -24,7 +24,7 @@
     <link rel="stylesheet" type="text/css" href="${asset:velocity:default/style.css}"/>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
   </head>
-  <body>
+  <body onload="document.loginForm.username.focus()">
     <div t:type="VelocityPanel" t:template="header.vm"/>
     <div class="login">
       <h2>Login</h2>
@@ -36,7 +36,7 @@
           <tr>
             <td>Username:</td>
             <td>
-              <input class="textfield" type="text" t:type="textfield" t:value="username"/>
+              <input t:id="username" class="textfield" type="text" t:type="textfield" t:value="username"/>
             </td>
           </tr>
           <tr>

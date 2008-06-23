@@ -75,12 +75,11 @@ public class VelocityPanel {
         locator.setDefaultPath(path);
         Resource templateResource = new URIResource(path + '/' + template);
         Component page = resources.getPage();
-        String pageName = resources.getPageName().toLowerCase();
+        String pageName = resources.getPageName();
         Map<String, Object> context = new HashMap<String, Object>();
         context.put("contextPath", contextPath);
         context.put("page", page);
-        context.put("user", state.getProperty("user"));
-        context.put("role", state.getProperty("role"));
+        context.put("session", state);
         context.put("pageName", pageName);
         context.put("context", page.getComponentResources());
         context.put("locator", locator);

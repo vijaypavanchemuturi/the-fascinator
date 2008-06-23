@@ -38,8 +38,6 @@ public class PortalManagerImpl implements PortalManager {
 
     private static final String PORTAL_XML = "portal.xml";
 
-    private static final String GROUPS_XML = "groups.xml";
-
     private Logger log = Logger.getLogger(PortalManagerImpl.class);
 
     private Map<String, Portal> portals;

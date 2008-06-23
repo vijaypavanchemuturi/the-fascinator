@@ -26,7 +26,6 @@
     <div t:type="VelocityPanel" t:template="header.vm"/>
     <div class="beaneditor">
       <h2>Edit Portal '${portal.description}'</h2>
-      <p><a t:type="pagelink" t:page="portal/roles" t:context="portal.name">Set access roles...</a></p>
       <t:beaneditform t:id="editportal" t:object="portal" t:submitlabel="Save changes">
         <t:parameter t:name="name">
           <t:label t:for="name"/>

@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <portal name="usq">
     <description>University of Southern Queensland</description>
-    <query>repository_name:&quot;USQ ePrints&quot;</query>
+    <query>repository_name:&quot;USQ&quot;</query>
     <security-query>group_access:&quot;admin&quot;</security-query>
-    <records-per-page>25</records-per-page>
-    <facet-count>50</facet-count>
+    <records-per-page>15</records-per-page>
+    <facet-count>10</facet-count>
     <facet-fields>
         <user name="f_type">Format</user>
         <user name="f_subject">Course</user>
@@ -12,11 +12,11 @@
     </facet-fields>
     <roles>
         <role id="admin">
-            <users>lucido</users>
+            <users/>
             <query>group_access:&quot;guest&quot; OR group_access:&quot;admin&quot;</query>
         </role>
         <role id="guest">
-            <users>anyone</users>
+            <users/>
             <query>group_access:&quot;guest&quot;</query>
         </role>
     </roles>

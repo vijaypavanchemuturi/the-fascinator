@@ -25,6 +25,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.xml.bind.JAXBException;
 
 import org.apache.log4j.Logger;
@@ -35,6 +36,7 @@ import org.apache.tapestry.annotations.OnEvent;
 import org.apache.tapestry.annotations.Persist;
 import org.apache.tapestry.ioc.annotations.Inject;
 import org.apache.tapestry.services.Request;
+import org.apache.tapestry.services.RequestGlobals;
 
 import au.edu.usq.solr.model.Facet;
 import au.edu.usq.solr.model.FacetList;
@@ -99,6 +101,12 @@ public class Search {
     private Detail detailPage;
 
     @Inject
+    private HttpServletRequest httpServletRequest;
+
+    @Inject
+    private RequestGlobals rg;
+
+    @Inject
     private Request httpRequest;
 
     @Inject
@@ -111,6 +119,8 @@ public class Search {
     private String sortField;
 
     void onActivate(Object[] params) {
+        log.info("ip: " + httpServletRequest.getRemoteAddr());
+        log.info("ip2: " + rg.getHTTPServletRequest().getRemoteAddr());
         // handle forms from velocity templates
         List<String> paramNames = httpRequest.getParameterNames();
         if (!paramNames.isEmpty() && !paramNames.contains("t:ac")) {
@@ -175,28 +185,14 @@ public class Search {
         }
 
         // access
-        if ("admin".equals(state.getProperty("role"))) {
-            Role adminRole = found.getRole("admin");
-            if (adminRole != null) {
-                String accessQ = adminRole.getQuery();
-                log.info("accessQ: " + accessQ);
-                searcher.addFacetQuery(accessQ);
-            } else {
-                String accessQ = "group_access:\"guest\"";
-                log.info("accessQ: " + accessQ);
-                searcher.addFacetQuery(accessQ);
-            }
-        } else {
-            Role guestRole = found.getRole("guest");
-            if (guestRole != null) {
-                String accessQ = guestRole.getQuery();
-                log.info("accessQ: " + accessQ);
-                searcher.addFacetQuery(accessQ);
-            } else {
-                String accessQ = "group_access:\"guest\"";
-                log.info("accessQ: " + accessQ);
-                searcher.addFacetQuery(accessQ);
-            }
+        String accessQuery = "";
+        for (Role role : state.getUserRoles()) {
+            accessQuery += " " + role.getQuery();
+        }
+        accessQuery = accessQuery.trim();
+        log.info("accessQuery: " + accessQuery);
+        if (accessQuery != null) {
+            searcher.addFacetQuery(accessQuery);
         }
 
         for (String facetLimit : getFacetLimits()) {

@@ -55,6 +55,7 @@ public class GetVelocityResource {
             try {
                 ContentResource resource = RuntimeSingleton.getContent(path);
                 MimetypesFileTypeMap typeMap = new MimetypesFileTypeMap();
+                typeMap.addMimeTypes("text/css css");
                 String mimeType = typeMap.getContentType(path);
                 StreamResponse response = null;
                 if (mimeType.startsWith("text/")) {

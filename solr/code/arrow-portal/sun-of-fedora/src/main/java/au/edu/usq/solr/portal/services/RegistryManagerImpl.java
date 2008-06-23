@@ -60,9 +60,12 @@ public class RegistryManagerImpl implements RegistryManager {
             client.get(uuid + "/DC0", dcOut);
             StreamUtils.copyStream(new ByteArrayInputStream(dcOut.toString()
                 .getBytes("UTF-8")), System.out);
+            File detailXsl = new File(portalsDir, portalName + "/detail.xsl");
+            if (!detailXsl.exists()) {
+                detailXsl = new File(portalsDir, "default/detail.xsl");
+            }
             TransformerFactory tf = TransformerFactory.newInstance();
-            Templates t = tf.newTemplates(new StreamSource(new File(portalsDir,
-                portalName + "/detail.xsl")));
+            Templates t = tf.newTemplates(new StreamSource(detailXsl));
             Transformer dc = t.newTransformer();
             dc.transform(new StreamSource(new ByteArrayInputStream(
                 dcOut.toString().getBytes("UTF-8"))), new StreamResult(solrOut));

@@ -20,6 +20,8 @@ package au.edu.usq.solr.portal.services;
 
 import java.util.Map;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.apache.tapestry.contrib.services.TemplateService;
 import org.apache.tapestry.internal.services.ContextResource;
 import org.apache.tapestry.internal.services.RequestPathOptimizer;
@@ -64,6 +66,18 @@ public class AppModule {
         configuration.add(REGISTRY_URL_KEY, configProps);
     }
 
+    public RoleManager buildRoleManager(Map<String, Resource> configuration,
+        HttpServletRequest request) {
+        return new RoleManagerImpl(configuration.get(PORTALS_DIR_KEY), request);
+    }
+
+    public void contributeRoleManager(Context context,
+        MappedConfiguration<String, Resource> configuration) {
+        Resource configProps = new ContextResource(context,
+            "/WEB-INF/config.properties");
+        configuration.add(PORTALS_DIR_KEY, configProps);
+    }
+
     public VelocityResourceLocator buildVelocityResourceLocator(
         @InjectService("VelocityService")
         TemplateService templateService, @InjectService("AssetSource")
@@ -75,10 +89,11 @@ public class AppModule {
     public void contributeApplicationStateManager(
         MappedConfiguration<Class<State>, ApplicationStateContribution> configuration,
         @InjectService("Context")
-        final Context context) {
+        final Context context, @InjectService("RoleManager")
+        final RoleManager roleManager) {
         ApplicationStateCreator<State> creator = new ApplicationStateCreator<State>() {
             public State create() {
-                return new State(context);
+                return new State(context, roleManager);
             }
         };
         configuration.add(State.class, new ApplicationStateContribution(

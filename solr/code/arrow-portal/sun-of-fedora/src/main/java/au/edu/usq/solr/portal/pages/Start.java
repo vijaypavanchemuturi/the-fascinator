@@ -87,7 +87,7 @@ public class Start {
     }
 
     public boolean isEditable() {
-        return "admin".equals(state.getProperty("role"));
+        return state.userInRole("admin");
     }
 
     public boolean isDeletable() {

@@ -52,7 +52,7 @@ public class Login {
     private String password;
 
     Object onActivate(Object[] params) {
-        if (state.getProperty("role") != null) {
+        if (state.isLoggedIn()) {
             return startPage;
         }
         failed = false;
@@ -66,8 +66,7 @@ public class Login {
     Object onSuccess() {
         if (!cancelled) {
             if (login()) {
-                state.setProperty("user", username);
-                state.setProperty("role", "admin");
+                state.login(username);
             } else {
                 return null;
             }

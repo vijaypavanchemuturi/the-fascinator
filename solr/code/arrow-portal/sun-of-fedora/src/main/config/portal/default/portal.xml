@@ -1,9 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <portal name="default">
     <description>Everything</description>
-    <query></query>
     <records-per-page>10</records-per-page>
-    <facet-count>25</facet-count>
+    <facet-count>10</facet-count>
     <facet-fields>
         <user name="repository_name">Repository</user>
         <user name="f_type">Type</user>
@@ -12,11 +11,11 @@
     </facet-fields>
     <roles>
         <role id="admin">
-            <users>lucido dye</users>
+            <users/>
             <query>group_access:&quot;guest&quot; OR group_access:&quot;admin&quot;</query>
         </role>
         <role id="guest">
-            <users>anyone</users>
+            <users/>
             <query>group_access:&quot;guest&quot;</query>
         </role>
     </roles>

@@ -2,17 +2,19 @@
 <div class="nav-bar">
   <ul>
     <li class="home"><a href="${contextPath}">home</a></li>
-    #if($role == "admin")
-      <li><a href="${contextPath}logout">logout</a>: <span class="user">$user</span></li>
-      <li><a href="${contextPath}portal/create">new portal</a></li>
-      <li><a href="${contextPath}config">settings</a></li>
+    #if($session.loggedIn)
+      <li><a href="${contextPath}logout">logout</a>: <span class="user">$session.userName</span></li>
     #else
-      #if($pageName != "login")
+      #if($pageName != "Login")
         <li><a href="${contextPath}login">login</a></li>
       #end
     #end
+    #if($session.userInRole("admin"))
+      <li><a href="${contextPath}portal/create">new portal</a></li>
+      <li><a href="${contextPath}config">settings</a></li>
+    #end
     <li><a href="${contextPath}about">about</a></li>
-    <li><a href="mailto:">contact</a></li>
+    <li><a href="mailto:chandlerb@usq.edu.au">contact</a></li>
   </ul>
 </div>
 <div class="portal-bar">
@@ -21,5 +23,6 @@
   #else
     $pageName
   #end
+  $session.userRoles
 </div>
 <!-- END header.vm -->

@@ -20,12 +20,14 @@ package au.edu.usq.solr.portal;
 
 import java.io.InputStream;
 import java.net.URL;
+import java.util.List;
 import java.util.Properties;
 
 import org.apache.log4j.Logger;
 import org.apache.tapestry.services.Context;
 
 import au.edu.usq.solr.portal.services.PortalManager;
+import au.edu.usq.solr.portal.services.RoleManager;
 
 public class State {
 
@@ -35,13 +37,20 @@ public class State {
 
     private static final String SOLR_BASE_URL = "http://localhost:8080/solr";
 
+    private static final String USERNAME_KEY = "user.name";
+
     private Logger log = Logger.getLogger(State.class);
+
+    private RoleManager roleManager;
 
     private Properties props;
 
     private Portal portal;
 
-    public State(Context context) {
+    private List<Role> userRoles;
+
+    public State(Context context, RoleManager roleManager) {
+        this.roleManager = roleManager;
         props = new Properties();
         try {
             URL configProps = context.getResource(DEFAULT_RESOURCE);
@@ -77,6 +86,34 @@ public class State {
         this.portal = portal;
     }
 
+    public String getUserName() {
+        return getProperty(USERNAME_KEY);
+    }
+
+    public void setUserName(String username) {
+        setProperty(USERNAME_KEY, username);
+    }
+
+    public List<Role> getUserRoles() {
+        if (userRoles == null) {
+            userRoles = roleManager.getUserRoles(RoleManager.GUEST_ROLE);
+        }
+        return userRoles;
+    }
+
+    public void setUserRoles(List<Role> userRoles) {
+        this.userRoles = userRoles;
+    }
+
+    public boolean userInRole(String roleName) {
+        for (Role role : getUserRoles()) {
+            if (roleName.equals(role.getId())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public String getProperty(String key) {
         return props.getProperty(key);
     }
@@ -87,5 +124,19 @@ public class State {
 
     public void remove(String key) {
         props.remove(key);
+    }
+
+    public void login(String username) {
+        setUserName(username);
+        setUserRoles(roleManager.getUserRoles(username));
+    }
+
+    public void logout() {
+        props.remove(USERNAME_KEY);
+        userRoles = null;
+    }
+
+    public boolean isLoggedIn() {
+        return props.containsKey(USERNAME_KEY);
     }
 }

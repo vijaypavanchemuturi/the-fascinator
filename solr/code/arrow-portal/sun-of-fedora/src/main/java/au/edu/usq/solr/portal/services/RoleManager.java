@@ -16,24 +16,27 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-package au.edu.usq.solr.portal.pages;
+package au.edu.usq.solr.portal.services;
 
-import org.apache.tapestry.annotations.ApplicationState;
-import org.apache.tapestry.annotations.IncludeStylesheet;
+import java.util.List;
 
-import au.edu.usq.solr.portal.State;
+import au.edu.usq.solr.portal.Role;
+import au.edu.usq.solr.portal.RoleList;
 
-@IncludeStylesheet("context:css/default.css")
-public class Logout {
+public interface RoleManager {
 
-    @ApplicationState
-    private State state;
+    public static final String GUEST_ROLE = "guest";
 
-    void onActivate() {
-        state.logout();
-    }
+    public static final String ON_CAMPUS_ROLE = "on_campus";
 
-    public State getState() {
-        return state;
-    }
+    public static final String ADMIN_ROLE = "admin";
+
+    public RoleList getList();
+
+    public Role get(String name);
+
+    public List<Role> getUserRoles(String username);
+
+    public void save();
+
 }

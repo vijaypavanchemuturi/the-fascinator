@@ -37,17 +37,20 @@
 <div class="nav-bar">
   <ul>
     <li class="home"><a href="${contextPath}">Home</a></li>
-    #if($role == "admin")
-      <li><a href="${contextPath}logout">Logout</a>: <span class="user">$user</span></li>
-      <li><a href="${contextPath}portal/create">New Portal</a></li>
-      <li><a href="${contextPath}config">Settings</a></li>
+    #if($session.loggedIn)
+      <li><a href="${contextPath}logout">Logout</a>: <span class="user">$session.userName</span></li>
     #else
-      #if($pageName != "login")
+      #if($pageName != "Login")
         <li><a href="${contextPath}login">Login</a></li>
       #end
     #end
+    #if($session.userInRole("admin"))
+      <li><a href="${contextPath}portal/create">New Portal</a></li>
+      <li><a href="${contextPath}config">Settings</a></li>
+    #end
     <li><a href="${contextPath}about">About</a></li>
     <li><a href="mailto:">Contact</a></li>
+    <li><span class="user">$session.userRoles</span></li>
   </ul>
 </div>
 <!-- END header.vm -->

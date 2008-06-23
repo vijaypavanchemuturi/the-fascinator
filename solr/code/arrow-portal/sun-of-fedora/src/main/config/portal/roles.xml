@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<roles>
+    <role id="guest">
+        <users/>
+        <query>group_access:&quot;guest&quot;</query>
+    </role>
+    <role id="on_campus">
+        <users/>
+        <query>group_access:&quot;on_campus&quot;</query>
+    </role>
+    <role id="admin">
+        <users>
+            <user>SOFAdmin</user>
+            <user>lucido</user>
+        </users>
+        <query>group_access:&quot;admin&quot;</query>
+    </role>
+</roles>

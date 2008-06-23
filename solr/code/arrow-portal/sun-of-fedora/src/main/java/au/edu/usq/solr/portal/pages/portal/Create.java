@@ -45,7 +45,7 @@ public class Create {
     private Portal portal;
 
     Object onActivate(Object[] params) {
-        if (!"admin".equals(state.getProperty("role"))) {
+        if (!state.userInRole("admin")) {
             return Start.class;
         }
         if (params.length == 0) {

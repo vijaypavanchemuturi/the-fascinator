@@ -22,25 +22,68 @@
     <title>${message:app.name}</title>
     <link rel="icon" href="favicon.ico" type="image/x-icon"/>
     <link rel="stylesheet" type="text/css" href="${asset:velocity:default/style.css}"/>
+    <script language="javascript" type="text/javascript">
+    function checkDelete(desc) {
+      return confirm("Are you sure you want to delete the '" + desc + "' role?")
+    }
+    </script>
   </head>
   <body>
     <div t:type="VelocityPanel" t:template="header.vm"/>
-    <form class="config" t:type="form">
+    <form class="config" t:type="form" t:id="solrForm">
       <h2>Configuration</h2>
-      <table>
-        <tr>
-          <td>Solr base URL</td>
-          <td>
-            <input class="textfield" type="text" size="40" t:type="textfield" t:value="state.solrBaseUrl"/>
-          </td>
-        </tr>
-        <tr>
-          <td colspan="2">
-            <input class="button" type="submit" value="Update" t:type="submit"/>
-          </td>
-        </tr>
-      </table>
+      <label for="solrUrl">Solr base URL&#160;</label>
+      <input id="solrUrl" class="textfield" type="text" size="40" t:type="textfield" t:value="state.solrBaseUrl"/>
+      <input class="button" type="submit" value="Update" t:type="submit"/>
     </form>
+    <div class="roles">
+      <h2>Security</h2>
+      <form t:type="form" t:id="newForm">
+        <table>
+          <tr>
+            <th>Name</th>
+            <td><input type="text" size="15" class="textfield" t:type="textfield" t:value="newRole.id"/></td>
+          </tr>
+          <tr>
+            <th>Users</th>
+            <td><input type="text" size="50" class="textfield" t:type="textfield" t:value="newRole.users"/></td>
+          </tr>
+          <tr>
+            <th>Query</th>
+            <td><input type="text" size="50" class="textfield" t:type="textfield" t:value="newRole.query"/></td>
+          </tr>
+        </table>
+        <br/>
+        <input type="submit" class="button" value="Add role" t:type="submit"/>
+      </form>
+      <t:if t:test="roles">
+        <form t:type="form" t:id="editForm">
+          <table>
+            <t:loop t:source="roles" t:value="role" t:encoder="encoder">
+            <tr>
+              <th colspan="3"><h4>${role.id}</h4></th>
+            </tr>
+            <tr t:type="if" t:test="showUsersField">
+              <th>Users</th>
+              <td>
+                <input type="text" size="50" class="textfield" t:type="textfield" t:value="role.users"/>
+                <t:if t:test="deletable">
+                <a class="role-delete" onclick="return checkDelete('${role.id}')"
+                   t:id="delete" t:type="actionlink" t:context="role.id">delete</a>
+                </t:if>
+              </td>
+            </tr>
+            <tr>
+              <th>Query</th>
+              <td><input type="text" size="50" class="textfield" t:type="textfield" t:value="role.query"/></td>
+            </tr>
+            </t:loop>
+          </table>
+          <br/>
+          <input type="submit" class="button" value="Save changes" t:type="submit"/>
+        </form>
+      </t:if>
+    </div>
     <div t:type="VelocityPanel" t:template="footer.vm"/>
   </body>
 </html>
