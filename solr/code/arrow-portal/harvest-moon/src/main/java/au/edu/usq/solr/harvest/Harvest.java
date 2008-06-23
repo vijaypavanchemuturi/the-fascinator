@@ -140,7 +140,7 @@ public class Harvest {
 
     public static void main(String[] args) throws Exception {
         if (args.length < 8) {
-            log.info("Usage: harvest <solrurl> <regurl> <reguser> <regpass> <reptype> <repurl> <repname> <script>");
+            log.info("Usage: harvest <solrurl> <regurl> <reguser> <regpass> <reptype> <repurl> <repname> <script> [maxRequests]");
         } else {
             String solrUrl = args[0];
             String regUrl = args[1];
@@ -150,12 +150,16 @@ public class Harvest {
             String repUrl = args[5];
             String repName = args[6];
             String script = args[7];
+            int maxRequests = Integer.MAX_VALUE;
+            if (args.length >= 8) {
+                maxRequests = Integer.parseInt(args[8]);
+            }
 
             Harvester harvester;
             if ("oai".equals(repType)) {
-                harvester = new OaiPmhHarvester(repUrl);
+                harvester = new OaiPmhHarvester(repUrl, maxRequests);
             } else {
-                harvester = new FedoraHarvester(repUrl);
+                harvester = new FedoraHarvester(repUrl, maxRequests);
             }
             Indexer solr = new SolrIndexer(solrUrl);
             FedoraRestClient registry = new FedoraRestClient(regUrl);
