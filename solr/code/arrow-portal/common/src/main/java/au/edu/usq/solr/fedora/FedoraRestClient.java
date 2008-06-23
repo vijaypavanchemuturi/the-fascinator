@@ -76,6 +76,13 @@ public class FedoraRestClient {
             client.getParams().setAuthenticationPreemptive(true);
             client.getState().setCredentials(AuthScope.ANY,
                 new UsernamePasswordCredentials(username, password));
+        } else {
+            String proxyHost = System.getProperty("http.proxyHost", "");
+            String proxyPort = System.getProperty("http.proxyPort", "8080");
+            if (proxyHost != null && !"".equals(proxyHost)) {
+                client.getHostConfiguration().setProxy(proxyHost,
+                    Integer.parseInt(proxyPort));
+            }
         }
         return client;
     }
@@ -163,11 +170,13 @@ public class FedoraRestClient {
             uri.append("/");
             uri.append(dsId);
         }
+        log.info("get: uri=" + uri);
         GetMethod method = new GetMethod(uri.toString());
         int status = getHttpClient().executeMethod(method);
         if (status == 200) {
             StreamUtils.copyStream(method.getResponseBodyAsStream(), out);
         }
+        log.info("get: status=" + status);
         method.releaseConnection();
     }
 
