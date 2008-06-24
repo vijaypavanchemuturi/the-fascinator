@@ -95,7 +95,7 @@ public class RoleManagerImpl implements RoleManager {
             }
             log.info("onCampus=" + onCampus);
             if (onCampus) {
-                userRoles.add(new Role("on_campus"));
+                userRoles.add(get("on_campus"));
             }
         } catch (UnknownHostException e) {
             e.printStackTrace();

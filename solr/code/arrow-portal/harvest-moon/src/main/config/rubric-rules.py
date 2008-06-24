@@ -54,7 +54,7 @@ for node in nodes:
 rules.add(AddFieldRule("item_class", "document"))
 
 # full text - get the FULLTEXT datastream
-if item.hasDatastreams():
+if dsId is None and item.hasDatastreams():
     ds = item.getDatastream("FULLTEXT")
     if ds is not None:
         rules.add(AddFieldRule("full_text", String(ds.getContent())))

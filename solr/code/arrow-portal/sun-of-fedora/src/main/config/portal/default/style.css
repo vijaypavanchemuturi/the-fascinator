@@ -26,6 +26,11 @@ th h4 {
   color: red;
 }
 
+a.action {
+  color: #94BB4D;
+  font-size: 0.9em;
+}
+
 /* Login */
 .login, .logout {
   padding-left: 1em;
@@ -119,7 +124,7 @@ th h4 {
   text-decoration: none;
 }
 
-/* Facets */
+/* Facets and datastreams */
 .facets {
   background-color: #F2F8EF;
   float: right;
@@ -143,6 +148,13 @@ th h4 {
   list-style-type: none;
   margin: 0;
   padding: 0;
+}
+
+.facets ul.datastreams {
+  list-style-type: none;
+  margin-left: 0;
+  margin-top: 1em;
+  padding-left: 0.5em;
 }
 
 .facets li {
@@ -222,7 +234,7 @@ input.search-textfield {
   width: 73%;
 }
 
-/* Search item */
+/* Search item/details */
 .item {
   padding-top: 0.5em;
   padding-left: 0.5em;
@@ -244,15 +256,28 @@ input.search-textfield {
 }
 
 .item h2 {
+  margin-top: 0;
+}
+
+.item h2 a, .search-results h2 {
   color: #559;
   font-weight: bold;
-  margin-top: 0;
+}
+
+.item div {
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
 }
 
 .item ul {
   list-style: none;
   margin-left: 0;
   padding-left: 0;
+}
+
+.item dl dt {
+  color: #C3562E;
+  font-weight: bold;
 }
 
 /* Tapestry overrides */

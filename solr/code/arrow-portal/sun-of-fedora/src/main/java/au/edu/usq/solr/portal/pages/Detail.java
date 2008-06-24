@@ -18,19 +18,37 @@
  */
 package au.edu.usq.solr.portal.pages;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
+import java.util.List;
 
+import javax.xml.bind.JAXBException;
+
+import org.apache.log4j.Logger;
 import org.apache.tapestry.annotations.ApplicationState;
 import org.apache.tapestry.annotations.IncludeStylesheet;
+import org.apache.tapestry.annotations.OnEvent;
 import org.apache.tapestry.ioc.annotations.Inject;
+import org.apache.tapestry.util.TextStreamResponse;
 
+import au.edu.usq.solr.fedora.DatastreamType;
+import au.edu.usq.solr.model.DublinCore;
+import au.edu.usq.solr.model.Response;
+import au.edu.usq.solr.model.types.ResultType;
+import au.edu.usq.solr.portal.Role;
+import au.edu.usq.solr.portal.Searcher;
 import au.edu.usq.solr.portal.State;
 import au.edu.usq.solr.portal.services.RegistryManager;
 import au.edu.usq.solr.portal.services.VelocityResourceLocator;
+import au.edu.usq.solr.util.BinaryStreamResponse;
 
 @IncludeStylesheet("context:css/default.css")
 public class Detail {
+
+    private Logger log = Logger.getLogger(Detail.class);
 
     @ApplicationState
     private State state;
@@ -43,22 +61,48 @@ public class Detail {
 
     private String uuid;
 
-    private String item;
+    private DublinCore item;
 
-    Object onActivate(Object[] params) {
+    private String portalName;
+
+    private List<DatastreamType> dsList;
+
+    private boolean viewable;
+
+    void onActivate(Object[] params) {
         if (params.length > 0) {
             try {
-                uuid = URLDecoder.decode(params[0].toString(), "UTF-8");
-                return null;
+                String idParam = params[0].toString();
+                if (idParam.startsWith("uuid")) {
+                    uuid = URLDecoder.decode(params[0].toString(), "UTF-8");
+                    viewable = checkRole();
+                }
             } catch (UnsupportedEncodingException e) {
-                return Start.class;
             }
         }
-        return Start.class;
     }
 
     String onPassivate() {
         return uuid;
+    }
+
+    @OnEvent(value = "download")
+    Object download(String dsId) {
+        viewable = checkRole();
+        if (viewable) {
+            DatastreamType ds = registryManager.getDatastream(uuid, dsId);
+            String contentType = ds.getMimeType();
+            if (contentType.startsWith("text/")) {
+                return new TextStreamResponse(contentType,
+                    registryManager.getDatastreamAsString(uuid, dsId));
+            } else {
+                ByteArrayOutputStream out = new ByteArrayOutputStream();
+                registryManager.getDatastreamAsStream(uuid, dsId, out);
+                return new BinaryStreamResponse(contentType,
+                    new ByteArrayInputStream(out.toByteArray()));
+            }
+        }
+        return null;
     }
 
     public State getState() {
@@ -81,10 +125,68 @@ public class Detail {
         this.uuid = uuid;
     }
 
-    public String getItem() {
+    public DublinCore getMetadata() {
         if (item == null) {
-            item = registryManager.getMetadata(uuid, state.getPortalName());
+            item = registryManager.getMetadata(uuid);
         }
         return item;
+    }
+
+    public List<DatastreamType> getDatastreams() {
+        if (dsList == null) {
+            dsList = registryManager.getDatastreams(uuid);
+        }
+        
+        return dsList;
+    }
+
+    public String getPortalName() {
+        return portalName;
+    }
+
+    public void setPortalName(String portalName) {
+        this.portalName = portalName;
+    }
+
+    public boolean isViewable() {
+        return viewable;
+    }
+
+    boolean checkRole() {
+        return checkRole(null);
+    }
+
+    boolean checkRole(String dsId) {
+        String pid = uuid;
+        if (dsId != null) {
+            pid = pid + "/" + dsId;
+        }
+        Searcher searcher = new Searcher(state.getSolrBaseUrl());
+        searcher.setRows(1);
+        searcher.addFacetQuery("pid:\"" + pid + "\"");
+        String accessQuery = "";
+        boolean firstRole = true;
+        for (Role role : state.getUserRoles()) {
+            if (firstRole) {
+                firstRole = false;
+                accessQuery = role.getQuery();
+            } else {
+                accessQuery += " OR " + role.getQuery();
+            }
+        }
+        accessQuery = accessQuery.trim();
+        if (accessQuery != null) {
+            searcher.addFacetQuery(accessQuery);
+        }
+        try {
+            Response response = searcher.find("*:*");
+            ResultType result = response.getResult();
+            return result.getNumFound() > 0;
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (JAXBException e) {
+            e.printStackTrace();
+        }
+        return false;
     }
 }

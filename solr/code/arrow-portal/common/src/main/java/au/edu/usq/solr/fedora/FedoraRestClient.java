@@ -18,11 +18,8 @@
  */
 package au.edu.usq.solr.fedora;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URLEncoder;
 import java.util.HashMap;
@@ -43,6 +40,9 @@ import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.httpclient.methods.RequestEntity;
 import org.apache.commons.httpclient.methods.StringRequestEntity;
+import org.apache.commons.httpclient.methods.multipart.FilePart;
+import org.apache.commons.httpclient.methods.multipart.MultipartRequestEntity;
+import org.apache.commons.httpclient.methods.multipart.Part;
 import org.apache.log4j.Logger;
 
 import au.edu.usq.solr.util.StreamUtils;
@@ -103,8 +103,6 @@ public class FedoraRestClient {
             GetMethod method = new GetMethod(uri.toString());
             HttpClient client = getHttpClient();
             int status = client.executeMethod(method);
-            log.info("findObjects: uri: " + uri);
-            log.info("findObjects: status: " + status);
             if (status == 200) {
                 JAXBContext jc = JAXBContext.newInstance(ResultType.class);
                 Unmarshaller um = jc.createUnmarshaller();
@@ -172,13 +170,13 @@ public class FedoraRestClient {
             uri.append("/");
             uri.append(dsId);
         }
-        log.info("get: uri=" + uri);
         GetMethod method = new GetMethod(uri.toString());
         int status = getHttpClient().executeMethod(method);
         if (status == 200) {
             StreamUtils.copyStream(method.getResponseBodyAsStream(), out);
+        } else {
+            log.warn("GET " + uri + " returned " + status);
         }
-        log.info("get: status=" + status);
         method.releaseConnection();
     }
 
@@ -248,24 +246,36 @@ public class FedoraRestClient {
     }
 
     public void addDatastream(String pid, String dsId, String dsLabel,
-        String content, String contentType) throws IOException {
+        String contentType, String content) throws IOException {
         Map<String, String> options = new HashMap<String, String>();
         options.put("dsLabel", dsLabel);
-        addDatastream(pid, dsId, options, new ByteArrayInputStream(
-            content.getBytes("UTF-8")), contentType);
+        PostMethod method = getAddDatastreamMethod(pid, dsId, options);
+        RequestEntity request = new StringRequestEntity(content, contentType,
+            null);
+        method.setRequestEntity(request);
+        method.setRequestHeader("Content-Type", contentType);
+        getHttpClient(true).executeMethod(method);
+        method.releaseConnection();
     }
 
     public void addDatastream(String pid, String dsId, String dsLabel,
-        byte[] content, String contentType) throws IOException {
+        String contentType, File content) throws IOException {
         Map<String, String> options = new HashMap<String, String>();
         options.put("dsLabel", dsLabel);
-        addDatastream(pid, dsId, options, new ByteArrayInputStream(content),
-            contentType);
+        options.put("controlGroup", "M");
+        PostMethod method = getAddDatastreamMethod(pid, dsId, options);
+        Part[] parts = new Part[] { new FilePart("file", content, contentType,
+            null) };
+        RequestEntity request = new MultipartRequestEntity(parts,
+            method.getParams());
+        method.setRequestEntity(request);
+        method.setRequestHeader("Content-Type", contentType);
+        getHttpClient(true).executeMethod(method);
+        method.releaseConnection();
     }
 
-    public void addDatastream(String pid, String dsId,
-        Map<String, String> options, InputStream content, String contentType)
-        throws IOException {
+    private PostMethod getAddDatastreamMethod(String pid, String dsId,
+        Map<String, String> options) throws IOException {
         StringBuilder uri = new StringBuilder(baseUrl);
         uri.append("/objects/");
         uri.append(pid);
@@ -281,14 +291,8 @@ public class FedoraRestClient {
         addParam(uri, options, "checksumType");
         addParam(uri, options, "checksum");
         addParam(uri, options, "logMessage");
-        PostMethod method = new PostMethod(uri.toString());
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        StreamUtils.copyStream(content, out);
-        RequestEntity request = new StringRequestEntity(out.toString(),
-            contentType, "UTF-8");
-        method.setRequestEntity(request);
-        getHttpClient(true).executeMethod(method);
-        method.releaseConnection();
+        log.info("uri: " + uri);
+        return new PostMethod(uri.toString());
     }
 
     public void purgeObject(String pid) throws IOException {

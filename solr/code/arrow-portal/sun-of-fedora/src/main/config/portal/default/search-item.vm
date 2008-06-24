@@ -1,26 +1,45 @@
 <!-- BEGIN search-item.vm -->
 <div class="item">
   <h2><a href="#actionlink('showdetail' $item.field('pid'))">$item.field("title")</a></h2>
-  <p>Relevance: $item.getFloat('score')</p>
-  <ul>
-    #foreach($id in $item.fields("identifier"))
-      <li>
-        #if($id.startsWith("http://"))
-          <a href="$id">$id</a>
-        #else
-          $id
-        #end
-      </li>
+  <p>Relevance: <strong>$item.field("score")</strong></p>
+  <div>
+    #set($ids = $item.fields("identifier"))
+    #foreach($id in $ids)
+      #if($id.startsWith("http://"))
+        <a href="$id">$id</a>
+      #else
+        $id
+      #end
+      #if($velocityCount < $ids.size());#else#end
     #end
-  </ul>
-  <p class="item-description">
+  </div>
+  <div>
+    #set($subs = $item.fields("f_subject"))
+    #foreach($sub in $subs)
+      $sub
+      #if($velocityCount < $subs.size());#else#end
+    #end
+  </div>
+  <div class="item-description">
     <strong>Description</strong>
     <br/>
-    #if($item.field("description"))
-      $item.field("description")
+    #set($pid = $item.field("pid"))
+    #set($desc = $item.field("description"))
+    #if($desc.length() > $item.maxLength)
+      #set($shortDesc = $item.shortField("description"))
+      <span id="${pid}full" style="display: none">
+        $desc<br/>
+        <a class="action" href="javascript:toggle_doms('${pid}full', '${pid}short')">less</a>
+      </span>
+      <span id="${pid}short">
+        $shortDesc ...<br/>
+        <a class="action" href="javascript:toggle_doms('${pid}full', '${pid}short')">more</a>
+      </span>
+    #elseif($desc)
+      $desc
     #else
       No description
     #end
-  </p>
+  </div>
 </div>
 <!-- END search-item.vm -->

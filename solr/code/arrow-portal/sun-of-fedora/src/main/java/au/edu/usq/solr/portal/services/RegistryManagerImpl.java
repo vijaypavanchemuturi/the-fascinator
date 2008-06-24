@@ -20,58 +20,92 @@ package au.edu.usq.solr.portal.services;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.File;
+import java.io.IOException;
 import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
+import java.util.List;
 import java.util.Properties;
 
-import javax.xml.transform.Templates;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.stream.StreamResult;
-import javax.xml.transform.stream.StreamSource;
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.Unmarshaller;
 
+import org.apache.log4j.Logger;
 import org.apache.tapestry.ioc.Resource;
 
+import au.edu.usq.solr.fedora.DatastreamType;
 import au.edu.usq.solr.fedora.FedoraRestClient;
-import au.edu.usq.solr.util.StreamUtils;
+import au.edu.usq.solr.fedora.ObjectDatastreamsType;
+import au.edu.usq.solr.model.DublinCore;
 
 public class RegistryManagerImpl implements RegistryManager {
 
-    private FedoraRestClient client;
+    private Logger log = Logger.getLogger(RegistryManagerImpl.class);
 
-    private File portalsDir;
+    private FedoraRestClient client;
 
     public RegistryManagerImpl(Resource configuration) {
         Properties props = new Properties();
         try {
             props.load(configuration.toURL().openStream());
             String registryUrl = props.getProperty(AppModule.REGISTRY_URL_KEY);
-            portalsDir = new File(props.getProperty(AppModule.PORTALS_DIR_KEY));
             client = new FedoraRestClient(registryUrl);
         } catch (Exception e) {
+            log.error(e);
             throw new RuntimeException(e);
         }
     }
 
-    public String getMetadata(String uuid, String portalName) {
-        OutputStream dcOut = new ByteArrayOutputStream();
-        OutputStream solrOut = new ByteArrayOutputStream();
+    public DublinCore getMetadata(String uuid) {
+        ByteArrayOutputStream dcOut = new ByteArrayOutputStream();
         try {
+            log.info("id:" + uuid);
             client.get(uuid + "/DC0", dcOut);
-            StreamUtils.copyStream(new ByteArrayInputStream(dcOut.toString()
-                .getBytes("UTF-8")), System.out);
-            File detailXsl = new File(portalsDir, portalName + "/detail.xsl");
-            if (!detailXsl.exists()) {
-                detailXsl = new File(portalsDir, "default/detail.xsl");
-            }
-            TransformerFactory tf = TransformerFactory.newInstance();
-            Templates t = tf.newTemplates(new StreamSource(detailXsl));
-            Transformer dc = t.newTransformer();
-            dc.transform(new StreamSource(new ByteArrayInputStream(
-                dcOut.toString().getBytes("UTF-8"))), new StreamResult(solrOut));
-            return solrOut.toString();
+            JAXBContext jc = JAXBContext.newInstance(DublinCore.class);
+            Unmarshaller um = jc.createUnmarshaller();
+            return (DublinCore) um.unmarshal(new ByteArrayInputStream(
+                dcOut.toByteArray()));
         } catch (Exception e) {
+            log.error(e);
             throw new RuntimeException(e);
+        }
+    }
+
+    public DatastreamType getDatastream(String uuid, String dsId) {
+        for (DatastreamType ds : getDatastreams(uuid)) {
+            if (dsId.equals(ds.getDsid())) {
+                return ds;
+            }
+        }
+        return null;
+    }
+
+    public List<DatastreamType> getDatastreams(String uuid) {
+        try {
+            ObjectDatastreamsType dsList = client.listDatastreams(uuid);
+            return dsList.getDatastreams();
+        } catch (IOException ioe) {
+            log.error(ioe);
+            throw new RuntimeException(ioe);
+        }
+    }
+
+    public void getDatastreamAsStream(String uuid, String dsId, OutputStream out) {
+        try {
+            client.get(uuid, dsId, out);
+        } catch (IOException ioe) {
+            log.error(ioe);
+            throw new RuntimeException(ioe);
+        }
+    }
+
+    public String getDatastreamAsString(String uuid, String dsId) {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        getDatastreamAsStream(uuid, dsId, out);
+        try {
+            return out.toString("UTF-8");
+        } catch (UnsupportedEncodingException uee) {
+            log.error(uee);
+            throw new RuntimeException(uee);
         }
     }
 }

@@ -16,24 +16,29 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-package au.edu.usq.solr.portal.services;
+ 
+/* Show, hide and toggle DOM nodes (Source: NLA Discovery Service) */
 
-import java.io.OutputStream;
-import java.util.List;
+function show_dom(id) {
+  x = document.getElementById(id);
+  x.style.display = '';
+}
 
-import au.edu.usq.solr.fedora.DatastreamType;
-import au.edu.usq.solr.model.DublinCore;
+function hide_dom(id) {
+  x = document.getElementById(id);
+  x.style.display = 'none';
+}
 
-public interface RegistryManager {
+function toggle_doms(id1, id2) {
+  toggle_dom(id1);
+  toggle_dom(id2);
+}
 
-    public DublinCore getMetadata(String uuid);
-
-    public DatastreamType getDatastream(String uuid, String dsId);
-
-    public List<DatastreamType> getDatastreams(String uuid);
-
-    public void getDatastreamAsStream(String uuid, String dsId, OutputStream out);
-
-    public String getDatastreamAsString(String uuid, String dsId);
-
+function toggle_dom(id) {
+  x = document.getElementById(id);
+  if (x.style.display == 'none') {  
+    show_dom(id);
+  } else {
+    hide_dom(id);
+  }
 }

@@ -1,0 +1,10 @@
+<!-- BEGIN search-detail-datastreams.vm --> 
+<div class="facets">
+  <h3>Downloads</h3>
+  <ul class="datastreams">
+    #foreach($ds in $page.datastreams)
+      <li><a href="#actionlink('download' $ds.dsid)">$ds.label</a> ($ds.dsid)</li>
+    #end
+  </ul>
+</div>
+<!-- END search-detail-datastreams.vm -->

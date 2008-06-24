@@ -18,6 +18,7 @@
  */
 package au.edu.usq.solr.model.types;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -32,6 +33,8 @@ import au.edu.usq.solr.util.MapEntryType;
 @XmlRootElement(name = "doc")
 @XmlAccessorType(XmlAccessType.NONE)
 public class DocumentType {
+
+    private static final int MAX_LENGTH = 500;
 
     @XmlElement(name = "arr")
     private List<ArrayType> arrays;
@@ -87,10 +90,33 @@ public class DocumentType {
                 value = null;
             }
         }
+        if (value == null) {
+            try {
+                value = Float.toString(getFloat(name));
+            } catch (NullPointerException e) {
+                value = null;
+            }
+        }
+        return value;
+    }
+
+    public String shortField(String name) {
+        String value = field(name);
+        if (value != null && value.length() > MAX_LENGTH) {
+            value = value.substring(0, MAX_LENGTH);
+        }
         return value;
     }
 
     public List<String> fields(String name) {
-        return getArray(name).getValues();
+        ArrayType array = getArray(name);
+        if (array == null) {
+            return Collections.emptyList();
+        }
+        return array.getValues();
+    }
+
+    public int getMaxLength() {
+        return MAX_LENGTH;
     }
 }

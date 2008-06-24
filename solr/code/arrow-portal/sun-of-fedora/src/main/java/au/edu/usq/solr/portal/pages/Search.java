@@ -30,6 +30,7 @@ import javax.xml.bind.JAXBException;
 
 import org.apache.log4j.Logger;
 import org.apache.tapestry.annotations.ApplicationState;
+import org.apache.tapestry.annotations.IncludeJavaScriptLibrary;
 import org.apache.tapestry.annotations.IncludeStylesheet;
 import org.apache.tapestry.annotations.InjectPage;
 import org.apache.tapestry.annotations.OnEvent;
@@ -53,6 +54,7 @@ import au.edu.usq.solr.portal.services.PortalManager;
 import au.edu.usq.solr.portal.services.VelocityResourceLocator;
 
 @IncludeStylesheet("context:css/default.css")
+@IncludeJavaScriptLibrary("context:js/default.js")
 public class Search {
 
     private Logger log = Logger.getLogger(Search.class);
@@ -177,6 +179,7 @@ public class Search {
         searcher.setFacetLimit(found.getFacetCount());
         searcher.setFacetFields(found.getFacetFieldList());
         searcher.setStart((pageNum - 1) * recordsPerPage);
+        searcher.addFacetQuery("item_type:object");
 
         // sorting
         log.info("sortField: " + sortField);
@@ -186,8 +189,14 @@ public class Search {
 
         // access
         String accessQuery = "";
+        boolean firstRole = true;
         for (Role role : state.getUserRoles()) {
-            accessQuery += " " + role.getQuery();
+            if (firstRole) {
+                firstRole = false;
+                accessQuery = role.getQuery();
+            } else {
+                accessQuery += " OR " + role.getQuery();
+            }
         }
         accessQuery = accessQuery.trim();
         log.info("accessQuery: " + accessQuery);
@@ -263,6 +272,7 @@ public class Search {
     @OnEvent(value = "showdetail")
     Object showDetail(String uuid) {
         detailPage.setUuid(uuid);
+        detailPage.setPortalName(portalName);
         return detailPage;
     }
 

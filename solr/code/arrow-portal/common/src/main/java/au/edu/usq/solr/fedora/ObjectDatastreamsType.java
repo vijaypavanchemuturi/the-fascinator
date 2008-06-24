@@ -18,6 +18,7 @@
  */
 package au.edu.usq.solr.fedora;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.xml.bind.annotation.XmlAccessType;
@@ -36,6 +37,9 @@ public class ObjectDatastreamsType {
     @XmlAttribute(name = "baseURL")
     private String baseUrl;
 
+    @XmlElement(name = "datastream")
+    private List<DatastreamType> datastreams;
+
     public String getPid() {
         return pid;
     }
@@ -44,10 +48,10 @@ public class ObjectDatastreamsType {
         return baseUrl;
     }
 
-    @XmlElement(name = "datastream")
-    private List<DatastreamType> datastreams;
-
     public List<DatastreamType> getDatastreams() {
+        if (datastreams == null) {
+            datastreams = new ArrayList<DatastreamType>();
+        }
         return datastreams;
     }
 }

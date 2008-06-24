@@ -1,3 +1,31 @@
 <!-- BEGIN search-detail.vm -->
-$item
+<div class="search">
+  <h1>Details</h1>
+  #if($page.viewable)
+    #set($dc = $page.metadata)
+    #macro(field $field)
+      #if($field.size()==1)
+        $field.get(0)
+      #else
+        $field
+      #end
+    #end
+    #parse($locator.getLocation('search-detail-datastreams.vm'))
+    <div class="search-results">
+      <h2>#field($dc.title)</h2>
+      <h3>Description</h3>
+      <p>#field($dc.description)</p>
+      <div class="item">
+        <dl>
+          #foreach($name in $dc.fields.keySet())
+            <dt>$name</dt>
+            <dd>$dc.fields.get($name)</dd>
+          #end
+        </dl>
+      </div>
+    </div>
+  #else
+    <p>You do not have permission to view this item.</p>
+  #end
+</div>
 <!-- END search-detail.vm -->

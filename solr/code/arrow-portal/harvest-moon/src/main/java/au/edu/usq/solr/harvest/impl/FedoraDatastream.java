@@ -19,6 +19,8 @@
 package au.edu.usq.solr.harvest.impl;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 
 import au.edu.usq.solr.fedora.DatastreamType;
@@ -58,8 +60,19 @@ public class FedoraDatastream implements Datastream {
         return out.toByteArray();
     }
 
+    public String getContentAsString() throws IOException {
+        return new String(getContent());
+    }
+
+    public void getContent(File file) throws IOException {
+        FileOutputStream out = new FileOutputStream(file);
+        client.get(pid, getId(), out);
+        out.close();
+    }
+
     @Override
     public String toString() {
-        return pid + "/" + getId() + "/" + getLabel();
+        return pid + "/" + getId() + "/" + getLabel() + " (" + getMimeType()
+            + ")";
     }
 }

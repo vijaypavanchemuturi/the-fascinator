@@ -91,6 +91,7 @@ public class Harvest {
         String pid = null;
         String meta = item.getMetadataAsString();
         byte[] metaBytes = meta.getBytes("UTF-8");
+
         try {
             log.info("Processing " + itemId + "...");
 
@@ -107,16 +108,27 @@ public class Harvest {
 
             // harvest/index the main item
             pid = registry.createObject(itemId, "uuid");
-            registry.addDatastream(pid, "DC0", "Dublin Core (Source)", meta,
-                "text/xml");
+            registry.addDatastream(pid, "DC0", "Dublin Core (Source)",
+                "text/xml", meta);
             index(name, item, pid, null, metaBytes);
 
             // harvest/index datastreams
             for (Datastream ds : item.getDatastreams()) {
+                String dsId = ds.getId();
+                String mimeType = ds.getMimeType();
+                String label = ds.getLabel();
                 if (!"DC".equals(ds.getLabel())) {
-                    registry.addDatastream(pid, ds.getId(), ds.getLabel(),
-                        ds.getContent(), ds.getMimeType());
-                    index(name, item, pid, ds.getId(), metaBytes);
+                    if (mimeType.startsWith("text/")) {
+                        registry.addDatastream(pid, dsId, label, mimeType,
+                            ds.getContentAsString());
+                    } else {
+                        File dsFile = File.createTempFile("data", ".tmp");
+                        ds.getContent(dsFile);
+                        registry.addDatastream(pid, dsId, label, mimeType,
+                            dsFile);
+                        dsFile.delete();
+                    }
+                    index(name, item, pid, dsId, metaBytes);
                 }
             }
         } catch (Exception e) {
@@ -152,7 +164,6 @@ public class Harvest {
         }
         solrOut.close();
         try {
-            log.info("solrFile=" + solrFile + ":" + solrFile.length());
             indexer.index(solrFile);
         } catch (IndexerException ie) {
             throw new RuleException(ie);
