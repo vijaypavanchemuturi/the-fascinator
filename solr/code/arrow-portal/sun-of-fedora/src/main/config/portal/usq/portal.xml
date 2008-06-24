@@ -6,18 +6,8 @@
     <records-per-page>15</records-per-page>
     <facet-count>10</facet-count>
     <facet-fields>
-        <user name="f_type">Format</user>
-        <user name="f_subject">Course</user>
-        <user name="f_creator">Author</user>
+        <field name="f_type">Format</field>
+        <field name="f_subject">Course</field>
+        <field name="f_creator">Author</field>
     </facet-fields>
-    <roles>
-        <role id="admin">
-            <users/>
-            <query>group_access:&quot;guest&quot; OR group_access:&quot;admin&quot;</query>
-        </role>
-        <role id="guest">
-            <users/>
-            <query>group_access:&quot;guest&quot;</query>
-        </role>
-    </roles>
 </portal>

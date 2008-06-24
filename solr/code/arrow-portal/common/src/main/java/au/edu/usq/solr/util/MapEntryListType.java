@@ -27,7 +27,7 @@ import javax.xml.bind.annotation.XmlElements;
 
 public class MapEntryListType {
 
-    @XmlElements( { @XmlElement(name = "field"), @XmlElement(name = "user") })
+    @XmlElements( { @XmlElement(name = "field") })
     private List<MapEntryType> entries;
 
     public MapEntryListType() {
