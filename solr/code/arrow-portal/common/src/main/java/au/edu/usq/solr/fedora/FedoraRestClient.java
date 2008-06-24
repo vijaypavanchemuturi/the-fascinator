@@ -103,6 +103,8 @@ public class FedoraRestClient {
             GetMethod method = new GetMethod(uri.toString());
             HttpClient client = getHttpClient();
             int status = client.executeMethod(method);
+            log.info("findObjects: uri: " + uri);
+            log.info("findObjects: status: " + status);
             if (status == 200) {
                 JAXBContext jc = JAXBContext.newInstance(ResultType.class);
                 Unmarshaller um = jc.createUnmarshaller();
@@ -251,6 +253,14 @@ public class FedoraRestClient {
         options.put("dsLabel", dsLabel);
         addDatastream(pid, dsId, options, new ByteArrayInputStream(
             content.getBytes("UTF-8")), contentType);
+    }
+
+    public void addDatastream(String pid, String dsId, String dsLabel,
+        byte[] content, String contentType) throws IOException {
+        Map<String, String> options = new HashMap<String, String>();
+        options.put("dsLabel", dsLabel);
+        addDatastream(pid, dsId, options, new ByteArrayInputStream(content),
+            contentType);
     }
 
     public void addDatastream(String pid, String dsId,

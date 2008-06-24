@@ -50,6 +50,8 @@ public class Harvest {
 
     private PythonInterpreter python;
 
+    private String ruleScript;
+
     public Harvest(Harvester harvester, Indexer indexer,
         FedoraRestClient registry) {
         this.harvester = harvester;
@@ -59,6 +61,8 @@ public class Harvest {
 
     public void run(String name, String ruleScript) {
 
+        this.ruleScript = ruleScript;
+
         python = new PythonInterpreter();
         python.set("self", this);
 
@@ -67,7 +71,7 @@ public class Harvest {
                 List<Item> items = harvester.getItems();
                 for (Item item : items) {
                     try {
-                        processItem(name, item, ruleScript);
+                        processItem(name, item);
                     } catch (Exception e) {
                         log.warn("Processing failed", e);
                     }
@@ -81,39 +85,40 @@ public class Harvest {
         }
     }
 
-    private void processItem(String name, Item item, String ruleScript)
-        throws Exception {
+    private void processItem(String name, Item item) throws Exception {
 
         String itemId = item.getId();
         String pid = null;
-        File solrFile = null;
         String meta = item.getMetadataAsString();
-        log.info("Processing " + itemId + "...");
+        byte[] metaBytes = meta.getBytes("UTF-8");
         try {
+            log.info("Processing " + itemId + "...");
+
+            // FIXME checking if an object exists hangs after 100 or so
+            // ResultType result = registry.findObjects(itemId, 1);
+            // List<ObjectFieldType> objects = result.getObjectFields();
+            // if (objects.isEmpty()) {
+            // pid = registry.createObject(itemId, "uuid");
+            // log.info("CREATE: " + pid);
+            // } else {
+            // pid = objects.get(0).getPid();
+            // log.info("UPDATE: " + pid);
+            // }
+
+            // harvest/index the main item
             pid = registry.createObject(itemId, "uuid");
-            InputStream dcIn = new ByteArrayInputStream(meta.getBytes("UTF-8"));
-            solrFile = File.createTempFile("solr", ".xml");
-            OutputStream solrOut = new FileOutputStream(solrFile);
-            try {
-                python.set("pid", pid);
-                python.set("name", name);
-                python.set("item", item);
-                python.execfile(ruleScript);
-                RuleManager rules = (RuleManager) python.get("rules")
-                    .__tojava__(RuleManager.class);
-                rules.run(dcIn, solrOut);
-            } catch (Exception e) {
-                throw new RuleException(e);
-            }
-            solrOut.close();
-            try {
-                log.info("solrFile=" + solrFile + ":" + solrFile.length());
-                indexer.index(solrFile);
-            } catch (IndexerException ie) {
-                throw new RuleException(ie);
-            }
             registry.addDatastream(pid, "DC0", "Dublin Core (Source)", meta,
                 "text/xml");
+            index(name, item, pid, null, metaBytes);
+
+            // harvest/index datastreams
+            for (Datastream ds : item.getDatastreams()) {
+                if (!"DC".equals(ds.getLabel())) {
+                    registry.addDatastream(pid, ds.getId(), ds.getLabel(),
+                        ds.getContent(), ds.getMimeType());
+                    index(name, item, pid, ds.getId(), metaBytes);
+                }
+            }
         } catch (Exception e) {
             if (pid != null) {
                 try {
@@ -125,6 +130,32 @@ public class Harvest {
                 }
             }
             throw e;
+        }
+    }
+
+    private void index(String name, Item item, String pid, String dsId,
+        byte[] metadata) throws IOException, RuleException {
+        InputStream dcIn = new ByteArrayInputStream(metadata);
+        File solrFile = File.createTempFile("solr", ".xml");
+        OutputStream solrOut = new FileOutputStream(solrFile);
+        try {
+            python.set("pid", pid);
+            python.set("name", name);
+            python.set("item", item);
+            python.set("dsId", dsId);
+            python.execfile(ruleScript);
+            RuleManager rules = (RuleManager) python.get("rules").__tojava__(
+                RuleManager.class);
+            rules.run(dcIn, solrOut);
+        } catch (Exception e) {
+            throw new RuleException(e);
+        }
+        solrOut.close();
+        try {
+            log.info("solrFile=" + solrFile + ":" + solrFile.length());
+            indexer.index(solrFile);
+        } catch (IndexerException ie) {
+            throw new RuleException(ie);
         } finally {
             if (solrFile != null) {
                 solrFile.delete();
@@ -151,7 +182,7 @@ public class Harvest {
             String repName = args[6];
             String script = args[7];
             int maxRequests = Integer.MAX_VALUE;
-            if (args.length >= 8) {
+            if (args.length > 8) {
                 maxRequests = Integer.parseInt(args[8]);
             }
 

@@ -5,9 +5,10 @@ from au.edu.usq.solr.index.rule.impl import TransformRule, AddFieldRule
 #
 # Available objects:
 #    self: harvester
-#    pid : registry pid
+#    pid: registry pid
 #    name: harvest job name
 #    item: metadata item
+#    dsId: datastream id or None if item is object
 #
 # Return:
 #    rules: RuleManager instance
@@ -21,10 +22,19 @@ rules.add(TransformRule(self.getResource("/xsl/dc_solr.xsl")))
 rules.add(AddFieldRule("repository_name", name))
 
 # unique identifier
-rules.add(AddFieldRule("id", item.getId()))
+solrId = item.getId();
+if dsId is not None:
+    solrId = solrId + "/" + dsId
+rules.add(AddFieldRule("id", solrId))
 
 # registry pid
 rules.add(AddFieldRule("pid", pid))
+
+# item type
+itemType = "object"
+if dsId is not None:
+    itemType = "datastream"
+rules.add(AddFieldRule("item_type", itemType))
 
 # group access
 #   default to "guest"
@@ -42,9 +52,6 @@ for node in nodes:
 
 # item class
 rules.add(AddFieldRule("item_class", "document"))
-
-# item type
-rules.add(AddFieldRule("item_type", "object"))
 
 # full text - get the FULLTEXT datastream
 if item.hasDatastreams():

@@ -60,7 +60,7 @@
         <field name="f_type" type="string" indexed="true" stored="true" multiValued="true" />
         <!-- non-dublin core -->
         <field name="id" type="string" indexed="true" stored="true" required="true" />
-        <field name="pid" type="string" indexed="true" stored="true" required="true" />
+        <field name="pid" type="string" indexed="true" stored="true" />
         <field name="repository_name" type="string" indexed="true" stored="false" />
         <field name="text" type="text" indexed="true" stored="false" multiValued="true" />
         <field name="full_text" type="text" indexed="true" stored="false" multiValued="true"/>
