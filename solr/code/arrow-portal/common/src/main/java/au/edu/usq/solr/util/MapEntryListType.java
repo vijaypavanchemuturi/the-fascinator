@@ -23,11 +23,10 @@ import java.util.List;
 import java.util.Map;
 
 import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlElements;
 
 public class MapEntryListType {
 
-    @XmlElements( { @XmlElement(name = "field") })
+    @XmlElement(name = "field")
     private List<MapEntryType> entries;
 
     public MapEntryListType() {

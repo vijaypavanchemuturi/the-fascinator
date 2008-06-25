@@ -4,10 +4,10 @@
     <records-per-page>10</records-per-page>
     <facet-count>25</facet-count>
     <facet-fields>
-        <user name="repository_name">Repository</user>
-        <user name="f_type">Type</user>
-        <user name="f_subject">Subject</user>
-        <user name="f_creator">Author</user>
+        <field name="repository_name">Repository</field>
+        <field name="f_type">Type</field>
+        <field name="f_subject">Subject</field>
+        <field name="f_creator">Author</field>
     </facet-fields>
     <roles/>
 </portal>
