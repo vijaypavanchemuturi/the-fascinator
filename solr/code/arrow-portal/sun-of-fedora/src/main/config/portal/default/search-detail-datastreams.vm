@@ -3,7 +3,16 @@
   <h3>Downloads</h3>
   <ul class="datastreams">
     #foreach($ds in $page.datastreams)
-      <li><a href="#actionlink('download' $ds.dsid)">$ds.label</a> ($ds.dsid)</li>
+      <li>
+        <a href="#actionlink('download' $ds.dsid)">
+          #if(!$ds.label or $ds.label == "")
+            [Untitled]
+          #else
+            $ds.label
+          #end
+        </a>
+        ($ds.dsid)
+      </li>
     #end
   </ul>
 </div>

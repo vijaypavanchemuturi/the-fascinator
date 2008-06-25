@@ -13,8 +13,12 @@
     #parse($locator.getLocation('search-detail-datastreams.vm'))
     <div class="search-results">
       <h2>#field($dc.title)</h2>
-      <h3>Description</h3>
-      <p>#field($dc.description)</p>
+      #if($dc.description)
+        <h3>Description</h3>
+        <p>#field($dc.description)</p>
+      #else
+        <p>No description</p>
+      #end
       <div class="item">
         <dl>
           #foreach($name in $dc.fields.keySet())
