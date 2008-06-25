@@ -48,6 +48,7 @@ public class Start {
     private String query;
 
     void onActivate() {
+        state.setPortal(portalManager.getDefault());
         searchPage.getFacetLimits().clear();
     }
 

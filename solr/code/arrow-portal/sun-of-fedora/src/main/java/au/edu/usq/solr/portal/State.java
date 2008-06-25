@@ -102,7 +102,11 @@ public class State {
     }
 
     public List<Role> getUserRoles() {
-        return roleManager.getUserRoles(RoleManager.GUEST_ROLE, getPortal());
+        String username = getUserName();
+        if (username == null) {
+            username = RoleManager.GUEST_ROLE;
+        }
+        return roleManager.getUserRoles(username, getPortal());
     }
 
     public void setUserRoles(List<Role> userRoles) {
