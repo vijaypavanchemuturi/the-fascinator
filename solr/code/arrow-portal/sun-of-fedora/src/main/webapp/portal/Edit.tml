@@ -39,10 +39,6 @@
           <t:label t:for="query"/>
           <t:textfield t:id="query" t:size="60" t:value="portal.query"/>
         </t:parameter>
-        <t:parameter t:name="securityQuery">
-          <t:label t:for="securityQuery"/>
-          <t:textfield t:id="securityQuery" t:size="60" t:value="portal.securityQuery"/>
-        </t:parameter>
       </t:beaneditform>
     </div>
     <div t:type="VelocityPanel" t:template="footer.vm"/>
