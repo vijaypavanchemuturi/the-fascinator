@@ -89,11 +89,12 @@ public class AppModule {
     public void contributeApplicationStateManager(
         MappedConfiguration<Class<State>, ApplicationStateContribution> configuration,
         @InjectService("Context")
-        final Context context, @InjectService("RoleManager")
+        final Context context, @InjectService("PortalManager")
+        final PortalManager portalManager, @InjectService("RoleManager")
         final RoleManager roleManager) {
         ApplicationStateCreator<State> creator = new ApplicationStateCreator<State>() {
             public State create() {
-                return new State(context, roleManager);
+                return new State(context, portalManager, roleManager);
             }
         };
         configuration.add(State.class, new ApplicationStateContribution(

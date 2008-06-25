@@ -20,6 +20,7 @@ package au.edu.usq.solr.portal.services;
 
 import java.util.List;
 
+import au.edu.usq.solr.portal.Portal;
 import au.edu.usq.solr.portal.Role;
 import au.edu.usq.solr.portal.RoleList;
 
@@ -35,7 +36,7 @@ public interface RoleManager {
 
     public Role get(String name);
 
-    public List<Role> getUserRoles(String username);
+    public List<Role> getUserRoles(String username, Portal portal);
 
     public void save();
 

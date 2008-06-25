@@ -37,8 +37,8 @@ if dsId is not None:
 rules.add(AddFieldRule("item_type", itemType))
 
 # group access
-#   default to "admin"
-rules.add(AddFieldRule("group_access", "admin"))
+#   default to "on_campus"
+rules.add(AddFieldRule("group_access", "on_campus"))
 
 # item class
 rules.add(AddFieldRule("item_class", "document"))

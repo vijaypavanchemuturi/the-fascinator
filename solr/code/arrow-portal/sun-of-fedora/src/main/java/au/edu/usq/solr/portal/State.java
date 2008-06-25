@@ -41,6 +41,8 @@ public class State {
 
     private Logger log = Logger.getLogger(State.class);
 
+    private PortalManager portalManager;
+
     private RoleManager roleManager;
 
     private Properties props;
@@ -49,7 +51,9 @@ public class State {
 
     private List<Role> userRoles;
 
-    public State(Context context, RoleManager roleManager) {
+    public State(Context context, PortalManager portalManager,
+        RoleManager roleManager) {
+        this.portalManager = portalManager;
         this.roleManager = roleManager;
         props = new Properties();
         try {
@@ -79,6 +83,9 @@ public class State {
     }
 
     public Portal getPortal() {
+        if (portal == null) {
+            portal = portalManager.getDefault();
+        }
         return portal;
     }
 
@@ -96,7 +103,8 @@ public class State {
 
     public List<Role> getUserRoles() {
         if (userRoles == null) {
-            userRoles = roleManager.getUserRoles(RoleManager.GUEST_ROLE);
+            userRoles = roleManager.getUserRoles(RoleManager.GUEST_ROLE,
+                getPortal());
         }
         return userRoles;
     }
@@ -128,7 +136,7 @@ public class State {
 
     public void login(String username) {
         setUserName(username);
-        setUserRoles(roleManager.getUserRoles(username));
+        setUserRoles(roleManager.getUserRoles(username, getPortal()));
     }
 
     public void logout() {

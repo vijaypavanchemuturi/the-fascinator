@@ -34,8 +34,10 @@ import javax.xml.bind.Unmarshaller;
 import org.apache.log4j.Logger;
 import org.apache.tapestry.ioc.Resource;
 
+import au.edu.usq.solr.portal.Portal;
 import au.edu.usq.solr.portal.Role;
 import au.edu.usq.solr.portal.RoleList;
+import au.edu.usq.solr.util.InetAddressUtil;
 
 public class RoleManagerImpl implements RoleManager {
 
@@ -79,26 +81,30 @@ public class RoleManagerImpl implements RoleManager {
         return getList().getRole(name);
     }
 
-    public List<Role> getUserRoles(String username) {
+    public List<Role> getUserRoles(String username, Portal portal) {
         List<Role> userRoles = new ArrayList<Role>();
         userRoles.add(get(GUEST_ROLE));
-        // TODO implement IP range checking
         try {
-            boolean onCampus = false;
+            InetAddress net = InetAddress.getByName("0.0.0.0");
+            InetAddress mask = InetAddress.getByName("0.0.0.0");
             InetAddress ip = InetAddress.getByName(request.getRemoteAddr());
-            if (ip.isLoopbackAddress()) {
-                onCampus = true;
+            String nets = portal.getNetwork();
+            String masks = portal.getNetmask();
+            if (nets != null && masks != null) {
+                net = InetAddress.getByName(nets);
+                mask = InetAddress.getByName(masks);
+                if (ip.isLoopbackAddress() || ip.isAnyLocalAddress()
+                    || InetAddressUtil.contains(net, mask, ip)) {
+                    userRoles.add(get("on_campus"));
+                } else {
+                    log.info(username + "@" + ip + " is not in the " + net
+                        + "/" + mask + " network");
+                }
             } else {
-                InetAddress network = InetAddress.getByName("192.168.0.0");
-                InetAddress netmask = InetAddress.getByName("255.255.0.0");
-                onCampus = false;
-            }
-            log.info("onCampus=" + onCampus);
-            if (onCampus) {
-                userRoles.add(get("on_campus"));
+                log.info("No network address filter specified for " + portal);
             }
         } catch (UnknownHostException e) {
-            e.printStackTrace();
+            log.warn(e);
         }
         for (Role role : getList().getRoles()) {
             if (role.getUserList().contains(username)) {

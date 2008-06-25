@@ -27,12 +27,12 @@ import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
 import org.apache.tapestry.beaneditor.Validate;
 
+import au.edu.usq.solr.portal.services.PortalManager;
 import au.edu.usq.solr.util.MapAdapter;
 
 @XmlRootElement
@@ -48,27 +48,27 @@ public class Portal implements Comparable<Portal> {
     @XmlElement
     private String query;
 
-    @XmlElement(name = "security-query")
-    private String securityQuery;
-
-    @XmlElement(name = "item-class")
-    private String itemClass;
-
     @XmlElement(name = "records-per-page")
     private int recordsPerPage = 10;
 
     @XmlElement(name = "facet-count")
     private int facetCount = 25;
 
+    @XmlElement(name = "item-class")
+    private String itemClass;
+
+    // @XmlElement(name = "security-query")
+    // private String securityQuery;
+
+    @XmlElement
+    private String network;
+
+    @XmlElement
+    private String netmask;
+
     @XmlElement(name = "facet-fields")
     @XmlJavaTypeAdapter(MapAdapter.class)
     private Map<String, String> facetFields;
-
-    @XmlElementWrapper(name = "roles")
-    @XmlElement(name = "role")
-    private List<Role> roles;
-
-    private Map<String, Role> roleMap;
 
     public Portal() {
         this("", "", "");
@@ -84,7 +84,6 @@ public class Portal implements Comparable<Portal> {
         this.description = description;
         this.query = query;
         facetFields = new HashMap<String, String>();
-        roles = new ArrayList<Role>();
     }
 
     @Validate("required")
@@ -112,22 +111,6 @@ public class Portal implements Comparable<Portal> {
         this.query = query;
     }
 
-    public String getSecurityQuery() {
-        return securityQuery;
-    }
-
-    public void setSecurityQuery(String securityQuery) {
-        this.securityQuery = securityQuery;
-    }
-
-    public String getItemClass() {
-        return itemClass;
-    }
-
-    public void setItemClass(String itemClass) {
-        this.itemClass = itemClass;
-    }
-
     public int getRecordsPerPage() {
         return recordsPerPage;
     }
@@ -144,6 +127,38 @@ public class Portal implements Comparable<Portal> {
         this.facetCount = facetCount;
     }
 
+    public String getItemClass() {
+        return itemClass;
+    }
+
+    public void setItemClass(String itemClass) {
+        this.itemClass = itemClass;
+    }
+
+    // public String getSecurityQuery() {
+    // return securityQuery;
+    // }
+
+    // public void setSecurityQuery(String securityQuery) {
+    // this.securityQuery = securityQuery;
+    // }
+
+    public String getNetwork() {
+        return network;
+    }
+
+    public void setNetwork(String network) {
+        this.network = network;
+    }
+
+    public String getNetmask() {
+        return netmask;
+    }
+
+    public void setNetmask(String netmask) {
+        this.netmask = netmask;
+    }
+
     public Map<String, String> getFacetFields() {
         return facetFields;
     }
@@ -154,24 +169,6 @@ public class Portal implements Comparable<Portal> {
 
     public List<String> getFacetFieldList() {
         return new ArrayList<String>(facetFields.keySet());
-    }
-
-    public List<Role> getRoles() {
-        return roles;
-    }
-
-    public Role getRole(String id) {
-        if (roleMap != null && !roleMap.containsKey(id)) {
-            // the role ids could have changed so reset the map
-            roleMap = null;
-        }
-        if (roleMap == null) {
-            roleMap = new HashMap<String, Role>();
-            for (Role role : roles) {
-                roleMap.put(role.getId(), role);
-            }
-        }
-        return roleMap.get(id);
     }
 
     @Override
@@ -186,10 +183,10 @@ public class Portal implements Comparable<Portal> {
     }
 
     public int compareTo(Portal that) {
-        if ("default".equals(name)) {
+        if (PortalManager.DEFAULT_PORTAL_NAME.equals(name)) {
             return -1;
         }
-        if ("default".equals(that.getName())) {
+        if (PortalManager.DEFAULT_PORTAL_NAME.equals(that.getName())) {
             return 1;
         }
         return description.compareTo(that.getDescription());

@@ -9,5 +9,4 @@
         <field name="f_subject">Subject</field>
         <field name="f_creator">Author</field>
     </facet-fields>
-    <roles/>
 </portal>
