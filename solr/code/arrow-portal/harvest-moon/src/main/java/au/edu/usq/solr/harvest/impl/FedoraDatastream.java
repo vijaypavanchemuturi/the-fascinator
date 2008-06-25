@@ -72,7 +72,7 @@ public class FedoraDatastream implements Datastream {
 
     @Override
     public String toString() {
-        return pid + "/" + getId() + "/" + getLabel() + " (" + getMimeType()
+        return pid + "/" + getId() + " [" + getLabel() + "] (" + getMimeType()
             + ")";
     }
 }

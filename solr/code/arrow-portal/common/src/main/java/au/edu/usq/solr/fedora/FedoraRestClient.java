@@ -40,9 +40,6 @@ import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.httpclient.methods.RequestEntity;
 import org.apache.commons.httpclient.methods.StringRequestEntity;
-import org.apache.commons.httpclient.methods.multipart.FilePart;
-import org.apache.commons.httpclient.methods.multipart.MultipartRequestEntity;
-import org.apache.commons.httpclient.methods.multipart.Part;
 import org.apache.log4j.Logger;
 
 import au.edu.usq.solr.util.StreamUtils;
@@ -249,13 +246,10 @@ public class FedoraRestClient {
         String contentType, String content) throws IOException {
         Map<String, String> options = new HashMap<String, String>();
         options.put("dsLabel", dsLabel);
-        PostMethod method = getAddDatastreamMethod(pid, dsId, options);
+        options.put("controlGroup", "X");
         RequestEntity request = new StringRequestEntity(content, contentType,
             null);
-        method.setRequestEntity(request);
-        method.setRequestHeader("Content-Type", contentType);
-        getHttpClient(true).executeMethod(method);
-        method.releaseConnection();
+        addDatastream(pid, dsId, options, contentType, request);
     }
 
     public void addDatastream(String pid, String dsId, String dsLabel,
@@ -263,19 +257,13 @@ public class FedoraRestClient {
         Map<String, String> options = new HashMap<String, String>();
         options.put("dsLabel", dsLabel);
         options.put("controlGroup", "M");
-        PostMethod method = getAddDatastreamMethod(pid, dsId, options);
-        Part[] parts = new Part[] { new FilePart("file", content, contentType,
-            null) };
-        RequestEntity request = new MultipartRequestEntity(parts,
-            method.getParams());
-        method.setRequestEntity(request);
-        method.setRequestHeader("Content-Type", contentType);
-        getHttpClient(true).executeMethod(method);
-        method.releaseConnection();
+        RequestEntity request = new FileRequestEntity(content, contentType);
+        addDatastream(pid, dsId, options, contentType, request);
     }
 
-    private PostMethod getAddDatastreamMethod(String pid, String dsId,
-        Map<String, String> options) throws IOException {
+    private void addDatastream(String pid, String dsId,
+        Map<String, String> options, String contentType, RequestEntity request)
+        throws IOException {
         StringBuilder uri = new StringBuilder(baseUrl);
         uri.append("/objects/");
         uri.append(pid);
@@ -292,7 +280,11 @@ public class FedoraRestClient {
         addParam(uri, options, "checksum");
         addParam(uri, options, "logMessage");
         log.info("uri: " + uri);
-        return new PostMethod(uri.toString());
+        PostMethod method = new PostMethod(uri.toString());
+        method.setRequestEntity(request);
+        method.setRequestHeader("Content-Type", contentType);
+        getHttpClient(true).executeMethod(method);
+        method.releaseConnection();
     }
 
     public void purgeObject(String pid) throws IOException {

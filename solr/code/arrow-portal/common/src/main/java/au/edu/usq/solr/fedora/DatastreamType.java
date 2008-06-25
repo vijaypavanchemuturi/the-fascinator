@@ -23,7 +23,7 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
 
 @XmlAccessorType(XmlAccessType.NONE)
-public class DatastreamType {
+public class DatastreamType implements Comparable<DatastreamType> {
 
     @XmlAttribute
     private String dsid;
@@ -44,6 +44,10 @@ public class DatastreamType {
 
     public String getMimeType() {
         return mimeType;
+    }
+
+    public int compareTo(DatastreamType that) {
+        return label.compareTo(that.getLabel());
     }
 
     @Override

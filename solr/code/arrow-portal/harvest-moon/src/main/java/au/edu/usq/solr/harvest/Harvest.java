@@ -108,8 +108,7 @@ public class Harvest {
 
             // harvest/index the main item
             pid = registry.createObject(itemId, "uuid");
-            registry.addDatastream(pid, "DC0", "Dublin Core (Source)",
-                "text/xml", meta);
+            registry.addDatastream(pid, "DC0", "Dublin Core", "text/xml", meta);
             index(name, item, pid, null, metaBytes);
 
             // harvest/index datastreams
@@ -117,8 +116,9 @@ public class Harvest {
                 String dsId = ds.getId();
                 String mimeType = ds.getMimeType();
                 String label = ds.getLabel();
-                if (!"DC".equals(ds.getLabel())) {
-                    if (mimeType.startsWith("text/")) {
+                if (!"DC".equals(dsId)) {
+                    log.info("Caching " + ds);
+                    if (mimeType.startsWith("text/xml")) {
                         registry.addDatastream(pid, dsId, label, mimeType,
                             ds.getContentAsString());
                     } else {

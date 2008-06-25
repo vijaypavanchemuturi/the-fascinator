@@ -46,6 +46,8 @@ public class FedoraHarvester implements Harvester {
 
     private int requestSize;
 
+    private String searchTerms;
+
     public FedoraHarvester(String url) {
         this(url, Integer.MAX_VALUE);
     }
@@ -60,6 +62,11 @@ public class FedoraHarvester implements Harvester {
         client = new FedoraRestClient(url);
         started = false;
         numRequests = 0;
+        searchTerms = "*";
+    }
+
+    public void setSearchTerms(String searchTerms) {
+        this.searchTerms = searchTerms;
     }
 
     public boolean hasMoreItems() {
@@ -75,7 +82,7 @@ public class FedoraHarvester implements Harvester {
                 results = client.resumeFindObjects(token);
             } else {
                 started = true;
-                results = client.findObjects("*", requestSize);
+                results = client.findObjects(searchTerms, requestSize);
             }
             for (ObjectFieldType object : results.getObjectFields()) {
                 items.add(new FedoraItem(client, object));
