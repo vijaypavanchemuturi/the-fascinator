@@ -248,7 +248,7 @@ public class FedoraRestClient {
         options.put("dsLabel", dsLabel);
         options.put("controlGroup", "X");
         RequestEntity request = new StringRequestEntity(content, contentType,
-            null);
+            "UTF-8");
         addDatastream(pid, dsId, options, contentType, request);
     }
 
@@ -279,7 +279,6 @@ public class FedoraRestClient {
         addParam(uri, options, "checksumType");
         addParam(uri, options, "checksum");
         addParam(uri, options, "logMessage");
-        log.info("uri: " + uri);
         PostMethod method = new PostMethod(uri.toString());
         method.setRequestEntity(request);
         method.setRequestHeader("Content-Type", contentType);
