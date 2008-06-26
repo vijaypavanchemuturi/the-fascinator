@@ -20,11 +20,16 @@ package au.edu.usq.solr.harvest;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
+import java.util.Properties;
 
 import org.apache.log4j.Logger;
 import org.python.util.PythonInterpreter;
@@ -59,30 +64,45 @@ public class Harvest {
         this.registry = registry;
     }
 
-    public void run(String name, String ruleScript) {
+    public void run(String name, String ruleScript, Date since) {
 
         this.ruleScript = ruleScript;
+
+        DateFormat df = new SimpleDateFormat(Harvester.DATETIME_FORMAT);
+        String now = df.format(new Date());
+        log.info("Started at " + now);
+        log.info("Items modified since " + df.format(since)
+            + " will be harvested");
+
+        long start = System.currentTimeMillis();
 
         python = new PythonInterpreter();
         python.set("self", this);
 
         while (harvester.hasMoreItems()) {
             try {
-                List<Item> items = harvester.getItems();
-                for (Item item : items) {
-                    try {
-                        processItem(name, item);
-                    } catch (Exception e) {
-                        log.warn("Processing failed", e);
+                List<Item> items = harvester.getItems(since);
+                if (items.isEmpty()) {
+                    log.info("No more items found");
+                } else {
+                    for (Item item : items) {
+                        try {
+                            processItem(name, item);
+                        } catch (Exception e) {
+                            log.warn("Processing failed", e);
+                        }
                     }
+                    indexer.commit();
                 }
-                indexer.commit();
             } catch (HarvesterException he) {
                 log.error("Harvester failed", he);
             } catch (IndexerException ie) {
                 log.error("Indexer failed", ie);
             }
         }
+
+        log.info("Completed in "
+            + ((System.currentTimeMillis() - start) / 1000.0) + " seconds");
     }
 
     private void processItem(String name, Item item) throws Exception {
@@ -181,20 +201,40 @@ public class Harvest {
     }
 
     public static void main(String[] args) throws Exception {
-        if (args.length < 8) {
-            log.info("Usage: harvest <solrurl> <regurl> <reguser> <regpass> <reptype> <repurl> <repname> <script> [maxRequests]");
+        if (args.length < 1) {
+            log.info("Usage: harvest <configFile> [-force]");
+            log.info("Specifying -force means to re-harvest everything.");
         } else {
-            String solrUrl = args[0];
-            String regUrl = args[1];
-            String regUser = args[2];
-            String regPass = args[3];
-            String repType = args[4];
-            String repUrl = args[5];
-            String repName = args[6];
-            String script = args[7];
+            boolean force = false;
+            if (args.length > 1) {
+                force = "-force".equals(args[1]);
+            }
+            File configFile = new File(args[0]);
+            Properties props = new Properties();
+            props.load(new FileInputStream(configFile));
+
+            String solrUrl = props.getProperty("solr.url");
+            String regUrl = props.getProperty("registry.url");
+            String regUser = props.getProperty("registry.user");
+            String regPass = props.getProperty("registry.pass");
+            String repType = props.getProperty("repository.type");
+            String repUrl = props.getProperty("repository.url");
+            String repName = props.getProperty("repository.name");
+            String script = props.getProperty("indexer.rules");
+
             int maxRequests = Integer.MAX_VALUE;
-            if (args.length > 8) {
-                maxRequests = Integer.parseInt(args[8]);
+            if (props.containsKey("max.requests")) {
+                maxRequests = Integer.parseInt(props.getProperty("max.requests"));
+            }
+
+            Date since = null;
+            if (!force) {
+                if (props.containsKey("modified.since")) {
+                    DateFormat df = new SimpleDateFormat(
+                        Harvester.DATETIME_FORMAT);
+                    String from = props.getProperty("modified.since");
+                    since = df.parse(from);
+                }
             }
 
             Harvester harvester;
@@ -202,13 +242,12 @@ public class Harvest {
                 harvester = new OaiPmhHarvester(repUrl, maxRequests);
             } else {
                 harvester = new FedoraHarvester(repUrl, maxRequests);
-                // ((FedoraHarvester) harvester).setSearchTerms("unisa:24983");
             }
             Indexer solr = new SolrIndexer(solrUrl);
             FedoraRestClient registry = new FedoraRestClient(regUrl);
             registry.authenticate(regUser, regPass);
             Harvest harvest = new Harvest(harvester, solr, registry);
-            harvest.run(repName, script);
+            harvest.run(repName, script, since);
         }
     }
 }

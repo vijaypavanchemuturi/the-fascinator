@@ -18,12 +18,17 @@
  */
 package au.edu.usq.solr.harvest;
 
+import java.util.Date;
 import java.util.List;
 
 public interface Harvester {
 
+    public static final String DATE_FORMAT = "yyyy-MM-dd";
+
+    public static final String DATETIME_FORMAT = DATE_FORMAT + "'T'hh:mm:ss'Z'";
+
     public boolean hasMoreItems();
 
-    public List<Item> getItems() throws HarvesterException;
+    public List<Item> getItems(Date since) throws HarvesterException;
 
 }

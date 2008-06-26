@@ -86,13 +86,23 @@ public class FedoraRestClient {
 
     // Access methods (Fedora 2.2+ compatible)
 
+    public enum FindObjectsType {
+        QUERY, TERMS
+    };
+
     public ResultType findObjects(String terms, int maxResults)
         throws IOException {
+        return findObjects(FindObjectsType.TERMS, terms, maxResults);
+    }
+
+    public ResultType findObjects(FindObjectsType type, String queryOrTerms,
+        int maxResults) throws IOException {
         ResultType result = null;
         try {
             StringBuilder uri = new StringBuilder(baseUrl);
-            uri.append("/search?terms=");
-            uri.append(URLEncoder.encode(terms, "UTF-8"));
+            uri.append("/search?");
+            uri.append(type == FindObjectsType.QUERY ? "query=" : "terms=");
+            uri.append(URLEncoder.encode(queryOrTerms, "UTF-8"));
             uri.append("&maxResults=");
             uri.append(maxResults);
             uri.append("&xml=true");

@@ -1,0 +1,31 @@
+#
+# Solr
+#
+solr.url=http://localhost:8080/solr
+solr.user=
+solr.pass=
+
+#
+# Registry (Fedora 3)
+#
+registry.url=http://localhost:8080/fedora
+registry.pass=fedoraAdmin
+registry.user=fedoraAdmin
+
+#
+# Repository to harvest
+#
+repository.type=fedora
+repository.url=http://rubric-vitalnew.usq.edu.au:8080/fedora
+repository.name=RUBRIC
+
+#
+# Indexer
+#
+indexer.rules=src/main/config/rubric-rules.py
+
+#
+# Optional
+#
+#max.requests=0
+#modified.since=01-01-2008T00:00:00Z

@@ -19,13 +19,19 @@
 package au.edu.usq.solr.harvest.impl;
 
 import java.io.IOException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+
+import org.apache.log4j.Logger;
 
 import au.edu.usq.solr.fedora.FedoraRestClient;
 import au.edu.usq.solr.fedora.ListSessionType;
 import au.edu.usq.solr.fedora.ObjectFieldType;
 import au.edu.usq.solr.fedora.ResultType;
+import au.edu.usq.solr.fedora.FedoraRestClient.FindObjectsType;
 import au.edu.usq.solr.harvest.Harvester;
 import au.edu.usq.solr.harvest.HarvesterException;
 import au.edu.usq.solr.harvest.Item;
@@ -33,6 +39,8 @@ import au.edu.usq.solr.harvest.Item;
 public class FedoraHarvester implements Harvester {
 
     private static final int DEFAULT_REQUEST_SIZE = 25;
+
+    private Logger log = Logger.getLogger(FedoraHarvester.class);
 
     private FedoraRestClient client;
 
@@ -73,16 +81,27 @@ public class FedoraHarvester implements Harvester {
         return !started || (token != null && numRequests < maxRequests);
     }
 
-    public List<Item> getItems() throws HarvesterException {
+    public List<Item> getItems(Date since) throws HarvesterException {
         List<Item> items = new ArrayList<Item>();
         ResultType results;
         try {
             numRequests++;
             if (started) {
                 results = client.resumeFindObjects(token);
+                log.debug("Resuming harvest using token: " + token);
             } else {
                 started = true;
-                results = client.findObjects(searchTerms, requestSize);
+                if (since == null) {
+                    log.debug("Harvesting ALL records");
+                    results = client.findObjects(FindObjectsType.TERMS,
+                        searchTerms, requestSize);
+                } else {
+                    DateFormat df = new SimpleDateFormat(DATETIME_FORMAT);
+                    String from = df.format(since);
+                    log.debug("Harvesting records from [" + from + "]");
+                    results = client.findObjects(FindObjectsType.QUERY,
+                        "mDate>" + from, requestSize);
+                }
             }
             for (ObjectFieldType object : results.getObjectFields()) {
                 items.add(new FedoraItem(client, object));

@@ -18,8 +18,13 @@
  */
 package au.edu.usq.solr.harvest.impl;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+
+import org.apache.log4j.Logger;
 
 import se.kb.oai.OAIException;
 import se.kb.oai.pmh.OaiPmhServer;
@@ -32,6 +37,8 @@ import au.edu.usq.solr.harvest.Item;
 import au.edu.usq.solr.util.OaiDcNsContext;
 
 public class OaiPmhHarvester implements Harvester {
+
+    private Logger log = Logger.getLogger(OaiPmhHarvester.class);
 
     private OaiPmhServer server;
 
@@ -58,16 +65,27 @@ public class OaiPmhHarvester implements Harvester {
         return !started || (token != null && numRequests < maxRequests);
     }
 
-    public List<Item> getItems() throws HarvesterException {
+    public List<Item> getItems(Date since) throws HarvesterException {
+
         List<Item> items = new ArrayList<Item>();
         RecordsList records;
         try {
             numRequests++;
             if (started) {
                 records = server.listRecords(token);
+                log.debug("Resuming harvest using token: " + token.getId());
             } else {
                 started = true;
-                records = server.listRecords(OaiDcNsContext.OAI_DC_PREFIX);
+                if (since == null) {
+                    log.debug("Harvesting ALL records");
+                    records = server.listRecords(OaiDcNsContext.OAI_DC_PREFIX);
+                } else {
+                    DateFormat df = new SimpleDateFormat(DATETIME_FORMAT);
+                    String from = df.format(since);
+                    log.debug("Harvesting records from [" + from + "]");
+                    records = server.listRecords(OaiDcNsContext.OAI_DC_PREFIX,
+                        from, null, null);
+                }
             }
             for (Record record : records.asList()) {
                 items.add(new OaiPmhItem(record));
