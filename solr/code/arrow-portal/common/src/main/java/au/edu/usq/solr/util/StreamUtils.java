@@ -21,6 +21,8 @@ package au.edu.usq.solr.util;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.Reader;
+import java.io.Writer;
 import java.nio.ByteBuffer;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
@@ -41,6 +43,14 @@ public class StreamUtils {
         buffer.flip();
         while (buffer.hasRemaining()) {
             dest.write(buffer);
+        }
+    }
+
+    public static void copyStream(Reader in, Writer out) throws IOException {
+        char[] buffer = new char[4096];
+        int n = 0;
+        while (-1 != (n = in.read(buffer))) {
+            out.write(buffer, 0, n);
         }
     }
 }

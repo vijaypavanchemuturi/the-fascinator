@@ -18,8 +18,8 @@
  */
 package au.edu.usq.solr.index.rule.impl;
 
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.Reader;
+import java.io.Writer;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
@@ -53,7 +53,7 @@ public class AddFieldRule extends AbstractRule {
     }
 
     @Override
-    public void run(InputStream in, OutputStream out) throws RuleException {
+    public void run(Reader in, Writer out) throws RuleException {
         log.info("Adding field " + field);
         try {
             JAXBContext jc = JAXBContext.newInstance(AddDocType.class);
@@ -63,7 +63,7 @@ public class AddFieldRule extends AbstractRule {
             Marshaller m = jc.createMarshaller();
             m.marshal(addDoc, out);
         } catch (JAXBException jaxbe) {
-            throw new RuleException("Failed to add field: " + field, jaxbe);
+            throw new RuleException(jaxbe.getLinkedException());
         }
     }
 }

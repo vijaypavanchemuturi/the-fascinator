@@ -20,6 +20,7 @@ package au.edu.usq.solr.fedora;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URLEncoder;
 import java.util.HashMap;
@@ -32,6 +33,7 @@ import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 
 import org.apache.commons.httpclient.HttpClient;
+import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.httpclient.UsernamePasswordCredentials;
 import org.apache.commons.httpclient.auth.AuthScope;
 import org.apache.commons.httpclient.methods.DeleteMethod;
@@ -113,7 +115,9 @@ public class FedoraRestClient {
             if (status == 200) {
                 JAXBContext jc = JAXBContext.newInstance(ResultType.class);
                 Unmarshaller um = jc.createUnmarshaller();
-                result = (ResultType) um.unmarshal(method.getResponseBodyAsStream());
+                InputStream in = method.getResponseBodyAsStream();
+                result = (ResultType) um.unmarshal(in);
+                in.close();
             }
             method.releaseConnection();
         } catch (JAXBException jaxbe) {
@@ -134,7 +138,9 @@ public class FedoraRestClient {
             if (status == 200) {
                 JAXBContext jc = JAXBContext.newInstance(ResultType.class);
                 Unmarshaller um = jc.createUnmarshaller();
-                result = (ResultType) um.unmarshal(method.getResponseBodyAsStream());
+                InputStream in = method.getResponseBodyAsStream();
+                result = (ResultType) um.unmarshal(in);
+                in.close();
             }
             method.releaseConnection();
         } catch (JAXBException jaxbe) {
@@ -155,7 +161,9 @@ public class FedoraRestClient {
             if (status == 200) {
                 JAXBContext jc = JAXBContext.newInstance(ObjectDatastreamsType.class);
                 Unmarshaller um = jc.createUnmarshaller();
-                result = (ObjectDatastreamsType) um.unmarshal(method.getResponseBodyAsStream());
+                InputStream in = method.getResponseBodyAsStream();
+                result = (ObjectDatastreamsType) um.unmarshal(in);
+                in.close();
             }
             method.releaseConnection();
         } catch (JAXBException jaxbe) {
@@ -179,8 +187,10 @@ public class FedoraRestClient {
         }
         GetMethod method = new GetMethod(uri.toString());
         int status = getHttpClient().executeMethod(method);
-        if (status == 200) {
-            StreamUtils.copyStream(method.getResponseBodyAsStream(), out);
+        if (status == HttpStatus.SC_OK) {
+            InputStream in = method.getResponseBodyAsStream();
+            StreamUtils.copyStream(in, out);
+            in.close();
         } else {
             log.warn("GET " + uri + " returned " + status);
         }
@@ -207,10 +217,12 @@ public class FedoraRestClient {
             uri.append("&format=xml");
             GetMethod method = new GetMethod(uri.toString());
             int status = getHttpClient().executeMethod(method);
-            if (status == 200) {
+            if (status == HttpStatus.SC_OK) {
                 JAXBContext jc = JAXBContext.newInstance(PidListType.class);
                 Unmarshaller um = jc.createUnmarshaller();
-                result = (PidListType) um.unmarshal(method.getResponseBodyAsStream());
+                InputStream in = method.getResponseBodyAsStream();
+                result = (PidListType) um.unmarshal(in);
+                in.close();
             }
             method.releaseConnection();
         } catch (JAXBException jaxbe) {

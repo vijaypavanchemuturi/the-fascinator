@@ -19,7 +19,8 @@
 package au.edu.usq.solr.index.rule.impl;
 
 import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.Reader;
+import java.io.Writer;
 import java.util.Map;
 
 import javax.xml.transform.Result;
@@ -61,7 +62,7 @@ public class TransformRule extends AbstractRule {
     }
 
     @Override
-    public void run(InputStream in, OutputStream out) throws RuleException {
+    public void run(Reader in, Writer out) throws RuleException {
         Source source = new StreamSource(in);
         Result result = new StreamResult(out);
         try {

@@ -22,8 +22,10 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.io.Reader;
+import java.io.Writer;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -56,23 +58,25 @@ public class RuleManager {
         rules.remove(rule);
     }
 
-    public void run(InputStream in, OutputStream out) throws IOException {
+    public void run(Reader in, Writer out) throws IOException {
         File tmpFile = null;
         File lastTmpFile = null;
-        InputStream tmpIn = in;
+        Reader tmpIn = in;
         boolean stopped = false;
         for (Rule rule : rules) {
             try {
                 lastTmpFile = tmpFile;
                 tmpFile = File.createTempFile("rule", ".xml", workDir);
-                OutputStream tmpOut = new FileOutputStream(tmpFile);
+                Writer tmpOut = new OutputStreamWriter(new FileOutputStream(
+                    tmpFile));
                 rule.run(tmpIn, tmpOut);
                 tmpOut.close();
                 tmpIn.close();
                 if (lastTmpFile != null) {
                     lastTmpFile.delete();
                 }
-                tmpIn = new FileInputStream(tmpFile);
+                tmpIn = new InputStreamReader(new FileInputStream(tmpFile),
+                    "UTF-8");
             } catch (Exception e) {
                 if (rule.getStopOnFailure()) {
                     stopped = true;

@@ -18,8 +18,8 @@
  */
 package au.edu.usq.solr.index.rule;
 
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.Reader;
+import java.io.Writer;
 
 public abstract class AbstractRule implements Rule {
 
@@ -40,16 +40,8 @@ public abstract class AbstractRule implements Rule {
         return name;
     }
 
-    public void setName(String name) {
-        this.name = name;
-    }
-
     public boolean getStopOnFailure() {
         return stopOnFailure;
-    }
-
-    public void setStopOnFailure(boolean stopOnFailure) {
-        this.stopOnFailure = stopOnFailure;
     }
 
     @Override
@@ -57,6 +49,6 @@ public abstract class AbstractRule implements Rule {
         return getName();
     }
 
-    public abstract void run(InputStream in, OutputStream out)
-        throws RuleException;
+    public abstract void run(Reader in, Writer out) throws RuleException;
+
 }

@@ -18,8 +18,8 @@
  */
 package au.edu.usq.solr.index.rule.impl;
 
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.Reader;
+import java.io.Writer;
 import java.util.List;
 import java.util.regex.Pattern;
 
@@ -65,7 +65,7 @@ public class CheckFieldRule extends AbstractRule {
     }
 
     @Override
-    public void run(InputStream in, OutputStream out) throws RuleException {
+    public void run(Reader in, Writer out) throws RuleException {
         log.info("Checking " + (matchAll ? "ALL '" : "AT LEAST ONE '")
             + fieldName + "' match '" + regex + "'");
         try {
@@ -81,7 +81,7 @@ public class CheckFieldRule extends AbstractRule {
                     valid++;
                     log.info("'" + value + "' matches");
                 } else {
-                    log.info("'" + value + "' is invalid");
+                    log.info("'" + value + "' does not match");
                 }
             }
             int diff = fields.size() - valid;
@@ -97,8 +97,7 @@ public class CheckFieldRule extends AbstractRule {
                 m.marshal(addDoc, out);
             }
         } catch (JAXBException jaxbe) {
-            throw new RuleException("Failed to check field: " + fieldName,
-                jaxbe);
+            throw new RuleException(jaxbe.getLinkedException());
         }
     }
 }

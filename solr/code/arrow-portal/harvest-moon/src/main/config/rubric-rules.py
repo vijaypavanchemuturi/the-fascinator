@@ -9,65 +9,61 @@ from au.edu.usq.solr.index.rule.impl import *
 #    pid: registry object pid
 #    dsId: datastream id or None if item is object
 #
-
-# dc to solr transform
-rules.add(TransformRule(self.getResource("/xsl/dc_solr.xsl")))
-
-# at least one identifier with url value
-rules.add(CheckFieldRule("identifier", "http.*"))
-
-# at least one non-blank title
-rules.add(CheckFieldRule("title", ".+"))
-
-# use only the year from date field
-rules.add(ModifiyFieldRule("date", ".*(\\d{4}).*", "$1"))
-
-# delete blank subject
-rules.add(DeleteFieldRule("subject", "^\\s*$"))
-
-# delete blank creator
-rules.add(DeleteFieldRule("creator", "^\\s*$"))
-
-# delete invalid dates
-rules.add(DeleteFieldRule("date", "(.*[^0-9].*)|(^\\s*$)"))
-
-# repository name
-rules.add(AddFieldRule("repository_name", "RUBRIC"))
-
-if dsId is None:
-    solrId = item.getId();
-    itemType = "object"
+datastreamMode = dsId is not None
+if not datastreamMode:
+    #
+    # full processing mode starts with the dublin core document. this is
+    # intended for indexing main item records.
+    #
+    # dc to solr transform
+    rules.add(TransformRule(self.getResource("/xsl/dc_solr.xsl")))
+    # at least one identifier with url value
+    rules.add(CheckFieldRule("identifier", "http.*"))
+    # at least one non-blank title
+    rules.add(CheckFieldRule("title", ".+"))
+    # use only the year from date field
+    rules.add(ModifyFieldRule("date", ".*(\\d{4}).*", "$1"))
+    # delete blank subject
+    rules.add(DeleteFieldRule("subject", "^\\s*$"))
+    # delete blank creator
+    rules.add(DeleteFieldRule("creator", "^\\s*$"))
+    # delete invalid dates
+    rules.add(DeleteFieldRule("date", "(.*[^0-9].*)|(^\\s*$)"))
+    # set repository name
+    rules.add(AddFieldRule("repository_name", "RUBRIC"))
+    # set unique identifier (e.g. oai id or fedora pid)
+    rules.add(AddFieldRule("id", item.getId()))
+    # set registry pid
+    rules.add(AddFieldRule("pid", pid))
+    # set item type to object
+    rules.add(AddFieldRule("item_type", "object"))
+    # set item class to document
+    rules.add(AddFieldRule("item_class", "document"))
+    
+    # group access
+    #   default to "guest"
+    #   set to "admin" for ADT items
+    #   add "on_campus" for conference proceedings
+    groupAccess = AddFieldRule("group_access", "guest")
+    rules.add(groupAccess)
+    nodes = item.getMetadata().selectNodes("//dc:type")
+    for node in nodes:
+        dcType = node.getText().strip()
+        if dcType == "Australasian Digital Thesis":
+            groupAccess.setValue("admin")
+    
     # full text - get the FULLTEXT datastream
     if item.hasDatastreams():
         ds = item.getDatastream("FULLTEXT")
         if ds is not None:
             rules.add(AddFieldRule("full_text", ds.getContentAsString()))
 else:
-    solrId = item.getId() + "/" + dsId
-    itemType = "datastream"
-
-# unique identifier
-rules.add(AddFieldRule("id", solrId))
-
-# registry pid
-rules.add(AddFieldRule("pid", pid))
-
-# item type
-rules.add(AddFieldRule("item_type", itemType))
-
-# group access
-#   default to "guest"
-#   set to "admin" for ADT items
-#   add "on_campus" for conference proceedings
-groupAccess = AddFieldRule("group_access", "guest")
-rules.add(groupAccess)
-nodes = item.getMetadata().selectNodes("//dc:type")
-for node in nodes:
-    dcType = node.getText().strip()
-    if dcType == "Australasian Digital Thesis":
-        groupAccess.setValue("admin")
-    elif dcType == "conference proceedings":
-        rules.add(AddFieldRule("group_access", "on_campus"))
-
-# item class
-rules.add(AddFieldRule("item_class", "document"))
+    #
+    # datastream mode starts with a solr document from a previous. this is
+    # intended for indexing datastreams.
+    #
+    # add datastream id
+    rules.add(ModifyFieldRule("id", item.getId() + "/" + dsId))
+    # set item type to datastream
+    rules.add(ModifyFieldRule("item_type", "datastream"))
+    

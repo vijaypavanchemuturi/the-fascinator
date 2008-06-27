@@ -18,8 +18,8 @@
  */
 package au.edu.usq.solr.index.rule.impl;
 
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.Reader;
+import java.io.Writer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -55,7 +55,7 @@ public class DeleteFieldRule extends AbstractRule {
     }
 
     @Override
-    public void run(InputStream in, OutputStream out) throws RuleException {
+    public void run(Reader in, Writer out) throws RuleException {
         log.info("Deleting '" + fieldName + "' fields that match '" + regex
             + "'");
         try {
@@ -80,8 +80,7 @@ public class DeleteFieldRule extends AbstractRule {
             Marshaller m = jc.createMarshaller();
             m.marshal(addDoc, out);
         } catch (JAXBException jaxbe) {
-            throw new RuleException("Failed to delete field: " + fieldName,
-                jaxbe);
+            throw new RuleException(jaxbe.getLinkedException());
         }
     }
 }

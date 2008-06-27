@@ -18,19 +18,15 @@
  */
 package au.edu.usq.solr.index.rule;
 
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.Reader;
+import java.io.Writer;
 
 public interface Rule {
 
     public String getName();
 
-    public void setName(String name);
-
     public boolean getStopOnFailure();
 
-    public void setStopOnFailure(boolean stopOnFailure);
+    public void run(Reader in, Writer out) throws RuleException;
 
-    public void run(InputStream in, OutputStream out)
-        throws RuleException;
 }

@@ -18,8 +18,8 @@
  */
 package au.edu.usq.solr.index.rule.impl;
 
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.Reader;
+import java.io.Writer;
 import java.util.List;
 
 import javax.xml.bind.JAXBContext;
@@ -44,6 +44,10 @@ public class ModifyFieldRule extends AbstractRule {
 
     private String replacement;
 
+    public ModifyFieldRule(String fieldName, String replacement) {
+        this(fieldName, null, replacement);
+    }
+
     public ModifyFieldRule(String fieldName, String regex, String replacement) {
         super("ModifyField", false);
         this.fieldName = fieldName;
@@ -52,30 +56,38 @@ public class ModifyFieldRule extends AbstractRule {
     }
 
     @Override
-    public void run(InputStream in, OutputStream out) throws RuleException {
-        log.info("Modifying '" + fieldName + "' matching '" + regex
-            + "' with replacement '" + replacement + "'");
+    public void run(Reader in, Writer out) throws RuleException {
+        if (regex == null) {
+            log.info("Changing all '" + fieldName + "' to value '"
+                + replacement + "'");
+        } else {
+            log.info("Modifying '" + fieldName + "' matching '" + regex
+                + "' with replacement '" + replacement + "'");
+        }
         try {
             JAXBContext jc = JAXBContext.newInstance(AddDocType.class);
             Unmarshaller u = jc.createUnmarshaller();
             AddDocType addDoc = (AddDocType) u.unmarshal(in);
             List<FieldType> fields = addDoc.getFields(fieldName);
             for (FieldType field : fields) {
-                String value = field.getValue();
-                String newValue = value.replaceAll(regex, replacement);
-                if (value.equals(newValue)) {
-                    log.info("Value '" + value + "' was unmodified");
+                if (regex == null) {
+                    field.setValue(replacement);
                 } else {
-                    field.setValue(newValue);
-                    log.info("Modified value '" + value + "' to '" + newValue
-                        + "'");
+                    String value = field.getValue();
+                    String newValue = value.replaceAll(regex, replacement);
+                    if (value.equals(newValue)) {
+                        log.info("Value '" + value + "' was unmodified");
+                    } else {
+                        field.setValue(newValue);
+                        log.info("Modified value '" + value + "' to '"
+                            + newValue + "'");
+                    }
                 }
             }
             Marshaller m = jc.createMarshaller();
             m.marshal(addDoc, out);
         } catch (JAXBException jaxbe) {
-            throw new RuleException("Failed to modify field: " + fieldName,
-                jaxbe);
+            throw new RuleException(jaxbe.getLinkedException());
         }
     }
 }
