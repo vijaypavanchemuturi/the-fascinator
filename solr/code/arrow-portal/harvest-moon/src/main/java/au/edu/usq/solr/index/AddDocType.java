@@ -18,6 +18,7 @@
  */
 package au.edu.usq.solr.index;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.xml.bind.annotation.XmlAccessType;
@@ -44,5 +45,19 @@ public class AddDocType {
 
     public List<FieldType> getFields() {
         return fields;
+    }
+
+    public void setFields(List<FieldType> fields) {
+        this.fields = fields;
+    }
+
+    public List<FieldType> getFields(String name) {
+        List<FieldType> list = new ArrayList<FieldType>();
+        for (FieldType field : getFields()) {
+            if (name.equals(field.getName())) {
+                list.add(field);
+            }
+        }
+        return list;
     }
 }

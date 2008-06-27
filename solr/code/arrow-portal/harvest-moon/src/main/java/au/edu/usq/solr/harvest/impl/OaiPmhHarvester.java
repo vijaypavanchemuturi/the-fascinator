@@ -27,6 +27,7 @@ import java.util.List;
 import org.apache.log4j.Logger;
 
 import se.kb.oai.OAIException;
+import se.kb.oai.pmh.ErrorResponseException;
 import se.kb.oai.pmh.OaiPmhServer;
 import se.kb.oai.pmh.Record;
 import se.kb.oai.pmh.RecordsList;
@@ -73,18 +74,29 @@ public class OaiPmhHarvester implements Harvester {
             numRequests++;
             if (started) {
                 records = server.listRecords(token);
-                log.debug("Resuming harvest using token: " + token.getId());
+                log.info("Resuming harvest using token: " + token.getId());
             } else {
                 started = true;
                 if (since == null) {
-                    log.debug("Harvesting ALL records");
+                    log.info("Harvesting ALL records");
                     records = server.listRecords(OaiDcNsContext.OAI_DC_PREFIX);
                 } else {
                     DateFormat df = new SimpleDateFormat(DATETIME_FORMAT);
                     String from = df.format(since);
-                    log.debug("Harvesting records from [" + from + "]");
-                    records = server.listRecords(OaiDcNsContext.OAI_DC_PREFIX,
-                        from, null, null);
+                    try {
+                        log.info("Harvesting records from [" + from + "]");
+                        records = server.listRecords(
+                            OaiDcNsContext.OAI_DC_PREFIX, from, null, null);
+                    } catch (ErrorResponseException ere) {
+                        if (ere.getMessage().startsWith("Max granularity")) {
+                            log.warn(ere.getMessage());
+                            df = new SimpleDateFormat(DATE_FORMAT);
+                            from = df.format(since);
+                        }
+                        log.info("Harvesting records from [" + from + "]");
+                        records = server.listRecords(
+                            OaiDcNsContext.OAI_DC_PREFIX, from, null, null);
+                    }
                 }
             }
             for (Record record : records.asList()) {

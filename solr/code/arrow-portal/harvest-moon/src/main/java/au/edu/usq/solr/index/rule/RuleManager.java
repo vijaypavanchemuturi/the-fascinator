@@ -60,6 +60,7 @@ public class RuleManager {
         File tmpFile = null;
         File lastTmpFile = null;
         InputStream tmpIn = in;
+        boolean stopped = false;
         for (Rule rule : rules) {
             try {
                 lastTmpFile = tmpFile;
@@ -74,14 +75,18 @@ public class RuleManager {
                 tmpIn = new FileInputStream(tmpFile);
             } catch (Exception e) {
                 if (rule.getStopOnFailure()) {
-                    log.error("Stopping since " + rule + " failed", e);
+                    stopped = true;
+                    log.error("Stopping since " + rule + " failed: "
+                        + e.getMessage());
                     break;
                 } else {
-                    log.warn("Rule " + rule + " failed.", e);
+                    log.warn("Rule " + rule + " failed: " + e.getMessage());
                 }
             }
         }
-        StreamUtils.copyStream(tmpIn, out);
-        tmpFile.delete();
+        if (!stopped) {
+            StreamUtils.copyStream(tmpIn, out);
+            tmpFile.delete();
+        }
     }
 }

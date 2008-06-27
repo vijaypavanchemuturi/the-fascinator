@@ -64,15 +64,17 @@ public class Harvest {
         this.registry = registry;
     }
 
-    public void run(String name, String ruleScript, Date since) {
+    public void run(String ruleScript, Date since) {
 
         this.ruleScript = ruleScript;
 
         DateFormat df = new SimpleDateFormat(Harvester.DATETIME_FORMAT);
         String now = df.format(new Date());
         log.info("Started at " + now);
-        log.info("Items modified since " + df.format(since)
-            + " will be harvested");
+        if (since != null) {
+            log.info("Items modified since " + df.format(since)
+                + " will be harvested");
+        }
 
         long start = System.currentTimeMillis();
 
@@ -87,7 +89,7 @@ public class Harvest {
                 } else {
                     for (Item item : items) {
                         try {
-                            processItem(name, item);
+                            processItem(item);
                         } catch (Exception e) {
                             log.warn("Processing failed", e);
                         }
@@ -95,9 +97,9 @@ public class Harvest {
                     indexer.commit();
                 }
             } catch (HarvesterException he) {
-                log.error("Harvester failed", he);
+                log.error(he.getMessage());
             } catch (IndexerException ie) {
-                log.error("Indexer failed", ie);
+                log.error(ie.getMessage());
             }
         }
 
@@ -105,7 +107,7 @@ public class Harvest {
             + ((System.currentTimeMillis() - start) / 1000.0) + " seconds");
     }
 
-    private void processItem(String name, Item item) throws Exception {
+    private void processItem(Item item) throws Exception {
 
         String itemId = item.getId();
         String pid = null;
@@ -129,8 +131,7 @@ public class Harvest {
             // harvest/index the main item
             pid = registry.createObject(itemId, "uuid");
             registry.addDatastream(pid, "DC0", "Dublin Core", "text/xml", meta);
-            index(name, item, pid, null, metaBytes);
-
+            File solrFile = index(item, pid, null, metaBytes);
             // harvest/index datastreams
             for (Datastream ds : item.getDatastreams()) {
                 String dsId = ds.getId();
@@ -148,9 +149,14 @@ public class Harvest {
                             dsFile);
                         dsFile.delete();
                     }
-                    index(name, item, pid, dsId, metaBytes);
+                    try {
+                        indexer.index(solrFile);
+                    } catch (IndexerException ie) {
+                        throw new RuleException(ie);
+                    }
                 }
             }
+            solrFile.delete();
         } catch (Exception e) {
             if (pid != null) {
                 try {
@@ -165,33 +171,30 @@ public class Harvest {
         }
     }
 
-    private void index(String name, Item item, String pid, String dsId,
-        byte[] metadata) throws IOException, RuleException {
+    private File index(Item item, String pid, String dsId, byte[] metadata)
+        throws IOException, RuleException {
         InputStream dcIn = new ByteArrayInputStream(metadata);
         File solrFile = File.createTempFile("solr", ".xml");
         OutputStream solrOut = new FileOutputStream(solrFile);
         try {
+            RuleManager rules = new RuleManager();
+            python.set("rules", rules);
             python.set("pid", pid);
-            python.set("name", name);
-            python.set("item", item);
             python.set("dsId", dsId);
+            python.set("item", item);
             python.execfile(ruleScript);
-            RuleManager rules = (RuleManager) python.get("rules").__tojava__(
-                RuleManager.class);
             rules.run(dcIn, solrOut);
         } catch (Exception e) {
             throw new RuleException(e);
+        } finally {
+            solrOut.close();
         }
-        solrOut.close();
         try {
             indexer.index(solrFile);
         } catch (IndexerException ie) {
             throw new RuleException(ie);
-        } finally {
-            if (solrFile != null) {
-                solrFile.delete();
-            }
         }
+        return solrFile;
     }
 
     // Convenience methods for Jython scripts
@@ -202,12 +205,15 @@ public class Harvest {
 
     public static void main(String[] args) throws Exception {
         if (args.length < 1) {
-            log.info("Usage: harvest <configFile> [-force]");
-            log.info("Specifying -force means to re-harvest everything.");
+            log.info("Usage: harvest <configFile> [-all]");
+            log.info("Specifying -all will harvest everything.");
         } else {
-            boolean force = false;
-            if (args.length > 1) {
-                force = "-force".equals(args[1]);
+            boolean all = false;
+            for (String arg : args) {
+                if ("-all".equals(arg)) {
+                    all = true;
+                    break;
+                }
             }
             File configFile = new File(args[0]);
             Properties props = new Properties();
@@ -219,7 +225,6 @@ public class Harvest {
             String regPass = props.getProperty("registry.pass");
             String repType = props.getProperty("repository.type");
             String repUrl = props.getProperty("repository.url");
-            String repName = props.getProperty("repository.name");
             String script = props.getProperty("indexer.rules");
 
             int maxRequests = Integer.MAX_VALUE;
@@ -228,12 +233,14 @@ public class Harvest {
             }
 
             Date since = null;
-            if (!force) {
+            if (!all) {
                 if (props.containsKey("modified.since")) {
                     DateFormat df = new SimpleDateFormat(
                         Harvester.DATETIME_FORMAT);
                     String from = props.getProperty("modified.since");
                     since = df.parse(from);
+                } else {
+                    since = new Date();
                 }
             }
 
@@ -247,7 +254,7 @@ public class Harvest {
             FedoraRestClient registry = new FedoraRestClient(regUrl);
             registry.authenticate(regUser, regPass);
             Harvest harvest = new Harvest(harvester, solr, registry);
-            harvest.run(repName, script, since);
+            harvest.run(script, since);
         }
     }
 }
