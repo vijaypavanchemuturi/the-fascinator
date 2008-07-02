@@ -1,9 +1,9 @@
 #
-# Solr
+# Solr base URL
 #
 solr.url=http://localhost:8080/solr
-solr.user=
-solr.pass=
+#solr.user=
+#solr.pass=
 
 #
 # Registry (Fedora 3)
@@ -14,17 +14,23 @@ registry.user=fedoraAdmin
 
 #
 # Repository to harvest
+#   repository.type = oai | fedora
 #
 repository.type=fedora
 repository.url=http://rubric-vitalnew.usq.edu.au:8080/fedora
 
 #
 # Indexer
+#   relative to current directory
 #
-indexer.rules=harvest-moon/src/main/config/rubric-rules.py
+indexer.rules=src/main/config/rubric-rules.py
 
 #
 # Optional
+#   max.requests = number of requests
+#     Note: OAI-PMH does 100 records per requests, FEDORA does 25
+#   modified.since = only get records modified since this date/time
+#     Note: By default harvest records modified from now
 #
 #max.requests=0
 #modified.since=01-01-2008T00:00:00Z
