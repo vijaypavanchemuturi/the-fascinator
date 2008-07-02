@@ -256,7 +256,6 @@ public class Harvest {
                 harvester = new OaiPmhHarvester(repUrl, maxRequests);
             } else {
                 harvester = new FedoraHarvester(repUrl, maxRequests);
-                ((FedoraHarvester) harvester).setSearchTerms("uon:669");
             }
             Indexer solr = new SolrIndexer(solrUrl);
             FedoraRestClient registry = new FedoraRestClient(regUrl);
