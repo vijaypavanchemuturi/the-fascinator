@@ -1,6 +1,7 @@
 #!/bin/sh
 
-CLASSPATH=target/harvest-moon-jar-with-dependencies.jar
+PYTHON_HOME=target
+CLASSPATH=target/harvest-moon-bin.jar
 MAIN=au.edu.usq.solr.harvest.Harvest
 
-java -cp $CLASSPATH $MAIN $*
+java -Dpython.home=$PYTHON_HOME -cp $CLASSPATH $MAIN $*

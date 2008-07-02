@@ -38,8 +38,6 @@ import org.apache.log4j.Logger;
 import org.python.util.PythonInterpreter;
 
 import au.edu.usq.solr.fedora.FedoraRestClient;
-import au.edu.usq.solr.fedora.ObjectFieldType;
-import au.edu.usq.solr.fedora.ResultType;
 import au.edu.usq.solr.harvest.impl.FedoraHarvester;
 import au.edu.usq.solr.harvest.impl.OaiPmhHarvester;
 import au.edu.usq.solr.index.Indexer;
@@ -96,7 +94,6 @@ public class Harvest {
                     for (Item item : items) {
                         try {
                             count++;
-                            log.info("count = " + count);
                             processItem(item);
                         } catch (Exception e) {
                             log.warn("Processing failed: " + e.getMessage());
@@ -124,18 +121,18 @@ public class Harvest {
             log.info("Processing " + itemId + "...");
 
             // FIXME checking if an object exists hangs after 100 or so
-            ResultType result = registry.findObjects(itemId, 1);
-            List<ObjectFieldType> objects = result.getObjectFields();
-            if (objects.isEmpty()) {
-                pid = registry.createObject(itemId, "uuid");
-                log.info("CREATE: " + pid);
-            } else {
-                pid = objects.get(0).getPid();
-                log.info("UPDATE: " + pid);
-            }
+            // ResultType result = registry.findObjects(itemId, 1);
+            // List<ObjectFieldType> objects = result.getObjectFields();
+            // if (objects.isEmpty()) {
+            // pid = registry.createObject(itemId, "uuid");
+            // log.info("CREATE: " + pid);
+            // } else {
+            // pid = objects.get(0).getPid();
+            // log.info("UPDATE: " + pid);
+            // }
 
             // harvest/index the main item
-            // pid = registry.createObject(itemId, "uuid");
+            pid = registry.createObject(itemId, "uuid");
             registry.addDatastream(pid, "DC0", "Dublin Core", "text/xml", meta);
             File solrFile = index(item, pid, null, new InputStreamReader(
                 new ByteArrayInputStream(meta.getBytes("UTF-8")), "UTF-8"));
