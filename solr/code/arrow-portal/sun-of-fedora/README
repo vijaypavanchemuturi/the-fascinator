@@ -1,8 +1,6 @@
 Sun of Fedora
 =============
 
-TODO: update this
-
 This application is a web portal front-end for searching institutional
 repositories. It is based on the Apache Solr indexing software.
 
@@ -16,43 +14,39 @@ Requirements
 Installation
 ============
 
-1. Check out the source code.
+1. Check out the source code. This directory will be referred to as $ARROW_HOME.
 
-   svn co https://rubric-central.usq.edu.au/solrsvn/public/sun-of-fedora
-   cd sun-of-fedora
+   svn co https://rubric-central.usq.edu.au/solrsvn/public/arrow-portal
 
-2. Check out the default portal configuration.
+2. Make a copy of the portal configuration directory, such as /opt/sun-of-fedora.
+   This directory will be referred to as $CONFIG_DIR.
 
-   mkdir /opt/sun-of-fedora
-   cd /opt/sun-of-fedora
-   svn co https://rubric-central.usq.edu.au/solrsvn/solr/code/sun-of-fedora/src/main/config/portal
-
-   Alternatively, skip this step and use the full path to src/main/config/portal
-   in Step 3.
+   cp -r $ARROW_HOME/sun-of-fedora/src/main/config/portal $CONFIG_DIR
 
 3. Copy the sample configuration files and configure them to use the directory
    in Step 2 above. Also configure your LDAP settings in config.properties.
 
-   cd src/main/webapp/WEB-INF
+   cd $ARROW_HOME/sun-of-fedora/src/main/webapp/WEB-INF
    cp config.properties.sample config.properties
    cp velocity.properties.sample velocity.properties
 
    config.properties:
-     portals.dir = /opt/sun-of-fedora/portal
+     portals.dir = $CONFIG_DIR
 
    velocity.properties:
-     file.resource.loader.path = /opt/sun-of-fedora/portal
+     file.resource.loader.path = $CONFIG_DIR
 
-4. Build the web package using Maven. This will create the web archive:
-   target/sun-of-fedora.war.
+4. Build the web package using Maven. This will create the web package for
+   deployment.
 
-   mvn compile war:war
+   cd $ARROW_HOME
+   mvn install
 
 5. Copy the web package to your Tomcat's webapps directory.
 
-   cp target/sun-of-fedora.war /opt/fedora/tomcat/webapps
+   cp $ARROW_HOME/sun-of-fedora/target/sun-of-fedora.war $CATALINA_HOME/webapps
 
-6. Startup Tomcat and open a browser to http://$server:$port/sun-of-fedora to
+6. Startup Tomcat and open a browser to http://$SERVER:$PORT/sun-of-fedora to
    test if the application was deployed correctly.
 
 Portal customisation
