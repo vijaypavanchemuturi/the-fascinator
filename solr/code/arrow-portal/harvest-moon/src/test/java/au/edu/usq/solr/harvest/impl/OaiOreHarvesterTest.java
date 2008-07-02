@@ -1,7 +1,11 @@
 package au.edu.usq.solr.harvest.impl;
 
+import java.io.InputStream;
 import java.util.ArrayList;
 
+import org.dspace.foresite.OREParser;
+import org.dspace.foresite.OREParserFactory;
+import org.dspace.foresite.ResourceMap;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -18,14 +22,11 @@ public class OaiOreHarvesterTest {
 
     @Test
     public void serializeResMap() throws Exception {
-        String url = "http://rspilot.usq.edu.au/cgi/export/11/ResMap/rspilot-eprint-11.xml";
-        // ResourceMapFactory rmf = new ResourceMapFactory.class;
-        // ResourceMap rm = ResourceMapFa
-
-        // Integer ints = rm.getAggregation().numberOfResources();
-        // Assert.assertEquals("rta", "10", rm.getId());
-        // Assert.assertEquals("10", ints);
-
+        InputStream input = getClass().getResourceAsStream("/resmap.xml");
+        OREParser parser = OREParserFactory.getInstance("RDF/XML");
+        ResourceMap rem = parser.parse(input);
+        Assert.assertEquals(3, rem.getAggregatedResources().size());
+        input.close();
     }
 
 }

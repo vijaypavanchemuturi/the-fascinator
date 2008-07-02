@@ -3,12 +3,14 @@ package au.edu.usq.solr.harvest.impl;
 import java.util.List;
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import au.edu.usq.solr.harvest.Item;
 
 public class OaiPmhHarvesterTest {
 
+    @Ignore
     @Test
     public void getItems() throws Exception {
         OaiPmhHarvester h = new OaiPmhHarvester(
