@@ -31,6 +31,7 @@ import org.apache.log4j.Logger;
 
 import au.edu.usq.solr.fedora.FedoraRestClient;
 import au.edu.usq.solr.harvest.impl.FedoraHarvester;
+import au.edu.usq.solr.harvest.impl.OaiOreHarvester;
 import au.edu.usq.solr.harvest.impl.OaiPmhHarvester;
 
 public class Harvest {
@@ -199,6 +200,9 @@ public class Harvest {
             Harvester harvester;
             if ("oai".equals(repType)) {
                 harvester = new OaiPmhHarvester(repUrl, maxRequests);
+            } else if ("ore".equals(repType)) {
+                harvester = new OaiOreHarvester(repUrl);
+
             } else {
                 harvester = new FedoraHarvester(repUrl, maxRequests);
             }

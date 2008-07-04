@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rdf:RDF
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:dcterms="http://purl.org/dc/terms/"
+   xmlns:ore="http://www.openarchives.org/ore/terms/"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:rdfs1="http://www.w3.org/2001/01/rdf-schema#">
+  <rdf:Description rdf:about="http://www.openarchives.org/ore/terms/Aggregation">
+    <rdfs1:isDefinedBy rdf:resource="http://www.openarchives.org/ore/terms/"/>
+    <rdfs1:label>Aggregation</rdfs1:label>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://oreproxy.org/r?what=file%3A///media/sefton/Pictures/photos/2008/01/08/P1082571.JPG&amp;where=file%3A///home/sefton/oai/20.xml">
+    <rdf:type rdf:resource="http://www.openarchives.org/ore/terms/Proxy"/>
+    <ore:proxyIn rdf:resource="file://home/sefton/oai/20.xml"/>
+    <ore:proxyFor rdf:resource="file:///media/sefton/Pictures/photos/2008/01/08/P1082571.JPG"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="file://home/sefton/oai/20.xml">
+    <dc:title>Aggregation20</dc:title>
+    <rdf:type rdf:resource="http://www.openarchives.org/ore/terms/Aggregation"/>
+    <ore:aggregates rdf:resource="file:///media/sefton/Pictures/photos/2008/01/08/P1082571.JPG"/>
+    <dcterms:creator rdf:nodeID="bYDqyImo572"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://www.openarchives.org/ore/terms/ResourceMap">
+    <rdfs1:isDefinedBy rdf:resource="http://www.openarchives.org/ore/terms/"/>
+    <rdfs1:label>ResourceMap</rdfs1:label>
+  </rdf:Description>
+  <rdf:Description rdf:about="file:///home/sefton/oai/20.xml">
+    <rdf:type rdf:resource="http://www.openarchives.org/ore/terms/ResourceMap"/>
+    <dc:format>application/rdf+xml</dc:format>
+    <dcterms:modified>2008-07-03 14:24:56</dcterms:modified>
+    <ore:describes rdf:resource="file://home/sefton/oai/20.xml"/>
+    <dcterms:created>2008-07-03 14:24:56</dcterms:created>
+  </rdf:Description>
+  <rdf:Description rdf:about="file:///media/sefton/Pictures/photos/2008/01/08/P1082571.JPG">
+    <dc:title>Signing the school: 20</dc:title>
+  </rdf:Description>
+</rdf:RDF>

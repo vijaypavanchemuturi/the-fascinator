@@ -4,7 +4,9 @@
 	xmlns:dc="http://purl.org/dc/terms/">
 	<rdf:Description rdf:about="http://rspilot.usq.edu.au/cgi/export/11/ResMap/rspilot-eprint-11.xml">
 		<rdf:type rdf:resource="http://www.openarchives.org/ore/terms/ResourceMap" />
+		<!-- Lib can't parse date 
 		<dc:modified rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime">2008-04-10 04:14:16</dc:modified>
+		-->
 		<ore:describes rdf:resource="http://rspilot.usq.edu.au/cgi/export/11/ResMap/rspilot-eprint-11.xml#aggregation" />
 	</rdf:Description>
 	<rdf:Description rdf:about="http://rspilot.usq.edu.au/cgi/export/11/ResMap/rspilot-eprint-11.xml#aggregation">
