@@ -9,12 +9,9 @@ Requirements
 
   * Java 5 (or greater)
   * Apache Tomcat 5 (or greater)
-  * Fedora 3.0
+  * Fedora 3.0 (with REST API enabled)
   * Solr 1.2
   * Maven 2
-
-Installation
-============
 
 The instructions assume Tomcat, Fedora and Solr have been installed in the
 following directories:
@@ -23,10 +20,12 @@ following directories:
   Fedora: /opt/fedora
   Solr:   /opt/solr
 
+Building the software
+=====================
+
 1. Check out the source code.
 
-   cd /opt
-   svn co https://rubric-central.usq.edu.au/solrsvn/public/arrow-portal
+   svn co https://rubric-central.usq.edu.au/solrsvn/public/arrow-portal /opt/arrow-portal
 
 2. Make a copy of the portal configuration directory, such as /opt/sun-of-fedora.
 
@@ -45,22 +44,60 @@ following directories:
    velocity.properties:
      file.resource.loader.path = /opt/sun-of-fedora
 
-4. Build the web package using Maven. This will create the web package for
+4. Build the project using Maven. This will create the necessary files for
    deployment.
 
    cd /opt/arrow-portal
-   mvn install
+   mvn package install
 
-5. Copy the web package to your Tomcat's webapps directory.
+Solr configuration
+------------------
+
+1. Copy the schema into Solr's conf directory.
+
+   cp /opt/arrow-portal/harvest-moon/src/main/resources/schema.xml /opt/solr/conf
+
+2. Copy the harvest library so that Solr can use the Fedora update handler.
+
+   cp /opt/arrow-portal/harvest-moon/target/harvest-moon-solr.jar /opt/fedora/tomcat/webapps/solr/WEB-INF/lib
+
+3. Add the following configuration to /opt/solr/conf/solrconfig.xml using values
+   specific to your environment.
+
+   <!-- Fedora update handler -->
+   <requestHandler name="/fedora" class="au.edu.usq.solr.handler.FedoraUpdateRequestHandler">
+     <str name="fedoraUrl">http://localhost:8080/fedora</str>
+     <str name="fedoraUser">fedoraAdmin</str>
+     <str name="fedoraPass">fedoraAdmin</str>
+   </requestHandler>
+
+Fedora configuration
+--------------------
+
+1. Copy the Fedora services library so that Fedora can use the SolrDOManager.
+
+   cp /opt/arrow-portal/fedora-services/target/fedora-services.jar /opt/fedora/tomcat/webapps/fedora/WEB-INF/lib
+
+2. Edit the Fedora server configuration to use the SolrDOManager.
+
+   Change the DOManager class to "au.edu.usq.solr.fedora.SolrDOManager"
+     <module role="fedora.server.storage.DOManager" class="fedora.server.storage.DefaultDOManager">
+
+   Configure the namespaces to accept "uuid" and "sof"
+     <param name="pidNamespace" value="uuid">
+     <param name="retainPIDs" value="uuid sof">
+
+   Add the solrUrl parameter:
+     <param name="solrUrl" value="http://localhost:8080/solr"/>
+
+Portal Installation
+-------------------
+
+1. Copy the web package to your Tomcat's webapps directory.
 
    cp /opt/arrow-portal/sun-of-fedora/target/sun-of-fedora.war /opt/tomcat/webapps
 
-6. Copy the Solr schema to the Solr home directory (assuming Solr has been
-   installed in /opt/solr)
-
-   cp /opt/arrow-portal/harvest-moon/src/main/resources/solr/schema.xml /opt/solr/conf
-
-7. Startup Tomcat and open a browser to http://localhost:8080/sun-of-fedora
+1. Startup Tomcat and open a browser to http://localhost:8080/sun-of-fedora
    (by default) to test if the application was deployed correctly.
 
    cd /opt/fedora/tomcat/bin
@@ -78,29 +115,3 @@ are written.
 When a portal is created in the webapp, a new directory is created with the
 portal.xml configuration file. Templates can be copied from the 'default'
 directory and customised as required.
-
-
-
-=======
-
-mvn package
-cp solr-plugins/target/solr-plugins.jar ~/apps/tomcat/webapps/solr/WEB-INF/lib/
-cp fedora-services/target/fedora-services.jar ~/apps/tomcat/webapps/fedora/WEB-INF/lib/
-
-
-solrconfig.xml
-  <!-- Fedora update handler -->
-  <requestHandler name="/fedora" class="au.edu.usq.solr.handler.FedoraUpdateRequestHandler">
-    <str name="fedoraUrl">http://localhost:8080/fedora</str>
-    <str name="fedoraUser">fedoraAdmin</str>
-    <str name="fedoraPass">fedoraAdmin</str>
-  </requestHandler>
-  
-fedora.fcfg
-  <module role="fedora.server.storage.DOManager" class="fedora.server.storage.DefaultDOManager">
-    <param name="pidNamespace" value="uuid">
-    </param>
-    <param name="retainPIDs" value="uuid sof">
-    </param>
-    <param name="solrUrl" value="http://localhost:8080/solr"/>
-  </module>
