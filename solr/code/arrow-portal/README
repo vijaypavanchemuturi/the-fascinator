@@ -2,52 +2,70 @@ Sun of Fedora
 =============
 
 This application is a web portal front-end for searching institutional
-repositories. It is based on the Apache Solr indexing software.
+repositories. It is built on Apache Solr and Fedora Commons software.
 
 Requirements
 ============
 
   * Java 5 (or greater)
   * Apache Tomcat 5 (or greater)
+  * Fedora 3.0
+  * Solr 1.2
   * Maven 2
 
 Installation
 ============
 
-1. Check out the source code. This directory will be referred to as $ARROW_HOME.
+The instructions assume Tomcat, Fedora and Solr have been installed in the
+following directories:
 
+  Tomcat: /opt/fedora/tomcat
+  Fedora: /opt/fedora
+  Solr:   /opt/solr
+
+1. Check out the source code.
+
+   cd /opt
    svn co https://rubric-central.usq.edu.au/solrsvn/public/arrow-portal
 
 2. Make a copy of the portal configuration directory, such as /opt/sun-of-fedora.
-   This directory will be referred to as $CONFIG_DIR.
 
-   cp -r $ARROW_HOME/sun-of-fedora/src/main/config/portal $CONFIG_DIR
+   cp -r /opt/arrow-portal/sun-of-fedora/src/main/config/portal /opt/sun-of-fedora
 
-3. Copy the sample configuration files and configure them to use the directory
-   in Step 2 above. Also configure your LDAP settings in config.properties.
+3. Copy the sample configuration files and edit them to configure the portal
+   directories and LDAP settings.
 
-   cd $ARROW_HOME/sun-of-fedora/src/main/webapp/WEB-INF
+   cd /opt/arrow-portal/sun-of-fedora/src/main/webapp/WEB-INF
    cp config.properties.sample config.properties
    cp velocity.properties.sample velocity.properties
 
    config.properties:
-     portals.dir = $CONFIG_DIR
+     portals.dir = /opt/sun-of-fedora
 
    velocity.properties:
-     file.resource.loader.path = $CONFIG_DIR
+     file.resource.loader.path = /opt/sun-of-fedora
 
 4. Build the web package using Maven. This will create the web package for
    deployment.
 
-   cd $ARROW_HOME
+   cd /opt/arrow-portal
    mvn install
 
 5. Copy the web package to your Tomcat's webapps directory.
 
-   cp $ARROW_HOME/sun-of-fedora/target/sun-of-fedora.war $CATALINA_HOME/webapps
+   cp /opt/arrow-portal/sun-of-fedora/target/sun-of-fedora.war /opt/tomcat/webapps
 
-6. Startup Tomcat and open a browser to http://$SERVER:$PORT/sun-of-fedora to
-   test if the application was deployed correctly.
+6. Copy the Solr schema to the Solr home directory (assuming Solr has been
+   installed in /opt/solr)
+
+   cp /opt/arrow-portal/harvest-moon/src/main/resources/solr/schema.xml /opt/solr/conf
+
+7. Startup Tomcat and open a browser to http://localhost:8080/sun-of-fedora
+   (by default) to test if the application was deployed correctly.
+
+   cd /opt/fedora/tomcat/bin
+   ./startup.sh
+
 
 Portal customisation
 ====================
@@ -60,4 +78,3 @@ are written.
 When a portal is created in the webapp, a new directory is created with the
 portal.xml configuration file. Templates can be copied from the 'default'
 directory and customised as required.
-
