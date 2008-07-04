@@ -10,6 +10,7 @@
     <module>common</module>
     <module>harvest-moon</module>
     <module>sun-of-fedora</module>
+    <module>fedora-services</module>
   </modules>
   <build>
     <finalName>common</finalName>
@@ -23,6 +24,7 @@
           <optimize>true</optimize>
         </configuration>
       </plugin>
+      <!--
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-assembly-plugin</artifactId>
@@ -32,13 +34,7 @@
           </descriptors>
         </configuration>
       </plugin>
+      -->
     </plugins>
   </build>
-  <dependencies>
-    <dependency>
-      <groupId>javax.servlet</groupId>
-      <artifactId>servlet-api</artifactId>
-      <version>2.5</version>
-    </dependency>
-  </dependencies>
 </project>

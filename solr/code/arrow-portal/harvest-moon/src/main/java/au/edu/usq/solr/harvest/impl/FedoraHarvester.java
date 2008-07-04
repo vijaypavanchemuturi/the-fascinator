@@ -104,7 +104,7 @@ public class FedoraHarvester implements Harvester {
                 }
             }
             for (ObjectFieldType object : results.getObjectFields()) {
-                items.add(new FedoraItem(client, object));
+                items.add(new FedoraItem(client, object.getPid()));
             }
             ListSessionType session = results.getListSession();
             if (session != null) {

@@ -59,11 +59,11 @@ if not datastreamMode:
             rules.add(AddFieldRule("full_text", ds.getContentAsString()))
 else:
     #
-    # datastream mode starts with a solr document from a previous. this is
-    # intended for indexing datastreams.
+    # datastream mode starts with a blank solr document. this is intended for
+    # indexing datastreams.
     #
     # add datastream id
-    rules.add(ModifyFieldRule("id", item.getId() + "/" + dsId))
+    rules.add(AddFieldRule("id", item.getId() + "/" + dsId))
     # set item type to datastream
-    rules.add(ModifyFieldRule("item_type", "datastream"))
+    rules.add(AddFieldRule("item_type", "datastream"))
     

@@ -34,7 +34,6 @@ import org.dom4j.io.SAXReader;
 import au.edu.usq.solr.fedora.DatastreamType;
 import au.edu.usq.solr.fedora.FedoraRestClient;
 import au.edu.usq.solr.fedora.ObjectDatastreamsType;
-import au.edu.usq.solr.fedora.ObjectFieldType;
 import au.edu.usq.solr.harvest.Datastream;
 import au.edu.usq.solr.harvest.Item;
 
@@ -44,15 +43,15 @@ public class FedoraItem implements Item {
 
     private FedoraRestClient client;
 
-    private ObjectFieldType object;
+    private String pid;
 
-    public FedoraItem(FedoraRestClient client, ObjectFieldType object) {
+    public FedoraItem(FedoraRestClient client, String pid) {
         this.client = client;
-        this.object = object;
+        this.pid = pid;
     }
 
     public String getId() {
-        return object.getPid();
+        return pid;
     }
 
     public Element getMetadata() {

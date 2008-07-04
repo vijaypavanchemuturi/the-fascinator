@@ -2,9 +2,9 @@
 <project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <modelVersion>4.0.0</modelVersion>
   <groupId>au.edu.usq.arrow-portal</groupId>
-  <artifactId>common</artifactId>
+  <artifactId>fedora-services</artifactId>
   <packaging>jar</packaging>
-  <name>Common</name>
+  <name>Fedora Services</name>
   <version>0.1</version>
   <parent>
     <groupId>au.edu.usq</groupId>
@@ -23,19 +23,15 @@
       <version>3.1</version>
     </dependency>
     <dependency>
-      <groupId>com.sun.xml.bind</groupId>
-      <artifactId>jaxb-impl</artifactId>
-      <version>2.1.3</version>
-    </dependency>
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <version>4.4</version>
-      <scope>test</scope>
+      <groupId>fedora-commons</groupId>
+      <artifactId>fedora-server</artifactId>
+      <version>3.0b2</version>
+      <scope>system</scope>
+      <systemPath>${basedir}/lib/fedora-server-3.0b2.jar</systemPath>
     </dependency>
   </dependencies>
   <build>
-    <finalName>common</finalName>
+    <finalName>fedora-services</finalName>
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -44,21 +40,6 @@
           <source>1.5</source>
           <target>1.5</target>
           <optimize>true</optimize>
-        </configuration>
-      </plugin>
-      <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>jaxb2-maven-plugin</artifactId>
-        <version>1.2</version>
-        <executions>
-          <execution>
-            <goals>
-              <goal>xjc</goal>
-            </goals>
-          </execution>
-        </executions>
-        <configuration>
-          <packageName>au.edu.usq.fedora.foxml</packageName>
         </configuration>
       </plugin>
     </plugins>

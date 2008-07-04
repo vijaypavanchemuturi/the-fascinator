@@ -78,3 +78,29 @@ are written.
 When a portal is created in the webapp, a new directory is created with the
 portal.xml configuration file. Templates can be copied from the 'default'
 directory and customised as required.
+
+
+
+=======
+
+mvn package
+cp solr-plugins/target/solr-plugins.jar ~/apps/tomcat/webapps/solr/WEB-INF/lib/
+cp fedora-services/target/fedora-services.jar ~/apps/tomcat/webapps/fedora/WEB-INF/lib/
+
+
+solrconfig.xml
+  <!-- Fedora update handler -->
+  <requestHandler name="/fedora" class="au.edu.usq.solr.handler.FedoraUpdateRequestHandler">
+    <str name="fedoraUrl">http://localhost:8080/fedora</str>
+    <str name="fedoraUser">fedoraAdmin</str>
+    <str name="fedoraPass">fedoraAdmin</str>
+  </requestHandler>
+  
+fedora.fcfg
+  <module role="fedora.server.storage.DOManager" class="fedora.server.storage.DefaultDOManager">
+    <param name="pidNamespace" value="uuid">
+    </param>
+    <param name="retainPIDs" value="uuid sof">
+    </param>
+    <param name="solrUrl" value="http://localhost:8080/solr"/>
+  </module>

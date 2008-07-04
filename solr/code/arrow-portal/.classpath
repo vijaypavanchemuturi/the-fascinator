@@ -1,29 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
 	<classpathentry kind="src" output="common/target/classes" path="common/src/main/java"/>
-	<classpathentry kind="src" output="common/target/test-classes" path="common/src/test/java">
-		<attributes>
-			<attribute name="maven.type" value="test"/>
-		</attributes>
-	</classpathentry>
-	<classpathentry excluding="**" kind="src" output="common/src/main/resources" path="common/src/main/resources"/>
-	<classpathentry excluding="**" kind="src" output="common/src/test/resources" path="common/src/test/resources"/>
+	<classpathentry kind="src" output="common/target/classes" path="common/target/generated-sources/jaxb"/>
+	<classpathentry kind="src" output="common/target/test-classes" path="common/src/test/java"/>
+	<classpathentry excluding="**" kind="src" output="common/target/classes" path="common/src/main/resources"/>
+	<classpathentry excluding="**" kind="src" output="common/target/test-classes" path="common/src/test/resources"/>
 	<classpathentry kind="src" output="harvest-moon/target/classes" path="harvest-moon/src/main/java"/>
-	<classpathentry kind="src" output="harvest-moon/target/test-classes" path="harvest-moon/src/test/java">
-		<attributes>
-			<attribute name="maven.type" value="test"/>
-		</attributes>
-	</classpathentry>
-	<classpathentry excluding="**" kind="src" output="harvest-moon/src/main/resources" path="harvest-moon/src/main/resources"/>
-	<classpathentry excluding="**" kind="src" output="harvest-moon/src/test/resources" path="harvest-moon/src/test/resources"/>
+	<classpathentry kind="src" output="harvest-moon/target/test-classes" path="harvest-moon/src/test/java"/>
+	<classpathentry excluding="**" kind="src" output="harvest-moon/target/classes" path="harvest-moon/src/main/resources"/>
+	<classpathentry excluding="**" kind="src" output="harvest-moon/target/test-classes" path="harvest-moon/src/test/resources"/>
 	<classpathentry kind="src" output="sun-of-fedora/target/classes" path="sun-of-fedora/src/main/java"/>
-	<classpathentry kind="src" output="sun-of-fedora/target/test-classes" path="sun-of-fedora/src/test/java">
-		<attributes>
-			<attribute name="maven.type" value="test"/>
-		</attributes>
-	</classpathentry>
-	<classpathentry excluding="**" kind="src" output="sun-of-fedora/src/main/resources" path="sun-of-fedora/src/main/resources"/>
-	<classpathentry excluding="**" kind="src" output="sun-of-fedora/src/test/resources" path="sun-of-fedora/src/test/resources"/>
+	<classpathentry kind="src" output="sun-of-fedora/target/test-classes" path="sun-of-fedora/src/test/java"/>
+	<classpathentry excluding="**" kind="src" output="sun-of-fedora/target/classes" path="sun-of-fedora/src/main/resources"/>
+	<classpathentry excluding="**" kind="src" output="sun-of-fedora/target/test-classes" path="sun-of-fedora/src/test/resources"/>
+	<classpathentry kind="src" output="fedora-services/target/classes" path="fedora-services/src/main/java"/>
+	<classpathentry kind="src" output="fedora-services/target/test-classes" path="fedora-services/src/test/java"/>
+	<classpathentry excluding="**" kind="src" output="fedora-services/target/classes" path="fedora-services/src/main/resources"/>
+	<classpathentry excluding="**" kind="src" output="fedora-services/target/test-classes" path="fedora-services/src/test/resources"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="con" path="org.maven.ide.eclipse.MAVEN2_CLASSPATH_CONTAINER"/>
 	<classpathentry kind="output" path="target/classes"/>

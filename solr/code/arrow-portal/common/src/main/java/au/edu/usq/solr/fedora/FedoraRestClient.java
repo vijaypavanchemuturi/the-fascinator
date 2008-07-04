@@ -22,6 +22,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.Map;
@@ -75,13 +77,19 @@ public class FedoraRestClient {
             client.getParams().setAuthenticationPreemptive(true);
             client.getState().setCredentials(AuthScope.ANY,
                 new UsernamePasswordCredentials(username, password));
-        } else {
-            String proxyHost = System.getProperty("http.proxyHost", "");
-            String proxyPort = System.getProperty("http.proxyPort", "8080");
-            if (proxyHost != null && !"".equals(proxyHost)) {
-                client.getHostConfiguration().setProxy(proxyHost,
-                    Integer.parseInt(proxyPort));
+        }
+        try {
+            URL url = new URL(baseUrl);
+            if (!isNonProxyHost(url.getHost())) {
+                String proxyHost = System.getProperty("http.proxyHost", "");
+                String proxyPort = System.getProperty("http.proxyPort", "8080");
+                if (proxyHost != null && !"".equals(proxyHost)) {
+                    client.getHostConfiguration().setProxy(proxyHost,
+                        Integer.parseInt(proxyPort));
+                }
             }
+        } catch (MalformedURLException mue) {
+            log.warn(mue.getMessage());
         }
         return client;
     }
@@ -268,7 +276,7 @@ public class FedoraRestClient {
         String contentType, String content) throws IOException {
         Map<String, String> options = new HashMap<String, String>();
         options.put("dsLabel", dsLabel);
-        options.put("controlGroup", "X");
+        options.put("controlGroup", "text/xml".equals(contentType) ? "X" : "M");
         RequestEntity request = new StringRequestEntity(content, contentType,
             "UTF-8");
         addDatastream(pid, dsId, options, contentType, request);
@@ -323,6 +331,23 @@ public class FedoraRestClient {
         method.releaseConnection();
     }
 
+    public void export(String pid, OutputStream out) throws IOException {
+        StringBuilder uri = new StringBuilder(baseUrl);
+        uri.append("/objects/");
+        uri.append(pid);
+        uri.append("/export");
+        GetMethod method = new GetMethod(uri.toString());
+        int status = getHttpClient().executeMethod(method);
+        if (status == HttpStatus.SC_OK) {
+            InputStream in = method.getResponseBodyAsStream();
+            StreamUtils.copyStream(in, out);
+            in.close();
+        } else {
+            log.warn("GET " + uri + " returned " + status);
+        }
+        method.releaseConnection();
+    }
+
     // Helper methods
 
     private void addParam(StringBuilder uri, Map<String, String> options,
@@ -343,5 +368,20 @@ public class FedoraRestClient {
     private String getMimeType(File file) {
         return MimetypesFileTypeMap.getDefaultFileTypeMap()
             .getContentType(file);
+    }
+
+    private boolean isNonProxyHost(String host) {
+        String httpNonProxyHosts = System.getProperty("http.nonProxyHosts");
+        String[] nonProxyHosts = httpNonProxyHosts.split("\\|");
+        for (int i = 0; i < nonProxyHosts.length; ++i) {
+            if (nonProxyHosts[i].startsWith("*")) {
+                if (host.endsWith(nonProxyHosts[i].substring(1))) {
+                    return true;
+                }
+            } else if (host.equals(nonProxyHosts[i])) {
+                return true;
+            }
+        }
+        return false;
     }
 }

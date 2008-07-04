@@ -18,16 +18,9 @@
  */
 package au.edu.usq.solr.harvest;
 
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.io.Reader;
-import java.io.Writer;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -35,16 +28,10 @@ import java.util.List;
 import java.util.Properties;
 
 import org.apache.log4j.Logger;
-import org.python.util.PythonInterpreter;
 
 import au.edu.usq.solr.fedora.FedoraRestClient;
 import au.edu.usq.solr.harvest.impl.FedoraHarvester;
 import au.edu.usq.solr.harvest.impl.OaiPmhHarvester;
-import au.edu.usq.solr.index.Indexer;
-import au.edu.usq.solr.index.IndexerException;
-import au.edu.usq.solr.index.impl.SolrIndexer;
-import au.edu.usq.solr.index.rule.RuleException;
-import au.edu.usq.solr.index.rule.RuleManager;
 
 public class Harvest {
 
@@ -52,25 +39,18 @@ public class Harvest {
 
     private Harvester harvester;
 
-    private Indexer indexer;
-
     private FedoraRestClient registry;
 
-    private PythonInterpreter python;
+    private File rulesFile;
 
-    private String ruleScript;
-
-    public Harvest(Harvester harvester, Indexer indexer,
-        FedoraRestClient registry) {
+    public Harvest(Harvester harvester, FedoraRestClient registry,
+        File rulesFile) {
         this.harvester = harvester;
-        this.indexer = indexer;
         this.registry = registry;
+        this.rulesFile = rulesFile;
     }
 
-    public void run(String ruleScript, Date since) {
-
-        this.ruleScript = ruleScript;
-
+    public void run(Date since) {
         DateFormat df = new SimpleDateFormat(Harvester.DATETIME_FORMAT);
         String now = df.format(new Date());
         log.info("Started at " + now);
@@ -81,10 +61,18 @@ public class Harvest {
 
         long start = System.currentTimeMillis();
 
-        python = new PythonInterpreter();
-        python.set("self", this);
+        // cache the ruleset
+        String rulesPid = null;
+        try {
+            log.info("Caching rules file: " + rulesFile);
+            rulesPid = registry.createObject(rulesFile.getAbsolutePath(), "sof");
+            log.info("Created rules object: " + rulesPid);
+            registry.addDatastream(rulesPid, "RULES.PY", "Indexing Rules",
+                "text/plain", rulesFile);
+        } catch (IOException ioe) {
+            log.error(ioe.getMessage());
+        }
 
-        int count = 0;
         while (harvester.hasMoreItems()) {
             try {
                 List<Item> items = harvester.getItems(since);
@@ -93,18 +81,14 @@ public class Harvest {
                 } else {
                     for (Item item : items) {
                         try {
-                            count++;
-                            processItem(item);
+                            processItem(item, rulesPid);
                         } catch (Exception e) {
                             log.warn("Processing failed: " + e.getMessage());
                         }
                     }
-                    indexer.commit();
                 }
             } catch (HarvesterException he) {
                 log.error(he.getMessage());
-            } catch (IndexerException ie) {
-                log.error(ie.getMessage());
             }
         }
 
@@ -112,8 +96,7 @@ public class Harvest {
             + ((System.currentTimeMillis() - start) / 1000.0) + " seconds");
     }
 
-    private void processItem(Item item) throws Exception {
-
+    private void processItem(Item item, String rulesPid) throws IOException {
         String itemId = item.getId();
         String pid = null;
         String meta = item.getMetadataAsString();
@@ -131,80 +114,46 @@ public class Harvest {
             // log.info("UPDATE: " + pid);
             // }
 
-            // harvest/index the main item
+            // create the digital object
             pid = registry.createObject(itemId, "uuid");
-            registry.addDatastream(pid, "DC0", "Dublin Core", "text/xml", meta);
-            File solrFile = index(item, pid, null, new InputStreamReader(
-                new ByteArrayInputStream(meta.getBytes("UTF-8")), "UTF-8"));
-            // harvest/index datastreams
+            registry.addDatastream(pid, "DC0", "Dublin Core Metadata",
+                "text/xml", meta);
+            log.info("Created object: " + pid);
+
+            // harvest datastreams
             for (Datastream ds : item.getDatastreams()) {
                 String dsId = ds.getId();
-                String mimeType = ds.getMimeType();
+                String type = ds.getMimeType();
                 String label = ds.getLabel();
                 if (!"DC".equals(dsId)) {
                     log.info("Caching " + ds);
-                    if (mimeType.startsWith("text/xml")) {
-                        registry.addDatastream(pid, dsId, label, mimeType,
+                    if (type.startsWith("text/xml")) {
+                        registry.addDatastream(pid, dsId, label, type,
                             ds.getContentAsString());
                     } else {
-                        File dsFile = File.createTempFile("data", ".tmp");
-                        ds.getContent(dsFile);
-                        registry.addDatastream(pid, dsId, label, mimeType,
-                            dsFile);
-                        dsFile.delete();
+                        File dsf = File.createTempFile("datastream", null);
+                        ds.getContent(dsf);
+                        registry.addDatastream(pid, dsId, label, type, dsf);
+                        dsf.delete();
                     }
-                    Reader in = new InputStreamReader(new FileInputStream(
-                        solrFile), "UTF-8");
-                    File dsSolrFile = index(item, pid, dsId, in);
-                    dsSolrFile.delete();
                 }
             }
-            solrFile.delete();
-        } catch (Exception e) {
+
+            // add SoF specific metadata
+            registry.addDatastream(pid, "SOF-META", "Sun of Fedora Metadata",
+                "text/plain", "rules.pid=" + rulesPid);
+        } catch (IOException ioe) {
             if (pid != null) {
                 try {
                     log.info("Cleaning up failed index");
                     registry.purgeObject(pid);
-                } catch (IOException ioe) {
+                } catch (IOException ioe2) {
                     log.warn(pid + " was not deleted after indexing failed: "
-                        + ioe.getMessage());
+                        + ioe2.getMessage());
                 }
             }
-            throw e;
+            throw ioe;
         }
-    }
-
-    private File index(Item item, String pid, String dsId, Reader in)
-        throws IOException, RuleException {
-        File solrFile = File.createTempFile("solr", ".xml");
-        Writer out = new OutputStreamWriter(new FileOutputStream(solrFile),
-            "UTF-8");
-        try {
-            RuleManager rules = new RuleManager();
-            python.set("rules", rules);
-            python.set("pid", pid);
-            python.set("dsId", dsId);
-            python.set("item", item);
-            python.execfile(ruleScript);
-            rules.run(in, out);
-        } catch (Exception e) {
-            throw new RuleException(e);
-        } finally {
-            in.close();
-            out.close();
-        }
-        try {
-            indexer.index(solrFile);
-        } catch (IndexerException ie) {
-            throw new RuleException(ie);
-        }
-        return solrFile;
-    }
-
-    // Convenience methods for Jython scripts
-
-    public InputStream getResource(String name) {
-        return getClass().getResourceAsStream(name);
     }
 
     public static void main(String[] args) throws Exception {
@@ -223,13 +172,12 @@ public class Harvest {
             Properties props = new Properties();
             props.load(new FileInputStream(configFile));
 
-            String solrUrl = props.getProperty("solr.url");
             String regUrl = props.getProperty("registry.url");
             String regUser = props.getProperty("registry.user");
             String regPass = props.getProperty("registry.pass");
             String repType = props.getProperty("repository.type");
             String repUrl = props.getProperty("repository.url");
-            String script = props.getProperty("indexer.rules");
+            String indexerRules = props.getProperty("indexer.rules");
 
             int maxRequests = Integer.MAX_VALUE;
             if (props.containsKey("max.requests")) {
@@ -254,11 +202,11 @@ public class Harvest {
             } else {
                 harvester = new FedoraHarvester(repUrl, maxRequests);
             }
-            Indexer solr = new SolrIndexer(solrUrl);
             FedoraRestClient registry = new FedoraRestClient(regUrl);
             registry.authenticate(regUser, regPass);
-            Harvest harvest = new Harvest(harvester, solr, registry);
-            harvest.run(script, since);
+            File rulesFile = new File(indexerRules);
+            Harvest harvest = new Harvest(harvester, registry, rulesFile);
+            harvest.run(since);
         }
     }
 }
