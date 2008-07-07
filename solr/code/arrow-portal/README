@@ -55,7 +55,7 @@ Solr configuration
 
 1. Copy the schema into Solr's conf directory.
 
-   cp /opt/arrow-portal/harvest-moon/src/main/resources/schema.xml /opt/solr/conf
+   cp /opt/arrow-portal/harvest-moon/src/main/resources/solr/schema.xml /opt/solr/conf
 
 2. Copy the harvest library so that Solr can use the Fedora update handler.
 
@@ -81,7 +81,7 @@ Fedora configuration
 2. Edit the Fedora server configuration to use the SolrDOManager.
 
    Change the DOManager class to "au.edu.usq.solr.fedora.SolrDOManager"
-     <module role="fedora.server.storage.DOManager" class="fedora.server.storage.DefaultDOManager">
+     <module role="fedora.server.storage.DOManager" class="au.edu.usq.solr.fedora.SolrDOManager">
 
    Configure the namespaces to accept "uuid" and "sof"
      <param name="pidNamespace" value="uuid">
