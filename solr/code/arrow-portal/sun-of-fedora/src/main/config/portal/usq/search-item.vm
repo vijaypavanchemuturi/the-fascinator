@@ -2,6 +2,15 @@
 <div class="item">
   <h2>$item.field("title")</h2>
   <ul>
+    #foreach($relation in $item.fields("relation"))
+      <li>
+        #if($relation.startsWith("http://"))
+          <a href="$relation">$relation</a>
+        #else
+          $relation
+        #end
+      </li>
+    #end
     #foreach($id in $item.fields("identifier"))
       <li>
         #if($id.startsWith("http://"))
