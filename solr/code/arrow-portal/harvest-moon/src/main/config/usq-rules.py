@@ -36,8 +36,20 @@ rules.add(DeleteFieldRule("creator", "^\\s*$"))
 rules.add(ModifyFieldRule("subject", "^(\\d{6}) (.*)$", "$2 ($1)"))
 
 # reformat types to MACAR standards
-rules.add(ModifyFieldRule("type", ".*Book Chapter.*", "book chapter"))
-rules.add(ModifyFieldRule("type", "PeerReviewed", "peer reviewed"))
+rules.add(ModifyFieldRule("type", "^Book \\(DEST Category A\\)$", "book"))
+rules.add(ModifyFieldRule("type", "^Book Chapter \\(DEST Category B\\)$", "book chapter"))
+rules.add(ModifyFieldRule("type", "^Conference or Workshop Item \\(DEST Category E\\)$", "conference item"))
+rules.add(ModifyFieldRule("type", "^Article \\(DEST Category A\\)$", "journal article"))
+rules.add(ModifyFieldRule("type", "^Patent$", "patent"))
+rules.add(ModifyFieldRule("type", "^Report$", "report"))
+rules.add(ModifyFieldRule("type", "^Thesis$", "thesis"))
+
+rules.add(ModifyFieldRule("type", "^PeerReviewed$", "peer reviewed"))
+rules.add(ModifyFieldRule("type", "^NonPeerReviewed$", "non peer reviewed"))
+
+rules.add(ModifyFieldRule("type", "^ADT_Thesis$", "australasian digital thesis"))
+rules.add(ModifyFieldRule("type", "^USQ Project$", "project"))
+rules.add(ModifyFieldRule("type", "^Other$", "other"))
 
 # repository name
 rules.add(AddFieldRule("repository_name", "USQ"))

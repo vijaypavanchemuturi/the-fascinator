@@ -30,6 +30,16 @@ if not datastreamMode:
     rules.add(DeleteFieldRule("creator", "^\\s*$"))
     # delete invalid dates
     rules.add(DeleteFieldRule("date", "(.*[^0-9].*)|(^\\s*$)"))
+    
+    # reformat types to MACAR standards
+    rules.add(ModifyFieldRule("type", "^conference proceedings$", "conference item"))
+    rules.add(ModifyFieldRule("type", "^Journal Article$", "journal article"))
+    rules.add(ModifyFieldRule("type", "^thesislocal$", "thesis"))
+    rules.add(ModifyFieldRule("type", "^[Ww]orking paper( local)?$", "working paper"))
+    
+    rules.add(ModifyFieldRule("type", "^Australasian Digital Thesis$", "australasian digital thesis"))
+    rules.add(ModifyFieldRule("type", "^Text$", "text"))
+    
     # set repository name
     rules.add(AddFieldRule("repository_name", "RUBRIC"))
     # set unique identifier (e.g. oai id or fedora pid)
