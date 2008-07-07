@@ -42,7 +42,6 @@ import java.util.logging.Logger;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
-import javax.xml.transform.TransformerException;
 
 import org.apache.solr.handler.XmlUpdateRequestHandler;
 import org.apache.solr.request.SolrParams;
@@ -105,7 +104,13 @@ public class FedoraUpdateRequestHandler extends XmlUpdateRequestHandler {
                 throw new IllegalArgumentException(
                     "PID cannot be null for update and delete by PID operations");
             if (action.equals(FROM_PID)) {
-                buildSolrDocument(req, contentType, streams, pid);
+                ByteArrayOutputStream foxmlOut = new ByteArrayOutputStream();
+                client.export(pid, foxmlOut);
+                JAXBContext jc = JAXBContext.newInstance("au.edu.usq.fedora.foxml");
+                Unmarshaller u = jc.createUnmarshaller();
+                DigitalObject obj = (DigitalObject) u.unmarshal(new ByteArrayInputStream(
+                    foxmlOut.toByteArray()));
+                buildSolrDocument(req, contentType, streams, obj);
                 ((SolrQueryRequestBase) req).setContentStreams(streams);
             } else if (action.equals(DELETE_PID)) {
                 String deleteQuery = "<delete><id>" + pid + "</id></delete>";
@@ -130,14 +135,9 @@ public class FedoraUpdateRequestHandler extends XmlUpdateRequestHandler {
     }
 
     private void buildSolrDocument(SolrQueryRequest req, String contentType,
-        Collection<ContentStream> streams, String pid) throws IOException,
-        JAXBException {
-        ByteArrayOutputStream foxmlOut = new ByteArrayOutputStream();
-        client.export(pid, foxmlOut);
-        JAXBContext jc = JAXBContext.newInstance("au.edu.usq.fedora.foxml");
-        Unmarshaller u = jc.createUnmarshaller();
-        DigitalObject obj = (DigitalObject) u.unmarshal(new ByteArrayInputStream(
-            foxmlOut.toByteArray()));
+        Collection<ContentStream> streams, DigitalObject obj)
+        throws IOException, JAXBException {
+        String pid = obj.getPID();
         Properties props = getMeta(pid);
         String itemPid = props.getProperty("item.pid");
         String rulesPid = props.getProperty("rules.pid");
@@ -175,30 +175,6 @@ public class FedoraUpdateRequestHandler extends XmlUpdateRequestHandler {
                 log.warning(re.getMessage());
             }
         }
-    }
-
-    private void buildSolrDocument(SolrQueryRequest req, String contentType,
-        Collection<ContentStream> streams, InputStream is) throws IOException,
-        TransformerException {
-
-        // // :TODO: NOTE: no transform caching at the moment
-        // Transformer t =
-        // TransformerProvider.instance.getTransformer(foxmlXslt,
-        // 0);
-        // // Set parameters
-        // t.setParameter("FEDORASOAP", fedoraUrl);
-        // t.setParameter("FEDORAUSER", fedoraUser);
-        // t.setParameter("FEDORAPASS", fedoraPass);
-        //
-        // StringWriter transformResult = new StringWriter();
-        // t.transform(new StreamSource(is), new StreamResult(transformResult));
-        // // Build stream body
-        // ContentStreamBase stream = new ContentStreamBase.StringStream(
-        // transformResult.toString());
-        // if (contentType != null) {
-        // stream.setContentType(contentType);
-        // }
-        // streams.add(stream);
     }
 
     private void fromFoxmlFiles(String filePath, SolrQueryRequest req,
@@ -239,9 +215,12 @@ public class FedoraUpdateRequestHandler extends XmlUpdateRequestHandler {
 
     private void indexDoc(String pidOrFilename, InputStream foxmlStream,
         SolrQueryRequest req, SolrQueryResponse rsp) throws Exception {
+        JAXBContext jc = JAXBContext.newInstance("au.edu.usq.fedora.foxml");
+        Unmarshaller u = jc.createUnmarshaller();
+        DigitalObject obj = (DigitalObject) u.unmarshal(foxmlStream);
         Collection<ContentStream> streams = new ArrayList<ContentStream>();
         buildSolrDocument(req, req.getParams().get("stream.contentType"),
-            streams, foxmlStream);
+            streams, obj);
         ((SolrQueryRequestBase) req).setContentStreams(streams);
         try {
             super.handleRequestBody(req, rsp);
