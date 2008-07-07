@@ -45,7 +45,7 @@ public class OaiOreHarvesterTest {
         System.out.println("*************");
         System.out.println(id);
         System.out.println("*************");
-        Assert.assertEquals("blah", id);
+        Assert.assertEquals("rspilot-eprint-11", id);
         input.close();
     }
 
