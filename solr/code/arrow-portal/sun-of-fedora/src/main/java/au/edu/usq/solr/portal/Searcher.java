@@ -36,6 +36,8 @@ import au.edu.usq.solr.model.Response;
 
 public class Searcher {
 
+    public static String QUERY_ALL = "*:*";
+
     private Logger log = Logger.getLogger(Searcher.class);
 
     private String solrBaseUrl;
@@ -103,8 +105,17 @@ public class Searcher {
         sortFields.add(sortField);
     }
 
+    public Response findAll() throws IOException, JAXBException {
+        return find(null);
+    }
+
     public Response find(String query) throws IOException, JAXBException {
         Response response = null;
+        if (query == null) {
+            query = "*:*";
+        } else if (!QUERY_ALL.equals(query)) {
+            query = query.replaceAll(":", "\\\\:");
+        }
         String queryUrl = getUrl(query);
         log.info("Query URL: " + queryUrl);
         GetMethod method = new GetMethod(queryUrl);

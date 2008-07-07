@@ -39,7 +39,7 @@ import au.edu.usq.solr.harvest.Item;
 
 public class FedoraItem implements Item {
 
-    private Logger log = Logger.getLogger(OaiPmhItem.class);
+    private Logger log = Logger.getLogger(FedoraItem.class);
 
     private FedoraRestClient client;
 
@@ -74,7 +74,7 @@ public class FedoraItem implements Item {
         String metadata = null;
         try {
             ByteArrayOutputStream out = new ByteArrayOutputStream();
-            client.get(getId(), "DC", out);
+            client.get(getPid(), getMetaId(), out);
             metadata = out.toString("UTF-8");
         } catch (IOException ioe) {
             log.warn(ioe);
@@ -89,9 +89,9 @@ public class FedoraItem implements Item {
     public List<Datastream> getDatastreams() {
         List<Datastream> streams = new ArrayList<Datastream>();
         try {
-            ObjectDatastreamsType objectStreams = client.listDatastreams(getId());
+            ObjectDatastreamsType objectStreams = client.listDatastreams(getPid());
             for (DatastreamType ds : objectStreams.getDatastreams()) {
-                streams.add(new FedoraDatastream(client, getId(), ds));
+                streams.add(new FedoraDatastream(client, getPid(), ds));
             }
         } catch (IOException ioe) {
             log.warn(ioe);
@@ -107,5 +107,15 @@ public class FedoraItem implements Item {
             }
         }
         return null;
+    }
+
+    // Non-interface methods
+
+    public String getPid() {
+        return getId();
+    }
+
+    public String getMetaId() {
+        return "DC";
     }
 }

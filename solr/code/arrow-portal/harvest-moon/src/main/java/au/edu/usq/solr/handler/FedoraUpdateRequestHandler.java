@@ -58,7 +58,7 @@ import au.edu.usq.fedora.foxml.DatastreamType;
 import au.edu.usq.fedora.foxml.DigitalObject;
 import au.edu.usq.solr.fedora.FedoraRestClient;
 import au.edu.usq.solr.harvest.Item;
-import au.edu.usq.solr.harvest.impl.FedoraItem;
+import au.edu.usq.solr.harvest.impl.FedoraRegistryItem;
 import au.edu.usq.solr.index.rule.RuleException;
 import au.edu.usq.solr.index.rule.RuleManager;
 
@@ -138,19 +138,23 @@ public class FedoraUpdateRequestHandler extends XmlUpdateRequestHandler {
         Unmarshaller u = jc.createUnmarshaller();
         DigitalObject obj = (DigitalObject) u.unmarshal(new ByteArrayInputStream(
             foxmlOut.toByteArray()));
-        FedoraItem item = new FedoraItem(client, pid);
-        String rulesPid = getRulesPid(pid);
+        Properties props = getMeta(pid);
+        String itemPid = props.getProperty("item.pid");
+        String rulesPid = props.getProperty("rules.pid");
         File rulesFile = File.createTempFile("rules", ".py");
         FileOutputStream rulesOut = new FileOutputStream(rulesFile);
         client.get(rulesPid, "RULES.PY", rulesOut);
         rulesOut.close();
+        FedoraRegistryItem item = new FedoraRegistryItem(client, itemPid, pid);
         for (DatastreamType ds : obj.getDatastream()) {
             String dsId = ds.getID();
             try {
                 if ("DC".equals(dsId) || "SOF-META".equals(dsId)
                     || "AUDIT".equals(dsId)) {
                     // ignore
+                    log.info("Ignoring datastream: " + dsId);
                 } else if ("DC0".equals(dsId)) {
+                    log.info("Indexing Dublin Core: " + dsId);
                     ByteArrayOutputStream dcOut = new ByteArrayOutputStream();
                     client.get(pid, "DC0", dcOut);
                     Reader in = new InputStreamReader(new ByteArrayInputStream(
@@ -160,6 +164,7 @@ public class FedoraUpdateRequestHandler extends XmlUpdateRequestHandler {
                         solrFile);
                     streams.add(stream);
                 } else {
+                    log.info("Indexing Datastream: " + dsId);
                     Reader in = new StringReader("<add><doc/></add>");
                     File solrFile = index(item, pid, dsId, in, rulesFile);
                     ContentStream stream = new ContentStreamBase.FileStream(
@@ -277,14 +282,15 @@ public class FedoraUpdateRequestHandler extends XmlUpdateRequestHandler {
         return getClass().getResourceAsStream(path);
     }
 
-    private String getRulesPid(String pid) throws IOException {
-        String rulesPid = null;
+    private Properties getMeta(String pid) throws IOException {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         client.get(pid, "SOF-META", out);
         Properties props = new Properties();
         props.load(new ByteArrayInputStream(out.toByteArray()));
-        rulesPid = props.getProperty("rules.pid");
-        log.info("Found rules.pid: " + rulesPid);
-        return rulesPid;
+        String itemPid = props.getProperty("item.pid");
+        String rulesPid = props.getProperty("rules.pid");
+        log.info("item.pid: " + itemPid);
+        log.info("rules.pid: " + rulesPid);
+        return props;
     }
 }

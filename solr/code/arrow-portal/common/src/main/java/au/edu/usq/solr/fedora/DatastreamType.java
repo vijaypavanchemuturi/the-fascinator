@@ -38,12 +38,24 @@ public class DatastreamType implements Comparable<DatastreamType> {
         return dsid;
     }
 
+    public void setDsid(String dsid) {
+        this.dsid = dsid;
+    }
+
     public String getLabel() {
         return label;
     }
 
+    public void setLabel(String label) {
+        this.label = label;
+    }
+
     public String getMimeType() {
         return mimeType;
+    }
+
+    public void setMimeType(String mimeType) {
+        this.mimeType = mimeType;
     }
 
     public int compareTo(DatastreamType that) {

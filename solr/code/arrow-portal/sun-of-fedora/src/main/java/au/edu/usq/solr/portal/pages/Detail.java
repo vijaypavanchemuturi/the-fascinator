@@ -23,6 +23,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.xml.bind.JAXBException;
@@ -30,6 +31,7 @@ import javax.xml.bind.JAXBException;
 import org.apache.log4j.Logger;
 import org.apache.tapestry.annotations.ApplicationState;
 import org.apache.tapestry.annotations.IncludeStylesheet;
+import org.apache.tapestry.annotations.InjectPage;
 import org.apache.tapestry.annotations.OnEvent;
 import org.apache.tapestry.ioc.annotations.Inject;
 import org.apache.tapestry.util.TextStreamResponse;
@@ -37,8 +39,8 @@ import org.apache.tapestry.util.TextStreamResponse;
 import au.edu.usq.solr.fedora.DatastreamType;
 import au.edu.usq.solr.model.DublinCore;
 import au.edu.usq.solr.model.Response;
+import au.edu.usq.solr.model.types.DocumentType;
 import au.edu.usq.solr.model.types.ResultType;
-import au.edu.usq.solr.portal.Role;
 import au.edu.usq.solr.portal.Searcher;
 import au.edu.usq.solr.portal.State;
 import au.edu.usq.solr.portal.services.RegistryManager;
@@ -47,6 +49,8 @@ import au.edu.usq.solr.util.BinaryStreamResponse;
 
 @IncludeStylesheet("context:css/default.css")
 public class Detail {
+
+    public static final String DC_ID = "DC0";
 
     private Logger log = Logger.getLogger(Detail.class);
 
@@ -69,6 +73,9 @@ public class Detail {
 
     private boolean viewable;
 
+    @InjectPage
+    private Search searchPage;
+
     void onActivate(Object[] params) {
         if (params.length > 0) {
             try {
@@ -88,7 +95,7 @@ public class Detail {
 
     @OnEvent(value = "download")
     Object download(String dsId) {
-        viewable = checkRole();
+        viewable = DC_ID.equals(dsId) || checkRole(dsId);
         if (viewable) {
             DatastreamType ds = registryManager.getDatastream(uuid, dsId);
             String contentType = ds.getMimeType();
@@ -134,9 +141,33 @@ public class Detail {
 
     public List<DatastreamType> getDatastreams() {
         if (dsList == null) {
-            dsList = registryManager.getDatastreams(uuid);
+            dsList = new ArrayList<DatastreamType>();
         }
-        
+        Searcher searcher = searchPage.getSecureSearcher();
+        searcher.addFacetQuery("pid:\"" + uuid + "\"");
+        try {
+            Response response = searcher.findAll();
+            ResultType result = response.getResult();
+            if (result.getNumFound() > 0) {
+                for (DocumentType doc : result.getItems()) {
+                    String id = doc.field("id");
+                    int slash = id.lastIndexOf('/') + 1;
+                    DatastreamType ds = new DatastreamType();
+                    if (slash == 0) {
+                        ds.setDsid(DC_ID);
+                        ds.setLabel("Dublin Core Metadata");
+                        ds.setMimeType("text/xml");
+                    } else {
+                        ds.setDsid(doc.field("identifier"));
+                        ds.setLabel(doc.field("title"));
+                        ds.setMimeType(doc.field("format"));
+                    }
+                    dsList.add(ds);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         return dsList;
     }
 
@@ -157,29 +188,14 @@ public class Detail {
     }
 
     boolean checkRole(String dsId) {
-        String pid = uuid;
+        log.info("checkRole: " + uuid + " : " + dsId);
+        Searcher searcher = searchPage.getSecureSearcher();
+        searcher.addFacetQuery("pid:\"" + uuid + "\"");
         if (dsId != null) {
-            pid = pid + "/" + dsId;
-        }
-        Searcher searcher = new Searcher(state.getSolrBaseUrl());
-        searcher.setRows(1);
-        searcher.addFacetQuery("pid:\"" + pid + "\"");
-        String accessQuery = "";
-        boolean firstRole = true;
-        for (Role role : state.getUserRoles()) {
-            if (firstRole) {
-                firstRole = false;
-                accessQuery = role.getQuery();
-            } else {
-                accessQuery += " OR " + role.getQuery();
-            }
-        }
-        accessQuery = accessQuery.trim();
-        if (accessQuery != null) {
-            searcher.addFacetQuery(accessQuery);
+            searcher.addFacetQuery("identifier:\"" + dsId + "\"");
         }
         try {
-            Response response = searcher.find("*:*");
+            Response response = searcher.findAll();
             ResultType result = response.getResult();
             return result.getNumFound() > 0;
         } catch (IOException e) {

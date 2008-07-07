@@ -58,8 +58,6 @@ public class Search {
 
     private Logger log = Logger.getLogger(Search.class);
 
-    private static final String QUERY_ALL = "*:*";
-
     @Inject
     private PortalManager portalManager;
 
@@ -147,7 +145,7 @@ public class Search {
             query = params[1].toString();
         }
         if (query == null || params.length == 1) {
-            query = QUERY_ALL;
+            query = Searcher.QUERY_ALL;
         }
 
         Portal found = portalManager.get(portalName);
@@ -166,7 +164,7 @@ public class Search {
         int recordsPerPage = found.getRecordsPerPage();
         pageNum = Math.max(pageNum, 1);
 
-        Searcher searcher = new Searcher(state.getSolrBaseUrl());
+        Searcher searcher = getSecureSearcher();
         searcher.setBaseFacetQuery(found.getQuery());
         searcher.setRows(recordsPerPage);
         searcher.setFacetMinCount(1);
@@ -179,23 +177,6 @@ public class Search {
         log.info("sortField: " + sortField);
         if (sortField != null) {
             searcher.addSortField(sortField);
-        }
-
-        // access
-        String accessQuery = "";
-        boolean firstRole = true;
-        for (Role role : state.getUserRoles()) {
-            if (firstRole) {
-                firstRole = false;
-                accessQuery = role.getQuery();
-            } else {
-                accessQuery += " OR " + role.getQuery();
-            }
-        }
-        accessQuery = accessQuery.trim();
-        log.info("accessQuery: " + accessQuery);
-        if (accessQuery != null) {
-            searcher.addFacetQuery(accessQuery);
         }
 
         for (String facetLimit : getFacetLimits()) {
@@ -218,14 +199,14 @@ public class Search {
             selectFirstPage();
         }
 
-        if (QUERY_ALL.equals(query)) {
+        if (Searcher.QUERY_ALL.equals(query)) {
             query = null;
         }
     }
 
     String[] onPassivate() {
         String p = portalName == null ? DEFAULT_PORTAL_NAME : portalName;
-        String q = query == null ? QUERY_ALL : query;
+        String q = query == null ? Searcher.QUERY_ALL : query;
         if (query == null) {
             return new String[] { p };
         } else {
@@ -370,7 +351,7 @@ public class Search {
     }
 
     public String getQuery() {
-        return QUERY_ALL.equals(query) ? "" : query;
+        return Searcher.QUERY_ALL.equals(query) ? "" : query;
     }
 
     public void setQuery(String query) {
@@ -462,5 +443,25 @@ public class Search {
             }
         }
         return false;
+    }
+
+    public Searcher getSecureSearcher() {
+        Searcher searcher = new Searcher(state.getSolrBaseUrl());
+        String accessQuery = "";
+        boolean firstRole = true;
+        for (Role role : state.getUserRoles()) {
+            if (firstRole) {
+                firstRole = false;
+                accessQuery = role.getQuery();
+            } else {
+                accessQuery += " OR " + role.getQuery();
+            }
+        }
+        accessQuery = accessQuery.trim();
+        log.info("accessQuery: " + accessQuery);
+        if (accessQuery != null) {
+            searcher.addFacetQuery(accessQuery);
+        }
+        return searcher;
     }
 }

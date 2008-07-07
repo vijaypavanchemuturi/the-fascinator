@@ -11,6 +11,7 @@ from au.edu.usq.solr.index.rule.impl import *
 #
 datastreamMode = dsId is not None
 if not datastreamMode:
+    print item.getMetadataAsString()
     #
     # full processing mode starts with the dublin core document. this is
     # intended for indexing main item records.
@@ -62,8 +63,27 @@ else:
     # datastream mode starts with a blank solr document. this is intended for
     # indexing datastreams.
     #
-    # add datastream id
-    rules.add(AddFieldRule("id", item.getId() + "/" + dsId))
-    # set item type to datastream
-    rules.add(AddFieldRule("item_type", "datastream"))
+    # skip FULLTEXT datastreams
+    if dsId == "FULLTEXT":
+        rules.add(SkipRule("Full text datastream"))
+    else:
+        ds = item.getDatastream(dsId)
+        # set unique id
+        rules.add(AddFieldRule("id", item.getId() + "/" + dsId))
+        # set registry pid
+        rules.add(AddFieldRule("pid", pid))
+        # set datastream id
+        rules.add(AddFieldRule("identifier", dsId))
+        # set label
+        rules.add(AddFieldRule("title", ds.getLabel()))
+        # set content type
+        rules.add(AddFieldRule("format", ds.getMimeType()))
+        # set item type to datastream
+        rules.add(AddFieldRule("item_type", "datastream"))
+        # group access
+        #   default to "guest"
+        groupAccess = AddFieldRule("group_access", "guest")
+        rules.add(groupAccess)
+        if ds.getMimeType() == "application/pdf":
+            groupAccess.setValue("admin")
     
