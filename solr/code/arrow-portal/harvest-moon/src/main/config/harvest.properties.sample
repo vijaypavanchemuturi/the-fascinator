@@ -14,7 +14,7 @@ registry.user=fedoraAdmin
 
 #
 # Repository to harvest
-#   repository.type = oai | fedora
+#   repository.type = oai-pmh | oai-ore | fedora
 #
 repository.type=fedora
 repository.url=http://rubric-vitalnew.usq.edu.au:8080/fedora
@@ -28,7 +28,7 @@ indexer.rules=src/main/config/rubric-rules.py
 #
 # Optional
 #   max.requests = number of requests
-#     Note: OAI-PMH does 100 records per requests, FEDORA does 25
+#     Note: OAI-PMH does 100 records per request, FEDORA does 25
 #   modified.since = only get records modified since this date/time
 #     Note: By default harvest records modified from now
 #

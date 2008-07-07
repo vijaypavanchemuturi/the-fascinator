@@ -198,11 +198,10 @@ public class Harvest {
             }
 
             Harvester harvester;
-            if ("oai".equals(repType)) {
+            if ("oai-pmh".equals(repType)) {
                 harvester = new OaiPmhHarvester(repUrl, maxRequests);
-            } else if ("ore".equals(repType)) {
+            } else if ("oai-ore".equals(repType)) {
                 harvester = new OaiOreHarvester(repUrl);
-
             } else {
                 harvester = new FedoraHarvester(repUrl, maxRequests);
             }
