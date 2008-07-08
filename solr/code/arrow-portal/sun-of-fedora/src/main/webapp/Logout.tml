@@ -28,7 +28,7 @@
     <div t:type="VelocityPanel" t:template="header.vm"/>
     <div class="logout">
       <h2>Logout</h2>
-      <p>You have been logged out. Return to <a t:type="pagelink" t:page="start">home page</a>.</p>
+      <p>You have been logged out. Return to <a href="${refererUrl}">previous location</a> or <a t:type="pagelink" t:page="start">home</a>.</p>
     </div>
     <div t:type="VelocityPanel" t:template="footer.vm"/>
   </body>

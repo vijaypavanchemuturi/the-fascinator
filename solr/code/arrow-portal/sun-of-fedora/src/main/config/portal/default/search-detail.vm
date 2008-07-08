@@ -1,5 +1,13 @@
 <!-- BEGIN search-detail.vm -->
 <div class="search">
+  <p>
+    #set($backlink = $page.referer)
+    #if($backlink)
+      <a href="$backlink">Return to previous location</a>
+    #else
+      <a href="${contextPath}search">Return to search</a>
+    #end
+  </p>
   <h1>Details</h1>
   #if($page.viewable)
     #set($dc = $page.metadata)
@@ -23,7 +31,14 @@
         <dl>
           #foreach($name in $dc.fields.keySet())
             <dt>$name</dt>
-            <dd>$dc.fields.get($name)</dd>
+            #set($values = $dc.fields.get($name))
+            #if($values.size() > 1)
+              #foreach($value in $values)
+                <dd>$value</dd>
+              #end
+            #else
+              <dd>$values.get(0)</dd>
+            #end
           #end
         </dl>
       </div>

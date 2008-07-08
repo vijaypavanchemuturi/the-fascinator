@@ -278,6 +278,7 @@ input.search-textfield {
 .item dl dt {
   color: #C3562E;
   font-weight: bold;
+  padding-top: 0.25em;
 }
 
 /* Tapestry overrides */

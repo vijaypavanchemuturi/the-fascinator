@@ -18,12 +18,18 @@
  */
 package au.edu.usq.solr.portal.pages;
 
+import java.net.MalformedURLException;
+import java.net.URL;
+
 import javax.naming.NamingException;
 
 import org.apache.log4j.Logger;
 import org.apache.tapestry.annotations.ApplicationState;
 import org.apache.tapestry.annotations.IncludeStylesheet;
 import org.apache.tapestry.annotations.InjectPage;
+import org.apache.tapestry.annotations.Persist;
+import org.apache.tapestry.ioc.annotations.Inject;
+import org.apache.tapestry.services.Request;
 
 import au.edu.usq.solr.portal.State;
 import au.edu.usq.solr.util.LdapAuthentication;
@@ -36,6 +42,9 @@ public class Login {
     private static final String RETRY = "retry";
 
     private Logger log = Logger.getLogger(Login.class);
+
+    @Inject
+    private Request request;
 
     @ApplicationState
     private State state;
@@ -51,9 +60,23 @@ public class Login {
 
     private String password;
 
+    @Persist
+    private URL refererUrl;
+
     Object onActivate(Object[] params) {
+        String referer = request.getHeader("Referer");
+        if (!referer.endsWith("/login") && !referer.endsWith("/logout")) {
+            try {
+                refererUrl = new URL(referer);
+            } catch (MalformedURLException mue) {
+                refererUrl = null;
+                log.warn("Bad referer: " + referer + " (" + mue.getMessage()
+                    + ")");
+            }
+        }
+        log.info("Referer: " + referer + " (" + refererUrl + ")");
         if (state.isLoggedIn()) {
-            return startPage;
+            return refererUrl == null ? startPage : refererUrl;
         }
         failed = false;
         if (params.length > 0) {
@@ -71,7 +94,7 @@ public class Login {
                 return null;
             }
         }
-        return startPage;
+        return refererUrl;
     }
 
     String onPassivate() {
@@ -123,5 +146,9 @@ public class Login {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public void setRefererUrl(URL refererUrl) {
+        this.refererUrl = refererUrl;
     }
 }

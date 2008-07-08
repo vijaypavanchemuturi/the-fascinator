@@ -22,6 +22,8 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.List;
@@ -33,7 +35,9 @@ import org.apache.tapestry.annotations.ApplicationState;
 import org.apache.tapestry.annotations.IncludeStylesheet;
 import org.apache.tapestry.annotations.InjectPage;
 import org.apache.tapestry.annotations.OnEvent;
+import org.apache.tapestry.annotations.Persist;
 import org.apache.tapestry.ioc.annotations.Inject;
+import org.apache.tapestry.services.Request;
 import org.apache.tapestry.util.TextStreamResponse;
 
 import au.edu.usq.solr.fedora.DatastreamType;
@@ -73,10 +77,27 @@ public class Detail {
 
     private boolean viewable;
 
+    @Inject
+    private Request request;
+
     @InjectPage
     private Search searchPage;
 
+    @Persist
+    private URL refererUrl;
+
     void onActivate(Object[] params) {
+        String referer = request.getHeader("Referer");
+        if (!referer.endsWith("/login") && !referer.endsWith("/logout")) {
+            try {
+                refererUrl = new URL(referer);
+            } catch (MalformedURLException mue) {
+                refererUrl = null;
+                log.warn("Bad referer: " + referer + " (" + mue.getMessage()
+                    + ")");
+            }
+        }
+        log.info("Referer: " + referer + " (" + refererUrl + ")");
         if (params.length > 0) {
             try {
                 String idParam = params[0].toString();
@@ -91,6 +112,12 @@ public class Detail {
 
     String onPassivate() {
         return uuid;
+    }
+
+    public String getReferer() {
+        String referer = request.getHeader("Referer");
+        log.info("Referer: " + referer);
+        return refererUrl == null ? null : refererUrl.toString();
     }
 
     @OnEvent(value = "download")
