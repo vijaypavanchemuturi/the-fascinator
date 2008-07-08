@@ -160,16 +160,20 @@ public class FedoraUpdateRequestHandler extends XmlUpdateRequestHandler {
                     Reader in = new InputStreamReader(new ByteArrayInputStream(
                         dcOut.toByteArray()));
                     File solrFile = index(item, pid, null, in, rulesFile);
-                    ContentStream stream = new ContentStreamBase.FileStream(
-                        solrFile);
-                    streams.add(stream);
+                    if (solrFile != null) {
+                        ContentStream stream = new ContentStreamBase.FileStream(
+                            solrFile);
+                        streams.add(stream);
+                    }
                 } else {
                     log.info("Indexing Datastream: " + dsId);
                     Reader in = new StringReader("<add><doc/></add>");
                     File solrFile = index(item, pid, dsId, in, rulesFile);
-                    ContentStream stream = new ContentStreamBase.FileStream(
-                        solrFile);
-                    streams.add(stream);
+                    if (solrFile != null) {
+                        ContentStream stream = new ContentStreamBase.FileStream(
+                            solrFile);
+                        streams.add(stream);
+                    }
                 }
             } catch (RuleException re) {
                 log.warning(re.getMessage());
@@ -247,6 +251,10 @@ public class FedoraUpdateRequestHandler extends XmlUpdateRequestHandler {
             python.set("item", item);
             python.execfile(ruleScript.getAbsolutePath());
             rules.run(in, out);
+            if (rules.cancelled()) {
+                log.info("Indexing rules were cancelled");
+                return null;
+            }
             python.cleanup();
         } catch (Exception e) {
             throw new RuleException(e);

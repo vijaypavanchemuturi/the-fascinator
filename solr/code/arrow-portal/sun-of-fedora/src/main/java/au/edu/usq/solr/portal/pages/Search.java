@@ -25,7 +25,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.xml.bind.JAXBException;
 
 import org.apache.log4j.Logger;
@@ -100,9 +99,6 @@ public class Search {
     private Detail detailPage;
 
     @Inject
-    private HttpServletRequest httpServletRequest;
-
-    @Inject
     private Request httpRequest;
 
     @Inject
@@ -172,6 +168,12 @@ public class Search {
         searcher.setFacetFields(found.getFacetFieldList());
         searcher.setStart((pageNum - 1) * recordsPerPage);
         searcher.addFacetQuery("item_type:object");
+
+        // item class
+        String itemClass = found.getItemClass();
+        if (itemClass != null && !"".equals(itemClass)) {
+            searcher.addFacetQuery("item_class:" + itemClass);
+        }
 
         // sorting
         log.info("sortField: " + sortField);

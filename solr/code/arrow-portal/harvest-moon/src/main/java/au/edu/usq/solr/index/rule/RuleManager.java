@@ -41,9 +41,12 @@ public class RuleManager {
 
     private File workDir;
 
+    private boolean cancelled;
+
     public RuleManager() {
         rules = new ArrayList<Rule>();
         workDir = new File(System.getProperty("java.io.tmpdir"));
+        cancelled = false;
     }
 
     public void setWorkDir(File workDir) {
@@ -58,11 +61,15 @@ public class RuleManager {
         rules.remove(rule);
     }
 
+    public boolean cancelled() {
+        return cancelled;
+    }
+
     public void run(Reader in, Writer out) throws IOException {
         File tmpFile = null;
         File lastTmpFile = null;
         Reader tmpIn = in;
-        boolean stopped = false;
+        cancelled = false;
         for (Rule rule : rules) {
             try {
                 lastTmpFile = tmpFile;
@@ -79,7 +86,7 @@ public class RuleManager {
                     "UTF-8");
             } catch (Exception e) {
                 if (rule.getStopOnFailure()) {
-                    stopped = true;
+                    cancelled = true;
                     log.error("Stopping since " + rule + " failed: "
                         + e.getMessage());
                     break;
@@ -88,7 +95,7 @@ public class RuleManager {
                 }
             }
         }
-        if (!stopped) {
+        if (!cancelled) {
             StreamUtils.copyStream(tmpIn, out);
             tmpFile.delete();
         }
