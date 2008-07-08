@@ -50,6 +50,20 @@ public class OaiOreHarvesterTest {
     }
 
     @Test
+    public void normaliseDate() throws Exception {
+        InputStream input = getClass().getResourceAsStream("/resmap.xml");
+        OREParser parser = OREParserFactory.getInstance("RDF/XML");
+        ResourceMap rem = parser.parse(input);
+        final OaiOreItem item = new OaiOreItem(rem);
+        String id = item.getId();
+        System.out.println("*************");
+        System.out.println(id);
+        System.out.println("*************");
+        // Assert.assertEquals("rspilot-eprint-11", id);
+        input.close();
+    }
+
+    @Test
     public void fetchDublinCore() throws Exception {
         InputStream in = getClass().getResourceAsStream("/resmap.xml");
         OREParser parser = OREParserFactory.getInstance("RDF/XML");
@@ -88,16 +102,6 @@ public class OaiOreHarvesterTest {
                     System.out.println("No Object Literal!");
                 } finally {
                 }
-
-                /*
-                 * for (Triple o : t.getObject().listAllTriples()) {
-                 * System.out.print("Subject: ");
-                 * System.out.println(o.getSubjectURI());
-                 * System.out.print("Predicate: ");
-                 * System.out.println(o.getPredicate().getURI());
-                 * System.out.print("Object: ");
-                 * System.out.println(o.getObjectURI()); }
-                 */
 
             }
 
