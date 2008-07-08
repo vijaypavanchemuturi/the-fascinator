@@ -30,6 +30,8 @@ import java.util.Properties;
 import org.apache.log4j.Logger;
 
 import au.edu.usq.solr.fedora.FedoraRestClient;
+import au.edu.usq.solr.fedora.ObjectFieldType;
+import au.edu.usq.solr.fedora.ResultType;
 import au.edu.usq.solr.harvest.impl.FedoraHarvester;
 import au.edu.usq.solr.harvest.impl.OaiOreHarvester;
 import au.edu.usq.solr.harvest.impl.OaiPmhHarvester;
@@ -72,8 +74,18 @@ public class Harvest {
         String rulesPid = null;
         try {
             log.info("Caching rules file: " + rulesFile);
-            rulesPid = registry.createObject(rulesFile.getAbsolutePath(), "sof");
-            log.info("Created rules object: " + rulesPid);
+            String rulesLabel = rulesFile.getAbsolutePath();
+            ResultType result = registry.findObjects(rulesLabel, 1);
+            List<ObjectFieldType> objects = result.getObjectFields();
+            if (objects.isEmpty()) {
+                rulesPid = registry.createObject(rulesLabel, "sof");
+                log.info("CREATE: " + rulesPid);
+            } else {
+                rulesPid = objects.get(0).getPid();
+                log.info("UPDATE: " + rulesPid);
+            }
+            // rulesPid = registry.createObject(rulesFile.getAbsolutePath(),
+            // "sof");
             registry.addDatastream(rulesPid, "RULES.PY", "Indexing Rules",
                 "text/plain", rulesFile);
         } catch (IOException ioe) {
@@ -114,18 +126,18 @@ public class Harvest {
             log.info("Processing " + itemId + "...");
 
             // FIXME checking if an object exists hangs after 100 or so
-            // ResultType result = registry.findObjects(itemId, 1);
-            // List<ObjectFieldType> objects = result.getObjectFields();
-            // if (objects.isEmpty()) {
-            // pid = registry.createObject(itemId, "uuid");
-            // log.info("CREATE: " + pid);
-            // } else {
-            // pid = objects.get(0).getPid();
-            // log.info("UPDATE: " + pid);
-            // }
+            ResultType result = registry.findObjects(itemId, 1);
+            List<ObjectFieldType> objects = result.getObjectFields();
+            if (objects.isEmpty()) {
+                pid = registry.createObject(itemId, "uuid");
+                log.info("CREATE: " + pid);
+            } else {
+                pid = objects.get(0).getPid();
+                log.info("UPDATE: " + pid);
+            }
 
             // create the digital object
-            pid = registry.createObject(itemId, "uuid");
+            // pid = registry.createObject(itemId, "uuid");
             registry.addDatastream(pid, "DC0", "Dublin Core Metadata",
                 "text/xml", meta);
             log.info("Created object: " + pid);
@@ -143,7 +155,11 @@ public class Harvest {
                     } else {
                         File dsf = File.createTempFile("datastream", null);
                         ds.getContent(dsf);
-                        registry.addDatastream(pid, dsId, label, type, dsf);
+                        if (dsf.length() > 0) {
+                            registry.addDatastream(pid, dsId, label, type, dsf);
+                        } else {
+                            log.info("Ignored zero byte datastream");
+                        }
                         dsf.delete();
                     }
                 }
@@ -232,7 +248,7 @@ public class Harvest {
             FedoraRestClient registry = new FedoraRestClient(regUrl);
             registry.authenticate(regUser, regPass);
             Indexer indexer = new SolrIndexer(solrUrl);
-            File rulesFile = new File(indexerRules);
+            File rulesFile = new File(configFile.getParentFile(), indexerRules);
             Harvest harvest = new Harvest(harvester, registry, indexer,
                 rulesFile);
             harvest.run(since);

@@ -3,7 +3,7 @@
   <ul>
     <li class="home"><a href="${contextPath}">home</a></li>
     #if($session.loggedIn)
-      <li><a href="${contextPath}logout">logout</a>: <span class="user">$session.userName</span></li>
+      <li><a href="${contextPath}logout">logout</a>: <span class="user">$session.userName $session.userRoles</span></li>
     #else
       #if($pageName != "Login")
         <li><a href="${contextPath}login">login</a></li>
@@ -23,6 +23,5 @@
   #else
     $pageName
   #end
-  $session.userRoles
 </div>
 <!-- END header.vm -->

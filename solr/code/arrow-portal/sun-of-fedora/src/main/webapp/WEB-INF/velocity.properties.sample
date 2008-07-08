@@ -4,7 +4,7 @@
 #
 # note: for development purposes this can be left as-is if deployed using jetty
 #
-file.resource.loader.path = src/main/config/portal
+file.resource.loader.path = /opt/sun-of-fedora
 
 #
 # template cache is turned off for development purposes. set to true for

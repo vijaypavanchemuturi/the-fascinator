@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<assembly>
+  <id>dist</id>
+  <formats>
+    <format>tar.gz</format>
+    <format>zip</format>
+  </formats>
+  <includeBaseDirectory>false</includeBaseDirectory>
+  <fileSets>
+    <fileSet>
+      <includes>
+        <include>COPYING</include>
+        <include>README</include>
+      </includes>
+    </fileSet>
+    <fileSet>
+      <!-- Harvest scripts -->
+      <directory>harvest-moon/src/main/scripts</directory>
+      <outputDirectory>harvest-moon</outputDirectory>
+      <fileMode>0744</fileMode>
+      <includes>
+        <include>harvest.sh</include>
+      </includes>
+    </fileSet>
+    <fileSet>
+      <!-- Sample harvester/indexer configs -->
+      <directory>harvest-moon/src/main/config</directory>
+      <outputDirectory>harvest-moon/config</outputDirectory>
+    </fileSet>
+    <fileSet>
+      <!-- Solr schema -->
+      <directory>harvest-moon/src/main/resources/solr</directory>
+      <outputDirectory>harvest-moon/solr</outputDirectory>
+      <includes>
+        <include>schema.xml</include>
+      </includes>
+    </fileSet>
+    <fileSet>
+      <!-- Harvest Moon Solr Fedora handler -->
+      <directory>harvest-moon/target</directory>
+      <outputDirectory>harvest-moon/solr</outputDirectory>
+      <includes>
+        <include>harvest-moon-solr.jar</include>
+      </includes>
+    </fileSet>
+    <fileSet>
+      <!-- Portal configuration -->
+      <directory>sun-of-fedora/src/main/config/portal</directory>
+      <outputDirectory>sun-of-fedora/config</outputDirectory>
+    </fileSet>
+    <fileSet>
+      <directory>sun-of-fedora/src/main/webapp/WEB-INF</directory>
+      <outputDirectory>sun-of-fedora/WEB-INF</outputDirectory>
+      <includes>
+        <include>config.properties.sample</include>
+        <include>velocity.properties.sample</include>
+      </includes>
+    </fileSet>
+  </fileSets>
+  <moduleSets>
+    <moduleSet>
+      <!-- Fedora Services -->
+      <includes>
+        <include>au.edu.usq.arrow-portal:fedora-services</include>
+      </includes>
+      <binaries>
+        <outputFileNameMapping>${artifact.artifactId}.${artifact.extension}</outputFileNameMapping>
+        <outputDirectory>fedora-services</outputDirectory>
+        <unpack>false</unpack>
+        <dependencySets>
+          <dependencySet>
+            <excludes>
+              <exclude>*:*</exclude>
+            </excludes>
+          </dependencySet>
+        </dependencySets>
+      </binaries>
+    </moduleSet>
+    <moduleSet>
+      <!-- Harvest Moon -->
+      <includes>
+        <include>au.edu.usq.arrow-portal:harvest-moon</include>
+      </includes>
+      <binaries>
+        <outputDirectory>harvest-moon/lib</outputDirectory>
+        <unpack>false</unpack>
+        <dependencySets>
+          <dependencySet>
+            <useProjectArtifact>false</useProjectArtifact>
+            <scope>runtime</scope>
+          </dependencySet>
+          <dependencySet>
+            <scope>system</scope>
+          </dependencySet>
+        </dependencySets>
+      </binaries>
+    </moduleSet>
+    <moduleSet>
+      <!-- Sun of Fedora web application -->
+      <includes>
+        <include>au.edu.usq.arrow-portal:sun-of-fedora</include>
+      </includes>
+      <binaries>
+        <outputFileNameMapping>${artifact.artifactId}.${artifact.extension}</outputFileNameMapping>
+        <outputDirectory>sun-of-fedora</outputDirectory>
+        <unpack>false</unpack>
+        <dependencySets>
+          <dependencySet>
+            <excludes>
+              <exclude>*:*</exclude>
+            </excludes>
+          </dependencySet>
+        </dependencySets>
+      </binaries>
+    </moduleSet>
+  </moduleSets>
+</assembly>

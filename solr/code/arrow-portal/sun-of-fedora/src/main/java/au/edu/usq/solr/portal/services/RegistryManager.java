@@ -18,7 +18,7 @@
  */
 package au.edu.usq.solr.portal.services;
 
-import java.io.OutputStream;
+import java.io.InputStream;
 import java.util.List;
 
 import au.edu.usq.solr.fedora.DatastreamType;
@@ -32,7 +32,7 @@ public interface RegistryManager {
 
     public List<DatastreamType> getDatastreams(String uuid);
 
-    public void getDatastreamAsStream(String uuid, String dsId, OutputStream out);
+    public InputStream getDatastreamAsStream(String uuid, String dsId);
 
     public String getDatastreamAsString(String uuid, String dsId);
 

@@ -21,8 +21,7 @@ package au.edu.usq.solr.portal.services;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
-import java.io.UnsupportedEncodingException;
+import java.io.InputStream;
 import java.util.List;
 import java.util.Properties;
 
@@ -58,7 +57,6 @@ public class RegistryManagerImpl implements RegistryManager {
     public DublinCore getMetadata(String uuid) {
         ByteArrayOutputStream dcOut = new ByteArrayOutputStream();
         try {
-            log.info("id:" + uuid);
             client.get(uuid + "/DC0", dcOut);
             JAXBContext jc = JAXBContext.newInstance(DublinCore.class);
             Unmarshaller um = jc.createUnmarshaller();
@@ -89,9 +87,11 @@ public class RegistryManagerImpl implements RegistryManager {
         }
     }
 
-    public void getDatastreamAsStream(String uuid, String dsId, OutputStream out) {
+    public InputStream getDatastreamAsStream(String uuid, String dsId) {
         try {
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
             client.get(uuid, dsId, out);
+            return new ByteArrayInputStream(out.toByteArray());
         } catch (IOException ioe) {
             log.error(ioe);
             throw new RuntimeException(ioe);
@@ -100,12 +100,12 @@ public class RegistryManagerImpl implements RegistryManager {
 
     public String getDatastreamAsString(String uuid, String dsId) {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        getDatastreamAsStream(uuid, dsId, out);
         try {
+            client.get(uuid, dsId, out);
             return out.toString("UTF-8");
-        } catch (UnsupportedEncodingException uee) {
-            log.error(uee);
-            throw new RuntimeException(uee);
+        } catch (IOException ioe) {
+            log.error(ioe);
+            throw new RuntimeException(ioe);
         }
     }
 }

@@ -18,9 +18,8 @@
  */
 package au.edu.usq.solr.portal.pages;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -88,7 +87,8 @@ public class Detail {
 
     void onActivate(Object[] params) {
         String referer = request.getHeader("Referer");
-        if (!referer.endsWith("/login") && !referer.endsWith("/logout")) {
+        if (referer != null && !referer.endsWith("/login")
+            && !referer.endsWith("/logout")) {
             try {
                 refererUrl = new URL(referer);
             } catch (MalformedURLException mue) {
@@ -130,10 +130,9 @@ public class Detail {
                 return new TextStreamResponse(contentType,
                     registryManager.getDatastreamAsString(uuid, dsId));
             } else {
-                ByteArrayOutputStream out = new ByteArrayOutputStream();
-                registryManager.getDatastreamAsStream(uuid, dsId, out);
-                return new BinaryStreamResponse(contentType,
-                    new ByteArrayInputStream(out.toByteArray()));
+                InputStream content = registryManager.getDatastreamAsStream(
+                    uuid, dsId);
+                return new BinaryStreamResponse(contentType, content);
             }
         }
         return null;
