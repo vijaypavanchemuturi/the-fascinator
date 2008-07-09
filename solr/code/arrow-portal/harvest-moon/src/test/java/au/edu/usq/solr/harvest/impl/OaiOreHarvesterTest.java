@@ -1,8 +1,10 @@
 package au.edu.usq.solr.harvest.impl;
 
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Scanner;
 
 import org.dspace.foresite.AggregatedResource;
 import org.dspace.foresite.OREParser;
@@ -51,20 +53,29 @@ public class OaiOreHarvesterTest {
 
     @Test
     public void normaliseDate() throws Exception {
-        InputStream input = getClass().getResourceAsStream("/resmap.xml");
-        OREParser parser = OREParserFactory.getInstance("RDF/XML");
-        ResourceMap rem = parser.parse(input);
-        final OaiOreItem item = new OaiOreItem(rem);
-        String id = item.getId();
-        System.out.println("*************");
-        System.out.println(id);
-        System.out.println("*************");
-        // Assert.assertEquals("rspilot-eprint-11", id);
-        input.close();
+        boolean containsDirtyChar = false;
+        boolean dirtyCharGone = false;
+        OaiOreHarvester o = new OaiOreHarvester(
+            "http://rspilot.usq.edu.au/cgi/search/simple/export_rspilot_ResMapUrls.xml?exp=0|1|-date/creators_name/title|archive|-|q:_fulltext_/abstract/creators_name/date/title:ALL:IN:the|-|eprint_status:eprint_status:ALL:EQ:archive|metadata_visibility:metadata_visibility:ALL:EX:show&output=ResMapUrls&_action_export=1&screen=Public::EPrintSearch&cache=47485");
+        InputStream in = getClass().getResourceAsStream("/resmap.xml");
+        Scanner readDirty = new Scanner(new InputStreamReader(in));
+        if (readDirty.hasNextLine()) {
+            if (readDirty.nextLine().contains("<dc:modified")) {
+                containsDirtyChar = true;
+            }
+        }
+        in = o.cleanRawData(in);
+        Scanner readClean = new Scanner(new InputStreamReader(in));
+        if (readDirty.hasNextLine()) {
+            if (readDirty.nextLine().contains("<dc:modified") == false) {
+                dirtyCharGone = true;
+            }
+        }
+
     }
 
     @Test
-    public void fetchDublinCore() throws Exception {
+    public void printOutTripples() throws Exception {
         InputStream in = getClass().getResourceAsStream("/resmap.xml");
         OREParser parser = OREParserFactory.getInstance("RDF/XML");
         ResourceMap rem = parser.parse(in);
@@ -107,7 +118,6 @@ public class OaiOreHarvesterTest {
 
         }
 
-        // Assert.assertEquals("", rem.getAggregatedResources().get(2));
         in.close();
     }
 }
