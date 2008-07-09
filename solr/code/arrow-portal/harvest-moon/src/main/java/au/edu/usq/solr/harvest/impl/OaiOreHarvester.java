@@ -1,12 +1,14 @@
 package au.edu.usq.solr.harvest.impl;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Scanner;
 
 import org.apache.log4j.Logger;
 import org.dspace.foresite.OREParser;
@@ -65,8 +67,29 @@ public class OaiOreHarvester implements Harvester {
 
     }
 
+    public InputStream cleanRawData(InputStream iS) {
+        String line = null;
+        StringBuilder b = new StringBuilder();
+        Scanner s = new Scanner(new InputStreamReader(iS));
+        while (s.hasNextLine() != false) {
+            if (s.nextLine().contains("<dc:modified")) {
+                line = s.nextLine().replaceAll("^<dc:modified*</dc:modified>",
+                    "");
+            }
+            b.append(line.trim());
+        }
+        String newString = b.toString();
+        ByteArrayInputStream bAIS = new ByteArrayInputStream(
+            newString.getBytes());
+        return bAIS;
+
+    }
+
     public ResourceMap createNewResourceMapObject(String fileName) {
-        InputStream input = getClass().getResourceAsStream(this.harvestUrl);
+        InputStream rawInput = null;
+        InputStream input = null;
+        rawInput = getClass().getResourceAsStream(this.harvestUrl);
+        input = cleanRawData(rawInput);
         OREParser parser = OREParserFactory.getInstance("RDF/XML");
         ResourceMap rem = null;
         try {
