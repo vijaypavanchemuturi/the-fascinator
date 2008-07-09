@@ -44,9 +44,7 @@ public class OaiOreHarvesterTest {
         ResourceMap rem = parser.parse(input);
         final OaiOreItem item = new OaiOreItem(rem);
         String id = item.getId();
-        System.out.println("*************");
-        System.out.println(id);
-        System.out.println("*************");
+        System.out.println("Item ID is :" + id);
         Assert.assertEquals("rspilot-eprint-11", id);
         input.close();
     }
@@ -57,13 +55,17 @@ public class OaiOreHarvesterTest {
         boolean dirtyCharGone = false;
         OaiOreHarvester o = new OaiOreHarvester(
             "http://rspilot.usq.edu.au/cgi/search/simple/export_rspilot_ResMapUrls.xml?exp=0|1|-date/creators_name/title|archive|-|q:_fulltext_/abstract/creators_name/date/title:ALL:IN:the|-|eprint_status:eprint_status:ALL:EQ:archive|metadata_visibility:metadata_visibility:ALL:EX:show&output=ResMapUrls&_action_export=1&screen=Public::EPrintSearch&cache=47485");
-        InputStream in = getClass().getResourceAsStream("/resmap.xml");
+        InputStream in = getClass().getResourceAsStream("/resmapDirty.xml");
         Scanner readDirty = new Scanner(new InputStreamReader(in));
-        if (readDirty.hasNextLine()) {
-            if (readDirty.nextLine().contains("<dc:modified")) {
+        while (readDirty.hasNextLine()) {
+            System.out.println("&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&");
+            System.out.println(readDirty.nextLine());
+            System.out.println("&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&");
+            if (readDirty.nextLine().contains("dc:modified")) {
                 containsDirtyChar = true;
             }
         }
+        Assert.assertTrue(containsDirtyChar);
         in = o.cleanRawData(in);
         Scanner readClean = new Scanner(new InputStreamReader(in));
         if (readDirty.hasNextLine()) {
@@ -71,6 +73,7 @@ public class OaiOreHarvesterTest {
                 dirtyCharGone = true;
             }
         }
+        Assert.assertTrue(dirtyCharGone);
 
     }
 
@@ -88,9 +91,7 @@ public class OaiOreHarvesterTest {
         for (AggregatedResource iterator : rem.getAggregatedResources()) {
             for (URI u : iterator.getTypes()) { // No types apparently
                 System.out.print("Type URI:");
-                System.out.println("-----------------");
                 System.out.println(u);
-                System.out.println("-----------------");
             }
 
             for (Triple t : iterator.listAllTriples()) {

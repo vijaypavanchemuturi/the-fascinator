@@ -81,7 +81,6 @@ public class OaiOreHarvester implements Harvester {
         String newString = b.toString();
         ByteArrayInputStream bAIS = new ByteArrayInputStream(
             newString.getBytes());
-        return bAIS;
 
     }
 
