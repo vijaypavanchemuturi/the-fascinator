@@ -71,16 +71,18 @@ public class OaiOreHarvester implements Harvester {
         String line = null;
         StringBuilder b = new StringBuilder();
         Scanner s = new Scanner(new InputStreamReader(iS));
-        while (s.hasNextLine() != false) {
+        while (s.hasNextLine()) {
             if (s.nextLine().contains("<dc:modified")) {
                 line = s.nextLine().replaceAll("^<dc:modified*</dc:modified>",
                     "");
             }
             b.append(line.trim());
         }
+
         String newString = b.toString();
         ByteArrayInputStream bAIS = new ByteArrayInputStream(
             newString.getBytes());
+        return bAIS;
 
     }
 
