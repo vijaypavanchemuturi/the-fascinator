@@ -2,8 +2,10 @@ package au.edu.usq.solr.harvest.impl;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Date;
@@ -74,12 +76,13 @@ public class OaiOreHarvester implements Harvester {
         while (s.hasNextLine()) {
             line = s.nextLine();
             if (line.contains("<dc:modified")) {
-                line = line.replaceAll("^<dc:modified*</dc:modified>", "");
+                line = line.replaceAll("<dc:modified.*</dc:modified>", "");
             }
-            b.append(line.trim());
+            b.append(line);
         }
 
         String newString = b.toString();
+        System.out.println(newString);
         ByteArrayInputStream bAIS = new ByteArrayInputStream(
             newString.getBytes());
         return bAIS;
@@ -89,15 +92,23 @@ public class OaiOreHarvester implements Harvester {
     public ResourceMap createNewResourceMapObject(String urlName) {
         InputStream rawInput = null;
         InputStream input = null;
-        rawInput = getClass().getResourceAsStream(urlName);
-        input = cleanRawData(rawInput);
-        OREParser parser = OREParserFactory.getInstance("RDF/XML");
         ResourceMap rem = null;
         try {
+            URL url = new URL(urlName);
+            rawInput = url.openStream();//getClass().getResourceAsStream(urlName
+            // );
+            input = cleanRawData(rawInput);
+            OREParser parser = OREParserFactory.getInstance("RDF/XML");
             rem = parser.parse(input);
         } catch (OREParserException e) {
             System.out.println("Unable to parse Resource Map "
                 + this.harvestUrl);
+            e.printStackTrace();
+        } catch (MalformedURLException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
             e.printStackTrace();
         }
         return rem;

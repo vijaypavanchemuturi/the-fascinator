@@ -52,7 +52,7 @@ public class OaiOreItem implements Item {
         this.setResourceMap(rem);
         this.setId();
         this.populateTrippyArrayList();
-
+        setMetadataAsString();
     }
 
     private void setResourceMap(ResourceMap rem) {
@@ -72,7 +72,7 @@ public class OaiOreItem implements Item {
     private void setMetadataAsString() {
         URI u = null;
         for (Trippy t : this.ArrayListOfTripleObjects)
-            if (t.objectLiteral == "OAI_DC") {
+            if ("OAI_DC".equals(t.objectLiteral)) {
                 u = t.getSubject();
                 String s = u.toString();
                 InputStream in = null;
