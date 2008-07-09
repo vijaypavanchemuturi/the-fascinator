@@ -20,6 +20,7 @@ package au.edu.usq.solr.harvest;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 
 public interface Datastream {
 
@@ -32,6 +33,8 @@ public interface Datastream {
     public byte[] getContent() throws IOException;
 
     public String getContentAsString() throws IOException;
+
+    public InputStream getContentAsStream() throws IOException;
 
     public void getContent(File dsFile) throws IOException;
 

@@ -26,6 +26,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -51,6 +52,10 @@ import org.apache.solr.request.SolrQueryResponse;
 import org.apache.solr.util.ContentStream;
 import org.apache.solr.util.ContentStreamBase;
 import org.apache.solr.util.NamedList;
+import org.pdfbox.exceptions.CryptographyException;
+import org.pdfbox.exceptions.InvalidPasswordException;
+import org.pdfbox.pdmodel.PDDocument;
+import org.pdfbox.util.PDFTextStripper;
 import org.python.util.PythonInterpreter;
 
 import au.edu.usq.fedora.foxml.DatastreamType;
@@ -265,8 +270,46 @@ public class FedoraUpdateRequestHandler extends XmlUpdateRequestHandler {
         return solrFile;
     }
 
+    // Helper methods for use in rules.py
+
     public InputStream getResource(String path) {
         return getClass().getResourceAsStream(path);
+    }
+
+    public String getFullText(String contentType, InputStream content) {
+        // only support full text from pdfs right now
+        if ("application/pdf".equals(contentType)) {
+            PDDocument pdfDoc = null;
+            try {
+                pdfDoc = PDDocument.load(content);
+                if (pdfDoc.isEncrypted()) {
+                    log.info("Attempting to decrypt PDF...");
+                    pdfDoc.decrypt("");
+                }
+                PDFTextStripper stripper = new PDFTextStripper();
+                File textFile = File.createTempFile("fulltext", ".txt");
+                FileWriter writer = new FileWriter(textFile);
+                writer.write(stripper.getText(pdfDoc));
+                return textFile.getAbsolutePath();
+            } catch (IOException ioe) {
+                log.severe("Failed to get full text: " + ioe.getMessage());
+            } catch (InvalidPasswordException ipe) {
+                log.warning("Failed to decrypt: " + ipe.getMessage());
+            } catch (CryptographyException ce) {
+                log.warning("Failed to decrypt: " + ce.getMessage());
+            } finally {
+                if (pdfDoc != null) {
+                    try {
+                        pdfDoc.close();
+                    } catch (IOException ioe) {
+                    }
+                }
+            }
+        } else {
+            log.warning("Unable to extract full text from content with type: "
+                + contentType);
+        }
+        return null;
     }
 
     private Properties getMeta(String pid) throws IOException {

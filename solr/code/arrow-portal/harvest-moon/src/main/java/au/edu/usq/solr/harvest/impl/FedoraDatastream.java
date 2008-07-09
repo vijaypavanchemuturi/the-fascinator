@@ -18,10 +18,12 @@
  */
 package au.edu.usq.solr.harvest.impl;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 
 import au.edu.usq.solr.fedora.DatastreamType;
 import au.edu.usq.solr.fedora.FedoraRestClient;
@@ -62,6 +64,10 @@ public class FedoraDatastream implements Datastream {
 
     public String getContentAsString() throws IOException {
         return new String(getContent());
+    }
+
+    public InputStream getContentAsStream() throws IOException {
+        return new ByteArrayInputStream(getContent());
     }
 
     public void getContent(File file) throws IOException {
