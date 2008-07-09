@@ -72,9 +72,9 @@ public class OaiOreHarvester implements Harvester {
         StringBuilder b = new StringBuilder();
         Scanner s = new Scanner(new InputStreamReader(iS));
         while (s.hasNextLine()) {
-            if (s.nextLine().contains("<dc:modified")) {
-                line = s.nextLine().replaceAll("^<dc:modified*</dc:modified>",
-                    "");
+            line = s.nextLine();
+            if (line.contains("<dc:modified")) {
+                line = line.replaceAll("^<dc:modified*</dc:modified>", "");
             }
             b.append(line.trim());
         }
