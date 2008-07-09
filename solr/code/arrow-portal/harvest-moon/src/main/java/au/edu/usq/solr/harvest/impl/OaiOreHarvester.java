@@ -86,10 +86,10 @@ public class OaiOreHarvester implements Harvester {
 
     }
 
-    public ResourceMap createNewResourceMapObject(String fileName) {
+    public ResourceMap createNewResourceMapObject(String urlName) {
         InputStream rawInput = null;
         InputStream input = null;
-        rawInput = getClass().getResourceAsStream(this.harvestUrl);
+        rawInput = getClass().getResourceAsStream(urlName);
         input = cleanRawData(rawInput);
         OREParser parser = OREParserFactory.getInstance("RDF/XML");
         ResourceMap rem = null;

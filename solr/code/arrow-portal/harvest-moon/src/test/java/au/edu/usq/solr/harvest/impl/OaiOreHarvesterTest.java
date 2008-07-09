@@ -64,7 +64,7 @@ public class OaiOreHarvesterTest {
 
             }
         }
-        Assert.assertTrue(stillDirty);
+        Assert.assertFalse(stillDirty);
 
     }
 
