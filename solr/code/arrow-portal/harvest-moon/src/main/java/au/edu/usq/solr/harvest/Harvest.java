@@ -35,9 +35,6 @@ import au.edu.usq.solr.fedora.ResultType;
 import au.edu.usq.solr.harvest.impl.FedoraHarvester;
 import au.edu.usq.solr.harvest.impl.OaiOreHarvester;
 import au.edu.usq.solr.harvest.impl.OaiPmhHarvester;
-import au.edu.usq.solr.index.Indexer;
-import au.edu.usq.solr.index.IndexerException;
-import au.edu.usq.solr.index.impl.SolrIndexer;
 
 public class Harvest {
 
@@ -45,17 +42,14 @@ public class Harvest {
 
     private Harvester harvester;
 
-    private Indexer indexer;
-
     private FedoraRestClient registry;
 
     private File rulesFile;
 
     public Harvest(Harvester harvester, FedoraRestClient registry,
-        Indexer indexer, File rulesFile) {
+        File rulesFile) {
         this.harvester = harvester;
         this.registry = registry;
-        this.indexer = indexer;
         this.rulesFile = rulesFile;
     }
 
@@ -105,12 +99,9 @@ public class Harvest {
                             log.warn("Processing failed: " + e.getMessage());
                         }
                     }
-                    indexer.commit();
                 }
             } catch (HarvesterException he) {
                 log.error(he.getMessage());
-            } catch (IndexerException ie) {
-                log.error(ie.getMessage());
             }
         }
 
@@ -203,7 +194,6 @@ public class Harvest {
             Properties props = new Properties();
             props.load(new FileInputStream(configFile));
 
-            String solrUrl = props.getProperty("solr.url");
             String regUrl = props.getProperty("registry.url");
             String regUser = props.getProperty("registry.user");
             String regPass = props.getProperty("registry.pass");
@@ -247,10 +237,8 @@ public class Harvest {
             }
             FedoraRestClient registry = new FedoraRestClient(regUrl);
             registry.authenticate(regUser, regPass);
-            Indexer indexer = new SolrIndexer(solrUrl);
             File rulesFile = new File(configFile.getParentFile(), indexerRules);
-            Harvest harvest = new Harvest(harvester, registry, indexer,
-                rulesFile);
+            Harvest harvest = new Harvest(harvester, registry, rulesFile);
             harvest.run(since);
         }
     }
