@@ -46,7 +46,7 @@ public class OaiOreItem implements Item {
     private Element metadata;
     private String stringMetadata;
     private ArrayList<Trippy> ArrayListOfTripleObjects = new ArrayList<Trippy>();
-    private List<OaiOreDatastream> dataStreamList = new ArrayList<OaiOreDatastream>();
+    private List<Datastream> dataStreamList = new ArrayList<Datastream>();
 
     public OaiOreItem(ResourceMap rem) {
         this.setResourceMap(rem);
@@ -173,8 +173,7 @@ public class OaiOreItem implements Item {
         return false;
     }
 
-    public List<OaiOreDatastream> getDatastreams() {
-
+    public List<Datastream> getDatastreams() {
         return this.dataStreamList;
     }
 

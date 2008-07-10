@@ -56,6 +56,7 @@ public class OaiOreDatastream implements Datastream {
         this.setdatastreamLabel();
         this.pid = pid;
         this.setMimeType(mimeType);
+        setDataStreamContentAsByteArray();
     }
 
     private void setDataStreamContentAsByteArray() {
@@ -132,7 +133,7 @@ public class OaiOreDatastream implements Datastream {
     public void getContent(File file) throws IOException {
 
         FileOutputStream out = new FileOutputStream(file);
-        client.get(pid, getId(), out);
+        out.write(getContent());
         out.close();
     }
 
