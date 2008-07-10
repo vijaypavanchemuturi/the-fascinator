@@ -25,7 +25,6 @@ import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import org.apache.log4j.Logger;
@@ -47,12 +46,42 @@ public class OaiOreItem implements Item {
     private Element metadata;
     private String stringMetadata;
     private ArrayList<Trippy> ArrayListOfTripleObjects = new ArrayList<Trippy>();
+    private List<OaiOreDatastream> dataStreamList = new ArrayList<OaiOreDatastream>();
 
     public OaiOreItem(ResourceMap rem) {
         this.setResourceMap(rem);
         this.setId();
         this.populateTrippyArrayList();
         setMetadataAsString();
+        this.populateDatastreamList();
+    }
+
+    private void populateDatastreamList() {
+        ArrayList<String> itemsAdded = new ArrayList<String>();
+        int datastreamPid = 1;
+        for (Trippy iterator : this.ArrayListOfTripleObjects) {
+            boolean alreadyAdded = false;
+            if ("application/pdf".equalsIgnoreCase(iterator.getObjectLiteral())) {
+
+                for (String singleItem : itemsAdded) {
+                    if (singleItem.equalsIgnoreCase(iterator.getSubject()
+                        .toString()))
+                        ;
+                    alreadyAdded = true;
+                }
+                if (alreadyAdded == false) {
+                    String datastreamId = iterator.getSubject().toString();
+                    String mimeType = iterator.getObjectLiteral();
+                    OaiOreDatastream dStream = new OaiOreDatastream(
+                        datastreamId, Integer.toString(datastreamPid), mimeType);
+                    dataStreamList.add(dStream);
+                    datastreamPid = datastreamPid + 1;
+
+                }
+
+            }
+
+        }
     }
 
     private void setResourceMap(ResourceMap rem) {
@@ -144,8 +173,9 @@ public class OaiOreItem implements Item {
         return false;
     }
 
-    public List<Datastream> getDatastreams() {
-        return Collections.emptyList();
+    public List<OaiOreDatastream> getDatastreams() {
+
+        return this.dataStreamList;
     }
 
     public Datastream getDatastream(String dsId) {
