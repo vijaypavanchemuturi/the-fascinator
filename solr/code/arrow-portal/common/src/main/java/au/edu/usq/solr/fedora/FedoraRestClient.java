@@ -126,6 +126,8 @@ public class FedoraRestClient {
                 InputStream in = method.getResponseBodyAsStream();
                 result = (ResultType) um.unmarshal(in);
                 in.close();
+            } else {
+                log.warn("GET " + uri + " returned " + status);
             }
             method.releaseConnection();
         } catch (JAXBException jaxbe) {
@@ -149,6 +151,8 @@ public class FedoraRestClient {
                 InputStream in = method.getResponseBodyAsStream();
                 result = (ResultType) um.unmarshal(in);
                 in.close();
+            } else {
+                log.warn("GET " + uri + " returned " + status);
             }
             method.releaseConnection();
         } catch (JAXBException jaxbe) {
@@ -172,6 +176,8 @@ public class FedoraRestClient {
                 InputStream in = method.getResponseBodyAsStream();
                 result = (ObjectDatastreamsType) um.unmarshal(in);
                 in.close();
+            } else {
+                log.warn("GET " + uri + " returned " + status);
             }
             method.releaseConnection();
         } catch (JAXBException jaxbe) {
