@@ -33,10 +33,9 @@ Binary distribution
 
 1. Download and extract the ZIP file.
 
-   curl -O https://rubric-central.usq.edu.au/solrsvn/public/dist/arrow-portal-dist.zip
-   mkdir arrow-portal
-   cd arrow-portal
-   unzip ../arrow-portal-dist.zip
+   wget --no-check-certificate https://rubric-central.usq.edu.au/solrsvn/public/dist/arrow-portal-dist.zip
+   mkdir /opt/arrow-portal
+   unzip arrow-portal-dist.zip -d /opt/arrow-portal
 
 Solr configuration
 ------------------
@@ -44,10 +43,10 @@ Solr configuration
 1. Install the Solr schema and Fedora update handler.
 
    Solr schema:
-     cp harvest-moon/solr/schema.xml /opt/solr/conf
+     cp /opt/arrow-portal/harvest-moon/solr/schema.xml /opt/solr/conf
 
    Solr Fedora update handler:
-     cp harvest-moon/solr/harvest-moon-solr.jar /opt/fedora/tomcat/solr/WEB-INF/lib
+     cp /opt/arrow-portal/harvest-moon/solr/harvest-moon-solr.jar /opt/fedora/tomcat/webapps/solr/WEB-INF/lib
 
 2. Add the following configuration to /opt/solr/conf/solrconfig.xml using values
    specific to your environment.
@@ -64,9 +63,10 @@ Fedora configuration
 
 1. Install the SolrDOManager.
 
-   cp fedora-services/fedora-services.jar /opt/fedora/tomcat/fedora/WEB-INF/lib
+   cp /opt/arrow-portal/fedora-services/fedora-services.jar /opt/fedora/tomcat/webapps/fedora/WEB-INF/lib
 
-2. Edit the Fedora server configuration to use the SolrDOManager.
+2. Edit the Fedora server configuration (/opt/fedora/server/config/fedora.fcfg)
+   to use the SolrDOManager.
 
    Change the DOManager class to "au.edu.usq.solr.fedora.SolrDOManager":
      <module role="fedora.server.storage.DOManager" class="au.edu.usq.solr.fedora.SolrDOManager">
@@ -79,6 +79,10 @@ Fedora configuration
      <param name="solrUrl" value="http://localhost:8080/solr" />
      <param name="syncUpdate" value="true" />
 
+   Optionally use these parameters if you have secured Solr:
+     <param name="solrUsername" value="solradmin" />
+     <param name="solrPassword" value="solrpassword" />
+
 Portal configuration
 --------------------
 
@@ -87,31 +91,29 @@ Portal configuration
    files are saved.
 
    mkdir /opt/sun-of-fedora
-   cd sun-of-fedora
-   cp -r config/ /opt/sun-of-fedora/
+   cp -r /opt/arrow-portal/sun-of-fedora/config/* /opt/sun-of-fedora/
 
 2. Create configuration files from the samples provided. If you used the
    /opt directories as suggested, the only configuration required is the LDAP
    in config.properties.
 
-   cd sun-of-fedora/WEB-INF
+   cd /opt/arrow-portal/sun-of-fedora/WEB-INF
    cp config.properties.sample config.properties
    cp velocity.properties.sample velocity.properties
-   cd ..
 
 3. Update the web package with your configuration files.
 
+   cd /opt/arrow-portal/sun-of-fedora
    zip -u sun-of-fedora.war WEB-INF/*
 
 4. Install the portal application in Tomcat.
 
-   cp sun-of-fedora.war /opt/fedora/tomcat/webapps
+   cp /opt/arrow-portal/sun-of-fedora/sun-of-fedora.war /opt/fedora/tomcat/webapps
 
 5. Startup Tomcat and open a browser to http://localhost:8080/sun-of-fedora
    (by default) to test if the application was deployed correctly.
 
-   cd /opt/fedora/tomcat/bin
-   ./startup.sh
+   /opt/fedora/tomcat/bin/startup.sh
 
 
 Harvesting
