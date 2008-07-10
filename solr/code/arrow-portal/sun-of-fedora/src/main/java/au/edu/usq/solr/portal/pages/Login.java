@@ -65,7 +65,8 @@ public class Login {
 
     Object onActivate(Object[] params) {
         String referer = request.getHeader("Referer");
-        if (!referer.endsWith("/login") && !referer.endsWith("/logout")) {
+        if (!referer.endsWith("/login") && !referer.endsWith("/login/failed")
+            && !referer.endsWith("/logout")) {
             try {
                 refererUrl = new URL(referer);
             } catch (MalformedURLException mue) {
