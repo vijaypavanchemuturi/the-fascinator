@@ -93,7 +93,7 @@ public class OaiOreDatastream implements Datastream {
     }
 
     private void setDatastreamId(String Id) {
-        this.datastreamId = Id.substring(Id.indexOf("/"));
+        this.datastreamId = Id.substring(Id.indexOf("/", 8)).substring(1);
 
     }
 
