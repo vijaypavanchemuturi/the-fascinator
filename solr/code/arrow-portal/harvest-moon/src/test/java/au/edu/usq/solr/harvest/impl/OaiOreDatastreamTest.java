@@ -26,4 +26,14 @@ public class OaiOreDatastreamTest {
         Assert.assertEquals(o.getMimeType(), "application/pdf");
 
     }
+
+    @Test
+    public void getContent() {
+        OaiOreDatastream o = new OaiOreDatastream(
+            "http://rspilot.usq.edu.au/7/1/manual.pdf", "1", "application/pdf");
+        byte[] test = o.getContent();
+
+        Assert.assertEquals(o.getId(), "7/1/manual.pdf");
+
+    }
 }
