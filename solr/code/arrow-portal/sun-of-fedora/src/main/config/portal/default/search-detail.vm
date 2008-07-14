@@ -28,16 +28,23 @@
         <p>No description</p>
       #end
       <div class="item">
+        #macro(fieldlink $value)
+          #if($value.startsWith("http://"))
+            <a href="$value">$value</a>
+          #else
+            $value
+          #end
+        #end
         <dl>
           #foreach($name in $dc.fields.keySet())
             <dt>$name</dt>
             #set($values = $dc.fields.get($name))
             #if($values.size() > 1)
               #foreach($value in $values)
-                <dd>$value</dd>
+                <dd>#fieldlink($value)</dd>
               #end
             #else
-              <dd>$values.get(0)</dd>
+              <dd>#fieldlink($values.get(0))</dd>
             #end
           #end
         </dl>
