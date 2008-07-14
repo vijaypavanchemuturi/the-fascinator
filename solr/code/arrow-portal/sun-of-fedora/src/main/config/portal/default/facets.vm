@@ -9,7 +9,7 @@
     #end
   #end
   #foreach($facetlist in $page.response.facetLists)
-    #if(!$facetlist.facets.empty && $facetlist.facets.size() > 1)
+    #if(!$facetlist.facets.empty)
       <h4>$page.state.portal.facetFields.get($facetlist.name)</h4>
       <ul>
       #foreach($facet in $facetlist.facets)
