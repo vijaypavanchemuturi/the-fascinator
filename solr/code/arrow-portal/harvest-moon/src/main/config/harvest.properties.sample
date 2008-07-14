@@ -1,11 +1,4 @@
 #
-# Solr base URL
-#
-solr.url=http://localhost:8080/solr
-#solr.user=
-#solr.pass=
-
-#
 # Registry (Fedora 3)
 #
 registry.url=http://localhost:8080/fedora
