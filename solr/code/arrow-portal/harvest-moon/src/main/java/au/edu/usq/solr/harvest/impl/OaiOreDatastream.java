@@ -41,7 +41,7 @@ public class OaiOreDatastream implements Datastream {
     private String datastreamLabel;
     private String rawDatastreamId;
     private String mimeType;
-    private ByteArrayOutputStream datastreamContentAsByteArray;
+    private byte[] datastreamContentAsByteArray;
 
     public OaiOreDatastream(FedoraRestClient client, String pid,
         DatastreamType dsType) {
@@ -89,7 +89,7 @@ public class OaiOreDatastream implements Datastream {
 
             e.printStackTrace();
         }
-        this.datastreamContentAsByteArray = out;
+        this.datastreamContentAsByteArray = out.toByteArray();
     }
 
     private void setDatastreamId(String Id) {
@@ -98,7 +98,8 @@ public class OaiOreDatastream implements Datastream {
     }
 
     private void setdatastreamLabel() {
-        this.datastreamLabel = this.rawDatastreamId.substring(this.rawDatastreamId.lastIndexOf("/"));
+        this.datastreamLabel = this.rawDatastreamId.substring(
+            this.rawDatastreamId.lastIndexOf("/")).substring(1);
 
     }
 
@@ -119,7 +120,7 @@ public class OaiOreDatastream implements Datastream {
     }
 
     public byte[] getContent() throws IOException {
-        return this.datastreamContentAsByteArray.toByteArray();
+        return this.datastreamContentAsByteArray;
     }
 
     public String getContentAsString() throws IOException {

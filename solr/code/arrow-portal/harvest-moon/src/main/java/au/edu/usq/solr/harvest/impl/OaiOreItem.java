@@ -75,6 +75,7 @@ public class OaiOreItem implements Item {
                     OaiOreDatastream dStream = new OaiOreDatastream(
                         datastreamId, Integer.toString(datastreamPid), mimeType);
                     dataStreamList.add(dStream);
+                    itemsAdded.add(datastreamId);
                     datastreamPid = datastreamPid + 1;
 
                 }
