@@ -61,26 +61,28 @@ public class OaiOreItem implements Item {
         int datastreamPid = 1;
         for (Trippy iterator : this.ArrayListOfTripleObjects) {
             boolean alreadyAdded = false;
-            if ("application/pdf".equalsIgnoreCase(iterator.getObjectLiteral())) {
+            if (iterator.getObjectLiteral() != null)
+                if (iterator.getPredicate().toString().contains("format")) {
 
-                for (String singleItem : itemsAdded) {
-                    if (singleItem.equalsIgnoreCase(iterator.getSubject()
-                        .toString()))
-                        ;
-                    alreadyAdded = true;
+                    for (String singleItem : itemsAdded) {
+                        if (singleItem.equalsIgnoreCase(iterator.getSubject()
+                            .toString()))
+                            ;
+                        alreadyAdded = true;
+                    }
+                    if (alreadyAdded == false) {
+                        String datastreamId = iterator.getSubject().toString();
+                        String mimeType = iterator.getObjectLiteral();
+                        OaiOreDatastream dStream = new OaiOreDatastream(
+                            datastreamId, Integer.toString(datastreamPid),
+                            mimeType);
+                        dataStreamList.add(dStream);
+                        itemsAdded.add(datastreamId);
+                        datastreamPid = datastreamPid + 1;
+
+                    }
+
                 }
-                if (alreadyAdded == false) {
-                    String datastreamId = iterator.getSubject().toString();
-                    String mimeType = iterator.getObjectLiteral();
-                    OaiOreDatastream dStream = new OaiOreDatastream(
-                        datastreamId, Integer.toString(datastreamPid), mimeType);
-                    dataStreamList.add(dStream);
-                    itemsAdded.add(datastreamId);
-                    datastreamPid = datastreamPid + 1;
-
-                }
-
-            }
 
         }
     }
