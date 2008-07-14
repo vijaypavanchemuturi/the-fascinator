@@ -102,6 +102,8 @@ public class OaiOreDatastream implements Datastream {
     private void setdatastreamLabel() {
         this.datastreamLabel = this.rawDatastreamId.substring(
             this.rawDatastreamId.lastIndexOf("/")).substring(1);
+        datastreamLabel = datastreamLabel.replace(',', '_');
+        datastreamLabel = datastreamLabel.replace('/', '_');
 
     }
 
