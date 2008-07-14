@@ -11,9 +11,9 @@ public class OaiOreDatastreamTest {
     @Test
     public void getId() {
         OaiOreDatastream o = new OaiOreDatastream(
-            "http://rspilot.usq.edu.au/7/1/manual.pdf", "1", "application/pdf");
-        Assert.assertEquals(o.getId(), "7/1/manual.pdf");
-
+            "http://rspilot.usq.edu.au/2/1/Arbon%2C_V._Bothways_and_beyond_cultural_standards.pdf",
+            "1", "application/pdf");
+        Assert.assertEquals(o.getId(), "DS2_1");
     }
 
     @Test

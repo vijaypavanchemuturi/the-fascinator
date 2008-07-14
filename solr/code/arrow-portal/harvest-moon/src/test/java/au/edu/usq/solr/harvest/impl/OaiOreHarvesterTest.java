@@ -20,11 +20,10 @@ public class OaiOreHarvesterTest {
 
     @Test
     public void fetchResMapUrls() throws Exception {
-        String hUrl = "http://rspilot.usq.edu.au/cgi/search/simple/export_rspilot_ResMapUrls.xml?exp=0|1|-date/creators_name/title|archive|-|q:_fulltext_/abstract/creators_name/date/title:ALL:IN:the|-|eprint_status:eprint_status:ALL:EQ:archive|metadata_visibility:metadata_visibility:ALL:EX:show&output=ResMapUrls&_action_export=1&screen=Public::EPrintSearch&cache=47485";
+        String hUrl = "http://rspilot.usq.edu.au/cgi/ore";
         OaiOreHarvester harvester = new OaiOreHarvester(hUrl);
         ArrayList<String> testArrayList = harvester.fetchResMapUrls();
         Assert.assertEquals(14, testArrayList.size());
-
     }
 
     @Test
@@ -50,12 +49,9 @@ public class OaiOreHarvesterTest {
 
     @Test
     public void normaliseDate() throws Exception {
-        boolean containsDirtyChar = false;
         boolean stillDirty = true;
-        OaiOreHarvester o = new OaiOreHarvester(
-            "http://rspilot.usq.edu.au/cgi/search/simple/export_rspilot_ResMapUrls.xml?exp=0|1|-date/creators_name/title|archive|-|q:_fulltext_/abstract/creators_name/date/title:ALL:IN:the|-|eprint_status:eprint_status:ALL:EQ:archive|metadata_visibility:metadata_visibility:ALL:EX:show&output=ResMapUrls&_action_export=1&screen=Public::EPrintSearch&cache=47485");
         InputStream in = getClass().getResourceAsStream("/resmapDirty.xml");
-        InputStream in2 = o.cleanRawData(in);
+        InputStream in2 = OaiOreHarvester.cleanRawData(in);
         Scanner readClean = new Scanner(in2);
         if (readClean.hasNextLine()) {
             String line2 = readClean.nextLine();
@@ -65,7 +61,6 @@ public class OaiOreHarvesterTest {
             }
         }
         Assert.assertFalse(stillDirty);
-
     }
 
     @Test

@@ -182,12 +182,12 @@ public class OaiOreItem implements Item {
         return null;
     }
 
-    private void populateTrippyArrayList() {
-        URI objectUri = null;
-        String objectLiteral = null;
+    public void populateTrippyArrayList() {
         try {
             for (AggregatedResource iterator : this.rem.getAggregatedResources()) {
                 for (Triple t : iterator.listAllTriples()) {
+                    URI objectUri = null;
+                    String objectLiteral = null;
                     URI subjectUri = t.getSubjectURI();
                     URI predicateUri = t.getPredicate().getURI();
                     try {
@@ -214,7 +214,11 @@ public class OaiOreItem implements Item {
         }
     }
 
-    private class Trippy {
+    public ArrayList<Trippy> getTrippy() {
+        return ArrayListOfTripleObjects;
+    }
+
+    public class Trippy {
         private URI subject;
         private URI predicate;
         private URI objectUri;

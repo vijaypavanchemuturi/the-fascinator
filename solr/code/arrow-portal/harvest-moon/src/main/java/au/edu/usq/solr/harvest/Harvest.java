@@ -24,10 +24,16 @@ import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 
 import org.apache.log4j.Logger;
+import org.dom4j.Document;
+import org.dom4j.Element;
+import org.dom4j.QName;
+import org.dom4j.io.SAXReader;
 
 import au.edu.usq.solr.fedora.FedoraRestClient;
 import au.edu.usq.solr.fedora.ObjectFieldType;
@@ -45,6 +51,8 @@ public class Harvest {
     private FedoraRestClient registry;
 
     private File rulesFile;
+
+    private SAXReader saxReader;
 
     public Harvest(Harvester harvester, FedoraRestClient registry,
         File rulesFile) {
@@ -86,6 +94,13 @@ public class Harvest {
             log.error(ioe.getMessage());
         }
 
+        // SAXReader for RELS-EXT streams
+        Map<String, String> nsmap = new HashMap<String, String>();
+        nsmap.put("rdf", "http://www.w3.org/1999/02/22-rdf-syntax-ns#");
+        nsmap.put("rel", "info:fedora/fedora-system:def/relations-external#");
+        saxReader = new SAXReader();
+        saxReader.getDocumentFactory().setXPathNamespaceURIs(nsmap);
+
         while (harvester.hasMoreItems()) {
             try {
                 List<Item> items = harvester.getItems(since);
@@ -112,9 +127,15 @@ public class Harvest {
     private void processItem(Item item, String rulesPid) throws IOException {
         String itemId = item.getId();
         String pid = null;
-        String meta = item.getMetadataAsString();
         try {
             log.info("Processing " + itemId + "...");
+
+            // SoF specific metadata
+            StringBuilder sofMeta = new StringBuilder();
+            sofMeta.append("item.pid=");
+            sofMeta.append(itemId);
+            sofMeta.append("\nrules.pid=");
+            sofMeta.append(rulesPid);
 
             // FIXME checking if an object exists hangs after 100 or so
             ResultType result = registry.findObjects(itemId, 1);
@@ -127,19 +148,35 @@ public class Harvest {
                 log.info("UPDATE: " + pid);
             }
 
-            // create the digital object
-            // pid = registry.createObject(itemId, "uuid");
             registry.addDatastream(pid, "DC0", "Dublin Core Metadata",
-                "text/xml", meta);
-            log.info("Created object: " + pid);
+                "text/xml", item.getMetadataAsString());
 
             // harvest datastreams
             for (Datastream ds : item.getDatastreams()) {
                 String dsId = ds.getId();
                 String type = ds.getMimeType();
                 String label = ds.getLabel();
-                if (!"DC".equals(dsId)) {
-                    log.info("Caching " + ds);
+                log.info("Processing " + ds);
+                if ("DC".equals(dsId)) {
+                    dsId = "DC0";
+                }
+                if ("RELS-EXT".equals(dsId)) {
+                    try {
+                        Document doc = saxReader.read(ds.getContentAsStream());
+                        Element elem = (Element) doc.selectSingleNode("//rdf:RDF/rdf:Description[@rdf:about='info:fedora/"
+                            + itemId + "']");
+                        if (elem != null) {
+                            log.info("replacing " + itemId + " with " + pid);
+                            elem.addAttribute(QName.get("about", "rdf",
+                                "http://www.w3.org/1999/02/22-rdf-syntax-ns#"),
+                                "info:fedora/" + pid);
+                        }
+                        registry.addDatastream(pid, dsId, label, type,
+                            doc.asXML());
+                    } catch (Exception e) {
+                        log.error("Failed parsing RELS-EXT: " + e.getMessage());
+                    }
+                } else {
                     if (type.startsWith("text/xml")) {
                         registry.addDatastream(pid, dsId, label, type,
                             ds.getContentAsString());
@@ -155,13 +192,6 @@ public class Harvest {
                     }
                 }
             }
-
-            // add SoF specific metadata
-            StringBuilder sofMeta = new StringBuilder();
-            sofMeta.append("item.pid=");
-            sofMeta.append(itemId);
-            sofMeta.append("\nrules.pid=");
-            sofMeta.append(rulesPid);
             registry.addDatastream(pid, "SOF-META", "Sun of Fedora Metadata",
                 "text/plain", sofMeta.toString());
         } catch (IOException ioe) {

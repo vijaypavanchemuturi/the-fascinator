@@ -2,7 +2,9 @@ package au.edu.usq.solr.harvest.impl;
 
 import java.io.InputStream;
 import java.net.URI;
+import java.util.ArrayList;
 
+import org.dom4j.Element;
 import org.dspace.foresite.AggregatedResource;
 import org.dspace.foresite.OREParser;
 import org.dspace.foresite.OREParserFactory;
@@ -11,6 +13,7 @@ import org.dspace.foresite.ORESerialiserFactory;
 import org.dspace.foresite.ResourceMap;
 import org.dspace.foresite.ResourceMapDocument;
 import org.dspace.foresite.Triple;
+import org.junit.Assert;
 import org.junit.Test;
 
 public class OaiOreItemTest {
@@ -68,5 +71,39 @@ public class OaiOreItemTest {
         }
 
         in.close();
+    }
+
+    @Test
+    public void getTrippy() throws Exception {
+        InputStream input = getClass().getResourceAsStream("/pdf_example.xml");
+        InputStream in2 = OaiOreHarvester.cleanRawData(input);
+        OREParser parser = OREParserFactory.getInstance("RDF/XML");
+        ResourceMap rem = parser.parse(in2);
+        OaiOreItem item = new OaiOreItem(rem);
+        ArrayList<OaiOreItem.Trippy> list = item.getTrippy();
+        input.close();
+    }
+
+    @Test
+    public void getDatastreams() throws Exception {
+        InputStream input = getClass().getResourceAsStream("/pdf_example.xml");
+        InputStream in2 = OaiOreHarvester.cleanRawData(input);
+        OREParser parser = OREParserFactory.getInstance("RDF/XML");
+        ResourceMap rem = parser.parse(in2);
+        OaiOreItem item = new OaiOreItem(rem);
+        Assert.assertEquals(1, item.getDatastreams().size());
+        input.close();
+    }
+
+    @Test
+    public void getMetadata() throws Exception {
+        InputStream input = getClass().getResourceAsStream("/pdf_example.xml");
+        InputStream in2 = OaiOreHarvester.cleanRawData(input);
+        OREParser parser = OREParserFactory.getInstance("RDF/XML");
+        ResourceMap rem = parser.parse(in2);
+        OaiOreItem item = new OaiOreItem(rem);
+        Element meta = item.getMetadata();
+        System.out.println(item.getMetadataAsString());
+        input.close();
     }
 }

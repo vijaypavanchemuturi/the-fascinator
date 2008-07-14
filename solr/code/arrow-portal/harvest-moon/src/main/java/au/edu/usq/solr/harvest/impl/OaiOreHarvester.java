@@ -69,7 +69,7 @@ public class OaiOreHarvester implements Harvester {
 
     }
 
-    public InputStream cleanRawData(InputStream iS) {
+    public static InputStream cleanRawData(InputStream iS) {
         String line = null;
         StringBuilder b = new StringBuilder();
         Scanner s = new Scanner(new InputStreamReader(iS));
