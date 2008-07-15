@@ -23,7 +23,7 @@ public class OaiOreHarvesterTest {
         String hUrl = "http://rspilot.usq.edu.au/cgi/ore";
         OaiOreHarvester harvester = new OaiOreHarvester(hUrl);
         ArrayList<String> testArrayList = harvester.fetchResMapUrls();
-        Assert.assertEquals(15, testArrayList.size());
+        Assert.assertEquals(17, testArrayList.size());
     }
 
     @Test

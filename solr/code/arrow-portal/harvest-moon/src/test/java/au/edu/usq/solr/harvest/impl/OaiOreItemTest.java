@@ -3,6 +3,7 @@ package au.edu.usq.solr.harvest.impl;
 import java.io.InputStream;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.List;
 
 import org.dom4j.Element;
 import org.dspace.foresite.AggregatedResource;
@@ -15,6 +16,8 @@ import org.dspace.foresite.ResourceMapDocument;
 import org.dspace.foresite.Triple;
 import org.junit.Assert;
 import org.junit.Test;
+
+import au.edu.usq.solr.harvest.Datastream;
 
 public class OaiOreItemTest {
 
@@ -85,13 +88,77 @@ public class OaiOreItemTest {
     }
 
     @Test
-    public void getDatastreams() throws Exception {
+    public void getDatastreamsPdfExample() throws Exception {
         InputStream input = getClass().getResourceAsStream("/pdf_example.xml");
         InputStream in2 = OaiOreHarvester.cleanRawData(input);
         OREParser parser = OREParserFactory.getInstance("RDF/XML");
         ResourceMap rem = parser.parse(in2);
         OaiOreItem item = new OaiOreItem(rem);
-        Assert.assertEquals(1, item.getDatastreams().size());
+        List<Datastream> ds = item.getDatastreams();
+        for (Datastream i : ds) {
+            System.out.print("Datastream Id: ");
+            System.out.println(i.getId());
+            System.out.print("Datastream label: ");
+            System.out.println(i.getLabel());
+            System.out.print("Mime Type: ");
+            System.out.println(i.getMimeType());
+            System.out.print("Content As String: ");
+            System.out.println(i.getContentAsString());
+
+        }
+
+        Assert.assertEquals(3, item.getDatastreams().size());
+
+        input.close();
+    }
+
+    @Test
+    public void getDatastreamsHiddenJpegExample() throws Exception {
+        InputStream input = getClass().getResourceAsStream("/jpeg_hidden.xml");
+        InputStream in2 = OaiOreHarvester.cleanRawData(input);
+        OREParser parser = OREParserFactory.getInstance("RDF/XML");
+        ResourceMap rem = parser.parse(in2);
+        OaiOreItem item = new OaiOreItem(rem);
+        List<Datastream> ds = item.getDatastreams();
+        for (Datastream i : ds) {
+            System.out.print("Datastream Id: ");
+            System.out.println(i.getId());
+            System.out.print("Datastream label: ");
+            System.out.println(i.getLabel());
+            System.out.print("Mime Type: ");
+            System.out.println(i.getMimeType());
+            System.out.print("Content As String: ");
+            System.out.println(i.getContentAsString());
+
+        }
+
+        Assert.assertEquals(3, item.getDatastreams().size());
+
+        input.close();
+    }
+
+    @Test
+    public void getDatastreamsVisibleJpegExample() throws Exception {
+        InputStream input = getClass().getResourceAsStream("/jpeg_visible.xml");
+        InputStream in2 = OaiOreHarvester.cleanRawData(input);
+        OREParser parser = OREParserFactory.getInstance("RDF/XML");
+        ResourceMap rem = parser.parse(in2);
+        OaiOreItem item = new OaiOreItem(rem);
+        List<Datastream> ds = item.getDatastreams();
+        for (Datastream i : ds) {
+            System.out.print("Datastream Id: ");
+            System.out.println(i.getId());
+            System.out.print("Datastream label: ");
+            System.out.println(i.getLabel());
+            System.out.print("Mime Type: ");
+            System.out.println(i.getMimeType());
+            System.out.print("Content As String: ");
+            System.out.println(i.getContentAsString());
+
+        }
+
+        Assert.assertEquals(3, item.getDatastreams().size());
+
         input.close();
     }
 
