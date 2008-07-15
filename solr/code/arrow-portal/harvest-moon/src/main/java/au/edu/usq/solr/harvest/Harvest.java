@@ -36,6 +36,7 @@ import org.dom4j.QName;
 import org.dom4j.io.SAXReader;
 
 import au.edu.usq.solr.fedora.FedoraRestClient;
+import au.edu.usq.solr.fedora.ListSessionType;
 import au.edu.usq.solr.fedora.ObjectFieldType;
 import au.edu.usq.solr.fedora.ResultType;
 import au.edu.usq.solr.harvest.impl.FedoraHarvester;
@@ -136,18 +137,7 @@ public class Harvest {
             sofMeta.append(itemId);
             sofMeta.append("\nrules.pid=");
             sofMeta.append(rulesPid);
-
-            // FIXME checking if an object exists hangs after 100 or so
-            ResultType result = registry.findObjects(itemId, 1);
-            List<ObjectFieldType> objects = result.getObjectFields();
-            if (objects.isEmpty()) {
-                pid = registry.createObject(itemId, "uuid");
-                log.info("CREATE: " + pid);
-            } else {
-                pid = objects.get(0).getPid();
-                log.info("UPDATE: " + pid);
-            }
-
+            pid = createUpdateObject(itemId);
             registry.addDatastream(pid, "DC0", "Dublin Core Metadata",
                 "text/xml", item.getMetadataAsString());
 
@@ -206,6 +196,31 @@ public class Harvest {
             }
             throw ioe;
         }
+    }
+
+    private String createUpdateObject(String itemId) throws IOException {
+        String pid = null;
+        ResultType result = registry.findObjects(itemId, 1);
+        List<ObjectFieldType> objects = result.getObjectFields();
+        if (objects.isEmpty()) {
+            pid = registry.createObject(itemId, "uuid");
+            log.info("CREATE: " + pid);
+        } else {
+            pid = objects.get(0).getPid();
+            log.info("UPDATE: " + pid);
+        }
+
+        // FIXME bug in fedora where resumeFindObjects has to be called until
+        // there is no list session or the server will hang after about 100
+        // requests
+        ListSessionType session = result.getListSession();
+        while (session != null) {
+            log.info(" ** resuming to close connection");
+            result = registry.resumeFindObjects(session.getToken());
+            session = result.getListSession();
+        }
+
+        return pid;
     }
 
     public static void main(String[] args) throws Exception {

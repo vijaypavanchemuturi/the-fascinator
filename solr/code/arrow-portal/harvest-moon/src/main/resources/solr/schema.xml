@@ -27,7 +27,7 @@
         </fieldtype>
     </types>
     <fields>
-        <!-- non-tokenized -->
+        <!-- tokenized -->
         <field name="contributor" type="text" indexed="true" stored="true" multiValued="true" />
         <field name="coverage" type="text" indexed="true" stored="true" multiValued="true" />
         <field name="creator" type="text" indexed="true" stored="true" multiValued="true" />
@@ -44,12 +44,14 @@
         <field name="title" type="text" indexed="true" stored="true" multiValued="true" />
         <field name="automatic_terms" type="text" indexed="true" stored="true" multiValued="true" />
         <field name="type" type="text" indexed="true" stored="true" multiValued="true" />
-        <!-- tokenized -->
+        <field name="collection" type="text" indexed="true" stored="true" multiValued="true" />
+        <!-- non-tokenized -->
         <field name="f_contributor" type="string" indexed="true" stored="true" multiValued="true" />
         <field name="f_coverage" type="string" indexed="true" stored="true" multiValued="true" />
         <field name="f_creator" type="string" indexed="true" stored="true" multiValued="true" />
         <field name="f_date" type="string" indexed="true" stored="true" multiValued="true" />
         <field name="f_format" type="string" indexed="true" stored="true" multiValued="true" />
+        <field name="f_identifier" type="string" indexed="true" stored="true" multiValued="true" />
         <field name="f_language" type="string" indexed="true" stored="true" multiValued="true" />
         <field name="f_publisher" type="string" indexed="true" stored="true" multiValued="true" />
         <field name="f_relation" type="string" indexed="true" stored="true" multiValued="true" />
@@ -58,6 +60,7 @@
         <field name="f_subject" type="string" indexed="true" stored="true" multiValued="true" />
         <field name="f_automatic_terms" type="string" indexed="true" stored="true" multiValued="true" />
         <field name="f_type" type="string" indexed="true" stored="true" multiValued="true" />
+        <field name="f_collection" type="text" indexed="true" stored="true" multiValued="true" />
         <!-- non-dublin core -->
         <field name="id" type="string" indexed="true" stored="true" required="true" />
         <field name="pid" type="string" indexed="true" stored="true" />
@@ -94,6 +97,7 @@
     <copyField source="creator" dest="f_creator" />
     <copyField source="date" dest="f_date" />
     <copyField source="format" dest="f_format" />
+    <copyField source="identifier" dest="f_identifier" />
     <copyField source="language" dest="f_language" />
     <copyField source="publisher" dest="f_publisher" />
     <copyField source="relation" dest="f_relation" />

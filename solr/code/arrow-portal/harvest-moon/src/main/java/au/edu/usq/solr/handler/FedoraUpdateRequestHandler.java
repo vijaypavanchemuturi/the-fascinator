@@ -37,6 +37,9 @@ import java.io.Writer;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.logging.Logger;
 
@@ -52,6 +55,12 @@ import org.apache.solr.request.SolrQueryResponse;
 import org.apache.solr.util.ContentStream;
 import org.apache.solr.util.ContentStreamBase;
 import org.apache.solr.util.NamedList;
+import org.dom4j.Document;
+import org.dom4j.DocumentException;
+import org.dom4j.DocumentFactory;
+import org.dom4j.Element;
+import org.dom4j.QName;
+import org.dom4j.io.SAXReader;
 import org.pdfbox.exceptions.CryptographyException;
 import org.pdfbox.exceptions.InvalidPasswordException;
 import org.pdfbox.pdmodel.PDDocument;
@@ -61,6 +70,8 @@ import org.python.util.PythonInterpreter;
 import au.edu.usq.fedora.foxml.DatastreamType;
 import au.edu.usq.fedora.foxml.DigitalObject;
 import au.edu.usq.solr.fedora.FedoraRestClient;
+import au.edu.usq.solr.fedora.ObjectFieldType;
+import au.edu.usq.solr.fedora.ResultType;
 import au.edu.usq.solr.harvest.Item;
 import au.edu.usq.solr.harvest.impl.FedoraRegistryItem;
 import au.edu.usq.solr.index.rule.RuleException;
@@ -78,6 +89,9 @@ public class FedoraUpdateRequestHandler extends XmlUpdateRequestHandler {
 
     private FedoraRestClient client;
 
+    private SAXReader saxReader;
+
+    @Override
     public void init(NamedList args) {
         super.init(args);
         log.info("Initialising Fedora handler...");
@@ -86,9 +100,19 @@ public class FedoraUpdateRequestHandler extends XmlUpdateRequestHandler {
         String fedoraPass = (String) args.get("fedoraPass");
         client = new FedoraRestClient(fedoraUrl);
         client.authenticate(fedoraUser, fedoraPass);
+
+        // SAXReader for RELS-EXT streams
+        Map<String, String> nsmap = new HashMap<String, String>();
+        nsmap.put("rdf", "http://www.w3.org/1999/02/22-rdf-syntax-ns#");
+        nsmap.put("rel", "info:fedora/fedora-system:def/relations-external#");
+        DocumentFactory df = new DocumentFactory();
+        df.setXPathNamespaceURIs(nsmap);
+        saxReader = new SAXReader(df);
+
         log.info("Done initialising Fedora handler...");
     }
 
+    @Override
     public void handleRequestBody(SolrQueryRequest req, SolrQueryResponse rsp)
         throws Exception {
         SolrParams params = req.getParams();
@@ -118,7 +142,8 @@ public class FedoraUpdateRequestHandler extends XmlUpdateRequestHandler {
                 buildSolrDocument(req, contentType, streams, obj);
                 ((SolrQueryRequestBase) req).setContentStreams(streams);
             } else if (action.equals(DELETE_PID)) {
-                String deleteQuery = "<delete><id>" + pid + "</id></delete>";
+                String deleteQuery = "<delete><query>pid:\"" + pid
+                    + "\"</query></delete>";
                 ContentStreamBase stream = new ContentStreamBase.StringStream(
                     deleteQuery);
                 if (contentType != null) {
@@ -142,6 +167,7 @@ public class FedoraUpdateRequestHandler extends XmlUpdateRequestHandler {
     private void buildSolrDocument(SolrQueryRequest req, String contentType,
         Collection<ContentStream> streams, DigitalObject obj)
         throws IOException, JAXBException {
+        String collection = null;
         String pid = obj.getPID();
         Properties props = getMeta(pid);
         String itemPid = props.getProperty("item.pid");
@@ -154,26 +180,47 @@ public class FedoraUpdateRequestHandler extends XmlUpdateRequestHandler {
         for (DatastreamType ds : obj.getDatastream()) {
             String dsId = ds.getID();
             try {
-                if ("DC".equals(dsId) || "SOF-META".equals(dsId)
-                    || "AUDIT".equals(dsId)) {
-                    // ignore
+                if ("AUDIT".equals(dsId) || "DC".equals(dsId)
+                    || "DC0".equals(dsId) || "SOF-META".equals(dsId)) {
+                    // ignored - these do not need to be indexed
+                    // except DC0 which is indexed last to support
+                    // collections
                     log.info("Ignoring datastream: " + dsId);
-                } else if ("DC0".equals(dsId)) {
-                    log.info("Indexing Dublin Core: " + dsId);
-                    ByteArrayOutputStream dcOut = new ByteArrayOutputStream();
-                    client.get(pid, "DC0", dcOut);
-                    Reader in = new InputStreamReader(new ByteArrayInputStream(
-                        dcOut.toByteArray()));
-                    File solrFile = index(item, pid, null, in, rulesFile);
-                    if (solrFile != null) {
-                        ContentStream stream = new ContentStreamBase.FileStream(
-                            solrFile);
-                        streams.add(stream);
+                } else if ("RELS-EXT".equals(dsId)) {
+                    log.info("Processing " + dsId);
+                    Reader in = getDatastreamReader(pid, dsId);
+                    try {
+                        Document doc = saxReader.read(in);
+                        Element elem = (Element) doc.selectSingleNode("//rel:isMemberOf");
+                        if (elem != null) {
+                            String memberOf = elem.attributeValue(QName.get(
+                                "resource", "rdf",
+                                "http://www.w3.org/1999/02/22-rdf-syntax-ns#"));
+                            log.info("memberOf: " + memberOf);
+                            ResultType result = client.findObjects(
+                                memberOf.replaceAll("info:fedora/", ""), 1,
+                                new String[] { "label" });
+                            List<ObjectFieldType> objects = result.getObjectFields();
+                            if (objects.size() > 0) {
+                                ObjectFieldType object = objects.get(0);
+                                String cPid = object.getPid();
+                                String cLabel = object.getLabel();
+                                FedoraRegistryItem cItem = new FedoraRegistryItem(
+                                    client, cLabel, cPid);
+                                collection = cItem.getMetadata()
+                                    .selectSingleNode("//dc:title")
+                                    .getText();
+                            }
+                        }
+                    } catch (DocumentException de) {
+                        log.severe("Failed parsing RELS-EXT: "
+                            + de.getMessage());
                     }
                 } else {
                     log.info("Indexing Datastream: " + dsId);
                     Reader in = new StringReader("<add><doc/></add>");
-                    File solrFile = index(item, pid, dsId, in, rulesFile);
+                    File solrFile = index(item, pid, dsId, collection, in,
+                        rulesFile);
                     if (solrFile != null) {
                         ContentStream stream = new ContentStreamBase.FileStream(
                             solrFile);
@@ -184,6 +231,27 @@ public class FedoraUpdateRequestHandler extends XmlUpdateRequestHandler {
                 log.warning(re.getMessage());
             }
         }
+
+        try {
+            log.info("Indexing Dublin Core");
+            Reader in = getDatastreamReader(pid, "DC0");
+            File solrFile = index(item, pid, null, collection, in, rulesFile);
+            if (solrFile != null) {
+                ContentStream stream = new ContentStreamBase.FileStream(
+                    solrFile);
+                streams.add(stream);
+            }
+        } catch (RuleException re) {
+            log.warning(re.getMessage());
+        }
+    }
+
+    private Reader getDatastreamReader(String pid, String dsId)
+        throws IOException {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        client.get(pid, dsId, out);
+        return new InputStreamReader(
+            new ByteArrayInputStream(out.toByteArray()));
     }
 
     private void fromFoxmlFiles(String filePath, SolrQueryRequest req,
@@ -241,8 +309,8 @@ public class FedoraUpdateRequestHandler extends XmlUpdateRequestHandler {
         }
     }
 
-    private File index(Item item, String pid, String dsId, Reader in,
-        File ruleScript) throws IOException, RuleException {
+    private File index(Item item, String pid, String dsId, String collection,
+        Reader in, File ruleScript) throws IOException, RuleException {
         File solrFile = File.createTempFile("solr", ".xml");
         Writer out = new OutputStreamWriter(new FileOutputStream(solrFile),
             "UTF-8");
@@ -253,6 +321,7 @@ public class FedoraUpdateRequestHandler extends XmlUpdateRequestHandler {
             python.set("rules", rules);
             python.set("pid", pid);
             python.set("dsId", dsId);
+            python.set("collection", collection);
             python.set("item", item);
             python.execfile(ruleScript.getAbsolutePath());
             rules.run(in, out);

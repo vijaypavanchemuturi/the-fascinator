@@ -56,15 +56,16 @@ public class FedoraHarvester implements Harvester {
 
     private String searchTerms;
 
-    public FedoraHarvester(String url) {
+    public FedoraHarvester(String url) throws IOException {
         this(url, Integer.MAX_VALUE);
     }
 
-    public FedoraHarvester(String url, int maxRequests) {
+    public FedoraHarvester(String url, int maxRequests) throws IOException {
         this(url, maxRequests, DEFAULT_REQUEST_SIZE);
     }
 
-    public FedoraHarvester(String url, int maxRequests, int requestSize) {
+    public FedoraHarvester(String url, int maxRequests, int requestSize)
+        throws IOException {
         this.maxRequests = maxRequests;
         this.requestSize = requestSize;
         client = new FedoraRestClient(url);

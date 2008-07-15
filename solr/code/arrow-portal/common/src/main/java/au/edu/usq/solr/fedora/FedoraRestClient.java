@@ -102,11 +102,21 @@ public class FedoraRestClient {
 
     public ResultType findObjects(String terms, int maxResults)
         throws IOException {
-        return findObjects(FindObjectsType.TERMS, terms, maxResults);
+        return findObjects(terms, maxResults, null);
+    }
+
+    public ResultType findObjects(String terms, int maxResults, String[] fields)
+        throws IOException {
+        return findObjects(FindObjectsType.TERMS, terms, maxResults, fields);
     }
 
     public ResultType findObjects(FindObjectsType type, String queryOrTerms,
         int maxResults) throws IOException {
+        return findObjects(type, queryOrTerms, maxResults, null);
+    }
+
+    public ResultType findObjects(FindObjectsType type, String queryOrTerms,
+        int maxResults, String[] fields) throws IOException {
         ResultType result = null;
         try {
             StringBuilder uri = new StringBuilder(baseUrl);
@@ -117,6 +127,13 @@ public class FedoraRestClient {
             uri.append(maxResults);
             uri.append("&xml=true");
             uri.append("&pid=true");
+            if (fields != null) {
+                for (String field : fields) {
+                    uri.append("&");
+                    uri.append(field);
+                    uri.append("=true");
+                }
+            }
             GetMethod method = new GetMethod(uri.toString());
             HttpClient client = getHttpClient();
             int status = client.executeMethod(method);
@@ -389,5 +406,19 @@ public class FedoraRestClient {
             }
         }
         return false;
+    }
+
+    public static void main(String[] args) throws Exception {
+        HttpClient c = new HttpClient();
+        for (int i = 0; i < 200; i++) {
+            GetMethod method = new GetMethod(
+                "http://localhost:8080/fedora/search?terms=*&maxResults=1&xml=true&pid=true");
+            c.executeMethod(method);
+            // InputStream in = method.getResponseBodyAsStream();
+            System.out.println("i=" + i);
+            // method.getResponseBodyAsStream().close();
+            method.releaseConnection();
+            c.getHttpConnectionManager().closeIdleConnections(0);
+        }
     }
 }
