@@ -97,7 +97,17 @@ public class FedoraRestClient {
     // Access methods (Fedora 2.2+ compatible)
 
     public enum FindObjectsType {
-        QUERY, TERMS
+        QUERY("query"), TERMS("terms"), SESSION_TOKEN("sessionToken");
+
+        private String name;
+
+        FindObjectsType(String name) {
+            this.name = name;
+        }
+
+        public String toString() {
+            return name;
+        }
     };
 
     public ResultType findObjects(String terms, int maxResults)
@@ -110,23 +120,26 @@ public class FedoraRestClient {
         return findObjects(FindObjectsType.TERMS, terms, maxResults, fields);
     }
 
-    public ResultType findObjects(FindObjectsType type, String queryOrTerms,
-        int maxResults) throws IOException {
-        return findObjects(type, queryOrTerms, maxResults, null);
+    public ResultType findObjects(FindObjectsType type,
+        String queryOrTermsOrToken, int maxResults) throws IOException {
+        return findObjects(type, queryOrTermsOrToken, maxResults, null);
     }
 
-    public ResultType findObjects(FindObjectsType type, String queryOrTerms,
-        int maxResults, String[] fields) throws IOException {
+    public ResultType findObjects(FindObjectsType type,
+        String queryOrTermsOrToken, int maxResults, String[] fields)
+        throws IOException {
         ResultType result = null;
         try {
             StringBuilder uri = new StringBuilder(baseUrl);
             uri.append("/search?");
-            uri.append(type == FindObjectsType.QUERY ? "query=" : "terms=");
-            uri.append(URLEncoder.encode(queryOrTerms, "UTF-8"));
-            uri.append("&maxResults=");
-            uri.append(maxResults);
-            uri.append("&xml=true");
-            uri.append("&pid=true");
+            uri.append(type);
+            uri.append("=");
+            uri.append(URLEncoder.encode(queryOrTermsOrToken, "UTF-8"));
+            if (!type.equals(FindObjectsType.SESSION_TOKEN)) {
+                uri.append("&maxResults=");
+                uri.append(maxResults);
+            }
+            uri.append("&xml=true&pid=true");
             if (fields != null) {
                 for (String field : fields) {
                     uri.append("&");
@@ -154,28 +167,12 @@ public class FedoraRestClient {
     }
 
     public ResultType resumeFindObjects(String token) throws IOException {
-        ResultType result = null;
-        try {
-            StringBuilder uri = new StringBuilder(baseUrl);
-            uri.append("/search?sessionToken=");
-            uri.append(token);
-            uri.append("&xml=true");
-            GetMethod method = new GetMethod(uri.toString());
-            int status = getHttpClient().executeMethod(method);
-            if (status == 200) {
-                JAXBContext jc = JAXBContext.newInstance(ResultType.class);
-                Unmarshaller um = jc.createUnmarshaller();
-                InputStream in = method.getResponseBodyAsStream();
-                result = (ResultType) um.unmarshal(in);
-                in.close();
-            } else {
-                log.warn("GET " + uri + " returned " + status);
-            }
-            method.releaseConnection();
-        } catch (JAXBException jaxbe) {
-            log.error(jaxbe);
-        }
-        return result;
+        return findObjects(FindObjectsType.SESSION_TOKEN, token, 0, null);
+    }
+
+    public ResultType resumeFindObjects(String token, String[] fields)
+        throws IOException {
+        return findObjects(FindObjectsType.SESSION_TOKEN, token, 0, fields);
     }
 
     public ObjectDatastreamsType listDatastreams(String pid) throws IOException {

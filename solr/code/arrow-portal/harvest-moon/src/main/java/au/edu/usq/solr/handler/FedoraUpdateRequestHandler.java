@@ -218,7 +218,9 @@ public class FedoraUpdateRequestHandler extends XmlUpdateRequestHandler {
                             ListSessionType session = result.getListSession();
                             while (session != null) {
                                 log.info(" ** resuming to close connection");
-                                result = client.resumeFindObjects(session.getToken());
+                                result = client.resumeFindObjects(
+                                    session.getToken(),
+                                    new String[] { "label" });
                                 session = result.getListSession();
                             }
                         }
