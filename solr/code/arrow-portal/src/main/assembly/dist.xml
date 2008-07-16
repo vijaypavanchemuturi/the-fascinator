@@ -18,9 +18,6 @@
       <directory>harvest-moon/src/main/scripts</directory>
       <outputDirectory>harvest-moon</outputDirectory>
       <fileMode>0744</fileMode>
-      <includes>
-        <include>harvest.sh</include>
-      </includes>
     </fileSet>
     <fileSet>
       <!-- Sample harvester/indexer configs -->
