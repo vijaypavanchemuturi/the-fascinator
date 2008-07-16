@@ -18,12 +18,21 @@
  */
 package au.edu.usq.solr.harvest.impl;
 
+import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Queue;
+
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Marshaller;
+import javax.xml.bind.Unmarshaller;
 
 import org.apache.log4j.Logger;
 
@@ -42,19 +51,23 @@ public class FedoraHarvester implements Harvester {
 
     private Logger log = Logger.getLogger(FedoraHarvester.class);
 
+    private JAXBContext jc;
+
+    private Unmarshaller um;
+
     private FedoraRestClient client;
 
     private boolean started;
-
-    private String token;
-
-    private int numRequests;
 
     private int maxRequests;
 
     private int requestSize;
 
     private String searchTerms;
+
+    private File workDir;
+
+    private Queue<File> searchFiles;
 
     public FedoraHarvester(String url) throws IOException {
         this(url, Integer.MAX_VALUE);
@@ -69,9 +82,20 @@ public class FedoraHarvester implements Harvester {
         this.maxRequests = maxRequests;
         this.requestSize = requestSize;
         client = new FedoraRestClient(url);
+        searchFiles = new LinkedList<File>();
         started = false;
-        numRequests = 0;
         searchTerms = "*";
+        URL u = new URL(url);
+        String tmpDir = System.getProperty("java.io.tmpdir");
+        String tmpName = u.getHost() + "_" + u.getPort();
+        workDir = new File(tmpDir, tmpName);
+        workDir.mkdirs();
+        try {
+            jc = JAXBContext.newInstance(ResultType.class);
+            um = jc.createUnmarshaller();
+        } catch (JAXBException jaxbe) {
+            throw new IOException(jaxbe.getMessage());
+        }
     }
 
     public void setSearchTerms(String searchTerms) {
@@ -79,42 +103,81 @@ public class FedoraHarvester implements Harvester {
     }
 
     public boolean hasMoreItems() {
-        return !started || (token != null && numRequests < maxRequests);
+        boolean more = !(started && searchFiles.isEmpty());
+        if (!more) {
+            log.info("Deleting work directory: " + workDir.getAbsolutePath());
+            workDir.delete();
+        }
+        return more;
     }
 
     public List<Item> getItems(Date since) throws HarvesterException {
-        List<Item> items = new ArrayList<Item>();
-        ResultType results;
+        if (!started) {
+            started = true;
+            cacheResults(since);
+        }
+        return getCachedItems();
+    }
+
+    private void cacheResults(Date since) throws HarvesterException {
+        log.info("Caching search results in " + workDir.getAbsolutePath());
         try {
-            numRequests++;
-            if (started) {
-                results = client.resumeFindObjects(token);
-                log.debug("Resuming harvest using token: " + token);
-            } else {
-                started = true;
-                if (since == null) {
-                    log.debug("Harvesting ALL records");
-                    results = client.findObjects(FindObjectsType.TERMS,
-                        searchTerms, requestSize);
+            Marshaller m = jc.createMarshaller();
+            boolean done = false;
+            boolean first = true;
+            int count = 0;
+            ResultType results;
+            String token = null;
+            while (!done) {
+                if (first) {
+                    first = false;
+                    if (since == null) {
+                        log.info("Search for ALL records");
+                        results = client.findObjects(FindObjectsType.TERMS,
+                            searchTerms, requestSize);
+                    } else {
+                        DateFormat df = new SimpleDateFormat(DATETIME_FORMAT);
+                        String from = df.format(since);
+                        log.info("Search for records from [" + from + "]");
+                        results = client.findObjects(FindObjectsType.QUERY,
+                            "mDate>" + from, requestSize);
+                    }
                 } else {
-                    DateFormat df = new SimpleDateFormat(DATETIME_FORMAT);
-                    String from = df.format(since);
-                    log.debug("Harvesting records from [" + from + "]");
-                    results = client.findObjects(FindObjectsType.QUERY,
-                        "mDate>" + from, requestSize);
+                    results = client.resumeFindObjects(token);
+                    log.info("Resuming search using token: " + token);
                 }
+
+                File tmpFile = new File(workDir, count + ".xml");
+                m.marshal(results, tmpFile);
+                searchFiles.add(tmpFile);
+
+                ListSessionType session = results.getListSession();
+                if (session != null) {
+                    token = results.getListSession().getToken();
+                } else {
+                    token = null;
+                }
+                done = token == null || ++count > maxRequests;
             }
+            log.info("Cached " + (searchFiles.size() - 1) + " search results");
+        } catch (Exception e) {
+            throw new HarvesterException(e);
+        }
+    }
+
+    private List<Item> getCachedItems() throws HarvesterException {
+        List<Item> items = new ArrayList<Item>();
+        File searchFile = searchFiles.poll();
+        log.info("Loading search results: " + searchFile);
+        try {
+            ResultType results = (ResultType) um.unmarshal(searchFile);
             for (ObjectFieldType object : results.getObjectFields()) {
                 items.add(new FedoraItem(client, object.getPid()));
             }
-            ListSessionType session = results.getListSession();
-            if (session != null) {
-                token = results.getListSession().getToken();
-            } else {
-                token = null;
-            }
-        } catch (IOException ioe) {
-            throw new HarvesterException(ioe);
+        } catch (JAXBException jaxbe) {
+            throw new HarvesterException(jaxbe);
+        } finally {
+            searchFile.delete();
         }
         return items;
     }
