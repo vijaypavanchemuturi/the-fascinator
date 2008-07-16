@@ -91,6 +91,7 @@
     <copyField source="subject" dest="text" />
     <copyField source="title" dest="text" />
     <copyField source="type" dest="text" />
+    <copyField source="collection" dest="text" />
     <!-- facets -->
     <copyField source="contributor" dest="f_contributor" />
     <copyField source="coverage" dest="f_coverage" />
@@ -106,6 +107,7 @@
     <copyField source="subject" dest="f_subject" />
     <copyField source="automatic_terms" dest="f_automatic_terms" />
     <copyField source="type" dest="f_type" />
+    <copyField source="collection" dest="f_collection" />
     <!-- full text -->
     <copyField source="contributor" dest="full_text" />
     <copyField source="coverage" dest="full_text" />
