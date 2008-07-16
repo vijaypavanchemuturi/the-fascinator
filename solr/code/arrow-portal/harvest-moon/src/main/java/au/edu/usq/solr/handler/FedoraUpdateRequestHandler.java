@@ -70,6 +70,7 @@ import org.python.util.PythonInterpreter;
 import au.edu.usq.fedora.foxml.DatastreamType;
 import au.edu.usq.fedora.foxml.DigitalObject;
 import au.edu.usq.solr.fedora.FedoraRestClient;
+import au.edu.usq.solr.fedora.ListSessionType;
 import au.edu.usq.solr.fedora.ObjectFieldType;
 import au.edu.usq.solr.fedora.ResultType;
 import au.edu.usq.solr.harvest.Item;
@@ -210,6 +211,15 @@ public class FedoraUpdateRequestHandler extends XmlUpdateRequestHandler {
                                 collection = cItem.getMetadata()
                                     .selectSingleNode("//dc:title")
                                     .getText();
+                            }
+                            // FIXME bug in fedora where resumeFindObjects has
+                            // to be called until there is no list session or
+                            // the server will hang after about 100 requests
+                            ListSessionType session = result.getListSession();
+                            while (session != null) {
+                                log.info(" ** resuming to close connection");
+                                result = client.resumeFindObjects(session.getToken());
+                                session = result.getListSession();
                             }
                         }
                     } catch (DocumentException de) {
