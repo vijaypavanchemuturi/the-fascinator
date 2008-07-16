@@ -60,7 +60,7 @@
         <field name="f_subject" type="string" indexed="true" stored="true" multiValued="true" />
         <field name="f_automatic_terms" type="string" indexed="true" stored="true" multiValued="true" />
         <field name="f_type" type="string" indexed="true" stored="true" multiValued="true" />
-        <field name="f_collection" type="text" indexed="true" stored="true" multiValued="true" />
+        <field name="f_collection" type="string" indexed="true" stored="true" multiValued="true" />
         <!-- non-dublin core -->
         <field name="id" type="string" indexed="true" stored="true" required="true" />
         <field name="pid" type="string" indexed="true" stored="true" />
