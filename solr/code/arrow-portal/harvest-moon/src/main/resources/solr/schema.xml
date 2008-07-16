@@ -124,4 +124,5 @@
     <copyField source="subject" dest="full_text" />
     <copyField source="title" dest="full_text" />
     <copyField source="type" dest="full_text" />
+    <copyField source="collection" dest="full_text" />
 </schema>
