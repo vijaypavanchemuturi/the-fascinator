@@ -27,6 +27,7 @@ public class DeleteFieldRuleTest {
         Unmarshaller u = jc.createUnmarshaller();
         AddDocType doc = (AddDocType) u.unmarshal(new ByteArrayInputStream(
             out.toByteArray()));
+        Assert.assertEquals(1, doc.getFields("subject").size());
         Assert.assertEquals("test", doc.getFields("subject").get(0).getValue());
     }
 }

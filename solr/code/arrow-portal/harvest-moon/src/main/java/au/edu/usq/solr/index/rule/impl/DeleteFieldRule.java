@@ -75,7 +75,7 @@ public class DeleteFieldRule extends AbstractRule {
                 }
             }
             for (FieldType field : deletedFields) {
-                fields.remove(field);
+                addDoc.getFields().remove(field);
             }
             Marshaller m = jc.createMarshaller();
             m.marshal(addDoc, out);
