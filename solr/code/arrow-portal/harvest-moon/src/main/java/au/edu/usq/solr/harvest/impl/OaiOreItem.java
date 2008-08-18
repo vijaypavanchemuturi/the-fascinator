@@ -195,14 +195,14 @@ public class OaiOreItem implements Item {
                     try {
                         objectUri = t.getObjectURI();
                     } catch (Exception e) {
-                        System.out.println("No Object URI!");
+
                     } finally {
                     }
 
                     try {
                         objectLiteral = t.getObjectLiteral();
                     } catch (Exception e) {
-                        System.out.println("No Object Literal!");
+
                     } finally {
                     }
                     Trippy trip = new Trippy(subjectUri, predicateUri,
