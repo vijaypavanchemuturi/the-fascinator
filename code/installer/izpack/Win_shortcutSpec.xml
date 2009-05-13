@@ -1,0 +1,22 @@
+<shortcuts>
+  <skipIfNotSupported/>
+  <programGroup defaultName="MyOrganization\MyApplication"
+                location="applications||startMenu"/>
+  <shortcut
+    name="Start MyApplication"
+    target="$INSTALL_PATH\the-fascinator\startup.bat"
+    commandLine=""
+    workingDirectory="$INSTALL_PATH\the-fascinator"
+    description="This starts MyApplication"
+    iconFile="$INSTALL_PATH\Path\to\MyApplication\Icons\start.ico"
+    iconIndex="0"
+    initialState="noShow||normal||maximized||minimized"
+    programGroup="yes||no"
+    desktop="yes||no"
+    applications="yes||no"
+    startMenu="yes||no"
+    startup="yes||no">
+
+    <createForPack name="Basic"/>
+  </shortcut>
+</shortcuts>

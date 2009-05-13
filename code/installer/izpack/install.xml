@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="iso-8859-1" standalone="yes" ?>
+
+<!-- 
+    A sample installation file.
+    Use it as a base for your own installers :-)
+    
+    To compile it :
+    - go in the bin directory where you installed IzPack
+    - call "compile ../sample/install.xml -b ../sample"
+-->
+
+<installation version="1.0">
+
+    <!-- 
+        The info section.
+        The meaning of the tags should be natural ...
+    -->
+    <info>
+        <appname>The-Fascinator</appname>
+        <appversion>1.0</appversion>
+        <authors>
+            <author name="Author" email="author@usq.edu.au"/>
+        </authors>
+        <url>http://fascinator.usq.edu.au/</url>
+        <run-privileged condition="izpack.windowsinstall.vista|izpack.macinstall"/>
+        <summarylogfilepath>$INSTALL_PATH/installinfo/Summary.htm</summarylogfilepath>
+    </info>
+
+    <!-- 
+        The gui preferences indication.
+        Sets the installer window to 640x480. It will not be able to change the size.
+    -->
+    <guiprefs width="640" height="480" resizable="yes"/>
+
+
+    <variables>
+        <variable name="DesktopShortcutCheckboxEnabled" value="true"/>
+        <variable name="ApplicationShortcutPath" value="ApplicationShortcuts"/>
+        <variable name="JDKPathPanel.minVersion" value="1.5"/>
+        <variable name="JDKPathPanel.skipIfValid" value="yes"/> 
+        <variable name="DesktopShortcutCheckboxEnabled" value="true"/>
+    </variables>
+    <!-- 
+        The locale section.
+        Asks here to include the English and French langpacks.
+    -->
+    <locale>
+        <langpack iso3="eng"/>
+    </locale>
+
+    <!-- 
+        The resources section.
+        The ids must be these ones if you want to use the LicencePanel and/or the InfoPanel.
+    -->
+    <resources>
+        <res id="LicencePanel.licence" src="resources/the-fascinator/COPYING"/>
+        <res id="InfoPanel.info" src="resources/the-fascinator/README"/>
+        <res id="userInputSpec.xml" src="userInputSpec.xml"/>
+        <res id="TargetPanel.dir" src="TargetDir.txt" />
+        <res id="Win_shortcutSpec.xml" src="Win_shortcutSpec.xml"/> 
+    </resources>
+
+    <!-- 
+        The panels section.
+        We indicate here which panels we want to use. The order will be respected.
+    -->
+    <panels>
+        <panel classname="HelloPanel"/>
+        <panel classname="LicencePanel"/>
+        <panel classname="TargetPanel"/>
+        <panel classname="JDKPathPanel"/>
+        <panel classname="UserInputPanel" id="UserInputPanel.0"/>
+        <panel classname="PacksPanel"/>
+        <panel classname="InstallPanel"/>
+        <panel classname="FinishPanel"/>
+    </panels>
+
+    <!-- 
+        The packs section.
+        We specify here our packs.
+    -->
+    <packs>
+        <pack name="Basic" id="Basic" required="yes" os="windows">
+            <description>The base files</description>
+            <file src="resources" targetdir="$INSTALL_PATH"/>
+            <file src="TFInstaller.jar" targetdir="$INSTALL_PATH"/>
+            <file src="lib" targetdir="$INSTALL_PATH"/>
+            <file src="install.bat" targetdir="$INSTALL_PATH"/>
+            <parsable targetfile="$INSTALL_PATH/install.bat" stage="never"/>
+            <executable targetfile="$INSTALL_PATH/install.bat" stage="postinstall" keep="false"/>
+        </pack>
+    </packs>
+    
+    <native type="izpack" name="ShellLink.dll"/>
+    
+
+</installation>
