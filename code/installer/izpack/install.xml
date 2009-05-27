@@ -72,8 +72,11 @@
         <panel classname="UserInputPanel" id="UserInputPanel.0"/>
         <panel classname="PacksPanel"/>
         <panel classname="InstallPanel"/>
+        <panel classname="ShortcutPanel"/>
         <panel classname="FinishPanel"/>
     </panels>
+    
+    <native type="izpack" name="ShellLink.dll"/>
 
     <!-- 
         The packs section.
