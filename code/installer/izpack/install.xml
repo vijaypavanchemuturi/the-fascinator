@@ -22,7 +22,7 @@
             <author name="Author" email="author@usq.edu.au"/>
         </authors>
         <url>http://fascinator.usq.edu.au/</url>
-        <run-privileged condition="izpack.windowsinstall.vista|izpack.macinstall"/>
+        <run-privileged condition="izpack.windowsinstall.vista|izpack.macinstall|izpack.linuxinstall"/>
         <summarylogfilepath>$INSTALL_PATH/installinfo/Summary.htm</summarylogfilepath>
     </info>
 
@@ -56,8 +56,12 @@
         <res id="LicencePanel.licence" src="resources/the-fascinator/COPYING"/>
         <res id="InfoPanel.info" src="resources/the-fascinator/README"/>
         <res id="userInputSpec.xml" src="userInputSpec.xml"/>
+        <res id="userInputLang.xml_eng" src="userInputLang.xml_eng" />
         <res id="TargetPanel.dir" src="TargetDir.txt" />
-        <res id="Win_shortcutSpec.xml" src="Win_shortcutSpec.xml"/> 
+        <res id="TargetPanel.dir.unix" src="Unix_TargetDir.txt" />
+        <res id="TargetPanel.dir.macosx" src="Mac_TargetDir.txt" />
+        <res id="Win_shortcutSpec.xml" src="Win_shortcutSpec.xml"/>
+        <res id="Unix_shortcutSpec.xml" src="Unix_shortcutSpec.xml"/>
     </resources>
 
     <!-- 
@@ -72,29 +76,64 @@
         <panel classname="UserInputPanel" id="UserInputPanel.0"/>
         <panel classname="PacksPanel"/>
         <panel classname="InstallPanel"/>
-        <panel classname="ShortcutPanel"/>
+        <panel classname="ShortcutPanel" condition="izpack.windowsinstall"/>
         <panel classname="FinishPanel"/>
     </panels>
     
-    <native type="izpack" name="ShellLink.dll"/>
+    <native type="izpack" name="ShellLink.dll">
+      <os family="windows"/>
+    </native>
 
     <!-- 
         The packs section.
         We specify here our packs.
     -->
     <packs>
-        <pack name="Basic" id="Basic" required="yes" os="windows">
+        <pack name="Basic" id="Basic" required="yes">
             <description>The base files</description>
             <file src="resources" targetdir="$INSTALL_PATH"/>
             <file src="TFInstaller.jar" targetdir="$INSTALL_PATH"/>
             <file src="lib" targetdir="$INSTALL_PATH"/>
-            <file src="install.bat" targetdir="$INSTALL_PATH"/>
-            <parsable targetfile="$INSTALL_PATH/install.bat" stage="never"/>
-            <executable targetfile="$INSTALL_PATH/install.bat" stage="postinstall" keep="false"/>
+            
+            <file src="install.sh" targetdir="$INSTALL_PATH">
+              <os family="unix"/>
+            </file>
+            
+            
+            <file src="install.bat" targetdir="$INSTALL_PATH">
+              <os family="windows"/>
+            </file>
+            
+            
+            <parsable targetfile="$INSTALL_PATH/install.sh" stage="never">
+              <os family="unix"/>
+            </parsable>
+            
+            
+            <parsable targetfile="$INSTALL_PATH/install.bat" stage="never">
+              <os family="windows"/>
+            </parsable>
+            
+            
+            <executable targetfile="$INSTALL_PATH/install.sh" stage="postinstall" keep="false">
+              <os family="unix"/>
+            </executable>
+            
+            <executable targetfile="$INSTALL_PATH/TFInstaller.jar" type="jar" failure="asl" stage="postinstall" keep="false">
+              <os family="windows"/>
+              <args>
+                <arg value="$INSTALL_PATH" />
+                <arg value="${fedoraAdminPassword}" />
+                <arg value="${solrAdminPassword}" />
+                <arg value="$JDKPath" />
+              </args>
+            </executable>
+            
+            <executable targetfile="$INSTALL_PATH/install.bat" stage="postinstall" keep="false">
+              <os family="windows"/>
+            </executable>
+            
         </pack>
-    </packs>
-    
-    <native type="izpack" name="ShellLink.dll"/>
-    
+    </packs>    
 
 </installation>

@@ -1,12 +1,12 @@
 <userInput>
 	<panel order="0">
     	<field type="title" txt="Configuring The Fascinator" bold="true" size="1" />
-		<field type="divider" align="top"/>
+		  <field type="divider" align="top"/>
         <field type="text" variable="fedoraAdminPassword">
-            <spec txt="Password for fedoraAdmin" id="fedoraAdminPassword" size="25" set="fedoraAdmin"/> 
+            <spec txt="Password for fedoraAdmin" id="fedoraAdminPassword" size="25" set=""/> 
         </field>
         <field type="text" variable="solrAdminPassword"> 
-            <spec txt="Password for solrAdmin" id="solrAdminPassword" size="25" set="solrAdmin"/> 
+            <spec txt="Password for solrAdmin" id="solrAdminPassword" size="25" set=""/> 
         </field>
 	</panel>
 </userInput>
