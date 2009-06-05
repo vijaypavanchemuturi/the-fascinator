@@ -1,0 +1,4 @@
+{ "db" : "sqlite",
+  "os" : "linux",
+  "watchDirs" : ["/home/octalina/workspace/watcher/watchDir", "/home/octalina/workspace/watcher/watchDir1"]
+}
