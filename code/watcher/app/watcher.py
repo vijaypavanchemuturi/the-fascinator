@@ -51,6 +51,12 @@ class Watcher(object):
             
             #setup Watcher        
             self.watcher = self.__eventWatcherClass(self.__watchDirs, queue=self.queue, fs=self.__fs)
+
+            self.watcher.addListener(self.queue.put)
+
+
+
+
         
 #            try:
 #                self.watcher.notifier.process_events()

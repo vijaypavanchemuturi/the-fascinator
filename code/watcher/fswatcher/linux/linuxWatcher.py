@@ -34,7 +34,7 @@ class EventWatcherClass(object):
         self.__daemonize = daemonize
         self.__forcekill = forcekill
         self.notifier = None
-        self.__cp = CustomProcess(self.__fs, queue=self.__queue)
+        self.__cp = CustomProcess(self.__fs, self.__listener)
         self.__watchManager = WatchManager()
         self.__exclFileName = exclFileName
         self.__exclFile = exclFile
@@ -46,9 +46,24 @@ class EventWatcherClass(object):
 
 #        notifier.loop(daemonize=True, pid_file='/tmp/pyinotify.pid', \
 #              force_kill=True, stdout='/tmp/stdout.txt')
-
         
-        self.__queue.addListenter(Thread.__init__(self))
+        self.__listeners = []
+
+    def addListener(self, listener):
+        self.__listeners.append(listener)
+
+    def removeListener(self, listener):
+        if self.__listener.count(listener)>0:
+            self.__listener.remove(listener)
+            return True
+        return False
+
+    def __listener(self, *args, **kwargs):
+        for listner in self.__listeners:
+            try:
+                listner(*args, **kwargs)
+            except Exception, e:
+                pass
         
     def __startWatcher(self):
         if self.__daemonize:
@@ -97,13 +112,23 @@ class EventWatcherClass(object):
         if not found:
             eventList.append((eventName.strip(), filePath.strip(), time.strip()))
         return eventList
+
         
     
 class CustomProcess(ProcessEvent):
-    def __init__(self, fs, queue=None):
+    def __init__(self, fs, listener):
         pynotify.init("change watcher")
         self.__fs = fs
-        self.__queue = queue
+        self.__listener = listener
+
+    def addListener(self, listener):
+        self.__listeners.append(listener)
+
+    def removeListener(self, listener):
+        if self.__listener.count(listener)>0:
+            self.__listener.remove(listener)
+            return True
+        return False
     
     def process_DEFAULT(self, event):
         print "called with: ", event
@@ -156,7 +181,11 @@ class CustomProcess(ProcessEvent):
         ref = pynotify.Notification("%s: " % eventName, filePath)
         #ref.show()
         print "%s, %s, %s" % (eventName, filePath, timeStamp)
-        
+
+        try:
+            self.__listener(eventName, filePath, timeStamp)
+        except Exception, e:
+            pass
         #self.__queue.processingQueue((eventName, filePath, timeStamp))
         #self.__queue.put((eventName, filePath, timeStamp))
         #need to use queue to push to database... ;)

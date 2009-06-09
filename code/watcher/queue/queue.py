@@ -35,7 +35,7 @@ class Queue(Thread):
         self.queue.put(0)
         self.join()
     
-    def put(self, item):
+    def put(self, *args, **kwargs):
         print 'putting item: ', item
         self.queue.put(item)
         
