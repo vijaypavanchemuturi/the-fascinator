@@ -1,134 +1,117 @@
 import pynotify, datetime, sys
 from pyinotify import EventsCodes, ProcessEvent, WatchManager, WatchManagerError, Notifier, ThreadedNotifier, ExcludeFilter
-from threading import Thread
-
-class WriterClass(object):
-    def __init__(self):
-        self.__data = ""
-        self.__stdout = sys.stdout
-        sys.stdout = self
-
-    def write(self, data):
-        self.__data += data
-        self.__stdout.write(data)
-        
-    def read(self):
-        return self.__data.split("\n")        
-
-    def close(self):
-        sys.stdout = self.__stdout
-
 
 class EventWatcherClass(object):
     FLAGS = EventsCodes.ALL_FLAGS
     mask  = FLAGS['IN_DELETE'] | FLAGS['IN_CREATE'] | \
             FLAGS['IN_MOVED_FROM'] | FLAGS['IN_MODIFY'] | \
-            FLAGS['IN_MOVED_TO'] | FLAGS['IN_ATTRIB'] | FLAGS['IN_IGNORED']
+            FLAGS['IN_MOVED_TO'] | FLAGS['IN_ATTRIB'] | FLAGS['IN_IGNORED'] | FLAGS['IN_MOVE_SELF']
      
-    def __init__(self, dirToBeWatched=[], queue=None, fs=None, daemonize=False, forcekill=False, exclFileName="", exclFile=None):
-        self.__dirToBeWatched = dirToBeWatched
-        self.__fs = fs
-        self.__queue = queue
+    def __init__(self, fs, db, config, daemonize=False, forcekill=False, exclFileName="", exclFile=None):
+        self.__listeners = []
+        self.__dirToBeWatched = []
         
+        self.__fs = fs
+        self.__db = db
+        self.__config = config
+        
+        self.__getDirToBeWatched()
+                
         #Main variable for notifier and watcher
         self.__daemonize = daemonize
         self.__forcekill = forcekill
         self.notifier = None
-        self.__cp = CustomProcess(self.__fs, self.__listener)
         self.__watchManager = WatchManager()
+        self.__cp = CustomProcess(self, self.__fs, self.__listener, self.configFile)
         self.__exclFileName = exclFileName
         self.__exclFile = exclFile
+        self.wm = None
         
-        #stout reader
-        self.writerClass = WriterClass()
+        self.excl = None
+        if self.__exclFile and self.__exclFileName:
+            self.excl = ExcludeFilter({self.__exclFileName: self.__exclFile})
         
+        #preprocess directory structure to database
+        self.__preprocessDirFileStructure()
         self.__startWatcher()
 
-#        notifier.loop(daemonize=True, pid_file='/tmp/pyinotify.pid', \
-#              force_kill=True, stdout='/tmp/stdout.txt')
+
+    def __getDirToBeWatched(self):
+        self.__dirToBeWatched = self.__config.watchDirs
+        if self.__dirToBeWatched == []:
+            self.__dirToBeWatched.append(os.path.expanduser("~"))  #watching home directory by default
+            
+        #also watch the config file
+        self.configFile = self.__config.configFilePath
+        if self.configFile not in self.__dirToBeWatched:
+            self.__dirToBeWatched.append(self.configFile)
         
-        self.__listeners = []
+
+    def __preprocessDirFileStructure(self):
+        def callback(path, dirs, files):
+            for dir in dirs:
+                rDir.append(path + dir)
+            for file in files:
+                rFiles.append(path + file)
+        
+        rFiles = []    
+        rDir = []
+        for dir in self.__dirToBeWatched:
+            if self.__fs.isDirectory(dir):
+                self.__fs.walker(dir, callback)
+                for rdir in rDir:
+                    self.__db.insertDir(rdir)
+                for rfile in rFiles:
+                    self.__db.insertFile(("mod", rfile, datetime.datetime.now()), update=False)
 
     def addListener(self, listener):
         self.__listeners.append(listener)
 
     def removeListener(self, listener):
-        if self.__listener.count(listener)>0:
-            self.__listener.remove(listener)
+        if self.__listeners.count(listener)>0:
+            self.__listeners.remove(listener)
             return True
         return False
 
     def __listener(self, *args, **kwargs):
-        for listner in self.__listeners:
+        for listener in self.__listeners:
             try:
-                listner(*args, **kwargs)
+                listener(*args, **kwargs)
             except Exception, e:
+                print str(e)
                 pass
+        
+    def restartWatcher(self):
+        try:
+            #reload the config file
+            self.__config.reload()
+            self.__getDirToBeWatched()
+            if self.wm is not None:
+                self.__watchManager.rm_watch(self.wm.values())
+            self.wm = self.__watchManager.add_watch(self.__dirToBeWatched, self.mask, rec=True, 
+                                          auto_add=True, quiet=False, exclude_filter=self.excl)
+        except WatchManagerError, err:
+            print "error: ", err, err.wmd
         
     def __startWatcher(self):
         if self.__daemonize:
             self.notifier = Notifier(self.__watchManager, self.__cp)
-            self.notifier.loop()
-            #self.notifier.loop(daemonize=self.__daemonize)
-        else:
+            self.notifier.loop(daemonize=self.__daemonize, pid_file='/tmp/pyinotify.pid', \
+                  force_kill=True, stdout='/tmp/stdout.txt')
+        else:        
             self.notifier = ThreadedNotifier(self.__watchManager, self.__cp)
-            #to seat deamon: self.notifier.setDaemon
             self.notifier.start()
-            
-            
-        #auto_add will help to automatically add the watcher to "just-created" child folder
-        try:
-            excl = None
-            if self.__exclFile and self.__exclFileName:
-                excl = ExcludeFilter({self.__exclFileName: self.__exclFile})
-            self.__watchManager.add_watch(self.__dirToBeWatched, self.mask, rec=True, 
-                                          auto_add=True, quiet=False, exclude_filter=excl)
-            
-        except WatchManagerError, err:
-            print "error: ", err, err.wmd    
-        
-    #DO cleanup here
-    #Get last 'mod' event
-        #If there 'del' event on the same file after 'mod' event, use the 'del' event
-    def eventList(self):
-        eventList = []
-        self.writerClass.close()
-        allEvent = self.writerClass.read()
-        for eachEvent in allEvent:
-            if eachEvent != '':
-                eventList = self.__processEvent(eventList, eachEvent)
-        return eventList
-             
-    def __processEvent(self, eventList, event):
-        eventName, filePath, time = event.split(",")       
-        found = False
-        for eachEvent in eventList:
-            eventName0, filePath0, time0 = eachEvent
-            if filePath.strip() == filePath0.strip():
-                found = True
-                if eventName.strip() == 'mod' or (eventName.strip() == 'del' and eventName0.strip()=='mod'):
-                    eventList.remove(eachEvent)
-                    eventList.append((eventName.strip(), filePath.strip(), time.strip()))
-        if not found:
-            eventList.append((eventName.strip(), filePath.strip(), time.strip()))
-        return eventList
-
+        self.restartWatcher()    
         
     
 class CustomProcess(ProcessEvent):
-    def __init__(self, fs, listener):
+    def __init__(self, eventWatcher, fs, listener, configPath):
         pynotify.init("change watcher")
+        self.eventWatcher = eventWatcher
         self.__fs = fs
         self.__listener = listener
-
-    def addListener(self, listener):
-        self.__listeners.append(listener)
-
-    def removeListener(self, listener):
-        if self.__listener.count(listener)>0:
-            self.__listener.remove(listener)
-            return True
-        return False
+        self.__dirRename = False
+        self.configPath = configPath
     
     def process_DEFAULT(self, event):
         print "called with: ", event
@@ -146,10 +129,10 @@ class CustomProcess(ProcessEvent):
         self.__processEachEvents("mod", event, self.__getTimeStamp())
         
     def __callingDelEvent(self, event):
+        #can't walk when directory is deleted'
         self.__processEachEvents("del", event, self.__getTimeStamp())
 
     def process_IN_CREATE(self, event):
-        #print '---create event---'
         self.__callingModEvent(event)
 
     def process_IN_DELETE(self, event):
@@ -159,7 +142,8 @@ class CustomProcess(ProcessEvent):
         self.__callingDelEvent(event)
 
     def process_IN_MOVED_TO(self, event):
-        #print '---moved to event---'
+        if self.__fs.isDirectory(self.__getFilePath(event)):
+            self.__dirRename = True
         self.__callingModEvent(event)
 
     #not used yet
@@ -179,75 +163,39 @@ class CustomProcess(ProcessEvent):
     def __processEachEvents(self, eventName, event, timeStamp):
         filePath = self.__fs.absolutePath(self.__getFilePath(event))
         ref = pynotify.Notification("%s: " % eventName, filePath)
-        #ref.show()
-        print "%s, %s, %s" % (eventName, filePath, timeStamp)
+        ref.show()
+        print "In Process Event: %s, %s, %s" % (eventName, filePath, timeStamp)
 
         try:
-            self.__listener(eventName, filePath, timeStamp)
+            eventList = []
+            if self.__getFilePath(event).rstrip("/") == self.configPath.rstrip("/"):
+                #restart watcher
+                self.eventWatcher.restartWatcher()
+            elif self.__fs.isDirectory(self.__getFilePath(event)): #if it's a directory...
+                if self.__dirRename:
+                    self.__dirRename = False
+                    #self.eventWatcher.restartWatcher()
+                    #start to add the events to the files/dirs under this directory
+                    def callback(path, dirs, files):
+                        for dir in dirs:
+                            rDir.append(path + dir)
+                        for file in files:
+                            rFiles.append(path + file)
+                    
+                    rFiles = []    
+                    rDir = []
+                    self.__fs.walker(filePath, callback)
+                    for rdir in rDir:
+                        eventList.append(("dir", filePath, 0))
+                    for rfile in rFiles:
+                        eventList.append((eventName, rfile, timeStamp))
+                else:
+                    eventList.append(("dir", filePath, 0))
+                    self.__listener(eventList)
+            else:
+                eventList.append((eventName, filePath, timeStamp))
+                self.__listener(eventList)
         except Exception, e:
+            print str(e)
+            print "fail to event to listener"
             pass
-        #self.__queue.processingQueue((eventName, filePath, timeStamp))
-        #self.__queue.put((eventName, filePath, timeStamp))
-        #need to use queue to push to database... ;)
-
-
-
-   
-
-#class EventWatcherClass(object):
-#    #    EventsCodes.IN_ATTRIB    #when the file is utime/touch
-#    #    EventsCodes.IN_ISDIR
-#    #    EventsCodes.IN_CLOSE_WRITE 
-#    #    EventsCodes.IN_CLOSE_NOWRITE
-#    mask = EventsCodes.IN_DELETE | EventsCodes.IN_CREATE | \
-#           EventsCodes.IN_MODIFY | EventsCodes.IN_MOVED_FROM | \
-#           EventsCodes.IN_MOVED_TO | EventsCodes.IN_ATTRIB
-#
-#    def __init__(self, dirFileToBeWatched, fs):
-#        self.__dirFileToBeWatched = dirFileToBeWatched
-#        self.__wm = WatchManager()
-#        self.__wm.add_watch(self.__dirFileToBeWatched, self.mask, rec=True, auto_add=True)
-#        self.notifier = None
-#        self.__fs = fs
-#        
-#        self.__data = ""
-#        self.__stdout = sys.stdout
-#        sys.stdout = self
-#        
-#        self.__startNotifier()
-#        
-#    def write(self, data):
-#        self.__data += data
-#        self.__stdout.write(data)
-#        
-#    def read(self):
-#        return self.__data.split("\n")        
-#    
-#    def close(self):
-#        sys.stdout = self.__stdout
-#
-#    def __startNotifier(self):    
-#        # notifier instance and init, process all events with
-#        # an instance of PExample
-#        #print 'start monitoring %s with mask 0x%08x' % (self.__dirFileToBeWatched, self.mask)
-#        self.cp = CustomProcess(self.__fs)
-#        self.notifier = ThreadedNotifier(self.__wm, self.cp)
-#        self.notifier.start()
-    
-#    def __eventsHappened(self):
-#        # read and process events
-#        self.notifier.process_events()
-#        while True:
-#            try:
-#                if self.notifier.check_events():
-#                    self.notifier.read_events()
-#            except KeyboardInterrupt:
-#                # ...until c^c signal
-#                print 'stop monitoring...'
-#                # stop monitoring
-#                self.notifier.stop()
-#                break
-#            except Exception, err:
-#                # otherwise keep on watching
-#                print err
-#                self.notifier.stop() 

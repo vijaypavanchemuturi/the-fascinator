@@ -1,6 +1,4 @@
-
-
-
+import sys
 
 class Config(object):
     # Constructor:
@@ -17,10 +15,7 @@ class Config(object):
         def __missing__(self, key):
             return None
 
-    def __init__(self, configFileSearchPaths=["."], configFileName="config.json",
-            fileSystem=None):
-        if fileSystem is None:
-            fileSystem = FileSystem
+    def __init__(self, fileSystem, configFileSearchPaths=["."], configFileName="config.json"):
         self.__fileSystem = fileSystem
         self.__settings = Config.DefaultDict()
         self.__configFileSearchPaths = configFileSearchPaths
@@ -37,12 +32,41 @@ class Config(object):
     @property
     def configFilePath(self):
         return self.__configFilePath
+
+    @property
+    def atomFeed(self):
+        if self.__settings.has_key("atomFeed"):
+            return self.__settings["atomFeed"]
+        return None
+    @property
+    def atomUrl(self):
+        if self.atomFeed and self.atomFeed.has_key("atomUrl"):
+            return self.atomFeed["atomUrl"] 
+        return None
+    @property
+    def host(self):
+        if self.atomFeed and self.atomFeed.has_key("host"):
+            return self.atomFeed["host"] 
+        return None
+    @property
+    def port(self):
+        if self.atomFeed and self.atomFeed.has_key("port"):
+            return self.atomFeed["port"] 
+        return None
     
     @property
     def platform(self):
         if self.__settings.has_key("os"):
             return self.__settings["os"]
         return None
+    @property
+    def daemon(self):
+        if self.__settings.has_key("daemon"):
+            daemon = self.__settings["daemon"]
+            if daemon.lower().strip() == "true":
+                return True
+            return False
+        return False
     
     @property
     def db(self):
@@ -55,6 +79,18 @@ class Config(object):
         if self.__settings.has_key("watchDirs"):
             return self.__settings["watchDirs"]
         return []
+    
+    @property
+    def watchFeeds(self):
+        if self.__settings.has_key("watchFeed"):
+            return self.__settings["watchFeed"]
+        return []
+    
+    @property
+    def feedDuration(self):
+        if self.__settings.has_key("feedDuration"):
+            return self.__settings["feedDuration"]
+        return "5"   #5 min
 
     def reload(self):
         if self.__configFilePath is None:
@@ -70,7 +106,7 @@ class Config(object):
         try:
             d = eval(data)
             self.__settings.clear()
-            self.__settings.update(d)
+            self.__settings.update(d["watcher"])
         except Exception, e:
             msg = "Error loading configFile '%s' - '%s'" % (self.__configFilePath, str(e))
             raise Exception(msg)
@@ -94,6 +130,10 @@ class Config(object):
             if self.__fileSystem.isFile(file):
                 return self.__fileSystem.absPath(file)
         return None
+    
+    @property
+    def configFilePath(self):
+        return self.__getConfigFile()
 
 
 class FileSystem(object):

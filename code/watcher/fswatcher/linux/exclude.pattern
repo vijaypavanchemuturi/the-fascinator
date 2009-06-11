@@ -15,5 +15,6 @@
 #			 '^/var/cache/.*',
 #			 '^/var/spool/.*']
 
-excl_lst1 = ['^.*']
+excl_lst1 = ['^.*',
+			'queue.db$']
 			 

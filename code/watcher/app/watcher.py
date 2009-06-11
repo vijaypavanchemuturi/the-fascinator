@@ -16,7 +16,6 @@ class Watcher(object):
         
         self.__eventWatcherClass = None
         self.__db = None
-        self.__watchDirs = self.__config.watchDirs
         
         self.watcher = None
         self.db = None
@@ -25,9 +24,6 @@ class Watcher(object):
         self._setup()
         
     def _setup(self):
-        #watcher will publish if there's even....
-        #queue do not need to know about the watcher
-        
         if self.__config.platform:
             fsWatcherPath = "../fswatcher/%s" % self.__config.platform
             sys.path.append(fsWatcherPath)
@@ -48,55 +44,12 @@ class Watcher(object):
             
             #setup queue
             self.queue = Queue(self.db)
-            
+             
             #setup Watcher        
-            self.watcher = self.__eventWatcherClass(self.__watchDirs, queue=self.queue, fs=self.__fs)
+            self.watcher = self.__eventWatcherClass(fs=self.__fs, db=self.db, config=self.__config, daemonize=self.__config.daemon)
 
             self.watcher.addListener(self.queue.put)
 
-
-
-
-        
-#            try:
-#                self.watcher.notifier.process_events()
-#                
-#                self.queue.processingQueue()
-#                while self.watcher.notifier.process_events():
-#                    self.watcher.notifier.read_events()
-#            except KeyboardInterrupt:
-#                # ...until c^c signal
-#                print 'stop monitoring...'
-#                # stop monitoring
-#                self.watcher.notifier.stop()
-#    
-#            except Exception, err:
-#                # otherwise keep on watching
-#                print err
-#                self.watcher.notifier.stop()
-                
-        
-#        #try to create watcher for each directory (for now only 1 dir... don know how to setup multiple directory to run as deamon)
-#        if self.__eventWatcherClass is not None:
-#            for dir in self.__watchDirs:
-#                eventWatcher = self.__eventWatcherClass(dir, self.__fs)
-#                try:
-#                    eventWatcher.notifier.process_events()
-#                    
-#                    
-#                    while eventWatcher.notifier.check_events():
-#                        eventWatcher.notifier.read_events()
-#                    
-#                except KeyboardInterrupt:
-#                    # ...until c^c signal
-#                    print 'stop monitoring...'
-#                    # stop monitoring
-#                    eventWatcher.notifier.stop()
-#        
-#                except Exception, err:
-#                    # otherwise keep on watching
-#                    print err
-#                    eventWatcher.notifier.stop()
                     
             
 if __name__ == "__main__":
