@@ -59,6 +59,7 @@ class Config(object):
         if self.__settings.has_key("os"):
             return self.__settings["os"]
         return None
+    
     @property
     def daemon(self):
         if self.__settings.has_key("daemon"):
