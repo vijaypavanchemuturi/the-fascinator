@@ -1,0 +1,20 @@
+{ "watcher" : {   
+				  "db" : "sqlite",
+				  "os" : "linux",
+				  "daemon" : "False",
+				  "watchDirs" : ["/home/octalina/workspace/watcher/watchDir", "/home/octalina/workspace/watcher/watchDir1"],
+				  
+				  "atomFeed" : { "host" : "localhost",
+				  				 "port" : "8081",
+				  			     "atomUrl" : "http://localhost:8081/atom.xml"
+				  			   },
+				  			   
+				  "feedWatcher" : { "watchFeeds" 	: ["http://feeds.delicious.com/v2/rss/tag/adfi_der?count=15"],
+							   	    "feedDuration"	: "5" }
+				  
+			},
+  "AtomReader" : {
+  		"cacheDir": "target/cache",
+  		"updateFreq": "5" 
+  }
+}

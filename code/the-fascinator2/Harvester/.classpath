@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="Store/src/main/java"/>
+	<classpathentry kind="src" path="ConveyerBelt/src/main/java"/>
+	<classpathentry kind="src" path="AtomReader/src/main/java"/>
+	<classpathentry kind="src" path="Extractor/src/main/java"/>
+	<classpathentry kind="src" path="Transformer/src/main/java"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="con" path="org.maven.ide.eclipse.MAVEN2_CLASSPATH_CONTAINER"/>
+	<classpathentry kind="output" path="target/classes"/>
+</classpath>
