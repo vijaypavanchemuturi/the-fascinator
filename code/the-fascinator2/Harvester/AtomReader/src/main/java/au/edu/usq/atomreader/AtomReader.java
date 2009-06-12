@@ -63,7 +63,7 @@ public class AtomReader implements FetcherListener {
 			try {
 				reader = new AtomReader(args[0], args[1]);
 				reader
-						.addAtomReaderStateChangeListener(new ARSCChangeListener());
+						.addAtomReaderStateChangeListener(new SampleAtomReaderChangeListener());
 				reader.read();
 			} catch (MalformedURLException e) {
 				e.printStackTrace();
@@ -187,44 +187,6 @@ public class AtomReader implements FetcherListener {
 	public void removeAtomReaderStateChangeListener(
 			AtomReaderStateChangeListener listener) {
 		stateChangeListeners.remove(listener);
-	}
-
-	private static class ARSCChangeListener implements
-			AtomReaderStateChangeListener {
-		/*
-		 * (non-Javadoc)
-		 * 
-		 * @see
-		 * au.edu.usq.AtomReaderStateChangeListener#atomReaderStateChangeEvent
-		 * (au.edu.usq.AtomReaderStateChangeEvent)
-		 */
-		public void atomReaderStateChangeEvent(AtomReaderStateChangeEvent event) {
-			System.out.println("Event: " + event.getEventType() + "\n");
-			if (FetcherEvent.EVENT_TYPE_FEED_RETRIEVED.equals(event
-					.getEventType())) {
-				AtomReader ar = event.getReader();
-				System.out.println("URL: " + ar.getFeedURLString() + "\n");
-				SyndFeed feed = ar.getFeed();
-				System.out.println("Items: " + ar.getFeed().getEntries().size()
-						+ "\n");
-				List<SyndEntryImpl> lst = feed.getEntries();
-				for (SyndEntryImpl i : lst) {
-					System.out.println("Title: " + i.getTitle() + "\n"
-							+ "URI: " + i.getUri() + "\n"
-							+ "Published Date: " + i.getPublishedDate() + "\n"
-							+ "Updated Date: " + i.getUpdatedDate() + "\n"
-							+ "Author: " + i.getAuthor() + "\n" + "Contents: "
-							+ i.getContents().toString() + "\n"
-							+ "Description: " + i.getDescription().getValue()
-							+ "\n");
-				}
-			} else if (FetcherEvent.EVENT_TYPE_FEED_UNCHANGED.equals(event
-					.getEventType())) {
-				System.out.println("No change in feed\n");
-			}
-
-		}
-
 	}
 
 }
