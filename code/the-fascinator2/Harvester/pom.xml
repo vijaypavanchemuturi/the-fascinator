@@ -8,7 +8,7 @@
   	<module>Store</module>
   	<module>Extractor</module>
   	<module>Transformer</module>
-  	<module>ConveyerBelt</module>
   	<module>AtomReader</module>
+  	<module>ConveyorBelt</module>
   </modules>
 </project>
