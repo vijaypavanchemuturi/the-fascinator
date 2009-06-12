@@ -20,20 +20,15 @@ package au.edu.usq.conveyorbelt;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.util.HashMap;
-import java.util.List;
 
 import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 
 import au.edu.usq.atomreader.AtomReader;
-import au.edu.usq.atomreader.AtomReaderStateChangeEvent;
-import au.edu.usq.atomreader.AtomReaderStateChangeListener;
-
-import com.sun.syndication.feed.synd.SyndEntryImpl;
-import com.sun.syndication.feed.synd.SyndFeed;
-import com.sun.syndication.fetcher.FetcherEvent;
+import au.edu.usq.atomreader.SampleAtomReaderChangeListener;
 
 /**
  *
@@ -45,7 +40,7 @@ public class ConveyorBelt {
 	private Integer atomUpdateFreq = 0;
 	private String atomCacheDir = "";
 	private AtomReader atomReader;
-	
+
 	/**
 	 * @param args
 	 */
@@ -61,12 +56,14 @@ public class ConveyorBelt {
 	public ConveyorBelt(String configFilePath) {
 		this.configFilePath = configFilePath;
 		// STEP 1: Read the JSON config File
-		readConfig();		
-		//STEP 2: Prepare the Atom feed reader
+		readConfig();
+		// STEP 2: Prepare the Atom feed reader
 		prepareAtomReader();
+
 		atomReader.read();
+
 	}
-	
+
 	private void readConfig() {
 		ObjectMapper mapper = new ObjectMapper();
 		HashMap<String, Object> config;
@@ -74,9 +71,9 @@ public class ConveyorBelt {
 			config = mapper.readValue(new File(configFilePath), HashMap.class);
 			this.atomURL = (String) ((HashMap) ((HashMap) config.get("watcher"))
 					.get("atomFeed")).get("atomUrl");
-			this.atomUpdateFreq = new Integer((String)(((HashMap) config.get("AtomReader"))
-					.get("updateFreq")));
-			this.atomCacheDir = (String)(((HashMap) config.get("AtomReader"))
+			this.atomUpdateFreq = new Integer((String) (((HashMap) config
+					.get("AtomReader")).get("updateFreq")));
+			this.atomCacheDir = (String) (((HashMap) config.get("AtomReader"))
 					.get("cacheDir"));
 		} catch (JsonParseException e) {
 			// TODO Auto-generated catch block
@@ -89,46 +86,17 @@ public class ConveyorBelt {
 			e.printStackTrace();
 		}
 	}
-	
-	private void prepareAtomReader(){
-		atomReader = new AtomReader(atomURL, atomCacheDir);
-		atomReader
-				.addAtomReaderStateChangeListener(new AtomChangeListener());
-		
-	}
-	
-		private class AtomChangeListener implements
-		AtomReaderStateChangeListener {
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * au.edu.usq.AtomReaderStateChangeListener#atomReaderStateChangeEvent
-	 * (au.edu.usq.AtomReaderStateChangeEvent)
-	 */
-	public void atomReaderStateChangeEvent(AtomReaderStateChangeEvent event) {
-		System.out.println("Event: " + event.getEventType() + "\n");
-		if (FetcherEvent.EVENT_TYPE_FEED_RETRIEVED.equals(event
-				.getEventType())) {
-			AtomReader ar = event.getReader();
-			System.out.println("URL: " + ar.getFeedURLString() + "\n");
-			SyndFeed feed = ar.getFeed();
-			System.out.println("Items: " + ar.getFeed().getEntries().size()
-					+ "\n");
-			List<SyndEntryImpl> lst = feed.getEntries();
-			for (SyndEntryImpl i : lst) {
-				System.out.println("Title: " + i.getTitle() + "\n"
-						+ "URI: " + i.getUri() + "\n"
-						+ "Published Date: " + i.getPublishedDate() + "\n"
-						+ "Updated Date: " + i.getUpdatedDate() + "\n"
-						+ "Author: " + i.getAuthor() + "\n" + "Contents: "
-						+ i.getContents().toString() + "\n"
-						+ "Description: " + i.getDescription().getValue()
-						+ "\n");
-			}
-		} else if (FetcherEvent.EVENT_TYPE_FEED_UNCHANGED.equals(event
-				.getEventType())) {
-			System.out.println("No change in feed\n");
+
+	private void prepareAtomReader() {
+		try {
+			atomReader = new AtomReader(atomURL, atomCacheDir);
+		} catch (MalformedURLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
+		atomReader
+				.addAtomReaderStateChangeListener(new SampleAtomReaderChangeListener());
+
 	}
 
+}
