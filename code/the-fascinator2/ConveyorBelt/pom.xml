@@ -47,7 +47,7 @@
 				<configuration>
 					<archive>
 						<manifest>
-							<mainClass>au.edu.usq.conveyorbelt.ConveyorBelt</mainClass>
+							<mainClass>au.edu.usq.fascinator.conveyorbelt.ConveyorBelt</mainClass>
 						</manifest>
 					</archive>
 				</configuration>
@@ -57,7 +57,7 @@
 				<artifactId>exec-maven-plugin</artifactId>
 				<version>1.1.1</version>
 				<configuration>
-					<mainClass>au.edu.usq.conveyorbelt.ConveyorBelt</mainClass>
+					<mainClass>au.edu.usq.conveyorbelt.fascinator.ConveyorBelt</mainClass>
 				</configuration>
 
 			</plugin>

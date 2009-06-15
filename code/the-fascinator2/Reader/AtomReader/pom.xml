@@ -1,12 +1,12 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<parent>
-		<artifactId>Harvester</artifactId>
+		<artifactId>Reader</artifactId>
 		<groupId>au.edu.usq</groupId>
 		<version>0.0.1-SNAPSHOT</version>
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>au.edu.usq.atomreader</groupId>
+	<groupId>au.edu.usq</groupId>
 	<artifactId>AtomReader</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<build>
@@ -32,7 +32,7 @@
 				<configuration>
 					<archive>
 						<manifest>
-							<mainClass>au.edu.usq.atomreader.AtomReader</mainClass>
+							<mainClass>au.edu.usq.fascinator.reader.atomreader.AtomReader</mainClass>
 						</manifest>
 					</archive>
 				</configuration>
@@ -42,7 +42,7 @@
 				<artifactId>exec-maven-plugin</artifactId>
 				<version>1.1.1</version>
 				<configuration>
-					<mainClass>au.edu.usq.atomreader.AtomReader</mainClass>
+					<mainClass>au.edu.usq.fascinator.reader.atomreader.AtomReader</mainClass>
 				</configuration>
 
 			</plugin>

@@ -16,14 +16,49 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-package au.edu.usq.atomreader;
+package au.edu.usq.fascinator.reader.atomreader;
 
-import java.util.EventListener;
+import java.util.EventObject;
+
+import com.sun.syndication.fetcher.FetcherEvent;
 
 /**
- * @author dickinso
  *
  */
-public interface AtomReaderStateChangeListener extends EventListener {	
-	public void atomReaderStateChangeEvent(AtomReaderStateChangeEvent event);
+public class AtomReaderStateChangeEvent extends EventObject {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -909191310892385597L;
+
+	FetcherEvent fetcherEvent;
+	AtomReader reader;
+
+	/**
+	 * @param source
+	 */
+	public AtomReaderStateChangeEvent(AtomReader source, FetcherEvent e) {
+		super(source);
+		this.fetcherEvent = e;
+		this.reader = source;
+	}
+
+	/**
+	 * @return the reader
+	 */
+	public AtomReader getReader() {
+		return this.reader;
+	}
+
+	/**
+	 * @return the fetcherEvent
+	 */
+	public FetcherEvent getFetcherEvent() {
+		return this.fetcherEvent;
+	}
+
+	public String getEventType() {
+		return this.fetcherEvent.getEventType();
+	}
+
 }

@@ -16,7 +16,7 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-package au.edu.usq.extractor;
+package au.edu.usq.fascinator.harvester.extractor;
 
 import java.io.BufferedInputStream;
 import java.io.File;

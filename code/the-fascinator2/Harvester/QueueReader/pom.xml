@@ -1,15 +1,11 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <parent>
+    <artifactId>Harvester</artifactId>
+    <groupId>au.edu.usq</groupId>
+    <version>0.0.1-SNAPSHOT</version>
+  </parent>
   <modelVersion>4.0.0</modelVersion>
   <groupId>au.edu.usq</groupId>
-  <artifactId>Harvester</artifactId>
-  <packaging>pom</packaging>
+  <artifactId>QueueReader</artifactId>
   <version>0.0.1-SNAPSHOT</version>
-  <parent>
-  	<artifactId>the-fascinator2</artifactId>
-  	<groupId>au.edu.usq</groupId>
-  </parent>
-  <modules>
-  	<module>QueueReader</module>
-  	<module>Extractor</module>
-  </modules>
 </project>
