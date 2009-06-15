@@ -27,8 +27,8 @@ import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 
-import au.edu.usq.atomreader.AtomReader;
-import au.edu.usq.atomreader.SampleAtomReaderChangeListener;
+import au.edu.usq.fascinator.reader.atomreader.AtomReader;
+import au.edu.usq.fascinator.reader.atomreader.SampleAtomReaderChangeListener;
 
 /**
  *
