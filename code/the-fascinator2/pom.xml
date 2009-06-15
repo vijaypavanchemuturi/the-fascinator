@@ -3,6 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>the-fascinator2</groupId>
 	<artifactId>the-fascinator2</artifactId>
+	<packaging>pom</packaging>
 	<name>The Fascinator</name>
 	<version>0.0.1-SNAPSHOT</version>
 	<description>The Fascinator is a software platform for eResearch.
@@ -20,7 +21,13 @@
 
 		</mailingList>
 	</mailingLists>
-
+	<modules>
+		<module>conveyorbelt</module>
+		<module>harvester</module>
+		<module>reader</module>
+		<module>store</module>
+		<module>transformer</module>
+	</modules>
 	<licenses>
 		<license>
 			<name>GNU GENERAL PUBLIC LICENSE V2</name>
@@ -117,6 +124,4 @@
 			</plugin>
 		</plugins>
 	</reporting>
-	<modules>
-	</modules>
 </project>
