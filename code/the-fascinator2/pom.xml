@@ -41,8 +41,8 @@
 	<developers>
 	</developers>
 	<scm>
-		<url>http://fascinator.usq.edu.au/svn/code/the-fascinator/</url>
-		<connection>scm:svn:http://fascinator.usq.edu.au/svn/code/the-fascinator/</connection>
+		<url>http://fascinator.usq.edu.au/svn/code/the-fascinator2/</url>
+		<connection>scm:svn:http://fascinator.usq.edu.au/svn/code/the-fascinator2/</connection>
 		<tag>HEAD</tag>
 	</scm>
 	<organization>
