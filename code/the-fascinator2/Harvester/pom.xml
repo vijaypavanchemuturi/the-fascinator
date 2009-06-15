@@ -4,6 +4,10 @@
   <artifactId>Harvester</artifactId>
   <packaging>pom</packaging>
   <version>0.0.1-SNAPSHOT</version>
+  <parent>
+  	<artifactId>the-fascinator2</artifactId>
+  	<groupId>au.edu.usq</groupId>
+  </parent>
   <modules>
   	<module>Store</module>
   	<module>Extractor</module>
