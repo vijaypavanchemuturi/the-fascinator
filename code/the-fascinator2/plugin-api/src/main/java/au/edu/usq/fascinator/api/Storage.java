@@ -32,7 +32,7 @@ public interface Storage extends Plugin {
      * @return the internal identifier used by the storage implementation
      * @throws StorageException if there was an error adding the object
      */
-    public void addObject(DigitalObject object) throws StorageException;
+    public String addObject(DigitalObject object) throws StorageException;
 
     public void removeObject(String oid);
 

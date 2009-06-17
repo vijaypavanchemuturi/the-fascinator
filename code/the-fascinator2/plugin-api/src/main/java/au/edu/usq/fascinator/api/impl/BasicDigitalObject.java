@@ -30,6 +30,9 @@ public class BasicDigitalObject implements DigitalObject {
 
     private List<Payload> payloadList;
 
+    public BasicDigitalObject() {
+    }
+
     public BasicDigitalObject(String id) {
         setId(id);
     }
