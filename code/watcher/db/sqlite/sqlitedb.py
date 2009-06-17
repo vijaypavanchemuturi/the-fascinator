@@ -87,7 +87,7 @@ class Database(object):
     
     def processEvent(self, eventList):
         for event in eventList:
-            filePath, modifiedTime, eventName, isDir = event
+            filePath, modifiedTime, eventName, isDir, initialize = event
             if isDir and eventName=="del":
                 #need to set the files/dir under this directory to del
                 fileDirRecord = self.selectLike(filePath)
@@ -99,7 +99,9 @@ class Database(object):
             #do normal insertion & update
             sqlStr = "INSERT INTO queue(file, time, event, isDir) VALUES ('%s', '%s', '%s', %s)" % (filePath, modifiedTime, eventName, int(isDir))
             records = self.select(file=filePath)
-            if records != []:
+            if records != [] and not initialize:
                 sqlStr = "UPDATE queue SET time='%s', event='%s' WHERE file='%s'" % (modifiedTime, eventName, filePath)
-            self.__execute(sqlStr)
+                self.__execute(sqlStr)
+            elif records == []:
+                self.__execute(sqlStr)
             

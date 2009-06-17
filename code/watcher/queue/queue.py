@@ -43,8 +43,7 @@ class Queue(object):
         fileFullPath = filePath.replace("file://", "")
         #modifiedTime = self.__fs.formatDateTime(timeStamp)
         modifiedTime = timeStamp
-        listOfFsEvents.append((filePath, modifiedTime, eventName, isDir))
-        #NEED TO CHECK MORE PROPERLY WHEN A DIRECTORY IS RENAMED
+        listOfFsEvents.append((filePath, modifiedTime, eventName, isDir, False))
         if self.__fs.isDirectory(fileFullPath):
             if initialization or renameDir:
                 rFiles = []    
@@ -59,14 +58,18 @@ class Queue(object):
                 self.__fs.walker(fileFullPath, callback)
                 for dir in rDirs:
                     #modifiedTime = self.__fs.formatDateTime(os.stat(dir)[ST_MTIME])
-                    modifiedTime = os.stat(dir)[ST_MTIME]
+                    #modifiedTime = os.stat(dir)[ST_MTIME]
+                    #use system time for now
+                    modifiedTime = int(time.time())
                     dirAbsPath = self.__fs.absPath(dir)
-                    listOfFsEvents.append(("file://%s" % dirAbsPath, modifiedTime, eventName, isDir))
+                    listOfFsEvents.append(("file://%s" % dirAbsPath, modifiedTime, eventName, isDir, True))
                 for file in rFiles:
-                    modifiedTime = os.stat(file)[ST_MTIME]
+                    #modifiedTime = os.stat(file)[ST_MTIME]
                     #modifiedTime = self.__fs.formatDateTime(os.stat(file)[ST_MTIME])
+                    #use system time for now
+                    modifiedTime = int(time.time())
                     fileAbsPath = self.__fs.absPath(file)
-                    listOfFsEvents.append(("file://%s" % fileAbsPath, modifiedTime, eventName, False))
+                    listOfFsEvents.append(("file://%s" % fileAbsPath, modifiedTime, eventName, False, True))
                     
                 if initialization:
                     #Need to check file against the database.... maybe files/directory is removed when watcher is not working
@@ -76,10 +79,10 @@ class Queue(object):
                         filePath0, modifiedTime0, eventName0, isDir0 = record
                         if isDir0:
                             if filePath0.replace("file://", "") not in rDirs:
-                                listOfFsEvents.append((filePath0, deletedTime, "del", isDir0))
+                                listOfFsEvents.append((filePath0, deletedTime, "del", isDir0, False))
                         else:
                             if filePath0.replace("file://", "") not in rFiles:
-                                listOfFsEvents.append((filePath0, deletedTime, "del", isDir0))
+                                listOfFsEvents.append((filePath0, deletedTime, "del", isDir0, False))
         return listOfFsEvents
 
 #class QueueHandler(EventHandler):

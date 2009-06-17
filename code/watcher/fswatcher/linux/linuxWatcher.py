@@ -1,5 +1,5 @@
 from pyinotify import EventsCodes, ThreadedNotifier, Notifier, WatchManager, ProcessEvent, WatchManagerError
-import os
+import os, time
 from stat import *
 
 class EventWatcherClass(object):
@@ -35,9 +35,13 @@ class EventWatcherClass(object):
         self.__getDirToBeWatched()
         for dir in self.dirToBeWatched:
             if dir.rstrip("/") != self.configFilePath.rstrip("/"):
-                modifiedDate = os.stat(dir)[ST_MTIME] 
-                detail = ("file://" + dir, modifiedDate, "mod", True)
-                self.__listener(eventDetail=detail, initialization=True)
+                if self.__fs.isDirectory(dir):
+                    #modifiedDate = os.stat(dir)[ST_MTIME] #when a file start being watched, use the current system time
+                    modifiedDate = time.time() 
+                    detail = ("file://" + dir, int(modifiedDate), "mod", True)
+                    self.__listener(eventDetail=detail, initialization=True)
+                else:
+                    print 'fail to add dir to watched, the dir %s might not exist' % dir
             
             
     def __startWatcher(self):
@@ -53,6 +57,7 @@ class EventWatcherClass(object):
             #reload the config file
             self.__config.reload()
             self.__getDirToBeWatched()
+            self.__processWatchedDir()
 #for not do not have unwatched event
 #            if oldDirToBeWatched != self.__dirToBeWatched.sort():
 #                stopWatchDir = [item for item in oldDirToBeWatched if not item in self.__dirToBeWatched]
@@ -122,7 +127,9 @@ class CustomProcess(ProcessEvent):
         if event.pathname.rstrip("/") == self.configFilePath.rstrip("/"):
             self.eventWatcher.resetDirToBeWatched(configChanged=True)
         else:
-            modifiedDate = self.getSystemModifiedDate(event.pathname)
+            #modifiedDate = self.getSystemModifiedDate(event.pathname)
+            #use system time for now
+            modifiedDate = int(time.time())
             dirProcess = False
             dirRename = False
             if event.maskname.find("IN_ISDIR")>-1:
