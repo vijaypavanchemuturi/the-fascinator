@@ -19,9 +19,8 @@
 		</dependency>
 		<dependency>
 			<groupId>au.edu.usq.fascinator</groupId>
-			<artifactId>atomreader</artifactId>
+			<artifactId>queuereader</artifactId>
 			<version>0.0.1-SNAPSHOT</version>
-			<type>jar</type>
 			<scope>compile</scope>
 		</dependency>
 	</dependencies>

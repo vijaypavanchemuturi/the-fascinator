@@ -18,19 +18,16 @@
  */
 package au.edu.usq.fascinator.harvester.queuereader;
 
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
-import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.HashMap;
-
-import org.apache.http.HttpResponse;
-import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.ResponseHandler;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.BasicResponseHandler;
-import org.apache.http.impl.client.DefaultHttpClient;
+import java.net.URL;
 
 /**
  * Class to read The Watcher's queue Basically, a small interface into the
@@ -41,16 +38,13 @@ import org.apache.http.impl.client.DefaultHttpClient;
  */
 public class QueueReader {
 
-	private URI uri;
-	private HttpClient httpclient = new DefaultHttpClient();
-	String responseBody;
+	private URL url = null;
+	private StringBuilder content;
+	private String contentType = "";
+	private int responseCode = 0;
+	private long lastModified = 0;
 
-	/**
-	 * @return the responseBody
-	 */
-	public String getResponseBody() {
-		return this.responseBody;
-	}
+	private PropertyChangeSupport propChanges = new PropertyChangeSupport(this);
 
 	/**
 	 * @param args
@@ -62,92 +56,172 @@ public class QueueReader {
 		}
 		try {
 			QueueReader qr = new QueueReader(args[0]);
-			qr.getQueue();
-			System.out.println(args[0] + " responded with:\n"
-					+ qr.getResponseBody());
-			qr.close();
-		} catch (URISyntaxException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (ClientProtocolException e) {
+			qr.addPropertyChangeListener(new PropertyChangeListener() {
+				public void propertyChange(PropertyChangeEvent evt) {
+					//if (!evt.getPropertyName().equals("content"))
+						System.out.println(evt.getPropertyName() + ": "
+								+ evt.getNewValue());
+				}
+			});
+			qr.checkQueue();
+			qr.checkQueue();
+			qr.checkQueue();
+			qr.checkQueue();
+		} catch (MalformedURLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+		} catch (URISyntaxException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 	}
 
-	public QueueReader(String uri) throws URISyntaxException {
-		this.setUri(uri);
+	public QueueReader(URL url) {
+		this.setUrl(url);
+	}
+
+	public QueueReader(String url) throws MalformedURLException {
+		this.setUrl(url);
+	}
+
+	public QueueReader(String url, long lastModified)
+			throws MalformedURLException {
+		this.setUrl(url);
+		this.lastModified = lastModified;
 	}
 
 	/**
-	 * 
-	 * 
-	 * We ensure that the server response is of mimetype application/json
-	 * 
-	 * @see http://www.ietf.org/rfc/rfc4627.txt
-	 * @see http://www.w3.org/Protocols/rfc2616/rfc2616-sec9.html
-	 * @return
-	 * @throws IOException
-	 * @throws ClientProtocolException
+	 * @return the lastModified
 	 */
-	public HashMap getQueue() throws ClientProtocolException, IOException {
-		HashMap map = new HashMap();
-
-		// GET the URL
-		HttpGet httpget = new HttpGet(this.getUri());
-		// org.apache.http.impl.cookie
-		// httpget.addHeader("If-Modified-Since", "");
-
-		// TODO: Deal with proxies
-		
-		 // Create a response handler
-        ResponseHandler<String> responseHandler = new BasicResponseHandler();
-        responseBody = httpclient.execute(httpget, responseHandler);
-
-		// Check that we're getting a JSON file (application/json)
-
-		// Transform JSON structure to hashmap
-
-		return map;
+	public long getLastModified() {
+		return this.lastModified;
 	}
 
-	public void close() {
-		// When HttpClient instance is no longer needed,
-		// shut down the connection manager to ensure
-		// immediate deallocation of all system resources
-		httpclient.getConnectionManager().shutdown();
-	}
 
-	public void QueueReader(URI uri) {
-		this.setUri(uri);
+	public void checkQueue() throws IOException, URISyntaxException {
+
+		HttpURLConnection conn = (HttpURLConnection) this.getUrl()
+				.openConnection();
+		if (this.lastModified != 0) {
+			conn.setIfModifiedSince(this.lastModified);
+		}
+		conn.connect();
+
+		this.setResponseCode(conn.getResponseCode());
+		if (conn.getLastModified() != 0)
+			this.setLastModified(conn.getLastModified());
+		if (conn.getContentType() != null)
+			this.setContentType(conn.getContentType());
+
+		// Load the content
+		StringBuilder str = new StringBuilder();
+		BufferedReader in = new BufferedReader(new InputStreamReader(conn
+				.getInputStream()));
+		String inputLine;
+		while ((inputLine = in.readLine()) != null)
+			str.append(inputLine);
+		in.close();
+		this.setContent(str);
+		conn.disconnect();
 	}
 
 	/**
-	 * @return the uri
+	 * @return the url
 	 */
-	public URI getUri() {
-		return this.uri;
+	public URL getUrl() {
+		return this.url;
 	}
 
 	/**
-	 * @param uri
-	 *            the uri to set
+	 * @param url
+	 *            the url to set
 	 */
-	public void setUri(URI uri) {
-		this.uri = uri;
+	private void setUrl(URL url) {
+		this.url = url;
 	}
 
 	/**
-	 * @param uri
-	 *            the uri to set
-	 * @throws URISyntaxException
+	 * @param url
+	 *            the url to set
 	 * @throws MalformedURLException
 	 */
-	public void setUri(String uri) throws URISyntaxException {
-		this.uri = new URI(uri);
+	private void setUrl(String url) throws MalformedURLException {
+		this.url = new URL(url);
+	}
+
+	/**
+	 * @return the content
+	 */
+	public StringBuilder getContent() {
+		return this.content;
+	}
+
+	/**
+	 * @param content
+	 *            the content to set
+	 */
+	private void setContent(StringBuilder content) {
+		StringBuilder oldContent = this.content;
+		this.content = content;
+		propChanges.firePropertyChange("content", oldContent, this.content);
+	}
+
+	/**
+	 * @return the contentType
+	 */
+	public String getContentType() {
+		return this.contentType;
+	}
+
+	/**
+	 * @param contentType
+	 *            the contentType to set
+	 */
+	private void setContentType(String contentType) {
+		String oldContentType = this.contentType;
+		this.contentType = contentType;
+		propChanges.firePropertyChange("contentType", oldContentType,
+				this.contentType);
+	}
+
+	/**
+	 * @param lastModified
+	 *            the lastModified to set
+	 */
+	private void setLastModified(long lastModified) {
+		long oldlastModified = this.lastModified;
+		this.lastModified = lastModified;
+		propChanges.firePropertyChange("lastModified", oldlastModified,
+				this.lastModified);
+	}
+
+	/**
+	 * @param responseCode
+	 *            the responseCode to set
+	 */
+	private void setResponseCode(int responseCode) {
+		int oldResponseCode = this.responseCode;
+		this.responseCode = responseCode;
+		propChanges.firePropertyChange("responseCode", oldResponseCode,
+				this.responseCode);
+	}
+
+	/**
+	 * @return the responseCode
+	 */
+	public int getResponseCode() {
+		return responseCode;
+	}
+
+	public void addPropertyChangeListener(PropertyChangeListener l) {
+		propChanges.addPropertyChangeListener(l);
+	}
+
+	public void removePropertyChangeListener(PropertyChangeListener l) {
+		propChanges.removePropertyChangeListener(l);
 	}
 
 }

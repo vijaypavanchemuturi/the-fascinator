@@ -9,11 +9,11 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>au.edu.usq.fascinator</groupId>
 	<artifactId>queuereader</artifactId>
-	<dependencies>
+		<dependencies>
 		<dependency>
-			<groupId>org.apache.httpcomponents</groupId>
-			<artifactId>httpclient</artifactId>
-			<version>4.0-beta2</version>
+			<groupId>org.codehaus.jackson</groupId>
+			<artifactId>jackson-mapper-lgpl</artifactId>
+			<version>0.9.9-6</version>
 			<type>jar</type>
 			<scope>compile</scope>
 		</dependency>
