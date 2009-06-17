@@ -1,4 +1,4 @@
-import os
+import os, datetime, time
 
 class FileSystem(object):
     def __init__(self, cwd="."):
@@ -146,3 +146,18 @@ class FileSystem(object):
     
     def split(self, path):
         return os.path.split(path)
+    
+    #should not be here
+    def formatDateTime(self, timeStamp, utc=False):
+        format = "%Y-%m-%d %H:%M:%S" #for standard sqlite format
+        if utc:
+            format = "%a, %d %b %Y %H:%M:%S GMT"
+        dt = datetime.datetime.fromtimestamp(timeStamp).strftime(format)
+        return dt
+    
+    def convertGMTToFloat(self, timeStr):
+        format = "%a, %d %b %Y %H:%M:%S GMT"
+        mytime = time.strptime(timeStr, format)
+        return time.mktime(mytime)
+        
+    

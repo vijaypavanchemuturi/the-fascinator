@@ -34,24 +34,19 @@ class Config(object):
         return self.__configFilePath
 
     @property
-    def atomFeed(self):
-        if self.__settings.has_key("atomFeed"):
-            return self.__settings["atomFeed"]
-        return None
-    @property
-    def atomUrl(self):
-        if self.atomFeed and self.atomFeed.has_key("atomUrl"):
-            return self.atomFeed["atomUrl"] 
+    def feedservice(self):
+        if self.__settings.has_key("feedservice"):
+            return self.__settings["feedservice"]
         return None
     @property
     def host(self):
-        if self.atomFeed and self.atomFeed.has_key("host"):
-            return self.atomFeed["host"] 
+        if self.feedservice and self.feedservice.has_key("host"):
+            return self.feedservice["host"] 
         return None
     @property
     def port(self):
-        if self.atomFeed and self.atomFeed.has_key("port"):
-            return self.atomFeed["port"] 
+        if self.feedservice and self.feedservice.has_key("port"):
+            return self.feedservice["port"] 
         return None
     
     @property

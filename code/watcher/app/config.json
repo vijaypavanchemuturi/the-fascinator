@@ -1,12 +1,11 @@
 { "watcher" : {   
 				  "db" : "sqlite",
 				  "os" : "linux",
-				  "daemon" : "False",
+				  "daemon" : "True",
 				  "watchDirs" : ["/home/octalina/workspace/watcher/watchDir", "/home/octalina/workspace/watcher/watchDir1"],
 				  
-				  "atomFeed" : { "host" : "localhost",
-				  				 "port" : "8081",
-				  			     "atomUrl" : "http://localhost:8081/atom.xml"
+				  "feedservice" : { "host" : "localhost",
+				  				   "port" : 9000,
 				  			   },
 				  			   
 				  "feedWatcher" : { "watchFeeds" 	: ["http://feeds.delicious.com/v2/rss/tag/adfi_der?count=15"],

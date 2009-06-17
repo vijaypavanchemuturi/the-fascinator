@@ -43,14 +43,13 @@ class Watcher(object):
             self.db = self.__db()
             
             #setup queue
-            self.queue = Queue(self.db)
+            self.queue = Queue(self.db, self.__fs)
              
             #setup Watcher        
-            self.watcher = self.__eventWatcherClass(fs=self.__fs, db=self.db, config=self.__config, daemonize=self.__config.daemon)
+            self.watcher = self.__eventWatcherClass(self.__config, fs=self.__fs)
 
             self.watcher.addListener(self.queue.put)
-
-                    
+        
             
 if __name__ == "__main__":
     watcher = Watcher()

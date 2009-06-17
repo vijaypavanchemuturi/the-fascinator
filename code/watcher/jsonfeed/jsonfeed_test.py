@@ -1,41 +1,38 @@
 #!/usr/bin/env python
 
-import sys, datetime, os
+import sys
 import unittest
-from time import sleep
 from unittest import TestCase
 
-sys.path.append("../../common")
-sys.path.append("../../config")
-from filesystem import FileSystem
-from linuxWatcher import *
-from config import Config
+from jsonfeed import JsonFeed
+sys.path.append("../db/sqlite")
+from sqlitedb import Database
+from datetime import datetime, timedelta
 
-watchedPath = "../watchDir"
+from paste import httpserver
 
-class WatcherTest(TestCase):
-    os.chdir("../../app")
-    appFs = FileSystem()
-    config = Config(fileSystem=appFs)
-    os.chdir("../")
-    fs = FileSystem()
+class JsonFeedTest(TestCase):    
     def setup(self):
         pass
 
     def tearDown(self):
         pass
     
-    def testInit(self):
-        dirToBeWatched = "/home/octalina/workspace/watcher/watchDir"
-        watcher = EventWatcherClass(dirToBeWatched, self.fs)
+    def testGetFeed(self):
+        db = Database()
+        yesterday = datetime.today() - timedelta(1)    
+        feed = JsonFeed(db, yesterday)
+        feed.getFeed()
         
-    def testStartWatching(self):
-        dirToBeWatched = "/home/octalina/workspace/watcher/watchDir"
-        watcher = EventWatcherClass(dirToBeWatched, self.fs)
-        self.fs.writeFile(self.fs.join(dirToBeWatched, "file10"), "testing data")
+    def testGetDb(self):
+        db = Database()
+        feed = JsonFeed(db)
+        
+        httpserver.serve(feed.getFeed(), host="localhost", port="8080")
+        start_response('200 OK', [('content-type', 'text/x-json')])
+        return feed.getFeed()
     
-        
-
+    
 if __name__ == "__main__":
     print "\n\n"
     print "---- Testing ----"

@@ -1,22 +1,86 @@
-import traceback, sys
-from threading import Thread
+import traceback, sys, os, time
 from time import sleep
+from stat import *
 
-class Queue(Thread):
-    def __init__(self, db):
-        Thread.__init__(self)
+#structure: file, time, event, isDir
+class Queue(object):
+    def __init__(self, db=None, fs=None):
+        #Thread.__init__(self)
         
         self.db = db
-        
-        
+        self.__fs = fs
         
     def put(self, *args, **kwargs):
-        #self.queue.put(*args, **kwargs) #kwargs not working yet
-        self.db.processEvent(*args)
+        #self.db.processEvent(*args)
+        self.processQueue(*args, **kwargs)
         #self.db.insertFile(*args)
         
-        
-        
+    def processQueue(self, *args, **kwargs):
+        eventsToBeUpdated = None
+        eventDetail = None
+        initialization = False
+        renameDir = False
+        if "eventDetail" in kwargs.keys():
+            eventDetail = kwargs["eventDetail"]
+        if "initialization" in kwargs.keys():
+            initialization = kwargs["initialization"]
+        if "renameDir" in kwargs.keys():
+            renameDir = kwargs["renameDir"]
+                
+        if eventDetail:
+            filePath, timeStamp, eventName, isDir = eventDetail
+            #to identify it's file/dir from filesystem instead of url or atom
+            if filePath.startswith("file://"):
+                eventsToBeUpdated = self.__processFSEvent(filePath, timeStamp, eventName, isDir, initialization, renameDir)
+                #self.db.processEvent(eventsToBeUpdated) 
+
+        self.db.processEvent(eventsToBeUpdated)
+        #return eventsToBeUpdated
+                
+    def __processFSEvent(self, *args):
+        filePath, timeStamp, eventName, isDir, initialization, renameDir = args
+        listOfFsEvents = []
+        fileFullPath = filePath.replace("file://", "")
+        #modifiedTime = self.__fs.formatDateTime(timeStamp)
+        modifiedTime = timeStamp
+        listOfFsEvents.append((filePath, modifiedTime, eventName, isDir))
+        #NEED TO CHECK MORE PROPERLY WHEN A DIRECTORY IS RENAMED
+        if self.__fs.isDirectory(fileFullPath):
+            if initialization or renameDir:
+                rFiles = []    
+                rDirs = []
+                def callback(path, dirs, files):
+                    for dir in dirs:
+                        rDirs.append(path + dir)
+                    for file in files:
+                        rFiles.append(path + file)
+                
+                #start to process child
+                self.__fs.walker(fileFullPath, callback)
+                for dir in rDirs:
+                    #modifiedTime = self.__fs.formatDateTime(os.stat(dir)[ST_MTIME])
+                    modifiedTime = os.stat(dir)[ST_MTIME]
+                    dirAbsPath = self.__fs.absPath(dir)
+                    listOfFsEvents.append(("file://%s" % dirAbsPath, modifiedTime, eventName, isDir))
+                for file in rFiles:
+                    modifiedTime = os.stat(file)[ST_MTIME]
+                    #modifiedTime = self.__fs.formatDateTime(os.stat(file)[ST_MTIME])
+                    fileAbsPath = self.__fs.absPath(file)
+                    listOfFsEvents.append(("file://%s" % fileAbsPath, modifiedTime, eventName, False))
+                    
+                if initialization:
+                    #Need to check file against the database.... maybe files/directory is removed when watcher is not working
+                    deletedTime = int(time.time())#time.strftime("%Y-%m-%d %H:%M:%S")
+                    records = self.db.selectLike(filePath)
+                    for record in records:
+                        filePath0, modifiedTime0, eventName0, isDir0 = record
+                        if isDir0:
+                            if filePath0.replace("file://", "") not in rDirs:
+                                listOfFsEvents.append((filePath0, deletedTime, "del", isDir0))
+                        else:
+                            if filePath0.replace("file://", "") not in rFiles:
+                                listOfFsEvents.append((filePath0, deletedTime, "del", isDir0))
+        return listOfFsEvents
 
 #class QueueHandler(EventHandler):
 #    def process_event(self, event):
