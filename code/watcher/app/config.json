@@ -2,7 +2,7 @@
 				  "db" : "sqlite",
 				  "os" : "linux",
 				  "daemon" : "False",
-				  "watchDirs" : ["/home/octalina/workspace/watcher2/watchDir", "/home/octalina/workspace/watcher2/watchDir1"],
+				  "watchDirs" : ["/home/octalina"],
 				  
 				  "feedservice" : { "host" : "localhost",
 				  				   "port" : 9000,

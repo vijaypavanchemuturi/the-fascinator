@@ -107,7 +107,7 @@ class Database(object):
                             sqlStr = "UPDATE queue SET time='%s', event='%s' WHERE file='%s'" % (timeStamp, eventName, filePath)
                             self.__execute(sqlStr)
                     if eventName == "stop":
-                        timeStamp0, eventName0, isDir0, init0 = self.dbData[filePath]
+                        filePath0, timeStamp0, eventName0, isDir0 = records[0]
                         if eventName0=="mod":
                             eventName = "stopMod"
                         elif eventName0=="del":

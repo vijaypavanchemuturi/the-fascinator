@@ -31,17 +31,27 @@ class EventWatcherClass(object):
         if self.configFile not in self.dirToBeWatched:
             self.dirToBeWatched.append(self.configFile)
     
-    def __processWatchedDir(self):
+    def __processWatchedDir(self, stopWatchDir=[]):
         self.__getDirToBeWatched()
         for dir in self.dirToBeWatched:
             if dir.rstrip("/") != self.configFilePath.rstrip("/"):
                 if self.__fs.isDirectory(dir):
                     #modifiedDate = os.stat(dir)[ST_MTIME] #when a file start being watched, use the current system time
                     modifiedDate = time.time() 
-                    detail = ("file://" + dir, int(modifiedDate), "mod", True)
+                    detail = ("file://" + dir, int(modifiedDate), "start", True)
                     self.__listener(eventDetail=detail, initialization=True)
                 else:
                     print 'fail to add dir to watched, the dir %s might not exist' % dir
+                    
+        for dir in stopWatchDir:
+            if dir.rstrip("/") != self.configFilePath.rstrip("/"):
+                if self.__fs.isDirectory(dir):
+                    #modifiedDate = os.stat(dir)[ST_MTIME] #when a file start being watched, use the current system time
+                    modifiedDate = time.time() 
+                    detail = ("file://" + dir, int(modifiedDate), "stop", True)
+                    self.__listener(eventDetail=detail, initialization=True)
+                else:
+                    print 'fail to add dir to watched, the dir %s might not exist' % dir 
             
             
     def __startWatcher(self):
@@ -57,11 +67,10 @@ class EventWatcherClass(object):
             #reload the config file
             self.__config.reload()
             self.__getDirToBeWatched()
-            self.__processWatchedDir()
-#for not do not have unwatched event
-#            if oldDirToBeWatched != self.__dirToBeWatched.sort():
-#                stopWatchDir = [item for item in oldDirToBeWatched if not item in self.__dirToBeWatched]
-#                self.__processWatchedDir(stopWatchDir)
+            stopWatchDir = []
+            if oldDirToBeWatched != self.dirToBeWatched.sort():
+                stopWatchDir = [item for item in oldDirToBeWatched if not item in self.dirToBeWatched]
+            self.__processWatchedDir(stopWatchDir)
         if self.wm and self.wm.values():
             self.wm = self.__watchManager.rm_watch(self.wm.values())
         self.wm = self.__watchManager.add_watch(self.dirToBeWatched, self.mask, rec=True, auto_add=True)

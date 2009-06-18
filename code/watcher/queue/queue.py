@@ -10,14 +10,14 @@ class Queue(object):
         self.db = db
         self.__fs = fs
         self.programPath = programPath
-        self.test=True
+        self.test=test
         
     def put(self, *args, **kwargs):
         #self.db.processEvent(*args)
         self.processQueue(*args, **kwargs)
         #self.db.insertFile(*args)
         
-    def processQueue(self, *args, **kwargs):
+    def processQueue(self, *args, **kwargs): 
         eventsToBeUpdated = None
         eventDetail = None
         initialization = False
@@ -28,7 +28,6 @@ class Queue(object):
             initialization = kwargs["initialization"]
         if "renameDir" in kwargs.keys():
             renameDir = kwargs["renameDir"]
-                
         if eventDetail:
             filePath, timeStamp, eventName, isDir = eventDetail
             #to identify it's file/dir from filesystem instead of url or atom
@@ -59,7 +58,6 @@ class Queue(object):
                             rDirs.append(path + dir)
                         for file in files:
                             rFiles.append(path + file)
-                    
                     #start to process child
                     if self.test:
                         rDirs, rFiles = self.__fs.walkDirectory(fileFullPath)
