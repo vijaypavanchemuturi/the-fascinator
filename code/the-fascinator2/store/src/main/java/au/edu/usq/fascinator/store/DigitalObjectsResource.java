@@ -115,11 +115,8 @@ public class DigitalObjectsResource {
     }
 
     @POST
-    @Path("{objectId}")
     public Response handlePost(@Context HttpHeaders headers,
-            @Context UriInfo uriInfo, InputStream data,
-            @PathParam("objectId") String objectId) {
-        log.info("objectId={}", objectId);
+            @Context UriInfo uriInfo, InputStream data) {
         try {
             log.info("uri info: {}", uriInfo.getRequestUri());
             MultivaluedMap<String, String> mm = headers.getRequestHeaders();
@@ -132,7 +129,9 @@ public class DigitalObjectsResource {
             tmpOut.close();
             ZipFile zipFile = new ZipFile(tmpFile);
             DigitalObject object = new ZipDigitalObject(zipFile);
-            String fedoraId = storage.addObject(object);
+            log.info("DigitalObject id: {}", object.getId());
+            String storeId = storage.addObject(object);
+            log.info("storeId: ", storeId);
             URI location = new URI("");
             zipFile.close();
             tmpFile.delete();
