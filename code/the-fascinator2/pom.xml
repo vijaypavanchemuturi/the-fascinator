@@ -26,6 +26,7 @@
 		<module>conveyorbelt</module>
 		<module>harvester</module>
 		<module>plugin-api</module>
+        <module>plugins</module>
 		<module>reader</module>
 		<module>store</module>
 		<module>transformer</module>
@@ -53,16 +54,20 @@
 	</organization>
 	<build>
 		<finalName>the-fascinator</finalName>
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-compiler-plugin</artifactId>
+					<configuration>
+						<source>1.6</source>
+						<target>1.6</target>
+						<optimize>true</optimize>
+					</configuration>
+				</plugin>
+			</plugins>
+		</pluginManagement>
 		<plugins>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-compiler-plugin</artifactId>
-				<configuration>
-					<source>1.5</source>
-					<target>1.5</target>
-					<optimize>true</optimize>
-				</configuration>
-			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-assembly-plugin</artifactId>

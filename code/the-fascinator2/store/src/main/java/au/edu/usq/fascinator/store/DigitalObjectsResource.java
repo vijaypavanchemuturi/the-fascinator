@@ -131,7 +131,7 @@ public class DigitalObjectsResource {
             DigitalObject object = new ZipDigitalObject(zipFile);
             log.info("DigitalObject id: {}", object.getId());
             String storeId = storage.addObject(object);
-            log.info("storeId: ", storeId);
+            log.info("storeId: {}", storeId);
             URI location = new URI("");
             zipFile.close();
             tmpFile.delete();
