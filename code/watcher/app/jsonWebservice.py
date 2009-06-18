@@ -17,15 +17,6 @@ class PasteServer(BaseHTTPServer.BaseHTTPRequestHandler):
         self.toDate = None
         
         self.__getFeed()
-
-    def __explodeoptions(self, options):
-        optionList = options.split("&")
-        for option in optionList:
-            var, value = option.split("=")
-            if var.lower()=="fromdate":
-                self.fromDate = value
-            if var.lower()=="todate":
-                self.toDate = value
     
     def __getFeed(self):
         fs = FileSystem(".")

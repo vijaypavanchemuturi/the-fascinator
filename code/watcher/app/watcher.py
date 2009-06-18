@@ -1,6 +1,6 @@
 #main app
 
-import sys
+import sys, os
 
 sys.path.append("../common")
 sys.path.append("../config")
@@ -11,6 +11,9 @@ from queue import *
 
 class Watcher(object):
     def __init__(self):
+        os.chdir("../")
+        self.programPath = os.getcwd()
+        os.chdir("app")
         self.__fs = FileSystem(".")
         self.__config = Config(fileSystem=self.__fs)
         
@@ -43,7 +46,7 @@ class Watcher(object):
             self.db = self.__db()
             
             #setup queue
-            self.queue = Queue(self.db, self.__fs)
+            self.queue = Queue(self.db, self.__fs, self.programPath)
              
             #setup Watcher        
             self.watcher = self.__eventWatcherClass(self.__config, fs=self.__fs)
