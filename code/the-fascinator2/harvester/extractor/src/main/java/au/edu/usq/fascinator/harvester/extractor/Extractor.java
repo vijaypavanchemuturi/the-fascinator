@@ -21,25 +21,25 @@ package au.edu.usq.fascinator.harvester.extractor;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.PrintWriter;
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.net.URLStreamHandler;
 import java.util.Set;
- 
+
 import org.ontoware.rdf2go.RDF2Go;
 import org.ontoware.rdf2go.model.Model;
 import org.ontoware.rdf2go.model.Syntax;
 import org.ontoware.rdf2go.model.node.URI;
 import org.ontoware.rdf2go.model.node.impl.URIImpl;
-import org.semanticdesktop.aperture.extractor.Extractor;
+import org.semanticdesktop.aperture.extractor.ExtractorException;
 import org.semanticdesktop.aperture.extractor.ExtractorFactory;
 import org.semanticdesktop.aperture.extractor.ExtractorRegistry;
 import org.semanticdesktop.aperture.extractor.impl.DefaultExtractorRegistry;
-import org.semanticdesktop.aperture.mime.identifier.MimeTypeIdentifier;
-import org.semanticdesktop.aperture.mime.identifier.magic.MagicMimeTypeIdentifier;
 import org.semanticdesktop.aperture.rdf.RDFContainer;
 import org.semanticdesktop.aperture.rdf.impl.RDFContainerImpl;
-import org.semanticdesktop.aperture.util.IOUtil;
 import org.semanticdesktop.aperture.vocabulary.NIE;
-
 
 /*
  * This class is heavily based on the tutorial at
@@ -47,7 +47,7 @@ import org.semanticdesktop.aperture.vocabulary.NIE;
  */
 
 public class Extractor {
-	String filePath = "";
+	private String filePath = "";
 
 	/**
 	 * 
@@ -59,73 +59,112 @@ public class Extractor {
 			System.err.println("Extractor\nUsage: java Extractor <file>");
 			System.exit(-1);
 		}
-		Extractor extractor = new Extractor(args[0]);
-	}
-
-	public Extractor(String filePath) {
-		this.filePath = filePath;
-	}
-
-	public void extract() {
-		// create a stream of the specified file
-		File file = new File(filePath);
-		String mimeType = getMimeType(file);
-
-		 // create the RDFContainer that will hold the RDF model
-        URI uri = new URIImpl(file.toURI().toString());
-        Model model = RDF2Go.getModelFactory().createModel();
-        model.open();
-        RDFContainer container = applyExtractor(model,uri);
-    }
-
-	private RDFContainer applyExtractor(Model model, URI uri) {
-		RDFContainer container = new RDFContainerImpl(model, uri);
-        // determine and apply an Extractor that can handle this MIME type
-        Set factories = extractorRegistry.get(mimeType);
-        if (factories != null && !factories.isEmpty()) {
-            // just fetch the first available Extractor
-            ExtractorFactory factory = (ExtractorFactory) factories.iterator().next();
-            Extractor extractor = factory.get();
- 
-            // apply the extractor on the specified file
-            // (just open a new stream rather than buffer the previous stream)
-            FileInputStream stream = new FileInputStream(file);
-            BufferedInputStream buffer = new BufferedInputStream(stream, 8192);
-            extractor.extract(uri, buffer, null, mimeType, container);
-            stream.close();
-        }
-        // add the MIME type as an additional statement to the RDF model
-        container.add(NIE.mimeType, mimeType);
-        // report the output to System.out
-        container.getModel().writeTo(new PrintWriter(System.out),Syntax.Ntriples);
-	}
-	
-	private String getMimeType(File file) {
-		FileInputStream stream;
 		try {
-			stream = new FileInputStream(file);
-		} catch (FileNotFoundException e) {
+			RDFContainer rdf = extractRDF(args[0]);
+			if (rdf != null)
+				System.out.println(rdf.getModel().serialize(Syntax.RdfXml));
+			else
+				System.out.println("Cannot locate file");
+		} catch (Exception e) {
 			// TODO Auto-generated catch block
+			System.out.println("EXCEPTION");
 			e.printStackTrace();
 		}
-		// create a MimeTypeIdentifier
-		MimeTypeIdentifier identifier = new MagicMimeTypeIdentifier();
+	}
+
+	public static RDFContainer extractRDF(String file) throws IOException,
+			ExtractorException, URISyntaxException {
+		File f = getFile(file);
+		if (f != null)
+			return extractRDF(f);
+		return null;
+	}
+
+	/**
+	 * 
+	 * The following file paths (should) work:
+	 * <ul>
+	 * <li>/tmp/test\ 1.txt</li>
+	 * <li>file:///tmp/test%201.txt</li>
+	 * </ul>
+	 * 
+	 * @param file
+	 * @return
+	 * @throws URISyntaxException
+	 */
+	public static File getFile(String file) throws URISyntaxException {
+		// We need to see if the file path is a URL
+		
+		File f = null;
+		try {
+			URL url = new URL(file);
+			if (url.getProtocol().equals("file")) {
+				f = new File(url.toURI());
+			} 
+		} catch (MalformedURLException e) {
+			// it may be c:\a\b\c or /a/b/c so it's
+			// still legitimate (maybe)
+			f = new File(file);
+		}
+		if (f == null)
+			return null;
+		if (!f.exists())
+			return null;
+		return f;
+	}
+
+	public static RDFContainer extractRDF(File file) throws IOException,
+			ExtractorException {
+		String mimeType = MimeType.getMimeType(file);
+		return extractRDF(file, mimeType);
+	}
+
+	public static RDFContainer extractRDF(File file, String mimeType)
+			throws IOException, ExtractorException {
+		RDFContainer container = createRDFContainer(file);
+		determineExtractor(file, mimeType, container);
+		return container;
+	}
+
+	private static RDFContainer createRDFContainer(File file) {
+		// create the RDFContainer that will hold the RDF model
+		URI uri = new URIImpl(file.toURI().toString());
+		Model model = RDF2Go.getModelFactory().createModel();
+		model.open();
+		return new RDFContainerImpl(model, uri);
+	}
+
+	private static void determineExtractor(File file, String mimeType,
+			RDFContainer container) throws IOException, ExtractorException {
+		FileInputStream stream = new FileInputStream(file);
+		BufferedInputStream buffer = new BufferedInputStream(stream);
+		URI uri = new URIImpl(file.toURI().toString());
+
 		// create an ExtractorRegistry containing all available
 		// ExtractorFactories
 		ExtractorRegistry extractorRegistry = new DefaultExtractorRegistry();
-		// read as many bytes of the file as desired by the MIME type identifier
-		
-		BufferedInputStream buffer = new BufferedInputStream(stream);
-		byte[] bytes = IOUtil.readBytes(buffer, identifier.getMinArrayLength());
-		stream.close();
-		// let the MimeTypeIdentifier determine the MIME type of this file
-		String mimeType = identifier.identify(bytes, file.getPath(), null);
-		// skip when the MIME type could not be determined
-		if (mimeType == null) {
-			System.err.println("MIME type could not be established.");
-			return;
+
+		// determine and apply an Extractor that can handle this MIME type
+		Set factories = extractorRegistry.get(mimeType);
+		if (factories != null && !factories.isEmpty()) {
+			// just fetch the first available Extractor
+			ExtractorFactory factory = (ExtractorFactory) factories.iterator()
+					.next();
+			org.semanticdesktop.aperture.extractor.Extractor extractor = factory
+					.get();
+
+			// apply the extractor on the specified file
+			// (just open a new stream rather than buffer the previous stream)
+			stream = new FileInputStream(file);
+			buffer = new BufferedInputStream(stream, 8192);
+			extractor.extract(uri, buffer, null, mimeType, container);
+			stream.close();
 		}
-		return mimeType;
+		// add the MIME type as an additional statement to the RDF model
+		container.add(NIE.mimeType, mimeType);
+
+		// container.getModel().writeTo(new PrintWriter(System.out),
+		// Syntax.Ntriples);
 	}
 
 	/**
