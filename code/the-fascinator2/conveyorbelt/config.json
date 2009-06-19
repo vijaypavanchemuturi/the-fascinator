@@ -2,14 +2,11 @@
 				  "db" : "sqlite",
 				  "os" : "linux",
 				  "daemon" : "False",
-				  "watchDirs" : ["/home/octalina/workspace/watcher/watchDir", "/home/octalina/workspace/watcher/watchDir1"],
+				  "watchDirs" : ["/home/"],
 				  
 				  "feedservice" : { "host" : "localhost",
 				  				   "port" : 9000,
 				  			   },
-				  			   
-				  "feedWatcher" : { "watchFeeds" 	: ["http://feeds.delicious.com/v2/rss/tag/adfi_der?count=15"],
-							   	    "feedDuration"	: "5" }
 				},
   "QueueReader" : {
   		"updateFreq": "300" 
