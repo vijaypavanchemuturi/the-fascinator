@@ -30,10 +30,30 @@ import java.net.URISyntaxException;
 import java.net.URL;
 
 /**
- * Class to read The Watcher's queue Basically, a small interface into the
- * Apache HTTPClient component
+ * A small interface into the java.net.HttpURLConnection class.
+ * The QueueReader is based around time-based http requests.
  * 
- * @see http://hc.apache.org/httpcomponents-client/index.html
+ * Last modified timestamps are handled using milliseconds since
+ * January 1, 1970
+ * 
+ * Proxies are dealt with by java.net.HttpURLConnection
+ * 
+ * An instance of this class will check a queue (checkQueue) to see if the queue 
+ * has changed and, if so, fire off property change events. The instance
+ * will keep a record of the last change timestamp for further checkQueue calls.
+ * 
+ * An app utilising this class needs to sort out persisting the timestamp if
+ * lifespans greater than the instance's are needed. You should also rely on
+ * the server's clock rather than the local one.
+ * 
+ * This class is bean(ish) and notifies PropertyChangeListeners of the following
+ * property changes:
+ * <ul>
+ * <li>lastModified</li>
+ * <li>content</li>
+ * <li>contentType</li>
+ * <li>responseCode: The latest HTTP response code</li>
+ * </ul>
  * 
  */
 public class QueueReader {
@@ -47,7 +67,11 @@ public class QueueReader {
 	private PropertyChangeSupport propChanges = new PropertyChangeSupport(this);
 
 	/**
+	 * Test app - just checks an http url but does nothing with
+	 * timestamps
+	 * 
 	 * @param args
+	 *            The url of the http server to query
 	 */
 	public static void main(String[] args) {
 		if (args.length != 1) {
@@ -58,14 +82,10 @@ public class QueueReader {
 			QueueReader qr = new QueueReader(args[0]);
 			qr.addPropertyChangeListener(new PropertyChangeListener() {
 				public void propertyChange(PropertyChangeEvent evt) {
-					//if (!evt.getPropertyName().equals("content"))
-						System.out.println(evt.getPropertyName() + ": "
-								+ evt.getNewValue());
+					System.out.println(evt.getPropertyName() + ": "
+							+ evt.getNewValue());
 				}
 			});
-			qr.checkQueue();
-			qr.checkQueue();
-			qr.checkQueue();
 			qr.checkQueue();
 		} catch (MalformedURLException e) {
 			// TODO Auto-generated catch block
@@ -79,14 +99,34 @@ public class QueueReader {
 		}
 	}
 
+	/**
+	 * Sets up a queue reader for the given url. The last modified timestamp is
+	 * set to 0
+	 * 
+	 * @param url
+	 */
 	public QueueReader(URL url) {
 		this.setUrl(url);
 	}
 
+	/**
+	 * Sets up a queue reader for the given url. The last modified timestamp is
+	 * set to 0
+	 * 
+	 * @param url
+	 * @throws MalformedURLException
+	 */
 	public QueueReader(String url) throws MalformedURLException {
 		this.setUrl(url);
 	}
 
+	/**
+	 * Sets up a queue reader for the given url and last modified timestamp.
+	 * 
+	 * @param url
+	 * @param lastModified
+	 * @throws MalformedURLException
+	 */
 	public QueueReader(String url, long lastModified)
 			throws MalformedURLException {
 		this.setUrl(url);
@@ -94,13 +134,17 @@ public class QueueReader {
 	}
 
 	/**
-	 * @return the lastModified
+	 * Checks the queue via http for the instance's url. If a last modified
+	 * timestamp has been provided, this is used in the HTTP request.
+	 * 
+	 * If the queue has been modified, the lastModified, contentType and content
+	 * properties are change accordingly.
+	 * 
+	 * If you wish to be notified of these changes, use addPropertyChangeListener
+	 * 
+	 * @throws IOException
+	 * @throws URISyntaxException
 	 */
-	public long getLastModified() {
-		return this.lastModified;
-	}
-
-
 	public void checkQueue() throws IOException, URISyntaxException {
 
 		HttpURLConnection conn = (HttpURLConnection) this.getUrl()
@@ -129,7 +173,7 @@ public class QueueReader {
 	}
 
 	/**
-	 * @return the url
+	 * @return the url of the queue
 	 */
 	public URL getUrl() {
 		return this.url;
@@ -137,7 +181,7 @@ public class QueueReader {
 
 	/**
 	 * @param url
-	 *            the url to set
+	 *            the url for the queue
 	 */
 	private void setUrl(URL url) {
 		this.url = url;
@@ -153,7 +197,7 @@ public class QueueReader {
 	}
 
 	/**
-	 * @return the content
+	 * @return the content of the latest HTTP response
 	 */
 	public StringBuilder getContent() {
 		return this.content;
@@ -170,7 +214,7 @@ public class QueueReader {
 	}
 
 	/**
-	 * @return the contentType
+	 * @return the contentType of the latest HTTP response
 	 */
 	public String getContentType() {
 		return this.contentType;
@@ -185,6 +229,13 @@ public class QueueReader {
 		this.contentType = contentType;
 		propChanges.firePropertyChange("contentType", oldContentType,
 				this.contentType);
+	}
+
+	/**
+	 * @return the lastModified
+	 */
+	public long getLastModified() {
+		return this.lastModified;
 	}
 
 	/**

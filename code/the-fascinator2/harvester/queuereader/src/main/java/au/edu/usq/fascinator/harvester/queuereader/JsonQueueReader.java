@@ -27,8 +27,9 @@ import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 
 /**
- * @author dickinso
+ * A helper class to read The Watcher's queue.
  * 
+ * @see http://fascinator.usq.edu.au/trac/wiki/Watcher/Server
  */
 public class JsonQueueReader extends QueueReader {
 
@@ -51,20 +52,32 @@ public class JsonQueueReader extends QueueReader {
 	}
 
 	/**
-	 * @param args
-	 */
-	public static void main(String[] args) {
-
-	}
-
-	/*
-	 * We ensure that the server response is of mimetype application/json
+	 * Returns a hashmap representation of a JSON queue 
+	 * 
+	 * The watcher's queue is structured as follows: <code>
+	 *   {
+	 * 		"file://%2Fhome%2Fdickinso%2FMusic%2FJazz+Street+Trio%2FLicense.txt": {"state": "start", "time": "2009-06-23 16:41:06"},   
+	 * 		"file://%2Fhome%2Fdickinso%2FMusic%2FRevolution+Void%2FRevolution+Void+-+Thread+Soul+--+Jamendo+-+MP3+VBR+192k+-+2006.08.21+%5Bwww.jamendo.com%5D%2FReadme+-+www.jamendo.com+.txt": {"state": "start", "time": "2009-06-23 16:41:06"
+	 * 	}
+	 * <code>
+	 * 
+	 * As you can see, it's a hashtag in a hashtag. The top-level hash has
+	 *  - Key: (string) escaped url of the file 
+	 *  - Value: A hashmap:
+	 *     - State: the queue state
+	 *     - Time: the queue's time stamp
 	 * 
 	 * @see http://www.ietf.org/rfc/rfc4627.txt
-	 * 
 	 * @see http://www.w3.org/Protocols/rfc2616/rfc2616-sec9.html
+	 * @return A hashmap of the JSON
+	 * @throws QueueReaderIncorrectMimeTypeException
+	 *             We ensure that the server response is of mimetype
+	 *             application/json
+	 * @throws JsonParseException
+	 * @throws JsonMappingException
+	 * @throws IOException
 	 */
-	public HashMap<String, HashMap> getJson()
+	public HashMap<String, HashMap<String, String>> getJson()
 			throws QueueReaderIncorrectMimeTypeException, JsonParseException,
 			JsonMappingException, IOException {
 		// Check that we're getting a JSON file (application/json)
@@ -72,13 +85,12 @@ public class JsonQueueReader extends QueueReader {
 			throw new QueueReaderIncorrectMimeTypeException();
 		}
 
-		HashMap<String, HashMap> map = new HashMap<String, HashMap>();
+		HashMap<String, HashMap<String, String>> map = new HashMap<String, HashMap<String, String>>();
 
 		if (!this.getContent().equals("")) {
 			// Transform JSON structure to hashmap
-			ObjectMapper mapper = new ObjectMapper(); 
-			map = mapper.readValue(this.getContent()
-					.toString(), HashMap.class);
+			ObjectMapper mapper = new ObjectMapper();
+			map = mapper.readValue(this.getContent().toString(), HashMap.class);
 		}
 		return map;
 	}
