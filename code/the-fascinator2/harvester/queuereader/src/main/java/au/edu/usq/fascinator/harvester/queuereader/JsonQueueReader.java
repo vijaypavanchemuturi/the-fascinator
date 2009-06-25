@@ -64,7 +64,7 @@ public class JsonQueueReader extends QueueReader {
 	 * 
 	 * @see http://www.w3.org/Protocols/rfc2616/rfc2616-sec9.html
 	 */
-	public HashMap<String, Object> getJson()
+	public HashMap<String, HashMap> getJson()
 			throws QueueReaderIncorrectMimeTypeException, JsonParseException,
 			JsonMappingException, IOException {
 		// Check that we're getting a JSON file (application/json)
@@ -72,7 +72,7 @@ public class JsonQueueReader extends QueueReader {
 			throw new QueueReaderIncorrectMimeTypeException();
 		}
 
-		HashMap<String, Object> map = new HashMap<String, Object>();
+		HashMap<String, HashMap> map = new HashMap<String, HashMap>();
 
 		if (!this.getContent().equals("")) {
 			// Transform JSON structure to hashmap
