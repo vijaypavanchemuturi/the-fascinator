@@ -1,3 +1,6 @@
+This project started life as a method for watching the Watcher queue.
+We have since moved to a straight HTTP request so atomreader is not overly useful 
+
 To compile and test this out, run:
 
 mvn clean
