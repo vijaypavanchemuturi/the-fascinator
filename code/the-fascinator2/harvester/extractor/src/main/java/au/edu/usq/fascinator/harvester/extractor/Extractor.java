@@ -25,7 +25,6 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.net.URLStreamHandler;
 import java.util.Set;
 
 import org.ontoware.rdf2go.RDF2Go;
@@ -42,16 +41,32 @@ import org.semanticdesktop.aperture.rdf.impl.RDFContainerImpl;
 import org.semanticdesktop.aperture.vocabulary.NIE;
 
 /*
- * This class is heavily based on the tutorial at
- * http://aperture.wiki.sourceforge.net/Extractors
+ * Provides static methods for extracting RDF metadata
+ * from a given file.
+ * 
+ * Presently, only local files are accessible. 
+ * 
+ * @see <a href="http://aperture.wiki.sourceforge.net/Extractors">Aperture Extractors Tutorial</a>
+ * @see <a href="http://www.semanticdesktop.org/ontologies/nie/">NEPOMUK Information Element Ontology</a>
  */
 
+/**
+ * @author dickinso
+ *
+ */
 public class Extractor {
 	private String filePath = "";
 
 	/**
+	 * Testing interface. Takes a file name as either a 
+	 * local file path (e.g. /tmp/me.txt or c:\tmp\me.txt) or
+	 * an file:// URL (e.g. file:///tmp/me.txt) and returns an
+	 * RDF/XML representation of the metadata and full-text
+	 * to standard out.
 	 * 
-	 * @param args
+	 * Note: For large files (esp PDF) this can take a while
+	 * 
+	 * @param args The file you wish to process
 	 */
 	public static void main(String[] args) {
 		// check if a commandline argument was specified
@@ -72,6 +87,15 @@ public class Extractor {
 		}
 	}
 
+	/**
+	 * Extracts RDF from a file denoted by a String-based descriptor (ie path)
+	 * 
+	 * @param file The file to be extracted
+	 * @return An RDFContainer holding the extracted RDF 
+	 * @throws IOException
+	 * @throws ExtractorException
+	 * @throws URISyntaxException
+	 */
 	public static RDFContainer extractRDF(String file) throws IOException,
 			ExtractorException, URISyntaxException {
 		File f = getFile(file);
@@ -81,7 +105,10 @@ public class Extractor {
 	}
 
 	/**
-	 * 
+	 * Utility function to resolve file:// URL's to
+	 * a Java File object. If passed a local file path
+	 * this function just puts it into a file object.
+	 *  
 	 * The following file paths (should) work:
 	 * <ul>
 	 * <li>/tmp/test\ 1.txt</li>
@@ -89,18 +116,18 @@ public class Extractor {
 	 * </ul>
 	 * 
 	 * @param file
-	 * @return
+	 * @return A File object
 	 * @throws URISyntaxException
 	 */
 	public static File getFile(String file) throws URISyntaxException {
 		// We need to see if the file path is a URL
-		
+
 		File f = null;
 		try {
 			URL url = new URL(file);
 			if (url.getProtocol().equals("file")) {
 				f = new File(url.toURI());
-			} 
+			}
 		} catch (MalformedURLException e) {
 			// it may be c:\a\b\c or /a/b/c so it's
 			// still legitimate (maybe)
@@ -113,12 +140,33 @@ public class Extractor {
 		return f;
 	}
 
+	
+	/**
+	 * Extracts RDF from the given File object. This function will handle
+	 * MIME-type identification using Aperture.
+	 * 
+	 * @see <a href="http://aperture.wiki.sourceforge.net/MIMETypeIdentification">Aperture MIME Type Identification Tutorial</a>
+	 * @param file
+	 * @return
+	 * @throws IOException
+	 * @throws ExtractorException
+	 */
 	public static RDFContainer extractRDF(File file) throws IOException,
 			ExtractorException {
 		String mimeType = MimeType.getMimeType(file);
 		return extractRDF(file, mimeType);
 	}
 
+	/**
+	 * Extracts RDF from the given File object, using the provided
+	 * MIME Type rather than trying to work it out
+	 * 
+	 * @param file
+	 * @param mimeType
+	 * @return
+	 * @throws IOException
+	 * @throws ExtractorException
+	 */
 	public static RDFContainer extractRDF(File file, String mimeType)
 			throws IOException, ExtractorException {
 		RDFContainer container = createRDFContainer(file);
@@ -126,14 +174,36 @@ public class Extractor {
 		return container;
 	}
 
+	/**
+	 * Create the RDFContainer that will hold the RDF model
+	 * @param file The file to be analysed
+	 * @return
+	 */
 	private static RDFContainer createRDFContainer(File file) {
-		// create the RDFContainer that will hold the RDF model
 		URI uri = new URIImpl(file.toURI().toString());
 		Model model = RDF2Go.getModelFactory().createModel();
 		model.open();
 		return new RDFContainerImpl(model, uri);
 	}
 
+	/**
+	 * Takes the requested file and mime type and the
+	 * generated RDFContainer and:
+	 * <ol>
+	 * <li>Gets an Aperture extractor (based on mime-type)</li>
+	 * <li>Applies the extractor to the file</li>
+	 * <li>Puts the extracted RDF into container</li>
+	 * </ol>
+	 * 
+	 * Question: could this be public?
+	 * 
+	 * @param file
+	 * @param mimeType
+	 * @param container (in/out) Contains the metadata and full text 
+	 * 					extracted from the file
+	 * @throws IOException
+	 * @throws ExtractorException
+	 */
 	private static void determineExtractor(File file, String mimeType,
 			RDFContainer container) throws IOException, ExtractorException {
 		FileInputStream stream = new FileInputStream(file);
@@ -168,7 +238,7 @@ public class Extractor {
 	}
 
 	/**
-	 * @return the filePath
+	 * @return the file path
 	 */
 	public String getFilePath() {
 		return this.filePath;
