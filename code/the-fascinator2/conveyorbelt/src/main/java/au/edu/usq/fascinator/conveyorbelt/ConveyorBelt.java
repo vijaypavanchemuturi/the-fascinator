@@ -65,7 +65,8 @@ public class ConveyorBelt implements PropertyChangeListener {
 
 	}
 
-	public ConveyorBelt(String systemProperties) throws IOException  {
+	public ConveyorBelt(String systemProperties) throws IOException,
+			URISyntaxException {
 		// STEP 0: load my system properties file
 		if (systemProperties.equals("")) {
 			this.systemPropertiesFile = ConveyorBelt.DEFAULT_SYSTEM_PROPERTIES_FILE;
@@ -73,13 +74,17 @@ public class ConveyorBelt implements PropertyChangeListener {
 		} else {
 			this.systemPropertiesFile = systemProperties;
 		}
+		System.out.println("System Properties File: "
+				+ this.systemPropertiesFile);
 		this.readSystemPropertiesFile();
 
 		if (systemState.containsKey("user_properties_file")) {
-			this.userPropertiesFile = (String) systemState.get("user_properties_file");
+			this.userPropertiesFile = (String) systemState
+					.get("user_properties_file");
 		} else {
 			this.userPropertiesFile = ConveyorBelt.DEFAULT_USER_PROPERTIES_FILE;
 		}
+		System.out.println("User Properties File:" + this.userPropertiesFile);
 		// STEP 1: Read the JSON config File
 		readConfig();
 
@@ -92,9 +97,11 @@ public class ConveyorBelt implements PropertyChangeListener {
 		queueHandler = new JsonQueueReader(this.queueURL, Long
 				.valueOf(systemState.getProperty("lastQueueCheck")));
 		queueHandler.addPropertyChangeListener(this);
+		this.checkQueue();
 	}
-	
+
 	private void checkQueue() throws IOException, URISyntaxException {
+		System.out.println("Checking the queue");
 		this.queueHandler.checkQueue();
 	}
 
@@ -102,12 +109,14 @@ public class ConveyorBelt implements PropertyChangeListener {
 		ObjectMapper mapper = new ObjectMapper();
 		HashMap<String, Object> config;
 		try {
-			config = mapper.readValue(new File(this.userPropertiesFile), HashMap.class);
+			config = mapper.readValue(new File(this.userPropertiesFile),
+					HashMap.class);
 			String host = (String) ((HashMap) ((HashMap) config.get("watcher"))
 					.get("feedservice")).get("host");
 			String port = (String) ((HashMap) ((HashMap) config.get("watcher"))
 					.get("feedservice")).get("port");
 			this.queueURL = "http://" + host + ":" + port;
+			System.out.println("Queue URL:" + this.queueURL);
 			this.queueUpdateFreq = new Integer((String) (((HashMap) config
 					.get("QueueReader")).get("updateFreq")));
 		} catch (JsonParseException e) {
@@ -141,44 +150,54 @@ public class ConveyorBelt implements PropertyChangeListener {
 	 * PropertyChangeEvent)
 	 */
 	public void propertyChange(PropertyChangeEvent evt) {
-		if (evt.getSource().getClass().getName().equals(
-				"au.edu.usq.fascinator.harvester.queuereader.jsonQueueReader")) {
-			// If the last modified date is changed, update the system
-			// properties
-			if (evt.getPropertyName().equals("lastModified")) {
-				systemState.setProperty("lastQueueCheck", (String) evt
-						.getNewValue());
-				try {
-					this.writeSystemPropertiesFile();
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
+		System.out.println("An event was received for property: "
+				+ evt.getPropertyName());
+		System.out.println("An event from class type: "
+				+ evt.getClass().getName());
+
+		// If the last modified date is changed, update the system
+		// properties
+		if (evt.getPropertyName().equals("lastModified")) {
+			systemState.setProperty("lastQueueCheck", String.valueOf(evt
+					.getNewValue()));
+			try {
+				this.writeSystemPropertiesFile();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
-			// If the contents have changed, proccess the queue
-			if (evt.getPropertyName().equals("content")) {
-				try {
-					extract(((JsonQueueReader) evt.getSource()).getJson());
-				} catch (JsonParseException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				} catch (JsonMappingException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				} catch (QueueReaderIncorrectMimeTypeException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
+		}
+		// If the contents have changed, proccess the queue
+		if (evt.getPropertyName().equals("content")) {
+			try {
+				extract(((JsonQueueReader) evt.getSource()).getJson());
+			} catch (JsonParseException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (JsonMappingException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (QueueReaderIncorrectMimeTypeException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
 		}
 
 	}
 
-	private void extract(HashMap<String, Object> queue) {
-		
+	private void extract(HashMap<String, HashMap> queue) {
+		System.out.println("Processing new queue items");
+		for (String key : queue.keySet()) {
+			System.out.println("Queue item: " + key);
+			HashMap<String, String> item = queue.get(key);
+			System.out.println("  State: " + item.get("state"));
+			System.out.println("  Time: " + item.get("time"));
+
+			// Use extractor to get the RDF and
+		}
 	}
-	
+
 }
