@@ -21,16 +21,6 @@
 
 		</mailingList>
 	</mailingLists>
-	<modules>
-		<module>common</module>
-		<module>conveyorbelt</module>
-		<module>harvester</module>
-		<module>plugin-api</module>
-        <module>plugins</module>
-		<module>reader</module>
-		<module>store</module>
-		<module>transformer</module>
-	</modules>
 	<licenses>
 		<license>
 			<name>GNU GENERAL PUBLIC LICENSE V2</name>

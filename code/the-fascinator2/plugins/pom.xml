@@ -10,6 +10,7 @@
   <name>The Fascinator - Plugins</name>
   <packaging>pom</packaging>
   <version>0.0.1-SNAPSHOT</version>
+
   <modules>
   	<module>extractor</module>
   	<module>harvester</module>
