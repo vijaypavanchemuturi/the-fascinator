@@ -9,4 +9,8 @@
   	<groupId>au.edu.usq.fascinator</groupId>
   	<version>0.0.1-SNAPSHOT</version>
   </parent>
+  <modules>
+  	<module>common</module>
+  	<module>plugin-api</module>
+  </modules>
 </project>
