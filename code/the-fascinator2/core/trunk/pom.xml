@@ -3,4 +3,8 @@
   <groupId>au.edu.usq.fascinator</groupId>
   <artifactId>the-fascinator-core</artifactId>
   <version>0.0.1-SNAPSHOT</version>
+  <parent>
+  	<artifactId>the-fascinator</artifactId>
+  	<groupId>au.edu.usq.fascinator</groupId>
+  </parent>
 </project>

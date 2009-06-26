@@ -1,11 +1,11 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <parent>
-    <artifactId>transformer</artifactId>
-    <groupId>au.edu.usq.fascinator.plugins</groupId>
+    <artifactId>plugins</artifactId>
+    <groupId>au.edu.usq.fascinator</groupId>
     <version>0.0.1-SNAPSHOT</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
-  <groupId>au.edu.usq.fascinator.plugins.transformer</groupId>
-  <artifactId>ice</artifactId>
+  <groupId>au.edu.usq.fascinator.plugins</groupId>
+  <artifactId>transformer</artifactId>
   <version>0.0.1-SNAPSHOT</version>
 </project>
