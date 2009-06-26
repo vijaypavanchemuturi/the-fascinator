@@ -3,12 +3,12 @@
 	<version>0.0.1-SNAPSHOT</version>
 	<parent>
 		<artifactId>harvester</artifactId>
-		<groupId>au.edu.usq.fascinator</groupId>
+		<groupId>au.edu.usq.fascinator.plugins</groupId>
 		<version>0.0.1-SNAPSHOT</version>
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>au.edu.usq.fascinator</groupId>
-	<artifactId>queuereader</artifactId>
+	<groupId>au.edu.usq.fascinator.plugins.harvester</groupId>
+	<artifactId>jsonq</artifactId>
 		<dependencies>
 		<dependency>
 			<groupId>org.codehaus.jackson</groupId>

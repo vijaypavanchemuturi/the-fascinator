@@ -7,7 +7,7 @@
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>au.edu.usq.fascinator.plugins</groupId>
-	<artifactId>extractor</artifactId>
+	<artifactId>store</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<build>
 		<plugins>
@@ -48,9 +48,6 @@
 			</plugin>
 		</plugins>
 	</build>
-	<modules>
-		<module>aperture/trunk</module>
-	</modules>
 	<repositories>
 		<repository>
 			<id>Semweb4J</id>
