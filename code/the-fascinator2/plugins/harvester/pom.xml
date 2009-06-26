@@ -10,5 +10,8 @@
 	<artifactId>harvester</artifactId>
 	<packaging>pom</packaging>
 	<version>0.0.1-SNAPSHOT</version>
+	<modules>
+		<module>jsonq/trunk</module>
+	</modules>
 	
 </project>
