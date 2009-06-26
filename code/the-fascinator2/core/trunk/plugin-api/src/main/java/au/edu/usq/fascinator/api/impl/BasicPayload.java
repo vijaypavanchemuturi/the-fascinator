@@ -21,8 +21,8 @@ package au.edu.usq.fascinator.api.impl;
 import java.io.IOException;
 import java.io.InputStream;
 
-import au.edu.usq.fascinator.api.Payload;
-import au.edu.usq.fascinator.api.PayloadType;
+import au.edu.usq.fascinator.api.store.Payload;
+import au.edu.usq.fascinator.api.store.PayloadType;
 
 public class BasicPayload implements Payload {
 

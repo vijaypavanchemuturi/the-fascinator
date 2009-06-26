@@ -16,20 +16,21 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-package au.edu.usq.fascinator.api;
+package au.edu.usq.fascinator.api.store;
 
-public class StorageException extends PluginException {
+import java.io.IOException;
+import java.io.InputStream;
 
-    public StorageException(String message) {
-        super(message);
-    }
+public interface Payload {
 
-    public StorageException(Throwable cause) {
-        super(cause);
-    }
+    public PayloadType getType();
 
-    public StorageException(String message, Throwable cause) {
-        super(message, cause);
-    }
+    public String getId();
+
+    public String getLabel();
+
+    public String getContentType();
+
+    public InputStream getInputStream() throws IOException;
 
 }

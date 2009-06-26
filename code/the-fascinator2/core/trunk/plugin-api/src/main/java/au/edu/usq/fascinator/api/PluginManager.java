@@ -20,6 +20,11 @@ package au.edu.usq.fascinator.api;
 
 import java.util.ServiceLoader;
 
+import au.edu.usq.fascinator.api.store.DataSource;
+import au.edu.usq.fascinator.api.store.DataSourceException;
+import au.edu.usq.fascinator.api.store.Storage;
+import au.edu.usq.fascinator.api.store.StorageException;
+
 public class PluginManager {
 
     public static Storage getStorage(String id) throws StorageException {

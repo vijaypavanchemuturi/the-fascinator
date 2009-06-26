@@ -16,10 +16,22 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-package au.edu.usq.fascinator.api;
+package au.edu.usq.fascinator.api.store;
 
-public enum PayloadType {
+import au.edu.usq.fascinator.api.PluginException;
 
-    Annotation, Data, Enrichment, External
+public class StorageException extends PluginException {
+
+    public StorageException(String message) {
+        super(message);
+    }
+
+    public StorageException(Throwable cause) {
+        super(cause);
+    }
+
+    public StorageException(String message, Throwable cause) {
+        super(message, cause);
+    }
 
 }

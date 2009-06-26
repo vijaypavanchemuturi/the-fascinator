@@ -16,20 +16,34 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-package au.edu.usq.fascinator.api;
+package au.edu.usq.fascinator.api.store;
 
-public class DataSourceException extends PluginException {
+import au.edu.usq.fascinator.api.Plugin;
 
-    public DataSourceException(String message) {
-        super(message);
-    }
+/**
+ * High level storage layer API
+ * 
+ * @author Oliver Lucido
+ */
+public interface Storage extends Plugin {
 
-    public DataSourceException(Throwable cause) {
-        super(cause);
-    }
+    /**
+     * Adds a digital object to the back end storage
+     * 
+     * @param object the object to add
+     * @return the internal identifier used by the storage implementation
+     * @throws StorageException if there was an error adding the object
+     */
+    public String addObject(DigitalObject object) throws StorageException;
 
-    public DataSourceException(String message, Throwable cause) {
-        super(message, cause);
-    }
+    public void removeObject(String oid);
+
+    public void addPayload(String oid, Payload payload);
+
+    public void removePayload(String oid, String pid);
+
+    public DigitalObject getObject(String oid);
+
+    public Payload getPayload(String oid, String pid);
 
 }

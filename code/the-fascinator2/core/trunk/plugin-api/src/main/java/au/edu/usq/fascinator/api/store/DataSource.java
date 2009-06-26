@@ -16,21 +16,16 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-package au.edu.usq.fascinator.api;
+package au.edu.usq.fascinator.api.store;
 
-import java.io.IOException;
-import java.io.InputStream;
+import java.util.List;
 
-public interface Payload {
+import au.edu.usq.fascinator.api.Plugin;
 
-    public PayloadType getType();
+public interface DataSource extends Plugin {
 
-    public String getId();
+    public boolean hasMoreObjects();
 
-    public String getLabel();
-
-    public String getContentType();
-
-    public InputStream getInputStream() throws IOException;
+    public List<DigitalObject> getObjects() throws DataSourceException;
 
 }

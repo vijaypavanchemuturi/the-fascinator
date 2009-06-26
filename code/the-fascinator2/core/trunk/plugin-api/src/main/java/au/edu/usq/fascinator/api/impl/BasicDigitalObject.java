@@ -21,8 +21,8 @@ package au.edu.usq.fascinator.api.impl;
 import java.util.ArrayList;
 import java.util.List;
 
-import au.edu.usq.fascinator.api.DigitalObject;
-import au.edu.usq.fascinator.api.Payload;
+import au.edu.usq.fascinator.api.store.DigitalObject;
+import au.edu.usq.fascinator.api.store.Payload;
 
 public class BasicDigitalObject implements DigitalObject {
 

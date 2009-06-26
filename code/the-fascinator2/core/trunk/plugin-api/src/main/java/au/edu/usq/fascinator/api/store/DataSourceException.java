@@ -16,14 +16,22 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-package au.edu.usq.fascinator.api;
+package au.edu.usq.fascinator.api.store;
 
-import java.util.List;
+import au.edu.usq.fascinator.api.PluginException;
 
-public interface DataSource extends Plugin {
+public class DataSourceException extends PluginException {
 
-    public boolean hasMoreObjects();
+    public DataSourceException(String message) {
+        super(message);
+    }
 
-    public List<DigitalObject> getObjects() throws DataSourceException;
+    public DataSourceException(Throwable cause) {
+        super(cause);
+    }
+
+    public DataSourceException(String message, Throwable cause) {
+        super(message, cause);
+    }
 
 }
