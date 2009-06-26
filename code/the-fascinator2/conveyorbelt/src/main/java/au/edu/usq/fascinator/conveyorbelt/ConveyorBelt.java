@@ -31,7 +31,11 @@ import java.util.Properties;
 import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
+import org.ontoware.rdf2go.model.Syntax;
+import org.semanticdesktop.aperture.extractor.ExtractorException;
+import org.semanticdesktop.aperture.rdf.RDFContainer;
 
+import au.edu.usq.fascinator.harvester.extractor.Extractor;
 import au.edu.usq.fascinator.harvester.queuereader.JsonQueueReader;
 import au.edu.usq.fascinator.harvester.queuereader.QueueReaderIncorrectMimeTypeException;
 
@@ -183,20 +187,33 @@ public class ConveyorBelt implements PropertyChangeListener {
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
+			} catch (ExtractorException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (URISyntaxException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
 		}
 
 	}
 
-	private void extract(HashMap<String, HashMap> queue) {
+	private void extract(HashMap<String, HashMap<String,String>> queue) throws IOException, ExtractorException, URISyntaxException {
 		System.out.println("Processing new queue items");
 		for (String key : queue.keySet()) {
-			System.out.println("Queue item: " + key);
 			HashMap<String, String> item = queue.get(key);
-			System.out.println("  State: " + item.get("state"));
-			System.out.println("  Time: " + item.get("time"));
+			String file = key;
+			String state = item.get("state");
+			String time = item.get("time");
+			
+			System.out.println("Queue item: " + file);
+			
+			System.out.println("  State: " + state);
+			System.out.println("  Time: " + time);
 
-			// Use extractor to get the RDF and
+			// Use extractor to get the RDF
+			RDFContainer rdf = Extractor.extractRDF(file);
+			System.out.println(rdf.getModel().serialize(Syntax.RdfXml));
 		}
 	}
 
