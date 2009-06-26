@@ -8,4 +8,7 @@
   <groupId>au.edu.usq.fascinator.plugins</groupId>
   <artifactId>transformer</artifactId>
   <version>0.0.1-SNAPSHOT</version>
+  <modules>
+  	<module>ice</module>
+  </modules>
 </project>
