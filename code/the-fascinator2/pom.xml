@@ -85,6 +85,10 @@
 			</plugin>
 		</plugins>
 	</build>
+	<modules>
+		<module>plugins</module>
+		<module>core/trunk</module>
+	</modules>
 	<reporting>
 		<plugins>
 			<plugin>
