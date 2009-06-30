@@ -24,7 +24,16 @@ import java.io.InputStream;
 import au.edu.usq.fascinator.api.store.Payload;
 import au.edu.usq.fascinator.api.store.PayloadType;
 
+/**
+ * Generic Payload implementation.
+ * 
+ * @author Oliver Lucido
+ */
 public class BasicPayload implements Payload {
+
+    private static final String UNDEFINED = "[undefined]";
+
+    private static final String DEFAULT_CONTENT_TYPE = "text/plain";
 
     private PayloadType payloadType;
 
@@ -37,7 +46,7 @@ public class BasicPayload implements Payload {
     private InputStream inputStream;
 
     public BasicPayload() {
-        this("[undefined]", "[undefined]", "text/plain");
+        this(UNDEFINED, UNDEFINED, DEFAULT_CONTENT_TYPE);
     }
 
     public BasicPayload(String id, String label, String contentType) {

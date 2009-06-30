@@ -24,6 +24,11 @@ import java.util.List;
 import au.edu.usq.fascinator.api.store.DigitalObject;
 import au.edu.usq.fascinator.api.store.Payload;
 
+/**
+ * Generic DigitalObject implementation.
+ * 
+ * @author Oliver Lucido
+ */
 public class BasicDigitalObject implements DigitalObject {
 
     private String id;
