@@ -21,8 +21,8 @@ package au.edu.usq.fascinator.storage.filesystem;
 import java.io.File;
 import java.io.IOException;
 
-import au.edu.usq.fascinator.api.Payload;
 import au.edu.usq.fascinator.api.impl.BasicPayload;
+import au.edu.usq.fascinator.api.store.Payload;
 
 public class FileSystemPayload extends BasicPayload {
 

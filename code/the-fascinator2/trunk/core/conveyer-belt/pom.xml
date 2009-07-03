@@ -1,0 +1,29 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>au.edu.usq.fascinator</groupId>
+  <artifactId>conveyer-belt</artifactId>
+  <version>0.0.1-SNAPSHOT</version>
+  <name>The Fascinator - Core</name>
+  <parent>
+    <artifactId>fascinator-core</artifactId>
+    <groupId>au.edu.usq.fascinator</groupId>
+    <version>0.0.1-SNAPSHOT</version>
+  </parent>
+  <dependencies>
+  	<dependency>
+  		<groupId>org.codehaus.jackson</groupId>
+  		<artifactId>jackson-mapper-lgpl</artifactId>
+  		<version>1.1.0</version>
+  	</dependency>
+  	<dependency>
+  		<groupId>au.edu.usq.fascinator.plugins.harvester</groupId>
+  		<artifactId>jsonq</artifactId>
+  		<version>0.0.1-SNAPSHOT</version>
+  	</dependency>
+  	<dependency>
+  		<groupId>au.edu.usq.fascinator.plugins.extractor</groupId>
+  		<artifactId>aperture</artifactId>
+  		<version>0.0.1-SNAPSHOT</version>
+  	</dependency>
+  </dependencies>
+</project>

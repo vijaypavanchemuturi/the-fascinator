@@ -20,9 +20,9 @@ package au.edu.usq.fascinator.storage.filesystem;
 
 import java.io.File;
 
-import au.edu.usq.fascinator.api.DigitalObject;
-import au.edu.usq.fascinator.api.Payload;
 import au.edu.usq.fascinator.api.impl.BasicDigitalObject;
+import au.edu.usq.fascinator.api.store.DigitalObject;
+import au.edu.usq.fascinator.api.store.Payload;
 
 public class FileSystemDigitalObject extends BasicDigitalObject {
 

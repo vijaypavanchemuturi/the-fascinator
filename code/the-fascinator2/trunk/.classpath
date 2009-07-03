@@ -4,6 +4,32 @@
 	<classpathentry excluding="**" kind="src" output="target/classes" path="src/main/resources"/>
 	<classpathentry kind="src" output="target/test-classes" path="src/test/java"/>
 	<classpathentry excluding="**" kind="src" output="target/test-classes" path="src/test/resources"/>
+	<classpathentry kind="src" output="plugins/extractor/aperture/target/classes" path="plugins/extractor/aperture/src/main/java"/>
+	<classpathentry excluding="**" kind="src" output="plugins/extractor/aperture/target/classes" path="plugins/extractor/aperture/src/main/resources"/>
+	<classpathentry kind="src" output="plugins/extractor/aperture/target/test-classes" path="plugins/extractor/aperture/src/test/java"/>
+	<classpathentry excluding="**" kind="src" output="plugins/extractor/aperture/target/test-classes" path="plugins/extractor/aperture/src/test/resources"/>
+	<classpathentry kind="src" output="plugins/harvester/jsonq/target/classes" path="plugins/harvester/jsonq/src/main/java"/>
+	<classpathentry excluding="**" kind="src" output="plugins/harvester/jsonq/target/classes" path="plugins/harvester/jsonq/src/main/resources"/>
+	<classpathentry kind="src" output="plugins/harvester/jsonq/target/test-classes" path="plugins/harvester/jsonq/src/test/java"/>
+	<classpathentry excluding="**" kind="src" output="plugins/harvester/jsonq/target/test-classes" path="plugins/harvester/jsonq/src/test/resources"/>
+	<classpathentry kind="src" output="core/plugin-api/target/classes" path="core/plugin-api/src/main/java"/>
+	<classpathentry excluding="**" kind="src" output="core/plugin-api/target/classes" path="core/plugin-api/src/main/resources"/>
+	<classpathentry kind="src" output="core/plugin-api/target/test-classes" path="core/plugin-api/src/test/java"/>
+	<classpathentry excluding="**" kind="src" output="core/plugin-api/target/test-classes" path="core/plugin-api/src/test/resources"/>
+	<classpathentry kind="src" output="core/common/target/classes" path="core/common/src/main/java"/>
+	<classpathentry excluding="**" kind="src" output="core/common/target/classes" path="core/common/src/main/resources"/>
+	<classpathentry kind="src" output="core/common/target/test-classes" path="core/common/src/test/java"/>
+	<classpathentry excluding="**" kind="src" output="core/common/target/test-classes" path="core/common/src/test/resources"/>
+	<classpathentry kind="src" output="plugins/store/filesystem/target/classes" path="plugins/store/filesystem/src/main/java"/>
+	<classpathentry excluding="**" kind="src" output="plugins/store/filesystem/target/classes" path="plugins/store/filesystem/src/main/resources"/>
+	<classpathentry kind="src" output="plugins/store/filesystem/target/test-classes" path="plugins/store/filesystem/src/test/java"/>
+	<classpathentry excluding="**" kind="src" output="plugins/store/filesystem/target/test-classes" path="plugins/store/filesystem/src/test/resources"/>
+	<classpathentry kind="src" output="plugins/transformer/ice/target/classes" path="plugins/transformer/ice/src/main/java"/>
+	<classpathentry excluding="**" kind="src" output="plugins/transformer/ice/target/classes" path="plugins/transformer/ice/src/main/resources"/>
+	<classpathentry kind="src" output="plugins/transformer/ice/target/test-classes" path="plugins/transformer/ice/src/test/java"/>
+	<classpathentry excluding="**" kind="src" output="plugins/transformer/ice/target/test-classes" path="plugins/transformer/ice/src/test/resources"/>
+	<classpathentry kind="src" output="core/conveyer-belt/target/classes" path="core/conveyer-belt/src/main/java"/>
+	<classpathentry kind="src" output="core/conveyer-belt/target/test-classes" path="core/conveyer-belt/src/test/java"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.6"/>
 	<classpathentry kind="con" path="org.maven.ide.eclipse.MAVEN2_CLASSPATH_CONTAINER"/>
 	<classpathentry kind="output" path="target/classes"/>

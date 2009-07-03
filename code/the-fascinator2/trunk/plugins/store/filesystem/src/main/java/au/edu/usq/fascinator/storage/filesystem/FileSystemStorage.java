@@ -29,10 +29,10 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import au.edu.usq.fascinator.api.DigitalObject;
-import au.edu.usq.fascinator.api.Payload;
-import au.edu.usq.fascinator.api.Storage;
-import au.edu.usq.fascinator.api.StorageException;
+import au.edu.usq.fascinator.api.store.DigitalObject;
+import au.edu.usq.fascinator.api.store.Payload;
+import au.edu.usq.fascinator.api.store.Storage;
+import au.edu.usq.fascinator.api.store.StorageException;
 
 /**
  * File system storage plugin based on Dflat/Pairtree
