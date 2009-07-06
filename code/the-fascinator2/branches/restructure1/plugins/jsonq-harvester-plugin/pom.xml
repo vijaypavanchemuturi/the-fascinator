@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>au.edu.usq.fascinator.plugins</groupId>
+  <artifactId>jsonq-harvester-plugin</artifactId>
+  <version>2.0.0-SNAPSHOT</version>
+  <name>The Fascinator - JSON Queue Harvester Plugin</name>
+  <parent>
+    <groupId>au.edu.usq.fascinator</groupId>
+    <artifactId>fascinator-core-plugins</artifactId>
+    <version>2.0.0-SNAPSHOT</version>
+  </parent>
+  <dependencies>
+    <dependency>
+      <groupId>org.codehaus.jackson</groupId>
+      <artifactId>jackson-mapper-lgpl</artifactId>
+      <version>1.1.0</version>
+    </dependency>
+  </dependencies>
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>2.2</version>
+        <configuration>
+          <archive>
+            <manifest>
+              <mainClass>au.edu.usq.fascinator.harvester.queuereader.QueueReader</mainClass>
+            </manifest>
+          </archive>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
+        <version>1.1.1</version>
+        <configuration>
+          <mainClass>au.edu.usq.fascinator.harvester.queuereader.QueueReader</mainClass>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+</project>

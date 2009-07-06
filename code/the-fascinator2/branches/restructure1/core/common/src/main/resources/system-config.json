@@ -1,0 +1,16 @@
+{
+  "storage": {
+    "type": "fedora3",
+    "config": {
+      "uri": "http://localhost:8080/fedora",
+      "username": "fedoraAdmin",
+      "password": "fedoraAdmin"
+    }
+  },
+  "indexer": {
+    "uri": "http://localhost:8080/solr",
+    "username": "solrAdmin",
+    "password": "solrAdmin",
+    "autocommit": true
+  }
+}
