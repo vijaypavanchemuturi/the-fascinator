@@ -41,7 +41,9 @@
     <url>http://www.usq.edu.au</url>
   </organization>
   <modules>
+    <module>common</module>
     <module>core</module>
+    <module>plugin-api</module>
     <module>plugins</module>
   </modules>
   <build>
