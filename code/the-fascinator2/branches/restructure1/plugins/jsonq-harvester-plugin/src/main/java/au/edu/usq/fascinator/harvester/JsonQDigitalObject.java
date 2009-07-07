@@ -18,9 +18,15 @@
  */
 package au.edu.usq.fascinator.harvester;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLDecoder;
 import java.util.Map;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import au.edu.usq.fascinator.api.impl.BasicDigitalObject;
 import au.edu.usq.fascinator.api.impl.BasicPayload;
@@ -28,18 +34,25 @@ import au.edu.usq.fascinator.api.store.PayloadType;
 
 public class JsonQDigitalObject extends BasicDigitalObject {
 
+    private Logger log = LoggerFactory.getLogger(JsonQDigitalObject.class);
+
     public JsonQDigitalObject(String uri, Map<String, String> info) {
-        setId(uri);
-        BasicPayload payload = new BasicPayload();
-        payload.setId("CONTENT");
-        payload.setLabel(uri);
-        payload.setPayloadType(PayloadType.External);
         try {
-            payload.setInputStream(new FileInputStream(uri));
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
+            URL url = new URL(URLDecoder.decode(uri, "UTF-8"));
+            setId(url.toString());
+            BasicPayload payload = new BasicPayload();
+            payload.setId("CONTENT");
+            payload.setLabel(uri);
+            payload.setPayloadType(PayloadType.External);
+            payload.setInputStream(url.openStream());
+            addPayload(payload);
+        } catch (UnsupportedEncodingException uee) {
+            log.warn("Unsupported encoding: {}", uee);
+        } catch (MalformedURLException e) {
+            log.error("Malformed URL: {}", uri);
+        } catch (IOException ioe) {
+            log.error("Failed to get input stream: {}", ioe);
         }
-        addPayload(payload);
     }
 
 }
