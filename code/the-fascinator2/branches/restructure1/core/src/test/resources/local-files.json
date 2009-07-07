@@ -1,0 +1,18 @@
+{
+    "harvest": {
+        "type": "json-queue",
+        "config": {
+            "url": "http://139.86.35.138:9000/"
+        }
+    },
+    "indexer": {
+        "script": {
+            "type": "python",
+            "rules": "local-files.py"
+        },
+        "params": {
+            "repository.name": "Local Files",
+            "repository.type": "Local File System"
+        }
+    }
+}
