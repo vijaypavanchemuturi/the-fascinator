@@ -22,10 +22,10 @@ import au.edu.usq.fascinator.api.Plugin;
 
 public interface Indexer extends Plugin {
 
-    public void index(String oid);
+    public void index(String oid) throws IndexerException;
 
-    public void index(String oid, String pid);
+    public void index(String oid, String pid) throws IndexerException;
 
-    public void delete(String oid);
+    public void delete(String oid) throws IndexerException;
 
 }

@@ -128,8 +128,8 @@ public class JsonConfig {
      * @param fieldName the field to get the value of
      * @return a text value
      */
-    public String getText(String fieldName) {
-        return getText(fieldName, null);
+    public String get(String fieldName) {
+        return get(fieldName, null);
     }
 
     /**
@@ -141,10 +141,10 @@ public class JsonConfig {
      * @param defaultValue default value for null fields
      * @return a text value (possibly null)
      */
-    public String getText(String fieldName, String defaultValue) {
-        String value = getText(rootNode, fieldName, defaultValue);
+    public String get(String fieldName, String defaultValue) {
+        String value = get(rootNode, fieldName, null);
         if (value == null) {
-            value = getText(systemRootNode, fieldName, defaultValue);
+            value = get(systemRootNode, fieldName, defaultValue);
         }
         return value;
     }
@@ -168,7 +168,7 @@ public class JsonConfig {
      * @param defaultValue default value for null fields
      * @return a text value, if field was not found, defaultValue
      */
-    public String getText(JsonNode node, String fieldName, String defaultValue) {
+    public String get(JsonNode node, String fieldName, String defaultValue) {
         JsonNode fieldNode = node.get(fieldName);
         if (fieldNode == null) {
             if (fieldName.indexOf("/") != -1) {

@@ -1,5 +1,5 @@
 /* 
- * The Fascinator - Plugin API
+ * The Fascinator - Indexer
  * Copyright (C) 2009 University of Southern Queensland
  * 
  * This program is free software: you can redistribute it and/or modify
@@ -16,22 +16,28 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-package au.edu.usq.fascinator.api.store;
+package au.edu.usq.fascinator.indexer.rules;
 
-import au.edu.usq.fascinator.api.PluginException;
+import java.io.IOException;
+import java.io.Reader;
+import java.io.Writer;
 
-public class StorageException extends PluginException {
+import au.edu.usq.fascinator.api.indexer.rule.Rule;
+import au.edu.usq.fascinator.api.indexer.rule.RuleException;
 
-    public StorageException(String message) {
-        super(message);
+public class New extends Rule {
+
+    public New() {
+        super("New", true);
     }
 
-    public StorageException(Throwable cause) {
-        super(cause);
+    @Override
+    public void run(Reader in, Writer out) throws RuleException {
+        log("Creating new Solr document");
+        try {
+            out.write("<add allowDups=\"false\"><doc/></add>");
+        } catch (IOException ioe) {
+            throw new RuleException("Failed to create new Solr document", ioe);
+        }
     }
-
-    public StorageException(String message, Throwable cause) {
-        super(message, cause);
-    }
-
 }

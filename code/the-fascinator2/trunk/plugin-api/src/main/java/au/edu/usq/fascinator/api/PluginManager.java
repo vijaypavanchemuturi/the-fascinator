@@ -22,8 +22,10 @@ import java.util.ServiceLoader;
 
 import au.edu.usq.fascinator.api.harvester.Harvester;
 import au.edu.usq.fascinator.api.harvester.HarvesterException;
-import au.edu.usq.fascinator.api.store.Storage;
-import au.edu.usq.fascinator.api.store.StorageException;
+import au.edu.usq.fascinator.api.indexer.Indexer;
+import au.edu.usq.fascinator.api.indexer.IndexerException;
+import au.edu.usq.fascinator.api.storage.Storage;
+import au.edu.usq.fascinator.api.storage.StorageException;
 import au.edu.usq.fascinator.api.transformer.Transformer;
 import au.edu.usq.fascinator.api.transformer.TransformerException;
 
@@ -54,6 +56,16 @@ public class PluginManager {
         ServiceLoader<Transformer> plugins = ServiceLoader
                 .load(Transformer.class);
         for (Transformer plugin : plugins) {
+            if (id.equals(plugin.getId())) {
+                return plugin;
+            }
+        }
+        return null;
+    }
+
+    public static Indexer getIndexer(String id) throws IndexerException {
+        ServiceLoader<Indexer> plugins = ServiceLoader.load(Indexer.class);
+        for (Indexer plugin : plugins) {
             if (id.equals(plugin.getId())) {
                 return plugin;
             }

@@ -1,5 +1,5 @@
 /* 
- * The Fascinator - Plugin API
+ * The Fascinator - Indexer
  * Copyright (C) 2009 University of Southern Queensland
  * 
  * This program is free software: you can redistribute it and/or modify
@@ -16,21 +16,27 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-package au.edu.usq.fascinator.api.store;
+package au.edu.usq.fascinator.indexer.rules;
 
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.Reader;
+import java.io.Writer;
 
-public interface Payload {
+import au.edu.usq.fascinator.api.indexer.rule.Rule;
+import au.edu.usq.fascinator.api.indexer.rule.RuleException;
 
-    public PayloadType getType();
+public class Skip extends Rule {
 
-    public String getId();
+    private String reason;
 
-    public String getLabel();
+    public Skip(String reason) {
+        super("Skip", true);
+        this.reason = reason;
+    }
 
-    public String getContentType();
-
-    public InputStream getInputStream() throws IOException;
-
+    @Override
+    public void run(Reader in, Writer out) throws RuleException {
+        String msg = "Item will not be indexed: " + reason;
+        log(msg);
+        throw new RuleException(msg);
+    }
 }

@@ -16,13 +16,13 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-package au.edu.usq.fascinator.api.impl;
+package au.edu.usq.fascinator.api.storage.impl;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import au.edu.usq.fascinator.api.store.DigitalObject;
-import au.edu.usq.fascinator.api.store.Payload;
+import au.edu.usq.fascinator.api.storage.DigitalObject;
+import au.edu.usq.fascinator.api.storage.Payload;
 
 /**
  * Generic DigitalObject implementation.
@@ -33,13 +33,17 @@ public class BasicDigitalObject implements DigitalObject {
 
     private String id;
 
+    private String metaId;
+
     private List<Payload> payloadList;
 
-    public BasicDigitalObject() {
+    public BasicDigitalObject(String id) {
+        this(id, null);
     }
 
-    public BasicDigitalObject(String id) {
+    public BasicDigitalObject(String id, String metaId) {
         setId(id);
+        setMetaId(metaId);
     }
 
     public String getId() {
@@ -48,6 +52,14 @@ public class BasicDigitalObject implements DigitalObject {
 
     public void setId(String id) {
         this.id = id;
+    }
+
+    public Payload getMetadata() {
+        return getPayload(metaId);
+    }
+
+    public void setMetaId(String metaId) {
+        this.metaId = metaId;
     }
 
     public Payload getPayload(String pid) {
@@ -68,6 +80,12 @@ public class BasicDigitalObject implements DigitalObject {
             payloadList = new ArrayList<Payload>();
         }
         return payloadList;
+    }
+
+    @Override
+    public String toString() {
+        return String.format("%s (%s, %d)", getId(), metaId, getPayloadList()
+                .size());
     }
 
 }

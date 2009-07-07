@@ -19,7 +19,7 @@ import org.slf4j.LoggerFactory;
 import au.edu.usq.fascinator.api.PluginException;
 import au.edu.usq.fascinator.api.harvester.Harvester;
 import au.edu.usq.fascinator.api.harvester.HarvesterException;
-import au.edu.usq.fascinator.api.store.DigitalObject;
+import au.edu.usq.fascinator.api.storage.DigitalObject;
 import au.edu.usq.fascinator.common.BasicHttpClient;
 import au.edu.usq.fascinator.common.JsonConfig;
 
@@ -42,8 +42,8 @@ public class JsonQHarvester implements Harvester {
     public void init(File jsonFile) throws PluginException {
         try {
             JsonConfig config = new JsonConfig(jsonFile);
-            url = config.getText("harvest/config/url");
-            String lastMod = config.getText("harvest/config/lastModified", "0");
+            url = config.get("harvest/jsonq/url");
+            String lastMod = config.get("harvest/jsonq/lastModified", "0");
             lastModified = Long.parseLong(lastMod);
             log.debug("QueueHarvester url: {}", url);
         } catch (IOException ioe) {

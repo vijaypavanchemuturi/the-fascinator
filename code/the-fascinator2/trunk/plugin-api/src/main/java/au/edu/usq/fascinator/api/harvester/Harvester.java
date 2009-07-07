@@ -21,7 +21,7 @@ package au.edu.usq.fascinator.api.harvester;
 import java.util.List;
 
 import au.edu.usq.fascinator.api.Plugin;
-import au.edu.usq.fascinator.api.store.DigitalObject;
+import au.edu.usq.fascinator.api.storage.DigitalObject;
 
 public interface Harvester extends Plugin {
 

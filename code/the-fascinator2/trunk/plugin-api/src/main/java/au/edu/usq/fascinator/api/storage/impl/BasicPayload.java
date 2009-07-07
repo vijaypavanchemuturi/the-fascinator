@@ -16,13 +16,13 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-package au.edu.usq.fascinator.api.impl;
+package au.edu.usq.fascinator.api.storage.impl;
 
 import java.io.IOException;
 import java.io.InputStream;
 
-import au.edu.usq.fascinator.api.store.Payload;
-import au.edu.usq.fascinator.api.store.PayloadType;
+import au.edu.usq.fascinator.api.storage.Payload;
+import au.edu.usq.fascinator.api.storage.PayloadType;
 
 /**
  * Generic Payload implementation.
@@ -94,5 +94,11 @@ public class BasicPayload implements Payload {
 
     public void setInputStream(InputStream inputStream) {
         this.inputStream = inputStream;
+    }
+
+    @Override
+    public String toString() {
+        return String.format("%s (%s, %s)", getId(), getLabel(),
+                getContentType());
     }
 }

@@ -22,17 +22,16 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
-import org.codehaus.jackson.JsonNode;
-import org.codehaus.jackson.JsonParseException;
-import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import au.edu.usq.fascinator.api.store.DigitalObject;
-import au.edu.usq.fascinator.api.store.Payload;
-import au.edu.usq.fascinator.api.store.Storage;
-import au.edu.usq.fascinator.api.store.StorageException;
+import au.edu.usq.fascinator.api.storage.DigitalObject;
+import au.edu.usq.fascinator.api.storage.Payload;
+import au.edu.usq.fascinator.api.storage.Storage;
+import au.edu.usq.fascinator.api.storage.StorageException;
+import au.edu.usq.fascinator.common.JsonConfig;
 
 /**
  * File system storage plugin based on Dflat/Pairtree
@@ -43,39 +42,28 @@ public class FileSystemStorage implements Storage {
 
     private static final String DEFAULT_HOME_DIR = System
             .getProperty("user.home")
-            + File.separator + ".fascinator" + File.separator + "store";
+            + File.separator + ".fascinator" + File.separator + "storage";
 
     private final Logger log = LoggerFactory.getLogger(FileSystemStorage.class);
 
     private File homeDir;
 
     public String getId() {
-        return "filesystem";
+        return "file-system";
     }
 
     public String getName() {
-        return "File System Storage Module";
+        return "File System Storage";
     }
 
     public void init(File jsonFile) throws StorageException {
         try {
-            ObjectMapper mapper = new ObjectMapper();
-            JsonNode rootNode = mapper.readValue(jsonFile, JsonNode.class);
-            JsonNode storageNode = rootNode.get("storage");
-            if (storageNode != null) {
-                String type = storageNode.get("type").getTextValue();
-                JsonNode configNode = storageNode.get("config");
-                String home = configNode.get("home").getTextValue();
-                homeDir = new File(home);
-            } else {
-                log.info("No configuration defined, using defaults");
-                homeDir = new File(DEFAULT_HOME_DIR);
-            }
+            JsonConfig config = new JsonConfig(jsonFile);
+            homeDir = new File(config.get("storage/file-system/home",
+                    DEFAULT_HOME_DIR));
             if (!homeDir.exists()) {
                 homeDir.mkdirs();
             }
-        } catch (JsonParseException jpe) {
-            throw new StorageException(jpe);
         } catch (IOException ioe) {
             throw new StorageException(ioe);
         }
@@ -86,8 +74,9 @@ public class FileSystemStorage implements Storage {
     }
 
     public String addObject(DigitalObject object) throws StorageException {
-        FileSystemDigitalObject fileObject = new FileSystemDigitalObject(object);
-        log.debug("addObject({})", fileObject);
+        FileSystemDigitalObject fileObject = new FileSystemDigitalObject(
+                homeDir, object);
+        log.info("Adding object {}", fileObject);
         for (Payload payload : fileObject.getPayloadList()) {
             addPayload(fileObject.getId(), payload);
         }
@@ -95,6 +84,9 @@ public class FileSystemStorage implements Storage {
     }
 
     public void removeObject(String oid) {
+        FileSystemDigitalObject fileObject = (FileSystemDigitalObject) getObject(oid);
+        log.info("Removing object {}", fileObject);
+        FileUtils.deleteQuietly(fileObject.getPath());
     }
 
     public void addPayload(String oid, Payload payload) {
@@ -104,7 +96,7 @@ public class FileSystemStorage implements Storage {
         File payloadFile = new File(fileObject.getPath(), filePayload.getFile()
                 .toString());
         File parentDir = payloadFile.getParentFile();
-        log.debug("payloadFile:{}", payloadFile, parentDir);
+        log.debug("payloadFile={}", payloadFile, parentDir);
         parentDir.mkdirs();
         try {
             FileOutputStream out = new FileOutputStream(payloadFile);
@@ -119,13 +111,15 @@ public class FileSystemStorage implements Storage {
     }
 
     public DigitalObject getObject(String oid) {
-        FileSystemDigitalObject fileObject = new FileSystemDigitalObject(
-                homeDir, oid);
-        return fileObject;
+        return new FileSystemDigitalObject(homeDir, oid);
     }
 
     public Payload getPayload(String oid, String pid) {
         return null;
+    }
+
+    public File getHomeDir() {
+        return homeDir;
     }
 
 }

@@ -19,45 +19,62 @@
 package au.edu.usq.fascinator.storage.filesystem;
 
 import java.io.File;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 
-import au.edu.usq.fascinator.api.impl.BasicDigitalObject;
-import au.edu.usq.fascinator.api.store.DigitalObject;
-import au.edu.usq.fascinator.api.store.Payload;
+import org.apache.commons.codec.digest.DigestUtils;
+
+import au.edu.usq.fascinator.api.storage.DigitalObject;
+import au.edu.usq.fascinator.api.storage.Payload;
+import au.edu.usq.fascinator.api.storage.impl.BasicDigitalObject;
 
 public class FileSystemDigitalObject extends BasicDigitalObject {
 
     private File homeDir;
 
-    private PairTree pairTree;
+    private File path;
 
-    private String pairPath;
+    private String hashId;
 
     public FileSystemDigitalObject(File homeDir, String id) {
         super(id);
-        init();
+        this.homeDir = homeDir;
     }
 
-    public FileSystemDigitalObject(DigitalObject object) {
+    public FileSystemDigitalObject(File homeDir, DigitalObject object) {
         super(object.getId());
-        init();
+        this.homeDir = homeDir;
         for (Payload payload : object.getPayloadList()) {
             FileSystemPayload filePayload = new FileSystemPayload(payload);
             addPayload(filePayload);
         }
     }
 
-    private void init() {
-        this.homeDir = new File(homeDir, "pairtree_root");
-        pairTree = new PairTree(homeDir);
-        pairPath = pairTree.getPairPath(getId());
+    public String getHashId() {
+        if (hashId == null) {
+            hashId = DigestUtils.md5Hex(getId());
+        }
+        return hashId;
     }
 
     public File getPath() {
-        return new File(homeDir, pairPath);
+        if (path == null) {
+            String dir = getHashId().substring(0, 2) + File.separator
+                    + getHashId().substring(2, 4);
+            File parentDir = new File(homeDir, dir);
+            String encodedId = getId();
+            try {
+                encodedId = URLEncoder.encode(encodedId, "UTF-8");
+            } catch (UnsupportedEncodingException uee) {
+            }
+            path = new File(parentDir, encodedId);
+        }
+        return path;
     }
 
     @Override
     public String toString() {
-        return getId() + " [" + pairPath + "]";
+        return String.format("%s [%s]", getId(), getPath());
     }
+
 }

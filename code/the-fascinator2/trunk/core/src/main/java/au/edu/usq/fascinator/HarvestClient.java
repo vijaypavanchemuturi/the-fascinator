@@ -36,11 +36,11 @@ import au.edu.usq.fascinator.api.PluginException;
 import au.edu.usq.fascinator.api.PluginManager;
 import au.edu.usq.fascinator.api.harvester.Harvester;
 import au.edu.usq.fascinator.api.harvester.HarvesterException;
-import au.edu.usq.fascinator.api.impl.BasicDigitalObject;
-import au.edu.usq.fascinator.api.impl.BasicPayload;
-import au.edu.usq.fascinator.api.store.DigitalObject;
-import au.edu.usq.fascinator.api.store.Storage;
-import au.edu.usq.fascinator.api.store.StorageException;
+import au.edu.usq.fascinator.api.storage.DigitalObject;
+import au.edu.usq.fascinator.api.storage.Storage;
+import au.edu.usq.fascinator.api.storage.StorageException;
+import au.edu.usq.fascinator.api.storage.impl.BasicDigitalObject;
+import au.edu.usq.fascinator.api.storage.impl.BasicPayload;
 import au.edu.usq.fascinator.common.JsonConfig;
 
 public class HarvestClient {
@@ -51,7 +51,7 @@ public class HarvestClient {
 
     private static final String DEFAULT_HARVESTER_TYPE = "json-queue";
 
-    private static final String DEFAULT_STORAGE_TYPE = "filesystem";
+    private static final String DEFAULT_STORAGE_TYPE = "file-system";
 
     private static Logger log = LoggerFactory.getLogger(HarvestClient.class);
 
@@ -78,7 +78,8 @@ public class HarvestClient {
         long start = System.currentTimeMillis();
         log.info("Started at " + now);
         try {
-            String type = config.getText("storage/type", DEFAULT_STORAGE_TYPE);
+            String type = config.get("storage/type", DEFAULT_STORAGE_TYPE);
+            log.info("type: {}", type);
             storage = PluginManager.getStorage(type);
             log.info("Loaded storage: " + storage.getName());
             storage.init(config.getSystemFile());
@@ -88,7 +89,7 @@ public class HarvestClient {
         }
 
         rulesFile = new File(configFile.getParentFile(), config
-                .getText("indexer/script/rules"));
+                .get("indexer/script/rules"));
         log.debug("rulesFile=" + rulesFile);
         String rulesOid = null;
         FileInputStream rulesIn = null;
@@ -117,7 +118,7 @@ public class HarvestClient {
             }
         }
 
-        String sourceType = config.getText("harvest/type");
+        String sourceType = config.get("harvest/type");
         Harvester harvester;
         try {
             harvester = PluginManager.getHarvester(sourceType);
@@ -144,14 +145,14 @@ public class HarvestClient {
                     } catch (Exception e) {
                         log.warn("Processing failed: " + item.getId(), e);
                     }
-                    // log.debug("*** BREAK 1");
-                    // break;
+                    log.debug("*** BREAK 1");
+                    break;
                 }
             } catch (HarvesterException he) {
                 log.error(he.getMessage());
             }
-            // log.debug("*** BREAK 2");
-            // break;
+            log.debug("*** BREAK 2");
+            break;
         } while (harvester.hasMoreObjects());
 
         log.info("Completed in "
@@ -160,10 +161,10 @@ public class HarvestClient {
 
     private String processObject(DigitalObject digitalObject, String rulesPid)
             throws StorageException, IOException {
-        String itemPid = digitalObject.getId();
-        String pid = null;
+        String oid = digitalObject.getId();
+        String sid = null;
         try {
-            log.info("Processing " + itemPid + "...");
+            log.info("Processing " + oid + "...");
             Properties sofMeta = new Properties();
             // sofMeta.setProperty(Indexer.ITEM_PID_KEY, itemPid);
             // sofMeta.setProperty(Indexer.ITEM_META_DSID_KEY,
@@ -175,17 +176,17 @@ public class HarvestClient {
             // sofMeta.setProperty(Indexer.RULES_DSID_KEY, rulesFile.getName());
             ByteArrayOutputStream sofMetaOut = new ByteArrayOutputStream();
             sofMeta.store(sofMetaOut, "The Fascinator Indexer Metadata");
-            pid = storage.addObject(digitalObject);
-            log.info("pid=" + pid);
+            sid = storage.addObject(digitalObject);
+            log.info("sid=" + sid);
             BasicPayload sofMetaDs = new BasicPayload("SOF-META",
                     "The Fascinator Indexer Metadta", "text/plain");
             sofMetaDs.setInputStream(new ByteArrayInputStream(sofMetaOut
                     .toByteArray()));
-            storage.addPayload(pid, sofMetaDs);
+            storage.addPayload(oid, sofMetaDs);
         } catch (StorageException re) {
             throw new IOException(re.getMessage());
         }
-        return pid;
+        return sid;
     }
 
     public static void main(String[] args) throws Exception {

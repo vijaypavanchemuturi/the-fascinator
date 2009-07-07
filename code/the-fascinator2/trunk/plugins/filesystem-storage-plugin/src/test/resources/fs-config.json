@@ -1,0 +1,8 @@
+{
+    "storage": {
+        "type": "file-system",
+        "config": {
+            "home": "/tmp/_fs_test"
+        }
+    }
+}

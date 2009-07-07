@@ -16,6 +16,7 @@
     <module>aperture-extractor-plugin</module>
     <module>filesystem-storage-plugin</module>
     <module>jsonq-harvester-plugin</module>
+    <module>oai-pmh-harvester-plugin</module>
     <module>solr-indexer-plugin</module>
   </modules>
 </project>

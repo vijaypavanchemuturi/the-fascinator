@@ -32,13 +32,13 @@ public class JsonConfigTest {
     public void getText() throws Exception {
         JsonConfig jc = new JsonConfig(getClass().getResourceAsStream(
                 "/config.json"));
-        Assert.assertEquals("testing", jc.getText("test"));
-        Assert.assertEquals("fedora3", jc.getText("storage/type"));
+        Assert.assertEquals("testing", jc.get("test"));
+        Assert.assertEquals("fedora3", jc.get("storage/type"));
         Assert.assertEquals("http://localhost:8080/fedora", jc
-                .getText("storage/config/uri"));
+                .get("storage/config/uri"));
         Assert.assertEquals("http://localhost:8080/solr", jc
-                .getText("indexer/config/uri"));
-        Assert.assertEquals("true", jc.getText("indexer/config/autocommit"));
+                .get("indexer/config/uri"));
+        Assert.assertEquals("true", jc.get("indexer/config/autocommit"));
     }
 
 }

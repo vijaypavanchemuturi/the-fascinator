@@ -1,17 +1,26 @@
 {
     "storage": {
-        "type": "filesystem",
-        "config": {
+        "type": "file-system",
+        "file-system": {
             "home": "/Users/lucido/.fascinator/store"
+        },
+        "fedora3": {
+            "url": "http://localhost:8080/fedora",
+            "username": "fedoraAdmin",
+            "password": "fedoraAdmin"
+        },
+        "couchdb": {
+            "url": "http://localhost:8080/couch"
         }
     },
     "indexer": {
         "type": "solr",
-        "config": {
+        "properties": "SOF-META",
+        "solr": {
             "uri": "http://localhost:8080/solr",
             "username": "solrAdmin",
             "password": "solrAdmin",
             "autocommit": true
         }
-    },
+    }
 }

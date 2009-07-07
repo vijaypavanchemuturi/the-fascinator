@@ -16,34 +16,18 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-package au.edu.usq.fascinator.api.store;
+package au.edu.usq.fascinator.api.storage;
 
-import au.edu.usq.fascinator.api.Plugin;
+import java.util.List;
 
-/**
- * High level storage layer API
- * 
- * @author Oliver Lucido
- */
-public interface Storage extends Plugin {
+public interface DigitalObject {
 
-    /**
-     * Adds a digital object to the back end storage
-     * 
-     * @param object the object to add
-     * @return the internal identifier used by the storage implementation
-     * @throws StorageException if there was an error adding the object
-     */
-    public String addObject(DigitalObject object) throws StorageException;
+    public String getId();
 
-    public void removeObject(String oid);
+    public Payload getMetadata();
 
-    public void addPayload(String oid, Payload payload);
+    public Payload getPayload(String pid);
 
-    public void removePayload(String oid, String pid);
-
-    public DigitalObject getObject(String oid);
-
-    public Payload getPayload(String oid, String pid);
+    public List<Payload> getPayloadList();
 
 }

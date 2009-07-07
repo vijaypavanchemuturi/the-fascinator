@@ -28,15 +28,16 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import au.edu.usq.fascinator.api.impl.BasicDigitalObject;
-import au.edu.usq.fascinator.api.impl.BasicPayload;
-import au.edu.usq.fascinator.api.store.PayloadType;
+import au.edu.usq.fascinator.api.storage.PayloadType;
+import au.edu.usq.fascinator.api.storage.impl.BasicDigitalObject;
+import au.edu.usq.fascinator.api.storage.impl.BasicPayload;
 
 public class JsonQDigitalObject extends BasicDigitalObject {
 
     private Logger log = LoggerFactory.getLogger(JsonQDigitalObject.class);
 
     public JsonQDigitalObject(String uri, Map<String, String> info) {
+        super(uri);
         try {
             URL url = new URL(URLDecoder.decode(uri, "UTF-8"));
             setId(url.toString());
