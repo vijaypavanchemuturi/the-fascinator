@@ -22,7 +22,6 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileReader;
 import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -39,7 +38,6 @@ import au.edu.usq.fascinator.api.harvester.Harvester;
 import au.edu.usq.fascinator.api.harvester.HarvesterException;
 import au.edu.usq.fascinator.api.impl.BasicDigitalObject;
 import au.edu.usq.fascinator.api.impl.BasicPayload;
-import au.edu.usq.fascinator.api.indexer.Indexer;
 import au.edu.usq.fascinator.api.store.DigitalObject;
 import au.edu.usq.fascinator.api.store.Storage;
 import au.edu.usq.fascinator.api.store.StorageException;
@@ -71,7 +69,7 @@ public class HarvestClient {
         } catch (IOException ioe) {
             log.warn("Failed to load config", ioe);
         }
-        this.configFile = jsonFile;
+        configFile = jsonFile;
     }
 
     public void run() {
