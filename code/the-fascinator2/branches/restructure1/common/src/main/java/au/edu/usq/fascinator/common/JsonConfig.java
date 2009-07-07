@@ -176,13 +176,17 @@ public class JsonConfig {
                 JsonNode currentNode = node;
                 for (String field : fields) {
                     fieldNode = currentNode.get(field);
-                    currentNode = fieldNode;
-                    if (fieldNode.isValueNode()) {
-                        if (fieldNode.isTextual()) {
-                            return fieldNode.getTextValue();
-                        } else {
-                            return fieldNode.getValueAsText();
+                    if (fieldNode != null) {
+                        currentNode = fieldNode;
+                        if (fieldNode.isValueNode()) {
+                            if (fieldNode.isTextual()) {
+                                return fieldNode.getTextValue();
+                            } else {
+                                return fieldNode.getValueAsText();
+                            }
                         }
+                    } else {
+                        break;
                     }
                 }
             }
