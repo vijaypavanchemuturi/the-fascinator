@@ -1,0 +1,18 @@
+{
+    "harvest": {
+        "type": "oai-pmh",
+        "config": {
+            "url": "http://eprints.usq.edu.au/cgi/oai2"
+        }
+    },
+    "indexer": {
+        "script": {
+            "type": "python",
+            "rules": "usq.py"
+        },
+        "params": {
+            "repository.name": "USQ",
+            "repository.type": "ePrints"
+        }
+    }
+}
