@@ -1,7 +1,7 @@
 {
     "storage": {
         "type": "file-system",
-        "config": {
+        "file-system": {
             "home": "/tmp/_fs_test"
         }
     }

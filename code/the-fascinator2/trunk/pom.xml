@@ -46,6 +46,102 @@
     <module>plugin-api</module>
     <module>plugins</module>
   </modules>
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>au.edu.usq.fascinator</groupId>
+        <artifactId>fascinator-common</artifactId>
+        <version>2.0.0-SNAPSHOT</version>
+      </dependency>
+      <dependency>
+        <groupId>au.edu.usq.fascinator</groupId>
+        <artifactId>fascinator-plugin-api</artifactId>
+        <version>2.0.0-SNAPSHOT</version>
+      </dependency>
+      <dependency>
+        <groupId>commons-httpclient</groupId>
+        <artifactId>commons-httpclient</artifactId>
+        <version>3.1</version>
+      </dependency>
+      <dependency>
+        <groupId>commons-io</groupId>
+        <artifactId>commons-io</artifactId>
+        <version>1.4</version>
+      </dependency>
+      <dependency>
+        <groupId>dom4j</groupId>
+        <artifactId>dom4j</artifactId>
+        <version>1.6.1</version>
+        <exclusions>
+          <exclusion>
+            <groupId>xml-apis</groupId>
+            <artifactId>xml-apis</artifactId>
+          </exclusion>
+        </exclusions>
+      </dependency>
+      <dependency>
+        <groupId>jaxen</groupId>
+        <artifactId>jaxen</artifactId>
+        <version>1.1.1</version>
+        <exclusions>
+          <exclusion>
+            <groupId>com.ibm.icu</groupId>
+            <artifactId>icu4j</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>jdom</groupId>
+            <artifactId>jdom</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>xalan</groupId>
+            <artifactId>xalan</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>xerces</groupId>
+            <artifactId>xmlParserAPIs</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>xml-apis</groupId>
+            <artifactId>xml-apis</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>xerces</groupId>
+            <artifactId>xercesImpl</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>xom</groupId>
+            <artifactId>xom</artifactId>
+          </exclusion>
+        </exclusions>
+      </dependency>
+      <dependency>
+        <groupId>org.codehaus.jackson</groupId>
+        <artifactId>jackson-mapper-lgpl</artifactId>
+        <version>1.1.0</version>
+      </dependency>
+      <dependency>
+        <groupId>org.slf4j</groupId>
+        <artifactId>slf4j-api</artifactId>
+        <version>1.5.8</version>
+      </dependency>
+      <dependency>
+        <groupId>org.slf4j</groupId>
+        <artifactId>slf4j-log4j12</artifactId>
+        <version>1.5.8</version>
+      </dependency>
+      <dependency>
+        <groupId>org.slf4j</groupId>
+        <artifactId>slf4j-simple</artifactId>
+        <version>1.5.8</version>
+      </dependency>
+      <dependency>
+        <groupId>junit</groupId>
+        <artifactId>junit</artifactId>
+        <version>4.6</version>
+        <scope>test</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
   <build>
     <pluginManagement>
       <plugins>
@@ -124,4 +220,10 @@
       </plugin>
     </plugins>
   </reporting>
+  <repositories>
+    <repository>
+      <id>adfi-usq-releases</id>
+      <url>http://fascinator.usq.edu.au/nexus/content/repositories/releases/</url>
+    </repository>
+  </repositories>
 </project>
