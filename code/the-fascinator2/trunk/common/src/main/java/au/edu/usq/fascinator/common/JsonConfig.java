@@ -27,8 +27,12 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 import org.apache.commons.io.IOUtils;
+import org.codehaus.jackson.JsonEncoding;
+import org.codehaus.jackson.JsonFactory;
+import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.node.ObjectNode;
 
 /**
  * Helper class for working with JSON configuration.
@@ -45,9 +49,6 @@ public class JsonConfig {
     /** Default system configuration file name */
     private static final String SYSTEM_CONFIG_FILE = "system-config.json";
 
-    /** Default user configuration file name */
-    private static final String USER_CONFIG_FILE = "user-config.json";
-
     /** Configuration directory */
     private String configDir;
 
@@ -57,35 +58,68 @@ public class JsonConfig {
     /** JSON root node */
     private JsonNode rootNode;
 
+    /** Whether or not to load system properties */
+    private boolean useSystem;
+
     /**
      * Construct an instance with only the system settings
      * 
-     * @throws IOException
+     * @throws IOException if there was an error loading the JSON configuration
      */
     public JsonConfig() throws IOException {
-        this(new ByteArrayInputStream(new byte[] {}), null);
+        this(new ByteArrayInputStream(new byte[] {}), null, true);
+    }
+
+    /**
+     * Construct an instance with only the system settings
+     * 
+     * @param useSystem true to load system properties
+     * @throws IOException if there was an error loading the JSON configuration
+     */
+    public JsonConfig(boolean useSystem) throws IOException {
+        this(new ByteArrayInputStream(new byte[] {}), null, useSystem);
     }
 
     /**
      * Construct an instance from a JSON inputstream
      * 
      * @param jsonIn a JSON input stream
-     * @exception IOException if there was an error loading the JSON
-     *            configuration
+     * @throws IOException if there was an error loading the JSON configuration
      */
     public JsonConfig(InputStream jsonIn) throws IOException {
-        this(jsonIn, null);
+        this(jsonIn, true);
+    }
+
+    /**
+     * Construct an instance from a JSON file
+     * 
+     * @param jsonIn a JSON input stream
+     * @param useSystem true to load system properties
+     * @throws IOException if there was an error loading the JSON configuration
+     */
+    public JsonConfig(InputStream jsonIn, boolean useSystem) throws IOException {
+        this(jsonIn, null, useSystem);
     }
 
     /**
      * Construct an instance from a JSON file
      * 
      * @param jsonFile a JSON file
-     * @exception IOException if there was an error loading the JSON
-     *            configuration
+     * @throws IOException if there was an error loading the JSON configuration
      */
     public JsonConfig(File jsonFile) throws IOException {
-        this(jsonFile, null);
+        this(jsonFile, true);
+    }
+
+    /**
+     * Construct an instance from a JSON file
+     * 
+     * @param jsonFile a JSON file
+     * @param useSystem true to load system properties
+     * @throws IOException if there was an error loading the JSON configuration
+     */
+    public JsonConfig(File jsonFile, boolean useSystem) throws IOException {
+        this(jsonFile, null, useSystem);
     }
 
     /**
@@ -94,18 +128,22 @@ public class JsonConfig {
      * @param jsonIn a JSON input stream
      * @param configDir directory to read the system and user configuration
      *        files. If null, DEFAULT_CONFIG_DIR is used.
-     * @exception IOException if there was an error loading the JSON
-     *            configuration
+     * @param useSystem true to load system properties
+     * @throws IOException if there was an error loading the JSON configuration
      */
-    public JsonConfig(InputStream jsonIn, String configDir) throws IOException {
+    public JsonConfig(InputStream jsonIn, String configDir, boolean useSystem)
+            throws IOException {
         if (configDir == null) {
             configDir = DEFAULT_CONFIG_DIR;
         }
         this.configDir = configDir;
+        this.useSystem = useSystem;
 
         ObjectMapper mapper = new ObjectMapper();
         rootNode = mapper.readValue(jsonIn, JsonNode.class);
-        systemRootNode = mapper.readValue(getSystemFile(), JsonNode.class);
+        if (useSystem) {
+            systemRootNode = mapper.readValue(getSystemFile(), JsonNode.class);
+        }
     }
 
     /**
@@ -114,11 +152,12 @@ public class JsonConfig {
      * @param jsonFile a JSON file
      * @param configDir directory to read the system and user configuration
      *        files. If null, DEFAULT_CONFIG_DIR is used.
-     * @exception IOException if there was an error loading the JSON
-     *            configuration
+     * @param useSystem true to load system properties
+     * @throws IOException if there was an error loading the JSON configuration
      */
-    public JsonConfig(File jsonFile, String configDir) throws IOException {
-        this(new FileInputStream(jsonFile), configDir);
+    public JsonConfig(File jsonFile, String configDir, boolean useSystem)
+            throws IOException {
+        this(new FileInputStream(jsonFile), configDir, useSystem);
     }
 
     /**
@@ -144,7 +183,11 @@ public class JsonConfig {
     public String get(String fieldName, String defaultValue) {
         String value = get(rootNode, fieldName, null);
         if (value == null) {
-            value = get(systemRootNode, fieldName, defaultValue);
+            if (useSystem) {
+                value = get(systemRootNode, fieldName, defaultValue);
+            } else {
+                value = defaultValue;
+            }
         }
         return value;
     }
@@ -193,6 +236,48 @@ public class JsonConfig {
             return defaultValue;
         }
         return fieldNode.getTextValue();
+    }
+
+    public void set(String fieldName, String value) {
+        set(rootNode, fieldName, value);
+    }
+
+    public void set(JsonNode node, String fieldName, String value) {
+        if (fieldName.indexOf("/") != -1) {
+            JsonNode fieldNode = node.get(fieldName);
+            if (fieldNode == null) {
+                String[] fields = fieldName.split("/");
+                StringBuilder rawJson = new StringBuilder();
+                int last = fields.length - 1;
+                for (int i = 0; i < last; i++) {
+                    String field = fields[i];
+                    rawJson.append("\"");
+                    rawJson.append(field);
+                    rawJson.append("\":{");
+                }
+                rawJson.append("\"");
+                rawJson.append(fields[last]);
+                rawJson.append("\":\"");
+                rawJson.append(value);
+                rawJson.append("\"");
+                for (int i = 0; i < last; i++) {
+                    rawJson.append("}");
+                }
+                System.out.println(rawJson.toString());
+            }
+        } else {
+            ObjectNode objectNode = (ObjectNode) node;
+            objectNode.put(fieldName, value);
+        }
+    }
+
+    public void save(OutputStream out) throws IOException {
+        JsonGenerator jgen = new JsonFactory().createJsonGenerator(out,
+                JsonEncoding.UTF8);
+        jgen.setCodec(new ObjectMapper());
+        jgen.useDefaultPrettyPrinter();
+        jgen.writeTree(rootNode);
+        jgen.close();
     }
 
     /**

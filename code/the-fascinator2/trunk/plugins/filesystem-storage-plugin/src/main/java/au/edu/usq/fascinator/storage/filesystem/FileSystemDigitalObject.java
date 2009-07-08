@@ -36,8 +36,8 @@ public class FileSystemDigitalObject extends BasicDigitalObject {
 
     private String hashId;
 
-    public FileSystemDigitalObject(File homeDir, String id) {
-        super(id);
+    public FileSystemDigitalObject(File homeDir, String oid) {
+        super(oid);
         this.homeDir = homeDir;
     }
 
@@ -70,6 +70,14 @@ public class FileSystemDigitalObject extends BasicDigitalObject {
             path = new File(parentDir, encodedId);
         }
         return path;
+    }
+
+    public Payload getPayload(String pid) {
+        Payload payload = super.getPayload(pid);
+        if (payload == null) {
+            payload = new FileSystemPayload(new File(getPath(), pid));
+        }
+        return payload;
     }
 
     @Override

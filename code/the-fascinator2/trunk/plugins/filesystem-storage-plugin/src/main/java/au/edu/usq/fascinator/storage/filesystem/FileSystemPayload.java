@@ -19,6 +19,7 @@
 package au.edu.usq.fascinator.storage.filesystem;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 
 import au.edu.usq.fascinator.api.storage.Payload;
@@ -37,13 +38,25 @@ public class FileSystemPayload extends BasicPayload {
         }
     }
 
+    public FileSystemPayload(File payloadFile) {
+        setId(payloadFile.getName());
+        setLabel(payloadFile.getAbsolutePath()); // TODO get from meta?
+        setContentType("text/plain"); // TODO get proper mimetype
+        try {
+            setInputStream(new FileInputStream(payloadFile));
+        } catch (IOException e) {
+            // TODO get null input stream
+            e.printStackTrace();
+        }
+    }
+
     public File getFile() {
-        return new File(getType().name().toLowerCase(), getId());
+        return new File(getId());
     }
 
     @Override
     public String toString() {
-        return "[" + getType() + "] " + getId();
+        return getId();
     }
 
 }

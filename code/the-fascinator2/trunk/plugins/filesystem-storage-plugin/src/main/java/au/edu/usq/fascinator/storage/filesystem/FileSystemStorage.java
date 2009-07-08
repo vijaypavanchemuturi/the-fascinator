@@ -115,7 +115,7 @@ public class FileSystemStorage implements Storage {
     }
 
     public Payload getPayload(String oid, String pid) {
-        return null;
+        return getObject(oid).getPayload(pid);
     }
 
     public File getHomeDir() {

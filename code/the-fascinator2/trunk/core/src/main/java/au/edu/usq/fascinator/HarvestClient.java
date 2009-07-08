@@ -50,30 +50,25 @@ public class HarvestClient {
 
     public static final String DATETIME_FORMAT = DATE_FORMAT + "'T'hh:mm:ss'Z'";
 
-    private static final String DEFAULT_HARVESTER_TYPE = "json-queue";
-
     private static final String DEFAULT_STORAGE_TYPE = "file-system";
 
-    private static Logger log = LoggerFactory.getLogger(HarvestClient.class);
+    private static final String DEFAULT_INDEXER_TYPE = "solr";
 
-    private Storage storage;
+    private static Logger log = LoggerFactory.getLogger(HarvestClient.class);
 
     private JsonConfig config;
 
     private File configFile;
 
-    private File systemConfigFile;
-
     private File rulesFile;
 
     public HarvestClient(File jsonFile) {
+        configFile = jsonFile;
         try {
             config = new JsonConfig(jsonFile);
-            systemConfigFile = config.getSystemFile();
         } catch (IOException ioe) {
-            log.warn("Failed to load config", ioe);
+            log.warn("Failed to load config from {}", jsonFile);
         }
-        configFile = jsonFile;
     }
 
     public void run() {
@@ -81,31 +76,37 @@ public class HarvestClient {
         String now = df.format(new Date());
         long start = System.currentTimeMillis();
         log.info("Started at " + now);
+
+        Storage storage, realStorage;
         try {
-            String type = config.get("storage/type", DEFAULT_STORAGE_TYPE);
-            storage = PluginManager.getStorage(type);
-            log.info("Loaded storage: " + storage.getName());
-            storage.init(systemConfigFile);
+            realStorage = PluginManager.getStorage(config.get("storage/type",
+                    DEFAULT_STORAGE_TYPE));
+            Indexer indexer = PluginManager.getIndexer(config.get(
+                    "indexer/type", DEFAULT_INDEXER_TYPE));
+            storage = new IndexedStorage(realStorage, indexer);
+            storage.init(configFile);
+            log.info("Loaded {} and {}", realStorage.getName(), indexer
+                    .getName());
         } catch (Exception e) {
-            log.error("Failed to initialise storage plugin", e);
+            log.error("Failed to initialise storage", e);
             return;
         }
 
         rulesFile = new File(configFile.getParentFile(), config
                 .get("indexer/script/rules"));
         log.debug("rulesFile=" + rulesFile);
-        String rulesOid = null;
+        String rulesOid = rulesFile.getAbsolutePath();
         FileInputStream rulesIn = null;
         try {
             log.debug("Caching rules file " + rulesFile);
-            String rulesLabel = rulesFile.getAbsolutePath();
-            BasicDigitalObject rulesObject = new BasicDigitalObject(rulesLabel);
+            BasicDigitalObject rulesObject = new BasicDigitalObject(rulesOid);
             BasicPayload rulesPayload = new BasicPayload(rulesFile.getName(),
                     "Fascinator Indexing Rules", "text/plain");
             rulesIn = new FileInputStream(rulesFile);
             rulesPayload.setInputStream(rulesIn);
             rulesObject.addPayload(rulesPayload);
-            rulesOid = storage.addObject(rulesObject);
+            // store without indexing
+            realStorage.addObject(rulesObject);
         } catch (IOException ioe) {
             log.error("Failed to read " + rulesFile, ioe);
             return;
@@ -132,25 +133,12 @@ public class HarvestClient {
             return;
         }
 
-        String indexerType = config.get("indexer/type");
-        Indexer indexer;
-        try {
-            indexer = PluginManager.getIndexer(indexerType);
-            indexer.init(systemConfigFile);
-            log.info("Loaded indexer: " + harvester.getName());
-        } catch (PluginException pe) {
-            log.error("Failed to initialise indexer plugin", pe);
-            return;
-        }
-
-        storage = new IndexedStorage(storage, indexer);
-
         do {
             try {
                 List<DigitalObject> items = harvester.getObjects();
                 for (DigitalObject item : items) {
                     try {
-                        processObject(item, rulesOid);
+                        processObject(storage, item, rulesOid);
                     } catch (Exception e) {
                         log.warn("Processing failed: " + item.getId(), e);
                     }
@@ -163,35 +151,31 @@ public class HarvestClient {
         try {
             storage.shutdown();
         } catch (PluginException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            log.error("Failed to shutdown storage", e);
         }
 
         log.info("Completed in "
                 + ((System.currentTimeMillis() - start) / 1000.0) + " seconds");
     }
 
-    private String processObject(DigitalObject digitalObject, String rulesPid)
-            throws StorageException, IOException {
+    private String processObject(Storage storage, DigitalObject digitalObject,
+            String rulesOid) throws StorageException, IOException {
         String oid = digitalObject.getId();
         String sid = null;
         try {
             log.info("Processing " + oid + "...");
             Properties sofMeta = new Properties();
-            // sofMeta.setProperty(Indexer.ITEM_PID_KEY, itemPid);
-            // sofMeta.setProperty(Indexer.ITEM_META_DSID_KEY,
-            // item.getMetadata()
-            // .getId());
-            // sofMeta.setProperty(Indexer.RULES_ENGINE_KEY,
-            // config.getText("indexer/script/type"));
-            // sofMeta.setProperty(Indexer.RULES_PID_KEY, rulesPid);
-            // sofMeta.setProperty(Indexer.RULES_DSID_KEY, rulesFile.getName());
+            sofMeta.setProperty("oid", oid);
+            sofMeta.setProperty("metaPid", digitalObject.getMetadata().getId());
+            sofMeta.setProperty("scriptType", config.get("indexer/script/type",
+                    "python"));
+            sofMeta.setProperty("rulesOid", rulesOid);
+            sofMeta.setProperty("rulesPid", rulesFile.getName());
             ByteArrayOutputStream sofMetaOut = new ByteArrayOutputStream();
             sofMeta.store(sofMetaOut, "The Fascinator Indexer Metadata");
             sid = storage.addObject(digitalObject);
-            log.info("sid=" + sid);
             BasicPayload sofMetaDs = new BasicPayload("SOF-META",
-                    "The Fascinator Indexer Metadta", "text/plain");
+                    "The Fascinator Indexer Metadata", "text/plain");
             sofMetaDs.setInputStream(new ByteArrayInputStream(sofMetaOut
                     .toByteArray()));
             storage.addPayload(oid, sofMetaDs);

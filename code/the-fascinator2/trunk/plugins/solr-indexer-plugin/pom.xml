@@ -36,6 +36,16 @@
       <artifactId>junit</artifactId>
     </dependency>
     <dependency>
+      <groupId>org.python</groupId>
+      <artifactId>jython-standalone</artifactId>
+      <version>2.2.1</version>
+    </dependency>
+    <dependency>
+      <groupId>net.java.dev.scripting</groupId>
+      <artifactId>jython-engine</artifactId>
+      <version>2.2.1</version>
+    </dependency>
+    <dependency>
       <groupId>javax.servlet</groupId>
       <artifactId>servlet-api</artifactId>
       <version>2.4</version>

@@ -206,19 +206,20 @@ public class SolrIndexer implements Indexer {
 
         try {
             // create the item for indexing
-            String itemId = props.getProperty("item.pid");
+            String itemId = props.getProperty("oid");
             DigitalObject item = storage.getObject(itemId);
 
             // get the indexer rules
-            String rulesPid = props.getProperty("rules.pid");
+            String rulesPid = props.getProperty("rulesOid");
             File rules = createTempFile("rules", ".script");
             FileOutputStream rulesOut = new FileOutputStream(rules);
-            Payload rulesScript = storage.getPayload(rulesPid, "RULES.PY");
+            Payload rulesScript = storage.getPayload(rulesPid, props
+                    .getProperty("rulesPid"));
             IOUtils.copy(rulesScript.getInputStream(), rulesOut);
             rulesOut.close();
 
             // primary metadata datastream
-            String metadataDsid = props.getProperty("metaId", "DC");
+            String metadataDsid = props.getProperty("metaPid", "DC");
 
             // index the object
             String set = null; // TODO
@@ -239,7 +240,7 @@ public class SolrIndexer implements Indexer {
                 }
             }
         } catch (Exception e) {
-            log.error("Index failed!\n-----\n{}\n-----\n", e);
+            log.error("Index failed!\n-----\n{}\n-----\n", e.getMessage());
         } finally {
             cleanupTempFiles();
         }
@@ -325,7 +326,7 @@ public class SolrIndexer implements Indexer {
             Properties props = new Properties();
             props.load(sofMeta.getInputStream());
             return props;
-        } catch (IOException ioe) {
+        } catch (Exception ioe) {
             log.warn("Failed to load properties", ioe);
         }
         return null;

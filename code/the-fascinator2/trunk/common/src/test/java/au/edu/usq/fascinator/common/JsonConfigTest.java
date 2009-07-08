@@ -19,6 +19,7 @@
 package au.edu.usq.fascinator.common;
 
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 
 /**
@@ -28,17 +29,37 @@ import org.junit.Test;
  */
 public class JsonConfigTest {
 
+    private JsonConfig config;
+
+    @Before
+    public void setup() throws Exception {
+        config = new JsonConfig(getClass().getResourceAsStream(
+                "/test-config.json"), false);
+    }
+
     @Test
-    public void getText() throws Exception {
-        JsonConfig jc = new JsonConfig(getClass().getResourceAsStream(
-                "/config.json"));
-        Assert.assertEquals("testing", jc.get("test"));
-        Assert.assertEquals("fedora3", jc.get("storage/type"));
-        Assert.assertEquals("http://localhost:8080/fedora", jc
+    public void get() throws Exception {
+        Assert.assertEquals("testing", config.get("test"));
+        Assert.assertEquals("fedora3", config.get("storage/type"));
+        Assert.assertEquals("http://localhost:8080/fedora", config
                 .get("storage/config/uri"));
-        Assert.assertEquals("http://localhost:8080/solr", jc
+        Assert.assertEquals("http://localhost:8080/solr", config
                 .get("indexer/config/uri"));
-        Assert.assertEquals("true", jc.get("indexer/config/autocommit"));
+        Assert.assertEquals("true", config.get("indexer/config/autocommit"));
+    }
+
+    @Test
+    public void set() throws Exception {
+        config.set("new", "value");
+        config.set("test", "new value");
+        config.set("hello/world", "!!!");
+        config.set("storage/config/uri", "http://localhost:9000/fedora3");
+        config.save(System.out);
+        Assert.assertEquals("value", config.get("new"));
+        Assert.assertEquals("new value", config.get("testing"));
+        Assert.assertEquals("!!!", config.get("hello/world"));
+        Assert.assertEquals("http://localhost:9000/fedora3", config
+                .get("storage/config/uri"));
     }
 
 }
