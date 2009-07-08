@@ -36,6 +36,7 @@ import au.edu.usq.fascinator.api.PluginException;
 import au.edu.usq.fascinator.api.PluginManager;
 import au.edu.usq.fascinator.api.harvester.Harvester;
 import au.edu.usq.fascinator.api.harvester.HarvesterException;
+import au.edu.usq.fascinator.api.indexer.Indexer;
 import au.edu.usq.fascinator.api.storage.DigitalObject;
 import au.edu.usq.fascinator.api.storage.Storage;
 import au.edu.usq.fascinator.api.storage.StorageException;
@@ -61,11 +62,14 @@ public class HarvestClient {
 
     private File configFile;
 
+    private File systemConfigFile;
+
     private File rulesFile;
 
     public HarvestClient(File jsonFile) {
         try {
             config = new JsonConfig(jsonFile);
+            systemConfigFile = config.getSystemFile();
         } catch (IOException ioe) {
             log.warn("Failed to load config", ioe);
         }
@@ -79,10 +83,9 @@ public class HarvestClient {
         log.info("Started at " + now);
         try {
             String type = config.get("storage/type", DEFAULT_STORAGE_TYPE);
-            log.info("type: {}", type);
             storage = PluginManager.getStorage(type);
             log.info("Loaded storage: " + storage.getName());
-            storage.init(config.getSystemFile());
+            storage.init(systemConfigFile);
         } catch (Exception e) {
             log.error("Failed to initialise storage plugin", e);
             return;
@@ -118,42 +121,51 @@ public class HarvestClient {
             }
         }
 
-        String sourceType = config.get("harvest/type");
+        String harvestType = config.get("harvest/type");
         Harvester harvester;
         try {
-            harvester = PluginManager.getHarvester(sourceType);
-            if (harvester != null) {
-                harvester.init(configFile);
-            }
+            harvester = PluginManager.getHarvester(harvestType);
+            harvester.init(configFile);
             log.info("Loaded harvester: " + harvester.getName());
         } catch (PluginException pe) {
             log.error("Failed to initialise harvester plugin", pe);
             return;
         }
 
-        // Indexer indexer = new SolrIndexer(registry, props);
+        String indexerType = config.get("indexer/type");
+        Indexer indexer;
+        try {
+            indexer = PluginManager.getIndexer(indexerType);
+            indexer.init(systemConfigFile);
+            log.info("Loaded indexer: " + harvester.getName());
+        } catch (PluginException pe) {
+            log.error("Failed to initialise indexer plugin", pe);
+            return;
+        }
+
+        storage = new IndexedStorage(storage, indexer);
 
         do {
             try {
                 List<DigitalObject> items = harvester.getObjects();
                 for (DigitalObject item : items) {
                     try {
-                        String pid = processObject(item, rulesOid);
-                        // if (!registry.useAsyncIndexing()) {
-                        // indexer.index(pid);
-                        // }
+                        processObject(item, rulesOid);
                     } catch (Exception e) {
                         log.warn("Processing failed: " + item.getId(), e);
                     }
-                    log.debug("*** BREAK 1");
-                    break;
                 }
             } catch (HarvesterException he) {
                 log.error(he.getMessage());
             }
-            log.debug("*** BREAK 2");
-            break;
         } while (harvester.hasMoreObjects());
+
+        try {
+            storage.shutdown();
+        } catch (PluginException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
 
         log.info("Completed in "
                 + ((System.currentTimeMillis() - start) / 1000.0) + " seconds");

@@ -26,6 +26,7 @@ public interface Indexer extends Plugin {
 
     public void index(String oid, String pid) throws IndexerException;
 
-    public void delete(String oid) throws IndexerException;
+    public void remove(String oid) throws IndexerException;
 
+    public void remove(String oid, String pid) throws IndexerException;
 }

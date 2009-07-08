@@ -79,6 +79,8 @@ public class SolrIndexer implements Indexer {
 
     private SolrServer solr;
 
+    private CoreContainer coreContainer;
+
     private boolean autoCommit;
 
     private String propertiesId;
@@ -113,7 +115,7 @@ public class SolrIndexer implements Indexer {
             if ("file".equals(solrUri.getScheme())) {
                 SolrResourceLoader loader = new SolrResourceLoader(new File(
                         solrUri).getAbsolutePath());
-                CoreContainer coreContainer = new CoreContainer(loader);
+                coreContainer = new CoreContainer(loader);
                 CoreDescriptor coreDesc = new CoreDescriptor(coreContainer,
                         "MainCore", loader.getInstanceDir());
                 try {
@@ -149,16 +151,31 @@ public class SolrIndexer implements Indexer {
 
     @Override
     public void shutdown() throws PluginException {
+        if (coreContainer != null) {
+            coreContainer.shutdown();
+        }
     }
 
     public Storage getStorage() {
         return storage;
     }
 
-    public void delete(String oid) throws IndexerException {
+    public void remove(String oid) throws IndexerException {
         log.debug("Deleting " + oid + " from index");
         try {
             solr.deleteByQuery("oid:\"" + oid + "\"");
+            solr.commit();
+        } catch (SolrServerException sse) {
+            throw new IndexerException(sse);
+        } catch (IOException ioe) {
+            throw new IndexerException(ioe);
+        }
+    }
+
+    public void remove(String oid, String pid) throws IndexerException {
+        log.debug("Deleting " + oid + " from index");
+        try {
+            solr.deleteByQuery("oid:\"" + oid + "\" AND pid:\"" + pid + "\"");
             solr.commit();
         } catch (SolrServerException sse) {
             throw new IndexerException(sse);

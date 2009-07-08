@@ -61,7 +61,11 @@ public class OaiPmhHarvester implements Harvester {
         } catch (IOException ioe) {
             throw new PluginException(ioe);
         }
-        maxRequests = Integer.MAX_VALUE;
+        maxRequests = Integer.parseInt(config.get(
+                "harvest/oai-pmh/max.requests", "-1"));
+        if (maxRequests == -1) {
+            maxRequests = Integer.MAX_VALUE;
+        }
         started = false;
         numRequests = 0;
     }
