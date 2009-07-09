@@ -9,8 +9,8 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import au.edu.usq.fascinator.api.storage.impl.BasicDigitalObject;
-import au.edu.usq.fascinator.api.storage.impl.BasicPayload;
+import au.edu.usq.fascinator.api.storage.impl.GenericDigitalObject;
+import au.edu.usq.fascinator.api.storage.impl.GenericPayload;
 import au.edu.usq.fascinator.storage.filesystem.FileSystemDigitalObject;
 import au.edu.usq.fascinator.storage.filesystem.FileSystemStorage;
 
@@ -18,13 +18,13 @@ public class FileSystemStorageTest {
 
     private FileSystemStorage fs;
 
-    private BasicDigitalObject testObject1;
+    private GenericDigitalObject testObject1;
 
     @Before
     public void setup() {
         fs = new FileSystemStorage();
-        testObject1 = new BasicDigitalObject("oai:eprints.usq.edu.au:318", "DC");
-        BasicPayload testPayload1 = new BasicPayload("DC",
+        testObject1 = new GenericDigitalObject("oai:eprints.usq.edu.au:318", "DC");
+        GenericPayload testPayload1 = new GenericPayload("DC",
                 "Dublin Core Metadata", "text/xml");
         testPayload1.setInputStream(getClass().getResourceAsStream("/dc.xml"));
         testObject1.addPayload(testPayload1);

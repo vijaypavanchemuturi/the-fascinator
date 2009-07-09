@@ -21,14 +21,15 @@ package au.edu.usq.fascinator;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.List;
 import java.util.Properties;
 
+import org.semanticdesktop.aperture.extractor.ExtractorException;
+import org.semanticdesktop.aperture.rdf.RDFContainer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,9 +41,9 @@ import au.edu.usq.fascinator.api.indexer.Indexer;
 import au.edu.usq.fascinator.api.storage.DigitalObject;
 import au.edu.usq.fascinator.api.storage.Storage;
 import au.edu.usq.fascinator.api.storage.StorageException;
-import au.edu.usq.fascinator.api.storage.impl.BasicDigitalObject;
-import au.edu.usq.fascinator.api.storage.impl.BasicPayload;
+import au.edu.usq.fascinator.api.storage.impl.GenericPayload;
 import au.edu.usq.fascinator.common.JsonConfig;
+import au.edu.usq.fascinator.extractor.aperture.Extractor;
 
 public class HarvestClient {
 
@@ -95,31 +96,16 @@ public class HarvestClient {
         rulesFile = new File(configFile.getParentFile(), config
                 .get("indexer/script/rules"));
         log.debug("rulesFile=" + rulesFile);
-        String rulesOid = rulesFile.getAbsolutePath();
-        FileInputStream rulesIn = null;
+
+        String rulesOid;
         try {
             log.debug("Caching rules file " + rulesFile);
-            BasicDigitalObject rulesObject = new BasicDigitalObject(rulesOid);
-            BasicPayload rulesPayload = new BasicPayload(rulesFile.getName(),
-                    "Fascinator Indexing Rules", "text/plain");
-            rulesIn = new FileInputStream(rulesFile);
-            rulesPayload.setInputStream(rulesIn);
-            rulesObject.addPayload(rulesPayload);
-            // store without indexing
+            DigitalObject rulesObject = new RulesDigitalObject(rulesFile);
             realStorage.addObject(rulesObject);
-        } catch (IOException ioe) {
-            log.error("Failed to read " + rulesFile, ioe);
-            return;
+            rulesOid = rulesObject.getId();
         } catch (StorageException se) {
             log.error("Failed to cache indexing rules, stopping", se);
             return;
-        } finally {
-            if (rulesIn != null) {
-                try {
-                    rulesIn.close();
-                } catch (IOException ioe) {
-                }
-            }
         }
 
         String harvestType = config.get("harvest/type");
@@ -135,8 +121,7 @@ public class HarvestClient {
 
         do {
             try {
-                List<DigitalObject> items = harvester.getObjects();
-                for (DigitalObject item : items) {
+                for (DigitalObject item : harvester.getObjects()) {
                     try {
                         processObject(storage, item, rulesOid);
                     } catch (Exception e) {
@@ -144,7 +129,7 @@ public class HarvestClient {
                     }
                 }
             } catch (HarvesterException he) {
-                log.error(he.getMessage());
+                log.error("Failed to harvest", he);
             }
         } while (harvester.hasMoreObjects());
 
@@ -158,27 +143,39 @@ public class HarvestClient {
                 + ((System.currentTimeMillis() - start) / 1000.0) + " seconds");
     }
 
-    private String processObject(Storage storage, DigitalObject digitalObject,
+    private String processObject(Storage storage, DigitalObject object,
             String rulesOid) throws StorageException, IOException {
-        String oid = digitalObject.getId();
+        String oid = object.getId();
         String sid = null;
         try {
             log.info("Processing " + oid + "...");
             Properties sofMeta = new Properties();
             sofMeta.setProperty("oid", oid);
-            sofMeta.setProperty("metaPid", digitalObject.getMetadata().getId());
+            sofMeta.setProperty("metaPid", object.getMetadata().getId());
             sofMeta.setProperty("scriptType", config.get("indexer/script/type",
                     "python"));
             sofMeta.setProperty("rulesOid", rulesOid);
             sofMeta.setProperty("rulesPid", rulesFile.getName());
             ByteArrayOutputStream sofMetaOut = new ByteArrayOutputStream();
             sofMeta.store(sofMetaOut, "The Fascinator Indexer Metadata");
-            sid = storage.addObject(digitalObject);
-            BasicPayload sofMetaDs = new BasicPayload("SOF-META",
+            GenericPayload sofMetaDs = new GenericPayload("SOF-META",
                     "The Fascinator Indexer Metadata", "text/plain");
             sofMetaDs.setInputStream(new ByteArrayInputStream(sofMetaOut
                     .toByteArray()));
             storage.addPayload(oid, sofMetaDs);
+
+            try {
+                RDFContainer rdf = Extractor.extractRDF(oid);
+                RdfDigitalObject rdo = new RdfDigitalObject(object, rdf);
+                sid = storage.addObject(rdo);
+            } catch (ExtractorException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            } catch (URISyntaxException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+
         } catch (StorageException re) {
             throw new IOException(re.getMessage());
         }

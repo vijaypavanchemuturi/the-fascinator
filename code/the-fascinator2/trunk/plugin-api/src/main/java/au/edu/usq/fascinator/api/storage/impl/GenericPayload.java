@@ -29,7 +29,7 @@ import au.edu.usq.fascinator.api.storage.PayloadType;
  * 
  * @author Oliver Lucido
  */
-public class BasicPayload implements Payload {
+public class GenericPayload implements Payload {
 
     private static final String UNDEFINED = "[undefined]";
 
@@ -45,11 +45,11 @@ public class BasicPayload implements Payload {
 
     private InputStream inputStream;
 
-    public BasicPayload() {
+    public GenericPayload() {
         this(UNDEFINED, UNDEFINED, DEFAULT_CONTENT_TYPE);
     }
 
-    public BasicPayload(String id, String label, String contentType) {
+    public GenericPayload(String id, String label, String contentType) {
         setId(id);
         setLabel(label);
         setContentType(contentType);

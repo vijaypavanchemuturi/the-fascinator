@@ -2,9 +2,9 @@ package au.edu.usq.fascinator.harvester;
 
 import se.kb.oai.pmh.Record;
 import au.edu.usq.fascinator.api.storage.Payload;
-import au.edu.usq.fascinator.api.storage.impl.BasicDigitalObject;
+import au.edu.usq.fascinator.api.storage.impl.GenericDigitalObject;
 
-public class OaiPmhDigitalObject extends BasicDigitalObject {
+public class OaiPmhDigitalObject extends GenericDigitalObject {
 
     private Record record;
 

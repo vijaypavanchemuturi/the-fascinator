@@ -104,7 +104,7 @@
         <configuration>
           <archive>
             <manifest>
-              <mainClass>au.edu.usq.fascinator.harvester.extractor.Extractor</mainClass>
+              <mainClass>au.edu.usq.fascinator.extractor.aperture.Extractor</mainClass>
             </manifest>
           </archive>
         </configuration>

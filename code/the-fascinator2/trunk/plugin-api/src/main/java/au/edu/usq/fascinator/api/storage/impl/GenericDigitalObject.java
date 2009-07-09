@@ -29,7 +29,7 @@ import au.edu.usq.fascinator.api.storage.Payload;
  * 
  * @author Oliver Lucido
  */
-public class BasicDigitalObject implements DigitalObject {
+public class GenericDigitalObject implements DigitalObject {
 
     private String id;
 
@@ -37,11 +37,11 @@ public class BasicDigitalObject implements DigitalObject {
 
     private List<Payload> payloadList;
 
-    public BasicDigitalObject(String id) {
+    public GenericDigitalObject(String id) {
         this(id, null);
     }
 
-    public BasicDigitalObject(String id, String metaId) {
+    public GenericDigitalObject(String id, String metaId) {
         setId(id);
         setMetaId(metaId);
     }

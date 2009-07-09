@@ -23,9 +23,9 @@ import java.io.FileInputStream;
 import java.io.IOException;
 
 import au.edu.usq.fascinator.api.storage.Payload;
-import au.edu.usq.fascinator.api.storage.impl.BasicPayload;
+import au.edu.usq.fascinator.api.storage.impl.GenericPayload;
 
-public class FileSystemPayload extends BasicPayload {
+public class FileSystemPayload extends GenericPayload {
 
     public FileSystemPayload(Payload payload) {
         super(payload.getId(), payload.getLabel(), payload.getContentType());
@@ -33,8 +33,6 @@ public class FileSystemPayload extends BasicPayload {
         try {
             setInputStream(payload.getInputStream());
         } catch (IOException e) {
-            // TODO get null input stream
-            e.printStackTrace();
         }
     }
 
@@ -45,8 +43,6 @@ public class FileSystemPayload extends BasicPayload {
         try {
             setInputStream(new FileInputStream(payloadFile));
         } catch (IOException e) {
-            // TODO get null input stream
-            e.printStackTrace();
         }
     }
 
@@ -56,7 +52,7 @@ public class FileSystemPayload extends BasicPayload {
 
     @Override
     public String toString() {
-        return getId();
+        return String.format("%s (%s)", getId(), getFile().getAbsolutePath());
     }
 
 }

@@ -38,9 +38,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
-import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
-import javax.script.ScriptEngineFactory;
 import javax.script.ScriptEngineManager;
 
 import org.apache.commons.httpclient.HttpClient;
@@ -57,7 +55,6 @@ import org.apache.solr.core.CoreContainer;
 import org.apache.solr.core.CoreDescriptor;
 import org.apache.solr.core.SolrCore;
 import org.apache.solr.core.SolrResourceLoader;
-import org.python.core.PySystemState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -195,11 +192,10 @@ public class SolrIndexer implements Indexer {
     }
 
     public void index(String oid, String pid) throws IndexerException {
-        log.info("Indexing " + oid + "/" + pid);
-        
         if (propertiesId.equals(pid)) {
             return;
         }
+        log.info("Indexing " + oid + "/" + pid);
 
         // get the indexer properties or we can't index
         Properties props = getIndexerProperties(oid);
@@ -210,8 +206,8 @@ public class SolrIndexer implements Indexer {
 
         try {
             // create the item for indexing
-            String itemId = props.getProperty("oid");
-            DigitalObject item = storage.getObject(itemId);
+            String objectId = props.getProperty("oid", oid);
+            DigitalObject object = storage.getObject(objectId);
 
             // get the indexer rules
             String rulesPid = props.getProperty("rulesOid");
@@ -223,15 +219,15 @@ public class SolrIndexer implements Indexer {
             rulesOut.close();
 
             // primary metadata datastream
-            String metadataDsid = props.getProperty("metaPid", "DC");
+            String metaPid = props.getProperty("metaPid", "DC");
 
             // index the object
             String set = null; // TODO
             File solrFile = null;
-            if (metadataDsid.equals(pid)) {
-                solrFile = indexMetadata(item, oid, set, rules, props);
+            if (metaPid.equals(pid)) {
+                solrFile = indexMetadata(object, oid, set, rules, props);
             } else {
-                solrFile = indexDatastream(item, oid, pid, rules, props);
+                solrFile = indexDatastream(object, oid, pid, rules, props);
             }
             if (solrFile != null) {
                 InputStream inputDoc = new FileInputStream(solrFile);
@@ -244,6 +240,7 @@ public class SolrIndexer implements Indexer {
                 }
             }
         } catch (Exception e) {
+            e.printStackTrace();
             log.error("Indexing failed!\n-----\n{}\n-----\n", e.getMessage());
         } finally {
             cleanupTempFiles();
@@ -255,7 +252,7 @@ public class SolrIndexer implements Indexer {
             StorageException, RuleException {
         log.info("Indexing metadata...");
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        Payload ds = storage.getPayload(pid, item.getMetadata().getId());
+        Payload ds = item.getPayload(props.getProperty("metaPid"));
         IOUtils.copy(ds.getInputStream(), out);
         InputStreamReader in = new InputStreamReader(new ByteArrayInputStream(
                 out.toByteArray()), "UTF-8");
@@ -269,9 +266,9 @@ public class SolrIndexer implements Indexer {
         return index(item, pid, dsId, null, in, rulesFile, props);
     }
 
-    private File index(DigitalObject item, String pid, String dsId, String set,
-            Reader in, File ruleScript, Properties props) throws IOException,
-            RuleException {
+    private File index(DigitalObject object, String sid, String pid,
+            String set, Reader in, File ruleScript, Properties props)
+            throws IOException, RuleException {
         File solrFile = createTempFile("solr", ".xml");
         Writer out = new OutputStreamWriter(new FileOutputStream(solrFile),
                 "UTF-8");
@@ -287,10 +284,11 @@ public class SolrIndexer implements Indexer {
             RuleManager rules = new RuleManager();
             scriptEngine.put("indexer", this);
             scriptEngine.put("rules", rules);
-            scriptEngine.put("pid", pid);
-            scriptEngine.put("dsId", dsId);
-            scriptEngine.put("item", item);
+            scriptEngine.put("object", object);
+            scriptEngine.put("payloadId", pid);
+            scriptEngine.put("storageId", sid);
             scriptEngine.put("params", props);
+            scriptEngine.put("isMetadata", pid == null);
             // TODO add required solr fields?
             scriptEngine.eval(new FileReader(ruleScript));
             rules.run(in, out);

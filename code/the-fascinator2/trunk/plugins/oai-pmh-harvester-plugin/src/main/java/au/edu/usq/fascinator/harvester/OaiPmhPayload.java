@@ -8,9 +8,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import se.kb.oai.pmh.Record;
-import au.edu.usq.fascinator.api.storage.impl.BasicPayload;
+import au.edu.usq.fascinator.api.storage.impl.GenericPayload;
 
-public class OaiPmhPayload extends BasicPayload {
+public class OaiPmhPayload extends GenericPayload {
 
     private Logger log = LoggerFactory.getLogger(OaiPmhPayload.class);
 

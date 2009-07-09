@@ -29,10 +29,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import au.edu.usq.fascinator.api.storage.PayloadType;
-import au.edu.usq.fascinator.api.storage.impl.BasicDigitalObject;
-import au.edu.usq.fascinator.api.storage.impl.BasicPayload;
+import au.edu.usq.fascinator.api.storage.impl.GenericDigitalObject;
+import au.edu.usq.fascinator.api.storage.impl.GenericPayload;
 
-public class JsonQDigitalObject extends BasicDigitalObject {
+public class JsonQDigitalObject extends GenericDigitalObject {
 
     private Logger log = LoggerFactory.getLogger(JsonQDigitalObject.class);
 
@@ -41,7 +41,7 @@ public class JsonQDigitalObject extends BasicDigitalObject {
         try {
             URL url = new URL(URLDecoder.decode(uri, "UTF-8"));
             setId(url.toString());
-            BasicPayload payload = new BasicPayload();
+            GenericPayload payload = new GenericPayload();
             payload.setId("CONTENT");
             payload.setLabel(uri);
             payload.setPayloadType(PayloadType.External);

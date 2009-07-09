@@ -21,14 +21,15 @@ package au.edu.usq.fascinator.storage.filesystem;
 import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.apache.commons.codec.digest.DigestUtils;
 
-import au.edu.usq.fascinator.api.storage.DigitalObject;
 import au.edu.usq.fascinator.api.storage.Payload;
-import au.edu.usq.fascinator.api.storage.impl.BasicDigitalObject;
+import au.edu.usq.fascinator.api.storage.impl.GenericDigitalObject;
 
-public class FileSystemDigitalObject extends BasicDigitalObject {
+public class FileSystemDigitalObject extends GenericDigitalObject {
 
     private File homeDir;
 
@@ -39,15 +40,6 @@ public class FileSystemDigitalObject extends BasicDigitalObject {
     public FileSystemDigitalObject(File homeDir, String oid) {
         super(oid);
         this.homeDir = homeDir;
-    }
-
-    public FileSystemDigitalObject(File homeDir, DigitalObject object) {
-        super(object.getId());
-        this.homeDir = homeDir;
-        for (Payload payload : object.getPayloadList()) {
-            FileSystemPayload filePayload = new FileSystemPayload(payload);
-            addPayload(filePayload);
-        }
     }
 
     public String getHashId() {
@@ -72,12 +64,17 @@ public class FileSystemDigitalObject extends BasicDigitalObject {
         return path;
     }
 
-    public Payload getPayload(String pid) {
-        Payload payload = super.getPayload(pid);
-        if (payload == null) {
-            payload = new FileSystemPayload(new File(getPath(), pid));
+    public List<Payload> getPayloadList() {
+        List<Payload> payloadList = new ArrayList<Payload>();
+        File[] files = getPath().listFiles();
+        if (files != null) {
+            for (File file : files) {
+                if (file.isFile()) {
+                    payloadList.add(new FileSystemPayload(file));
+                }
+            }
         }
-        return payload;
+        return payloadList;
     }
 
     @Override

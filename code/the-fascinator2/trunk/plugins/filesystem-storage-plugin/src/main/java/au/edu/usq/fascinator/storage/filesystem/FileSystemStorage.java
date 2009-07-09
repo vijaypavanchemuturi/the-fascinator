@@ -75,9 +75,9 @@ public class FileSystemStorage implements Storage {
 
     public String addObject(DigitalObject object) throws StorageException {
         FileSystemDigitalObject fileObject = new FileSystemDigitalObject(
-                homeDir, object);
+                homeDir, object.getId());
         log.info("Adding object {}", fileObject);
-        for (Payload payload : fileObject.getPayloadList()) {
+        for (Payload payload : object.getPayloadList()) {
             addPayload(fileObject.getId(), payload);
         }
         return fileObject.getPath().getAbsolutePath();
