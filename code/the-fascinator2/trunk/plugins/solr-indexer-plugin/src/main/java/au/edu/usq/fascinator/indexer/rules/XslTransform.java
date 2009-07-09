@@ -36,15 +36,15 @@ import javax.xml.transform.stream.StreamSource;
 import au.edu.usq.fascinator.api.indexer.rule.Rule;
 import au.edu.usq.fascinator.api.indexer.rule.RuleException;
 
-public class Transform extends Rule {
+public class XslTransform extends Rule {
 
     private Transformer transformer;
 
-    public Transform(InputStream xsl) throws RuleException {
+    public XslTransform(InputStream xsl) throws RuleException {
         this(xsl, null);
     }
 
-    public Transform(InputStream xsl, Map<String, String> params)
+    public XslTransform(InputStream xsl, Map<String, String> params)
             throws RuleException {
         super("XSLT transform", true);
         TransformerFactory tf = TransformerFactory.newInstance();
@@ -57,6 +57,7 @@ public class Transform extends Rule {
                 }
             }
         } catch (TransformerConfigurationException tce) {
+            tce.printStackTrace();
             throw new RuleException("Failed to load stylesheet", tce);
         }
     }

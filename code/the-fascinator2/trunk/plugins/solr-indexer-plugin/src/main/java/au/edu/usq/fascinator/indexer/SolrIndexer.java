@@ -38,7 +38,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
+import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
+import javax.script.ScriptEngineFactory;
 import javax.script.ScriptEngineManager;
 
 import org.apache.commons.httpclient.HttpClient;
@@ -55,6 +57,7 @@ import org.apache.solr.core.CoreContainer;
 import org.apache.solr.core.CoreDescriptor;
 import org.apache.solr.core.SolrCore;
 import org.apache.solr.core.SolrResourceLoader;
+import org.python.core.PySystemState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -187,15 +190,16 @@ public class SolrIndexer implements Indexer {
     public void index(String oid) throws IndexerException {
         List<Payload> payloadList = storage.getObject(oid).getPayloadList();
         for (Payload payload : payloadList) {
-            String pid = payload.getId();
-            if (!propertiesId.equals(pid)) {
-                index(oid, pid);
-            }
+            index(oid, payload.getId());
         }
     }
 
     public void index(String oid, String pid) throws IndexerException {
         log.info("Indexing " + oid + "/" + pid);
+        
+        if (propertiesId.equals(pid)) {
+            return;
+        }
 
         // get the indexer properties or we can't index
         Properties props = getIndexerProperties(oid);
@@ -240,7 +244,7 @@ public class SolrIndexer implements Indexer {
                 }
             }
         } catch (Exception e) {
-            log.error("Index failed!\n-----\n{}\n-----\n", e.getMessage());
+            log.error("Indexing failed!\n-----\n{}\n-----\n", e.getMessage());
         } finally {
             cleanupTempFiles();
         }
@@ -272,7 +276,7 @@ public class SolrIndexer implements Indexer {
         Writer out = new OutputStreamWriter(new FileOutputStream(solrFile),
                 "UTF-8");
         try {
-            String engineName = props.getProperty("rules.engine", "python");
+            String engineName = props.getProperty("scriptType", "python");
             ScriptEngineManager scriptEngineManager = new ScriptEngineManager();
             ScriptEngine scriptEngine = scriptEngineManager
                     .getEngineByName(engineName);
@@ -294,23 +298,6 @@ public class SolrIndexer implements Indexer {
                 log.info("Indexing rules were cancelled");
                 return null;
             }
-
-            // PythonInterpreter python = new PythonInterpreter();
-            // RuleManager rules = new RuleManager();
-            // python.set("self", this);
-            // python.set("rules", rules);
-            // python.set("pid", pid);
-            // python.set("dsId", dsId);
-            // python.set("collection", set);
-            // python.set("item", item);
-            // python.set("params", props);
-            // python.execfile(ruleScript.getAbsolutePath());
-            // rules.run(in, out);
-            // if (rules.cancelled()) {
-            // log.info("Indexing rules were cancelled");
-            // return null;
-            // }
-            // python.cleanup();
         } catch (Exception e) {
             throw new RuleException(e);
         } finally {

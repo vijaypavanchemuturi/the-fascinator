@@ -1,6 +1,5 @@
 import time
-from au.edu.usq.solr.index.rule import RuleManager
-from au.edu.usq.solr.index.rule.impl import *
+from au.edu.usq.fascinator.indexer.rules import XslTransform, CheckField, ModifyField, DeleteField, AddField
 
 # Available objects:
 #    self: harvester
@@ -12,49 +11,49 @@ from au.edu.usq.solr.index.rule.impl import *
 #
 
 # dc to solr transform
-rules.add(TransformRule(self.getResource("/xsl/dc_solr.xsl")))
+rules.add(XslTransform(indexer.getResource("/xsl/DublinCoreToSolr.xsl")))
 
 # at least one relation with url value
-rules.add(CheckFieldRule("relation", "http.*"))
+rules.add(CheckField("relation", "http.*"))
 
 # at least one non-blank title
-rules.add(CheckFieldRule("title", ".+"))
+rules.add(CheckField("title", ".+"))
 
 # use only the year from date field
-rules.add(ModifyFieldRule("date", ".*(\\d{4}).*", "$1"))
+rules.add(ModifyField("date", ".*(\\d{4}).*", "$1"))
 
 # delete invalid dates
-rules.add(DeleteFieldRule("date", "(.*[^0-9].*)|(^\\s*$)"))
+rules.add(DeleteField("date", "(.*[^0-9].*)|(^\\s*$)"))
 
 # delete blank subject
-rules.add(DeleteFieldRule("subject", "^\\s*$"))
+rules.add(DeleteField("subject", "^\\s*$"))
 
 # delete blank creator
-rules.add(DeleteFieldRule("creator", "^\\s*$"))
+rules.add(DeleteField("creator", "^\\s*$"))
 
 # reformat subject from 'code description' to 'description (code)'
-rules.add(ModifyFieldRule("subject", "^(\\d{6}) (.*)$", "$2 ($1)"))
+rules.add(ModifyField("subject", "^(\\d{6}) (.*)$", "$2 ($1)"))
 
 # reformat types to MACAR standards
-rules.add(ModifyFieldRule("type", "^Book \\(DEST Category A\\)$", "book"))
-rules.add(ModifyFieldRule("type", "^Book Chapter \\(DEST Category B\\)$", "book chapter"))
-rules.add(ModifyFieldRule("type", "^Conference or Workshop Item \\(DEST Category E\\)$", "conference item"))
-rules.add(ModifyFieldRule("type", "^Article \\(DEST Category C\\)$", "journal article"))
-rules.add(ModifyFieldRule("type", "^Patent$", "patent"))
-rules.add(ModifyFieldRule("type", "^Report$", "report"))
-rules.add(ModifyFieldRule("type", "^Thesis$", "thesis"))
+rules.add(ModifyField("type", "^Book \\(DEST Category A\\)$", "book"))
+rules.add(ModifyField("type", "^Book Chapter \\(DEST Category B\\)$", "book chapter"))
+rules.add(ModifyField("type", "^Conference or Workshop Item \\(DEST Category E\\)$", "conference item"))
+rules.add(ModifyField("type", "^Article \\(DEST Category C\\)$", "journal article"))
+rules.add(ModifyField("type", "^Patent$", "patent"))
+rules.add(ModifyField("type", "^Report$", "report"))
+rules.add(ModifyField("type", "^Thesis$", "thesis"))
 
-rules.add(ModifyFieldRule("type", "^PeerReviewed$", "peer reviewed"))
-rules.add(ModifyFieldRule("type", "^NonPeerReviewed$", "non peer reviewed"))
+rules.add(ModifyField("type", "^PeerReviewed$", "peer reviewed"))
+rules.add(ModifyField("type", "^NonPeerReviewed$", "non peer reviewed"))
 
-rules.add(ModifyFieldRule("type", "^ADT_Thesis$", "australasian digital thesis"))
-rules.add(ModifyFieldRule("type", "^USQ Project$", "project"))
-rules.add(ModifyFieldRule("type", "^Other$", "other"))
+rules.add(ModifyField("type", "^ADT_Thesis$", "australasian digital thesis"))
+rules.add(ModifyField("type", "^USQ Project$", "project"))
+rules.add(ModifyField("type", "^Other$", "other"))
 
 # repository name
-rules.add(AddFieldRule("repository_name", params["repository.name"]))
-rules.add(AddFieldRule("project_affiliation", params["project.affiliation"]))
-rules.add(AddFieldRule("repository_type", params["repository.type"]))
+rules.add(AddField("repository_name", params["repository.name"]))
+rules.add(AddField("project_affiliation", params["project.affiliation"]))
+rules.add(AddField("repository_type", params["repository.type"]))
 
 if dsId is None:
     solrId = item.getId();
@@ -62,22 +61,22 @@ if dsId is None:
 else:
     solrId = item.getId() + "/" + dsId
     itemType = "datastream"
-    rules.add(AddFieldRule("identifier", dsId))
+    rules.add(AddField("identifier", dsId))
 
 # unique identifier
-rules.add(AddFieldRule("id", solrId))
-rules.add(AddFieldRule("last_modified", time.strftime("%Y-%m-%dT%H:%M:%SZ")))
+rules.add(AddField("id", solrId))
+rules.add(AddField("last_modified", time.strftime("%Y-%m-%dT%H:%M:%SZ")))
 
 # registry pid
-rules.add(AddFieldRule("pid", pid))
+rules.add(AddField("pid", pid))
 
 # item type
-rules.add(AddFieldRule("item_type", itemType))
+rules.add(AddField("item_type", itemType))
 
 # group access
 #   default to "guest"
-groupAccess = AddFieldRule("group_access", "guest")
+groupAccess = AddField("group_access", "guest")
 rules.add(groupAccess)
 
 # item class
-rules.add(AddFieldRule("item_class", "document"))
+rules.add(AddField("item_class", "document"))
