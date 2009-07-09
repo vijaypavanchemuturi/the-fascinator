@@ -20,6 +20,7 @@ package au.edu.usq.fascinator.common;
 
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -48,6 +49,7 @@ public class JsonConfigTest {
         Assert.assertEquals("true", config.get("indexer/config/autocommit"));
     }
 
+    @Ignore
     @Test
     public void set() throws Exception {
         config.set("new", "value");
