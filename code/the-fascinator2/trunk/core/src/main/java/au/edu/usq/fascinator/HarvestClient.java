@@ -22,14 +22,11 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.net.URISyntaxException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Properties;
 
-import org.semanticdesktop.aperture.extractor.ExtractorException;
-import org.semanticdesktop.aperture.rdf.RDFContainer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,11 +36,11 @@ import au.edu.usq.fascinator.api.harvester.Harvester;
 import au.edu.usq.fascinator.api.harvester.HarvesterException;
 import au.edu.usq.fascinator.api.indexer.Indexer;
 import au.edu.usq.fascinator.api.storage.DigitalObject;
+import au.edu.usq.fascinator.api.storage.Payload;
 import au.edu.usq.fascinator.api.storage.Storage;
 import au.edu.usq.fascinator.api.storage.StorageException;
 import au.edu.usq.fascinator.api.storage.impl.GenericPayload;
 import au.edu.usq.fascinator.common.JsonConfig;
-import au.edu.usq.fascinator.extractor.aperture.Extractor;
 
 public class HarvestClient {
 
@@ -150,8 +147,11 @@ public class HarvestClient {
         try {
             log.info("Processing " + oid + "...");
             Properties sofMeta = new Properties();
-            sofMeta.setProperty("oid", oid);
-            sofMeta.setProperty("metaPid", object.getMetadata().getId());
+            sofMeta.setProperty("objectId", oid);
+            Payload metadata = object.getMetadata();
+            if (metadata != null) {
+                sofMeta.setProperty("metaPid", metadata.getId());
+            }
             sofMeta.setProperty("scriptType", config.get("indexer/script/type",
                     "python"));
             sofMeta.setProperty("rulesOid", rulesOid);
@@ -164,17 +164,19 @@ public class HarvestClient {
                     .toByteArray()));
             storage.addPayload(oid, sofMetaDs);
 
-            try {
-                RDFContainer rdf = Extractor.extractRDF(oid);
-                RdfDigitalObject rdo = new RdfDigitalObject(object, rdf);
-                sid = storage.addObject(rdo);
-            } catch (ExtractorException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            } catch (URISyntaxException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            }
+            storage.addObject(object);
+
+            // try {
+            // RDFContainer rdf = Extractor.extractRDF(oid);
+            // RdfDigitalObject rdo = new RdfDigitalObject(object, rdf);
+            // sid = storage.addObject(rdo);
+            // } catch (ExtractorException e) {
+            // // TODO Auto-generated catch block
+            // e.printStackTrace();
+            // } catch (URISyntaxException e) {
+            // // TODO Auto-generated catch block
+            // e.printStackTrace();
+            // }
 
         } catch (StorageException re) {
             throw new IOException(re.getMessage());

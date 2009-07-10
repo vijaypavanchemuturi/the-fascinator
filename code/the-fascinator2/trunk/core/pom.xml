@@ -33,45 +33,45 @@
       <artifactId>slf4j-log4j12</artifactId>
     </dependency>
     <dependency>
-      <groupId>au.edu.usq.fascinator.plugins</groupId>
-      <artifactId>filesystem-storage-plugin</artifactId>
-      <version>2.0.0-SNAPSHOT</version>
-    </dependency>
-    <dependency>
-      <groupId>au.edu.usq.fascinator.plugins</groupId>
-      <artifactId>jsonq-harvester-plugin</artifactId>
-      <version>2.0.0-SNAPSHOT</version>
-    </dependency>
-    <dependency>
-      <groupId>au.edu.usq.fascinator.plugins</groupId>
-      <artifactId>oai-pmh-harvester-plugin</artifactId>
-      <version>2.0.0-SNAPSHOT</version>
-    </dependency>
-    <dependency>
-      <groupId>au.edu.usq.fascinator.plugins</groupId>
-      <artifactId>solr-indexer-plugin</artifactId>
-      <version>2.0.0-SNAPSHOT</version>
-    </dependency>
-    <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
     </dependency>
-    <dependency>
-    	<groupId>au.edu.usq.fascinator.plugins</groupId>
-    	<artifactId>aperture-extractor-plugin</artifactId>
-    	<version>2.0.0-SNAPSHOT</version>
-    </dependency>
   </dependencies>
-  <build>
-    <plugins>
-      <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>exec-maven-plugin</artifactId>
-        <version>1.1.1</version>
-        <configuration>
-          <mainClass>au.edu.usq.fascinator.HarvestClient</mainClass>
-        </configuration>
-      </plugin>
-    </plugins>
-  </build>
+  <profiles>
+    <profile>
+      <id>jsonq-test</id>
+      <dependencies>
+        <dependency>
+          <groupId>au.edu.usq.fascinator.plugins</groupId>
+          <artifactId>filesystem-storage-plugin</artifactId>
+          <version>2.0.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+          <groupId>au.edu.usq.fascinator.plugins</groupId>
+          <artifactId>jsonq-harvester-plugin</artifactId>
+          <version>2.0.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+          <groupId>au.edu.usq.fascinator.plugins</groupId>
+          <artifactId>solr-indexer-plugin</artifactId>
+          <version>2.0.0-SNAPSHOT</version>
+        </dependency>
+      </dependencies>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>exec-maven-plugin</artifactId>
+            <version>1.1.1</version>
+            <configuration>
+              <mainClass>au.edu.usq.fascinator.HarvestClient</mainClass>
+              <arguments>
+                <argument>src/test/resources/local-files.json</argument>
+              </arguments>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
 </project>

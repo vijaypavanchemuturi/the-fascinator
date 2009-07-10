@@ -49,6 +49,12 @@ public class JsonConfigTest {
         Assert.assertEquals("true", config.get("indexer/config/autocommit"));
     }
 
+    @Test
+    public void getWithSystemProperties() throws Exception {
+        System.setProperty("sample.property", "Sample Value");
+        Assert.assertEquals("Sample Value", config.get("sample/property"));
+    }
+
     @Ignore
     @Test
     public void set() throws Exception {

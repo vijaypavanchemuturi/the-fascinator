@@ -33,7 +33,7 @@ public class GenericDigitalObject implements DigitalObject {
 
     private String id;
 
-    private String metaId;
+    private String metadataId;
 
     private List<Payload> payloadList;
 
@@ -43,7 +43,7 @@ public class GenericDigitalObject implements DigitalObject {
 
     public GenericDigitalObject(String id, String metaId) {
         setId(id);
-        setMetaId(metaId);
+        setMetadataId(metaId);
     }
 
     public String getId() {
@@ -55,17 +55,19 @@ public class GenericDigitalObject implements DigitalObject {
     }
 
     public Payload getMetadata() {
-        return getPayload(metaId);
+        return getPayload(metadataId);
     }
 
-    public void setMetaId(String metaId) {
-        this.metaId = metaId;
+    public void setMetadataId(String metadataId) {
+        this.metadataId = metadataId;
     }
 
     public Payload getPayload(String pid) {
-        for (Payload payload : getPayloadList()) {
-            if (pid.equals(payload.getId())) {
-                return payload;
+        if (pid != null) {
+            for (Payload payload : getPayloadList()) {
+                if (pid.equals(payload.getId())) {
+                    return payload;
+                }
             }
         }
         return null;
@@ -84,7 +86,7 @@ public class GenericDigitalObject implements DigitalObject {
 
     @Override
     public String toString() {
-        return String.format("%s (%s, %d)", getId(), metaId, getPayloadList()
+        return String.format("%s (%s, %d)", getId(), metadataId, getPayloadList()
                 .size());
     }
 

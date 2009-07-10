@@ -32,7 +32,7 @@ public class JsonQHarvester implements Harvester {
     private long lastModified;
 
     public String getId() {
-        return "json-queue";
+        return "jsonq";
     }
 
     public String getName() {

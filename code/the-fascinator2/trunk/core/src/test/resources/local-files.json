@@ -1,8 +1,8 @@
 {
     "harvest": {
-        "type": "json-queue",
-        "config": {
-            "url": "http://139.86.35.138:9000/"
+        "type": "jsonq",
+        "jsonq": {
+            "url": "http://localhost:9000/"
         }
     },
     "indexer": {

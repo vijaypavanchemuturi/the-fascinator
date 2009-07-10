@@ -16,5 +16,8 @@
             "autocommit": true
         }
     },
-    "test": "testing"
+    "test": "testing",
+    "sample": {
+        "property": "${sample.property}"
+    }
 }

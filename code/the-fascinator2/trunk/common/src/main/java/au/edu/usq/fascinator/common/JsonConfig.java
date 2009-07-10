@@ -27,6 +27,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.text.StrSubstitutor;
 import org.codehaus.jackson.JsonEncoding;
 import org.codehaus.jackson.JsonFactory;
 import org.codehaus.jackson.JsonGenerator;
@@ -222,11 +223,14 @@ public class JsonConfig {
                     if (fieldNode != null) {
                         currentNode = fieldNode;
                         if (fieldNode.isValueNode()) {
+                            String value = defaultValue;
                             if (fieldNode.isTextual()) {
-                                return fieldNode.getTextValue();
+                                value = fieldNode.getTextValue();
                             } else {
-                                return fieldNode.getValueAsText();
+                                value = fieldNode.getValueAsText();
                             }
+                            return StrSubstitutor
+                                    .replaceSystemProperties(value);
                         }
                     } else {
                         break;

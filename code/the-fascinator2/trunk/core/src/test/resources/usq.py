@@ -1,5 +1,5 @@
 import time
-from au.edu.usq.fascinator.indexer.rules import XslTransform, CheckField, ModifyField, DeleteField, AddField
+from au.edu.usq.fascinator.indexer.rules import AddField, XslTransform
 
 #
 # Available objects:
@@ -12,10 +12,6 @@ from au.edu.usq.fascinator.indexer.rules import XslTransform, CheckField, Modify
 
 # dc to solr transform
 rules.add(XslTransform(indexer.getResource("/xsl/DublinCoreToSolr.xsl")))
-
-# repository name
-rules.add(AddField("repository_name", params["repository.name"]))
-rules.add(AddField("repository_type", params["repository.type"]))
 
 if isMetadata:
     solrId = object.getId();
@@ -31,3 +27,6 @@ rules.add(AddField("storageId", storageId))
 rules.add(AddField("item_type", itemType))
 rules.add(AddField("group_access", "guest"))
 rules.add(AddField("item_class", "document"))
+
+rules.add(AddField("repository_name", params["repository.name"]))
+rules.add(AddField("repository_type", params["repository.type"]))
