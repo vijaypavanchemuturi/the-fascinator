@@ -21,7 +21,9 @@ package au.edu.usq.fascinator.extractor.aperture;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -40,6 +42,11 @@ import org.semanticdesktop.aperture.rdf.RDFContainer;
 import org.semanticdesktop.aperture.rdf.impl.RDFContainerImpl;
 import org.semanticdesktop.aperture.vocabulary.NIE;
 
+import au.edu.usq.fascinator.api.PluginException;
+import au.edu.usq.fascinator.api.transformer.Transformer;
+import au.edu.usq.fascinator.api.transformer.TransformerException;
+import au.edu.usq.fascinator.common.JsonConfig;
+
 /*
  * Provides static methods for extracting RDF metadata
  * from a given file.
@@ -54,8 +61,9 @@ import org.semanticdesktop.aperture.vocabulary.NIE;
  * @author dickinso
  * 
  */
-public class Extractor {
+public class Extractor implements Transformer {
     private String filePath = "";
+    private String outputPath = "";
 
     /**
      * Testing interface. Takes a file name as either a local file path (e.g.
@@ -85,6 +93,14 @@ public class Extractor {
             System.out.println("EXCEPTION");
             e.printStackTrace();
         }
+    }
+
+    public Extractor() {
+
+    }
+
+    public Extractor(String outputPath) {
+        this.outputPath = outputPath;
     }
 
     /**
@@ -246,6 +262,51 @@ public class Extractor {
      */
     public String getFilePath() {
         return filePath;
+    }
+
+    @Override
+    public File transform(File in) throws TransformerException {
+        // TODO Auto-generated method stub
+        try {
+            RDFContainer rdf = extractRDF(in);
+            String tmp = outputPath + "/" + "rdf.xml";
+            PrintWriter out = new PrintWriter(new FileWriter(tmp));
+            out.print(rdf.getModel().serialize(Syntax.RdfXml));
+            out.close();
+            return new File(tmp);
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (ExtractorException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    @Override
+    public String getId() {
+        return "aperture-extractor";
+    }
+
+    @Override
+    public String getName() {
+        return "Aperture Extractor";
+    }
+
+    @Override
+    public void init(File jsonFile) throws PluginException {
+        try {
+            JsonConfig config = new JsonConfig(jsonFile);
+            outputPath = config.get("aperture/extractor/outputPath", "/tmp");
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void shutdown() throws PluginException {
     }
 
 }
