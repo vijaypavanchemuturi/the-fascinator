@@ -47,20 +47,23 @@ import au.edu.usq.fascinator.common.JsonConfig;
 public class IceTransformer implements Transformer {
 
     private String convertUrl;
-
+    private String outputPath;
+    
     public IceTransformer() {
         /**
          * Transformer constructor
          */
         this.convertUrl = "http://ice-service.usq.edu.au/api/convert/";
     }
-
-    public IceTransformer(String convertUrl) {
+    
+    public IceTransformer(String convertUrl, String outputPath) {
         /**
          * Transformer constructor
          * 
          * @param String convertUrl
+         * @param String outputPath
          */
+    	this.outputPath = outputPath;
         this.convertUrl = convertUrl;
         if (convertUrl == "" || convertUrl == null)
             this.convertUrl = "http://ice-service.usq.edu.au/api/convert/";
@@ -94,7 +97,7 @@ public class IceTransformer implements Transformer {
          * @param File sourceFile
          * @return String: filePath if success error message if fail
          */
-        System.out.println("fileName: " + sourceFile.getAbsolutePath());
+        System.out.println("fileName: " + sourceFile.getAbsolutePath() + "outputPath: " + this.outputPath);
         try {
             HttpClient client = new HttpClient();
             PostMethod filePost = new PostMethod(this.convertUrl);
@@ -111,8 +114,8 @@ public class IceTransformer implements Transformer {
             // Get Response
             InputStream is = filePost.getResponseBodyAsStream();
             String[] filePart = sourceFile.getName().split("\\.");
-            System.out.println(sourceFile.getName());
-            String outputFilename = "/tmp/" + filePart[0] + ".zip";
+            System.out.println("outputPath: " + this.outputPath + ", sourceFile: " + sourceFile.getName());
+            String outputFilename = this.outputPath + "/" + filePart[0] + ".zip";
             FileOutputStream fos = new FileOutputStream(outputFilename);
             IOUtils.copy(is, fos);
 
@@ -187,7 +190,7 @@ public class IceTransformer implements Transformer {
     public void init(File jsonFile) throws PluginException {
         try {
             JsonConfig config = new JsonConfig(jsonFile);
-            // config.get("transformer/ice/outputPath")
+            this.outputPath = config.get("transformer/ice/outputPath", "/tmp");
         } catch (IOException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
