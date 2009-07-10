@@ -291,6 +291,7 @@ public class JsonConfig {
     public File getSystemFile() throws IOException {
         File configFile = new File(configDir, SYSTEM_CONFIG_FILE);
         if (!configFile.exists()) {
+            configFile.getParentFile().mkdirs();
             OutputStream out = new FileOutputStream(configFile);
             IOUtils.copy(getClass().getResourceAsStream(
                     "/" + SYSTEM_CONFIG_FILE), out);
