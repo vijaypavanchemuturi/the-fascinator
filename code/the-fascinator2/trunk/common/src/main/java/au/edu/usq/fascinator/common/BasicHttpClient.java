@@ -97,7 +97,8 @@ public class BasicHttpClient {
     }
 
     private boolean isNonProxyHost(String host) {
-        String httpNonProxyHosts = System.getProperty("http.nonProxyHosts", "");
+        String httpNonProxyHosts = System.getProperty("http.nonProxyHosts",
+                "localhost|127.0.0.1");
         String[] nonProxyHosts = httpNonProxyHosts.split("\\|");
         for (int i = 0; i < nonProxyHosts.length; ++i) {
             if (nonProxyHosts[i].startsWith("*")) {
