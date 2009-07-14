@@ -95,13 +95,6 @@
             WEB-INF/classes/Identify.xml,
             WEB-INF/classes/proai.properties
           </warSourceExcludes>
-          <webResources>
-            <!--  Include system scoped libraries -->
-            <resource>
-              <directory>lib</directory>
-              <targetPath>WEB-INF/lib</targetPath>
-            </resource>
-          </webResources>
         </configuration>
       </plugin>
     </plugins>
