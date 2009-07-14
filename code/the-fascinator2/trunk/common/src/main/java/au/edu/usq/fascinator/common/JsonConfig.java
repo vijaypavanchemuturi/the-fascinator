@@ -42,6 +42,9 @@ import org.codehaus.jackson.node.ObjectNode;
  */
 public class JsonConfig {
 
+    /** Empty config */
+    private static final byte[] EMPTY = "{}".getBytes();
+
     /** Default configuration directory */
     private static final String DEFAULT_CONFIG_DIR = System
             .getProperty("user.home")
@@ -68,7 +71,7 @@ public class JsonConfig {
      * @throws IOException if there was an error loading the JSON configuration
      */
     public JsonConfig() throws IOException {
-        this(new ByteArrayInputStream(new byte[] {}), null, true);
+        this(new ByteArrayInputStream(EMPTY), null, true);
     }
 
     /**
@@ -78,7 +81,7 @@ public class JsonConfig {
      * @throws IOException if there was an error loading the JSON configuration
      */
     public JsonConfig(boolean useSystem) throws IOException {
-        this(new ByteArrayInputStream(new byte[] {}), null, useSystem);
+        this(new ByteArrayInputStream(EMPTY), null, useSystem);
     }
 
     /**
@@ -303,4 +306,5 @@ public class JsonConfig {
         }
         return configFile;
     }
+
 }
