@@ -1,5 +1,5 @@
 import time
-from au.edu.usq.fascinator.indexer.rules import AddField, XslTransform
+from au.edu.usq.fascinator.indexer.rules import AddField, CopyField, XslTransform
 
 #
 # Available objects:
@@ -30,3 +30,6 @@ rules.add(AddField("item_class", "document"))
 
 rules.add(AddField("repository_name", params["repository.name"]))
 rules.add(AddField("repository_type", params["repository.type"]))
+
+rules.add(CopyField("title", "dc.title"))
+rules.add(CopyField("description", "dc.description"))
