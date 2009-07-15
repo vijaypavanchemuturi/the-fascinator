@@ -27,6 +27,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.io.StringReader;
@@ -46,15 +47,9 @@ import org.apache.commons.httpclient.UsernamePasswordCredentials;
 import org.apache.commons.httpclient.auth.AuthScope;
 import org.apache.commons.io.IOUtils;
 import org.apache.solr.client.solrj.SolrRequest;
-import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
-import org.apache.solr.client.solrj.embedded.EmbeddedSolrServer;
 import org.apache.solr.client.solrj.impl.CommonsHttpSolrServer;
 import org.apache.solr.client.solrj.request.DirectXmlRequest;
-import org.apache.solr.core.CoreContainer;
-import org.apache.solr.core.CoreDescriptor;
-import org.apache.solr.core.SolrCore;
-import org.apache.solr.core.SolrResourceLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -62,6 +57,7 @@ import au.edu.usq.fascinator.api.PluginException;
 import au.edu.usq.fascinator.api.PluginManager;
 import au.edu.usq.fascinator.api.indexer.Indexer;
 import au.edu.usq.fascinator.api.indexer.IndexerException;
+import au.edu.usq.fascinator.api.indexer.SearchRequest;
 import au.edu.usq.fascinator.api.indexer.rule.RuleException;
 import au.edu.usq.fascinator.api.storage.DigitalObject;
 import au.edu.usq.fascinator.api.storage.Payload;
@@ -77,9 +73,7 @@ public class SolrIndexer implements Indexer {
 
     private Storage storage;
 
-    private SolrServer solr;
-
-    private CoreContainer coreContainer;
+    private CommonsHttpSolrServer solr;
 
     private boolean autoCommit;
 
@@ -112,31 +106,15 @@ public class SolrIndexer implements Indexer {
 
         try {
             URI solrUri = new URI(config.get("indexer/solr/uri"));
-            if ("file".equals(solrUri.getScheme())) {
-                SolrResourceLoader loader = new SolrResourceLoader(new File(
-                        solrUri).getAbsolutePath());
-                coreContainer = new CoreContainer(loader);
-                CoreDescriptor coreDesc = new CoreDescriptor(coreContainer,
-                        "MainCore", loader.getInstanceDir());
-                try {
-                    SolrCore mainCore = coreContainer.create(coreDesc);
-                    coreContainer.register("MainCore", mainCore, false);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-                solr = new EmbeddedSolrServer(coreContainer, "MainCore");
-            } else {
-                solr = new CommonsHttpSolrServer(solrUri.toURL());
-                String username = config.get("indexer/solr/username");
-                String password = config.get("indexer/solr/password");
-                if (username != null && password != null) {
-                    UsernamePasswordCredentials credentials = new UsernamePasswordCredentials(
-                            username, password);
-                    HttpClient hc = ((CommonsHttpSolrServer) solr)
-                            .getHttpClient();
-                    hc.getParams().setAuthenticationPreemptive(true);
-                    hc.getState().setCredentials(AuthScope.ANY, credentials);
-                }
+            solr = new CommonsHttpSolrServer(solrUri.toURL());
+            String username = config.get("indexer/solr/username");
+            String password = config.get("indexer/solr/password");
+            if (username != null && password != null) {
+                UsernamePasswordCredentials credentials = new UsernamePasswordCredentials(
+                        username, password);
+                HttpClient hc = solr.getHttpClient();
+                hc.getParams().setAuthenticationPreemptive(true);
+                hc.getState().setCredentials(AuthScope.ANY, credentials);
             }
         } catch (MalformedURLException mue) {
             log.error("Malformed URL", mue);
@@ -151,15 +129,38 @@ public class SolrIndexer implements Indexer {
 
     @Override
     public void shutdown() throws PluginException {
-        if (coreContainer != null) {
-            coreContainer.shutdown();
-        }
     }
 
     public Storage getStorage() {
         return storage;
     }
 
+    @Override
+    public void search(SearchRequest request, OutputStream response)
+            throws IndexerException {
+        SolrSearcher searcher = new SolrSearcher(solr.getBaseURL());
+        InputStream result;
+        try {
+            StringBuilder extras = new StringBuilder();
+            for (String name : request.getParams().keySet()) {
+                String[] params = request.getParam(name);
+                for (String param : params) {
+                    extras.append(name);
+                    extras.append("=");
+                    extras.append(param);
+                    extras.append("&");
+                }
+            }
+            extras.append("wt=json");
+            result = searcher.get(request.getQuery(), extras.toString(), false);
+            IOUtils.copy(result, response);
+            result.close();
+        } catch (IOException ioe) {
+            throw new IndexerException(ioe);
+        }
+    }
+
+    @Override
     public void remove(String oid) throws IndexerException {
         log.debug("Deleting " + oid + " from index");
         try {
@@ -172,8 +173,9 @@ public class SolrIndexer implements Indexer {
         }
     }
 
+    @Override
     public void remove(String oid, String pid) throws IndexerException {
-        log.debug("Deleting " + oid + " from index");
+        log.debug("Deleting {}::{} from index", oid, pid);
         try {
             solr.deleteByQuery("oid:\"" + oid + "\" AND pid:\"" + pid + "\"");
             solr.commit();
@@ -184,6 +186,7 @@ public class SolrIndexer implements Indexer {
         }
     }
 
+    @Override
     public void index(String oid) throws IndexerException {
         List<Payload> payloadList = storage.getObject(oid).getPayloadList();
         for (Payload payload : payloadList) {
@@ -191,6 +194,7 @@ public class SolrIndexer implements Indexer {
         }
     }
 
+    @Override
     public void index(String oid, String pid) throws IndexerException {
         if (propertiesId.equals(pid)) {
             return;
@@ -220,6 +224,7 @@ public class SolrIndexer implements Indexer {
 
             // primary metadata datastream
             String metaPid = props.getProperty("metaPid", "DC");
+            object = new IndexerDigitalObject(object, metaPid);
 
             // index the object
             String set = null; // TODO

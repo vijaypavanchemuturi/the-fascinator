@@ -195,7 +195,7 @@
     <dynamicField name="*_d" type="sdouble" indexed="true" stored="true" />
     <dynamicField name="*_dt" type="date" indexed="true" stored="true" />
 
-    <dynamicField name="f_*" type="string" indexed="true" stored="false" multiValued="true" />
+    <dynamicField name="f_*" type="string" indexed="true" stored="true" multiValued="true" />
     <dynamicField name="*" type="text" indexed="true" stored="true" multiValued="true" />
 
   </fields>

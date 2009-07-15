@@ -18,20 +18,38 @@
  */
 package au.edu.usq.fascinator.api.indexer;
 
-import java.io.OutputStream;
+import java.util.HashMap;
+import java.util.Map;
 
-import au.edu.usq.fascinator.api.Plugin;
+public class SearchRequest {
 
-public interface Indexer extends Plugin {
+    public String query;
 
-    public void search(SearchRequest request, OutputStream result)
-            throws IndexerException;
+    public Map<String, String[]> params;
 
-    public void index(String oid) throws IndexerException;
+    public SearchRequest() {
+    }
 
-    public void index(String oid, String pid) throws IndexerException;
+    public SearchRequest(String query) {
+        this.query = query;
+    }
 
-    public void remove(String oid) throws IndexerException;
+    public String getQuery() {
+        return query;
+    }
 
-    public void remove(String oid, String pid) throws IndexerException;
+    public String[] getParam(String name) {
+        return getParams().get(name);
+    }
+
+    public void setParam(String name, String[] value) {
+        getParams().put(name, value);
+    }
+
+    public Map<String, String[]> getParams() {
+        if (params == null) {
+            params = new HashMap<String, String[]>();
+        }
+        return params;
+    }
 }
