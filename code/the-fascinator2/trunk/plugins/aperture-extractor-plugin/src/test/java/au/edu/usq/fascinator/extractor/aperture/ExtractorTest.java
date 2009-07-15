@@ -18,7 +18,11 @@
  */
 package au.edu.usq.fascinator.extractor.aperture;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.URISyntaxException;
 
 import junit.framework.Assert;
@@ -64,6 +68,42 @@ public class ExtractorTest {
         Assert.assertEquals("rdf", testObjectOutput.getMetadata().getId());
         Assert.assertEquals("application/xml+rdf", testObjectOutput
                 .getMetadata().getContentType());
+    }
+
+    // Image file?
+    @Test
+    public void testImageFile() throws URISyntaxException, TransformerException {
+        File imageFile = new File(getClass().getResource("/presentation01.jpg")
+                .toURI());
+        testObject = new GenericDigitalObject(imageFile.getAbsolutePath());
+        testObjectOutput = ex.transform(testObject);
+
+        // Try to print out the rdf content
+        InputStream in;
+        try {
+            in = testObjectOutput.getMetadata().getInputStream();
+            BufferedReader r = new BufferedReader(new InputStreamReader(in));
+            StringBuilder sb = new StringBuilder();
+
+            String line = null;
+            try {
+                while ((line = r.readLine()) != null) {
+                    sb.append(line + "\n");
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            } finally {
+                try {
+                    in.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+            System.out.println("String: " + sb.toString());
+        } catch (IOException e1) {
+            // TODO Auto-generated catch block
+            e1.printStackTrace();
+        }
     }
 
     // It will be treated as Plaintext
