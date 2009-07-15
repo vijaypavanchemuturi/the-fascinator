@@ -21,7 +21,6 @@ package au.edu.usq.fascinator.harvester;
 import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.util.Map;
@@ -41,7 +40,10 @@ public class JsonQDigitalObject extends GenericDigitalObject {
         super(uri);
         try {
             URL url = new URL(URLDecoder.decode(uri, "UTF-8"));
-            File file = new File(url.toURI());
+
+            File file = new File(url.getPath());
+            // File file = new File(url.toURI()); // toURI will fail if there's
+            // space
             setId(file.getAbsolutePath());
 
             Payload metadata = new JsonQMetadataPayload(file, info);
@@ -54,9 +56,8 @@ public class JsonQDigitalObject extends GenericDigitalObject {
             log.warn("Unsupported encoding: {}", uee);
         } catch (MalformedURLException e) {
             log.error("Malformed URL: {}", uri);
-        } catch (URISyntaxException use) {
-            log.error("Malformed URI: {}", use);
+            // } catch (URISyntaxException use) {
+            // log.error("Malformed URI: {}", use);
         }
     }
-
 }

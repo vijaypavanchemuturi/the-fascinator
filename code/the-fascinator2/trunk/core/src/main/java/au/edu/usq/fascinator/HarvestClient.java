@@ -40,6 +40,7 @@ import au.edu.usq.fascinator.api.storage.Payload;
 import au.edu.usq.fascinator.api.storage.Storage;
 import au.edu.usq.fascinator.api.storage.StorageException;
 import au.edu.usq.fascinator.api.storage.impl.GenericPayload;
+import au.edu.usq.fascinator.api.transformer.TransformerException;
 import au.edu.usq.fascinator.common.JsonConfig;
 
 public class HarvestClient {
@@ -60,10 +61,13 @@ public class HarvestClient {
 
     private File rulesFile;
 
+    private ConveyerBelt cb;
+
     public HarvestClient(File jsonFile) {
         configFile = jsonFile;
         try {
             config = new JsonConfig(jsonFile);
+            cb = new ConveyerBelt(jsonFile);
         } catch (IOException ioe) {
             log.warn("Failed to load config from {}", jsonFile);
         }
@@ -146,6 +150,10 @@ public class HarvestClient {
         String sid = null;
         try {
             log.info("Processing " + oid + "...");
+
+            // Calling conveyer
+            object = cb.transform(object);
+
             Properties sofMeta = new Properties();
             sofMeta.setProperty("objectId", oid);
             Payload metadata = object.getMetadata();
@@ -166,20 +174,11 @@ public class HarvestClient {
 
             storage.addObject(object);
 
-            // try {
-            // RDFContainer rdf = Extractor.extractRDF(oid);
-            // RdfDigitalObject rdo = new RdfDigitalObject(object, rdf);
-            // sid = storage.addObject(rdo);
-            // } catch (ExtractorException e) {
-            // // TODO Auto-generated catch block
-            // e.printStackTrace();
-            // } catch (URISyntaxException e) {
-            // // TODO Auto-generated catch block
-            // e.printStackTrace();
-            // }
-
         } catch (StorageException re) {
             throw new IOException(re.getMessage());
+        } catch (TransformerException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
         }
         return sid;
     }

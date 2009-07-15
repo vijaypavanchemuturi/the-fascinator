@@ -5,6 +5,19 @@
             "url": "http://localhost:9000/"
         }
     },
+    
+    "transformer": {
+        "conveyer": "aperture-extractor, ice-transformer",
+        "extractor": {
+        	"outputPath": "${user.home}/ice2-output"
+        },
+        "ice-transformer": {
+            "url": "http://ice-service.usq.edu.au/api/convert/",
+            "outputPath": "${user.home}/ice2-output"
+        }
+    },
+    
+        
     "indexer": {
         "script": {
             "type": "python",
