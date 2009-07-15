@@ -49,9 +49,8 @@ public class ConveyerBelt {
                     e.printStackTrace();
                 }
             }
-
-            return result;
         }
-        return null;
+
+        return result;
     }
 }
