@@ -19,10 +19,14 @@
 
 package au.edu.usq.fascinator.ice.transformer;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.methods.PostMethod;
@@ -31,51 +35,56 @@ import org.apache.commons.httpclient.methods.multipart.MultipartRequestEntity;
 import org.apache.commons.httpclient.methods.multipart.Part;
 import org.apache.commons.httpclient.methods.multipart.StringPart;
 import org.apache.commons.io.IOUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import au.edu.usq.fascinator.api.PluginException;
+import au.edu.usq.fascinator.api.storage.DigitalObject;
 import au.edu.usq.fascinator.api.transformer.Transformer;
 import au.edu.usq.fascinator.api.transformer.TransformerException;
 import au.edu.usq.fascinator.common.JsonConfig;
+//import au.edu.usq.fascinator.extractor.aperture.Extractor;
 
 /**
  * Transformer Class will send a file to ice-service to get the renditions of
- * the file NOTE: this class can be use without The Fascinator
+ * the file
  * 
  * @author Linda Octalina
  */
 
 public class IceTransformer implements Transformer {
-
-    private String convertUrl;
+    private String convertUrl = "http://ice-service.usq.edu.au/api/convert/";
     private String outputPath;
     
+    private static Logger log = LoggerFactory.getLogger(IceTransformer.class);
+    
+    /**
+     * Transformer constructor
+     */
     public IceTransformer() {
-        /**
-         * Transformer constructor
-         */
-        this.convertUrl = "http://ice-service.usq.edu.au/api/convert/";
+        
     }
     
+    /**
+     * Transformer constructor
+     * 
+     * @param String convertUrl
+     * @param String outputPath
+     */
     public IceTransformer(String convertUrl, String outputPath) {
-        /**
-         * Transformer constructor
-         * 
-         * @param String convertUrl
-         * @param String outputPath
-         */
+        
+    	if (convertUrl != null && convertUrl != "")
+    		this.convertUrl = convertUrl;
     	this.outputPath = outputPath;
-        this.convertUrl = convertUrl;
-        if (convertUrl == "" || convertUrl == null)
-            this.convertUrl = "http://ice-service.usq.edu.au/api/convert/";
     }
-
+    
+    /**
+     * getRendition method
+     * (fieldName)
+     * @param String fileName
+     * @return boolean: true if success false if fail
+     */
     public boolean getRendition(String fileName) {
-        /**
-         * getRendition method
-         * 
-         * @param String fileName
-         * @return boolean: true if success false if fail
-         */
         File sourceFile = new File(fileName);
         if (sourceFile.exists()) {
             String extResult = getExtension(sourceFile);
@@ -86,18 +95,20 @@ public class IceTransformer implements Transformer {
                     return true;
             }
         }
-        System.out.println("File: " + fileName + " is not Exist");
         return false;
     }
-
+    
+    /**
+     * getRendition method
+     * 
+     * @param File sourceFile
+     * @return String: filePath if success error message if fail
+     */
     public String getRendition(File sourceFile) {
-        /**
-         * getRendition method
-         * 
-         * @param File sourceFile
-         * @return String: filePath if success error message if fail
-         */
-        System.out.println("fileName: " + sourceFile.getAbsolutePath() + "outputPath: " + this.outputPath);
+        //check if the outputPath is available:
+        File outputDir = new File(this.outputPath);
+        if (!outputDir.exists()) outputDir.mkdirs();
+        
         try {
             HttpClient client = new HttpClient();
             PostMethod filePost = new PostMethod(this.convertUrl);
@@ -114,7 +125,7 @@ public class IceTransformer implements Transformer {
             // Get Response
             InputStream is = filePost.getResponseBodyAsStream();
             String[] filePart = sourceFile.getName().split("\\.");
-            System.out.println("outputPath: " + this.outputPath + ", sourceFile: " + sourceFile.getName());
+            //Store in outputPath folder
             String outputFilename = this.outputPath + "/" + filePart[0] + ".zip";
             FileOutputStream fos = new FileOutputStream(outputFilename);
             IOUtils.copy(is, fos);
@@ -128,14 +139,14 @@ public class IceTransformer implements Transformer {
             return "Error " + e.getClass();
         }
     }
-
+    
+    /**convertUrl
+     * getExtension method
+     * 
+     * @param File fileObject
+     * @return String
+     */
     private String getExtension(File fileObject) {
-        /**
-         * getExtension method
-         * 
-         * @param File fileObject
-         * @return String
-         */
         String[] parts = fileObject.getName().split("\\.");
         String ext = "";
         if (parts.length == 2) {
@@ -145,12 +156,12 @@ public class IceTransformer implements Transformer {
         return "Error: Unable to detect file extension properly!";
     }
 
+    /**
+     * getTemplate method
+     * 
+     * @return String
+     */
     private String getTemplate() {
-        /**
-         * getTemplate method
-         * 
-         * @return String
-         */
         String template = "<html>"
                 + "<head>"
                 + "<meta http-equiv='Content-Type' content='text/html; charset=UTF-8'/>"
@@ -168,36 +179,104 @@ public class IceTransformer implements Transformer {
         return template;
     }
 
-    @Override
-    public File transform(File in) throws TransformerException {
-
-        String zipPath = getRendition(in);
-        return new File(zipPath);
-
-    }
-
+    /**
+     * Overridden method getId
+     * 
+     * @return plugin id
+     */
     @Override
     public String getId() {
         return "ice-transformer";
     }
 
+    /**
+     * Overridden method getName
+     * 
+     * @return plugin name
+     */
     @Override
     public String getName() {
         return "ICE Transformer";
     }
 
+    /**
+     * Overridden method init to initialize
+     * 
+     * Configuration sample: "transformer": { "conveyer":
+     * "aperture-extractor, ice-transformer", "extractor": { "outputPath" :
+     * "${user.home}/ice2-output" }, "ice-transformer": { "url":
+     * "http://ice-service.usq.edu.au/api/convert/", "outputPath":
+     * "${user.home}/ice2-output" } }
+     * 
+     * @param jsonFile to retrieve the configuration for Transformer
+     * @throws PluginException if fail to read the config file
+     */
     @Override
     public void init(File jsonFile) throws PluginException {
         try {
             JsonConfig config = new JsonConfig(jsonFile);
-            this.outputPath = config.get("transformer/ice/outputPath", "/tmp");
+            outputPath = config.get("transformer/ice-transformer/outputPath", System
+                    .getProperty("user.home")
+                    + File.separator + "tmp");
+            convertUrl = config.get("transformer/ice-transformer/url", "http://ice-service.usq.edu.au/api/convert/");
         } catch (IOException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
     }
-
+    
+    /**
+     * Overridden method shutdown method
+     * 
+     * @throws PluginException
+     */
     @Override
     public void shutdown() throws PluginException {
     }
+
+    /**
+     * Overridden transform method
+     * 
+     * @param DigitalObject to be processed
+     * @return processed DigitalObject with the rdf metadata
+     */
+	@Override
+	public DigitalObject transform(DigitalObject in)
+			throws TransformerException {
+		File inFile = new File(in.getId());
+		String result = getRendition(inFile);
+		if (!result.startsWith("Error")){
+			//Check if the file is a zip file or error returned from ice
+			if (validZipFile(result)) {
+				IceDigitalObject iceObject = new IceDigitalObject(in, result);
+				return iceObject;
+			}
+		}
+        return null;
+	}
+	
+	private boolean validZipFile(String zipPath) {
+		File outFile = new File(zipPath);
+		try {
+			FileInputStream fis = new FileInputStream(outFile);
+			BufferedReader r = new BufferedReader(new InputStreamReader(fis));
+			StringBuilder sb = new StringBuilder();
+			String line = null;
+			try {
+				while ((line = r.readLine()) != null)
+					sb.append(line);
+			} catch (IOException e) {
+				
+			}
+			if (sb.toString().indexOf("ice-error") > 0) {
+				log.info("Error return from ICE-Service: " + zipPath);
+				return false;
+			} 	
+		} catch (FileNotFoundException e) {
+			log.info("Not a valid zip returned from ICE: " + zipPath);
+			e.printStackTrace();
+		}
+		return true;
+	}
+	
 }
