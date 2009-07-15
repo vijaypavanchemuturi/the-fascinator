@@ -71,7 +71,7 @@ public class JsonConfig {
      * @throws IOException if there was an error loading the JSON configuration
      */
     public JsonConfig() throws IOException {
-        this(new ByteArrayInputStream(EMPTY), null, true);
+        this((InputStream) null, null, true);
     }
 
     /**
@@ -81,7 +81,7 @@ public class JsonConfig {
      * @throws IOException if there was an error loading the JSON configuration
      */
     public JsonConfig(boolean useSystem) throws IOException {
-        this(new ByteArrayInputStream(EMPTY), null, useSystem);
+        this((InputStream) null, null, useSystem);
     }
 
     /**
@@ -144,6 +144,9 @@ public class JsonConfig {
         this.useSystem = useSystem;
 
         ObjectMapper mapper = new ObjectMapper();
+        if (jsonIn == null) {
+            jsonIn = new ByteArrayInputStream(EMPTY);
+        }
         rootNode = mapper.readValue(jsonIn, JsonNode.class);
         if (useSystem) {
             systemRootNode = mapper.readValue(getSystemFile(), JsonNode.class);
