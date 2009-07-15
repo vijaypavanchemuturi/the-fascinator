@@ -1,7 +1,7 @@
 <!-- BEGIN search-item.vm -->
 <div class="item">
-  #set($title = $item.field("title"))
-  <h2><a href="#actionlink('showdetail' $item.field('pid'))">#if($title!='')$title#else[untitled]#end</a></h2>
+  #set($title = $item.field("dc.title"))
+  <h2><a href="#actionlink('showdetail' $item.field('id'))">#if($title!='')$title#else[untitled]#end</a></h2>
   <p>Relevance: <strong>$item.field("score")</strong></p>
   <div>
     #set($ids = $item.fields("identifier"))
@@ -21,12 +21,12 @@
       #if($velocityCount < $subs.size());#else#end
     #end
   </div>
-  #if($item.field("description"))
+  #if($item.field("dc.description"))
     <div class="item-description">
       <strong>Description</strong>
       <br/>
       #set($pid = $item.field("pid"))
-      #set($desc = $item.field("description"))
+      #set($desc = $item.field("dc.description"))
       #if($desc.length() > $item.maxLength)
         #set($shortDesc = $item.shortField("description"))
         <span id="${pid}full" style="display: none">
