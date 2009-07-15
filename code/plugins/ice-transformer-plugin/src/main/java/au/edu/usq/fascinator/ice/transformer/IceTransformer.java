@@ -247,12 +247,12 @@ public class IceTransformer implements Transformer {
 		String result = getRendition(inFile);
 		if (!result.startsWith("Error")){
 			//Check if the file is a zip file or error returned from ice
-			if (validZipFile(result)) {
+			if (validZipFile(result)==true) {
 				IceDigitalObject iceObject = new IceDigitalObject(in, result);
 				return iceObject;
 			}
 		}
-        return null;
+        return in;
 	}
 	
 	private boolean validZipFile(String zipPath) {
@@ -269,7 +269,7 @@ public class IceTransformer implements Transformer {
 				
 			}
 			if (sb.toString().indexOf("ice-error") > 0) {
-				log.info("Error return from ICE-Service: " + zipPath);
+				log.info("Error return from ICE-Service: " + sb.toString());
 				return false;
 			} 	
 		} catch (FileNotFoundException e) {

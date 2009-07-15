@@ -23,7 +23,6 @@ import java.io.File;
 import java.net.URISyntaxException;
 
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import au.edu.usq.fascinator.api.storage.DigitalObject;
@@ -68,14 +67,24 @@ public class IceTransformerTest {
                 .getMetadata().getContentType());
     }
 	
-	//Need to test against the file that is not exist or not supported in ice
+    //Test against the file that is not supported in ice
+    @Test
+    public void testNotSupportedExtensionInIce() throws URISyntaxException, TransformerException {
+    	File fileNameodt = new File(getClass().getResource("/AboutStacks.pdf")
+                .toURI());
+    	testObject = new GenericDigitalObject(fileNameodt.getAbsolutePath());
+        testObjectOutput = tf.transform(testObject);
+        Assert.assertEquals(testObjectOutput instanceof GenericDigitalObject, true);
+    }
+    
+	//Need to test against the file that is not exist
     @Test
     public void testFileNotSupportedInIce() throws URISyntaxException, TransformerException {
     	File fileNamePlain = new File(getClass().getResource("/somefile")
                 .toURI());
     	testObject = new GenericDigitalObject(fileNamePlain.getAbsolutePath());
         testObjectOutput = tf.transform(testObject);
-        Assert.assertEquals(testObjectOutput, null);
+        Assert.assertEquals(testObjectOutput instanceof GenericDigitalObject, true);
     }
     
 }
