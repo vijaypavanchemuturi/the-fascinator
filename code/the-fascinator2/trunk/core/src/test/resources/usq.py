@@ -33,3 +33,11 @@ rules.add(AddField("repository_type", params["repository.type"]))
 
 rules.add(CopyField("title", "dc.title"))
 rules.add(CopyField("description", "dc.description"))
+
+indexer.registerNamespace("oai_dc", "http://www.openarchives.org/OAI/2.0/oai_dc/")
+indexer.registerNamespace("dc", "http://purl.org/dc/elements/1.1/")
+
+dc = indexer.getXmlDocument(object.getMetadata())
+titles = dc.selectNodes("//dc:title")
+for title in titles:
+    print " ***", title.getText()

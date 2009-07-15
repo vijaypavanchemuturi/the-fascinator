@@ -31,12 +31,15 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.io.StringReader;
+import java.io.UnsupportedEncodingException;
 import java.io.Writer;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 
 import javax.script.ScriptEngine;
@@ -50,6 +53,10 @@ import org.apache.solr.client.solrj.SolrRequest;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.CommonsHttpSolrServer;
 import org.apache.solr.client.solrj.request.DirectXmlRequest;
+import org.dom4j.Document;
+import org.dom4j.DocumentException;
+import org.dom4j.DocumentFactory;
+import org.dom4j.io.SAXReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -80,6 +87,10 @@ public class SolrIndexer implements Indexer {
     private String propertiesId;
 
     private List<File> tempFiles;
+
+    private SAXReader saxReader;
+
+    private Map<String, String> namespaces;
 
     public String getId() {
         return "solr";
@@ -125,6 +136,10 @@ public class SolrIndexer implements Indexer {
         autoCommit = Boolean.parseBoolean(config.get("indexer/solr/autocommit",
                 "true"));
         propertiesId = config.get("indexer/propertiesId", "SOF-META");
+
+        namespaces = new HashMap<String, String>();
+        DocumentFactory.getInstance().setXPathNamespaceURIs(namespaces);
+        saxReader = new SAXReader();
     }
 
     @Override
@@ -345,6 +360,33 @@ public class SolrIndexer implements Indexer {
 
     public InputStream getResource(String path) {
         return getClass().getResourceAsStream(path);
+    }
+
+    public Document getXmlDocument(Payload payload) {
+        try {
+            return getXmlDocument(payload.getInputStream());
+        } catch (IOException ioe) {
+            log.error("Failed to parse XML", ioe);
+        }
+        return null;
+    }
+
+    public Document getXmlDocument(InputStream xmlIn) {
+        try {
+            return saxReader.read(new InputStreamReader(xmlIn, "UTF-8"));
+        } catch (UnsupportedEncodingException uee) {
+        } catch (DocumentException de) {
+            log.error("Failed to parse XML", de);
+        }
+        return null;
+    }
+
+    public void registerNamespace(String prefix, String uri) {
+        namespaces.put(prefix, uri);
+    }
+
+    public void unregisterNamespace(String prefix) {
+        namespaces.remove(prefix);
     }
 
 }
