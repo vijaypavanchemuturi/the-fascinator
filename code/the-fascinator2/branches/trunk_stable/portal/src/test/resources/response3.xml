@@ -1,0 +1,1101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<response>
+  <lst name="responseHeader">
+    <int name="status">0</int>
+    <int name="QTime">1</int>
+    <lst name="params">
+      <str name="rows">25</str>
+      <str name="facet">true</str>
+      <str name="facet.field">image_subject</str>
+      <str name="facet.mincount">1</str>
+      <str name="fq">group_access:guest</str>
+      <str name="q">repository_name:TBug</str>
+      <str name="fl">score</str>
+    </lst>
+  </lst>
+  <result name="response" numFound="44" start="0" maxScore="2.9616585">
+    <doc>
+      <float name="score">2.9616585</float>
+      <arr name="date">
+        <str>2008-04-27T09:10:11+10:00</str>
+      </arr>
+      <arr name="exif_ImageID">
+        <str>DS62CFD454</str>
+      </arr>
+      <arr name="exif_ImageThumbnailID">
+        <str>DS62CFD454-THUMBNAIL</str>
+      </arr>
+      <arr name="f_date">
+        <str>2008-04-27T09:10:11+10:00</str>
+      </arr>
+      <arr name="f_exif_ImageID">
+        <str>DS62CFD454</str>
+      </arr>
+      <arr name="f_exif_ImageThumbnailID">
+        <str>DS62CFD454-THUMBNAIL</str>
+      </arr>
+      <arr name="geohash">
+        <str>r7h4ctd876qv</str>
+      </arr>
+      <str name="id">file:///Users/lucido/tmp/tbug/meta/0.rdf</str>
+      <arr name="image_subject">
+        <str>ToowoombaBUG</str>
+        <str>ToowoombaBUG/SpeedLimitProblem</str>
+        <str>ToowoombaBUG</str>
+        <str>ToowoombaBUG</str>
+        <str>ToowoombaBUG/HazardInspectionTeam</str>
+        <str>ToowoombaBUG</str>
+        <str>ToowoombaBUG/HazardInspectionTeam</str>
+        <str>ToowoombaBUG/HazardInspectionTeam/NoProblem</str>
+      </arr>
+      <arr name="image_subject_location">
+        <str>Australia</str>
+        <str>Australia/Queensland</str>
+        <str>Australia/Queensland/Toowoomba</str>
+      </arr>
+      <arr name="image_subject_person">
+        <str>tbug</str>
+        <str>tbug/Wilson</str>
+        <str>tbug/Wilson/Hugh</str>
+      </arr>
+      <str name="pid">uuid:54a624c1-bba9-41d6-b5e3-18a9438e4ed7</str>
+      <arr name="shutter_speed">
+        <str>1/640</str>
+      </arr>
+      <arr name="title">
+        <str>Looking North on Ruthven Street from Nelson Street - lots of room for bikes here</str>
+      </arr>
+    </doc>
+    <doc>
+      <float name="score">2.9616585</float>
+      <arr name="date">
+        <str>2008-04-27T09:10:32+10:00</str>
+      </arr>
+      <arr name="exif_ImageID">
+        <str>DS62DDEBD5</str>
+      </arr>
+      <arr name="exif_ImageThumbnailID">
+        <str>DS62DDEBD5-THUMBNAIL</str>
+      </arr>
+      <arr name="f_date">
+        <str>2008-04-27T09:10:32+10:00</str>
+      </arr>
+      <arr name="f_exif_ImageID">
+        <str>DS62DDEBD5</str>
+      </arr>
+      <arr name="f_exif_ImageThumbnailID">
+        <str>DS62DDEBD5-THUMBNAIL</str>
+      </arr>
+      <arr name="geohash">
+        <str>r7h4ctd876qv</str>
+      </arr>
+      <str name="id">file:///Users/lucido/tmp/tbug/meta/1.rdf</str>
+      <arr name="image_subject">
+        <str>ToowoombaBUG</str>
+        <str>ToowoombaBUG/SpeedLimitProblem</str>
+        <str>ToowoombaBUG</str>
+        <str>ToowoombaBUG/HazardInspectionTeam</str>
+        <str>ToowoombaBUG</str>
+        <str>ToowoombaBUG/HazardInspectionTeam</str>
+        <str>ToowoombaBUG/HazardInspectionTeam/SignageProblem</str>
+      </arr>
+      <arr name="image_subject_location">
+        <str>Australia</str>
+        <str>Australia/Queensland</str>
+        <str>Australia/Queensland/Toowoomba</str>
+      </arr>
+      <str name="pid">uuid:5c4718ae-ce2b-48f9-8622-f8d052d7ee13</str>
+      <arr name="shutter_speed">
+        <str>1/400</str>
+      </arr>
+      <arr name="title">
+        <str>Looking North on Ruthven from Nelson Street in the 80km/h zone. Should be 60 well before Northbound traffic gets to Nelson Street. </str>
+      </arr>
+    </doc>
+    <doc>
+      <float name="score">2.9616585</float>
+      <arr name="date">
+        <str>2008-04-27T09:13:10+10:00</str>
+      </arr>
+      <arr name="exif_ImageID">
+        <str>DS62EC0356</str>
+      </arr>
+      <arr name="exif_ImageThumbnailID">
+        <str>DS62EC0356-THUMBNAIL</str>
+      </arr>
+      <arr name="f_date">
+        <str>2008-04-27T09:13:10+10:00</str>
+      </arr>
+      <arr name="f_exif_ImageID">
+        <str>DS62EC0356</str>
+      </arr>
+      <arr name="f_exif_ImageThumbnailID">
+        <str>DS62EC0356-THUMBNAIL</str>
+      </arr>
+      <arr name="geohash">
+        <str>r7h4ctdb74rt</str>
+      </arr>
+      <str name="id">file:///Users/lucido/tmp/tbug/meta/2.rdf</str>
+      <arr name="image_subject">
+        <str>ToowoombaBUG</str>
+        <str>ToowoombaBUG/SpeedLimitProblem</str>
+        <str>ToowoombaBUG</str>
+        <str>ToowoombaBUG/HazardInspectionTeam</str>
+        <str>ToowoombaBUG</str>
+        <str>ToowoombaBUG/HazardInspectionTeam</str>
+        <str>ToowoombaBUG/HazardInspectionTeam/SignageProblem</str>
+      </arr>
+      <arr name="image_subject_location">
+        <str>Australia</str>
+        <str>Australia/Queensland</str>
+        <str>Australia/Queensland/Toowoomba</str>
+      </arr>
+      <str name="pid">uuid:4c51e87a-4536-475a-b346-aa28fc9862eb</str>
+      <arr name="shutter_speed">
+        <str>1/320</str>
+      </arr>
+      <arr name="title">
+        <str>This should be a 60 zone</str>
+      </arr>
+    </doc>
+    <doc>
+      <float name="score">2.9616585</float>
+      <arr name="date">
+        <str>2008-04-27T09:15:43+10:00</str>
+      </arr>
+      <arr name="exif_ImageID">
+        <str>DS87F7CD77</str>
+      </arr>
+      <arr name="exif_ImageThumbnailID">
+        <str>DS87F7CD77-THUMBNAIL</str>
+      </arr>
+      <arr name="f_date">
+        <str>2008-04-27T09:15:43+10:00</str>
+      </arr>
+      <arr name="f_exif_ImageID">
+        <str>DS87F7CD77</str>
+      </arr>
+      <arr name="f_exif_ImageThumbnailID">
+        <str>DS87F7CD77-THUMBNAIL</str>
+      </arr>
+      <arr name="geohash">
+        <str>r7h4ctdyphgf</str>
+      </arr>
+      <str name="id">file:///Users/lucido/tmp/tbug/meta/3.rdf</str>
+      <arr name="image_subject">
+        <str>ToowoombaBUG</str>
+        <str>ToowoombaBUG/HazardInspectionTeam</str>
+        <str>ToowoombaBUG/HazardInspectionTeam/WidthProblem</str>
+        <str>ToowoombaBUG</str>
+        <str>ToowoombaBUG/HazardInspectionTeam</str>
+      </arr>
+      <str name="pid">uuid:66118ca2-3652-46bb-b9da-f8e11f83bacc</str>
+      <arr name="shutter_speed">
+        <str>1/400</str>
+      </arr>
+      <arr name="title">
+        <str>Going north on Ruthven Street. Dangerous merge for cyclists at this point. </str>
+      </arr>
+    </doc>
+    <doc>
+      <float name="score">2.9616585</float>
+      <arr name="date">
+        <str>2008-04-27T09:18:05+10:00</str>
+      </arr>
+      <arr name="description">
+        <str>"test"</str>
+        <str>"test"/"tet asdasd"</str>
+      </arr>
+      <arr name="exif_ImageID">
+        <str>DS8805E4F8</str>
+      </arr>
+      <arr name="exif_ImageThumbnailID">
+        <str>DS8805E4F8-THUMBNAIL</str>
+      </arr>
+      <arr name="f_date">
+        <str>2008-04-27T09:18:05+10:00</str>
+      </arr>
+      <arr name="f_exif_ImageID">
+        <str>DS8805E4F8</str>
+      </arr>
+      <arr name="f_exif_ImageThumbnailID">
+        <str>DS8805E4F8-THUMBNAIL</str>
+      </arr>
+      <arr name="geohash">
+        <str>r7h4cw5nwuur</str>
+      </arr>
+      <str name="id">file:///Users/lucido/tmp/tbug/meta/4.rdf</str>
+      <arr name="image_subject">
+        <str>ToowoombaBUG</str>
+        <str>ToowoombaBUG/WidthProblem</str>
+        <str>ToowoombaBUG</str>
+        <str>ToowoombaBUG/HazardInspectionTeam</str>
+        <str>ToowoombaBUG/HazardInspectionTeam/WidthProblem</str>
+        <str>ToowoombaBUG</str>
+        <str>ToowoombaBUG/HazardInspectionTeam</str>
+      </arr>
+      <str name="pid">uuid:9473bc22-5415-470c-9fd4-c666863088a5</str>
+      <arr name="shutter_speed">
+        <str>1/500</str>
+      </arr>
+      <arr name="title">
+        <str>Barely adequte room on the shoulder </str>
+      </arr>
+    </doc>
+    <doc>
+      <float name="score">2.9616585</float>
+      <arr name="date">
+        <str>2008-04-27T09:19:49+10:00</str>
+      </arr>
+      <arr name="exif_ImageID">
+        <str>DS8813FC79</str>
+      </arr>
+      <arr name="exif_ImageThumbnailID">
+        <str>DS8813FC79-THUMBNAIL</str>
+      </arr>
+      <arr name="f_date">
+        <str>2008-04-27T09:19:49+10:00</str>
+      </arr>
+      <arr name="f_exif_ImageID">
+        <str>DS8813FC79</str>
+      </arr>
+      <arr name="f_exif_ImageThumbnailID">
+        <str>DS8813FC79-THUMBNAIL</str>
+      </arr>
+      <arr name="geohash">
+        <str>r7h4cwg84s1p</str>
+      </arr>
+      <str name="id">file:///Users/lucido/tmp/tbug/meta/5.rdf</str>
+      <arr name="image_subject">
+        <str>ToowoombaBUG</str>
+        <str>ToowoombaBUG/ParkingHazard</str>
+        <str>ToowoombaBUG</str>
+        <str>ToowoombaBUG/HazardInspectionTeam</str>
+        <str>ToowoombaBUG</str>
+        <str>ToowoombaBUG/HazardInspectionTeam</str>
+        <str>ToowoombaBUG/HazardInspectionTeam/ParkingProblem</str>
+      </arr>
+      <str name="pid">uuid:504dccea-cc98-4b9d-803c-dc6574ef4fb4</str>
+      <arr name="shutter_speed">
+        <str>1/400</str>
+      </arr>
+      <arr name="title">
+        <str>North on Ruthven street. Plenty of room for a cycle lane but note that this is also a truck holding area. Angle parking also poses a risk.
+        </str>
+      </arr>
+    </doc>
+    <doc>
+      <float name="score">2.9616585</float>
+      <arr name="date">
+        <str>2008-04-27T09:22:16+10:00</str>
+      </arr>
+      <arr name="exif_ImageID">
+        <str>DS882213FA</str>
+      </arr>
+      <arr name="exif_ImageThumbnailID">
+        <str>DS882213FA-THUMBNAIL</str>
+      </arr>
+      <arr name="f_date">
+        <str>2008-04-27T09:22:16+10:00</str>
+      </arr>
+      <arr name="f_exif_ImageID">
+        <str>DS882213FA</str>
+      </arr>
+      <arr name="f_exif_ImageThumbnailID">
+        <str>DS882213FA-THUMBNAIL</str>
+      </arr>
+      <arr name="geohash">
+        <str>r7h4cwgwymtq</str>
+      </arr>
+      <str name="id">file:///Users/lucido/tmp/tbug/meta/6.rdf</str>
+      <arr name="image_subject">
+        <str>ToowoombaBUG</str>
+        <str>ToowoombaBUG/WidthProblem</str>
+        <str>ToowoombaBUG</str>
+        <str>ToowoombaBUG/HazardInspectionTeam</str>
+        <str>ToowoombaBUG/HazardInspectionTeam/RoadFurnitureProblem</str>
+        <str>ToowoombaBUG</str>
+        <str>ToowoombaBUG/HazardInspectionTeam</str>
+        <str>ToowoombaBUG/HazardInspectionTeam/WidthProblem</str>
+        <str>ToowoombaBUG</str>
+        <str>ToowoombaBUG/HazardInspectionTeam</str>
+      </arr>
+      <str name="pid">uuid:9ee08c4f-fc2b-4b33-a934-af95f622a63c</str>
+      <arr name="shutter_speed">
+        <str>1/400</str>
+      </arr>
+      <arr name="title">
+        <str>No room for cycles and concrete median strip is a hazard.</str>
+      </arr>
+    </doc>
+    <doc>
+      <float name="score">2.9616585</float>
+      <arr name="date">
+        <str>2008-04-27T09:25:21+10:00</str>
+      </arr>
+      <arr name="exif_ImageID">
+        <str>DS88302B7B</str>
+      </arr>
+      <arr name="exif_ImageThumbnailID">
+        <str>DS88302B7B-THUMBNAIL</str>
+      </arr>
+      <arr name="f_date">
+        <str>2008-04-27T09:25:21+10:00</str>
+      </arr>
+      <arr name="f_exif_ImageID">
+        <str>DS88302B7B</str>
+      </arr>
+      <arr name="f_exif_ImageThumbnailID">
+        <str>DS88302B7B-THUMBNAIL</str>
+      </arr>
+      <arr name="geohash">
+        <str>r7h4cx7cw5mz</str>
+      </arr>
+      <str name="id">file:///Users/lucido/tmp/tbug/meta/7.rdf</str>
+      <arr name="image_subject">
+        <str>ToowoombaBUG</str>
+        <str>ToowoombaBUG/Trap</str>
+        <str>ToowoombaBUG</str>
+        <str>ToowoombaBUG/HazardInspectionTeam</str>
+        <str>ToowoombaBUG/HazardInspectionTeam/RoadFurnitureProblem</str>
+        <str>ToowoombaBUG</str>
+        <str>ToowoombaBUG/HazardInspectionTeam</str>
+      </arr>
+      <str name="pid">uuid:86825556-3b6d-4d74-a11a-9bbc690e39d2</str>
+      <arr name="shutter_speed">
+        <str>1/320</str>
+      </arr>
+      <arr name="title">
+        <str>Dangerous concrete
+</str>
+      </arr>
+    </doc>
+    <doc>
+      <float name="score">2.9616585</float>
+      <arr name="date">
+        <str>2008-04-27T09:27:04+10:00</str>
+      </arr>
+      <arr name="exif_ImageID">
+        <str>DS883E42FC</str>
+      </arr>
+      <arr name="exif_ImageThumbnailID">
+        <str>DS883E42FC-THUMBNAIL</str>
+      </arr>
+      <arr name="f_date">
+        <str>2008-04-27T09:27:04+10:00</str>
+      </arr>
+      <arr name="f_exif_ImageID">
+        <str>DS883E42FC</str>
+      </arr>
+      <arr name="f_exif_ImageThumbnailID">
+        <str>DS883E42FC-THUMBNAIL</str>
+      </arr>
+      <arr name="geohash">
+        <str>r7h4cx7uw0tv</str>
+      </arr>
+      <str name="id">file:///Users/lucido/tmp/tbug/meta/8.rdf</str>
+      <arr name="image_subject">
+        <str>ToowoombaBUG</str>
+        <str>ToowoombaBUG/LaneMarkingProblem</str>
+        <str>ToowoombaBUG</str>
+        <str>ToowoombaBUG/HazardInspectionTeam</str>
+        <str>ToowoombaBUG</str>
+        <str>ToowoombaBUG/HazardInspectionTeam</str>
+        <str>ToowoombaBUG/HazardInspectionTeam/NoProblem</str>
+        <str>ToowoombaBUG</str>
+        <str>ToowoombaBUG/HazardInspectionTeam</str>
+        <str>ToowoombaBUG/HazardInspectionTeam/SignageProblem</str>
+      </arr>
+      <str name="pid">uuid:75ff752b-0915-44a6-adc4-7b5a85e199e9</str>
+      <arr name="shutter_speed">
+        <str>1/500</str>
+      </arr>
+      <arr name="title">
+        <str>Looking South - plenty of room for cyclists but no signage</str>
+      </arr>
+    </doc>
+    <doc>
+      <float name="score">2.9616585</float>
+      <arr name="date">
+        <str>2008-04-27T09:27:12+10:00</str>
+      </arr>
+      <arr name="exif_ImageID">
+        <str>DS884C5A7D</str>
+      </arr>
+      <arr name="exif_ImageThumbnailID">
+        <str>DS884C5A7D-THUMBNAIL</str>
+      </arr>
+      <arr name="f_date">
+        <str>2008-04-27T09:27:12+10:00</str>
+      </arr>
+      <arr name="f_exif_ImageID">
+        <str>DS884C5A7D</str>
+      </arr>
+      <arr name="f_exif_ImageThumbnailID">
+        <str>DS884C5A7D-THUMBNAIL</str>
+      </arr>
+      <arr name="geohash">
+        <str>r7h4cx7yqnvf</str>
+      </arr>
+      <str name="id">file:///Users/lucido/tmp/tbug/meta/9.rdf</str>
+      <arr name="image_subject">
+        <str>ToowoombaBUG</str>
+        <str>ToowoombaBUG/LaneMarkingProblem</str>
+        <str>ToowoombaBUG</str>
+        <str>ToowoombaBUG/HazardInspectionTeam</str>
+        <str>ToowoombaBUG</str>
+        <str>ToowoombaBUG/HazardInspectionTeam</str>
+        <str>ToowoombaBUG/HazardInspectionTeam/SignageProblem</str>
+      </arr>
+      <str name="pid">uuid:3e09c138-f736-4fdd-bf44-3c893f510aa8</str>
+      <arr name="shutter_speed">
+        <str>1/500</str>
+      </arr>
+      <arr name="title">
+        <str>Yellow bike signs or a through-lane for bikes needed here.</str>
+      </arr>
+    </doc>
+    <doc>
+      <float name="score">2.9616585</float>
+      <arr name="date">
+        <str>2008-04-27T09:28:25+10:00</str>
+      </arr>
+      <arr name="exif_ImageID">
+        <str>DS885A71FE</str>
+      </arr>
+      <arr name="exif_ImageThumbnailID">
+        <str>DS885A71FE-THUMBNAIL</str>
+      </arr>
+      <arr name="f_date">
+        <str>2008-04-27T09:28:25+10:00</str>
+      </arr>
+      <arr name="f_exif_ImageID">
+        <str>DS885A71FE</str>
+      </arr>
+      <arr name="f_exif_ImageThumbnailID">
+        <str>DS885A71FE-THUMBNAIL</str>
+      </arr>
+      <arr name="geohash">
+        <str>r7h4cxu71fdy</str>
+      </arr>
+      <str name="id">file:///Users/lucido/tmp/tbug/meta/10.rdf</str>
+      <arr name="image_subject">
+        <str>ToowoombaBUG</str>
+        <str>ToowoombaBUG/Trap</str>
+        <str>ToowoombaBUG</str>
+        <str>ToowoombaBUG/HazardInspectionTeam</str>
+        <str>ToowoombaBUG/HazardInspectionTeam/RoadFurnitureProblem</str>
+        <str>ToowoombaBUG</str>
+        <str>ToowoombaBUG/HazardInspectionTeam</str>
+      </arr>
+      <str name="pid">uuid:8a4b74bb-ef51-4717-9783-a44fe354194f</str>
+      <arr name="shutter_speed">
+        <str>1/500</str>
+      </arr>
+      <arr name="title">
+        <str>The traffic light here is set into the roadway</str>
+      </arr>
+    </doc>
+    <doc>
+      <float name="score">2.9616585</float>
+      <arr name="date">
+        <str>2008-04-27T09:28:46+10:00</str>
+      </arr>
+      <arr name="exif_ImageID">
+        <str>DS8868897F</str>
+      </arr>
+      <arr name="exif_ImageThumbnailID">
+        <str>DS8868897F-THUMBNAIL</str>
+      </arr>
+      <arr name="f_date">
+        <str>2008-04-27T09:28:46+10:00</str>
+      </arr>
+      <arr name="f_exif_ImageID">
+        <str>DS8868897F</str>
+      </arr>
+      <arr name="f_exif_ImageThumbnailID">
+        <str>DS8868897F-THUMBNAIL</str>
+      </arr>
+      <arr name="geohash">
+        <str>r7h4cxuk1cfc</str>
+      </arr>
+      <str name="id">file:///Users/lucido/tmp/tbug/meta/11.rdf</str>
+      <arr name="image_subject">
+        <str>ToowoombaBUG</str>
+        <str>ToowoombaBUG/Trap</str>
+        <str>ToowoombaBUG</str>
+        <str>ToowoombaBUG/WidthProblem</str>
+        <str>ToowoombaBUG</str>
+        <str>ToowoombaBUG/HazardInspectionTeam</str>
+        <str>ToowoombaBUG/HazardInspectionTeam/RoadFurnitureProblem</str>
+        <str>ToowoombaBUG</str>
+        <str>ToowoombaBUG/HazardInspectionTeam</str>
+      </arr>
+      <str name="pid">uuid:b7504ac7-5feb-4252-adb4-9ebd30f44fc2</str>
+      <arr name="shutter_speed">
+        <str>1/640</str>
+      </arr>
+      <arr name="title">
+        <str>Going North on Ruthven street. These lights and others beyond them are in the roadway. Dangerius merge for cyclists.</str>
+      </arr>
+    </doc>
+    <doc>
+      <float name="score">2.9616585</float>
+      <arr name="date">
+        <str>2008-04-27T09:31:06+10:00</str>
+      </arr>
+      <arr name="exif_ImageID">
+        <str>DS8876A100</str>
+      </arr>
+      <arr name="exif_ImageThumbnailID">
+        <str>DS8876A100-THUMBNAIL</str>
+      </arr>
+      <arr name="f_date">
+        <str>2008-04-27T09:31:06+10:00</str>
+      </arr>
+      <arr name="f_exif_ImageID">
+        <str>DS8876A100</str>
+      </arr>
+      <arr name="f_exif_ImageThumbnailID">
+        <str>DS8876A100-THUMBNAIL</str>
+      </arr>
+      <arr name="geohash">
+        <str>r7h518ke9dgk</str>
+      </arr>
+      <str name="id">file:///Users/lucido/tmp/tbug/meta/12.rdf</str>
+      <arr name="image_subject">
+        <str>ToowoombaBUG</str>
+        <str>ToowoombaBUG/WidthProblem</str>
+        <str>ToowoombaBUG</str>
+        <str>ToowoombaBUG/HazardInspectionTeam</str>
+        <str>ToowoombaBUG/HazardInspectionTeam/WidthProblem</str>
+        <str>ToowoombaBUG</str>
+        <str>ToowoombaBUG/HazardInspectionTeam</str>
+      </arr>
+      <str name="pid">uuid:b4c35a52-b752-4f45-acca-9350357aca4b</str>
+      <arr name="shutter_speed">
+        <str>1/640</str>
+      </arr>
+      <arr name="title">
+        <str>From KFC to beyond Stenner street there is no cycle lane or verge for cyclists to ride on and no path past Stenner street to retreat to,</str>
+      </arr>
+    </doc>
+    <doc>
+      <float name="score">2.9616585</float>
+      <arr name="date">
+        <str>2008-04-27T09:32:12+10:00</str>
+      </arr>
+      <arr name="exif_ImageID">
+        <str>DS89ACA616</str>
+      </arr>
+      <arr name="exif_ImageThumbnailID">
+        <str>DS89ACA616-THUMBNAIL</str>
+      </arr>
+      <arr name="f_date">
+        <str>2008-04-27T09:32:12+10:00</str>
+      </arr>
+      <arr name="f_exif_ImageID">
+        <str>DS89ACA616</str>
+      </arr>
+      <arr name="f_exif_ImageThumbnailID">
+        <str>DS89ACA616-THUMBNAIL</str>
+      </arr>
+      <arr name="geohash">
+        <str>r7h518sz1rey</str>
+      </arr>
+      <str name="id">file:///Users/lucido/tmp/tbug/meta/13.rdf</str>
+      <arr name="image_subject">
+        <str>ToowoombaBUG</str>
+        <str>ToowoombaBUG/HazardInspectionTeam</str>
+        <str>ToowoombaBUG</str>
+        <str>ToowoombaBUG/HazardInspectionTeam</str>
+        <str>ToowoombaBUG/HazardInspectionTeam/NoProblem</str>
+      </arr>
+      <str name="pid">uuid:a26418c6-4090-4021-b973-23c08018b04e</str>
+      <arr name="shutter_speed">
+        <str>1/500</str>
+      </arr>
+      <arr name="title">
+        <str>Footpaths (which are legal for cyclists to use) are sporadically available depending on recent developments.</str>
+      </arr>
+    </doc>
+    <doc>
+      <float name="score">2.9616585</float>
+      <arr name="date">
+        <str>2008-04-27T09:33:00+10:00</str>
+      </arr>
+      <arr name="exif_ImageID">
+        <str>DS89BABD97</str>
+      </arr>
+      <arr name="exif_ImageThumbnailID">
+        <str>DS89BABD97-THUMBNAIL</str>
+      </arr>
+      <arr name="f_date">
+        <str>2008-04-27T09:33:00+10:00</str>
+      </arr>
+      <arr name="f_exif_ImageID">
+        <str>DS89BABD97</str>
+      </arr>
+      <arr name="f_exif_ImageThumbnailID">
+        <str>DS89BABD97-THUMBNAIL</str>
+      </arr>
+      <arr name="geohash">
+        <str>r7h518sz1rey</str>
+      </arr>
+      <str name="id">file:///Users/lucido/tmp/tbug/meta/14.rdf</str>
+      <arr name="image_subject">
+        <str>ToowoombaBUG</str>
+        <str>ToowoombaBUG/WidthProblem</str>
+        <str>ToowoombaBUG</str>
+        <str>ToowoombaBUG/HazardInspectionTeam</str>
+      </arr>
+      <str name="pid">uuid:cec62ed4-44df-4ce4-8358-35f67cd28953</str>
+      <arr name="shutter_speed">
+        <str>1/500</str>
+      </arr>
+      <arr name="title">
+        <str>No footpath to which a cyclist can retreat</str>
+      </arr>
+    </doc>
+    <doc>
+      <float name="score">2.9616585</float>
+      <arr name="date">
+        <str>2008-04-27T09:33:08+10:00</str>
+      </arr>
+      <arr name="exif_ImageID">
+        <str>DS89C8D518</str>
+      </arr>
+      <arr name="exif_ImageThumbnailID">
+        <str>DS89C8D518-THUMBNAIL</str>
+      </arr>
+      <arr name="f_date">
+        <str>2008-04-27T09:33:08+10:00</str>
+      </arr>
+      <arr name="f_exif_ImageID">
+        <str>DS89C8D518</str>
+      </arr>
+      <arr name="f_exif_ImageThumbnailID">
+        <str>DS89C8D518-THUMBNAIL</str>
+      </arr>
+      <arr name="geohash">
+        <str>r7h518sz1rey</str>
+      </arr>
+      <str name="id">file:///Users/lucido/tmp/tbug/meta/15.rdf</str>
+      <arr name="image_subject">
+        <str>ToowoombaBUG</str>
+        <str>ToowoombaBUG/LaneMarkingProblem</str>
+        <str>ToowoombaBUG</str>
+        <str>ToowoombaBUG/HazardInspectionTeam</str>
+        <str>ToowoombaBUG</str>
+        <str>ToowoombaBUG/HazardInspectionTeam</str>
+        <str>ToowoombaBUG/HazardInspectionTeam/SignageProblem</str>
+      </arr>
+      <str name="pid">uuid:0d1ec2e3-ee12-416f-91ac-7c99969584e8</str>
+      <arr name="shutter_speed">
+        <str>1/500</str>
+      </arr>
+      <arr name="title">
+        <str>Room for cyclists here but no lanes marked</str>
+      </arr>
+    </doc>
+    <doc>
+      <float name="score">2.9616585</float>
+      <arr name="date">
+        <str>2008-04-27T09:34:22+10:00</str>
+      </arr>
+      <arr name="exif_ImageID">
+        <str>DS89D6EC99</str>
+      </arr>
+      <arr name="exif_ImageThumbnailID">
+        <str>DS89D6EC99-THUMBNAIL</str>
+      </arr>
+      <arr name="f_date">
+        <str>2008-04-27T09:34:22+10:00</str>
+      </arr>
+      <arr name="f_exif_ImageID">
+        <str>DS89D6EC99</str>
+      </arr>
+      <arr name="f_exif_ImageThumbnailID">
+        <str>DS89D6EC99-THUMBNAIL</str>
+      </arr>
+      <arr name="geohash">
+        <str>r7h518uyj30n</str>
+      </arr>
+      <str name="id">file:///Users/lucido/tmp/tbug/meta/16.rdf</str>
+      <arr name="image_subject">
+        <str>ToowoombaBUG</str>
+        <str>ToowoombaBUG/Trap</str>
+        <str>ToowoombaBUG</str>
+        <str>ToowoombaBUG/LaneMarkingProblem</str>
+        <str>ToowoombaBUG</str>
+        <str>ToowoombaBUG/HazardInspectionTeam</str>
+        <str>ToowoombaBUG/HazardInspectionTeam/RoadFurnitureProblem</str>
+        <str>ToowoombaBUG</str>
+        <str>ToowoombaBUG/HazardInspectionTeam</str>
+      </arr>
+      <str name="pid">uuid:8a9e247a-ae34-42cd-9258-26540acb282d</str>
+      <arr name="shutter_speed">
+        <str>1/640</str>
+      </arr>
+      <arr name="title">
+        <str>The pub here has its own turn
+          ing lane compele with concrete obstacle wich is a risk to cylists.
+</str>
+      </arr>
+    </doc>
+    <doc>
+      <float name="score">2.9616585</float>
+      <arr name="date">
+        <str>2008-04-27T09:35:47+10:00</str>
+      </arr>
+      <arr name="exif_ImageID">
+        <str>DS89E5041A</str>
+      </arr>
+      <arr name="exif_ImageThumbnailID">
+        <str>DS89E5041A-THUMBNAIL</str>
+      </arr>
+      <arr name="f_date">
+        <str>2008-04-27T09:35:47+10:00</str>
+      </arr>
+      <arr name="f_exif_ImageID">
+        <str>DS89E5041A</str>
+      </arr>
+      <arr name="f_exif_ImageThumbnailID">
+        <str>DS89E5041A-THUMBNAIL</str>
+      </arr>
+      <arr name="geohash">
+        <str>r7h519jhc4sm</str>
+      </arr>
+      <str name="id">file:///Users/lucido/tmp/tbug/meta/17.rdf</str>
+      <arr name="image_subject">
+        <str>ToowoombaBUG</str>
+        <str>ToowoombaBUG/Trap</str>
+        <str>ToowoombaBUG</str>
+        <str>ToowoombaBUG/LaneMarkingProblem</str>
+        <str>ToowoombaBUG</str>
+        <str>ToowoombaBUG/HazardInspectionTeam</str>
+        <str>ToowoombaBUG/HazardInspectionTeam/RoadFurnitureProblem</str>
+        <str>ToowoombaBUG</str>
+        <str>ToowoombaBUG/HazardInspectionTeam</str>
+      </arr>
+      <str name="pid">uuid:13638713-1dc1-4a97-a924-b659e16b81ee</str>
+      <arr name="shutter_speed">
+        <str>1/400</str>
+      </arr>
+      <arr name="title">
+        <str>The pub here has its own turn
+          ing lane compele with concrete obstacle wich is a risk to cylists.
+</str>
+      </arr>
+    </doc>
+    <doc>
+      <float name="score">2.9616585</float>
+      <arr name="date">
+        <str>2008-04-27T09:36:29+10:00</str>
+      </arr>
+      <arr name="exif_ImageID">
+        <str>DS89F31B9B</str>
+      </arr>
+      <arr name="exif_ImageThumbnailID">
+        <str>DS89F31B9B-THUMBNAIL</str>
+      </arr>
+      <arr name="f_date">
+        <str>2008-04-27T09:36:29+10:00</str>
+      </arr>
+      <arr name="f_exif_ImageID">
+        <str>DS89F31B9B</str>
+      </arr>
+      <arr name="f_exif_ImageThumbnailID">
+        <str>DS89F31B9B-THUMBNAIL</str>
+      </arr>
+      <arr name="geohash">
+        <str>r7h519jhc4sm</str>
+      </arr>
+      <str name="id">file:///Users/lucido/tmp/tbug/meta/18.rdf</str>
+      <arr name="image_subject">
+        <str>ToowoombaBUG</str>
+        <str>ToowoombaBUG/WidthProblem</str>
+        <str>ToowoombaBUG</str>
+        <str>ToowoombaBUG/LaneMarkingProblem</str>
+        <str>ToowoombaBUG</str>
+        <str>ToowoombaBUG/HazardInspectionTeam</str>
+        <str>ToowoombaBUG/HazardInspectionTeam/WidthProblem</str>
+        <str>ToowoombaBUG</str>
+        <str>ToowoombaBUG/HazardInspectionTeam</str>
+        <str>ToowoombaBUG</str>
+        <str>ToowoombaBUG/HazardInspectionTeam</str>
+        <str>ToowoombaBUG/HazardInspectionTeam/ParkingProblem</str>
+      </arr>
+      <str name="pid">uuid:fe989d93-17ee-4b96-8a4b-bc0015ddfab4</str>
+      <arr name="shutter_speed">
+        <str>1/400</str>
+      </arr>
+      <arr name="title">
+        <str>Taxi zone outside the pub is a further cycling hazard potentially forcing cylists into the traffic
+</str>
+      </arr>
+    </doc>
+    <doc>
+      <float name="score">2.9616585</float>
+      <arr name="date">
+        <str>2008-04-27T09:36:36+10:00</str>
+      </arr>
+      <arr name="exif_ImageID">
+        <str>DS8A01331C</str>
+      </arr>
+      <arr name="exif_ImageThumbnailID">
+        <str>DS8A01331C-THUMBNAIL</str>
+      </arr>
+      <arr name="f_date">
+        <str>2008-04-27T09:36:36+10:00</str>
+      </arr>
+      <arr name="f_exif_ImageID">
+        <str>DS8A01331C</str>
+      </arr>
+      <arr name="f_exif_ImageThumbnailID">
+        <str>DS8A01331C-THUMBNAIL</str>
+      </arr>
+      <arr name="geohash">
+        <str>r7h519jhc4sm</str>
+      </arr>
+      <str name="id">file:///Users/lucido/tmp/tbug/meta/19.rdf</str>
+      <arr name="image_subject">
+        <str>ToowoombaBUG</str>
+        <str>ToowoombaBUG/HazardInspectionTeam</str>
+      </arr>
+      <str name="pid">uuid:5c872ec1-01ea-436f-bc06-ef3a1e0bee00</str>
+      <arr name="shutter_speed">
+        <str>1/400</str>
+      </arr>
+      <arr name="title">
+        <str />
+      </arr>
+    </doc>
+    <doc>
+      <float name="score">2.9616585</float>
+      <arr name="date">
+        <str>2008-04-27T09:36:43+10:00</str>
+      </arr>
+      <arr name="exif_ImageID">
+        <str>DS8A0F4A9D</str>
+      </arr>
+      <arr name="exif_ImageThumbnailID">
+        <str>DS8A0F4A9D-THUMBNAIL</str>
+      </arr>
+      <arr name="f_date">
+        <str>2008-04-27T09:36:43+10:00</str>
+      </arr>
+      <arr name="f_exif_ImageID">
+        <str>DS8A0F4A9D</str>
+      </arr>
+      <arr name="f_exif_ImageThumbnailID">
+        <str>DS8A0F4A9D-THUMBNAIL</str>
+      </arr>
+      <arr name="geohash">
+        <str>r7h519jhc4sm</str>
+      </arr>
+      <str name="id">file:///Users/lucido/tmp/tbug/meta/20.rdf</str>
+      <arr name="image_subject">
+        <str>ToowoombaBUG</str>
+        <str>ToowoombaBUG/HazardInspectionTeam</str>
+        <str>ToowoombaBUG/HazardInspectionTeam/WidthProblem</str>
+        <str>ToowoombaBUG</str>
+        <str>ToowoombaBUG/HazardInspectionTeam</str>
+      </arr>
+      <str name="pid">uuid:8a40d661-8a7f-4e04-ab32-91dde4852644</str>
+      <arr name="shutter_speed">
+        <str>1/500</str>
+      </arr>
+      <arr name="title">
+        <str>Road narrows
+</str>
+      </arr>
+    </doc>
+    <doc>
+      <float name="score">2.9616585</float>
+      <arr name="date">
+        <str>2008-04-27T09:38:22+10:00</str>
+      </arr>
+      <arr name="exif_ImageID">
+        <str>DS8A1D621E</str>
+      </arr>
+      <arr name="exif_ImageThumbnailID">
+        <str>DS8A1D621E-THUMBNAIL</str>
+      </arr>
+      <arr name="f_date">
+        <str>2008-04-27T09:38:22+10:00</str>
+      </arr>
+      <arr name="f_exif_ImageID">
+        <str>DS8A1D621E</str>
+      </arr>
+      <arr name="f_exif_ImageThumbnailID">
+        <str>DS8A1D621E-THUMBNAIL</str>
+      </arr>
+      <arr name="geohash">
+        <str>r7h519jptpbs</str>
+      </arr>
+      <str name="id">file:///Users/lucido/tmp/tbug/meta/21.rdf</str>
+      <arr name="image_subject">
+        <str>ToowoombaBUG</str>
+        <str>ToowoombaBUG/HazardInspectionTeam</str>
+        <str>ToowoombaBUG/HazardInspectionTeam/RoadFurnitureProblem</str>
+        <str>ToowoombaBUG</str>
+        <str>ToowoombaBUG/HazardInspectionTeam</str>
+      </arr>
+      <str name="pid">uuid:8d28f2ea-1928-4713-b8d5-4623092ae4f8</str>
+      <arr name="shutter_speed">
+        <str>1/500</str>
+      </arr>
+      <arr name="title">
+        <str>Dangerous grate
+</str>
+      </arr>
+    </doc>
+    <doc>
+      <float name="score">2.9616585</float>
+      <arr name="date">
+        <str>2008-04-27T09:38:28+10:00</str>
+      </arr>
+      <arr name="exif_ImageID">
+        <str>DS8A2B799F</str>
+      </arr>
+      <arr name="exif_ImageThumbnailID">
+        <str>DS8A2B799F-THUMBNAIL</str>
+      </arr>
+      <arr name="f_date">
+        <str>2008-04-27T09:38:28+10:00</str>
+      </arr>
+      <arr name="f_exif_ImageID">
+        <str>DS8A2B799F</str>
+      </arr>
+      <arr name="f_exif_ImageThumbnailID">
+        <str>DS8A2B799F-THUMBNAIL</str>
+      </arr>
+      <arr name="geohash">
+        <str>r7h519m0tnbw</str>
+      </arr>
+      <str name="id">file:///Users/lucido/tmp/tbug/meta/22.rdf</str>
+      <arr name="image_subject">
+        <str>ToowoombaBUG</str>
+        <str>ToowoombaBUG/HazardInspectionTeam</str>
+        <str>ToowoombaBUG/HazardInspectionTeam/SurfaceProblem</str>
+        <str>ToowoombaBUG</str>
+        <str>ToowoombaBUG/HazardInspectionTeam</str>
+      </arr>
+      <str name="pid">uuid:40355921-a131-484c-b696-c4020192da4b</str>
+      <arr name="shutter_speed">
+        <str>1/640</str>
+      </arr>
+      <arr name="title">
+        <str>Road in poor condition</str>
+      </arr>
+    </doc>
+    <doc>
+      <float name="score">2.9616585</float>
+      <arr name="date">
+        <str>2008-04-27T09:39:24+10:00</str>
+      </arr>
+      <arr name="exif_ImageID">
+        <str>DS8B617EB5</str>
+      </arr>
+      <arr name="exif_ImageThumbnailID">
+        <str>DS8B617EB5-THUMBNAIL</str>
+      </arr>
+      <arr name="f_date">
+        <str>2008-04-27T09:39:24+10:00</str>
+      </arr>
+      <arr name="f_exif_ImageID">
+        <str>DS8B617EB5</str>
+      </arr>
+      <arr name="f_exif_ImageThumbnailID">
+        <str>DS8B617EB5-THUMBNAIL</str>
+      </arr>
+      <arr name="geohash">
+        <str>r7h519m4tj0d</str>
+      </arr>
+      <str name="id">file:///Users/lucido/tmp/tbug/meta/23.rdf</str>
+      <arr name="image_subject">
+        <str>ToowoombaBUG</str>
+        <str>ToowoombaBUG/Trap</str>
+        <str>ToowoombaBUG</str>
+        <str>ToowoombaBUG/HazardInspectionTeam</str>
+        <str>ToowoombaBUG/HazardInspectionTeam/RoadFurnitureProblem</str>
+        <str>ToowoombaBUG</str>
+        <str>ToowoombaBUG/HazardInspectionTeam</str>
+      </arr>
+      <str name="pid">uuid:9059ae1c-75dd-49d6-b4d2-9fbd87db2b71</str>
+      <arr name="shutter_speed">
+        <str>1/500</str>
+      </arr>
+      <arr name="title">
+        <str>Dangerous grate</str>
+      </arr>
+    </doc>
+    <doc>
+      <float name="score">2.9616585</float>
+      <arr name="date">
+        <str>2008-04-27T09:39:47+10:00</str>
+      </arr>
+      <arr name="exif_ImageID">
+        <str>DS8B6F9636</str>
+      </arr>
+      <arr name="exif_ImageThumbnailID">
+        <str>DS8B6F9636-THUMBNAIL</str>
+      </arr>
+      <arr name="f_date">
+        <str>2008-04-27T09:39:47+10:00</str>
+      </arr>
+      <arr name="f_exif_ImageID">
+        <str>DS8B6F9636</str>
+      </arr>
+      <arr name="f_exif_ImageThumbnailID">
+        <str>DS8B6F9636-THUMBNAIL</str>
+      </arr>
+      <arr name="geohash">
+        <str>r7h519m68vj4</str>
+      </arr>
+      <str name="id">file:///Users/lucido/tmp/tbug/meta/24.rdf</str>
+      <arr name="image_subject">
+        <str>ToowoombaBUG</str>
+        <str>ToowoombaBUG/Trap</str>
+        <str>ToowoombaBUG</str>
+        <str>ToowoombaBUG/HazardInspectionTeam</str>
+        <str>ToowoombaBUG/HazardInspectionTeam/RoadFurnitureProblem</str>
+        <str>ToowoombaBUG</str>
+        <str>ToowoombaBUG/HazardInspectionTeam</str>
+      </arr>
+      <str name="pid">uuid:4e85f2f2-74e0-4886-bdb1-8e49ad555a61</str>
+      <arr name="shutter_speed">
+        <str>1/125</str>
+      </arr>
+      <arr name="title">
+        <str>Take grate care here. There are lots of these on Ruthven street, more going South than North. This one is Northbound.</str>
+      </arr>
+    </doc>
+  </result>
+  <lst name="facet_counts">
+    <lst name="facet_queries" />
+    <lst name="facet_fields">
+      <lst name="image_subject">
+        <int name="ToowoombaBUG">44</int>
+        <int name="ToowoombaBUG/HazardInspectionTeam">44</int>
+        <int name="ToowoombaBUG/HazardInspectionTeam/RoadFurnitureProblem">10</int>
+        <int name="ToowoombaBUG/HazardInspectionTeam/SignageProblem">9</int>
+        <int name="ToowoombaBUG/WidthProblem">8</int>
+        <int name="ToowoombaBUG/HazardInspectionTeam/WidthProblem">7</int>
+        <int name="ToowoombaBUG/Trap">7</int>
+        <int name="ToowoombaBUG/LaneMarkingProblem">6</int>
+        <int name="ToowoombaBUG/HazardInspectionTeam/NoProblem">5</int>
+        <int name="ToowoombaBUG/HazardInspectionTeam/SurfaceProblem">3</int>
+        <int name="ToowoombaBUG/SpeedLimitProblem">3</int>
+        <int name="ToowoombaBUG/HazardInspectionTeam/ParkingProblem">2</int>
+        <int name="ToowoombaBUG/ParkingHazard">1</int>
+      </lst>
+      <lst name="image_subject_location">
+        <int name="Australia">3</int>
+        <int name="Australia/Queensland">3</int>
+        <int name="Australia/Queensland/Toowoomba">3</int>
+      </lst>
+    </lst>
+  </lst>
+</response>

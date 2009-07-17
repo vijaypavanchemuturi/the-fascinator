@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<portal name="default">
+    <description>Everything</description>
+    <records-per-page>10</records-per-page>
+    <facet-count>25</facet-count>
+    <facet-sort-by-count>false</facet-sort-by-count>
+    <facet-fields>
+        <field name="f_creator">Author</field>
+        <field name="f_type">Type</field>
+        <field name="f_collection">Collection</field>
+        <field name="repository_name">Repository</field>
+        <field name="project_affiliation">Affiliation</field>
+        <field name="file_path">Path</field>
+        <field name="f_subject">Subject</field>
+        <field name="repository_type">Source type</field>
+        <field name="census_date">Census date</field>
+    </facet-fields>
+</portal>

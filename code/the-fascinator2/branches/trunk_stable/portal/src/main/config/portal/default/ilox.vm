@@ -1,0 +1,42 @@
+#if($page.hasResults)
+<identifier>
+  <catalog>$page.IdCatalog</catalog>
+  <entry>$page.IdEntry</entry>
+</identifier>
+<description>
+  $page.WorkLomStr
+</description>
+
+#foreach($expression in $page.expressions)
+ <expression>
+  <identifier>
+    <idString>$expression.Id</idString>
+  </identifier>
+  <description>
+    $expression.LomStr
+  </description>
+ #foreach($manifestation in $expression.manifestations)
+  <manifestation>
+    <identifier>
+      <idString>$manifestation.Id</idString>
+    </identifier>
+    <name>$manifestation.Name</name>
+    <description>
+      $manifestation.LomStr
+    </description>
+   #foreach($item in $manifestation.items)
+    <item>
+      <location>
+        <uri>$item.Uri</uri>
+      </location>
+      <description>
+        $item.LomStr
+      </description>
+    </item>
+   #end
+  </manifestation>
+ #end
+</expression>
+#end
+
+#end
