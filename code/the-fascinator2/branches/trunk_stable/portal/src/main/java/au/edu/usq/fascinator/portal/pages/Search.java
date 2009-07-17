@@ -583,6 +583,8 @@ public class Search {
         searcher.setBaseFacetQuery(state.getPortal().getQuery());
         String solrUser = state.getProperty("solr.user");
         String solrPass = state.getProperty("solr.pass");
+        // String solrUser = "solrAdmin";
+        // String solrPass = "der";
         if (solrUser != null && solrPass != null) {
             searcher.authenticate(solrUser, solrPass);
         }

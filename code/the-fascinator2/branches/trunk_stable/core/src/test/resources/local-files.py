@@ -47,6 +47,8 @@ indexer.registerNamespace("j.0", "http://www.semanticdesktop.org/ontologies/2007
 indexer.registerNamespace("j.2", "http://www.semanticdesktop.org/ontologies/2007/03/22/nco#")
 indexer.registerNamespace("j.3", "http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#")
 
+print "object.getPayloadList(): ", object.getPayloadList()
+print "object.getMetadata(): ", object.getMetadata()
 rdf = indexer.getXmlDocument(object.getMetadata())
 if rdf is not None:
     rootNode = rdf.getRootElement()

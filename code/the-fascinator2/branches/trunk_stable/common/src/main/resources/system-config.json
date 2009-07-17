@@ -7,7 +7,7 @@
         "fedora3": {
             "url": "http://localhost:8080/fedora",
             "username": "fedoraAdmin",
-            "password": "solrAdmin"
+            "password": "fedoraAdmin"
         },
         "couchdb": {
             "url": "http://localhost:8080/couch"
