@@ -7,11 +7,11 @@
     },
     
     "transformer": {
-        "conveyer": "aperture-extractor, ice-transformer",
-        "extractor": {
+        "conveyer": "aperture, ice2",
+        "aperture": {
         	"outputPath": "${user.home}/ice2-output"
         },
-        "ice-transformer": {
+        "ice2": {
             "url": "http://ice-service.usq.edu.au/api/convert/",
             "outputPath": "${user.home}/ice2-output"
         }
@@ -21,7 +21,7 @@
     "indexer": {
         "script": {
             "type": "python",
-            "rules": "json-queue.py"
+            "rules": "local-files.py"
         },
         "params": {
             "repository.name": "Json Queue",

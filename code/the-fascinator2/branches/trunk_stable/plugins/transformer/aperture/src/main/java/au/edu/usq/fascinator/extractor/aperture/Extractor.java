@@ -303,7 +303,7 @@ public class Extractor implements Transformer {
      */
     @Override
     public String getId() {
-        return "aperture-extractor";
+        return "aperture";
     }
 
     /**

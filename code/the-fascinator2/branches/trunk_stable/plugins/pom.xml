@@ -15,10 +15,10 @@
   <modules>
     <module>transformer/aperture</module>
     <module>transformer/ice2</module>
-    <module>filesystem-harvester-plugin</module>
-    <module>filesystem-storage-plugin</module>
-    <module>jsonq-harvester-plugin</module>
-    <module>oai-pmh-harvester-plugin</module>
+    <module>harvester/filesystem</module>
+    <module>storage/filesystem</module>
+    <module>harvester/jsonq</module>
+    <module>harvester/oai-pmh</module>
     <module>indexer/solr</module>
   </modules>
 </project>
