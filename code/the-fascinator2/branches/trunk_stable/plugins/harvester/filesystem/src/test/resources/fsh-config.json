@@ -1,8 +1,0 @@
-{
-    "harvest": {
-        "type": "file-system",
-        "file-system": {
-            "rootDir": "${test.dir}"
-        }
-    }
-}
