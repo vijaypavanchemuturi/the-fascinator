@@ -13,7 +13,8 @@
     <relativePath>../pom.xml</relativePath>
   </parent>
   <modules>
-    <module>aperture-extractor-plugin</module>
+    <module>transformer/aperture</module>
+    <module>transformer/ice2</module>
     <module>filesystem-harvester-plugin</module>
     <module>filesystem-storage-plugin</module>
     <module>jsonq-harvester-plugin</module>
