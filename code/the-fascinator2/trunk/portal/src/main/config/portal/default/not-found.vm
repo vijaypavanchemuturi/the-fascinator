@@ -1,6 +1,0 @@
-<!-- BEGIN not-found.vm -->
-<div class="notfound">
-  <h1>404 Not Found</h1>
-  <p>The item you requested was not found.</p>
-</div>
-<!-- END not-found.vm -->

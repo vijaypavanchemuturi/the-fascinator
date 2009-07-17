@@ -1,3 +1,0 @@
-<!-- BEGIN welcome.vm -->
-#parse($locator.getLocation("about.vm"))
-<!-- END welcome.vm -->
