@@ -19,6 +19,6 @@
     <module>filesystem-storage-plugin</module>
     <module>jsonq-harvester-plugin</module>
     <module>oai-pmh-harvester-plugin</module>
-    <module>solr-indexer-plugin</module>
+    <module>indexer/solr</module>
   </modules>
 </project>
