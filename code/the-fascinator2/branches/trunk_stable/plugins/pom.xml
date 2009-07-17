@@ -13,11 +13,12 @@
     <relativePath>../pom.xml</relativePath>
   </parent>
   <modules>
-    <module>aperture-extractor-plugin</module>
-    <module>filesystem-harvester-plugin</module>
-    <module>filesystem-storage-plugin</module>
-    <module>jsonq-harvester-plugin</module>
-    <module>oai-pmh-harvester-plugin</module>
-    <module>solr-indexer-plugin</module>
+    <module>transformer/aperture</module>
+    <module>transformer/ice2</module>
+    <module>harvester/filesystem</module>
+    <module>harvester/jsonq</module>
+    <module>harvester/oai-pmh</module>
+    <module>storage/filesystem</module>
+    <module>indexer/solr</module>
   </modules>
 </project>
