@@ -1,0 +1,30 @@
+<!-- BEGIN sorting.vm -->
+<ul class="paging">
+  <li>Order by:</li>
+  <li>
+    <a href="#actionlink('sort' 'score desc')">Relevance</a>
+  </li>
+  <!--
+  <li>
+    <a href="#actionlink('sort' 'title asc')">Title</a>
+  </li>
+  <li>
+    <a href="#actionlink('sort' 'repository_name asc')">Institution</a>
+  </li>
+  <li>
+    <a href="#actionlink('sort' 'creator asc')">Creator</a>
+  </li>
+  -->
+  <li>
+    <a href="#actionlink('sort' 'date desc')">Year</a>
+  </li>
+  <!--
+  <li>
+    <a href="#actionlink('sort' 'subject asc')">Subject</a>
+  </li>
+  <li>
+    <a href="#actionlink('sort' 'type asc')">Type</a>
+  </li>
+  -->
+</ul>
+<!-- END sorting.vm -->

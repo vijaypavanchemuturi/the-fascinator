@@ -1,0 +1,45 @@
+<!-- BEGIN facets.vm -->
+#set($indent = 0)
+#macro(displayFacet $facet)
+  #set($parents = $facet.tokens)
+  #set($indent = $parents.size() * 1.5)
+  #set($value = $facet.tokenValue)
+  <li>
+    #if($page.isSelectedFacet($facet.value))
+    <span style="padding-left: ${indent}em">$value</span> ($facet.count)
+    <a class="deselect" href="#actionlink('removefacet' $facet)">deselect</a>
+    #else
+    <a href="#actionlink('addfacet' $facet)">
+      <span style="padding-left: ${indent}em">$value</span>
+    </a> ($facet.count)
+    #end
+  </li>
+  #set($subFacets = $facet.subFacets)
+  #if(!$subFacets.empty)
+    #foreach($subFacet in $subFacets)
+      #displayFacet($subFacet)
+    #end
+  #end
+  #set($indent = 0)
+#end
+<div class="facets">
+  <h3>Narrow Search</h3>
+  #if(!$page.facetLimits.empty)
+    <a class="action" href="#actionlink('clearfacets' 'cf')">clear selection</a>
+    #if($session.userInRole("admin"))
+      <span class="action-sep">|</span>
+      <a class="action" href="#actionlink('createportal' 'cp')">create portal</a>
+    #end
+  #end
+  #foreach($facetList in $page.response.facetLists)
+    #if(!$facetList.facets.empty)
+      <h4>$page.state.portal.facetFields.get($facetList.name)</h4>
+      <ul>
+      #foreach($facet in $facetList.facets)
+        #displayFacet($facet)
+      #end
+      </ul>
+    #end
+  #end
+</div>
+<!-- END facets.vm -->

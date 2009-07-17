@@ -1,0 +1,30 @@
+{
+    "storage": {
+        "type": "file-system",
+        "file-system": {
+            "home": "${user.dir}/.fascinator/storage"
+        },
+        "fedora3": {
+            "url": "http://localhost:8080/fedora",
+            "username": "fedoraAdmin",
+            "password": "solrAdmin"
+        },
+        "couchdb": {
+            "url": "http://localhost:8080/couch"
+        }
+    },
+    "indexer": {
+        "type": "solr",
+        "properties": "SOF-META",
+        "solr": {
+            "uri": "http://localhost:8080/solr",
+            "username": "solrAdmin",
+            "password": "solrAdmin",
+            "autocommit": true
+        }
+    }
+    
+    "portal": {
+    	"home": "src/main/config/portal"
+    }
+}

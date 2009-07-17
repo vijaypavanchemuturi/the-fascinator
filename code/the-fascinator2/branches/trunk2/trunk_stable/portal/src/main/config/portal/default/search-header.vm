@@ -1,0 +1,18 @@
+<!-- BEGIN search-header.vm -->
+#set($paging = $page.pagination)
+<div class="search-header">
+  <form action="" method="post">
+    <input type="hidden" name="portal" value="$page.portalName"/>
+    <div class="search-form">
+      Search
+      <input type="text" class="search-textfield" name="query" value="$!page.query"/>
+      <input type="submit" class="button" value="Go"/>
+    </div>
+  </form>
+  #if($page.hasResults)
+    <p>Displaying <strong>${paging.startNum}</strong> to <strong>${paging.endNum}</strong> of <strong>${paging.totalFound}</strong> records (${page.response.queryTime} seconds)</p>
+    #parse($locator.getLocation('sorting.vm'))
+    #parse($locator.getLocation('paging.vm'))
+  #end
+</div>
+<!-- END search-header.vm -->

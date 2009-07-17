@@ -1,0 +1,30 @@
+<!-- BEGIN paging.vm -->
+#if($paging.pages.size() > 1)
+  <ul class="paging">
+    <li><a href="#actionlink('firstpage' 'fp')">First</a></li>
+    #if($paging.page > 1)
+      #set($prev = $paging.page - 1)
+      <li>
+        <a href="#actionlink('selectpage' $prev)">Previous</a>
+      </li>
+    #end
+    #foreach($pageNum in $paging.pages)
+      <li #if($pageNum.selected)class="selected-page"#end>
+        #if(!$page.query)
+          #set($sp = 'sp')
+        #else
+          #set($sp = $page.query)
+        #end
+        <a href="#actionlink('selectpage' $pageNum.value)">$pageNum.value</a>
+      </li>
+    #end
+    #if($paging.page < $paging.lastPage)
+      #set($next = $paging.page + 1)
+      <li>
+        <a href="#actionlink('selectpage' $next)">Next</a>
+      </li>
+    #end
+    <li><a href="#actionlink('lastpage' 'lp')">Last</a></li>
+  </ul>
+#end
+<!-- END paging.vm -->

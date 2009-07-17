@@ -1,0 +1,13 @@
+#macro(actionlink $event $param)
+  #set($paramList = [$param])
+  #set($paramArray = $paramList.toArray())
+  $context.createActionLink($event, false, $paramArray)
+#end
+
+#macro(actionlink2 $event $params)
+  $context.createActionLink($event, false, $params.toArray())
+#end
+
+#macro(custom $page $type $param)
+  ${contextPath}custom/$session.portalName/$page/$type/$param
+#end
