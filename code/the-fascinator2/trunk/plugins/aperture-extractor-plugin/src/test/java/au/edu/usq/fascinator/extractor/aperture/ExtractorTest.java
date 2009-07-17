@@ -59,7 +59,7 @@ public class ExtractorTest {
 
     @Test
     public void testOdtFile() throws URISyntaxException, TransformerException {
-        File fileNameodt = new File(getClass().getResource("/testImage.odt")
+        File fileNameodt = new File(getClass().getResource("/test Image.odt")
                 .toURI());
         testObject = new GenericDigitalObject(fileNameodt.getAbsolutePath());
         testObjectOutput = ex.transform(testObject);
