@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<roles>
+    <role id="guest">
+        <users/>
+        <query>group_access:guest</query>
+    </role>
+    <role id="admin">
+        <users>
+            <user>tfadmin</user>
+            <user>ploy</user>
+        </users>
+        <query>group_access:admin</query>
+    </role>
+</roles>

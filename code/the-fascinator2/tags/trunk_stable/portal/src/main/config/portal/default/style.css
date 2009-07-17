@@ -1,0 +1,359 @@
+/* General */
+input.textfield, .t-beaneditor-row input {
+  border: solid black 1px;
+}
+
+input.button, .t-beaneditor-submit {
+  background-color: #00A233;
+  border: solid black 1px;
+  color: white;
+  margin-left: 4px;
+  padding-top: 2px;
+  padding-left: 4px;
+  padding-right: 4px;
+}
+
+input.button:hover {
+  background-color: #C3562E;
+}
+
+th h4 {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+.error-message {
+  color: red;
+}
+
+a.action {
+  color: #94BB4D;
+  font-size: 0.9em;
+}
+
+/* Login */
+.login, .logout {
+  padding-left: 1em;
+}
+
+/* Start page */
+.welcome, .start-search, .portal-list {
+  padding-left: 1em;
+}
+
+.portal-list ul {
+  font-size: 1.2em;
+  list-style: none;
+  padding-left: 1em;
+  margin: 0.25em;
+}
+
+.portal-list a.portal-edit {
+  color: #94BB4D;
+  font-size: 0.75em;
+  padding-left: 0.5em;
+}
+
+.portal-list a.portal-delete {
+  color: #A00000;
+  font-size: 0.75em;
+  padding-left: 0.5em;
+}
+
+/* Config page */
+.config {
+  padding-left: 1em;
+}
+
+/* Users page */
+.users {
+  padding-left: 1em;
+}
+
+/* Navigation bar */
+.nav-bar {
+  background-color: #400040;
+  border-bottom: dashed white 1px;
+  font-weight: bold;
+  padding-bottom: 5px;
+  padding-top: 5px;
+  padding-left: 15px;
+}
+
+.nav-bar ul {
+  margin: 0;
+  padding: 0;
+  display: inline;
+}
+
+.nav-bar ul li{
+  display: inline;
+  margin: 0;
+  padding: 0;
+  padding: 2px 15px 5px;
+  list-style: none;
+}
+
+.nav-bar li, .nav-bar a { 
+  color: white;
+  display:inline;
+  font-weight: inherit;
+  text-decoration: none;
+}
+
+.nav-bar li {
+  padding-right: 20px;
+}
+
+.nav-bar .home {
+  margin-right: 1.5em;
+}
+
+.nav-bar .user {
+  color: #94BB4D;
+}
+
+/* Portal bar */
+.portal-bar {
+  background-color: #C3562E;
+  color: white;
+  padding-bottom: 5px;
+  padding-top: 5px;
+  padding-right: 5px;
+  text-align: right;
+  text-decoration: none;
+}
+
+/* Facets and datastreams */
+.facets {
+  background-color: #F2F8EF;
+  float: right;
+  width: 25%;
+}
+
+.facets h3 {
+  clear: both;
+  margin-bottom: 0;
+  margin-top: 0;
+  padding-bottom: 0;
+  padding-top: 0;
+}
+
+.facets h4 {
+  color: #000;
+  margin-bottom: 0;
+}
+
+.facets ul {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+}
+
+.facets ul.datastreams {
+  list-style-type: none;
+  margin-left: 0;
+  margin-top: 1em;
+  padding-left: 0.5em;
+}
+
+.facets li {
+  border-bottom: 1px solid #E2EED8;
+  margin: 0;
+  padding-top: 3px;
+  padding-bottom: 3px;
+  color: #666;
+}
+
+.facets ul li a.deselect {
+  color: #94BB4D;
+  font-size: 0.75em;
+}
+
+.facets a.action {
+  color: #94BB4D;
+  font-size: 0.9em;
+}
+
+/* Search */
+
+.search {
+  margin-left: 2%;
+}
+
+/* Search header */
+
+.search-header {
+  background: #DCE77D;
+  margin-bottom: 1em;
+  padding-bottom: 0.25em;
+  padding-left: 1em;
+  padding-top: 0.5em;
+  width: 72%;
+}
+
+input.search-textfield {
+  border: solid black 1px;
+  font-size: 1.1em;
+  width: 20em;
+}
+
+/* Sorting */
+.sorting {
+  margin-left: 0;
+  padding-left: 0;
+}
+
+/* Paging */
+
+.paging {
+  margin-left: 0;
+  padding-left: 0;
+}
+
+.paging li {
+  display: inline;
+}
+
+.paging li a {
+  padding-left: 0.3em;
+  padding-right: 0.3em;
+  border: solid #E4C8B5 0px;
+}
+
+.paging .selected-page a, .paging a:hover {
+  background: #FFF;
+  border: solid #C3562E 1px;
+  padding-left: 0.3em;
+  padding-right: 0.3em;
+}
+
+/* Search results */
+.search-results {
+  background-color: #F2F8EF;
+  width: 73%;
+}
+
+/* Search item/details */
+.item {
+  padding-top: 0.5em;
+  padding-left: 0.5em;
+  padding-right: 0.5em;
+}
+
+.odd, .even {
+  border-top: solid #B0CB90 1px;
+  padding-bottom: 0.5em;
+  padding-top: 0.5em;
+}
+
+.search-results .odd {
+  background-color: #F2F8EF;
+}
+
+.search-results .even {
+  background-color: #EEF3BE;
+}
+
+.item h2 {
+  margin-top: 0;
+}
+
+.item h2 a, .search-results h2 {
+  color: #400040;
+  font-weight: bold;
+}
+
+.item div {
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+}
+
+.item ul {
+  list-style: none;
+  margin-left: 0;
+  padding-left: 0;
+}
+
+.item dl dt {
+  color: #C3562E;
+  font-weight: bold;
+  padding-top: 0.25em;
+}
+
+/* Tapestry overrides */
+.beaneditor {
+  padding-left: 1em;
+  padding-right: 1em;
+  width: 80%;
+}
+
+.roles {
+  padding-left: 1em;
+}
+
+.roles a.role-delete {
+  color: #A00000;
+  font-size: 0.75em;
+  padding-left: 0.5em;
+}
+
+
+#settingTabs {
+	clear: both;	
+}
+
+#settingTabs ul {
+	margin-left: 10px;
+	padding: 0px;
+}
+
+#settingTabs li {
+	float: left;
+	list-style: none;
+	padding: 5px;
+	border: 1px solid black;
+	margin: 0px 1px 0px 1px;	
+}
+
+.active {
+	background: #f9faea;
+	font-weight: bold;
+}
+
+#tabContent {
+	clear: both;
+	margin: 10px;
+	padding: 10px;
+	border: 1px solid black;
+	background: #f9faea;
+}
+
+.user-list ul {
+  font-size: 1.2em;
+  list-style: none;
+  padding-left: 1em;
+  margin: 0.25em;
+}
+
+.user-list a.user-edit {
+  color: #94BB4D;
+  font-size: 0.75em;
+  padding-left: 0.5em;
+}
+
+.user-list a.user-delete {
+  color: #A00000;
+  font-size: 0.75em;
+  padding-left: 0.5em;
+}
+
+.setting-create {
+	float: right;
+	font-size: 0.75em;
+	margin-left: 10px;
+}
+
+.setting-create a {
+	color: #94BB4D;
+}

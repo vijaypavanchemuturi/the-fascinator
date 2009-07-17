@@ -1,0 +1,1037 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<response>
+  <lst name="responseHeader">
+    <int name="status">0</int>
+    <int name="QTime">558</int>
+    <lst name="params">
+      <str name="facet.limit">25</str>
+      <str name="rows">10</str>
+      <str name="facet">true</str>
+      <arr name="facet.field">
+        <str>repository_name</str>
+        <str>f_type</str>
+        <str>f_subject</str>
+        <str>f_creator</str>
+      </arr>
+      <str name="facet.mincount">2</str>
+      <str name="fq">repository_name:"unisa"</str>
+      <str name="q">*:*</str>
+    </lst>
+  </lst>
+  <result name="response" numFound="100" start="0">
+    <doc>
+      <arr name="contributor">
+        <str>de Lissa Research Centre, University of South Australia</str>
+        <str>School of Education, University of South Australia</str>
+      </arr>
+      <arr name="coverage">
+        <str>ARROW@UNISA</str>
+        <str>ADT</str>
+      </arr>
+      <arr name="creator">
+        <str>Dela Cerna, Carmencita</str>
+      </arr>
+      <arr name="date">
+        <str>2007</str>
+      </arr>
+      <arr name="description">
+        <str>
+          This study investigated 15 child care centres to find out their responsiveness to the needs of families from non-Anglo backgrounds. Results of this
+          study showed a need to improve service quality in child care to best serve the needs of children from non-Anglo backgrounds. Forty Filipino, 15
+          Cambodian and 30 Sudanese families were involved in this study.
+        </str>
+      </arr>
+      <arr name="f_contributor">
+        <str>de Lissa Research Centre, University of South Australia</str>
+        <str>School of Education, University of South Australia</str>
+      </arr>
+      <arr name="f_coverage">
+        <str>ARROW@UNISA</str>
+        <str>ADT</str>
+      </arr>
+      <arr name="f_creator">
+        <str>Dela Cerna, Carmencita</str>
+      </arr>
+      <arr name="f_date">
+        <str>2007</str>
+      </arr>
+      <arr name="f_language">
+        <str>EN-AUS</str>
+      </arr>
+      <arr name="f_relation">
+        <str />
+        <str />
+        <str />
+      </arr>
+      <arr name="f_rights">
+        <str>Copyright &amp;copy; 2007 Carmencita Dela Cerna</str>
+      </arr>
+      <arr name="f_subject">
+        <str>330301 Teacher Education: Early Childhood</str>
+        <str>339999 Other Education</str>
+        <str>360299 Policy and Administration not elsewhere classified</str>
+        <str>370102 Social Policy and Planning</str>
+        <str>child rearing</str>
+        <str>child care</str>
+        <str>child care service selection</str>
+      </arr>
+      <arr name="f_type">
+        <str>thesis</str>
+      </arr>
+      <str name="id">oai:quiver.ml.unisa.edu.au:unisa:28395</str>
+      <arr name="identifier">
+        <str>unisa:28395</str>
+        <str>http://arrow.unisa.edu.au:8081/1959.8/30417</str>
+      </arr>
+      <arr name="language">
+        <str>EN-AUS</str>
+      </arr>
+      <arr name="relation">
+        <str />
+        <str />
+        <str />
+      </arr>
+      <arr name="rights">
+        <str>Copyright &amp;copy; 2007 Carmencita Dela Cerna</str>
+      </arr>
+      <arr name="subject">
+        <str>330301 Teacher Education: Early Childhood</str>
+        <str>339999 Other Education</str>
+        <str>360299 Policy and Administration not elsewhere classified</str>
+        <str>370102 Social Policy and Planning</str>
+        <str>child rearing</str>
+        <str>child care</str>
+        <str>child care service selection</str>
+      </arr>
+      <arr name="title">
+        <str>
+          A study of child rearing practices amongst a selected sample of Filipino, Cambodian and Sudanese families in South Australia: implications for child
+          care service selection and program development
+        </str>
+      </arr>
+      <arr name="type">
+        <str>thesis</str>
+      </arr>
+    </doc>
+    <doc>
+      <arr name="contributor">
+        <str>Systems Engineering and Evaluation Centre, University of South Australia</str>
+        <str>School of Electrical and Information Engineering, University of South Australia</str>
+      </arr>
+      <arr name="coverage">
+        <str>ARROW@UNISA</str>
+        <str>ADT</str>
+      </arr>
+      <arr name="creator">
+        <str>Staker, Roderick</str>
+      </arr>
+      <arr name="date">
+        <str>2006</str>
+      </arr>
+      <arr name="description">
+        <str>
+          Complex Systems-of-Systems, which form the subject matter of the research presented here, may be considered to be systems that are constituted of
+          several components, each of which could themself be regarded as being a complete system in its own right. These component systems are typically
+          largely managed independently of one another. They each have their own intrinsic goals which they are capable of fulfilling autonomously. These goals
+          are additional to any to which they might contribute as part of the overall System-of-Systems that is being investigated. Systems-of-Systems are
+          epitomised by features such as the prevalence of complex webs of mutual interdependency amongst their component systems, the involvement of a broad
+          diversity of stakeholders and the participation of a number of independent decision-makers, each of whom competes with the others for strictly limited
+          resources. Furthermore, the components of Systems-of-Systems may often be found to be widely scattered across an extensive geographical region.
+          Sometimes such systems may even span global distances. Complex Systems-of-Systems of such a nature would appear to be becoming ever more prevalent in
+          the increasingly interconnected and ever shrinking world which is engendered, in particular, by the proliferation of modern information and
+          communication technology. Systems-of-Systems may arise in both commercial and public sector contexts, hence commercial organisations and governments,
+          alike, confront the daunting challenge of planning, establishing and maintaining novel systems of this type. However, it is to be anticipated that
+          significant difficulties might be encountered in applying existing systems engineering methods, which were designed for dealing with far more
+          monolithic types of system, to the treatment of Systems-of- Systems. Instead, the successful achievement of acceptable resolutions to the various
+          Systems-of-Systems issues and conundrums with which the responsible planners can be expected to be confronted would appear to demand the application
+          of sophisticated distributed decision aids, in order to alleviate the the intolerable burden which the decision-makers would otherwise be forced to
+          endure. Such aids need to be able to take a genuinely fair and unbiased account of the interests of a multitude of stakeholders. At the same time,
+          they must be able to satisfactorily accommodate the enforcement of a range of highly involved and intricate constraints upon the various alternative
+          interventions which might potentially be contemplated. In order to underpin the development of decision aids of the kind demanded, it has been sought
+          to establish some basic theoretical foundations for Systems-of-Systems. This body of theory has then been applied to the identification of the methods
+          which might be most suitable for the treatment of Systems-of-Systems questions. Finally, some decision-support tools which are intended to facilitate
+          the implementation of the methods that have been recommended have been described. Any attempt to dictate a single â€œbestâ€� intervention to the
+          decision-makers would generally be totally unacceptable. As a result, the objective which has been pursued has been to seek to filter out and identify
+          a relatively sparing number of what would appear to be the most reasonable alternatives from some much more profuse range of possibilities. These may
+          then be afforded more intensive scrutiny by the pertinent decision-makers.
+        </str>
+      </arr>
+      <arr name="f_contributor">
+        <str>Systems Engineering and Evaluation Centre, University of South Australia</str>
+        <str>School of Electrical and Information Engineering, University of South Australia</str>
+      </arr>
+      <arr name="f_coverage">
+        <str>ARROW@UNISA</str>
+        <str>ADT</str>
+      </arr>
+      <arr name="f_creator">
+        <str>Staker, Roderick</str>
+      </arr>
+      <arr name="f_date">
+        <str>2006</str>
+      </arr>
+      <arr name="f_language">
+        <str>EN-AUS</str>
+      </arr>
+      <arr name="f_relation">
+        <str />
+        <str />
+        <str />
+      </arr>
+      <arr name="f_rights">
+        <str>Copyright &amp;copy; 2006 Roderick Staker</str>
+      </arr>
+      <arr name="f_subject">
+        <str>230113 Dynamical Systems</str>
+        <str>230117 Operations Research</str>
+        <str>230118 Optimisation</str>
+        <str>230119 Systems Theory and Control</str>
+        <str>280109 Decision Support and Group Support Systems</str>
+        <str>280110 Systems Theory</str>
+        <str>280213 Other Artificial Intelligence</str>
+        <str>complex systems</str>
+        <str>systems-of-systems</str>
+        <str>systems theory</str>
+      </arr>
+      <arr name="f_type">
+        <str>thesis</str>
+      </arr>
+      <str name="id">oai:quiver.ml.unisa.edu.au:unisa:28396</str>
+      <arr name="identifier">
+        <str>unisa:28396</str>
+        <str>http://arrow.unisa.edu.au:8081/1959.8/30414</str>
+      </arr>
+      <arr name="language">
+        <str>EN-AUS</str>
+      </arr>
+      <arr name="relation">
+        <str />
+        <str />
+        <str />
+      </arr>
+      <arr name="rights">
+        <str>Copyright &amp;copy; 2006 Roderick Staker</str>
+      </arr>
+      <arr name="subject">
+        <str>230113 Dynamical Systems</str>
+        <str>230117 Operations Research</str>
+        <str>230118 Optimisation</str>
+        <str>230119 Systems Theory and Control</str>
+        <str>280109 Decision Support and Group Support Systems</str>
+        <str>280110 Systems Theory</str>
+        <str>280213 Other Artificial Intelligence</str>
+        <str>complex systems</str>
+        <str>systems-of-systems</str>
+        <str>systems theory</str>
+      </arr>
+      <arr name="title">
+        <str>Supporting strategic decisions for complex systems-of-systems: a syncretic approach</str>
+      </arr>
+      <arr name="type">
+        <str>thesis</str>
+      </arr>
+    </doc>
+    <doc>
+      <arr name="creator">
+        <str>Pandey, Prashant</str>
+      </arr>
+      <arr name="date">
+        <str>2006</str>
+      </arr>
+      <arr name="description">
+        <str>A collection of Theses submitted in ADT program</str>
+      </arr>
+      <arr name="f_creator">
+        <str>Pandey, Prashant</str>
+      </arr>
+      <arr name="f_date">
+        <str>2006</str>
+      </arr>
+      <arr name="f_type">
+        <str>collection</str>
+      </arr>
+      <str name="id">oai:quiver.ml.unisa.edu.au:unisa:24933</str>
+      <arr name="identifier">
+        <str>http://arrow.unisa.edu.au:8081/1959.8/34174</str>
+        <str>unisa:24933</str>
+      </arr>
+      <arr name="title">
+        <str>Australian Digital Theses (ADT)</str>
+      </arr>
+      <arr name="type">
+        <str>collection</str>
+      </arr>
+    </doc>
+    <doc>
+      <arr name="contributor">
+        <str>International Graduate School of Management, University of South Australia</str>
+      </arr>
+      <arr name="coverage">
+        <str>ARROW@UNISA</str>
+        <str>ADT</str>
+      </arr>
+      <arr name="creator">
+        <str>Cheng, Jeremy</str>
+      </arr>
+      <arr name="date">
+        <str>2004</str>
+      </arr>
+      <arr name="description">
+        <str>
+          China has been changing from a centrally planned to a market economy. Its journey has not been a smooth one and is not likely to be easy in the years
+          to come. One of its industry sectors, the chemical industry, which represents approximately 4.6% of its national GDP, is facing challenges in the
+          changing market dynamics. The Chinese government has applied administrative actions rather than simply relying on the market to address these
+          challenges. Fragmentation has been reduced by closing down inefficient chemical plants; merging various companies to form groups. It has also
+          attempted to privatise government owned enterprises by corporatisation and marketisation. Corporatisation of government-owned enterprise refers to
+          alteration of their ownership to create joint stock companies. Marketisation refers to listing those privatised enterprises on the stock market. The
+          objective of this research was to find out whether taking these administrative actions is the best strategy for the Chinese government-owned chemical
+          industry rather than making it more effective by building up state owned chemical enterprises? core competencies and core capabilities. The principal
+          argument of this thesis is based on the resource-based view (RBV). Since there is no previous study on the application of the RBV in the Chinese
+          chemical industry, this thesis can be seen as the first step to applying it in conducting research in this industry. Through the literature review,
+          interviews with the senior executives of the Shanghai Chemical Bureau, and discussion with industrial experts, six testable hypotheses were developed.
+          These hypotheses were tested by using a questionnaire survey with 150 respondents from a sample randomly selected among the chemical companies listed
+          in the Chinese Chemical Catalogue 2001-2002. In addition in-depth case studies of two chemical enterprises were used to increase the breadth and depth
+          of the research findings. The first subject is a privatised state-owned enterprise with its shares listed in the Shanghai Stock Exchange. The second
+          subject became a state-owned enterprise again in 2000 through several changes in ownership. The research methods were specifically chosen as being
+          appropriate to the investigation into the effect of administrative measures on the company?s long-term performance compared to that of using core
+          capabilities. Multiple T tests, Cronbach?s Alpha and ANOVA were used to analyse the quantitative research data and to ensure the results are
+          statistically significant. The quantitative research findings indicate that building core capabilities is more effective than privatisation and group
+          structure for the Chinese chemical companies to improve performance. Findings from the two case studies not only confirm the effectiveness of using
+          core capabilities to improve performance but also reveal how and why core capabilities affect company performance. Based on these findings it is
+          concluded that developing Managerial Capability, Human Resources Capabilities (in particular corporate culture), and Marketing Capabilities are more
+          effective than privatisation and group structure for the Chinese chemical companies to improve long-term performance. This thesis also validates the
+          appropriateness of applying RBV in the Chinese chemical industry.
+        </str>
+        <str>thesis (PhDBusinessand Management)--University of South Australia, 2004.</str>
+      </arr>
+      <arr name="f_contributor">
+        <str>International Graduate School of Management, University of South Australia</str>
+      </arr>
+      <arr name="f_coverage">
+        <str>ARROW@UNISA</str>
+        <str>ADT</str>
+      </arr>
+      <arr name="f_creator">
+        <str>Cheng, Jeremy</str>
+      </arr>
+      <arr name="f_date">
+        <str>2004</str>
+      </arr>
+      <arr name="f_format">
+        <str />
+      </arr>
+      <arr name="f_language">
+        <str>eng</str>
+      </arr>
+      <arr name="f_relation">
+        <str />
+      </arr>
+      <arr name="f_rights">
+        <str>Â© 2004 Jeremy Cheng</str>
+      </arr>
+      <arr name="f_subject">
+        <str>Business planning</str>
+        <str>China</str>
+        <str>Chemical industry</str>
+        <str>Government ownership</str>
+        <str>Privatization</str>
+        <str>Strategic planning</str>
+      </arr>
+      <arr name="f_type">
+        <str>thesis</str>
+      </arr>
+      <arr name="format">
+        <str />
+      </arr>
+      <str name="id">oai:quiver.ml.unisa.edu.au:unisa:24934</str>
+      <arr name="identifier">
+        <str>unisa:24934</str>
+        <str>http://arrow.unisa.edu.au:8081/1959.8/24934</str>
+      </arr>
+      <arr name="language">
+        <str>eng</str>
+      </arr>
+      <arr name="relation">
+        <str />
+      </arr>
+      <arr name="rights">
+        <str>Â© 2004 Jeremy Cheng</str>
+      </arr>
+      <arr name="subject">
+        <str>Business planning</str>
+        <str>China</str>
+        <str>Chemical industry</str>
+        <str>Government ownership</str>
+        <str>Privatization</str>
+        <str>Strategic planning</str>
+      </arr>
+      <arr name="title">
+        <str>Investigation into strategies affecting the long-term performance of Chinese chemical companies</str>
+      </arr>
+      <arr name="type">
+        <str>thesis</str>
+      </arr>
+    </doc>
+    <doc>
+      <arr name="contributor">
+        <str>Centre for Studies in Literacy, Policy and Learning Cultures, University of South Australia</str>
+      </arr>
+      <arr name="coverage">
+        <str>ARROW@UNISA</str>
+        <str>ADT</str>
+      </arr>
+      <arr name="creator">
+        <str>Davison, Kevin</str>
+      </arr>
+      <arr name="date">
+        <str>2002</str>
+      </arr>
+      <arr name="description">
+        <str>
+          This dissertation investigates how masculinities are understood and practiced through the body and how such practices are shaped and limited by
+          modernist theories about gender. The research argues that postmodern theory allows for a greater inclusivity of genders and bodies otherwise
+          marginalised by modernity. A qualitative postmodern and poststructural methodology, combined with a research method involving the collection of all
+          data via an on-line questionnaire, disrupts modernist, dualistic thinking about the body and gender. By distancing the physical body from the research
+          method, and thus separating, temporarily, discourses of gender which inhabit the body, this research creates counter-hegemonic spaces to re-articulate
+          masculine identities and practices within the postmodern condition. Furthermore, the postmodern theory and methodology informing this work unsettles
+          the belief that physical bodies can be counted on to reveal consistent truths. The contextualisation of this work includes a chapter that recounts
+          various historical moments where technological advancements made way for the re-consideration and re-negotiation of gender and bodies. The
+          intersections of technology and modernity are examined along with the rise of the postmodern condition and the advancement of computer technologies.
+          Shifts in understanding, influenced by postmodern theory and human-computer interaction, are discussed in relation to their challenges to modernist
+          boundaries of ?the real? and, in turn, the possibilities of gender articulations. Additionally, a chapter containing critical researcher reflexivity
+          through an autobiographical account of masculinities and schooling acts to illustrate some of the complexities, contradictions, privileges and
+          counter-hegemonic possibilities of masculinities and bodies. Although the majority of the research participants identified as ?male?, some identified
+          as ?female? and others identified as ?intersex?. The geographic identities of the respondents included Australia, The United Kingdom, Ireland, The
+          United States, and Japan. The data were analysed using postmodern and poststructural theory. The subjectivity and the role of the researcher in the
+          analysis of data were interrogated alongside the words of the participants. The responses were grouped into four areas: Being and Knowing; The Body
+          Engendered; Bodies On-Line and On the Line, and New Articulations. In all four areas the participants? words demonstrate tensions between modern and
+          postmodern understandings of bodies and genders. Computer technologies often replicate modernist images of gender and bodies, yet at the same time
+          they provide a postmodern space of multiplicity, fluidity, and hybridity, where rigid modernist configurations cannot hold. The analysis illuminates,
+          diffracts, disrupts, and highlights disjunctures and new possibilities for gender and bodies mediated by contemporary computer and Internet
+          technologies. Lastly, Benjaminian dialectical images were used to transform fixed modernist beliefs about gender and bodies and to move the reader
+          toward alternative ways of understanding gender which are not body dependent.
+        </str>
+        <str>thesis (PhDEducation)--University of South Australia, 2002.</str>
+      </arr>
+      <arr name="f_contributor">
+        <str>Centre for Studies in Literacy, Policy and Learning Cultures, University of South Australia</str>
+      </arr>
+      <arr name="f_coverage">
+        <str>ARROW@UNISA</str>
+        <str>ADT</str>
+      </arr>
+      <arr name="f_creator">
+        <str>Davison, Kevin</str>
+      </arr>
+      <arr name="f_date">
+        <str>2002</str>
+      </arr>
+      <arr name="f_format">
+        <str />
+      </arr>
+      <arr name="f_language">
+        <str>eng</str>
+      </arr>
+      <arr name="f_relation">
+        <str />
+      </arr>
+      <arr name="f_rights">
+        <str>���� 2002 Kevin G Davison</str>
+      </arr>
+      <arr name="f_subject">
+        <str>Masculinity</str>
+        <str>Body image in men</str>
+        <str>Gender identity</str>
+        <str>Men</str>
+        <str>Identity</str>
+      </arr>
+      <arr name="f_type">
+        <str>thesis</str>
+      </arr>
+      <arr name="format">
+        <str />
+      </arr>
+      <str name="id">oai:quiver.ml.unisa.edu.au:unisa:24935</str>
+      <arr name="identifier">
+        <str>unisa:24935</str>
+        <str>http://arrow.unisa.edu.au:8081/1959.8/24935</str>
+      </arr>
+      <arr name="language">
+        <str>eng</str>
+      </arr>
+      <arr name="relation">
+        <str />
+      </arr>
+      <arr name="rights">
+        <str>���� 2002 Kevin G Davison</str>
+      </arr>
+      <arr name="subject">
+        <str>Masculinity</str>
+        <str>Body image in men</str>
+        <str>Gender identity</str>
+        <str>Men</str>
+        <str>Identity</str>
+      </arr>
+      <arr name="title">
+        <str>Body talk and masculinities texting gender without the body</str>
+      </arr>
+      <arr name="type">
+        <str>thesis</str>
+      </arr>
+    </doc>
+    <doc>
+      <arr name="contributor">
+        <str>School of Communication, Information &amp; New Media, University of South Australia</str>
+      </arr>
+      <arr name="coverage">
+        <str>ARROW@UNISA</str>
+        <str>ADT</str>
+      </arr>
+      <arr name="creator">
+        <str>Van der Hoeven, Sieta</str>
+      </arr>
+      <arr name="date">
+        <str>2002</str>
+      </arr>
+      <arr name="description">
+        <str>
+          This study examines the experiences of teachers and students in secondary English classes, as they engage in the reading of contemporary adolescent
+          fiction, when such fiction is set as a class text. This study also includes an examination of students' perceptions of such reading, and of reading in
+          general. The aim of the study is to add to the knowledge about what actually goes on inside English classrooms during the teaching of literature, and
+          within that field, to specify how teacher-student interaction in the classroom defines and positions the kinds of meanings that are made of literary
+          texts. Therefore, this study focuses on the teaching of units of work related to the reading of adolescent fiction novels by three South Australian
+          English teachers, based in three different metropolitan schools.The central focus is on the teachers? plans for these units of work, and on the
+          outcomes: that is, on teacher-student interactions during the time spent in class on the novel, and on students? written and oral responses. Thus this
+          study also focuses on the learning that took place in these classrooms, as students made meaning from their reading.In the review of the literature,
+          the role of the literary novel as the class ?set text? in its several historical contexts is examined, as well as current theories of reading, of
+          pedagogy, and of literary criticism. Finally this study is placed in the context of other related studies and its contribution to the field
+          explained.An interpretive approach is employed and methods of educational ethnography are used to what was visualised from the outset would be
+          qualitative research in the form of case studies. Some quantification is used in this research to report on a small-scale survey, using a
+          questionnaire to create a ?readers? profile of the cohort of student-informants as a whole. Metaphors were used to encapsulate the teachers? teaching
+          styles, and their intentions and practices analysed to uncover the underlying theories on which these intentions and practices were based. Throughout,
+          but especially in the final chapter, the related notions of ?enjoyment? and ?the teaching of reading? at secondary school levels, as well as the
+          concept of reflectivity, are examined for their impact on reading pedagogy. Finally, some suggestions are made for possible and desirable future
+          research and teacher professional development.
+        </str>
+        <str>thesis (PhD)--University of South Australia, 2002.</str>
+      </arr>
+      <arr name="f_contributor">
+        <str>School of Communication, Information &amp; New Media, University of South Australia</str>
+      </arr>
+      <arr name="f_coverage">
+        <str>ARROW@UNISA</str>
+        <str>ADT</str>
+      </arr>
+      <arr name="f_creator">
+        <str>Van der Hoeven, Sieta</str>
+      </arr>
+      <arr name="f_date">
+        <str>2002</str>
+      </arr>
+      <arr name="f_format">
+        <str />
+      </arr>
+      <arr name="f_language">
+        <str>eng</str>
+      </arr>
+      <arr name="f_relation">
+        <str />
+      </arr>
+      <arr name="f_rights">
+        <str>Â© 2002 Sieta van der Hoeven</str>
+      </arr>
+      <arr name="f_subject">
+        <str>Reading (Secondary)</str>
+        <str>Research</str>
+        <str>South Australia</str>
+        <str>Literature</str>
+        <str>Study and teaching (Secondary)</str>
+        <str>Teacher-student relationships</str>
+        <str>Teenagers</str>
+        <str>Books and reading</str>
+      </arr>
+      <arr name="f_type">
+        <str>thesis</str>
+      </arr>
+      <arr name="format">
+        <str />
+      </arr>
+      <str name="id">oai:quiver.ml.unisa.edu.au:unisa:24936</str>
+      <arr name="identifier">
+        <str>unisa:24936</str>
+        <str>http://arrow.unisa.edu.au:8081/1959.8/24936</str>
+      </arr>
+      <arr name="language">
+        <str>eng</str>
+      </arr>
+      <arr name="relation">
+        <str />
+      </arr>
+      <arr name="rights">
+        <str>Â© 2002 Sieta van der Hoeven</str>
+      </arr>
+      <arr name="subject">
+        <str>Reading (Secondary)</str>
+        <str>Research</str>
+        <str>South Australia</str>
+        <str>Literature</str>
+        <str>Study and teaching (Secondary)</str>
+        <str>Teacher-student relationships</str>
+        <str>Teenagers</str>
+        <str>Books and reading</str>
+      </arr>
+      <arr name="title">
+        <str>Rhetoric of adolescent fiction the pedagogy of reading practices in South Australian secondary English classes</str>
+      </arr>
+      <arr name="type">
+        <str>thesis</str>
+      </arr>
+    </doc>
+    <doc>
+      <arr name="contributor">
+        <str>International Graduate School of Management, University of South Australia</str>
+      </arr>
+      <arr name="coverage">
+        <str>ARROW@UNISA</str>
+        <str>ADT</str>
+      </arr>
+      <arr name="creator">
+        <str>Chong, Kum Whye</str>
+      </arr>
+      <arr name="date">
+        <str>2003</str>
+      </arr>
+      <arr name="description">
+        <str>
+          UUProblem Members of the Singapore Heavy Equipment Spare Parts Industry face a multitude of challenges in developing their pricing strategy and
+          practice, and in establishing, developing, and maintaining successful relational exchanges. They are unable to obtain any guidance from the pricing or
+          relationship marketing literature. These works are either too complex or too general to be of any use to industry members. Consequently, much of
+          industry strategy and practice occurs without the benefit of theory. UUThe Method An extensive review of existing literature was conducted in the
+          major subject areas of pricing and relationship marketing. Literature on other subjects of channels, marketing mix, strategy, value, commitment,
+          trust, cooperation, and satisfaction were also reviewed. A survey instrument was developed and field research was administered to 35 channel members
+          of the industry. The results were analysed using SPSS 11. The results were used to construct a model of the role of pricing in relationship marketing.
+          The model was constructed using Factor Analysis, Correlation Analysis and Regression Analysis. UUThe Findings The findings are all based on the
+          perception of the channel members. Nine factors were extracted. These non-trivial factors to the Singapore Heavy Equipment Spare Parts Industry are: -
+          Downstream supply considerations; - Product/Stock allocations; - Price gap resolution; - Perception of value/profitability; - Business volume; -
+          Intermediate business relationships; - Leads and referrals; - Favourable pricing; and - Long-run relationships. At 5% significance (2-tailed), 4
+          construct paths were supported. These are: - Support gap correlates with actual price; - Support gap correlates with value; - Support gap correlates
+          with price gap; and - Price gap correlates with value. At 5% significance (2-tailed), 8 hypotheses were supported. These are: - Price gap resolution
+          correlates with commitment; - Price gap resolution correlates with cooperation; - Price gap resolution correlates with satisfaction; - Importance of
+          constructive acts correlates with improved business volume; - Expression of intention to increase business correlates with increased business; -
+          Importance of value correlates with increased business; - Value (through profitability) correlates with increased business; and - Importance of value
+          correlates with improvements in: - Trust; - Commitment; - Cooperation; - Satisfaction; and - Increased business. UUConclusion Pricing has a profound
+          and multi-faceted role in relationship marketing. It is a powerful tool. It has a role as a market tool with new relationships, as a development tool
+          in the growth phase of relationships, and as a control tool in the mature phase of bilateral relationships between first and second echelon
+          distributors. The study recommended that channel members utilise this tool concept and the management of value, price, and support gap in relational
+          exchanges.
+        </str>
+        <str>thesis (PhDBusinessandManagement)--University of South Australia, 2003.</str>
+      </arr>
+      <arr name="f_contributor">
+        <str>International Graduate School of Management, University of South Australia</str>
+      </arr>
+      <arr name="f_coverage">
+        <str>ARROW@UNISA</str>
+        <str>ADT</str>
+      </arr>
+      <arr name="f_creator">
+        <str>Chong, Kum Whye</str>
+      </arr>
+      <arr name="f_date">
+        <str>2003</str>
+      </arr>
+      <arr name="f_format">
+        <str />
+      </arr>
+      <arr name="f_language">
+        <str>eng</str>
+      </arr>
+      <arr name="f_relation">
+        <str />
+      </arr>
+      <arr name="f_rights">
+        <str>Â© 2003 Chong Kum Whye</str>
+      </arr>
+      <arr name="f_subject">
+        <str>Construction equipment inustry</str>
+        <str>Singapore</str>
+        <str>Pricing</str>
+        <str>Relationship marketing</str>
+      </arr>
+      <arr name="f_type">
+        <str>thesis</str>
+      </arr>
+      <arr name="format">
+        <str />
+      </arr>
+      <str name="id">oai:quiver.ml.unisa.edu.au:unisa:24937</str>
+      <arr name="identifier">
+        <str>unisa:24937</str>
+        <str>http://arrow.unisa.edu.au:8081/1959.8/24937</str>
+      </arr>
+      <arr name="language">
+        <str>eng</str>
+      </arr>
+      <arr name="relation">
+        <str />
+      </arr>
+      <arr name="rights">
+        <str>Â© 2003 Chong Kum Whye</str>
+      </arr>
+      <arr name="subject">
+        <str>Construction equipment inustry</str>
+        <str>Singapore</str>
+        <str>Pricing</str>
+        <str>Relationship marketing</str>
+      </arr>
+      <arr name="title">
+        <str>Role of pricing in relationship marketing a study of the Singapore heavy equipment spare parts industry</str>
+      </arr>
+      <arr name="type">
+        <str>thesis</str>
+      </arr>
+    </doc>
+    <doc>
+      <arr name="contributor">
+        <str>International Graduate School of Management, University of South Australia</str>
+      </arr>
+      <arr name="coverage">
+        <str>ARROW@UNISA</str>
+        <str>ADT</str>
+      </arr>
+      <arr name="creator">
+        <str>Neirynck, Baudouin C R</str>
+      </arr>
+      <arr name="date">
+        <str>2003</str>
+      </arr>
+      <arr name="description">
+        <str>
+          During the 1990's, most Hong Kong companies experienced extremely high Voluntary Turnover among middle managers. This thesis attempts to find the
+          causes of such turnover through quantitative analysis and at the same time assess the state of Succession Planning implementation in 10 subsidiaries
+          of US multinational companies as a potential remedy to such turnover. Lack of career advancement and promotion opportunities was found by employees to
+          be the leading cause of voluntary turnover whereas employers believe basic salary and other remuneration components are the main causes. In 9
+          companies out of 10, Succession Planning is found to be short on basic success criteria such as formalization, buget, support from top management,
+          I.T. support, integra- tion with strategic HR planning, accountability and continuous review process.
+        </str>
+        <str>thesis (PhDBusinessandManagement)--University of South Australia, 2003.</str>
+      </arr>
+      <arr name="f_contributor">
+        <str>International Graduate School of Management, University of South Australia</str>
+      </arr>
+      <arr name="f_coverage">
+        <str>ARROW@UNISA</str>
+        <str>ADT</str>
+      </arr>
+      <arr name="f_creator">
+        <str>Neirynck, Baudouin C R</str>
+      </arr>
+      <arr name="f_date">
+        <str>2003</str>
+      </arr>
+      <arr name="f_format">
+        <str />
+      </arr>
+      <arr name="f_language">
+        <str>eng</str>
+      </arr>
+      <arr name="f_relation">
+        <str />
+      </arr>
+      <arr name="f_rights">
+        <str>Â© 2003 Baudouin C R Neirynck</str>
+      </arr>
+      <arr name="f_subject">
+        <str>Executive succession</str>
+        <str>Leadership</str>
+        <str>Middle managers</str>
+        <str>Asia</str>
+        <str>International business enterprises</str>
+      </arr>
+      <arr name="f_type">
+        <str>thesis</str>
+      </arr>
+      <arr name="format">
+        <str />
+      </arr>
+      <str name="id">oai:quiver.ml.unisa.edu.au:unisa:24938</str>
+      <arr name="identifier">
+        <str>unisa:24938</str>
+        <str>http://arrow.unisa.edu.au:8081/1959.8/24938</str>
+      </arr>
+      <arr name="language">
+        <str>eng</str>
+      </arr>
+      <arr name="relation">
+        <str />
+      </arr>
+      <arr name="rights">
+        <str>Â© 2003 Baudouin C R Neirynck</str>
+      </arr>
+      <arr name="subject">
+        <str>Executive succession</str>
+        <str>Leadership</str>
+        <str>Middle managers</str>
+        <str>Asia</str>
+        <str>International business enterprises</str>
+      </arr>
+      <arr name="title">
+        <str>Succession planning for middle managers in US subsidiaries in Hong Kong</str>
+      </arr>
+      <arr name="type">
+        <str>thesis</str>
+      </arr>
+    </doc>
+    <doc>
+      <arr name="contributor">
+        <str>International Graduate School of Management, University of South Australia</str>
+      </arr>
+      <arr name="coverage">
+        <str>ARROW@UNISA</str>
+        <str>ADT</str>
+      </arr>
+      <arr name="creator">
+        <str>Tan, Teck Khim Stenson</str>
+      </arr>
+      <arr name="date">
+        <str>2002</str>
+      </arr>
+      <arr name="description">
+        <str>
+          The purpose of this study was to investigate whether Confucian values based on the four virtues and five relationships influence the style of the HRM
+          practices adopted by Locally owned firms (LOFs) and Foreign owned firms (FOFs) based in Singapore. Confucian values emphasize a way of life. They are
+          based on first cultivating oneself with the basic four virtues highlighted by Confucius (551 - 479 BC). Secondly, through the influence of the
+          individual on others (via the five relationships, namely ruler-subject, father-son, brother-brother, husband-wife and friend-friend illustrated by
+          Confucius), a 'perfect' world with peace and harmony can be created. This study investigates the degree to which the four distinct virtues - 1)
+          human-kindness (ren), 2) integrity (yi), 3) propriety (li) and 4) knowledge (chi) and the five relationships, 1) ruler-subject, 2) father-son, 3)
+          husband-wife, 4) brother-brother and 5) friend-friend, were adopted to underpin the practices of Human Resource Management (HRM) in Singapore. The
+          target group of respondents chosen was executives, who were directly influenced by the style of human resource management in the firm.
+          Electronics/technology related firms based in Singapore were the chosen group. The executives were chosen from electronics/technology related firms
+          because these firms formed the most important industry, responsible for the well being of Singapore's growth (24% of GDP as stated by the Department
+          of Statistics; 1999) and expected to continue so for the next 10 years. Managers from the same firms were given another set of questionnaires to
+          verify the responses obtained from the executives. From the result obtained, it showed that there were influences of Confucian values on the five
+          human resources functions tested. The executives' responses provided evidence on whether or not a certain trait or style has been used in the firm.
+          The managers' responses, on the other hand, helped to verify that the trait or style was due to the influence of Confucian values as a whole and not
+          other cultures or religions. The entire survey and interviews were carried out over twenty months from 1998, during which responses obtainable from
+          both the managers and executives from each firm were analyzed. The data were analyzed using cross-tabulations and chi-square tests because
+          cross-tabulation is one statistical tool which required only at least 5 responses in each cell for a reliable analysis to be conducted (Yong, 1994).
+          Letters were then sent out to the Heads/Managers of the target firms, conducting interviews to obtain more insights to argue the survey data. Two
+          interviews were conducted, taped and results obtained from the quantitative approach, helped further clarify earlier interpretations. This research
+          showed that Singapore-based electronics/technology-related firms, regardless whether they were locally owned or foreign owned, showed that they were
+          influenced by Confucian values in most aspects of the human resource practices. In addition, from the study, it showed that there were no significant
+          differences between locally owned firms and foreign owned firms in terms of the degree of influence Confucian values have on the style of the
+          management. This demonstrated that Chinese culture (in this case - Confucian values) - local/host country's culture played a stronger influence on the
+          style of management in businesses conducted in Singapore than the organization's culture. This finding is important as most past research findings
+          such as Rodrigues (1996) used to state that the organizational culture of the foreign-owned firms often have stronger influence on the practices
+          adopted in firms regardless of the country that they were in. Lastly, after analyzing the responses obtained from the survey, the study justified that
+          four virtues and only three (i.e. ruler-subject, friend-friend, father-son) of the five relationships outlined by Confucius has an impact on the style
+          of HRM amongst Singapore-based firms in the technology/electronics-related industry.
+        </str>
+        <str>thesis (PhDBusinessandManagement)--University of South Australia, 2002.</str>
+      </arr>
+      <arr name="f_contributor">
+        <str>International Graduate School of Management, University of South Australia</str>
+      </arr>
+      <arr name="f_coverage">
+        <str>ARROW@UNISA</str>
+        <str>ADT</str>
+      </arr>
+      <arr name="f_creator">
+        <str>Tan, Teck Khim Stenson</str>
+      </arr>
+      <arr name="f_date">
+        <str>2002</str>
+      </arr>
+      <arr name="f_format">
+        <str />
+      </arr>
+      <arr name="f_language">
+        <str>eng</str>
+      </arr>
+      <arr name="f_relation">
+        <str />
+      </arr>
+      <arr name="f_rights">
+        <str>Â© 2002 Stenson Tan Teck Khim</str>
+      </arr>
+      <arr name="f_subject">
+        <str>Personnel management</str>
+        <str>Singapore</str>
+        <str>Confucianism</str>
+      </arr>
+      <arr name="f_type">
+        <str>thesis</str>
+      </arr>
+      <arr name="format">
+        <str />
+      </arr>
+      <str name="id">oai:quiver.ml.unisa.edu.au:unisa:24939</str>
+      <arr name="identifier">
+        <str>unisa:24939</str>
+        <str>http://arrow.unisa.edu.au:8081/1959.8/24939</str>
+      </arr>
+      <arr name="language">
+        <str>eng</str>
+      </arr>
+      <arr name="relation">
+        <str />
+      </arr>
+      <arr name="rights">
+        <str>Â© 2002 Stenson Tan Teck Khim</str>
+      </arr>
+      <arr name="subject">
+        <str>Personnel management</str>
+        <str>Singapore</str>
+        <str>Confucianism</str>
+      </arr>
+      <arr name="title">
+        <str>Influence of Confucian values on HRM practices in Singapore-based firms</str>
+      </arr>
+      <arr name="type">
+        <str>thesis</str>
+      </arr>
+    </doc>
+    <doc>
+      <arr name="contributor">
+        <str>School of Mathematics, University of South Australia</str>
+      </arr>
+      <arr name="coverage">
+        <str>ARROW@UNISA</str>
+        <str>ADT</str>
+      </arr>
+      <arr name="creator">
+        <str>Eitzen, Guy E</str>
+      </arr>
+      <arr name="date">
+        <str>2002</str>
+      </arr>
+      <arr name="description">
+        <str>
+          Generating employee rosters on a 24 hour, 7 day per week basis taking into account fluctuating demand for employees, employee skills, working
+          conditions, training and employee preferences, while ensuring efficiency and equity between the employees is a very difficult task due to the very
+          large number of possible rostering combinations available. The research done in this thesis, supervised by Dr. David Panton and Dr. Graham Mills, and
+          in association with Prof. Drew Dawson, sets to solve this exact problem for CS Energy's Swanbank Power Station located in Queensland, Australia. At
+          this site, there are 48 full-time and 8 part-time employees, each with up to 5 different skill levels (from a possible 8 skill levels), working across
+          two power stations located 150 metres apart. The rostering solution had to take into account CS Energy's current employees and their current level of
+          multi-skilling in such a way that employees maintained currency in all their skills. A rostering system termed dynamic rostering was developed which
+          enabled CS Energy's current employees to be rostered, while being flexible enough to handle fluctuations in employee demand, changes in employee
+          numbers and employee preferences, and maintaining the multi-skilled nature of the employees. Other types of rostering such as cyclic rostering, could
+          not be implemented for the Swanbank Power Station as the assumption of constant demand and all employees having the same skills could not be met. To
+          solve this dynamic rostering problem for CS Energy, a number of sophicated integer programs were developed. Integer programs are powerful tools when
+          solving problems with the following structure: minimise an objective; subject to ensuring some constraints are not violated. Integer programs suit
+          this rostering problem as there is a need to minimise the amount of under and overstaffing, subject to ensuring working conditions, skill maintenance
+          and equity between employees is met. One large integer program is required to solve each two week roster period. Since the large integer programs are
+          difficult to solve, we use reduction techniques such as column expansion, reduced column subset, and branch and price to reduce the initial large
+          integer program to an integer program of a more solvable size. Through its simplicity and the suspected degeneracy of the initial integer program, the
+          reduction technqiue called reduced column subset proves the most effective for giving good solutions in the least time. Branch and price techniques
+          which set out to solve the problem to optimality do find better solutions by an average of 1-4%. Therefore for actual rosters, the most efficient
+          methods of branch and price, and branch and price with cutting constraints would be most appropriate. For scenario testing, the quicker methods of
+          column expansion and reduced column subet would be the most appropriate. The final rosters developed for CS Energy using these mathematical
+          techniques, dramatically increased the efficiency of the rosters when compared to their current manual methods. They also provided a quantifiable
+          measure of equity for employees.
+        </str>
+        <str>thesis (PhDMathematics)--University of South Australia, 2002.</str>
+      </arr>
+      <arr name="f_contributor">
+        <str>School of Mathematics, University of South Australia</str>
+      </arr>
+      <arr name="f_coverage">
+        <str>ARROW@UNISA</str>
+        <str>ADT</str>
+      </arr>
+      <arr name="f_creator">
+        <str>Eitzen, Guy E</str>
+      </arr>
+      <arr name="f_date">
+        <str>2002</str>
+      </arr>
+      <arr name="f_format">
+        <str />
+      </arr>
+      <arr name="f_language">
+        <str>eng</str>
+      </arr>
+      <arr name="f_relation">
+        <str />
+      </arr>
+      <arr name="f_rights">
+        <str>Â© 2002 Guy E Eitzen</str>
+      </arr>
+      <arr name="f_subject">
+        <str>Integer programming</str>
+        <str>Shift systems</str>
+        <str>Mathematical models</str>
+      </arr>
+      <arr name="f_type">
+        <str>thesis</str>
+      </arr>
+      <arr name="format">
+        <str />
+      </arr>
+      <str name="id">oai:quiver.ml.unisa.edu.au:unisa:24940</str>
+      <arr name="identifier">
+        <str>unisa:24940</str>
+        <str>http://arrow.unisa.edu.au:8081/1959.8/24940</str>
+      </arr>
+      <arr name="language">
+        <str>eng</str>
+      </arr>
+      <arr name="relation">
+        <str />
+      </arr>
+      <arr name="rights">
+        <str>Â© 2002 Guy E Eitzen</str>
+      </arr>
+      <arr name="subject">
+        <str>Integer programming</str>
+        <str>Shift systems</str>
+        <str>Mathematical models</str>
+      </arr>
+      <arr name="title">
+        <str>Integer programming methods for solving multi-skilled workforce optimisation problems</str>
+      </arr>
+      <arr name="type">
+        <str>thesis</str>
+      </arr>
+    </doc>
+  </result>
+  <lst name="facet_counts">
+    <lst name="facet_queries" />
+    <lst name="facet_fields">
+      <lst name="repository_name">
+        <int name="unisa">100</int>
+      </lst>
+      <lst name="f_type">
+        <int name="thesis">99</int>
+      </lst>
+      <lst name="f_subject">
+        <int name="Australia">18</int>
+        <int name="South Australia">10</int>
+        <int name="Mathematical models">4</int>
+        <int name="Education, Higher">3</int>
+        <int name="Shift systems">3</int>
+        <int name="Arts">2</int>
+        <int name="Case studies">2</int>
+        <int name="Code division multiple access">2</int>
+        <int name="Decision making">2</int>
+        <int name="Fatigue">2</int>
+        <int name="Information technology">2</int>
+        <int name="Management">2</int>
+        <int name="Medical care">2</int>
+        <int name="Men">2</int>
+        <int name="Moral and ethical aspects">2</int>
+        <int name="Nursing">2</int>
+        <int name="Polymers">2</int>
+        <int name="Signal processing">2</int>
+        <int name="Singapore">2</int>
+        <int name="Social workers">2</int>
+        <int name="Spirituality">2</int>
+        <int name="Surface chemistry">2</int>
+        <int name="Teachers">2</int>
+        <int name="Titania (Chemical)">2</int>
+        <int name="Universities and colleges">2</int>
+      </lst>
+      <lst name="f_creator" />
+    </lst>
+  </lst>
+</response>

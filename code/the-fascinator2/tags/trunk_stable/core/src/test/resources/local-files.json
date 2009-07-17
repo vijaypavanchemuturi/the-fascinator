@@ -1,0 +1,26 @@
+{
+    "harvest": {
+        "type": "file-system",
+        "file-system": {
+            "rootDir": "${user.home}/Documents"
+        }
+    },
+    
+    "transformer": {
+        "conveyer": "aperture-extractor",
+        "extractor": {
+            "outputPath": "${user.home}/aperture"
+        }
+    },
+    
+    "indexer": {
+        "script": {
+            "type": "python",
+            "rules": "local-files.py"
+        },
+        "params": {
+            "repository.name": "Local Files",
+            "repository.type": "Local File System"
+        }
+    }
+}

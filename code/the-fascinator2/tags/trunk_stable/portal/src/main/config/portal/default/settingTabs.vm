@@ -1,0 +1,27 @@
+<!-- BEGIN settingTabs.vm -->
+<div id="settingTabs">
+	<ul>
+		<li id="portalTab"><a href="${contextPath}portal/list">Portals</a></li>
+		<li id="harvestTab"><a href="${contextPath}harvest">My Data</a></li>
+		<li id="userTab"><a href="${contextPath}user/list">Users</a></li>
+		<li id="authenticationTab"><a href="${contextPath}authentication">LDAP Authentication</a></li>
+		<li id="configTab"><a href="${contextPath}config">Configurations</a></li>
+	</ul>
+</div>
+<!-- END settingTabs.vm -->
+
+<script type="text/javascript">
+	var regex = new RegExp(".+${contextPath}(.+)$");
+	var page = ((regex.exec(window.location.href))[1]).toLowerCase();
+	var tabId = page;
+	
+	if(page == "create" || page.indexOf("edit/") > -1 || page == "list") {
+		tabId = "portal";
+	} else if(page == "user/create" || page.indexOf("user/edit/") > -1 || page =="user/list") {
+		tabId = "user";
+	} else {}
+	
+	if(tabId != "settings") {
+		document.getElementById(tabId + "Tab").className = "active";
+	}
+</script>
