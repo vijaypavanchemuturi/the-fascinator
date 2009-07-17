@@ -19,9 +19,14 @@
 
 package au.edu.usq.fascinator.ice.transformer;
 
+import org.apache.log4j.Logger;
+
+//import se.kb.oai.pmh.Record;
+
 import au.edu.usq.fascinator.api.storage.DigitalObject;
 import au.edu.usq.fascinator.api.storage.Payload;
 import au.edu.usq.fascinator.api.storage.impl.GenericDigitalObject;
+//import au.edu.usq.fascinator.harvester.OaiPmhPayload;
 
 /**
  * Provides IceDigitalObject for rendered Document from ICE 
@@ -33,6 +38,7 @@ import au.edu.usq.fascinator.api.storage.impl.GenericDigitalObject;
 public class IceDigitalObject extends GenericDigitalObject {
 
 	private IcePayload icePayload;
+	private Logger log = Logger.getLogger(IceDigitalObject.class);
 	
 	/**
      * IceDigitalObject constructor
@@ -44,7 +50,7 @@ public class IceDigitalObject extends GenericDigitalObject {
 		super(object.getId());
         icePayload = new IcePayload(zipPath);
         //For testing we are using the GenericDigtialObject instead of RDFDigitalObject
-        if (object instanceof GenericDigitalObject) setMetadataId(object.getId());
+        if (object.getMetadata() == null) setMetadataId(object.getId());
         else setMetadataId(object.getMetadata().getId());
         
         addPayload(icePayload);
@@ -52,12 +58,5 @@ public class IceDigitalObject extends GenericDigitalObject {
             addPayload(payload);
         }
 	}
-	
-	/**
-     * Getting the Payload object
-     */
-    @Override
-    public Payload getMetadata() {
-        return icePayload;
-    }
 }
+
