@@ -63,14 +63,10 @@ public class HarvestClient {
 
     private ConveyerBelt cb;
 
-    public HarvestClient(File jsonFile) {
+    public HarvestClient(File jsonFile) throws IOException {
         configFile = jsonFile;
-        try {
-            config = new JsonConfig(jsonFile);
-            cb = new ConveyerBelt(jsonFile);
-        } catch (IOException ioe) {
-            log.warn("Failed to load config from {}", jsonFile);
-        }
+        config = new JsonConfig(jsonFile);
+        cb = new ConveyerBelt(jsonFile);
     }
 
     public void run() {
@@ -109,10 +105,14 @@ public class HarvestClient {
             return;
         }
 
-        String harvestType = config.get("harvest/type");
+        String harvesterType = config.get("harvest/type");
         Harvester harvester;
         try {
-            harvester = PluginManager.getHarvester(harvestType);
+            harvester = PluginManager.getHarvester(harvesterType);
+            if (harvester == null) {
+                throw new PluginException("Harvester plugin not found: "
+                        + harvesterType);
+            }
             harvester.init(configFile);
             log.info("Loaded harvester: " + harvester.getName());
         } catch (PluginException pe) {
@@ -183,13 +183,17 @@ public class HarvestClient {
         return sid;
     }
 
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] args) {
         if (args.length < 1) {
             log.info("Usage: harvest <json-config>");
         } else {
             File jsonFile = new File(args[0]);
-            HarvestClient harvest = new HarvestClient(jsonFile);
-            harvest.run();
+            try {
+                HarvestClient harvest = new HarvestClient(jsonFile);
+                harvest.run();
+            } catch (IOException ioe) {
+                log.error("Failed to initialise client: {}", ioe.getMessage());
+            }
         }
     }
 }
