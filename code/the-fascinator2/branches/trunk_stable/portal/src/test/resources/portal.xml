@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<portal name="default">
+  <description>Everything</description>
+  <query></query>
+  <records-per-page>10</records-per-page>
+  <facet-count>25</facet-count>
+  <facet-fields>
+    <field name="repository_name">Repository</field>
+    <field name="f_creator">Author</field>
+    <field name="f_subject">Subject</field>
+    <field name="f_type">Type</field>
+  </facet-fields>
+  <roles>
+    <role id="admin">
+      <users>lucido dye</users>
+    </role>
+  </roles>
+</portal>
