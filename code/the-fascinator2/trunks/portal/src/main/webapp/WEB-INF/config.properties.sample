@@ -1,0 +1,23 @@
+#
+# Solr base URL and credentials
+#
+solr.base.url=http://localhost:8080/solr
+solr.user=solrAdmin
+solr.pass=solrAdmin
+
+#
+# Registry base URL (Fedora 3.0+)
+#
+registry.url=http://localhost:8080/fedora
+
+#
+# Portal configuration directory. This is normally the same directory as
+# the location of the velocity templates.
+#
+portals.dir=/opt/portal-config
+
+#
+# LDAP authentication
+#
+ldap.base.url=
+ldap.base.dn=
