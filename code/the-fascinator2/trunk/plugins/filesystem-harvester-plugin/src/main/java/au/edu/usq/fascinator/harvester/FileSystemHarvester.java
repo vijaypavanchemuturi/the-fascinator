@@ -37,7 +37,7 @@ public class FileSystemHarvester implements Harvester {
     public void init(File jsonFile) throws PluginException {
         try {
             JsonConfig config = new JsonConfig(jsonFile);
-            rootDir = new File(config.get("harvester/file-system/rootDir", "."));
+            rootDir = new File(config.get("harvest/file-system/rootDir", "."));
             currentDir = rootDir;
             hasMore = true;
             subDirs = new Stack<File>();
