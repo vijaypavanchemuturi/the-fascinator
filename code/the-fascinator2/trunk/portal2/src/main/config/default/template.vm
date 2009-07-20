@@ -1,0 +1,10 @@
+<html>
+  <head>
+    <title>The Fascinator | $!{pageTitle}</title>
+    <link rel="stylesheet" type="text/css" href="styles.css" />
+  </head>
+  <body>
+    ${pageContent}
+    contextPath=${contextPath}
+  </body>
+</html>
