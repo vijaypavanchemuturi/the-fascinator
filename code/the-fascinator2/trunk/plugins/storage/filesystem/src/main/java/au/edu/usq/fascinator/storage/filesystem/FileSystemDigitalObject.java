@@ -87,7 +87,8 @@ public class FileSystemDigitalObject extends GenericDigitalObject {
                         payloadFile = new File(relPath, file.getName());
                     }
                     System.err.println("payloadFile=" + payloadFile);
-                    payloadList.add(new FileSystemPayload(payloadFile));
+                    payloadList.add(new FileSystemPayload(getPath(),
+                            payloadFile));
                 } else if (file.isDirectory()) {
                     addPayloadDir(payloadList, file, depth + 1);
                 }

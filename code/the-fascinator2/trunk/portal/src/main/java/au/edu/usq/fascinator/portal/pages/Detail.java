@@ -20,11 +20,8 @@ package au.edu.usq.fascinator.portal.pages;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.net.URLDecoder;
-import java.net.URLEncoder;
 import java.util.List;
 
 import javax.xml.bind.JAXBException;
@@ -37,6 +34,12 @@ import org.apache.tapestry5.annotations.Persist;
 import org.apache.tapestry5.annotations.SessionState;
 import org.apache.tapestry5.ioc.annotations.Inject;
 import org.apache.tapestry5.services.Request;
+import org.apache.tapestry5.services.URLEncoder;
+import org.dom4j.Document;
+import org.dom4j.DocumentException;
+import org.dom4j.Element;
+import org.dom4j.Node;
+import org.dom4j.io.SAXReader;
 
 import au.edu.usq.fascinator.api.storage.Payload;
 import au.edu.usq.fascinator.common.JsonConfig;
@@ -98,11 +101,13 @@ public class Detail {
     @Persist
     private String portalValue;
 
+    @Inject
+    private URLEncoder urlEncode;
+
     private String clusterValue = "";
 
     Object onActivate(Object[] params) {
         this.portalValue = params[0].toString();
-        log.info("portalValue: " + this.portalValue);
         String referer = request.getHeader("Referer");
         if (referer != null && !referer.endsWith("/login")
             && !referer.endsWith("/logout")) {
@@ -119,30 +124,35 @@ public class Detail {
             String portal = params[0].toString();
             setPortalName(portal);
             state.setPortal(portalManager.get(portal));
-            try {
-                String idParam = params[1].toString();
-                log.info("idParam: " + idParam);
-                // if (idParam.startsWith("uuid") ||
-                // idParam.startsWith("sword")) {
-                uuid = URLDecoder.decode(idParam, "UTF-8");
-                log.info("uuid in onActivate: " + uuid);
-                viewable = checkRole();
-                // }
-                if (params.length > 2) {
-                    String dsIdParam = "";
-                    for (int i = 2; i < params.length; i++) {
-                        dsIdParam += params[i].toString();
-                        if (i < params.length - 1) {
-                            dsIdParam += "/";
-                        }
+            // try {
+            String idParam = params[1].toString();
+            // if (idParam.startsWith("uuid") ||
+            // idParam.startsWith("sword")) {
+            // uuid = URLDecoder.decode(idParam, "UTF-8");
+            uuid = idParam;
+
+            viewable = checkRole();
+            // }
+            if (params.length > 2) {
+                String dsIdParam = "";
+                for (int i = 2; i < params.length; i++) {
+                    log.info("param " + params[i].toString());
+                    dsIdParam += params[i].toString();
+                    if (i < params.length - 1) {
+                        dsIdParam += "/";
                     }
-                    String dsId = URLDecoder.decode(dsIdParam, "UTF-8");
-                    return download(dsId);
                 }
-            } catch (UnsupportedEncodingException e) {
+                String dsId = dsIdParam; // no need to do encoding anymore
+                return download(dsId);
             }
+            // } catch (UnsupportedEncodingException e) {
+            // }
         }
         return null;
+    }
+
+    public String urlEncoder(String url) {
+        return urlEncode.encode(url);
     }
 
     String[] onPassivate() {
@@ -178,17 +188,18 @@ public class Detail {
     @OnEvent(value = "download")
     Object download(String dsId) {
         log.info("DOWNLOAD: " + uuid + "," + dsId);
-        viewable = DC_ID.equals(dsId) || checkRole(dsId, true);
-        log.info("viewable??: " + viewable);
-        // NEED TO FIX this so i can get the download path
+        // viewable = DC_ID.equals(dsId) || checkRole(dsId, true);
+        viewable = checkRole(dsId, true);
         if (viewable) {
             Payload content = registryManager.getPayload(uuid, dsId);
-            try {
-                return new BinaryStreamResponse(content.getContentType(),
-                    content.getInputStream());
-            } catch (IOException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
+            if (content != null) {
+                try {
+                    return new BinaryStreamResponse(content.getContentType(),
+                        content.getInputStream());
+                } catch (IOException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
             }
         } else {
             log.info("Is it indexed: " + checkRole(dsId, false));
@@ -233,12 +244,7 @@ public class Detail {
     }
 
     public String getEncodedUuid() {
-        try {
-            log.info("getEncodedUuid: " + URLEncoder.encode(getUuid(), "UTF-8"));
-            return URLEncoder.encode(getUuid(), "UTF-8");
-        } catch (UnsupportedEncodingException e) {
-        }
-        return getUuid();
+        return urlEncode.encode(getUuid()); // Use tapestry encoding
     }
 
     public Rdf getMetadata(String dsId) {
@@ -257,59 +263,52 @@ public class Detail {
             e.printStackTrace();
         }
         return null;
-        // registryManager.getClient()
-        // return null;
-
-        // Add registry manager to call the Storage
-        // Storage --> getXmlDatastream
-        // http://fascinator.usq.edu.au/trac/browser/code/the-fascinator/portal/src/main/java/au/edu/usq/solr/portal/services/RegistryManagerImpl.java
-        // return registryManager.getXmlDatastream(uuid, dsId);
     }
 
-    // public DublinCore getMetadata() {
-    // // if (item == null) {
-    // // item = registryManager.getMetadata(uuid);
-    // // }
-    // return item;
-    // }
+    public String getEmbedSlide() {
+        File sourceFile = new File(uuid);
+        String[] filePart = sourceFile.getName().split("\\.");
+        Payload embedPayload = registryManager.getPayload(uuid, filePart[0]
+            + ".htm");
+
+        if (embedPayload != null) {
+            try {
+                // tidy.parse(embedPayload.getInputStream(), stream);
+                SAXReader saxReader = new SAXReader();
+                Document document = saxReader.read(embedPayload.getInputStream());
+
+                // get <div class='slide'>
+                Node slideNode = document.selectSingleNode("//div[@class='body']");
+                if (slideNode != null) {
+                    // Fix the links
+                    List<Node> links = slideNode.selectNodes("//img");
+                    for (Node link : links) {
+                        Element linkElem = (Element) link;
+                        String imgName = getEncodedUuid() + "/"
+                            + urlEncoder(linkElem.attributeValue("src"));
+                        linkElem.addAttribute("name", imgName);
+                        linkElem.addAttribute("src", imgName);
+                    }
+                    return slideNode.asXML();
+                }
+
+            } catch (DocumentException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            } catch (IOException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+        }
+        return "";
+    }
+
+    public String getPayloadType(Payload payload) {
+        return payload.getType().toString();
+    }
 
     public List<Payload> getDatastreams() {
         return registryManager.getPayloadList(uuid);
-
-        // if (dsList == null) {
-        // dsList = new ArrayList<DatastreamType>();
-        // }
-        // dsList.clear();
-        // DatastreamType dcDatastream = new DatastreamType();
-        // dcDatastream.setDsid(DC_ID);
-        // dcDatastream.setLabel("Dublin Core Metadata");
-        // dcDatastream.setMimeType("text/xml");
-        // dsList.add(dcDatastream);
-        // Searcher searcher = searchPage.getSecureSearcher();
-        // searcher.addFacetQuery("pid:\"" + uuid + "\"");
-        // searcher.addFacetQuery("item_type:\"datastream\"");
-        // searcher.setRows(1000);
-        // try {
-        // Response response = searcher.findAll();
-        // ResultType result = response.getResult();
-        // if (result.getNumFound() > 0) {
-        // for (DocumentType doc : result.getItems()) {
-        // DatastreamType ds = new DatastreamType();
-        // String dsId = doc.field("identifier");
-        // if (dsId == null) {
-        // dsId = doc.field("id");
-        // }
-        // dsId = URLEncoder.encode(dsId, "UTF-8");
-        // ds.setDsid(dsId);
-        // ds.setLabel(doc.field("title"));
-        // ds.setMimeType(doc.field("format"));
-        // dsList.add(ds);
-        // }
-        // }
-        // } catch (Exception e) {
-        // e.printStackTrace();
-        // }
-        // return dsList;
     }
 
     public String getPortalName() {
@@ -329,7 +328,6 @@ public class Detail {
     }
 
     boolean checkRole(String dsId, boolean secure) {
-        log.info("checkRole: " + uuid + " : " + dsId);
         Searcher searcher = searchPage.getSearcher(secure);
         // searcher.addFacetQuery("pid:\"" + uuid + "\"");
         searcher.addFacetQuery("storageId:\"" + uuid + "\"");
@@ -370,7 +368,6 @@ public class Detail {
             List<DocumentType> items = response.getResult().getItems();
             facetList = response.getFacetLists().iterator().next();
             for (DocumentType doc : items) {
-                // log.info(doc.field("pid"));
                 for (String key : doc.fields(clusterFacetLabel)) {
                     Facet facet = facetList.findFacet(key);
                     facet.setUserData(doc.field(portal.getClusterFacetData()));

@@ -49,7 +49,7 @@ public class IcePayload extends GenericPayload {
         setId(name);
         setLabel(name);
         setContentType(MimeTypeUtil.getMimeType(name));
-        setPayloadType(PayloadType.Enrichment);
+        setPayloadType(PayloadType.Enrichment); //need to store somewhere
     }
 
     @Override

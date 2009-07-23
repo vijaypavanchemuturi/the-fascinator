@@ -5,8 +5,10 @@
   
   	## Need to put download link to the original Source
     #foreach($ds in $page.datastreams)
+      #if ($ds.id.indexOf("_files")==-1)
       <li>
-        <a href="$page.encodedUuid/$ds.id">
+      	#set ($id = $page.urlEncoder($ds.id))
+        <a href="$page.encodedUuid/$id">
           #if(!$ds.id or $ds.label == "")
             [Untitled]
           #else
@@ -14,6 +16,7 @@
           #end
         </a>
       </li>
+      #end
     #end
   </ul>
 </div>

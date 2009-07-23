@@ -32,9 +32,16 @@ public class FileSystemPayload extends GenericPayload {
     private File file;
 
     private File meta;
+    private File homeDir;
 
     public FileSystemPayload(Payload payload) {
         super(payload);
+        updateMeta();
+    }
+
+    public FileSystemPayload(File homeDir, File payloadFile) {
+        this(payloadFile);
+        this.homeDir = homeDir;
         updateMeta();
     }
 
@@ -55,7 +62,12 @@ public class FileSystemPayload extends GenericPayload {
     }
 
     public File getFile() {
-        return new File(getId());
+        if (file.isAbsolute()) {
+            return new File(homeDir, file.getName());
+        } else {
+            return new File(homeDir, file.getPath());
+        }
+
     }
 
     @Override
@@ -63,7 +75,7 @@ public class FileSystemPayload extends GenericPayload {
         if (file == null) {
             return super.getInputStream();
         }
-        return new FileInputStream(file);
+        return new FileInputStream(getFile());
     }
 
     @Override

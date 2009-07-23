@@ -36,6 +36,8 @@
         <p></p>
       #end
       
+      Getting embed slide: $page.embedSlide
+      
       
       <div class="item">
         #macro(fieldlink $value)

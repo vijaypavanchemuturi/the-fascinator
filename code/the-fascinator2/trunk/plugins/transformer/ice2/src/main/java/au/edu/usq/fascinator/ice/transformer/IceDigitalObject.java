@@ -56,7 +56,6 @@ public class IceDigitalObject extends GenericDigitalObject {
             while (entries.hasMoreElements()) {
                 ZipEntry entry = entries.nextElement();
                 if (!entry.isDirectory()) {
-                    log.debug("add payload entry={}", entry.toString());
                     addPayload(new IcePayload(zipPathFile, entry));
                 }
             }
