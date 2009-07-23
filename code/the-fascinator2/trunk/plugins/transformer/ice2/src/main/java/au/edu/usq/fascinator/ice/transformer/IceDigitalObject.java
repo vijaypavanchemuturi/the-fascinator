@@ -19,44 +19,49 @@
 
 package au.edu.usq.fascinator.ice.transformer;
 
-import org.apache.log4j.Logger;
+import java.io.File;
+import java.io.IOException;
+import java.util.Enumeration;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 
-//import se.kb.oai.pmh.Record;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import au.edu.usq.fascinator.api.storage.DigitalObject;
-import au.edu.usq.fascinator.api.storage.Payload;
 import au.edu.usq.fascinator.api.storage.impl.GenericDigitalObject;
-//import au.edu.usq.fascinator.harvester.OaiPmhPayload;
 
 /**
- * Provides IceDigitalObject for rendered Document from ICE 
- * of a given file.
+ * Digital object representation for ICE renditions
  * 
- * @author Linda Octalina & Oliver Lucido
- * 
+ * @author Linda Octalina
+ * @author Oliver Lucido
  */
 public class IceDigitalObject extends GenericDigitalObject {
 
-	private IcePayload icePayload;
-	private Logger log = Logger.getLogger(IceDigitalObject.class);
-	
-	/**
-     * IceDigitalObject constructor
-     * 
-     * @param object, DigitalObject type
-     * @param zipPath as String
-     */
-	public IceDigitalObject(DigitalObject object, String zipPath) {
-		super(object.getId());
-        icePayload = new IcePayload(zipPath);
-        //For testing we are using the GenericDigtialObject instead of RDFDigitalObject
-        if (object.getMetadata() == null) setMetadataId(object.getId());
-        else setMetadataId(object.getMetadata().getId());
-        
-        addPayload(icePayload);
-        for (Payload payload : object.getPayloadList()) {
-            addPayload(payload);
-        }
-	}
-}
+    private Logger log = LoggerFactory.getLogger(IceDigitalObject.class);
 
+    /**
+     * Creates a DigitalObject with rendition payloads from the specified zip
+     * 
+     * @param object original object
+     * @param zipPath path to the zip renditions
+     */
+    public IceDigitalObject(DigitalObject object, String zipPath) {
+        super(object);
+        try {
+            File zipPathFile = new File(zipPath);
+            ZipFile zipFile = new ZipFile(zipPathFile);
+            Enumeration<? extends ZipEntry> entries = zipFile.entries();
+            while (entries.hasMoreElements()) {
+                ZipEntry entry = entries.nextElement();
+                if (!entry.isDirectory()) {
+                    log.debug("add payload entry={}", entry.toString());
+                    addPayload(new IcePayload(zipPathFile, entry));
+                }
+            }
+        } catch (IOException ioe) {
+            log.error("Failed to add rendition payloads: {}", ioe);
+        }
+    }
+}

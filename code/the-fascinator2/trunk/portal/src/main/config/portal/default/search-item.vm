@@ -1,7 +1,7 @@
 <!-- BEGIN search-item.vm -->
 <div class="item">
   #set($title = $item.field("dc.title"))
-  <h2><a href="#actionlink('showdetail' $item.field('id'))">#if($title!='')$title#else[untitled]#end</a></h2>
+  <h2><a href="#actionlink('showdetail' $item.field('id'))">#if($title)$title#else[untitled]#end</a></h2>
   <p>Relevance: <strong>$item.field("score")</strong></p>
   <div>
     #set($ids = $item.fields("identifier"))

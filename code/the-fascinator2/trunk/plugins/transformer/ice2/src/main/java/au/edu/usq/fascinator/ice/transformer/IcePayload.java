@@ -19,84 +19,42 @@
 
 package au.edu.usq.fascinator.ice.transformer;
 
-import java.io.FileInputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import au.edu.usq.fascinator.api.storage.Payload;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
+
 import au.edu.usq.fascinator.api.storage.PayloadType;
+import au.edu.usq.fascinator.api.storage.impl.GenericPayload;
+import au.edu.usq.fascinator.common.MimeTypeUtil;
 
 /**
- * IcePayload class to store rendition zip info
- * returned by ice-service
+ * Wraps a ZipEntry as a payload
  * 
- * @author Linda Octalina & Oliver Lucido
- * 
+ * @author Linda Octalina
+ * @author Oliver Lucido
  */
-public class IcePayload implements Payload {
+public class IcePayload extends GenericPayload {
 
-	private String zipPath;
-	
-	/**
-     * IcePayload Constructor
-     * 
-     * @param zipPath as String
-     */
-	public IcePayload(String zipPath) {
-		this.zipPath = zipPath;
-	}
-	
-	/**
-     * getContentType method
-     * 
-     * @return metadata type
-     */
-	@Override
-	public String getContentType() {
-		return "application/zip";
-	}
+    private File zipPath;
 
-	/**
-     * getId method
-     * 
-     * @return metadata id
-     */
-	@Override
-	public String getId() {
-		return "ice-rendition.zip";
-	}
+    private ZipEntry zipEntry;
 
-	/**
-     * getInputStream method
-     * 
-     * @return metadata content as InputStream
-     */
-	@Override
-	public InputStream getInputStream() throws IOException {
-		if (zipPath != null ) {
-			FileInputStream fis = new FileInputStream(zipPath);
-			return fis;
-		}
-		return null;
-	}
+    public IcePayload(File zipPath, ZipEntry zipEntry) {
+        this.zipPath = zipPath;
+        this.zipEntry = zipEntry;
 
-	/**
-     * getLabel method
-     * 
-     * @return metadata label
-     */
-	@Override
-	public String getLabel() {
-		return "ICE rendition";
-	}
+        String name = zipEntry.getName();
+        setId(name);
+        setLabel(name);
+        setContentType(MimeTypeUtil.getMimeType(name));
+        setPayloadType(PayloadType.Enrichment);
+    }
 
-	/**
-     * getType method
-     * 
-     * @return payload type
-     */
-	@Override
-	public PayloadType getType() {
-		return PayloadType.Data;
-	}	
-	
+    @Override
+    public InputStream getInputStream() throws IOException {
+        ZipFile zipFile = new ZipFile(zipPath);
+        return zipFile.getInputStream(zipEntry);
+    }
 }

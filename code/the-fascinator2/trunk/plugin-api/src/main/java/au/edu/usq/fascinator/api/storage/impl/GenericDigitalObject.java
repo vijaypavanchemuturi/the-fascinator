@@ -31,37 +31,84 @@ import au.edu.usq.fascinator.api.storage.Payload;
  */
 public class GenericDigitalObject implements DigitalObject {
 
+    /** Unique identifier */
     private String id;
 
+    /** Identifier for the metadata payload */
     private String metadataId;
 
+    /** List of Payloads attached to this object */
     private List<Payload> payloadList;
 
+    /**
+     * Creates a DigitalObject with the specified identifier and no metadata
+     * 
+     * @param id unique identifier
+     */
     public GenericDigitalObject(String id) {
         this(id, null);
     }
 
+    /**
+     * Creates a DigitalObject with the specified identifier and metadata
+     * 
+     * @param id unique identifier
+     * @param metaId identifier for the payload representing this object's
+     *        metadata
+     */
     public GenericDigitalObject(String id, String metaId) {
         setId(id);
         setMetadataId(metaId);
     }
 
+    /**
+     * Creates a copy of the specified DigitalObject.
+     * 
+     * @param object source DigitalObject to copy
+     */
+    public GenericDigitalObject(DigitalObject object) {
+        setId(object.getId());
+        Payload metadata = object.getMetadata();
+        if (metadata == null) {
+            setMetadataId(object.getId());
+        } else {
+            setMetadataId(metadata.getId());
+        }
+        for (Payload payload : object.getPayloadList()) {
+            addPayload(payload);
+        }
+    }
+
+    @Override
     public String getId() {
         return id;
     }
 
+    /**
+     * Sets the identifier for this object
+     * 
+     * @param id unique identifier
+     */
     public void setId(String id) {
         this.id = id;
     }
 
+    @Override
     public Payload getMetadata() {
         return getPayload(metadataId);
     }
 
+    /**
+     * Sets the identifier for the payload which represents this object's
+     * metadata
+     * 
+     * @param metadataId payload identifier to use as metadata
+     */
     public void setMetadataId(String metadataId) {
         this.metadataId = metadataId;
     }
 
+    @Override
     public Payload getPayload(String pid) {
         if (pid != null) {
             for (Payload payload : getPayloadList()) {
@@ -73,10 +120,16 @@ public class GenericDigitalObject implements DigitalObject {
         return null;
     }
 
+    /**
+     * Adds a payload to this object
+     * 
+     * @param payload the payload to add
+     */
     public void addPayload(Payload payload) {
         getPayloadList().add(payload);
     }
 
+    @Override
     public List<Payload> getPayloadList() {
         if (payloadList == null) {
             payloadList = new ArrayList<Payload>();
@@ -86,8 +139,7 @@ public class GenericDigitalObject implements DigitalObject {
 
     @Override
     public String toString() {
-        return String.format("%s (%s, %d)", getId(), metadataId, getPayloadList()
-                .size());
+        return String.format("%s (%s, %d)", getId(), metadataId,
+                getPayloadList().size());
     }
-
 }

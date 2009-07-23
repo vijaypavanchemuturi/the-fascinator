@@ -21,6 +21,7 @@ package au.edu.usq.fascinator.storage.filesystem;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 
 import au.edu.usq.fascinator.api.storage.Payload;
 import au.edu.usq.fascinator.api.storage.impl.GenericPayload;
@@ -28,23 +29,29 @@ import au.edu.usq.fascinator.common.MimeTypeUtil;
 
 public class FileSystemPayload extends GenericPayload {
 
+    private File file;
+
+    private File meta;
+
     public FileSystemPayload(Payload payload) {
-        super(payload.getId(), payload.getLabel(), payload.getContentType());
-        setPayloadType(payload.getType());
-        try {
-            setInputStream(payload.getInputStream());
-        } catch (IOException e) {
-        }
+        super(payload);
+        updateMeta();
     }
 
     public FileSystemPayload(File payloadFile) {
-        setId(payloadFile.getName());
+        this.file = payloadFile;
+        if (file.isAbsolute()) {
+            setId(payloadFile.getName());
+        } else {
+            setId(payloadFile.getPath());
+        }
         setLabel(payloadFile.getAbsolutePath()); // TODO get from meta?
         setContentType(MimeTypeUtil.getMimeType(payloadFile));
-        try {
-            setInputStream(new FileInputStream(payloadFile));
-        } catch (IOException e) {
-        }
+        updateMeta();
+    }
+
+    private void updateMeta() {
+        // store things like label and payload type
     }
 
     public File getFile() {
@@ -52,8 +59,15 @@ public class FileSystemPayload extends GenericPayload {
     }
 
     @Override
+    public InputStream getInputStream() throws IOException {
+        if (file == null) {
+            return super.getInputStream();
+        }
+        return new FileInputStream(file);
+    }
+
+    @Override
     public String toString() {
         return String.format("%s (%s)", getId(), getFile().getAbsolutePath());
     }
-
 }

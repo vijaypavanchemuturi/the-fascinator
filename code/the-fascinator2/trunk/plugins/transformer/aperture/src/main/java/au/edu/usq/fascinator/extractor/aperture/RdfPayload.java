@@ -96,6 +96,6 @@ public class RdfPayload implements Payload {
      */
     @Override
     public PayloadType getType() {
-        return PayloadType.Data;
+        return PayloadType.Annotation;
     }
 }

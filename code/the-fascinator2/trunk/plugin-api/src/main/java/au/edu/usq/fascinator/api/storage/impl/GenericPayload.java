@@ -56,6 +56,15 @@ public class GenericPayload implements Payload {
         setPayloadType(PayloadType.Data);
     }
 
+    public GenericPayload(Payload payload) {
+        this(payload.getId(), payload.getLabel(), payload.getContentType());
+        setPayloadType(payload.getType());
+        try {
+            setInputStream(payload.getInputStream());
+        } catch (IOException e) {
+        }
+    }
+
     public PayloadType getType() {
         return payloadType;
     }

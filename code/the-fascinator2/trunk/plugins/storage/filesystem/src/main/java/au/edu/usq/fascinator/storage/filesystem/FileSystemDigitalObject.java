@@ -66,15 +66,33 @@ public class FileSystemDigitalObject extends GenericDigitalObject {
 
     public List<Payload> getPayloadList() {
         List<Payload> payloadList = new ArrayList<Payload>();
-        File[] files = getPath().listFiles();
+        addPayloadDir(payloadList, getPath(), 0);
+        return payloadList;
+    }
+
+    private void addPayloadDir(List<Payload> payloadList, File dir, int depth) {
+        File[] files = dir.listFiles();
         if (files != null) {
             for (File file : files) {
                 if (file.isFile()) {
-                    payloadList.add(new FileSystemPayload(file));
+                    File payloadFile = file;
+                    if (depth > 0) {
+                        File parentFile = file.getParentFile();
+                        String relPath = "";
+                        for (int i = 0; i < depth; i++) {
+                            relPath = parentFile.getName() + File.separator
+                                    + relPath;
+                            parentFile = parentFile.getParentFile();
+                        }
+                        payloadFile = new File(relPath, file.getName());
+                    }
+                    System.err.println("payloadFile=" + payloadFile);
+                    payloadList.add(new FileSystemPayload(payloadFile));
+                } else if (file.isDirectory()) {
+                    addPayloadDir(payloadList, file, depth + 1);
                 }
             }
         }
-        return payloadList;
     }
 
     @Override

@@ -37,6 +37,7 @@ import au.edu.usq.fascinator.api.harvester.HarvesterException;
 import au.edu.usq.fascinator.api.indexer.Indexer;
 import au.edu.usq.fascinator.api.storage.DigitalObject;
 import au.edu.usq.fascinator.api.storage.Payload;
+import au.edu.usq.fascinator.api.storage.PayloadType;
 import au.edu.usq.fascinator.api.storage.Storage;
 import au.edu.usq.fascinator.api.storage.StorageException;
 import au.edu.usq.fascinator.api.storage.impl.GenericPayload;
@@ -170,6 +171,7 @@ public class HarvestClient {
                     "The Fascinator Indexer Metadata", "text/plain");
             sofMetaDs.setInputStream(new ByteArrayInputStream(sofMetaOut
                     .toByteArray()));
+            sofMetaDs.setPayloadType(PayloadType.Annotation);
             storage.addPayload(oid, sofMetaDs);
 
             storage.addObject(object);
