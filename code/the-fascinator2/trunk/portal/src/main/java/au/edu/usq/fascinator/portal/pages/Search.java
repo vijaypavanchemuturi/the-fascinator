@@ -20,6 +20,7 @@ package au.edu.usq.fascinator.portal.pages;
 
 import static au.edu.usq.fascinator.portal.services.PortalManager.DEFAULT_PORTAL_NAME;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
@@ -43,6 +44,7 @@ import org.apache.tapestry5.annotations.SessionState;
 import org.apache.tapestry5.ioc.annotations.Inject;
 import org.apache.tapestry5.services.Request;
 
+import au.edu.usq.fascinator.common.JsonConfig;
 import au.edu.usq.fascinator.model.Facet;
 import au.edu.usq.fascinator.model.FacetList;
 import au.edu.usq.fascinator.model.Response;
@@ -581,8 +583,25 @@ public class Search {
     public Searcher getSearcher(boolean secure) {
         Searcher searcher = new Searcher(state.getSolrBaseUrl());
         searcher.setBaseFacetQuery(state.getPortal().getQuery());
-        String solrUser = state.getProperty("solr.user");
-        String solrPass = state.getProperty("solr.pass");
+
+        // String solrUser = state.getProperty("solr.user");
+        // String solrPass = state.getProperty("solr.pass");
+        JsonConfig config;
+        String solrUser = null;
+        String solrPass = null;
+        try {
+            config = new JsonConfig();
+            File systemFile = config.getSystemFile();
+            config = new JsonConfig(systemFile);
+
+            solrUser = config.get("indexer/solr/username"); // "solrAdmin";
+            solrPass = config.get("indexer/solr/password");
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            log.warn("Unable to load system file");
+            e.printStackTrace();
+        }
+
         if (solrUser != null && solrPass != null) {
             searcher.authenticate(solrUser, solrPass);
         }

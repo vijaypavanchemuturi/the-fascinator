@@ -18,6 +18,7 @@
  */
 package au.edu.usq.fascinator.portal.pages;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
@@ -36,12 +37,12 @@ import org.apache.tapestry5.annotations.Persist;
 import org.apache.tapestry5.annotations.SessionState;
 import org.apache.tapestry5.ioc.annotations.Inject;
 import org.apache.tapestry5.services.Request;
-import org.dom4j.Document;
 
 import au.edu.usq.fascinator.api.storage.Payload;
-import au.edu.usq.fascinator.model.DublinCore;
+import au.edu.usq.fascinator.common.JsonConfig;
 import au.edu.usq.fascinator.model.Facet;
 import au.edu.usq.fascinator.model.FacetList;
+import au.edu.usq.fascinator.model.Rdf;
 import au.edu.usq.fascinator.model.Response;
 import au.edu.usq.fascinator.model.types.DocumentType;
 import au.edu.usq.fascinator.model.types.ResultType;
@@ -49,7 +50,9 @@ import au.edu.usq.fascinator.portal.Portal;
 import au.edu.usq.fascinator.portal.Searcher;
 import au.edu.usq.fascinator.portal.State;
 import au.edu.usq.fascinator.portal.services.PortalManager;
+import au.edu.usq.fascinator.portal.services.RegistryManager;
 import au.edu.usq.fascinator.portal.services.VelocityResourceLocator;
+import au.edu.usq.fascinator.util.BinaryStreamResponse;
 
 @IncludeStylesheet("context:css/default.css")
 public class Detail {
@@ -64,15 +67,15 @@ public class Detail {
     @Inject
     private VelocityResourceLocator locator;
 
-    // @Inject
-    // private RegistryManager registryManager;
+    @Inject
+    private RegistryManager registryManager;
 
     @Inject
     private PortalManager portalManager;
 
     private String uuid;
 
-    private DublinCore item;
+    private Rdf item;
 
     private String portalName;
 
@@ -99,6 +102,7 @@ public class Detail {
 
     Object onActivate(Object[] params) {
         this.portalValue = params[0].toString();
+        log.info("portalValue: " + this.portalValue);
         String referer = request.getHeader("Referer");
         if (referer != null && !referer.endsWith("/login")
             && !referer.endsWith("/logout")) {
@@ -117,10 +121,13 @@ public class Detail {
             state.setPortal(portalManager.get(portal));
             try {
                 String idParam = params[1].toString();
-                if (idParam.startsWith("uuid") || idParam.startsWith("sword")) {
-                    uuid = URLDecoder.decode(idParam, "UTF-8");
-                    viewable = checkRole();
-                }
+                log.info("idParam: " + idParam);
+                // if (idParam.startsWith("uuid") ||
+                // idParam.startsWith("sword")) {
+                uuid = URLDecoder.decode(idParam, "UTF-8");
+                log.info("uuid in onActivate: " + uuid);
+                viewable = checkRole();
+                // }
                 if (params.length > 2) {
                     String dsIdParam = "";
                     for (int i = 2; i < params.length; i++) {
@@ -172,6 +179,21 @@ public class Detail {
     Object download(String dsId) {
         log.info("DOWNLOAD: " + uuid + "," + dsId);
         viewable = DC_ID.equals(dsId) || checkRole(dsId, true);
+        log.info("viewable??: " + viewable);
+        // NEED TO FIX this so i can get the download path
+        if (viewable) {
+            Payload content = registryManager.getPayload(uuid, dsId);
+            try {
+                return new BinaryStreamResponse(content.getContentType(),
+                    content.getInputStream());
+            } catch (IOException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+        } else {
+            log.info("Is it indexed: " + checkRole(dsId, false));
+        }
+
         // if (viewable) {
         // DatastreamType ds = registryManager.getDatastream(uuid, dsId);
         // String contentType = ds.getMimeType();
@@ -212,26 +234,48 @@ public class Detail {
 
     public String getEncodedUuid() {
         try {
+            log.info("getEncodedUuid: " + URLEncoder.encode(getUuid(), "UTF-8"));
             return URLEncoder.encode(getUuid(), "UTF-8");
         } catch (UnsupportedEncodingException e) {
         }
         return getUuid();
     }
 
-    public Document getMetadata(String dsId) {
+    public Rdf getMetadata(String dsId) {
+        setUuid(dsId);
+        JsonConfig config;
+        try {
+            config = new JsonConfig();
+            File systemFile = config.getSystemFile();
+            registryManager.getClient(systemFile);
+
+            item = registryManager.getRdf(dsId);
+            // return registryManager.getXmlDatastream(dsId);
+            return item;
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
         return null;
+        // registryManager.getClient()
+        // return null;
+
+        // Add registry manager to call the Storage
+        // Storage --> getXmlDatastream
+        // http://fascinator.usq.edu.au/trac/browser/code/the-fascinator/portal/src/main/java/au/edu/usq/solr/portal/services/RegistryManagerImpl.java
         // return registryManager.getXmlDatastream(uuid, dsId);
     }
 
-    public DublinCore getMetadata() {
-        // if (item == null) {
-        // item = registryManager.getMetadata(uuid);
-        // }
-        return item;
-    }
+    // public DublinCore getMetadata() {
+    // // if (item == null) {
+    // // item = registryManager.getMetadata(uuid);
+    // // }
+    // return item;
+    // }
 
     public List<Payload> getDatastreams() {
-        return null;
+        return registryManager.getPayloadList(uuid);
+
         // if (dsList == null) {
         // dsList = new ArrayList<DatastreamType>();
         // }
@@ -287,7 +331,8 @@ public class Detail {
     boolean checkRole(String dsId, boolean secure) {
         log.info("checkRole: " + uuid + " : " + dsId);
         Searcher searcher = searchPage.getSearcher(secure);
-        searcher.addFacetQuery("pid:\"" + uuid + "\"");
+        // searcher.addFacetQuery("pid:\"" + uuid + "\"");
+        searcher.addFacetQuery("storageId:\"" + uuid + "\"");
         if (dsId != null) {
             searcher.addFacetQuery("identifier:\"" + dsId + "\"");
         }

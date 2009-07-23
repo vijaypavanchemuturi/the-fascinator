@@ -66,10 +66,10 @@ public class AppModule {
         return new PortalManagerImpl();
     }
 
-    // public RegistryManager buildRegistryManager(
-    // Map<String, Resource> configuration) {
-    // return new RegistryManagerImpl(configuration.get(REGISTRY_URL_KEY));
-    // }
+    public RegistryManager buildRegistryManager(
+        Map<String, Resource> configuration) {
+        return new RegistryManagerImpl(configuration.get(REGISTRY_URL_KEY));
+    }
 
     // public void contributeRegistryManager(Context context,
     // MappedConfiguration<String, Resource> configuration) {

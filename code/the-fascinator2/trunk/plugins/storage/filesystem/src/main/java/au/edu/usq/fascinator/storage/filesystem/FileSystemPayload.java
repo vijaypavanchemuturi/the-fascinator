@@ -24,6 +24,7 @@ import java.io.IOException;
 
 import au.edu.usq.fascinator.api.storage.Payload;
 import au.edu.usq.fascinator.api.storage.impl.GenericPayload;
+import au.edu.usq.fascinator.common.MimeTypeUtil;
 
 public class FileSystemPayload extends GenericPayload {
 
@@ -39,7 +40,7 @@ public class FileSystemPayload extends GenericPayload {
     public FileSystemPayload(File payloadFile) {
         setId(payloadFile.getName());
         setLabel(payloadFile.getAbsolutePath()); // TODO get from meta?
-        setContentType("text/plain"); // TODO get proper mimetype
+        setContentType(MimeTypeUtil.getMimeType(payloadFile));
         try {
             setInputStream(new FileInputStream(payloadFile));
         } catch (IOException e) {

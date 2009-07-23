@@ -7,7 +7,7 @@
         "fedora3": {
             "url": "http://localhost:8080/fedora",
             "username": "fedoraAdmin",
-            "password": "solrAdmin"
+            "password": "der"
         },
         "couchdb": {
             "url": "http://localhost:8080/couch"
@@ -19,7 +19,7 @@
         "solr": {
             "uri": "http://localhost:8080/solr",
             "username": "solrAdmin",
-            "password": "solrAdmin",
+            "password": "der",
             "autocommit": true
         }
     }

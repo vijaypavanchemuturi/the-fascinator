@@ -10,23 +10,33 @@
   </p>
   <h1>Details</h1>
   #if($page.viewable)
-    #set($dc = $page.metadata)
-    #macro(field $field)
-      #if($field.size()==1)
-        $field.get(0)
-      #else
-        $field
-      #end
-    #end
+    #set($rdfMeta = $page.getMetadata($page.uuid))
     #parse($locator.getLocation('search-detail-datastreams.vm'))
     <div class="search-results">
-      <h2>#field($dc.title)</h2>
-      #if($dc.description)
-        <h3>Description</h3>
-        <p>#field($dc.description)</p>
+      <h2>$rdfMeta.title</h2>
+##      #if($rdfMeta.description)
+##        <h3>Description</h3>
+##        <p>$rdfMeta.description</p>
+##      #else
+##        <p>No description</p>
+##      #end
+      #if($rdfMeta.initialCreator!="")
+        <p><strong>Initial Creator: </strong>$rdfMeta.initialCreator</p>
       #else
-        <p>No description</p>
+        <p></p>
       #end
+      #if($rdfMeta.dcDate!="")
+        <p><strong>DC Date: </strong>$rdfMeta.dcDate</p>
+      #else
+        <p></p>
+      #end
+      #if($rdfMeta.pageCount!="")
+        <p><strong>Page Count: </strong>$rdfMeta.pageCount</p>
+      #else
+        <p></p>
+      #end
+      
+      
       <div class="item">
         #macro(fieldlink $value)
           #if($value.startsWith("http://"))
