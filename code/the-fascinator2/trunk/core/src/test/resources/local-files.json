@@ -2,14 +2,14 @@
     "harvester": {
         "type": "file-system",
         "file-system": {
-            "rootDir": "${user.home}/Documents/public"
+            "baseDir": "${user.home}/Documents/public"
         }
     },
     
     "transformer": {
         "conveyer": "aperture, ice2",
         "aperture": {
-        	"outputPath": "${user.home}/ice2-output"
+            "outputPath": "${user.home}/ice2-output"
         },
         "ice2": {
             "url": "http://ice-service.usq.edu.au/api/convert/",
