@@ -27,7 +27,7 @@ import java.util.List;
 import org.apache.commons.codec.digest.DigestUtils;
 
 import au.edu.usq.fascinator.api.storage.Payload;
-import au.edu.usq.fascinator.api.storage.impl.GenericDigitalObject;
+import au.edu.usq.fascinator.common.storage.impl.GenericDigitalObject;
 
 public class FileSystemDigitalObject extends GenericDigitalObject {
 

@@ -21,8 +21,6 @@ package au.edu.usq.fascinator.portal.pages;
 import java.net.MalformedURLException;
 import java.net.URL;
 
-import javax.naming.NamingException;
-
 import org.apache.log4j.Logger;
 import org.apache.tapestry5.annotations.IncludeStylesheet;
 import org.apache.tapestry5.annotations.InjectPage;
@@ -149,14 +147,10 @@ public class Login {
             if (userManager.isValidUser(username, password)) {
                 result = true;
             } else {
-                try {
-                    LdapAuthentication ldap = new LdapAuthentication(
-                        state.getProperty("ldap.base.url"),
-                        state.getProperty("ldap.base.dn"));
-                    result = ldap.authenticate(username, password);
-                } catch (NamingException e) {
-                    log.error("Could not establish connection", e);
-                }
+                LdapAuthentication ldap = new LdapAuthentication(
+                    state.getProperty("ldap.base.url"),
+                    state.getProperty("ldap.base.dn"));
+                result = ldap.authenticate(username, password);
             }
         }
         return result;

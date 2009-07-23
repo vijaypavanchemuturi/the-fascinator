@@ -1,6 +1,6 @@
 /* 
  * The Fascinator - Common Library
- * Copyright (C) 2009 University of Southern Queensland
+ * Copyright (C) 2008-2009 University of Southern Queensland
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -37,7 +37,7 @@ public class MimeTypeUtil {
         registerDetector("eu.medsea.mimeutil.detector.ExtensionMimeDetector");
         registerDetector("eu.medsea.mimeutil.detector.MagicMimeMimeDetector");
         if (System.getProperty("os.name").startsWith("Windows")) {
-            registerDetector("eu.medsea.mimeutil.detector.WindowsRegistoryMimeDetector");
+            registerDetector("eu.medsea.mimeutil.detector.WindowsRegistryMimeDetector");
         }
     }
 

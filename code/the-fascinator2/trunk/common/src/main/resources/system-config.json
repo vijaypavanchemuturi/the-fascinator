@@ -2,29 +2,18 @@
     "storage": {
         "type": "file-system",
         "file-system": {
-            "home": "${user.dir}/.fascinator/storage"
-        },
-        "fedora3": {
-            "url": "http://localhost:8080/fedora",
-            "username": "fedoraAdmin",
-            "password": "der"
-        },
-        "couchdb": {
-            "url": "http://localhost:8080/couch"
+            "home": "${user.home}/.fascinator/storage"
         }
     },
     "indexer": {
         "type": "solr",
-        "properties": "SOF-META",
+        "properties": ".indexer.properties",
         "solr": {
-            "uri": "http://localhost:8080/solr",
-            "username": "solrAdmin",
-            "password": "der",
+            "uri": "http://localhost:8983/solr",
             "autocommit": true
         }
-    }
-    
+    },
     "portal": {
-    	"home": "src/main/config/portal"
+        "home": "${user.home}/.fascinator/portal"
     }
 }

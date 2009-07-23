@@ -1,6 +1,6 @@
 /* 
  * The Fascinator - Common Library
- * Copyright (C) 2008 University of Southern Queensland
+ * Copyright (C) 2008-2009 University of Southern Queensland
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,6 +21,15 @@ package au.edu.usq.fascinator.common.jaxb;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlValue;
 
+/**
+ * JAXB binding for the following XML structure:
+ * 
+ * <pre>
+ * &lt;field name=&quot;key&quot;&gt;value&lt;/elem&gt;
+ * </pre>
+ * 
+ * @author Oliver Lucido
+ */
 public class MapEntryType {
 
     @XmlAttribute

@@ -1,6 +1,6 @@
 /* 
  * The Fascinator - Common Library
- * Copyright (C) 2008 University of Southern Queensland
+ * Copyright (C) 2008-2009 University of Southern Queensland
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -35,19 +35,37 @@ import org.slf4j.LoggerFactory;
  */
 public class LdapAuthentication {
 
+    /** Logging */
     private Logger log = LoggerFactory.getLogger(LdapAuthentication.class);
 
+    /** LDAP environment */
     private Hashtable<String, String> env;
 
+    /** LDAP Base DN */
     private String baseDn;
 
+    /** LDAP identifier attribute */
     private String idAttr;
 
-    public LdapAuthentication(String baseUrl, String baseDn)
-            throws NamingException {
+    /**
+     * Creates an LDAP authenticator for the specified server and base DN, using
+     * the default identifier attribute "uid"
+     * 
+     * @param baseUrl LDAP server URL
+     * @param baseDn LDAP base DN
+     */
+    public LdapAuthentication(String baseUrl, String baseDn) {
         this(baseUrl, baseDn, "uid");
     }
 
+    /**
+     * Creates an LDAP authenticator for the specified server, base DN and
+     * identifier attribute
+     * 
+     * @param baseUrl LDAP server URL
+     * @param baseDn LDAP base DN
+     * @param idAttr LDAP user identifier attribute
+     */
     public LdapAuthentication(String baseUrl, String baseDn, String idAttr) {
         this.baseDn = baseDn;
         this.idAttr = idAttr;
@@ -58,6 +76,13 @@ public class LdapAuthentication {
         env.put(Context.SECURITY_AUTHENTICATION, "simple");
     }
 
+    /**
+     * Attempts to authenticate user credentials with the LDAP server
+     * 
+     * @param username a username
+     * @param password a password
+     * @return true if authentication was successful, false otherwise
+     */
     public boolean authenticate(String username, String password) {
         try {
             String principal = String.format("%s=%s,%s", idAttr, username,
@@ -68,8 +93,8 @@ public class LdapAuthentication {
             ctx.lookup(principal);
             ctx.close();
             return true;
-        } catch (NamingException e) {
-            log.warn("Failed LDAP lookup", e);
+        } catch (NamingException ne) {
+            log.warn("Failed LDAP lookup", ne);
         }
         return false;
     }

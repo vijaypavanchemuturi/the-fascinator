@@ -4,7 +4,7 @@
   <groupId>au.edu.usq.fascinator</groupId>
   <artifactId>fascinator-common</artifactId>
   <version>2.0.0-SNAPSHOT</version>
-  <name>The Fascinator - Common</name>
+  <name>The Fascinator - Common Library</name>
   <parent>
     <groupId>au.edu.usq.fascinator</groupId>
     <artifactId>the-fascinator</artifactId>
@@ -12,6 +12,10 @@
     <relativePath>../pom.xml</relativePath>
   </parent>
   <dependencies>
+    <dependency>
+      <groupId>au.edu.usq.fascinator</groupId>
+      <artifactId>fascinator-plugin-api</artifactId>
+    </dependency>
     <dependency>
       <groupId>commons-httpclient</groupId>
       <artifactId>commons-httpclient</artifactId>
@@ -30,16 +34,16 @@
       <version>2.1.2</version>
     </dependency>
     <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+    </dependency>
+    <dependency>
       <groupId>org.codehaus.jackson</groupId>
       <artifactId>jackson-mapper-lgpl</artifactId>
     </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
     </dependency>
   </dependencies>
 </project>

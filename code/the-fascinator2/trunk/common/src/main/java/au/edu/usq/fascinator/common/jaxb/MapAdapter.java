@@ -1,6 +1,6 @@
 /* 
  * The Fascinator - Common Library
- * Copyright (C) 2008 University of Southern Queensland
+ * Copyright (C) 2008-2009 University of Southern Queensland
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,6 +23,19 @@ import java.util.Map;
 
 import javax.xml.bind.annotation.adapters.XmlAdapter;
 
+/**
+ * JAXB adapter for unmarshalling the following XML structure into a map:
+ * 
+ * <pre>
+ * &lt;fields&gt;
+ *   &lt;field name=&quot;key1&quot;&gt;value1&lt;/elem&gt;
+ *   &lt;field name=&quot;key2&quot;&gt;value2&lt;/elem&gt;
+ *   &lt;field name=&quot;key3&quot;&gt;value3&lt;/elem&gt;
+ * &lt;/fields&gt;
+ * </pre>
+ * 
+ * @author Oliver Lucido
+ */
 public class MapAdapter extends
         XmlAdapter<MapEntryListType, Map<String, String>> {
 

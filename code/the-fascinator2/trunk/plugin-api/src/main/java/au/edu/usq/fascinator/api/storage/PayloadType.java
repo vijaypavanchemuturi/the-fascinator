@@ -1,6 +1,6 @@
 /* 
  * The Fascinator - Plugin API
- * Copyright (C) 2009 University of Southern Queensland
+ * Copyright (C) 2008-2009 University of Southern Queensland
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,8 +18,23 @@
  */
 package au.edu.usq.fascinator.api.storage;
 
+/**
+ * Types of payloads
+ * 
+ * @author Oliver Lucido
+ */
 public enum PayloadType {
 
-    Annotation, Data, Enrichment, External
+    /** Descriptions of an object */
+    Annotation,
+
+    /** Original or source content */
+    Data,
+
+    /** Content derived from another source */
+    Enrichment,
+
+    /** Content that is stored externally */
+    External
 
 }

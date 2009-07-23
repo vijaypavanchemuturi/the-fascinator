@@ -20,6 +20,12 @@ package au.edu.usq.fascinator.api.transformer;
 
 import au.edu.usq.fascinator.api.PluginException;
 
+/**
+ * Generic exception for transformer plugin conditions
+ * 
+ * @author Oliver Lucido
+ */
+@SuppressWarnings("serial")
 public class TransformerException extends PluginException {
 
     public TransformerException(String message) {

@@ -41,8 +41,8 @@
       <artifactId>junit</artifactId>
     </dependency>
     <dependency>
-        <groupId>jaxen</groupId>
-        <artifactId>jaxen</artifactId>
+      <groupId>jaxen</groupId>
+      <artifactId>jaxen</artifactId>
     </dependency>
   </dependencies>
   <profiles>
@@ -51,27 +51,27 @@
       <dependencies>
         <dependency>
           <groupId>au.edu.usq.fascinator.plugins</groupId>
-          <artifactId>storage-filesystem-plugin</artifactId>
+          <artifactId>plugin-storage-filesystem</artifactId>
           <version>2.0.0-SNAPSHOT</version>
         </dependency>
         <dependency>
           <groupId>au.edu.usq.fascinator.plugins</groupId>
-          <artifactId>harvester-jsonq-plugin</artifactId>
+          <artifactId>plugin-harvester-jsonq</artifactId>
           <version>2.0.0-SNAPSHOT</version>
         </dependency>
         <dependency>
           <groupId>au.edu.usq.fascinator.plugins</groupId>
-          <artifactId>indexer-solr-plugin</artifactId>
+          <artifactId>plugin-indexer-solr</artifactId>
           <version>2.0.0-SNAPSHOT</version>
         </dependency>
         <dependency>
           <groupId>au.edu.usq.fascinator.plugins</groupId>
-          <artifactId>transformer-ice2-plugin</artifactId>
+          <artifactId>plugin-transformer-aperture</artifactId>
           <version>2.0.0-SNAPSHOT</version>
         </dependency>
         <dependency>
           <groupId>au.edu.usq.fascinator.plugins</groupId>
-          <artifactId>transformer-aperture-plugin</artifactId>
+          <artifactId>plugin-transformer-ice2</artifactId>
           <version>2.0.0-SNAPSHOT</version>
         </dependency>
       </dependencies>
@@ -96,17 +96,17 @@
       <dependencies>
         <dependency>
           <groupId>au.edu.usq.fascinator.plugins</groupId>
-          <artifactId>storage-filesystem-plugin</artifactId>
+          <artifactId>plugin-storage-filesystem</artifactId>
           <version>2.0.0-SNAPSHOT</version>
         </dependency>
         <dependency>
           <groupId>au.edu.usq.fascinator.plugins</groupId>
-          <artifactId>harvester-oai-pmh-plugin</artifactId>
+          <artifactId>plugin-harvester-oai-pmh</artifactId>
           <version>2.0.0-SNAPSHOT</version>
         </dependency>
         <dependency>
           <groupId>au.edu.usq.fascinator.plugins</groupId>
-          <artifactId>indexer-solr-plugin</artifactId>
+          <artifactId>plugin-indexer-solr</artifactId>
           <version>2.0.0-SNAPSHOT</version>
         </dependency>
       </dependencies>
@@ -131,27 +131,27 @@
       <dependencies>
         <dependency>
           <groupId>au.edu.usq.fascinator.plugins</groupId>
-          <artifactId>storage-filesystem-plugin</artifactId>
+          <artifactId>plugin-storage-filesystem</artifactId>
           <version>2.0.0-SNAPSHOT</version>
         </dependency>
         <dependency>
           <groupId>au.edu.usq.fascinator.plugins</groupId>
-          <artifactId>harvester-filesystem-plugin</artifactId>
+          <artifactId>plugin-harvester-filesystem</artifactId>
           <version>2.0.0-SNAPSHOT</version>
         </dependency>
         <dependency>
           <groupId>au.edu.usq.fascinator.plugins</groupId>
-          <artifactId>indexer-solr-plugin</artifactId>
+          <artifactId>plugin-indexer-solr</artifactId>
           <version>2.0.0-SNAPSHOT</version>
         </dependency>
         <dependency>
           <groupId>au.edu.usq.fascinator.plugins</groupId>
-          <artifactId>transformer-aperture-plugin</artifactId>
+          <artifactId>plugin-transformer-aperture</artifactId>
           <version>2.0.0-SNAPSHOT</version>
         </dependency>
         <dependency>
           <groupId>au.edu.usq.fascinator.plugins</groupId>
-          <artifactId>transformer-ice2-plugin</artifactId>
+          <artifactId>plugin-transformer-ice2</artifactId>
           <version>2.0.0-SNAPSHOT</version>
         </dependency>
       </dependencies>

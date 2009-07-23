@@ -1,6 +1,6 @@
 /* 
  * The Fascinator - Plugin API
- * Copyright (C) 2009 University of Southern Queensland
+ * Copyright (C) 2008-2009 University of Southern Queensland
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,10 +19,11 @@
 package au.edu.usq.fascinator.api.indexer.rule;
 
 /**
- * Generic exception for Rule implementations to use
+ * Generic exception for rule conditions
  * 
  * @author Oliver Lucido
  */
+@SuppressWarnings("serial")
 public class RuleException extends Exception {
 
     public RuleException(String message) {
@@ -36,5 +37,4 @@ public class RuleException extends Exception {
     public RuleException(String message, Throwable cause) {
         super(message, cause);
     }
-
 }

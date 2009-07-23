@@ -1,5 +1,5 @@
 {
-    "harvest": {
+    "harvester": {
         "type": "file-system",
         "file-system": {
             "rootDir": "${user.home}/Documents/public"

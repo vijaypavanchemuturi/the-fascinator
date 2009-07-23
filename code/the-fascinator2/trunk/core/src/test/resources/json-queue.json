@@ -1,5 +1,5 @@
 {
-    "harvest": {
+    "harvester": {
         "type": "jsonq",
         "jsonq": {
             "url": "http://localhost:9000/"
@@ -17,7 +17,6 @@
         }
     },
     
-        
     "indexer": {
         "script": {
             "type": "python",

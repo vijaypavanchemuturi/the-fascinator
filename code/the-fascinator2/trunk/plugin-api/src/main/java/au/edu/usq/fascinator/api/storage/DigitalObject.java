@@ -1,6 +1,6 @@
 /* 
  * The Fascinator - Plugin API
- * Copyright (C) 2009 University of Southern Queensland
+ * Copyright (C) 2008-2009 University of Southern Queensland
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,14 +20,40 @@ package au.edu.usq.fascinator.api.storage;
 
 import java.util.List;
 
+/**
+ * Represents an object and its related payloads (or attachments)
+ * 
+ * @author Oliver Lucido
+ */
 public interface DigitalObject {
 
+    /**
+     * Gets the unique identifier for this object
+     * 
+     * @return an identifier
+     */
     public String getId();
 
+    /**
+     * Gets the payload which represents the metadata for this object
+     * 
+     * @return a payload
+     */
     public Payload getMetadata();
 
+    /**
+     * Gets the payload with the specified identifier
+     * 
+     * @param pid payload identifier
+     * @return a payload
+     */
     public Payload getPayload(String pid);
 
+    /**
+     * Gets the payloads related to this object
+     * 
+     * @return list of payloads
+     */
     public List<Payload> getPayloadList();
 
 }

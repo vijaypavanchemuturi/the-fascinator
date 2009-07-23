@@ -1,6 +1,6 @@
 /* 
  * The Fascinator - Common Library
- * Copyright (C) 2008 University of Southern Queensland
+ * Copyright (C) 2008-2009 University of Southern Queensland
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,6 +24,19 @@ import java.util.Map;
 
 import javax.xml.bind.annotation.XmlElement;
 
+/**
+ * JAXB binding for the following XML structure:
+ * 
+ * <pre>
+ * &lt;fields&gt;
+ *   &lt;field name=&quot;key1&quot;&gt;value1&lt;/elem&gt;
+ *   &lt;field name=&quot;key2&quot;&gt;value2&lt;/elem&gt;
+ *   &lt;field name=&quot;key3&quot;&gt;value3&lt;/elem&gt;
+ * &lt;/fields&gt;
+ * </pre>
+ * 
+ * @author Oliver Lucido
+ */
 public class MapEntryListType {
 
     @XmlElement(name = "field")

@@ -1,6 +1,6 @@
 /* 
  * The Fascinator - Plugin API
- * Copyright (C) 2009 University of Southern Queensland
+ * Copyright (C) 2008-2009 University of Southern Queensland
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,10 +23,28 @@ import java.util.List;
 import au.edu.usq.fascinator.api.Plugin;
 import au.edu.usq.fascinator.api.storage.DigitalObject;
 
+/**
+ * Provides digital objects from any data source
+ * 
+ * @author Oliver Lucido
+ */
 public interface Harvester extends Plugin {
 
-    public boolean hasMoreObjects();
-
+    /**
+     * Gets a list of digital objects. If there are no objects, this method
+     * should return an empty list, not null.
+     * 
+     * @return a list of objects, possibly empty
+     * @throws HarvesterException if there was an error retrieving the objects
+     */
     public List<DigitalObject> getObjects() throws HarvesterException;
+
+    /**
+     * Tests whether there are more objects to retrieve. This method should
+     * return true if called before getObjects.
+     * 
+     * @return true if there are more objects to retrieve, false otherwise
+     */
+    public boolean hasMoreObjects();
 
 }

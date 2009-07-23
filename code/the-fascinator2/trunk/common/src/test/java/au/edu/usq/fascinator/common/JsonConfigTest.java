@@ -1,6 +1,6 @@
 /* 
  * The Fascinator - Common Library
- * Copyright (C) 2009 University of Southern Queensland
+ * Copyright (C) 2008-2009 University of Southern Queensland
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,7 +24,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 /**
- * JsonConfig unit tests
+ * Unit tests for JsonConfig
  * 
  * @author Oliver Lucido
  */
@@ -38,6 +38,11 @@ public class JsonConfigTest {
                 "/test-config.json"), false);
     }
 
+    /**
+     * Tests the get method
+     * 
+     * @throws Exception if any error occurs
+     */
     @Test
     public void get() throws Exception {
         Assert.assertEquals("testing", config.get("test"));
@@ -49,12 +54,22 @@ public class JsonConfigTest {
         Assert.assertEquals("true", config.get("indexer/config/autocommit"));
     }
 
+    /**
+     * Tests the get method with use of system properties
+     * 
+     * @throws Exception if any error occurs
+     */
     @Test
     public void getWithSystemProperties() throws Exception {
         System.setProperty("sample.property", "Sample Value");
         Assert.assertEquals("Sample Value", config.get("sample/property"));
     }
 
+    /**
+     * Tests the set method
+     * 
+     * @throws Exception if any error occurs
+     */
     @Ignore
     @Test
     public void set() throws Exception {

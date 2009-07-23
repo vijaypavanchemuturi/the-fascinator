@@ -1,6 +1,6 @@
 /* 
  * The Fascinator - Common Library
- * Copyright (C) 2008 University of Southern Queensland
+ * Copyright (C) 2008-2009 University of Southern Queensland
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -38,12 +38,21 @@ import org.slf4j.LoggerFactory;
  */
 public class BasicHttpClient {
 
+    /** Logging */
     private Logger log = LoggerFactory.getLogger(BasicHttpClient.class);
 
+    /** Base URL for all requests */
     private String baseUrl;
 
+    /** Authentication credentials */
     private UsernamePasswordCredentials credentials;
 
+    /**
+     * Creates an HTTP client for the specified base URL. The base URL is used
+     * in determining proxy usage.
+     * 
+     * @param baseUrl the base URL
+     */
     public BasicHttpClient(String baseUrl) {
         if (baseUrl.endsWith("/")) {
             baseUrl = baseUrl.substring(0, baseUrl.length() - 1);
@@ -51,10 +60,23 @@ public class BasicHttpClient {
         this.baseUrl = baseUrl;
     }
 
+    /**
+     * Sets the authentication credentials for authenticated requests
+     * 
+     * @param username a username
+     * @param password a password
+     */
     public void authenticate(String username, String password) {
         credentials = new UsernamePasswordCredentials(username, password);
     }
 
+    /**
+     * Gets an HTTP client. If authentication is required, the authenticate()
+     * method must be called prior to this method.
+     * 
+     * @param auth set true to use authentication, false to skip authentication
+     * @return an HTTP client
+     */
     public HttpClient getHttpClient(boolean auth) {
         HttpClient client = new HttpClient();
         try {
@@ -65,7 +87,7 @@ public class BasicHttpClient {
                 if (proxyHost != null && !"".equals(proxyHost)) {
                     client.getHostConfiguration().setProxy(proxyHost,
                             Integer.parseInt(proxyPort));
-                    log.debug("Using proxy {}:{}", proxyHost, proxyPort);
+                    log.trace("Using proxy {}:{}", proxyHost, proxyPort);
                 }
             }
         } catch (Exception e) {
@@ -74,28 +96,55 @@ public class BasicHttpClient {
         if (auth && credentials != null) {
             client.getParams().setAuthenticationPreemptive(true);
             client.getState().setCredentials(AuthScope.ANY, credentials);
-            log.debug("Credentials: username={}", credentials.getUserName());
+            log.trace("Credentials: username={}", credentials.getUserName());
         }
         return client;
     }
 
+    /**
+     * Gets the base URL
+     * 
+     * @return the base URL
+     */
     public String getBaseUrl() {
         return baseUrl;
     }
 
+    /**
+     * Sends an HTTP request. This method uses authentication for all requests
+     * except GET.
+     * 
+     * @param method an HTTP method
+     * @return HTTP status code
+     * @throws IOException if an error occurred during the HTTP request
+     */
     public int executeMethod(HttpMethodBase method) throws IOException {
         boolean auth = !(method instanceof GetMethod);
         return executeMethod(method, auth);
     }
 
+    /**
+     * Sends an HTTP request
+     * 
+     * @param method an HTTP method
+     * @param auth true to request with authentication, false to request without
+     * @return HTTP status code
+     * @throws IOException if an error occurred during the HTTP request
+     */
     public int executeMethod(HttpMethodBase method, boolean auth)
             throws IOException {
+        log.trace("{} {}", method.getName(), method.getURI());
         int status = getHttpClient(auth).executeMethod(method);
-        log.debug("{} {} returned {}: {}", new Object[] { method.getName(),
-                method.getURI(), status, HttpStatus.getStatusText(status) });
+        log.trace("{} {}", status, HttpStatus.getStatusText(status));
         return status;
     }
 
+    /**
+     * Tests whether a host should bypass the currently set proxy
+     * 
+     * @param host the host to test
+     * @return true if the host should bypass the proxy, false otherwise
+     */
     private boolean isNonProxyHost(String host) {
         String httpNonProxyHosts = System.getProperty("http.nonProxyHosts",
                 "localhost|127.0.0.1");

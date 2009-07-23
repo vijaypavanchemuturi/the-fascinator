@@ -24,8 +24,8 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import au.edu.usq.fascinator.api.storage.Payload;
-import au.edu.usq.fascinator.api.storage.impl.GenericPayload;
 import au.edu.usq.fascinator.common.MimeTypeUtil;
+import au.edu.usq.fascinator.common.storage.impl.GenericPayload;
 
 public class FileSystemPayload extends GenericPayload {
 
@@ -36,6 +36,7 @@ public class FileSystemPayload extends GenericPayload {
 
     public FileSystemPayload(Payload payload) {
         super(payload);
+        System.err.println("id=" + getId());
         updateMeta();
     }
 
@@ -62,12 +63,15 @@ public class FileSystemPayload extends GenericPayload {
     }
 
     public File getFile() {
-        if (file.isAbsolute()) {
-            return new File(homeDir, file.getName());
+        if (file == null) {
+            return new File(getId());
         } else {
-            return new File(homeDir, file.getPath());
+            if (file.isAbsolute()) {
+                return new File(homeDir, file.getName());
+            } else {
+                return new File(homeDir, file.getPath());
+            }
         }
-
     }
 
     @Override

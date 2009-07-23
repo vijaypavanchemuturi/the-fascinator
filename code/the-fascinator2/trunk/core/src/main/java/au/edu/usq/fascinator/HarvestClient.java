@@ -40,9 +40,9 @@ import au.edu.usq.fascinator.api.storage.Payload;
 import au.edu.usq.fascinator.api.storage.PayloadType;
 import au.edu.usq.fascinator.api.storage.Storage;
 import au.edu.usq.fascinator.api.storage.StorageException;
-import au.edu.usq.fascinator.api.storage.impl.GenericPayload;
 import au.edu.usq.fascinator.api.transformer.TransformerException;
 import au.edu.usq.fascinator.common.JsonConfig;
+import au.edu.usq.fascinator.common.storage.impl.GenericPayload;
 
 public class HarvestClient {
 
@@ -106,7 +106,7 @@ public class HarvestClient {
             return;
         }
 
-        String harvesterType = config.get("harvest/type");
+        String harvesterType = config.get("harvester/type");
         Harvester harvester;
         try {
             harvester = PluginManager.getHarvester(harvesterType);
@@ -171,7 +171,7 @@ public class HarvestClient {
                     "The Fascinator Indexer Metadata", "text/plain");
             sofMetaDs.setInputStream(new ByteArrayInputStream(sofMetaOut
                     .toByteArray()));
-            sofMetaDs.setPayloadType(PayloadType.Annotation);
+            sofMetaDs.setType(PayloadType.Annotation);
             storage.addPayload(oid, sofMetaDs);
 
             storage.addObject(object);

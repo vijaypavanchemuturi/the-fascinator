@@ -1,6 +1,6 @@
 /* 
  * The Fascinator - Plugin API
- * Copyright (C) 2009 University of Southern Queensland
+ * Copyright (C) 2008-2009 University of Southern Queensland
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,6 +20,12 @@ package au.edu.usq.fascinator.api.indexer;
 
 import au.edu.usq.fascinator.api.PluginException;
 
+/**
+ * Generic exception for indexer plugin conditions
+ * 
+ * @author Oliver Lucido
+ */
+@SuppressWarnings("serial")
 public class IndexerException extends PluginException {
 
     public IndexerException(String message) {

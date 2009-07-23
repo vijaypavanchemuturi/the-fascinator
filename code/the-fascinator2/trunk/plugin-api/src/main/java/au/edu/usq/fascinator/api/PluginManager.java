@@ -1,6 +1,6 @@
 /* 
  * The Fascinator - Plugin API
- * Copyright (C) 2009 University of Southern Queensland
+ * Copyright (C) 2008-2009 University of Southern Queensland
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,27 +21,25 @@ package au.edu.usq.fascinator.api;
 import java.util.ServiceLoader;
 
 import au.edu.usq.fascinator.api.harvester.Harvester;
-import au.edu.usq.fascinator.api.harvester.HarvesterException;
 import au.edu.usq.fascinator.api.indexer.Indexer;
-import au.edu.usq.fascinator.api.indexer.IndexerException;
 import au.edu.usq.fascinator.api.storage.Storage;
-import au.edu.usq.fascinator.api.storage.StorageException;
 import au.edu.usq.fascinator.api.transformer.Transformer;
 import au.edu.usq.fascinator.api.transformer.TransformerException;
 
+/**
+ * Factory class to get plugin instances
+ * 
+ * @author Oliver Lucido
+ */
 public class PluginManager {
 
-    public static Storage getStorage(String id) throws StorageException {
-        ServiceLoader<Storage> plugins = ServiceLoader.load(Storage.class);
-        for (Storage plugin : plugins) {
-            if (id.equals(plugin.getId())) {
-                return plugin;
-            }
-        }
-        return null;
-    }
-
-    public static Harvester getHarvester(String id) throws HarvesterException {
+    /**
+     * Gets a harvester plugin
+     * 
+     * @param id plugin identifier
+     * @return a harvester plugin, or null if not found
+     */
+    public static Harvester getHarvester(String id) {
         ServiceLoader<Harvester> plugins = ServiceLoader.load(Harvester.class);
         for (Harvester plugin : plugins) {
             if (id.equals(plugin.getId())) {
@@ -51,6 +49,44 @@ public class PluginManager {
         return null;
     }
 
+    /**
+     * Gets a indexer plugin
+     * 
+     * @param id plugin identifier
+     * @return a indexer plugin, or null if not found
+     */
+    public static Indexer getIndexer(String id) {
+        ServiceLoader<Indexer> plugins = ServiceLoader.load(Indexer.class);
+        for (Indexer plugin : plugins) {
+            if (id.equals(plugin.getId())) {
+                return plugin;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Gets a storage plugin
+     * 
+     * @param id plugin identifier
+     * @return a storage plugin, or null if not found
+     */
+    public static Storage getStorage(String id) {
+        ServiceLoader<Storage> plugins = ServiceLoader.load(Storage.class);
+        for (Storage plugin : plugins) {
+            if (id.equals(plugin.getId())) {
+                return plugin;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Gets a transformer plugin
+     * 
+     * @param id plugin identifier
+     * @return a transformer plugin, or null if not found
+     */
     public static Transformer getTransformer(String id)
             throws TransformerException {
         ServiceLoader<Transformer> plugins = ServiceLoader
@@ -62,15 +98,4 @@ public class PluginManager {
         }
         return null;
     }
-
-    public static Indexer getIndexer(String id) throws IndexerException {
-        ServiceLoader<Indexer> plugins = ServiceLoader.load(Indexer.class);
-        for (Indexer plugin : plugins) {
-            if (id.equals(plugin.getId())) {
-                return plugin;
-            }
-        }
-        return null;
-    }
-
 }
