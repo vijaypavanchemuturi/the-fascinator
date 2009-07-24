@@ -21,18 +21,15 @@ package au.edu.usq.fascinator.storage.couchdb;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-//import java.util.List;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.URLConnection;
 import java.net.URLEncoder;
-import java.net.URLDecoder;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
-import java.util.zip.ZipInputStream;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
-import java.net.URLConnection;
-
-
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 
 import org.apache.commons.io.IOUtils;
 import org.codehaus.jackson.JsonNode;
@@ -41,20 +38,14 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import au.edu.usq.fascinator.api.DigitalObject;
-import au.edu.usq.fascinator.api.Payload;
-import au.edu.usq.fascinator.api.PayloadType;
-import au.edu.usq.fascinator.api.Storage;
-import au.edu.usq.fascinator.api.StorageException;
 import au.edu.usq.fascinator.api.impl.BasicPayload;
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.Collection;
+import au.edu.usq.fascinator.api.store.DigitalObject;
+import au.edu.usq.fascinator.api.store.Payload;
+import au.edu.usq.fascinator.api.store.PayloadType;
+import au.edu.usq.fascinator.api.store.Storage;
+import au.edu.usq.fascinator.api.store.StorageException;
 
 //import au.edu.usq.fascinator.storage.couchdb.RestClient;
-
-
 
 public class CouchDBStorage implements Storage {
 
@@ -63,7 +54,6 @@ public class CouchDBStorage implements Storage {
     private static final String DEFAULT_URL = "http://localhost:5984/fascinator";
 
     private RestClient client;
-
 
     @Override
     public String getId() {
@@ -90,13 +80,14 @@ public class CouchDBStorage implements Storage {
                     client = new RestClient(url);
                     JsonNode usernameNode = configNode.get("username");
                     JsonNode passwordNode = configNode.get("password");
-                    //if (usernameNode != null && passwordNode != null) {
-                    //    client.authenticate(usernameNode.getTextValue(),
-                    //            passwordNode.getTextValue());
-                    //}
+                    // if (usernameNode != null && passwordNode != null) {
+                    // client.authenticate(usernameNode.getTextValue(),
+                    // passwordNode.getTextValue());
+                    // }
                     log.info(" uri='{}'", url);
                 } else {
-                    throw new StorageException("not a valid couchdb storage section.");
+                    throw new StorageException(
+                            "not a valid couchdb storage section.");
                 }
             } else {
                 log.info("No configuration defined, using defaults");
@@ -124,22 +115,23 @@ public class CouchDBStorage implements Storage {
             String id = URLEncoder.encode(oid, "UTF-8");
             rev = getRev(oid);
             String json = "{\"type\":\"digitalObject\"}";
-            if(rev!=null){
+            if (rev != null) {
                 json = "{\"type\":\"digitalObject\", \"_rev\":\"" + rev + "\"}";
             }
             result = client.put(id, "text/javascript", json);
             rev = getRevFromJson(result);
             log.info(" -- rev='{}'", rev);
             for (Payload payload : object.getPayloadList()) {
-                if(payload.getId().equals("renditions.zip")){
+                if (payload.getId().equals("renditions.zip")) {
                     File tmpFile = File.createTempFile("_renditions_", ".zip");
                     OutputStream os = new FileOutputStream(tmpFile);
                     IOUtils.copy(payload.getInputStream(), os);
                     os.close();
                     ZipFile zipFile = new ZipFile(tmpFile);
-                    for(Payload pload : getPayloadsFromZippedPayload(zipFile, "renditions/")) {
+                    for (Payload pload : getPayloadsFromZippedPayload(zipFile,
+                            "renditions/")) {
                         result = addPayload2(oid, pload, rev);
-                        if(result!=null) {
+                        if (result != null) {
                             rev = getRevFromJson(result);
                         }
                     }
@@ -160,7 +152,7 @@ public class CouchDBStorage implements Storage {
     @Override
     public void removeObject(String oid) {
         log.info("*** removeObject(oid='{}')", oid);
-        if(client.delete(oid)) {
+        if (client.delete(oid)) {
 
         } else {
             log.error("Failed to remove object {}", oid);
@@ -174,18 +166,20 @@ public class CouchDBStorage implements Storage {
     }
 
     private String addPayload2(String oid, Payload payload, String rev) {
-        //log.info("*** addPayload(oid='{}', payload.getId()='{}')", oid, payload.getId());
+        // log.info("*** addPayload(oid='{}', payload.getId()='{}')", oid,
+        // payload.getId());
         String result = null;
         try {
             String id = URLEncoder.encode(oid, "UTF-8");
             String url = id + "/" + payload.getId();
-            if(rev!=null){
+            if (rev != null) {
                 url += "?rev=" + rev;
             }
-            //log.info("    url='{}', contentType='{}'", url, payload.getContentType());
-            if(!payload.getContentType().equals("")){
-                result = client.put(url,
-                    payload.getContentType(),  payload.getInputStream());
+            // log.info("    url='{}', contentType='{}'", url,
+            // payload.getContentType());
+            if (!payload.getContentType().equals("")) {
+                result = client.put(url, payload.getContentType(), payload
+                        .getInputStream());
             }
         } catch (Exception e) {
             log.debug("Failed to add {} to item - {}", oid, e.getMessage());
@@ -217,33 +211,38 @@ public class CouchDBStorage implements Storage {
         return null;
     }
 
-    private List<Payload> getPayloadsFromZippedPayload(ZipFile zipFile, String baseName){
+    private List<Payload> getPayloadsFromZippedPayload(ZipFile zipFile,
+            String baseName) {
         List<Payload> payloads = new ArrayList<Payload>();
         InputStream is = null;
         ZipEntry zipEntry = null;
         Enumeration zipEntries = zipFile.entries();
 
-        //log.info("* getPayloadsFromZippedPayload()");
+        // log.info("* getPayloadsFromZippedPayload()");
         try {
             zipEntries = zipFile.entries();
-            while(zipEntries.hasMoreElements()) {
-                zipEntry = (ZipEntry)zipEntries.nextElement();
+            while (zipEntries.hasMoreElements()) {
+                zipEntry = (ZipEntry) zipEntries.nextElement();
                 if (!zipEntry.isDirectory()) {
                     String name = zipEntry.getName();
                     String id = baseName + name;
                     String label = id;
-                    String contentType = URLConnection.getFileNameMap().getContentTypeFor(name);
-                    if(contentType==null) contentType="";
-                    //log.info("  name={}, contentType={}", name, contentType);
-                    BasicPayload newPayload = new BasicPayload(id, label, contentType);
+                    String contentType = URLConnection.getFileNameMap()
+                            .getContentTypeFor(name);
+                    if (contentType == null)
+                        contentType = "";
+                    // log.info("  name={}, contentType={}", name, contentType);
+                    BasicPayload newPayload = new BasicPayload(id, label,
+                            contentType);
                     newPayload.setInputStream(zipFile.getInputStream(zipEntry));
 
-            	    newPayload.setPayloadType(PayloadType.Enrichment);
+                    newPayload.setPayloadType(PayloadType.Enrichment);
                     payloads.add(newPayload);
                 }
             }
         } catch (Exception e) {
-            log.error(" Error in getPayloadsFromZippedPayload - {}", e.getMessage());
+            log.error(" Error in getPayloadsFromZippedPayload - {}", e
+                    .getMessage());
         }
         return payloads;
     }
@@ -253,52 +252,45 @@ public class CouchDBStorage implements Storage {
         try {
             String id = URLEncoder.encode(oid, "UTF-8");
             jsonStr = client.getString(id);
-        } catch (Exception e){
+        } catch (Exception e) {
 
         }
         return getRevFromJson(jsonStr);
     }
 
-    private String getRevFromJson(String jsonStr){
+    private String getRevFromJson(String jsonStr) {
         String rev = null;
         try {
             ObjectMapper mapper = new ObjectMapper();
             JsonNode rootNode = mapper.readValue(jsonStr, JsonNode.class);
             JsonNode revNode = rootNode.get("_rev");
-            if(revNode==null){
+            if (revNode == null) {
                 revNode = rootNode.get("rev");
             }
             rev = revNode.getTextValue();
         } catch (Exception e) {
-            log.error("Failed to get rev number from JSON data - {}", e.getMessage());
+            log.error("Failed to get rev number from JSON data - {}", e
+                    .getMessage());
         }
         return rev;
     }
 
-/*
-Enumeration zipEntries = zipFile.entries();
-while (zipEntries.hasMoreElements()) {
-    ZipEntry entry = (ZipEntry) zipEntries.nextElement();
-    if (!entry.isDirectory()) {
-        String name = entry.getName();
-        log.info("Processing '{}'", name);
-        try {
-            InputStream in = zipFile.getInputStream(entry);
-            BasicPayload payload = new BasicPayload();
-            payload.setId(name);
-            payload.setLabel(name);
-            payload.setInputStream(in);
-            Collection mimeTypes = MimeUtil.getMimeTypes(name);
-            payload.setContentType(mimeTypes.iterator().next()
-                    .toString());
-	    payload.setPayloadType(PayloadType.Enrichment);
-
-
-
-
-ByteArrayOutputStream out = new ByteArrayOutputStream();
-IOUtils.copy(in, out);
-in.close();
-setId(out.toString().trim());
-*/
+    /*
+     * Enumeration zipEntries = zipFile.entries(); while
+     * (zipEntries.hasMoreElements()) { ZipEntry entry = (ZipEntry)
+     * zipEntries.nextElement(); if (!entry.isDirectory()) { String name =
+     * entry.getName(); log.info("Processing '{}'", name); try { InputStream in
+     * = zipFile.getInputStream(entry); BasicPayload payload = new
+     * BasicPayload(); payload.setId(name); payload.setLabel(name);
+     * payload.setInputStream(in); Collection mimeTypes =
+     * MimeUtil.getMimeTypes(name);
+     * payload.setContentType(mimeTypes.iterator().next() .toString());
+     * payload.setPayloadType(PayloadType.Enrichment);
+     * 
+     * 
+     * 
+     * 
+     * ByteArrayOutputStream out = new ByteArrayOutputStream(); IOUtils.copy(in,
+     * out); in.close(); setId(out.toString().trim());
+     */
 }

@@ -20,12 +20,8 @@ package au.edu.usq.fascinator.storage.couchdb;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URLEncoder;
-import java.net.URLDecoder;
-
 
 import au.edu.usq.fascinator.api.impl.BasicPayload;
-//import au.edu.usq.fascinator.storage.couchdb.RestClient;
 
 public class CouchPayload extends BasicPayload {
 

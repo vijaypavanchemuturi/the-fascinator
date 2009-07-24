@@ -25,8 +25,7 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import au.edu.usq.fascinator.api.impl.BasicDigitalObject;
-import au.edu.usq.fascinator.api.store.Payload;
+import au.edu.usq.fascinator.api.storage.Payload;
 import au.edu.usq.fedora.RestClient;
 import au.edu.usq.fedora.types.DatastreamType;
 import au.edu.usq.fedora.types.ObjectDatastreamsType;

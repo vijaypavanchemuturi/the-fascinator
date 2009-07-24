@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <projectDescription>
-	<name>fedora3-storage-plugin</name>
+	<name>storage-couchdb-plugin</name>
 	<comment></comment>
 	<projects>
 	</projects>

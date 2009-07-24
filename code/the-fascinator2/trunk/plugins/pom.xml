@@ -18,6 +18,7 @@
     <module>harvester/oai-pmh</module>
     <module>indexer/solr</module>
     <module>storage/filesystem</module>
+    <module>storage/couchdb</module>
     <module>transformer/aperture</module>
     <module>transformer/ice2</module>
   </modules>

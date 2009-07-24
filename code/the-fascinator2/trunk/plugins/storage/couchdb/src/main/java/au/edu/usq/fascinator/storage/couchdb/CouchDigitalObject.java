@@ -18,20 +18,19 @@
  */
 package au.edu.usq.fascinator.storage.couchdb;
 
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import au.edu.usq.fascinator.api.Payload;
-import au.edu.usq.fascinator.api.impl.BasicDigitalObject;
-import java.io.IOException;
-import java.util.Iterator;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.ObjectMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import au.edu.usq.fascinator.api.impl.BasicDigitalObject;
+import au.edu.usq.fascinator.api.store.Payload;
 
 public class CouchDigitalObject extends BasicDigitalObject {
 
@@ -55,10 +54,11 @@ public class CouchDigitalObject extends BasicDigitalObject {
             JsonNode attsNode = rootNode.get("_attachments");
             if (attsNode != null) {
                 Iterator<String> iter = attsNode.getFieldNames();
-                while(iter.hasNext()) {
+                while (iter.hasNext()) {
                     String name = iter.next();
                     JsonNode attNode = attsNode.get(name);
-                    String contentType = attNode.get("content_type").getTextValue();
+                    String contentType = attNode.get("content_type")
+                            .getTextValue();
 
                     CouchPayload payload = new CouchPayload(client, getId());
                     payload.setId(name);
@@ -71,7 +71,7 @@ public class CouchDigitalObject extends BasicDigitalObject {
 
         } catch (JsonParseException e) {
             log.error("Failed parse json data for {}", getId());
-        } catch (IOException eio){
+        } catch (IOException eio) {
             log.error("Failed to list datastreams for {}", getId());
         }
 

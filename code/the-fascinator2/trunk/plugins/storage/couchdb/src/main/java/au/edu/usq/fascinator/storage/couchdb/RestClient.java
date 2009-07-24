@@ -21,22 +21,18 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.httpclient.methods.DeleteMethod;
-import org.apache.commons.httpclient.methods.FileRequestEntity;
 import org.apache.commons.httpclient.methods.GetMethod;
-import org.apache.commons.httpclient.methods.PostMethod;
+import org.apache.commons.httpclient.methods.InputStreamRequestEntity;
 import org.apache.commons.httpclient.methods.PutMethod;
 import org.apache.commons.httpclient.methods.RequestEntity;
 import org.apache.commons.httpclient.methods.StringRequestEntity;
-import org.apache.commons.httpclient.methods.InputStreamRequestEntity;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import au.edu.usq.fascinator.common.BasicHttpClient;
-
 
 public class RestClient extends BasicHttpClient {
 
@@ -58,13 +54,12 @@ public class RestClient extends BasicHttpClient {
             if (status == HttpStatus.SC_OK) {
                 result = method.getResponseBodyAsString();
             }
-        } catch(Exception e) {
+        } catch (Exception e) {
             log.error("Failed to getString() - {}", e.getMessage());
         }
         method.releaseConnection();
         return result;
     }
-
 
     public int get(String pid, String dsId, OutputStream out)
             throws IOException {
@@ -87,12 +82,12 @@ public class RestClient extends BasicHttpClient {
     }
 
     public InputStream getStream(String url) {
-        //uri = getBaseUrl().concat("/").concat(uri);
+        // uri = getBaseUrl().concat("/").concat(uri);
         return null;
     }
 
     public InputStream getStream(String pid, String dsId) throws IOException {
-        //uri = getBaseUrl().concat("/").concat(uri);
+        // uri = getBaseUrl().concat("/").concat(uri);
         StringBuilder uri = new StringBuilder(getBaseUrl());
         uri.append("/get/");
         uri.append(pid);
@@ -109,10 +104,9 @@ public class RestClient extends BasicHttpClient {
         return null;
     }
 
-
     public boolean delete(String uri) {
         uri = getBaseUrl().concat("/").concat(uri);
-        int status=0;
+        int status = 0;
         DeleteMethod method = new DeleteMethod(uri.toString());
         try {
             status = executeMethod(method);
@@ -120,24 +114,26 @@ public class RestClient extends BasicHttpClient {
 
         }
         method.releaseConnection();
-        if (status == HttpStatus.SC_OK) return true;
-        else return false;
+        if (status == HttpStatus.SC_OK)
+            return true;
+        else
+            return false;
     }
-
-
 
     public String put(String uri, String contentType, String content) {
         String result = null;
         uri = getBaseUrl().concat("/").concat(uri);
-        //log.info(" uri='{}'", uri);
-        int status=0;
+        // log.info(" uri='{}'", uri);
+        int status = 0;
         RequestEntity requestEntity = null;
         try {
             PutMethod method = new PutMethod(uri);
             try {
-                requestEntity = new StringRequestEntity(content, contentType, "UTF-8");
+                requestEntity = new StringRequestEntity(content, contentType,
+                        "UTF-8");
             } catch (IOException e) {
-                log.error("Failed to create StringRequestEntity - {}", e.getMessage());
+                log.error("Failed to create StringRequestEntity - {}", e
+                        .getMessage());
                 return result;
             }
             method.setRequestEntity(requestEntity);
@@ -147,7 +143,7 @@ public class RestClient extends BasicHttpClient {
                     result = method.getResponseBodyAsString();
                 }
                 result = method.getResponseBodyAsString();
-            } catch (IOException e){
+            } catch (IOException e) {
                 log.error("Failed to execute PUT - {}", e.getMessage());
             }
             method.releaseConnection();
@@ -159,9 +155,10 @@ public class RestClient extends BasicHttpClient {
 
     public String put(String uri, String contentType, InputStream in) {
         String result = null;
-        //log.info("RestClient.put(uri={}, contentType='{}'", uri, contentType);
+        // log.info("RestClient.put(uri={}, contentType='{}'", uri,
+        // contentType);
         uri = getBaseUrl().concat("/").concat(uri);
-        int status=0;
+        int status = 0;
         PutMethod method = new PutMethod(uri.toString());
         method.addRequestHeader("Content-Type", contentType);
         RequestEntity requestEntity = new InputStreamRequestEntity(in);
@@ -171,24 +168,19 @@ public class RestClient extends BasicHttpClient {
             if (status == HttpStatus.SC_OK) {
             }
             result = method.getResponseBodyAsString();
-        } catch (IOException e){
+        } catch (IOException e) {
             log.error("Failed to execute PUT - {}", e.getMessage());
         }
         method.releaseConnection();
         return result;
     }
 
-/*
-import javax.activation.MimetypesFileTypeMap;
-    private String getMimeType(File file) {
-        return MimetypesFileTypeMap.getDefaultFileTypeMap()
-                .getContentType(file);
-    }
-import eu.medsea.mimeutil.MimeUtil;
-    private String getMimeType(String fileName){
-        Collection mimeTypes = MimeUtil.getMimeTypes(name);
-        return mimeTypes.iterator().next().toString();
-        return "";
-    }
-*/
+    /*
+     * import javax.activation.MimetypesFileTypeMap; private String
+     * getMimeType(File file) { return
+     * MimetypesFileTypeMap.getDefaultFileTypeMap() .getContentType(file); }
+     * import eu.medsea.mimeutil.MimeUtil; private String getMimeType(String
+     * fileName){ Collection mimeTypes = MimeUtil.getMimeTypes(name); return
+     * mimeTypes.iterator().next().toString(); return ""; }
+     */
 }
