@@ -3,6 +3,7 @@
   <filter>
     <filter-name>UrlRewriteFilter</filter-name>
     <filter-class>org.tuckey.web.filters.urlrewrite.UrlRewriteFilter</filter-class>
+    <!--
     <init-param>
       <param-name>logLevel</param-name>
       <param-value>DEBUG</param-value>
@@ -11,6 +12,7 @@
       <param-name>confReloadCheckInterval</param-name>
       <param-value>60</param-value>
     </init-param>
+    -->
   </filter>
   <filter-mapping>
     <filter-name>UrlRewriteFilter</filter-name>
@@ -21,12 +23,12 @@
     <servlet-class>com.sun.jersey.spi.container.servlet.ServletContainer</servlet-class>
     <init-param>
       <param-name>com.sun.jersey.config.property.packages</param-name>
-      <param-value>au.edu.usq.fascinator.portal</param-value>
+      <param-value>au.edu.usq.fascinator.portal.resources</param-value>
     </init-param>
   </servlet>
   <servlet>
     <servlet-name>PortalServlet</servlet-name>
-    <servlet-class>au.edu.usq.fascinator.portal.PortalServlet</servlet-class>
+    <servlet-class>au.edu.usq.fascinator.portal.servlet.PortalServlet</servlet-class>
   </servlet>
   <servlet-mapping>
     <servlet-name>JerseyServlet</servlet-name>
