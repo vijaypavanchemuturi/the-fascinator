@@ -1,4 +1,0 @@
-<langpack>
-  <str id="fedoraAdminPassword" txt="Password for fedoraAdmin:"/>
-  <str id="solrAdminPassword" txt="Password for solrAdmin:"/>
-</langpack>
