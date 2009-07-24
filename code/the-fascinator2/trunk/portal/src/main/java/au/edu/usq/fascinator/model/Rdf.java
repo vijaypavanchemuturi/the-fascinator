@@ -3,11 +3,13 @@ package au.edu.usq.fascinator.model;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
+import org.dom4j.DocumentFactory;
 import org.dom4j.Element;
-import org.dom4j.Namespace;
 import org.dom4j.Node;
 import org.dom4j.io.SAXReader;
 import org.slf4j.Logger;
@@ -16,12 +18,15 @@ import org.slf4j.LoggerFactory;
 public class Rdf {
     private Logger log = LoggerFactory.getLogger(Rdf.class);
 
-    private String DC = "http://purl.org/dc/elements/1.1/";
-    private String J0 = "http://www.semanticdesktop.org/ontologies/2007/01/19/nie#";
-    private String J1 = "http://www.semanticdesktop.org/ontologies/2007/03/22/nco#";
-    private String J2 = "http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#";
+    private String RDFns = "http://www.w3.org/1999/02/22-rdf-syntax-ns#";
+    private String DCns = "http://purl.org/dc/elements/1.1/";
+    private String J0ns = "http://www.semanticdesktop.org/ontologies/2007/01/19/nie#";
+    private String J1ns = "http://www.semanticdesktop.org/ontologies/2007/03/22/nco#";
+    private String J2ns = "http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#";
+    private String FOAFns = "http://xmlns.com/foaf/0.1/";
 
     private Document document;
+    private SAXReader saxReader;
 
     private String title;
     private String mimeType;
@@ -31,13 +36,13 @@ public class Rdf {
     private String generator;
     private String initialCreator;
 
-    Namespace namespace1 = new Namespace("j.0",
-        "http://www.semanticdesktop.org/ontologies/2007/01/19/nie#");
+    private Map<String, String> namespaces;
 
     public Rdf(InputStream is) {
         try {
-            document = new SAXReader().read(new InputStreamReader(is, "UTF-8"));
             settingUpNamespace();
+            saxReader = new SAXReader();
+            document = saxReader.read(new InputStreamReader(is, "UTF-8"));
         } catch (UnsupportedEncodingException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
@@ -49,20 +54,19 @@ public class Rdf {
 
     public String getTitle() {
         String title = getNodeValue("./rdf:RDF/rdf:Description/dc:title");
-        if (title == "")
+        if (title == "") {
             title = getNodeValue("./rdf:RDF/rdf:Description/*[local-name()='title']");
+        }
         return title;
     }
 
     public String getMimeType() {
-        log.info("j.0: " + document.getRootElement().additionalNamespaces());
-        log.info("------ I have it?: "
-            + getNodeValue("./rdf:RDF/rdf:Description/*[local-name()='mimeType']"));
         return getNodeValue("./rdf:RDF/rdf:Description/*[local-name()='mimeType']");
     }
 
     public String getFilePath() {
-        Node filePath = document.selectSingleNode("./rdf:RDF/rdf:Description[not(starts-with(@rdf:about, 'urn:'))]");
+        Node filePath = document
+                .selectSingleNode("./rdf:RDF/rdf:Description[not(starts-with(@rdf:about, 'urn:'))]");
         if (filePath != null) {
             Element filePathElem = (Element) filePath;
             return filePathElem.attributeValue("about");
@@ -88,21 +92,28 @@ public class Rdf {
 
     private String getNodeValue(String xPath) {
         Node pageCount = document.selectSingleNode(xPath);
-        if (pageCount != null)
+        if (pageCount != null) {
             return pageCount.getText();
+        }
         return "";
     }
 
     private void settingUpNamespace() {
-        // DocumentFactory --> to register, check SolrIndexer
-        Element rootElement = document.getRootElement();
-        if (rootElement.getNamespaceForPrefix("dc") == null)
-            rootElement.addNamespace("dc", DC);
-        if (rootElement.getNamespaceForPrefix("j.0") == null)
-            rootElement.addNamespace("j.0", J0);
-        if (rootElement.getNamespaceForPrefix("j.1") == null)
-            rootElement.addNamespace("j.1", J1);
-        if (rootElement.getNamespaceForPrefix("j.2") == null)
-            rootElement.addNamespace("j.2", J2);
+        namespaces = new HashMap<String, String>();
+        registerNamespace("rdf", RDFns);
+        registerNamespace("dc", DCns);
+        registerNamespace("j.0", J0ns);
+        registerNamespace("j.1", J1ns);
+        registerNamespace("j.2", J2ns);
+        registerNamespace("foaf", FOAFns);
+        DocumentFactory.getInstance().setXPathNamespaceURIs(namespaces);
+    }
+
+    public void registerNamespace(String prefix, String uri) {
+        namespaces.put(prefix, uri);
+    }
+
+    public void unregisterNamespace(String prefix) {
+        namespaces.remove(prefix);
     }
 }

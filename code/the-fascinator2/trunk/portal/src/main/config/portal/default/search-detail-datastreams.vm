@@ -5,7 +5,7 @@
   
   	## Need to put download link to the original Source
     #foreach($ds in $page.datastreams)
-      #if ($ds.id.indexOf("_files")==-1)
+      #if ($ds.id.indexOf("_files")==-1 && $ds.id.indexOf("rdf")==-1 && $ds.id.indexOf("SOF")==-1)
       <li>
       	#set ($id = $page.urlEncoder($ds.id))
         <a href="$page.encodedUuid/$id">

@@ -19,6 +19,7 @@
         <to type="redirect">%{context-path}/rewrite-status</to>
     </rule>
 
+	
 
     <outbound-rule>
         <note>

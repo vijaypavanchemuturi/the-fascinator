@@ -22,10 +22,13 @@ import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.apache.log4j.Logger;
 import org.apache.tapestry5.internal.services.ContextResource;
 import org.apache.tapestry5.internal.services.RequestPathOptimizer;
 import org.apache.tapestry5.ioc.MappedConfiguration;
+import org.apache.tapestry5.ioc.OrderedConfiguration;
 import org.apache.tapestry5.ioc.Resource;
+import org.apache.tapestry5.ioc.annotations.Inject;
 import org.apache.tapestry5.ioc.annotations.InjectService;
 import org.apache.tapestry5.services.ApplicationStateContribution;
 import org.apache.tapestry5.services.ApplicationStateCreator;
@@ -33,10 +36,16 @@ import org.apache.tapestry5.services.AssetFactory;
 import org.apache.tapestry5.services.AssetSource;
 import org.apache.tapestry5.services.Context;
 import org.apache.tapestry5.services.Request;
+import org.apache.tapestry5.services.URLEncoder;
+import org.apache.tapestry5.urlrewriter.RewriteRuleApplicability;
+import org.apache.tapestry5.urlrewriter.SimpleRequestWrapper;
+import org.apache.tapestry5.urlrewriter.URLRewriteContext;
+import org.apache.tapestry5.urlrewriter.URLRewriterRule;
 
 import au.edu.usq.fascinator.portal.State;
 
 public class AppModule {
+    private static Logger log = Logger.getLogger(AppModule.class);
 
     public static final String PORTALS_DIR_KEY = "portals.dir";
 
@@ -49,17 +58,17 @@ public class AppModule {
     private static final String VELOCITY_CONFIG_KEY = "velocity.configuration";
 
     public void contributeApplicationStateManager(
-        MappedConfiguration<Class<State>, ApplicationStateContribution> configuration,
-        @InjectService("Context") final Context context,
-        @InjectService("PortalManager") final PortalManager portalManager,
-        @InjectService("RoleManager") final RoleManager roleManager) {
+            MappedConfiguration<Class<State>, ApplicationStateContribution> configuration,
+            @InjectService("Context") final Context context,
+            @InjectService("PortalManager") final PortalManager portalManager,
+            @InjectService("RoleManager") final RoleManager roleManager) {
         ApplicationStateCreator<State> creator = new ApplicationStateCreator<State>() {
             public State create() {
                 return new State(context, portalManager, roleManager);
             }
         };
         configuration.add(State.class, new ApplicationStateContribution(
-            "session", creator));
+                "session", creator));
     }
 
     public PortalManager buildPortalManager() {
@@ -67,7 +76,7 @@ public class AppModule {
     }
 
     public RegistryManager buildRegistryManager(
-        Map<String, Resource> configuration) {
+            Map<String, Resource> configuration) {
         return new RegistryManagerImpl(configuration.get(REGISTRY_URL_KEY));
     }
 
@@ -90,32 +99,32 @@ public class AppModule {
     // }
 
     public VelocityResourceLocator buildVelocityResourceLocator(
-        @InjectService("VelocityService") VelocityService velocityService,
-        @InjectService("AssetSource") AssetSource assetSource) {
+            @InjectService("VelocityService") VelocityService velocityService,
+            @InjectService("AssetSource") AssetSource assetSource) {
         return new VelocityResourceLocator(velocityService, assetSource,
-            PortalManagerImpl.DEFAULT_PORTAL_NAME);
+                PortalManagerImpl.DEFAULT_PORTAL_NAME);
     }
 
     public VelocityService buildVelocityService(
-        Map<String, Resource> configuration) {
+            Map<String, Resource> configuration) {
         return new VelocityServiceImpl(configuration.get(VELOCITY_CONFIG_KEY));
     }
 
     public void contributeVelocityService(
-        MappedConfiguration<String, Resource> configuration, Context context) {
+            MappedConfiguration<String, Resource> configuration, Context context) {
         Resource velocityProps = new ContextResource(context,
-            "/WEB-INF/velocity.properties");
+                "/WEB-INF/velocity.properties");
         configuration.add("velocity.configuration", velocityProps);
     }
 
     public AssetFactory buildVelocityAssetFactory(Request request,
-        Context context, RequestPathOptimizer optimizer) {
+            Context context, RequestPathOptimizer optimizer) {
         return new VelocityAssetFactory(request, context, optimizer);
     }
 
     public void contributeAssetSource(
-        MappedConfiguration<String, AssetFactory> configuration,
-        @InjectService("VelocityAssetFactory") AssetFactory velocityAssetFactory) {
+            MappedConfiguration<String, AssetFactory> configuration,
+            @InjectService("VelocityAssetFactory") AssetFactory velocityAssetFactory) {
         configuration.add("velocity", velocityAssetFactory);
     }
 
@@ -124,11 +133,37 @@ public class AppModule {
     }
 
     public void contributeUserManager(Context context,
-        MappedConfiguration<String, Resource> configuration) {
+            MappedConfiguration<String, Resource> configuration) {
 
         Resource configProps = new ContextResource(context,
-            "/WEB-INF/config.properties");
+                "/WEB-INF/config.properties");
         configuration.add(PORTALS_DIR_KEY, configProps);
+    }
+
+    public void contributeURLRewriter(
+            OrderedConfiguration<URLRewriterRule> configuration,
+            @Inject final URLEncoder encoder) {
+
+        URLRewriterRule rule = new URLRewriterRule() {
+
+            public Request process(Request request, URLRewriteContext context) {
+                final String path = request.getPath();
+                if (path.indexOf(" ") > -1) {
+                    request = new SimpleRequestWrapper(request, path.replace(
+                            " ", "$0020"));
+                }
+
+                return request;
+
+            }
+
+            public RewriteRuleApplicability applicability() {
+                return RewriteRuleApplicability.INBOUND;
+            }
+
+        };
+        configuration.add("rule1", rule);
+
     }
 
 }

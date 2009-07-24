@@ -428,12 +428,12 @@ public class Search {
 
     @OnEvent(value = "firstpage")
     void selectFirstPage() {
-        this.pageNum = 1;
+        pageNum = 1;
     }
 
     @OnEvent(value = "lastpage")
     void selectLastPage() {
-        this.pageNum = pagination.getLastPage();
+        pageNum = pagination.getLastPage();
     }
 
     @OnEvent(value = "download")

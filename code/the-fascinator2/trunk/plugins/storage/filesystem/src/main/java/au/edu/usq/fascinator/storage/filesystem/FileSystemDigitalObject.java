@@ -64,6 +64,7 @@ public class FileSystemDigitalObject extends GenericDigitalObject {
         return path;
     }
 
+    @Override
     public List<Payload> getPayloadList() {
         List<Payload> payloadList = new ArrayList<Payload>();
         addPayloadDir(payloadList, getPath(), 0);
@@ -86,7 +87,6 @@ public class FileSystemDigitalObject extends GenericDigitalObject {
                         }
                         payloadFile = new File(relPath, file.getName());
                     }
-                    System.err.println("payloadFile=" + payloadFile);
                     payloadList.add(new FileSystemPayload(getPath(),
                             payloadFile));
                 } else if (file.isDirectory()) {

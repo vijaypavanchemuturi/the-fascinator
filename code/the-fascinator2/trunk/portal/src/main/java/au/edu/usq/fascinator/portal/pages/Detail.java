@@ -107,16 +107,16 @@ public class Detail {
     private String clusterValue = "";
 
     Object onActivate(Object[] params) {
-        this.portalValue = params[0].toString();
+        portalValue = params[0].toString();
         String referer = request.getHeader("Referer");
         if (referer != null && !referer.endsWith("/login")
-            && !referer.endsWith("/logout")) {
+                && !referer.endsWith("/logout")) {
             try {
                 refererUrl = new URL(referer);
             } catch (MalformedURLException mue) {
                 refererUrl = null;
                 log.warn("Bad referer: " + referer + " (" + mue.getMessage()
-                    + ")");
+                        + ")");
             }
         }
         log.info("Referer: " + referer + " (" + refererUrl + ")");
@@ -195,7 +195,7 @@ public class Detail {
             if (content != null) {
                 try {
                     return new BinaryStreamResponse(content.getContentType(),
-                        content.getInputStream());
+                            content.getInputStream());
                 } catch (IOException e) {
                     // TODO Auto-generated catch block
                     e.printStackTrace();
@@ -269,25 +269,31 @@ public class Detail {
         File sourceFile = new File(uuid);
         String[] filePart = sourceFile.getName().split("\\.");
         Payload embedPayload = registryManager.getPayload(uuid, filePart[0]
-            + ".htm");
+                + ".htm");
 
         if (embedPayload != null) {
             try {
                 // tidy.parse(embedPayload.getInputStream(), stream);
                 SAXReader saxReader = new SAXReader();
-                Document document = saxReader.read(embedPayload.getInputStream());
+                Document document = saxReader.read(embedPayload
+                        .getInputStream());
 
                 // get <div class='slide'>
-                Node slideNode = document.selectSingleNode("//div[@class='body']");
+                Node slideNode = document
+                        .selectSingleNode("//div[@class='body']");
                 if (slideNode != null) {
-                    // Fix the links
+                    // Fix the image links: in the future we need to support
+                    // more...
                     List<Node> links = slideNode.selectNodes("//img");
                     for (Node link : links) {
                         Element linkElem = (Element) link;
                         String imgName = getEncodedUuid() + "/"
-                            + urlEncoder(linkElem.attributeValue("src"));
-                        linkElem.addAttribute("name", imgName);
-                        linkElem.addAttribute("src", imgName);
+                                + urlEncoder(linkElem.attributeValue("src"));
+                        if (!imgName.startsWith("http://")
+                                && !imgName.startsWith("file://")) {
+                            linkElem.addAttribute("name", imgName);
+                            linkElem.addAttribute("src", imgName);
+                        }
                     }
                     return slideNode.asXML();
                 }

@@ -23,16 +23,15 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.log4j.Logger;
-import org.apache.tapestry5.Asset;
 import org.apache.tapestry5.ComponentResources;
 import org.apache.tapestry5.MarkupWriter;
 import org.apache.tapestry5.annotations.BeginRender;
 import org.apache.tapestry5.annotations.Parameter;
-import org.apache.tapestry5.annotations.Path;
 import org.apache.tapestry5.annotations.SessionState;
 import org.apache.tapestry5.ioc.Resource;
 import org.apache.tapestry5.ioc.annotations.Inject;
 import org.apache.tapestry5.runtime.Component;
+import org.apache.tapestry5.services.Request;
 
 import au.edu.usq.fascinator.portal.State;
 import au.edu.usq.fascinator.portal.services.UriResource;
@@ -55,15 +54,19 @@ public class VelocityPanel {
     @SessionState
     private State state;
 
-    @Inject
-    @Path("context:/")
-    private Asset contextPath;
+    // @Inject
+    // @Path("context:/")
+    // private Asset contextPath;
 
+    private String requestContextPath;
     @Inject
     private ComponentResources resources;
 
     @Inject
     private VelocityService service;
+
+    @Inject
+    private Request request;
 
     @Inject
     private VelocityResourceLocator locator;
@@ -74,7 +77,11 @@ public class VelocityPanel {
         Component page = resources.getPage();
         String pageName = resources.getPageName();
         Map<String, Object> context = new HashMap<String, Object>();
-        context.put("contextPath", contextPath);
+        requestContextPath = request.getContextPath();
+        if (!requestContextPath.endsWith("/")) {
+            requestContextPath += "/";
+        }
+        context.put("contextPath", requestContextPath);
         context.put("page", page);
         context.put("session", state);
         context.put("pageName", pageName);

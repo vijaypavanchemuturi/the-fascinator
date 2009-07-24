@@ -47,7 +47,7 @@ public class FileSystemPayload extends GenericPayload {
     }
 
     public FileSystemPayload(File payloadFile) {
-        this.file = payloadFile;
+        file = payloadFile;
         if (file.isAbsolute()) {
             setId(payloadFile.getName());
         } else {
