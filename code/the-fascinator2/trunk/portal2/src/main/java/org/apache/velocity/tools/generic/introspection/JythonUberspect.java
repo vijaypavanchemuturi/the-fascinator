@@ -1,4 +1,27 @@
-/*
+/* 
+ * Based on http://wiki.apache.org/jakarta-velocity/JythonUberspect
+ * 
+ * ==========
+ * 
+ * The Fascinator - Portal
+ * Copyright (C) 2008-2009 University of Southern Queensland
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ * 
+ * ==========
+ * 
  * Copyright 2000-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License")
@@ -15,7 +38,9 @@
  */
 package org.apache.velocity.tools.generic.introspection;
 
+import java.util.Collection;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.NoSuchElementException;
 
 import org.apache.log4j.Logger;
@@ -25,6 +50,8 @@ import org.apache.velocity.util.introspection.UberspectImpl;
 import org.apache.velocity.util.introspection.VelMethod;
 import org.apache.velocity.util.introspection.VelPropertyGet;
 import org.apache.velocity.util.introspection.VelPropertySet;
+import org.python.core.Py;
+import org.python.core.PyArray;
 import org.python.core.PyDictionary;
 import org.python.core.PyInteger;
 import org.python.core.PyNone;
@@ -39,6 +66,8 @@ import org.python.core.PyString;
  * method calls against the jython methods (i.e. no __findattr__ in your
  * template)
  * 
+ * OL: added Map iterator support in #foreach and javabean style properties
+ * 
  * @author <a href="mailto:jasonrbriggs@gmail.com">Jason R Briggs</a>
  */
 public class JythonUberspect extends UberspectImpl {
@@ -49,12 +78,18 @@ public class JythonUberspect extends UberspectImpl {
     @Override
     @SuppressWarnings("unchecked")
     public Iterator getIterator(Object obj, Info i) throws Exception {
-        log.info("obj=" + obj.getClass());
         if (obj instanceof PySequence) {
             return new PySequenceIterator((PySequence) obj);
         } else if (obj instanceof PyDictionary) {
             return new PySequenceIterator(((PyDictionary) obj).values());
         } else {
+            PyObject po = (PyObject) obj;
+            Map map = (Map) po.__tojava__(Map.class);
+            if (map != Py.NoConversion) {
+                PySequence seq = new PyArray(Collection.class, map.values()
+                        .toArray());
+                return new PySequenceIterator(seq);
+            }
             return super.getIterator(obj, i);
         }
     }
@@ -166,7 +201,7 @@ class PyMethod implements VelMethod {
 
             return rtn;
         } catch (Exception e) {
-            log.error(e);
+            log.error("PyMethod.invoke", e);
         }
 
         return null;
@@ -224,7 +259,7 @@ class PyGetProperty implements VelPropertyGet {
                 return rtn;
             }
         } catch (Exception e) {
-            log.error(e);
+            log.error("PyGetProperty.invoke", e);
         }
 
         return null;
@@ -272,7 +307,7 @@ class PySetProperty implements VelPropertySet {
                         + arg.getClass().getName());
             }
         } catch (Exception e) {
-            log.error(e);
+            log.error("PySetProperty.invoke", e);
         }
 
         return null;

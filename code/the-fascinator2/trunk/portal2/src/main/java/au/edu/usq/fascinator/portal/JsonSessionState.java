@@ -16,26 +16,35 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-package au.edu.usq.fascinator.portal.services;
+package au.edu.usq.fascinator.portal;
 
-import java.util.Map;
+import java.io.IOException;
+import java.util.Date;
 
-import au.edu.usq.fascinator.portal.Portal;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-public interface PortalManager {
+import au.edu.usq.fascinator.common.JsonConfig;
+import au.edu.usq.fascinator.common.JsonConfigHelper;
 
-    public static final String DEFAULT_PORTAL_NAME = "default";
+public class JsonSessionState extends JsonConfigHelper {
 
-    public Map<String, Portal> getPortals();
+    private Logger log = LoggerFactory.getLogger(JsonSessionState.class);
 
-    public Portal getDefault();
+    private JsonConfig config;
 
-    public Portal get(String name);
+    private Date created;
 
-    public void add(Portal portal);
+    public JsonSessionState() {
+        created = new Date();
+        try {
+            config = new JsonConfig();
+        } catch (IOException ioe) {
+            log.warn("Failed to load system config: {}", ioe.getMessage());
+        }
+    }
 
-    public void remove(String name);
-
-    public void save(Portal portal);
-
+    public Date getCreated() {
+        return created;
+    }
 }

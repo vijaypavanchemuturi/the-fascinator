@@ -18,7 +18,11 @@
  */
 package au.edu.usq.fascinator.api.indexer;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -69,13 +73,29 @@ public class SearchRequest {
     }
 
     /**
+     * Sets the value for the specified parameter. Note this the parameter is
+     * still multi-valued, this is convenience method to wrap the value as an
+     * array with one item.
+     * 
+     * @param name parameter key
+     * @param value parameter value
+     */
+    public void setParam(String name, String value) {
+        getParams().put(name, new String[] { encode(value) });
+    }
+
+    /**
      * Sets the values for the specified parameter
      * 
      * @param name parameter key
-     * @param value parameter values
+     * @param values parameter values
      */
-    public void setParam(String name, String[] value) {
-        getParams().put(name, value);
+    public void setParam(String name, String[] values) {
+        List<String> encodedValues = new ArrayList<String>();
+        for (String value : values) {
+            encodedValues.add(encode(value));
+        }
+        getParams().put(name, encodedValues.toArray(new String[] {}));
     }
 
     /**
@@ -88,5 +108,19 @@ public class SearchRequest {
             params = new HashMap<String, String[]>();
         }
         return params;
+    }
+
+    /**
+     * Gets the URL encoded version of a string
+     * 
+     * @param value a string to encode
+     * @return URL encoded string
+     */
+    private String encode(String value) {
+        try {
+            return URLEncoder.encode(value, "UTF-8");
+        } catch (UnsupportedEncodingException e) {
+        }
+        return value;
     }
 }

@@ -1,8 +1,0 @@
-#set($pageTitle = 'Portals')
-<h1>Portals</h1>
-<pre>$page.getPortals()</pre>
-<ul>
-  #foreach($portal in $page.portals)
-    <li>$portal</li>
-  #end
-</ul>

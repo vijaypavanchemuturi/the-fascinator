@@ -1,6 +1,6 @@
 /* 
- * The Fascinator - Solr Portal
- * Copyright (C) 2008  University of Southern Queensland
+ * The Fascinator - Portal
+ * Copyright (C) 2008-2009 University of Southern Queensland
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,7 +16,7 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-package au.edu.usq.fascinator.portal.services;
+package au.edu.usq.fascinator.portal;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -31,6 +31,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
 import au.edu.usq.fascinator.common.jaxb.MapAdapter;
+import au.edu.usq.fascinator.portal.services.PortalManager;
 
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.NONE)

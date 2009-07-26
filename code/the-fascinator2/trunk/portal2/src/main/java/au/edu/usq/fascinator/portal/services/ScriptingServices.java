@@ -18,24 +18,16 @@
  */
 package au.edu.usq.fascinator.portal.services;
 
-import java.util.Map;
+public interface ScriptingServices {
 
-import au.edu.usq.fascinator.portal.Portal;
+    public PortalManager getPortalManager();
 
-public interface PortalManager {
+    public IndexerService getIndexer();
 
-    public static final String DEFAULT_PORTAL_NAME = "default";
+    // public HarvesterService getHarvester(String type);
 
-    public Map<String, Portal> getPortals();
+    // public StorageService getStorage();
 
-    public Portal getDefault();
-
-    public Portal get(String name);
-
-    public void add(Portal portal);
-
-    public void remove(String name);
-
-    public void save(Portal portal);
+    // public PluginManager getPluginManager();
 
 }

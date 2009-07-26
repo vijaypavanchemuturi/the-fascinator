@@ -1,6 +1,6 @@
 /* 
- * The Fascinator - Solr Portal
- * Copyright (C) 2008  University of Southern Queensland
+ * The Fascinator - Portal
+ * Copyright (C) 2008-2009 University of Southern Queensland
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,7 +16,7 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-package au.edu.usq.fascinator.portal.services;
+package au.edu.usq.fascinator.portal.services.impl;
 
 import java.io.File;
 import java.io.FileFilter;
@@ -32,6 +32,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import au.edu.usq.fascinator.common.JsonConfig;
+import au.edu.usq.fascinator.portal.Portal;
+import au.edu.usq.fascinator.portal.services.PortalManager;
 
 public class PortalManagerImpl implements PortalManager {
 
@@ -54,14 +56,10 @@ public class PortalManagerImpl implements PortalManager {
     public PortalManagerImpl() {
         try {
             JsonConfig config = new JsonConfig();
-            init(config.get("portal/home"));
+            init(config.get("portal/homeDir"));
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-    }
-
-    public PortalManagerImpl(String portalsDir) {
-        init(portalsDir);
     }
 
     private void init(String portalsDir) {

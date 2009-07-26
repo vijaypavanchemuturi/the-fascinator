@@ -1,13 +1,13 @@
 #set($pageTitle = 'Search')
-<script type="text/javascript" src="jquery.js"></script>
-<script type="text/javascript">
-  jQuery(function(){
-      jQuery.getJSON("api/search/default/*:*", function(data) {
-          jQuery.each(data.response.docs, function(i, doc) {
-              jQuery("#search").append("<div class='item'><p>" + doc["dc.title"] + "<p><p>" + doc["dc.description"] + "</p><hr/></div>");
-          });
-      });
-  });
-</script>
-<h1>Search</h1>
-<div id="search"></div>
+#set($numFound = $self.result.get("response/numFound"))
+#set($itemList = $self.result.getList("response/docs").toArray())
+<h2>Search</h2>
+<div id="search">
+  <p>Found $numFound items</p>
+  #foreach($item in $itemList)
+    <div>
+      $item.get("dc.title").get(0)
+    </div>
+  #end
+  <pre>$self.result.toString()</pre>
+</div>

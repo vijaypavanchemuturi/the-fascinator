@@ -18,24 +18,13 @@
  */
 package au.edu.usq.fascinator.portal.services;
 
-import java.util.Map;
+import java.io.InputStream;
+import java.io.OutputStream;
 
-import au.edu.usq.fascinator.portal.Portal;
+public interface DynamicPageService {
 
-public interface PortalManager {
+    public InputStream getResource(String portalId, String resourceName);
 
-    public static final String DEFAULT_PORTAL_NAME = "default";
-
-    public Map<String, Portal> getPortals();
-
-    public Portal getDefault();
-
-    public Portal get(String name);
-
-    public void add(Portal portal);
-
-    public void remove(String name);
-
-    public void save(Portal portal);
+    public void render(String portalId, String pageName, OutputStream out);
 
 }

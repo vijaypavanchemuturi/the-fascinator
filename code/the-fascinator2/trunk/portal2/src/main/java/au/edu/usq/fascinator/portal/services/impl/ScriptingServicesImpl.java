@@ -16,26 +16,29 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-package au.edu.usq.fascinator.portal.services;
+package au.edu.usq.fascinator.portal.services.impl;
 
-import java.util.Map;
+import org.apache.tapestry5.ioc.annotations.Inject;
 
-import au.edu.usq.fascinator.portal.Portal;
+import au.edu.usq.fascinator.portal.services.IndexerService;
+import au.edu.usq.fascinator.portal.services.PortalManager;
+import au.edu.usq.fascinator.portal.services.ScriptingServices;
 
-public interface PortalManager {
+public class ScriptingServicesImpl implements ScriptingServices {
 
-    public static final String DEFAULT_PORTAL_NAME = "default";
+    @Inject
+    private PortalManager portalManager;
 
-    public Map<String, Portal> getPortals();
+    @Inject
+    private IndexerService indexerService;
 
-    public Portal getDefault();
+    @Override
+    public PortalManager getPortalManager() {
+        return portalManager;
+    }
 
-    public Portal get(String name);
-
-    public void add(Portal portal);
-
-    public void remove(String name);
-
-    public void save(Portal portal);
-
+    @Override
+    public IndexerService getIndexer() {
+        return indexerService;
+    }
 }

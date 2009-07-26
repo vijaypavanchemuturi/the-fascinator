@@ -1,10 +1,26 @@
 <html>
   <head>
     <title>The Fascinator | $!{pageTitle}</title>
-    <link rel="stylesheet" type="text/css" href="styles.css" />
+    <link rel="shortcut icon" type="image/x-icon" href="favicon.ico" />
+    <link rel="stylesheet" type="text/css" href="css/styles.css" />
+    <script type="text/javascript" src="js/jquery.js"></script>
   </head>
   <body>
-    ${pageContent}
-    contextPath=${contextPath}
+    <div id="header">
+      <h1>The Fascinator</h1>
+      <div id="menu_bar">
+        <ul>
+          <li><a href="${contextPath}/${portalId}/home">Home</a> | </li>
+          <li><a href="${contextPath}/${portalId}/settings">Settings</a> | </li>
+          <li><a href="http://fascinator.usq.edu.au/">Website</a> | </li>
+          <li><a href="${contextPath}/${portalId}/contact">Contact</a></li>
+          <li class="menu_login"><a href="${contextPath}/${portalId}/login">Login</a></li>
+        </ul>
+      </div>
+    </div>
+    <div id="content">
+      ${pageContent}
+    </div>
+    <div id="footer"></div>
   </body>
 </html>

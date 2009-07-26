@@ -1,0 +1,85 @@
+body {
+  font-size: 80%;
+  font-family: Tahoma, Arial, Helvetica, sans-serif;
+  margin: 0px 5px 0px 5px;
+  padding: 0px 5px 0px 5px;
+}
+
+h1, h2, h3, h4, h5 {
+  margin-top: 5px;
+  margin-bottom: 5px;
+}
+
+h1 {
+  border-bottom: 1px dotted #959ca1;
+  color: #cc6600;
+  font-family: Times New Roman, Times, serif;
+}
+
+h2 {
+  color: navy;
+}
+
+/* form elements */
+input.textbox {
+  border: 1px solid gray;
+}
+
+input.button {
+  border: 1px solid;
+  border-color: white gray gray white;
+}
+
+input.button:hover {
+  background: #cc6600;
+  color: white;
+}
+
+/* menu bar */
+#menu_bar {
+  border-bottom: 1px dotted #959ca1;
+  list-style-image: none;
+  list-style-position: outside;
+  list-style-type: none;
+  padding-bottom: 5px;
+}
+
+#menu_bar ul {
+  display: inline;
+  padding-left: 0;
+}
+
+#menu_bar ul li {
+  display: inline;
+}
+
+#menu_bar ul li a {
+  color: navy;
+  text-decoration: none;
+}
+
+#menu_bar ul li a:hover {
+  background: #cc6600;
+  color: white;
+}
+
+#menu_bar .menu_login {
+  float: right;
+}
+
+/* portal list */
+.portal_list {
+  border-left: 1px dotted #959ca1;
+  list-style-image: none;
+  list-style-position: outside;
+  list-style-type: none;
+  padding-left: 10px;
+}
+
+.portal_list li {
+  font-size: 1.1em;
+}
+
+/* main content */
+#content {
+}

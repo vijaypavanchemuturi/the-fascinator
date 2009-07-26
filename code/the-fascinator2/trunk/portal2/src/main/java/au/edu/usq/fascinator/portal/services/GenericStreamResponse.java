@@ -18,24 +18,34 @@
  */
 package au.edu.usq.fascinator.portal.services;
 
-import java.util.Map;
+import java.io.IOException;
+import java.io.InputStream;
 
-import au.edu.usq.fascinator.portal.Portal;
+import org.apache.tapestry5.StreamResponse;
+import org.apache.tapestry5.services.Response;
 
-public interface PortalManager {
+public class GenericStreamResponse implements StreamResponse {
 
-    public static final String DEFAULT_PORTAL_NAME = "default";
+    private String mimeType;
 
-    public Map<String, Portal> getPortals();
+    private InputStream stream;
 
-    public Portal getDefault();
+    public GenericStreamResponse(String type, InputStream stream) {
+        mimeType = type;
+        this.stream = stream;
+    }
 
-    public Portal get(String name);
+    @Override
+    public String getContentType() {
+        return mimeType;
+    }
 
-    public void add(Portal portal);
+    @Override
+    public InputStream getStream() throws IOException {
+        return stream;
+    }
 
-    public void remove(String name);
-
-    public void save(Portal portal);
-
+    @Override
+    public void prepareResponse(Response response) {
+    }
 }
