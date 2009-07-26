@@ -1,4 +1,5 @@
 {
+    "numbers": ["one", "two", "three"],
     "storage": {
         "type": "fedora3",
          "config": {
@@ -12,12 +13,16 @@
         "config": {
             "uri": "http://localhost:8080/solr",
             "username": "solrAdmin",
-            "password": "solrAdmin",
+            "password": "${solr.password}",
             "autocommit": true
         }
     },
     "test": "testing",
     "sample": {
         "property": "${sample.property}"
+    },
+    "transformer": {
+        "conveyer": ["aperture", "ice2"],
+        "ints": ["${one}", 2, 3]
     }
 }

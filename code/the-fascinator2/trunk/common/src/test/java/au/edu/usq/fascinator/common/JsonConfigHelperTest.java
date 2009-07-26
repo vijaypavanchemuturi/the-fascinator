@@ -18,24 +18,28 @@
  */
 package au.edu.usq.fascinator.common;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 /**
- * Unit tests for JsonConfig
+ * Unit tests for JsonConfigHelper
  * 
  * @author Oliver Lucido
  */
-public class JsonConfigTest {
+public class JsonConfigHelperTest {
 
-    private JsonConfig config;
+    private JsonConfigHelper config;
 
     @Before
     public void setup() throws Exception {
-        config = new JsonConfig(getClass().getResourceAsStream(
-                "/test-config.json"), false);
+        config = new JsonConfigHelper(getClass().getResourceAsStream(
+                "/test-config.json"));
     }
 
     /**
@@ -66,23 +70,69 @@ public class JsonConfigTest {
     }
 
     /**
+     * Tests the getList method
+     * 
+     * @throws Exception if any error occurs
+     */
+    @Test
+    public void getList() throws Exception {
+        List expected1 = new ArrayList();
+        expected1.add("one");
+        expected1.add("two");
+        expected1.add("three");
+
+        Assert.assertEquals(expected1, config.getList("numbers"));
+        List expected2 = new ArrayList();
+        expected2.add("aperture");
+        expected2.add("ice2");
+        Assert.assertEquals(expected2, config.getList("transformer/conveyer"));
+
+        System.setProperty("one", "1");
+        List expected3 = new ArrayList();
+        expected3.add("1");
+        expected3.add(2);
+        expected3.add(3);
+        Assert.assertEquals(expected3, config.getList("transformer/ints"));
+    }
+
+    /**
+     * Tests the getMap method
+     * 
+     * @throws Exception if any error occurs
+     */
+    @Test
+    public void getMap() throws Exception {
+        Map<String, String> expected1 = new HashMap<String, String>();
+        expected1.put("uri", "http://localhost:8080/fedora");
+        expected1.put("username", "fedoraAdmin");
+        expected1.put("password", "fedoraAdmin");
+        Assert.assertEquals(expected1, config.getMap("storage/config"));
+
+        System.setProperty("solr.password", "solrAdmin");
+        Map<String, String> expected2 = new HashMap<String, String>();
+        expected2.put("uri", "http://localhost:8080/solr");
+        expected2.put("username", "solrAdmin");
+        expected2.put("password", "solrAdmin");
+        expected2.put("autocommit", "true");
+        Assert.assertEquals(expected2, config.getMap("indexer/config"));
+    }
+
+    /**
      * Tests the set method
      * 
      * @throws Exception if any error occurs
      */
-    @Ignore
     @Test
     public void set() throws Exception {
         config.set("new", "value");
-        config.set("test", "new value");
+        config.set("testing", "new value");
         config.set("hello/world", "!!!");
         config.set("storage/config/uri", "http://localhost:9000/fedora3");
-        config.save(System.out);
+
         Assert.assertEquals("value", config.get("new"));
         Assert.assertEquals("new value", config.get("testing"));
         Assert.assertEquals("!!!", config.get("hello/world"));
         Assert.assertEquals("http://localhost:9000/fedora3", config
                 .get("storage/config/uri"));
     }
-
 }

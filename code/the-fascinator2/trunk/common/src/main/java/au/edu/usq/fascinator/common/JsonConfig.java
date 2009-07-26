@@ -18,288 +18,179 @@
  */
 package au.edu.usq.fascinator.common;
 
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.Writer;
+import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.text.StrSubstitutor;
-import org.codehaus.jackson.JsonEncoding;
-import org.codehaus.jackson.JsonFactory;
-import org.codehaus.jackson.JsonGenerator;
-import org.codehaus.jackson.JsonNode;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.node.ObjectNode;
 
 /**
- * Helper class for working with JSON configuration.
+ * Manages JSON configuration. Configuration values are read from a specified
+ * JSON and if not found, the system-wide JSON will also be searched.
  * 
  * @author Oliver Lucido
  */
 public class JsonConfig {
 
-    /** Empty config */
-    private static final byte[] EMPTY = "{}".getBytes();
-
     /** Default configuration directory */
-    private static final String DEFAULT_CONFIG_DIR = System
-            .getProperty("user.home")
+    private static final String CONFIG_DIR = System.getProperty("user.home")
             + File.separator + ".fascinator";
 
     /** Default system configuration file name */
     private static final String SYSTEM_CONFIG_FILE = "system-config.json";
 
-    /** Configuration directory */
-    private String configDir;
+    /** JSON system config */
+    private JsonConfigHelper systemConfig;
 
-    /** JSON system root node */
-    private JsonNode systemRootNode;
-
-    /** JSON root node */
-    private JsonNode rootNode;
-
-    /** Whether or not to load system properties */
-    private boolean useSystem;
+    /** JSON user config */
+    private JsonConfigHelper userConfig;
 
     /**
-     * Construct an instance with only the system settings
+     * Creates a config with only the system settings
      * 
-     * @throws IOException if there was an error loading the JSON configuration
+     * @throws IOException if these was an error parsing or reading the system
+     *         JSON file
      */
     public JsonConfig() throws IOException {
-        this((InputStream) null, null, true);
+        this((InputStream) null);
     }
 
     /**
-     * Construct an instance with only the system settings
-     * 
-     * @param useSystem true to load system properties
-     * @throws IOException if there was an error loading the JSON configuration
-     */
-    public JsonConfig(boolean useSystem) throws IOException {
-        this((InputStream) null, null, useSystem);
-    }
-
-    /**
-     * Construct an instance from a JSON inputstream
-     * 
-     * @param jsonIn a JSON input stream
-     * @throws IOException if there was an error loading the JSON configuration
-     */
-    public JsonConfig(InputStream jsonIn) throws IOException {
-        this(jsonIn, true);
-    }
-
-    /**
-     * Construct an instance from a JSON file
-     * 
-     * @param jsonIn a JSON input stream
-     * @param useSystem true to load system properties
-     * @throws IOException if there was an error loading the JSON configuration
-     */
-    public JsonConfig(InputStream jsonIn, boolean useSystem) throws IOException {
-        this(jsonIn, null, useSystem);
-    }
-
-    /**
-     * Construct an instance from a JSON file
+     * Creates a JSON configuration from the specified file
      * 
      * @param jsonFile a JSON file
-     * @throws IOException if there was an error loading the JSON configuration
+     * @throws IOException if there was an error parsing or reading the file
      */
     public JsonConfig(File jsonFile) throws IOException {
-        this(jsonFile, true);
+        this(new FileInputStream(jsonFile));
     }
 
     /**
-     * Construct an instance from a JSON file
+     * Creates a JSON configuration from the specified input stream
      * 
-     * @param jsonFile a JSON file
-     * @param useSystem true to load system properties
-     * @throws IOException if there was an error loading the JSON configuration
+     * @param jsonIn a JSON stream
+     * @throws IOException if there was an error parsing or reading the stream
      */
-    public JsonConfig(File jsonFile, boolean useSystem) throws IOException {
-        this(jsonFile, null, useSystem);
-    }
-
-    /**
-     * Construct an instance from a JSON inputstream
-     * 
-     * @param jsonIn a JSON input stream
-     * @param configDir directory to read the system and user configuration
-     *        files. If null, DEFAULT_CONFIG_DIR is used.
-     * @param useSystem true to load system properties
-     * @throws IOException if there was an error loading the JSON configuration
-     */
-    public JsonConfig(InputStream jsonIn, String configDir, boolean useSystem)
-            throws IOException {
-        if (configDir == null) {
-            configDir = DEFAULT_CONFIG_DIR;
-        }
-        this.configDir = configDir;
-        this.useSystem = useSystem;
-
-        ObjectMapper mapper = new ObjectMapper();
+    public JsonConfig(InputStream jsonIn) throws IOException {
         if (jsonIn == null) {
-            jsonIn = new ByteArrayInputStream(EMPTY);
+            userConfig = new JsonConfigHelper();
+        } else {
+            userConfig = new JsonConfigHelper(jsonIn);
         }
-        rootNode = mapper.readValue(jsonIn, JsonNode.class);
-        if (useSystem) {
-            systemRootNode = mapper.readValue(getSystemFile(), JsonNode.class);
-        }
+        systemConfig = new JsonConfigHelper(getSystemFile());
     }
 
     /**
-     * Construct an instance from a JSON file
+     * Gets the value of the specified node
      * 
-     * @param jsonFile a JSON file
-     * @param configDir directory to read the system and user configuration
-     *        files. If null, DEFAULT_CONFIG_DIR is used.
-     * @param useSystem true to load system properties
-     * @throws IOException if there was an error loading the JSON configuration
+     * @param path XPath to node
+     * @return node value or null if not found
      */
-    public JsonConfig(File jsonFile, String configDir, boolean useSystem)
-            throws IOException {
-        this(new FileInputStream(jsonFile), configDir, useSystem);
+    public String get(String path) {
+        return get(path, null);
     }
 
     /**
-     * Gets the text value of the field. Convenience method for getText(String
-     * fieldName, String defaultValue) with a null defaultValue.
+     * Gets the value of the specified node, with a specified default if the not
+     * was not found
      * 
-     * @param fieldName the field to get the value of
-     * @return a text value
+     * @param path XPath to node
+     * @param defaultValue value to return if the node was not found
+     * @return node value or defaultValue if not found
      */
-    public String get(String fieldName) {
-        return get(fieldName, null);
-    }
-
-    /**
-     * Gets the text value of the field, with a specified default if the field
-     * was not found. If the field was not found in this JSON, the system-wide
-     * configuration is searched.
-     * 
-     * @param fieldName the field to get the value of
-     * @param defaultValue default value for null fields
-     * @return a text value (possibly null)
-     */
-    public String get(String fieldName, String defaultValue) {
-        String value = get(rootNode, fieldName, null);
+    public String get(String path, String defaultValue) {
+        String value = userConfig.get(path);
         if (value == null) {
-            if (useSystem) {
-                value = get(systemRootNode, fieldName, defaultValue);
-            } else {
-                value = defaultValue;
-            }
+            value = systemConfig.get(path, defaultValue);
         }
         return value;
     }
 
     /**
-     * Gets the text value of the field. If the node has no text value, the
-     * defaultValue is returned. For non textual values, a string representation
-     * is returned. The fieldName can use a special path notation, using "/" to
-     * represent hierarchy.
+     * Gets values of the specified node as a list. Use this method for JSON
+     * arrays.
      * 
-     * <pre>
-     * { &quot;storage&quot;: { &quot;type&quot;: &quot;file-system&quot; }}
-     * </pre>
-     * 
-     * In the above case, getText("storage/type") would return "file-system".
-     * 
-     * The value is first searched in the
-     * 
-     * @param node the parent JSON node
-     * @param fieldName the field to get the value of
-     * @param defaultValue default value for null fields
-     * @return a text value, if field was not found, defaultValue
+     * @param path XPath to node
+     * @return value list, possibly empty
      */
-    public String get(JsonNode node, String fieldName, String defaultValue) {
-        JsonNode fieldNode = node.get(fieldName);
-        if (fieldNode == null) {
-            if (fieldName.indexOf("/") != -1) {
-                String[] fields = fieldName.split("/");
-                JsonNode currentNode = node;
-                for (String field : fields) {
-                    fieldNode = currentNode.get(field);
-                    if (fieldNode != null) {
-                        currentNode = fieldNode;
-                        if (fieldNode.isValueNode()) {
-                            String value = defaultValue;
-                            if (fieldNode.isTextual()) {
-                                value = fieldNode.getTextValue();
-                            } else {
-                                value = fieldNode.getValueAsText();
-                            }
-                            return StrSubstitutor
-                                    .replaceSystemProperties(value);
-                        }
-                    } else {
-                        break;
-                    }
-                }
-            }
-            return defaultValue;
+    public List<Object> getList(String path) {
+        List<Object> valueList = userConfig.getList(path);
+        if (valueList.isEmpty()) {
+            valueList = systemConfig.getList(path);
         }
-        return fieldNode.getTextValue();
-    }
-
-    public void set(String fieldName, String value) {
-        set(rootNode, fieldName, value);
-    }
-
-    public void set(JsonNode node, String fieldName, String value) {
-        if (fieldName.indexOf("/") != -1) {
-            JsonNode fieldNode = node.get(fieldName);
-            if (fieldNode == null) {
-                String[] fields = fieldName.split("/");
-                StringBuilder rawJson = new StringBuilder();
-                int last = fields.length - 1;
-                for (int i = 0; i < last; i++) {
-                    String field = fields[i];
-                    rawJson.append("\"");
-                    rawJson.append(field);
-                    rawJson.append("\":{");
-                }
-                rawJson.append("\"");
-                rawJson.append(fields[last]);
-                rawJson.append("\":\"");
-                rawJson.append(value);
-                rawJson.append("\"");
-                for (int i = 0; i < last; i++) {
-                    rawJson.append("}");
-                }
-                System.out.println(rawJson.toString());
-            }
-        } else {
-            ObjectNode objectNode = (ObjectNode) node;
-            objectNode.put(fieldName, value);
-        }
-    }
-
-    public void save(OutputStream out) throws IOException {
-        JsonGenerator jgen = new JsonFactory().createJsonGenerator(out,
-                JsonEncoding.UTF8);
-        jgen.setCodec(new ObjectMapper());
-        jgen.useDefaultPrettyPrinter();
-        jgen.writeTree(rootNode);
-        jgen.close();
+        return valueList;
     }
 
     /**
-     * Gets the system-wide configuration file from the configDir. If the file
-     * doesn't exist, a default is copied to the configDir.
+     * Gets a map of the child nodes of the specified node
      * 
-     * @return a file
+     * @param path XPath to node
+     * @return node map, possibly empty
+     */
+    public Map<String, Object> getMap(String path) {
+        Map<String, Object> valueMap = userConfig.getMap(path);
+        if (valueMap.isEmpty()) {
+            valueMap = systemConfig.getMap(path);
+        }
+        return valueMap;
+    }
+
+    /**
+     * Sets the value of the specified node. If the node doesn't exist it is
+     * created. The value can be set in the system configuration if necessary.
+     * 
+     * @param path XPath to node
+     * @param value value to set
+     * @param system set the value in the system configuration
+     */
+    public void set(String path, String value, boolean system) {
+        if (system) {
+            systemConfig.set(path, value);
+        } else {
+            userConfig.set(path, value);
+        }
+    }
+
+    /**
+     * Serialises the current state of the JSON configuration to the specified
+     * writer. By default this doesn't use a pretty printer.
+     * 
+     * @param writer a writer
+     * @throws IOException if there was an error writing the configuration
+     */
+    public void store(Writer writer) throws IOException {
+        store(writer, false);
+    }
+
+    /**
+     * Serialises the current state of the JSON configuration to the specified
+     * writer. The output can be set to be pretty printed if required.
+     * 
+     * @param writer a writer
+     * @param pretty use pretty printer
+     * @throws IOException if there was an error writing the configuration
+     */
+    public void store(Writer writer, boolean pretty) throws IOException {
+        userConfig.store(writer, pretty);
+        systemConfig.store(writer, pretty);
+    }
+
+    /**
+     * Gets the system-wide configuration file from the default config dir. If
+     * the file doesn't exist, a default is copied to the config dir.
+     * 
+     * @return the system JSON file
      * @throws IOException if there was an error reading or writing the system
      *         configuration file
      */
     public File getSystemFile() throws IOException {
-        File configFile = new File(configDir, SYSTEM_CONFIG_FILE);
+        File configFile = new File(CONFIG_DIR, SYSTEM_CONFIG_FILE);
         if (!configFile.exists()) {
             configFile.getParentFile().mkdirs();
             OutputStream out = new FileOutputStream(configFile);
@@ -309,5 +200,4 @@ public class JsonConfig {
         }
         return configFile;
     }
-
 }
