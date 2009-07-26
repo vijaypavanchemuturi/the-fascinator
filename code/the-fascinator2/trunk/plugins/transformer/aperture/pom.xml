@@ -52,7 +52,7 @@
     <dependency>
       <groupId>org.semanticdesktop.aperture</groupId>
       <artifactId>aperture</artifactId>
-      <version>1.2.0</version>
+      <version>1.2.1</version>
     </dependency>
     <dependency>
       <groupId>org.semweb4j</groupId>
