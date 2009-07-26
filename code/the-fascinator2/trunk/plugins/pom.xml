@@ -17,6 +17,7 @@
     <module>harvester/jsonq</module>
     <module>harvester/oai-pmh</module>
     <module>indexer/solr</module>
+    <module>storage/fedora3</module>
     <module>storage/filesystem</module>
     <module>storage/couchdb</module>
     <module>transformer/aperture</module>

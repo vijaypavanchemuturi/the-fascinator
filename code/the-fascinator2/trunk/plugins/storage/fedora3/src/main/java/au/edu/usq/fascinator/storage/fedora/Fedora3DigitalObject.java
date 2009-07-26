@@ -26,11 +26,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import au.edu.usq.fascinator.api.storage.Payload;
+import au.edu.usq.fascinator.common.storage.impl.GenericDigitalObject;
 import au.edu.usq.fedora.RestClient;
 import au.edu.usq.fedora.types.DatastreamType;
 import au.edu.usq.fedora.types.ObjectDatastreamsType;
 
-public class Fedora3DigitalObject extends BasicDigitalObject {
+public class Fedora3DigitalObject extends GenericDigitalObject {
 
     private Logger log = LoggerFactory.getLogger(Fedora3DigitalObject.class);
 

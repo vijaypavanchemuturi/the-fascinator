@@ -21,9 +21,9 @@ package au.edu.usq.fascinator.storage.couchdb;
 import java.io.IOException;
 import java.io.InputStream;
 
-import au.edu.usq.fascinator.api.impl.BasicPayload;
+import au.edu.usq.fascinator.common.storage.impl.GenericPayload;
 
-public class CouchPayload extends BasicPayload {
+public class CouchPayload extends GenericPayload {
 
     private RestClient client;
 
@@ -38,5 +38,4 @@ public class CouchPayload extends BasicPayload {
     public InputStream getInputStream() throws IOException {
         return client.getStream(oid, getId());
     }
-
 }

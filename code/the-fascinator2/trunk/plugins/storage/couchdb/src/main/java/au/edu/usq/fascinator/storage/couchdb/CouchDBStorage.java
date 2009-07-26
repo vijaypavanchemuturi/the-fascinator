@@ -38,12 +38,12 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import au.edu.usq.fascinator.api.impl.BasicPayload;
-import au.edu.usq.fascinator.api.store.DigitalObject;
-import au.edu.usq.fascinator.api.store.Payload;
-import au.edu.usq.fascinator.api.store.PayloadType;
-import au.edu.usq.fascinator.api.store.Storage;
-import au.edu.usq.fascinator.api.store.StorageException;
+import au.edu.usq.fascinator.api.storage.DigitalObject;
+import au.edu.usq.fascinator.api.storage.Payload;
+import au.edu.usq.fascinator.api.storage.PayloadType;
+import au.edu.usq.fascinator.api.storage.Storage;
+import au.edu.usq.fascinator.api.storage.StorageException;
+import au.edu.usq.fascinator.common.storage.impl.GenericPayload;
 
 //import au.edu.usq.fascinator.storage.couchdb.RestClient;
 
@@ -232,11 +232,11 @@ public class CouchDBStorage implements Storage {
                     if (contentType == null)
                         contentType = "";
                     // log.info("  name={}, contentType={}", name, contentType);
-                    BasicPayload newPayload = new BasicPayload(id, label,
+                    GenericPayload newPayload = new GenericPayload(id, label,
                             contentType);
                     newPayload.setInputStream(zipFile.getInputStream(zipEntry));
 
-                    newPayload.setPayloadType(PayloadType.Enrichment);
+                    newPayload.setType(PayloadType.Enrichment);
                     payloads.add(newPayload);
                 }
             }

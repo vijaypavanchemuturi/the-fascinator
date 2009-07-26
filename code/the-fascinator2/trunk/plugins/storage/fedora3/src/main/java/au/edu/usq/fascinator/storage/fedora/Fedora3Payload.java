@@ -21,9 +21,10 @@ package au.edu.usq.fascinator.storage.fedora;
 import java.io.IOException;
 import java.io.InputStream;
 
+import au.edu.usq.fascinator.common.storage.impl.GenericPayload;
 import au.edu.usq.fedora.RestClient;
 
-public class Fedora3Payload extends BasicPayload {
+public class Fedora3Payload extends GenericPayload {
 
     private RestClient client;
 

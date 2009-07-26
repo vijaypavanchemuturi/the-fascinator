@@ -29,10 +29,10 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import au.edu.usq.fascinator.api.impl.BasicDigitalObject;
-import au.edu.usq.fascinator.api.store.Payload;
+import au.edu.usq.fascinator.api.storage.Payload;
+import au.edu.usq.fascinator.common.storage.impl.GenericDigitalObject;
 
-public class CouchDigitalObject extends BasicDigitalObject {
+public class CouchDigitalObject extends GenericDigitalObject {
 
     private Logger log = LoggerFactory.getLogger(CouchDigitalObject.class);
 
