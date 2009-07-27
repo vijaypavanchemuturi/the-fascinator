@@ -21,11 +21,15 @@ package au.edu.usq.fascinator.portal.pages;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.tapestry5.StreamResponse;
+import org.apache.tapestry5.annotations.Persist;
 import org.apache.tapestry5.annotations.SessionState;
 import org.apache.tapestry5.ioc.annotations.Inject;
+import org.apache.tapestry5.services.Request;
 import org.slf4j.Logger;
 
 import au.edu.usq.fascinator.common.MimeTypeUtil;
@@ -48,6 +52,15 @@ public class Dispatch {
     @Inject
     private DynamicPageService pageService;
 
+    @Inject
+    private Request request;
+
+    @Persist
+    private String lastResourceName;
+
+    @Persist
+    private Map<String, String[]> formData;
+
     public StreamResponse onActivate(Object... path) {
         String portalId = sessionState.get("portalId", DEFAULT_PORTAL_ID);
         String resourceName = DEFAULT_RESOURCE;
@@ -60,18 +73,33 @@ public class Dispatch {
         sessionState.set("portalId", portalId);
         log.debug("portalId = {}, resourceName = {}", portalId, resourceName);
 
+        // save form data for POST requests
+        if (formData == null) {
+            formData = new HashMap<String, String[]>();
+        }
+        if (!resourceName.equals(lastResourceName)) {
+            formData.clear();
+        }
+        if ("POST".equals(request.getMethod())) {
+            for (String key : request.getParameterNames()) {
+                formData.put(key, request.getParameters(key));
+            }
+        }
+
         String mimeType;
         InputStream stream;
 
         if (resourceName.indexOf(".") == -1) {
             ByteArrayOutputStream out = new ByteArrayOutputStream();
-            pageService.render(portalId, resourceName, out);
+            pageService.render(portalId, resourceName, out, formData);
             mimeType = "text/html";
             stream = new ByteArrayInputStream(out.toByteArray());
         } else {
             mimeType = MimeTypeUtil.getMimeType(resourceName);
             stream = pageService.getResource(portalId, resourceName);
         }
+
+        lastResourceName = resourceName;
 
         return new GenericStreamResponse(mimeType, stream);
     }

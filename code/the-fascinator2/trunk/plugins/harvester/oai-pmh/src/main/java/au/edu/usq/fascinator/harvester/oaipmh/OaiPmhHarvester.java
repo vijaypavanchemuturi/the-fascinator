@@ -20,6 +20,7 @@ package au.edu.usq.fascinator.harvester.oaipmh;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.StringWriter;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -27,6 +28,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,6 +38,7 @@ import se.kb.oai.pmh.OaiPmhServer;
 import se.kb.oai.pmh.Record;
 import se.kb.oai.pmh.RecordsList;
 import se.kb.oai.pmh.ResumptionToken;
+import au.edu.usq.fascinator.api.Configurable;
 import au.edu.usq.fascinator.api.harvester.Harvester;
 import au.edu.usq.fascinator.api.harvester.HarvesterException;
 import au.edu.usq.fascinator.api.storage.DigitalObject;
@@ -56,7 +59,7 @@ import au.edu.usq.fascinator.common.JsonConfig;
  * 
  * @author Oliver Lucido
  */
-public class OaiPmhHarvester implements Harvester {
+public class OaiPmhHarvester implements Harvester, Configurable {
 
     /** Date format */
     public static final String DATE_FORMAT = "yyyy-MM-dd";
@@ -95,7 +98,7 @@ public class OaiPmhHarvester implements Harvester {
 
     @Override
     public String getName() {
-        return "OAI-PMH 2.0 Harvester";
+        return "OAI-PMH Harvester";
     }
 
     @Override
@@ -180,5 +183,18 @@ public class OaiPmhHarvester implements Harvester {
     @Override
     public boolean hasMoreObjects() {
         return token != null && numRequests < maxRequests;
+    }
+
+    @Override
+    public String getConfig() {
+        StringWriter writer = new StringWriter();
+        try {
+            IOUtils.copy(getClass().getResourceAsStream(
+                    "/" + getId() + "-config.html"), writer);
+        } catch (IOException ioe) {
+            writer.write("<span class=\"error\">" + ioe.getMessage()
+                    + "</span>");
+        }
+        return writer.toString();
     }
 }

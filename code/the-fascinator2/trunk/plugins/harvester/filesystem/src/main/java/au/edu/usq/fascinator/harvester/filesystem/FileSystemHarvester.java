@@ -21,12 +21,15 @@ package au.edu.usq.fascinator.harvester.filesystem;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
 
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.io.IOUtils;
 
+import au.edu.usq.fascinator.api.Configurable;
 import au.edu.usq.fascinator.api.harvester.Harvester;
 import au.edu.usq.fascinator.api.harvester.HarvesterException;
 import au.edu.usq.fascinator.api.storage.DigitalObject;
@@ -45,10 +48,13 @@ import au.edu.usq.fascinator.common.JsonConfig;
  * 
  * @author Oliver Lucido
  */
-public class FileSystemHarvester implements Harvester {
+public class FileSystemHarvester implements Harvester, Configurable {
 
     /** default ignore list */
     private static final String DEFAULT_IGNORE_PATTERNS = ".svn";
+
+    /** configuration */
+    private JsonConfig config;
 
     /** directory to harvest */
     private File baseDir;
@@ -103,7 +109,7 @@ public class FileSystemHarvester implements Harvester {
     @Override
     public void init(File jsonFile) throws HarvesterException {
         try {
-            JsonConfig config = new JsonConfig(jsonFile);
+            config = new JsonConfig(jsonFile);
             baseDir = new File(config.get("harvester/file-system/baseDir", "."));
             recursive = Boolean.parseBoolean(config.get(
                     "harvester/file-system/recursive", "false"));
@@ -145,5 +151,18 @@ public class FileSystemHarvester implements Harvester {
     @Override
     public boolean hasMoreObjects() {
         return hasMore;
+    }
+
+    @Override
+    public String getConfig() {
+        StringWriter writer = new StringWriter();
+        try {
+            IOUtils.copy(getClass().getResourceAsStream(
+                    "/" + getId() + "-config.html"), writer);
+        } catch (IOException ioe) {
+            writer.write("<span class=\"error\">" + ioe.getMessage()
+                    + "</span>");
+        }
+        return writer.toString();
     }
 }

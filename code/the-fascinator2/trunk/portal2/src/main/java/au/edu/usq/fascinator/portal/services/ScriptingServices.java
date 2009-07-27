@@ -18,16 +18,18 @@
  */
 package au.edu.usq.fascinator.portal.services;
 
+import au.edu.usq.fascinator.api.harvester.Harvester;
+import au.edu.usq.fascinator.api.indexer.Indexer;
+import au.edu.usq.fascinator.api.storage.Storage;
+
 public interface ScriptingServices {
 
     public PortalManager getPortalManager();
 
-    public IndexerService getIndexer();
+    public Indexer getIndexer();
 
-    // public HarvesterService getHarvester(String type);
+    public Storage getStorage();
 
-    // public StorageService getStorage();
-
-    // public PluginManager getPluginManager();
+    public Harvester getHarvester(String id);
 
 }

@@ -24,6 +24,7 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.StringWriter;
 import java.io.Writer;
+import java.util.Map;
 
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
@@ -80,9 +81,10 @@ public class DynamicPageServiceImpl implements DynamicPageService {
             scriptEngine = scriptEngineManager.getEngineByName(engineName);
 
             // setup velocity engine
-            String portalDir = config.get("portal/homeDir",
+            String portalDir = config.get("portal/home",
                     DEFAULT_PORTAL_HOME_DIR);
             Velocity.setProperty(Velocity.FILE_RESOURCE_LOADER_PATH, portalDir);
+            Velocity.setProperty(Velocity.VM_LIBRARY, "portal-library.vm");
             Velocity.setProperty(Velocity.UBERSPECT_CLASSNAME,
                     JythonUberspect.class.getName());
             Velocity.init();
@@ -104,18 +106,19 @@ public class DynamicPageServiceImpl implements DynamicPageService {
     }
 
     @Override
-    public void render(String portalId, String pageName, OutputStream out) {
+    public void render(String portalId, String pageName, OutputStream out,
+            Map<String, String[]> formData) {
         // run page and template scripts
         Object templateObject = new Object();
         try {
-            templateObject = evalScript(portalId, templateName);
+            templateObject = evalScript(portalId, templateName, formData);
         } catch (ScriptException se) {
             log.warn("Failed to run page script!", se);
         }
 
         Object pageObject = new Object();
         try {
-            pageObject = evalScript(portalId, pageName);
+            pageObject = evalScript(portalId, pageName, formData);
         } catch (ScriptException se) {
             log.warn("Failed to run page script!\n==========\n{}\n==========",
                     se.getMessage());
@@ -124,8 +127,10 @@ public class DynamicPageServiceImpl implements DynamicPageService {
         try {
             // set up the velocity context
             VelocityContext vc = new VelocityContext();
+            vc.put("systemProperties", System.getProperties());
             vc.put("request", request);
             vc.put("response", response);
+            vc.put("formData", formData);
             vc.put("contextPath", request.getContextPath());
             vc.put("portalId", portalId);
             vc.put("page", templateObject);
@@ -147,13 +152,14 @@ public class DynamicPageServiceImpl implements DynamicPageService {
         }
     }
 
-    private Object evalScript(String portalId, String scriptName)
-            throws ScriptException {
+    private Object evalScript(String portalId, String scriptName,
+            Map<String, String[]> formData) throws ScriptException {
         Object scriptObject = new Object();
         scriptName = "scripts/" + scriptName + ".py";
         log.debug("Running page script {}...", scriptName);
         InputStream in = getResource(portalId, scriptName);
         if (in != null) {
+            scriptEngine.put("formData", formData);
             scriptEngine.put("request", request);
             scriptEngine.put("response", response);
             scriptEngine.put("Services", scriptingServices);

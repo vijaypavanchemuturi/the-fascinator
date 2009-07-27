@@ -18,6 +18,8 @@
  */
 package au.edu.usq.fascinator.api;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.ServiceLoader;
 
 import au.edu.usq.fascinator.api.harvester.Harvester;
@@ -47,6 +49,15 @@ public class PluginManager {
             }
         }
         return null;
+    }
+
+    public static Map<String, Harvester> getHarvesterPlugins() {
+        Map<String, Harvester> harvesters = new HashMap<String, Harvester>();
+        ServiceLoader<Harvester> plugins = ServiceLoader.load(Harvester.class);
+        for (Harvester plugin : plugins) {
+            harvesters.put(plugin.getId(), plugin);
+        }
+        return harvesters;
     }
 
     /**

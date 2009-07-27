@@ -201,7 +201,7 @@ class PyMethod implements VelMethod {
 
             return rtn;
         } catch (Exception e) {
-            log.error("PyMethod.invoke", e);
+            log.error("PyMethod.invoke: " + methodname, e);
         }
 
         return null;
@@ -355,7 +355,6 @@ class PySequenceIterator implements Iterator {
      *            The array for which an iterator is desired.
      */
     public PySequenceIterator(PySequence seq) {
-        System.err.println("getIterator: " + seq);
         this.seq = seq;
         pos = 0;
         size = seq.__len__();

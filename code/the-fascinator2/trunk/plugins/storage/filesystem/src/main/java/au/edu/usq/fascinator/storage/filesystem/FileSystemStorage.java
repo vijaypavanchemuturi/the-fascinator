@@ -76,7 +76,7 @@ public class FileSystemStorage implements Storage {
     public String addObject(DigitalObject object) throws StorageException {
         FileSystemDigitalObject fileObject = new FileSystemDigitalObject(
                 homeDir, object.getId());
-        log.info("Adding object {}", fileObject);
+        log.debug("Adding object {}", fileObject);
         for (Payload payload : object.getPayloadList()) {
             addPayload(fileObject.getId(), payload);
         }
@@ -84,42 +84,43 @@ public class FileSystemStorage implements Storage {
     }
 
     public void removeObject(String oid) {
+        log.debug("Removing object {}", oid);
         FileSystemDigitalObject fileObject = (FileSystemDigitalObject) getObject(oid);
-        log.info("Removing object {}", fileObject);
         FileUtils.deleteQuietly(fileObject.getPath());
     }
 
     public void addPayload(String oid, Payload payload) {
-        log.debug("oid={}, payload={}", oid, payload);
+        log.debug("Adding payload {} to {}", payload.getId(), oid);
         FileSystemPayload filePayload = new FileSystemPayload(payload);
         FileSystemDigitalObject fileObject = (FileSystemDigitalObject) getObject(oid);
         File payloadFile = new File(fileObject.getPath(), filePayload.getFile()
                 .toString());
         File parentDir = payloadFile.getParentFile();
-        log.debug("payloadFile={}", payloadFile, parentDir);
         parentDir.mkdirs();
         try {
             FileOutputStream out = new FileOutputStream(payloadFile);
             IOUtils.copy(filePayload.getInputStream(), out);
             out.close();
         } catch (IOException ioe) {
-            log.error("", ioe);
+            log.error("Failed to add payload", ioe);
         }
     }
 
     public void removePayload(String oid, String pid) {
+        log.debug("Removing payload {} from {}", pid, oid);
     }
 
     public DigitalObject getObject(String oid) {
+        log.debug("Getting object {}", oid);
         return new FileSystemDigitalObject(homeDir, oid);
     }
 
     public Payload getPayload(String oid, String pid) {
+        log.debug("Getting payload {} from {}", pid, oid);
         return getObject(oid).getPayload(pid);
     }
 
     public File getHomeDir() {
         return homeDir;
     }
-
 }

@@ -23,6 +23,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -32,6 +33,7 @@ import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.io.IOUtils;
 import org.codehaus.jackson.map.ObjectMapper;
 
+import au.edu.usq.fascinator.api.Configurable;
 import au.edu.usq.fascinator.api.PluginException;
 import au.edu.usq.fascinator.api.harvester.Harvester;
 import au.edu.usq.fascinator.api.harvester.HarvesterException;
@@ -55,7 +57,7 @@ import au.edu.usq.fascinator.common.JsonConfig;
  * @author Duncan Dickinson
  * @author Oliver Lucido
  */
-public class JsonQHarvester implements Harvester {
+public class JsonQHarvester implements Harvester, Configurable {
 
     /** default Watcher queue URL */
     private static final String DEFAULT_URL = "http://localhost:9000";
@@ -65,6 +67,9 @@ public class JsonQHarvester implements Harvester {
 
     /** harvest files modified from this date */
     private long lastModified;
+
+    /** configuration */
+    private JsonConfig config;
 
     @Override
     public String getId() {
@@ -79,7 +84,7 @@ public class JsonQHarvester implements Harvester {
     @Override
     public void init(File jsonFile) throws HarvesterException {
         try {
-            JsonConfig config = new JsonConfig(jsonFile);
+            config = new JsonConfig(jsonFile);
             url = config.get("harvester/jsonq/url", DEFAULT_URL);
             lastModified = Long.parseLong(config.get(
                     "harvester/jsonq/lastModified", "0"));
@@ -123,5 +128,18 @@ public class JsonQHarvester implements Harvester {
     @Override
     public boolean hasMoreObjects() {
         return false;
+    }
+
+    @Override
+    public String getConfig() {
+        StringWriter writer = new StringWriter();
+        try {
+            IOUtils.copy(getClass().getResourceAsStream(
+                    "/" + getId() + "-config.html"), writer);
+        } catch (IOException ioe) {
+            writer.write("<span class=\"error\">" + ioe.getMessage()
+                    + "</span>");
+        }
+        return writer.toString();
     }
 }

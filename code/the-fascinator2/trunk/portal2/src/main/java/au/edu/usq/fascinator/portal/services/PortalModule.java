@@ -31,25 +31,40 @@ import org.apache.tapestry5.urlrewriter.URLRewriterRule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import au.edu.usq.fascinator.api.PluginManager;
+import au.edu.usq.fascinator.api.indexer.Indexer;
+import au.edu.usq.fascinator.common.JsonConfig;
 import au.edu.usq.fascinator.portal.JsonSessionState;
 import au.edu.usq.fascinator.portal.services.impl.DynamicPageServiceImpl;
-import au.edu.usq.fascinator.portal.services.impl.IndexerServiceImpl;
 import au.edu.usq.fascinator.portal.services.impl.PortalManagerImpl;
 import au.edu.usq.fascinator.portal.services.impl.ScriptingServicesImpl;
 
 public class PortalModule {
+
+    private static final String DEFAULT_INDEXER_TYPE = "solr";
 
     @SuppressWarnings("unused")
     private static Logger log = LoggerFactory.getLogger(PortalModule.class);
 
     public static void bind(ServiceBinder binder) {
         binder.bind(DynamicPageService.class, DynamicPageServiceImpl.class);
-        binder.bind(IndexerService.class, IndexerServiceImpl.class);
         binder.bind(PortalManager.class, PortalManagerImpl.class);
         binder.bind(ScriptingServices.class, ScriptingServicesImpl.class);
     }
 
-    public void contributeApplicationStateManager(
+    public static Indexer buildIndexer() {
+        try {
+            JsonConfig config = new JsonConfig();
+            Indexer indexer = PluginManager.getIndexer(config.get(
+                    "indexer/type", DEFAULT_INDEXER_TYPE));
+            indexer.init(config.getSystemFile());
+            return indexer;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static void contributeApplicationStateManager(
             MappedConfiguration<Class<?>, ApplicationStateContribution> configuration) {
         ApplicationStateCreator<JsonSessionState> creator = new ApplicationStateCreator<JsonSessionState>() {
             public JsonSessionState create() {

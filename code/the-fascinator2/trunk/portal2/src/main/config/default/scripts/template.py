@@ -9,7 +9,6 @@ class TemplateData:
         self.__portalManager = Services.getPortalManager()
     
     def getPortals(self):
-        portals = self.__portalManager.getPortals()
-        return portals
+        return self.__portalManager.getPortals()
     
 scriptObject = TemplateData()

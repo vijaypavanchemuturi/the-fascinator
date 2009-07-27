@@ -1,5 +1,5 @@
 /* 
- * The Fascinator - Portal
+ * The Fascinator - Plugin API
  * Copyright (C) 2008-2009 University of Southern Queensland
  * 
  * This program is free software: you can redistribute it and/or modify
@@ -16,17 +16,15 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-package au.edu.usq.fascinator.portal.services;
+package au.edu.usq.fascinator.api;
 
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.Map;
+/**
+ * Interface for plugins designed to be configurable
+ * 
+ * @author Oliver Lucido
+ */
+public interface Configurable {
 
-public interface DynamicPageService {
-
-    public InputStream getResource(String portalId, String resourceName);
-
-    public void render(String portalId, String pageName, OutputStream out,
-            Map<String, String[]> formData);
+    public String getConfig();
 
 }

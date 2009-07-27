@@ -5,6 +5,10 @@ body {
   padding: 0px 5px 0px 5px;
 }
 
+td {
+  font-size: 80%;
+}
+
 h1, h2, h3, h4, h5 {
   margin-top: 5px;
   margin-bottom: 5px;
@@ -20,6 +24,15 @@ h2 {
   color: navy;
 }
 
+.hidden {
+  display: none;
+}
+
+.config_harvest {
+  margin: 0;
+  padding: 0;
+}
+
 /* form elements */
 input.textbox {
   border: 1px solid gray;
@@ -28,6 +41,10 @@ input.textbox {
 input.button {
   border: 1px solid;
   border-color: white gray gray white;
+}
+
+input.big_button {
+  font-size: 1em;
 }
 
 input.button:hover {
