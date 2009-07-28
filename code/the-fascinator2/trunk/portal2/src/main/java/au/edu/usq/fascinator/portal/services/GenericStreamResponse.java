@@ -18,6 +18,7 @@
  */
 package au.edu.usq.fascinator.portal.services;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -47,5 +48,10 @@ public class GenericStreamResponse implements StreamResponse {
 
     @Override
     public void prepareResponse(Response response) {
+    }
+
+    public static GenericStreamResponse noResponse() {
+        return new GenericStreamResponse("text/plain",
+                new ByteArrayInputStream("".getBytes()));
     }
 }

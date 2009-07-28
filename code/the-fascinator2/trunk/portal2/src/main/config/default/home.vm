@@ -3,9 +3,9 @@
 <p>Tell a little story about The Fascinator</p>
 <h3>Search</h3>
 <p>Enter a query to search through all portals</p>
-<form id="searchForm" action="search" method="get">
-  <input class="textbox" type="text" name="query" size="40" />
-  <input class="button" type="submit" name="search" value="Go" />
+<form id="searchForm" action="search" method="post">
+  <input class="ui-text ui-state-default ui-corner-all" type="text" name="query" size="40" />
+  <input class="ui-button ui-state-default ui-corner-all" type="submit" name="search" value="Go" />
 </form>
 <h3>Portals</h3>
 <p>Select a portal to browse</p>

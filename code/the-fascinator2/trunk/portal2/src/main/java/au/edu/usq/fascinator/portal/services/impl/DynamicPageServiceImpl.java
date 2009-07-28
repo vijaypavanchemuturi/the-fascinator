@@ -24,7 +24,6 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.StringWriter;
 import java.io.Writer;
-import java.util.Map;
 
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
@@ -42,6 +41,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import au.edu.usq.fascinator.common.JsonConfig;
+import au.edu.usq.fascinator.portal.FormData;
 import au.edu.usq.fascinator.portal.services.DynamicPageService;
 import au.edu.usq.fascinator.portal.services.ScriptingServices;
 
@@ -64,6 +64,10 @@ public class DynamicPageServiceImpl implements DynamicPageService {
     @Inject
     private ScriptingServices scriptingServices;
 
+    private Object templateObject;
+
+    private Object pageObject;
+
     private String templateName;
 
     private ScriptEngine scriptEngine;
@@ -84,7 +88,7 @@ public class DynamicPageServiceImpl implements DynamicPageService {
             String portalDir = config.get("portal/home",
                     DEFAULT_PORTAL_HOME_DIR);
             Velocity.setProperty(Velocity.FILE_RESOURCE_LOADER_PATH, portalDir);
-            Velocity.setProperty(Velocity.VM_LIBRARY, "portal-library.vm");
+            // Velocity.setProperty(Velocity.VM_LIBRARY, "portal-library.vm");
             Velocity.setProperty(Velocity.UBERSPECT_CLASSNAME,
                     JythonUberspect.class.getName());
             Velocity.init();
@@ -107,16 +111,16 @@ public class DynamicPageServiceImpl implements DynamicPageService {
 
     @Override
     public void render(String portalId, String pageName, OutputStream out,
-            Map<String, String[]> formData) {
+            FormData formData) {
         // run page and template scripts
-        Object templateObject = new Object();
+        templateObject = new Object();
         try {
             templateObject = evalScript(portalId, templateName, formData);
         } catch (ScriptException se) {
             log.warn("Failed to run page script!", se);
         }
 
-        Object pageObject = new Object();
+        pageObject = new Object();
         try {
             pageObject = evalScript(portalId, pageName, formData);
         } catch (ScriptException se) {
@@ -153,7 +157,7 @@ public class DynamicPageServiceImpl implements DynamicPageService {
     }
 
     private Object evalScript(String portalId, String scriptName,
-            Map<String, String[]> formData) throws ScriptException {
+            FormData formData) throws ScriptException {
         Object scriptObject = new Object();
         scriptName = "scripts/" + scriptName + ".py";
         log.debug("Running page script {}...", scriptName);
@@ -174,5 +178,13 @@ public class DynamicPageServiceImpl implements DynamicPageService {
     private Template getTemplate(String portalId, String templateName)
             throws Exception {
         return Velocity.getTemplate(portalId + "/" + templateName + ".vm");
+    }
+
+    public Object getTemplateObject() {
+        return templateObject;
+    }
+
+    public Object getPageObject() {
+        return pageObject;
     }
 }

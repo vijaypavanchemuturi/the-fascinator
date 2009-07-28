@@ -1,0 +1,132 @@
+#set($pageTitle = 'Content')
+#set($harvesters = $self.harvesters)
+<script type="text/javascript">
+
+  $(function() {
+  
+    $('#addDialog').dialog({
+      bgiframe: true,
+      autoOpen: false,
+      modal: true,
+      width: 500,
+      buttons: {
+        'Add': function() {
+          // TODO checking
+          $('#contents tbody:first').append('<tr>' +
+              '<td>' + $('#id').val() + '</td>' +
+              '<td>' + $('#description').val() + '</td>' +
+              '<td>' + $('#harvester').val() + '</td>' +
+              '<td>* * * * *</td>' +
+              '</tr>');
+          $(this).dialog('close');
+        },
+        'Cancel': function() {
+          $(this).dialog('close');
+        }
+      },
+      close: function() {
+      }
+    });
+    
+    $('#harvesters').accordion({
+      autoHeight: false,
+      clearStyle: true,
+      change: function(event, ui) {
+        var selected = $(ui.newHeader).next().attr('id');
+        $('#selected').attr('value', selected);
+      }
+    });
+    
+    $('#selected').attr('value', $('#harvesters > div:first').attr('id'));
+    
+    // prefix each field with its parent plugin
+    $('#harvestForm input').each(function() {
+      this.name = $(this).closest('div').attr('id') + ":" + this.name;
+    });
+    
+    // populate harvester options
+    
+    $('#addButton').click(function() {
+      $('#addDialog').dialog('open');
+    })
+    
+    $('button').hover(function() { $(this).addClass('ui-state-hover'); },
+                      function() { $(this).removeClass('ui-state-hover'); })  
+    
+    $('#contents tbody tr[id]').click(function() {
+      // show harvester config
+      $('#contents tbody tr[id]').removeClass('ui-state-highlight').attr('selected', 'false');
+      $(this).addClass('ui-state-highlight').attr('selected', 'true');
+      $('#harvesterConfig div').hide();
+      $('#' + this.id + '_config').show('blind');
+    });
+    
+  });
+</script>
+<h2>Content</h2>
+<p>Get some Fascinating stuff!</p>
+<pre>$formData</pre>
+#if($self.contents.size() == 0)
+  <p><em>No content sources defined!</em></p>
+#else
+  <table id="contents" class="ui-widget ui-widget-content">
+    <thead>
+      <tr class="ui-widget-header">
+        <th>Identifier</th>
+        <th>Harvester</th>
+        <th>Description</th>
+        <th>Schedule</th>
+      </tr>
+    </thead>
+    <tbody>
+    #foreach($content in $self.contents)
+      #set($harvester = $content.harvester)
+      <tr id="$content.id">
+        <td>$content.id</td>
+        <td>$harvester.name</td>
+        <td>$content.description</td>
+        <td>$content.get("content/schedule")</td>
+      </tr>
+    #end
+    </tbody>
+    <tfoot>
+    <tr><td colspan="4"></td></tr>
+    <tr><td></td><td colspan="3">
+<div id="harvesterConfig">
+#foreach($content in $self.contents)
+  #set($harvester = $content.harvester)
+  <div id="${content.id}_config" title="$harvester.name" class="hidden ui-widget-content ui-corner-all">
+    <h3>Configuration</h3>
+    <h4>Harvester</h4>
+    $harvester.config
+    <button class="ui-state-default ui-corner-all normal-font-size">Give it me!</button>
+  </div>
+#end
+</div>
+    </td></tr>
+    </tfoot>
+  </table>
+#end
+<br />
+<button id="addButton" class="ui-state-default ui-corner-all normal-font-size">Add content</button>
+<button id="saveButton" class="ui-state-default ui-corner-all normal-font-size">Save changes</button>
+
+## dialog
+
+<div id="addDialog" title="Add content">
+  <form id="addForm" method="post">
+    <input id="selected" type="hidden" name="selected" />
+    <fieldset>
+      <label for="id">Identifier</label>
+      <input type="text" name="id" id="id" class="ui-widget-content ui-corner-all" />
+      <label for="description">Description</label>
+      <input type="text" name="description" id="description" class="ui-widget-content ui-corner-all" size="40" />
+      <label for="harvester">Harvester</label>
+      <select id="harvester" class="ui-widget-content">
+      #foreach($harvester in $harvesters)
+        <option value="$harvester.id">$harvester.name</option>
+      #end
+      </select>
+    </fieldset>
+  </form>
+</div>

@@ -2,7 +2,11 @@
 #set($numFound = $self.result.get("response/numFound"))
 #set($itemList = $self.result.getList("response/docs").toArray())
 <h2>Search</h2>
-<div id="search">
+<form id="searchForm" action="search" method="post">
+  <input class="textbox" type="text" name="query" size="40" value="$!formData.get('query')"/>
+  <input class="button" type="submit" name="search" value="Go" />
+</form>
+<div id="search_results">
   <p>Found $numFound items</p>
   #foreach($item in $itemList)
     <div>

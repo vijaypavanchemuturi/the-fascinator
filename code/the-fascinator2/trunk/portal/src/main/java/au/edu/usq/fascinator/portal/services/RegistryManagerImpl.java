@@ -22,7 +22,8 @@ import au.edu.usq.fascinator.common.JsonConfig;
 import au.edu.usq.fascinator.model.Rdf;
 
 public class RegistryManagerImpl implements RegistryManager {
-    private static Logger log = LoggerFactory.getLogger(RegistryManagerImpl.class);
+    private static Logger log = LoggerFactory
+            .getLogger(RegistryManagerImpl.class);
 
     private JsonConfig config;
 

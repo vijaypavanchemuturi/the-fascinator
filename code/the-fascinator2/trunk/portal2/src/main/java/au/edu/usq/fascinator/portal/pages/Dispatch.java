@@ -20,9 +20,8 @@ package au.edu.usq.fascinator.portal.pages;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
-import java.util.HashMap;
-import java.util.Map;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.tapestry5.StreamResponse;
@@ -30,9 +29,11 @@ import org.apache.tapestry5.annotations.Persist;
 import org.apache.tapestry5.annotations.SessionState;
 import org.apache.tapestry5.ioc.annotations.Inject;
 import org.apache.tapestry5.services.Request;
+import org.apache.tapestry5.services.Response;
 import org.slf4j.Logger;
 
 import au.edu.usq.fascinator.common.MimeTypeUtil;
+import au.edu.usq.fascinator.portal.FormData;
 import au.edu.usq.fascinator.portal.JsonSessionState;
 import au.edu.usq.fascinator.portal.services.DynamicPageService;
 import au.edu.usq.fascinator.portal.services.GenericStreamResponse;
@@ -55,41 +56,50 @@ public class Dispatch {
     @Inject
     private Request request;
 
-    @Persist
-    private String lastResourceName;
+    @Inject
+    private Response response;
 
     @Persist
-    private Map<String, String[]> formData;
+    private FormData formData;
+
+    @Persist
+    private boolean redirectAfterPost;
 
     public StreamResponse onActivate(Object... path) {
+        log.debug("{} {}", request.getMethod(), request.getPath());
+
+        // determine resource
         String portalId = sessionState.get("portalId", DEFAULT_PORTAL_ID);
         String resourceName = DEFAULT_RESOURCE;
-
         if (path.length > 1) {
             portalId = path[0].toString();
             resourceName = StringUtils.join(path, "/", 1, path.length);
         }
 
-        sessionState.set("portalId", portalId);
-        log.debug("portalId = {}, resourceName = {}", portalId, resourceName);
-
-        // save form data for POST requests
-        if (formData == null) {
-            formData = new HashMap<String, String[]>();
-        }
-        if (!resourceName.equals(lastResourceName)) {
-            formData.clear();
-        }
+        // save form data for POST requests, since we redirect after POSTs
         if ("POST".equals(request.getMethod())) {
-            for (String key : request.getParameterNames()) {
-                formData.put(key, request.getParameters(key));
+            log.debug("Persisting FormData for next request...");
+            formData = new FormData(request);
+            redirectAfterPost = true;
+            try {
+                response.sendRedirect(resourceName);
+                return GenericStreamResponse.noResponse();
+            } catch (IOException ioe) {
+                log.warn("Failed to redirect after POST", ioe);
             }
         }
 
+        if (formData == null) {
+            formData = new FormData();
+        }
+
+        log.debug("formData: {}", formData);
+
+        // render the page or retrieve the resource
         String mimeType;
         InputStream stream;
 
-        if (resourceName.indexOf(".") == -1) {
+        if ((resourceName.indexOf(".") == -1)) {
             ByteArrayOutputStream out = new ByteArrayOutputStream();
             pageService.render(portalId, resourceName, out, formData);
             mimeType = "text/html";
@@ -99,7 +109,8 @@ public class Dispatch {
             stream = pageService.getResource(portalId, resourceName);
         }
 
-        lastResourceName = resourceName;
+        formData.clear();
+        redirectAfterPost = false;
 
         return new GenericStreamResponse(mimeType, stream);
     }

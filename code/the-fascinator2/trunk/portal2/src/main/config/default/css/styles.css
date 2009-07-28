@@ -1,102 +1,117 @@
 body {
-  font-size: 80%;
-  font-family: Tahoma, Arial, Helvetica, sans-serif;
-  margin: 0px 5px 0px 5px;
-  padding: 0px 5px 0px 5px;
+    font-size: 80%;
+    font-family: Tahoma, Arial, Helvetica, sans-serif;
+    margin: 0px 5px 0px 5px;
+    padding: 0px 5px 0px 5px;
 }
 
 td {
-  font-size: 80%;
+    font-size: 80%;
 }
 
-h1, h2, h3, h4, h5 {
-  margin-top: 5px;
-  margin-bottom: 5px;
+h1,h2,h3,h4,h5 {
+    margin-top: 5px;
+    margin-bottom: 5px;
 }
 
 h1 {
-  border-bottom: 1px dotted #959ca1;
-  color: #cc6600;
-  font-family: Times New Roman, Times, serif;
+    border-bottom: 1px dotted #959ca1;
+    color: #cc6600;
+    font-family: Times New Roman, Times, serif;
 }
 
 h2 {
-  color: navy;
+    color: navy;
+}
+
+#addDialog, #harvesterConfig table {
+    font-size: 95%;
+}
+
+label {
+    display: block;
 }
 
 .hidden {
-  display: none;
+    display: none;
 }
 
 .config_harvest {
-  margin: 0;
-  padding: 0;
+    margin: 0;
+    padding: 0;
+}
+
+#contents td {
+    font-size: 95%;
+    padding-left: 1em;
+    padding-right: 1em;
 }
 
 /* form elements */
-input.textbox {
-  border: 1px solid gray;
+.textbox {
+    border: 1px solid gray;
 }
 
-input.button {
-  border: 1px solid;
-  border-color: white gray gray white;
+.button {
+    border: 1px solid;
+    border-color: white gray gray white;
 }
 
-input.big_button {
-  font-size: 1em;
+.normal-font-size {
+    font-size: 1em;
 }
 
-input.button:hover {
-  background: #cc6600;
-  color: white;
+.button:hover,.big-button:hover {
+    background: #cc6600;
+    color: white;
 }
 
 /* menu bar */
 #menu_bar {
-  border-bottom: 1px dotted #959ca1;
-  list-style-image: none;
-  list-style-position: outside;
-  list-style-type: none;
-  padding-bottom: 5px;
+    border-bottom: 1px dotted #959ca1;
+    list-style-image: none;
+    list-style-position: outside;
+    list-style-type: none;
+    padding-bottom: 5px;
 }
 
 #menu_bar ul {
-  display: inline;
-  padding-left: 0;
+    display: inline;
+    padding-left: 0;
 }
 
 #menu_bar ul li {
-  display: inline;
+    display: inline;
 }
 
 #menu_bar ul li a {
-  color: navy;
-  text-decoration: none;
+    color: navy;
+    text-decoration: none;
 }
 
 #menu_bar ul li a:hover {
-  background: #cc6600;
-  color: white;
+    background: #cc6600;
+    color: white;
 }
 
 #menu_bar .menu_login {
-  float: right;
+    float: right;
 }
 
 /* portal list */
 .portal_list {
-  border-left: 1px dotted #959ca1;
-  list-style-image: none;
-  list-style-position: outside;
-  list-style-type: none;
-  padding-left: 10px;
+    border-left: 1px dotted #959ca1;
+    list-style-image: none;
+    list-style-position: outside;
+    list-style-type: none;
+    padding-left: 10px;
 }
 
 .portal_list li {
-  font-size: 1.1em;
+    font-size: 1.1em;
 }
 
 /* main content */
 #content {
+    
 }

@@ -56,7 +56,7 @@ public class PortalManagerImpl implements PortalManager {
     public PortalManagerImpl() {
         try {
             JsonConfig config = new JsonConfig();
-            init(config.get("portal/homeDir"));
+            init(config.get("portal/home"));
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

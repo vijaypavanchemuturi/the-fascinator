@@ -9,16 +9,17 @@ class SearchData:
         self.__search()
     
     def __search(self):
-        query = request.getParameter('query')
+        query = formData.get('query')
         if query is None or query == '':
             query = '*:*'
-        indexer = Services.getIndexer()
+        print "Searching for", query
         req = SearchRequest(query)
         req.setParam('facet', ['true'])
         req.setParam('fq', ['item_type:"object"'])
         out = ByteArrayOutputStream()
+        indexer = Services.getIndexer()
         indexer.search(req, out)
-        self.__result = JsonConfigHelper(ByteArrayInputStream(out.toByteArray())) 
+        self.__result = JsonConfigHelper(ByteArrayInputStream(out.toByteArray()))
         
     def getResult(self):
         return self.__result

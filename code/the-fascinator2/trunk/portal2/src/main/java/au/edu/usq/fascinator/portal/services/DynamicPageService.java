@@ -20,13 +20,18 @@ package au.edu.usq.fascinator.portal.services;
 
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.Map;
+
+import au.edu.usq.fascinator.portal.FormData;
 
 public interface DynamicPageService {
 
     public InputStream getResource(String portalId, String resourceName);
 
     public void render(String portalId, String pageName, OutputStream out,
-            Map<String, String[]> formData);
+            FormData formData);
+
+    public Object getTemplateObject();
+
+    public Object getPageObject();
 
 }

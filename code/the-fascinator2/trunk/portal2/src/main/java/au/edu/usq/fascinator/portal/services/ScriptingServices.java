@@ -24,6 +24,8 @@ import au.edu.usq.fascinator.api.storage.Storage;
 
 public interface ScriptingServices {
 
+    public ContentManager getContentManager();
+
     public PortalManager getPortalManager();
 
     public Indexer getIndexer();

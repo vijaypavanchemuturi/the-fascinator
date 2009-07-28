@@ -24,16 +24,25 @@ import au.edu.usq.fascinator.api.PluginManager;
 import au.edu.usq.fascinator.api.harvester.Harvester;
 import au.edu.usq.fascinator.api.indexer.Indexer;
 import au.edu.usq.fascinator.api.storage.Storage;
+import au.edu.usq.fascinator.portal.services.ContentManager;
 import au.edu.usq.fascinator.portal.services.PortalManager;
 import au.edu.usq.fascinator.portal.services.ScriptingServices;
 
 public class ScriptingServicesImpl implements ScriptingServices {
 
     @Inject
+    private ContentManager contentManager;
+
+    @Inject
     private PortalManager portalManager;
 
     @Inject
     private Indexer indexerService;
+
+    @Override
+    public ContentManager getContentManager() {
+        return contentManager;
+    }
 
     @Override
     public PortalManager getPortalManager() {
@@ -46,12 +55,13 @@ public class ScriptingServicesImpl implements ScriptingServices {
     }
 
     @Override
+    public Storage getStorage() {
+        return null;
+    }
+
+    @Override
     public Harvester getHarvester(String id) {
         return PluginManager.getHarvester(id);
     }
 
-    @Override
-    public Storage getStorage() {
-        return null;
-    }
 }

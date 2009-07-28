@@ -47,7 +47,7 @@ public class UserManagerImpl implements UserManager {
         try {
             Properties props = new Properties();
             props.load(configuration.toURL().openStream());
-            this.portalDir = props.getProperty(AppModule.PORTALS_DIR_KEY);
+            portalDir = props.getProperty(AppModule.PORTALS_DIR_KEY);
             loadUsers();
             log.info("users.properties has been loaded");
         } catch (Exception e) {
@@ -134,7 +134,7 @@ public class UserManagerImpl implements UserManager {
 
     public boolean isValidUser(String username, String password) {
         return (encryptPassword(password).equals(prop.getProperty(username))) ? true
-            : false;
+                : false;
     }
 
     public String getDefault() {
