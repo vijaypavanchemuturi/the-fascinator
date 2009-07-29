@@ -22,16 +22,13 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 import au.edu.usq.fascinator.portal.FormData;
+import au.edu.usq.fascinator.portal.JsonSessionState;
 
 public interface DynamicPageService {
 
     public InputStream getResource(String portalId, String resourceName);
 
     public void render(String portalId, String pageName, OutputStream out,
-            FormData formData);
-
-    public Object getTemplateObject();
-
-    public Object getPageObject();
+            FormData formData, JsonSessionState sessionState);
 
 }

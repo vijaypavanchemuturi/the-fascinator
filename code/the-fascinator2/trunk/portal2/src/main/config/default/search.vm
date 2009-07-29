@@ -1,17 +1,18 @@
 #set($pageTitle = 'Search')
 #set($numFound = $self.result.get("response/numFound"))
 #set($itemList = $self.result.getList("response/docs").toArray())
+#set($portal = $page.portals.get($portalId))
 <h2>Search</h2>
-<form id="searchForm" action="search" method="post">
-  <input class="textbox" type="text" name="query" size="40" value="$!formData.get('query')"/>
-  <input class="button" type="submit" name="search" value="Go" />
+<form action="search" id="search-form" method="post">
+  <input name="query" size="40" type="text" value="$!formData.get('query')"/>
+  <input name="search" type="submit" value="Go!" />
 </form>
-<div id="search_results">
+<div id="search-results">
   <p>Found $numFound items</p>
+  <ul>
   #foreach($item in $itemList)
-    <div>
-      $item.get("dc.title").get(0)
-    </div>
+    <li><h3>$item.get("id")</h3></li>
   #end
-  <pre>$self.result.toString()</pre>
+  </ul>
+  <pre class="debug">$self.result.toString()</pre>
 </div>

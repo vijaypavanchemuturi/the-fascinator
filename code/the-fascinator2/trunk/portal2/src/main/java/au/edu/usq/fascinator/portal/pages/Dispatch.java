@@ -101,7 +101,8 @@ public class Dispatch {
 
         if ((resourceName.indexOf(".") == -1)) {
             ByteArrayOutputStream out = new ByteArrayOutputStream();
-            pageService.render(portalId, resourceName, out, formData);
+            pageService.render(portalId, resourceName, out, formData,
+                    sessionState);
             mimeType = "text/html";
             stream = new ByteArrayInputStream(out.toByteArray());
         } else {

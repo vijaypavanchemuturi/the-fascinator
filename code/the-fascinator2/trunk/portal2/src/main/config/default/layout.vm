@@ -1,0 +1,129 @@
+#set($DEBUG = true)
+#set($portalPath = "$contextPath/$portalId")
+#set($sessionUsername = $sessionState.get("username"))
+<html>
+  <head>
+    <title>The Fascinator | $!pageTitle</title>
+    <link rel="icon" type="image/vnd.microsoft.com" href="favicon.ico" />
+    <link rel="stylesheet" type="text/css" href="css/styles.css" />
+    <link rel="stylesheet" type="text/css" href="css/ui-lightness/jquery-ui-1.7.2.custom.css" />
+    <script type="text/javascript" src="js/jquery-1.3.2.min.js"></script>
+    <script type="text/javascript" src="js/jquery-ui-1.7.2.custom.min.js"></script>
+    <script type="text/javascript">
+    $(function() {
+        // style up input fields and buttons
+        $(":input").addClass("ui-corner-all");
+        $(":button, :submit")
+            .addClass("ui-state-default")
+            .hover(function() { $(this).addClass("ui-state-hover"); },
+                   function() { $(this).removeClass("ui-state-hover"); });
+        $(":text, :password").addClass("ui-widget-content");
+        // disable current page link
+        var pageName = $("#${pageName}-link").text();
+        $("#${pageName}-link").replaceWith("<span class='active-link'>" + pageName + "</span>");
+        // setup authentication dialogs
+        $("#login-dialog").dialog({
+            autoOpen: false,
+            draggable: false,
+            modal: true,
+            resizable: false,
+            buttons: {
+                "Login": function() {
+                    $("#login-form").submit();
+                },
+                "Cancel": function() {
+                    $(this).dialog("close");
+                }
+            },
+            close: function() {
+                $("#username, #password").val("").removeClass("ui-state-error");
+            }
+        });
+        $("#login-link").click(function() {
+            $("#login-dialog").dialog("open");
+        });
+        $("#logout-dialog").dialog({
+            autoOpen: false,
+            draggable: false,
+            modal: true,
+            resizable: false,
+            buttons: {
+                "Logout": function() {
+                    $("#logout-form").submit();
+                },
+                "Cancel": function() {
+                    $(this).dialog("close");
+                }
+            },
+            close: function() {
+                $("#username, #password").val("");
+            }
+        });
+        $("#logout-link").click(function() {
+            $("#logout-dialog").dialog("open");
+        });
+        // debugging
+        $(".debug").addClass("ui-helper-hidden");
+        #if($renderMessages)
+        $("#debug-link").addClass("ui-icon-closethick");
+        #else
+        $("#debug-link").addClass("ui-icon-check");
+        #end
+        $("#debug-link").click(function() {
+            $(".debug").toggle("blind");
+        });
+        #if(!$pageContent)
+          $(".debug").show("blind");
+        #end
+    });
+    </script>
+  </head>
+  <body>
+    <div id="header">
+      <h1>The Fascinator</h1>
+      <div id="menu-bar">
+        <ul>
+          #if($DEBUG)<li class="debug-link"><span class="ui-icon" id="debug-link" title="Toggle debugging"></span></li>#end
+          <li class="with-separator"><a id="home-link" href="$portalPath/home">Home</a></li>
+          <li class="with-separator"><a id="search-link"  href="$portalPath/search">Search</a></li>
+          <li class="with-separator"><a id="content-link" href="$portalPath/content">Content</a></li>
+          <li class="with-separator"><a id="settings-link" href="$portalPath/settings">Settings</a></li>
+          <li class="with-separator"><a href="http://fascinator.usq.edu.au/" target="blank">Website</a></li>
+          <li class="with-separator"><a href="$portalPath/contact">Contact</a></li>
+          #if($sessionUsername)
+          <li id="logout-link">Logout: <span class="session-username">$sessionUsername</span></li>
+          #else
+          <li id="login-link">Login</li>
+          #end
+        </ul>
+      </div>
+    </div>
+    <div class="debug" id="debug">
+      <div class="ui-state-error">
+        <pre>$!renderMessages</pre>
+      </div>
+      <div class="ui-state-highlight">
+        <pre>sessionState: $sessionState
+formData: $formData</pre>
+      </div>
+    </div>
+    <div id="content">
+      $!pageContent
+    </div>
+    <div id="login-dialog" title="Login">
+      <form id="login-form" method="post">
+        <input name="action" value="login" type="hidden" />
+        <label for="username">Username:</label>
+        <input id="username" name="username" size="25" type="text" />
+        <label for="password">Password:</label>
+        <input id="password" name="password" size="25" type="password" />
+      </form>
+    </div>
+    <div id="logout-dialog" title="Logout">
+      <form id="logout-form" method="post">
+        <input name="action" value="logout" type="hidden" />
+      </form>
+      <p><span class="ui-icon ui-icon-alert icon"></span>Are you sure you want to log out?</p>
+    </div>
+  </body>
+</html>

@@ -23,8 +23,10 @@
             "autocommit": true
         }
     },
-
     "portal": {
-    	"home": "src/main/config/portal"
+        "homeDir": "src/main/config",
+        "contentDir": "${user.home}/.fascinator/content",
+        "default": "default",
+        "layout": "layout"
     }
 }

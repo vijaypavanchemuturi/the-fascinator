@@ -25,6 +25,8 @@ import java.io.OutputStreamWriter;
 import java.io.StringWriter;
 import java.io.Writer;
 
+import javax.script.Bindings;
+import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
@@ -36,12 +38,14 @@ import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.Velocity;
 import org.apache.velocity.runtime.RuntimeSingleton;
+import org.apache.velocity.runtime.log.Log4JLogChute;
 import org.apache.velocity.tools.generic.introspection.JythonUberspect;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import au.edu.usq.fascinator.common.JsonConfig;
 import au.edu.usq.fascinator.portal.FormData;
+import au.edu.usq.fascinator.portal.JsonSessionState;
 import au.edu.usq.fascinator.portal.services.DynamicPageService;
 import au.edu.usq.fascinator.portal.services.ScriptingServices;
 
@@ -49,7 +53,7 @@ public class DynamicPageServiceImpl implements DynamicPageService {
 
     private static final String DEFAULT_PORTAL_HOME_DIR = "/opt/the-fascinator/config";
 
-    private static final String DEFAULT_TEMPLATE_NAME = "template";
+    private static final String DEFAULT_LAYOUT_TEMPLATE = "layout";
 
     private static final String DEFAULT_SCRIPT_ENGINE = "python";
 
@@ -64,31 +68,33 @@ public class DynamicPageServiceImpl implements DynamicPageService {
     @Inject
     private ScriptingServices scriptingServices;
 
-    private Object templateObject;
-
-    private Object pageObject;
-
-    private String templateName;
+    private String layoutName;
 
     private ScriptEngine scriptEngine;
+
+    private Bindings bindings;
 
     public DynamicPageServiceImpl() {
         try {
             JsonConfig config = new JsonConfig();
-            templateName = config.get("portal/templateName",
-                    DEFAULT_TEMPLATE_NAME);
+            layoutName = config.get("portal/layout", DEFAULT_LAYOUT_TEMPLATE);
 
             // setup scripting engine
             String engineName = config.get("portal/scriptEngine",
                     DEFAULT_SCRIPT_ENGINE);
             ScriptEngineManager scriptEngineManager = new ScriptEngineManager();
             scriptEngine = scriptEngineManager.getEngineByName(engineName);
+            bindings = scriptEngine.createBindings();
 
             // setup velocity engine
-            String portalDir = config.get("portal/home",
+            String portalDir = config.get("portal/homeDir",
                     DEFAULT_PORTAL_HOME_DIR);
             Velocity.setProperty(Velocity.FILE_RESOURCE_LOADER_PATH, portalDir);
-            // Velocity.setProperty(Velocity.VM_LIBRARY, "portal-library.vm");
+            Velocity.setProperty("runtime.log.logsystem.log4j.logger",
+                    Velocity.class.getName());
+            Velocity.setProperty(Velocity.RUNTIME_LOG_LOGSYSTEM_CLASS,
+                    Log4JLogChute.class.getName());
+            Velocity.setProperty(Velocity.VM_LIBRARY, "portal-library.vm");
             Velocity.setProperty(Velocity.UBERSPECT_CLASSNAME,
                     JythonUberspect.class.getName());
             Velocity.init();
@@ -111,48 +117,73 @@ public class DynamicPageServiceImpl implements DynamicPageService {
 
     @Override
     public void render(String portalId, String pageName, OutputStream out,
-            FormData formData) {
-        // run page and template scripts
-        templateObject = new Object();
-        try {
-            templateObject = evalScript(portalId, templateName, formData);
-        } catch (ScriptException se) {
-            log.warn("Failed to run page script!", se);
-        }
+            FormData formData, JsonSessionState sessionState) {
+        StringBuilder renderMessages = new StringBuilder();
 
-        pageObject = new Object();
+        // setup script and velocity context
+        bindings.put("Services", scriptingServices);
+        bindings.put("systemProperties", System.getProperties());
+        bindings.put("request", request);
+        bindings.put("response", response);
+        bindings.put("formData", formData);
+        bindings.put("sessionState", sessionState);
+        bindings.put("contextPath", request.getContextPath());
+        bindings.put("portalId", portalId);
+        bindings.put("pageName", pageName);
+
+        // run page and template scripts
+        Object layoutObject = new Object();
+        try {
+            layoutObject = evalScript(portalId, layoutName, formData);
+        } catch (ScriptException se) {
+            renderMessages.append("Layout script error:\n");
+            renderMessages.append(se.getMessage());
+            log.warn("Failed to run layout script!\n=====\n{}\n=====", se
+                    .getMessage());
+        }
+        bindings.put("page", layoutObject);
+
+        Object pageObject = new Object();
         try {
             pageObject = evalScript(portalId, pageName, formData);
         } catch (ScriptException se) {
-            log.warn("Failed to run page script!\n==========\n{}\n==========",
-                    se.getMessage());
+            renderMessages.append("Page script error:\n");
+            renderMessages.append(se.getMessage());
+            log.warn("Failed to run page script!\n=====\n{}\n=====", se
+                    .getMessage());
+        }
+        bindings.put("self", pageObject);
+
+        // set up the velocity context
+        VelocityContext vc = new VelocityContext();
+        for (String key : bindings.keySet()) {
+            vc.put(key, bindings.get(key));
+        }
+        if (renderMessages.length() > 0) {
+            vc.put("renderMessages", renderMessages.toString());
         }
 
         try {
-            // set up the velocity context
-            VelocityContext vc = new VelocityContext();
-            vc.put("systemProperties", System.getProperties());
-            vc.put("request", request);
-            vc.put("response", response);
-            vc.put("formData", formData);
-            vc.put("contextPath", request.getContextPath());
-            vc.put("portalId", portalId);
-            vc.put("page", templateObject);
-            vc.put("self", pageObject);
-
             // render the page content
             StringWriter pageContentWriter = new StringWriter();
             Template pageContent = getTemplate(portalId, pageName);
             pageContent.merge(vc, pageContentWriter);
             vc.put("pageContent", pageContentWriter.toString());
+        } catch (Exception e) {
+            renderMessages.append("Page content template error:\n");
+            renderMessages.append(e.getMessage());
+            vc.put("renderMessages", renderMessages.toString());
+            log.error("Failed rendering page template: {}", e.getMessage());
+        }
 
-            // render the page using the template
-            Template page = getTemplate(portalId, templateName);
+        try {
+            // render the page using the layout template
+            Template page = getTemplate(portalId, layoutName);
             Writer pageWriter = new OutputStreamWriter(out, "UTF-8");
             page.merge(vc, pageWriter);
             pageWriter.close();
         } catch (Exception e) {
-            log.error("Failed rendering: {}", e.getMessage());
+            throw new RuntimeException(e);
         }
     }
 
@@ -163,14 +194,11 @@ public class DynamicPageServiceImpl implements DynamicPageService {
         log.debug("Running page script {}...", scriptName);
         InputStream in = getResource(portalId, scriptName);
         if (in != null) {
-            scriptEngine.put("formData", formData);
-            scriptEngine.put("request", request);
-            scriptEngine.put("response", response);
-            scriptEngine.put("Services", scriptingServices);
+            scriptEngine.setBindings(bindings, ScriptContext.GLOBAL_SCOPE);
             scriptEngine.eval(new InputStreamReader(in));
             scriptObject = scriptEngine.get("scriptObject");
         } else {
-            log.info("No script found for {}", scriptName);
+            log.warn("No script found for {}", scriptName);
         }
         return scriptObject;
     }
@@ -178,13 +206,5 @@ public class DynamicPageServiceImpl implements DynamicPageService {
     private Template getTemplate(String portalId, String templateName)
             throws Exception {
         return Velocity.getTemplate(portalId + "/" + templateName + ".vm");
-    }
-
-    public Object getTemplateObject() {
-        return templateObject;
-    }
-
-    public Object getPageObject() {
-        return pageObject;
     }
 }

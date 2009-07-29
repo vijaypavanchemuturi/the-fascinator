@@ -1,35 +1,137 @@
+/* basic elements */
 body {
-    font-size: 80%;
-    font-family: Tahoma, Arial, Helvetica, sans-serif;
-    margin: 0px 5px 0px 5px;
-    padding: 0px 5px 0px 5px;
+    font-family: Trebuchet MS, Tahoma, Verdana, Arial, sans-serif;
+    font-size: 0.8em;
 }
 
-td {
-    font-size: 80%;
-}
-
-h1,h2,h3,h4,h5 {
-    margin-top: 5px;
-    margin-bottom: 5px;
+h1, h2, h3, h4, h5, h6 {
+    margin-bottom: 0.5em;
+    margin-top: 0.5em;
 }
 
 h1 {
-    border-bottom: 1px dotted #959ca1;
-    color: #cc6600;
+    color: #E17009;
     font-family: Times New Roman, Times, serif;
+    font-variant: small-caps;
 }
 
 h2 {
-    color: navy;
+    color: #217BC0;
 }
 
+h3, h4, h5, h6 {
+    color: #1D599B;
+}
+
+/* debugging */
+#debug-link {
+    float: left;
+}
+
+#debug {
+    margin-top: 0.25em;
+}
+
+#debug div {
+    margin-bottom: 0.25em;
+}
+
+pre.debug {
+    border: 1px dotted #1D599B;
+}
+
+/* messages and icons */
+.icon {
+    float: left;
+    margin-right: 0.5em;
+}
+
+.active-link {
+    color: #E17009;
+    font-weight: bold;
+}
+
+/* menu bar */
+#menu-bar {
+    border-bottom: 1px dotted #959ca1;
+    border-top: 1px dotted #959ca1;
+    padding-top: 0.25em;
+    padding-bottom: 0.25em;
+}
+
+#menu-bar ul {
+    display: inline;
+    list-style-image: none;
+    list-style-position: outside;
+    list-style-type: none;
+    padding-left: 0;
+}
+
+#menu-bar li {
+    display: inline;
+}
+
+#menu-bar li a {
+    color: #1D599B;
+    text-decoration: none;
+}
+
+#menu-bar li a:hover {
+    background: #D0E5F5;
+}
+
+#menu-bar .with-separator {
+    border-right: 1px dotted #1D599B;
+    padding-left: 0.25em;
+    padding-right: 0.5em;
+}
+
+/* login/logout */
+#login-link, #logout-link {
+    color: #1D599B;
+    float: right;
+}
+
+#login-link:hover, #logout-link:hover {
+    background: #D0E5F5;
+    cursor: pointer;
+}
+
+#login-dialog label {
+    float: left;
+    padding-top: 0.5em;
+}
+
+#login-dialog input {
+    float: right;
+    margin-bottom: 0.25em;
+    margin-top: 0.25em;
+}
+
+/* home portal list */
+ul.home-portal-list {
+    border-left: 1px dotted #959ca1;
+    list-style-image: none;
+    list-style-position: outside;
+    list-style-type: none;
+    padding-left: 1.5em;
+}
+
+ul.home-portal-list li {
+    font-size: 1.1em;
+    padding-bottom: 0.25em;
+}
+
+div.home-portal-list .ui-state-highlight {
+    padding-bottom: 0.5em;
+    padding-left: 0.5em;
+    padding-top: 0.5em;
+    width: 23em;
+}
+
+/* content sources page */
 #addDialog, #harvesterConfig table {
     font-size: 95%;
-}
-
-label {
-    display: block;
 }
 
 .hidden {
@@ -45,73 +147,4 @@ label {
     font-size: 95%;
     padding-left: 1em;
     padding-right: 1em;
-}
-
-/* form elements */
-.textbox {
-    border: 1px solid gray;
-}
-
-.button {
-    border: 1px solid;
-    border-color: white gray gray white;
-}
-
-.normal-font-size {
-    font-size: 1em;
-}
-
-.button:hover,.big-button:hover {
-    background: #cc6600;
-    color: white;
-}
-
-/* menu bar */
-#menu_bar {
-    border-bottom: 1px dotted #959ca1;
-    list-style-image: none;
-    list-style-position: outside;
-    list-style-type: none;
-    padding-bottom: 5px;
-}
-
-#menu_bar ul {
-    display: inline;
-    padding-left: 0;
-}
-
-#menu_bar ul li {
-    display: inline;
-}
-
-#menu_bar ul li a {
-    color: navy;
-    text-decoration: none;
-}
-
-#menu_bar ul li a:hover {
-    background: #cc6600;
-    color: white;
-}
-
-#menu_bar .menu_login {
-    float: right;
-}
-
-/* portal list */
-.portal_list {
-    border-left: 1px dotted #959ca1;
-    list-style-image: none;
-    list-style-position: outside;
-    list-style-type: none;
-    padding-left: 10px;
-}
-
-.portal_list li {
-    font-size: 1.1em;
-}
-
-/* main content */
-#content {
-    
 }

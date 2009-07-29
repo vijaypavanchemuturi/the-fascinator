@@ -65,7 +65,6 @@
 </script>
 <h2>Content</h2>
 <p>Get some Fascinating stuff!</p>
-<pre>$formData</pre>
 #if($self.contents.size() == 0)
   <p><em>No content sources defined!</em></p>
 #else
