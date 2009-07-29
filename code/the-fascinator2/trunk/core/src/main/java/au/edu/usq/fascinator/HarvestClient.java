@@ -25,6 +25,7 @@ import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Map;
 import java.util.Properties;
 
 import org.slf4j.Logger;
@@ -62,9 +63,6 @@ public class HarvestClient {
 
     private File rulesFile;
 
-    private String repositoryName;
-    private String repositoryType;
-
     private ConveyerBelt cb;
 
     public HarvestClient(File jsonFile) throws IOException {
@@ -97,9 +95,6 @@ public class HarvestClient {
         rulesFile = new File(configFile.getParentFile(), config
                 .get("indexer/script/rules"));
         log.debug("rulesFile=" + rulesFile);
-
-        repositoryName = config.get("indexer/params/repository.name");
-        repositoryType = config.get("indexer/params/repository.type");
 
         String rulesOid;
         try {
@@ -171,8 +166,12 @@ public class HarvestClient {
                     "python"));
             sofMeta.setProperty("rulesOid", rulesOid);
             sofMeta.setProperty("rulesPid", rulesFile.getName());
-            sofMeta.setProperty("repository.name", repositoryName);
-            sofMeta.setProperty("repository.type", repositoryType);
+
+            Map<String, Object> indexerParams = config
+                    .getMap("indexer/script/params");
+            for (String key : indexerParams.keySet()) {
+                sofMeta.setProperty(key, indexerParams.get(key).toString());
+            }
             ByteArrayOutputStream sofMetaOut = new ByteArrayOutputStream();
             sofMeta.store(sofMetaOut, "The Fascinator Indexer Metadata");
             GenericPayload sofMetaDs = new GenericPayload("SOF-META",
