@@ -75,6 +75,16 @@ public class JsonConfigHelper {
     }
 
     /**
+     * Creates a JSON configuration from the specified string
+     * 
+     * @param jsonContent a JSON content string
+     * @throws IOException if there was an error parsing or reading the content
+     */
+    public JsonConfigHelper(String jsonContent) throws IOException {
+        rootNode = new ObjectMapper().readValue(jsonContent, Map.class);
+    }
+
+    /**
      * Creates a JSON configuration from the specified file
      * 
      * @param jsonFile a JSON file

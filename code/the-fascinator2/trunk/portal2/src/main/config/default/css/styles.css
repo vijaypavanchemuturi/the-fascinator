@@ -129,22 +129,32 @@ div.home-portal-list .ui-state-highlight {
     width: 23em;
 }
 
-/* content sources page */
-#addDialog, #harvesterConfig table {
-    font-size: 95%;
+/* content page */
+#content-toolbar {
+    margin-bottom: 0.5em;
 }
 
-.hidden {
-    display: none;
-}
-
-.config_harvest {
+#content-toolbar ul {
+    list-style-image: none;
+    list-style-position: outside;
+    list-style-type: none;
     margin: 0;
     padding: 0;
 }
 
-#contents td {
-    font-size: 95%;
-    padding-left: 1em;
-    padding-right: 1em;
+#content-toolbar li {
+    display: inline-block;
+    padding: 0.25em;
+}
+
+
+#add-content-dialog label {
+    float: left;
+    padding-top: 0.5em;
+}
+
+#add-content-dialog input {
+    float: right;
+    margin-bottom: 0.25em;
+    margin-top: 0.25em;
 }

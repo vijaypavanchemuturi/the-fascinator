@@ -62,9 +62,6 @@ public class Dispatch {
     @Persist
     private FormData formData;
 
-    @Persist
-    private boolean redirectAfterPost;
-
     public StreamResponse onActivate(Object... path) {
         log.debug("{} {}", request.getMethod(), request.getPath());
 
@@ -80,7 +77,6 @@ public class Dispatch {
         if ("POST".equals(request.getMethod())) {
             log.debug("Persisting FormData for next request...");
             formData = new FormData(request);
-            redirectAfterPost = true;
             try {
                 response.sendRedirect(resourceName);
                 return GenericStreamResponse.noResponse();
@@ -92,8 +88,6 @@ public class Dispatch {
         if (formData == null) {
             formData = new FormData();
         }
-
-        log.debug("formData: {}", formData);
 
         // render the page or retrieve the resource
         String mimeType;
@@ -111,7 +105,6 @@ public class Dispatch {
         }
 
         formData.clear();
-        redirectAfterPost = false;
 
         return new GenericStreamResponse(mimeType, stream);
     }

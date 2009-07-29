@@ -11,18 +11,18 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import au.edu.usq.fascinator.common.JsonConfig;
-import au.edu.usq.fascinator.portal.Content;
-import au.edu.usq.fascinator.portal.services.ContentManager;
+import au.edu.usq.fascinator.portal.HarvestContent;
+import au.edu.usq.fascinator.portal.services.HarvestManager;
 
-public class ContentManagerImpl implements ContentManager {
+public class HarvestManagerImpl implements HarvestManager {
 
-    private Logger log = LoggerFactory.getLogger(ContentManagerImpl.class);
+    private Logger log = LoggerFactory.getLogger(HarvestManagerImpl.class);
 
     private File contentDir;
 
-    private Map<String, Content> contentMap;
+    private Map<String, HarvestContent> contentMap;
 
-    public ContentManagerImpl() {
+    public HarvestManagerImpl() {
         try {
             JsonConfig config = new JsonConfig();
             contentDir = new File(config.get("portal/contentDir"));
@@ -33,33 +33,33 @@ public class ContentManagerImpl implements ContentManager {
     }
 
     @Override
-    public Map<String, Content> getContents() {
+    public Map<String, HarvestContent> getContents() {
         if (contentMap == null) {
-            contentMap = new HashMap<String, Content>();
+            contentMap = new HashMap<String, HarvestContent>();
         }
         return contentMap;
     }
 
     @Override
-    public void add(Content content) {
+    public void add(HarvestContent content) {
         getContents().put(content.getId(), content);
     }
 
     @Override
-    public Content get(String id) {
+    public HarvestContent get(String id) {
         return getContents().get(id);
     }
 
     @Override
     public void remove(String id) {
-        Content content = getContents().remove(id);
+        HarvestContent content = getContents().remove(id);
         getContents().remove(id);
 
         // TODO remove .json and .py files
     }
 
     @Override
-    public void save(Content content) throws IOException {
+    public void save(HarvestContent content) throws IOException {
         FileWriter writer = new FileWriter(
                 new File(contentDir, content.getId()));
         content.store(writer);
@@ -76,7 +76,7 @@ public class ContentManagerImpl implements ContentManager {
         for (File contentFile : contentFiles) {
             log.debug("Found content file: {}", contentFile);
             try {
-                add(new Content(contentFile));
+                add(new HarvestContent(contentFile));
             } catch (IOException ioe) {
                 // TODO Auto-generated catch block
                 ioe.printStackTrace();

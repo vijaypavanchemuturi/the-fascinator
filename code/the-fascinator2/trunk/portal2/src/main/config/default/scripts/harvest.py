@@ -3,7 +3,7 @@ from au.edu.usq.fascinator.api import PluginManager
 class ContentData:
     
     def __init__(self):
-        self.__contentManager = Services.contentManager
+        self.__harvestManager = Services.contentManager
     
     def getContents(self):
         return self.__contentManager.getContents()

@@ -6,15 +6,16 @@ import java.util.Map;
 
 import org.apache.commons.io.FilenameUtils;
 
+import au.edu.usq.fascinator.api.PluginException;
 import au.edu.usq.fascinator.api.PluginManager;
 import au.edu.usq.fascinator.api.harvester.Harvester;
 import au.edu.usq.fascinator.common.JsonConfigHelper;
 
-public class Content extends JsonConfigHelper {
+public class HarvestContent extends JsonConfigHelper {
 
     private File jsonFile;
 
-    public Content(File jsonFile) throws IOException {
+    public HarvestContent(File jsonFile) throws IOException {
         super(jsonFile);
         this.jsonFile = jsonFile;
     }
@@ -44,6 +45,14 @@ public class Content extends JsonConfigHelper {
     }
 
     public Harvester getHarvester() {
-        return PluginManager.getHarvester(get("harvester/type"));
+        Harvester harvester = PluginManager.getHarvester(get("harvester/type"));
+        if (harvester != null) {
+            try {
+                harvester.init(jsonFile);
+            } catch (PluginException e) {
+                e.printStackTrace();
+            }
+        }
+        return harvester;
     }
 }

@@ -50,13 +50,16 @@ import org.apache.velocity.util.introspection.UberspectImpl;
 import org.apache.velocity.util.introspection.VelMethod;
 import org.apache.velocity.util.introspection.VelPropertyGet;
 import org.apache.velocity.util.introspection.VelPropertySet;
-import org.python.core.Py;
 import org.python.core.PyArray;
 import org.python.core.PyDictionary;
 import org.python.core.PyInteger;
+import org.python.core.PyJavaClass;
+import org.python.core.PyJavaInnerClass;
+import org.python.core.PyJavaInstance;
 import org.python.core.PyNone;
 import org.python.core.PyObject;
 import org.python.core.PySequence;
+import org.python.core.PySingleton;
 import org.python.core.PyString;
 
 /**
@@ -78,18 +81,32 @@ public class JythonUberspect extends UberspectImpl {
     @Override
     @SuppressWarnings("unchecked")
     public Iterator getIterator(Object obj, Info i) throws Exception {
+        log.info("getIterator: " + obj.getClass().getName());
         if (obj instanceof PySequence) {
             return new PySequenceIterator((PySequence) obj);
         } else if (obj instanceof PyDictionary) {
             return new PySequenceIterator(((PyDictionary) obj).values());
-        } else {
-            PyObject po = (PyObject) obj;
-            Map map = (Map) po.__tojava__(Map.class);
-            if (map != Py.NoConversion) {
-                PySequence seq = new PyArray(Collection.class, map.values()
-                        .toArray());
-                return new PySequenceIterator(seq);
+        } else if (obj instanceof PySingleton) {
+            PySingleton ps = (PySingleton) obj;
+            log.info(ps);
+            return super.getIterator(obj, i);
+        } else if (obj instanceof PyJavaInstance) {
+            PySequence seq = null;
+            PyJavaInstance pji = (PyJavaInstance) obj;
+            if ("java.util.HashMap.Values".equals(pji.instclass.__name__)) {
+                PyJavaInnerClass pjic = (PyJavaInnerClass) pji.instclass;
+                PyJavaClass parent = pjic.parent;
+                log.info("parent=" + parent);
+                Object casted = parent.__tojava__(Map.class);
+                log.info("casted=" + ((PySingleton) casted).safeRepr());
+                seq = new PyArray(Collection.class, new String[] {});// map.values().toArray());
+            } else if ("java.util.HashMap".equals(pji.instclass.__name__)) {
+                Map map = (Map) ((PyObject) obj).__tojava__(Map.class);
+                seq = new PyArray(Collection.class, map.entrySet().toArray());
             }
+            log.info(pji.instclass.__name__);
+            return new PySequenceIterator(seq);
+        } else {
             return super.getIterator(obj, i);
         }
     }
@@ -132,6 +149,7 @@ public class JythonUberspect extends UberspectImpl {
             return super.getPropertySet(obj, identifier, arg, info);
         }
     }
+
 }
 
 /**
@@ -201,7 +219,7 @@ class PyMethod implements VelMethod {
 
             return rtn;
         } catch (Exception e) {
-            log.error("PyMethod.invoke: " + methodname, e);
+            log.error("PyMethod.invoke: " + methodname);
         }
 
         return null;
@@ -259,7 +277,7 @@ class PyGetProperty implements VelPropertyGet {
                 return rtn;
             }
         } catch (Exception e) {
-            log.error("PyGetProperty.invoke", e);
+            log.error("PyGetProperty.invoke " + propname + "." + attrName);
         }
 
         return null;

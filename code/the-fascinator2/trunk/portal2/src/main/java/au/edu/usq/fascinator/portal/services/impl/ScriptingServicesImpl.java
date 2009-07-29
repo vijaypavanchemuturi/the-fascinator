@@ -20,34 +20,22 @@ package au.edu.usq.fascinator.portal.services.impl;
 
 import org.apache.tapestry5.ioc.annotations.Inject;
 
-import au.edu.usq.fascinator.api.PluginManager;
-import au.edu.usq.fascinator.api.harvester.Harvester;
 import au.edu.usq.fascinator.api.indexer.Indexer;
 import au.edu.usq.fascinator.api.storage.Storage;
-import au.edu.usq.fascinator.portal.services.ContentManager;
+import au.edu.usq.fascinator.portal.services.HarvestManager;
 import au.edu.usq.fascinator.portal.services.PortalManager;
 import au.edu.usq.fascinator.portal.services.ScriptingServices;
 
 public class ScriptingServicesImpl implements ScriptingServices {
 
     @Inject
-    private ContentManager contentManager;
+    private Indexer indexerService;
+
+    @Inject
+    private HarvestManager harvestManager;
 
     @Inject
     private PortalManager portalManager;
-
-    @Inject
-    private Indexer indexerService;
-
-    @Override
-    public ContentManager getContentManager() {
-        return contentManager;
-    }
-
-    @Override
-    public PortalManager getPortalManager() {
-        return portalManager;
-    }
 
     @Override
     public Indexer getIndexer() {
@@ -60,8 +48,12 @@ public class ScriptingServicesImpl implements ScriptingServices {
     }
 
     @Override
-    public Harvester getHarvester(String id) {
-        return PluginManager.getHarvester(id);
+    public HarvestManager getHarvestManager() {
+        return harvestManager;
     }
 
+    @Override
+    public PortalManager getPortalManager() {
+        return portalManager;
+    }
 }

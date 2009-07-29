@@ -86,7 +86,7 @@
           #if($DEBUG)<li class="debug-link"><span class="ui-icon" id="debug-link" title="Toggle debugging"></span></li>#end
           <li class="with-separator"><a id="home-link" href="$portalPath/home">Home</a></li>
           <li class="with-separator"><a id="search-link"  href="$portalPath/search">Search</a></li>
-          <li class="with-separator"><a id="content-link" href="$portalPath/content">Content</a></li>
+          <li class="with-separator"><a id="harvest-link" href="$portalPath/harvest">Harvest</a></li>
           <li class="with-separator"><a id="settings-link" href="$portalPath/settings">Settings</a></li>
           <li class="with-separator"><a href="http://fascinator.usq.edu.au/" target="blank">Website</a></li>
           <li class="with-separator"><a href="$portalPath/contact">Contact</a></li>

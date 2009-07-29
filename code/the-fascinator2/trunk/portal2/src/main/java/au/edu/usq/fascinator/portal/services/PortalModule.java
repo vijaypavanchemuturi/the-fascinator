@@ -35,7 +35,7 @@ import au.edu.usq.fascinator.api.PluginManager;
 import au.edu.usq.fascinator.api.indexer.Indexer;
 import au.edu.usq.fascinator.common.JsonConfig;
 import au.edu.usq.fascinator.portal.JsonSessionState;
-import au.edu.usq.fascinator.portal.services.impl.ContentManagerImpl;
+import au.edu.usq.fascinator.portal.services.impl.HarvestManagerImpl;
 import au.edu.usq.fascinator.portal.services.impl.DynamicPageServiceImpl;
 import au.edu.usq.fascinator.portal.services.impl.PortalManagerImpl;
 import au.edu.usq.fascinator.portal.services.impl.ScriptingServicesImpl;
@@ -48,7 +48,7 @@ public class PortalModule {
     private static Logger log = LoggerFactory.getLogger(PortalModule.class);
 
     public static void bind(ServiceBinder binder) {
-        binder.bind(ContentManager.class, ContentManagerImpl.class);
+        binder.bind(HarvestManager.class, HarvestManagerImpl.class);
         binder.bind(DynamicPageService.class, DynamicPageServiceImpl.class);
         binder.bind(PortalManager.class, PortalManagerImpl.class);
         binder.bind(ScriptingServices.class, ScriptingServicesImpl.class);

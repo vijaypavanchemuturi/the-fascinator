@@ -40,12 +40,16 @@
     <name>University of Southern Queensland</name>
     <url>http://www.usq.edu.au</url>
   </organization>
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+  </properties>
   <modules>
     <module>common</module>
     <module>core</module>
     <module>plugin-api</module>
     <module>plugins</module>
     <module>portal</module>
+    <module>portal2</module>
   </modules>
   <dependencyManagement>
     <dependencies>
