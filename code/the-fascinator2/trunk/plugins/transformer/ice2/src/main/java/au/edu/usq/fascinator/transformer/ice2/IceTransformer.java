@@ -254,6 +254,10 @@ public class IceTransformer implements Transformer {
                 IceDigitalObject iceObject = new IceDigitalObject(in, result);
                 return iceObject;
             }
+            File resultFile = new File(result);
+            if (resultFile.exists()) {
+                resultFile.delete();
+            }
         }
         return in;
     }
@@ -272,7 +276,7 @@ public class IceTransformer implements Transformer {
             } catch (IOException e) {
 
             }
-            if (sb.toString().indexOf("ice-error") > 0) {
+            if (sb.toString().indexOf("ice-error") > -1) {
                 log.info("Error return from ICE-Service: " + sb.toString());
                 return false;
             }

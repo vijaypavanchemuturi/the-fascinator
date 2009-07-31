@@ -167,8 +167,7 @@ public class HarvestClient {
             sofMeta.setProperty("rulesOid", rulesOid);
             sofMeta.setProperty("rulesPid", rulesFile.getName());
 
-            Map<String, Object> indexerParams = config
-                    .getMap("indexer/script/params");
+            Map<String, Object> indexerParams = config.getMap("indexer/params");
             for (String key : indexerParams.keySet()) {
                 sofMeta.setProperty(key, indexerParams.get(key).toString());
             }
