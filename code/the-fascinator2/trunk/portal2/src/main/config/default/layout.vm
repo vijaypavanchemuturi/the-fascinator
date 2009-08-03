@@ -5,10 +5,12 @@
   <head>
     <title>The Fascinator | $!pageTitle</title>
     <link rel="icon" type="image/vnd.microsoft.com" href="$portalPath/favicon.ico" />
-    <link rel="stylesheet" type="text/css" href="css/styles.css" />
     <link rel="stylesheet" type="text/css" href="css/ui-lightness/jquery-ui-1.7.2.custom.css" />
     <script type="text/javascript" src="js/jquery-1.3.2.min.js"></script>
     <script type="text/javascript" src="js/jquery-ui-1.7.2.custom.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="css/layout.css" />
+    <link rel="stylesheet" type="text/css" href="css/styles.css" />
+    $!pageHeader
     <script type="text/javascript">
     $(function() {
         // style up input fields and buttons
@@ -104,8 +106,8 @@
         <pre>$!renderMessages</pre>
       </div>
       <div class="ui-state-highlight">
-        <pre>sessionState: $sessionState
-formData: $formData</pre>
+        <pre>sessionState: $sessionState</pre>
+        <pre>formData: $formData</pre>
       </div>
     </div>
     <div id="content">

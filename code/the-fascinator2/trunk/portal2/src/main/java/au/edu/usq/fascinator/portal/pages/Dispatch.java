@@ -63,7 +63,7 @@ public class Dispatch {
     private FormData formData;
 
     public StreamResponse onActivate(Object... path) {
-        log.debug("{} {}", request.getMethod(), request.getPath());
+        log.trace("{} {}", request.getMethod(), request.getPath());
 
         // determine resource
         String portalId = sessionState.get("portalId", DEFAULT_PORTAL_ID);
@@ -75,7 +75,6 @@ public class Dispatch {
 
         // save form data for POST requests, since we redirect after POSTs
         if ("POST".equals(request.getMethod())) {
-            log.debug("Persisting FormData for next request...");
             formData = new FormData(request);
             try {
                 response.sendRedirect(resourceName);
@@ -93,7 +92,7 @@ public class Dispatch {
         String mimeType;
         InputStream stream;
 
-        if ((resourceName.indexOf(".") == -1)) {
+        if ((resourceName.indexOf(".") == -1) || resourceName.endsWith(".ajax")) {
             ByteArrayOutputStream out = new ByteArrayOutputStream();
             pageService.render(portalId, resourceName, out, formData,
                     sessionState);

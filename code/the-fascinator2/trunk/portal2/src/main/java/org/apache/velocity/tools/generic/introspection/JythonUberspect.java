@@ -177,6 +177,7 @@ class PyMethod implements VelMethod {
      */
     @SuppressWarnings("unchecked")
     public Class getReturnType() {
+        log.error("getReturnType(" + methodname + ")");
         return Object.class;
     }
 
@@ -216,7 +217,10 @@ class PyMethod implements VelMethod {
                     rtn = null;
                 }
             }
-
+            log.error(methodname + ": rtn=" + rtn.getClass() + "=" + rtn);
+            if (rtn instanceof PyInteger) {
+                return rtn.asInt(0);
+            }
             return rtn;
         } catch (Exception e) {
             log.error("PyMethod.invoke: " + methodname);

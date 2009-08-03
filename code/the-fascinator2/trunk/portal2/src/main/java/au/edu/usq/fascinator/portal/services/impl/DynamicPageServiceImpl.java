@@ -90,7 +90,7 @@ public class DynamicPageServiceImpl implements DynamicPageService {
             String portalDir = config.get("portal/homeDir",
                     DEFAULT_PORTAL_HOME_DIR);
             Velocity.setProperty(Velocity.FILE_RESOURCE_LOADER_PATH, portalDir);
-            Velocity.setProperty("runtime.log.logsystem.log4j.logger",
+            Velocity.setProperty(Log4JLogChute.RUNTIME_LOG_LOG4J_LOGGER,
                     Velocity.class.getName());
             Velocity.setProperty(Velocity.RUNTIME_LOG_LOGSYSTEM_CLASS,
                     Log4JLogChute.class.getName());
@@ -118,6 +118,11 @@ public class DynamicPageServiceImpl implements DynamicPageService {
     @Override
     public void render(String portalId, String pageName, OutputStream out,
             FormData formData, JsonSessionState sessionState) {
+
+        boolean isAjax = pageName.endsWith(".ajax");
+        if (isAjax) {
+            pageName = pageName.substring(0, pageName.lastIndexOf(".ajax"));
+        }
         StringBuilder renderMessages = new StringBuilder();
 
         // setup script and velocity context
@@ -168,22 +173,29 @@ public class DynamicPageServiceImpl implements DynamicPageService {
             StringWriter pageContentWriter = new StringWriter();
             Template pageContent = getTemplate(portalId, pageName);
             pageContent.merge(vc, pageContentWriter);
-            vc.put("pageContent", pageContentWriter.toString());
+            if (isAjax) {
+                out.write(pageContentWriter.toString().getBytes());
+            } else {
+                vc.put("pageContent", pageContentWriter.toString());
+            }
         } catch (Exception e) {
             renderMessages.append("Page content template error:\n");
             renderMessages.append(e.getMessage());
             vc.put("renderMessages", renderMessages.toString());
-            log.error("Failed rendering page template: {}", e.getMessage());
+            log.error("Failed rendering page template: {} ({})",
+                    e.getMessage(), isAjax ? "ajax" : "html");
         }
 
-        try {
-            // render the page using the layout template
-            Template page = getTemplate(portalId, layoutName);
-            Writer pageWriter = new OutputStreamWriter(out, "UTF-8");
-            page.merge(vc, pageWriter);
-            pageWriter.close();
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+        if (!isAjax) {
+            try {
+                // render the page using the layout template
+                Template page = getTemplate(portalId, layoutName);
+                Writer pageWriter = new OutputStreamWriter(out, "UTF-8");
+                page.merge(vc, pageWriter);
+                pageWriter.close();
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 
