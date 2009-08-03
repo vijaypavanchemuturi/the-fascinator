@@ -1,14 +1,19 @@
-<table>
-  <tr>
-    <td>Base Directory</td>
-    <td><input class="textbox" type="text" name="baseDir" size="60" /></td>
-  </tr>
-  <tr>
-    <td>Recursive</td>
-    <td><input class="checkbox" type="checkbox" name="recursive" /></td>
-  </tr>
-  <tr>
-    <td>Ignore Filter</td>
-    <td><input class="textbox" type="text" name="ignoreFilter" size="40" value=".svn" /></td>
-  </tr>
-</table>
+<div>
+  <fieldset>
+    <legend>File system</legend>
+    <ol>
+      <li>
+        <label for="baseDir">Directory</label>
+        <input id="baseDir" name="baseDir" size="40" type="text" />
+      </li>
+      <li>
+        <label for="ignoreFilter">Ignore filter</label>
+        <input id="ignoreFilter" name="maxRequests" size="20" type="text" />
+      </li>
+      <li>
+        <label for="recursive">Recursive</label>
+        <input id="recursive" name="recursive" size="10" type="checkbox" />
+      </li>
+    </ol>
+  </fieldset>
+</div>

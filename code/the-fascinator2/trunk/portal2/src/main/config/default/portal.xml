@@ -7,8 +7,9 @@
   <facet-fields>
     <field name="repository_name">Repository</field>
     <field name="repository_type">Source type</field>
-    <field name="f_subject">Subject</field>
-    <field name="f_creator">Author</field>
-    <field name="f_type">Type</field>
+    <field name="f_dc.subject">Subject</field>
+    <field name="f_dc.creator">Author</field>
+    <field name="f_dc.type">Type</field>
+    <field name="item_type">Type</field>
   </facet-fields>
 </portal>

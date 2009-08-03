@@ -1,18 +1,47 @@
 #set($pageTitle = 'Search')
 #set($numFound = $self.result.get("response/numFound"))
 #set($itemList = $self.result.getList("response/docs").toArray())
+#set($facetFields = $self.result.getMap("facet_counts/facet_fields"))
 #set($portal = $page.portals.get($portalId))
-<h2>Search</h2>
-<form action="search" id="search-form" method="post">
-  <input name="query" size="40" type="text" value="$!formData.get('query')"/>
-  <input name="search" type="submit" value="Go!" />
-</form>
-<div id="search-results">
+<pre class="debug">$self.result.toString()</pre>
+<div id="search-header">
+  <h2>Search</h2>
+  <form action="search" id="search-form" method="post">
+    <input name="query" size="40" type="text" value="$!formData.get('query')"/>
+    <input name="search" type="submit" value="Go!" />
+  </form>
   <p>Found $numFound items</p>
-  <ul>
-  #foreach($item in $itemList)
-    <li><h3>$item.get("id")</h3></li>
-  #end
-  </ul>
-  <pre class="debug">$self.result.toString()</pre>
+</div>
+<div class="colmask leftmenu" id="search-results">
+  <div class="colright">
+    <div class="col1wrap">
+      <div class="col1" id="source-panel">
+        <h3>Results</h3>
+        <ul>
+        #foreach($item in $itemList)
+          #set($id = $item.get("id"))
+          #set($title = $item.get("dc.title").get(0))
+          #set($description = $item.get("dc.description").get(0))
+          <li>
+            <div id='$id'>
+              <h3>$title</h3>
+              <p>$!description</p>
+            </div>
+          </li>
+        #end
+        </ul>
+      </div>
+    </div>
+    <div class="col2" id="source-list">
+      <h3>Facets</h3>
+      #foreach($facetField in $facetFields)
+        <h4>$self.getFacetName($facetField.key)</h4>
+        <ul>
+        #foreach($facetCount in $self.getFacetCounts($facetField.key))
+          <li>$facetCount.key ($facetCount.value)</li>
+        #end
+        </ul>
+      #end
+    </div>
+  </div>
 </div>

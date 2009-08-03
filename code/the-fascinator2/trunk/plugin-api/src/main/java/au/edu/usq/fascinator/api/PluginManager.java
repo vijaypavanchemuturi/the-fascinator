@@ -76,6 +76,15 @@ public class PluginManager {
         return null;
     }
 
+    public static Map<String, Indexer> getIndexerPlugins() {
+        Map<String, Indexer> indexers = new HashMap<String, Indexer>();
+        ServiceLoader<Indexer> plugins = ServiceLoader.load(Indexer.class);
+        for (Indexer plugin : plugins) {
+            indexers.put(plugin.getId(), plugin);
+        }
+        return indexers;
+    }
+
     /**
      * Gets a storage plugin
      * 
@@ -90,6 +99,15 @@ public class PluginManager {
             }
         }
         return null;
+    }
+
+    public static Map<String, Storage> getStoragePlugins() {
+        Map<String, Storage> storageMap = new HashMap<String, Storage>();
+        ServiceLoader<Storage> plugins = ServiceLoader.load(Storage.class);
+        for (Storage plugin : plugins) {
+            storageMap.put(plugin.getId(), plugin);
+        }
+        return storageMap;
     }
 
     /**
@@ -108,5 +126,15 @@ public class PluginManager {
             }
         }
         return null;
+    }
+
+    public static Map<String, Transformer> getTransformerPlugins() {
+        Map<String, Transformer> transformers = new HashMap<String, Transformer>();
+        ServiceLoader<Transformer> plugins = ServiceLoader
+                .load(Transformer.class);
+        for (Transformer plugin : plugins) {
+            transformers.put(plugin.getId(), plugin);
+        }
+        return transformers;
     }
 }

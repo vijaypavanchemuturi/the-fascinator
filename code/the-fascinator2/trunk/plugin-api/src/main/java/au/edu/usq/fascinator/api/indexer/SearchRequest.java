@@ -93,7 +93,9 @@ public class SearchRequest {
     public void setParam(String name, String[] values) {
         List<String> encodedValues = new ArrayList<String>();
         for (String value : values) {
-            encodedValues.add(encode(value));
+            if (value != null) {
+                encodedValues.add(encode(value));
+            }
         }
         getParams().put(name, encodedValues.toArray(new String[] {}));
     }

@@ -1,4 +1,4 @@
-#set($pageTitle = 'Content')
+#set($pageTitle = 'Harvest')
 #set($harvesters = $self.harvesters)
 <script type="text/javascript">
 $(function() {
@@ -47,8 +47,8 @@ $(function() {
       // show harvester config
       $('#contents tbody tr[id]').removeClass('ui-state-highlight').attr('selected', 'false');
       $(this).addClass('ui-state-highlight').attr('selected', 'true');
-      $('#harvesterConfig div').hide();
-      $('#' + this.id + '-config').show('blind');
+      $('#harvesterConfig div:first').hide();
+      $('#' + this.id + '-config').toggle('blind');
     });
     
     $("#content-toolbar li").addClass("ui-state-default ui-corner-all");
@@ -57,21 +57,12 @@ $(function() {
             function() { $(this).removeClass("ui-state-hover"); });
 });
 </script>
-<h2>Content</h2>
+<h2>Harvest</h2>
 <p>Get some Fascinating stuff!</p>
 #if($self.contents.isEmpty() == true)
   <p><em>No content sources defined!</em></p>
 #else
-  <div id="content-toolbar">
-    <ul class="ui-widget ui-helper-clearfix">
-      <li>
-        <span class="ui-icon ui-icon-document" title="Add new content"></span>
-      </li>
-      <li>
-        <span class="ui-icon ui-icon-trash" title="Delete selected content"></span>
-      </li>
-    </ul>
-  </div>
+  <form>
   <table id="contents" class="ui-widget ui-widget-content">
     <thead>
       <tr class="ui-widget-header">
@@ -96,19 +87,17 @@ $(function() {
     #end
     </tbody>
     <tfoot>
-    
-    </tfoot>
-#*    
     <tr><td colspan="4"></td></tr>
     <tr><td colspan="4">
 <div id="harvesterConfig">
 #foreach($entry in $self.contents)
   #set($content = $entry.value)
   #set($harvester = $content.harvester)
-  <div class="ui-helper-hidden" id="${content.id}-config2" title="$harvester.name">
+  <div class="ui-helper-hidden" id="${content.id}-config" title="$harvester.name">
     <h3 class="ui-widget-header">$content.description</h3>
     <h4>Harvester</h4>
-    $harvester.config
+    ##$harvester.config
+    #parse("$portalId/plugin-harvester-${harvester.id}.vm")
     <h4>Indexer</h4>
     <table>
       <thead>
@@ -131,8 +120,8 @@ $(function() {
 </div>
     </td></tr>
     </tfoot>
- *#
   </table>
+</form>
 #end
 <br />
 <button id="addButton">Add content</button>
@@ -147,15 +136,23 @@ $(function() {
 <div id="add-content-dialog" title="Add content">
   <form id="add-content-form" method="post">
     <input id="selected" type="hidden" name="selected" />
-    <label for="id">Identifier</label>
-    <input type="text" name="id" id="id" />
-    <label for="description">Description</label>
-    <input type="text" name="description" id="description" size="40" />
-    <label for="harvester">Harvester</label>
-    <select id="harvester">
-    #foreach($harvester in $harvesters)
+    <fieldset>
+      <ol>
+        <li>
+          <label for="id">Identifier</label>
+          <input type="text" name="id" id="id" />
+        </li>
+        <li>
+          <label for="description">Description</label>
+          <input type="text" name="description" id="description" size="40" />
+        </li>
+        <li>
+          <label for="harvester">Harvester</label>
+          <select id="harvester">
+          #foreach($harvester in $harvesters)
       <option value="$harvester.id">$harvester.name</option>
     #end
     </select>
+</fieldset>
   </form>
 </div>

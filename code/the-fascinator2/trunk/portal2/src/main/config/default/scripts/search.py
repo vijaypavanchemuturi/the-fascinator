@@ -1,6 +1,9 @@
+from jarray import array
 from au.edu.usq.fascinator.api.indexer import SearchRequest
 from au.edu.usq.fascinator.common import JsonConfigHelper
 from java.io import ByteArrayInputStream, ByteArrayOutputStream
+from java.lang import String
+from java.util import HashMap
 
 class SearchData:
     def __init__(self):
@@ -17,6 +20,7 @@ class SearchData:
         req.setParam("facet", ["true"])
         req.setParam("fq", ['item_type:"object"'])
         req.setParam("rows", [str(self.__portal.recordsPerPage)])
+        req.setParam("facet.field", array(self.__portal.facetFieldList, String))
         out = ByteArrayOutputStream()
         indexer = Services.getIndexer()
         indexer.search(req, out)
@@ -24,5 +28,15 @@ class SearchData:
 
     def getResult(self):
         return self.__result
+
+    def getFacetName(self, key):
+        return self.__portal.facetFields.get(key)
+
+    def getFacetCounts(self, key):
+        values = HashMap()
+        valueList = self.__result.getList("facet_counts/facet_fields/%s" % key)
+        for i in range(0,len(valueList),2):
+            values.put(valueList[i], valueList[i+1])
+        return values
 
 scriptObject = SearchData()

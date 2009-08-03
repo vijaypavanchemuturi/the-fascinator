@@ -85,7 +85,7 @@ public class JythonUberspect extends UberspectImpl {
         if (obj instanceof PySequence) {
             return new PySequenceIterator((PySequence) obj);
         } else if (obj instanceof PyDictionary) {
-            return new PySequenceIterator(((PyDictionary) obj).values());
+            return new PySequenceIterator(((PyDictionary) obj).items());
         } else if (obj instanceof PySingleton) {
             PySingleton ps = (PySingleton) obj;
             log.info(ps);

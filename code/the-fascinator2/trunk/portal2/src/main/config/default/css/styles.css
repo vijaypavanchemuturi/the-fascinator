@@ -158,3 +158,13 @@ div.home-portal-list .ui-state-highlight {
     margin-bottom: 0.25em;
     margin-top: 0.25em;
 }
+
+/* jquery ui overrides */
+.ui-tabs .ui-accordion {
+    font-size: 1em;
+}
+
+.ui-accordion, .ui-dialog, .ui-tabs {
+    font-size: 0.9em;
+}
+
