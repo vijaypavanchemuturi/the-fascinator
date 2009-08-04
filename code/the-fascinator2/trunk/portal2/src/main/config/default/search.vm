@@ -44,12 +44,13 @@ $(function() {
         <ul>
         #foreach($item in $itemList)
           #set($id = $item.get("id"))
+          #set($oid = $page.encodeURL($id))
           #set($title = $self.getFileName($id))
           #set($title = $item.get("dc.title").get(0))
           #set($description = $item.get("dc.description").get(0))
           <li>
             <div id="$id">
-              <h3><a href="detail?id=$id">$title</a></h3>
+              <h3><a href="detail/$oid">$title</a></h3>
               <p>$!description</p>
             </div>
           </li>

@@ -1,6 +1,9 @@
 # 
 # Script for Template layout
 # 
+
+from java.net import URLEncoder
+
 class TemplateData:
     
     def __init__(self):
@@ -18,5 +21,8 @@ class TemplateData:
 
     def getPortals(self):
         return Services.getPortalManager().getPortals()
+
+    def encodeURL(self, url):
+        return URLEncoder.encode(url, "UTF-8")
 
 scriptObject = TemplateData()

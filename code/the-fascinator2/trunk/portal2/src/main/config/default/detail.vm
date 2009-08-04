@@ -4,12 +4,13 @@ $(function() {
 });
 </script>
 <h2>Detail</h2>
-#set($id = $formData.get("id"))
-#set($item = $self.getObject($id))
+#set($item = $self.getObject())
 <div>
   <ul>
   #foreach($payload in $item.payloadList)
-    <li>$payload.id</li>
+    #set($oid = $page.encodeURL($item.id))
+    #set($pid = $page.encodeURL($payload.id))
+    <li><a href="download/$oid/$pid">$payload.id</a> ($payload.contentType)</li>
   #end
   </ul>
 </div>

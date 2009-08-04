@@ -43,6 +43,8 @@ import au.edu.usq.fascinator.portal.services.GenericStreamResponse;
 
 public class Dispatch {
 
+    private static final String AJAX_EXT = ".ajax";
+
     private static final String DEFAULT_PORTAL_ID = "default";
 
     private static final String DEFAULT_RESOURCE = "home";
@@ -65,24 +67,28 @@ public class Dispatch {
     @Persist
     private Map<String, FormData> formDataMap;
 
-    public StreamResponse onActivate(Object... path) {
+    public StreamResponse onActivate(Object... params) {
         log.debug("{} {}", request.getMethod(), request.getPath());
 
         // determine resource
         String portalId = sessionState.get("portalId", DEFAULT_PORTAL_ID);
         String resourceName = DEFAULT_RESOURCE;
+
+        String requestUri = request.getAttribute("RequestURI").toString();
+        String[] path = requestUri.split("/");
         if (path.length > 1) {
             portalId = path[0].toString();
             resourceName = StringUtils.join(path, "/", 1, path.length);
         }
-
-        boolean isAjax = resourceName.endsWith(".ajax");
+        String match = getBestMatchResource(portalId, resourceName);
+        log.debug("resourceName = {}, match = {}", resourceName, match);
+        resourceName = match;
+        boolean isAjax = resourceName.endsWith(AJAX_EXT);
 
         if (formDataMap == null) {
             formDataMap = Collections
                     .synchronizedMap(new HashMap<String, FormData>());
         }
-        log.debug("formDataMap=" + formDataMap);
 
         // save form data for POST requests, since we redirect after POSTs
         if ("POST".equals(request.getMethod())) {
@@ -121,5 +127,19 @@ public class Dispatch {
         }
 
         return new GenericStreamResponse(mimeType, stream);
+    }
+
+    public String getBestMatchResource(String portalId, String resourceName) {
+        log.info("getBestMatch: {}", resourceName);
+        boolean isAjax = resourceName.endsWith(AJAX_EXT);
+        if (isAjax) {
+            resourceName = resourceName.substring(0, resourceName
+                    .lastIndexOf(AJAX_EXT));
+        }
+        if (pageService.resourceExists(portalId, resourceName)) {
+            return resourceName + (isAjax ? AJAX_EXT : "");
+        }
+        int slash = resourceName.lastIndexOf('/');
+        return getBestMatchResource(portalId, resourceName.substring(0, slash));
     }
 }

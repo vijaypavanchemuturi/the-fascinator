@@ -16,21 +16,36 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-package au.edu.usq.fascinator.portal.services;
+package au.edu.usq.fascinator.portal.pages;
 
-import java.io.InputStream;
-import java.io.OutputStream;
+import org.apache.tapestry5.StreamResponse;
+import org.apache.tapestry5.annotations.SessionState;
+import org.apache.tapestry5.ioc.annotations.Inject;
+import org.apache.tapestry5.services.Request;
+import org.apache.tapestry5.services.Response;
+import org.slf4j.Logger;
 
-import au.edu.usq.fascinator.portal.FormData;
 import au.edu.usq.fascinator.portal.JsonSessionState;
 
-public interface DynamicPageService {
+public class Viewer {
 
-    public boolean resourceExists(String portalId, String resourceName);
+    private static final String DEFAULT_PORTAL_ID = "default";
 
-    public InputStream getResource(String portalId, String resourceName);
+    @Inject
+    private Logger log;
 
-    public void render(String portalId, String pageName, OutputStream out,
-            FormData formData, JsonSessionState sessionState);
+    @SessionState
+    private JsonSessionState sessionState;
 
+    @Inject
+    private Request request;
+
+    @Inject
+    private Response response;
+
+    public StreamResponse onActivate(Object... path) {
+        log.debug("{} {}", request.getMethod(), request.getPath());
+        // return new GenericStreamResponse(mimeType, stream);
+        return null;
+    }
 }

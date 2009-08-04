@@ -227,7 +227,8 @@ class PyMethod implements VelMethod {
             }
             return rtn;
         } catch (Exception e) {
-            log.error("PyMethod.invoke: " + methodname + ", " + info);
+            log.error("PyMethod.invoke: " + methodname + ", "
+                    + params.toString() + ", " + info);
         }
 
         return null;

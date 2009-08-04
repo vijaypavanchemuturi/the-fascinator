@@ -106,6 +106,24 @@ public class DynamicPageServiceImpl implements DynamicPageService {
     }
 
     @Override
+    public boolean resourceExists(String portalId, String resourceName) {
+        String path = portalId + "/" + resourceName;
+        boolean noExt = resourceName.indexOf('.') == -1;
+        // check raw resource
+        boolean exists = Velocity.resourceExists(path);
+        if (noExt && !exists) {
+            // check for velocity template
+            exists = Velocity.resourceExists(path + ".vm");
+        }
+        if (noExt && !exists) {
+            // check for jython script
+            exists = Velocity.resourceExists(portalId + "/scripts/"
+                    + resourceName + ".py");
+        }
+        return exists;
+    }
+
+    @Override
     public InputStream getResource(String portalId, String resourceName) {
         String path = portalId + "/" + resourceName;
         try {

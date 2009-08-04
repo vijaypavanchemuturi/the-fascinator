@@ -18,12 +18,16 @@
  */
 package au.edu.usq.fascinator.portal.services;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.apache.tapestry5.ioc.MappedConfiguration;
 import org.apache.tapestry5.ioc.OrderedConfiguration;
 import org.apache.tapestry5.ioc.ServiceBinder;
+import org.apache.tapestry5.ioc.annotations.Inject;
 import org.apache.tapestry5.services.ApplicationStateContribution;
 import org.apache.tapestry5.services.ApplicationStateCreator;
 import org.apache.tapestry5.services.Request;
+import org.apache.tapestry5.services.RequestGlobals;
 import org.apache.tapestry5.urlrewriter.RewriteRuleApplicability;
 import org.apache.tapestry5.urlrewriter.SimpleRequestWrapper;
 import org.apache.tapestry5.urlrewriter.URLRewriteContext;
@@ -94,9 +98,18 @@ public class PortalModule {
     }
 
     public static void contributeURLRewriter(
-            OrderedConfiguration<URLRewriterRule> configuration) {
+            OrderedConfiguration<URLRewriterRule> configuration,
+            @Inject final RequestGlobals requestGlobals) {
         URLRewriterRule rule = new URLRewriterRule() {
             public Request process(Request request, URLRewriteContext context) {
+                // set the original request uri - without context
+                HttpServletRequest req = requestGlobals.getHTTPServletRequest();
+                String ctxPath = request.getContextPath();
+                String uri = req.getRequestURI();
+                request.setAttribute("RequestURI", uri.substring(ctxPath
+                        .length() + 1));
+
+                // forward all requests to the main dispatcher
                 String path = request.getPath();
                 String[] parts = path.substring(1).split("/");
                 if (parts.length > 0) {
