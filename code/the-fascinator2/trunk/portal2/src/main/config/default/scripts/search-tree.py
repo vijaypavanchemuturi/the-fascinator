@@ -35,22 +35,18 @@ class FacetList:
         for i in range(0, len(entries), 2):
             value = entries[i]
             count = entries[i+1]
-            #print "===================================="
-            #print value, count
-            facet = Facet(value, count)
-            self.__facetMap.put(value, facet)
-            slash = value.rfind("/")
-            if slash == -1:
-                #print "* adding facet %s" % value
-                self.__facetList.add(facet)
-            else:
-                parent = self.getFacet(value[:slash])
-                if parent is not None:
-                    parent.addSubFacet(facet)
-                    #print "* adding %s to %s" % (value, value[:slash])
+            if count > 0:
+                facet = Facet(value, count)
+                self.__facetMap.put(value, facet)
+                slash = value.rfind("/")
+                if slash == -1:
+                    self.__facetList.add(facet)
+                else:
+                    parent = self.getFacet(value[:slash])
+                    if parent is not None:
+                        parent.addSubFacet(facet)
 
     def getFacets(self):
-        print "&********************************", self.__facetList.toString()
         return self.__facetList
 
     def getFacet(self, name):
@@ -59,7 +55,6 @@ class FacetList:
 class SearchTreeData:
     def __init__(self):
         self.__id = formData.get("id")
-        print "id = %s" % self.__id
         self.__result = JsonConfigHelper()
         self.__portal = Services.getPortalManager().get(portalId)
         self.__search()
@@ -68,7 +63,6 @@ class SearchTreeData:
         query = formData.get("query")
         if query is None or query == "":
             query = "*:*"
-        print "Searching for", query
         req = SearchRequest(query)
         req.setParam("facet", ["true"])
         req.setParam("fl", ["id"])
@@ -86,12 +80,5 @@ class SearchTreeData:
 
     def getFacet(self, value):
         return self.__facetList.get(value)
-
-    def getResult(self):
-        return self.__result
-
-    def getFacetName(self, key):
-        return self.__portal.facetFields.get(key)
-
 
 scriptObject = SearchTreeData()

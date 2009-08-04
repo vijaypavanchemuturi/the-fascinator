@@ -1,1 +1,27 @@
-#macro(createFacetNode $facet $state){    attributes: { id: "$facet.value" },    state: $state,    data: "$facet.name",    #if($facet.subFacets.size() > 0)        children: [        #foreach($subFacet in $facet.subFacets)            #createFacetNode($subFacet "closed")            ,        #end        ]    #end}#end#set($id = $formData.get("id"))#set($currentFacet = $self.facetList.getFacet($id))[#if($currentFacet.subFacets.size() == 0)    #createFacetNode($currentFacet "leaf")#else  #foreach($facet in $self.facetList.facets)      #createFacetNode($facet "open")  #end#end]
+#macro(createFacetNode $facet $state)
+{
+    attributes: { id: "$facet.value" },
+    state: $state,
+    data: "$facet.name",
+    #if($facet.subFacets.size() > 0)
+        children: [
+        #foreach($subFacet in $facet.subFacets)
+            #createFacetNode($subFacet "closed")
+            ,
+        #end
+        ]
+    #end
+}
+#end
+
+#set($id = $formData.get("id"))
+#set($currentFacet = $self.facetList.getFacet($id))
+[
+#if($currentFacet.subFacets.size() == 0)
+    #createFacetNode($currentFacet "leaf")
+#else
+    #foreach($facet in $self.facetList.facets)
+        #createFacetNode($facet "open")
+    #end
+#end
+]

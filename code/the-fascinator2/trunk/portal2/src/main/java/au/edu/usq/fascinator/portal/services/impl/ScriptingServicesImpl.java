@@ -32,6 +32,9 @@ public class ScriptingServicesImpl implements ScriptingServices {
     private Indexer indexerService;
 
     @Inject
+    private Storage storageService;
+
+    @Inject
     private HarvestManager harvestManager;
 
     @Inject
@@ -44,7 +47,7 @@ public class ScriptingServicesImpl implements ScriptingServices {
 
     @Override
     public Storage getStorage() {
-        return null;
+        return storageService;
     }
 
     @Override

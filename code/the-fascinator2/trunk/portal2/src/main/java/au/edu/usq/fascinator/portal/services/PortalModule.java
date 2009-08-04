@@ -33,16 +33,19 @@ import org.slf4j.LoggerFactory;
 
 import au.edu.usq.fascinator.api.PluginManager;
 import au.edu.usq.fascinator.api.indexer.Indexer;
+import au.edu.usq.fascinator.api.storage.Storage;
 import au.edu.usq.fascinator.common.JsonConfig;
 import au.edu.usq.fascinator.portal.JsonSessionState;
-import au.edu.usq.fascinator.portal.services.impl.HarvestManagerImpl;
 import au.edu.usq.fascinator.portal.services.impl.DynamicPageServiceImpl;
+import au.edu.usq.fascinator.portal.services.impl.HarvestManagerImpl;
 import au.edu.usq.fascinator.portal.services.impl.PortalManagerImpl;
 import au.edu.usq.fascinator.portal.services.impl.ScriptingServicesImpl;
 
 public class PortalModule {
 
     private static final String DEFAULT_INDEXER_TYPE = "solr";
+
+    private static final String DEFAULT_STORAGE_TYPE = "file-system";
 
     @SuppressWarnings("unused")
     private static Logger log = LoggerFactory.getLogger(PortalModule.class);
@@ -61,6 +64,18 @@ public class PortalModule {
                     "indexer/type", DEFAULT_INDEXER_TYPE));
             indexer.init(config.getSystemFile());
             return indexer;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static Storage buildStorage() {
+        try {
+            JsonConfig config = new JsonConfig();
+            Storage storage = PluginManager.getStorage(config.get(
+                    "storage/type", DEFAULT_STORAGE_TYPE));
+            storage.init(config.getSystemFile());
+            return storage;
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

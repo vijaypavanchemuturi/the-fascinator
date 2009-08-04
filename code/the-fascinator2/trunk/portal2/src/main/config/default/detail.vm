@@ -1,0 +1,15 @@
+#set($pageTitle = 'Detail')
+<script type="text/javascript">
+$(function() {
+});
+</script>
+<h2>Detail</h2>
+#set($id = $formData.get("id"))
+#set($item = $self.getObject($id))
+<div>
+  <ul>
+  #foreach($payload in $item.payloadList)
+    <li>$payload.id</li>
+  #end
+  </ul>
+</div>

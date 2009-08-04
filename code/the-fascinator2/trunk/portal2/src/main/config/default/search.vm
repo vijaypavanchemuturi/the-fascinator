@@ -43,13 +43,13 @@ $(function() {
         <h3>Results</h3>
         <ul>
         #foreach($item in $itemList)
-          #set($id = $self.getFileName($item.get("id")))
-          #set($title = $id)
+          #set($id = $item.get("id"))
+          #set($title = $self.getFileName($id))
           #set($title = $item.get("dc.title").get(0))
           #set($description = $item.get("dc.description").get(0))
           <li>
-            <div id='$id'>
-              <h3>$title</h3>
+            <div id="$id">
+              <h3><a href="detail?id=$id">$title</a></h3>
               <p>$!description</p>
             </div>
           </li>
