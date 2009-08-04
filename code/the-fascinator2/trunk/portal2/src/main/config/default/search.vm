@@ -2,17 +2,21 @@
 #set($pageHeader = '<link rel="stylesheet" type="text/css" href="js/tree/tree_component.css" />
     <script type="text/javascript" src="js/tree/lib/css.js"></script>
     <script type="text/javascript" src="js/tree/tree_component.min.js"></script>')
-
 #set($numFound = $self.result.get("response/numFound"))
 #set($itemList = $self.result.getList("response/docs").toArray())
 #set($facetFields = $self.result.getMap("facet_counts/facet_fields"))
 #set($portal = $page.portals.get($portalId))
-
 <script type="text/javascript">
 $(function() {
     $("#file_path").tree({
         data: {
             async: true,
+            async_data: function(node) {
+                return {
+                    id: $(node).attr("id") || 0,
+                    query: $("#query").val()
+                }
+            },
             type: "json",
             url: "search-tree.ajax"
         },
@@ -22,14 +26,12 @@ $(function() {
         }
     });
 });
-
-
 </script>
 <pre class="debug">$self.result.toString()</pre>
 <div id="search-header">
   <h2>Search</h2>
   <form action="search" id="search-form" method="post">
-    <input name="query" size="40" type="text" value="$!formData.get('query')"/>
+    <input id="query" name="query" size="40" type="text" value="$!formData.get('query')"/>
     <input name="search" type="submit" value="Go!" />
   </form>
   <p>Found $numFound items</p>
