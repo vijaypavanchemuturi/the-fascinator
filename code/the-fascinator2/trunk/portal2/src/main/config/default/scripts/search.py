@@ -4,6 +4,7 @@ from au.edu.usq.fascinator.common import JsonConfigHelper
 from java.io import ByteArrayInputStream, ByteArrayOutputStream
 from java.lang import String
 from java.util import HashMap
+import os
 
 class SearchData:
     def __init__(self):
@@ -41,5 +42,8 @@ class SearchData:
             if count > 0:
                 values.put(name, count)
         return values
+
+    def getFileName(self, path):
+        return os.path.split(path)[1]
 
 scriptObject = SearchData()

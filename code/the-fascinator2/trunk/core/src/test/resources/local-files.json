@@ -2,7 +2,8 @@
     "harvester": {
         "type": "file-system",
         "file-system": {
-            "baseDir": "${user.home}/Documents/public"
+            "baseDir": "${user.home}/Documents/public",
+            "recursive": true
         }
     },
     

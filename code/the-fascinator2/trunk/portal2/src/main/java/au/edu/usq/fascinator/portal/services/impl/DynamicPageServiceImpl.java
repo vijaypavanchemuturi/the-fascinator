@@ -97,6 +97,8 @@ public class DynamicPageServiceImpl implements DynamicPageService {
             Velocity.setProperty(Velocity.VM_LIBRARY, "portal-library.vm");
             Velocity.setProperty(Velocity.UBERSPECT_CLASSNAME,
                     JythonUberspect.class.getName());
+            Velocity.setProperty(Velocity.FILE_RESOURCE_LOADER_CACHE, false);
+            Velocity.setProperty(Velocity.VM_LIBRARY_AUTORELOAD, true);
             Velocity.init();
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -182,8 +184,8 @@ public class DynamicPageServiceImpl implements DynamicPageService {
             renderMessages.append("Page content template error:\n");
             renderMessages.append(e.getMessage());
             vc.put("renderMessages", renderMessages.toString());
-            log.error("Failed rendering page template: {} ({})",
-                    e.getMessage(), isAjax ? "ajax" : "html");
+            log.error("Failed rendering page: {}, {} ({})", new String[] {
+                    pageName, e.getMessage(), isAjax ? "ajax" : "html" });
         }
 
         if (!isAjax) {

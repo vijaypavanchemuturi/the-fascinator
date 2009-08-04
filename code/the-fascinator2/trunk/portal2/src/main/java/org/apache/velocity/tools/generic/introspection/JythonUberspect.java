@@ -40,6 +40,7 @@ package org.apache.velocity.tools.generic.introspection;
 
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 
@@ -81,14 +82,14 @@ public class JythonUberspect extends UberspectImpl {
     @Override
     @SuppressWarnings("unchecked")
     public Iterator getIterator(Object obj, Info i) throws Exception {
-        log.info("getIterator: " + obj.getClass().getName());
+        log.debug("getIterator: " + obj.getClass().getName());
         if (obj instanceof PySequence) {
             return new PySequenceIterator((PySequence) obj);
         } else if (obj instanceof PyDictionary) {
             return new PySequenceIterator(((PyDictionary) obj).items());
         } else if (obj instanceof PySingleton) {
             PySingleton ps = (PySingleton) obj;
-            log.info(ps);
+            log.debug(ps);
             return super.getIterator(obj, i);
         } else if (obj instanceof PyJavaInstance) {
             PySequence seq = null;
@@ -96,15 +97,18 @@ public class JythonUberspect extends UberspectImpl {
             if ("java.util.HashMap.Values".equals(pji.instclass.__name__)) {
                 PyJavaInnerClass pjic = (PyJavaInnerClass) pji.instclass;
                 PyJavaClass parent = pjic.parent;
-                log.info("parent=" + parent);
+                log.debug("parent=" + parent);
                 Object casted = parent.__tojava__(Map.class);
-                log.info("casted=" + ((PySingleton) casted).safeRepr());
+                log.debug("casted=" + ((PySingleton) casted).safeRepr());
                 seq = new PyArray(Collection.class, new String[] {});// map.values().toArray());
             } else if ("java.util.HashMap".equals(pji.instclass.__name__)) {
                 Map map = (Map) ((PyObject) obj).__tojava__(Map.class);
                 seq = new PyArray(Collection.class, map.entrySet().toArray());
+            } else if ("java.util.ArrayList".equals(pji.instclass.__name__)) {
+                List list = (List) ((PyObject) obj).__tojava__(List.class);
+                seq = new PyArray(List.class, list.toArray());
             }
-            log.info(pji.instclass.__name__);
+            log.debug(pji.instclass.__name__);
             return new PySequenceIterator(seq);
         } else {
             return super.getIterator(obj, i);
@@ -118,7 +122,7 @@ public class JythonUberspect extends UberspectImpl {
     public VelMethod getMethod(Object obj, String methodName, Object[] args,
             Info i) throws Exception {
         if (obj instanceof PyObject) {
-            return new PyMethod(methodName);
+            return new PyMethod(methodName, i);
         } else {
             return super.getMethod(obj, methodName, args, i);
         }
@@ -131,7 +135,7 @@ public class JythonUberspect extends UberspectImpl {
     public VelPropertyGet getPropertyGet(Object obj, String identifier, Info i)
             throws Exception {
         if (obj instanceof PyObject) {
-            return new PyGetProperty(identifier);
+            return new PyGetProperty(identifier, i);
         } else {
             return super.getPropertyGet(obj, identifier, i);
         }
@@ -159,9 +163,11 @@ class PyMethod implements VelMethod {
     private static final Logger log = Logger.getLogger(JythonUberspect.class
             .getName());
     final PyString methodname;
+    final Info info;
 
-    public PyMethod(String methodname) {
+    public PyMethod(String methodname, Info info) {
         this.methodname = new PyString(methodname);
+        this.info = info;
     }
 
     /**
@@ -177,7 +183,7 @@ class PyMethod implements VelMethod {
      */
     @SuppressWarnings("unchecked")
     public Class getReturnType() {
-        log.error("getReturnType(" + methodname + ")");
+        log.debug("getReturnType(" + methodname + ")");
         return Object.class;
     }
 
@@ -204,9 +210,7 @@ class PyMethod implements VelMethod {
                         pparams[i] = new PyInteger(((Integer) params[i])
                                 .intValue());
                     } else {
-                        System.err.println("unsupported param type "
-                                + params[i].getClass().getName());
-                        log.error("unsupported param type : "
+                        log.debug("unsupported param type : "
                                 + params[i].getClass().getName());
                         return null;
                     }
@@ -217,13 +221,13 @@ class PyMethod implements VelMethod {
                     rtn = null;
                 }
             }
-            log.error(methodname + ": rtn=" + rtn.getClass() + "=" + rtn);
+            log.debug(methodname + ": rtn=" + rtn.getClass() + "=" + rtn);
             if (rtn instanceof PyInteger) {
                 return rtn.asInt(0);
             }
             return rtn;
         } catch (Exception e) {
-            log.error("PyMethod.invoke: " + methodname);
+            log.error("PyMethod.invoke: " + methodname + ", " + info);
         }
 
         return null;
@@ -244,9 +248,11 @@ class PyGetProperty implements VelPropertyGet {
     private static final Logger log = Logger.getLogger(JythonUberspect.class
             .getName());
     private PyString propname;
+    private Info info;
 
-    public PyGetProperty(String propname) {
+    public PyGetProperty(String propname, Info info) {
         this.propname = new PyString(propname);
+        this.info = info;
     }
 
     /**
@@ -263,7 +269,8 @@ class PyGetProperty implements VelPropertyGet {
         Object rtn = invoke(o, propname.toString());
         if (rtn == null) {
             PyMethod pm = new PyMethod("get"
-                    + StringUtils.capitalizeFirstLetter(propname.toString()));
+                    + StringUtils.capitalizeFirstLetter(propname.toString()),
+                    info);
             rtn = pm.invoke(o, new Object[] {});
         }
         return rtn;
@@ -281,9 +288,9 @@ class PyGetProperty implements VelPropertyGet {
                 return rtn;
             }
         } catch (Exception e) {
-            log.error("PyGetProperty.invoke " + propname + "." + attrName);
+            log.error("PyGetProperty.invoke " + propname + "." + attrName
+                    + ", " + info);
         }
-
         return null;
     }
 

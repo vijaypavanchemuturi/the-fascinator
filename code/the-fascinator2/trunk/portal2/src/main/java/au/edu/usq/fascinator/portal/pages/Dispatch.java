@@ -22,6 +22,9 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.tapestry5.StreamResponse;
@@ -60,10 +63,10 @@ public class Dispatch {
     private Response response;
 
     @Persist
-    private FormData formData;
+    private Map<String, FormData> formDataMap;
 
     public StreamResponse onActivate(Object... path) {
-        log.trace("{} {}", request.getMethod(), request.getPath());
+        log.debug("{} {}", request.getMethod(), request.getPath());
 
         // determine resource
         String portalId = sessionState.get("portalId", DEFAULT_PORTAL_ID);
@@ -73,26 +76,40 @@ public class Dispatch {
             resourceName = StringUtils.join(path, "/", 1, path.length);
         }
 
+        boolean isAjax = resourceName.endsWith(".ajax");
+
+        if (formDataMap == null) {
+            formDataMap = Collections
+                    .synchronizedMap(new HashMap<String, FormData>());
+        }
+        log.debug("formDataMap=" + formDataMap);
+
         // save form data for POST requests, since we redirect after POSTs
         if ("POST".equals(request.getMethod())) {
-            formData = new FormData(request);
             try {
-                response.sendRedirect(resourceName);
-                return GenericStreamResponse.noResponse();
+                FormData formData = new FormData(request);
+                formDataMap.put(resourceName, formData);
+                if (isAjax) {
+                    response.setHeader("Cache-Control", "no-cache");
+                    response.setDateHeader("Expires", 0);
+                } else {
+                    response.sendRedirect(resourceName);
+                    return GenericStreamResponse.noResponse();
+                }
             } catch (IOException ioe) {
                 log.warn("Failed to redirect after POST", ioe);
             }
-        }
-
-        if (formData == null) {
-            formData = new FormData();
         }
 
         // render the page or retrieve the resource
         String mimeType;
         InputStream stream;
 
-        if ((resourceName.indexOf(".") == -1) || resourceName.endsWith(".ajax")) {
+        if ((resourceName.indexOf(".") == -1) || isAjax) {
+            FormData formData = formDataMap.get(resourceName);
+            if (formData == null) {
+                formData = new FormData(request);
+            }
             ByteArrayOutputStream out = new ByteArrayOutputStream();
             pageService.render(portalId, resourceName, out, formData,
                     sessionState);
@@ -102,8 +119,6 @@ public class Dispatch {
             mimeType = MimeTypeUtil.getMimeType(resourceName);
             stream = pageService.getResource(portalId, resourceName);
         }
-
-        formData.clear();
 
         return new GenericStreamResponse(mimeType, stream);
     }

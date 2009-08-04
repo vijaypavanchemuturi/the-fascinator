@@ -1,6 +1,7 @@
 #set($pageTitle = 'Search')
-#set($pageHeader = '<link rel="stylesheet" type="text/css" href="jqueryFileTree/jqueryFileTree.css" />
-<script type="text/javascript" src="jqueryFileTree/jqueryFileTree.js"></script>')
+#set($pageHeader = '<link rel="stylesheet" type="text/css" href="js/tree/tree_component.css" />
+    <script type="text/javascript" src="js/tree/lib/css.js"></script>
+    <script type="text/javascript" src="js/tree/tree_component.min.js"></script>')
 
 #set($numFound = $self.result.get("response/numFound"))
 #set($itemList = $self.result.getList("response/docs").toArray())
@@ -9,10 +10,20 @@
 
 <script type="text/javascript">
 $(function() {
-    $("#file_path").fileTree({
-        root: "/some/folder"
+    $("#file_path").tree({
+        data: {
+            async: true,
+            type: "json",
+            url: "search-tree.ajax"
+        },
+        ui: {
+            animation: 250,
+            dots: false
+        }
     });
 });
+
+
 </script>
 <pre class="debug">$self.result.toString()</pre>
 <div id="search-header">
@@ -26,12 +37,12 @@ $(function() {
 <div class="colmask leftmenu" id="search-results">
   <div class="colright">
     <div class="col1wrap">
-      <div class="col1" id="source-panel">
+      <div class="col1" id="result-list">
         <h3>Results</h3>
         <ul>
         #foreach($item in $itemList)
-          #set($id = $item.get("id"))
-          #set($title = "[Untitled]")
+          #set($id = $self.getFileName($item.get("id")))
+          #set($title = $id)
           #set($title = $item.get("dc.title").get(0))
           #set($description = $item.get("dc.description").get(0))
           <li>
@@ -44,15 +55,16 @@ $(function() {
         </ul>
       </div>
     </div>
-    <div class="col2" id="source-list">
+    <div class="col2">
       <h3>Facets</h3>
-      <h4>Path</h4>
-      <div id="file_path"></div>
+      <h4 class="dotted-line">Path</h4>
+      <div id="file_path" class="ui-helper-clearfix"></div>
       #foreach($facetField in $facetFields)
+        <div class="facet-list">
         #set($facetCounts = $self.getFacetCounts($facetField.key))
         #if($facetCounts.size() > 0)
           #if($facetField.key != "file_path")  ## TODO need a better way to test check for hierarchical facets
-            <h4>$self.getFacetName($facetField.key)</h4>
+            <h4 class="dotted-line">$self.getFacetName($facetField.key)</h4>
             <ul>
             #foreach($facetCount in $facetCounts)
               <li>$facetCount.key ($facetCount.value)</li>
@@ -60,6 +72,7 @@ $(function() {
             </ul>
           #end
         #end
+        </div>
       #end
     </div>
   </div>

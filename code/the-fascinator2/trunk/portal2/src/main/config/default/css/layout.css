@@ -11,9 +11,9 @@
 }
 
 .leftmenu .colright {
-    border-left: 1px dotted #1D599B;
+    /*border-left: 1px dotted #1D599B;*/
     float: left;
-    left: 15em;
+    left: 20em;
     position: relative;
     width: 200%;
 }
@@ -22,12 +22,12 @@
     float: right;
     padding-bottom: 1em;
     position: relative;
-    right: 15em;
+    right: 20em;
     width: 50%;
 }
 
 .leftmenu .col1 {
-    margin: 0 1em 0 16em;
+    margin: 0 1em 0 21em;
     overflow: hidden;
     position: relative;
     right: 100%;
@@ -36,6 +36,6 @@
 .leftmenu .col2 {
     float: left;
     position: relative;
-    right: 14em;
-    width: 13em;
+    right: 19em;
+    width: 18em;
 }

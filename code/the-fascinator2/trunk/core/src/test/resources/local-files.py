@@ -29,11 +29,14 @@ else:
     rules.add(AddField("identifier", payloadId))
 
 # path
-parts = object.getId().split("/")
+path = object.getId().replace("\\", "/")
+parts = path.split("/")
 for i in range(1, len(parts)):
     part = "/".join(parts[:i])
     if part != "":
-        rules.add(AddField("file_path", part[1:]))
+        if part.startswith("/"):
+            part = part[1:]
+        rules.add(AddField("file_path", part))
 
 rules.add(AddField("id", solrId))
 rules.add(AddField("last_modified", time.strftime("%Y-%m-%dT%H:%M:%SZ")))

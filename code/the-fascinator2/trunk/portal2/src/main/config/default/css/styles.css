@@ -23,6 +23,10 @@ h3, h4, h5, h6 {
     color: #1D599B;
 }
 
+.dotted-line {
+    border-bottom: 1px dotted #959CA1;
+}
+
 /* debugging */
 #debug-link {
     float: left;
@@ -129,6 +133,15 @@ div.home-portal-list .ui-state-highlight {
     width: 23em;
 }
 
+/* facets */
+.facet-list ul {
+    list-style-image: none;
+    list-style-position: outside;
+    list-style-type: none;
+    margin: 0;
+    padding-left: 0.5em;
+}
+
 /* content page */
 #content-toolbar {
     margin-bottom: 0.5em;
@@ -168,3 +181,8 @@ div.home-portal-list .ui-state-highlight {
     font-size: 0.9em;
 }
 
+/* jsTree overrides */
+.tree {
+    margin-left: -1em;
+    padding-left: 0em;
+}
