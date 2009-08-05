@@ -87,7 +87,7 @@ public class DynamicPageServiceImpl implements DynamicPageService {
             bindings = scriptEngine.createBindings();
 
             // setup velocity engine
-            String portalDir = config.get("portal/homeDir",
+            String portalDir = config.get("portal/home",
                     DEFAULT_PORTAL_HOME_DIR);
             Velocity.setProperty(Velocity.FILE_RESOURCE_LOADER_PATH, portalDir);
             Velocity.setProperty(Log4JLogChute.RUNTIME_LOG_LOG4J_LOGGER,
