@@ -79,15 +79,11 @@ else:
    
 if rdf is not None:
     title = indexNode(rootNode, "dc.title", "/rdf:RDF/rdf:Description/dcterms:title")
-    print "title: 1", title
     if title=="":
         title = indexNode(rootNode, "dc.title", "/rdf:RDF/rdf:Description/dc:title")
-        print "title: 2", title
     if title=="":
         title = indexNode(rootNode, "dc.title", "/rdf:RDF/rdf:Description/j.0:title")
-        print "title: 3", title
     if title:
-        print "title: 4", title
         indexNode(rootNode, "dc.subject", value=title)
 
 if isMetadata:
@@ -139,7 +135,7 @@ if isMetadata:
         if creator: 
             indexNode(rootNode, "dc.author", creator)
         
-        format = indexNode(rootNode, "dc.creator", "/rdf:RDF/rdf:Description/dcterms:format")
+        format = indexNode(rootNode, "dc.format", "/rdf:RDF/rdf:Description/dcterms:format")
         if format=="":
             format = indexNode(rootNode, "dc.format", "/rdf:RDF/rdf:Description/j.0:mimeType")
         
