@@ -22,7 +22,7 @@
         }
     },
     "portal": {
-        "home": "src/main/config",
+        "home": "src/main/config/portal",
         "contentDir": "${user.home}/.fascinator/content",
         "default": "default",
         "layout": "layout"
