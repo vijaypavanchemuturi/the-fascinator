@@ -181,6 +181,7 @@
 
     <field name="id" type="string" indexed="true" stored="true" required="true" />
     <field name="last_modified" type="date" indexed="true" stored="true" />
+    <field name="file_path" type="string" indexed="true" stored="true" multiValued="true" />
     <field name="fulltext" type="text" indexed="true" stored="false" multiValued="true" />
 
     <!--
