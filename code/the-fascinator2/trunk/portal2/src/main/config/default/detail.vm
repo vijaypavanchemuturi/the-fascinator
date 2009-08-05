@@ -10,7 +10,7 @@ $(function() {
   #foreach($payload in $item.payloadList)
     #set($oid = $page.encodeURL($item.id))
     #set($pid = $page.encodeURL($payload.id))
-    <li><a href="download/$oid/$pid">$payload.id</a> ($payload.contentType)</li>
+    <li><a href="download/$oid/$pid" target="blank">$payload.id</a> ($payload.contentType)</li>
   #end
   </ul>
 </div>

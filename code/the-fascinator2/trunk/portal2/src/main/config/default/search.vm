@@ -20,6 +20,9 @@ $(function() {
             type: "json",
             url: "search-tree.ajax"
         },
+        cookies: {
+            prefix: "TFSearchTree"
+        },
         ui: {
             animation: 250,
             dots: false

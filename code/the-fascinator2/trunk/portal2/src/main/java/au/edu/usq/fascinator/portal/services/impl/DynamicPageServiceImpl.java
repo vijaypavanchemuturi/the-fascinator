@@ -179,42 +179,44 @@ public class DynamicPageServiceImpl implements DynamicPageService {
         }
         bindings.put("self", pageObject);
 
-        // set up the velocity context
-        VelocityContext vc = new VelocityContext();
-        for (String key : bindings.keySet()) {
-            vc.put(key, bindings.get(key));
-        }
-        if (renderMessages.length() > 0) {
-            vc.put("renderMessages", renderMessages.toString());
-        }
-
-        try {
-            // render the page content
-            StringWriter pageContentWriter = new StringWriter();
-            Template pageContent = getTemplate(portalId, pageName);
-            pageContent.merge(vc, pageContentWriter);
-            if (isAjax) {
-                out.write(pageContentWriter.toString().getBytes());
-            } else {
-                vc.put("pageContent", pageContentWriter.toString());
+        if (resourceExists(portalId, pageName + ".vm")) {
+            // set up the velocity context
+            VelocityContext vc = new VelocityContext();
+            for (String key : bindings.keySet()) {
+                vc.put(key, bindings.get(key));
             }
-        } catch (Exception e) {
-            renderMessages.append("Page content template error:\n");
-            renderMessages.append(e.getMessage());
-            vc.put("renderMessages", renderMessages.toString());
-            log.error("Failed rendering page: {}, {} ({})", new String[] {
-                    pageName, e.getMessage(), isAjax ? "ajax" : "html" });
-        }
+            if (renderMessages.length() > 0) {
+                vc.put("renderMessages", renderMessages.toString());
+            }
 
-        if (!isAjax) {
             try {
-                // render the page using the layout template
-                Template page = getTemplate(portalId, layoutName);
-                Writer pageWriter = new OutputStreamWriter(out, "UTF-8");
-                page.merge(vc, pageWriter);
-                pageWriter.close();
+                // render the page content
+                StringWriter pageContentWriter = new StringWriter();
+                Template pageContent = getTemplate(portalId, pageName);
+                pageContent.merge(vc, pageContentWriter);
+                if (isAjax) {
+                    out.write(pageContentWriter.toString().getBytes());
+                } else {
+                    vc.put("pageContent", pageContentWriter.toString());
+                }
             } catch (Exception e) {
-                throw new RuntimeException(e);
+                renderMessages.append("Page content template error:\n");
+                renderMessages.append(e.getMessage());
+                vc.put("renderMessages", renderMessages.toString());
+                log.error("Failed rendering page: {}, {} ({})", new String[] {
+                        pageName, e.getMessage(), isAjax ? "ajax" : "html" });
+            }
+
+            if (!isAjax) {
+                try {
+                    // render the page using the layout template
+                    Template page = getTemplate(portalId, layoutName);
+                    Writer pageWriter = new OutputStreamWriter(out, "UTF-8");
+                    page.merge(vc, pageWriter);
+                    pageWriter.close();
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
             }
         }
     }
