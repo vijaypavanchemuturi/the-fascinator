@@ -19,6 +19,8 @@
 package au.edu.usq.fascinator.transformer.aperture;
 
 import org.semanticdesktop.aperture.rdf.RDFContainer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import au.edu.usq.fascinator.api.storage.DigitalObject;
 import au.edu.usq.fascinator.api.storage.Payload;
@@ -32,7 +34,9 @@ import au.edu.usq.fascinator.common.storage.impl.GenericDigitalObject;
  */
 public class RdfDigitalObject extends GenericDigitalObject {
 
+    private Logger log = LoggerFactory.getLogger(RdfDigitalObject.class);
     private RdfPayload rdfPayload;
+    private DcPayload dcPayload;
 
     /**
      * RdfDigitalObject constructor
@@ -42,6 +46,8 @@ public class RdfDigitalObject extends GenericDigitalObject {
      */
     public RdfDigitalObject(DigitalObject object, RDFContainer rdf) {
         super(object.getId());
+        dcPayload = new DcPayload(object.getId(), rdf);
+        addPayload(dcPayload);
         rdfPayload = new RdfPayload(rdf);
         addPayload(rdfPayload);
         for (Payload payload : object.getPayloadList()) {
@@ -54,7 +60,8 @@ public class RdfDigitalObject extends GenericDigitalObject {
      */
     @Override
     public Payload getMetadata() {
-        return rdfPayload;
+        return dcPayload;
+        // return rdfPayload;
     }
 
 }

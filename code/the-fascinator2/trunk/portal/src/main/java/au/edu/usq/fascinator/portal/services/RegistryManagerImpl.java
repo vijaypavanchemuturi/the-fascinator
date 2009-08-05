@@ -19,7 +19,7 @@ import au.edu.usq.fascinator.api.storage.Payload;
 import au.edu.usq.fascinator.api.storage.Storage;
 import au.edu.usq.fascinator.api.storage.StorageException;
 import au.edu.usq.fascinator.common.JsonConfig;
-import au.edu.usq.fascinator.model.Rdf;
+import au.edu.usq.fascinator.model.DCRdf;
 
 public class RegistryManagerImpl implements RegistryManager {
     private static Logger log = LoggerFactory
@@ -31,7 +31,7 @@ public class RegistryManagerImpl implements RegistryManager {
 
     private SAXReader saxReader;
 
-    private Rdf rdf;
+    private DCRdf dcRdf;
 
     public RegistryManagerImpl(Resource configuration) {
         // Properties props = new Properties();
@@ -71,29 +71,21 @@ public class RegistryManagerImpl implements RegistryManager {
     }
 
     @Override
-    public Rdf getRdf(String id) {
-        InputStream is = getXmlData(id);
+    public Object getMetadata(String id, String metaType) {
+        InputStream is = getXmlData(id, metaType);
         if (is != null) {
-            try {
-                // JAXBContext jc = JAXBContext.newInstance(Rdf.class);
-                // Unmarshaller um = jc.createUnmarshaller();
-                rdf = new Rdf(is);
-                return rdf;
-                // return (Rdf) um.unmarshal(is);
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
+            return new DCRdf(is);
         }
         return null;
     }
 
-    public InputStream getXmlData(String id) {
+    public InputStream getXmlData(String id, String payloadId) {
         DigitalObject object = storagePlugin.getObject(id);
-        Payload rdfPayload = object.getPayload("rdf"); // getMetadata()
+        Payload metaPayload = object.getPayload(payloadId); // getMetadata()
         try {
-            if (rdfPayload != null) {
-                if (rdfPayload.getInputStream() != null) {
-                    return rdfPayload.getInputStream();
+            if (metaPayload != null) {
+                if (metaPayload.getInputStream() != null) {
+                    return metaPayload.getInputStream();
                 }
             }
         } catch (UnsupportedEncodingException uee) {

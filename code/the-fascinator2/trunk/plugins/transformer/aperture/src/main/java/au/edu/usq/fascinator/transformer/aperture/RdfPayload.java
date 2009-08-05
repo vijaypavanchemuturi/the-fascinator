@@ -24,9 +24,11 @@ import java.io.InputStream;
 
 import org.ontoware.rdf2go.model.Syntax;
 import org.semanticdesktop.aperture.rdf.RDFContainer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import au.edu.usq.fascinator.api.storage.Payload;
 import au.edu.usq.fascinator.api.storage.PayloadType;
+import au.edu.usq.fascinator.common.storage.impl.GenericPayload;
 
 /**
  * RdfPayload class to store the rdf xml returned by Aperture
@@ -34,7 +36,9 @@ import au.edu.usq.fascinator.api.storage.PayloadType;
  * @author Linda Octalina
  * @author Oliver Lucido
  */
-public class RdfPayload implements Payload {
+public class RdfPayload extends GenericPayload {
+
+    private static Logger log = LoggerFactory.getLogger(RdfPayload.class);
 
     private RDFContainer rdf;
 
@@ -45,26 +49,10 @@ public class RdfPayload implements Payload {
      */
     public RdfPayload(RDFContainer rdf) {
         this.rdf = rdf;
-    }
-
-    /**
-     * getContentType method
-     * 
-     * @return metadata type
-     */
-    @Override
-    public String getContentType() {
-        return "application/xml+rdf";
-    }
-
-    /**
-     * getId method
-     * 
-     * @return metadata id
-     */
-    @Override
-    public String getId() {
-        return "rdf";
+        setId("rdf");
+        setLabel("Aperture rdf");
+        setContentType("application/xml+rdf");
+        setType(PayloadType.Enrichment);
     }
 
     /**
@@ -74,27 +62,28 @@ public class RdfPayload implements Payload {
      */
     @Override
     public InputStream getInputStream() throws IOException {
-        return new ByteArrayInputStream(rdf.getModel().serialize(Syntax.RdfXml)
-                .getBytes());
+        return new ByteArrayInputStream(stripNonValidXMLCharacters().getBytes());
     }
 
-    /**
-     * getLabel method
-     * 
-     * @return metadata label
-     */
-    @Override
-    public String getLabel() {
-        return "RDF metadata";
-    }
+    public String stripNonValidXMLCharacters() {
+        String rdfString = rdf.getModel().serialize(Syntax.RdfXml).toString();
 
-    /**
-     * getType method
-     * 
-     * @return payload type
-     */
-    @Override
-    public PayloadType getType() {
-        return PayloadType.Annotation;
+        StringBuffer out = new StringBuffer(); // Used to hold the output.
+        char current; // Used to reference the current character.
+
+        if (rdfString == null || ("".equals(rdfString))) {
+            return "";
+        }
+        for (int i = 0; i < rdfString.length(); i++) {
+            current = rdfString.charAt(i);
+            if ((current == 0x9) || (current == 0xA) || (current == 0xD)
+                    || ((current >= 0x20) && (current <= 0xD7FF))
+                    || ((current >= 0xE000) && (current <= 0xFFFD))
+                    || ((current >= 0x10000) && (current <= 0x10FFFF))) {
+                out.append(current);
+            }
+        }
+
+        return out.toString();
     }
 }

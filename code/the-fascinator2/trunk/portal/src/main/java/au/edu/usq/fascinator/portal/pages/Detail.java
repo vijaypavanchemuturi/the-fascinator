@@ -45,7 +45,6 @@ import au.edu.usq.fascinator.api.storage.Payload;
 import au.edu.usq.fascinator.common.JsonConfig;
 import au.edu.usq.fascinator.model.Facet;
 import au.edu.usq.fascinator.model.FacetList;
-import au.edu.usq.fascinator.model.Rdf;
 import au.edu.usq.fascinator.model.Response;
 import au.edu.usq.fascinator.model.types.DocumentType;
 import au.edu.usq.fascinator.model.types.ResultType;
@@ -78,7 +77,8 @@ public class Detail {
 
     private String uuid;
 
-    private Rdf item;
+    // private Rdf item;
+    private Object item;
 
     private String portalName;
 
@@ -247,7 +247,8 @@ public class Detail {
         return urlEncode.encode(getUuid()); // Use tapestry encoding
     }
 
-    public Rdf getMetadata(String dsId) {
+    // public Rdf getMetadata(String dsId) {
+    public Object getMetadata(String dsId, String metaType) {
         setUuid(dsId);
         JsonConfig config;
         try {
@@ -255,9 +256,8 @@ public class Detail {
             File systemFile = config.getSystemFile();
             registryManager.getClient(systemFile);
 
-            item = registryManager.getRdf(dsId);
-            // return registryManager.getXmlDatastream(dsId);
-            return item;
+            return registryManager.getMetadata(dsId, metaType);
+
         } catch (IOException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
@@ -308,6 +308,28 @@ public class Detail {
         }
         return "";
     }
+
+    // public String getFilePath() {
+    // File sourceFile = new File(uuid);
+    // if (sourceFile.exists()) {
+    // return sourceFile.getName();
+    // }
+    // return "";
+    // }
+
+    // public String getImageLink() {
+    // File sourceFile = new File(uuid);
+    // log.info("sourceFile: " + sourceFile.getAbsolutePath());
+    // log.info("sourceFile exist: " + sourceFile.exists());
+    //
+    // String html = "";
+    // if (sourceFile.exists()) {
+    // html = "<div class='body'><img src='" + getEncodedUuid() + "/"
+    // + urlEncoder(sourceFile.getName()) + "' alt='"
+    // + sourceFile.getName() + "'/></div>";
+    // }
+    // return html;
+    // }
 
     public String getPayloadType(Payload payload) {
         return payload.getType().toString();

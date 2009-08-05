@@ -363,12 +363,13 @@ public class ApertureTransformer implements Transformer {
         // Get the Object id
         File inFile = new File(in.getId());
         try {
-            log.info("Before exraction: " + inFile.getAbsolutePath());
-            RDFContainer rdf = extractRDF(inFile); // Never write to file
-            log.info("Done extraction: " + rdf.getClass());
-            if (rdf != null) {
-                RdfDigitalObject rdo = new RdfDigitalObject(in, rdf);
-                return rdo;
+            if (inFile.exists()) {
+                RDFContainer rdf = extractRDF(inFile); // Never write to file
+                log.info("Done extraction: " + rdf.getClass());
+                if (rdf != null) {
+                    RdfDigitalObject rdo = new RdfDigitalObject(in, rdf);
+                    return rdo;
+                }
             }
         } catch (IOException e) {
             // TODO Auto-generated catch block

@@ -1,4 +1,5 @@
 <!-- BEGIN search-detail.vm -->
+<script type="text/javascript" src="$locator.getLocation('mediaplayer/swfobject.js')"></script>
 <div class="search">
   <p>
     #set($backlink = $page.referer)
@@ -10,7 +11,7 @@
   </p>
   <h1>Details</h1>
   #if($page.viewable)
-    #set($rdfMeta = $page.getMetadata($page.uuid))
+    #set($rdfMeta = $page.getMetadata($page.uuid, "dc-rdf"))
     #parse($locator.getLocation('search-detail-datastreams.vm'))
     <div class="search-results">
       <h2>$rdfMeta.title</h2>
@@ -20,8 +21,13 @@
 ##      #else
 ##        <p>No description</p>
 ##      #end
-      #if($rdfMeta.initialCreator!="")
-        <p><strong>Initial Creator: </strong>$rdfMeta.initialCreator</p>
+	  #if($rdfMeta.format!="")
+        <p><strong>Format: </strong>$rdfMeta.format</p>
+      #else
+        <p></p>
+      #end
+      #if($rdfMeta.creator!="")
+        <p><strong>Creator: </strong>$rdfMeta.creator</p>
       #else
         <p></p>
       #end
@@ -36,31 +42,92 @@
         <p></p>
       #end
       
-      Getting embed slide: $page.embedSlide
+      #if($rdfMeta.format.startsWith("image") || ($rdfMeta.label.endsWith(".pdf")))
+      	<img src="$page.encodedUuid/$rdfMeta.label"></img>
+      #elseif ($rdfMeta.format.contains("vnd.ms-") || $rdfMeta.format.contains("vnd.oasis.opendocument."))
+        ##vnd.ms- or application/vnd.oasis.opendocument.
+      	Content: $page.embedSlide
+      #elseif ($rdfMeta.format.contains("audio") || ($rdfMeta.lable.endsWith(".flv")))
+        <div id="content"></content>
+        ## http://www.longtailvideo.com/support/forum/Setup-Problems/13084/My-player-does-not-play --> does not support wav
+      	##audio/mpeg(mp3) audio/x-wav .wav
+      	<script type="text/javascript">
+      		  var s1 = new SWFObject("$locator.getLocation('mediaplayer/player.swf')","ply","328","20","9","#FFFFFF");
+              s1.addParam("allowfullscreen","false");
+              s1.addParam("allowscriptaccess","always");
+              s1.addParam("flashvars","file=${contextPath}detail/$page.state.portalName/$page.encodedUuid/$rdfMeta.label&type=sound");
+              s1.write("content");
+      	</script>
+      #elseif ($rdfMeta.format.contains("video") || $rdfMeta.label.endsWith(".mp4"))
+      		##video mp4
+      		<div id="content"></content>
+            <script type="text/javascript">
+              var s1 = new SWFObject("$locator.getLocation('mediaplayer/player.swf')","ply","400","300","9","#FFFFFF");
+              s1.addParam("allowfullscreen","false");
+              s1.addParam("allowscriptaccess","always");
+              s1.addParam("flashvars","&file=${contextPath}detail/$page.state.portalName/$page.encodedUuid/$rdfMeta.label&type=video");
+              s1.write("content");
+        	</script>
+      #elseif ($rdfMeta.label.endsWith(".m3u"))
+      		##NOTE this won't work if the list of music in m3u file is not exists
+      		<div id="content"></content>
+            <script type="text/javascript">
+              var s1 = new SWFObject("$locator.getLocation('mediaplayer/player.swf')","ply","328","20","9","#FFFFFF");
+              s1.addParam("allowfullscreen","false");
+              s1.addParam("allowscriptaccess","always");
+              s1.addParam("type", "sound");
+              s1.addVariable('autostart', 'false');
+              s1.addParam("file","${contextPath}detail/$page.state.portalName/$page.encodedUuid/$rdfMeta.label.substring(0, $rdfMeta.label.indexOf("."))");
+              s1.write("content");
+        	</script>
+      		
+      #end
+      
+      ##<object codebase="http://www.apple.com/qtactivex/qtplugin.cab" 
+      ##  classid="clsid:02BF25D5-8C17-4B23-BC80-D3488ABDDC6B"> 
+      ##  <param name="src" value="sample.mov"> 
+      ##  <embed src="sample.mov" 
+      ##      pluginspage="http://www.apple.com/quicktime/download/"></embed> 
+      ##</object> 
+      
+      ##<object codebase="http://www.apple.com/qtactivex/qtplugin.cab" 
+      ##  classid="clsid:6BF52A52-394A-11d3-B153-00C04F79FAA6" 
+      ##  type="application/x-oleobject"> 
+      ##  <param name="url" value="sample.wma"> 
+      ##  <embed src="sample.wma" 
+      ##      type="application/x-mplayer2" 
+      ##      pluginspage="http://www.microsoft.com/Windows/MediaPlayer/"></embed> 
+      ##</object> 
       
       
-      <div class="item">
-        #macro(fieldlink $value)
-          #if($value.startsWith("http://"))
-            <a href="$value">$value</a>
-          #else
-            $value
-          #end
-        #end
-        <dl>
-          #foreach($name in $dc.fields.keySet())
-            <dt>$name</dt>
-            #set($values = $dc.fields.get($name))
-            #if($values.size() > 1)
-              #foreach($value in $values)
-                <dd>#fieldlink($value)</dd>
-              #end
-            #else
-              <dd>#fieldlink($values.get(0))</dd>
-            #end
-          #end
-        </dl>
-      </div>
+      
+      ##application/pdf
+      ##application/x-winamp-playlist  m3u
+      ##sfk --> aperture does not recognize
+      
+      
+##      <div class="item">
+##        #macro(fieldlink $value)
+##          #if($value.startsWith("http://"))
+##            <a href="$value">$value</a>
+##          #else
+##            $value
+##          #end
+##        #end
+##        <dl>
+##          #foreach($name in $dc.fields.keySet())
+##            <dt>$name</dt>
+##            #set($values = $dc.fields.get($name))
+##            #if($values.size() > 1)
+##              #foreach($value in $values)
+##                <dd>#fieldlink($value)</dd>
+##              #end
+##            #else
+##              <dd>#fieldlink($values.get(0))</dd>
+##            #end
+##          #end
+##        </dl>
+##      </div>
     </div>
   #else
     <p>You do not have permission to view this item.</p>

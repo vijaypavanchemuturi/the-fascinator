@@ -27,17 +27,18 @@ import java.net.URISyntaxException;
 
 import junit.framework.Assert;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import au.edu.usq.fascinator.api.storage.DigitalObject;
 import au.edu.usq.fascinator.api.transformer.TransformerException;
 import au.edu.usq.fascinator.common.storage.impl.GenericDigitalObject;
-import au.edu.usq.fascinator.transformer.aperture.ApertureTransformer;
 
 /**
  * @author Linda Octalina
  * 
  */
+@Ignore
 public class ExtractorTest {
     private ApertureTransformer ex = new ApertureTransformer("/tmp");
 

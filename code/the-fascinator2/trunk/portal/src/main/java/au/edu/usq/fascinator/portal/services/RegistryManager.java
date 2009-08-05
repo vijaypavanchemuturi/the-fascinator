@@ -6,7 +6,6 @@ import java.util.List;
 import org.dom4j.Document;
 
 import au.edu.usq.fascinator.api.storage.Payload;
-import au.edu.usq.fascinator.model.Rdf;
 
 public interface RegistryManager {
     // uuid used for fedora....
@@ -17,7 +16,7 @@ public interface RegistryManager {
 
     public List<Payload> getPayloadList(String id);
 
-    public Rdf getRdf(String id);
+    public Object getMetadata(String id, String metaType);
 
     public void getClient(File jsonFile);
 }

@@ -247,16 +247,18 @@ public class IceTransformer implements Transformer {
     public DigitalObject transform(DigitalObject in)
             throws TransformerException {
         File inFile = new File(in.getId());
-        String result = getRendition(inFile);
-        if (!result.startsWith("Error")) {
-            // Check if the file is a zip file or error returned from ice
-            if (validZipFile(result) == true) {
-                IceDigitalObject iceObject = new IceDigitalObject(in, result);
-                return iceObject;
-            }
-            File resultFile = new File(result);
-            if (resultFile.exists()) {
-                resultFile.delete();
+        if (inFile.exists()) {
+            String result = getRendition(inFile);
+            if (!result.startsWith("Error")) {
+                // Check if the file is a zip file or error returned from ice
+                if (validZipFile(result) == true) {
+                    IceDigitalObject iceObject = new IceDigitalObject(in, result);
+                    return iceObject;
+                }
+                File resultFile = new File(result);
+                if (resultFile.exists()) {
+                    resultFile.delete();
+                }
             }
         }
         return in;

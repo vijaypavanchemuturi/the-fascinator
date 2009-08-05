@@ -1,8 +1,10 @@
 package au.edu.usq.fascinator.model;
 
+import java.io.File;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -15,8 +17,8 @@ import org.dom4j.io.SAXReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class Rdf {
-    private Logger log = LoggerFactory.getLogger(Rdf.class);
+public class DCRdf {
+    private Logger log = LoggerFactory.getLogger(DCRdf.class);
 
     private String RDFns = "http://www.w3.org/1999/02/22-rdf-syntax-ns#";
     private String DCns = "http://purl.org/dc/elements/1.1/";
@@ -24,21 +26,14 @@ public class Rdf {
     private String J1ns = "http://www.semanticdesktop.org/ontologies/2007/03/22/nco#";
     private String J2ns = "http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#";
     private String FOAFns = "http://xmlns.com/foaf/0.1/";
+    private String DCterms = "http://purl.org/dc/terms/";
 
     private Document document;
     private SAXReader saxReader;
 
-    private String title;
-    private String mimeType;
-    private String filePath;
-    private String dcDate;
-    private String pageCount;
-    private String generator;
-    private String initialCreator;
-
     private Map<String, String> namespaces;
 
-    public Rdf(InputStream is) {
+    public DCRdf(InputStream is) {
         try {
             settingUpNamespace();
             saxReader = new SAXReader();
@@ -53,15 +48,41 @@ public class Rdf {
     }
 
     public String getTitle() {
-        String title = getNodeValue("./rdf:RDF/rdf:Description/dc:title");
+        String title = getNodeValue("./rdf:RDF/rdf:Description/dcterms:title");
         if (title == "") {
-            title = getNodeValue("./rdf:RDF/rdf:Description/*[local-name()='title']");
+            title = getNodeValue("./rdf:RDF/rdf:Description/dc:title");
+        }
+        if (title == "") {
+            return getNodeValue("./rdf:RDF/rdf:Description/*[local-name()='title']");
         }
         return title;
     }
 
-    public String getMimeType() {
-        return getNodeValue("./rdf:RDF/rdf:Description/*[local-name()='mimeType']");
+    public String getFormat() {
+        String format = getNodeValue("./rdf:RDF/rdf:Description/dcterms:format");
+        if (format == "") {
+            return getNodeValue("./rdf:RDF/rdf:Description/*[local-name()='mimeType']");
+        }
+        return format;
+    }
+
+    public String getDcDate() {
+        String date = getNodeValue("./rdf:RDF/rdf:Description/dcterms:date");
+        if (date == "") {
+            return getNodeValue("./rdf:RDF/rdf:Description/dc:date");
+        }
+        return date;
+    }
+
+    public String getCreator() {
+        String creator = getNodeValue("./rdf:RDF/rdf:Description/dcterms:creator");
+        if (creator == "") {
+            creator = getNodeValue("./rdf:RDF/rdf:Description/dc:creator");
+        }
+        if (creator == "") {
+            return getNodeValue("./rdf:RDF/rdf:Description/*[local-name()='initial-creator']");
+        }
+        return creator;
     }
 
     public String getFilePath() {
@@ -74,8 +95,24 @@ public class Rdf {
         return "";
     }
 
-    public String getDcDate() {
-        return getNodeValue("./rdf:RDF/rdf:Description/dc:date");
+    public String getLabel() {
+        String filePath = getFilePath();
+
+        if (filePath.startsWith("file:")) {
+            filePath = filePath.substring(5);
+            try {
+                filePath = URLDecoder.decode(filePath, "UTF-8");
+            } catch (UnsupportedEncodingException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+        }
+
+        File sourceFile = new File(filePath);
+        if (sourceFile.exists()) {
+            return sourceFile.getName();
+        }
+        return "";
     }
 
     public String getPageCount() {
@@ -84,10 +121,6 @@ public class Rdf {
 
     public String getGenerator() {
         return getNodeValue("./rdf:RDF/rdf:Description/*[local-name()='generator']");
-    }
-
-    public String getInitialCreator() {
-        return getNodeValue("./rdf:RDF/rdf:Description/*[local-name()='initial-creator']");
     }
 
     private String getNodeValue(String xPath) {
@@ -106,6 +139,7 @@ public class Rdf {
         registerNamespace("j.1", J1ns);
         registerNamespace("j.2", J2ns);
         registerNamespace("foaf", FOAFns);
+        registerNamespace("dcterms", DCterms);
         DocumentFactory.getInstance().setXPathNamespaceURIs(namespaces);
     }
 
