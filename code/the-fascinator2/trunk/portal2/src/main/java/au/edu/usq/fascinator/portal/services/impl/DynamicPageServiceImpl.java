@@ -18,6 +18,7 @@
  */
 package au.edu.usq.fascinator.portal.services.impl;
 
+import java.io.File;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
@@ -47,11 +48,10 @@ import au.edu.usq.fascinator.common.JsonConfig;
 import au.edu.usq.fascinator.portal.FormData;
 import au.edu.usq.fascinator.portal.JsonSessionState;
 import au.edu.usq.fascinator.portal.services.DynamicPageService;
+import au.edu.usq.fascinator.portal.services.PortalManager;
 import au.edu.usq.fascinator.portal.services.ScriptingServices;
 
 public class DynamicPageServiceImpl implements DynamicPageService {
-
-    private static final String DEFAULT_PORTAL_HOME_DIR = "/opt/the-fascinator/config";
 
     private static final String DEFAULT_LAYOUT_TEMPLATE = "layout";
 
@@ -87,9 +87,13 @@ public class DynamicPageServiceImpl implements DynamicPageService {
             bindings = scriptEngine.createBindings();
 
             // setup velocity engine
-            String portalDir = config.get("portal/home",
-                    DEFAULT_PORTAL_HOME_DIR);
-            Velocity.setProperty(Velocity.FILE_RESOURCE_LOADER_PATH, portalDir);
+            String home = config.get("portal/home",
+                    PortalManager.DEFAULT_PORTAL_HOME_DIR);
+            File homeDir = new File(home);
+            if (!homeDir.exists()) {
+                home = PortalManager.DEFAULT_PORTAL_HOME_DIR_DEV;
+            }
+            Velocity.setProperty(Velocity.FILE_RESOURCE_LOADER_PATH, home);
             Velocity.setProperty(Log4JLogChute.RUNTIME_LOG_LOG4J_LOGGER,
                     Velocity.class.getName());
             Velocity.setProperty(Velocity.RUNTIME_LOG_LOGSYSTEM_CLASS,

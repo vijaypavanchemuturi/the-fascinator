@@ -56,7 +56,12 @@ public class PortalManagerImpl implements PortalManager {
     public PortalManagerImpl() {
         try {
             JsonConfig config = new JsonConfig();
-            init(config.get("portal/home", "src/main/config"));
+            String home = config.get("portal/home", DEFAULT_PORTAL_HOME_DIR);
+            File homeDir = new File(home);
+            if (!homeDir.exists()) {
+                home = DEFAULT_PORTAL_HOME_DIR_DEV;
+            }
+            init(home);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

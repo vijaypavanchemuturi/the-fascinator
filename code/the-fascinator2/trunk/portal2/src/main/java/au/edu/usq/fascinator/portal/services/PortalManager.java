@@ -26,6 +26,10 @@ public interface PortalManager {
 
     public static final String DEFAULT_PORTAL_NAME = "default";
 
+    public static final String DEFAULT_PORTAL_HOME_DIR = "/opt/the-fascinator/config/portal";
+
+    public static final String DEFAULT_PORTAL_HOME_DIR_DEV = "src/main/config/portal";
+
     public Map<String, Portal> getPortals();
 
     public Portal getDefault();
