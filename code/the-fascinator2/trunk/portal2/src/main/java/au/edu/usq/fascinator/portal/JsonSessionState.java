@@ -27,9 +27,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import au.edu.usq.fascinator.common.JsonConfig;
-import au.edu.usq.fascinator.common.JsonConfigHelper;
 
-public class JsonSessionState extends JsonConfigHelper {
+public class JsonSessionState extends HashMap<String, Object> {
 
     private Logger log = LoggerFactory.getLogger(JsonSessionState.class);
 
@@ -41,33 +40,32 @@ public class JsonSessionState extends JsonConfigHelper {
 
     public JsonSessionState() {
         created = new Date();
-        objects = new HashMap<String, Object>();
         try {
             config = new JsonConfig();
         } catch (IOException ioe) {
             log.warn("Failed to load system config: {}", ioe.getMessage());
         }
+        objects = new HashMap<String, Object>();
     }
 
-    public void setObject(String name, Object object) {
-        objects.put(name, object);
-    }
-
-    public Object getObject(String name) {
-        return objects.get(name);
+    public JsonConfig getSystemConfig() {
+        return config;
     }
 
     public Date getCreated() {
         return created;
     }
 
-    @Override
-    public String toString() {
-        StringBuffer objs = new StringBuffer();
-        for (String key : objects.keySet()) {
-            Object obj = objects.get(key);
-            objs.append(key + ": " + obj.toString());
-        }
-        return super.toString() + "\nobjects: {\n" + objs.toString() + "\n}\n";
+    public Object get(String name) {
+        return get(name, null);
+    }
+
+    public Object get(String name, Object defaultValue) {
+        Object value = objects.get(name);
+        return value == null ? defaultValue : value;
+    }
+
+    public void set(String name, Object object) {
+        objects.put(name, object);
     }
 }

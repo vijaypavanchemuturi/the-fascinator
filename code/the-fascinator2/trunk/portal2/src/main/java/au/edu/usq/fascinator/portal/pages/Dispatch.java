@@ -71,7 +71,8 @@ public class Dispatch {
         log.debug("{} {}", request.getMethod(), request.getPath());
 
         // determine resource
-        String portalId = sessionState.get("portalId", DEFAULT_PORTAL_ID);
+        String portalId = (String) sessionState.get("portalId",
+                DEFAULT_PORTAL_ID);
         String resourceName = DEFAULT_RESOURCE;
 
         String requestUri = request.getAttribute("RequestURI").toString();
