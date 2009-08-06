@@ -21,7 +21,7 @@ class SearchData:
 
         # setup facets
         action = formData.get("action")
-        currentfq = sessionState.getObject("fq")
+        currentfq = sessionState.get("fq")
         if currentfq is not None:
             req.setParam("fq", currentfq)
         if action == "add_fq":
@@ -32,7 +32,7 @@ class SearchData:
             pass
         elif action == "clear_fq":
             req.setParam("fq", "")
-        sessionState.setObject("fq", req.getParam("fq"))
+        sessionState.set("fq", req.getParam("fq"))
         req.addParam("fq", 'item_type:"object"')
 
         req.setParam("facet", ["true"])
