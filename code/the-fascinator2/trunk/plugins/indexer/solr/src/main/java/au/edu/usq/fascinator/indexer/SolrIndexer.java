@@ -92,6 +92,9 @@ public class SolrIndexer implements Indexer {
 
     private Map<String, String> namespaces;
 
+    private String username;
+    private String password;
+
     public String getId() {
         return "solr";
     }
@@ -118,8 +121,8 @@ public class SolrIndexer implements Indexer {
         try {
             URI solrUri = new URI(config.get("indexer/solr/uri"));
             solr = new CommonsHttpSolrServer(solrUri.toURL());
-            String username = config.get("indexer/solr/username");
-            String password = config.get("indexer/solr/password");
+            username = config.get("indexer/solr/username");
+            password = config.get("indexer/solr/password");
             if (username != null && password != null) {
                 UsernamePasswordCredentials credentials = new UsernamePasswordCredentials(
                         username, password);
@@ -154,6 +157,9 @@ public class SolrIndexer implements Indexer {
     public void search(SearchRequest request, OutputStream response)
             throws IndexerException {
         SolrSearcher searcher = new SolrSearcher(solr.getBaseURL());
+        if (username != null && password != null) {
+            searcher.authenticate(username, password);
+        }
         InputStream result;
         try {
             StringBuilder extras = new StringBuilder();
