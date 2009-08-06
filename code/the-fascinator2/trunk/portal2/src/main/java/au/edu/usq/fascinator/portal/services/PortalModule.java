@@ -20,14 +20,17 @@ package au.edu.usq.fascinator.portal.services;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.apache.tapestry5.ioc.Configuration;
 import org.apache.tapestry5.ioc.MappedConfiguration;
 import org.apache.tapestry5.ioc.OrderedConfiguration;
 import org.apache.tapestry5.ioc.ServiceBinder;
 import org.apache.tapestry5.ioc.annotations.Inject;
+import org.apache.tapestry5.services.AliasContribution;
 import org.apache.tapestry5.services.ApplicationStateContribution;
 import org.apache.tapestry5.services.ApplicationStateCreator;
 import org.apache.tapestry5.services.Request;
 import org.apache.tapestry5.services.RequestGlobals;
+import org.apache.tapestry5.services.URLEncoder;
 import org.apache.tapestry5.urlrewriter.RewriteRuleApplicability;
 import org.apache.tapestry5.urlrewriter.SimpleRequestWrapper;
 import org.apache.tapestry5.urlrewriter.URLRewriteContext;
@@ -97,9 +100,16 @@ public class PortalModule {
         configuration.add(JsonSessionState.class, contribution);
     }
 
+    public static void contributeAlias(
+            Configuration<AliasContribution<URLEncoder>> configuration) {
+        configuration.add(AliasContribution.create(URLEncoder.class,
+                new NullURLEncoderImpl()));
+    }
+
     public static void contributeURLRewriter(
             OrderedConfiguration<URLRewriterRule> configuration,
-            @Inject final RequestGlobals requestGlobals) {
+            @Inject final RequestGlobals requestGlobals,
+            @Inject final URLEncoder urlEncoder) {
         URLRewriterRule rule = new URLRewriterRule() {
             public Request process(Request request, URLRewriteContext context) {
                 // set the original request uri - without context
