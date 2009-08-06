@@ -21,6 +21,7 @@ package au.edu.usq.fascinator.api.indexer;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -97,6 +98,16 @@ public class SearchRequest {
                 encodedValues.add(encode(value));
             }
         }
+        getParams().put(name, encodedValues.toArray(new String[] {}));
+    }
+
+    public void addParam(String name, String value) {
+        List<String> encodedValues = new ArrayList<String>();
+        String[] current = getParam(name);
+        if (current != null) {
+            encodedValues.addAll(Arrays.asList(current));
+        }
+        encodedValues.add(encode(value));
         getParams().put(name, encodedValues.toArray(new String[] {}));
     }
 

@@ -20,6 +20,8 @@ package au.edu.usq.fascinator.portal;
 
 import java.io.IOException;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,8 +37,11 @@ public class JsonSessionState extends JsonConfigHelper {
 
     private Date created;
 
+    private Map<String, Object> objects;
+
     public JsonSessionState() {
         created = new Date();
+        objects = new HashMap<String, Object>();
         try {
             config = new JsonConfig();
         } catch (IOException ioe) {
@@ -44,7 +49,25 @@ public class JsonSessionState extends JsonConfigHelper {
         }
     }
 
+    public void setObject(String name, Object object) {
+        objects.put(name, object);
+    }
+
+    public Object getObject(String name) {
+        return objects.get(name);
+    }
+
     public Date getCreated() {
         return created;
+    }
+
+    @Override
+    public String toString() {
+        StringBuffer objs = new StringBuffer();
+        for (String key : objects.keySet()) {
+            Object obj = objects.get(key);
+            objs.append(key + ": " + obj.toString());
+        }
+        return super.toString() + "\nobjects: {\n" + objs.toString() + "\n}\n";
     }
 }

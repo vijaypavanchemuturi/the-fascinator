@@ -135,11 +135,27 @@ div.home-portal-list .ui-state-highlight {
 
 /* facets */
 .facet-list ul {
+	color: silver;
+    list-style-image: none;
+    list-style-position: outside;
+    list-style-type: none;
+    margin: 0;
+    overflow: auto;
+    padding-left: 0.5em;
+    text-decoration: none;
+}
+
+#result-list ul {
     list-style-image: none;
     list-style-position: outside;
     list-style-type: none;
     margin: 0;
     padding-left: 0.5em;
+}
+
+.facet-list ul a, #result-list ul a {
+    color: #1D599B;
+    text-decoration: none;
 }
 
 /* content page */
@@ -183,6 +199,7 @@ div.home-portal-list .ui-state-highlight {
 
 /* jsTree overrides */
 .tree {
-    margin-left: -1em;
+    margin-left: -1.5em;
     padding-left: 0em;
+    overflow: auto;
 }

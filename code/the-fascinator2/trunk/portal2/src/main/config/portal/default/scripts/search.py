@@ -1,10 +1,10 @@
+import os
 from jarray import array
 from au.edu.usq.fascinator.api.indexer import SearchRequest
 from au.edu.usq.fascinator.common import JsonConfigHelper
 from java.io import ByteArrayInputStream, ByteArrayOutputStream
 from java.lang import String
-from java.util import HashMap
-import os
+from java.util import ArrayList, HashMap
 
 class SearchData:
     def __init__(self):
@@ -18,8 +18,24 @@ class SearchData:
             query = "*:*"
         print "Searching for", query
         req = SearchRequest(query)
+
+        # setup facets
+        action = formData.get("action")
+        currentfq = sessionState.getObject("fq")
+        if currentfq is not None:
+            req.setParam("fq", currentfq)
+        if action == "add_fq":
+            fq = formData.get("fq")
+            print " ***  adding facet query %s" % fq
+            req.addParam("fq", fq)
+        elif action == "del_fq":
+            pass
+        elif action == "clear_fq":
+            req.setParam("fq", "")
+        sessionState.setObject("fq", req.getParam("fq"))
+        req.addParam("fq", 'item_type:"object"')
+
         req.setParam("facet", ["true"])
-        req.setParam("fq", ['item_type:"object"'])
         req.setParam("rows", [str(self.__portal.recordsPerPage)])
         req.setParam("facet.field", array(self.__portal.facetFieldList, String))
         out = ByteArrayOutputStream()

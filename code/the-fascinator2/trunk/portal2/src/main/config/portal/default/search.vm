@@ -37,18 +37,19 @@ $(function() {
     <input id="query" name="query" size="40" type="text" value="$!formData.get('query')"/>
     <input name="search" type="submit" value="Go!" />
   </form>
-  <p>Found $numFound items</p>
 </div>
 <div class="colmask leftmenu" id="search-results">
   <div class="colright">
     <div class="col1wrap">
       <div class="col1" id="result-list">
         <h3>Results</h3>
+        <p>Found $numFound items</p>
         <ul>
         #foreach($item in $itemList)
           #set($id = $item.get("id"))
           #set($oid = $page.encodeURL($id))
           #set($title = $self.getFileName($id))
+          #set($description = "")
           #set($title = $item.get("dc.title").get(0))
           #set($description = $item.get("dc.description").get(0))
           <li>
@@ -73,7 +74,7 @@ $(function() {
             <h4 class="dotted-line">$self.getFacetName($facetField.key)</h4>
             <ul>
             #foreach($facetCount in $facetCounts)
-              <li>$facetCount.key ($facetCount.value)</li>
+              <li><a href='search?action=add_fq&amp;fq=$facetField.key:"$facetCount.key"'>$facetCount.key</a> ($facetCount.value)</li>
             #end
             </ul>
           #end
