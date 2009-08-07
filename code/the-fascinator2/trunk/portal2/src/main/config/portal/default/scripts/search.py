@@ -1,6 +1,7 @@
 import os
 from au.edu.usq.fascinator.api.indexer import SearchRequest
 from au.edu.usq.fascinator.common import JsonConfigHelper
+from au.edu.usq.fascinator.portal import Pagination
 from java.io import ByteArrayInputStream, ByteArrayOutputStream
 from java.util import HashMap
 
@@ -8,39 +9,59 @@ class SearchData:
     def __init__(self):
         self.__result = JsonConfigHelper()
         self.__portal = Services.getPortalManager().get(portalId)
+        pageNum = sessionState.get("pageNum")
+        if pageNum is None:
+            self.__pageNum = 1
+        else:
+            self.__pageNum = int(pageNum)
         self.__search()
 
     def __search(self):
+        recordsPerPage = self.__portal.recordsPerPage
+
         query = formData.get("query")
         if query is None or query == "":
             query = "*:*"
         req = SearchRequest(query)
         req.setParam("facet", "true")
-        req.setParam("rows", str(self.__portal.recordsPerPage))
+        req.setParam("rows", str(recordsPerPage))
         req.setParam("facet.field", self.__portal.facetFieldList)
 
         # setup facets
         action = formData.get("action")
+        value = formData.get("value")
         fq = sessionState.get("fq")
         if fq is not None:
             req.setParam("fq", fq)
         if action == "add_fq":
             name = formData.get("name")
-            value = formData.get("value")
             req.addParam("fq", value)
         elif action == "remove_fq":
-            value = formData.get("value")
             req.removeParam("fq", value)
         elif action == "clear_fq":
             req.removeParam("fq")
+        elif action == "select-page":
+            self.__pageNum == int(value)
+            print " ***** setting page num:", int(value), self.__pageNum
         req.addParam("fq", 'item_type:"object"')
         self.__selected = req.getParams("fq")
+
         sessionState.set("fq", self.__selected)
-        print " * search.py:", req.toString()
-        
+        sessionState.set("pageNum", self.__pageNum)
+
+        req.setParam("start", str(self.__pageNum * recordsPerPage))
+        print " * search.py:", req.toString(), self.__pageNum
+
         out = ByteArrayOutputStream()
         Services.indexer.search(req, out)
         self.__result = JsonConfigHelper(ByteArrayInputStream(out.toByteArray()))
+        if self.__result is not None:
+            self.__paging = Pagination(self.__pageNum,
+                                       int(self.__result.get("response/numFound")),
+                                       self.__portal.recordsPerPage)
+
+    def getPaging(self):
+        return self.__paging
 
     def getResult(self):
         return self.__result

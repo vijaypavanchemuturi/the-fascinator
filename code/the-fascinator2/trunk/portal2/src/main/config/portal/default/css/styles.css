@@ -217,6 +217,29 @@ span.selected-facet {
     margin-top: 0.25em;
 }
 
+/* paging */
+.paging {
+  margin-left: 0;
+  padding-left: 0;
+}
+
+.paging li {
+  display: inline;
+}
+
+.paging li a {
+  padding-left: 0.3em;
+  padding-right: 0.3em;
+  border: solid #E4C8B5 0px;
+}
+
+.paging .selected-page a, .paging a:hover {
+  background: #FFF;
+  border: solid #C3562E 1px;
+  padding-left: 0.3em;
+  padding-right: 0.3em;
+}
+
 /* jquery ui overrides */
 .ui-tabs .ui-accordion {
     font-size: 1em;
