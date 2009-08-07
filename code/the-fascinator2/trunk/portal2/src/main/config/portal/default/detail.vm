@@ -1,16 +1,73 @@
 #set($pageTitle = 'Detail')
 <script type="text/javascript">
 $(function() {
+	var oid = $("label[id='oid']").text();
+	var itemLabel = $("label[id='itemLabel']").text();
+	
+	$("span[id='format']").each(function() {
+		var format = this;
+		if ($(format).html().toLowerCase().indexOf("image") == 0) {
+			$('div.file-content').append("<img src='download/"+ oid+ "/" + itemLabel + "'/>");
+		}
+		if ($(format).html().toLowerCase().indexOf("text") == 0) {
+			var payloadContent = $("label[id='payloadContent']").text();
+			$('div.file-content').append(payloadContent);
+		}
+		if ($(format).html().toLowerCase().indexOf("application/vnd.ms-") == 0 ||
+			$(format).html().toLowerCase().indexOf("application/vnd.oasis.opendocument.") == 0) {
+			var payloadContent = $("label[id='payloadContent']").text();
+			$('div.file-content').append(payloadContent);
+		}//else {
+		//	$('div.file-content').append("No metadata extracted for this file");
+		//}
+	});
+	
+	$("div.file-content img").each (function() {
+		var src = $(this).attr("src");
+		if (src.toLowerCase().indexOf("http://") == -1 &&
+			src.toLowerCase().indexOf("file://") == -1 &&
+			src.toLowerCase().indexOf("download/") != 0)
+		$(this).attr("src", "download/" + oid + "/" + src);
+	});
 });
+
 </script>
 <h2>Detail</h2>
 #set($item = $self.getObject())
+#set($oid = $page.encodeURL($item.id))
+<label id="oid" class="ui-helper-hidden">$oid</label>
 <div>
   <ul>
   #foreach($payload in $item.payloadList)
-    #set($oid = $page.encodeURL($item.id))
     #set($pid = $page.encodeURL($payload.id))
-    <li><a href="download/$oid/$pid" target="blank">$payload.id</a> ($payload.contentType)</li>
+    #set($hiddenFile = $self.isHidden($pid))
+    #if ($hiddenFile==0)
+    	<li><a href="download/$oid/$pid" target="blank">$payload.id</a> ($payload.contentType)</li>
+    #end
   #end
   </ul>
 </div>
+#set($dcrdf = $self.getDcRdf())
+#if ($dcrdf)
+<label class="ui-helper-hidden" id="itemLabel">$dcrdf.label</label>
+<h2>$dcrdf.title</h2>
+<ul>
+	#if ($dcrdf.format)
+	<li>Format: <span id="format">$dcrdf.format</span></li>
+	#end
+	#if ($dcrdf.creator!="")
+	<li>Creator: $dcrdf.creator</li>
+	#end
+	#if ($dcrdf.dcDate!="")
+	<li>Date: $dcrdf.dcDate</li>
+	#end
+</ul>
+
+<div class="file-content">
+##if ($dcrdf.format.contains("text")==1) --> not working
+#set($content = $self.getPayloadContent())
+<label class="ui-helper-hidden" id="payloadContent">$content</label>
+##end 
+</div>
+
+#end

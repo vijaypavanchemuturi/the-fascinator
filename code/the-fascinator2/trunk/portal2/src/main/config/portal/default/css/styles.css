@@ -231,3 +231,14 @@ span.selected-facet {
     margin-left: -0.5em;
     padding-left: 0em;
 }
+
+div.file-content {
+	 background: #f7f7f7;
+	 border: 1px solid #d7d7d7;
+	 margin: 1em 1.75em;
+	 padding: .25em;
+	 overflow: auto;
+
+}
+	
+
