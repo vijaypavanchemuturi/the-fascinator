@@ -15,6 +15,11 @@ h1 {
     font-variant: small-caps;
 }
 
+h1 a {
+    color: #E17009;
+    text-decoration: none;
+}
+
 h2 {
     color: #217BC0;
 }
@@ -59,16 +64,25 @@ pre.debug {
 #menu-bar {
     border-bottom: 1px dotted #959ca1;
     border-top: 1px dotted #959ca1;
+    height: 2.5em;
     padding-top: 0.25em;
     padding-bottom: 0.25em;
 }
 
+#menu-bar div.title h1 {
+    float: left;
+    margin: 0;
+    padding: 0;
+}
+
 #menu-bar ul {
     display: inline;
+    float: right;
     list-style-image: none;
     list-style-position: outside;
     list-style-type: none;
-    padding-left: 0;
+    margin: 0;
+    padding: 0.65em;
 }
 
 #menu-bar li {
@@ -90,17 +104,7 @@ pre.debug {
     padding-right: 0.5em;
 }
 
-/* login/logout */
-#login-link, #logout-link {
-    color: #1D599B;
-    float: right;
-}
-
-#login-link:hover, #logout-link:hover {
-    background: #D0E5F5;
-    cursor: pointer;
-}
-
+/* login dialog */
 #login-dialog label {
     float: left;
     padding-top: 0.5em;
@@ -134,28 +138,53 @@ div.home-portal-list .ui-state-highlight {
 }
 
 /* facets */
-.facet-list ul {
-	color: silver;
+#facet-list {
+    border: 1px solid #DDDDDD;
+    float: right;
+    margin-right: 1em;
+    overflow: auto;
+    padding-bottom: 0.5em;
+    padding-left: 0.5em;
+    padding-right: 0.5em;
+    width: 23em;
+}
+
+.facet-count-list ul {
+    color: silver;
     list-style-image: none;
     list-style-position: outside;
     list-style-type: none;
     margin: 0;
-    overflow: auto;
     padding-left: 0.5em;
     text-decoration: none;
 }
 
 #result-list ul {
+    left: 23em;
     list-style-image: none;
     list-style-position: outside;
     list-style-type: none;
-    margin: 0;
+    margin-left: 0.5em;
     padding-left: 0.5em;
+    padding-right: 1em;
 }
 
-.facet-list ul a, #result-list ul a {
+.facet-count-list ul a, #result-list ul a {
     color: #1D599B;
     text-decoration: none;
+}
+
+#result-list li {
+}
+
+a.facet-action {
+    color: #1D599B;
+    font-size: 0.75em;
+    text-decoration: none;
+}
+
+span.selected-facet {
+    color: #E17009;
 }
 
 /* content page */
@@ -199,7 +228,6 @@ div.home-portal-list .ui-state-highlight {
 
 /* jsTree overrides */
 .tree {
-    margin-left: -1.5em;
+    margin-left: -0.5em;
     padding-left: 0em;
-    overflow: auto;
 }

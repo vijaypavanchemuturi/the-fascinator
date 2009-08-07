@@ -36,6 +36,7 @@ import java.io.Writer;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -163,12 +164,11 @@ public class SolrIndexer implements Indexer {
         InputStream result;
         try {
             StringBuilder extras = new StringBuilder();
-            for (String name : request.getParams().keySet()) {
-                String[] params = request.getParam(name);
-                for (String param : params) {
+            for (String name : request.getParamsMap().keySet()) {
+                for (String param : request.getParams(name)) {
                     extras.append(name);
                     extras.append("=");
-                    extras.append(param);
+                    extras.append(URLEncoder.encode(param, "UTF-8"));
                     extras.append("&");
                 }
             }

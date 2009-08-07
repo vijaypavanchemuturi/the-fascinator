@@ -68,7 +68,7 @@ public class Dispatch {
     private Map<String, FormData> formDataMap;
 
     public StreamResponse onActivate(Object... params) {
-        log.debug("{} {}", request.getMethod(), request.getPath());
+        log.trace("{} {}", request.getMethod(), request.getPath());
 
         // determine resource
         String portalId = (String) sessionState.get("portalId",
@@ -82,7 +82,7 @@ public class Dispatch {
             resourceName = StringUtils.join(path, "/", 1, path.length);
         }
         String match = getBestMatchResource(portalId, resourceName);
-        log.debug("resourceName = {}, match = {}", resourceName, match);
+        log.trace("resourceName = {}, match = {}", resourceName, match);
         resourceName = match;
         boolean isAjax = resourceName.endsWith(AJAX_EXT);
 
@@ -131,7 +131,6 @@ public class Dispatch {
     }
 
     public String getBestMatchResource(String portalId, String resourceName) {
-        log.info("getBestMatch: {}", resourceName);
         boolean isAjax = resourceName.endsWith(AJAX_EXT);
         if (isAjax) {
             resourceName = resourceName.substring(0, resourceName

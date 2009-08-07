@@ -21,7 +21,6 @@ package au.edu.usq.fascinator.portal;
 import java.io.IOException;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,8 +35,6 @@ public class JsonSessionState extends HashMap<String, Object> {
 
     private Date created;
 
-    private Map<String, Object> objects;
-
     public JsonSessionState() {
         created = new Date();
         try {
@@ -45,7 +42,6 @@ public class JsonSessionState extends HashMap<String, Object> {
         } catch (IOException ioe) {
             log.warn("Failed to load system config: {}", ioe.getMessage());
         }
-        objects = new HashMap<String, Object>();
     }
 
     public JsonConfig getSystemConfig() {
@@ -61,11 +57,11 @@ public class JsonSessionState extends HashMap<String, Object> {
     }
 
     public Object get(String name, Object defaultValue) {
-        Object value = objects.get(name);
+        Object value = super.get(name);
         return value == null ? defaultValue : value;
     }
 
     public void set(String name, Object object) {
-        objects.put(name, object);
+        put(name, object);
     }
 }

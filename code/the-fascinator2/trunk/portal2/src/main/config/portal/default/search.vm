@@ -6,7 +6,14 @@
 #set($itemList = $self.result.getList("response/docs").toArray())
 #set($facetFields = $self.result.getMap("facet_counts/facet_fields"))
 #set($portal = $page.portals.get($portalId))
+#set($portalPath = $contextPath/$portalId)
 <script type="text/javascript">
+function facetAction(action, value) {
+    $("#action").val(action);
+    $("#value").val(value);
+    $("#facet-form").submit();
+}
+
 $(function() {
     $("#file_path").tree({
         data: {
@@ -28,59 +35,81 @@ $(function() {
             dots: false
         }
     });
+    $("#clear-facets").click(function() {
+        facetAction("clear_fq");
+    });
+    $(".facet-count-list a.add-facet").click(function() {
+        facetAction("add_fq", $(this).attr("rel"));
+    });
+    $(".facet-count-list a.remove-facet").click(function() {
+        facetAction("remove_fq", $(this).attr("rel"));
+    });
 });
 </script>
 <pre class="debug">$self.result.toString()</pre>
-<div id="search-header">
-  <h2>Search</h2>
-  <form action="search" id="search-form" method="post">
-    <input id="query" name="query" size="40" type="text" value="$!formData.get('query')"/>
-    <input name="search" type="submit" value="Go!" />
-  </form>
-</div>
-<div class="colmask leftmenu" id="search-results">
-  <div class="colright">
-    <div class="col1wrap">
-      <div class="col1" id="result-list">
-        <h3>Results</h3>
-        <p>Found $numFound items</p>
-        <ul>
-        #foreach($item in $itemList)
-          #set($id = $item.get("id"))
-          #set($oid = $page.encodeURL($id))
-          #set($title = $self.getFileName($id))
-          #set($description = "")
-          #set($title = $item.get("dc.title").get(0))
-          #set($description = $item.get("dc.description").get(0))
-          <li>
-            <div id="$id">
-              <h3><a href="detail/$oid">$title</a></h3>
-              <p>$!description</p>
-            </div>
-          </li>
-        #end
-        </ul>
-      </div>
-    </div>
-    <div class="col2">
-      <h3>Facets</h3>
-      <h4 class="dotted-line">Path</h4>
-      <div id="file_path" class="ui-helper-clearfix"></div>
-      #foreach($facetField in $facetFields)
-        <div class="facet-list">
-        #set($facetCounts = $self.getFacetCounts($facetField.key))
-        #if($facetCounts.size() > 0)
-          #if($facetField.key != "file_path")  ## TODO need a better way to test check for hierarchical facets
-            <h4 class="dotted-line">$self.getFacetName($facetField.key)</h4>
-            <ul>
-            #foreach($facetCount in $facetCounts)
-              <li><a href='search?action=add_fq&amp;fq=$facetField.key:"$facetCount.key"'>$facetCount.key</a> ($facetCount.value)</li>
+<form action="search" id="facet-form" method="post">
+  <input id="query" name="query" type="hidden" value="$!formData.get('query')"/>
+  <input id="action" name="action" type="hidden" />
+  <input id="value" name="value" type="hidden" />
+</form>
+<h2>Search</h2>
+<div id="split-view">
+  <div class="split-panel" id="facet-list">
+    <h3>Facets</h3>
+    #if($self.hasSelectedFacets()==1)
+      <a class="facet-action" id="clear-facets" href="#">Clear selection</a>
+    #end
+    <h4 class="dotted-line">Path</h4>
+    <div id="file_path" class="ui-helper-clearfix"></div>
+    #foreach($facetField in $facetFields)
+      <div class="facet-count-list">
+      #set($facetCounts = $self.getFacetCounts($facetField.key))
+      #if($facetCounts.size() > 0)
+        ## TODO need a better way to test check for hierarchical facets
+        #if($facetField.key != "file_path")
+          <h4 class="dotted-line">$self.getFacetName($facetField.key)</h4>
+          <ul>
+          #foreach($facetCount in $facetCounts)
+            #set($selected = ($self.isSelected($self.getFacetQuery($facetField.key, $facetCount.key))==1))
+            <li>
+            #if($selected)
+              <span class="selected-facet">$facetCount.key</span> ($facetCount.value)
+              <a class="remove-facet facet-action" href="#" rel='$facetField.key:"$facetCount.key"'>deselect</a>
+            #else
+              <a class="add-facet" href="#" rel='$facetField.key:"$facetCount.key"'>$facetCount.key</a> ($facetCount.value)
             #end
-            </ul>
+            </li>
           #end
+          </ul>
         #end
-        </div>
       #end
+      </div>
+    #end
+  </div>
+  <div class="split-panel" id="result-list">
+    <div id="search-header">
+      <form action="search" id="search-form" method="post">
+        <input id="query" name="query" size="40" type="text" value="$!formData.get('query')"/>
+        <input name="search" type="submit" value="Go!" />
+      </form>
     </div>
+    <h3>Results</h3>
+    <p>Found $numFound items</p>
+    <ul>
+    #foreach($item in $itemList)
+      #set($id = $item.get("id"))
+      #set($oid = $page.encodeURL($id))
+      #set($title = $self.getFileName($id))
+      #set($description = "")
+      #set($title = $item.get("dc.title").get(0))
+      #set($description = $item.get("dc.description").get(0))
+      <li>
+        <div id="$id">
+          <h3><a href="detail/$oid">$title</a></h3>
+          <p>$!description</p>
+        </div>
+      </li>
+    #end
+    </ul>
   </div>
 </div>

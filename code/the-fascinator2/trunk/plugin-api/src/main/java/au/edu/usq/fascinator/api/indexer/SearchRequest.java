@@ -18,13 +18,11 @@
  */
 package au.edu.usq.fascinator.api.indexer;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
-import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
+import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Generic search request
@@ -36,8 +34,8 @@ public class SearchRequest {
     /** Search query */
     public String query;
 
-    /**  */
-    public Map<String, String[]> params;
+    /** Search parameters */
+    public Map<String, Set<String>> params;
 
     /**
      * Creates an empty search request
@@ -64,13 +62,42 @@ public class SearchRequest {
     }
 
     /**
+     * Gets the first value for the specified parameter
+     * 
+     * @param name parameter key
+     * @return parameter value
+     */
+    public String getParam(String name) {
+        Set<String> values = getParams(name);
+        if (values != null && !values.isEmpty()) {
+            return values.iterator().next();
+        }
+        return null;
+    }
+
+    /**
      * Gets the values for the specified parameter
      * 
      * @param name parameter key
      * @return parameter values
      */
-    public String[] getParam(String name) {
-        return getParams().get(name);
+    public Set<String> getParams(String name) {
+        return getParamsMap().get(name);
+    }
+
+    /**
+     * Adds a parameter value
+     * 
+     * @param name parameter key
+     * @param value parameter value
+     */
+    public void addParam(String name, String value) {
+        Set<String> values = getParams(name);
+        if (values == null) {
+            setParam(name, value);
+        } else {
+            values.add(value);
+        }
     }
 
     /**
@@ -82,7 +109,9 @@ public class SearchRequest {
      * @param value parameter value
      */
     public void setParam(String name, String value) {
-        getParams().put(name, new String[] { encode(value) });
+        Set<String> values = new LinkedHashSet<String>();
+        values.add(value);
+        getParamsMap().put(name, values);
     }
 
     /**
@@ -91,24 +120,37 @@ public class SearchRequest {
      * @param name parameter key
      * @param values parameter values
      */
-    public void setParam(String name, String[] values) {
-        List<String> encodedValues = new ArrayList<String>();
-        for (String value : values) {
-            if (value != null) {
-                encodedValues.add(encode(value));
-            }
-        }
-        getParams().put(name, encodedValues.toArray(new String[] {}));
+    public void setParam(String name, Set<String> values) {
+        getParamsMap().put(name, values);
     }
 
-    public void addParam(String name, String value) {
-        List<String> encodedValues = new ArrayList<String>();
-        String[] current = getParam(name);
-        if (current != null) {
-            encodedValues.addAll(Arrays.asList(current));
-        }
-        encodedValues.add(encode(value));
-        getParams().put(name, encodedValues.toArray(new String[] {}));
+    /**
+     * Sets the values for the specified parameter
+     * 
+     * @param name parameter key
+     * @param values parameter values
+     */
+    public void setParam(String name, Collection<String> values) {
+        getParamsMap().put(name, new LinkedHashSet<String>(values));
+    }
+
+    /**
+     * Removes the specified parameter
+     * 
+     * @param name parameter key
+     */
+    public void removeParam(String name) {
+        getParamsMap().remove(name);
+    }
+
+    /**
+     * Removes the specified value from a parameter
+     * 
+     * @param name parameter key
+     * @param value parameter value
+     */
+    public void removeParam(String name, String value) {
+        getParams(name).remove(value);
     }
 
     /**
@@ -116,24 +158,23 @@ public class SearchRequest {
      * 
      * @return parameter map
      */
-    public Map<String, String[]> getParams() {
+    public Map<String, Set<String>> getParamsMap() {
         if (params == null) {
-            params = new HashMap<String, String[]>();
+            params = new HashMap<String, Set<String>>();
         }
         return params;
     }
 
-    /**
-     * Gets the URL encoded version of a string
-     * 
-     * @param value a string to encode
-     * @return URL encoded string
-     */
-    private String encode(String value) {
-        try {
-            return URLEncoder.encode(value, "UTF-8");
-        } catch (UnsupportedEncodingException e) {
+    @Override
+    public String toString() {
+        StringBuilder str = new StringBuilder();
+        str.append("SearchRequest[query: ");
+        str.append(query);
+        if (!getParamsMap().isEmpty()) {
+            str.append(", params: ");
+            str.append(getParamsMap().toString());
         }
-        return value;
+        str.append("]");
+        return str.toString();
     }
 }

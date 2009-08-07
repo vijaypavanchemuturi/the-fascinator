@@ -1,10 +1,8 @@
 import os
-from jarray import array
 from au.edu.usq.fascinator.api.indexer import SearchRequest
 from au.edu.usq.fascinator.common import JsonConfigHelper
 from java.io import ByteArrayInputStream, ByteArrayOutputStream
-from java.lang import String
-from java.util import ArrayList, HashMap
+from java.util import HashMap
 
 class SearchData:
     def __init__(self):
@@ -16,31 +14,32 @@ class SearchData:
         query = formData.get("query")
         if query is None or query == "":
             query = "*:*"
-        print "Searching for", query
         req = SearchRequest(query)
+        req.setParam("facet", "true")
+        req.setParam("rows", str(self.__portal.recordsPerPage))
+        req.setParam("facet.field", self.__portal.facetFieldList)
 
         # setup facets
         action = formData.get("action")
-        currentfq = sessionState.get("fq")
-        if currentfq is not None:
-            req.setParam("fq", currentfq)
+        fq = sessionState.get("fq")
+        if fq is not None:
+            req.setParam("fq", fq)
         if action == "add_fq":
-            fq = formData.get("fq")
-            print " ***  adding facet query %s" % fq
-            req.addParam("fq", fq)
-        elif action == "del_fq":
-            pass
+            name = formData.get("name")
+            value = formData.get("value")
+            req.addParam("fq", value)
+        elif action == "remove_fq":
+            value = formData.get("value")
+            req.removeParam("fq", value)
         elif action == "clear_fq":
-            req.setParam("fq", "")
-        sessionState.set("fq", req.getParam("fq"))
+            req.removeParam("fq")
         req.addParam("fq", 'item_type:"object"')
-
-        req.setParam("facet", ["true"])
-        req.setParam("rows", [str(self.__portal.recordsPerPage)])
-        req.setParam("facet.field", array(self.__portal.facetFieldList, String))
+        self.__selected = req.getParams("fq")
+        sessionState.set("fq", self.__selected)
+        print " * search.py:", req.toString()
+        
         out = ByteArrayOutputStream()
-        indexer = Services.getIndexer()
-        indexer.search(req, out)
+        Services.indexer.search(req, out)
         self.__result = JsonConfigHelper(ByteArrayInputStream(out.toByteArray()))
 
     def getResult(self):
@@ -59,7 +58,16 @@ class SearchData:
                 values.put(name, count)
         return values
 
+    def hasSelectedFacets(self):
+        return self.__selected.size() > 1
+
+    def isSelected(self, fq):
+        return fq in self.__selected
+
     def getFileName(self, path):
         return os.path.split(path)[1]
+
+    def getFacetQuery(self, name, value):
+        return '%s:"%s"' % (name, value)
 
 scriptObject = SearchData()

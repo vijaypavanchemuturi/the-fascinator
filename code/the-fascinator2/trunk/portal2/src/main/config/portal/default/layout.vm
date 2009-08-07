@@ -23,7 +23,7 @@
         $(":text, :password").addClass("ui-widget-content");
         // disable current page link
         var pageName = $("#${pageName}-link").text();
-        $("#${pageName}-link").replaceWith("<span class='active-link'>" + pageName + "</span>");
+        $("#${pageName}-link").replaceWith("<span id='${pageName}-link' class='active-link'>" + pageName + "</span>");
         // setup authentication dialogs
         $("#login-dialog").dialog({
             autoOpen: false,
@@ -68,7 +68,7 @@
         // debugging
         $(".debug").addClass("ui-helper-hidden");
         #if($renderMessages)
-        $("#debug-link").addClass("ui-icon-closethick");
+        $("#debug-link").addClass("ui-icon-alert");
         #else
         $("#debug-link").addClass("ui-icon-check");
         #end
@@ -84,22 +84,28 @@
   </head>
   <body>
     <div id="header">
-      <h1>The Fascinator</h1>
       <div id="menu-bar">
-        <ul>
-          #if($DEBUG)<li class="debug-link"><span class="ui-icon" id="debug-link" title="Toggle debugging"></span></li>#end
-          <li class="with-separator"><a id="home-link" href="$portalPath/home">Home</a></li>
-          <li class="with-separator"><a id="search-link"  href="$portalPath/search">Search</a></li>
-          <li class="with-separator"><a id="harvest-link" href="$portalPath/harvest">Harvest</a></li>
-          <li class="with-separator"><a id="settings-link" href="$portalPath/settings">Settings</a></li>
-          <li class="with-separator"><a href="http://fascinator.usq.edu.au/" target="blank">Website</a></li>
-          <li class="with-separator"><a href="$portalPath/contact">Contact</a></li>
-          #if($sessionUsername)
-          <li id="logout-link">Logout: <span class="session-username">$sessionUsername</span></li>
-          #else
-          <li id="login-link">Login</li>
-          #end
-        </ul>
+        <div class="title">
+          <h1><a href="http://fascinator.usq.edu.au/">The Fascinator</a></h1>
+        </div>
+        <div>
+          <ul>
+            #if($DEBUG)
+            <li class="debug-link"><span class="ui-icon" id="debug-link" title="Toggle debugging"></span></li>
+            #end
+            <li class="with-separator"><a id="home-link" href="$portalPath/home">Home</a></li>
+            <li class="with-separator"><a id="search-link"  href="$portalPath/search">Search</a></li>
+            <li class="with-separator"><a id="harvest-link" href="$portalPath/harvest">Harvest</a></li>
+            <li class="with-separator"><a id="settings-link" href="$portalPath/settings">Settings</a></li>
+            <li>
+            #if($sessionUsername)
+              <a id="logout-link">Logout: <span class="session-username">$sessionUsername</span></a>
+            #else
+              <a id="login-link" href="#">Login</a>
+            #end
+            </li>
+          </ul>
+        </div>
       </div>
     </div>
     <div class="debug" id="debug">
