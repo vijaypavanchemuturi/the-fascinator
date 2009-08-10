@@ -224,6 +224,7 @@ span.selected-facet {
 
 /* paging */
 .paging {
+    float: right;
     margin-left: 0;
     padding-left: 0;
 }

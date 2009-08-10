@@ -58,6 +58,8 @@ $(function() {
     <input id="query" name="query" size="45" type="text" value="$!formData.get('query')"/>
     <input name="search" type="submit" value="Go!" />
   </form>
+    #parse("$portalId/search-paging.vm")
+  <p>Displaying <strong>${paging.startNum}</strong> to <strong>${paging.endNum}</strong> of <strong>${paging.totalFound}</strong> records ($self.queryTime seconds)</p>
 </div>
 <div id="split-view">
   <div class="split-panel" id="facet-list">
@@ -94,7 +96,6 @@ $(function() {
   </div>
   <div class="split-panel" id="result-list">
     <h3>Results</h3>
-    #parse("$portalId/search-paging.vm")
     <ul id="result-item-list">
     #foreach($item in $itemList)
       #set($id = $item.get("id"))
