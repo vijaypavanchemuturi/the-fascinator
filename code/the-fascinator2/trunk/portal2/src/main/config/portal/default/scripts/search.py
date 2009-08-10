@@ -26,22 +26,28 @@ class SearchData:
         req.setParam("facet", "true")
         req.setParam("rows", str(recordsPerPage))
         req.setParam("facet.field", self.__portal.facetFieldList)
-
+        req.setParam("facet.sort", "true")
+        req.setParam("facet.limit", str(self.__portal.facetCount))
+        
         # setup facets
         action = formData.get("action")
         value = formData.get("value")
         fq = sessionState.get("fq")
         if fq is not None:
+            self.__pageNum = 1
             req.setParam("fq", fq)
         if action == "add_fq":
+            self.__pageNum = 1
             name = formData.get("name")
             req.addParam("fq", value)
         elif action == "remove_fq":
+            self.__pageNum = 1
             req.removeParam("fq", value)
         elif action == "clear_fq":
+            self.__pageNum = 1
             req.removeParam("fq")
         elif action == "select-page":
-            self.__pageNum == int(value)
+            self.__pageNum = int(value)
             print " ***** setting page num:", int(value), self.__pageNum
         req.addParam("fq", 'item_type:"object"')
         self.__selected = req.getParams("fq")
@@ -49,7 +55,8 @@ class SearchData:
         sessionState.set("fq", self.__selected)
         sessionState.set("pageNum", self.__pageNum)
 
-        req.setParam("start", str(self.__pageNum * recordsPerPage))
+        req.setParam("start", str((self.__pageNum - 1) * recordsPerPage))
+        
         print " * search.py:", req.toString(), self.__pageNum
 
         out = ByteArrayOutputStream()

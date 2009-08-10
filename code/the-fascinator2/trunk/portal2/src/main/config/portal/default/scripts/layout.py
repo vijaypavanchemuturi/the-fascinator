@@ -8,6 +8,8 @@ class TemplateData:
     
     def __init__(self):
         self.__checkLogin()
+        if formData.get("action") == "clear-session":
+            sessionState.clear()
 
     def __checkLogin(self):
         action = formData.get("action")

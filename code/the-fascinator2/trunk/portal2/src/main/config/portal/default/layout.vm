@@ -13,6 +13,14 @@
     <link rel="stylesheet" type="text/css" href="$portalPath/css/styles.css" />
     $!pageHeader
     <script type="text/javascript">
+    function addActionParam(name, value) {
+        $("#action-form").append('<input id="' + name + '" name="' + name + '" type="hidden" value="' + value + '" />');
+    }
+    function doAction(action, value) {
+        $("#action").val(action);
+        $("#value").val(value);
+        $("#action-form").submit();
+    }
     $(function() {
         // style up input fields and buttons
         $(":input").addClass("ui-corner-all");
@@ -66,6 +74,9 @@
             $("#logout-dialog").dialog("open");
         });
         // debugging
+        $("#clear-session-state").click(function() {
+            doAction("clear-session");
+        });
         $(".debug").addClass("ui-helper-hidden");
         #if($renderMessages)
         $("#debug-link").addClass("ui-icon-alert");
@@ -115,6 +126,7 @@
       <div class="ui-state-highlight">
         <pre>sessionState: $sessionState</pre>
         <pre>formData: $formData</pre>
+        <a href="#" id="clear-session-state">Clear session</a>
       </div>
     </div>
     <div id="content">
@@ -135,5 +147,9 @@
       </form>
       <p><span class="ui-icon ui-icon-alert icon"></span>Are you sure you want to log out?</p>
     </div>
+    <form id="action-form" method="post">
+      <input id="action" name="action" type="hidden" />
+      <input id="value" name="value" type="hidden" />
+    </form>
   </body>
 </html>

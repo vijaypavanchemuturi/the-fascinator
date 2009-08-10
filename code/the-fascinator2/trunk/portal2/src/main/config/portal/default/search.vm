@@ -7,14 +7,9 @@
 #set($facetFields = $self.result.getMap("facet_counts/facet_fields"))
 #set($portal = $page.portals.get($portalId))
 #set($portalPath = $contextPath/$portalId)
-#set($paging = $self.paging)
 <script type="text/javascript">
-function doAction(action, value) {
-    $("#action").val(action);
-    $("#value").val(value);
-    $("#action-form").submit();
-}
 $(function() {
+    addActionParam("query", '$!formData.get("query")');
     $("#file_path").tree({
         data: {
             async: true,
@@ -38,25 +33,21 @@ $(function() {
     $("#clear-facets").click(function() {
         doAction("clear_fq");
     });
+    //$("#facet-list").draggable();
     $(".facet-count-list a.add-facet").click(function() {
         doAction("add_fq", $(this).attr("rel"));
     });
     $(".facet-count-list a.remove-facet").click(function() {
         doAction("remove_fq", $(this).attr("rel"));
     });
-    
-    /* paging */
-    $(".paging .select-page").click(function() {
-        doAction("select-page", $(this).attr("rel"));
+    $(".facet-count-list ul:not(:has(.selected-facet))").hide();
+    $(".facet-count-list h4").click(function(){
+        $(this).next().toggle('fast');
+        return false;
     });
 });
 </script>
 <pre class="debug">$self.result.toString()</pre>
-<form action="search" id="action-form" method="post">
-  <input id="query" name="query" type="hidden" value="$!formData.get('query')"/>
-  <input id="action" name="action" type="hidden" />
-  <input id="value" name="value" type="hidden" />
-</form>
 <h2>Search</h2>
 <div id="split-view">
   <div class="split-panel" id="facet-list">
@@ -84,6 +75,9 @@ $(function() {
               <a class="add-facet" href="#" rel='$facetField.key:"$facetCount.key"'>$facetCount.key</a> ($facetCount.value)
             #end
             </li>
+            #if($velocityCount == 25)
+              <div class="more">
+            #end
           #end
           </ul>
         #end
@@ -97,31 +91,9 @@ $(function() {
         <input id="query" name="query" size="40" type="text" value="$!formData.get('query')"/>
         <input name="search" type="submit" value="Go!" />
       </form>
-#if($paging.pages.size() > 1)
-  <ul class="paging">
-    <li><a class="select-page" rel="1" href="#">First</a></li>
-    #if($paging.page > 1)
-      #set($prev = $paging.page - 1)
-      <li>
-        <a class="select-page" rel="$prev" href="#">Previous</a>
-      </li>
-    #end
-    #foreach($pageNum in $paging.pages)
-      <li #if($pageNum.selected == 1)class="selected-page"#end>
-        <a class="select-page" rel="$pageNum.value" href="#">$pageNum.value</a>
-      </li>
-    #end
-    #if($paging.page < $paging.lastPage)
-      #set($next = $paging.page + 1)
-      <li>
-        <a class="select-page" rel="$next" href="#">Next</a>
-      </li>
-    #end
-    <li><a class="select-page" rel="$paging.lastPage" href="#">Last</a></li>
-  </ul>
-#end
     </div>
     <h3>Results</h3>
+    #parse("$portalId/search-paging.vm")
     <p>Found $numFound items</p>
     <ul>
     #foreach($item in $itemList)
