@@ -1,12 +1,14 @@
 #set($pageTitle = 'Search')
 #set($pageHeader = '<link rel="stylesheet" type="text/css" href="js/tree/tree_component.css" />
     <script type="text/javascript" src="js/tree/lib/css.js"></script>
+    <script type="text/javascript" src="js/tree/lib/jquery.metadata.js"></script>
     <script type="text/javascript" src="js/tree/tree_component.min.js"></script>')
 #set($numFound = $self.result.get("response/numFound"))
 #set($itemList = $self.result.getList("response/docs").toArray())
 #set($facetFields = $self.result.getMap("facet_counts/facet_fields"))
 #set($portal = $page.portals.get($portalId))
 #set($portalPath = $contextPath/$portalId)
+#set($paging = $self.paging)
 <script type="text/javascript">
 $(function() {
     addActionParam("query", '$!formData.get("query")');
@@ -28,7 +30,7 @@ $(function() {
         ui: {
             animation: 250,
             dots: false
-        }
+        },
     });
     $("#clear-facets").click(function() {
         doAction("clear_fq");
@@ -40,15 +42,23 @@ $(function() {
     $(".facet-count-list a.remove-facet").click(function() {
         doAction("remove_fq", $(this).attr("rel"));
     });
-    $(".facet-count-list ul:not(:has(.selected-facet))").hide();
+    //$(".facet-count-list ul:not(:has(.selected-facet))").hide();
     $(".facet-count-list h4").click(function(){
         $(this).next().toggle('fast');
         return false;
     });
+    // zebra the results
+    $("#result-item-list li:even").css("background-color", "#EBEBEB");
 });
 </script>
 <pre class="debug">$self.result.toString()</pre>
 <h2>Search</h2>
+<div id="search-header">
+  <form action="search" id="search-form" method="post">
+    <input id="query" name="query" size="45" type="text" value="$!formData.get('query')"/>
+    <input name="search" type="submit" value="Go!" />
+  </form>
+</div>
 <div id="split-view">
   <div class="split-panel" id="facet-list">
     <h3>Facets</h3>
@@ -75,9 +85,6 @@ $(function() {
               <a class="add-facet" href="#" rel='$facetField.key:"$facetCount.key"'>$facetCount.key</a> ($facetCount.value)
             #end
             </li>
-            #if($velocityCount == 25)
-              <div class="more">
-            #end
           #end
           </ul>
         #end
@@ -86,16 +93,9 @@ $(function() {
     #end
   </div>
   <div class="split-panel" id="result-list">
-    <div id="search-header">
-      <form action="search" id="search-form" method="post">
-        <input id="query" name="query" size="40" type="text" value="$!formData.get('query')"/>
-        <input name="search" type="submit" value="Go!" />
-      </form>
-    </div>
     <h3>Results</h3>
     #parse("$portalId/search-paging.vm")
-    <p>Found $numFound items</p>
-    <ul>
+    <ul id="result-item-list">
     #foreach($item in $itemList)
       #set($id = $item.get("id"))
       #set($oid = $page.encodeURL($id))

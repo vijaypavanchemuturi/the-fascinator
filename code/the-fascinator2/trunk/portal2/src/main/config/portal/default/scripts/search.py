@@ -67,6 +67,9 @@ class SearchData:
                                        int(self.__result.get("response/numFound")),
                                        self.__portal.recordsPerPage)
 
+    def getQueryTime(self):
+        return int(self.__result.get("responseHeader/QTime")) / 1000.0;
+
     def getPaging(self):
         return self.__paging
 
