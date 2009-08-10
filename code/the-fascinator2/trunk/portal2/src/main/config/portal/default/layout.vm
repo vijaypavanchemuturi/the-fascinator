@@ -97,7 +97,7 @@
     <div id="header">
       <div id="menu-bar">
         <div class="title">
-          <h1><a href="http://fascinator.usq.edu.au/">The Fascinator</a></h1>
+          <h1><a href="$portalPath/home">The Fascinator</a></h1>
         </div>
         <div>
           <ul>
