@@ -115,7 +115,8 @@ public class IceTransformer implements Transformer {
             HttpClient client = new HttpClient();
             PostMethod filePost = new PostMethod(convertUrl);
             Part[] parts = { new StringPart("zip", "1"),
-                    new StringPart("toc", "1"), new StringPart("pdfLink", "1"),
+                    new StringPart("dc", "1"), new StringPart("toc", "1"),
+                    new StringPart("pdfLink", "1"),
                     new StringPart("pathext", ""),
                     new StringPart("template", getTemplate()),
                     new FilePart("file", sourceFile) };
@@ -252,7 +253,8 @@ public class IceTransformer implements Transformer {
             if (!result.startsWith("Error")) {
                 // Check if the file is a zip file or error returned from ice
                 if (validZipFile(result) == true) {
-                    IceDigitalObject iceObject = new IceDigitalObject(in, result);
+                    IceDigitalObject iceObject = new IceDigitalObject(in,
+                            result);
                     return iceObject;
                 }
                 File resultFile = new File(result);
