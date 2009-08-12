@@ -1,8 +1,8 @@
 #set($pageTitle = 'Search')
 #set($pageHeader = '<link rel="stylesheet" type="text/css" href="js/tree/tree_component.css" />
     <script type="text/javascript" src="js/tree/lib/css.js"></script>
-    <script type="text/javascript" src="js/tree/lib/jquery.metadata.js"></script>
-    <script type="text/javascript" src="js/tree/tree_component.min.js"></script>')
+    <script type="text/javascript" src="js/tree/tree_component.min.js"></script>
+    <script type="text/javascript" src="js/jquery.truncate.js"></script>')
 #set($numFound = $self.result.get("response/numFound"))
 #set($itemList = $self.result.getList("response/docs").toArray())
 #set($facetFields = $self.result.getMap("facet_counts/facet_fields"))
@@ -71,11 +71,19 @@ $(function() {
     });
     //$(".facet-count-list ul:not(:has(.selected-facet))").hide();
     $(".facet-count-list h4").click(function(){
+        var icon = $(this).children("span");
+        icon.toggleClass("ui-icon-triangle-1-s");
+        icon.toggleClass("ui-icon-triangle-1-e");
         $(this).next().toggle('fast');
         return false;
     });
     // zebra the results
     $("#result-item-list li:even").css("background-color", "#EBEBEB");
+    // truncate descriptions
+    $("p.item-description").truncate(500, {
+        trail: [ '... <a href="#" class="truncate_show">more</a>',
+                 ' <a href="#" class="truncate_hide">less</a>' ]
+    });
 });
 </script>
 <pre class="debug">$self.selectedFacetIds</pre>
@@ -103,7 +111,7 @@ $(function() {
       #if($facetCounts.size() > 0)
         ## TODO need a better way to test check for hierarchical facets
         #if($facetField.key != "file_path")
-          <h4 class="dotted-line">$self.getFacetName($facetField.key)</h4>
+          <h4 class="dotted-line"><span class="ui-icon ui-icon-triangle-1-s icon"></span>$self.getFacetName($facetField.key)</h4>
           <ul>
           #foreach($facetCount in $facetCounts)
             #set($selected = ($self.isSelected($self.getFacetQuery($facetField.key, $facetCount.key))==1))
@@ -123,7 +131,6 @@ $(function() {
     #end
   </div>
   <div class="split-panel" id="result-list">
-    <h3>Results</h3>
     <ul id="result-item-list">
     #foreach($item in $itemList)
       #set($id = $item.get("id"))
@@ -135,7 +142,7 @@ $(function() {
       <li>
         <div id="$id">
           <h3><a href="detail/$oid">$title</a></h3>
-          <p>$!description</p>
+          <p class="item-description">$!description</p>
         </div>
       </li>
     #end
