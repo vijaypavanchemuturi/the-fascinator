@@ -3,7 +3,13 @@
         "type": "oai-pmh",
         "oai-pmh": {
             "url": "http://eprints.usq.edu.au/cgi/oai2",
-            "max.requests": 1
+            "maxRequests": 1
+        }
+    },
+    "transformer": {
+        "conveyer": "aperture",
+        "aperture": {
+            "outputPath": "/tmp/aperture"
         }
     },
     "indexer": {
