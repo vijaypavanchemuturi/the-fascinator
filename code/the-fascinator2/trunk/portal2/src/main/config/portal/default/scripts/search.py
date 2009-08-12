@@ -1,4 +1,4 @@
-import os
+import md5, os
 from au.edu.usq.fascinator.api.indexer import SearchRequest
 from au.edu.usq.fascinator.common import JsonConfigHelper
 from au.edu.usq.fascinator.portal import Pagination
@@ -90,10 +90,17 @@ class SearchData:
         return values
 
     def hasSelectedFacets(self):
-        return self.__selected.size() > 1
+        return self.__selected is not None and self.__selected.size() > 1
+
+    def getSelectedFacets(self):
+        return self.__selected
 
     def isSelected(self, fq):
         return fq in self.__selected
+
+    def getSelectedFacetIds(self):
+        return [md5.new(fq).hexdigest() for fq in self.__selected]
+
 
     def getFileName(self, path):
         return os.path.split(path)[1]

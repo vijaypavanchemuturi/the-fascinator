@@ -1,6 +1,9 @@
 #macro(createFacetNode $facet $state)
 {
-    attributes: { id: "$facet.value.replace('/', '_')" },
+    attributes: {
+        id: "$facet.id",
+        fq: '$facet.facetQuery'
+    },
     state: $state,
     data: "$facet.name",
     #if($facet.subFacets.size() > 0)

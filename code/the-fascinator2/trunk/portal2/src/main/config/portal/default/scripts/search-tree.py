@@ -1,11 +1,13 @@
 from jarray import array
+import md5
 from au.edu.usq.fascinator.api.indexer import SearchRequest
 from au.edu.usq.fascinator.common import JsonConfigHelper
 from java.io import ByteArrayInputStream, ByteArrayOutputStream
 from java.util import HashMap, ArrayList
 
 class Facet:
-    def __init__(self, value, count):
+    def __init__(self, key, value, count):
+        self.__key = key
         self.__value = value
         self.__count = count
         self.__subFacets = ArrayList()
@@ -13,6 +15,9 @@ class Facet:
     def getName(self):
         slash = self.__value.rfind("/")
         return self.__value[slash+1:]
+
+    def getKey(self):
+        return self.__key
 
     def getValue(self):
         return self.__value
@@ -26,17 +31,22 @@ class Facet:
     def getSubFacets(self):
         return self.__subFacets
 
+    def getFacetQuery(self):
+        return '%s:"%s"' % (self.__key, self.__value)
+
+    def getId(self):
+        return md5.new(self.getFacetQuery()).hexdigest()
+
 class FacetList:
     def __init__(self, name, json):
-        self.__name = name
         self.__facetMap = HashMap()
         self.__facetList = ArrayList()
-        entries = json.getList("facet_counts/facet_fields/file_path")
+        entries = json.getList("facet_counts/facet_fields/" + name)
         for i in range(0, len(entries), 2):
             value = entries[i]
             count = entries[i+1]
             if count > 0:
-                facet = Facet(value, count)
+                facet = Facet(name, value, count)
                 self.__facetMap.put(value, facet)
                 slash = value.rfind("/")
                 if slash == -1:
