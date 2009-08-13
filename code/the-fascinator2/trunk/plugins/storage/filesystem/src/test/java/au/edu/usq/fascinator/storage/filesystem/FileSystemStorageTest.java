@@ -14,11 +14,12 @@ import org.junit.Test;
 import au.edu.usq.fascinator.common.storage.impl.GenericDigitalObject;
 import au.edu.usq.fascinator.common.storage.impl.GenericPayload;
 
+@Ignore
 public class FileSystemStorageTest {
 
     private FileSystemStorage fs;
 
-    private GenericDigitalObject testObject1;
+    private GenericDigitalObject testObject1, testObject2;
 
     @Before
     public void setup() {
@@ -29,6 +30,15 @@ public class FileSystemStorageTest {
                 "Dublin Core Metadata", "text/xml");
         testPayload1.setInputStream(getClass().getResourceAsStream("/dc.xml"));
         testObject1.addPayload(testPayload1);
+
+        testObject2 = new GenericDigitalObject(
+                "/Users/fascinator/Documents/sample.odt");
+        GenericPayload testPayload2 = new GenericPayload("sample.odt",
+                "ICE Sample Document",
+                "application/vnd.oasis.opendocument.text");
+        testPayload2.setInputStream(getClass().getResourceAsStream(
+                "/sample.odt"));
+        testObject2.addPayload(testPayload2);
     }
 
     @After
@@ -36,17 +46,25 @@ public class FileSystemStorageTest {
         FileUtils.deleteQuietly(fs.getHomeDir());
     }
 
-    @Ignore
     @Test
-    public void addAndGetObject() throws Exception {
+    public void addAndGetObjects() throws Exception {
         fs.init(new File(getClass().getResource("/fs-config.json").toURI()));
         fs.addObject(testObject1);
-        FileSystemDigitalObject addedObject = (FileSystemDigitalObject) fs
-                .getObject(testObject1.getId());
+        FileSystemDigitalObject addedObject1 = (FileSystemDigitalObject) fs
+                .getObject("oai:eprints.usq.edu.au:318");
+        String filename1 = FilenameUtils
+                .separatorsToSystem("/tmp/_fs_test/e2/92/e292378c5b38b0d5a4aba11fd40e7151");
         Assert
-                .assertEquals(
-                        FilenameUtils
-                                .separatorsToSystem("/tmp/_fs_test/e2/92/oai%3Aeprints.usq.edu.au%3A318"),
-                        addedObject.getPath().getAbsolutePath());
+                .assertEquals(filename1, addedObject1.getPath()
+                        .getAbsolutePath());
+
+        fs.addObject(testObject2);
+        FileSystemDigitalObject addedObject2 = (FileSystemDigitalObject) fs
+                .getObject("/Users/fascinator/Documents/sample.odt");
+        String filename2 = FilenameUtils
+                .separatorsToSystem("/tmp/_fs_test/11/b4/11b498d057256a0b602fa0e7c4073fc3");
+        Assert
+                .assertEquals(filename2, addedObject2.getPath()
+                        .getAbsolutePath());
     }
 }
