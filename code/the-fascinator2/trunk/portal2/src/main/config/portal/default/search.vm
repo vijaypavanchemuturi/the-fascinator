@@ -94,8 +94,8 @@ $(function() {
   <form action="search" id="search-form" method="post">
     <input id="query" name="query" size="45" type="text" value="$!formData.get('query')"/>
     <input name="search" type="submit" value="Go!" />
+    #parse("$portalId/search-paging.vm")
   </form>
-  #parse("$portalId/search-paging.vm")
   #if($self.result and $numFound > 0)
   <p>Displaying <strong>${paging.startNum}</strong> to <strong>${paging.endNum}</strong> of <strong>${paging.totalFound}</strong> records (in $self.queryTime seconds)</p>
   #end
