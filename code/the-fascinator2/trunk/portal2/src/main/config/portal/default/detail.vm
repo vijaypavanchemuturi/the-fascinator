@@ -1,4 +1,6 @@
 #set($pageTitle = 'Detail')
+#set($pageHeader = '<link rel="stylesheet" type="text/css" href="js/tree/tree_component.css" />
+				<script type="text/javascript" src="' + $contextPath + '/' + $portalId + '/mediaplayer/swfobject.js"></script>')
 <script type="text/javascript">
 $(function() {
 	var oid = $("label[id='oid']").text();
@@ -9,15 +11,25 @@ $(function() {
 		if ($(format).html().toLowerCase().indexOf("image") == 0) {
 			$('div.file-content').append("<img src='download/"+ oid+ "/" + itemLabel + "'/>");
 		}
-		if ($(format).html().toLowerCase().indexOf("text") == 0) {
+		if ($(format).html().toLowerCase().indexOf("text") == 0 || 
+			$(format).html().toLowerCase().indexOf("application/vnd.ms-") == 0 ||
+			$(format).html().toLowerCase().indexOf("application/vnd.oasis.opendocument.") == 0
+		) {
 			var payloadContent = $("label[id='payloadContent']").text();
 			$('div.file-content').append(payloadContent);
 		}
-		if ($(format).html().toLowerCase().indexOf("application/vnd.ms-") == 0 ||
-			$(format).html().toLowerCase().indexOf("application/vnd.oasis.opendocument.") == 0) {
-			var payloadContent = $("label[id='payloadContent']").text();
-			$('div.file-content').append(payloadContent);
-		}//else {
+		if ($(format).html().toLowerCase().indexOf("audio") == 0) {
+			$('div.file-content').append("<div id='fileContent'></div>");
+			
+			var filename = "download/" + oid + "/" + itemLabel;
+			var s1 = new SWFObject(filename, 'ply','328','20','9','#FFFFFF');
+			s1.addParam('allowfullscreen','false');
+			s1.addParam('allowscriptaccess','always');
+			s1.addParam('flashvars','file='+ filename +'&type=sound');
+			s1.write('fileContent');
+		}
+		
+		//else {
 		//	$('div.file-content').append("No metadata extracted for this file");
 		//}
 	});
@@ -49,7 +61,7 @@ $(function() {
 </div>
 #set($dcrdf = $self.getDcRdf())
 #if ($dcrdf)
-<label class="ui-helper-hidden" id="itemLabel">$dcrdf.label</label>
+<label class="ui-helper-hidden" id="itemLabel">$page.encodeURL($dcrdf.label)</label>
 <h2>$dcrdf.title</h2>
 <ul>
 	#if ($dcrdf.format)

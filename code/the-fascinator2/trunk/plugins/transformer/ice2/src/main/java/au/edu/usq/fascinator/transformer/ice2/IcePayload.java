@@ -19,6 +19,7 @@
 package au.edu.usq.fascinator.transformer.ice2;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.zip.ZipEntry;
@@ -36,15 +37,18 @@ import au.edu.usq.fascinator.common.storage.impl.GenericPayload;
  */
 public class IcePayload extends GenericPayload {
 
-    private File zipPath;
-
+    private File filePath;
+    private boolean isZip = false;
     private ZipEntry zipEntry;
 
-    public IcePayload(File zipPath, ZipEntry zipEntry) {
-        this.zipPath = zipPath;
+    public IcePayload(File filePath, ZipEntry zipEntry) {
+        this.filePath = filePath;
         this.zipEntry = zipEntry;
-
-        String name = zipEntry.getName();
+        String name = filePath.getName();
+        if (this.zipEntry != null) {
+            isZip = true;
+            name = zipEntry.getName();
+        }
         setId(name);
         setLabel(name);
         setContentType(MimeTypeUtil.getMimeType(name));
@@ -53,7 +57,11 @@ public class IcePayload extends GenericPayload {
 
     @Override
     public InputStream getInputStream() throws IOException {
-        ZipFile zipFile = new ZipFile(zipPath);
-        return zipFile.getInputStream(zipEntry);
+        if (isZip) {
+            ZipFile zipFile = new ZipFile(filePath);
+            return zipFile.getInputStream(zipEntry);
+        } else {
+            return new FileInputStream(filePath);
+        }
     }
 }

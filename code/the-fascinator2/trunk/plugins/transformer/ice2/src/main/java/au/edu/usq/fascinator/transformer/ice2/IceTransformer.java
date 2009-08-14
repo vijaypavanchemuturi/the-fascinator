@@ -114,11 +114,16 @@ public class IceTransformer implements Transformer {
         try {
             HttpClient client = new HttpClient();
             PostMethod filePost = new PostMethod(convertUrl);
+
+            String[] filePart = sourceFile.getName().split("\\.");
+
             Part[] parts = { new StringPart("zip", "1"),
                     new StringPart("dc", "1"), new StringPart("toc", "1"),
                     new StringPart("pdfLink", "1"),
                     new StringPart("pathext", ""),
                     new StringPart("template", getTemplate()),
+                    new StringPart("resize", "-90"),
+                    new StringPart("mode", "download"),
                     new FilePart("file", sourceFile) };
 
             filePost.setRequestEntity(new MultipartRequestEntity(parts,
@@ -127,9 +132,23 @@ public class IceTransformer implements Transformer {
 
             // Get Response
             InputStream is = filePost.getResponseBodyAsStream();
-            String[] filePart = sourceFile.getName().split("\\.");
-            // Store in outputPath folder
-            String outputFilename = outputPath + "/" + filePart[0] + ".zip";
+            String headerType = filePost.getResponseHeader("Content-Type")
+                    .getValue();
+            String outputFilename;
+            outputFilename = outputPath + "/" + filePart[0] + ".zip";
+            if (headerType.indexOf("image/jp") > -1) {
+                // for resized image
+                outputFilename = outputPath + "/" + filePart[0] + ".jpg";
+            }
+            if (headerType.indexOf("video/x-flv") > -1) {
+                // for converted media file
+                outputFilename = outputPath + "/" + filePart[0] + ".flv";
+            }
+            // Check if file is exist or not, just incase
+            File outputFile = new File(outputFilename);
+            if (outputFile.exists()) {
+                outputFilename = sourceFile.getName() + "_" + outputFilename;
+            }
             FileOutputStream fos = new FileOutputStream(outputFilename);
             IOUtils.copy(is, fos);
 
@@ -248,7 +267,8 @@ public class IceTransformer implements Transformer {
     public DigitalObject transform(DigitalObject in)
             throws TransformerException {
         File inFile = new File(in.getId());
-        if (inFile.exists()) {
+        if (inFile.exists() && !inFile.getName().endsWith(".mp3")
+                && !inFile.getName().endsWith(".m4a")) {
             String result = getRendition(inFile);
             if (!result.startsWith("Error")) {
                 // Check if the file is a zip file or error returned from ice
@@ -257,10 +277,10 @@ public class IceTransformer implements Transformer {
                             result);
                     return iceObject;
                 }
-                File resultFile = new File(result);
-                if (resultFile.exists()) {
-                    resultFile.delete();
-                }
+            }
+            File resultFile = new File(result);
+            if (resultFile.exists()) {
+                resultFile.delete();
             }
         }
         return in;

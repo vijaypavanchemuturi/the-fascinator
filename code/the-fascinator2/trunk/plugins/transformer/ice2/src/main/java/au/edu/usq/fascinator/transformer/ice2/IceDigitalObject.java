@@ -45,19 +45,25 @@ public class IceDigitalObject extends GenericDigitalObject {
      * Creates a DigitalObject with rendition payloads from the specified zip
      * 
      * @param object original object
-     * @param zipPath path to the zip renditions
+     * @param filePath path to the zip renditions
      */
-    public IceDigitalObject(DigitalObject object, String zipPath) {
+    public IceDigitalObject(DigitalObject object, String filePath) {
         super(object);
         try {
-            File zipPathFile = new File(zipPath);
-            ZipFile zipFile = new ZipFile(zipPathFile);
-            Enumeration<? extends ZipEntry> entries = zipFile.entries();
-            while (entries.hasMoreElements()) {
-                ZipEntry entry = entries.nextElement();
-                if (!entry.isDirectory()) {
-                    addPayload(new IcePayload(zipPathFile, entry));
+            log.info("filePath: " + filePath);
+            if (filePath.endsWith(".zip")) {
+                File zipPathFile = new File(filePath);
+                ZipFile zipFile = new ZipFile(zipPathFile);
+                Enumeration<? extends ZipEntry> entries = zipFile.entries();
+                while (entries.hasMoreElements()) {
+                    ZipEntry entry = entries.nextElement();
+                    if (!entry.isDirectory()) {
+                        addPayload(new IcePayload(zipPathFile, entry));
+                    }
                 }
+            } else {
+                File filePathFile = new File(filePath);
+                addPayload(new IcePayload(filePathFile, null));
             }
         } catch (IOException ioe) {
             log.error("Failed to add rendition payloads: {}", ioe);
