@@ -1,5 +1,5 @@
 from java.net import URLDecoder
-from java.io import StringWriter
+from java.io import ByteArrayOutputStream, StringWriter
 from org.dom4j.io import OutputFormat, XMLWriter, SAXReader
 
 from org.apache.commons.io import IOUtils;
@@ -51,7 +51,6 @@ class DetailData:
             slideNode = document.selectSingleNode("//div[@class='body']")
             #linkNodes = slideNode.selectNodes("//img")
             #contentStr = slideNode.asXML();
-
             # encode character entities correctly
             out = ByteArrayOutputStream()
             format = OutputFormat.createPrettyPrint()
