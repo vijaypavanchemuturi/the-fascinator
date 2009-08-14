@@ -8,9 +8,9 @@
     <field name="file_path">Path</field>
     <field name="repository_name">Source</field>
     <field name="repository_type">Source type</field>
-    <field name="dc.subject">Subject</field>
-    <field name="dc.creator">Author</field>
-    <field name="dc.type">Type</field>
-    <field name="dc.format">Format</field>
+    <field name="f_dc_subject">Subject</field>
+    <field name="f_dc_creator">Author</field>
+    <field name="f_dc_type">Type</field>
+    <field name="f_dc_format">Format</field>
   </facet-fields>
 </portal>

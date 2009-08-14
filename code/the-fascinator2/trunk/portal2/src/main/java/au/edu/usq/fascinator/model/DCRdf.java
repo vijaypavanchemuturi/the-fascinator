@@ -6,6 +6,7 @@ import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.dom4j.Document;
@@ -75,14 +76,15 @@ public class DCRdf {
     }
 
     public String getCreator() {
-        String creator = getNodeValue("./rdf:RDF/rdf:Description/dcterms:creator");
-        if (creator == "") {
-            creator = getNodeValue("./rdf:RDF/rdf:Description/dc:creator");
+        List<Node> creators = document
+                .selectNodes("//rdf:RDF/rdf:Description/*[local-name()='fullname']");
+        String creatorStr = "";
+        for (Node creator : creators) {
+            creatorStr += creator.getText() + ", ";
         }
-        if (creator == "") {
-            return getNodeValue("./rdf:RDF/rdf:Description/*[local-name()='initial-creator']");
-        }
-        return creator;
+        creatorStr = creatorStr.substring(0, creatorStr.lastIndexOf(','));
+        return creatorStr;
+
     }
 
     public String getFilePath() {
@@ -135,9 +137,9 @@ public class DCRdf {
         namespaces = new HashMap<String, String>();
         registerNamespace("rdf", RDFns);
         registerNamespace("dc", DCns);
-        registerNamespace("j.0", J0ns);
-        registerNamespace("j.1", J1ns);
-        registerNamespace("j.2", J2ns);
+        registerNamespace("j0", J0ns);
+        registerNamespace("j1", J1ns);
+        registerNamespace("j2", J2ns);
         registerNamespace("foaf", FOAFns);
         registerNamespace("dcterms", DCterms);
         DocumentFactory.getInstance().setXPathNamespaceURIs(namespaces);
