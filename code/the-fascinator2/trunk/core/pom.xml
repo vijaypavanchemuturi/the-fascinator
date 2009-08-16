@@ -84,7 +84,7 @@
             <configuration>
               <mainClass>au.edu.usq.fascinator.HarvestClient</mainClass>
               <arguments>
-                <argument>src/test/resources/local-queue.json</argument>
+                <argument>src/test/resources/local-files.json</argument>
               </arguments>
             </configuration>
           </plugin>
