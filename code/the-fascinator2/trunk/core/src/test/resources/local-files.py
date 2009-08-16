@@ -11,15 +11,25 @@ from org.dom4j.io import SAXReader
 #    storageId : Storage layer identifier
 #
 
-def indexNode(doc, name, xPath="", value=""):
-    if value:
-        rules.add(AddField(name, value))
-        return value
-    node = doc.selectSingleNode(xPath)
-    if node is not None:
-        rules.add(AddField(name, node.getText()))
-        return node.getText()
-    return ""
+#def indexNode(doc, name, xPath="", value=""):
+#    if value:
+#        rules.add(AddField(name, value))
+#        return value
+#    node = doc.selectSingleNodes(xPath)
+#    if node is not None and len(node)==1:
+#        rules.add(AddField(name, node.getText()))
+#        return node.getText()
+#    return ""
+
+def indexNodes(doc, names, xPath="", value=[]):
+    nodes = doc.selectNodes(xPath)
+    valueList = []
+    if nodes:
+        for node in nodes:
+            for name in names: 
+                rules.add(AddField(name, node.getText()))
+            valueList.append(node.getText())
+    return valueList
 
 rules.add(New())
 
@@ -55,10 +65,10 @@ indexer.registerNamespace("rdf", "http://www.w3.org/1999/02/22-rdf-syntax-ns#")
 indexer.registerNamespace("rdfs", "http://www.w3.org/2000/01/rdf-schema#")
 indexer.registerNamespace("dc", "http://purl.org/dc/elements/1.1/")
 indexer.registerNamespace("foaf", "http://xmlns.com/foaf/0.1/")
-indexer.registerNamespace("j.1", "urn:oasis:names:tc:opendocument:xmlns:meta:1.0/")
-indexer.registerNamespace("j.0", "http://www.semanticdesktop.org/ontologies/2007/01/19/nie#")
-indexer.registerNamespace("j.2", "http://www.semanticdesktop.org/ontologies/2007/03/22/nco#")
-indexer.registerNamespace("j.3", "http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#")
+indexer.registerNamespace("openofficens", "urn:oasis:names:tc:opendocument:xmlns:meta:1.0/")
+indexer.registerNamespace("nie", "http://www.semanticdesktop.org/ontologies/2007/01/19/nie#")
+indexer.registerNamespace("nco", "http://www.semanticdesktop.org/ontologies/2007/03/22/nco#")
+indexer.registerNamespace("nfo", "http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#")
 indexer.registerNamespace("dcterms", "http://purl.org/dc/terms/")
 
 
@@ -77,24 +87,24 @@ else:
 #rootNode = indexer.getXmlDocument(object.getMetadata())
 
    
-if rdf is not None:
-    title = indexNode(rootNode, "dc.title", "/rdf:RDF/rdf:Description/dcterms:title")
-    if title=="":
-        title = indexNode(rootNode, "dc.title", "/rdf:RDF/rdf:Description/dc:title")
-    if title=="":
-        title = indexNode(rootNode, "dc.title", "/rdf:RDF/rdf:Description/j.0:title")
-    if title:
-        indexNode(rootNode, "dc.subject", value=title)
+#if rdf is not None:
+#    title = indexNode(rootNode, "dc_title", "/rdf:RDF/rdf:Description/dcterms:title")
+#    if title=="":
+#        title = indexNode(rootNode, "dc_title", "/rdf:RDF/rdf:Description/dc:title")
+#    if title=="":
+#        title = indexNode(rootNode, "dc_title", "/rdf:RDF/rdf:Description/nie:title")
+#    if title:
+#        indexNode(rootNode, "dc_subject", value=title)
 
 if isMetadata:
     indexer.registerNamespace("rdf", "http://www.w3.org/1999/02/22-rdf-syntax-ns#")
     indexer.registerNamespace("rdfs", "http://www.w3.org/2000/01/rdf-schema#")
     indexer.registerNamespace("dc", "http://purl.org/dc/elements/1.1/")
     indexer.registerNamespace("foaf", "http://xmlns.com/foaf/0.1/")
-    indexer.registerNamespace("j.1", "urn:oasis:names:tc:opendocument:xmlns:meta:1.0/")
-    indexer.registerNamespace("j.0", "http://www.semanticdesktop.org/ontologies/2007/01/19/nie#")
-    indexer.registerNamespace("j.2", "http://www.semanticdesktop.org/ontologies/2007/03/22/nco#")
-    indexer.registerNamespace("j.3", "http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#")
+    indexer.registerNamespace("openofficens", "urn:oasis:names:tc:opendocument:xmlns:meta:1.0/")
+    indexer.registerNamespace("nie", "http://www.semanticdesktop.org/ontologies/2007/01/19/nie#")
+    indexer.registerNamespace("nco", "http://www.semanticdesktop.org/ontologies/2007/03/22/nco#")
+    indexer.registerNamespace("nfo", "http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#")
     indexer.registerNamespace("dcterms", "http://purl.org/dc/terms/")
 
     rdf = indexer.getXmlDocument(object.getMetadata())
@@ -113,34 +123,27 @@ if isMetadata:
     
        
     if rdf is not None:
-        title = indexNode(rootNode, "dc.title", "/rdf:RDF/rdf:Description/dcterms:title")        
-        if title=="":
-            title = indexNode(rootNode, "dc.title", "/rdf:RDF/rdf:Description/dc:title")
-        if title=="":
-            title = indexNode(rootNode, "dc.title", "/rdf:RDF/rdf:Description/j.0:title")
-        if title:
-            indexNode(rootNode, "dc.subject", value=title)
-        
-        dcDate = indexNode(rootNode, "dc.date", "/rdf:RDF/rdf:Description/dcterms:date")
-        if dcDate:
-            dcDate = indexNode(rootNode, "dc.date", "/rdf:RDF/rdf:Description/dc:date")
+        title = indexNodes(rootNode, ["dc_title", "dc_subject"], "//rdf:RDF/rdf:Description/dcterms:title")
+        if title == []:
+            title = indexNodes(rootNode, ["dc_title", "dc_subject"], "//rdf:RDF/rdf:Description/dc:title")
+        if title == []:
+            title = indexNodes(rootNode, ["dc_title", "dc_subject"], "//rdf:RDF/rdf:Description/nie:title")
             
-        creator = indexNode(rootNode, "dc.creator", "/rdf:RDF/rdf:Description/dcterms:creator")
-        if creator=="":
-            creator = indexNode(rootNode, "dc.creator", "/rdf:RDF/rdf:Description/dc:creator")
-        if creator=="":
-            creator = indexNode(rootNode, "dc.creator", "/rdf:RDF/rdf:Description/j.1:initial-creator")
-        if creator=="":
-            creator = indexNode(rootNode, "dc.creator", "/rdf:RDF/rdf:Description/j.1:fullname")
-        if creator: 
-            indexNode(rootNode, "dc.author", creator)
+        dcDate = indexNodes(rootNode, ["dc_date"], "//rdf:RDF/rdf:Description/dcterms:date")
+        if dcDate:
+            dcDate = indexNodes(rootNode, ["dc_date"], "//rdf:RDF/rdf:Description/dc:date")
+            
+        creator = indexNodes(rootNode, ["dc_creator", "dc_author"], "//rdf:RDF/rdf:Description/nco:fullname")
+        creator = indexNodes(rootNode, ["dc_creator", "dc_author"], "//rdf:RDF/rdf:Description/dc:creator")
+        creator = indexNodes(rootNode, ["dc_creator", "dc_author"], "//rdf:RDF/rdf:Description/openofficens:initial-creator")
+        creator = indexNodes(rootNode, ["dc_creator", "dc_author"], "//rdf:RDF/rdf:Description/dcterms:creator")
         
-        format = indexNode(rootNode, "dc.format", "/rdf:RDF/rdf:Description/dcterms:format")
+        format = indexNodes(rootNode, ["dc_format"], "//rdf:RDF/rdf:Description/dcterms:format")
         if format=="":
-            format = indexNode(rootNode, "dc.format", "/rdf:RDF/rdf:Description/j.0:mimeType")
+            format = indexNodes(rootNode, ["dc_format"], "//rdf:RDF/rdf:Description/nie:mimeType")
         
-        indexNode(rootNode, "full_text", "/rdf:RDF/rdf:Description/j.0:plainTextContent")
-        indexNode(rootNode, "dc.creationdate", "/rdf:RDF/rdf:Description/j.1:creation-date")
+        indexNodes(rootNode, ["full_text"], "//rdf:RDF/rdf:Description/nie:plainTextContent")
+        indexNodes(rootNode, ["dc_creationdate"], "//rdf:RDF/rdf:Description/openofficens:creation-date")
 
 
 
