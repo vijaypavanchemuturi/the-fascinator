@@ -4,6 +4,7 @@
   <artifactId>plugin-transformer-aperture</artifactId>
   <version>2.0.0-SNAPSHOT</version>
   <name>The Fascinator - Plugin - Transformer - Aperture</name>
+  <url>http://fascinator.usq.edu.au/trac/wiki/tf2/DeveloperNotes/plugins/transformer/aperture</url>
   <parent>
     <groupId>au.edu.usq.fascinator</groupId>
     <artifactId>fascinator-plugins</artifactId>

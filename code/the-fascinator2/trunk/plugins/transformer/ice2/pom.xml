@@ -5,6 +5,7 @@
   <artifactId>plugin-transformer-ice2</artifactId>
   <version>2.0.0-SNAPSHOT</version>
   <name>The Fascinator - Plugin - Transformer - ICE 2</name>
+  <url>http://fascinator.usq.edu.au/trac/wiki/tf2/DeveloperNotes/plugins/transformer/ice2</url>
   <parent>
     <groupId>au.edu.usq.fascinator</groupId>
     <artifactId>fascinator-plugins</artifactId>
