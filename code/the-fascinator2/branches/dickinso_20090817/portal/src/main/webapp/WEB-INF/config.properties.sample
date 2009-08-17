@@ -1,0 +1,18 @@
+#
+# Solr base URL and credentials
+#
+solr.base.url=http://localhost:8983/solr
+#solr.user=solrAdmin
+#solr.pass=solrAdmin
+
+#
+# Portal configuration directory. This is normally the same directory as
+# the location of the velocity templates.
+#
+portals.dir=src/main/config/portal
+
+#
+# LDAP authentication
+#
+ldap.base.url=
+ldap.base.dn=

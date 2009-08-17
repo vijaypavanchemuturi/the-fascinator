@@ -1,0 +1,6 @@
+<!-- BEGIN forbidden.vm -->
+<div class="notfound">
+  <h1>403 Forbidden</h1>
+  <p>You do not have permission to view the requested item.</p>
+</div>
+<!-- END forbidden.vm -->

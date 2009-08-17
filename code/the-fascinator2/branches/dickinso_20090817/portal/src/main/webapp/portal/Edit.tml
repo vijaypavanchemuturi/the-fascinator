@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- 
+  The Fascinator - Solr Portal
+  Copyright (C) 2008  University of Southern Queensland
+  
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation; either version 2 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU General Public License along
+  with this program; if not, write to the Free Software Foundation, Inc.,
+  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ -->
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:t="http://tapestry.apache.org/schema/tapestry_5_0_0.xsd">
+  <head>
+    <title>${message:app.name}</title>
+    <link rel="stylesheet" type="text/css" href="${asset:velocity:default/style.css}"/>
+  </head>
+  <body>
+    <div t:type="VelocityPanel" t:template="header.vm"/>
+    <div t:type="VelocityPanel" t:template="settingTabs.vm"/>
+    <div id="tabContent">
+	    <div class="beaneditor">
+	      <h2>Edit Portal '${portal.description}'</h2>
+	      <p class="helptext">Hover your mouse over any field for a description of the setting.</p>
+	      <t:beaneditform t:id="editportal" t:object="portal" t:submitlabel="Save changes">
+	        <t:parameter t:name="name">
+	          <t:label t:for="name"/>
+	          <t:textfield t:id="name" t:value="portal.name" t:readonly="true"
+	                       title="The name of this portal that will appear in the URL"/>
+	          <span class="helptext">(cannot be changed)</span>
+	        </t:parameter>
+	        <t:parameter t:name="description">
+	          <t:label t:for="description"/>
+	          <t:textfield t:id="description" t:size="40" t:value="portal.description"
+	                       title="Descriptive name for this portal"/>
+	          <span class="helptext">(required)</span>
+	        </t:parameter>
+	        <t:parameter t:name="query">
+	          <t:label t:for="query"/>
+	          <t:textfield t:id="query" t:size="60" t:value="portal.query"
+	                       title='Lucene query to limit results by facet values (e.g. repository_name:"USQ")'/>
+	        </t:parameter>
+	        <t:parameter t:name="recordsPerPage">
+	          <t:label t:for="recordsPerPage"/>
+	          <t:textfield t:id="recordsPerPage" t:value="portal.recordsPerPage"
+	                       title="Number of records displayed on page"/>
+	        </t:parameter>
+	        <t:parameter t:name="facetCount">
+	          <t:label t:for="facetCount"/>
+	          <t:textfield t:id="facetCount" t:value="portal.facetCount"
+	                       title="Maximum number of facets displayed on page"/>
+	        </t:parameter>
+	        <t:parameter t:name="facetSort">
+	          <t:label t:for="facetSort"/>
+	          <t:checkbox t:id="facetSort" t:value="portal.facetSort"
+	                      title="Check this to sort facets by count. Uncheck to sort alphabetically."/>
+	        </t:parameter>
+	        <t:parameter t:name="itemClass">
+	          <t:label t:for="itemClass"/>
+	          <t:textfield t:id="itemClass" t:value="portal.itemClass"
+	                       title="Limit results by item type (e.g. image, article) or leave empty to show all"/>
+	          <span class="helptext">(optional)</span>
+	        </t:parameter>
+	        <t:parameter t:name="network">
+	          <h3 class="subheading">Advanced</h3>
+	          <t:label t:for="network"/>
+	          <t:textfield t:id="network" t:value="portal.network"
+	                       title="Network address for 'on campus' access (e.g. 139.86.0.0)"/>
+	          <span class="helptext">(optional)</span>
+	        </t:parameter>
+	        <t:parameter t:name="netmask">
+	          <t:label t:for="netmask"/>
+	          <t:textfield t:id="netmask" t:value="portal.netmask"
+	                       title="Network mask for 'on campus' access (e.g. 255.255.248.0)"/>
+	          <span class="helptext">(optional)</span>
+	        </t:parameter>
+	      </t:beaneditform>
+	    </div>
+	</div>
+    <div t:type="VelocityPanel" t:template="footer.vm"/>
+  </body>
+</html>

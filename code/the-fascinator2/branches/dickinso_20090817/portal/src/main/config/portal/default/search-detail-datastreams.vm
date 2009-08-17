@@ -1,0 +1,23 @@
+<!-- BEGIN search-detail-datastreams.vm --> 
+<div class="facets">
+  <h3>Downloads</h3>
+  <ul class="datastreams">
+  
+  	## Need to put download link to the original Source
+    #foreach($ds in $page.datastreams)
+      #if ($ds.id.indexOf("_files")==-1 && $ds.id.indexOf("rdf")==-1 && $ds.id.indexOf("SOF")==-1)
+      <li>
+      	#set ($id = $page.urlEncoder($ds.id))
+        <a href="$page.encodedUuid/$id">
+          #if(!$ds.id or $ds.label == "")
+            [Untitled]
+          #else
+            $ds.id
+          #end
+        </a>
+      </li>
+      #end
+    #end
+  </ul>
+</div>
+<!-- END search-detail-datastreams.vm -->
