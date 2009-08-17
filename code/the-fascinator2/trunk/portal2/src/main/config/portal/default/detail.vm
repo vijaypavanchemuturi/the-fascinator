@@ -1,6 +1,7 @@
 #set($pageTitle = 'Detail')
+#set($portalPath = "$contextPath/$portalId")
 #set($pageHeader = '<link rel="stylesheet" type="text/css" href="js/tree/tree_component.css" />
-				<script type="text/javascript" src="' + $contextPath + '/' + $portalId + '/mediaplayer/swfobject.js"></script>')
+				<script type="text/javascript" src="' + $portalPath + '/flowplayer/flowplayer-3.1.2.min.js"></script>')
 <script type="text/javascript">
 $(function() {
 	var oid = $("label[id='oid']").text();
@@ -8,27 +9,30 @@ $(function() {
 	
 	$("span[id='format']").each(function() {
 		var format = this;
-		if ($(format).html().toLowerCase().indexOf("image") == 0) {
+        var mimeType = $(format).html().toLowerCase();
+		if (mimeType.indexOf("image") == 0) {
 			$('div.file-content').append("<img src='download/"+ oid+ "/" + itemLabel + "'/>");
 		}
-		if ($(format).html().toLowerCase().indexOf("text") == 0 || 
-			$(format).html().toLowerCase().indexOf("application/vnd.ms-") == 0 ||
-			$(format).html().toLowerCase().indexOf("application/vnd.oasis.opendocument.") == 0
+		if (mimeType.indexOf("text") == 0 || 
+			mimeType.indexOf("application/vnd.ms-") == 0 ||
+			mimeType.indexOf("application/vnd.oasis.opendocument.") == 0
 		) {
 			var payloadContent = $("label[id='payloadContent']").text();
 			$('div.file-content').append(payloadContent);
 		}
-		if ($(format).html().toLowerCase().indexOf("audio") == 0) {
-			$('div.file-content').append("<div id='fileContent'></div>");
-			
-			var filename = "download/" + oid + "/" + itemLabel;
-			var s1 = new SWFObject(filename, 'ply','328','20','9','#FFFFFF');
-			s1.addParam('allowfullscreen','false');
-			s1.addParam('allowscriptaccess','always');
-			s1.addParam('flashvars','file='+ filename +'&type=sound');
-			s1.write('fileContent');
+		if (mimeType.indexOf("audio") == 0 || mimeType.indexOf("video") == 0) {
+            var filename = 'download/' + oid + '/' + itemLabel;
+            console.log(filename);
+            $('div.file-content').append('<a href="' + filename + '" id="player" style="display:block;width:425px;height:300px;"></a>');
+            flowplayer("player", "$portalPath/flowplayer/flowplayer-3.1.2.swf");
+			//$('div.file-content').append("<div id='fileContent'></div>");
+			//var filename = "download/" + oid + "/" + itemLabel;
+			//var s1 = new SWFObject(filename, 'ply','328','20','9','#FFFFFF');
+			//s1.addParam('allowfullscreen','false');
+			//s1.addParam('allowscriptaccess','always');
+			//s1.addParam('flashvars','file='+ filename +'&type=sound');
+			//s1.write('fileContent');
 		}
-		
 		//else {
 		//	$('div.file-content').append("No metadata extracted for this file");
 		//}
@@ -41,6 +45,9 @@ $(function() {
 			src.toLowerCase().indexOf("download/") != 0)
 		$(this).attr("src", "download/" + oid + "/" + src);
 	});
+  
+  
+    
 });
 
 </script>
