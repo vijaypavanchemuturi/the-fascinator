@@ -20,54 +20,95 @@ package au.edu.usq.fascinator.storage.filesystem;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.Reader;
+import java.util.Properties;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import au.edu.usq.fascinator.api.storage.Payload;
+import au.edu.usq.fascinator.api.storage.PayloadType;
 import au.edu.usq.fascinator.common.MimeTypeUtil;
 import au.edu.usq.fascinator.common.storage.impl.GenericPayload;
 
 public class FileSystemPayload extends GenericPayload {
 
+    private Logger log = LoggerFactory.getLogger(FileSystemPayload.class);
+
     private File file;
 
-    private File meta;
     private File homeDir;
 
-    public FileSystemPayload(Payload payload) {
+    public FileSystemPayload(File homeDir, Payload payload) {
         super(payload);
-        System.err.println("id=" + getId());
-        updateMeta();
-    }
-
-    public FileSystemPayload(File homeDir, File payloadFile) {
-        this(payloadFile);
         this.homeDir = homeDir;
         updateMeta();
     }
 
-    public FileSystemPayload(File payloadFile) {
+    public FileSystemPayload(File homeDir, File payloadFile) {
+        this.homeDir = homeDir;
         file = payloadFile;
         if (file.isAbsolute()) {
             setId(payloadFile.getName());
         } else {
             setId(payloadFile.getPath());
         }
-        setLabel(payloadFile.getAbsolutePath()); // TODO get from meta?
-        setContentType(MimeTypeUtil.getMimeType(payloadFile));
         updateMeta();
     }
 
     private void updateMeta() {
-        // store things like label and payload type
+        // set default payload meta if not already set
+        if (getType() == null) {
+            setType(PayloadType.Data);
+        }
+        if (getLabel() == null) {
+            setLabel(getFile().getAbsolutePath());
+        }
+        if (getContentType() == null) {
+            setContentType(MimeTypeUtil.getMimeType(getFile()));
+        }
+        File metaFile = new File(getFile().getParentFile(), getFile().getName()
+                + ".meta");
+        try {
+            Properties props = new Properties();
+            if (metaFile.exists()) {
+                Reader metaReader = new FileReader(metaFile);
+                props.load(metaReader);
+                metaReader.close();
+                setId(props.getProperty("id", getId()));
+                setType(PayloadType.valueOf(props.getProperty("payloadType",
+                        getType().toString())));
+                setLabel(props.getProperty("label", getId()));
+                setContentType(props.getProperty("contentType",
+                        getContentType()));
+            } else {
+                metaFile.getParentFile().mkdirs();
+                OutputStream metaOut = new FileOutputStream(metaFile);
+                props.setProperty("id", getId());
+                props.setProperty("payloadType", getType().toString());
+                props.setProperty("label", getLabel());
+                props.setProperty("contentType", getContentType());
+                props.store(metaOut, "Payload metadata for "
+                        + getFile().getAbsolutePath());
+                metaOut.close();
+            }
+        } catch (IOException ioe) {
+            log.warn("Failed to read/write metaFile {}: {}", metaFile, ioe
+                    .getMessage());
+        }
     }
 
     public File getFile() {
         if (file == null) {
-            return new File(getId());
+            return new File(homeDir, getId());
         } else {
             if (file.isAbsolute()) {
-                return new File(homeDir, file.getName());
+                return file;
             } else {
                 return new File(homeDir, file.getPath());
             }
@@ -84,6 +125,6 @@ public class FileSystemPayload extends GenericPayload {
 
     @Override
     public String toString() {
-        return String.format("%s (%s)", getId(), getFile().getAbsolutePath());
+        return String.format("%s (%s)", getLabel(), getId());
     }
 }

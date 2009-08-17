@@ -19,17 +19,20 @@
 package au.edu.usq.fascinator.storage.filesystem;
 
 import java.io.File;
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
+import java.io.FilenameFilter;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.codec.digest.DigestUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import au.edu.usq.fascinator.api.storage.Payload;
 import au.edu.usq.fascinator.common.storage.impl.GenericDigitalObject;
 
 public class FileSystemDigitalObject extends GenericDigitalObject {
+
+    private Logger log = LoggerFactory.getLogger(FileSystemDigitalObject.class);
 
     private File homeDir;
 
@@ -54,12 +57,7 @@ public class FileSystemDigitalObject extends GenericDigitalObject {
             String dir = getHashId().substring(0, 2) + File.separator
                     + getHashId().substring(2, 4);
             File parentDir = new File(homeDir, dir);
-            String encodedId = getId();
-            try {
-                encodedId = URLEncoder.encode(encodedId, "UTF-8");
-            } catch (UnsupportedEncodingException uee) {
-            }
-            path = new File(parentDir, encodedId);
+            path = new File(parentDir, getHashId());
         }
         return path;
     }
@@ -72,7 +70,12 @@ public class FileSystemDigitalObject extends GenericDigitalObject {
     }
 
     private void addPayloadDir(List<Payload> payloadList, File dir, int depth) {
-        File[] files = dir.listFiles();
+        File[] files = dir.listFiles(new FilenameFilter() {
+            @Override
+            public boolean accept(File dir, String name) {
+                return !name.endsWith(".meta");
+            }
+        });
         if (files != null) {
             for (File file : files) {
                 if (file.isFile()) {

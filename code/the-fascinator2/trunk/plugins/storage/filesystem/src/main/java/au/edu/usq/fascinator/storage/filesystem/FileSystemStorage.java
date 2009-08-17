@@ -91,10 +91,10 @@ public class FileSystemStorage implements Storage {
 
     public void addPayload(String oid, Payload payload) {
         log.debug("Adding payload {} to {}", payload.getId(), oid);
-        FileSystemPayload filePayload = new FileSystemPayload(payload);
         FileSystemDigitalObject fileObject = (FileSystemDigitalObject) getObject(oid);
-        File payloadFile = new File(fileObject.getPath(), filePayload.getFile()
-                .toString());
+        FileSystemPayload filePayload = new FileSystemPayload(fileObject
+                .getPath(), payload);
+        File payloadFile = filePayload.getFile();
         File parentDir = payloadFile.getParentFile();
         parentDir.mkdirs();
         try {
