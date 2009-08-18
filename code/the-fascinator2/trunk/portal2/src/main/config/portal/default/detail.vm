@@ -1,44 +1,34 @@
 #set($pageTitle = 'Detail')
 #set($portalPath = "$contextPath/$portalId")
-#set($pageHeader = '<link rel="stylesheet" type="text/css" href="js/tree/tree_component.css" />
+#set($pageHeader = '<link rel="stylesheet" type="text/css" href="' + $portalPath + '/js/tree/tree_component.css" />
 				<script type="text/javascript" src="' + $portalPath + '/flowplayer/flowplayer-3.1.2.min.js"></script>')
 <script type="text/javascript">
 $(function() {
-	var oid = $("label[id='oid']").text();
-	var itemLabel = $("label[id='itemLabel']").text();
+	var oid = $("#oid").text();
+	var pid = $("#pid").text();
 	
-	$("span[id='format']").each(function() {
+	$("#format").each(function() {
 		var format = this;
-        var mimeType = $(format).html().toLowerCase();
+        var mimeType = $(format).text().toLowerCase();
 		if (mimeType.indexOf("image") == 0) {
-			$('div.file-content').append("<img src='download/"+ oid+ "/" + itemLabel + "'/>");
+			$('div.content-preview').append("<img src='download/"+ oid + "/" + pid + "'/>");
 		}
 		if (mimeType.indexOf("text") == 0 || 
 			mimeType.indexOf("application/vnd.ms-") == 0 ||
 			mimeType.indexOf("application/vnd.oasis.opendocument.") == 0
 		) {
 			var payloadContent = $("label[id='payloadContent']").text();
-			$('div.file-content').append(payloadContent);
+			$('div.content-preview').append(payloadContent);
 		}
 		if (mimeType.indexOf("audio") == 0 || mimeType.indexOf("video") == 0) {
-            var filename = 'download/' + oid + '/' + itemLabel;
+            var filename = '$portalPath/detail/download/' + oid + '/' + pid.replace("wmv", "flv");
             console.log(filename);
-            $('div.file-content').append('<a href="' + filename + '" id="player" style="display:block;width:425px;height:300px;"></a>');
+            $('div.content-preview').append('<a href="' + filename + '" id="player" style="display:block;width:425px;height:300px;"></a>');
             flowplayer("player", "$portalPath/flowplayer/flowplayer-3.1.2.swf");
-			//$('div.file-content').append("<div id='fileContent'></div>");
-			//var filename = "download/" + oid + "/" + itemLabel;
-			//var s1 = new SWFObject(filename, 'ply','328','20','9','#FFFFFF');
-			//s1.addParam('allowfullscreen','false');
-			//s1.addParam('allowscriptaccess','always');
-			//s1.addParam('flashvars','file='+ filename +'&type=sound');
-			//s1.write('fileContent');
 		}
-		//else {
-		//	$('div.file-content').append("No metadata extracted for this file");
-		//}
 	});
 	
-	$("div.file-content img").each (function() {
+	$("div.content-preview img").each (function() {
 		var src = $(this).attr("src");
 		if (src.toLowerCase().indexOf("http://") == -1 &&
 			src.toLowerCase().indexOf("file://") == -1 &&
@@ -49,44 +39,47 @@ $(function() {
   
     
 });
-
 </script>
-<h2>Detail</h2>
+#set($meta = $self.metadata)
 #set($item = $self.getObject())
 #set($oid = $page.encodeURL($item.id))
-<label id="oid" class="ui-helper-hidden">$oid</label>
-<div>
+<pre class="debug">$meta.toString()</pre>
+<div class="ui-helper-hidden" id="record-meta">
+  <label id="oid">$oid</label>
+  <label id="format">$meta.getField("dc_format")</label>
+</div>
+#set($title = $meta.getField("dc_title"))
+#set($description = $meta.getField("dc_description"))
+<h2>$title</h2>
+#if($description)
+<h3>Description</h3>
+<p>$description</p>
+#end
+<h3>Metadata</h3>
+<dl>
+#foreach($field in $meta.getDublinCore())
+  #set($name = $self.formatName($field.key))
+  #set($value = $self.formatValue($field.value))
+  <dt><strong>$name</strong></dt>
+  <dd>$value</dd>
+</dl>
+#end
+<h3>Preview</h3>
+<div class="content-preview">
+  #set($content = $self.getPayloadContent())
+  <div>$!content</div>
+</div>
+<div class="payload-list">
+  <h3>Attachments</h3>
   <ul>
   #foreach($payload in $item.payloadList)
     #set($pid = $page.encodeURL($payload.id))
-    #set($hiddenFile = $self.isHidden($pid))
-    #if ($hiddenFile==0)
-    	<li><a href="download/$oid/$pid" target="blank">$payload.id</a> ($payload.contentType)</li>
+    #if($payload.type.toString()=="Data")
+    <label class="ui-helper-hidden" id="pid">$pid</label>
+    #end
+    #if($self.isHidden($pid)==0)
+    <li><a href="download/$oid/$pid" target="blank">$payload.id</a> ($payload.contentType, $payload.type.toString())</li>
     #end
   #end
   </ul>
 </div>
-#set($dcrdf = $self.getDcRdf())
-#if ($dcrdf)
-<label class="ui-helper-hidden" id="itemLabel">$page.encodeURL($dcrdf.label)</label>
-<h2>$dcrdf.title</h2>
-<ul>
-	#if ($dcrdf.format)
-	<li>Format: <span id="format">$dcrdf.format</span></li>
-	#end
-	#if ($dcrdf.creator!="")
-	<li>Creator: $dcrdf.creator</li>
-	#end
-	#if ($dcrdf.dcDate!="")
-	<li>Date: $dcrdf.dcDate</li>
-	#end
-</ul>
-
-<div class="file-content">
-##if ($dcrdf.format.contains("text")==1) --> not working
-#set($content = $self.getPayloadContent())
-<label class="ui-helper-hidden" id="payloadContent">$content</label>
-##end 
-</div>
-
-#end

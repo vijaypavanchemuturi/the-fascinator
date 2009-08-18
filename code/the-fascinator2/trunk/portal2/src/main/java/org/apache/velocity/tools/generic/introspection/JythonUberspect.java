@@ -227,7 +227,7 @@ class PyMethod implements VelMethod {
             }
             return rtn;
         } catch (Exception e) {
-            log.error("PyMethod.invoke: " + methodname + ", "
+            log.debug("PyMethod.invoke: " + methodname + ", "
                     + params.toString() + ", " + info);
         }
 
@@ -289,7 +289,7 @@ class PyGetProperty implements VelPropertyGet {
                 return rtn;
             }
         } catch (Exception e) {
-            log.error("PyGetProperty.invoke " + propname + "." + attrName
+            log.debug("PyGetProperty.invoke " + propname + "." + attrName
                     + ", " + info);
         }
         return null;
@@ -333,11 +333,11 @@ class PySetProperty implements VelPropertySet {
             } else if (arg instanceof PyObject) {
                 po.__setattr__(propname, (PyObject) arg);
             } else {
-                log.error("unsupported argument type : "
+                log.debug("unsupported argument type : "
                         + arg.getClass().getName());
             }
         } catch (Exception e) {
-            log.error("PySetProperty.invoke", e);
+            log.debug("PySetProperty.invoke", e);
         }
 
         return null;

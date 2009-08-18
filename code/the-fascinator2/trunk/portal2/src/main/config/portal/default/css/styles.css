@@ -148,7 +148,7 @@ div.home-portal-list .ui-state-highlight {
     width: 23em;
 }
 
-.facet-count-list ul {
+.facet-count-list ul, .payload-list ul {
     color: silver;
     list-style-image: none;
     list-style-position: outside;
@@ -263,7 +263,7 @@ span.selected-facet {
     padding-left: 0em;
 }
 
-div.file-content {
+div.content-preview {
     background: #f7f7f7;
     border: 1px solid #d7d7d7;
     margin: 1em 1.75em;

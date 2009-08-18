@@ -75,6 +75,16 @@ public class JsonConfigHelper {
     }
 
     /**
+     * Creates a JSON configuration from a map. This is normally used to create
+     * an instance for a subNode returned from one of the get methods.
+     * 
+     * @param rootNode a JSON structured map
+     */
+    public JsonConfigHelper(Map<String, Object> rootNode) {
+        this.rootNode = rootNode;
+    }
+
+    /**
      * Creates a JSON configuration from the specified string
      * 
      * @param jsonContent a JSON content string
@@ -218,7 +228,9 @@ public class JsonConfigHelper {
      */
     public void store(Writer writer, boolean pretty) throws IOException {
         JsonGenerator generator = new JsonFactory().createJsonGenerator(writer);
-        generator.useDefaultPrettyPrinter();
+        if (pretty) {
+            generator.useDefaultPrettyPrinter();
+        }
         new ObjectMapper().writeValue(generator, rootNode);
     }
 
@@ -226,7 +238,7 @@ public class JsonConfigHelper {
     public String toString() {
         StringWriter sw = new StringWriter();
         try {
-            store(sw);
+            store(sw, true);
         } catch (IOException e) {
         }
         return sw.toString();

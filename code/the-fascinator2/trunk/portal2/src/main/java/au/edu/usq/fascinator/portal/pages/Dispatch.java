@@ -147,6 +147,7 @@ public class Dispatch {
             return resourceName + (isAjax ? AJAX_EXT : "");
         }
         int slash = resourceName.lastIndexOf('/');
+        log.info("resourceName=" + resourceName);
         return getBestMatchResource(portalId, resourceName.substring(0, slash));
     }
 }

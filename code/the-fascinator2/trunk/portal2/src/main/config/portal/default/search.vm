@@ -96,7 +96,7 @@ $(function() {
     <input name="search" type="submit" value="Go!" />
     #parse("$portalId/search-paging.vm")
   </form>
-  #if($self.result and $numFound > 0)
+  #if($self.result and $numFound != 0)
   <p>Displaying <strong>${paging.startNum}</strong> to <strong>${paging.endNum}</strong> of <strong>${paging.totalFound}</strong> records (in $self.queryTime seconds)</p>
   #end
 </div>
@@ -146,8 +146,8 @@ $(function() {
       #set($oid = $page.encodeURL($id))
       #set($title = $self.getFileName($id))
       #set($description = "")
-      #set($title = $item.get("dc.title").get(0))
-      #set($description = $item.get("dc.description").get(0))
+      #set($title = $item.get("dc_title").get(0))
+      #set($description = $item.get("dc_description").get(0))
       <li>
         <div id="$id">
           <h3><a href="detail/$oid">$title</a></h3>

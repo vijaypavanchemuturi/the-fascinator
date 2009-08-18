@@ -15,7 +15,7 @@ class DownloadData:
         oid = URLDecoder.decode(uri[:slash])
         pid = URLDecoder.decode(uri[slash+1:])
         
-        print "\n\n", oid, "\n", pid, "\n\n"
+        print "\n\noid:", oid, "pid:", pid, "\n\n"
         payload = Services.storage.getPayload(oid, pid)
         print "\n\n", payload, "\n\n"
         filename = os.path.split(pid)[1]
