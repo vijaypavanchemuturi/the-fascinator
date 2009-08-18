@@ -26,45 +26,46 @@
     <system>Trac</system>
     <url>http://fascinator.usq.edu.au/trac/</url>
   </issueManagement>
-  <developers >
-  	<developer>
-  		<id>dickinso</id>
-  		<name>Duncan Dickinson</name>
-  		<url>duncan.dickinson.name</url>
-  		<roles>
-  			<role>Project Officer</role>
-  			<role>Developer</role>
-  		</roles>
-  	</developer>
-  	<developer>
-  		<id>dye</id>
-  		<name>Bronwyn Chandler</name>
-  		<roles>
-  			<role>Project Officer</role>
-  		</roles>
-  	</developer>
-  	<developer>
-  		<id>octalina</id>
-  		<name>Linda Octalina</name>
-  		<roles>
-  			<role>Developer</role>
-  		</roles>
-  	</developer>
-  	<developer>
-  		<id>lucido</id>
-  		<name>Oliver Lucido</name>
-  		<roles>
-  			<role>Developer</role>
-  		</roles>
-  	</developer>
-  	<developer>
-  		<id>sefton</id>
-  		<name>Peter Sefton</name>
-  		<roles>
-  			<role>Consultant</role>
-  			<role>Tester</role>
-  		</roles>
-  	</developer></developers>
+  <developers>
+    <developer>
+      <id>dickinso</id>
+      <name>Duncan Dickinson</name>
+      <url>duncan.dickinson.name</url>
+      <roles>
+        <role>Project Officer</role>
+        <role>Developer</role>
+      </roles>
+    </developer>
+    <developer>
+      <id>dye</id>
+      <name>Bronwyn Chandler</name>
+      <roles>
+        <role>Project Officer</role>
+      </roles>
+    </developer>
+    <developer>
+      <id>octalina</id>
+      <name>Linda Octalina</name>
+      <roles>
+        <role>Developer</role>
+      </roles>
+    </developer>
+    <developer>
+      <id>lucido</id>
+      <name>Oliver Lucido</name>
+      <roles>
+        <role>Developer</role>
+      </roles>
+    </developer>
+    <developer>
+      <id>sefton</id>
+      <name>Peter Sefton</name>
+      <roles>
+        <role>Consultant</role>
+        <role>Tester</role>
+      </roles>
+    </developer>
+  </developers>
   <scm>
     <url>http://fascinator.usq.edu.au/svn/code/the-fascinator2/trunk</url>
     <connection>scm:svn:http://fascinator.usq.edu.au/svn/code/the-fascinator2/trunk</connection>
@@ -263,6 +264,30 @@
     <repository>
       <id>adfi-usq-releases</id>
       <url>http://fascinator.usq.edu.au/nexus/content/groups/public</url>
+    </repository>
+    <repository>
+      <releases>
+        <enabled>true</enabled>
+      </releases>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+      <id>aduna-opensource.releases</id>
+      <name>Aduna Open Source - Maven releases</name>
+      <url>http://repo.aduna-software.org/maven2/releases</url>
+    </repository>
+    <repository>
+      <releases>
+        <enabled>true</enabled>
+        <updatePolicy>never</updatePolicy>
+      </releases>
+      <snapshots>
+        <enabled>true</enabled>
+        <updatePolicy>never</updatePolicy>
+      </snapshots>
+      <id>aperture-repo</id>
+      <name>Aperture Dependencies Repo</name>
+      <url>http://aperture.sf.net/maven</url>
     </repository>
   </repositories>
 </project>
