@@ -19,9 +19,15 @@
 package au.edu.usq.fascinator.common;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 
-import eu.medsea.mimeutil.MimeUtil;
+import org.semanticdesktop.aperture.mime.identifier.MimeTypeIdentifier;
+import org.semanticdesktop.aperture.mime.identifier.magic.MagicMimeTypeIdentifier;
+import org.semanticdesktop.aperture.util.IOUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Utility class to determine MIME type
@@ -30,25 +36,22 @@ import eu.medsea.mimeutil.MimeUtil;
  */
 public class MimeTypeUtil {
 
-    /**
-     * Register default MIME detectors
-     */
-    static {
-        registerDetector("eu.medsea.mimeutil.detector.ExtensionMimeDetector");
-        registerDetector("eu.medsea.mimeutil.detector.MagicMimeMimeDetector");
-        if (System.getProperty("os.name").startsWith("Windows")) {
-            registerDetector("eu.medsea.mimeutil.detector.WindowsRegistryMimeDetector");
-        }
-    }
+    private static Logger log = LoggerFactory.getLogger(MimeTypeUtil.class);
+
+    private static MimeTypeIdentifier identifier = new MagicMimeTypeIdentifier();
 
     /**
      * Gets the MIME type for the specified file name
      * 
-     * @param fileName a file name
+     * @param filename a file name
      * @return MIME type
      */
-    public static String getMimeType(String fileName) {
-        return MimeUtil.getMimeTypes(fileName).iterator().next().toString();
+    public static String getMimeType(String filename) {
+        File file = new File(filename);
+        if (file.exists()) {
+            return getMimeType(file);
+        }
+        return identifier.identify(null, filename, null);
     }
 
     /**
@@ -58,7 +61,22 @@ public class MimeTypeUtil {
      * @return MIME type
      */
     public static String getMimeType(File file) {
-        return MimeUtil.getMimeTypes(file).iterator().next().toString();
+        InputStream in = null;
+        try {
+            in = new FileInputStream(file);
+            return identifier.identify(IOUtil.readBytes(in, identifier
+                    .getMinArrayLength()), file.getName(), null);
+        } catch (IOException ioe) {
+            log.warn("Failed to detect MIME type: {}", ioe.getMessage());
+        } finally {
+            if (in != null) {
+                try {
+                    in.close();
+                } catch (IOException ioe) {
+                }
+            }
+        }
+        return null;
     }
 
     /**
@@ -68,15 +86,12 @@ public class MimeTypeUtil {
      * @return MIME type
      */
     public static String getMimeType(InputStream in) {
-        return MimeUtil.getMimeTypes(in).iterator().next().toString();
-    }
-
-    /**
-     * Registers a MIME type detector.
-     * 
-     * @param detector MIME detector class name
-     */
-    private static void registerDetector(String detector) {
-        MimeUtil.registerMimeDetector(detector);
+        try {
+            return identifier.identify(IOUtil.readBytes(in, identifier
+                    .getMinArrayLength()), null, null);
+        } catch (IOException ioe) {
+            log.warn("Failed to detect MIME type: {}", ioe.getMessage());
+        }
+        return null;
     }
 }
