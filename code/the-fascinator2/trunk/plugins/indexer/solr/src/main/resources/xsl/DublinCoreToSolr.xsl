@@ -12,7 +12,7 @@
 
   <!-- add a Solr field for every dublin core field-->
   <xsl:template match="dc:*">
-    <field name="dc.{local-name()}">
+    <field name="dc_{local-name()}">
       <xsl:apply-templates />
     </field>
   </xsl:template>
