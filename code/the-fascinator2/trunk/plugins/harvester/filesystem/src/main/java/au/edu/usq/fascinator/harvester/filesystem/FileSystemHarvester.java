@@ -130,20 +130,25 @@ public class FileSystemHarvester implements Harvester, Configurable {
 
     @Override
     public List<DigitalObject> getObjects() throws HarvesterException {
-        File[] files = currentDir.listFiles(ignoreFilter);
         List<DigitalObject> fileObjects = new ArrayList<DigitalObject>();
-        for (File file : files) {
-            if (file.isDirectory()) {
-                if (recursive) {
-                    subDirs.push(file);
+        if (currentDir.isDirectory()) {
+            File[] files = currentDir.listFiles(ignoreFilter);
+            for (File file : files) {
+                if (file.isDirectory()) {
+                    if (recursive) {
+                        subDirs.push(file);
+                    }
+                } else {
+                    fileObjects.add(new FileSystemDigitalObject(file));
                 }
-            } else {
-                fileObjects.add(new FileSystemDigitalObject(file));
             }
-        }
-        hasMore = !subDirs.isEmpty();
-        if (hasMore) {
-            currentDir = subDirs.pop();
+            hasMore = !subDirs.isEmpty();
+            if (hasMore) {
+                currentDir = subDirs.pop();
+            }
+        } else {
+            fileObjects.add(new FileSystemDigitalObject(currentDir));
+            hasMore = false;
         }
         return fileObjects;
     }
