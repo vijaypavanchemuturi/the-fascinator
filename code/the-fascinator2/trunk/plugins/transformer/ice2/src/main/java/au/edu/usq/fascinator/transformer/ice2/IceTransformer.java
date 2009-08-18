@@ -138,7 +138,7 @@ public class IceTransformer implements Transformer {
             outputFilename = outputPath + "/" + filePart[0] + ".zip";
             if (headerType.indexOf("image/jp") > -1) {
                 // for resized image
-                outputFilename = outputPath + "/" + filePart[0] + ".jpg";
+                outputFilename = outputPath + "/" + filePart[0] + ".thumb.jpg";
             }
             if (headerType.indexOf("video/x-flv") > -1) {
                 // for converted media file
