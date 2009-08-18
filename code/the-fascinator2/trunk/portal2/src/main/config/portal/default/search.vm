@@ -148,10 +148,17 @@ $(function() {
       #set($description = "")
       #set($title = $item.get("dc_title").get(0))
       #set($description = $item.get("dc_description").get(0))
+      #set($format = $item.get("dc_format").get(0))
       <li>
         <div id="$id">
           <h3><a href="detail/$oid">$title</a></h3>
+          #if($description)
           <p class="item-description">$!description</p>
+          #end
+          #if($self.isImage($format)==1)
+            #set($thumbnail = $self.getThumbnail($id))
+            <img src="detail/download/$oid/$thumbnail"></img>
+          #end
         </div>
       </li>
     #end
