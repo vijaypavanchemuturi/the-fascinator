@@ -44,8 +44,13 @@
     </dependency>
     <dependency>
       <groupId>org.semanticdesktop.aperture</groupId>
-      <artifactId>aperture-mime-identifier-magic</artifactId>
-      <version>1.3.0</version>
+      <artifactId>aperture</artifactId>
+      <version>1.2.1</version>
+    </dependency>
+    <dependency>
+      <groupId>org.semweb4j</groupId>
+      <artifactId>rdf2go.api</artifactId>
+      <version>4.7.0</version>
     </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>
