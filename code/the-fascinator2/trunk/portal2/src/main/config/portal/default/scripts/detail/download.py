@@ -7,17 +7,13 @@ class DownloadData:
         basePath = portalId + "/" + pageName
         uri = request.getAttribute("RequestURI")
         uri = uri[len(basePath)+1:]
-        print " ***", uri
         if uri.find("%2F") != -1:
             slash = uri.find("/")
         else:
             slash = uri.rfind("/")
         oid = URLDecoder.decode(uri[:slash])
         pid = URLDecoder.decode(uri[slash+1:])
-        
-        print "\n\noid:", oid, "pid:", pid, "\n\n"
         payload = Services.storage.getPayload(oid, pid)
-        print "\n\n", payload, "\n\n"
         filename = os.path.split(pid)[1]
         mimeType = payload.contentType
         if mimeType == "application/octet-stream":

@@ -113,9 +113,7 @@ class SearchData:
     
     def getThumbnail(self, oid):
         ext = os.path.splitext(oid)[1]
-        print  oid[oid.rfind("/")+1:-len(ext)]
         url = oid[oid.rfind("/")+1:-len(ext)] + ".thumb" + ext
-        print " ***", url
         return url
 
 scriptObject = SearchData()
