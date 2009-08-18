@@ -8,7 +8,7 @@ elif [ "$1" == "check" ]; then
     echo "Are these the droids you're looking for?"
 	pgrep -l -f jetty
 	pgrep -l -f "java -jar start.jar"
-elif [ "$1" == "stop" ]; then
+elif [ "$1" == "stop" -o "$1" == "restart" ]; then
 	echo "Stopping..."
 	pkill -f "java -jar start.jar"
 	pkill -f jetty
