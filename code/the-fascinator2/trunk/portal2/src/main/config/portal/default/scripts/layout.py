@@ -26,5 +26,11 @@ class TemplateData:
 
     def encodeURL(self, url):
         return URLEncoder.encode(url, "UTF-8")
+    
+    def getTemplate(self, templateName):
+        portalName = portalId
+        if not Services.pageService.resourceExists(portalId, templateName, False):
+            portalName = Services.portalManager.DEFAULT_PORTAL_NAME
+        return "%s/%s" % (portalName, templateName)
 
 scriptObject = TemplateData()

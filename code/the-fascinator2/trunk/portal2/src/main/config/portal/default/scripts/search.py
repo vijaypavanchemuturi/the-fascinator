@@ -28,6 +28,7 @@ class SearchData:
         req.setParam("facet.field", self.__portal.facetFieldList)
         req.setParam("facet.sort", "true")
         req.setParam("facet.limit", str(self.__portal.facetCount))
+        req.setParam("sort", "dc_title asc")
         
         # setup facets
         action = formData.get("action")
@@ -48,8 +49,13 @@ class SearchData:
             req.removeParam("fq")
         elif action == "select-page":
             self.__pageNum = int(value)
-            print " ***** setting page num:", int(value), self.__pageNum
         req.addParam("fq", 'item_type:"object"')
+        
+        portalQuery = self.__portal.query
+        print " * portalQuery=%s" % portalQuery
+        if portalQuery:
+            req.addParam("fq", portalQuery)
+        
         self.__selected = req.getParams("fq")
 
         sessionState.set("fq", self.__selected)
@@ -95,12 +101,14 @@ class SearchData:
     def getSelectedFacets(self):
         return self.__selected
 
+    def isPortalQueryFacet(self, fq):
+        return fq == self.__portal.query
+
     def isSelected(self, fq):
         return fq in self.__selected
 
     def getSelectedFacetIds(self):
         return [md5.new(fq).hexdigest() for fq in self.__selected]
-
 
     def getFileName(self, path):
         return os.path.split(path)[1]

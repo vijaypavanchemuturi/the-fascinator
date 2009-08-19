@@ -111,6 +111,12 @@ public class DynamicPageServiceImpl implements DynamicPageService {
 
     @Override
     public boolean resourceExists(String portalId, String resourceName) {
+        return resourceExists(portalId, resourceName, true);
+    }
+
+    @Override
+    public boolean resourceExists(String portalId, String resourceName,
+            boolean fallback) {
         String path = portalId + "/" + resourceName;
         boolean noExt = resourceName.indexOf('.') == -1;
         // check raw resource
@@ -124,6 +130,12 @@ public class DynamicPageServiceImpl implements DynamicPageService {
             exists = Velocity.resourceExists(portalId + "/scripts/"
                     + resourceName + ".py");
         }
+        // check if we can fall back to default portal
+        if (fallback && !exists
+                && !PortalManager.DEFAULT_PORTAL_NAME.equals(portalId)) {
+            return resourceExists(PortalManager.DEFAULT_PORTAL_NAME,
+                    resourceName);
+        }
         return exists;
     }
 
@@ -131,6 +143,9 @@ public class DynamicPageServiceImpl implements DynamicPageService {
     public InputStream getResource(String portalId, String resourceName) {
         String path = portalId + "/" + resourceName;
         try {
+            if (!Velocity.resourceExists(path)) {
+                path = PortalManager.DEFAULT_PORTAL_NAME + "/" + resourceName;
+            }
             return RuntimeSingleton.getContent(path).getResourceLoader()
                     .getResourceStream(path);
         } catch (Exception e) {
@@ -195,6 +210,7 @@ public class DynamicPageServiceImpl implements DynamicPageService {
 
             try {
                 // render the page content
+                log.debug("Rendering page {}:{}.vm...", portalId, pageName);
                 StringWriter pageContentWriter = new StringWriter();
                 Template pageContent = getTemplate(portalId, pageName);
                 pageContent.merge(vc, pageContentWriter);
@@ -214,6 +230,8 @@ public class DynamicPageServiceImpl implements DynamicPageService {
             if (!isAjax) {
                 try {
                     // render the page using the layout template
+                    log.debug("Rendering layout {}:{}.vm...", portalId,
+                            layoutName);
                     Template page = getTemplate(portalId, layoutName);
                     Writer pageWriter = new OutputStreamWriter(out, "UTF-8");
                     page.merge(vc, pageWriter);
@@ -229,7 +247,7 @@ public class DynamicPageServiceImpl implements DynamicPageService {
             FormData formData) throws ScriptException {
         Object scriptObject = new Object();
         scriptName = "scripts/" + scriptName + ".py";
-        log.debug("Running page script {}...", scriptName);
+        log.debug("Running page script {}:{}...", portalId, scriptName);
         InputStream in = getResource(portalId, scriptName);
         if (in != null) {
             scriptEngine.setBindings(bindings, ScriptContext.GLOBAL_SCOPE);
@@ -243,6 +261,11 @@ public class DynamicPageServiceImpl implements DynamicPageService {
 
     private Template getTemplate(String portalId, String templateName)
             throws Exception {
-        return Velocity.getTemplate(portalId + "/" + templateName + ".vm");
+        templateName = templateName + ".vm";
+        String path = portalId + "/" + templateName;
+        if (!Velocity.resourceExists(path)) {
+            path = PortalManager.DEFAULT_PORTAL_NAME + "/" + templateName;
+        }
+        return Velocity.getTemplate(path);
     }
 }

@@ -40,6 +40,7 @@ import au.edu.usq.fascinator.portal.FormData;
 import au.edu.usq.fascinator.portal.JsonSessionState;
 import au.edu.usq.fascinator.portal.services.DynamicPageService;
 import au.edu.usq.fascinator.portal.services.GenericStreamResponse;
+import au.edu.usq.fascinator.portal.services.HttpStatusCodeResponse;
 
 public class Dispatch {
 
@@ -83,6 +84,10 @@ public class Dispatch {
         }
         String match = getBestMatchResource(portalId, resourceName);
         log.trace("resourceName = {}, match = {}", resourceName, match);
+        if (match == null) {
+            return new HttpStatusCodeResponse(404, "Page not found: "
+                    + resourceName);
+        }
         resourceName = match;
         boolean isAjax = resourceName.endsWith(AJAX_EXT);
 
@@ -147,7 +152,10 @@ public class Dispatch {
             return resourceName + (isAjax ? AJAX_EXT : "");
         }
         int slash = resourceName.lastIndexOf('/');
-        log.info("resourceName=" + resourceName);
-        return getBestMatchResource(portalId, resourceName.substring(0, slash));
+        if (slash != -1) {
+            return getBestMatchResource(portalId, resourceName.substring(0,
+                    slash));
+        }
+        return null;
     }
 }

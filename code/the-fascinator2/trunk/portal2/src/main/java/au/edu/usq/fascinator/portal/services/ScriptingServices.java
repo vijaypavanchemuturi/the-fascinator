@@ -23,6 +23,8 @@ import au.edu.usq.fascinator.api.storage.Storage;
 
 public interface ScriptingServices {
 
+    public DynamicPageService getPageService();
+
     public Indexer getIndexer();
 
     public Storage getStorage();

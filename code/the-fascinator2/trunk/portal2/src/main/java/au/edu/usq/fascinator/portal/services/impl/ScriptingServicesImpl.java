@@ -22,11 +22,15 @@ import org.apache.tapestry5.ioc.annotations.Inject;
 
 import au.edu.usq.fascinator.api.indexer.Indexer;
 import au.edu.usq.fascinator.api.storage.Storage;
+import au.edu.usq.fascinator.portal.services.DynamicPageService;
 import au.edu.usq.fascinator.portal.services.HarvestManager;
 import au.edu.usq.fascinator.portal.services.PortalManager;
 import au.edu.usq.fascinator.portal.services.ScriptingServices;
 
 public class ScriptingServicesImpl implements ScriptingServices {
+
+    @Inject
+    private DynamicPageService pageService;
 
     @Inject
     private Indexer indexerService;
@@ -39,6 +43,11 @@ public class ScriptingServicesImpl implements ScriptingServices {
 
     @Inject
     private PortalManager portalManager;
+
+    @Override
+    public DynamicPageService getPageService() {
+        return pageService;
+    }
 
     @Override
     public Indexer getIndexer() {

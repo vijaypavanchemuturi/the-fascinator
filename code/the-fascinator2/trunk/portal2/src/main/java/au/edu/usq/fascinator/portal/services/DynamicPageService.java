@@ -28,6 +28,9 @@ public interface DynamicPageService {
 
     public boolean resourceExists(String portalId, String resourceName);
 
+    public boolean resourceExists(String portalId, String resourceName,
+            boolean fallback);
+
     public InputStream getResource(String portalId, String resourceName);
 
     public void render(String portalId, String pageName, OutputStream out,

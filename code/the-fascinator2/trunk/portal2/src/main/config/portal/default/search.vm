@@ -94,7 +94,7 @@ $(function() {
   <form action="search" id="search-form" method="post">
     <input id="query" name="query" size="45" type="text" value="$!formData.get('query')"/>
     <input name="search" type="submit" value="Go!" />
-    #parse("$portalId/search-paging.vm")
+    #parse($page.getTemplate("search-paging.vm"))
   </form>
   #if($self.result and $numFound != 0)
   <p>Displaying <strong>${paging.startNum}</strong> to <strong>${paging.endNum}</strong> of <strong>${paging.totalFound}</strong> records (in $self.queryTime seconds)</p>
@@ -123,13 +123,18 @@ $(function() {
           <h4 class="dotted-line"><span class="ui-icon ui-icon-triangle-1-s icon"></span>$self.getFacetName($facetField.key)</h4>
           <ul>
           #foreach($facetCount in $facetCounts)
-            #set($selected = ($self.isSelected($self.getFacetQuery($facetField.key, $facetCount.key))==1))
+            #set($fq = $self.getFacetQuery($facetField.key, $facetCount.key))
+            #set($selected = ($self.isSelected($fq)==1))
             <li>
+            #if($self.isPortalQueryFacet($fq)==1)
+              <span class="portal-query-facet">$facetCount.key</span> ($facetCount.value)
+            #else
             #if($selected)
               <span class="selected-facet">$facetCount.key</span> ($facetCount.value)
               <a class="remove-facet facet-action" href="#" rel='$facetField.key:"$facetCount.key"'>deselect</a>
             #else
               <a class="add-facet" href="#" rel='$facetField.key:"$facetCount.key"'>$facetCount.key</a> ($facetCount.value)
+            #end
             #end
             </li>
           #end

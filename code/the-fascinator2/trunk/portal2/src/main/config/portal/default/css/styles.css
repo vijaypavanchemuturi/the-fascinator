@@ -130,6 +130,10 @@ ul.home-portal-list li {
     padding-bottom: 0.25em;
 }
 
+ul.home-portal-list li a {
+    text-decoration: none;
+}
+
 div.home-portal-list .ui-state-highlight {
     padding-bottom: 0.5em;
     padding-left: 0.5em;
@@ -191,6 +195,11 @@ a.facet-action {
 
 span.selected-facet {
     color: #E17009;
+}
+
+span.portal-query-facet {
+    color: #E17009;
+    font-style: italic;
 }
 
 /* content page */
