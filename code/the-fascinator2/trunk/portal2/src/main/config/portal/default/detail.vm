@@ -22,7 +22,6 @@ $(function() {
 		}
 		if (mimeType.indexOf("audio") == 0 || mimeType.indexOf("video") == 0) {
             var filename = '$portalPath/detail/download/' + oid + '/' + pid.replace("wmv", "flv");
-            console.log(filename);
             $('div.content-preview').append('<a href="' + filename + '" id="player" style="display:block;width:425px;height:300px;"></a>');
             flowplayer("player", "$portalPath/flowplayer/flowplayer-3.1.2.swf");
 		}
