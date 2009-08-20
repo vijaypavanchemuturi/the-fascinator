@@ -66,7 +66,7 @@ public class JsonQHarvester implements Harvester, Configurable {
     private static final String DEFAULT_URL = "http://localhost:9000";
 
     /** GMT date format */
-    private static final String DATE_FORMAT = "EEE, dd MMM yyyy hh:mm:ss 'GMT'";
+    private static final String DATE_FORMAT = "EEE, dd MMM yyyy HH:mm:ss 'GMT'";
 
     /** Watcher queue URL */
     private String url;
@@ -122,7 +122,6 @@ public class JsonQHarvester implements Harvester, Configurable {
             BasicHttpClient client = new BasicHttpClient(url);
             GetMethod method = new GetMethod(url);
             if (lastModified != null) {
-                System.err.println("lastModified=" + lastModified);
                 method.setRequestHeader("Last-Modified", lastModified);
             }
             config.set("harvester/jsonq/lastModified", now(), false);
