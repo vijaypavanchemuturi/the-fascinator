@@ -83,7 +83,7 @@
     <module>core</module>
     <module>plugin-api</module>
     <module>plugins</module>
-    <module>portal2</module>
+    <module>portal</module>
   </modules>
   <dependencyManagement>
     <dependencies>
