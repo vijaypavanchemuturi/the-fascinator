@@ -9,9 +9,9 @@ class DownloadData:
         print " * download.py: basePath=%s uri=%s" % (basePath, uri)
         uri = uri[len(basePath)+1:]
         if uri.find("%2F") == -1:
-            slash = uri.find("/")
-        else:
             slash = uri.rfind("/")
+        else:
+            slash = uri.find("/")
         oid = URLDecoder.decode(uri[:slash])
         pid = URLDecoder.decode(uri[slash+1:])
         print " * download.py: oid=%s pid=%s" % (oid, pid)
