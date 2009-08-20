@@ -1,7 +1,15 @@
 #Work out proxy info
-TMP=${USER_PROXY##*/}
-HOST=${TMP%%:*}
-PORT=${USER_PROXY##*:}
+OS=`uname`
+if [ "$OS" == "Darwin" ]; then
+	TMP=${http_proxy#*//}
+	HOST=${TMP%:*}
+	TMP=${http_proxy##*:}
+	PORT=${TMP%/}
+else
+	TMP=${USER_PROXY##*/}
+	HOST=${TMP%%:*}
+	PORT=${USER_PROXY##*:}
+fi
 
 #Set environment vars
 OS=`uname`
