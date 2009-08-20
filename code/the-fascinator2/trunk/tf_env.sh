@@ -16,3 +16,9 @@ export FASCINATOR_HOME=/opt/the-fascinator2
 export SOLR_HOME=/opt/the-fascinator2/solr/solr
 export JAVA_OPTS="-Xmx512m -Dsolr.solr.home=$SOLR_HOME -Dsolr.data.dir=$SOLR_HOME/data -Dhttp.proxyHost=$HOST -Dhttp.proxyPort=$PORT -Dhttp.nonProxyHosts=localhost"
 export MAVEN_OPTS=$JAVA_OPTS
+
+#Check system-config.json and copy if necessary
+if [ ! -f ~/.fascinator/system-config.json ] ; then
+	cp $FASCINATOR_HOME/code/common/src/main/resources/system-config-dev.json ~/.fascinator/system-config.json
+fi
+
