@@ -26,15 +26,20 @@ elif [ "$1" == "stop" -o "$1" == "restart" ]; then
 fi
 
 if [ "$1" == "start" -o "$1" == "restart" ]; then
-	echo "Starting SOLR"
-	cd $FASCINATOR_HOME/solr
-	java -jar start.jar &>$OLDPWD/solr.out &
-	cd $OLDPWD
-	
-	echo "Starting Portal"
+	echo "Updating..."
 	cd $FASCINATOR_HOME/code
-	mvn install
-	cd $FASCINATOR_HOME/code/portal
-	mvn -Dhttp.nonProxyHosts=localhost -P test -Djetty.port=9997 jetty:run &>$OLDPWD/portal.out &
+	mvn install &>portal.out
 	cd $OLDPWD
+	if [ "$?" == "0" ]; then
+		echo "Starting Solr..."
+		cd $FASCINATOR_HOME/solr
+		java -jar start.jar &>$OLDPWD/solr.out &
+		cd $OLDPWD
+		echo "Starting Portal..."
+		cd $FASCINATOR_HOME/code/portal
+		mvn -P test -Djetty.port=9997 jetty:run &>$OLDPWD/portal.out &
+		cd $OLDPWD
+	else
+		echo "ERROR: Build failed. Please see $OLDPWD/portal.out for more details."
+	fi
 fi

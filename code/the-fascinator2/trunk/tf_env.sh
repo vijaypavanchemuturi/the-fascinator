@@ -1,15 +1,8 @@
 #Work out proxy info
-OS=`uname`
-if [ "$OS" == "Darwin" ]; then
-	TMP=${http_proxy#*//}
-	HOST=${TMP%:*}
-	TMP=${http_proxy##*:}
-	PORT=${TMP%/}
-else
-	TMP=${USER_PROXY##*/}
-	HOST=${TMP%%:*}
-	PORT=${USER_PROXY##*:}
-fi
+TMP=${http_proxy#*//}
+HOST=${TMP%:*}
+TMP=${http_proxy##*:}
+PORT=${TMP%/}
 
 #Set environment vars
 OS=`uname`
@@ -27,6 +20,6 @@ export MAVEN_OPTS=$JAVA_OPTS
 
 #Check system-config.json and copy if necessary
 if [ ! -f ~/.fascinator/system-config.json ] ; then
-	cp $FASCINATOR_HOME/code/common/src/main/resources/system-config-dev.json ~/.fascinator/system-config.json
+	cp $FASCINATOR_HOME/code/common/src/main/resources/system-config.json ~/.fascinator
 fi
 
