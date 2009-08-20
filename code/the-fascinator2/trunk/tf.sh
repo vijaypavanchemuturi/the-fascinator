@@ -2,16 +2,27 @@
 
 . tf_env.sh
 
+OS=`uname`
+
 if [ "$1" == "" ]; then
 	echo "Usage: ./tf.sh start|stop|restart|check"
 elif [ "$1" == "check" ]; then
 	echo "Are these the droids you're looking for?"
-	pgrep -l -f jetty
-	pgrep -l -f "java -jar start.jar"
+	if [ "$OS" == "Darwin" ]; then
+		ps a | grep [j]etty
+		ps a | grep "[j]ava -jar start.jar"
+	else
+		pgrep -l -f jetty
+		pgrep -l -f "java -jar start.jar"
+	fi
 elif [ "$1" == "stop" -o "$1" == "restart" ]; then
 	echo "Stopping..."
-	pkill -f "java -jar start.jar"
-	pkill -f jetty
+	if [ "$OS" == "Darwin" ]; then
+		killall java
+	else
+		pkill -f "java -jar start.jar"
+		pkill -f jetty
+	fi
 fi
 
 if [ "$1" == "start" -o "$1" == "restart" ]; then
@@ -21,6 +32,8 @@ if [ "$1" == "start" -o "$1" == "restart" ]; then
 	cd $OLDPWD
 	
 	echo "Starting Portal"
+	cd $FASCINATOR_HOME/code
+	mvn install
 	cd $FASCINATOR_HOME/code/portal
 	mvn -Dhttp.nonProxyHosts=localhost -P test -Djetty.port=9997 jetty:run &>$OLDPWD/portal.out &
 	cd $OLDPWD
