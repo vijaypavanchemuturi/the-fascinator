@@ -52,8 +52,7 @@ import au.edu.usq.fascinator.common.JsonConfig;
  * Configuration options:
  * <ul>
  * <li>url: the URL for the Watcher queue (default: "http://localhost:9000")</li>
- * <li>lastModified: harvest files modified from this date (note: to be
- * implemented)</li>
+ * <li>lastModified: harvest files modified from this date</li>
  * </ul>
  * 
  * @see http://fascinator.usq.edu.au/trac/wiki/Watcher
@@ -123,6 +122,7 @@ public class JsonQHarvester implements Harvester, Configurable {
             BasicHttpClient client = new BasicHttpClient(url);
             GetMethod method = new GetMethod(url);
             if (lastModified != null) {
+                System.err.println("lastModified=" + lastModified);
                 method.setRequestHeader("Last-Modified", lastModified);
             }
             config.set("harvester/jsonq/lastModified", now(), false);
