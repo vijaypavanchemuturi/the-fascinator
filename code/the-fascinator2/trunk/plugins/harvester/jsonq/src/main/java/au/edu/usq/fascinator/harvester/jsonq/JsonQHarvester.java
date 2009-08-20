@@ -102,6 +102,9 @@ public class JsonQHarvester implements Harvester, Configurable {
             config = new JsonConfig(jsonFile);
             url = config.get("harvester/jsonq/url", DEFAULT_URL);
             lastModified = config.get("harvester/jsonq/lastModified");
+            if ("0".equals(lastModified)) {
+                lastModified = null;
+            }
         } catch (IOException ioe) {
             throw new HarvesterException(ioe);
         }
