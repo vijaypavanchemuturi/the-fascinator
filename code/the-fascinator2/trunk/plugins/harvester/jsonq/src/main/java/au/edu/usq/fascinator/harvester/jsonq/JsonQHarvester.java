@@ -21,10 +21,14 @@ package au.edu.usq.fascinator.harvester.jsonq;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -62,14 +66,23 @@ public class JsonQHarvester implements Harvester, Configurable {
     /** default Watcher queue URL */
     private static final String DEFAULT_URL = "http://localhost:9000";
 
+    /** GMT date format */
+    private static final String DATE_FORMAT = "EEE, dd MMM yyyy hh:mm:ss 'GMT'";
+
     /** Watcher queue URL */
     private String url;
 
     /** harvest files modified from this date */
-    private long lastModified;
+    private String lastModified;
 
     /** configuration */
     private JsonConfig config;
+
+    /** GMT date formatter */
+    private DateFormat df;
+
+    /** JSON config file */
+    private File jsonFile;
 
     @Override
     public String getId() {
@@ -83,11 +96,12 @@ public class JsonQHarvester implements Harvester, Configurable {
 
     @Override
     public void init(File jsonFile) throws HarvesterException {
+        this.jsonFile = jsonFile;
         try {
+            df = new SimpleDateFormat(DATE_FORMAT);
             config = new JsonConfig(jsonFile);
             url = config.get("harvester/jsonq/url", DEFAULT_URL);
-            lastModified = Long.parseLong(config.get(
-                    "harvester/jsonq/lastModified", "0"));
+            lastModified = config.get("harvester/jsonq/lastModified");
         } catch (IOException ioe) {
             throw new HarvesterException(ioe);
         }
@@ -105,6 +119,10 @@ public class JsonQHarvester implements Harvester, Configurable {
         try {
             BasicHttpClient client = new BasicHttpClient(url);
             GetMethod method = new GetMethod(url);
+            if (lastModified != null) {
+                method.setRequestHeader("Last-Modified", lastModified);
+            }
+            config.set("harvester/jsonq/lastModified", now(), false);
             int status = client.executeMethod(method);
             if (status == HttpStatus.SC_OK) {
                 ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -119,10 +137,25 @@ public class JsonQHarvester implements Harvester, Configurable {
                 }
             }
             method.releaseConnection();
+            config.set("harvester/jsonq/state", "OK", false);
         } catch (IOException ioe) {
+            config.set("harvester/jsonq/state", "Failed", false);
             throw new HarvesterException(ioe);
+        } finally {
+            config.set("harvester/jsonq/harvestFinished", now(), false);
+            try {
+                FileWriter writer = new FileWriter(jsonFile);
+                config.store(writer, true);
+                writer.close();
+            } catch (IOException ioe) {
+                throw new HarvesterException(ioe);
+            }
         }
         return objectList;
+    }
+
+    private String now() {
+        return df.format(new Date());
     }
 
     @Override
