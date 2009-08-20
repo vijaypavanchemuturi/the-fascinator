@@ -1,9 +1,9 @@
 {
     "harvester": {
         "type": "jsonq",
-        "file-system": {
-            "baseDir": "${user.home}/Documents/public",
-            "recursive": true
+        "jsonq": {
+            "url": "http://localhost:9000/",
+            "lastModified": "0"
         }
     },
     

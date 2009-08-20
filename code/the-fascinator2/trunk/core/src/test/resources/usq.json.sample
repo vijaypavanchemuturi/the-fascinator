@@ -6,12 +6,6 @@
             "maxRequests": 1
         }
     },
-    "transformer": {
-        "conveyer": "aperture",
-        "aperture": {
-            "outputPath": "/tmp/aperture"
-        }
-    },
     "indexer": {
         "script": {
             "type": "python",

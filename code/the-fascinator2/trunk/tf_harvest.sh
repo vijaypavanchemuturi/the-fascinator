@@ -22,7 +22,12 @@ if [ "$1" == "" ]; then
 	echo "Usage: ./tf_harvest.sh <profile>"
 	echo " Profiles: filesystem-test | oai-pmh-test | jsonq-test"
 else
-	TEST=`pgrep -l -f "java -jar start.jar"` 
+	OS=`uname`
+	if [ "$OS" == "Darwin" ]; then
+		TEST=`ps a | grep "java -jar start.jar"`
+	else
+		TEST=`pgrep -l -f "java -jar start.jar"` 
+	fi
 	if [ $? ]; then
 		copy_samples
 		cd $FASCINATOR_HOME/code/core
