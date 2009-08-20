@@ -61,8 +61,8 @@ $(function() {
   #set($value = $self.formatValue($field.value))
   <dt><strong>$name</strong></dt>
   <dd>$value</dd>
-</dl>
 #end
+</dl>
 <h3>Preview</h3>
 <div class="content-preview">
   #set($content = $self.getPayloadContent())
