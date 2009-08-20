@@ -264,29 +264,5 @@
       <id>adfi-usq-releases</id>
       <url>http://fascinator.usq.edu.au/nexus/content/groups/public</url>
     </repository>
-    <repository>
-      <releases>
-        <enabled>true</enabled>
-      </releases>
-      <snapshots>
-        <enabled>false</enabled>
-      </snapshots>
-      <id>aduna-opensource.releases</id>
-      <name>Aduna Open Source - Maven releases</name>
-      <url>http://repo.aduna-software.org/maven2/releases</url>
-    </repository>
-    <repository>
-      <releases>
-        <enabled>true</enabled>
-        <updatePolicy>never</updatePolicy>
-      </releases>
-      <snapshots>
-        <enabled>true</enabled>
-        <updatePolicy>never</updatePolicy>
-      </snapshots>
-      <id>aperture-repo</id>
-      <name>Aperture Dependencies Repo</name>
-      <url>http://aperture.sf.net/maven</url>
-    </repository>
   </repositories>
 </project>
