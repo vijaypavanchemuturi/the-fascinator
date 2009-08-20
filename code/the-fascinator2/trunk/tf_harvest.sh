@@ -5,7 +5,7 @@
 HARVEST_HOME=$FASCINATOR_HOME/code/core
 
 function copy_sample {
-	if [ ! -f $1 ]; then
+	if [ ! -f $HARVEST_HOME/src/test/resources/$1 ]; then
 		cp $HARVEST_HOME/src/test/resources/$1.sample $HARVEST_HOME/src/test/resources/$1
 	fi
 }

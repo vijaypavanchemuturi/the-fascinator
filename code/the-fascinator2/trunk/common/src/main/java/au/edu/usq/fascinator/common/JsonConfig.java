@@ -21,6 +21,7 @@ package au.edu.usq.fascinator.common;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -178,7 +179,9 @@ public class JsonConfig {
      */
     public void store(Writer writer, boolean pretty) throws IOException {
         userConfig.store(writer, pretty);
-        systemConfig.store(writer, pretty);
+	FileWriter sysWriter = new FileWriter(getSystemFile());
+        systemConfig.store(sysWriter, pretty);
+        sysWriter.close();
     }
 
     /**
