@@ -28,7 +28,7 @@ class SearchData:
         req.setParam("facet.field", self.__portal.facetFieldList)
         req.setParam("facet.sort", "true")
         req.setParam("facet.limit", str(self.__portal.facetCount))
-        req.setParam("sort", "dc_title asc")
+        req.setParam("sort", "f_dc_title asc")
         
         # setup facets
         action = formData.get("action")
