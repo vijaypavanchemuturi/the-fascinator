@@ -3,18 +3,20 @@ import md5
 from au.edu.usq.fascinator.api.indexer import SearchRequest
 from au.edu.usq.fascinator.common import JsonConfigHelper
 from java.io import ByteArrayInputStream, ByteArrayOutputStream
+from java.net import URLDecoder, URLEncoder
 from java.util import HashMap, ArrayList
 
 class Facet:
     def __init__(self, key, value, count):
         self.__key = key
-        self.__value = value
+        self.__value = URLEncoder.encode(value, "UTF-8")
         self.__count = count
         self.__subFacets = ArrayList()
 
     def getName(self):
-        slash = self.__value.rfind("/")
-        return self.__value[slash+1:]
+        name = URLDecoder.decode(self.__value, "UTF-8")
+        slash = name.rfind("/")
+        return name[slash+1:]
 
     def getKey(self):
         return self.__key
@@ -35,7 +37,7 @@ class Facet:
         return '%s:"%s"' % (self.__key, self.__value)
 
     def getId(self):
-        return md5.new(self.getFacetQuery()).hexdigest()
+        return md5.new(URLDecoder.decode(self.getFacetQuery(), "UTF-8")).hexdigest()
 
 class FacetList:
     def __init__(self, name, json):
