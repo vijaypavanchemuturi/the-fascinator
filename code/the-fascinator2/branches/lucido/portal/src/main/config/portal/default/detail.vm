@@ -22,7 +22,11 @@ $(function() {
 		}
 		if (mimeType.indexOf("audio") == 0 || mimeType.indexOf("video") == 0) {
             var filename = '$portalPath/detail/download/' + oid + '/' + pid.replace("wmv", "flv");
-            $('div.content-preview').append('<a href="' + filename + '" id="player" style="display:block;width:425px;height:300px;"></a>');
+            var height = 300;
+            if (mimeType.indexOf("audio") == 0) {
+                height = 24;
+            }
+            $('div.content-preview').append('<a href="' + filename + '" id="player" style="display:block;width:425px;height:' + height + 'px;"></a>');
             flowplayer("player", "$portalPath/flowplayer/flowplayer-3.1.2.swf");
 		}
 	});

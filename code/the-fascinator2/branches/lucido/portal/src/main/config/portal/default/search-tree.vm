@@ -2,7 +2,7 @@
 {
     attributes: {
         id: "$facet.id",
-        fq: '$facet.facetQuery'
+        fq: "$facet.facetQuery"
     },
     state: $state,
     data: "$facet.name",

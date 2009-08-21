@@ -3,6 +3,7 @@ from au.edu.usq.fascinator.api.indexer import SearchRequest
 from au.edu.usq.fascinator.common import JsonConfigHelper
 from au.edu.usq.fascinator.portal import Pagination
 from java.io import ByteArrayInputStream, ByteArrayOutputStream
+from java.net import URLDecoder
 from java.util import HashMap
 
 class SearchData:
@@ -40,10 +41,11 @@ class SearchData:
         if action == "add_fq":
             self.__pageNum = 1
             name = formData.get("name")
-            req.addParam("fq", value)
+            print " * add_fq: %s" % value
+            req.addParam("fq", URLDecoder.decode(value, "UTF-8"))
         elif action == "remove_fq":
             self.__pageNum = 1
-            req.removeParam("fq", value)
+            req.removeParam("fq", URLDecoder.decode(value, "UTF-8"))
         elif action == "clear_fq":
             self.__pageNum = 1
             req.removeParam("fq")
