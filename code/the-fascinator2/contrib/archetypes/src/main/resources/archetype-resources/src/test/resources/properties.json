@@ -1,0 +1,26 @@
+{
+    "harvester": {
+        "type": "${artifactId}",
+        "${artifactId}": {
+            "param": "Hello, world"
+        }
+    },
+    
+    "transformer": {
+        "conveyer": "aperture",
+        "aperture": {
+            "outputPath": "\${user.home}/ice2-output"
+        }
+    },
+    
+    "indexer": {
+        "script": {
+            "type": "python",
+            "rules": "rules.py"
+        },
+        "params": {
+            "repository.name": "${harvesterName}",
+            "repository.type": "${artifactId}"
+        }
+    }
+}
