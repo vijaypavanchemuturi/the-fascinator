@@ -1,0 +1,33 @@
+<archetype>
+	<id>plugin-archetype-harvester</id>
+	<allowPartial>true</allowPartial>
+	<sources>
+		<source>src/main/java/messages.properties
+		</source>
+		<source>src/main/java/Messages.java
+		</source>
+		<source>src/main/java/MyHarvesterPlugin.java
+		</source>
+	</sources>
+	<resources>
+		<resource>
+			src/main/resources/META-INF/services/au.edu.usq.fascinator.api.harvester.Harvester
+		</resource>
+		<resource>
+			src/main/resources/META-INF/anonymous-harvester-config.html
+		</resource>
+		<resource>
+			src/main/resources/META-INF/anonymous-harvester-config.json
+		</resource>
+	</resources>
+	<testResources>
+		<resource>src/test/resources/properties.json
+		</resource>
+		<resource>src/test/resources/rules.py
+		</resource>
+	</testResources>
+	<testSources>
+		<source>src/test/java/MyHarvesterPluginTest.java
+		</source>
+	</testSources>
+</archetype>

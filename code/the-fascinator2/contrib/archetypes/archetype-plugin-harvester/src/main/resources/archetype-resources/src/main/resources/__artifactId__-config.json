@@ -1,0 +1,7 @@
+{
+    "param": {
+        "type": "text",
+        "default": "Hello, world",
+        "size": 40
+    }
+}
