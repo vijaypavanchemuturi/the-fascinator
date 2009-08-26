@@ -20,16 +20,13 @@ package au.edu.usq.fascinator.portal.services.impl;
 
 import java.io.File;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.StringWriter;
 import java.io.Writer;
+import java.util.HashMap;
+import java.util.Map;
 
-import javax.script.Bindings;
-import javax.script.ScriptContext;
-import javax.script.ScriptEngine;
-import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 
 import org.apache.tapestry5.ioc.annotations.Inject;
@@ -40,7 +37,7 @@ import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.Velocity;
 import org.apache.velocity.runtime.RuntimeSingleton;
 import org.apache.velocity.runtime.log.Log4JLogChute;
-import org.apache.velocity.tools.generic.introspection.JythonUberspect;
+import org.python.util.PythonInterpreter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,6 +47,7 @@ import au.edu.usq.fascinator.portal.JsonSessionState;
 import au.edu.usq.fascinator.portal.services.DynamicPageService;
 import au.edu.usq.fascinator.portal.services.PortalManager;
 import au.edu.usq.fascinator.portal.services.ScriptingServices;
+import au.edu.usq.fascinator.velocity.JythonUberspect;
 
 public class DynamicPageServiceImpl implements DynamicPageService {
 
@@ -70,9 +68,13 @@ public class DynamicPageServiceImpl implements DynamicPageService {
 
     private String layoutName;
 
-    private ScriptEngine scriptEngine;
+    private PythonInterpreter python;
 
-    private Bindings bindings;
+    private Map<String, Object> bindings;
+
+    // private ScriptEngine scriptEngine;
+
+    // private Bindings bindings;
 
     public DynamicPageServiceImpl() {
         try {
@@ -80,11 +82,14 @@ public class DynamicPageServiceImpl implements DynamicPageService {
             layoutName = config.get("portal/layout", DEFAULT_LAYOUT_TEMPLATE);
 
             // setup scripting engine
-            String engineName = config.get("portal/scriptEngine",
-                    DEFAULT_SCRIPT_ENGINE);
-            ScriptEngineManager scriptEngineManager = new ScriptEngineManager();
-            scriptEngine = scriptEngineManager.getEngineByName(engineName);
-            bindings = scriptEngine.createBindings();
+            // String engineName = config.get("portal/scriptEngine",
+            // DEFAULT_SCRIPT_ENGINE);
+            // ScriptEngineManager scriptEngineManager = new
+            // ScriptEngineManager();
+            // scriptEngine = scriptEngineManager.getEngineByName(engineName);
+            // bindings = scriptEngine.createBindings();
+            python = new PythonInterpreter();
+            bindings = new HashMap<String, Object>();
 
             // setup velocity engine
             String home = config.get("portal/home",
@@ -250,9 +255,15 @@ public class DynamicPageServiceImpl implements DynamicPageService {
         log.debug("Running page script {}:{}...", portalId, scriptName);
         InputStream in = getResource(portalId, scriptName);
         if (in != null) {
-            scriptEngine.setBindings(bindings, ScriptContext.GLOBAL_SCOPE);
-            scriptEngine.eval(new InputStreamReader(in));
-            scriptObject = scriptEngine.get("scriptObject");
+            // scriptEngine.setBindings(bindings, ScriptContext.GLOBAL_SCOPE);
+            // scriptEngine.eval(new InputStreamReader(in));
+            // scriptObject = scriptEngine.get("scriptObject");
+            for (String key : bindings.keySet()) {
+                python.set(key, bindings.get(key));
+            }
+            python.execfile(in);
+            scriptObject = python.get("scriptObject");
+            python.cleanup();
         } else {
             log.warn("No script found for {}", scriptName);
         }
