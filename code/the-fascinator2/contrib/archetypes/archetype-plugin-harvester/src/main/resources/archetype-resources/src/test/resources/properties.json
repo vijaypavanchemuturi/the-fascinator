@@ -1,3 +1,4 @@
+#set( $D = '$' )
 {
     "harvester": {
         "type": "${artifactId}",
@@ -9,7 +10,7 @@
     "transformer": {
         "conveyer": "aperture",
         "aperture": {
-            "outputPath": "\${user.home}/ice2-output"
+            "outputPath": "${D}{user.home}/ice2-output"
         }
     },
     
