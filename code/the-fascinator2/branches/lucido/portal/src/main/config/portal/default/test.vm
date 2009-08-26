@@ -1,3 +1,0 @@
-#set($pageTitle = "Test")
-<h2>Test</h2>
-<pre>\$self.isTrue = &quot;$self.isTrue()&quot;</pre>
