@@ -9,7 +9,7 @@ from java.util import HashMap
 class SearchData:
     def __init__(self):
         self.__result = JsonConfigHelper()
-        self.__portal = Services.getPortalManager().get(portalId)
+        self.__portal = Services.portalManager.get(portalId)
         pageNum = sessionState.get("pageNum")
         if pageNum is None:
             self.__pageNum = 1
@@ -88,13 +88,13 @@ class SearchData:
         return self.__portal.facetFields.get(key)
 
     def getFacetCounts(self, key):
-        values = HashMap()
+        values = {}
         valueList = self.__result.getList("facet_counts/facet_fields/%s" % key)
         for i in range(0,len(valueList),2):
             name = valueList[i]
             count = valueList[i+1]
             if count > 0:
-                values.put(name, count)
+                values[name] = count
         return values
 
     def hasSelectedFacets(self):

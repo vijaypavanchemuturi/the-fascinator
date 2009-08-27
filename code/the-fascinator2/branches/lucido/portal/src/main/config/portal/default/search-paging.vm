@@ -1,6 +1,5 @@
 <script type="text/javascript">
 $(function() {
-    /* paging */
     $(".paging .select-page").click(function() {
         doAction("select-page", $(this).attr("rel"));
     });

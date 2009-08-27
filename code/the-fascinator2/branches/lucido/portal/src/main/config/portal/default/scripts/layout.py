@@ -22,7 +22,7 @@ class TemplateData:
                 sessionState.set("username", username)
 
     def getPortals(self):
-        return Services.getPortalManager().getPortals()
+        return Services.portalManager.portals
 
     def encodeURL(self, url):
         return URLEncoder.encode(url, "UTF-8")

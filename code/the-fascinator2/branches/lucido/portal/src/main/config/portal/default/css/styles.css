@@ -49,6 +49,10 @@ pre.debug {
     border: 1px dotted #1D599B;
 }
 
+.error-text {
+    color: red;
+}
+
 /* messages and icons */
 .icon {
     float: left;

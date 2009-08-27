@@ -18,10 +18,12 @@
  */
 package au.edu.usq.fascinator.portal.services.impl;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.util.HashMap;
@@ -225,11 +227,15 @@ public class DynamicPageServiceImpl implements DynamicPageService {
                     vc.put("pageContent", pageContentWriter.toString());
                 }
             } catch (Exception e) {
+                ByteArrayOutputStream eOut = new ByteArrayOutputStream();
+                PrintWriter pw = new PrintWriter(eOut);
+                e.printStackTrace(pw);
+                pw.close();
                 renderMessages.append("Page content template error:\n");
-                renderMessages.append(e.getMessage());
+                renderMessages.append(eOut);
                 vc.put("renderMessages", renderMessages.toString());
                 log.error("Failed rendering page: {}, {} ({})", new String[] {
-                        pageName, e.getMessage(), isAjax ? "ajax" : "html" });
+                        pageName, eOut.toString(), isAjax ? "ajax" : "html" });
             }
 
             if (!isAjax) {
