@@ -1,43 +1,36 @@
-from jarray import array
 import md5
 from au.edu.usq.fascinator.api.indexer import SearchRequest
 from au.edu.usq.fascinator.common import JsonConfigHelper
 from java.io import ByteArrayInputStream, ByteArrayOutputStream
-from java.net import URLDecoder, URLEncoder
-from java.util import HashMap, ArrayList
+from java.net import URLEncoder
+from java.util import ArrayList, HashMap
 
 class Facet:
     def __init__(self, key, value, count):
-        self.__key = key
-        self.__value = URLEncoder.encode(value, "UTF-8")
+        self.__name = value[value.rfind("/") + 1:]
+        fq = '%s:"%s"' % (key, value)
+        self.__facetQuery = URLEncoder.encode(fq, "UTF-8")
+        self.__id = md5.new(fq).hexdigest()
         self.__count = count
         self.__subFacets = ArrayList()
-
+    
+    def getId(self):
+        return self.__id
+    
     def getName(self):
-        name = URLDecoder.decode(self.__value, "UTF-8")
-        slash = name.rfind("/")
-        return name[slash+1:]
-
-    def getKey(self):
-        return self.__key
-
-    def getValue(self):
-        return self.__value
-
+        return self.__name
+    
     def getCount(self):
         return self.__count
-
+    
+    def getFacetQuery(self):
+        return self.__facetQuery
+    
     def addSubFacet(self, facet):
         self.__subFacets.add(facet)
-
+    
     def getSubFacets(self):
         return self.__subFacets
-
-    def getFacetQuery(self):
-        return '%s:"%s"' % (self.__key, self.__value)
-
-    def getId(self):
-        return md5.new(URLDecoder.decode(self.getFacetQuery(), "UTF-8")).hexdigest()
 
 class FacetList:
     def __init__(self, name, json):
@@ -76,10 +69,11 @@ class SearchTreeData:
         if query is None or query == "":
             query = "*:*"
         req = SearchRequest(query)
-        req.setParam("facet", ["true"])
-        req.setParam("fl", ["id"])
-        req.setParam("fq", ['item_type:"object"'])
-        req.setParam("rows", ["100"])
+        req.setParam("facet", "true")
+        req.setParam("fl", "id")
+        req.setParam("fq", 'item_type:"object"')
+        req.setParam("rows", "0")
+        req.setParam("facet.limit", "-1")
         req.setParam("facet.field", "file_path")
         out = ByteArrayOutputStream()
         indexer = Services.getIndexer()

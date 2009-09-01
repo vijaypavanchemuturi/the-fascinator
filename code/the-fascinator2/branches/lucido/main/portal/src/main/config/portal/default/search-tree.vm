@@ -5,7 +5,7 @@
         fq: "$facet.facetQuery"
     },
     state: $state,
-    data: "$facet.name",
+    data: "$facet.name ($facet.count)",
     #if($facet.subFacets.size() > 0)
         children: [
         #foreach($subFacet in $facet.subFacets)

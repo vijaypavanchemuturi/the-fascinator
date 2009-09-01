@@ -106,7 +106,12 @@ public class Dispatch {
                     response.setHeader("Cache-Control", "no-cache");
                     response.setDateHeader("Expires", 0);
                 } else {
-                    response.sendRedirect(resourceName);
+                    String redirectUri = resourceName;
+                    if (path.length > 2) {
+                        redirectUri = StringUtils.join(path, "/", 2,
+                                path.length);
+                    }
+                    response.sendRedirect(redirectUri);
                     return GenericStreamResponse.noResponse();
                 }
             } catch (IOException ioe) {

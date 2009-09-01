@@ -8,11 +8,11 @@ class TemplateData:
     
     def __init__(self):
         self.__checkLogin()
-        if formData.get("action") == "clear-session":
+        if formData.get("verb") == "clear-session":
             sessionState.clear()
 
     def __checkLogin(self):
-        action = formData.get("action")
+        action = formData.get("verb")
         if (action == "logout"):
             sessionState.set("username", None)
         else:

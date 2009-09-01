@@ -1,26 +1,26 @@
 #set($pageTitle = 'Detail')
 #set($portalPath = "$contextPath/$portalId")
 #set($pageHeader = '<link rel="stylesheet" type="text/css" href="' + $portalPath + '/js/tree/tree_component.css" />
-				<script type="text/javascript" src="' + $portalPath + '/flowplayer/flowplayer-3.1.2.min.js"></script>')
+    <script type="text/javascript" src="' + $portalPath + '/flowplayer/flowplayer-3.1.2.min.js"></script>')
 <script type="text/javascript">
 $(function() {
-	var oid = $("#oid").text();
-	var pid = $("#pid").text();
-	
-	$("#format").each(function() {
-		var format = this;
+    var oid = $("#oid").text();
+    var pid = $(".payload-list li a[rel='Data']").text();
+    
+    $("#format").each(function() {
+        var format = this;
         var mimeType = $(format).text().toLowerCase();
-		if (mimeType.indexOf("image") == 0) {
-			$('div.content-preview').append("<img src='download/"+ oid + "/" + pid + "'/>");
-		}
-		if (mimeType.indexOf("text") == 0 || 
-			mimeType.indexOf("application/vnd.ms-") == 0 ||
-			mimeType.indexOf("application/vnd.oasis.opendocument.") == 0
-		) {
-			var payloadContent = $("label[id='payloadContent']").text();
-			$('div.content-preview').append(payloadContent);
-		}
-		if (mimeType.indexOf("audio") == 0 || mimeType.indexOf("video") == 0) {
+        if (mimeType.indexOf("image") == 0) {
+            $('div.content-preview').append("<img src='download/"+ oid + "/" + pid + "'/>");
+        }
+        if (mimeType.indexOf("text") == 0 || 
+            mimeType.indexOf("application/vnd.ms-") == 0 ||
+            mimeType.indexOf("application/vnd.oasis.opendocument.") == 0
+        ) {
+            var payloadContent = $("label[id='payloadContent']").text();
+            $('div.content-preview').append(payloadContent);
+        }
+        if (mimeType.indexOf("audio") == 0 || mimeType.indexOf("video") == 0) {
             var filename = '$portalPath/detail/download/' + oid + '/' + pid.replace("wmv", "flv");
             var height = 300;
             if (mimeType.indexOf("audio") == 0) {
@@ -28,25 +28,32 @@ $(function() {
             }
             $('div.content-preview').append('<a href="' + filename + '" id="player" style="display:block;width:425px;height:' + height + 'px;"></a>');
             flowplayer("player", "$portalPath/flowplayer/flowplayer-3.1.2.swf");
-		}
-	});
-	
-	$("div.content-preview img").each (function() {
-		var src = $(this).attr("src");
-		if (src.toLowerCase().indexOf("http://") == -1 &&
-			src.toLowerCase().indexOf("file://") == -1 &&
-			src.toLowerCase().indexOf("download/") != 0)
-		$(this).attr("src", "download/" + oid + "/" + src);
-	});
-  
-  
+        }
+    });
     
+    $("div.content-preview img").each (function() {
+        var src = $(this).attr("src");
+        if (src.toLowerCase().indexOf("http://") == -1 &&
+            src.toLowerCase().indexOf("file://") == -1 &&
+            src.toLowerCase().indexOf("download/") != 0)
+        $(this).attr("src", "download/" + oid + "/" + src);
+    });
+    
+    setActionUri("$portalPath/detail/" + oid);
+    $(".payload-list li a[rel='Data']").click(function() {
+       $(this).attr("href", "#");
+        doAction("open", oid);
+    });
 });
 </script>
+#if($self.solrResponse.get("response/numFound")=="0")
+<p title="FIXME">Not found</p>
+#else
 #set($meta = $self.metadata)
 #set($item = $self.getObject())
 #set($oid = $page.encodeURL($item.id))
-<p class="debug">storage: <pre class="debug">$!self.storageId</pre></p>
+<p class="debug">storage:</p>
+<pre class="debug">$!self.storageId</pre>
 <pre class="debug">result: $meta.toString()</pre>
 <div class="ui-helper-hidden" id="record-meta">
   <label id="oid">$oid</label>
@@ -78,12 +85,8 @@ $(function() {
   <ul>
   #foreach($payload in $item.payloadList)
     #set($pid = $page.encodeURL($payload.id))
-    #if($payload.type.toString()=="Data")
-    <label class="ui-helper-hidden" id="pid">$pid</label>
-    #end
-    #if($self.isHidden($pid)==0)
-    <li><a href="download/$oid/$pid" target="blank">$payload.id</a> ($payload.contentType, $payload.type.toString())</li>
-    #end
+    <li><a href="download/$oid/$pid" rel="$payload.type.toString()" target="blank">$payload.id</a> ($payload.contentType, $payload.type.toString())</li>
   #end
   </ul>
 </div>
+#end

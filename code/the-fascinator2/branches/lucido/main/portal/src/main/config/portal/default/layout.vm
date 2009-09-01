@@ -14,11 +14,17 @@
     <link rel="stylesheet" type="text/css" href="$portalPath/css/styles.css" />
     $!pageHeader
     <script type="text/javascript">
+    function setActionUri(uri) {
+        $("#action-form").attr("action", uri);
+    }
     function addActionParam(name, value) {
         $("#action-form").append('<input id="' + name + '" name="' + name + '" type="hidden" value="' + value + '" />');
     }
+    function doAction(action) {
+        doAction(action, "");
+    }
     function doAction(action, value) {
-        $("#action").val(action);
+        $("#verb").val(action);
         $("#value").val(value);
         $("#action-form").submit();
     }
@@ -135,7 +141,7 @@
     </div>
     <div id="login-dialog" title="Login">
       <form id="login-form" method="post">
-        <input name="action" value="login" type="hidden" />
+        <input name="verb" value="login" type="hidden" />
         <label for="username">Username:</label>
         <input id="username" name="username" size="25" type="text" />
         <label for="password">Password:</label>
@@ -144,12 +150,12 @@
     </div>
     <div id="logout-dialog" title="Logout">
       <form id="logout-form" method="post">
-        <input name="action" value="logout" type="hidden" />
+        <input name="verb" value="logout" type="hidden" />
       </form>
       <p><span class="ui-icon ui-icon-alert icon"></span>Are you sure you want to log out?</p>
     </div>
-    <form id="action-form" method="post">
-      <input id="action" name="action" type="hidden" />
+    <form action="$portalPath/$pageName" id="action-form" method="post">
+      <input id="verb" name="verb" type="hidden" />
       <input id="value" name="value" type="hidden" />
     </form>
   </body>
