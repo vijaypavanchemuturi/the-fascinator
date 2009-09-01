@@ -1,8 +1,9 @@
 from au.edu.usq.fascinator.api.indexer import SearchRequest
 from au.edu.usq.fascinator.api.storage import PayloadType
 from au.edu.usq.fascinator.common import JsonConfigHelper
+from java.awt import Desktop
+from java.io import ByteArrayInputStream, ByteArrayOutputStream, File, StringWriter
 from java.net import URLDecoder
-from java.io import ByteArrayInputStream, ByteArrayOutputStream, StringWriter
 from org.dom4j.io import OutputFormat, XMLWriter, SAXReader
 
 from org.apache.commons.io import IOUtils;
@@ -37,20 +38,27 @@ class SolrDoc:
 
 class DetailData:
     def __init__(self):
+        print formData
         self.__storage = Services.storage
         uri = request.getAttribute("RequestURI")
+        print " **************", uri
         basePath = portalId + "/" + pageName
         self.__oid = URLDecoder.decode(uri[len(basePath)+1:])
         self.__dcRdf = None
         self.__metadata = JsonConfigHelper()
         self.__search()
+        if formData.get("verb") == "open":
+            self.__openFile()
     
     def __search(self):
         req = SearchRequest('id:"%s"' % self.__oid)
         out = ByteArrayOutputStream()
         Services.indexer.search(req, out)
-        json = JsonConfigHelper(ByteArrayInputStream(out.toByteArray()))
-        self.__metadata = SolrDoc(json)
+        self.__json = JsonConfigHelper(ByteArrayInputStream(out.toByteArray()))
+        self.__metadata = SolrDoc(self.__json)
+    
+    def getSolrResponse(self):
+        return self.__json
     
     def formatName(self, name):
         return name[3:4].upper() + name[4:]
@@ -76,6 +84,12 @@ class DetailData:
         if dcrdfPayload is not None:
             self.__dcRdf = DCRdf(dcrdfPayload.getInputStream())
         return self.__dcRdf
+    
+    def getStorageId(self):
+        obj = self.getObject()
+        if hasattr(obj, "getPath"):
+            return obj.path.absolutePath
+        return obj.id
     
     def getPayloadContent(self):
         format = self.__metadata.getField("dc_format")
@@ -108,5 +122,9 @@ class DetailData:
             writer.close()
             contentStr = out.toString("UTF-8")
         return contentStr
+    
+    def __openFile(self):
+        print " ********", self.__oid
+        Desktop.getDesktop().open(File(self.__oid))
 
 scriptObject = DetailData()

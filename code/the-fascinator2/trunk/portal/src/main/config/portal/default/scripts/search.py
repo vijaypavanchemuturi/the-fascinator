@@ -32,7 +32,7 @@ class SearchData:
         req.setParam("sort", "f_dc_title asc")
         
         # setup facets
-        action = formData.get("action")
+        action = formData.get("verb")
         value = formData.get("value")
         fq = sessionState.get("fq")
         if fq is not None:
