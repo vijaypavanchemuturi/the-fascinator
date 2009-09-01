@@ -223,7 +223,7 @@ class PyMethod implements VelMethod {
             }
             log.debug(methodname + ": rtn=" + rtn.getClass() + "=" + rtn);
             if (rtn instanceof PyInteger) {
-                return rtn.asInt(0);
+                return Integer.parseInt(rtn.toString());
             }
             return rtn;
         } catch (Exception e) {
@@ -286,6 +286,9 @@ class PyGetProperty implements VelPropertyGet {
                 // handle python None correctly
                 return null;
             } else {
+                if (rtn instanceof PyInteger) {
+                    rtn = Integer.parseInt(rtn.toString());
+                }
                 return rtn;
             }
         } catch (Exception e) {
