@@ -77,6 +77,12 @@ class DetailData:
             self.__dcRdf = DCRdf(dcrdfPayload.getInputStream())
         return self.__dcRdf
     
+    def getStorageId(self):
+        obj = self.getObject()
+        if hasattr(obj, "getPath"):
+            return obj.path.absolutePath
+        return obj.id
+    
     def getPayloadContent(self):
         format = self.__metadata.getField("dc_format")
         slash = self.__oid.rfind("/")

@@ -46,7 +46,8 @@ $(function() {
 #set($meta = $self.metadata)
 #set($item = $self.getObject())
 #set($oid = $page.encodeURL($item.id))
-<pre class="debug">$meta.toString()</pre>
+<p class="debug">storage: <pre>$!self.storageId</pre></p>
+<pre class="debug">result: $meta.toString()</pre>
 <div class="ui-helper-hidden" id="record-meta">
   <label id="oid">$oid</label>
   <label id="format">$meta.getField("dc_format")</label>
