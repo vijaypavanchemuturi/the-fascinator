@@ -110,6 +110,7 @@ public class IceTransformer implements Transformer {
         if (!outputDir.exists()) {
             outputDir.mkdirs();
         }
+        log.info("Converting {} using ICE at {}", sourceFile, convertUrl);
 
         try {
             HttpClient client = new HttpClient();
@@ -272,11 +273,13 @@ public class IceTransformer implements Transformer {
             String result = getRendition(inFile);
             if (!result.startsWith("Error")) {
                 // Check if the file is a zip file or error returned from ice
-                if (validZipFile(result) == true) {
+                if (validZipFile(result)) {
                     IceDigitalObject iceObject = new IceDigitalObject(in,
                             result);
                     return iceObject;
                 }
+            } else {
+                log.info("Error converting: {}", result);
             }
             File resultFile = new File(result);
             if (resultFile.exists()) {

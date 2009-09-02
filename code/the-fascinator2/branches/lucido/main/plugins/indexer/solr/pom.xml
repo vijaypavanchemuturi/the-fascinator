@@ -65,6 +65,11 @@
       <version>2.2.1</version>
     </dependency>
     <dependency>
+      <groupId>org.semweb4j</groupId>
+      <artifactId>rdf2go.impl.jena24</artifactId>
+      <version>4.7.2</version>
+    </dependency>
+    <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
     </dependency>
