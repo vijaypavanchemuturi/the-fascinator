@@ -47,6 +47,7 @@ import au.edu.usq.fascinator.api.storage.DigitalObject;
 import au.edu.usq.fascinator.api.transformer.Transformer;
 import au.edu.usq.fascinator.api.transformer.TransformerException;
 import au.edu.usq.fascinator.common.JsonConfig;
+import au.edu.usq.fascinator.common.MimeTypeUtil;
 
 /**
  * Provides static methods for extracting RDF metadata from a given file.
@@ -181,7 +182,7 @@ public class ApertureTransformer implements Transformer {
      */
     public static RDFContainer extractRDF(File file) throws IOException,
             ExtractorException {
-        String mimeType = MimeType.getMimeType(file);
+        String mimeType = MimeTypeUtil.getMimeType(file);
         return extractRDF(file, mimeType);
     }
 
@@ -244,7 +245,7 @@ public class ApertureTransformer implements Transformer {
         ExtractorRegistry extractorRegistry = new DefaultExtractorRegistry();
 
         // determine and apply an Extractor that can handle this MIME type
-        Set factories = extractorRegistry.get(mimeType);
+        Set factories = extractorRegistry.getExtractorFactories(mimeType);
         if (factories != null && !factories.isEmpty()) {
             // just fetch the first available Extractor
             ExtractorFactory factory = (ExtractorFactory) factories.iterator()
