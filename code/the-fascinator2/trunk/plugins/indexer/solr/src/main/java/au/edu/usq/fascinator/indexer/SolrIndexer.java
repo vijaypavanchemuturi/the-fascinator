@@ -58,6 +58,9 @@ import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.DocumentFactory;
 import org.dom4j.io.SAXReader;
+import org.ontoware.rdf2go.RDF2Go;
+import org.ontoware.rdf2go.exception.ModelRuntimeException;
+import org.ontoware.rdf2go.model.Model;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -385,6 +388,29 @@ public class SolrIndexer implements Indexer {
             log.error("Failed to parse XML", de);
         }
         return null;
+    }
+
+    public Model getRdfModel(Payload payload) {
+        try {
+            return getRdfModel(payload.getInputStream());
+        } catch (IOException ioe) {
+            log.info("Failed to read payload stream", ioe);
+        }
+        return null;
+    }
+
+    public Model getRdfModel(InputStream rdfIn) {
+        Model model = null;
+        try {
+            model = RDF2Go.getModelFactory().createModel();
+            model.open();
+            model.readFrom(rdfIn);
+        } catch (ModelRuntimeException mre) {
+            log.error("Failed to create RDF model", mre);
+        } catch (IOException ioe) {
+            log.error("Failed to read RDF input", ioe);
+        }
+        return model;
     }
 
     public void registerNamespace(String prefix, String uri) {
