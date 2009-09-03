@@ -1,3 +1,4 @@
+from org.apache.commons.lang import StringEscapeUtils
 # 
 # Script for Template layout
 # 
@@ -26,6 +27,9 @@ class TemplateData:
 
     def encodeURL(self, url):
         return URLEncoder.encode(url, "UTF-8")
+    
+    def escapeText(self, text):
+        return StringEscapeUtils.escapeXml(text)
     
     def getTemplate(self, templateName):
         portalName = portalId
