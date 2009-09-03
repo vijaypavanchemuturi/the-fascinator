@@ -27,7 +27,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 
-import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.httpclient.methods.multipart.FilePart;
 import org.apache.commons.httpclient.methods.multipart.MultipartRequestEntity;
@@ -41,6 +40,7 @@ import au.edu.usq.fascinator.api.PluginException;
 import au.edu.usq.fascinator.api.storage.DigitalObject;
 import au.edu.usq.fascinator.api.transformer.Transformer;
 import au.edu.usq.fascinator.api.transformer.TransformerException;
+import au.edu.usq.fascinator.common.BasicHttpClient;
 import au.edu.usq.fascinator.common.JsonConfig;
 
 /**
@@ -113,7 +113,7 @@ public class IceTransformer implements Transformer {
         log.info("Converting {} using ICE at {}", sourceFile, convertUrl);
 
         try {
-            HttpClient client = new HttpClient();
+            BasicHttpClient client = new BasicHttpClient(convertUrl);
             PostMethod filePost = new PostMethod(convertUrl);
 
             String[] filePart = sourceFile.getName().split("\\.");
