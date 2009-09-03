@@ -32,9 +32,12 @@ import org.ontoware.rdf2go.model.Model;
 import org.ontoware.rdf2go.model.Syntax;
 import org.ontoware.rdf2go.model.node.URI;
 import org.ontoware.rdf2go.model.node.impl.URIImpl;
+import org.semanticdesktop.aperture.extractor.Extractor;
 import org.semanticdesktop.aperture.extractor.ExtractorException;
 import org.semanticdesktop.aperture.extractor.ExtractorFactory;
 import org.semanticdesktop.aperture.extractor.ExtractorRegistry;
+import org.semanticdesktop.aperture.extractor.FileExtractor;
+import org.semanticdesktop.aperture.extractor.FileExtractorFactory;
 import org.semanticdesktop.aperture.extractor.impl.DefaultExtractorRegistry;
 import org.semanticdesktop.aperture.rdf.RDFContainer;
 import org.semanticdesktop.aperture.rdf.impl.RDFContainerImpl;
@@ -246,19 +249,26 @@ public class ApertureTransformer implements Transformer {
 
         // determine and apply an Extractor that can handle this MIME type
         Set factories = extractorRegistry.getExtractorFactories(mimeType);
+        if (factories == null || factories.isEmpty()) {
+            factories = extractorRegistry.getFileExtractorFactories(mimeType);
+        }
         if (factories != null && !factories.isEmpty()) {
             // just fetch the first available Extractor
-            ExtractorFactory factory = (ExtractorFactory) factories.iterator()
-                    .next();
-            org.semanticdesktop.aperture.extractor.Extractor extractor = factory
-                    .get();
-
-            // apply the extractor on the specified file
-            // (just open a new stream rather than buffer the previous stream)
-            stream = new FileInputStream(file);
-            buffer = new BufferedInputStream(stream, 8192);
-            extractor.extract(uri, buffer, null, mimeType, container);
-            stream.close();
+            Object factory = factories.iterator().next();
+            if (factory instanceof ExtractorFactory) {
+                Extractor extractor = ((ExtractorFactory) factory).get();
+                // apply the extractor on the specified file
+                // (just open a new stream rather than buffer the previous
+                // stream)
+                stream = new FileInputStream(file);
+                buffer = new BufferedInputStream(stream, 8192);
+                extractor.extract(uri, buffer, null, mimeType, container);
+                stream.close();
+            } else if (factory instanceof FileExtractorFactory) {
+                FileExtractor extractor = ((FileExtractorFactory) factory)
+                        .get();
+                extractor.extract(uri, file, null, mimeType, container);
+            }
         }
         // add the MIME type as an additional statement to the RDF model
         container.add(NIE.mimeType, mimeType);
