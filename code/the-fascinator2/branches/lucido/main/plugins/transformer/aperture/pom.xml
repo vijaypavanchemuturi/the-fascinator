@@ -39,4 +39,21 @@
       <version>4.7.2</version>
     </dependency>
   </dependencies>
+  <profiles>
+    <profile>
+      <id>on-mac</id>
+      <activation>
+        <os>
+          <family>mac</family>
+        </os>
+      </activation>
+      <dependencies>
+        <dependency>
+          <groupId>com.apple</groupId>
+          <artifactId>cocoa</artifactId>
+          <version>1.0</version>
+        </dependency>
+      </dependencies>
+    </profile>
+  </profiles>
 </project>
