@@ -25,6 +25,9 @@ import java.io.InputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import au.edu.usq.fascinator.api.storage.PayloadType;
 import au.edu.usq.fascinator.common.MimeTypeUtil;
 import au.edu.usq.fascinator.common.storage.impl.GenericPayload;
@@ -36,6 +39,8 @@ import au.edu.usq.fascinator.common.storage.impl.GenericPayload;
  * @author Oliver Lucido
  */
 public class IcePayload extends GenericPayload {
+
+    private Logger log = LoggerFactory.getLogger(IcePayload.class);
 
     private File filePath;
     private boolean isZip = false;
