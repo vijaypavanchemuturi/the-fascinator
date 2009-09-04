@@ -39,4 +39,33 @@
       <version>4.7.2</version>
     </dependency>
   </dependencies>
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
+        <version>1.1.1</version>
+        <configuration>
+          <mainClass>au.edu.usq.fascinator.transformer.aperture.ApertureTransformer</mainClass>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+  <profiles>
+    <profile>
+      <id>on-mac</id>
+      <activation>
+        <os>
+          <family>mac</family>
+        </os>
+      </activation>
+      <dependencies>
+        <dependency>
+          <groupId>com.apple</groupId>
+          <artifactId>cocoa</artifactId>
+          <version>1.0</version>
+        </dependency>
+      </dependencies>
+    </profile>
+  </profiles>
 </project>

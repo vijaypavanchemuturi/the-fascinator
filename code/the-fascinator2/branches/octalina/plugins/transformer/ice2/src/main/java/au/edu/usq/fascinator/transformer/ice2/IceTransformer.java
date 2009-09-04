@@ -27,7 +27,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 
-import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.httpclient.methods.multipart.FilePart;
 import org.apache.commons.httpclient.methods.multipart.MultipartRequestEntity;
@@ -41,6 +40,7 @@ import au.edu.usq.fascinator.api.PluginException;
 import au.edu.usq.fascinator.api.storage.DigitalObject;
 import au.edu.usq.fascinator.api.transformer.Transformer;
 import au.edu.usq.fascinator.api.transformer.TransformerException;
+import au.edu.usq.fascinator.common.BasicHttpClient;
 import au.edu.usq.fascinator.common.JsonConfig;
 
 /**
@@ -53,6 +53,7 @@ import au.edu.usq.fascinator.common.JsonConfig;
 public class IceTransformer implements Transformer {
     private String convertUrl = "http://ice-service.usq.edu.au/api/convert/";
     private String outputPath;
+    private String imageRatio;
 
     private static Logger log = LoggerFactory.getLogger(IceTransformer.class);
 
@@ -110,10 +111,9 @@ public class IceTransformer implements Transformer {
         if (!outputDir.exists()) {
             outputDir.mkdirs();
         }
-        log.info("Converting {} using ICE at {}", sourceFile, convertUrl);
 
         try {
-            HttpClient client = new HttpClient();
+            BasicHttpClient client = new BasicHttpClient(convertUrl);
             PostMethod filePost = new PostMethod(convertUrl);
 
             String[] filePart = sourceFile.getName().split("\\.");
@@ -123,7 +123,7 @@ public class IceTransformer implements Transformer {
                     new StringPart("pdfLink", "1"),
                     new StringPart("pathext", ""),
                     new StringPart("template", getTemplate()),
-                    new StringPart("resize", "-90"),
+                    new StringPart("resize", imageRatio),
                     new StringPart("mode", "download"),
                     new FilePart("file", sourceFile) };
 
@@ -243,6 +243,8 @@ public class IceTransformer implements Transformer {
                     + File.separator + "tmp");
             convertUrl = config.get("transformer/ice2/url",
                     "http://ice-service.usq.edu.au/api/convert/");
+            imageRatio = config.get("transformer/ice2/resize.image.ratio",
+                    "-90");
         } catch (IOException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
@@ -273,13 +275,11 @@ public class IceTransformer implements Transformer {
             String result = getRendition(inFile);
             if (!result.startsWith("Error")) {
                 // Check if the file is a zip file or error returned from ice
-                if (validZipFile(result)) {
+                if (validZipFile(result) == true) {
                     IceDigitalObject iceObject = new IceDigitalObject(in,
                             result);
                     return iceObject;
                 }
-            } else {
-                log.info("Error converting: {}", result);
             }
             File resultFile = new File(result);
             if (resultFile.exists()) {

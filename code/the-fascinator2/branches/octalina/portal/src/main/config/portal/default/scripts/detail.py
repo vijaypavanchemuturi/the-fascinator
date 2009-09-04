@@ -9,6 +9,8 @@ from org.dom4j.io import OutputFormat, XMLWriter, SAXReader
 from org.apache.commons.io import IOUtils;
 from au.edu.usq.fascinator.model import DCRdf 
 
+import traceback
+
 class SolrDoc:
     def __init__(self, json):
         self.json = json
@@ -91,6 +93,15 @@ class DetailData:
             return obj.path.absolutePath
         return obj.id
     
+    def hasSlideShow(self):
+        slash = self.__oid.rfind("/")
+        pid = self.__oid[slash+1:]
+        pid = pid[:pid.find(".")] + ".slide.htm"
+        payload = self.__storage.getPayload(self.__oid, pid)
+        if payload.getInputStream() is None:
+            return ""
+        return pid
+    
     def getPayloadContent(self):
         format = self.__metadata.getField("dc_format")
         slash = self.__oid.rfind("/")
@@ -104,12 +115,15 @@ class DetailData:
             IOUtils.copy(payload.getInputStream(), str)
             contentStr += str.toString()
             contentStr += "</pre>"
-        elif format.find("vnd.ms-")>-1 or format.find("vnd.oasis.opendocument.")>-1:
+        elif format.find("vnd.ms-")>-1 or format.find("vnd.oasis.opendocument.")>-1 or format.find("application/pdf")>-1:
             #get the html version if exist....
             pid = pid[:pid.find(".")] + ".htm"
             payload = self.__storage.getPayload(self.__oid, pid)
             saxReader = SAXReader()
-            document = saxReader.read(payload.getInputStream())
+            try:
+                document = saxReader.read(payload.getInputStream())
+            except:
+                traceback.print_exc()
             slideNode = document.selectSingleNode("//div[@class='body']")
             #linkNodes = slideNode.selectNodes("//img")
             #contentStr = slideNode.asXML();

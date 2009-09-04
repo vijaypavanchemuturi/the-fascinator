@@ -121,7 +121,6 @@ public class HarvestClient {
             log.error("Failed to initialise harvester plugin", pe);
             return;
         }
-
         do {
             try {
                 for (DigitalObject item : harvester.getObjects()) {
