@@ -37,7 +37,7 @@ if [ "$1" == "start" -o "$1" == "restart" ]; then
 		cd $OLDPWD
 		echo "Starting Portal..."
 		cd $FASCINATOR_HOME/code/portal
-		mvn -P test -Djetty.port=9997 jetty:run &>$OLDPWD/portal.out &
+		mvn -P test -Djava.awt.headless=true -Djetty.port=9997 jetty:run &>$OLDPWD/portal.out &
 		cd $OLDPWD
 	else
 		echo "ERROR: Build failed. Please see $OLDPWD/portal.out for more details."

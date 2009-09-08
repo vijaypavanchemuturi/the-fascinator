@@ -15,6 +15,17 @@ class SettingsData:
         self.__portal.recordsPerPage = int(formData.get("portalRecordsPerPage"))
         self.__portal.facetCount = int(formData.get("portalFacetLimit"))
         self.__portal.facetSort = formData.get("portalFacetSort") is not None
+        facetFields = self.__portal.facetFields
+        facetFields.clear()
+        size = int(formData.get("portalFacetSize"))
+        for i in range(1,size+1):
+            nameKey = "portalFacet_%s_name" % i
+            labelKey = "portalFacet_%s_label" % i
+            name = formData.get(nameKey)
+            label = formData.get(labelKey)
+            print "key: %s, label: %s" % (name, label)
+            facetFields.put(name, label)
+        Services.portalManager.save(self.__portal)
     
     def getPortal(self):
         return self.__portal

@@ -130,7 +130,8 @@ ul.home-portal-list li {
     padding-bottom: 0.25em;
 }
 
-ul.home-portal-list li a {
+ul.home-portal-list li a, ul.home-portal-list li a:visited {
+    color: #1D599B;
     text-decoration: none;
 }
 

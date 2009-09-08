@@ -5,10 +5,22 @@ $(function() {
     $("#security-accordion").accordion();
     $("#plugins-accordion").accordion({ autoHeight: false });
     
-    $("add-facet-field").click(function() {
+    $("#add-facet-field").click(function() {
+        var parent = $(this).parent();
+        var size = parseInt($("#portalFacetSize").val()) + 1;
+        var id = "portalFacet_" + size;
+        parent.append('<li id="' + id + '">\n' +
+              '<input class="ui-corner-all ui-widget-content" id="' + id + '_name" name="' + id + '_name" size="25" type="text" value="" />\n' +
+              '<input class="ui-corner-all ui-widget-content" id="' + id + '_label" name="' + id + '_label" size="25" type="text" value="" />\n' +
+              '<button class="remove-facet-field ui-corner-all ui-state-default">del</button>\n' +
+            '</li>');
+        return false;
     });
     
-    $("remove-facet-field").click(function() {
+    $(".remove-facet-field").live("click", function() {
+        var parent = $(this).parent();
+        parent.fadeOut(function() { parent.remove(); });
+        return false;
     });
 });
 </script>
@@ -21,8 +33,9 @@ $(function() {
   </ul>
   <div id="general-tab">
     <form id="portalForm" name="portalForm" method="post">
+      <button name="">Create new view</button>
       <fieldset>
-        <legend>View</legend>
+        <legend>Current view - $self.portal.description</legend>
         <ol>
           <li>
             <label for="portalName">Name</label>
@@ -49,6 +62,8 @@ $(function() {
             <input id="portalFacetSort" name="portalFacetSort" type="checkbox" value="$self.portal.facetSort" />
           </li>
           <h4>Facets</h4>
+          <input id="portalFacetSize" name="portalFacetSize" type="hidden" value="$self.portal.facetFields.size()" />
+          <button id="add-facet-field">add facet</button>
           #foreach($entry in $self.portal.facetFields)
           #set($field = $entry.key)
           #set($label = $entry.value)
@@ -59,10 +74,10 @@ $(function() {
             <button class="remove-facet-field">del</button>
           </li>
           #end
-          <button id="add-facet-field">add facet</button>
         </ol>
       </fieldset>
       <input name="portalAction" type="submit" value="Update" />
+      <input name="portalAction" type="submit" value="Cancel" />
     </form>
   </div>
   <div id="security-tab">
