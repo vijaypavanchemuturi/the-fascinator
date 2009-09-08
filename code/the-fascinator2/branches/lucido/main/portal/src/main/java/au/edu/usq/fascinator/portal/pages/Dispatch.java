@@ -97,11 +97,10 @@ public class Dispatch {
         }
 
         // save form data for POST requests, since we redirect after POSTs
-        FormData formData = null;
+        FormData formData = new FormData(request);
+        formDataMap.put(resourceName, formData);
         if ("POST".equals(request.getMethod())) {
             try {
-                formData = new FormData(request);
-                formDataMap.put(resourceName, formData);
                 if (isAjax) {
                     response.setHeader("Cache-Control", "no-cache");
                     response.setDateHeader("Expires", 0);
@@ -130,9 +129,8 @@ public class Dispatch {
             }
             formDataMap.put(resourceName, formData);
             ByteArrayOutputStream out = new ByteArrayOutputStream();
-            pageService.render(portalId, resourceName, out, formData,
-                    sessionState);
-            mimeType = "text/html";
+            mimeType = pageService.render(portalId, resourceName, out,
+                    formData, sessionState);
             stream = new ByteArrayInputStream(out.toByteArray());
         } else {
             mimeType = MimeTypeUtil.getMimeType(resourceName);

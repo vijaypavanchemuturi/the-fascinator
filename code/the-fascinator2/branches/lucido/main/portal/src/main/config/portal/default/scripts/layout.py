@@ -1,3 +1,4 @@
+import md5
 from org.apache.commons.lang import StringEscapeUtils
 # 
 # Script for Template layout
@@ -30,6 +31,9 @@ class TemplateData:
     
     def escapeText(self, text):
         return StringEscapeUtils.escapeXml(text)
+    
+    def md5Hash(self, data):
+        return md5.new(data).hexdigest()
     
     def getTemplate(self, templateName):
         portalName = portalId

@@ -33,7 +33,7 @@ public interface DynamicPageService {
 
     public InputStream getResource(String portalId, String resourceName);
 
-    public void render(String portalId, String pageName, OutputStream out,
+    public String render(String portalId, String pageName, OutputStream out,
             FormData formData, JsonSessionState sessionState);
 
 }
