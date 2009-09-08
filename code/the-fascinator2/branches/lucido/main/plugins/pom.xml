@@ -20,7 +20,6 @@
     <module>storage/couchdb</module>
     <module>storage/fedora3</module>
     <module>storage/filesystem</module>
-    <module>storage/git</module>
     <module>transformer/aperture</module>
     <module>transformer/ice2</module>
   </modules>
