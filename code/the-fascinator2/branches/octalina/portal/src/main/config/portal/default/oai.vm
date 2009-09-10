@@ -1,0 +1,67 @@
+#set($noLayout = true)
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="$contextPath/$portalId/oai2html.xsl"?>
+<OAI-PMH xmlns="http://www.openarchives.org/OAI/2.0/"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://www.openarchives.org/OAI/2.0/ http://www.openarchives.org/OAI/2.0/OAI-PMH.xsd">
+    <responseDate>$!self.responseDate</responseDate>
+    <request#if($self.verb) verb="$!self.verb"#end>http://localhost:9997$contextPath/$portalId/oai</request>
+#if($self.error.code)
+    <error code="$self.error.code">$self.error.message</error>
+#else
+#set($itemList = $self.result.getList("response/docs").toArray())
+    <$self.verb>
+#if($self.verb == "ListSets")
+#foreach($entry in $page.portals)#set($portal = $entry.value)
+        <set>
+            <setSpec>$portal.name</setSpec>
+            <setName>$portal.description</setName>
+        </set>
+#end
+#elseif($self.verb == "Identify")
+        <repositoryName>The Fascinator</repositoryName>
+        <baseURL>http://localhost:9997$contextPath/$portalId</baseURL>
+        <protocolVersion>2.0</protocolVersion>
+        <adminEmail>fascinator@usq.edu.au</adminEmail>
+        <earliestDatestamp>0001-01-01T00:00:00Z</earliestDatestamp>
+        <deletedRecord>persistent</deletedRecord>
+        <granularity>YYYY-MM-DDThh:mm:ssZ</granularity>
+        <description>
+            <oai-identifier xsi:schemaLocation="http://www.openarchives.org/OAI/2.0/oai-identifier http://www.openarchives.org/OAI/2.0/oai-identifier.xsd" xmlns="http://www.openarchives.org/OAI/2.0/oai-identifier">
+            <scheme>oai</scheme>
+            <repositoryIdentifier>fascinator</repositoryIdentifier>
+            <delimiter>:</delimiter>
+            <sampleIdentifier>oai:fascinator:5e8ff9bf55ba3508199d22e984129be6</sampleIdentifier></oai-identifier>
+        </description>
+#elseif($self.verb == "ListMetadataFormats")
+        <metadataFormat>
+            <metadataPrefix>oai_dc</metadataPrefix>
+            <schema>http://www.openarchives.org/OAI/2.0/oai_dc/</schema>
+            <metadataNamespace>http://www.openarchives.org/OAI/2.0/oai_dc.xsd</metadataNamespace>
+        </metadataFormat>
+#elseif($self.verb == "ListRecords")
+#foreach($item in $itemList)
+        <record>
+            <header>
+                <identifier>oai:fascinator:$page.md5Hash($item.get("id"))</identifier>
+                <datestamp>$item.get("last_modified")</datestamp>
+                <setSpec>$portalId</setSpec>
+            </header>
+            <metadata>
+                <oai_dc:dc xsi:schemaLocation="http://www.openarchives.org/OAI/2.0/oai_dc/ http://www.openarchives.org/OAI/2.0/oai_dc.xsd" xmlns:oai_dc="http://www.openarchives.org/OAI/2.0/oai_dc/" xmlns:dc="http://purl.org/dc/elements/1.1/">
+                </oai_dc:dc>
+            </metadata>
+        </record>
+#end
+#elseif($self.verb == "ListIdentifiers")
+#foreach($item in $itemList)
+        <header>
+            <identifier>oai:fascinator:$page.md5Hash($item.get("id"))</identifier>
+            <datestamp>$item.get("last_modified")</datestamp>
+            <setSpec>$portalId</setSpec>
+        </header>
+#end
+#end
+    </$self.verb>
+#end
+</OAI-PMH>

@@ -5,7 +5,14 @@
 <script type="text/javascript">
 $(function() {
 	var oid = $("#oid").text();
-    var pid = $(".payload-list li a[rel='Data']").text();
+    $("#hasSlide").each(function() {
+        var hasSlide = $(this).text();
+        if (hasSlide != "") {
+            $('div.view-as-slideshow').append("<form action='$contextPath/$portalId/download/" + oid + "/" + hasSlide + "' target='_blank'>" +
+            "<input type='submit' value='View as Slideshow'>" +  
+            "</form>");
+        }
+    });
     
     $("#hasSlide").each(function() {
 		var hasSlide = $(this).text();
@@ -17,21 +24,11 @@ $(function() {
 	});
     
     $("#format").each(function() {
-        var format = this;
-        var mimeType = $(format).text().toLowerCase();
+        var mimeType = $(this).text().toLowerCase();
         if (mimeType.indexOf("image") == 0) {
-            $('div.content-preview').append("<img src='download/"+ oid + "/" + pid + "'/>");
-        }
-        if (mimeType.indexOf("text") == 0 || 
-            mimeType.indexOf("application/vnd.ms-") == 0 ||
-            mimeType.indexOf("application/vnd.oasis.opendocument.") == 0 ||
-            mimeType.indexOf("application/pdf") == 0
-        ) {
-            var payloadContent = $("label[id='payloadContent']").text();
-            $('div.content-preview').append(payloadContent);
-        }
-        if (mimeType.indexOf("audio") == 0 || mimeType.indexOf("video") == 0) {
-            var filename = '$portalPath/detail/download/' + oid + '/' + pid.replace("wmv", "flv");
+            $('div.content-preview').append("<img src='$contextPath/$portalId/download/" + oid + "'/>");
+        } else if (mimeType.indexOf("audio") == 0 || mimeType.indexOf("video") == 0) {
+            var filename = '$portalPath/download/' + oid.replace("wmv", "flv");
             var height = 300;
             if (mimeType.indexOf("audio") == 0) {
                 height = 24;
@@ -41,18 +38,8 @@ $(function() {
         }
     });
     
-    $("div.content-preview img").each (function() {
-        var src = $(this).attr("src");
-        if (src.toLowerCase().indexOf("http://") == -1 &&
-            src.toLowerCase().indexOf("file://") == -1 &&
-            src.toLowerCase().indexOf("download/") != 0)
-        $(this).attr("src", "download/" + oid + "/" + src);
-    });
-    
-    setActionUri("$portalPath/detail/" + oid);
-    $(".payload-list li a[rel='Data']").click(function() {
-       $(this).attr("href", "#");
-        doAction("open", oid);
+    $("#open-this").click(function() {
+        jQuery.post("$portalPath/detail/" + oid, { verb: "open", value: oid } );
     });
 });
 </script>
@@ -60,19 +47,20 @@ $(function() {
 <p title="FIXME">Not found</p>
 #else
 #set($meta = $self.metadata)
-#set($item = $self.getObject())
-#set($oid = $page.encodeURL($item.id))
+#set($oid = $self.object.id)
 <p class="debug">storage:</p>
 <pre class="debug">$!self.storageId</pre>
 <pre class="debug">result: $meta.toString()</pre>
 <div class="ui-helper-hidden" id="record-meta">
   <label id="oid">$oid</label>
-  <label id="format">$meta.getField("dc_format")</label>
+  <label id="format">$self.mimeType</label>
+  <label id="hasSlide">$self.hasSlideShow()</label>
   <label id="hasSlide">$self.hasSlideShow()</label>
 </div>
 #set($title = $meta.getField("dc_title"))
 #set($description = $meta.getField("dc_description"))
 <h2>$title</h2>
+<button id="open-this">Open file for editing</button>
 #if($description)
 <h3>Description</h3>
 <p>$description</p>
@@ -89,15 +77,17 @@ $(function() {
 <div class="view-as-slideshow"></div>
 <h3>Preview</h3>
 <div class="content-preview">
-  #set($content = $self.getPayloadContent())
-  <div>$!content</div>
+  <div>$!self.payloadContent</div>
 </div>
 <div class="payload-list">
   <h3>Attachments</h3>
   <ul>
-  #foreach($payload in $item.payloadList)
+  #foreach($payload in $self.object.payloadList)
     #set($pid = $page.encodeURL($payload.id))
-    <li><a href="download/$oid/$pid" rel="$payload.type.toString()" target="blank">$payload.id</a> ($payload.contentType, $payload.type.toString())</li>
+    #set($pType = $payload.type.toString())
+    <li>
+      <a href='$portalPath/download/$oid/$pid' rel="$pType" target="blank">$payload.id</a> ($payload.contentType, $pType)
+    </li>
   #end
   </ul>
 </div>

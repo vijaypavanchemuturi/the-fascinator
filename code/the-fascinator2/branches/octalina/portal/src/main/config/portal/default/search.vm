@@ -163,7 +163,7 @@ $(function() {
           #end
           #if($self.isImage($format)==1)
             #set($thumbnail = $self.getThumbnail($id))
-            <img src="detail/download/$oid/$thumbnail"></img>
+            <img src="download/$oid/$thumbnail"></img>
           #end
         </div>
       </li>

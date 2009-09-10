@@ -24,7 +24,7 @@ h2 {
     color: #217BC0;
 }
 
-h3,h4,h5,h6 {
+h3,h4,h5,h6,legend {
     color: #1D599B;
 }
 
@@ -130,7 +130,8 @@ ul.home-portal-list li {
     padding-bottom: 0.25em;
 }
 
-ul.home-portal-list li a {
+ul.home-portal-list li a, ul.home-portal-list li a:visited {
+    color: #1D599B;
     text-decoration: none;
 }
 
@@ -263,7 +264,7 @@ span.portal-query-facet {
 }
 
 .ui-accordion,.ui-dialog,.ui-tabs {
-    font-size: 0.9em;
+    font-size: 0.95em;
 }
 
 /* jsTree overrides */
@@ -278,4 +279,57 @@ div.content-preview {
     margin: 1em 1.75em;
     padding: .25em;
     overflow: auto;
+}
+
+/* forms */
+form fieldset {
+  margin-bottom: 10px;
+}
+form legend {
+  padding: 0 2px;
+  font-weight: bold;
+  font-size: 1.2em;
+}
+form label {
+  display: inline-block;
+  line-height: 1.8;
+  vertical-align: top;
+}
+form fieldset ol {
+  margin: 0;
+  padding: 0;
+}
+form fieldset li {
+  list-style: none;
+  padding: 1px;
+  margin: 0;
+}
+form fieldset fieldset {
+  border: none;
+  margin: 3px 0 0;
+}
+form fieldset fieldset legend {
+  padding: 0 0 5px;
+  font-weight: normal;
+}
+form fieldset fieldset label {
+  display: block;
+  width: auto;
+}
+form em {
+  font-weight: bold;
+  font-style: normal;
+  color: #f00;
+}
+form label {
+  width: 120px; /* Width of labels */
+}
+form fieldset fieldset label {
+  margin-left: 123px; /* Width plus 3 (html space) */
+}
+
+.iframe-preview {
+    border: 1px dotted gray;
+    height: 480px;
+    width: 100%;
 }

@@ -90,13 +90,13 @@ public class DcPayload implements Payload {
             Transformer transformer = t.newTransformer();
             transformer.setParameter("filePath", filePath);
             ByteArrayInputStream bis = new ByteArrayInputStream(doc.asXML()
-                    .getBytes());
+                    .getBytes("UTF-8"));
             Source source = new StreamSource(bis);
             DocumentResult result = new DocumentResult();
 
             transformer.transform(source, result);
             return new ByteArrayInputStream(result.getDocument().asXML()
-                    .getBytes());
+                    .getBytes("UTF-8"));
 
         } catch (TransformerConfigurationException e) {
             // TODO Auto-generated catch block
