@@ -36,6 +36,8 @@ import org.slf4j.LoggerFactory;
  */
 public class MimeTypeUtil {
 
+    public static final String DEFAULT_MIME_TYPE = "application/octet-stream";
+
     private static Logger log = LoggerFactory.getLogger(MimeTypeUtil.class);
 
     private static MimeTypeIdentifier identifier = new MagicMimeTypeIdentifier();
@@ -51,7 +53,11 @@ public class MimeTypeUtil {
         if (file.exists()) {
             return getMimeType(file);
         }
-        return identifier.identify(null, filename, null);
+        String mimeType = identifier.identify(null, filename, null);
+        if (mimeType == null) {
+            mimeType = DEFAULT_MIME_TYPE;
+        }
+        return mimeType;
     }
 
     /**
@@ -76,7 +82,7 @@ public class MimeTypeUtil {
                 }
             }
         }
-        return null;
+        return DEFAULT_MIME_TYPE;
     }
 
     /**
@@ -92,6 +98,6 @@ public class MimeTypeUtil {
         } catch (IOException ioe) {
             log.warn("Failed to detect MIME type: {}", ioe.getMessage());
         }
-        return null;
+        return DEFAULT_MIME_TYPE;
     }
 }

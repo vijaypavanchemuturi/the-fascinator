@@ -1,3 +1,5 @@
+import md5
+from org.apache.commons.lang import StringEscapeUtils
 # 
 # Script for Template layout
 # 
@@ -10,7 +12,7 @@ class TemplateData:
         self.__checkLogin()
         if formData.get("verb") == "clear-session":
             sessionState.clear()
-
+    
     def __checkLogin(self):
         action = formData.get("verb")
         if (action == "logout"):
@@ -20,17 +22,28 @@ class TemplateData:
             if username is not None:
                 #TODO actual login procedure
                 sessionState.set("username", username)
-
+    
     def getPortals(self):
         return Services.getPortalManager().getPortals()
-
+    
     def encodeURL(self, url):
-        return URLEncoder.encode(url, "UTF-8")
+        #return URLEncoder.encode(url, "UTF-8")
+        return url
+    
+    def escapeText(self, text):
+        return StringEscapeUtils.escapeXml(text)
+    
+    def md5Hash(self, data):
+        return md5.new(data).hexdigest()
     
     def getTemplate(self, templateName):
         portalName = portalId
         if not Services.pageService.resourceExists(portalId, templateName, False):
             portalName = Services.portalManager.DEFAULT_PORTAL_NAME
         return "%s/%s" % (portalName, templateName)
+    
+    def resolve(self, uri):
+        print " * layout.py: resolve uri=%s" % uri
+        return uri
 
 scriptObject = TemplateData()

@@ -4,10 +4,27 @@ $(function() {
     $("#settings").tabs();
     $("#security-accordion").accordion();
     $("#plugins-accordion").accordion({ autoHeight: false });
+    
+    $("#add-facet-field").click(function() {
+        var parent = $(this).parent();
+        var size = parseInt($("#portalFacetSize").val()) + 1;
+        var id = "portalFacet_" + size;
+        parent.append('<li id="' + id + '">\n' +
+              '<input class="ui-corner-all ui-widget-content" id="' + id + '_name" name="' + id + '_name" size="25" type="text" value="" />\n' +
+              '<input class="ui-corner-all ui-widget-content" id="' + id + '_label" name="' + id + '_label" size="25" type="text" value="" />\n' +
+              '<button class="remove-facet-field ui-corner-all ui-state-default">del</button>\n' +
+            '</li>');
+        return false;
+    });
+    
+    $(".remove-facet-field").live("click", function() {
+        var parent = $(this).parent();
+        parent.fadeOut(function() { parent.remove(); });
+        return false;
+    });
 });
 </script>
 <h2>Settings</h2>
-$self.indexerPlugins
 <div id="settings">
   <ul>
     <li><a href="#general-tab">General</a></li>
@@ -15,10 +32,52 @@ $self.indexerPlugins
     <li><a href="#plugins-tab">Plugins</a></li>
   </ul>
   <div id="general-tab">
-    <form id="" method="post">
+    <form id="portalForm" name="portalForm" method="post">
+      <button name="">Create new view</button>
       <fieldset>
-        <legend>Portal</legend>
+        <legend>Current view - $self.portal.description</legend>
+        <ol>
+          <li>
+            <label for="portalName">Name</label>
+            <input id="portalName" name="portalName" size="10" type="text" value="$self.portal.name" />
+          </li>
+          <li>
+            <label for="portalDescription">Description</label>
+            <input id="portalDescription" name="portalDescription" size="50" type="text" value="$page.escapeText($self.portal.description)" />
+          </li>
+          <li>
+            <label for="portalQuery">Query</label>
+            <input id="portalQuery" name="portalQuery" size="50" type="text" value="$page.escapeText($self.portal.query)" />
+          </li>
+          <li>
+            <label for="portalRecordsPerPage">Records per page</label>
+            <input id="portalRecordsPerPage" name="portalRecordsPerPage" size="10" type="text" value="$self.portal.recordsPerPage" />
+          </li>
+          <li>
+            <label for="portalFacetLimit">Facet count limit</label>
+            <input id="portalFacetLimit" name="portalFacetLimit" size="10" type="text" value="$self.portal.facetCount" />
+          </li>
+          <li>
+            <label for="portalFacetSort">Sort by facet counts</label>
+            <input id="portalFacetSort" name="portalFacetSort" type="checkbox" value="$self.portal.facetSort" />
+          </li>
+          <h4>Facets</h4>
+          <input id="portalFacetSize" name="portalFacetSize" type="hidden" value="$self.portal.facetFields.size()" />
+          <button id="add-facet-field">add facet</button>
+          #foreach($entry in $self.portal.facetFields)
+          #set($field = $entry.key)
+          #set($label = $entry.value)
+          #set($id = "portalFacet_$velocityCount")
+          <li id="$id">
+            <input id="${id}_name" name="${id}_name" size="25" type="text" value="$field" />
+            <input id="${id}_label" name="${id}_label" size="25" type="text" value="$label" />
+            <button class="remove-facet-field">del</button>
+          </li>
+          #end
+        </ol>
       </fieldset>
+      <input name="portalAction" type="submit" value="Update" />
+      <input name="portalAction" type="submit" value="Cancel" />
     </form>
   </div>
   <div id="security-tab">

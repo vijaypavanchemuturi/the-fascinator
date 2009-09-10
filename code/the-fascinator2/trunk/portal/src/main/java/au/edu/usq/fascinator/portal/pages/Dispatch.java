@@ -97,10 +97,9 @@ public class Dispatch {
         }
 
         // save form data for POST requests, since we redirect after POSTs
-        FormData formData = null;
         if ("POST".equals(request.getMethod())) {
             try {
-                formData = new FormData(request);
+                FormData formData = new FormData(request);
                 formDataMap.put(resourceName, formData);
                 if (isAjax) {
                     response.setHeader("Cache-Control", "no-cache");
@@ -108,9 +107,10 @@ public class Dispatch {
                 } else {
                     String redirectUri = resourceName;
                     if (path.length > 2) {
-                        redirectUri = StringUtils.join(path, "/", 2,
+                        redirectUri += StringUtils.join(path, "/", 2,
                                 path.length);
                     }
+                    log.info("Redirecting to {}...", redirectUri);
                     response.sendRedirect(redirectUri);
                     return GenericStreamResponse.noResponse();
                 }
@@ -124,15 +124,14 @@ public class Dispatch {
         InputStream stream;
 
         if ((resourceName.indexOf(".") == -1) || isAjax) {
-            formData = formDataMap.get(resourceName);
+            FormData formData = formDataMap.get(resourceName);
             if (formData == null) {
                 formData = new FormData(request);
             }
             formDataMap.put(resourceName, formData);
             ByteArrayOutputStream out = new ByteArrayOutputStream();
-            pageService.render(portalId, resourceName, out, formData,
-                    sessionState);
-            mimeType = "text/html";
+            mimeType = pageService.render(portalId, resourceName, out,
+                    formData, sessionState);
             stream = new ByteArrayInputStream(out.toByteArray());
         } else {
             mimeType = MimeTypeUtil.getMimeType(resourceName);
@@ -140,9 +139,7 @@ public class Dispatch {
         }
 
         // clear formData
-        if (formData != null) {
-            formData.clear();
-        }
+        formDataMap.remove(resourceName);
 
         return new GenericStreamResponse(mimeType, stream);
     }
