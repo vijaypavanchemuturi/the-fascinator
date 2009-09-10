@@ -1,13 +1,17 @@
+import os
+
 from au.edu.usq.fascinator.api.indexer import SearchRequest
 from au.edu.usq.fascinator.api.storage import PayloadType
 from au.edu.usq.fascinator.common import JsonConfigHelper
+from au.edu.usq.fascinator.model import DCRdf 
+
 from java.awt import Desktop
 from java.io import ByteArrayInputStream, ByteArrayOutputStream, File, StringWriter
 from java.net import URLDecoder
-from org.dom4j.io import OutputFormat, XMLWriter, SAXReader
+from java.lang import Boolean
 
-from org.apache.commons.io import IOUtils;
-from au.edu.usq.fascinator.model import DCRdf 
+from org.apache.commons.io import IOUtils
+from org.dom4j.io import OutputFormat, XMLWriter, SAXReader
 
 import traceback
 
@@ -37,20 +41,26 @@ class SolrDoc:
     def toString(self):
         return self.json.toString()
 
-
 class DetailData:
     def __init__(self):
-        print formData
         self.__storage = Services.storage
-        uri = request.getAttribute("RequestURI")
-        print " **************", uri
+        uri = URLDecoder.decode(request.getAttribute("RequestURI"))
         basePath = portalId + "/" + pageName
-        self.__oid = URLDecoder.decode(uri[len(basePath)+1:])
-        self.__dcRdf = None
-        self.__metadata = JsonConfigHelper()
-        self.__search()
+        self.__oid = uri[len(basePath)+1:]
+        slash = self.__oid.rfind("/")
+        self.__pid = self.__oid[slash+1:]
+        print " * detail.py: uri='%s' oid='%s' pid='%s'" % (uri, self.__oid, self.__pid)
         if formData.get("verb") == "open":
             self.__openFile()
+        else:
+            payload = self.__storage.getPayload(self.__oid, self.__pid)
+            if payload is not None:
+                self.__mimeType = payload.contentType
+            else:
+                self.__mimeType = "application/octet-stream"
+            self.__dcRdf = None
+            self.__metadata = JsonConfigHelper()
+            self.__search()
     
     def __search(self):
         req = SearchRequest('id:"%s"' % self.__oid)
@@ -58,6 +68,9 @@ class DetailData:
         Services.indexer.search(req, out)
         self.__json = JsonConfigHelper(ByteArrayInputStream(out.toByteArray()))
         self.__metadata = SolrDoc(self.__json)
+    
+    def getMimeType(self):
+        return self.__mimeType
     
     def getSolrResponse(self):
         return self.__json
@@ -76,16 +89,14 @@ class DetailData:
     def getMetadata(self):
         return self.__metadata
     
-    def getObject(self):
-        print " *** getting %s" % self.__oid 
-        return self.__storage.getObject(self.__oid)
-    
     def getDcRdf(self):
-        print " *** payload list: %s *** " % self.__storage.getObject(self.__oid).payloadList
         dcrdfPayload = self.__storage.getPayload(self.__oid, "dc-rdf")
         if dcrdfPayload is not None:
             self.__dcRdf = DCRdf(dcrdfPayload.getInputStream())
         return self.__dcRdf
+    
+    def getObject(self):
+        return self.__storage.getObject(self.__oid)
     
     def getStorageId(self):
         obj = self.getObject()
@@ -94,51 +105,63 @@ class DetailData:
         return obj.id
     
     def hasSlideShow(self):
-        slash = self.__oid.rfind("/")
-        pid = self.__oid[slash+1:]
+        pid = self.__pid
         pid = pid[:pid.find(".")] + ".slide.htm"
         payload = self.__storage.getPayload(self.__oid, pid)
-        if payload.getInputStream() is None:
+        if payload is None:
             return ""
         return pid
     
     def getPayloadContent(self):
-        format = self.__metadata.getField("dc_format")
-        slash = self.__oid.rfind("/")
-        pid = self.__oid[slash+1:]
-        print " *** payload content, format: %s, pid: %s *** " % (format, pid)
+        mimeType = self.__mimeType
+        print " * detail.py: payload content mimeType=%s" % mimeType
         contentStr = ""
-        if format.startswith("text"):
-            contentStr = "<pre>"
-            payload = self.__storage.getPayload(self.__oid, pid)
-            str = StringWriter() 
-            IOUtils.copy(payload.getInputStream(), str)
-            contentStr += str.toString()
-            contentStr += "</pre>"
-        elif format.find("vnd.ms-")>-1 or format.find("vnd.oasis.opendocument.")>-1 or format.find("application/pdf")>-1:
-            #get the html version if exist....
-            pid = pid[:pid.find(".")] + ".htm"
-            payload = self.__storage.getPayload(self.__oid, pid)
-            saxReader = SAXReader()
-            try:
-                document = saxReader.read(payload.getInputStream())
-            except:
-                traceback.print_exc()
-            slideNode = document.selectSingleNode("//div[@class='body']")
-            #linkNodes = slideNode.selectNodes("//img")
-            #contentStr = slideNode.asXML();
-            # encode character entities correctly
-            out = ByteArrayOutputStream()
-            format = OutputFormat.createPrettyPrint()
-            format.setSuppressDeclaration(True)
-            writer = XMLWriter(out, format)
-            writer.write(slideNode)
-            writer.close()
-            contentStr = out.toString("UTF-8")
+        
+        if mimeType.startswith("text/"):
+            if mimeType == "text/html":
+                contentStr = '<iframe class="iframe-preview" src="%s/%s/download/%s"></iframe>' % \
+                    (contextPath, portalId, self.__oid)
+            else:
+                pid = self.__oid[self.__oid.rfind("/")+1:]
+                payload = self.__storage.getPayload(self.__oid, pid)
+                print " * detail.py: pid=%s payload=%s" % (pid, payload)
+                if payload is not None:
+                    sw = StringWriter()
+                    sw.write("<pre>")
+                    IOUtils.copy(payload.getInputStream(), str)
+                    sw.write("</pre>")
+                    sw.flush()
+                    contentStr = sw.toString()
+        elif mimeType == "application/pdf" or mimeType.find("vnd.ms-")>-1 or mimeType.find("vnd.oasis.opendocument.")>-1:
+            # get the html version if exist...
+            pid = os.path.splitext(self.__pid)[0] + ".htm"
+            print " * detail.py: pid=%s" % pid
+            contentStr = '<iframe class="iframe-preview" src="%s/%s/download/%s/%s"></iframe>' % \
+                (contextPath, portalId, self.__oid, pid)
+
+#            payload = self.__storage.getPayload(self.__oid, pid)
+#            saxReader = SAXReader(Boolean.parseBoolean("false"))
+#            try:
+#                document = saxReader.read(payload.getInputStream())
+#            except:
+#                traceback.print_exc()
+#            #slideNode = document.selectSingleNode("//div[@class='body']")
+#            slideNode = document.selectSingleNode("//*[local-name()='body']")
+#            #linkNodes = slideNode.selectNodes("//img")
+#            #contentStr = slideNode.asXML();
+#            # encode character entities correctly
+#            out = ByteArrayOutputStream()
+#            format = OutputFormat.createPrettyPrint()
+#            format.setSuppressDeclaration(True)
+#            writer = XMLWriter(out, format)
+#            writer.write(slideNode)
+#            writer.close()
+#            contentStr = out.toString("UTF-8")
         return contentStr
     
     def __openFile(self):
-        print " ********", self.__oid
-        Desktop.getDesktop().open(File(self.__oid))
+        value = formData.get("value")
+        print " * detail.py: opening file %s..." % value
+        Desktop.getDesktop().open(File(value))
 
 scriptObject = DetailData()

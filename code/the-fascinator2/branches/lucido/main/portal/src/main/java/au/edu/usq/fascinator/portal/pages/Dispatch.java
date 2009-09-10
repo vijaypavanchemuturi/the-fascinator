@@ -97,19 +97,20 @@ public class Dispatch {
         }
 
         // save form data for POST requests, since we redirect after POSTs
-        FormData formData = new FormData(request);
-        formDataMap.put(resourceName, formData);
         if ("POST".equals(request.getMethod())) {
             try {
+                FormData formData = new FormData(request);
+                formDataMap.put(resourceName, formData);
                 if (isAjax) {
                     response.setHeader("Cache-Control", "no-cache");
                     response.setDateHeader("Expires", 0);
                 } else {
                     String redirectUri = resourceName;
                     if (path.length > 2) {
-                        redirectUri = StringUtils.join(path, "/", 2,
+                        redirectUri += StringUtils.join(path, "/", 2,
                                 path.length);
                     }
+                    log.info("Redirecting to {}...", redirectUri);
                     response.sendRedirect(redirectUri);
                     return GenericStreamResponse.noResponse();
                 }
@@ -123,7 +124,7 @@ public class Dispatch {
         InputStream stream;
 
         if ((resourceName.indexOf(".") == -1) || isAjax) {
-            formData = formDataMap.get(resourceName);
+            FormData formData = formDataMap.get(resourceName);
             if (formData == null) {
                 formData = new FormData(request);
             }
@@ -138,9 +139,7 @@ public class Dispatch {
         }
 
         // clear formData
-        if (formData != null) {
-            formData.clear();
-        }
+        formDataMap.remove(resourceName);
 
         return new GenericStreamResponse(mimeType, stream);
     }
