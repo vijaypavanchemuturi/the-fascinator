@@ -148,7 +148,7 @@ public class IceTransformer implements Transformer {
             // Check if file is exist or not, just incase
             File outputFile = new File(outputFilename);
             if (outputFile.exists()) {
-                outputFilename = sourceFile.getName() + "_" + outputFilename;
+                outputFile.delete();
             }
             FileOutputStream fos = new FileOutputStream(outputFilename);
             IOUtils.copy(is, fos);
@@ -270,9 +270,12 @@ public class IceTransformer implements Transformer {
     public DigitalObject transform(DigitalObject in)
             throws TransformerException {
         File inFile = new File(in.getId());
+        // && !inFile.getName().endsWith(".html")
+        // && !inFile.getName().endsWith(".htm")
         if (inFile.exists() && !inFile.getName().endsWith(".mp3")
                 && !inFile.getName().endsWith(".m4a")) {
             String result = getRendition(inFile);
+            log.info("&&&&&&&&&&&&&&&& result: " + result);
             if (!result.startsWith("Error")) {
                 // Check if the file is a zip file or error returned from ice
                 if (validZipFile(result) == true) {
