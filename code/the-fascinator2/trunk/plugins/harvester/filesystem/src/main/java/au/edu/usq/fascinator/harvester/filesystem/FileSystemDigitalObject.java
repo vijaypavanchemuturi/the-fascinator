@@ -36,7 +36,7 @@ public class FileSystemDigitalObject extends GenericDigitalObject {
      * @param file a file
      */
     public FileSystemDigitalObject(File file) {
-        super(file.getAbsolutePath());
+        super(file.getAbsolutePath().replace("\\", "/"));
         addPayload(new FilePayload(file));
     }
 }

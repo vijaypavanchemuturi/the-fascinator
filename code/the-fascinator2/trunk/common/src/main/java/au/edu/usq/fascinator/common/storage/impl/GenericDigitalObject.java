@@ -90,7 +90,7 @@ public class GenericDigitalObject implements DigitalObject {
      * @param id unique identifier
      */
     public void setId(String id) {
-        this.id = id;
+        this.id = id.replace("\\", "/");
     }
 
     @Override

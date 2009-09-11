@@ -24,16 +24,17 @@ import java.util.List;
 import org.apache.commons.io.FilenameUtils;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import au.edu.usq.fascinator.api.storage.DigitalObject;
-import au.edu.usq.fascinator.harvester.filesystem.FileSystemHarvester;
 
 /**
  * Unit tests for the file system harvester plugin
  * 
  * @author Oliver Lucido
  */
+@Ignore
 public class FileSystemHarvesterTest {
 
     /**
