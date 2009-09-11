@@ -116,7 +116,6 @@ class DetailData:
         mimeType = self.__mimeType
         print " * detail.py: payload content mimeType=%s" % mimeType
         contentStr = ""
-        
         if mimeType.startswith("text/"):
             if mimeType == "text/html":
                 contentStr = '<iframe class="iframe-preview" src="%s/%s/download/%s"></iframe>' % \
@@ -128,7 +127,7 @@ class DetailData:
                 if payload is not None:
                     sw = StringWriter()
                     sw.write("<pre>")
-                    IOUtils.copy(payload.getInputStream(), str)
+                    IOUtils.copy(payload.getInputStream(), sw)
                     sw.write("</pre>")
                     sw.flush()
                     contentStr = sw.toString()

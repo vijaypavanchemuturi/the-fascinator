@@ -46,6 +46,7 @@ $(function() {
   <label id="oid">$oid</label>
   <label id="format">$self.mimeType</label>
   <label id="hasSlide">$self.hasSlideShow()</label>
+  <label id="hasSlide">$self.hasSlideShow()</label>
 </div>
 #set($title = $meta.getField("dc_title"))
 #set($description = $meta.getField("dc_description"))
