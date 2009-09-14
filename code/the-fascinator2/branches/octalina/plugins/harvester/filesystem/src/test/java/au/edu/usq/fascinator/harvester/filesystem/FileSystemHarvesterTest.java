@@ -24,7 +24,6 @@ import java.util.List;
 import org.apache.commons.io.FilenameUtils;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import au.edu.usq.fascinator.api.storage.DigitalObject;
@@ -34,7 +33,7 @@ import au.edu.usq.fascinator.api.storage.DigitalObject;
  * 
  * @author Oliver Lucido
  */
-@Ignore
+
 public class FileSystemHarvesterTest {
 
     /**
@@ -50,7 +49,7 @@ public class FileSystemHarvesterTest {
     }
 
     /**
-     * Tests a non recurisve harvest
+     * Tests a non recursive harvest
      * 
      * @throws Exception if any error occurs
      */
