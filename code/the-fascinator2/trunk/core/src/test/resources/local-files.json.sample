@@ -10,7 +10,7 @@
     "transformer": {
         "conveyer": "aperture, ice2",
         "aperture": {
-            "outputPath": "${user.home}/ice2-output"
+            "outputPath": "${java.io.tmpdir}/ice2-output"
         },
         "ice2": {
             "url": "http://ec2-75-101-136-199.compute-1.amazonaws.com/api/convert/",
