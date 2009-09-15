@@ -3,7 +3,6 @@ import os
 from au.edu.usq.fascinator.api.indexer import SearchRequest
 from au.edu.usq.fascinator.api.storage import PayloadType
 from au.edu.usq.fascinator.common import JsonConfigHelper
-from au.edu.usq.fascinator.model import DCRdf 
 
 from java.awt import Desktop
 from java.io import ByteArrayInputStream, ByteArrayOutputStream, File, StringWriter
@@ -60,7 +59,6 @@ class DetailData:
                 self.__mimeType = payload.contentType
             else:
                 self.__mimeType = "application/octet-stream"
-            self.__dcRdf = None
             self.__metadata = JsonConfigHelper()
             self.__search()
     
@@ -70,6 +68,9 @@ class DetailData:
         Services.indexer.search(req, out)
         self.__json = JsonConfigHelper(ByteArrayInputStream(out.toByteArray()))
         self.__metadata = SolrDoc(self.__json)
+    
+    def getFileName(self, path):
+        return os.path.split(path)[1]
     
     def getMimeType(self):
         return self.__mimeType
@@ -90,12 +91,6 @@ class DetailData:
     
     def getMetadata(self):
         return self.__metadata
-    
-    def getDcRdf(self):
-        dcrdfPayload = self.__storage.getPayload(self.__oid, "dc-rdf")
-        if dcrdfPayload is not None:
-            self.__dcRdf = DCRdf(dcrdfPayload.getInputStream())
-        return self.__dcRdf
     
     def getObject(self):
         return self.__storage.getObject(self.__oid)
