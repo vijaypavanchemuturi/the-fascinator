@@ -53,6 +53,7 @@ public class RdfPayload extends GenericPayload {
         setLabel("Aperture rdf");
         setContentType("application/xml+rdf");
         setType(PayloadType.Enrichment);
+
     }
 
     /**
