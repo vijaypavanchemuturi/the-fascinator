@@ -49,7 +49,7 @@ public class RdfPayload extends GenericPayload {
      */
     public RdfPayload(RDFContainer rdf) {
         this.rdf = rdf;
-        setId("rdf");
+        setId("aperture.rdf");
         setLabel("Aperture rdf");
         setContentType("application/xml+rdf");
         setType(PayloadType.Enrichment);
@@ -87,4 +87,5 @@ public class RdfPayload extends GenericPayload {
 
         return out.toString();
     }
+
 }
