@@ -1,0 +1,1342 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0"
+	xmlns:content="http://purl.org/rss/1.0/modules/content/"
+	xmlns:wfw="http://wellformedweb.org/CommentAPI/"
+	xmlns:dc="http://purl.org/dc/elements/1.1/"
+	xmlns:atom="http://www.w3.org/2005/Atom"
+	xmlns:sy="http://purl.org/rss/1.0/modules/syndication/"
+	xmlns:slash="http://purl.org/rss/1.0/modules/slash/"
+	>
+
+<channel>
+	<title>ptsefton</title>
+	<atom:link href="http://ptsefton.com/feed" rel="self" type="application/rss+xml" />
+	<link>http://ptsefton.com</link>
+	<description>This seems to be a workblog</description>
+	<lastBuildDate>Thu, 27 Aug 2009 22:05:36 +0000</lastBuildDate>
+	<generator>http://wordpress.org/?v=2.8.4</generator>
+	<language>en</language>
+	<sy:updatePeriod>hourly</sy:updatePeriod>
+	<sy:updateFrequency>1</sy:updateFrequency>
+			<item>
+		<title>Shared metadata, self-serve</title>
+		<link>http://ptsefton.com/2009/08/27/shared-metadata-self-serve.htm</link>
+		<comments>http://ptsefton.com/2009/08/27/shared-metadata-self-serve.htm#comments</comments>
+		<pubDate>Thu, 27 Aug 2009 22:05:36 +0000</pubDate>
+		<dc:creator>ptsefton</dc:creator>
+				<category><![CDATA[Uncategorized]]></category>
+
+		<guid isPermaLink="false">http://ptsefton.com/2009/08/27/shared-metadata-self-serve.htm</guid>
+		<description><![CDATA[
+
+
+
+Bryan Lawrence has pointed out The relationship between collecting metadata, and the optimum size of a child&#8217;s plate of food. Bryan says:
+Ok, so I think I make a cogent argument about benefits [of metadata], so where does childrens eating behaviour come in? Well, I think when one is trying to gather metadata, we&#8217;re in the [...]]]></description>
+			<content:encoded><![CDATA[<abbr class="unapi-id" title="http://ptsefton.com/2009/08/27/shared-metadata-self-serve.htm"><!-- &nbsp; --></abbr>
+<div>
+<div class="page-toc" />
+<div>
+<p>Bryan Lawrence has pointed out <a href="http://home.badc.rl.ac.uk/lawrence/blog/2009/08/26/plate_size">The relationship between collecting metadata, and the optimum size of a child&#8217;s plate of food</a>. Bryan says:</p>
+<blockquote class="bq"><p>Ok, so I think I make a cogent argument about benefits [of metadata], so where does childrens eating behaviour come in? Well, I think when one is trying to gather metadata, we&#8217;re in the same boat as parents are with young children: if you put too much food on the plate, kids just dabble round the sides and don&#8217;t each much. Put the right amount on the plate, and kids gobble it up. Too little, and you&#8217;re back to &#8220;don&#8217;t each much&#8221;. </p>
+<p>So, when asking for metadata, it&#8217;s crucial to ask for just the right amount, enough for a large proportion (but not all) the potential data consumers, but not so much that the task of producing it puts off the metadata producers, and you end up getting little or none of what you need. (And don&#8217;t ask so little, that you end up getting little or none of what you need.) </p>
+<p><a href="http://home.badc.rl.ac.uk/lawrence/blog/2009/08/26/plate_size">http://home.badc.rl.ac.uk/lawrence/blog/2009/08/26/plate_size</a> </p>
+</blockquote>
+<p>I think this is a great analogy and it&#8217;s really important for us to think about as we look at working towards with the Australian National Data Service (<a href="http://ands.edu.au/">ANDS</a>). How do we get the right serving size for metadata? I would like to explore this a bit more.</p>
+<p>My kids are very keen for me to<a href="https://masterchef2.fmacasting.com.au/"> sign up for MasterChef</a><span class="footnote" style="vertical-align: super;"><a class="footnote" href="#ftn1" name="ftn1-text" title="*  I assume this is because am much better at cooking than their mother, and she&apos;s pretty good.">*</a></span>. They only saw a little bit of it, because we were, you know preparing and eating our dinner together instead of watching it on TV, but like the rest of Australia they&#8217;re now competing to make alternative dressings for the Sunday caesar salad. And they&#8217;re using that hot phrase <span class="spCh spChx201c">&#8220;</span><a href="http://www.news.com.au/couriermail/story/0,23739,25833084-5012445,00.html">plating up</a><span class="spCh spChx201d">&#8221;</span>. Thing is, at our place we&#8217;ve evolved a <i>shared-food</i> approach, which from something I read in an airline magazine, I gather is even hotter than plating up; everyone picks what they want from a shared selection. We did this to avoid conflict around food and engender sensible eating habits. </p>
+<p>It works <span class="spCh spChx2013">&#8211;</span> even though there is no parent stacking food on plates the offspring tend to consume a reasonable amount and balance of food. </p>
+<p>How?</p>
+<p>It involves an ongoing conversation and negotiation about balance and which foods you should eat more or less of, and so on. Our experience is that the freedom to choose, plus the dialogue, eventually results in something pretty close to what we would have chosen but with reduced conflict and, we hope, higher probability that habits will persist because they are motivated by something other than parental authority.</p>
+<p>What I&#8217;m saying here is yes <span class="spCh spChx2013">&#8211;</span> Bryan is right about getting the portions in proportion and asking for the right amount of metadata, but beyond that we also need to have the kinds of conversation with the researchers that we have with our kids about why they need to eat the right amount of the right stuff / supply the right amount of good quality metadata.</p>
+<p>I&#8217;m curious about how we might work with our data providers to let them pick from a selection of metadata they can choose to provide. Could we evolve a system which asked for, say, just a title, without all those blank metadata fields staring at them  like a plate full of snack cabbages<span class="footnote" style="vertical-align: super;"><a class="footnote" href="#ftn2" name="ftn2-text" title="** Brussels sprouts &#8211; Thanks Maestro Mal Webb  for that meme.">**</a></span>. (Could we bribe them? <span class="spCh spChx201c">&#8220;</span>If you add a couple of subject codes you can have some strawberries.<span class="spCh spChx201d">&#8221;</span> Could we appeal to their vanity? <span class="spCh spChx201c">&#8220;</span>Filling out the <i>rights</i> field will make your hair go curly.<span class="spCh spChx201d">&#8221;</span>)</p>
+<p>We will try some of these ideas with our work on <a href="../http%3B//fascinator.usq.edu.au">The Fascinator</a>; the idea is that if users enter some metadata they&#8217;ll get something they want, like a backup, or their document will move through some kind of workflow that they actually care about, but along the way we&#8217;ll be also working a lot on instilling healthy metadata management habits in our researcher communities that go beyond immediate gratification, because as Bryan notes, ultimately it will be peers who drive this and the whole point of collecting the metadata is to assist the research process.</p>
+<p />
+<p class="meta-abstract" style="margin-left:0cm; margin-right:1.27cm; text-indent:0cm; " />
+<hr />
+<div style="font-size: .9em;"><span class="footnote-defined">
+<p><a href="#ftn1-text" name="ftn1">*</a>  I assume this is because am much better at cooking than their mother, and she&#8217;s pretty good.</p>
+<p></span></div>
+</p>
+<p>
+<div style="font-size: .9em;"><span class="footnote-defined"><a href="#ftn2-text" name="ftn2">**</a> Brussels sprouts <span class="spCh spChx2013">&#8211;</span> Thanks <a href="http://www.malwebb.com/">Maestro Mal Webb</a>  for that meme.</span></div>
+</p>
+</div>
+</div>
+]]></content:encoded>
+			<wfw:commentRss>http://ptsefton.com/2009/08/27/shared-metadata-self-serve.htm/feed</wfw:commentRss>
+		<slash:comments>0</slash:comments>
+		</item>
+		<item>
+		<title>ICE for theses (ThesICE) , where we are we up to?</title>
+		<link>http://ptsefton.com/2009/08/24/ice-for-theses-thesice-where-we-are-we-up-to.htm</link>
+		<comments>http://ptsefton.com/2009/08/24/ice-for-theses-thesice-where-we-are-we-up-to.htm#comments</comments>
+		<pubDate>Mon, 24 Aug 2009 05:52:26 +0000</pubDate>
+		<dc:creator>ptsefton</dc:creator>
+				<category><![CDATA[Uncategorized]]></category>
+
+		<guid isPermaLink="false">http://ptsefton.com/2009/08/24/ice-for-theses-thesice-where-we-are-we-up-to.htm</guid>
+		<description><![CDATA[
+
+
+
+About ICE and theses
+
+Why use ICE? 
+
+
+Getting things done
+
+Using ICE-classic
+Using ICE-Server
+Using ICE with other services
+
+
+Conclusion
+
+
+
+Danny Kingsley who is the Manager, Scholarly Communications and ePublishing at the Australian National University, emailed me to ask about ICE and theses. I asked Danny if she minded making her question and my reply public, and she&#8217;s OK with that, [...]]]></description>
+			<content:encoded><![CDATA[<abbr class="unapi-id" title="http://ptsefton.com/2009/08/24/ice-for-theses-thesice-where-we-are-we-up-to.htm"><!-- &nbsp; --></abbr>
+<div>
+<div class="page-toc">
+<ul>
+<li><a href="#id2">About ICE and theses</a>
+<ul>
+<li><a href="#id5">Why use ICE? </a></li>
+</ul>
+</li>
+<li><a href="#id7">Getting things done</a>
+<ul>
+<li><a href="#id8">Using ICE-classic</a></li>
+<li><a href="#id9">Using ICE-Server</a></li>
+<li><a href="#id10">Using ICE with other services</a></li>
+</ul>
+</li>
+<li><a href="#id11">Conclusion</a></li>
+</ul>
+</div>
+<div>
+<p>Danny Kingsley who is the Manager, Scholarly Communications and ePublishing at the Australian National University, emailed me to ask about ICE and theses. I asked Danny if she minded making her question and my reply public, and she&#8217;s OK with that, so I will use this as an opportunity to summarize where we are at with ICE for Theses, in my usual long-winded way. </p>
+<p>Danny asked:</p>
+<blockquote class="bq"><p>We are trying to plan some processes for electronic submission of theses and trying to work out ways of getting a thesis to an examiner that they can annotate without printing it out. The ICE process came up in discussion so I have a couple of questions:
+<ul class="lib">
+<li>
+<p>Does the output allow for any annotation?</p>
+<p>[PS: Yes, but the annotation in ICE is designed for the drafting/authoring stage, we have not done the work to make an annotation system that could be used by examiners, with all the privacy issues etc sorted out. More below on options on how to proceed.]</p>
+</li>
+<li>
+<p>What form can ICE take as input <span class="spCh spChx2013">&#8211;</span> I needed to make sure my Word document was properly styled <span class="spCh spChx2013">&#8211;</span> how much leeway is the system able to cope with (if a student puts hard formats into the document what happens)?</p>
+<p>[PS: Hard formatting inline and in tables is preserved, but when converting to HTML, ICE should discard any paragraph level format that's added, like making a whole paragraph italic or hand-formatted headings. For PDF all formatting is preserved. We do require the use of ICE styles for headings and bullets etc, but if ANU has a house style you could (a) adapt ICE or (b) write a conversion macro. ICE styles are also extensible so if new ones are required that's easy and cheap.]</p>
+</li>
+<li>
+<p>Are there other inputs that the ICE system can take?</p>
+<p>[PS: ICE takes .doc, .docx and .odt for documents, but it also has a plugin architecture for other file formats so it could be used to render wiki markup (kept as text files), LaTeX (we have a LaTeX plugin already but LaTeX is not standardized well enough to reliably convert aribitraty markup to HTML), or anything else for which you can get commandline conversion software we can plug in. We have a growing list of things it can handle, like chemical markup language, text to speech for documents.]</p>
+</li>
+</ul>
+</blockquote>
+<p class="meta-abstract" style="margin-left:0cm; margin-right:1.27cm; text-indent:0cm; ">In summary the rest of this post says that:</p>
+<ul class="lib">
+<li>
+<p>ICE needs support, which should be doable at ANU.</p>
+</li>
+<li>
+<p>The released version is designed for use on the desktop, which may not be ideal for many candidates and/or supervisors.</p>
+</li>
+<li>
+<p>There is a web-only version of ICE but it is not stable enough to release yet, we would have to scope this. </p>
+</li>
+<li>
+<p>We don&#8217;t have solution for managing theses past the authoring stage, with annotation and structured comment by external examiners, I suggest a couple of leads below  and note that eventually our work on The Fascinator should yield these features, but not for a while.</p>
+</li>
+</ul>
+<p>That&#8217;s the summary, now some more detail. I will look at this from the beginning, covering:</p>
+<ul class="lib">
+<li>
+<p>What ICE offers for thesis writing and why you might want to use it, or not use it.</p>
+</li>
+<li>
+<p>What do we have now that could be used and what you&#8217;d need to support it.</p>
+</li>
+<li>
+<p>Potential future developments. </p>
+</li>
+</ul>
+<h1><a id="id2" name="id2" />About ICE and theses</h1>
+<p>ICE, the <a href="http://ice.usq.edu.au/">Integrated Content Environmen</a>t was developed by a team at USQ under my direction for the purpose of creating web and print courseware from the same source files, using a word processor as the editor. It&#8217;s now a core system of the university, and it&#8217;s freely available as an open source product, but it&#8217;s a product that would need to be supported.</p>
+<p>I put up an <a href="http://ptsefton.com/files/packages/honours/default.htm">example</a> of an ICE-formatted thesis here ages ago, my BA Honours thesis in computational linguistics from 1990 <span class="spCh spChx2013">&#8211;</span> note that there are some issues with the images because it was done with obsolete software on the Mac, but you get the idea of what a thesis looks like in HTML rather than the standard approach of sticking PDF files on the web. </p>
+<p>Since then we have converted a few more theses to ICE after the fact, and we have some people writing theses in ICE, but not a very concentrated effort.</p>
+<p>Looking to the future, my group recently completed a project with Peter Murray-Rust&#8217;s group at Cambridge, to look at thesis workflows for chemical theses with live-links to data embedded in the document. We looked at issues like chapter-level embargo and suggested a repository architecture where there would be research office repository that managed examination processes and embargo, with the institutional repository continuing to handle open access. Have a look at the document Jim Downing and I <a href="http://eprints.usq.edu.au/5248/">presented</a> about ICE-TheOREM, a joint USQ/Cambridge project at Open Repositories 2009. You can click through to the <a href="http://eprints.usq.edu.au/5248/1/ice-theorem-paper-OR09.htm">HTML view</a> of the document, which was created with ICE, of course. You can also look at it as a <a href="http://eprints.usq.edu.au/5248/1/ice-theorem-paper-OR09.slide.htm">slide presentation</a> or as <a href="http://eprints.usq.edu.au/5248/1/ice-theorem-paper-OR09.pdf">PDF</a> all automatically generated from the same word processing document.</p>
+<p> ICE consists of a few components.</p>
+<ol class="lin" style="list-style: decimal;">
+<li>
+<p>A toolbar, which works with a standard set of style names to give a consistent way to author documents. The toolbar can be used in Microsoft Word on Windows, or with OpenOffice.org on Mac OS X, Linux or Windows. The toolbar can work with templates, which can be set up to match any requirements that a university might have for thesis formatting. </p>
+</li>
+<li>
+<p>An application which can turn ICE-formatted documents into web-ready content, and automate the production of PDF. The application can run in a few modes:</p>
+<ol class="li-lower-roman" style="list-style: lower-roman;">
+<li>
+<p><b>The standard &#8216;classic&#8217; mode</b>, which installs as an application on your PC (Mac, Windows, Linux). It shows you the stuff you&#8217;re working on (like a course, or a thesis) in your web browser, and it will backup and version control your content to a remote repository using Subversion. </p>
+</li>
+<li>
+<p><b>Server-mode</b> where you interact with ICE as a web-site, uploading documents and data flies and media via a web form; this is potentially a really good model for research students writing theses, and it could possibly be used to but the software is not released yet, which means I can&#8217;t simply recommend it to ANU.</p>
+</li>
+<li>
+<p><b>As a service</b>, where ICE runs quietly in the background. This is normally relevant only for embedding ICE in other applications, but it can be used if you want to just use the ICE Toolbar/templates and use ICE to convert your documents for the web. As far as I know there only person doing this is Peter Murray-Rust who uses ICE to blog. This service could be integrated with some other system like SharePoint or the Open Journal Systems, or Sakai.</p>
+</li>
+</ol>
+</li>
+</ol>
+<h2><a id="id5" name="id5" />Why use ICE? </h2>
+<p>Assuming that you have the resources to support ICE, which I&#8217;ll cover below there are a few reasons why an institution might want to use it for theses specifically.</p>
+<ul class="lib">
+<li>
+<p>It provides a <b>well tested general purpose way to design templates</b>, with a standard set of style names, so even if none of the other features appeal ICE templates might. Of course everyone writing a thesis should be using a template; I think at ANU they actually have official templates. Here at USQ, although we have made some test ICE templates for the house style they&#8217;re not officially endorsed. We don&#8217;t have a <i>Manager, Scholarly Communications and ePublishing</i> either,maybe we should. </p>
+<p>(The main potential drawback with ICE templates is that we have used non-standard names for headings. Instead of Heading 1 we have h1 and for numbered headings it&#8217;s h1n. The reason I designed it this way is that in a &#8217;standard&#8217; template Heading 1 may or may not be numbered, and if you do attach outline numbering to Heading 1, Heading 2 etc then how do you head-up a non-numbered section? I&#8217;ve been waiting for someone to argue this out with me over this for years, but so far nobody has complained.)</p>
+</li>
+<li>
+<p>You can present theses in <b>HTML as well as PDF</b>. This is something that strikes me as a blindingly obvious thing to want to do, but we have not been overrun with people wanting to get this happening at their university. </p>
+<p>It is possible to deposit from ICE into a repository via <a href="http://swordapp.org/">SWORD APP</a>; we have plugins for ePrints and Fedora only at the moment, not for Dspace which is what they use at ANU.</p>
+</li>
+<li>
+<p>It provides <b>annotation services</b>, so the answer to Danny&#8217;s question <span class="spCh spChx201c">&#8220;</span>Does the output allow for any annotation?<span class="spCh spChx201d">&#8221;</span> is yes, but it depends what you mean by <i>output</i>. If you are running ICE either from a desktop or the server version then you can collaborate via paragraph-level annotations, but at the moment we don&#8217;t have a way to do the workflow that would be required to allow examiners to do this.</p>
+<p><a name="graphics1" /><img alt="graphics1" class="fr1" height="138" src="http://ptsefton.com/wp-content/uploads/2009/08/7f96103a.png" style="border:0px; vertical-align: top" width="463" /></p>
+</li>
+<li>
+<p>You can <b>integrate data</b> into a document via links, making it Linked Data <span class="spCh spChx2013">&#8211;</span> at least, we have proved the concept on the ICE-TheOREM project, but this would need to be worked out discipline by discipline. </p>
+</li>
+</ul>
+<h1><a id="id7" name="id7" />Getting things done</h1>
+<p>So, if there is a reason to use ICE, in what circumstances might it make sense?</p>
+<h2><a id="id8" name="id8" />Using ICE-classic</h2>
+<p>Using ICE in the standard way would be a sensible approach to writing a thesis, and getting comments from supervisors, just as a couple of hundred authors at USQ use it to write book-length courses. This could work for on-campus students given some support staff, up to the point where the thesis goes off for examination. As I said, we don&#8217;t handle documents past the authoring process, we have button for repository deposit, but you don&#8217;t get to self deposit a thesis without having it examined.</p>
+<h2><a id="id9" name="id9" />Using ICE-Server</h2>
+<p>Using the ICE server could work well, except that it&#8217;s not stable enough for us to be comfortable releasing it. We are using it in internal trials with PhD candidates, but we&#8217;re not really dedicating enough time either to helping them or to fixing up the software, and I have to say that I&#8217;m not sure that we will fix up the software as it currently stands; it may be that the future for ICE will be to build its conversion services into our eResearch Desktop / Institutional Repository project, <a href="http://fascinator.usq.edu.au/">The Fascinator</a>.</p>
+<h2><a id="id10" name="id10" />Using ICE with other services</h2>
+<p>ICE is designed to play nicely with other software, so one approach to getting a thesis written and commented on by a supervisor and examined would be to mash-up ICE with other software. We have looked at doing this with the Open Journal Systems, which has review features, if not annotation, and which in the past has been used at USQ for thesis review. That would be a modest development project, <a href="http://ptsefton.com/2009/01/06/potential-projects-2-integrating-ice-with-the-open-journal-systems.htm">which I outlined early this year</a>. </p>
+<p>Another thing I have had a quick look at for this post, is <a href="http://digress.it/">digress.it</a>, which is being used in a JISC supported project. It has similar inline annotation features to ICE with one huge advantage, it is built on WordPress which means that it&#8217;s easy for people to install, I got it up and running in about half an hour at my hosting service, and had my first document in there for comment minutes later. Now this is not suitable for examination, out of the box as the comments are in the open, but it could possibly be used for earlier stages of thesis writing, such as getting supervisor comments. A candidate could use the ICE template, post to a word press &#8216;blog&#8217; periodically, with each new post creating a new entry for comment by the supervisors and potentially peers. </p>
+<p>If you&#8217;d like to have a look at it, see my test site where <a href="http://comment.ptsefton.com/archives/4.html">I put up a recent blog post for testing</a>.I was impressed by how easily I could get digress.it going, but I didn&#8217;t like the way it removed my document formatting, still, I have joined the developer list and the lead developer said he&#8217;ll look at a mode that does not strip formatting.</p>
+<p>Another option would be to go ahead and build another one of my ideas, a <a href="http://ptsefton.com/2009/01/05/potential-projects-1-a-general-purpose-document-annotation-system.htm">general purpose annotation</a> system to supplement ICE. We have a lot of the pieces, so between us I&#8217;m sure that ANU and USQ could make this happen given a business a case, and getting the resources.</p>
+<h1><a id="id11" name="id11" />Conclusion</h1>
+<p>Looking at where we are at with theses in ICE makes it clear to me that we have a lot of potential, but very little action. So, I&#8217;m going to try to get things moving again at this end, with what we have called the ThesICE project. This will involve:</p>
+<ul class="lib">
+<li>
+<p>An ADFI project concept outline to work out how we can start really driving ICE theses at USQ, including talking to our research office about stuff like officially supported ICE templates.</p>
+</li>
+<li>
+<p>A conversation with Danny Kingsley about the requirements at ANU.</p>
+</li>
+<li>
+<p>With Jim Downing, updating the paper we gave at OR09 for submission to the proceedings, which will be a chance to outline further work required and talk about further joint projects with Cambridge.</p>
+</li>
+</ul>
+<p />
+<p /></div>
+</div>
+]]></content:encoded>
+			<wfw:commentRss>http://ptsefton.com/2009/08/24/ice-for-theses-thesice-where-we-are-we-up-to.htm/feed</wfw:commentRss>
+		<slash:comments>2</slash:comments>
+		</item>
+		<item>
+		<title>Article of the future? Let&apos;s talk about scholarly communications.</title>
+		<link>http://ptsefton.com/2009/08/20/article-of-the-future-lets-talk-about-scholarly-communications.htm</link>
+		<comments>http://ptsefton.com/2009/08/20/article-of-the-future-lets-talk-about-scholarly-communications.htm#comments</comments>
+		<pubDate>Thu, 20 Aug 2009 23:11:30 +0000</pubDate>
+		<dc:creator>ptsefton</dc:creator>
+				<category><![CDATA[Uncategorized]]></category>
+
+		<guid isPermaLink="false">http://ptsefton.com/2009/08/20/article-of-the-future-lets-talk-about-scholarly-communications.htm</guid>
+		<description><![CDATA[
+
+
+
+It has taken me a while to get to commenting on the Article of the Future examples from Elsevier and Cell Press. If you look at their two prototype articles you will see an attempt to sex-up the presentation of a research articles, with a few social-web trimmings via a share/save button. I already know [...]]]></description>
+			<content:encoded><![CDATA[<abbr class="unapi-id" title="http://ptsefton.com/2009/08/20/article-of-the-future-lets-talk-about-scholarly-communications.htm"><!-- &nbsp; --></abbr>
+<div>
+<div class="page-toc" />
+<div>
+<p>It has taken me a while to get to commenting on the <a href="http://beta.cell.com/">Article of the Future examples</a> from Elsevier and Cell Press. If you look at their two prototype articles you will see an attempt to sex-up the presentation of a research articles, with a few social-web trimmings via a share/save button. I already know how to tweet or delicious-tag an article all by myself, but OK maybe it&#8217;s useful. I&#8217;d be more impressed if the delicious tagging thing put in a DOI/Handle instead of the URL of the page I&#8217;m looking at, though.</p>
+<p>I can&#8217;t match the level of detail in Paul Carvill&#8217;s piece; <a href="http://onlinejournalismblog.com/2009/07/27/elseviers-article-of-the-future-resembles-websites-of-the-past/">Elsevier&#8217;s &#8216;Article of the Future&#8217; resembles websites of the past</a> which I will quote from here. My conclusion is that the Article of the Future is merely a distraction from the real issues so I would not bother dissecting the thing in detail even if Carvill had already not already eviscerated it:</p>
+<blockquote class="bq"><p>these <span class="spCh spChx201c">&#8220;</span>Articles of the Future<span class="spCh spChx201d">&#8221;</span> are not tools, and they are no more innovative than using a page layout application to alter the appearance of some printed matter. &#160;Hyperlinking and the ability to add media files to a page have existed since the web was created, and these articles add nothing more to that basic paradigm of linked data files [PS: I don't think this is a reference to Linked Data in the Berner's Lee semantic-web sense]. &#160;There are some nods towards current trends, with a comment feature and social bookmarking links. &#160;But overall the feel is clunky, lacking research and distinctly amateur.</p>
+<p><a href="http://onlinejournalismblog.com/2009/07/27/elseviers-article-of-the-future-resembles-websites-of-the-past/">http://onlinejournalismblog.com/2009/07/27/elseviers-article-of-the-future-resembles-websites-of-the-past/</a></p>
+</blockquote>
+<p>Read the whole critique, there are lots of good points in there. </p>
+<p>My first reaction was that most of what is presented in the prototypes is interface trickery that is being driven by the XML structure behind the articles. The most obvious example is that there is a kind of tab-driven Table of Contents (ToC); I guess that is a compact way to present a ToC if you have a small enough number of main headings, but it&#8217;s a trivial programming exercise and I&#8217;m guessing that if the idea had legs it would be in wider use; and it&#8217;s masking a deeper concern. Carvill notes that you simply can&#8217;t access the prototypes without Javascript turned on and I agree this is very bad. There is no reason that these articles could not be presented in purely declarative, semantically rich HTML, as per my post describing a potential <a href="http://ptsefton.com/2009/03/31/scholarly-html.htm">Scholarly HTML</a>, with the interface trickery loaded in on browsers that support it, for users that want it. Not exposing the complete structure of the article in one go, or with plain links is an effective way of blocking machine processing of the text and data (if data happens to be linked, which does not seem to be the case here), not to mention potentially blocking reader&#8217;s ability to archive the page in a tool like Zotero or save it for later reuse.</p>
+<p>This brings me to some of the bigger issues. When interviewed for a recent <a href="http://www.timeshighereducation.co.uk/story.asp?sectioncode=26&amp;storycode=407705&amp;c=2">Times Higher Education article on scientific communication</a>, <a href="http://wwmm.ch.cam.ac.uk/blogs/murrayrust/?p=2214">Peter Murray-Rust</a> points out that publisher policies on the use of tools to process online papers are a drag on scientific communications:</p>
+<blockquote class="bq"><p>&#8220;You are actually barred from using modern techniques to enhance your science &#8230; it has taken us back ten years in the use of scientific information,&#8221; </p>
+</blockquote>
+<p>Peter is talking about policy there, but he has also campaigned against locking up publications in PDF which is a technological approach to the same end. What we see here is potentially a way to lock up HTML, too. I don&#8217;t know whether this is a deliberate <i>policy</i> or not, but the lack of emphasis on data and the lack of a one-page HTML and/or XML view point to a maybe unconscious attempt to keep up the divide I pointed out in the paper I <a href="http://ptsefton.com/2009/08/19/towards-scholarly-html.htm#id2">posted here yesterday</a>, the gap between author&#8217;s versions of papers and those held by the publisher. I said there:</p>
+<blockquote class="bq"><p><a name="id2" />To illustrate the potential divide between the author<span class="spCh spChx2019">&#8217;</span>s version and the publisher<span class="spCh spChx2019">&#8217;</span>s, consider that Elsevier, the publisher of this journal, recently ran a competition, Article 2.0 to show the future of a scientific article. The competition winner shows that a journal article may be the Web locus for discussion, annotation and semantic relationships, but this competition was built on XML source documents which are created and held by the publisher, so there is no way that a typical institutional repository could easily provide the same services. This is a case where the publisher is shaping scholarly communications, or at least exploring how to do so, but a lack of tools means that repositories are unlikely to be able to do likewise. This creates a distinct divide between the publisher<span class="spCh spChx2019">&#8217;</span>s more richly marked-up version and the version held by the author in word processing format or the typesetting system LaTeX, neither of which allow high quality HTML unless the author has used a particular set of templates and/or macros and has access to specific conversion software.</p>
+<p>[<a href="http://dx.doi.org/10.1016/j.serrev.2009.05.001">doi:10.1016/j.serrev.2009.05.001</a>]</p>
+</blockquote>
+<p>What we really need, I think, is Scholarly Communications 2.0, not Article of the Future or Journal 2.0. Articles and Journals are constructs that we may not end up needing. To find out, we should work out the new model for research that a number of those interviewed in the Times Higher Education article were talking about. My article suggests some ways that USQ might proceed, recommending that we (a) start with research theses and (b) build from our strength in flexible educational delivery to build a new scholarly communications process around the scholarship of teaching and learning.</p>
+<p />
+<p />
+<p />
+<p />
+<p class="meta-abstract" style="margin-left:0cm; margin-right:1.27cm; text-indent:0cm; " /></div>
+</div>
+]]></content:encoded>
+			<wfw:commentRss>http://ptsefton.com/2009/08/20/article-of-the-future-lets-talk-about-scholarly-communications.htm/feed</wfw:commentRss>
+		<slash:comments>0</slash:comments>
+		</item>
+		<item>
+		<title>Towards Scholarly HTML</title>
+		<link>http://ptsefton.com/2009/08/19/towards-scholarly-html.htm</link>
+		<comments>http://ptsefton.com/2009/08/19/towards-scholarly-html.htm#comments</comments>
+		<pubDate>Wed, 19 Aug 2009 11:05:02 +0000</pubDate>
+		<dc:creator>ptsefton</dc:creator>
+				<category><![CDATA[Uncategorized]]></category>
+
+		<guid isPermaLink="false">http://ptsefton.com/2009/08/19/towards-scholarly-html.htm</guid>
+		<description><![CDATA[
+
+
+
+Abstract
+The problem: paper-based thinking
+The Integrated Content Environment
+
+ICE features
+Journals in ICE
+Electronic theses and dissertations
+
+
+Conclusion: a proposed new model
+References
+
+
+
+Copyright &#169; 2009 Published by Peter Sefton
+A while ago, I got an email for the nice people at Elsevier (actually I think it might have been from a machine, but never mind) saying that the article I wrote for [...]]]></description>
+			<content:encoded><![CDATA[<abbr class="unapi-id" title="http://ptsefton.com/2009/08/19/towards-scholarly-html.htm"><!-- &nbsp; --></abbr>
+<div>
+<div class="page-toc">
+<ul>
+<li><a href="#id1">Abstract</a></li>
+<li><a href="#id2">The problem: paper-based thinking</a></li>
+<li><a href="#id3">The Integrated Content Environment</a>
+<ul>
+<li><a href="#id4">ICE features</a></li>
+<li><a href="#id5">Journals in ICE</a></li>
+<li><a href="#id6">Electronic theses and dissertations</a></li>
+</ul>
+</li>
+<li><a href="#id7">Conclusion: a proposed new model</a></li>
+<li><a href="#id8">References</a></li>
+</ul>
+</div>
+<div>
+<p>Copyright <span class="spCh spChxa9">&#169;</span> 2009 Published by Peter Sefton</p>
+<p>A while ago, I got an email for the nice people at Elsevier (actually I think it might have been from a machine, but never mind) saying that the article I wrote for Serials Review is now available here using this DOI: <a href="http://dx.doi.org/10.1016/j.serrev.2009.05.001" onclick="javascript:window.open(&quot;http://dx.doi.org/10.1016/j.serrev.2009.05.001&quot;, &quot;doilink&quot;);return false;">doi:10.1016/j.serrev.2009.05.001</a>. At the moment that link seems to resolve to an open version of the article, whether or not you have a subscription to the journal but I guess that will change; when it is &#8216;published&#8217; you will only see the article if you are clicking from inside a network that&#8217;s on their list of subscribers. If not, you will need money to see it. But I can post the article here with the copyright statement you see below and remind you that you need to use the DOI to cite the paper should you wish to. No naughty linking back here (unless it is to reference these comments I&#8217;m adding). And no linking to the version I&#8217;m about to put in ePrints. OK? Even though you know that if you do link to the DOI some people may not be able to see the article in the future, don&#8217;t do it, use the DOI link. There, I think I told you.</p>
+<p>The version I am posting here that you <b>MUST NOT LINK TO</b>  is my copy, updated to match the changes made in the approval process, but Elsevier have yet to add their very valuable formatting (read on to find out more about what I think about <b>that</b>).</p>
+<p>Also, I have to warn you that me, I don&#8217;t understand is the license that Elsevier is extending to you, the reader. I asked them a while back (on June 2<sup>nd</sup> 2009). I got a  reply that didn&#8217;t answer my questions, which I present to you here:</p>
+<blockquote class="bq"><p>Dear [deleted],</p>
+<p>Thanks for getting back to me. I have read the page you linked below [PS: it was this link <a href="http://www.elsevier.com/wps/find/authorsview.authors/authorsrights" onclick="javascript:window.open(&quot;http://www.elsevier.com/wps/find/authorsview.authors/authorsrights&quot;);return false;">http://www.elsevier.com/wps/find/authorsview.authors/authorsrights</a>] and the pamphlet it links to and I still have two main questions.</p>
+<p>1. What should the copyright statement on my final draft read when I deposit it in my local repository: (c) Peter Sefton or (c) Elsevier?</p>
+<p>2. What LICENSE should be attached to the file?</p>
+<p>That is, how do I let readers know &#8220;those who download or access the PDF of your article must abide by your copyright agreement with regard to this electronic copy.&#8221; Is there a single page statement of my copyright agreement in its entirety somewhere? what rights Do readers have? For example, the version (#2) of the pamphlet linked from the author rights page is different from the latest version at Library Connect (#4) and they have different rules about how much text users may quote from an article. Neither has anything to say on how readers may store and distribute my version of the article. Is that up to me? Can I attach a creative commons license to it?<br />Peter</p>
+</blockquote>
+<p>I followed this up this morning, but, until I hear back all I can say is that while I can post this here with the copyright notice below, I&#8217;m not sure you have permission to read it or keep it in your web cache or print it. Caveat Lector, I guess. </p>
+<p>This is as-approved except that I have fixed the most glaring problem with the references, a missing URL for a self-citation from the eResearch Australasia Conference last year.</p>
+<p />
+<p>Remember, to cite this paper, use <b>this</b>: <a href="http://dx.doi.org/10.1016/j.serrev.2009.05.001" onclick="javascript:window.open(&quot;http://dx.doi.org/10.1016/j.serrev.2009.05.001&quot;, &quot;doilink&quot;);return false;">doi:10.1016/j.serrev.2009.05.001</a>&#160;</p>
+<p>From here down is not mine:</p>
+<p>&#8212;&#8212;-</p>
+<p>Copyright <span class="spCh spChxa9">&#169;</span> 2009 Published by Elsevier Inc.</p>
+<p class="P1">Towards scholarly HTML</p>
+<p class="meta-author-name">Peter Sefton</p>
+<p />
+<p>Sefton, is Manager Software Research and Development Team, Australian Digital Futures Institute, University of Southern Queensland, Australia</p>
+<p />
+<p>Available online 30 June 2009.</p>
+<h1><a id="id1" name="id1" />Abstract</h1>
+<p class="meta-abstract">The editors of this special edition originally asked if institutional repositories are shaping and changing scholarly communications. While the Open Access movement has had a profound impact, there is at least one area where repositories are not. While repositories are Web-based, they almost always contain only print-oriented materials which are not fully realizing the fabric of the Web and its ability to link documents to each other and to data.</p>
+<p class="meta-abstract">This article will explore some of the factors that have contributed to this print-dominated situation and then report on work undertaken at the University of Southern Queensland (USQ) to make repositories more Web-like, using a publishing system which was originally devised at the university for publishing course materials to multiple formats. The article concludes with a description of a new model for changing scholarship by focusing on post-graduate theses and new journals in an open access context.</p>
+<p class="meta">Keywords: Web publishing; Word processing; Institutional repositories; Open access publishing; Australian Digital Futures Institute; Content management systems</p>
+<h1><a id="id2" name="id2" />The problem: paper-based thinking</h1>
+<p>Two types of software packages had a profound effect on publishing before the World Wide Web. Beginning in the late 1970s, the word processor provided for efficient production of text<span class="spCh spChx2014">&#8212;</span>words could be rearranged and edited without having to be re-typed from beginning to end or altered using physical means, such as cut and paste of typed text or obscuring typescript with correction fluid and then typing or writing over it. Then from the mid-1980s, desktop publishing began to democratize access to typesetting tools. Because of this desktop publishing revolution, word processors began to ship with a <span class="spCh spChx201c">&#8220;</span>What You See Is What You Get<span class="spCh spChx201d">&#8221;</span> (WYSIWYG) view, which encouraged text production and formatting to become one and the same operation, Coombs et al. give a useful summary of the state of the art in 1987.<sup>1</sup> Before the Web, authors had become used to editing within the constraints of the A4 or US Letter page. It has been argued that this WYSIWYG desktop publishing revolution has had a counter-productive effect on the progress of publishing, and scholarly publishing in particular, by promulgating what Sorgaard and Sandahl call the <span class="spCh spChx2018">&#8216;</span>paper metaphor<span class="spCh spChx2019">&#8217;</span>.<sup>2</sup></p>
+<p>The World Wide Web is now the key distribution for scholarship, offering new potential for documents which are seamlessly integrated with machine-readable data and with human-readable visualization services for data as discussed by Murray-Rust and Rzepa in their paper introducing the term datument to represent this new kind of eScholarship.<sup>3</sup> Since the Web arrived in the mid 1990s, writing tools, such as Microsoft Word, have failed to adapt to a Web-based publishing environment.<sup>4</sup> Typical Web export from word processors producing HTML is far from standards compliant and unsuitable for use on journal Web sites or in institutional repositories. I will show below how this works with the dominance of the paper metaphor to reinforce the role of the PDF as the currency for research reporting.</p>
+<p>Word processors are merely the most common writing tool for the academy, not necessarily the best. Many proposals have been put forward for structured authoring using XML (and before that SGML) which has worked well in industries, such as legal publishing and the military where specialist editorial teams can be trained and supported. Norman Walsh<sup>5</sup> captures the essence of the advantages of structured authoring in a contribution to a debate in the Journal of Digital Information. While the principle is sound in a theoretical sense, experience at the University of Southern Queensland (USQ) with an end-to-end XML publishing system for course materials has not been encouraging<span class="spCh spChx2014">&#8212;</span>the completed system had close to zero uptake from academic staff.<sup>6</sup> It is true that many commercial publishers use XML in their production systems, but it is unusual for authors to contribute XML; in most cases authors submit word-processing files which are then converted to XML behind the scenes. I reviewed the state of the art and the (very limited) literature on how word processing might be integrated into back-end publishing systems in a 2006 paper for the Australian World Wide Web conference,<sup>7</sup> and in 2008 for the Australasian eResearch conference.<sup>8</sup> Since then Microsoft Research has released previews of a Microsoft Word-based tool which is claimed to produce XML conforming to the National Library of Medicine schema, but there is so far no evidence of the tool being used by typical authors.</p>
+<p>To illustrate the potential divide between the author&#8217;s version and the publisher&#8217;s, consider that Elsevier, the publisher of this journal, recently ran a competition, Article 2.0<sup>9</sup> to show the future of a scientific article. The competition winner shows that a journal article may be the Web locus for discussion, annotation and semantic relationships, but this competition was built on XML source documents which are created and held by the publisher, so there is no way that a typical institutional repository could easily provide the same services. This is a case where the publisher is shaping scholarly communications, or at least exploring how to do so, but a lack of tools means that repositories are unlikely to be able to do likewise. This creates a distinct divide between the publisher&#8217;s more richly marked-up version and the version held by the author in word processing format or the typesetting system LaTeX,<sup>10</sup> neither of which allow high quality HTML unless the author has used a particular set of templates and/or macros and has access to specific conversion software. So there is no way for most author manuscripts, which are commonly deposited in institutional repositories, to be turned into usable Web content, let alone with links to data and semantic-Web content. The best most authors could hope for with their version would be to convert it to PDF and deposit in a repository, while the publisher can do much more with the article.</p>
+<p>Against this background, our work in shaping scholarly communications in the Australian Digital Futures Institute (ADFI) USQ has been focused on three areas:</p>
+<ol class="lin" style="list-style: decimal;">
+<li>
+<p>Empowering authors with content creation using tools that are not constrained by the paper metaphor so that, no matter what happens on the publisher&#8217;s side of the transaction, authors can use and re-use their work as flexibly as possible.</p>
+</li>
+<li>
+<p>Work on integrating with institutional repositories, particularly in packaging, using the Open Access Initiative protocol for Object Reuse and Exchange (OAI-ORE).<sup>11</sup></p>
+</li>
+<li>
+<p>Most importantly, providing the above tools for use by post-graduate students writing theses; feeding new users into the academy who know how to create <span class="spCh spChx2018">&#8216;</span>Article 2.0<span class="spCh spChx2019">&#8217;</span> type content for themselves.</p>
+</li>
+</ol>
+<p>These themes are discussed below, showing how the technology now exists for authors to transcend the limitations of paper formatting. With these in place, there will be scope for truly open journal processes to emerge both with open and toll-access publishers and the discontinuity between the author&#8217;s version and the publishers will disappear.</p>
+<h1><a id="id3" name="id3" />The Integrated Content Environment</h1>
+<p>The Integrated Content Environment (ICE) is an open source system created at USQ for producing courseware.<sup>12</sup> In early 2009 ICE became a core system, considered an essential part of the operations of the university. In the ICE system, efforts have been made to make sure that authors are not constrained by the <span class="spCh spChx201c">&#8220;</span>paper metaphor<span class="spCh spChx201d">&#8221;</span>; it provides the ability to preview a document continuously in Web format during its production, thus encouraging the use of styles and empowering users to create structured documents in their word processor. ICE has one very important property<span class="spCh spChx2014">&#8212;</span>while it is in some sense an XML-based publishing system, the main XML format it targets is XHTML,<sup>13</sup> while print versions are currently produced by using word processing software in an completely automated process. This system provides many of the benefits of flexible delivery using XML, with low development costs for print production and a lot of flexibility for authors to control formatting details while still creating structured documents.</p>
+<h2><a id="id4" name="id4" />ICE features</h2>
+<p>ICE has several key features</p>
+<ul class="lib">
+<li>
+<p>Automated document conversion with a rapid feedback cycle so authors can see their content in a Web context as they write.</p>
+</li>
+<li>
+<p>Inline-threaded annotation in a Web view. The screenshot in Fig. 1 shows a colleague commenting on a draft version of this paper.</p>
+<p><a name="graphics2" /><img alt="graphics2" class="fr1" height="273" src="http://ptsefton.com/wp-content/uploads/2009/08/54c8bce5-397x273.jpeg" style="border:0px; vertical-align: top" width="397" /></p>
+<p>Figure 1. A screenshot of the ICE inline annotation system in a Web browser, showing threaded comments.</p>
+</li>
+<li>
+<p>Protocols for linking to data that support a document and make research more reproducible, as well as live visualization tools. This has been demonstrated in the TheOREM project [note we will reference a forthcoming paper at Open Repositories 2009 here<span class="spCh spChx2014">&#8212;</span>details TBC].</p>
+</li>
+</ul>
+<p />
+<p>ICE can be used in three modes:</p>
+<p />
+<ol class="lin" style="list-style: decimal;">
+<li>
+<p>As a complete distributed content management system as used for course creation at USQ.</p>
+</li>
+<li>
+<p>As a central content management system where groups can collaborate on content.</p>
+</li>
+<li>
+<p>As a set of software components that can be embedded in other applications. This has been done at USQ to integrate ICE conversion services into the Moodle learning management system, and some experiments have been undertaken with the Open Journal Systems software.</p>
+</li>
+</ol>
+<p />
+<h2><a id="id5" name="id5" />Journals in ICE</h2>
+<p>The e-Journal of Instructional Science and Technology (e-JIST) is an open access journal published by USQ which served as a demonstration. The final issue serves as an example of how ICE can be used in journal production.</p>
+<p>This screenshot of a paper<sup>14</sup> in Fig. 2 shows that a low-end journal may be produced in HTML and PDF from single source files, but it does not deal with authoring or submission processes.</p>
+<p />
+<p><a name="graphics3" /><img alt="graphics3" class="fr1" height="240" src="http://ptsefton.com/wp-content/uploads/2009/08/m26b1bb66-567x240.jpeg" style="border:0px; vertical-align: top" width="567" /></p>
+<p>Figure 2. A screenshot of the e-Jist journal in a Web browser.</p>
+<p>We now have a nascent collaboration with the Public Knowledge Project.</p>
+<p>The Public Knowledge Project is a research and development initiative directed toward improving the scholarly and public quality of academic research through the development of innovative online publishing and knowledge-sharing environments.<sup>15</sup></p>
+<p>With PKP we are looking at how ICE might be integrated with their suite of open access journals, conference and monograph workflow tools, particularly the Open Journal Systems (OJS)<sup>16</sup> to provide the same benefits outlined above for ICE, with authors able to see their content in both Web and print formats as soon as they upload it, and with reviewers having the option to critique submissions online in a Web browser.</p>
+<p>Related to OJS, work by a consortium of Australian institutions<sup>17</sup> resulted in a packaging mechanism for journals, leading to the ability for journals created with the OJS to be sent to a repository automatically; proof of concept work has been completed that shows that ICE templates, coupled to a system like OJS, could automate production of Web and print versions of journal articles.<sup>18</sup></p>
+<h2><a id="id6" name="id6" />Electronic theses and dissertations</h2>
+<p>While journal articles are most commonly distributed as PDF files, so today are electronic theses and dissertations. The ADFI has been involved in two projects which are attempting provide tools for thesis writing which result in Web-integrated documents with PDF version for printing and with data integrated as best as they can be into the document and the production workflow. I presented an initial proof of concept for ICE as a thesis editor at the 2007 Electronic Thesis and Dissertation conference,<sup>19</sup> containing a comparison with other thesis production processes based on XML formats, which led to a collaboration with Murray-Rust&#8217;s team on the ICE-TheOREM<sup>20</sup> project which builds on work in ADFI on converting theses to ICE format. Internally, we are working with a small group of PhD candidates to supply an ICE server for thesis management, where candidates will be able to store a thesis as a set of word-processing documents, along with data files. Supervisors will be able to comment on the work using an annotation system without having to touch the original documents.</p>
+<p>Working with early career researchers is one way to bring about change in scholarly communications. Theses are under institutional and departmental control so it is possible to influence candidates to work with innovative systems in the hope that practices which improve the dissemination and re-reproducibility of research will be taken up by these new researchers as they enter the academy.</p>
+<p>In addition to the cultural aspects of the work with PhD candidates, there is an important technical dimension to the work on ICE-TheOREM, which is to formalize the way that systems, such as content management systems and repositories, can exchange content. The ORE in TheOREM is for Object Reuse and Exchange<span class="spCh spChx2014">&#8212;</span>a protocol that for the first time provides a Web-native way to describe compound Web resources, such as theses consisting of multiple chapters, with associated images, style sheets and data files. The project has demonstrated how a thesis can be created and managed with a word processor and automatically packaged using an ORE resource map for automated ingest into a repository.</p>
+<p>ICE-TheOREM has produced a new model for repository-aided thesis production and dissemination where an author can manage their thesis, have it backed up automatically, with a complete audit trail of stand-off annotations left by their supervisor(s). When the thesis is ready for examination, it can be placed in a research-office repository from where the examination process is managed. There is potential here for examiners to use the same kinds of annotation systems and evaluative forms as are used by supervisors, but PDF for reading in print form is also provided. Feedback from this system would need to be sent back to ICE, for action by the candidate, which is a feature we have yet to build. From the thesis repository, content is delivered to the institutional repository automatically via a pull protocol Atom Archive, as it comes off embargo.</p>
+<p>While the ICE-TheOREM work is, at this stage, a proof of concept, it does illustrate a repository-based publishing process as shown here.</p>
+<p />
+<p><a name="Object1" /><img alt="Object1" class="fr2" height="299" src="http://ptsefton.com/wp-content/uploads/2009/08/31db17b1.gif" style="border:0px; vertical-align: middle" width="534" /></p>
+<p />
+<h1><a id="id7" name="id7" />Conclusion: a proposed new model</h1>
+<p />
+<p>While ICE provides a <span class="spCh spChx2018">&#8216;</span>missing link<span class="spCh spChx2019">&#8217;</span> in the form of tools for creating Web content from word processors and our work on ORE and repository integration provides packaging and delivery mechanisms to deliver data-supported papers into repositories and journals, this technology alone is of little use when expectations are shaped by current practice as follows:</p>
+<ul class="lib">
+<li>
+<p>Institutional repositories are expected to contain only PDF.</p>
+</li>
+<li>
+<p>Publishers ask for word or LaTeX documents which they then process into PDF and, maybe, HTML without any supporting data or complex visualization technologies.</p>
+</li>
+</ul>
+<p>There is no incentive for an author to create anything other than what is demanded of them by publishers, which is typically a source file that cannot be used to create anything but PDF.</p>
+<p>Above I have shown some of the progress we are making towards a new scholarly communications process where research publications and data are seamlessly integrated as part of the Web, beyond the paper metaphor. Below I outline a model of how a university such as USQ might position itself as a change-agent to drive scholarly publishing towards a more seamlessly Web-based model. This approach would build on one of the key strengths of the established distance education model of long-form course content materials delivered as Web-native documents via a core supported IT system (ICE), working on two fronts:</p>
+<ol class="lin" style="list-style: decimal;">
+<li>
+<p>To take the proof of concept work from ICE-TheOREM and to do for theses what we did for courseware at USQ and become the first institution in Australia with a mandate for all theses to be made available not just on the Web in PDF but of the Web, in HTML. The most obvious way for a candidate to comply would be to use ICE but other tool chains could be used.</p>
+</li>
+<li>
+<p>To make the courseware process more like a research workflow by introducing post publication peer review for course content, thus turning an established workflow into a publishing model without attempting to change an existing system over which we have little influence.</p>
+</li>
+</ol>
+<p>The first of these is a straightforward policy decision which could be made by the university. There is precedence in that electronic submission of theses and deposit in the repository is already mandatory, as is the use of ICE for all new courses, so this would be a simple step, accomplished after a year or two of piloting. This step is a natural one in the approach of changing scholarly publishing from below.</p>
+<p>The second point involves rather more interaction with the outside world and needs a little explanation. One of the issues faced by staff is that while they are responsible for writing course material, it is not recognized as a contribution to the research literature and is not counted in government reporting as such. Because copyright in course materials is held by the university and these materials are managed centrally, it is not even clear at times what the authorship of a paper is. A proposed model would work like this:</p>
+<ol class="lin" style="list-style: decimal;">
+<li>
+<p>An author creates courseware which is published as open courseware by the university.</p>
+</li>
+<li>
+<p>The author writes a short paper abstracting a module or book from the courseware with an explanation of what the item represents: it might be a literature review or contain instructional design which is the product of research into previous cohorts of students.</p>
+</li>
+<li>
+<p>The author submits the paper to an existing journal or to a new kind of open access journal, which would be article-centric and arrange for peer review on a rolling basis as articles are submitted<span class="spCh spChx2014">&#8212;</span>with the output of the journal deposited directly into a repository of papers on pedagogical practice.</p>
+</li>
+<li>
+<p>Reviewers would be able to recommend not only changes to a paper to make it publishable, but to the courseware item itself.</p>
+</li>
+</ol>
+<p>This model for influencing scholarly communications sidesteps established incumbents on both sides of the publishing fence by working with new academics on one hand and, on the other, a whole class of research which is undervalued. If such a model does succeed then we might be able to provide a positive answer to the question posed by the editors of this special edition of Serials Review about how repositories have influenced publishing models.</p>
+<h1><a id="id8" name="id8" />References</h1>
+<p />
+<p>[1] J.H. Coombs, A.H. Renear and S.J. DeRose, &#8220;Markup systems and the future of scholarly text processing,<span class="spCh spChx201d">&#8221;</span>, Commun. ACM 30 (11) (1987), pp. 933<span class="spCh spChx2013">&#8211;</span>947 http://portal.acm.org/citation.cfm?id=32206.32209. Full Text via CrossRef | View Record in Scopus | Cited By in Scopus (45)</p>
+<p />
+<p>[2] P. S<span class="spCh spChxf8">&#248;</span>rgaard and T. I. Sandahl, <span class="spCh spChx201c">&#8220;</span>Problems with styles in word processing: a weak foundation for electronic publishing with SGML,<span class="spCh spChx201d">&#8221;</span> Proceedings of the 30th HICSS.</p>
+<p />
+<p>[3] P. Murray-Rust and H.S. Rzepa, &#8220;The next big thing: from hypermedia to datuments,<span class="spCh spChx201d">&#8221;</span>, Journal of Digital Information 5 (1) (2004), p. 248 http://jodi.tamu.edu/Articles/v05/i01/Murray-Rust/?printable=1.</p>
+<p />
+<p>[4] Peter Sefton, <span class="spCh spChx201c">&#8220;</span>eResearch for Word users?<span class="spCh spChx201d">&#8221;</span> http://espace.library.uq.edu.au/view/UQ:155359</p>
+<p />
+<p>[5] N. Walsh, &#8220;XML: one input<span class="spCh spChx2013">&#8211;</span>many outputs: a response to Hillesund,<span class="spCh spChx201d">&#8221;</span>, Journal of Digital Information 3 (1) (2002).</p>
+<p />
+<p>[6] Peter Sefton, <span class="spCh spChx201c">&#8220;</span>eResearch for Word users?<span class="spCh spChx201d">&#8221;</span> http://espace.library.uq.edu.au/view/UQ:155359</p>
+<p />
+<p>[7] P. Sefton, The integrated content environment for research and scholarship,<span class="spCh spChx201d">&#8221;</span> Project site, ICE Website http://ice.usq.edu.au/introduction/ice_rs.htm (2006).</p>
+<p />
+<p>[8] Peter Sefton, <span class="spCh spChx201c">&#8220;</span>eResearch for Word users?<span class="spCh spChx201d">&#8221;</span> http://espace.library.uq.edu.au/view/UQ:155359</p>
+<p />
+<p>[9] , Elsevier, <span class="spCh spChx201c">&#8220;</span>Elsevier Article 2.0 Contest,<span class="spCh spChx201d">&#8221;</span> Publisher website, Elsevier http://article20.elsevier.com/contest/home.html (2009).</p>
+<p />
+<p>[10] , P.T. LaTeX3, <span class="spCh spChx201c">&#8220;</span>LaTeX2E for authors http://www.latex-project.org/guides/usrguide.pdf (2001).</p>
+<p />
+<p>[11] , SLYCAT IONSREPORT, <span class="spCh spChx201c">&#8220;</span>OAI-ORE specifications, Scholarly Communications Report 12 (1) (2008), p. 5.</p>
+<p />
+<p>[12] P Sefton, <span class="spCh spChx201c">&#8220;</span>The integrated content environment,<span class="spCh spChx201d">&#8221;</span> in AUSWEB 2006 (presented at the AUSWEB 2006, Noosa: Southern Cross University, 2006), http://eprints.usq.edu.au/archive/00000697/01/Sefton_ICE-ausweb06-paper-revised-3.pdf.</p>
+<p />
+<p>[13] W3C, <span class="spCh spChx201c">&#8220;</span>XHTML<span class="spCh spChx2122">&#8482;</span> 1.0 The Extensible HyperText Markup Language (Second Edition),<span class="spCh spChx201d">&#8221;</span> 2002, http://www.w3.org/TR/xhtml1/.</p>
+<p />
+<p>[14] J. C. Taylor, <span class="spCh spChx201c">&#8220;</span>Open courseware futures: creating a parallel universe,<span class="spCh spChx201d">&#8221;</span> e-Journal of Instructional Science and Technology (e-JIST) 10, no. 1 (2007), http://www.usq.edu.au/electpub/e-jist/docs/vol10_no1/papers/full_papers/taylorj.htm.</p>
+<p />
+<p>[15] PKP, <span class="spCh spChx201c">&#8220;</span>Public Knowledge Project,<span class="spCh spChx201d">&#8221;</span> Project Web site, Public Knowledge Project, 2009, http://pkp.sfu.ca/.</p>
+<p />
+<p>[16] <span class="spCh spChx201c">&#8220;</span>Open Journal Systems | Public Knowledge Project,<span class="spCh spChx201d">&#8221;</span> Project Web site, Public Knowledge Project, 2009, http://pkp.sfu.ca/?q=ojs.</p>
+<p />
+<p>[17] J. Pearce et al., <span class="spCh spChx201c">&#8220;</span>The Australian METS profile<span class="spCh spChx2014">&#8212;</span>a journey about metadata,<span class="spCh spChx201d">&#8221;</span> D-Lib Magazine 14, no. 3/4 (2008), http://www.dlib.org/dlib/march08/pearce/03pearce.html.</p>
+<p />
+<p>[18] USQ, <span class="spCh spChx201c">&#8220;</span>ICE Developers Blog <span class="spCh spChxbb">&#187;</span> Blog Archive <span class="spCh spChxbb">&#187;</span> Linking authoring tools to repositories,<span class="spCh spChx201d">&#8221;</span> Project weblog, Integrated Content Environment Blog, 2007, http://ice.usq.edu.au/blog/2007/12/18/linking-authoring-tools-to-repositories.html.</p>
+<p />
+<p>[19] Peter Sefton, <span class="spCh spChx201c">&#8220;</span>An integrated approach to preparing, publishing, presenting and preserving theses,<span class="spCh spChx201d">&#8221;</span> in ETD 2007 (presented at the Electronic Theses and Dissertations, Uppsala, 2007), http://eprints.usq.edu.au/archive/00002653/.</p>
+<p />
+<p>[20] Neil Jacobs, <span class="spCh spChx201c">&#8220;</span>Departmental Thesis Management System development using the Integrated Content Environment (TheOREM-ICE),<span class="spCh spChx201d">&#8221;</span> 2008, http://www.jisc.ac.uk/whatwedo/programmes/digitalrepositories2007/theorem-ice.aspx.</p>
+</div>
+</div>
+]]></content:encoded>
+			<wfw:commentRss>http://ptsefton.com/2009/08/19/towards-scholarly-html.htm/feed</wfw:commentRss>
+		<slash:comments>5</slash:comments>
+		</item>
+		<item>
+		<title>A few discoveries</title>
+		<link>http://ptsefton.com/2009/08/18/a-few-discoveries.htm</link>
+		<comments>http://ptsefton.com/2009/08/18/a-few-discoveries.htm#comments</comments>
+		<pubDate>Wed, 19 Aug 2009 00:28:17 +0000</pubDate>
+		<dc:creator>ptsefton</dc:creator>
+				<category><![CDATA[Uncategorized]]></category>
+
+		<guid isPermaLink="false">http://ptsefton.com/2009/08/18/a-few-discoveries.htm</guid>
+		<description><![CDATA[In which I build a discovery service for Southampton to better find papers by Les Carr]]></description>
+			<content:encoded><![CDATA[<abbr class="unapi-id" title="http://ptsefton.com/2009/08/18/a-few-discoveries.htm"><!-- &nbsp; --></abbr>
+<div>
+<div class="page-toc" />
+<div>
+<p>I have been thinking lately about repository architecture, and <a href="http://ptsefton.com/2009/08/05/im-beginning-to-hate-the-word-repository.htm">wondering</a> about whether the term &#8216;repository&#8217; is actually skewing our idea of what we should be doing to preserve and disseminate via Open Access, and report on research output and the other things we want out repositories to do.</p>
+<p>One of the ideas I&#8217;m keen on exploring is what librarians call a <span class="spCh spChx201c">&#8220;</span>discovery service<span class="spCh spChx201d">&#8221;</span> or a <span class="spCh spChx201c">&#8220;</span>discovery layer<span class="spCh spChx201d">&#8221;</span>, basically a web-view of a number of different services brought together in a smart index, with faceted browsing, like the National Library of Australia&#8217;s <a href="http://sbdsproto.nla.gov.au/">Single Business Discovery Service prototype </a>which uses Apache Solr indexes to search across eight different types of resource all at once. In this post I want to give an example of another place where this might be useful, using an example that I came across when I was looking for examples for the conversation with Les Carr about <a href="http://ptsefton.com/2009/08/17/more-progress-on-exploded-powerpoints-in-a-desktop-repository.htm">PowerPoint dismantling</a>.</p>
+<p>I&#8217;m not picking on Southampton here, they&#8217;re leaders in Open Access or the EPrints software they have given our community, which is wonderful (in parts) but I would like to use their two (are there more than two?) EPrints repositories as an example of the advantages of a Solr-powered discovery layer.</p>
+<p>How this came about was, I was poking around the Southampton EPrints site and I grabbed a PowerPoint presentation to use as an example; I knew that it was by Liz Lyon and Les Carr because that metadata was in the file, and The Fascinator managed to extract it. (Turns out there was a bunch of other authors listed on the EPrint, but maybe they were not authors of the PowerPoint.)</p>
+<p>Now, lets see if I can find it again. What you&#8217;re about to read below might reflect badly on my search skills but this is roughly what I did, I&#8217;m sure there are other bumblies out there like me.</p>
+<p>A search on <a href="http://eprints.soton.ac.uk/">e-Prints at Southampton</a> has 8 matches for the string <span class="spCh spChx201c">&#8220;</span><a href="http://eprints.soton.ac.uk/perl/search?simple=les+carr&amp;simple_merge=ALL&amp;_order=byname&amp;_action_search=Search">Les Carr</a><span class="spCh spChx201d">&#8221;</span>. But thing I&#8217;m after is not in that list. Took me a while to remember (and I did have to remember, the site doesn&#8217;t tell you this) but there&#8217;s another EPrints site for the School of Electronics and Computer Science (branded EPrints rather than e-Prints). So, having found the ECS EPrints site, I had a search for Les Carr. <a href="http://eprints.ecs.soton.ac.uk/cgi/search/quicksearch?basic_srchtype=ALL&amp;basic=Les+Carr&amp;full_text_status=&amp;_satisfyall=ALL&amp;_order=byyear&amp;_default_action=search&amp;_action_search=search">No results</a>. Searching for plain-old Carr in either site gave me too many results to sort through. After that I went back to the blog post where I talked about the thing and found a <a href="http://eprints.soton.ac.uk/11039/">direct link</a> <span class="spCh spChx2013">&#8211;</span> and yes it&#8217;s there in the Southampton IR (not ECS) but the name I was after is Carr, Leslie. I can find it using that search (and I note that it was deposited by Carr, Dr Leslie). Right. Got it. </p>
+<p class="meta-abstract" style="margin-left:0cm; margin-right:1.27cm; text-indent:0cm; ">With my team, I did a little experiment, harvesting both the Soton repositories into our repository software, The Fascinator. It&#8217;s running on the Amazon EC2 cloud, so it might go away at some time in the future, but here you can see a portal Bron Chandler set up for an <a href="http://75.101.164.238:9999/portal/search/all_soton">aggregated view of the two repositories</a>: or drill down by facet to look at the two of them separately. The advantage of a faceted interface like this is that even if the data remain un-normalized, you can pick out what you might be looking for a bit easier than in the raw EPrints software, at least you can see the range of aliases this character operates under <span class="spCh spChx2013">&#8211;</span> here&#8217;s an edited view of the list of authors when you do a simple search for Carr.</p>
+<blockquote class="bq"><p>Author
+<ul class="lib">
+<li>
+<p><a href="http://75.101.164.238:9999/portal/search:addfacet/f_creator%3A%22Carr%2C%20Les%22?t:ac=all_soton/carr">Carr, Les </a>(56) </p>
+</li>
+<li>
+<p><a href="http://75.101.164.238:9999/portal/search:addfacet/f_creator%3A%22Carr%2C%20Leslie%22?t:ac=all_soton/carr">Carr, Leslie </a>(55) </p>
+</li>
+<li>
+<p><a href="http://75.101.164.238:9999/portal/search:addfacet/f_creator%3A%22Carr%2C%20Les%20A.%22?t:ac=all_soton/carr">Carr, Les A. </a>(38) </p>
+</li>
+<li>
+<p><a href="http://75.101.164.238:9999/portal/search:addfacet/f_creator%3A%22Carr%2C%20LA%22?t:ac=all_soton/carr">Carr, LA </a>(15) </p>
+</li>
+<li>
+<p><a href="http://75.101.164.238:9999/portal/search:addfacet/f_creator%3A%22Carr%2C%20L%22?t:ac=all_soton/carr">Carr, L </a>(10) </p>
+</li>
+<li>
+<p><a href="http://75.101.164.238:9999/portal/search:addfacet/f_creator%3A%22Carr%2C%20Leslie%20A.%22?t:ac=all_soton/carr">Carr, Leslie A. </a>(10) </p>
+</li>
+</ul>
+</blockquote>
+<p class="meta-abstract" style="margin-left:0cm; margin-right:1.27cm; text-indent:0cm; ">On one level It&#8217;s actually the function of a repository to preserve this seeming chaos <span class="spCh spChx2013">&#8211;</span> the different contexts in which Carr, Dr Leslie operates have resulted in different forms of the name and the repository needs to remember them for bibliographic integrity, I&#8217;ll talk below about name authorities, but The Discovery service approach means I was able to discover all these name-forms across both repositories, which is a huge win over the more limited native EPrints search.</p>
+<p class="meta-abstract" style="margin-left:0cm; margin-right:1.27cm; text-indent:0cm; ">Note that this was just a quick &#8216;n&#8217; dirty experiment, we&#8217;re not sure if we harvested everything and we did zero special configuration, but it seems like a pretty useful view of the Soton repostiories to me.</p>
+<p class="meta-abstract" style="margin-left:0cm; margin-right:1.27cm; text-indent:0cm; "> I think EPrints has unbeatable workflows for item management and ingest and so on, but the interface is very beatable.</p>
+<p class="P4">Stepping back a bit I note that these EPrints sites are not that easy to find <span class="spCh spChx2013">&#8211;</span> I got to them by typing in the URL, but if you go to the university home page and browse to <a href="http://www.soton.ac.uk/research/researchdir/index.html">Research</a> it&#8217;s not obvious where the EPrints are. A search for Les Carr works, as you can get to his home page where there are of course links to recent publications in EPrints. That&#8217;s better than what you get searching for <a href="http://websearch.usq.edu.au/search?q=peter+Sefton&amp;btnG=Go&amp;entqr=0&amp;entsp=0&amp;sort=date%3AD%3AL%3Ad1&amp;output=xml_no_dtd&amp;client=default_frontend&amp;sa.x=0&amp;ud=1&amp;oe=UTF-8&amp;ie=UTF-8&amp;sa.y=0&amp;proxystylesheet=default_frontend&amp;site=default_collection">Peter Sefton</a> on the USQ site where a lot of the hits are from things like the test content that ships with ICE. No sign of my EPrints stuff in the first couple of pages).</p>
+<p class="meta-abstract" style="margin-left:0cm; margin-right:1.27cm; text-indent:0cm; ">At USQ we&#8217;re using Google, which seems to pick up the ICE site over other content, presumably because it has more incoming links than the other pages at USQ with my name (mostly from here at this blog I guess <img src='http://ptsefton.com/wp-includes/images/smilies/icon_smile.gif' alt=':-)' class='wp-smiley' /> , whereas the Southampton search seems to be driven by SharePoint. In both cases, I think a discovery-service approach could be a real winner; instead of the Google-style metadata-poor view why not build your own faceted view of your own university&#8217;s stuff?</p>
+<p class="meta-abstract" style="margin-left:0cm; margin-right:1.27cm; text-indent:0cm; ">Here at USQ I&#8217;d like to see the main site brought together with EPrints, and the ePortfolio system  and maybe courseware (particularly if we get around to taking Open Courseware seriously), and with any other databases of our stuff, like the <a href="http://www.usq.edu.au/library/">library catalogue</a>, which is already powered by Solr.</p>
+<p class="meta-abstract" style="margin-left:0cm; margin-right:1.27cm; text-indent:0cm; ">I&#8217;ll finish with a  quick comment on name authorities. I <a href="http://caulcairss.wordpress.com/2009/07/21/nicnames-and-people-australia-some-thoughts-for-cairss/">talked about them on CAIRSS blog</a> recently. Of particular interest is the NicNames software which can help to link up all the instances of Les Carr, Carr, Leslie and Carr, Dr Leslie. NicNames should be able to suck up data from any repository and try to work out via subject codes and so on who is who, and let a repository administrator have the final say on name-authority matters. Once that&#8217;s done and the system is trained to know that we have, say a Carr, L working in web systems and maybe another in physiology then when you&#8217;re putting in a new record the system will be able to give you a choice between the two, and add an ID as well as the variant of the name string that happens to be on the item; there are two ways to approach this <span class="spCh spChx2013">&#8211;</span> one would be to integrate this service directly in ePrints, but another would be to leave them as separate services and bring them together at the discovery level. More on that soon.</p>
+<p class="meta-abstract" style="margin-left:0cm; margin-right:1.27cm; text-indent:0cm; " /></div>
+</div>
+]]></content:encoded>
+			<wfw:commentRss>http://ptsefton.com/2009/08/18/a-few-discoveries.htm/feed</wfw:commentRss>
+		<slash:comments>1</slash:comments>
+		</item>
+		<item>
+		<title>More progress on exploded PowerPoints in a desktop repository</title>
+		<link>http://ptsefton.com/2009/08/17/more-progress-on-exploded-powerpoints-in-a-desktop-repository.htm</link>
+		<comments>http://ptsefton.com/2009/08/17/more-progress-on-exploded-powerpoints-in-a-desktop-repository.htm#comments</comments>
+		<pubDate>Mon, 17 Aug 2009 06:17:01 +0000</pubDate>
+		<dc:creator>ptsefton</dc:creator>
+				<category><![CDATA[Uncategorized]]></category>
+
+		<guid isPermaLink="false">http://ptsefton.com/2009/08/17/more-progress-on-exploded-powerpoints-in-a-desktop-repository.htm</guid>
+		<description><![CDATA[The team here has made some progress in their work on The Fascinator Desktop which can blow up presentations into component parts. We&apos;re going to release a developer version very soon that you will be able to check out using Subversion.]]></description>
+			<content:encoded><![CDATA[<abbr class="unapi-id" title="http://ptsefton.com/2009/08/17/more-progress-on-exploded-powerpoints-in-a-desktop-repository.htm"><!-- &nbsp; --></abbr>
+<div>
+<div class="page-toc" />
+<div>
+<p>Back in June I <a href="http://ptsefton.com/2009/06/12/desktop-repositories-smashing-up-powerpoint.htm">engaged in a bit of back and forth with Les Carr</a> about breaking up presentation files such as PowerPoints into component parts, for ingest into a repository, and about the concept of &#8216;desktop repositories&#8217; I reported some progress with a ppt &#8216;exploder&#8217; for ICE and talked about future plans.</p>
+<p>The team here has made some progress in their work on The Fascinator Desktop which can blow up presentations into component parts. We&#8217;re going to release a developer version very soon that you will be able to check out using Subversion (on Linux you can <a href="http://fascinator.usq.edu.au/trac/wiki/tf2/DeveloperInstall">install it from the Trunk if you&#8217;re really keen</a>), but I will just talk about the presentation handling and some of the possibilities for that here.</p>
+<p>What we have now is a system that ordinary users will eventually be able to install on their computer to index their local files. The idea is as I described it in the post <a href="http://ptsefton.com/2009/03/05/desktop-eresearch-revolution.htm">Desktop eResearch Revolution</a>. It will help you to discover all your digital stuff, see it and organize it in a web interface, route it to the data-fabric and/or publish it. We&#8217;re up to the discovery bit at the moment, but building the whole picture is quite a major project.</p>
+<ol class="lin" style="list-style: decimal;">
+<li>
+<p>Linda Octalina wrote a file-system watching service, which other software can access over a web-service to see what has changed (the web-bit can be optimized out if needed later).</p>
+</li>
+<li>
+<p>Oliver Lucido rewrote The Fascinator so that a it uses Jython for a lot of the display logic, to make it easier to adapt, and replaced Fedora with a simple file based storage layer (Fedora will be an option, but is probably overkill for working files on a desktop/laptop/netbook). Ron Ward is working on a storage layer using Couch DB, to see how that might work with replication.</p>
+</li>
+<li>
+<p>Duncan Dickinson has been managing the product and the release process, and a new site being put together by Bron Chandler. The whole thing is coming together into a project framework that we hope will be a useful contribution to the Australian National Data Service (ANDS) agenda.</p>
+</li>
+<li>
+<p>Most importantly, Linda and Bron came up with a tag: <a href="http://twitter.com/#search?q=tf4desktop">tf4desktop</a>.</p>
+</li>
+</ol>
+<p>At the moment, in the upcoming developer release you can:</p>
+<ul class="lib">
+<li>
+<p>On Linux, start up the file watcher and the little JSON-speaking web service that goes with it.</p>
+</li>
+<li>
+<p>Start up Solr and The Fascinator.</p>
+</li>
+<li>
+<p>Run a harvest script that pulls in whatever files you are watching, or just peruse the file system, or harvest from a repository using OAI-PMH. Want your IR on your desktop? Now you can. (In the next release with harvester will be built-in and it will poll whatever it is harvesting periodically but for now you run it manually.) This script:</p>
+<ul class="lib">
+<li>
+<p>Extracts full text and metadata from a variety of files using Aperture.</p>
+</li>
+<li>
+<p>Feeds likely looking files to an ICE service for rendering into web-ready formats, this includes office documents in HTML but also text to speech and video conversions.</p>
+</li>
+</ul>
+</li>
+<li>
+<p>Look in your web browser talking to a local tf4desktop portal to see what you have!</p>
+</li>
+</ul>
+<p>I did a harvest of my messy home directory. (I let it be messy because everything in there is just working copies of stuff that is safely looked after elsewhere, I can lose it without losing more than a day or so&#8217;s work.)</p>
+<p>Here&#8217;s a screenshot when I search for &#8216;Les Carr&#8217; on my computer. Remember this is a very early preview release, but it is finding metadata. It&#8217;s found a few things including this very document.</p>
+<p><span style="display: block"><a name="graphics1" /><img alt="graphics1" class="fr1" height="437" src="http://ptsefton.com/wp-content/uploads/2009/08/m1f3c6882-453x437.jpeg" style="border:0px; vertical-align: top" width="453" /></span></p>
+<p>It&#8217;s found a PowerPoint. If I click on the link (yes the link should use the document title), I get a lot of detail about the file.</p>
+<blockquote class="bq"><p>Detail
+<ul class="lib">
+<li>
+<p>rdf (application/octet-stream) </p>
+</li>
+<li>
+<p>dc.xml (text/xml) </p>
+</li>
+<li>
+<p>ukrc-ebank.htm (text/html) </p>
+</li>
+<li>
+<p>ukrc-ebank.ppt.properties (text/plain) </p>
+</li>
+<li>
+<p>dc-rdf (text/xml) </p>
+</li>
+<li>
+<p>SOF-META (application/octet-stream) </p>
+</li>
+<li>
+<p>ukrc-ebank.slide.htm (text/html) </p>
+</li>
+<li>
+<p>ukrc-ebank.pdf (application/pdf) </p>
+</li>
+<li>
+<p>ukrc-ebank.ppt (application/mspowerpoint) </p>
+</li>
+<li>
+<p>ukrc-ebank.ppt </p>
+</li>
+</ul>
+<p>ukrc-ebank
+<ul class="lip">
+<li>
+<p>Format: <a name="format" />application/vnd.ms-powerpoint </p>
+</li>
+<li>
+<p>Creator: Liz Lyon, Leslie Carr</p>
+</li>
+</ul>
+</blockquote>
+<p>There&#8217;s a link to view the ICE-generated exploded and reconstituted as an HTML view:</p>
+<p><span style="display: block"><a name="graphics2" /><img alt="graphics2" class="fr2" height="301" src="http://ptsefton.com/wp-content/uploads/2009/08/m1a02b193-467x301.jpeg" style="border:0px; vertical-align: top" width="467" /></span></p>
+<p>And there&#8217;s lots of metadata. For example here&#8217;s  a bit of RDF extracted by <a href="http://aperture.sourceforge.net/">Aperture</a>:</p>
+<blockquote class="bq"><p> <code>&lt;j.0:contentLastModified rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime"&gt;2004-10-14T22:56:12&lt;/j.0:contentLastModified&gt; </code></p>
+<p><code>    &lt;j.0:contentCreated rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime"&gt;2002-04-27T05:42:16&lt;/j.0:contentCreated&gt; </code></p>
+<p><code>    &lt;j.1:contributor rdf:resource="urn:uuid:49cfc7d1-b645-4264-a240-950848cc8f9d"/&gt; </code></p>
+<p><code>    &lt;j.1:creator rdf:resource="urn:uuid:261f6215-4cdf-4781-9409-dd9e2b3111dd"/&gt; </code></p>
+<p><code>    &lt;j.0:title&gt;eBank UK - linking research data, scholarly communications and learning&lt;/j.0:title&gt; </code></p>
+<p><code>  &lt;/rdf:Description&gt; </code></p>
+<p><code> </code> <code>&lt;rdf:Description rdf:about="urn:uuid:261f6215-4cdf-4781-9409-dd9e2b3111dd"&gt; </code></p>
+<p><code>    &lt;j.1:fullname&gt;Liz Lyon&lt;/j.1:fullname&gt; </code></p>
+<p><code>    &lt;rdf:type rdf:resource="http://www.semanticdesktop.org/ontologies/2007/03/22/nco#Contact"/&gt; </code></p>
+<p><code>  &lt;/rdf:Description&gt; </code></p>
+<p><code>  &lt;rdf:Description rdf:about="urn:uuid:49cfc7d1-b645-4264-a240-950848cc8f9d"&gt; </code></p>
+<p><code>    &lt;j.1:fullname&gt;Leslie Carr&lt;/j.1:fullname&gt; </code></p>
+<p><code>    &lt;rdf:type rdf:resource="http://www.semanticdesktop.org/ontologies/2007/03/22/nco#Contact"/&gt; </code></p>
+<p><code>  &lt;/rdf:Description&gt;</code></p>
+</blockquote>
+<p>This is the first time we&#8217;ve had all these pieces put together and at the moment, they can be used to index and search a bunch of files; it&#8217;s useful already, partly in that it shows me that in a lot of cases the metadata in my documents is, well, sub-optimal. The reason it shows me I have ten documents by Pamela Glossop or 53 By Ian Barnes is not because I do, it&#8217;s because a couple of the templates I use a lot were made by those two people, and I have not been setting the metadata in the document properties. </p>
+<p>I have just looked at presentations here, but part of the point of The Fascinator is that it is extensible to deal with any kind of file <span class="spCh spChx2013">&#8211;</span> it will come with default handler for audio and video and images and be able to find embedded data like geographical points, but you will also be able to plug in handlers for other formats, such as chemistry, or climate data.</p>
+<p>I&#8217;ll finish up with a few notes on things we need to do, to feed into the requirements for 0.2 and beyond:</p>
+<ul class="lib">
+<li>
+<p>Implement the hierarchical search features I mentioned in a previous post where you would be able to show a hit for &#8216;dog&#8217; in one slide and &#8216;cat&#8217; in another but see that they come from the same presentation.</p>
+</li>
+<li>
+<p>Work out ways to reassemble  slides (or pictures, or saved web pages, any item really, into web presentations using something like the &#8216;organizer&#8217; we have in ICE, and then expose these as OAI-ORE resource maps.</p>
+</li>
+<li>
+<p>Turn the above (if they consist of slides) into a new presentation by extracting and reassembling the original source slides in their native format.</p>
+</li>
+<li>
+<p>Be able to push exploded PowerPoints (or plain old documents) to a blog via Atompub, or to a repository via SWORD. We already have the technology in ICE, via the ICE-Theorem project <span class="spCh spChx2013">&#8211;</span> bring on the one-click deposit! Even better, do auto deposit based on some criteria like stuff I have tagged as &#8216;published&#8217;.</p>
+</li>
+<li>
+<p>Allow for batch fixing-up of metdata, like removing Ian Barnes as creator of stuff he didn&#8217;t create.</p>
+</li>
+<li>
+<p>Work out how we are going to work with backup system and file replication schemes.</p>
+</li>
+<li>
+<p>Look at closer integration with ICE for things like courseware or theses.</p>
+</li>
+</ul>
+<p />
+<p />
+<p class="meta-abstract" style="margin-left:0cm; margin-right:1.27cm; text-indent:0cm; " /></div>
+</div>
+]]></content:encoded>
+			<wfw:commentRss>http://ptsefton.com/2009/08/17/more-progress-on-exploded-powerpoints-in-a-desktop-repository.htm/feed</wfw:commentRss>
+		<slash:comments>0</slash:comments>
+		</item>
+		<item>
+		<title>I&apos;m beginning to hate the word &apos;repository&apos;</title>
+		<link>http://ptsefton.com/2009/08/05/im-beginning-to-hate-the-word-repository.htm</link>
+		<comments>http://ptsefton.com/2009/08/05/im-beginning-to-hate-the-word-repository.htm#comments</comments>
+		<pubDate>Wed, 05 Aug 2009 11:41:56 +0000</pubDate>
+		<dc:creator>ptsefton</dc:creator>
+				<category><![CDATA[Uncategorized]]></category>
+
+		<guid isPermaLink="false">http://ptsefton.com/2009/08/05/im-beginning-to-hate-the-word-repository.htm</guid>
+		<description><![CDATA[A twitter experiment in seeing how people define repostiories]]></description>
+			<content:encoded><![CDATA[<abbr class="unapi-id" title="http://ptsefton.com/2009/08/05/im-beginning-to-hate-the-word-repository.htm"><!-- &nbsp; --></abbr>
+<div>
+<div class="page-toc" />
+<div>
+<p>I have been writing an article for the <a href="http://repositoryman.blogspot.com/2009/06/special-issue-of-new-review-on.html">Special Issue of the New Review on Information Networking</a> that Les Carr is putting together. He wondered if I would like to submit something on repository architecture,  and since I was about to blog anyway about some of the <a href="http://ptsefton.com/2009/07/08/wanted-someone-to-actively-sell-open-repository-solutions-in-australia.htm#id3">ideas from a previous post here </a>and keep a <a href="http://caulcairss.wordpress.com/2009/07/21/nicnames-and-people-australia-some-thoughts-for-cairss/">promise I made on the CAIRSS blog</a> to outline an architecture by which a service like the NicNames identity management system might sit alongside a repository software application, I rolled those things into a (rushed) article, which will appear somewhere in due course <span class="spCh spChx2013">&#8211;</span> if it&#8217;s rejected I can always blog it.</p>
+<p>One of the things I looked at in the paper was this notion that a repository should be viewed as a set of services rather than a monolithic application. I have quoted Clifford Lynch here before, and I quoted him in the paper:</p>
+<blockquote class="bq"><p>In my view, a university-based institutional repository is a set of services that a university offers to the members of its community for the management and dissemination of digital materials created by the institution and its community members. It is most essentially an organizational commitment to the stewardship of these digital materials, including long-term preservation where appropriate, as well as organization and access or distribution. While operational responsibility for these services may reasonably be situated in different organizational units at different universities, an effective institutional repository of necessity represents a collaboration among librarians, information technologists, archives and records mangers, faculty, and university administrators and policymakers. At any given point in time, an institutional repository will be supported by a set of information technologies, but a key part of the services that comprise an institutional repository is the management of technological changes, and the migration of digital content from one set of technologies to the next as part of the organizational commitment to providing repository services. An institutional repository is not simply a fixed set of software and hardware.</p>
+<p><a href="http://www.arl.org/resources/pubs/br/br226/br226ir.shtml">http://www.arl.org/resources/pubs/br/br226/br226ir.shtml</a> </p>
+</blockquote>
+<p>The cognoscenti do go on like this. I know I&#8217;m guilty. I have been heard to argue that the repository should be thought of as an institution (or a lifestyle, or a way of life, or a governance framework)  rather than a software application, but for most working repository managers I suspect that the repository is really much more closely tied to and bounded by the software application used than to some fancy &#8217;set of services&#8217; or governance framework. Try this. It seems natural enough to say <span class="spCh spChx201c">&#8220;</span>What repository do you run?<span class="spCh spChx201d">&#8221;</span> whereas you would never ask a librarian <span class="spCh spChx201c">&#8220;</span>What library do you run?<span class="spCh spChx201d">&#8221;</span> </p>
+<p>Anyway, as I was thinking about an outline for the paper I did a quick unscientific (and slightly inept) poll on Twitter.</p>
+<blockquote class="bq"><p>Hi repository people (&amp; rat.) Can you define &#8220;repository&#8221; or &#8220;institutional repository&#8221; here in Twitter, in yr own words please?<a href="http://twitter.com/ptsefton/status/2769544876">3:48 PM Jul 21st</a> from web </p>
+</blockquote>
+<p>It was inept because I should have used a hashtag for people to label their replies instead of them coming back to @ptsefton. I tried again a bit later. </p>
+<blockquote class="bq"><p><a href="http://twitter.com/search?q=%23repodef">#repodef</a> Can you define &#8220;repository&#8221; or &#8220;institutional repository&#8221; here in Twitter, in yr own words please? Will blog results.</p>
+</blockquote>
+<p>The reason I asked was I was interested to see if people&#8217;s definitions were of  repository as monolithic-application, or tended towards service-orientation or repository-as-institution. </p>
+<p>Presented below are all the responses directed at me. There may have been others, that were just tagged, but as I write this Twitter is returning zero results for a the tag #repodef.</p>
+<p>I will comment on a few of the responses. An early participant was Tim McCallum from my team. He&#8217;s the <a href="http://cairss.caul.edu.au/www/">CAIRSS</a> (Repository Support Service) Technical Officer and and he had a very concrete view of the repository as &#8216;a system&#8217; with an emphasis on research output, as I&#8217;d expect from someone up to his neck in the day-to-day issues with repositories and the <a href="http://www.arc.gov.au/era/SEER.htm">System to Evaluate the Excellence Of Research (SEER)</a> here in Australia.</p>
+<blockquote class="bq"><p><a href="http://twitter.com/mistermac2008"><span class="Strong_20_Emphasis"><b>mistermac2008</b></span></a>@<a href="http://twitter.com/ptsefton">ptsefton</a> Online system that receives, organizes and normalizes institutional research output for searching/harvesting by machine and humans<a href="http://twitter.com/mistermac2008/status/2770529041">4:43 PM Jul 21st</a> from web </p>
+</blockquote>
+<p>Ploy <a name=":80" />Tangtulyangkul, who works for us from wherever in the world she happens to be and has stoked the boiler of a repository in Western Australia had a rather succinct view, to do with research output, attributed to an ex-USQ person, Neil Godfrey.</p>
+<blockquote class="bq"><p><a href="http://twitter.com/waoewaoe"><span class="Strong_20_Emphasis">waoewaoe</span></a>@<a href="http://twitter.com/ptsefton">ptsefton</a> &#8211; sorry research showcase &#8211; shall i quote @<a href="http://twitter.com/neilgodfrey">neilgodfrey</a> for giving this concept to me?<a href="http://twitter.com/waoewaoe/status/2796032595">12:23 AM Jul 23rd</a> from web </p>
+</blockquote>
+<p><a name="status_2796653017" />A couple of people mentioned the repository as &#8216;a place&#8217; and there was mention of &#8217;system&#8217;. Dorothea Salo, tweeting in her repo-rat super-hero costume had a definition I thought captured the Lynch view (she also had a silly definition):</p>
+<blockquote class="bq"><p><a href="http://twitter.com/TheRepoRat"><span class="Strong_20_Emphasis">TheRepoRat</span></a>@<a href="http://twitter.com/ptsefton">ptsefton</a> Legit defn: a service focused on capturing, disseminating, and preserving many sorts of digital institutional output.<a href="http://twitter.com/TheRepoRat/status/2777477066">3:14 AM Jul 22nd</a> from <a href="http://www.tweetdeck.com/">TweetDeck</a> <a href="http://twitter.com/ptsefton/status/2771187654">in reply to ptsefton</a></p>
+</blockquote>
+<p>I think that along with the rat Andy Powell had had the definition which was closest to repository-as-institution. In the broadest sense a system might include people:</p>
+<blockquote class="bq"><p><a href="http://twitter.com/andypowe11"><span class="Strong_20_Emphasis">andypowe11</span></a>@<a href="http://twitter.com/ptsefton">ptsefton</a> &#8220;a system for managing and sharing academic content in order to support scholarly communication and/or teaching and learning&#8221; ?<a href="http://twitter.com/andypowe11/status/2795051260">10:23 PM Jul 22nd</a> from <a href="http://www.twhirl.org/">twhirl</a> <a href="http://twitter.com/ptsefton/status/2794876687">in reply to ptsefton</a></p>
+</blockquote>
+<p>This is splitting hairs, maybe, bu<span style="font-weight:normal; "><span class="T3">t</span></span><span class="Strong_20_Emphasis"><span style="font-weight:normal; "><span class="T3"> Paul Richardson&#8217;s similar answer implied that the </span></span></span><span class="Strong_20_Emphasis"><i style="font-weight:normal; "><span>store</span></i></span><span class="Strong_20_Emphasis"><span style="font-weight:normal; "><span class="T3"> was the repository and the fact that it was managed was a property it had, in contrast to Andy Powell&#8217;s bundling of the the managing </span></span></span><span class="Strong_20_Emphasis"><i style="font-weight:normal; "><span>into</span></i></span><span class="Strong_20_Emphasis"><span style="font-weight:normal; "><span class="T3"> the system.</span></span></span></p>
+<blockquote class="bq"><p><a href="http://twitter.com/paulbrichardson"><span class="Strong_20_Emphasis">paulbrichardson</span></a><span class="Strong_20_Emphasis"><span style="font-weight:normal; "><span class="T3">@</span></span></span><a href="http://twitter.com/ptsefton"><span class="Strong_20_Emphasis"><span style="font-weight:normal; "><span class="T3">ptsefton</span></span></span></a><span class="Strong_20_Emphasis"><span style="font-weight:normal; "><span class="T3"> </span></span></span><a href="http://twitter.com/search?q=%23repodef"><span class="Strong_20_Emphasis"><span style="font-weight:normal; "><span class="T3">#repodef</span></span></span></a><span class="Strong_20_Emphasis"><span style="font-weight:normal; "><span class="T3"> A managed store of digital assets. Metadata &amp; security addressed. Copyright explicit. Access open or by subscription.</span></span></span><a href="http://twitter.com/paulbrichardson/status/2795093296"><span class="Strong_20_Emphasis"><span style="font-weight:normal; "><span class="T3">10:27 PM Jul 22nd</span></span></span></a><span class="Strong_20_Emphasis"><span style="font-weight:normal; "><span class="T3"> from web </span></span></span><a href="http://twitter.com/ptsefton/status/2794876687"><span class="Strong_20_Emphasis"><span style="font-weight:normal; "><span class="T3">in reply to ptsefton</span></span></span></a></p>
+<p />
+<p><a href="http://twitter.com/paulbrichardson"><span class="Strong_20_Emphasis">paulbrichardson</span></a>@<a href="http://twitter.com/ptsefton">ptsefton</a> <a href="http://twitter.com/search?q=%23repodef">#repodef</a> I didn&#8217;t define, of course. Just put in some ideas which may help&#8230;.<a href="http://twitter.com/paulbrichardson/status/2795105196">10:29 PM Jul 22nd</a> from <a href="http://www.tweetdeck.com/">TweetDeck</a> <a href="http://twitter.com/ptsefton/status/2794876687">in reply to ptsefton</a></p>
+</blockquote>
+<p>Nigel Ward said that a repository was software, which from anyone else would kind of confirm my view that people think of repositories as a bit of software, but you have to remember that Nigel is an e-Framework participant, and they see everything as a set of services <span class="spCh spChx2013">&#8211;</span> that&#8217;s Service Oriented Architecture, only without the capitals; soa so I will count his response as being one for repostitory-as-computational-services.<a name="status_27697753091" /></p>
+<blockquote class="bq"><p><a href="http://twitter.com/nigeynige"><span class="Strong_20_Emphasis">nigeynige</span></a>@<a href="http://twitter.com/ptsefton">ptsefton</a> A repository is software that provides access to and manages collections.<a href="http://twitter.com/nigeynige/status/2769775309">4:01 PM Jul 21st</a> from <a href="http://www.atebits.com/">Tweetie</a> <a href="http://twitter.com/ptsefton/status/2769544876">in reply to ptsefton</a></p>
+<p><a href="http://twitter.com/nigeynige"><span class="Strong_20_Emphasis" /></a></p>
+<p><a href="http://twitter.com/nigeynige"><span class="Strong_20_Emphasis">nigeynige</span></a>@<a href="http://twitter.com/ptsefton">ptsefton</a> A collection is any aggregation of content items, physical or digital [from ISO 2146]<a href="http://twitter.com/nigeynige/status/2769785825">4:02 PM Jul 21st</a> from <a href="http://www.atebits.com/">Tweetie</a> <a href="http://twitter.com/ptsefton/status/2769544876">in reply to ptsefton</a></p>
+</blockquote>
+<p>I&#8217;ll leave you with all the replies that Twitter is showing now, starting with the most recent. Comments welcome. No, no statistics or further analysis except some &#8216;don&#8217;t rely on Twitter to remember a hash-tag from two weeks ago&#8217;.</p>
+<blockquote class="bq"><p><a href="http://twitter.com/onothimagen"><span class="Strong_20_Emphasis">onothimagen</span></a>@<a href="http://twitter.com/ptsefton">ptsefton</a> &#8216;place to put stuff&#8217; or &#8216;digital object storage and management system&#8217; or &#8216;all things to all men&#8217; <img src='http://ptsefton.com/wp-includes/images/smilies/icon_smile.gif' alt=':)' class='wp-smiley' /> <a href="http://twitter.com/onothimagen/status/2796653017">1:34 AM Jul 23rd</a> from <a href="http://www.nambu.com/">Nambu</a> </p>
+<p><a name="status_2796574886" /></p>
+<p><a href="http://twitter.com/sshreeves"><span class="Strong_20_Emphasis">sshreeves</span></a>@<a href="http://twitter.com/ptsefton">ptsefton</a> inst repo same definition except gen focused on research/scholarship/intellectual output and also meant to protect inst investment<a href="http://twitter.com/sshreeves/status/2796574886">1:25 AM Jul 23rd</a> from <a href="http://twitterfon.net/">TwitterFon</a> <a href="http://twitter.com/ptsefton/status/2794876687">in reply to ptsefton</a></p>
+<p><a name="status_2796553916" /><a href="http://twitter.com/ptsefton/status/2794876687" /></p>
+<p><a href="http://twitter.com/sshreeves"><span class="Strong_20_Emphasis">sshreeves</span></a>@<a href="http://twitter.com/ptsefton">ptsefton</a> system to disseminate, manage, and aid in preservation of defined set of materials (depending on collection policy)<a href="http://twitter.com/sshreeves/status/2796553916">1:23 AM Jul 23rd</a> from <a href="http://twitterfon.net/">TwitterFon</a> <a href="http://twitter.com/ptsefton/status/2794876687">in reply to ptsefton</a></p>
+<p><a name="status_2796032595" /><a href="http://twitter.com/ptsefton/status/2794876687" /></p>
+<p><a href="http://twitter.com/waoewaoe"><span class="Strong_20_Emphasis">waoewaoe</span></a>@<a href="http://twitter.com/ptsefton">ptsefton</a> &#8211; sorry research showcase &#8211; shall i quote @<a href="http://twitter.com/neilgodfrey">neilgodfrey</a> for giving this concept to me?<a href="http://twitter.com/waoewaoe/status/2796032595">12:23 AM Jul 23rd</a> from web </p>
+<p><a name="status_2795512632" /></p>
+<p><a href="http://twitter.com/cgutteridge"><span class="Strong_20_Emphasis">cgutteridge</span></a>@<a href="http://twitter.com/ptsefton">ptsefton</a> <a href="http://twitter.com/search?q=%23repodef">#repodef</a> repository = &#8220;place to put stuff to make it easy(er) to find and hard(er) to lose&#8221;<a href="http://twitter.com/cgutteridge/status/2795492243">11:16 PM Jul 22nd</a> from <a href="http://twidroid.com/">twidroid</a> <a href="http://twitter.com/ptsefton/status/2794876687">in reply to ptsefton</a></p>
+<p><a name="status_2795361746" /></p>
+<p><a href="http://twitter.com/cardcc"><span class="Strong_20_Emphasis">cardcc</span></a>@<a href="http://twitter.com/ptsefton">ptsefton</a> JISC definition makes journal (or journal site) a special kind of repository. Also any library, digital or not! <a href="http://twitter.com/search?q=%23repodef">#repodef</a><a href="http://twitter.com/cardcc/status/2795361746">11:00 PM Jul 22nd</a> from <a href="http://www.tweetdeck.com/">TweetDeck</a> <a href="http://twitter.com/ptsefton/status/2794876687">in reply to ptsefton</a></p>
+<p><a name="status_2795346151" /></p>
+<p><a href="http://twitter.com/cardcc"><span class="Strong_20_Emphasis">cardcc</span></a>@<a href="http://twitter.com/ptsefton">ptsefton</a> &#8216;managed&#8217; should mean some kind of catalogue/metadata (so a bit &gt; filestore) &amp; access control; not necessarily OAI <a href="http://twitter.com/search?q=%23repodef">#repodef</a><a href="http://twitter.com/cardcc/status/2795346151">10:58 PM Jul 22nd</a> from <a href="http://www.tweetdeck.com/">TweetDeck</a> <a href="http://twitter.com/ptsefton/status/2794876687">in reply to ptsefton</a></p>
+<p />
+<p><a href="http://twitter.com/cardcc"><span class="Strong_20_Emphasis">cardcc</span></a>@<a href="http://twitter.com/ptsefton">ptsefton</a> I&#8217;ll suggest an IR is a repository run by/for an institution! May be more than one&#8230; <a href="http://twitter.com/search?q=%23repodef">#repodef</a><a href="http://twitter.com/cardcc/status/2795331815">10:56 PM Jul 22nd</a> from <a href="http://www.tweetdeck.com/">TweetDeck</a> <a href="http://twitter.com/ptsefton/status/2794876687">in reply to ptsefton</a></p>
+<p />
+<p><a href="http://twitter.com/cardcc"><span class="Strong_20_Emphasis">cardcc</span></a>@<a href="http://twitter.com/ptsefton">ptsefton</a> <a href="http://twitter.com/search?q=%23repodef">#repodef</a> The JISC definition from comments to <a href="http://bit.ly/g5ol0" onclick="javascript:window.open(&quot;http://bit.ly/g5ol0&quot;);return false;">http://bit.ly/g5ol0</a><a href="http://twitter.com/cardcc/status/2795320906">10:55 PM Jul 22nd</a> from <a href="http://www.tweetdeck.com/">TweetDeck</a> <a href="http://twitter.com/ptsefton/status/2794876687">in reply to ptsefton</a></p>
+<p><a name="status_2795287590" /></p>
+<p><a href="http://twitter.com/cardcc"><span class="Strong_20_Emphasis">cardcc</span></a>@<a href="http://twitter.com/ptsefton">ptsefton</a> JISC: repository a managed store of content that enables sharing of that content. Key <span class="spCh spChx2018">&#8216;</span>managed<span class="spCh spChx2019">&#8217;</span>, <span class="spCh spChx2019">&#8217;</span>sharing<span class="spCh spChx2019">&#8217;</span> &amp; <span class="spCh spChx2018">&#8216;</span>content<span class="spCh spChx2019">&#8217;</span>. <a href="http://twitter.com/search?q=%23repodef">#repodef</a><a href="http://twitter.com/cardcc/status/2795287590">10:51 PM Jul 22nd</a> from <a href="http://www.tweetdeck.com/">TweetDeck</a> <a href="http://twitter.com/ptsefton/status/2794876687">in reply to ptsefton</a></p>
+<p><a name="status_2795262232" /></p>
+<p><a href="http://twitter.com/N3B"><span class="Strong_20_Emphasis">N3B</span></a>@<a href="http://twitter.com/ptsefton">ptsefton</a> A depot of all digital output from an institution for preservation and dissemination.<a href="http://twitter.com/N3B/status/2795262232">10:48 PM Jul 22nd</a> from web <a href="http://twitter.com/ptsefton/status/2794876687">in reply to ptsefton</a></p>
+<p><a name="status_2795105196" /></p>
+<p><a href="http://twitter.com/paulbrichardson"><span class="Strong_20_Emphasis">paulbrichardson</span></a>@<a href="http://twitter.com/ptsefton">ptsefton</a> <a href="http://twitter.com/search?q=%23repodef">#repodef</a> I didn&#8217;t define, of course. Just put in some ideas which may help&#8230;.<a href="http://twitter.com/paulbrichardson/status/2795105196">10:29 PM Jul 22nd</a> from <a href="http://www.tweetdeck.com/">TweetDeck</a> <a href="http://twitter.com/ptsefton/status/2794876687">in reply to ptsefton</a></p>
+<p><a name="status_2795093296" /></p>
+<p><a href="http://twitter.com/paulbrichardson"><span class="Strong_20_Emphasis">paulbrichardson</span></a>@<a href="http://twitter.com/ptsefton">ptsefton</a> <a href="http://twitter.com/search?q=%23repodef">#repodef</a> A managed store of digital assets. Metadata &amp; security addressed. Copyright explicit. Access open or by subscription.<a href="http://twitter.com/paulbrichardson/status/2795093296">10:27 PM Jul 22nd</a> from web <a href="http://twitter.com/ptsefton/status/2794876687">in reply to ptsefton</a></p>
+<p><a name="status_2795051260" /></p>
+<p><a href="http://twitter.com/andypowe11"><span class="Strong_20_Emphasis">andypowe11</span></a>@<a href="http://twitter.com/ptsefton">ptsefton</a> &#8220;a system for managing and sharing academic content in order to support scholarly communication and/or teaching and learning&#8221; ?<a href="http://twitter.com/andypowe11/status/2795051260">10:23 PM Jul 22nd</a> from <a href="http://www.twhirl.org/">twhirl</a> <a href="http://twitter.com/ptsefton/status/2794876687">in reply to ptsefton</a></p>
+<p />
+<p><a href="http://twitter.com/TheRepoRat"><span class="Strong_20_Emphasis">TheRepoRat</span></a>@<a href="http://twitter.com/ptsefton">ptsefton</a>: DevDict defn: a boondoggle started in hope and supported in fear of looking bad. (True mostly of US. Eur/Aus have better ones.)<a href="http://twitter.com/TheRepoRat/status/2777494597">3:15 AM Jul 22nd</a> from <a href="http://www.tweetdeck.com/">TweetDeck</a> </p>
+<p><a name="status_2777477066" /></p>
+<p><a href="http://twitter.com/TheRepoRat"><span class="Strong_20_Emphasis">TheRepoRat</span></a>@<a href="http://twitter.com/ptsefton">ptsefton</a> Legit defn: a service focused on capturing, disseminating, and preserving many sorts of digital institutional output.<a href="http://twitter.com/TheRepoRat/status/2777477066">3:14 AM Jul 22nd</a> from <a href="http://www.tweetdeck.com/">TweetDeck</a> <a href="http://twitter.com/ptsefton/status/2771187654">in reply to ptsefton</a></p>
+<p><a name="status_2774406916" /></p>
+<p><a href="http://twitter.com/cardcc"><span class="Strong_20_Emphasis">cardcc</span></a>@<a href="http://twitter.com/ptsefton">ptsefton</a> hope you will blog the definitions of repository and IR, as you didn&#8217;t give a hashtag. The R word a tough one; includes filestore<a href="http://twitter.com/cardcc/status/2774406916">9:45 PM Jul 21st</a> from <a href="http://www.tweetdeck.com/">TweetDeck</a> <a href="http://twitter.com/ptsefton/status/2769544876">in reply to ptsefton</a></p>
+<p><a name="status_2770960849" /></p>
+<p><a href="http://twitter.com/TheRepoRat"><span class="Strong_20_Emphasis">TheRepoRat</span></a>@<a href="http://twitter.com/ptsefton">ptsefton</a> &#8230; gah. Do you want a straight-up definition or an Ambrose Bierce Devil&#8217;s Dictionary one?<a href="http://twitter.com/TheRepoRat/status/2770960849">5:10 PM Jul 21st</a> from <a href="http://www.tweetdeck.com/">TweetDeck</a> <a href="http://twitter.com/ptsefton/status/2769544876">in reply to ptsefton</a></p>
+<p><a name="status_2770529041" /></p>
+<p><a href="http://twitter.com/mistermac2008"><span class="Strong_20_Emphasis">mistermac2008</span></a>@<a href="http://twitter.com/ptsefton">ptsefton</a> Online system that receives, organizes and normalizes institutional research output for searching/harvesting by machine and humans<a href="http://twitter.com/mistermac2008/status/2770529041">4:43 PM Jul 21st</a> from web </p>
+<p><a name="status_2769785825" /></p>
+<p><a href="http://twitter.com/nigeynige"><span class="Strong_20_Emphasis">nigeynige</span></a>@<a href="http://twitter.com/ptsefton">ptsefton</a> A collection is any aggregation of content items, physical or digital [from ISO 2146]<a href="http://twitter.com/nigeynige/status/2769785825">4:02 PM Jul 21st</a> from <a href="http://www.atebits.com/">Tweetie</a> <a href="http://twitter.com/ptsefton/status/2769544876">in reply to ptsefton</a></p>
+<p><a name="status_2769775309" /></p>
+<p><a href="http://twitter.com/nigeynige"><span class="Strong_20_Emphasis">nigeynige</span></a>@<a href="http://twitter.com/ptsefton">ptsefton</a> A repository is software that provides access to and manages collections.<a href="http://twitter.com/nigeynige/status/2769775309">4:01 PM Jul 21st</a> from <a href="http://www.atebits.com/">Tweetie</a> <a href="http://twitter.com/ptsefton/status/2769544876">in reply to ptsefton</a></p>
+<p />
+<p /></blockquote>
+<p class="meta-abstract" style="margin-left:0cm; margin-right:1.27cm; text-indent:0cm; " /></div>
+</div>
+]]></content:encoded>
+			<wfw:commentRss>http://ptsefton.com/2009/08/05/im-beginning-to-hate-the-word-repository.htm/feed</wfw:commentRss>
+		<slash:comments>3</slash:comments>
+		</item>
+		<item>
+		<title>ADFI collaboration and documentation tools</title>
+		<link>http://ptsefton.com/2009/07/08/adfi-collaboration-and-documentation-tools.htm</link>
+		<comments>http://ptsefton.com/2009/07/08/adfi-collaboration-and-documentation-tools.htm#comments</comments>
+		<pubDate>Wed, 08 Jul 2009 23:37:43 +0000</pubDate>
+		<dc:creator>ptsefton</dc:creator>
+				<category><![CDATA[Uncategorized]]></category>
+
+		<guid isPermaLink="false">http://ptsefton.com/2009/07/08/adfi-collaboration-and-documentation-tools.htm</guid>
+		<description><![CDATA[Shirley Reushle has been beating me up1 about the mess of software and websites and stuff that we use here at ADFI.]]></description>
+			<content:encoded><![CDATA[<abbr class="unapi-id" title="http://ptsefton.com/2009/07/08/adfi-collaboration-and-documentation-tools.htm"><!-- &nbsp; --></abbr>
+<p><?xml version="1.0"?></p>
+<div>
+<div class="page-toc">
+<ul>
+<li><a href="#id1">Email and when not to use it: communications tools</a></li>
+<li><a href="#id2">Writing Documents</a></li>
+<li><a href="#id4">Workflows</a>
+<ul>
+<li><a href="#id5">Writing a research paper using a supplied template</a></li>
+<li><a href="#id6">Towards a manual for a new bit of software</a></li>
+<li><a href="#id8">A blog post like this one</a></li>
+</ul>
+</li>
+<li><a href="#id10">Conclusion</a></li>
+</ul>
+</div>
+<div>
+<p><a href="http://reushle.wordpress.com/2009/06/30/hello-world/">Shirley Reushle</a> has been beating me up<span class="T3"><span class="footnote" style="vertical-align: super;"><a class="footnote" href="#ftn1" name="ftn1-text" title="1     Not literally yet but she's looking like she might &#x2013; she actually mimed putting her hands around my neck this morning. I think the only thing that saved me is that I'm getting a sore throat and she is afraid of catching it.">1</a></span></span> about the mess of software and websites and stuff that we use here at ADFI. There&#8217;s <a href="http://ice.usq.edu.au/">ICE</a> and Microsoft Office and <a href="http://openoffice.org/">OpenOffice.org</a> and SharePoint (about which no more will be said here) and  <a href="http://delicious.com/">delicious</a> and the dreaded <a href="http://twitter.com/">Twitter</a> and our multiple Trac project management sites (<a href="http://cairss.caul.edu.au/trac/">CAIRSS</a> | <a href="http://fascinator.usq.edu.au/trac">The Fascinator</a> | <a href="http://ice.usq.edu.au/trac/report/7">ICE</a> and more) and some of us have blogs and some of our projects have a project blog and then there&#8217;s email using the corporate Microsoft Exchange (many of us are stuck using the feeble web client for that because of our choice of operating system), and a few of us prefer to deal with our mail in the vastly more efficient Google suite. We use IM, that&#8217;s instant messaging, AKA chat. Me, I talk to various team members and colleagues on MSN, Yahoo, AIM, Google Talk and Skype.  Of course, everyone should be hooked-in to a feed-reader of some kind, although lots of people around here don&#8217;t seem to know what that is. Stay tuned if you are one of them. Really, this is important. There&#8217;s Facebook too <span class="spCh spChx2013">&#x2013;</span> which doesn&#8217;t seem to figure too much in our work but is useful sometimes. Why just recently I saw two senior people chatting about how they have this terrible problem with how to spend tens of millions of government dollars and I was able to place a well-timed telephone call (don&#8217;t they know that&#8217;s what Twitter is for?). This is not counting all the stuff our virtual Worlds specialist, Lindy McKeown uses.</p>
+<p>To help Shirley, I thought I&#8217;d sit down and do a matrix of tasks mapped against the services you can use to get them done so she could look up what she wanted to do and it would tell her which tools to use, only I can&#8217;t. </p>
+<p>It&#8217;s too hard.</p>
+<p>We do have a bewildering array of things to deal with in our work at ADFI and it takes time and practice and experience to know what to do with them all. What I&#8217;ll do here is:</p>
+<ol class="lin" style="list-style: decimal;">
+<li>
+<p>Run through some thoughts about the various kinds of tools we use and then cook-up just a few workflows that show which  applications you might choose in different situations. </p>
+</li>
+<li>
+<p>Following all that I&#8217;ll talk a bit about what I think the future might bring, both for us at the ADFI and more broadly. To jump ahead, if the promise of<a href="http://en.wikipedia.org/wiki/Google_wave"> Google Wave</a> is realized then a lot of the distinctions between communications software and document editors and publishing systems will disappear, but I&#8217;m sure we&#8217;ll still be able to confuse ourselves.</p>
+</li>
+</ol>
+<p>I will follow-up with two more posts, one on how to get started with communications tools (summary, get Google Reader and find some professional sources, some <a href="http://www.tictocs.ac.uk/">journals</a>, some news you want to follow, some photo albums from friends, get comfortable with it, then get a delicious account and start sharing bookmarks with your team, then try Twitter). The second will be about how we can bring all these things together onto an ADFI website.</p>
+<h1><a id="id1" name="id1"><!--id1--></a>Email and when not to use it: communications tools</h1>
+<p><b>Email</b> is obviously a big issue and everyone claims to have too much.</p>
+<p>Personally I follow a variant of Merlin Mann&#8217;s Inbox Zero approach (check out the <a href="http://video.google.com/videoplay?docid=973149761529535925">video</a> or the <a href="http://www.43folders.com/izero">posts</a>). I try to either deal with email the first time I read it or add it to a task list (Gmail is great for this). Part of this is being honest about how much I can deal with <span class="spCh spChx2013">&#x2013;</span> I know there&#8217;s no point in letting something that&#8217;s of only peripheral interest to me sit around in my inbox staring at me and making me feel guilty. So if can&#8217;t be answered immediately or it&#8217;s not for someone who really matters like a DVC or a customer or a key stakeholder then I bin it. The alternative is to think <span class="spCh spChx201c">&#x201C;</span>I&#8217;ll get around to that<span class="spCh spChx201d">&#x201D;</span>; then surprise surprise, to not get around to it; then to have to trawl through it later. Takes longer and achieves nothing but increased anxiety. They key to Inbox Zero is to turn email into action. Either that or vaporize it.</p>
+<p>One of my priorities with my team is to <b>reduce the volume of email that needs to be managed</b>. By managed I mean kept, and tracked beyond the first time you read it. It&#8217;s not really the total volume that matters, it&#8217;s the management overheard <span class="spCh spChx2013">&#x2013;</span> if you can scan it and act on it it then it is dealt with, it&#8217;s the things that hang around that are a problem. There are a couple of things for which I don&#8217;t think email is a good solution:</p>
+<dl>
+<dt>Jobs to do. Actions.</dt>
+<dd>If there&#8217;s a job for someone to do we aim to use a job ticket<span class="T3"><span class="footnote" style="vertical-align: super;"><a class="footnote" href="#ftn2" name="ftn2-text" title="2 I can hear my staff grinding their teeth here as I have a bad habit of sending them emails about software bugs or whatever instead of taking the time to put a job ticket in our Trac system.">2</a></span></span> in the Trac system, like <a href="http://fascinator.usq.edu.au/trac/ticket/215">this one</a> I picked at random. It shows work Oliver has been doing on reorganizing one of our systems. This is much better than email, of course because it is accessible to everyone and it&#8217;s all in the server not smeared around several inboxes. So for the techincal team it is standard practice to convert emails into one or more Trac tickets.</dd>
+<dt>Notification of new content</dt>
+<dd>Another thing that&#8217;s not a good use of email is to get updates from web sites, or journals or whatever. Far better to use a feed reader/aggregator. I am frankly surprised how little penetration these systems have had. I won&#8217;t name names but a lot of people who we associate with don&#8217;t use an aggregator to monitor what&#8217;s going on. I have Google Reader set up to watch lots of tech blogs, a few journals, some miscellaneous blogs for fun, some friend&#8217;s online photo albums, some delicious tags, a Twitter search or two. I just read the whole lot, river of news style, usually starting at home around 6am but some people prefer to read by subject or by importance with folders like &#8216;check hourly&#8217;, &#8216;check daily&#8217; and &#8216;check monthly&#8217;. </dd>
+<dd>For example, I just accidentally subscribed to the forum at a &#8216;Virtual Conference&#8217; which is being run in what seems like hundreds of twisty little Moodle discussions, all alike and was immediately inundated with email. I wouldn&#8217;t have minded all that if it was in Google reader where I could scan it but discussion like that does not belong in my inbox, and there seems to be no way to subscribe using Atom/RSS (and no I don&#8217;t want to set up a rule or filter for every subscription <span class="spCh spChx2013">&#x2013;</span> routing email to a folder is just a way of admitting you&#8217;re not going to read it or turn it into actions).</dd>
+<dt>Links to look at </dt>
+<dd>Then there&#8217;s the one where someone sends a link to a web site in email &#8211; <span class="spCh spChx201c">&#x201C;</span>hey check out this cool thing<span class="spCh spChx201d">&#x201D;</span> if they just mail it then it ends up living in several inboxes, with no guaranteed corporate memory that it was ever sent. That&#8217;s why we encourage people not to circulate links by email but to bookmark them in delicious. On the RUBRIC project we had the well-organized Marisa Parker bookmarking <a href="http://delicious.com/tag/destrubric">things as they came in via email.</a> The result is now we don&#8217;t have to go back through old mail to see what was important on the project. (One of the problems here is that some senior people are used to being fed stuff by email so sometimes we just have to send stuff that way <span class="spCh spChx2013">&#x2013;</span> some of them even have personal assistants and such to print out the web pages and put them in folders.)</dd>
+<dd>Slightly better than <span style="font-style:normal; "><span class="T4">sending</span></span> links via email to individuals is sending them to a managed list, for which we mostly use <b>Google Groups</b> now. At least with a group people know they can delete their copy of a posting and it will remain in the archive but it&#8217;s still not a good place to store links to websites <span class="spCh spChx2013">&#x2013;</span> you can also appoint a delicious user like Marisa to record stuff as it comes in (I thought you should be able to subscribe to a feed from a Google group in Google reader, but it doesn&#8217;t seem to work at the moment).</dd>
+<dd>Our main tags are: <a href="http://delicious.com/tag/usqadfi">usqadfi </a>for general stuff and <a href="http://delicious.com/tag/adfisdt">adfisdt</a> for stuff that is of interest to the software development team.</dd>
+</dl>
+<p>As I write this, in another window I see this tweet (that&#8217;s a Twitter message):</p>
+<blockquote class="bq"><p><a href="http://twitter.com/billpollock"><span class="Strong_20_Emphasis">billpollock</span></a> always read email with the Reply button</p>
+</blockquote>
+<p>Actually, that sounds like bad advice, better to say <span class="spCh spChx201c">&#x201C;</span>Always read email with a finger over the delete button<span class="spCh spChx201d">&#x201D;</span>, but not to worry, this brings us to Twitter. Here are a few examples of how Twitter has been useful to me and the software team:</p>
+<ul class="lib">
+<li>
+<p>Twitter&#8217;s a good source of useful news and links if you follow authoritative sources with a high signal to noise ratio. Take Tim O&#8217;Reilly (the publisher). His feed is <a href="http://twitter.com/timoreilly">here</a>.  If you&#8217;re on Twitter you can follow him, or use the <a href="http://twitter.com/statuses/user_timeline/2384071.rss">RSS feed </a>to subscribe, just as you would to a blog, so your feed reader keeps track of it all for you.</p>
+</li>
+<li>
+<p>Twitter got me a <a href="http://ptsefton.com/2009/03/10/developer-happiness-and-associated-meetings.htm">trip to the Developer Happiness days</a> workshop in London. OK, I admit that&#8217;s stretching it, because I was known to the organizers but we had been hanging out on Twitter talking about tech stuff and David Flanders contacted me about coming to the event via Twitter.</p>
+</li>
+<li>
+<p>Twitter was useful in <a href="http://ptsefton.com/2009/03/16/the-desktop-fascinator-aka-dterrev.htm">developing the idea for and promoting The Fascinator</a> in conversation with Jim Richardson, Rowan Brownlee and others.</p>
+</li>
+<li>
+<p>At conferences now, Twitter is a really useful channel for establishing contact <span class="spCh spChx2013">&#x2013;</span> someone will announce where they are and a party can coalesce. See <a href="http://delicious.com/jimrhiz/twitter+conferences">Jim Richardson&#8217;s delicious links about Twitter at conferences</a>. See <span class="spCh spChx2013">&#x2013;</span> that&#8217;s Jim working as an eResearch hub <span class="spCh spChx2013">&#x2013;</span> using the tools I&#8217;m talking about here. He&#8217;ll drop a link to those resources in when people start talking about an upcoming conference.</p>
+</li>
+<li>
+<p>You can get instant advice from followers and others who happen to pick up on keywords in a tweet. Just this week, when I bought a new Android powered smartphone (to explore the digital future, not for frivolous reasons), I got lots of advice from Twitter about whether or not to buy a particular model and what apps to install on it. Similarly, I have some generous help in working out how to rescue some document in legacy formats from Twitter followers.</p>
+</li>
+<li>
+<p>It keeps the social conversation going in our team in and out of business hours. Last weekend Bron Chandler and I were talking with Linda Octalina about (a) not working on the weekends and (b) where to buy laying chooks in Toowoomba. Doing this on Twitter means that anyone in overlapping group of followers can join in, or politely ignore us, or unsubscribe if our signal to noise ration drops too low. If we direct the messages &#8216;@&#8217; each other then they don&#8217;t spill over into the the general feed. So a message from me starting with @linda_octa goes to her plus our mutual followers.</p>
+</li>
+</ul>
+<p>We&#8217;re trying out Twitter with the CAIRSS service too. There is an official<a href="https://twitter.com/caulcairss"> CAIRSS account</a> that Kate Watson and Tim McCallum use, but anyone can contribute to the conversation by using the hashtag <a href="http://twitter.com/#search?q=%23caulcairss">#caulcairss</a> in their message I can&#8217;t say it&#8217;s had much impact yet but we will see.</p>
+<p>One of the other things we&#8217;re trying with CAIRSS is aggregating activity from different services together <a href="http://cairss.caul.edu.au/www/news_stand.htm">on the CAIRSS site</a>. That&#8217;s only part of the story though, as that page is just taking a live feed from other services, not actually bringing the content back into a repository at our site. This is important, one of the issues with using Twitter is that messages disappear, in <a href="http://scobleizer.com/2009/06/28/real-time-systems-hurting-long-term-knowledge/">Real-time systems hurting long-term knowledge?</a> Robert Scoble notes that Twitter and Friend Feed (which I will spare you here because it&#8217;s not a big part of how we work) are both much less effective than blogs when it comes to persistence and retrieval, for now anyway. Which bring us to blogs. I will pick up on this idea of persistence at the end of this piece.</p>
+<p>I think we&#8217;re past the stage where we have to argue for the effectiveness of professional blogs so I&#8217;ll be brief here. This blog has helped me to establish a small professional network. This blog was the glue that helped me to get to the point where I could essentially invite myself to Microsoft Research in Redmond, and <a href="http://ptsefton.com/2009/06/11/trip-report-visit-to-microsoft.htm">get away with it</a>. This blog is where most of the real scholarly communication I&#8217;m engaged in goes on <span class="spCh spChx2013">&#x2013;</span> anything that makes it into a paper or a conference presentation is already pretty well worked out and discussed here first. This blog talking to other blogs built the partnership we&#8217;ve established with Peter Murray-Rust&#8217;s group and Cambridge.</p>
+<p>Others on our team have blogs that work for them in different ways. They can comment below if they want to spruik them.</p>
+<p>Finally, chat is really useful <span class="spCh spChx2013">&#x2013;</span> we use it a lot over lots of different Instant Messaging services. Even if you&#8217;re sitting next to someone it is sometimes better to interrupt via a chat session as it means they can finish the sentence they&#8217;re typing or ignore you if they&#8217;re busy. I have a network of people in chat I can call on for instant advice, and some people come to me with questions too.</p>
+<p>With collaboration tools we all have different profile.  On Twitter I tend to follow peers, people with whom I have a reasonably symmetrical relationship, where it is likely that if I mention them in a tweet they will see it and maybe respond, whereas Tim McCallum gets a lot from authorities who have thousands of followers, something I use an aggregator for <span class="spCh spChx2013">&#x2013;</span> I would be more inclined to <a href="http://twitter.com/statuses/user_timeline/15736190.rss">subscribe</a> to Tim&#8217;s pick <a href="http://twitter.com/smashingmag">@smashingmag</a> in Reader than to follow them on Twitter.</p>
+<p>Just to tie this together a bit this week a real example of these communications services in action. </p>
+<p>Christiaan Kortekass from UQ tweeted:</p>
+<blockquote class="bq"><p><a href="http://twitter.com/ckortekaas"><span class="Strong_20_Emphasis">ckortekaas</span></a> Trying to figure out how to enable phrase stemming in Solr. Anyone know? Eg search &#8220;Andrews, K&#8221; to return &#8220;Andrews, K&#8221; and &#8220;Andrew, Kathy&#8221;</p>
+</blockquote>
+<p>I saw this and was just putting together an email to put him in touch with Kent Fitch at the NLA who is a real guru this area when Christiaan grabbed me in Google Chat and we had a quick discussion about it, and he showed me some cool stuff they&#8217;re doing with geolocating their repository access stats. While that was happening I started an email thread which ended up with five people on it. Christiaan was tweeting solutions a couple of hours later. (He makes a reappearance in the conclusion of this post).</p>
+<h1><a id="id2" name="id2"><!--id2--></a>Writing Documents</h1>
+<p>Having looked at interaction-based services I will look at documents. This is something we think a lot about, because the team at ADFI were responsible for inventing and building <a href="http://ice.usq.edu.au/">ICE</a>, so naturally we eat our own dog food<span class="T3"><span class="footnote" style="vertical-align: super;"><a class="footnote" href="#ftn3" name="ftn3-text" title="3 I worked for NextEd for a while, one of the things that endeared me to the company initially was seeing Paul McKey's cutting up the cow keynote at AUSWEB 2K  where he referred to &#x201C;Eating our own dog shit&#x201D;. He denies it, but I swear that's what I heard. Paul is no longer just a man, he's now a brand, which you can experience for yourself .">3</a></span></span>.</p>
+<p>ICE was built for making book-length courseware that can be delivered in print and web formats from the same source, with an authoring tool that academics will actually use. But we also use it for lots of other things.</p>
+<ul class="lib">
+<li>
+<p>For websites, like the <a href="http://ice.usq.edu.au/">ICE site</a>, or the <a href="http://cairss.caul.edu.au/">CAIRSS</a> site. </p>
+</li>
+<li>
+<p>For <a href="http://eprints.usq.edu.au/5248/">papers</a> and <a href="http://eprints.usq.edu.au/5258/1/fascinator_poster.htm">posters</a>.</p>
+</li>
+<li>
+<p>For blogging. You&#8217;re looking at mine now. For other examples the <a href="http://caulcairss.wordpress.com/">CAIRSS blog</a> and the <a href="http://ice.usq.edu.au/blog/2009/06/22/ice-2009-06-19.html">ICE blog</a>. (And <a href="http://wwmm.ch.cam.ac.uk/blogs/murrayrust/">Peter Murray Rust</a> has joined us at his blog where he is finding lots of bugs for us.)</p>
+</li>
+<li>
+<p>For grant applications and other formal communications where PDF is a good deliverable. </p>
+<p>(See, I&#8217;m not anti-PDF. It&#8217;s a great way to send stuff to project board members who you just <b>know</b> are going to print it out <span class="spCh spChx2013">&#x2013;</span> they&#8217;ll value it much more than an email with the same text in it, and for some people a PDF is so much more authoritative than a web page. Don&#8217;t worry, they&#8217;ll retire soon.)</p>
+</li>
+</ul>
+<p>Others use it for the above as well as for newsletters which get mailed around USQ.</p>
+<p>The basic rule here is that everything that is going to be a &#8216;finished&#8217; web document or delivered as a PDF finishes up as an ICE document, but it doesn&#8217;t necessarily have to start that way. It could start in an email, or a wiki or in Google docs.</p>
+<p>For internal document we can circulate a document for comment just by sending a link to the ICE server and people can comment inline. This allows paragraph level annotation, which is good for general review and for discussion. There would be more work to do to make this usable by a broader population, allowing an author to set up an ad-hoc group or mail an obscure URL.</p>
+<p>Here is an inline comment from Shirley with a reply from me:</p>
+<p><a name="graphics1"><!-- --></a><img alt="graphics1" class="fr1" height="253" src="http://ptsefton.com/wp-content/uploads/2009/07/7283237d-554x253.jpg" style="border:0px; vertical-align: top" width="554"/><br/></p>
+<p>Shirley is working on a reply to this document of mine.</p>
+<p>Another way to collaborate is with Google Docs, which is a bit of an odd beast. I&#8217;ve covered it here <a href="http://delicious.com/ptsefton/googledocs+ptsefton">several times before</a>, mostly from the point of view of how broken it is at basic stuff like HTML formatting and at importing and exporting word processing documents. I have been giving it a try this week with a post I&#8217;m writing for CAIRSS about person-identifiers, where I want input from people elsewhere and I ran into a really annoying issue where it would not even import the document a plain-old OpenDocument Format document written in the latest version of OpenOffice.org. Saved the OpenDocument as a Word doc but it mangled a diagram. In the end I had to convert it to a bitmap. And when I go to re-edit and post to the blog I&#8217;ll have to put back in all my styles that Google took out and put back in the original image. I used to be worried about this, but now I think that GDocs is going to be irrelevant, I&#8217;ll talk about that at the end of this post. I think it&#8217;s pretty telling that Google Documents doesn&#8217;t even support the latest OpenOffice.org format, why would they invest in it with Wave coming?</p>
+<p>But for all that, GDocs <b>is</b> spectacularly good at syncronous and/or asyncronous collaborative editing. I think Google are onto something there.</p>
+<p>And then there are wikis. We have those too, because they are embedded in Trac. We use them for project management quite intensively. I know that Duncan Dickinson on our team is disappointed with the limitations of the wiki system in Trac, but the really good thing about is the integration with the other parts of the system. Wikis are inherently flexible so you can do a lot with them. Two things we tend to do a lot of:</p>
+<ol class="lin" style="list-style: decimal;">
+<li>
+<p>Put up a project summary page with a broad outline of tasks, and then link that to individual job tickets. See <a href="http://ice.usq.edu.au/trac/wiki/TheOremIceTasks">this one for the ICE-TheOREM project</a> we did for Cambridge. Those crossed off ticket numbers <a href="http://ice.usq.edu.au/trac/ticket/5903">link to tickets</a>, which in turn <a href="http://ice.usq.edu.au/trac/changeset/9945">link to changesets</a> in our open code-base.</p>
+</li>
+<li>
+<p>For teleconferences we set up a single agenda/meeting page and take the minutes as we go. Participants can come back later and make changes as needed, which are all tracked. This does away with the whole minutes, agenda, voting to accept the minutes dance that used to go on.</p>
+</li>
+</ol>
+<h1><a id="id4" name="id4"><!--id4--></a>Workflows</h1>
+<p>I think the discussion above shows that the idea of a tool matrix with what to use in every situation is unrealistic. But here are a few common recipes for use at ADFI.</p>
+<h2><a id="id5" name="id5"><!--id5--></a>Writing a research paper using a supplied template</h2>
+<p>We have used the first two of these <span class="spCh spChx2013">&#x2013;</span> will try the third. </p>
+<p>In all cases we would use a reference manager. I mention Zotero here there are others. With Zotero you have to build the bibliography and inline citations using just one Zotero library, but it does have collaboration tools which are getting increasingly good. For example on a paper we just wrote I managed references but Duncan created a lot of them in his Zotero account and shared it. Here&#8217;s <a href="http://www.zotero.org/ptsefton/items">my account</a> <span class="spCh spChx2013">&#x2013;</span> if you like any of those refs and you&#8217;re running Zotero in Firefox you can click to download  to your own database. (There&#8217;s some kind of bug where it keeps adding duplicates, I haven&#8217;t looked into yet).</p>
+<div class="Table1" style="width: 100%; margin: 0px; padding: 0px; text-align:left;">
+<table class="Table1" style="border-spacing: 0;empty-cells: show; width:14.656cm; border-collapse: collapse; border: 1.0px solid #000000">
+<colgroup>
+<col style="width:4.886cm;"/></colgroup>
+<tbody>
+<tr>
+<td class="Table1_A1" style="vertical-align: top;  border-bottom:1.0px solid #000000;  border-left:1.0px solid #000000;  border-right:none;  border-top:1.0px solid #000000;  padding:0.097cm; ">
+<p class="P2">Free Range Style</p>
+</td>
+<td class="Table1_A1" style="vertical-align: top;  border-bottom:1.0px solid #000000;  border-left:1.0px solid #000000;  border-right:none;  border-top:1.0px solid #000000;  padding:0.097cm; ">
+<p class="P2">Dog Food Style</p>
+</td>
+<td class="Table1_C1" style="vertical-align: top;  border:1.0px solid #000000;  padding:0.097cm; ">
+<p class="P2">Free Range Dog Food Style</p>
+</td>
+</tr>
+<tr>
+<td class="Table1_A2" style="vertical-align: top;  border-bottom:1.0px solid #000000;  border-left:1.0px solid #000000;  border-right:none;  border-top:none;  padding:0.097cm; ">
+<ol class="lin" style="list-style: decimal;">
+<li>
+<p>Draft in GDocs with rich collaboration</p>
+</li>
+<li>
+<p>Lead author prepares final draft and insert refs in Word + Zotero</p>
+</li>
+<li>
+<p>Someone converts to template</p>
+</li>
+<li>
+<p>Submit</p>
+</li>
+<li>
+<p>Submit to ePrints using the file prepared earlier.</p>
+</li>
+</ol>
+<p>In this model you can&#8217;t go backwards <span class="spCh spChx2013">&#x2013;</span> once you start adding references using a citation manager you can&#8217;t put it back in Google Docs.</p>
+</td>
+<td class="Table1_A2" style="vertical-align: top;  border-bottom:1.0px solid #000000;  border-left:1.0px solid #000000;  border-right:none;  border-top:none;  padding:0.097cm; ">
+<ol class="lin" style="list-style: decimal;">
+<li>
+<p>Create document on ICE server</p>
+</li>
+<li>
+<p>One author drafts in ICE template at a time (need to coordinate who is going to do what when)</p>
+</li>
+<li>
+<p>Collaborators comment online.</p>
+</li>
+<li>
+<p>Lead author inserts Zotereo refs at any time.</p>
+</li>
+<li>
+<p>Someone uploads to conference site.</p>
+</li>
+<li>
+<p>Lead author submits to ePrints directly from ICE.</p>
+</li>
+</ol>
+<p>In this model we have the overhead of setting up ICE accounts and we have to &#8216;pass the baton&#8217; so as not to generate conflicts.</p>
+</td>
+<td class="Table1_C2" style="vertical-align: top;  border-bottom:1.0px solid #000000;  border-left:1.0px solid #000000;  border-right:1.0px solid #000000;  border-top:none;  padding:0.097cm; ">
+<ol class="lin" style="list-style: decimal;">
+<li>
+<p>Start as for <span class="spCh spChx201c">&#x201C;</span>Free Range Style<span class="spCh spChx201d">&#x201D;</span>.</p>
+</li>
+<li>
+<p>When the core of the paper is done switch to <span class="spCh spChx201c">&#x201C;</span>Dog Food Style<span class="spCh spChx201d">&#x201D;</span></p>
+</li>
+</ol>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p/>
+<h2><a id="id6" name="id6"><!--id6--></a>Towards a manual for a new bit of software</h2>
+<p>As we write new software this is what we tend to do about documentation:</p>
+<ol class="lin" style="list-style: decimal;">
+<li>
+<p>Initial how-to will be in the Trac ticket or the code the developer writes, maybe in the form of a &#8216;usage&#8217; output for commandline tool.</p>
+</li>
+<li>
+<p>When we get someone other than the developer to test the tool there will be a wiki page, describing, say how to install it. The tester can fix any issues with the doco.</p>
+</li>
+<li>
+<p>When we release,  one of the project coordinators will  paste the wiki-generated documentation into an OpenOffice.org document in ICE and clean it up to follow our guidelines for procedures.</p>
+</li>
+<li>
+<p>We publish the &#8216;real&#8217; procedures etc on the web via ICE.</p>
+</li>
+</ol>
+<h2><a id="id8" name="id8"><!--id8--></a>A blog post like this one</h2>
+<p>For substantial posts like this one, I tend to seek review from the rest of the team, so:</p>
+<ul class="lib">
+<li>
+<p>I write it in OpenOffice.org, </p>
+</li>
+<li>
+<p>Interact a lot as I go in email, chat and Twitter,</p>
+</li>
+<li>
+<p>Put it into an ICE server and get comments (or not if they are all too busy doing real work). </p>
+</li>
+<li>
+<p>When it&#8217;s done I hit the Atom Pub to push it to a blog, usually here, but if I am speaking on behalf of a project that it will go to the relevant blog.</p>
+</li>
+<li>
+<p>Track the comments on the blog and respond there.</p>
+</li>
+</ul>
+<h1><a id="id10" name="id10"><!--id10--></a>Conclusion</h1>
+<p>So it&#8217;s complicated integrating and moving between all these different tools, but as I have flagged several times above, there is a potential solution coming. If that&#8217;s not Google Wave then I bet it will be something that looks a lot like it. </p>
+<p>We are working in a world where the old metaphors are still constraining use. </p>
+<ul class="lib">
+<li>
+<p>We built ICE because the metaphorical typewriter that is the word processor is not hooked up properly to the web. Yes &#8216;web&#8217; is a metaphor, but we all understand now that it has well and truly transcended that metaphor. </p>
+</li>
+<li>
+<p>The metaphorical postal system that is email is still well and truly mired in its own metaphor, with boxes and postmasters and so on cropping up all over the place in the lexicon. We interact with our metaphorical postal system via the web in &#8216;web mail&#8217;, but it&#8217;s not really of-the-web.</p>
+</li>
+</ul>
+<p>I said I&#8217;d come back to Christiaan. While writing this up I remembered that yet another communications system, which they used to use at UQ, is <a href="http://campfirenow.com/">Campfire</a>; a group chat system that provides a &#8216;room&#8217; where developers can drop in. When we were evaluating Fez I joined Christiaan and team at the Campfire and it was a great way to participate in a discussion with a  whole team. While I was asking about how the software worked they were talking about the work they were doing, taking coffee breaks, cracking jokes <span class="spCh spChx2013">&#x2013;</span> just like visiting any office staffed by extremely talented and cool people. </p>
+<p>In writing this, it was easy enough to call up Christiaan in Google Chat to see if they still used Campfire. I got my answer, but I got something else as well; affirmation. He suggested that he saw Google Wave replacing a bunch of current tools <span class="spCh spChx201c">&#x201C;</span>wikis, blog, email, im<span class="spCh spChx201d">&#x201D;</span>. </p>
+<p>Snap.</p>
+<div class="Table2" style="width: 100%; margin: 0px; padding: 0px; text-align:left;">
+<table class="Table2" style="border-spacing: 0;empty-cells: show; width:14.656cm; border-collapse: collapse; border: 1.0px solid #000000">
+<colgroup>
+<col style="width:3.78cm;"/>
+<col style="width:10.876cm;"/></colgroup>
+<tbody>
+<tr>
+<td class="Table2_A1" style="vertical-align: top;  border-bottom:1.0px solid #000000;  border-left:1.0px solid #000000;  border-right:none;  border-top:1.0px solid #000000;  padding:0.097cm; ">
+<p>me</p>
+</td>
+<td class="Table2_B1" style="vertical-align: top;  border:1.0px solid #000000;  padding:0.097cm; ">
+<p>Hey there</p>
+</td>
+</tr>
+<tr>
+<td class="Table2_A2" style="vertical-align: top;  border-bottom:1.0px solid #000000;  border-left:1.0px solid #000000;  border-right:none;  border-top:none;  padding:0.097cm; ">
+<p>CK</p>
+</td>
+<td class="Table2_B2" style="vertical-align: top;  border-bottom:1.0px solid #000000;  border-left:1.0px solid #000000;  border-right:1.0px solid #000000;  border-top:none;  padding:0.097cm; ">
+<p>Hi</p>
+</td>
+</tr>
+<tr>
+<td class="Table2_A2" style="vertical-align: top;  border-bottom:1.0px solid #000000;  border-left:1.0px solid #000000;  border-right:none;  border-top:none;  padding:0.097cm; ">
+<p> me</p>
+</td>
+<td class="Table2_B2" style="vertical-align: top;  border-bottom:1.0px solid #000000;  border-left:1.0px solid #000000;  border-right:1.0px solid #000000;  border-top:none;  padding:0.097cm; ">
+<p> Just writing up some stuff about how we use comms tools here &#8211; do you still use the campfire?</p>
+</td>
+</tr>
+<tr>
+<td class="Table2_A2" style="vertical-align: top;  border-bottom:1.0px solid #000000;  border-left:1.0px solid #000000;  border-right:none;  border-top:none;  padding:0.097cm; ">
+<p> CK</p>
+</td>
+<td class="Table2_B2" style="vertical-align: top;  border-bottom:1.0px solid #000000;  border-left:1.0px solid #000000;  border-right:1.0px solid #000000;  border-top:none;  padding:0.097cm; ">
+<p>very much so</p>
+<p>though im hoping we can swich to google wave at some point</p>
+<p>probably switch a lot of stuff over to wave by the look of it</p>
+<p>wikis, blog, email, im</p>
+<p>fez.. [This is a repository application that CK leads - PS]</p>
+<p> <img src='http://ptsefton.com/wp-includes/images/smilies/icon_razz.gif' alt=':P' class='wp-smiley' />    [This shows that he is joking - PS]</p>
+</td>
+</tr>
+<tr>
+<td class="Table2_A2" style="vertical-align: top;  border-bottom:1.0px solid #000000;  border-left:1.0px solid #000000;  border-right:none;  border-top:none;  padding:0.097cm; ">
+<p>me</p>
+</td>
+<td class="Table2_B2" style="vertical-align: top;  border-bottom:1.0px solid #000000;  border-left:1.0px solid #000000;  border-right:1.0px solid #000000;  border-top:none;  padding:0.097cm; ">
+<p>I agree that&#8217;s what I&#8217;m wirting up essentially</p>
+<p>Do you have a test account / written any widgets yet?</p>
+</td>
+</tr>
+<tr>
+<td class="Table2_A2" style="vertical-align: top;  border-bottom:1.0px solid #000000;  border-left:1.0px solid #000000;  border-right:none;  border-top:none;  padding:0.097cm; ">
+<p>CK</p>
+</td>
+<td class="Table2_B2" style="vertical-align: top;  border-bottom:1.0px solid #000000;  border-left:1.0px solid #000000;  border-right:1.0px solid #000000;  border-top:none;  padding:0.097cm; ">
+<p>no i havent signed up to wave yet</p>
+<p>have you?</p>
+</td>
+</tr>
+<tr>
+<td class="Table2_A2" style="vertical-align: top;  border-bottom:1.0px solid #000000;  border-left:1.0px solid #000000;  border-right:none;  border-top:none;  padding:0.097cm; ">
+<p> me</p>
+</td>
+<td class="Table2_B2" style="vertical-align: top;  border-bottom:1.0px solid #000000;  border-left:1.0px solid #000000;  border-right:1.0px solid #000000;  border-top:none;  padding:0.097cm; ">
+<p>I started but I didn&#8217;t click submit</p>
+</td>
+</tr>
+<tr>
+<td class="Table2_A2" style="vertical-align: top;  border-bottom:1.0px solid #000000;  border-left:1.0px solid #000000;  border-right:none;  border-top:none;  padding:0.097cm; ">
+<p> CK</p>
+</td>
+<td class="Table2_B2" style="vertical-align: top;  border-bottom:1.0px solid #000000;  border-left:1.0px solid #000000;  border-right:1.0px solid #000000;  border-top:none;  padding:0.097cm; ">
+<p>we&#8217;d probably want our own local wave</p>
+</td>
+</tr>
+<tr>
+<td class="Table2_A2" style="vertical-align: top;  border-bottom:1.0px solid #000000;  border-left:1.0px solid #000000;  border-right:none;  border-top:none;  padding:0.097cm; ">
+<p> me</p>
+</td>
+<td class="Table2_B2" style="vertical-align: top;  border-bottom:1.0px solid #000000;  border-left:1.0px solid #000000;  border-right:1.0px solid #000000;  border-top:none;  padding:0.097cm; ">
+<p>yep</p>
+<p>Need to start somewhere though</p>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p class="P3">I&#8217;m pasting this in here, with permission, because I want you to think about how this workflow might change. I am writing this in a word processor <span class="spCh spChx2013">&#x2013;</span> and hopping out to the web browser to look things up and paste in links, and if I want to ask Christiaan a question then that happens over in another tab in the browser and unless I make the connection like I did here, that connection is lost. I&#8217;m very unlikely to remember the contribution he made, and others commenting on this post before I publish it wouldn&#8217;t see it. In Wave, I&#8217;d simply invite him in to my draft document and the chat could take place synchronously or asynchronously as we like. As it is, I have to send him a copy of this document because he doesn&#8217;t have access to the private ADFI ICE system where I am going to seek comment from others.</p>
+<p class="P3">In Summary. </p>
+<ol class="lin" style="list-style: decimal;">
+<li>
+<p>We need to look at Wave. If we don&#8217;t then we&#8217;re not much of a Digital Futures Institute<span class="T3"><span class="footnote" style="vertical-align: super;"><a class="footnote" href="#ftn4" name="ftn4-text" title="4 We could call it the Queensland Digital Futures Institute and revive that old joke about 'you are entering QLD, turn back your watches 20 years'. The the past would become the future and we could study that. Much easier.">4</a></span></span>. </p>
+</li>
+<li>
+<p>There are no simple answers to &#8216;which tool should I use&#8217; <span class="spCh spChx2013">&#x2013;</span> part of our job is to try stuff out and help others (peers, students, bosses) to create their own personal learning/research environment.</p>
+</li>
+</ol>
+<p>I need to follow up with at least two more things:</p>
+<ol class="lin" style="list-style: decimal;">
+<li>
+<p>A how-to for people who&#8217;d like to work with us and share some of these ways of working and/or thinking.</p>
+</li>
+<li>
+<p>A discussion about what it means when I use and recommend these proprietary tools like gmail <span class="spCh spChx2013">&#x2013;</span> how do you make sure your data are preserved, and how do you pull all these things back together to give outsiders a view of what we do? That post will consider at what an ADFI website might look like if it were based on a repository which pulled all these disparate services back together into a coherent view of what we do.</p>
+</li>
+</ol>
+<p class="P3"/>
+<hr/>
+<div style="font-size: .9em;"><span class="footnote-defined">
+<p><a href="#ftn1-text" name="ftn1">1</a>     Not literally yet but she&#8217;s looking like she might <span class="spCh spChx2013">&#x2013;</span> she actually mimed putting her hands around my neck this morning. I think the only thing that saved me is that I&#8217;m getting a sore throat and she is afraid of catching it.</p>
+<p></span></div>
+</p>
+<p>
+<div style="font-size: .9em;"><span class="footnote-defined"><a href="#ftn2-text" name="ftn2">2</a> I can hear my staff grinding their teeth here as I have a bad habit of sending them emails about software bugs or whatever instead of taking the time to put a job ticket in our Trac system.</span></div>
+</p>
+<p>
+<div style="font-size: .9em;"><span class="footnote-defined"><a href="#ftn3-text" name="ftn3">3</a> I worked for NextEd for a while, one of the things that endeared me to the company initially was seeing Paul McKey&#8217;s cutting up the cow keynote at <a href="http://ausweb.scu.edu.au/aw2k/program.htm">AUSWEB 2K</a>  where he referred to <span class="spCh spChx201c">&#x201C;</span>Eating our own dog shit<span class="spCh spChx201d">&#x201D;</span>. He denies it, but I swear that&#8217;s what I heard. Paul is no longer just a man, he&#8217;s now a brand, which you can <a href="http://www.paulmckey.com/">experience for yourself</a> .</span></div>
+</p>
+<p>
+<div style="font-size: .9em;"><span class="footnote-defined"><a href="#ftn4-text" name="ftn4">4</a> We could call it the Queensland Digital Futures Institute and revive that old joke about &#8216;you are entering QLD, turn back your watches 20 years&#8217;. The the past would become the future and we could study that. Much easier.</span></div>
+</p>
+</div>
+</div>
+]]></content:encoded>
+			<wfw:commentRss>http://ptsefton.com/2009/07/08/adfi-collaboration-and-documentation-tools.htm/feed</wfw:commentRss>
+		<slash:comments>3</slash:comments>
+		</item>
+		<item>
+		<title>Wanted: someone to actively sell open repository solutions in Australia</title>
+		<link>http://ptsefton.com/2009/07/08/wanted-someone-to-actively-sell-open-repository-solutions-in-australia.htm</link>
+		<comments>http://ptsefton.com/2009/07/08/wanted-someone-to-actively-sell-open-repository-solutions-in-australia.htm#comments</comments>
+		<pubDate>Wed, 08 Jul 2009 06:28:24 +0000</pubDate>
+		<dc:creator>ptsefton</dc:creator>
+				<category><![CDATA[Uncategorized]]></category>
+
+		<guid isPermaLink="false">http://ptsefton.com/2009/07/08/wanted-someone-to-actively-sell-open-repository-solutions-in-australia.htm</guid>
+		<description><![CDATA[I think that there is a gap in the market in the Australian Repository scene; I think a lot of sites would be interested in services and/or hosting around a completely open source software stack. In this post I will outline the kinds of services I think might be attractive, how they might be provisioned, which bits of software I think would be suitable.]]></description>
+			<content:encoded><![CDATA[<abbr class="unapi-id" title="http://ptsefton.com/2009/07/08/wanted-someone-to-actively-sell-open-repository-solutions-in-australia.htm"><!-- &nbsp; --></abbr>
+<p><?xml version="1.0"?></p>
+<div>
+<div class="page-toc">
+<ul>
+<li><a href="#id1">The gap: commercial repository service on an open source base</a></li>
+<li><a href="#id2">How would it work?</a></li>
+<li><a href="#id3">Which repositories?</a></li>
+</ul>
+</div>
+<div>
+<p>As always, this blog is my opinion, and the stuff I write here is <span class="spCh spChxa9">&#xA9;</span> Peter Sefton. I&#8217;m emphasising this because it is important to make the distinction here between what I personally think and my role at USQ, and the <a href="http://cairss.caul.edu.au/">CAIRSS</a> [update: fixed link thanks to @eric in comments] service we  help provide for CAUL. I would like to note in particular <b>this</b> post does not represent the view of USQ or the Australian Digital Futures Institute and is not written on behalf of CAIRSS. This is post is my personal opinion.</p>
+<p>I think that there is a gap in the market in the Australian Repository scene; I think a lot of sites would be interested in services and/or hosting around a completely open source software stack. In this post I will outline the kinds of services I think might be attractive, how they might be provisioned, which bits of software I think would be suitable.</p>
+<p>I am writing this for three reasons. </p>
+<ol class="lin" style="list-style: decimal;">
+<li>
+<p>I see frustration in the repository community that needs to be resolved. I&#8217;ve never used that phrase about the elephant in the room before, but I can smell one.</p>
+</li>
+<li>
+<p>I think that if it is resolved then my group at the Australian Digital Futures Institute (ADFI) might be in a position to supply some of the services. </p>
+</li>
+<li>
+<p>I don&#8217;t think that it is appropriate for ADFI  or USQ to try to enter the market as a service provider or I would not be posting this, I&#8217;d be talking to our office of commercialisation.</p>
+</li>
+</ol>
+<p>Regarding frustration: I have been at public meetings where people have stood up and said quite explicitly that a particular piece of commercial software is not working properly for them. I know that some of the sites that use that software are shopping around for other solutions. I know that at least one bought it but decided not to deploy it. I know that it in the past it has been hard to upgrade between versions. I know it has had performance and stability problems. And I have heard that it is very hard to get it configured to work for the ERA. You, the customers know who you are. My question is why don&#8217;t you get together and (a) start making some noise and (b) encourage a bit of open competition? Together you represent an attractive market, with a set of similar repositories that are sitting in a very open easy-to-migrate system, with a dead-simple content model. If I was a customer I would be asking the vendor to make the whole thing open source, so the community could fix some of the bugs and/or seeing if there was a compatible open solution with someone offering support <span class="spCh spChx2013">&#x2013;</span> open source means open market for services.</p>
+<p>Which reminds me, where is the Australian Dorothea Salo, <a href="http://cavlec.yarinareth.net/">blogging from a repository rat-hole</a> about what&#8217;s really going on with repositories and the software that drives them? There&#8217;s a gap in the blogospehere now that she&#8217;s quit.</p>
+<p><b><br />
+<h1><a id="id1" name="id1"><!--id1--></a>The gap: commercial repository service on an open source base</h1>
+<p></b>
+<p>I know there is at least a small market for services because USQ has supplied such services to two small Higher-Education providers, helping them to set up their ePrints repositories and assisting them with sourcing a hosting provider. I know that there is a market for commercially supported repository software because a significant number of IRs in Australia are commercially supported. I don&#8217;t know of anybody actively developing and promoting a service which offers commercial support for open software, something like Southampton offers for ePrints. (You can get <a href="http://dev-repo.library.uq.edu.au/wiki/index.php/Fez_hosting_services">support for Fez</a>, apparently but as I write this the vendor is certainly not making it easy to find that out on their site).</p>
+<p>So what I&#8217;d like to see is one or more providers set up shop offering the following:</p>
+<ol class="lin" style="list-style: decimal;">
+<li>
+<p>Training, consulting, maintenance, help-desk support and software for running an IR where all the Software is open source.</p>
+</li>
+<li>
+<p>Hosting for institutions who don&#8217;t want to do it themselves.</p>
+</li>
+</ol>
+<p>That&#8217;s it. It&#8217;s simple. Generally speaking there is no more inherent risk in &#8216;buying&#8217; a supported open source system than a closed one. In some domains buying proprietary may get you lots more features <span class="spCh spChx2013">&#x2013;</span> but I don&#8217;t see that in this market.</p>
+<p>As a library you could treat it like any other software deal, except that at the end you not only get to keep the software, you can do what you like with it, subject to the terms of the open source license. I would imagine you would be looking at contact terms of something like 2 to 3 years to make this viable for the vendor. </p>
+<p><b><br />
+<h1><a id="id2" name="id2"><!--id2--></a>How would it work?</h1>
+<p></b>
+<p>There are a few models for this that I can think of, I&#8217;m sure you can think of more so use the comments below.</p>
+<ol class="lin" style="list-style: decimal;">
+<li>
+<p>The Southampton/ePrints model, where the copyright holder for the software offers services. I believe their business is going well.</p>
+</li>
+<li>
+<p>A third-party model, where someone just sets themselves up in business <span class="spCh spChx2013">&#x2013;</span> the software is free <span class="spCh spChx2013">&#x2013;</span> away you go!</p>
+</li>
+<li>
+<p>A hybrid model where one group does the training, deployment and support work, while subcontracting development to the relevant software owners. For example if you were offering support for ePrints you might try to negotiate something with Southampton to help fund the development of the product and resource bug-fixing activities.</p>
+</li>
+</ol>
+<p>[Note that above I declared an interest in this idea <span class="spCh spChx2013">&#x2013;</span> I <b>think</b> my employer might be interested in us doing some of the development and consulting in a model like 2 or 3]</p>
+<p><b><br />
+<h1><a id="id3" name="id3"><!--id3--></a>Which repositories?</h1>
+<p></b>
+<p>Based on a few years in this game, and running the technical team for the RUBRIC project, If I were going to set up a &#8216;classic&#8217; Institutional Repository for the purposes of disseminating research via documents produced by your researchers, then I would probably pick ePrints. It works, it is stable and reliable, and it has all the workflow stuff you need for managing an IR, and every time I poll my technical team they agree. I think ePrints is less attractive for other stuff like photo collections and so on, but they keep working on it.</p>
+<p>But of course the first phase for a potential vendor in this space would be to work out which packages <b>they</b> were going to support. </p>
+<ul class="lib">
+<li>
+<p>If you were going after existing ARROW customers then you&#8217;d go for something that was compatible with their existing repositories, which happen to be set up and running in Fedora and mostly using the simple VALET system for ingest so you would probably look to keep the Fedora stuff and maybe migrate to the new ARROW-funded version of VALET, that my team helped write. I think that ePrints might be a good choice for some of these sites for their core IR functions as it vastly more configurable and usable than VALET, but that may be a bit hard to swallow. I am predicting a version of ePrints with a Fedora back-end, which might make people feel more comfortable about it.</p>
+</li>
+<li>
+<p>If you detected a need for DSpace support then that would be simple; support DSpace unless those users are all looking to get into Fedora in which case you can wait (probably a long time) to see if the new DSpace/Fedora foundation builds you a hybrid. </p>
+</li>
+<li>
+<p>Like I said before I already <b>know</b> there is a market for ePrints services.</p>
+</li>
+<li>
+<p>If you wanted to take on Digital Commons or DigiTool, I&#8217;m not sure what you&#8217;d do.</p>
+</li>
+</ul>
+<p>It has been a while since I have caught up with Fez and Muradora both of which are alive and well, so you would want to consider those, at least.</p>
+<p>But I don&#8217;t think ePrints or any other IR is the whole story. I would prefer to see a much more flexible discovery system over the top of the IR. So if I were entering this market then I would also be pitching the thing that is popping up everywhere in library systems these days, Apache Solr.</p>
+<p>For example, the NLA are testing a <a href="http://sbdsproto.nla.gov.au/sbdp-ui/">new Solr system</a> across several data sources.</p>
+<p>With lots of libraries using Solr for their catalogues via applications like VuFind I think Solr is a new standard bit of infrastructure which is actually much more important to the customers than what you have on the back-end. Who cares about DSpace vs Fedora vs ePritns when you can mash it all up together and make it easy for people to create their own view of the repository using a bit of Javascript embedded in a web page, or a little site written using a rapid development framework like Django or Rails.</p>
+<p>Looking at our own situation, I think USQ should have a big fat Solr index of their course materials, their Intranet, their IR, their data (described using RIF-CS), feeds from their staff and student&#8217;s workblogs, delicious tagged-links, digital assets from the photography department, etc. That doesn&#8217;t mean it&#8217;s all accessible to everyone, Solr can use limit queries for security so that certain groups of people only see certain things, as seen in <a href="http://fascinator.usq.edu.au/">The Fascinator </a>which can act as a proxy in front of Solr to handle security. </p>
+<p>If there&#8217;s any interest in seeing the kind of service offerings I think would make sense spelled out in more detail let me know in the comments.</p>
+</div>
+</div>
+]]></content:encoded>
+			<wfw:commentRss>http://ptsefton.com/2009/07/08/wanted-someone-to-actively-sell-open-repository-solutions-in-australia.htm/feed</wfw:commentRss>
+		<slash:comments>11</slash:comments>
+		</item>
+		<item>
+		<title>Living Holding Hands?</title>
+		<link>http://ptsefton.com/2009/06/19/living-holding-hands.htm</link>
+		<comments>http://ptsefton.com/2009/06/19/living-holding-hands.htm#comments</comments>
+		<pubDate>Sat, 20 Jun 2009 03:13:19 +0000</pubDate>
+		<dc:creator>ptsefton</dc:creator>
+				<category><![CDATA[Uncategorized]]></category>
+
+		<guid isPermaLink="false">http://ptsefton.com/2009/06/19/living-holding-hands.htm</guid>
+		<description><![CDATA[
+
+
+
+
+So in my last post I mentioned the household ePrints repository. I was joking, kids. But it sort of got me thinking. I bet the Les Carr household has one. Maybe I should do something for the family heritage.
+Anyway, here&#8217;s a bit of ephemera I found in a plastic sleeve in my song-lyrics folder. A [...]]]></description>
+			<content:encoded><![CDATA[<abbr class="unapi-id" title="http://ptsefton.com/2009/06/19/living-holding-hands.htm"><!-- &nbsp; --></abbr>
+<p><?xml version="1.0"?></p>
+<div>
+<div class="page-toc"/>
+<div>
+<p>So in my <a href="http://ptsefton.com/2009/06/18/very-early-career-researchers-engineering.htm">last post I mentioned the household ePrints repository</a>. I was joking, kids. But it sort of got me thinking. I bet the Les Carr household has one. Maybe I should do something for the family heritage.</p>
+<p>Anyway, here&#8217;s a bit of ephemera I found in a plastic sleeve in my song-lyrics folder. A poster for a band I was in in 1987 which won (I think we tied for first, or did we come second?) the Sydney Uni Band comp. We were originally called something else but when we found out we were in a heat up against a band called &#8216;The Fuckers of the Dead&#8217; we changed the name and revised the repertoire. As far as I recall that did the trick and they didn&#8217;t show up. We didn&#8217;t have a drummer so we made a backdrop out of orange plastic with a black silhouette of a drum kit and a spiky haired drummer and insisted that the sound guy mic it up just like it was a real one.</p>
+<p>Can you spot which one is me and which is Ken Maeda<span class="footnote" style="vertical-align: super;"><a class="footnote" href="#ftn1" name="ftn1-text" title="I think Ken was at that stage still playing with Tim Freedman  in Penguins on Safari.">*</a></span> and which is Maxine Whelan<span class="T2"><span class="footnote" style="vertical-align: super;"><a class="footnote" href="#ftn2" name="ftn2-text" title="Maxine and I shared a house owned by Victor  Kelleher  with his son.">**</a></span></span>? (Hint, I have the bass guitar and Max looks alarmingly like her mic is plugged into a powerpoint.) She made this picture.</p>
+<p class="meta-abstract" style="margin-left:0cm; margin-right:1.27cm; text-indent:0cm; "><a name="graphics1"/><img alt="graphics1" class="fr1" height="609" src="http://ptsefton.com/wp-content/uploads/2009/06/m4bf98058-443x609.jpg" style="border:0px; vertical-align: top" width="443"/></p>
+<p class="meta-abstract" style="margin-left:0cm; margin-right:1.27cm; text-indent:0cm; ">There you go. A bit of cultural heritage. I&#8217;ll see what I can do with some of this stuff I have lying around as we toil away on our desktop repository project at work. How do you scan, label, annotate and tell stories about this kind of important historical material? I&#8217;m learning about how to get the music from those shows off cassette tape onto the computer right now, with a Walkman I found in the cupboard. I&#8217;d forgotten how long it takes just to rewind.</p>
+<p class="meta-abstract" style="margin-left:0cm; margin-right:1.27cm; text-indent:0cm; ">Should I expose all my band-related digital objects as a RIF-CS collection? And what if I move families? Are there protocols for taking the digital objects with me? Is there a census date like with the ERA? </p>
+<hr/>
+<div style="font-size: .9em;"><span class="footnote-defined"><a href="#ftn1-text" name="ftn1">*</a> I think Ken was at that stage still playing with <a href="http://en.wikipedia.org/wiki/Tim_Freedman">Tim Freedman</a>  in Penguins on Safari.</span></div>
+</p>
+<p>
+<div style="font-size: .9em;"><span class="footnote-defined"><a href="#ftn2-text" name="ftn2">**</a> Maxine and I shared a house owned by <a href="http://en.wikipedia.org/wiki/Victor_Kelleher">Victor  Kelleher</a>  with his son. </span></div>
+</p>
+</div>
+</div>
+]]></content:encoded>
+			<wfw:commentRss>http://ptsefton.com/2009/06/19/living-holding-hands.htm/feed</wfw:commentRss>
+		<slash:comments>1</slash:comments>
+		</item>
+	</channel>
+</rss>

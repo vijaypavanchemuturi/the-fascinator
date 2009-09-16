@@ -1,0 +1,278 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://purl.org/rss/1.0/" xmlns:slash="http://purl.org/rss/1.0/modules/slash/" xmlns:taxo="http://purl.org/rss/1.0/modules/taxonomy/" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:syn="http://purl.org/rss/1.0/modules/syndication/" xmlns:admin="http://webns.net/mvcb/" xmlns:feedburner="http://rssnamespace.org/feedburner/ext/1.0">
+
+<channel rdf:about="http://slashdot.org/">
+<title>Slashdot</title>
+<link>http://slashdot.org/</link>
+<description>News for nerds, stuff that matters</description>
+<dc:language>en-us</dc:language>
+<dc:rights>Copyright 1997-2008, SourceForge, Inc.  All Rights Reserved.</dc:rights>
+<dc:date>2009-09-16T04:50:17+00:00</dc:date>
+<dc:publisher>SourceForge, Inc.</dc:publisher>
+<dc:creator>help@slashdot.org</dc:creator>
+<dc:subject>Technology</dc:subject>
+<syn:updatePeriod>hourly</syn:updatePeriod>
+<syn:updateFrequency>1</syn:updateFrequency>
+<syn:updateBase>1970-01-01T00:00+00:00</syn:updateBase>
+<items>
+ <rdf:Seq>
+  <rdf:li rdf:resource="http://yro.slashdot.org/story/09/09/15/2111252/AU-Goverment-To-Break-Up-Telstra-Filtering-News?from=rss" />
+  <rdf:li rdf:resource="http://tech.slashdot.org/story/09/09/15/2314238/Windows-7-Touch-Dead-On-Arrival?from=rss" />
+  <rdf:li rdf:resource="http://science.slashdot.org/story/09/09/15/2031212/Birdsong-Studies-Lead-To-a-Revolution-In-Biology?from=rss" />
+  <rdf:li rdf:resource="http://yro.slashdot.org/story/09/09/15/2236213/Right-To-Repair-Bill-Advances-In-Massachusetts?from=rss" />
+  <rdf:li rdf:resource="http://science.slashdot.org/story/09/09/15/2121203/A-Galaxy-Sized-Observatory-For-Gravitational-Waves?from=rss" />
+  <rdf:li rdf:resource="http://yro.slashdot.org/story/09/09/15/206254/Heart-Monitors-In-Middle-School-Gym-Class?from=rss" />
+  <rdf:li rdf:resource="http://yro.slashdot.org/story/09/09/15/1952208/Congress-Mulls-Research-Into-a-Vehicle-Mileage-Tax?from=rss" />
+  <rdf:li rdf:resource="http://yro.slashdot.org/story/09/09/15/1832258/Developer-Exposes-Copyright-Infringers-On-Twitter?from=rss" />
+  <rdf:li rdf:resource="http://news.slashdot.org/story/09/09/15/1758216/DHS-To-Review-Report-On-US-Power-Grid-Vulnerability?from=rss" />
+  <rdf:li rdf:resource="http://news.slashdot.org/story/09/09/15/1729234/No-App-Store-For-Microsofts-Zune-HD?from=rss" />
+  <rdf:li rdf:resource="http://tech.slashdot.org/story/09/09/15/1621258/SANS-Report-Says-Organizations-Focusing-On-the-Wrong-Security-Threats?from=rss" />
+  <rdf:li rdf:resource="http://games.slashdot.org/story/09/09/15/0338248/Review-emChampions-Onlineem?from=rss" />
+  <rdf:li rdf:resource="http://science.slashdot.org/story/09/09/15/1523250/Taking-Showers-Can-Be-Harmful-To-Your-Health?from=rss" />
+  <rdf:li rdf:resource="http://yro.slashdot.org/story/09/09/15/1444237/Australias-Bizarre-Classification-System-For-Internet-Censorship?from=rss" />
+  <rdf:li rdf:resource="http://yro.slashdot.org/story/09/09/15/1334251/Chinese-Schools-Ax-Green-Dam-Censorship-Software?from=rss" />
+ </rdf:Seq>
+</items>
+<image rdf:resource="http://s.fsdn.com/sd/topics/topicslashdot.gif" />
+<textinput rdf:resource="http://slashdot.org/search.pl" />
+<atom10:link xmlns:atom10="http://www.w3.org/2005/Atom" rel="hub" href="http://pubsubhubbub.appspot.com" /></channel>
+
+<image rdf:about="http://s.fsdn.com/sd/topics/topicslashdot.gif">
+<title>Slashdot</title>
+<url>http://s.fsdn.com/sd/topics/topicslashdot.gif</url>
+<link>http://slashdot.org/</link>
+</image>
+
+<item rdf:about="http://yro.slashdot.org/story/09/09/15/2111252/AU-Goverment-To-Break-Up-Telstra-Filtering-News?from=rss">
+<title>AU Goverment To Break Up Telstra; Filtering News</title>
+<link>http://rss.slashdot.org/~r/Slashdot/slashdot/~3/FOm9ez7N59A/AU-Goverment-To-Break-Up-Telstra-Filtering-News</link>
+<description>benz001 writes "The Minister who has pushed the ridiculous broadband filter plan has at least won a few brownie points with yesterday's press conference, in which he promised to force Telstra to split its network and wholesale businesses. Australia's largest ISP, and the country's main infrastructure owner, will be given a chance to implement the structural separation voluntarily; if it does not, the Government will step in with legislation. Here is the Minister's official press release." And speaking of the filtering program, reader smash writes "After several years of debate and electioneering, some statistics on the Australian national web filtering effort have been disclosed. Apparently, the typical Aussie web surfer is 70 times more likely to win the national lotto than stumble across a blocked page. Additionally, despite the claim that the main aim of the filter is to block child pornography, only 313 of the 977 total sites blocked is on the basis of child porn. At $40M AU so far in taxpayers funds, the cost so far is around $40,900 per blocked URL. Government efficiency at work..."&lt;p&gt;&lt;a href="http://yro.slashdot.org/story/09/09/15/2111252/AU-Goverment-To-Break-Up-Telstra-Filtering-News?from=rss"&gt;&lt;img src="http://slashdot.org/slashdot-it.pl?from=rss&amp;amp;op=image&amp;amp;style=h0&amp;amp;sid=09/09/15/2111252"&gt;&lt;/a&gt;&lt;/p&gt;&lt;p&gt;&lt;a href="http://yro.slashdot.org/story/09/09/15/2111252/AU-Goverment-To-Break-Up-Telstra-Filtering-News?from=rss"&gt;Read more of this story&lt;/a&gt; at Slashdot.&lt;/p&gt;
+&lt;p&gt;&lt;a href="http://feedads.g.doubleclick.net/~at/hmpIBUcWdN367I3VPW1GcBPpizk/0/da"&gt;&lt;img src="http://feedads.g.doubleclick.net/~at/hmpIBUcWdN367I3VPW1GcBPpizk/0/di" border="0" ismap="true"&gt;&lt;/img&gt;&lt;/a&gt;&lt;br/&gt;
+&lt;a href="http://feedads.g.doubleclick.net/~at/hmpIBUcWdN367I3VPW1GcBPpizk/1/da"&gt;&lt;img src="http://feedads.g.doubleclick.net/~at/hmpIBUcWdN367I3VPW1GcBPpizk/1/di" border="0" ismap="true"&gt;&lt;/img&gt;&lt;/a&gt;&lt;/p&gt;&lt;img src="http://feeds.feedburner.com/~r/Slashdot/slashdot/~4/FOm9ez7N59A" height="1" width="1"/&gt;</description>
+<dc:creator>kdawson</dc:creator>
+<dc:date>2009-09-16T04:21:00+00:00</dc:date>
+<dc:subject>business</dc:subject>
+<slash:department>breaking-up-is-hard-to-do</slash:department>
+<slash:section>yro</slash:section>
+<slash:comments>7</slash:comments>
+<slash:hit_parade>7,7,5,2,0,0,0</slash:hit_parade>
+<feedburner:origLink>http://yro.slashdot.org/story/09/09/15/2111252/AU-Goverment-To-Break-Up-Telstra-Filtering-News?from=rss</feedburner:origLink></item>
+
+<item rdf:about="http://tech.slashdot.org/story/09/09/15/2314238/Windows-7-Touch-Dead-On-Arrival?from=rss">
+<title>Windows 7 Touch, Dead On Arrival</title>
+<link>http://rss.slashdot.org/~r/Slashdot/slashdot/~3/PgX0tpgs2pU/Windows-7-Touch-Dead-On-Arrival</link>
+<description>snydeq writes "Ongoing Microsoft hype around its Surface touch technology has suggested that, with Windows 7, a touch-based UI revolution is brewing. Unfortunately, the realities of touch use in the desktop environment and the lack of worthwhile development around the technology are conspiring against the notion of touch ever finding a meaningful place on the desktop, as InfoWorld's Galen Gruman finds out reviewing Windows 7's touch capabilities. 'There's a chicken-and-egg issue to resolve,' Gruman writes. 'Few apps cry out for a touch UI, so Microsoft and Apple can continue to get away with merely dabbling with touch as an occasional mouse-based substitute. It would take one or both of these OS makers to truly touchify their platforms, using common components to pull touch into a great number of apps automatically. Without a clear demand, their incentive to do so doesn't exist.'"&lt;p&gt;&lt;a href="http://tech.slashdot.org/story/09/09/15/2314238/Windows-7-Touch-Dead-On-Arrival?from=rss"&gt;&lt;img src="http://slashdot.org/slashdot-it.pl?from=rss&amp;amp;op=image&amp;amp;style=h0&amp;amp;sid=09/09/15/2314238"&gt;&lt;/a&gt;&lt;/p&gt;&lt;p&gt;&lt;a href="http://tech.slashdot.org/story/09/09/15/2314238/Windows-7-Touch-Dead-On-Arrival?from=rss"&gt;Read more of this story&lt;/a&gt; at Slashdot.&lt;/p&gt;
+&lt;p&gt;&lt;a href="http://feedads.g.doubleclick.net/~at/8mI5WeQqVmOLueTtuYBkIZ1VVKE/0/da"&gt;&lt;img src="http://feedads.g.doubleclick.net/~at/8mI5WeQqVmOLueTtuYBkIZ1VVKE/0/di" border="0" ismap="true"&gt;&lt;/img&gt;&lt;/a&gt;&lt;br/&gt;
+&lt;a href="http://feedads.g.doubleclick.net/~at/8mI5WeQqVmOLueTtuYBkIZ1VVKE/1/da"&gt;&lt;img src="http://feedads.g.doubleclick.net/~at/8mI5WeQqVmOLueTtuYBkIZ1VVKE/1/di" border="0" ismap="true"&gt;&lt;/img&gt;&lt;/a&gt;&lt;/p&gt;&lt;img src="http://feeds.feedburner.com/~r/Slashdot/slashdot/~4/PgX0tpgs2pU" height="1" width="1"/&gt;</description>
+<dc:creator>kdawson</dc:creator>
+<dc:date>2009-09-16T02:33:00+00:00</dc:date>
+<dc:subject>software</dc:subject>
+<slash:department>finger-prints</slash:department>
+<slash:section>technology</slash:section>
+<slash:comments>110</slash:comments>
+<slash:hit_parade>110,110,89,69,19,14,8</slash:hit_parade>
+<feedburner:origLink>http://tech.slashdot.org/story/09/09/15/2314238/Windows-7-Touch-Dead-On-Arrival?from=rss</feedburner:origLink></item>
+
+<item rdf:about="http://science.slashdot.org/story/09/09/15/2031212/Birdsong-Studies-Lead-To-a-Revolution-In-Biology?from=rss">
+<title>Birdsong Studies Lead To a Revolution In Biology</title>
+<link>http://rss.slashdot.org/~r/Slashdot/slashdot/~3/7hhXAUHly3U/Birdsong-Studies-Lead-To-a-Revolution-In-Biology</link>
+<description>Smithsonian.com covers research that began with the study of birdsong and ended by overturning the common belief that adult animals can't produce new brain cells. "Deconstructing birdsong may seem an unlikely way to shake up biology. But [Fernando] Nottebohm's research has shattered the belief that a brain gets its quota of nerve cells shortly after birth and stands by helplessly as one by one they die &amp;mdash; a 'fact' drummed into every schoolkid's skull. [Nottebohm] demonstrated two decades ago that the brain of a male songbird grows fresh nerve cells in the fall to replace those that die off in summer. The findings were shocking, and scientists voiced skepticism that the adult human brain had the same knack for regeneration. ... Yet, inspired by Nottebohm's work, researchers went on to find that other adult animals &amp;mdash; including human beings &amp;mdash; are indeed capable of producing new brain cells. And in February, scientists reported for the first time that brand-new nerves in adult mouse brains appeared to conduct impulses &amp;mdash; a finding that addressed lingering concerns that newly formed adult neurons might not function."&lt;p&gt;&lt;a href="http://science.slashdot.org/story/09/09/15/2031212/Birdsong-Studies-Lead-To-a-Revolution-In-Biology?from=rss"&gt;&lt;img src="http://slashdot.org/slashdot-it.pl?from=rss&amp;amp;op=image&amp;amp;style=h0&amp;amp;sid=09/09/15/2031212"&gt;&lt;/a&gt;&lt;/p&gt;&lt;p&gt;&lt;a href="http://science.slashdot.org/story/09/09/15/2031212/Birdsong-Studies-Lead-To-a-Revolution-In-Biology?from=rss"&gt;Read more of this story&lt;/a&gt; at Slashdot.&lt;/p&gt;
+&lt;p&gt;&lt;a href="http://feedads.g.doubleclick.net/~at/cR32Eg7MT4xeNA4hMPAbmQp0LeQ/0/da"&gt;&lt;img src="http://feedads.g.doubleclick.net/~at/cR32Eg7MT4xeNA4hMPAbmQp0LeQ/0/di" border="0" ismap="true"&gt;&lt;/img&gt;&lt;/a&gt;&lt;br/&gt;
+&lt;a href="http://feedads.g.doubleclick.net/~at/cR32Eg7MT4xeNA4hMPAbmQp0LeQ/1/da"&gt;&lt;img src="http://feedads.g.doubleclick.net/~at/cR32Eg7MT4xeNA4hMPAbmQp0LeQ/1/di" border="0" ismap="true"&gt;&lt;/img&gt;&lt;/a&gt;&lt;/p&gt;&lt;img src="http://feeds.feedburner.com/~r/Slashdot/slashdot/~4/7hhXAUHly3U" height="1" width="1"/&gt;</description>
+<dc:creator>kdawson</dc:creator>
+<dc:date>2009-09-16T00:45:00+00:00</dc:date>
+<dc:subject>biotech</dc:subject>
+<slash:department>growing-a-new-one</slash:department>
+<slash:section>science</slash:section>
+<slash:comments>55</slash:comments>
+<slash:hit_parade>55,50,43,32,11,10,3</slash:hit_parade>
+<feedburner:origLink>http://science.slashdot.org/story/09/09/15/2031212/Birdsong-Studies-Lead-To-a-Revolution-In-Biology?from=rss</feedburner:origLink></item>
+
+<item rdf:about="http://yro.slashdot.org/story/09/09/15/2236213/Right-To-Repair-Bill-Advances-In-Massachusetts?from=rss">
+<title>"Right To Repair" Bill Advances In Massachusetts</title>
+<link>http://rss.slashdot.org/~r/Slashdot/slashdot/~3/qz-Zz1VToK8/Right-To-Repair-Bill-Advances-In-Massachusetts</link>
+<description>Wannabe Code Monkey sends along an article from the Patriot Ledger about an effort in Massachusetts to pass a "Right to Repair" bill. "Since the advent of congressionally mandated computers in vehicles more than 15 years ago (for emissions), cars have evolved into complex machines that are no longer just mechanical. Computers now monitor and control most systems in the car from brakes to tire pressure and all the electronics and engine fluids... [and] car manufacturers continue to hold back on some of the information that your mechanic needs in order to properly repair your car and reset your codes and warning lights... Massachusetts is now poised to solve this problem and car-driving consumers should pay attention this fall when the Massachusetts Legislature takes up landmark legislation that would force manufacturers to respect the right of consumers to access their own repair information. The legislation, known as Right to Repair, is seen by car manufacturers as a threat to the lucrative service business in their dealerships and they are massing their lobbyists on Beacon Hill in an effort to defeat it."&lt;p&gt;&lt;a href="http://yro.slashdot.org/story/09/09/15/2236213/Right-To-Repair-Bill-Advances-In-Massachusetts?from=rss"&gt;&lt;img src="http://slashdot.org/slashdot-it.pl?from=rss&amp;amp;op=image&amp;amp;style=h0&amp;amp;sid=09/09/15/2236213"&gt;&lt;/a&gt;&lt;/p&gt;&lt;p&gt;&lt;a href="http://yro.slashdot.org/story/09/09/15/2236213/Right-To-Repair-Bill-Advances-In-Massachusetts?from=rss"&gt;Read more of this story&lt;/a&gt; at Slashdot.&lt;/p&gt;
+&lt;p&gt;&lt;a href="http://feedads.g.doubleclick.net/~at/_3jQpeyj3aE-HmQ7DtfL9CpGun0/0/da"&gt;&lt;img src="http://feedads.g.doubleclick.net/~at/_3jQpeyj3aE-HmQ7DtfL9CpGun0/0/di" border="0" ismap="true"&gt;&lt;/img&gt;&lt;/a&gt;&lt;br/&gt;
+&lt;a href="http://feedads.g.doubleclick.net/~at/_3jQpeyj3aE-HmQ7DtfL9CpGun0/1/da"&gt;&lt;img src="http://feedads.g.doubleclick.net/~at/_3jQpeyj3aE-HmQ7DtfL9CpGun0/1/di" border="0" ismap="true"&gt;&lt;/img&gt;&lt;/a&gt;&lt;/p&gt;&lt;img src="http://feeds.feedburner.com/~r/Slashdot/slashdot/~4/qz-Zz1VToK8" height="1" width="1"/&gt;</description>
+<dc:creator>kdawson</dc:creator>
+<dc:date>2009-09-15T22:55:00+00:00</dc:date>
+<dc:subject>government</dc:subject>
+<slash:department>not-open-source-but-it's-a-step</slash:department>
+<slash:section>yro</slash:section>
+<slash:comments>261</slash:comments>
+<slash:hit_parade>261,255,212,182,54,32,22</slash:hit_parade>
+<feedburner:origLink>http://yro.slashdot.org/story/09/09/15/2236213/Right-To-Repair-Bill-Advances-In-Massachusetts?from=rss</feedburner:origLink></item>
+
+<item rdf:about="http://science.slashdot.org/story/09/09/15/2121203/A-Galaxy-Sized-Observatory-For-Gravitational-Waves?from=rss">
+<title>A Galaxy-Sized Observatory For Gravitational Waves</title>
+<link>http://rss.slashdot.org/~r/Slashdot/slashdot/~3/CEe6YpfMmGc/A-Galaxy-Sized-Observatory-For-Gravitational-Waves</link>
+<description>KentuckyFC writes "Gravitational waves squash and stretch space as they travel through the universe. Current attempts to spot them involve monitoring a region of space several kilometers across on Earth for the telltale signs of this squeezing. These experiments have so far seen nothing. But by monitoring an array of pulsars throughout the galaxy, astronomers should be able to see the effects of gravitational waves passing by. They say such an array of pulsars should effectively shimmer as the gravitational waves wash over it, like a grid of buoys bobbing on the ocean. That'll create an observatory that is effectively the size of the entire galaxy. These observations should be capable of monitoring how galaxies and supermassive black holes evolve together, and shed light on the physics of the early universe. Best of all, the next generation of radio-telescope arrays should be capable of making these observations at a cost of around $66 million over ten years. That's a small fraction of the hundreds of millions that Earth-based observatories have already cost."&lt;p&gt;&lt;a href="http://science.slashdot.org/story/09/09/15/2121203/A-Galaxy-Sized-Observatory-For-Gravitational-Waves?from=rss"&gt;&lt;img src="http://slashdot.org/slashdot-it.pl?from=rss&amp;amp;op=image&amp;amp;style=h0&amp;amp;sid=09/09/15/2121203"&gt;&lt;/a&gt;&lt;/p&gt;&lt;p&gt;&lt;a href="http://science.slashdot.org/story/09/09/15/2121203/A-Galaxy-Sized-Observatory-For-Gravitational-Waves?from=rss"&gt;Read more of this story&lt;/a&gt; at Slashdot.&lt;/p&gt;
+&lt;p&gt;&lt;a href="http://feedads.g.doubleclick.net/~at/I1G-gjxDR2HWBcEJumn4Tv0XJ9c/0/da"&gt;&lt;img src="http://feedads.g.doubleclick.net/~at/I1G-gjxDR2HWBcEJumn4Tv0XJ9c/0/di" border="0" ismap="true"&gt;&lt;/img&gt;&lt;/a&gt;&lt;br/&gt;
+&lt;a href="http://feedads.g.doubleclick.net/~at/I1G-gjxDR2HWBcEJumn4Tv0XJ9c/1/da"&gt;&lt;img src="http://feedads.g.doubleclick.net/~at/I1G-gjxDR2HWBcEJumn4Tv0XJ9c/1/di" border="0" ismap="true"&gt;&lt;/img&gt;&lt;/a&gt;&lt;/p&gt;&lt;img src="http://feeds.feedburner.com/~r/Slashdot/slashdot/~4/CEe6YpfMmGc" height="1" width="1"/&gt;</description>
+<dc:creator>kdawson</dc:creator>
+<dc:date>2009-09-15T22:05:00+00:00</dc:date>
+<dc:subject>space</dc:subject>
+<slash:department>galaxy's-your-oyster</slash:department>
+<slash:section>science</slash:section>
+<slash:comments>121</slash:comments>
+<slash:hit_parade>121,117,97,84,17,9,4</slash:hit_parade>
+<feedburner:origLink>http://science.slashdot.org/story/09/09/15/2121203/A-Galaxy-Sized-Observatory-For-Gravitational-Waves?from=rss</feedburner:origLink></item>
+
+<item rdf:about="http://yro.slashdot.org/story/09/09/15/206254/Heart-Monitors-In-Middle-School-Gym-Class?from=rss">
+<title>Heart Monitors In Middle School Gym Class?</title>
+<link>http://rss.slashdot.org/~r/Slashdot/slashdot/~3/n0ArO52fKQA/Heart-Monitors-In-Middle-School-Gym-Class</link>
+<description>An anonymous reader writes "My son brought home an order form from his middle school. Apparently the 7th (his grade) and 8th graders are being asked (required?) to purchase their own straps for the heart monitors they're to wear during gym class. I know nothing yet of the device in question, but have left a voice-mail with the assistant principal asking him to call me so I may ask some questions about the program and the device. My tinfoil-hat concern is that the heart rate data will be tied to each child, then archived and eventually used for/against them down the road when applying for insurance, high-stress jobs, etc. 'I see you had arrhythmia during 7th grade pickle ball? No insurance for you' Has anyone heard of such a program, or had their child(ren) take part in it? Does the device transmit to the laptop the overweight gym teacher will be watching instead of running laps with the kids? Perhaps data is downloaded from the device after the class? Or am I just being paranoid? Thanks for any insight."&lt;p&gt;&lt;a href="http://yro.slashdot.org/story/09/09/15/206254/Heart-Monitors-In-Middle-School-Gym-Class?from=rss"&gt;&lt;img src="http://slashdot.org/slashdot-it.pl?from=rss&amp;amp;op=image&amp;amp;style=h0&amp;amp;sid=09/09/15/206254"&gt;&lt;/a&gt;&lt;/p&gt;&lt;p&gt;&lt;a href="http://yro.slashdot.org/story/09/09/15/206254/Heart-Monitors-In-Middle-School-Gym-Class?from=rss"&gt;Read more of this story&lt;/a&gt; at Slashdot.&lt;/p&gt;
+&lt;p&gt;&lt;a href="http://feedads.g.doubleclick.net/~at/2OkAhiWLLcTqW8fRscCUSmLtNG4/0/da"&gt;&lt;img src="http://feedads.g.doubleclick.net/~at/2OkAhiWLLcTqW8fRscCUSmLtNG4/0/di" border="0" ismap="true"&gt;&lt;/img&gt;&lt;/a&gt;&lt;br/&gt;
+&lt;a href="http://feedads.g.doubleclick.net/~at/2OkAhiWLLcTqW8fRscCUSmLtNG4/1/da"&gt;&lt;img src="http://feedads.g.doubleclick.net/~at/2OkAhiWLLcTqW8fRscCUSmLtNG4/1/di" border="0" ismap="true"&gt;&lt;/img&gt;&lt;/a&gt;&lt;/p&gt;&lt;img src="http://feeds.feedburner.com/~r/Slashdot/slashdot/~4/n0ArO52fKQA" height="1" width="1"/&gt;</description>
+<dc:creator>kdawson</dc:creator>
+<dc:date>2009-09-15T21:17:00+00:00</dc:date>
+<dc:subject>education</dc:subject>
+<slash:department>please-don't-sue-me</slash:department>
+<slash:section>yro</slash:section>
+<slash:comments>620</slash:comments>
+<slash:hit_parade>620,609,482,364,93,45,31</slash:hit_parade>
+<feedburner:origLink>http://yro.slashdot.org/story/09/09/15/206254/Heart-Monitors-In-Middle-School-Gym-Class?from=rss</feedburner:origLink></item>
+
+<item rdf:about="http://yro.slashdot.org/story/09/09/15/1952208/Congress-Mulls-Research-Into-a-Vehicle-Mileage-Tax?from=rss">
+<title>Congress Mulls Research Into a Vehicle Mileage Tax</title>
+<link>http://rss.slashdot.org/~r/Slashdot/slashdot/~3/A9kqSr2DaNA/Congress-Mulls-Research-Into-a-Vehicle-Mileage-Tax</link>
+<description>BJ_Covert_Action writes to let us know that an Oregon congressman has filed legislation to spend $154.5M for a research project into tracking per-vehicle mileage in the US, and asks: "Do we really want the government to track our movement and driving habits on a regular basis?" "US Representative Earl Blumenauer (D-Oregon) introduced H.R. 3311 earlier this year to appropriate $154,500,000 for research and study into the transition to a per-mile vehicle tax system... Oregon has successfully tested a Vehicle Miles Traveled fee... the [Oregon] report urged a mandate for all drivers to install GPS tracking devices that would report driving habits to roadside RFID scanning devices." Here is the bill (PDF). The article notes that the congressman's major corporate donors would likely benefit with contracts if such a program were begun.&lt;p&gt;&lt;a href="http://yro.slashdot.org/story/09/09/15/1952208/Congress-Mulls-Research-Into-a-Vehicle-Mileage-Tax?from=rss"&gt;&lt;img src="http://slashdot.org/slashdot-it.pl?from=rss&amp;amp;op=image&amp;amp;style=h0&amp;amp;sid=09/09/15/1952208"&gt;&lt;/a&gt;&lt;/p&gt;&lt;p&gt;&lt;a href="http://yro.slashdot.org/story/09/09/15/1952208/Congress-Mulls-Research-Into-a-Vehicle-Mileage-Tax?from=rss"&gt;Read more of this story&lt;/a&gt; at Slashdot.&lt;/p&gt;
+&lt;p&gt;&lt;a href="http://feedads.g.doubleclick.net/~at/6zeDJH6e-6rPJg0TON4iU_amX5A/0/da"&gt;&lt;img src="http://feedads.g.doubleclick.net/~at/6zeDJH6e-6rPJg0TON4iU_amX5A/0/di" border="0" ismap="true"&gt;&lt;/img&gt;&lt;/a&gt;&lt;br/&gt;
+&lt;a href="http://feedads.g.doubleclick.net/~at/6zeDJH6e-6rPJg0TON4iU_amX5A/1/da"&gt;&lt;img src="http://feedads.g.doubleclick.net/~at/6zeDJH6e-6rPJg0TON4iU_amX5A/1/di" border="0" ismap="true"&gt;&lt;/img&gt;&lt;/a&gt;&lt;/p&gt;&lt;img src="http://feeds.feedburner.com/~r/Slashdot/slashdot/~4/A9kqSr2DaNA" height="1" width="1"/&gt;</description>
+<dc:creator>kdawson</dc:creator>
+<dc:date>2009-09-15T20:20:00+00:00</dc:date>
+<dc:subject>government</dc:subject>
+<slash:department>just-get-on-the-bike</slash:department>
+<slash:section>yro</slash:section>
+<slash:comments>600</slash:comments>
+<slash:hit_parade>600,596,493,378,72,40,29</slash:hit_parade>
+<feedburner:origLink>http://yro.slashdot.org/story/09/09/15/1952208/Congress-Mulls-Research-Into-a-Vehicle-Mileage-Tax?from=rss</feedburner:origLink></item>
+
+<item rdf:about="http://yro.slashdot.org/story/09/09/15/1832258/Developer-Exposes-Copyright-Infringers-On-Twitter?from=rss">
+<title>Developer Exposes Copyright Infringers On Twitter</title>
+<link>http://rss.slashdot.org/~r/Slashdot/slashdot/~3/Zn_vqLqaK_o/Developer-Exposes-Copyright-Infringers-On-Twitter</link>
+<description>snitty writes "Wil Shipley, developer of Delicious Library, found some applications on the iTunes App Store that were using without permission some images from his popular desktop application. He outed them on Twitter. The team at Technically Legal broke down the story and the take-home messages for using other people's images."&lt;p&gt;&lt;a href="http://yro.slashdot.org/story/09/09/15/1832258/Developer-Exposes-Copyright-Infringers-On-Twitter?from=rss"&gt;&lt;img src="http://slashdot.org/slashdot-it.pl?from=rss&amp;amp;op=image&amp;amp;style=h0&amp;amp;sid=09/09/15/1832258"&gt;&lt;/a&gt;&lt;/p&gt;&lt;p&gt;&lt;a href="http://yro.slashdot.org/story/09/09/15/1832258/Developer-Exposes-Copyright-Infringers-On-Twitter?from=rss"&gt;Read more of this story&lt;/a&gt; at Slashdot.&lt;/p&gt;
+&lt;p&gt;&lt;a href="http://feedads.g.doubleclick.net/~at/j57lt61W2oZ5HklummASowXq-Wk/0/da"&gt;&lt;img src="http://feedads.g.doubleclick.net/~at/j57lt61W2oZ5HklummASowXq-Wk/0/di" border="0" ismap="true"&gt;&lt;/img&gt;&lt;/a&gt;&lt;br/&gt;
+&lt;a href="http://feedads.g.doubleclick.net/~at/j57lt61W2oZ5HklummASowXq-Wk/1/da"&gt;&lt;img src="http://feedads.g.doubleclick.net/~at/j57lt61W2oZ5HklummASowXq-Wk/1/di" border="0" ismap="true"&gt;&lt;/img&gt;&lt;/a&gt;&lt;/p&gt;&lt;img src="http://feeds.feedburner.com/~r/Slashdot/slashdot/~4/Zn_vqLqaK_o" height="1" width="1"/&gt;</description>
+<dc:creator>kdawson</dc:creator>
+<dc:date>2009-09-15T19:37:00+00:00</dc:date>
+<dc:subject>court</dc:subject>
+<slash:department>better-than-paying-lawyers</slash:department>
+<slash:section>yro</slash:section>
+<slash:comments>128</slash:comments>
+<slash:hit_parade>128,126,99,73,14,8,5</slash:hit_parade>
+<feedburner:origLink>http://yro.slashdot.org/story/09/09/15/1832258/Developer-Exposes-Copyright-Infringers-On-Twitter?from=rss</feedburner:origLink></item>
+
+<item rdf:about="http://news.slashdot.org/story/09/09/15/1758216/DHS-To-Review-Report-On-US-Power-Grid-Vulnerability?from=rss">
+<title>DHS To Review Report On US Power Grid Vulnerability</title>
+<link>http://rss.slashdot.org/~r/Slashdot/slashdot/~3/-bq0pOS2R0I/DHS-To-Review-Report-On-US-Power-Grid-Vulnerability</link>
+<description>CWmike writes "The US Department of Homeland Security is looking at a report by a research scientist in China that shows how a well-placed attack against a small power subnetwork could trigger a cascading failure of the entire West Coast power grid. Jian-Wei Wang, a network analyst at China's Dalian University of Technology, used publicly available information to model how the West Coast grid and its component subnetworks are connected. Wang and another colleague then investigated how a major outage in one subnetwork would affect adjacent subnetworks. New Scientist magazine reported on this a week or so ago, and the paper has been available since the spring."&lt;p&gt;&lt;a href="http://news.slashdot.org/story/09/09/15/1758216/DHS-To-Review-Report-On-US-Power-Grid-Vulnerability?from=rss"&gt;&lt;img src="http://slashdot.org/slashdot-it.pl?from=rss&amp;amp;op=image&amp;amp;style=h0&amp;amp;sid=09/09/15/1758216"&gt;&lt;/a&gt;&lt;/p&gt;&lt;p&gt;&lt;a href="http://news.slashdot.org/story/09/09/15/1758216/DHS-To-Review-Report-On-US-Power-Grid-Vulnerability?from=rss"&gt;Read more of this story&lt;/a&gt; at Slashdot.&lt;/p&gt;
+&lt;p&gt;&lt;a href="http://feedads.g.doubleclick.net/~at/lLwjI8thRYoaWDcaoc_I0CG3BmY/0/da"&gt;&lt;img src="http://feedads.g.doubleclick.net/~at/lLwjI8thRYoaWDcaoc_I0CG3BmY/0/di" border="0" ismap="true"&gt;&lt;/img&gt;&lt;/a&gt;&lt;br/&gt;
+&lt;a href="http://feedads.g.doubleclick.net/~at/lLwjI8thRYoaWDcaoc_I0CG3BmY/1/da"&gt;&lt;img src="http://feedads.g.doubleclick.net/~at/lLwjI8thRYoaWDcaoc_I0CG3BmY/1/di" border="0" ismap="true"&gt;&lt;/img&gt;&lt;/a&gt;&lt;/p&gt;&lt;img src="http://feeds.feedburner.com/~r/Slashdot/slashdot/~4/-bq0pOS2R0I" height="1" width="1"/&gt;</description>
+<dc:creator>kdawson</dc:creator>
+<dc:date>2009-09-15T18:47:00+00:00</dc:date>
+<dc:subject>security</dc:subject>
+<slash:department>like-dominos</slash:department>
+<slash:section>news</slash:section>
+<slash:comments>117</slash:comments>
+<slash:hit_parade>117,115,86,65,23,11,8</slash:hit_parade>
+<feedburner:origLink>http://news.slashdot.org/story/09/09/15/1758216/DHS-To-Review-Report-On-US-Power-Grid-Vulnerability?from=rss</feedburner:origLink></item>
+
+<item rdf:about="http://news.slashdot.org/story/09/09/15/1729234/No-App-Store-For-Microsofts-Zune-HD?from=rss">
+<title>No App Store For Microsoft's Zune HD</title>
+<link>http://rss.slashdot.org/~r/Slashdot/slashdot/~3/sTGYrP-Wx74/No-App-Store-For-Microsofts-Zune-HD</link>
+<description>Xerfas writes 'Microsoft's Zune HD, set to go on sale Tuesday, will not feature an open application store like its competitor the iPod Touch. It will come with some unique features, though, like an HD radio tuner, and with software that has been well-received by users. Those capabilities will determine whether the ZuneHD sells well &amp;mdash; and whether Microsoft decides to keep selling its own music player, said Matt Rosoff, an analyst at Directions on Microsoft.' The Zune marketing manager was quoted in the Seattle Times on whether the Zune would open up for 3rd-party apps, and he gave a response of such mind-numbing PR-speak that John Gruber of Daring Fireball was moved to provide this English translation: "No, because our mobile strategy is a convoluted mess."&lt;p&gt;&lt;a href="http://news.slashdot.org/story/09/09/15/1729234/No-App-Store-For-Microsofts-Zune-HD?from=rss"&gt;&lt;img src="http://slashdot.org/slashdot-it.pl?from=rss&amp;amp;op=image&amp;amp;style=h0&amp;amp;sid=09/09/15/1729234"&gt;&lt;/a&gt;&lt;/p&gt;&lt;p&gt;&lt;a href="http://news.slashdot.org/story/09/09/15/1729234/No-App-Store-For-Microsofts-Zune-HD?from=rss"&gt;Read more of this story&lt;/a&gt; at Slashdot.&lt;/p&gt;
+&lt;p&gt;&lt;a href="http://feedads.g.doubleclick.net/~at/rtLol1koQJ8i1stOQy2kpi8N7Jw/0/da"&gt;&lt;img src="http://feedads.g.doubleclick.net/~at/rtLol1koQJ8i1stOQy2kpi8N7Jw/0/di" border="0" ismap="true"&gt;&lt;/img&gt;&lt;/a&gt;&lt;br/&gt;
+&lt;a href="http://feedads.g.doubleclick.net/~at/rtLol1koQJ8i1stOQy2kpi8N7Jw/1/da"&gt;&lt;img src="http://feedads.g.doubleclick.net/~at/rtLol1koQJ8i1stOQy2kpi8N7Jw/1/di" border="0" ismap="true"&gt;&lt;/img&gt;&lt;/a&gt;&lt;/p&gt;&lt;img src="http://feeds.feedburner.com/~r/Slashdot/slashdot/~4/sTGYrP-Wx74" height="1" width="1"/&gt;</description>
+<dc:creator>kdawson</dc:creator>
+<dc:date>2009-09-15T17:59:00+00:00</dc:date>
+<dc:subject>media</dc:subject>
+<slash:department>new-way-to-compete</slash:department>
+<slash:section>news</slash:section>
+<slash:comments>283</slash:comments>
+<slash:hit_parade>283,275,229,185,46,28,16</slash:hit_parade>
+<feedburner:origLink>http://news.slashdot.org/story/09/09/15/1729234/No-App-Store-For-Microsofts-Zune-HD?from=rss</feedburner:origLink></item>
+
+<item rdf:about="http://tech.slashdot.org/story/09/09/15/1621258/SANS-Report-Says-Organizations-Focusing-On-the-Wrong-Security-Threats?from=rss">
+<title>SANS Report Says Organizations Focusing On the Wrong Security Threats</title>
+<link>http://rss.slashdot.org/~r/Slashdot/slashdot/~3/6faLA5YdRko/SANS-Report-Says-Organizations-Focusing-On-the-Wrong-Security-Threats</link>
+<description>yahoi writes "Companies around the world are leaving themselves wide open to Web- and client-side attacks, according to a new report released today by the SANS Institute that includes real attack data gathered from multiple sources. SANS found that most organizations are focusing their patching efforts and vulnerability scanning on the operating system, but they're missing the boat: 60 percent of the total number of attacks occur on Web applications, and many attacks are aimed at third-party applications such as Microsoft Office, and Adobe Flash and other tools. Exacerbating the problem, they're taking twice as long to patch Microsoft Office and other applications than to patch their operating systems."&lt;p&gt;&lt;a href="http://tech.slashdot.org/story/09/09/15/1621258/SANS-Report-Says-Organizations-Focusing-On-the-Wrong-Security-Threats?from=rss"&gt;&lt;img src="http://slashdot.org/slashdot-it.pl?from=rss&amp;amp;op=image&amp;amp;style=h0&amp;amp;sid=09/09/15/1621258"&gt;&lt;/a&gt;&lt;/p&gt;&lt;p&gt;&lt;a href="http://tech.slashdot.org/story/09/09/15/1621258/SANS-Report-Says-Organizations-Focusing-On-the-Wrong-Security-Threats?from=rss"&gt;Read more of this story&lt;/a&gt; at Slashdot.&lt;/p&gt;
+&lt;p&gt;&lt;a href="http://feedads.g.doubleclick.net/~at/U43h-o6K4SxcCKTrJJYYA8W8e3Q/0/da"&gt;&lt;img src="http://feedads.g.doubleclick.net/~at/U43h-o6K4SxcCKTrJJYYA8W8e3Q/0/di" border="0" ismap="true"&gt;&lt;/img&gt;&lt;/a&gt;&lt;br/&gt;
+&lt;a href="http://feedads.g.doubleclick.net/~at/U43h-o6K4SxcCKTrJJYYA8W8e3Q/1/da"&gt;&lt;img src="http://feedads.g.doubleclick.net/~at/U43h-o6K4SxcCKTrJJYYA8W8e3Q/1/di" border="0" ismap="true"&gt;&lt;/img&gt;&lt;/a&gt;&lt;/p&gt;&lt;img src="http://feeds.feedburner.com/~r/Slashdot/slashdot/~4/6faLA5YdRko" height="1" width="1"/&gt;</description>
+<dc:creator>timothy</dc:creator>
+<dc:date>2009-09-15T17:09:00+00:00</dc:date>
+<dc:subject>security</dc:subject>
+<slash:department>here's-mud-in-yer-eye</slash:department>
+<slash:section>technology</slash:section>
+<slash:comments>85</slash:comments>
+<slash:hit_parade>85,79,69,57,24,8,3</slash:hit_parade>
+<feedburner:origLink>http://tech.slashdot.org/story/09/09/15/1621258/SANS-Report-Says-Organizations-Focusing-On-the-Wrong-Security-Threats?from=rss</feedburner:origLink></item>
+
+<item rdf:about="http://games.slashdot.org/story/09/09/15/0338248/Review-emChampions-Onlineem?from=rss">
+<title>Review: &lt;em&gt;Champions Online&lt;/em&gt;</title>
+<link>http://rss.slashdot.org/~r/Slashdot/slashdot/~3/pLypfQRJ9gw/Review-emChampions-Onlineem</link>
+<description>Champions Online is Cryptic Studios' latest entry into the Superhero MMORPG genre, representing several years of advancement in game design both for Cryptic and for MMOs as a whole. It's no longer a new field, and there are now certain expectations about what an MMO should contain, and how it should play. Two major factors to a new game's success or failure are the standards they embrace and do well, and the ones they reject and do differently. Champions Online succeeds at adapting many established concepts, while still setting themselves apart from the typical swords &amp;amp; sorcery backdrop. Read on for the rest of my thoughts.&lt;p&gt;&lt;a href="http://games.slashdot.org/story/09/09/15/0338248/Review-emChampions-Onlineem?from=rss"&gt;&lt;img src="http://slashdot.org/slashdot-it.pl?from=rss&amp;amp;op=image&amp;amp;style=h0&amp;amp;sid=09/09/15/0338248"&gt;&lt;/a&gt;&lt;/p&gt;&lt;p&gt;&lt;a href="http://games.slashdot.org/story/09/09/15/0338248/Review-emChampions-Onlineem?from=rss"&gt;Read more of this story&lt;/a&gt; at Slashdot.&lt;/p&gt;
+&lt;p&gt;&lt;a href="http://feedads.g.doubleclick.net/~at/EwWIkI_gF1bUfu_8bQiofF6ZO6I/0/da"&gt;&lt;img src="http://feedads.g.doubleclick.net/~at/EwWIkI_gF1bUfu_8bQiofF6ZO6I/0/di" border="0" ismap="true"&gt;&lt;/img&gt;&lt;/a&gt;&lt;br/&gt;
+&lt;a href="http://feedads.g.doubleclick.net/~at/EwWIkI_gF1bUfu_8bQiofF6ZO6I/1/da"&gt;&lt;img src="http://feedads.g.doubleclick.net/~at/EwWIkI_gF1bUfu_8bQiofF6ZO6I/1/di" border="0" ismap="true"&gt;&lt;/img&gt;&lt;/a&gt;&lt;/p&gt;&lt;img src="http://feeds.feedburner.com/~r/Slashdot/slashdot/~4/pLypfQRJ9gw" height="1" width="1"/&gt;</description>
+<dc:creator>Soulskill</dc:creator>
+<dc:date>2009-09-15T16:15:00+00:00</dc:date>
+<dc:subject>games</dc:subject>
+<slash:department>are-you-a-hero</slash:department>
+<slash:section>games</slash:section>
+<slash:comments>165</slash:comments>
+<slash:hit_parade>165,164,150,119,18,8,5</slash:hit_parade>
+<feedburner:origLink>http://games.slashdot.org/story/09/09/15/0338248/Review-emChampions-Onlineem?from=rss</feedburner:origLink></item>
+
+<item rdf:about="http://science.slashdot.org/story/09/09/15/1523250/Taking-Showers-Can-Be-Harmful-To-Your-Health?from=rss">
+<title>Taking Showers Can Be Harmful To Your Health</title>
+<link>http://rss.slashdot.org/~r/Slashdot/slashdot/~3/T9HrFuulmRU/Taking-Showers-Can-Be-Harmful-To-Your-Health</link>
+<description>TheClockworkSoul writes "According to both the BBC and NewScientist, showering may be bad for your health. Apparently, dirty shower heads can be an ideal breeding ground for Mycobacterium avium, a bug responsible for a type of pulmonary disease more prevalent than tuberculosis in developed countries, cases of which have risen in parallel with the rise in showering. Tests revealed nearly a third of devices harbor significant levels of the critter."&lt;p&gt;&lt;a href="http://science.slashdot.org/story/09/09/15/1523250/Taking-Showers-Can-Be-Harmful-To-Your-Health?from=rss"&gt;&lt;img src="http://slashdot.org/slashdot-it.pl?from=rss&amp;amp;op=image&amp;amp;style=h0&amp;amp;sid=09/09/15/1523250"&gt;&lt;/a&gt;&lt;/p&gt;&lt;p&gt;&lt;a href="http://science.slashdot.org/story/09/09/15/1523250/Taking-Showers-Can-Be-Harmful-To-Your-Health?from=rss"&gt;Read more of this story&lt;/a&gt; at Slashdot.&lt;/p&gt;
+&lt;p&gt;&lt;a href="http://feedads.g.doubleclick.net/~at/wH0osTCowb4OlYz-jkfQlVHVRKo/0/da"&gt;&lt;img src="http://feedads.g.doubleclick.net/~at/wH0osTCowb4OlYz-jkfQlVHVRKo/0/di" border="0" ismap="true"&gt;&lt;/img&gt;&lt;/a&gt;&lt;br/&gt;
+&lt;a href="http://feedads.g.doubleclick.net/~at/wH0osTCowb4OlYz-jkfQlVHVRKo/1/da"&gt;&lt;img src="http://feedads.g.doubleclick.net/~at/wH0osTCowb4OlYz-jkfQlVHVRKo/1/di" border="0" ismap="true"&gt;&lt;/img&gt;&lt;/a&gt;&lt;/p&gt;&lt;img src="http://feeds.feedburner.com/~r/Slashdot/slashdot/~4/T9HrFuulmRU" height="1" width="1"/&gt;</description>
+<dc:creator>timothy</dc:creator>
+<dc:date>2009-09-15T15:36:00+00:00</dc:date>
+<dc:subject>medicine</dc:subject>
+<slash:department>healthiest-guy-alive</slash:department>
+<slash:section>science</slash:section>
+<slash:comments>368</slash:comments>
+<slash:hit_parade>368,365,294,211,64,45,28</slash:hit_parade>
+<feedburner:origLink>http://science.slashdot.org/story/09/09/15/1523250/Taking-Showers-Can-Be-Harmful-To-Your-Health?from=rss</feedburner:origLink></item>
+
+<item rdf:about="http://yro.slashdot.org/story/09/09/15/1444237/Australias-Bizarre-Classification-System-For-Internet-Censorship?from=rss">
+<title>Australia's Bizarre Classification System For Internet Censorship</title>
+<link>http://rss.slashdot.org/~r/Slashdot/slashdot/~3/HGPfG3we5mg/Australias-Bizarre-Classification-System-For-Internet-Censorship</link>
+<description>stavros-59 writes "Australia's internet censorship watchdog, ACMA, uses an internet classification system originally intended for children's PC filters. ACMA has now made what must be the most amazing recent decisions of the whole bizarre censorship debate. The Register today has a story about ACMA's decision to force Apple to withdraw their ITMS gift feature from Australia on the basis that MA+ (over 15 and maybe sex) rated movies could not be given to children using the gift cards. The films are also banned on the internet but not at local video/DVD stores as detailed in this Whirlpool Forum post. At the same time, the photographic work of Robert Mapplethorpe (not for the fainthearted) has been classified as PG (Parental Guidance) by the Classification Board &amp;mdash; which is not part of ACMA, but an agency under the Attorney General's Department."&lt;p&gt;&lt;a href="http://yro.slashdot.org/story/09/09/15/1444237/Australias-Bizarre-Classification-System-For-Internet-Censorship?from=rss"&gt;&lt;img src="http://slashdot.org/slashdot-it.pl?from=rss&amp;amp;op=image&amp;amp;style=h0&amp;amp;sid=09/09/15/1444237"&gt;&lt;/a&gt;&lt;/p&gt;&lt;p&gt;&lt;a href="http://yro.slashdot.org/story/09/09/15/1444237/Australias-Bizarre-Classification-System-For-Internet-Censorship?from=rss"&gt;Read more of this story&lt;/a&gt; at Slashdot.&lt;/p&gt;
+&lt;p&gt;&lt;a href="http://feedads.g.doubleclick.net/~at/Wti_ez6HHMy8ru-4IbfQklnv05Q/0/da"&gt;&lt;img src="http://feedads.g.doubleclick.net/~at/Wti_ez6HHMy8ru-4IbfQklnv05Q/0/di" border="0" ismap="true"&gt;&lt;/img&gt;&lt;/a&gt;&lt;br/&gt;
+&lt;a href="http://feedads.g.doubleclick.net/~at/Wti_ez6HHMy8ru-4IbfQklnv05Q/1/da"&gt;&lt;img src="http://feedads.g.doubleclick.net/~at/Wti_ez6HHMy8ru-4IbfQklnv05Q/1/di" border="0" ismap="true"&gt;&lt;/img&gt;&lt;/a&gt;&lt;/p&gt;&lt;img src="http://feeds.feedburner.com/~r/Slashdot/slashdot/~4/HGPfG3we5mg" height="1" width="1"/&gt;</description>
+<dc:creator>timothy</dc:creator>
+<dc:date>2009-09-15T14:48:00+00:00</dc:date>
+<dc:subject>censorship</dc:subject>
+<slash:department>in-loco-loco-loco-parentis</slash:department>
+<slash:section>yro</slash:section>
+<slash:comments>183</slash:comments>
+<slash:hit_parade>183,180,147,110,33,17,10</slash:hit_parade>
+<feedburner:origLink>http://yro.slashdot.org/story/09/09/15/1444237/Australias-Bizarre-Classification-System-For-Internet-Censorship?from=rss</feedburner:origLink></item>
+
+<item rdf:about="http://yro.slashdot.org/story/09/09/15/1334251/Chinese-Schools-Ax-Green-Dam-Censorship-Software?from=rss">
+<title>Chinese Schools Ax Green Dam Censorship Software</title>
+<link>http://rss.slashdot.org/~r/Slashdot/slashdot/~3/uZqsUflJMIU/Chinese-Schools-Ax-Green-Dam-Censorship-Software</link>
+<description>eldavojohn writes "China's controversial Green Dam Internet Filter died on new PCs a month ago, but it wasn't until recently that Chinese schools silently removed it. Claims that the software inhibited work in schools was cited as the reason by Reuters. 'We will remove all Green Dam software from computers in the school as it has strong conflicts with teaching software we need for normal work,' said one school, while another claimed, 'It had seriously influenced our normal work.'"&lt;p&gt;&lt;a href="http://yro.slashdot.org/story/09/09/15/1334251/Chinese-Schools-Ax-Green-Dam-Censorship-Software?from=rss"&gt;&lt;img src="http://slashdot.org/slashdot-it.pl?from=rss&amp;amp;op=image&amp;amp;style=h0&amp;amp;sid=09/09/15/1334251"&gt;&lt;/a&gt;&lt;/p&gt;&lt;p&gt;&lt;a href="http://yro.slashdot.org/story/09/09/15/1334251/Chinese-Schools-Ax-Green-Dam-Censorship-Software?from=rss"&gt;Read more of this story&lt;/a&gt; at Slashdot.&lt;/p&gt;
+&lt;p&gt;&lt;a href="http://feedads.g.doubleclick.net/~at/AwTihHUXj-FTCDEc1tagRnk2vGk/0/da"&gt;&lt;img src="http://feedads.g.doubleclick.net/~at/AwTihHUXj-FTCDEc1tagRnk2vGk/0/di" border="0" ismap="true"&gt;&lt;/img&gt;&lt;/a&gt;&lt;br/&gt;
+&lt;a href="http://feedads.g.doubleclick.net/~at/AwTihHUXj-FTCDEc1tagRnk2vGk/1/da"&gt;&lt;img src="http://feedads.g.doubleclick.net/~at/AwTihHUXj-FTCDEc1tagRnk2vGk/1/di" border="0" ismap="true"&gt;&lt;/img&gt;&lt;/a&gt;&lt;/p&gt;&lt;img src="http://feeds.feedburner.com/~r/Slashdot/slashdot/~4/uZqsUflJMIU" height="1" width="1"/&gt;</description>
+<dc:creator>timothy</dc:creator>
+<dc:date>2009-09-15T13:55:00+00:00</dc:date>
+<dc:subject>censorship</dc:subject>
+<slash:department>ungrateful-whelps</slash:department>
+<slash:section>yro</slash:section>
+<slash:comments>50</slash:comments>
+<slash:hit_parade>50,48,36,22,9,4,1</slash:hit_parade>
+<feedburner:origLink>http://yro.slashdot.org/story/09/09/15/1334251/Chinese-Schools-Ax-Green-Dam-Censorship-Software?from=rss</feedburner:origLink></item>
+
+<textinput rdf:about="http://slashdot.org/search.pl">
+<title>Search Slashdot</title>
+<description>Search Slashdot stories</description>
+<name>query</name>
+<link>http://slashdot.org/search.pl</link>
+</textinput>
+
+</rdf:RDF>
