@@ -128,9 +128,7 @@ if rdfPayload is not None:
         while (allTitles.hasNext()):
             titleList.append(allTitles.next())
     
-    #2. description/abstract will not be returned by aperture, nothing to do here
-    
-    #3. get creator only if no creator returned by ICE
+    #2. get creator only if no creator returned by ICE
     if creatorList == []:
         allCreators = paginationTextDocument.getAllCreator();
         while (allCreators.hasNext()):
@@ -140,19 +138,28 @@ if rdfPayload is not None:
             while (allFullnames.hasNext()):
                  creatorList.append(allFullnames.next())
     
-    #4. getFullText: only aperture has this information
+    #3. getFullText: only aperture has this information
     if informationElement.hasPlainTextContent():
         allPlainTextContents = informationElement.getAllPlainTextContent()
         while(allPlainTextContents.hasNext()):
-            fulltext.append(allPlainTextContents.next())
+            fulltextString = allPlainTextContents.next()
+            fulltext.append(fulltextString)
+            
+            #4. description/abstract will not be returned by aperture, so if no description found
+            # in dc.xml returned by ICE, put first 100 characters
+            if descriptionList == []:
+                descriptionString = fulltextString
+                if len(fulltextString)>100:
+                    descriptionString = fulltextString[:100] + "..."
+                descriptionList.append(descriptionString)
 
-    #4. mimeType: only aperture has this information
+    #5. mimeType: only aperture has this information
     if informationElement.hasMimeType():
         allMimeTypes = informationElement.getAllMimeType()
         while(allMimeTypes.hasNext()):
             formatList.append(allMimeTypes.next())
 
-    #5. contentCreated
+    #6. contentCreated
     if creationDate == []:
         if informationElement.hasContentCreated():
             creationDate.append(informationElement.getContentCreated().getTime().toString())
@@ -166,64 +173,3 @@ indexing(["dc_description"], descriptionList)
 indexing(["dc_format"], formatList)
 indexing(["full_text"], fulltext)
 indexing(["dc_date"], creationDate)
-
-
-#rdf = indexer.getXmlDocument(object.getMetadata())
-#if rdf is not None:
-#    rootNode = rdf.getRootElement()
-#    #indexNode(rootNode, "title", "./rdf:Description/dc:title")
-#else:
-#    print " * No RDF metadata found!"
-#
-#if isMetadata:
-#    indexer.registerNamespace("rdf", "http://www.w3.org/1999/02/22-rdf-syntax-ns#")
-#    indexer.registerNamespace("rdfs", "http://www.w3.org/2000/01/rdf-schema#")
-#    indexer.registerNamespace("dc", "http://purl.org/dc/elements/1.1/")
-#    indexer.registerNamespace("foaf", "http://xmlns.com/foaf/0.1/")
-#    indexer.registerNamespace("openofficens", "urn:oasis:names:tc:opendocument:xmlns:meta:1.0/")
-#    indexer.registerNamespace("nie", "http://www.semanticdesktop.org/ontologies/2007/01/19/nie#")
-#    indexer.registerNamespace("nco", "http://www.semanticdesktop.org/ontologies/2007/03/22/nco#")
-#    indexer.registerNamespace("nfo", "http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#")
-#    indexer.registerNamespace("dcterms", "http://purl.org/dc/terms/")
-#
-#    rdf = indexer.getXmlDocument(object.getMetadata())
-#    if rdf is not None:
-#        rootNode = rdf.getRootElement()
-#        #indexNode(rootNode, "title", "./rdf:Description/dc:title")
-#    else:
-#        print " * No RDF metadata found!"
-#       
-#    if rdf is not None:
-#        title = indexNodes(rootNode, ["dc_title", "dc_subject"], "//rdf:RDF/rdf:Description/dcterms:title")
-#        #if title == []:
-#        title = indexNodes(rootNode, ["dc_title", "dc_subject"], "//rdf:RDF/rdf:Description/dc:title")
-#        #if title == []:
-#        title = indexNodes(rootNode, ["dc_title", "dc_subject"], "//rdf:RDF/rdf:Description/nie:title")
-#            
-#        dcDate = indexNodes(rootNode, ["dc_date"], "//rdf:RDF/rdf:Description/dcterms:date")
-#        if dcDate:
-#            dcDate = indexNodes(rootNode, ["dc_date"], "//rdf:RDF/rdf:Description/dc:date")
-#            
-#        creator = indexNodes(rootNode, ["dc_creator", "dc_author"], "//rdf:RDF/rdf:Description/nco:fullname")
-#        creator = indexNodes(rootNode, ["dc_creator", "dc_author"], "//rdf:RDF/rdf:Description/dc:creator")
-#        creator = indexNodes(rootNode, ["dc_creator", "dc_author"], "//rdf:RDF/rdf:Description/openofficens:initial-creator")
-#        creator = indexNodes(rootNode, ["dc_creator", "dc_author"], "//rdf:RDF/rdf:Description/dcterms:creator")
-#        
-#        format = indexNodes(rootNode, ["dc_format"], "//rdf:RDF/rdf:Description/dcterms:format")
-#        if format=="":
-#            format = indexNodes(rootNode, ["dc_format"], "//rdf:RDF/rdf:Description/nie:mimeType")
-#        
-#        indexNodes(rootNode, ["full_text"], "//rdf:RDF/rdf:Description/nie:plainTextContent")
-#        indexNodes(rootNode, ["dc_creationdate"], "//rdf:RDF/rdf:Description/openofficens:creation-date")
-
-
-
-
-
-
-
-
-
-
-
-
