@@ -28,18 +28,6 @@ $(function() {
               '<input class="ui-corner-all ui-widget-content" id="' + id + '_label" name="' + id + '_label" size="25" type="text" value="" />\n' +
               '<button class="remove-backup-field ui-corner-all ui-state-default">del</button>\n' +
             '</li>');
-    	
-    	//parent.append('<fieldset>\n' +	        
-	    //    '<ol>\n' +
-	    //      '<li>\n' +
-	    //        '<label for="backupPath">Backup Path:</label>\n' +
-	    //        '<input id="backupPath" name="backupPath" size="30" type="text" value="" />\n' +
-	    //      '</li>\n' +
-	    //      '<li><input name="backupAction" type="submit" value="Update" />\n' +
-	    //      '<input name="backupAction" type="submit" value="Cancel" />\n' +
-	    //      '</li>\n' +
-	    //    '</ol>\n' +
-	    //  '</fieldset>');
     	return false;
     });
     
