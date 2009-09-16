@@ -15,16 +15,6 @@ from au.edu.usq.fascinator.common.nie import InformationElement
 #    storageId : Storage layer identifier
 #
 
-#def indexNodes(doc, names, xPath="", value=[]):
-#    nodes = doc.selectNodes(xPath)
-#    valueList = []
-#    if nodes:
-#        for node in nodes:
-#            for name in names: 
-#                rules.add(AddField(name, node.getText()))
-#            valueList.append(node.getText())
-#    return valueList
-
 def indexing(names, values):
     for value in values:
         for name in names:
@@ -86,7 +76,7 @@ titleList = []
 descriptionList = []
 creatorList = []
 creationDate = []
-contributorList = []   #Has not indexed yet....
+contributorList = []   
 formatList = []
 fulltext = []
 
@@ -117,7 +107,11 @@ if dcPayload is not None:
 rdfPayload = object.getMetadata()
 if rdfPayload is not None:
     rdfModel = indexer.getRdfModel(rdfPayload)
-    rdfId = "file:%s" % object.getId()
+    
+    #Seems like aperture only encode the spaces. Tested against special characters file name
+    #and it's working 
+    rdfId = "file:%s" % object.getId().replace(" ", "%20")
+    
     #Set write to False so it won't write to the model
     paginationTextDocument = PaginatedTextDocument(rdfModel, rdfId, False)
     informationElement = InformationElement(rdfModel, rdfId, False)
