@@ -5,6 +5,7 @@
 	<artifactId>feed-reader</artifactId>
 	<name>RSS/ATOM Feed Reader</name>
 	<version>0.0.1-SNAPSHOT</version>
+
 	<licenses>
 		<license>
 			<name>GNU GENERAL PUBLIC LICENSE V2</name>
@@ -37,24 +38,10 @@
 			<scope>compile</scope>
 		</dependency>
 	</dependencies>
+	<scm>
+		<url>http://fascinator.usq.edu.au/svn-auth/code/the-fascinator2/contrib/feed-reader/</url>
+	</scm>
 	<build>
-		<pluginManagement>
-			<plugins>
-				<plugin>
-					<groupId>org.apache.maven.plugins</groupId>
-					<artifactId>maven-javadoc-plugin</artifactId>
-					<version>2.5</version>
-					<configuration>
-						<aggregate>true</aggregate>
-						<links>
-							<link>http://java.sun.com/javase/6/docs/api</link>
-							<link>https://rome.dev.java.net/apidocs/subprojects/fetcher/1.0</link>
-							<link>https://rome.dev.java.net/apidocs/1_0</link>
-						</links>
-					</configuration>
-				</plugin>
-			</plugins>
-		</pluginManagement>
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -84,7 +71,7 @@
 				<configuration>
 					<mainClass>au.edu.usq.fascinator.contrib.feedreader.FeedReader</mainClass>
 					<arguments>
-						<argument>url=http://prag-o-matic.blogspot.com/feeds/posts/default</argument>
+						<argument>url=file://src/test/resources/slashdot.xml</argument>
 						<argument>cache=target</argument>
 					</arguments>
 				</configuration>
@@ -94,4 +81,30 @@
 	<properties>
 		<compileSource>1.6</compileSource>
 	</properties>
+	<reporting>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<version>2.5</version>
+				<configuration>
+					<aggregate>true</aggregate>
+					<links>
+						<link>http://java.sun.com/javase/6/docs/api</link>
+						<link>https://rome.dev.java.net/apidocs/subprojects/fetcher/1.0</link>
+						<link>https://rome.dev.java.net/apidocs/1_0</link>
+					</links>
+				</configuration>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jxr-plugin</artifactId>
+				<version>2.1</version>
+				<configuration>
+					<aggregate>true</aggregate>
+				</configuration>
+			</plugin>
+		</plugins>
+	</reporting>
 </project>
