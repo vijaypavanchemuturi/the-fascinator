@@ -1,12 +1,10 @@
 from au.edu.usq.fascinator.api import PluginManager
-from au.edu.usq.fascinator.common import JsonConfig
 
 from java.io import ByteArrayInputStream, ByteArrayOutputStream
 
 class SettingsData:
 
     def __init__(self):
-        self.__json = JsonConfig()
         self.__portal = Services.portalManager.get(portalId)
         if formData.get("portalAction") == "Update":
             self.__updatePortal()
