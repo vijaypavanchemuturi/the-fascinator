@@ -1,11 +1,39 @@
 from au.edu.usq.fascinator.api import PluginManager
+from au.edu.usq.fascinator.common import JsonConfig
+
+from java.io import ByteArrayInputStream, ByteArrayOutputStream
 
 class SettingsData:
 
     def __init__(self):
+        self.__json = JsonConfig()
         self.__portal = Services.portalManager.get(portalId)
         if formData.get("portalAction") == "Update":
             self.__updatePortal()
+        if formData.get("emailAction") == "Update":
+            self.__updateEmail()
+        if formData.get("backupAction") == "Update":    
+            self.__updateBackupPaths()
+        
+    def __updateEmail(self):
+        #This email temporarily will be defined here so the backup
+        #server can differentiate multiple userspace
+        self.__portal.email = formData.get("emailAddress")
+        Services.portalManager.save(self.__portal)
+        
+    def __updateBackupPaths(self):
+        backupPaths = self.__portal.backupPaths
+        backupPaths.clear()
+        size = int(formData.get("backupUrlSize"))
+        for i in range (1, size+2):  
+            keyName = "backupPaths_%s_name" % i
+            valueName = "backupPaths_%s_label" % i
+            name = formData.get(keyName)
+            value = formData.get(valueName)
+            print "key: %s, value: %s" % (name, value)
+            if name is not None and value is not None:
+                backupPaths.put(name, value)
+        Services.portalManager.save(self.__portal)
     
     def __updatePortal(self):
         print " * settings.py: updatePortal %s" % formData
@@ -41,5 +69,8 @@ class SettingsData:
 
     def getTransformerPlugins(self):
         return PluginManager.getTransformerPlugins()
+    
+    
+    
 
 scriptObject = SettingsData()

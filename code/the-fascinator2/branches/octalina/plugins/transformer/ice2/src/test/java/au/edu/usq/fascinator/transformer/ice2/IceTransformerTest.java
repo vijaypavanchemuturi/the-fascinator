@@ -34,12 +34,12 @@ import au.edu.usq.fascinator.common.storage.impl.GenericDigitalObject;
  * 
  */
 
-@Ignore
 public class IceTransformerTest {
     private GenericDigitalObject testObject;
     private DigitalObject testObjectOutput;
     private IceTransformer tf = new IceTransformer("", "/tmp");
 
+    @Ignore
     @Test
     public void testOdpFile() throws URISyntaxException, TransformerException {
         File fileNameodp = new File(getClass().getResource("/presentation.odp")
@@ -56,6 +56,7 @@ public class IceTransformerTest {
 
     }
 
+    @Ignore
     @Test
     public void testOdtFile() throws URISyntaxException, TransformerException {
         File fileNameodt = new File(getClass().getResource("/testImage.odt")
@@ -71,6 +72,7 @@ public class IceTransformerTest {
     }
 
     // Test against the file that is not supported in ice
+    @Ignore
     @Test
     public void testNotSupportedExtensionInIce() throws URISyntaxException,
             TransformerException {
@@ -83,6 +85,7 @@ public class IceTransformerTest {
     }
 
     // Need to test against the file that is not exist
+    @Ignore
     @Test
     public void testFileNotSupportedInIce() throws URISyntaxException,
             TransformerException {
