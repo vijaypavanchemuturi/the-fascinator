@@ -34,7 +34,7 @@ import com.sun.syndication.fetcher.FetcherEvent;
 public class ItemListener implements FeedReaderStateChangeListener {
 
 	private String feedURL = "";
-	private HashSet<FeedItem> feedItems;
+	private SyndFeed feed;
 
 	/**
 	 * @return the feedURL
@@ -46,8 +46,8 @@ public class ItemListener implements FeedReaderStateChangeListener {
 	/**
 	 * @return the feedItems
 	 */
-	public HashSet<FeedItem> getFeedItems() {
-		return this.feedItems;
+	public SyndFeed getFeed() {
+		return this.feed;
 	}
 
 	/*
@@ -62,10 +62,8 @@ public class ItemListener implements FeedReaderStateChangeListener {
 	public void feedReaderStateChangeEvent(FeedReaderStateChangeEvent event) {
 		if (FetcherEvent.EVENT_TYPE_FEED_RETRIEVED.equals(event.getEventType())) {
 			FeedReader ar = event.getReader();
-			SyndFeed feed = ar.getFeed();
-
 			this.feedURL = ar.getFeedURLString();
-			this.feedItems = FeedModel.packageFeedItems(feed);
+			feed = ar.getFeed();
 		}
 	}
 }

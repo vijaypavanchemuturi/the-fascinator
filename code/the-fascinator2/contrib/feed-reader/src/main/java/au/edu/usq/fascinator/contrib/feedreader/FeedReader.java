@@ -24,15 +24,11 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.sun.syndication.feed.synd.SyndContentImpl;
-import com.sun.syndication.feed.synd.SyndEntryImpl;
 import com.sun.syndication.feed.synd.SyndFeed;
-import com.sun.syndication.feed.synd.SyndPerson;
 import com.sun.syndication.fetcher.FeedFetcher;
 import com.sun.syndication.fetcher.FetcherEvent;
 import com.sun.syndication.fetcher.FetcherException;
@@ -153,10 +149,8 @@ public class FeedReader implements FetcherListener {
 	 * Returns all items in the cache
 	 * @return list of FeedItems
 	 */
-	public HashSet<FeedItem> getAll(){
-		SyndFeed feed = this.cache.getFeedInfo(this.feedURL).getSyndFeed();
-		HashSet<FeedItem> feedItems = FeedModel.packageFeedItems(feed);
-		return feedItems;
+	public SyndFeed getAll(){
+		return this.cache.getFeedInfo(this.feedURL).getSyndFeed();
 	}
 
 	/**

@@ -1,0 +1,59 @@
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+	xmlns:foaf="http://xmlns.com/foaf/0.1/" xmlns:nie="http://www.semanticdesktop.org/ontologies/2007/01/19/nie#"
+	xmlns:xsd="http://www.w3.org/2001/XMLSchema#" xmlns:nco="http://www.semanticdesktop.org/ontologies/2007/03/22/nco#"
+	xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#" xmlns:nfo="http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#"
+	xmlns:nmo="http://www.semanticdesktop.org/ontologies/2007/03/22/nmo#">
+
+	<rdf:Description
+		rdf:about="http://ptsefton.com/2009/08/20/article-of-the-future-lets-talk-about-scholarly-communications.htm">
+		<nie:identifier>
+			http://ptsefton.com/2009/08/20/article-of-the-future-lets-talk-about-scholarly-communications.htm
+		</nie:identifier>
+		<nie:title>Article of the future? Let's talk about scholarly
+			communications.</nie:title>
+		<nie:description>It has taken me a while to get to commenting on the
+			Article of the Future examples from Elsevier and Cell Press. If you
+			look at their two prototype articles you will see an attempt to
+			sex-up the presentation of a research articles, with a few social-web
+			trimmings via a share/save button. I already know [...]
+		</nie:description>
+		<nie:contentCreated rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime">
+			Fri Aug 21
+			09:11:30 EST 2009
+		</nie:contentCreated>
+		<nie:contentLastModified>
+		</nie:contentLastModified>
+
+		<nie:links>
+			<nfo:bookmarks>
+				http://ptsefton.com/2009/08/20/article-of-the-future-lets-talk-about-scholarly-communications.htm
+			</nfo:bookmarks>
+		</nie:links>
+
+
+		<rdf:type
+			rdf:resource="http://fascinator.usq.edu.au/ontologies/#SyndicatedFeedItem" />
+
+
+		<nco:creator rdf:resource="#person1" />
+
+		<nmo:hasAttachement>
+			<nfo:Attachment rdf:resource="#attach1" />
+		</nmo:hasAttachement>
+
+
+	</rdf:Description>
+
+	<rdf:Description rdf:about="#attach1">
+		<nie:mimeType>text/html</nie:mimeType>
+		<nie:plainTextContent>
+			This is a test
+		</nie:plainTextContent>
+	</rdf:Description>
+
+	<rdf:Description rdf:about="#person1">
+		<nco:fullname>Duncan Dickinson</nco:fullname>
+		<rdf:type
+			rdf:resource="http://www.semanticdesktop.org/ontologies/2007/03/22/nco#Contact" />
+	</rdf:Description>
+</rdf:RDF>

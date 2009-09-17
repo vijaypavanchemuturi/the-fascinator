@@ -37,6 +37,12 @@
 			<version>1.5.8</version>
 			<scope>compile</scope>
 		</dependency>
+		<dependency>
+			<groupId>org.htmlparser</groupId>
+			<artifactId>htmlparser</artifactId>
+			<version>1.6.bundle</version>
+			<scope>compile</scope>
+		</dependency>
 	</dependencies>
 	<scm>
 		<url>http://fascinator.usq.edu.au/svn-auth/code/the-fascinator2/contrib/feed-reader/</url>
@@ -64,20 +70,110 @@
 					</archive>
 				</configuration>
 			</plugin>
-			<plugin>
-				<groupId>org.codehaus.mojo</groupId>
-				<artifactId>exec-maven-plugin</artifactId>
-				<version>1.1.1</version>
-				<configuration>
-					<mainClass>au.edu.usq.fascinator.contrib.feedreader.FeedReader</mainClass>
-					<arguments>
-						<argument>url=http://rss.slashdot.org/Slashdot/slashdot</argument>
-						<argument>cache=target</argument>
-					</arguments>
-				</configuration>
-			</plugin>
 		</plugins>
 	</build>
+
+	<profiles>
+		<profile>
+			<id>duncan</id>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.codehaus.mojo</groupId>
+						<artifactId>exec-maven-plugin</artifactId>
+						<version>1.1.1</version>
+						<configuration>
+							<mainClass>au.edu.usq.fascinator.contrib.feedreader.FeedReader</mainClass>
+							<arguments>
+								<argument>url=http://blog.duncan.dickinson.name/feeds/posts/default</argument>
+								<argument>cache=target</argument>
+							</arguments>
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+		<profile>
+			<id>peter</id>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.codehaus.mojo</groupId>
+						<artifactId>exec-maven-plugin</artifactId>
+						<version>1.1.1</version>
+						<configuration>
+							<mainClass>au.edu.usq.fascinator.contrib.feedreader.FeedReader</mainClass>
+							<arguments>
+								<argument>url=http://ptsefton.com/feed</argument>
+								<argument>cache=target</argument>
+							</arguments>
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+		<profile>
+			<id>twitter</id>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.codehaus.mojo</groupId>
+						<artifactId>exec-maven-plugin</artifactId>
+						<version>1.1.1</version>
+						<configuration>
+							<mainClass>au.edu.usq.fascinator.contrib.feedreader.FeedReader</mainClass>
+							<arguments>
+								<argument>url=http://twitter.com/statuses/user_timeline/759251.rss</argument>
+								<argument>cache=target</argument>
+							</arguments>
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+		<profile>
+			<id>delicious</id>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.codehaus.mojo</groupId>
+						<artifactId>exec-maven-plugin</artifactId>
+						<version>1.1.1</version>
+						<configuration>
+							<mainClass>au.edu.usq.fascinator.contrib.feedreader.FeedReader</mainClass>
+							<arguments>
+								<argument>url=http://feeds.delicious.com/v2/rss/tag/eresearch</argument>
+								<argument>cache=target</argument>
+							</arguments>
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+		<profile>
+			<id>slashdot</id>
+			<activation>
+				<activeByDefault>true</activeByDefault>
+			</activation>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.codehaus.mojo</groupId>
+						<artifactId>exec-maven-plugin</artifactId>
+						<version>1.1.1</version>
+						<configuration>
+							<mainClass>au.edu.usq.fascinator.contrib.feedreader.FeedReader</mainClass>
+							<arguments>
+								<argument>url=http://rss.slashdot.org/Slashdot/slashdot</argument>
+								<argument>cache=target</argument>
+							</arguments>
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
+
 	<properties>
 		<compileSource>1.6</compileSource>
 	</properties>
