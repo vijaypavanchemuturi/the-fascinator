@@ -71,7 +71,7 @@
 				<configuration>
 					<mainClass>au.edu.usq.fascinator.contrib.feedreader.FeedReader</mainClass>
 					<arguments>
-						<argument>url=file://src/test/resources/slashdot.xml</argument>
+						<argument>url=http://rss.slashdot.org/Slashdot/slashdot</argument>
 						<argument>cache=target</argument>
 					</arguments>
 				</configuration>
