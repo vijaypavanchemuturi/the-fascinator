@@ -76,10 +76,11 @@ titleList = []
 descriptionList = []
 creatorList = []
 creationDate = []
-contributorList = []   
+contributorList = [] 
+approverList = []  
 formatList = []
 fulltext = []
-
+relationDict = {}
 ########### 
 ### Check if dc.xml returned from ice is exist or not. if not... process the dc-rdf
 
@@ -91,16 +92,45 @@ if dcPayload is not None:
         #get Title
         titleList = getNodeValues(dcXml, "//*[local-name()='title']")
         
-        #get abstract/description (TODO: need to fix ICE as the ice service does not set this value)
+        #get abstract/description 
         descriptionList = getNodeValues(dcXml, "//*[local-name()='description']")
         
         #get creator
         creatorList = getNodeValues(dcXml, "//*[local-name()='creator']")
         
+
+ 
+        #"""//*[local-name()='relation[starts-with(.,"usq-responsible-officer::")]']""")
+        relationList = getNodeValues(dcXml, "//*[local-name()='relation']")
+        currentKey = ""
+        valueList = []
+        count = 0
+        for relation in relationList:
+            count += 1
+            key, value = relation.split ("::")
+            if currentKey == "":
+                valueList.append(value)
+                currentKey = key          
+            elif currentKey != key and len(relationList)!= count:
+                relationDict[currentKey] = valueList
+                valueList = []
+                valueList.append(value)
+                relationDict[key] = valueList                
+                currentKey = key
+            elif len(relationList)==count:
+                if currentKey != key:
+                    relationDict[currentKey] = valueList
+                    valueList = []
+                valueList.append(value)
+                relationDict[key] = valueList
+            else:
+                valueList.append(value)
+                currentKey = key
+
         #get contributor list
         contributorList = getNodeValues(dcXml, "//*[local-name()='contributor']")
         
-        #get creation date (TODO: need to fix ICE as the ice service does not set this value)
+        #get creation date 
         creationDate = getNodeValues(dcXml, "//*[local-name()='issued']")
 
 
@@ -163,6 +193,11 @@ if rdfPayload is not None:
 indexing(["dc_title"], titleList)
 indexing(["dc_creator"], creatorList)  #no dc_author in schema.xml, need to check 
 indexing(["dc_contributor"], contributorList)
+
+for key in relationDict:
+    indexing([key], relationDict[key])
+
+
 indexing(["dc_description"], descriptionList)
 indexing(["dc_format"], formatList)
 indexing(["full_text"], fulltext)
