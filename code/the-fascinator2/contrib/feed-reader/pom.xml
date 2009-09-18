@@ -151,6 +151,25 @@
 			</build>
 		</profile>
 		<profile>
+			<id>crystaleye</id>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.codehaus.mojo</groupId>
+						<artifactId>exec-maven-plugin</artifactId>
+						<version>1.1.1</version>
+						<configuration>
+							<mainClass>au.edu.usq.fascinator.contrib.feedreader.FeedReader</mainClass>
+							<arguments>
+								<argument>url=http://wwmm.ch.cam.ac.uk/crystaleye/feed/all/rss/atom_10/feed.xml</argument>
+								<argument>cache=target</argument>
+							</arguments>
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+		<profile>
 			<id>slashdot</id>
 			<activation>
 				<activeByDefault>true</activeByDefault>

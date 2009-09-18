@@ -39,83 +39,73 @@ import com.sun.syndication.fetcher.FetcherEvent;
  * 
  */
 public class DemoItemListener extends ItemListener {
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see au.edu.usq.AtomReaderStateChangeListener#atomReaderStateChangeEvent
-	 * (au.edu.usq.AtomReaderStateChangeEvent)
-	 */
-	public void feedReaderStateChangeEvent(FeedReaderStateChangeEvent event) {
-		super.feedReaderStateChangeEvent(event);
-		System.out.println("Event: " + event.getEventType() + "\n");
+    /*
+     * (non-Javadoc)
+     * 
+     * @see au.edu.usq.AtomReaderStateChangeListener#atomReaderStateChangeEvent
+     * (au.edu.usq.AtomReaderStateChangeEvent)
+     */
+    public void feedReaderStateChangeEvent(FeedReaderStateChangeEvent event) {
+        super.feedReaderStateChangeEvent(event);
+        System.out.println("Event: " + event.getEventType() + "\n");
 
-		if (FetcherEvent.EVENT_TYPE_FEED_RETRIEVED.equals(event.getEventType())) {
-			System.out.println("URL: " + this.getFeedURL() + "\n");
-			DemoItemListener.displayFeedItems(this.getFeed());
-		} else if (FetcherEvent.EVENT_TYPE_FEED_UNCHANGED.equals(event
-				.getEventType())) {
-			System.out.println("No change in feed\n");
-		}
+        if (FetcherEvent.EVENT_TYPE_FEED_RETRIEVED.equals(event.getEventType())) {
+            System.out.println("URL: " + this.getFeedURL() + "\n");
+            DemoItemListener.displayFeedItems(this.getFeed());
+        } else if (FetcherEvent.EVENT_TYPE_FEED_UNCHANGED.equals(event
+                .getEventType())) {
+            System.out.println("No change in feed\n");
+        }
 
-	}
+    }
 
-	public static void displayFeedItems(SyndFeed feed) {
-		List<SyndEntry> itemList = feed.getEntries();
+    public static void displayFeedItems(SyndFeed feed) {
+        List<SyndEntry> itemList = feed.getEntries();
 
-		System.out.println("Items: " + itemList.size() + "\n");
+        System.out.println("Items: " + itemList.size() + "\n");
 
-		for (SyndEntry entry : itemList) {
-			System.out.println("URI: " + entry.getUri() + "\n" + "Title: "
-					+ entry.getTitle() + "\n" + "Link: " + entry.getLink()
-					+ "\n" + "Date: " + entry.getPublishedDate() + "\n"
-					+ "Modified: " + entry.getUpdatedDate() + "\n");
+        for (SyndEntry entry : itemList) {
+            System.out.println("URI: " + entry.getUri() + "\n" + "Title: "
+                    + entry.getTitle() + "\n" + "\n" + "Date: "
+                    + entry.getPublishedDate() + "\n" + "Modified: "
+                    + entry.getUpdatedDate() + "\n");
 
-			if (entry.getAuthors().size() > 0) {
-				System.out.println("Creators: \n");
+            System.out.println("Creators: \n");
 
-				for (SyndPerson author : (List<SyndPerson>) entry.getAuthors()) {
-					System.out.println("  - " + author.getName() + "\n");
-				}
-			} else {
-				System.out.println("Creator: " + entry.getAuthor() + "\n");
-			}
+            for (SyndPerson author : (List<SyndPerson>) FeedHelper
+                    .getAuthors(entry)) {
+                System.out.println("  - " + author.getName() + "\n");
+            }
 
-			if (entry.getLinks().size() > 0) {
-				System.out.println("Links: \n");
-				for (SyndLink link : (List<SyndLink>) entry.getLinks()) {
-					System.out.println("  - " + link.getTitle() + ": " + link.getHref() +"\n");
-				}
-			}
+            System.out.println("Links: \n");
+            for (SyndLink link : (List<SyndLink>) FeedHelper.getLinks(entry)) {
+                System.out.println("  - " + link.getTitle() + ": "
+                        + link.getHref() + "\n");
+            }
 
-			SyndContent description = entry.getDescription();
-			if (description != null) {
-				System.out.println("\nDescription(" + description.getType()
-						+ "): " + description.getValue());
-			}
+            SyndContent description = entry.getDescription();
+            if (description != null) {
+                System.out.println("\nDescription(" + description.getType()
+                        + "): " + description.getValue());
+            }
 
-			System.out.println("Contents: \n");
-			for (SyndContent content : (List<SyndContent>) entry.getContents()) {
-				System.out.println(" Type: " + content.getType());
-				System.out.println(" Body: " + content.getValue());
-				System.out.println(" Body (Plain text): "
-						+ PlainTextExtractor.getPlainText(content.getType(),
-								content.getValue()));
-			}
+            System.out.println("Contents: \n");
+            for (SyndContent content : (List<SyndContent>) 
+                    FeedHelper.getContents(entry)) {
+                System.out.println(" Type: " + content.getType());
+                System.out.println(" Body: " + content.getValue());
+                System.out.println(" Body (Plain text): "
+                        + PlainTextExtractor.getPlainText(content.getType(),
+                                content.getValue()));
+            }
 
-			System.out.println("Categories: \n");
-			for (SyndCategory category : (List<SyndCategory>) entry
-					.getCategories()) {
-				System.out.println(category.getName() + "("
-						+ category.getTaxonomyUri() + ")");
-			}
+            System.out.println("Categories: \n");
+            for (SyndCategory category : (List<SyndCategory>) FeedHelper.getCategories(entry)) {
+                System.out.println(category.getName() + "("
+                        + category.getTaxonomyUri() + ")");
+            }
 
-			DCModuleImpl dc = (DCModuleImpl) entry
-					.getModule(com.sun.syndication.feed.module.DCModule.URI);
-			for (DCSubject subject : (List<DCSubject>) dc.getSubjects()) {
-				System.out.println(subject.getValue() + "("
-						+ subject.getTaxonomyUri() + ")");
-			}
-			System.out.println("\n");
-		}
-	}
+            System.out.println("\n");
+        }
+    }
 }
