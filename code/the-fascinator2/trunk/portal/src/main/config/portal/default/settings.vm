@@ -181,6 +181,7 @@ $(function() {
       	  <input id="backupUrlSize" name="backupUrlSize" type="hidden" value="$self.portal.backupPaths.size()" />
       	  <fieldset>
 	      	  <ol><button id="add-backup-path">Create new backup Path</button>
+	      	  <!--<li><label for="locationName">Location Name</label><label for="locationPath">Location path</label></li>-->
 	      	  #foreach($entry in $self.portal.backupPaths)
 	          #set($field = $entry.key)
 	          #set($label = $entry.value)
