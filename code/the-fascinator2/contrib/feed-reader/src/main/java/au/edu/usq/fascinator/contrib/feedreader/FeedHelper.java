@@ -3,6 +3,12 @@ package au.edu.usq.fascinator.contrib.feedreader;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.ontoware.rdf2go.ModelFactory;
+import org.ontoware.rdf2go.RDF2Go;
+import org.ontoware.rdf2go.model.Model;
+
+import au.edu.usq.fascinator.common.nie.InformationElement;
+
 import com.sun.syndication.feed.module.DCModuleImpl;
 import com.sun.syndication.feed.module.DCSubject;
 import com.sun.syndication.feed.synd.SyndCategory;
@@ -63,5 +69,17 @@ public class FeedHelper {
             }
         }
         return categories;
+    }
+    
+    public static String toRDFXML(SyndEntry entry){
+        //String output = "I am a test";
+        ModelFactory modelFactory = RDF2Go.getModelFactory();
+        Model model = modelFactory.createModel();
+        model.open();
+        InformationElement nie = new InformationElement(model, false);
+        nie.setTitle(entry.getTitle());
+        model.close();
+        model.dump();
+        return model.toString();
     }
 }

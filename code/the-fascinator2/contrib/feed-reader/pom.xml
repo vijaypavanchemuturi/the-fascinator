@@ -1,7 +1,8 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>au.edu.usq.fascinator.contrib</groupId>
+	<groupId>au.edu.usq.fascinator.contrib
+	</groupId>
 	<artifactId>feed-reader</artifactId>
 	<name>RSS/ATOM Feed Reader</name>
 	<version>0.0.1-SNAPSHOT</version>
@@ -43,6 +44,21 @@
 			<version>1.6.bundle</version>
 			<scope>compile</scope>
 		</dependency>
+		<dependency>
+			<groupId>org.semweb4j</groupId>
+			<artifactId>rdfreactor.runtime</artifactId>
+			<version>4.7.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.semweb4j</groupId>
+			<artifactId>rdfreactor.generator</artifactId>
+			<version>4.7.0</version>
+		</dependency>
+		<dependency>
+			<groupId>au.edu.usq.fascinator</groupId>
+			<artifactId>fascinator-common</artifactId>
+			<version>0.2.0-SNAPSHOT</version>
+		</dependency>
 	</dependencies>
 	<scm>
 		<url>http://fascinator.usq.edu.au/svn-auth/code/the-fascinator2/contrib/feed-reader/</url>
@@ -65,7 +81,8 @@
 				<configuration>
 					<archive>
 						<manifest>
-							<mainClass>au.edu.usq.fascinator.reader.atomreader.AtomReader</mainClass>
+							<mainClass>au.edu.usq.fascinator.reader.atomreader.AtomReader
+							</mainClass>
 						</manifest>
 					</archive>
 				</configuration>
@@ -83,9 +100,12 @@
 						<artifactId>exec-maven-plugin</artifactId>
 						<version>1.1.1</version>
 						<configuration>
-							<mainClass>au.edu.usq.fascinator.contrib.feedreader.FeedReader</mainClass>
+							<mainClass>au.edu.usq.fascinator.contrib.feedreader.FeedReader
+							</mainClass>
 							<arguments>
-								<argument>url=http://blog.duncan.dickinson.name/feeds/posts/default</argument>
+								<argument>
+									url=http://blog.duncan.dickinson.name/feeds/posts/default
+								</argument>
 								<argument>cache=target</argument>
 							</arguments>
 						</configuration>
@@ -102,9 +122,11 @@
 						<artifactId>exec-maven-plugin</artifactId>
 						<version>1.1.1</version>
 						<configuration>
-							<mainClass>au.edu.usq.fascinator.contrib.feedreader.FeedReader</mainClass>
+							<mainClass>au.edu.usq.fascinator.contrib.feedreader.FeedReader
+							</mainClass>
 							<arguments>
-								<argument>url=http://ptsefton.com/feed</argument>
+								<argument>url=http://ptsefton.com/feed
+								</argument>
 								<argument>cache=target</argument>
 							</arguments>
 						</configuration>
@@ -121,9 +143,12 @@
 						<artifactId>exec-maven-plugin</artifactId>
 						<version>1.1.1</version>
 						<configuration>
-							<mainClass>au.edu.usq.fascinator.contrib.feedreader.FeedReader</mainClass>
+							<mainClass>au.edu.usq.fascinator.contrib.feedreader.FeedReader
+							</mainClass>
 							<arguments>
-								<argument>url=http://twitter.com/statuses/user_timeline/759251.rss</argument>
+								<argument>
+									url=http://twitter.com/statuses/user_timeline/759251.rss
+								</argument>
 								<argument>cache=target</argument>
 							</arguments>
 						</configuration>
@@ -140,9 +165,11 @@
 						<artifactId>exec-maven-plugin</artifactId>
 						<version>1.1.1</version>
 						<configuration>
-							<mainClass>au.edu.usq.fascinator.contrib.feedreader.FeedReader</mainClass>
+							<mainClass>au.edu.usq.fascinator.contrib.feedreader.FeedReader
+							</mainClass>
 							<arguments>
-								<argument>url=http://feeds.delicious.com/v2/rss/tag/eresearch</argument>
+								<argument>url=http://feeds.delicious.com/v2/rss/tag/eresearch
+								</argument>
 								<argument>cache=target</argument>
 							</arguments>
 						</configuration>
@@ -159,9 +186,12 @@
 						<artifactId>exec-maven-plugin</artifactId>
 						<version>1.1.1</version>
 						<configuration>
-							<mainClass>au.edu.usq.fascinator.contrib.feedreader.FeedReader</mainClass>
+							<mainClass>au.edu.usq.fascinator.contrib.feedreader.FeedReader
+							</mainClass>
 							<arguments>
-								<argument>url=http://wwmm.ch.cam.ac.uk/crystaleye/feed/all/rss/atom_10/feed.xml</argument>
+								<argument>
+									url=http://wwmm.ch.cam.ac.uk/crystaleye/feed/all/rss/atom_10/feed.xml
+								</argument>
 								<argument>cache=target</argument>
 							</arguments>
 						</configuration>
@@ -171,9 +201,6 @@
 		</profile>
 		<profile>
 			<id>slashdot</id>
-			<activation>
-				<activeByDefault>true</activeByDefault>
-			</activation>
 			<build>
 				<plugins>
 					<plugin>
@@ -181,9 +208,11 @@
 						<artifactId>exec-maven-plugin</artifactId>
 						<version>1.1.1</version>
 						<configuration>
-							<mainClass>au.edu.usq.fascinator.contrib.feedreader.FeedReader</mainClass>
+							<mainClass>au.edu.usq.fascinator.contrib.feedreader.FeedReader
+							</mainClass>
 							<arguments>
-								<argument>url=http://rss.slashdot.org/Slashdot/slashdot</argument>
+								<argument>url=http://rss.slashdot.org/Slashdot/slashdot
+								</argument>
 								<argument>cache=target</argument>
 							</arguments>
 						</configuration>
@@ -205,9 +234,12 @@
 				<configuration>
 					<aggregate>true</aggregate>
 					<links>
-						<link>http://java.sun.com/javase/6/docs/api</link>
-						<link>https://rome.dev.java.net/apidocs/subprojects/fetcher/1.0</link>
-						<link>https://rome.dev.java.net/apidocs/1_0</link>
+						<link>http://java.sun.com/javase/6/docs/api
+						</link>
+						<link>https://rome.dev.java.net/apidocs/subprojects/fetcher/1.0
+						</link>
+						<link>https://rome.dev.java.net/apidocs/1_0
+						</link>
 					</links>
 				</configuration>
 			</plugin>

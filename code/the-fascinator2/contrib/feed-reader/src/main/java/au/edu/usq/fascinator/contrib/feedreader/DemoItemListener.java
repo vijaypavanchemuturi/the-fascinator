@@ -105,6 +105,7 @@ public class DemoItemListener extends ItemListener {
                         + category.getTaxonomyUri() + ")");
             }
 
+            System.out.println(FeedHelper.toRDFXML(entry));
             System.out.println("\n");
         }
     }
