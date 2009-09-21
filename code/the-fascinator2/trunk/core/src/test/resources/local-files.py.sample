@@ -103,29 +103,16 @@ if dcPayload is not None:
         #"""//*[local-name()='relation[starts-with(.,"usq-responsible-officer::")]']""")
         relationList = getNodeValues(dcXml, "//*[local-name()='relation']")
         currentKey = ""
-        valueList = []
-        count = 0
+       
         for relation in relationList:
-            count += 1
-            key, value = relation.split ("::")
-            if currentKey == "":
-                valueList.append(value)
-                currentKey = key          
-            elif currentKey != key and len(relationList)!= count:
-                relationDict[currentKey] = valueList
-                valueList = []
-                valueList.append(value)
-                relationDict[key] = valueList                
-                currentKey = key
-            elif len(relationList)==count:
-                if currentKey != key:
-                    relationDict[currentKey] = valueList
-                    valueList = []
-                valueList.append(value)
-                relationDict[key] = valueList
+            key, value = relation.split("::")
+            value = value.strip()
+            key = key.replace("_5f","") #ICE encoding _ as _5f?
+
+            if relationDict.has_key(key):
+                relationDict[key].append(value)
             else:
-                valueList.append(value)
-                currentKey = key
+                relationDict[key] = [value]
 
         #get contributor list
         contributorList = getNodeValues(dcXml, "//*[local-name()='contributor']")
