@@ -275,7 +275,6 @@ public class IceTransformer implements Transformer {
         if (inFile.exists() && !inFile.getName().endsWith(".mp3")
                 && !inFile.getName().endsWith(".m4a")) {
             String result = getRendition(inFile);
-            log.info("&&&&&&&&&&&&&&&& result: " + result);
             if (!result.startsWith("Error")) {
                 // Check if the file is a zip file or error returned from ice
                 if (validZipFile(result) == true) {

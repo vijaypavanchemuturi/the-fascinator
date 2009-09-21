@@ -50,9 +50,6 @@ public class IceDigitalObject extends GenericDigitalObject {
     public IceDigitalObject(DigitalObject object, String filePath) {
         super(object);
         try {
-            log
-                    .info("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++filePath: "
-                            + filePath);
             if (filePath.endsWith(".zip")) {
                 File zipPathFile = new File(filePath);
                 ZipFile zipFile = new ZipFile(zipPathFile);

@@ -3,7 +3,10 @@ $!pageContent
 #else
 #set($DEBUG = true)
 #set($portalPath = "$contextPath/$portalId")
-#set($sessionUsername = $sessionState.get("username"))
+#set($sessionUsername = "")
+#if ($sessionState.get("username"))
+	#set($sessionUsername = $sessionState.get("username"))
+#end
 <html>
   <head>
     <title>The Fascinator | $!pageTitle</title>

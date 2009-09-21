@@ -98,7 +98,7 @@ pre.debug {
     background: #D0E5F5;
 }
 
-#menu-bar .with-separator {
+.with-separator {
     border-right: 1px dotted #1D599B;
     padding-left: 0.25em;
     padding-right: 0.5em;

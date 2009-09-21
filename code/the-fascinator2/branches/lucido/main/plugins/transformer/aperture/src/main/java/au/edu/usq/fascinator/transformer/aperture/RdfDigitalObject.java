@@ -36,7 +36,6 @@ public class RdfDigitalObject extends GenericDigitalObject {
 
     private Logger log = LoggerFactory.getLogger(RdfDigitalObject.class);
     private RdfPayload rdfPayload;
-    private DcPayload dcPayload;
 
     /**
      * RdfDigitalObject constructor
@@ -46,8 +45,6 @@ public class RdfDigitalObject extends GenericDigitalObject {
      */
     public RdfDigitalObject(DigitalObject object, RDFContainer rdf) {
         super(object.getId());
-        dcPayload = new DcPayload(object.getId(), rdf);
-        addPayload(dcPayload);
         rdfPayload = new RdfPayload(rdf);
         addPayload(rdfPayload);
         for (Payload payload : object.getPayloadList()) {
@@ -60,8 +57,7 @@ public class RdfDigitalObject extends GenericDigitalObject {
      */
     @Override
     public Payload getMetadata() {
-        return dcPayload;
-        // return rdfPayload;
+        return rdfPayload;
     }
 
 }

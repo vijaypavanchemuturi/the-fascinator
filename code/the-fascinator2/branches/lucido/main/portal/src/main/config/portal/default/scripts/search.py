@@ -1,7 +1,7 @@
 import md5, os
 from au.edu.usq.fascinator.api.indexer import SearchRequest
 from au.edu.usq.fascinator.common import JsonConfigHelper
-from au.edu.usq.fascinator.portal import Pagination
+from au.edu.usq.fascinator.portal import Pagination, Portal
 from java.io import ByteArrayInputStream, ByteArrayOutputStream
 from java.net import URLDecoder
 from java.util import HashMap
@@ -16,7 +16,7 @@ class SearchData:
         else:
             self.__pageNum = int(pageNum)
         self.__search()
-
+    
     def __search(self):
         recordsPerPage = self.__portal.recordsPerPage
 

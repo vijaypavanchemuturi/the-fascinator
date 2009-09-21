@@ -2,6 +2,10 @@ import time
 from au.edu.usq.fascinator.indexer.rules import AddField, New
 from org.dom4j.io import SAXReader
 
+from au.edu.usq.fascinator.common.nfo import PaginatedTextDocument
+from au.edu.usq.fascinator.common.nco import Contact
+from au.edu.usq.fascinator.common.nie import InformationElement
+
 #
 # Available objects:
 #    indexer   : Indexer instance
@@ -11,25 +15,21 @@ from org.dom4j.io import SAXReader
 #    storageId : Storage layer identifier
 #
 
-#def indexNode(doc, name, xPath="", value=""):
-#    if value:
-#        rules.add(AddField(name, value))
-#        return value
-#    node = doc.selectSingleNodes(xPath)
-#    if node is not None and len(node)==1:
-#        rules.add(AddField(name, node.getText()))
-#        return node.getText()
-#    return ""
+def indexing(names, values):
+    for value in values:
+        for name in names:
+            rules.add(AddField(name, value))
 
-def indexNodes(doc, names, xPath="", value=[]):
+def getNodeValues (doc, xPath):
     nodes = doc.selectNodes(xPath)
     valueList = []
     if nodes:
         for node in nodes:
-            for name in names: 
-                rules.add(AddField(name, node.getText()))
-            valueList.append(node.getText())
-    return valueList
+            #remove duplicates:
+            nodeValue = node.getText()
+            if nodeValue not in valueList:
+                valueList.append(node.getText())
+    return valueList 
 
 rules.add(New())
 
@@ -61,98 +61,131 @@ rules.add(AddField("item_class", "document"))
 rules.add(AddField("repository_name", params["repository.name"]))
 rules.add(AddField("repository_type", params["repository.type"]))
 
-indexer.registerNamespace("rdf", "http://www.w3.org/1999/02/22-rdf-syntax-ns#")
-indexer.registerNamespace("rdfs", "http://www.w3.org/2000/01/rdf-schema#")
-indexer.registerNamespace("dc", "http://purl.org/dc/elements/1.1/")
-indexer.registerNamespace("foaf", "http://xmlns.com/foaf/0.1/")
-indexer.registerNamespace("openofficens", "urn:oasis:names:tc:opendocument:xmlns:meta:1.0/")
-indexer.registerNamespace("nie", "http://www.semanticdesktop.org/ontologies/2007/01/19/nie#")
-indexer.registerNamespace("nco", "http://www.semanticdesktop.org/ontologies/2007/03/22/nco#")
-indexer.registerNamespace("nfo", "http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#")
-indexer.registerNamespace("dcterms", "http://purl.org/dc/terms/")
+#indexer.registerNamespace("rdf", "http://www.w3.org/1999/02/22-rdf-syntax-ns#")
+#indexer.registerNamespace("rdfs", "http://www.w3.org/2000/01/rdf-schema#")
+#indexer.registerNamespace("dc", "http://purl.org/dc/elements/1.1/")
+#indexer.registerNamespace("foaf", "http://xmlns.com/foaf/0.1/")
+#indexer.registerNamespace("openofficens", "urn:oasis:names:tc:opendocument:xmlns:meta:1.0/")
+#indexer.registerNamespace("nie", "http://www.semanticdesktop.org/ontologies/2007/01/19/nie#")
+#indexer.registerNamespace("nco", "http://www.semanticdesktop.org/ontologies/2007/03/22/nco#")
+#indexer.registerNamespace("nfo", "http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#")
+#indexer.registerNamespace("oai_dc", "http://www.openarchives.org/OAI/2.0/oai_dc/")
+#indexer.registerNamespace("dcterms", "http://purl.org/dc/terms/")
 
+titleList = []
+descriptionList = []
+creatorList = []
+creationDate = []
+contributorList = [] 
+approverList = []  
+formatList = []
+fulltext = []
+relationDict = {}
+########### 
+### Check if dc.xml returned from ice is exist or not. if not... process the dc-rdf
 
-rdf = indexer.getXmlDocument(object.getMetadata())
-if rdf is not None:
-    rootNode = rdf.getRootElement()
-    #indexNode(rootNode, "title", "./rdf:Description/dc:title")
-else:
-    print " * No RDF metadata found!"
+dcPayload = object.getPayload("dc.xml")
 
-#rdfString = object.getMetadata()
-#if rdfString is None:
-#    rdfString = object.getPayload("rdf")  #in future use object.getMetadata("rdf")
+if dcPayload is not None:
+    dcXml = indexer.getXmlDocument(dcPayload)
+    if dcXml is not None:
+        #get Title
+        titleList = getNodeValues(dcXml, "//*[local-name()='title']")
+        
+        #get abstract/description 
+        descriptionList = getNodeValues(dcXml, "//*[local-name()='description']")
+        
+        #get creator
+        creatorList = getNodeValues(dcXml, "//*[local-name()='creator']")
+        
 
-#rootNode = indexer.getXmlDocument(rdfString.getInputStream())
-#rootNode = indexer.getXmlDocument(object.getMetadata())
-
-   
-#if rdf is not None:
-#    title = indexNode(rootNode, "dc_title", "/rdf:RDF/rdf:Description/dcterms:title")
-#    if title=="":
-#        title = indexNode(rootNode, "dc_title", "/rdf:RDF/rdf:Description/dc:title")
-#    if title=="":
-#        title = indexNode(rootNode, "dc_title", "/rdf:RDF/rdf:Description/nie:title")
-#    if title:
-#        indexNode(rootNode, "dc_subject", value=title)
-
-if isMetadata:
-    indexer.registerNamespace("rdf", "http://www.w3.org/1999/02/22-rdf-syntax-ns#")
-    indexer.registerNamespace("rdfs", "http://www.w3.org/2000/01/rdf-schema#")
-    indexer.registerNamespace("dc", "http://purl.org/dc/elements/1.1/")
-    indexer.registerNamespace("foaf", "http://xmlns.com/foaf/0.1/")
-    indexer.registerNamespace("openofficens", "urn:oasis:names:tc:opendocument:xmlns:meta:1.0/")
-    indexer.registerNamespace("nie", "http://www.semanticdesktop.org/ontologies/2007/01/19/nie#")
-    indexer.registerNamespace("nco", "http://www.semanticdesktop.org/ontologies/2007/03/22/nco#")
-    indexer.registerNamespace("nfo", "http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#")
-    indexer.registerNamespace("dcterms", "http://purl.org/dc/terms/")
-
-    rdf = indexer.getXmlDocument(object.getMetadata())
-    if rdf is not None:
-        rootNode = rdf.getRootElement()
-        #indexNode(rootNode, "title", "./rdf:Description/dc:title")
-    else:
-        print " * No RDF metadata found!"
-    
-    #rdfString = object.getMetadata()
-    #if rdfString is None:
-    #    rdfString = object.getPayload("rdf")  #in future use object.getMetadata("rdf")
-    
-    #rootNode = indexer.getXmlDocument(rdfString.getInputStream())
-    #rootNode = indexer.getXmlDocument(object.getMetadata())
-    
+ 
+        #"""//*[local-name()='relation[starts-with(.,"usq-responsible-officer::")]']""")
+        relationList = getNodeValues(dcXml, "//*[local-name()='relation']")
+        currentKey = ""
        
-    if rdf is not None:
-        title = indexNodes(rootNode, ["dc_title", "dc_subject"], "//rdf:RDF/rdf:Description/dcterms:title")
-        if title == []:
-            title = indexNodes(rootNode, ["dc_title", "dc_subject"], "//rdf:RDF/rdf:Description/dc:title")
-        if title == []:
-            title = indexNodes(rootNode, ["dc_title", "dc_subject"], "//rdf:RDF/rdf:Description/nie:title")
-            
-        dcDate = indexNodes(rootNode, ["dc_date"], "//rdf:RDF/rdf:Description/dcterms:date")
-        if dcDate:
-            dcDate = indexNodes(rootNode, ["dc_date"], "//rdf:RDF/rdf:Description/dc:date")
-            
-        creator = indexNodes(rootNode, ["dc_creator", "dc_author"], "//rdf:RDF/rdf:Description/nco:fullname")
-        creator = indexNodes(rootNode, ["dc_creator", "dc_author"], "//rdf:RDF/rdf:Description/dc:creator")
-        creator = indexNodes(rootNode, ["dc_creator", "dc_author"], "//rdf:RDF/rdf:Description/openofficens:initial-creator")
-        creator = indexNodes(rootNode, ["dc_creator", "dc_author"], "//rdf:RDF/rdf:Description/dcterms:creator")
+        for relation in relationList:
+            key, value = relation.split("::")
+            value = value.strip()
+            key = key.replace("_5f","") #ICE encoding _ as _5f?
+
+            if relationDict.has_key(key):
+                relationDict[key].append(value)
+            else:
+                relationDict[key] = [value]
+
+        #get contributor list
+        contributorList = getNodeValues(dcXml, "//*[local-name()='contributor']")
         
-        format = indexNodes(rootNode, ["dc_format"], "//rdf:RDF/rdf:Description/dcterms:format")
-        if format=="":
-            format = indexNodes(rootNode, ["dc_format"], "//rdf:RDF/rdf:Description/nie:mimeType")
-        
-        indexNodes(rootNode, ["full_text"], "//rdf:RDF/rdf:Description/nie:plainTextContent")
-        indexNodes(rootNode, ["dc_creationdate"], "//rdf:RDF/rdf:Description/openofficens:creation-date")
+        #get creation date 
+        creationDate = getNodeValues(dcXml, "//*[local-name()='issued']")
 
 
+rdfPayload = object.getMetadata()
+if rdfPayload is not None:
+    rdfModel = indexer.getRdfModel(rdfPayload)
+    
+    #Seems like aperture only encode the spaces. Tested against special characters file name
+    #and it's working 
+    rdfId = "file:%s" % object.getId().replace(" ", "%20")
+    
+    #Set write to False so it won't write to the model
+    paginationTextDocument = PaginatedTextDocument(rdfModel, rdfId, False)
+    informationElement = InformationElement(rdfModel, rdfId, False)
+    
+    #1. get title only if no title returned by ICE
+    if titleList == []:
+        allTitles = informationElement.getAllTitle();
+        while (allTitles.hasNext()):
+            titleList.append(allTitles.next())
+    
+    #2. get creator only if no creator returned by ICE
+    if creatorList == []:
+        allCreators = paginationTextDocument.getAllCreator();
+        while (allCreators.hasNext()):
+            thing = allCreators.next()
+            contacts = Contact(rdfModel, thing.getResource(), False)
+            allFullnames = contacts.getAllFullname()
+            while (allFullnames.hasNext()):
+                 creatorList.append(allFullnames.next())
+    
+    #3. getFullText: only aperture has this information
+    if informationElement.hasPlainTextContent():
+        allPlainTextContents = informationElement.getAllPlainTextContent()
+        while(allPlainTextContents.hasNext()):
+            fulltextString = allPlainTextContents.next()
+            fulltext.append(fulltextString)
+            
+            #4. description/abstract will not be returned by aperture, so if no description found
+            # in dc.xml returned by ICE, put first 100 characters
+            if descriptionList == []:
+                descriptionString = fulltextString
+                if len(fulltextString)>100:
+                    descriptionString = fulltextString[:100] + "..."
+                descriptionList.append(descriptionString)
+
+    #5. mimeType: only aperture has this information
+    if informationElement.hasMimeType():
+        allMimeTypes = informationElement.getAllMimeType()
+        while(allMimeTypes.hasNext()):
+            formatList.append(allMimeTypes.next())
+
+    #6. contentCreated
+    if creationDate == []:
+        if informationElement.hasContentCreated():
+            creationDate.append(informationElement.getContentCreated().getTime().toString())
 
 
+#Start Indexing....
+indexing(["dc_title"], titleList)
+indexing(["dc_creator"], creatorList)  #no dc_author in schema.xml, need to check 
+indexing(["dc_contributor"], contributorList)
+
+for key in relationDict:
+    indexing([key], relationDict[key])
 
 
-
-
-
-
-
-
+indexing(["dc_description"], descriptionList)
+indexing(["dc_format"], formatList)
+indexing(["full_text"], fulltext)
+indexing(["dc_date"], creationDate)

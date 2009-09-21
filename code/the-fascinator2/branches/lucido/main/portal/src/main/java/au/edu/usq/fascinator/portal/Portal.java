@@ -73,6 +73,13 @@ public class Portal implements Comparable<Portal> {
     @XmlElement
     private String netmask;
 
+    @XmlElement(name = "backup-email")
+    private String email;
+
+    @XmlElement(name = "backup-paths")
+    @XmlJavaTypeAdapter(MapAdapter.class)
+    private Map<String, String> backupPaths;
+
     @XmlElement(name = "facet-fields")
     @XmlJavaTypeAdapter(MapAdapter.class)
     private Map<String, String> facetFields;
@@ -91,6 +98,7 @@ public class Portal implements Comparable<Portal> {
         this.description = description;
         this.query = query;
         facetFields = new HashMap<String, String>();
+        backupPaths = new HashMap<String, String>();
     }
 
     public String getName() {
@@ -199,6 +207,36 @@ public class Portal implements Comparable<Portal> {
 
     public List<String> getFacetFieldList() {
         return new ArrayList<String>(facetFields.keySet());
+    }
+
+    /**
+     * Email setting for backup to determine user space in backup server
+     * 
+     * @param email
+     */
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    /**
+     * Backup Url list
+     * 
+     * @param backupPaths
+     */
+    public void setBackupPaths(Map<String, String> backupPaths) {
+        this.backupPaths = backupPaths;
+    }
+
+    public Map<String, String> getBackupPaths() {
+        return backupPaths;
+    }
+
+    public List<String> getBackupPathsList() {
+        return new ArrayList<String>(backupPaths.keySet());
     }
 
     @Override
