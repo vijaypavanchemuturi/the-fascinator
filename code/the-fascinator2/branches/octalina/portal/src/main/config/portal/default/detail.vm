@@ -28,7 +28,8 @@ $(function() {
         if (mimeType.indexOf("image") == 0) {
             $('div.content-preview').append("<img src='$contextPath/$portalId/download/" + oid + "'/>");
         } else if (mimeType.indexOf("audio") == 0 || mimeType.indexOf("video") == 0) {
-            var filename = '$portalPath/download/' + oid.replace("wmv", "flv");
+            var oriFileName = $('#fileName').text();
+            var filename = '$portalPath/download/' + oid + "/" + oriFileName.replace("wmv", "flv");
             var height = 300;
             if (mimeType.indexOf("audio") == 0) {
                 height = 24;
@@ -55,17 +56,23 @@ $(function() {
   <label id="oid">$oid</label>
   <label id="format">$self.mimeType</label>
   <label id="hasSlide">$self.hasSlideShow()</label>
-  <label id="hasSlide">$self.hasSlideShow()</label>
+  <label id="fileName">$self.getFileName($oid)</label>
 </div>
-#set($title = $meta.getField("dc_title"))
-#set($description = $meta.getField("dc_description"))
-#if ($title)
+#set($title = "")
+#set($description = "")
+#if ($meta.getField("dc_title"))
+	#set($title = $meta.getField("dc_title"))
+#end
+#if ($meta.getField("dc_description"))
+ 	#set($description = $meta.getField("dc_description"))
+#end
+#if ($title != "")
 <h2>$title</h2>
 #else
 <h2>$self.getFileName($oid)</h2>
 #end
 <button id="open-this">Open file for editing</button>
-#if($description)
+#if($description != "")
 <h3>Description</h3>
 <p>$description</p>
 #end
