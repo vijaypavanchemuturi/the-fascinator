@@ -1,4 +1,14 @@
 #set($pageTitle = 'Home')
+<script type="text/javascript">
+$(function() {
+    $(".delete-action").click(function() {
+        var portalName = $(this).attr("rel");
+        if(confirm("Are you sure you want to delete the portal?")) {
+            doAction("delete-portal", $(this).attr("rel"));
+        }
+    });
+});
+</script>
 <h2>Welcome</h2>
 <p>Tell a little story about The Fascinator...</p>
 <div id="home-search">
@@ -25,7 +35,10 @@
     #if($portal.name == $portalId)
       <span class="active-link">$portal.description</span>
     #else
-      <a href="$contextPath/$portal.name/home">$portal.description</a>
+      <a href="$contextPath/$portal.name/search">$portal.description</a>
+    #end
+    #if($portal.name != "default")
+      <a class="delete-action" href="#" rel="$portal.name">delete</a>
     #end
     </li>
   #end

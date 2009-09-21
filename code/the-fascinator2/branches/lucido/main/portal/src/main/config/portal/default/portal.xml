@@ -5,13 +5,7 @@
     <records-per-page>25</records-per-page>
     <facet-count>25</facet-count>
     <facet-sort-by-count>false</facet-sort-by-count>
-    <backup-email>octalina@usq.edu.au</backup-email>
-    <backup-paths>
-        <field name="new1">http://new.com</field>
-        <field name="more">http://more.com</field>
-        <field name="external">http://xxx.com</field>
-        <field name="next">http://next.com</field>
-    </backup-paths>
+    <backup-paths/>
     <facet-fields>
         <field name="repository_name">Source</field>
         <field name="file_path">Path</field>

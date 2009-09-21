@@ -66,9 +66,8 @@ $(function() {
   </ul>
   <div id="general-tab">
     <form id="portalForm" name="portalForm" method="post">
-      <button name="">Create new view</button>
       <fieldset>
-        <legend>Current view - $self.portal.description</legend>
+        <legend>Current view <span id="portal-description">- $self.portal.description</span></legend>
         <ol>
           <li>
             <label for="portalName">Name</label>

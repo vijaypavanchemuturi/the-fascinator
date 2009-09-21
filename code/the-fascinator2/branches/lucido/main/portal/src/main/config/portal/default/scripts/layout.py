@@ -24,7 +24,10 @@ class TemplateData:
                 sessionState.set("username", username)
     
     def getPortals(self):
-        return Services.getPortalManager().getPortals()
+        return Services.portalManager.portals
+    
+    def getPortalName(self):
+        return Services.portalManager.get(portalId).description
     
     def encodeURL(self, url):
         #return URLEncoder.encode(url, "UTF-8")

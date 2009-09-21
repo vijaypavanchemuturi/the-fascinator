@@ -5,8 +5,7 @@ from java.io import ByteArrayInputStream, ByteArrayOutputStream
 class SettingsData:
 
     def __init__(self):
-        sessionState.remove("createView::newPortal")
-        print formData
+        self.__portal = None
         action = formData.get("verb")
         if action == "create_view":
             fq = [q for q in sessionState.get("fq") if q != 'item_type:"object"']
@@ -23,7 +22,14 @@ class SettingsData:
             newPortal.setQuery(query)
             self.__portal = newPortal
         else:
-            self.__portal = Services.portalManager.get(portalId)
+            portalName = formData.get("portalName")
+            print " * settings.py: portalName=%s" % portalName
+            if portalName is None or (formData.get("portalAction") == "Cancel"):
+                self.__portal = Services.portalManager.get(portalId)
+            else:
+                self.__portal = Portal()
+                self.__portal.name = portalName
+                Services.portalManager.add(self.__portal)
             if formData.get("portalAction") == "Update":
                 self.__updatePortal()
         if formData.get("emailAction") == "Update":
