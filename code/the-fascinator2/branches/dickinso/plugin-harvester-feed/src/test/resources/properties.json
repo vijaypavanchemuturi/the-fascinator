@@ -1,0 +1,21 @@
+{
+    "harvester": {
+        "type": "feed-harvester",
+        "feed-harvester": {
+            "urls": ["http://blog.duncan.dickinson.name/feeds/posts/default",
+            		"http://rss.slashdot.org/Slashdot/slashdot"],
+            "cache": "target/feed-reader"
+        }
+    },
+    
+    "indexer": {
+        "script": {
+            "type": "python",
+            "rules": "rules.py"
+        },
+        "params": {
+            "repository.name": "RSS/ATOM Feeds",
+            "repository.type": "feed-harvest"
+        }
+    }
+}
