@@ -7,7 +7,7 @@ from java.net import URLDecoder
 from java.util import HashMap
 
 class SearchData:
-    def __init__(self):
+    def __init__(self):        
         self.__result = JsonConfigHelper()
         self.__portal = Services.getPortalManager().get(portalId)
         pageNum = sessionState.get("pageNum")
@@ -15,7 +15,19 @@ class SearchData:
             self.__pageNum = 1
         else:
             self.__pageNum = int(pageNum)
-        self.__search()
+        if formData.get("backupAction") == "Backup":
+            self.__backup()
+        else:
+            self.__search()
+            
+    def __backup(self):
+        query = formData.get("query")
+        if query is None or query == "":
+            query = "*:*"
+        fq = sessionState.get("fq")
+        print " * backup: %s, facetList: %s " % (query, fq)
+        
+        pass
 
     def __search(self):
         recordsPerPage = self.__portal.recordsPerPage
