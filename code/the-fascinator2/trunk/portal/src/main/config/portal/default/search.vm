@@ -94,6 +94,11 @@ $(function() {
         trail: [ '... <a href="#" class="truncate_show">more</a>',
                  ' <a href="#" class="truncate_hide">less</a>' ]
     });
+    
+    $("#create-view").click(function() {
+        setActionUri("$contextPath/$portalId/settings");
+        doAction("create_view");
+    });
 });
 </script>
 <pre class="debug">$self.selectedFacetIds</pre>
@@ -120,6 +125,7 @@ $(function() {
   <div class="split-panel" id="facet-list">
     <h3>Facets</h3>
     #if($self.hasSelectedFacets()==1)
+      <a class="facet-action with-separator" id="create-view" href="#">Create view</a>
       <a class="facet-action" id="clear-facets" href="#">Clear selection</a>
     #end
     <h4 class="dotted-line">Path</h4>

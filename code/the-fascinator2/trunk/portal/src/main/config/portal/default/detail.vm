@@ -28,7 +28,7 @@ $(function() {
         if (mimeType.indexOf("image") == 0) {
             $('div.content-preview').append("<img src='$contextPath/$portalId/download/" + oid + "'/>");
         } else if (mimeType.indexOf("audio") == 0 || mimeType.indexOf("video") == 0) {
-            var filename = '$portalPath/download/' + oid.replace("wmv", "flv");
+            var filename = '$portalPath/download/' + oid + "/" + oid.substring(oid.lastIndexOf("/")+1).replace("wmv", "flv");
             var height = 300;
             if (mimeType.indexOf("audio") == 0) {
                 height = 24;

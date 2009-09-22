@@ -131,6 +131,7 @@ $!pageContent
           </ul>
         </div>
       </div>
+      <h3 class="portal-name">$page.portalName</h3>
     </div>
     <div class="debug" id="debug">
       <div class="ui-state-error">

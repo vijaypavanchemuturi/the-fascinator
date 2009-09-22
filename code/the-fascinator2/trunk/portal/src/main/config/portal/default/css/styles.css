@@ -98,7 +98,13 @@ pre.debug {
     background: #D0E5F5;
 }
 
-#menu-bar .with-separator {
+#header .portal-name {
+    color: #E17009;
+    float: right;
+    font-size: 1.1em;
+}
+
+.with-separator {
     border-right: 1px dotted #1D599B;
     padding-left: 0.25em;
     padding-right: 0.5em;
@@ -132,6 +138,13 @@ ul.home-portal-list li {
 
 ul.home-portal-list li a, ul.home-portal-list li a:visited {
     color: #1D599B;
+    text-decoration: none;
+}
+
+ul.home-portal-list li a.delete-action, ul.home-portal-list li a.delete-action:visited {
+    color: red;
+    font-size: 0.75em;
+    margin-left: 0.75em;
     text-decoration: none;
 }
 
@@ -333,3 +346,4 @@ form fieldset fieldset label {
     height: 480px;
     width: 100%;
 }
+

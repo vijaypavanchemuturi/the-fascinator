@@ -124,7 +124,7 @@ class DetailData:
                 if payload is not None:
                     sw = StringWriter()
                     sw.write("<pre>")
-                    IOUtils.copy(payload.getInputStream(), str)
+                    IOUtils.copy(payload.getInputStream(), sw)
                     sw.write("</pre>")
                     sw.flush()
                     contentStr = sw.toString()
