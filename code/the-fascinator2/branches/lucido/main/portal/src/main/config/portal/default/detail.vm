@@ -32,6 +32,14 @@ $(function() {
     $("#open-this").click(function() {
         jQuery.post("$portalPath/detail/" + oid, { verb: "open", value: oid } );
     });
+    
+    $("div.content-preview-inline img").each(function() {
+        var src = $(this).attr("src");
+        var srcVal = src.toLowerCase();
+        if (srcVal.indexOf("http://") == -1 && srcVal.indexOf("file://") == -1) {
+            $(this).attr("src", "$contextPath/$portalId/download/" + oid + "/" + src);
+        }
+    });
 });
 </script>
 #if($self.solrResponse.get("response/numFound")=="0")
@@ -72,7 +80,7 @@ $(function() {
 <div class="view-as-slideshow"></div>
 <h3>Preview</h3>
 <div class="content-preview">
-  <div>$!self.payloadContent</div>
+  <div class="content-preview-inline">$!self.payloadContent</div>
 </div>
 <div class="payload-list">
   <h3>Attachments</h3>
