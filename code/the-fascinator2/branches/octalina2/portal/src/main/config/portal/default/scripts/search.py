@@ -1,6 +1,7 @@
 import md5, os
 from au.edu.usq.fascinator.api.indexer import SearchRequest
 from au.edu.usq.fascinator.common import JsonConfigHelper
+from au.edu.usq.fascinator.common import JsonConfig
 from au.edu.usq.fascinator.portal import Pagination, Portal
 from java.io import ByteArrayInputStream, ByteArrayOutputStream
 from java.net import URLDecoder
@@ -15,7 +16,29 @@ class SearchData:
             self.__pageNum = 1
         else:
             self.__pageNum = int(pageNum)
+        if formData.get("backupAction") == "Backup":
+            self.__backup()
+        else:
+            self.__search()
+            
+    def __backup(self):
+        backupManager = PluginManager.getHarvester("backup")
+        print " * backup......", self.__portal.email 
         self.__search()
+        if backupManager and self.__portal.email and self.__portal.backupPaths:
+            print " * search.py: backup... "
+            json = JsonConfig()
+            backupManager.init(json.getSystemFile())
+            backupManager.setEmailAddress(self.__portal.email)
+            paths = self.__portal.backupPaths
+            firstpath = ""
+            #assume only one path for now... Will have a look when i m back...
+            for key in paths:
+                firstPath = paths[key]
+                break
+            print self.__result
+            backupManager.setBackupLocation(firstPath)
+            backupManager.backup(self.__result.getList("response/docs").toArray())
     
     def __search(self):
         recordsPerPage = self.__portal.recordsPerPage
