@@ -132,27 +132,26 @@ class DetailData:
             # get the html version if exist...
             pid = os.path.splitext(self.__pid)[0] + ".htm"
             print " * detail.py: pid=%s" % pid
-            contentStr = '<iframe class="iframe-preview" src="%s/%s/download/%s/%s"></iframe>' % \
-                (contextPath, portalId, self.__oid, pid)
-
-#            payload = self.__storage.getPayload(self.__oid, pid)
-#            saxReader = SAXReader(Boolean.parseBoolean("false"))
-#            try:
-#                document = saxReader.read(payload.getInputStream())
-#            except:
-#                traceback.print_exc()
-#            #slideNode = document.selectSingleNode("//div[@class='body']")
-#            slideNode = document.selectSingleNode("//*[local-name()='body']")
-#            #linkNodes = slideNode.selectNodes("//img")
-#            #contentStr = slideNode.asXML();
-#            # encode character entities correctly
-#            out = ByteArrayOutputStream()
-#            format = OutputFormat.createPrettyPrint()
-#            format.setSuppressDeclaration(True)
-#            writer = XMLWriter(out, format)
-#            writer.write(slideNode)
-#            writer.close()
-#            contentStr = out.toString("UTF-8")
+            #contentStr = '<iframe class="iframe-preview" src="%s/%s/download/%s/%s"></iframe>' % \
+            #    (contextPath, portalId, self.__oid, pid)
+            payload = self.__storage.getPayload(self.__oid, pid)
+            saxReader = SAXReader(Boolean.parseBoolean("false"))
+            try:
+                document = saxReader.read(payload.getInputStream())
+            except:
+                traceback.print_exc()
+            #slideNode = document.selectSingleNode("//div[@class='body']")
+            slideNode = document.selectSingleNode("//*[local-name()='body']")
+            #linkNodes = slideNode.selectNodes("//img")
+            #contentStr = slideNode.asXML();
+            # encode character entities correctly
+            out = ByteArrayOutputStream()
+            format = OutputFormat.createPrettyPrint()
+            format.setSuppressDeclaration(True)
+            writer = XMLWriter(out, format)
+            writer.write(slideNode)
+            writer.close()
+            contentStr = out.toString("UTF-8")
         return contentStr
     
     def __openFile(self):
