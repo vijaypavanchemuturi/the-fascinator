@@ -5,7 +5,10 @@
     <records-per-page>25</records-per-page>
     <facet-count>25</facet-count>
     <facet-sort-by-count>false</facet-sort-by-count>
-    <backup-paths/>
+    <backup-email>None</backup-email>
+    <backup-paths>
+        <field name="local">None</field>
+    </backup-paths>
     <facet-fields>
         <field name="repository_name">Source</field>
         <field name="file_path">Path</field>
