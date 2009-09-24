@@ -381,11 +381,20 @@ public class SolrIndexer implements Indexer {
     }
 
     public Document getXmlDocument(InputStream xmlIn) {
+        Reader reader = null;
         try {
-            return saxReader.read(new InputStreamReader(xmlIn, "UTF-8"));
+            reader = new InputStreamReader(xmlIn, "UTF-8");
+            return saxReader.read(reader);
         } catch (UnsupportedEncodingException uee) {
         } catch (DocumentException de) {
             log.error("Failed to parse XML", de);
+        } finally {
+            if (reader != null) {
+                try {
+                    reader.close();
+                } catch (IOException ioe) {
+                }
+            }
         }
         return null;
     }
@@ -401,14 +410,23 @@ public class SolrIndexer implements Indexer {
 
     public Model getRdfModel(InputStream rdfIn) {
         Model model = null;
+        Reader reader = null;
         try {
+            reader = new InputStreamReader(rdfIn, "UTF-8");
             model = RDF2Go.getModelFactory().createModel();
             model.open();
-            model.readFrom(rdfIn);
+            model.readFrom(reader);
         } catch (ModelRuntimeException mre) {
             log.error("Failed to create RDF model", mre);
         } catch (IOException ioe) {
             log.error("Failed to read RDF input", ioe);
+        } finally {
+            if (reader != null) {
+                try {
+                    reader.close();
+                } catch (IOException ioe) {
+                }
+            }
         }
         return model;
     }
