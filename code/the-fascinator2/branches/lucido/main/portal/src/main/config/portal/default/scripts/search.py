@@ -1,30 +1,27 @@
 import md5, os
+
 from au.edu.usq.fascinator.api.indexer import SearchRequest
-from au.edu.usq.fascinator.common import JsonConfigHelper
-from au.edu.usq.fascinator.common import JsonConfig
+from au.edu.usq.fascinator.common import JsonConfig, JsonConfigHelper
 from au.edu.usq.fascinator.portal import Pagination, Portal
+
 from java.io import ByteArrayInputStream, ByteArrayOutputStream
 from java.net import URLDecoder
 from java.util import HashMap
 
 class SearchData:
+    
     def __init__(self):
+        self.__portal = Services.portalManager.get(portalId)
         self.__result = JsonConfigHelper()
-        self.__portal = Services.getPortalManager().get(portalId)
-        pageNum = sessionState.get("pageNum")
-        if pageNum is None:
-            self.__pageNum = 1
-        else:
-            self.__pageNum = int(pageNum)
+        self.__pageNum = sessionState.get("pageNum", 1)
+        self.__selected = []
+        self.__search()
         if formData.get("backupAction") == "Backup":
             self.__backup()
-        else:
-            self.__search()
-            
+    
     def __backup(self):
         backupManager = PluginManager.getHarvester("backup")
-        print " * backup......", self.__portal.email 
-        self.__search()
+        print " * search.py: Backup email=%s" % self.__portal.email 
         if backupManager and self.__portal.email and self.__portal.backupPaths:
             print " * search.py: backup... "
             json = JsonConfig()
@@ -42,7 +39,7 @@ class SearchData:
     
     def __search(self):
         recordsPerPage = self.__portal.recordsPerPage
-
+        
         query = formData.get("query")
         if query is None or query == "":
             query = "*:*"
@@ -82,14 +79,14 @@ class SearchData:
             req.addParam("fq", portalQuery)
         
         self.__selected = req.getParams("fq")
-
+        
         sessionState.set("fq", self.__selected)
         sessionState.set("pageNum", self.__pageNum)
-
+        
         req.setParam("start", str((self.__pageNum - 1) * recordsPerPage))
         
         print " * search.py:", req.toString(), self.__pageNum
-
+        
         out = ByteArrayOutputStream()
         Services.indexer.search(req, out)
         self.__result = JsonConfigHelper(ByteArrayInputStream(out.toByteArray()))
@@ -97,19 +94,19 @@ class SearchData:
             self.__paging = Pagination(self.__pageNum,
                                        int(self.__result.get("response/numFound")),
                                        self.__portal.recordsPerPage)
-
+    
     def getQueryTime(self):
         return int(self.__result.get("responseHeader/QTime")) / 1000.0;
-
+    
     def getPaging(self):
         return self.__paging
-
+    
     def getResult(self):
         return self.__result
-
+    
     def getFacetName(self, key):
         return self.__portal.facetFields.get(key)
-
+    
     def getFacetCounts(self, key):
         values = HashMap()
         valueList = self.__result.getList("facet_counts/facet_fields/%s" % key)
@@ -119,25 +116,25 @@ class SearchData:
             if count > 0:
                 values.put(name, count)
         return values
-
+    
     def hasSelectedFacets(self):
         return self.__selected is not None and self.__selected.size() > 1
-
+    
     def getSelectedFacets(self):
         return self.__selected
-
+    
     def isPortalQueryFacet(self, fq):
         return fq == self.__portal.query
-
+    
     def isSelected(self, fq):
         return fq in self.__selected
-
+    
     def getSelectedFacetIds(self):
         return [md5.new(fq).hexdigest() for fq in self.__selected]
-
+    
     def getFileName(self, path):
         return os.path.split(path)[1]
-
+    
     def getFacetQuery(self, name, value):
         return '%s:"%s"' % (name, value)
     

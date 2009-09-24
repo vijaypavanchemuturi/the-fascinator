@@ -29,8 +29,7 @@ $(function() {
 #else
   <p>Select a portal to browse and search</p>
   <ul class="home-portal-list">
-  #foreach($entry in $page.portals)
-    #set($portal = $entry.value)
+  #foreach($portal in $page.portals)
     <li>
     #if($portal.name == $portalId)
       <span class="active-link">$portal.description</span>

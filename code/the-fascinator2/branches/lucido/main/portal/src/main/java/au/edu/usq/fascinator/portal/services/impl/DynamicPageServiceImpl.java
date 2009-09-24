@@ -40,7 +40,6 @@ import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.Velocity;
 import org.apache.velocity.runtime.RuntimeSingleton;
 import org.apache.velocity.runtime.log.Log4JLogChute;
-import org.apache.velocity.tools.generic.introspection.JythonUberspect;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,6 +49,7 @@ import au.edu.usq.fascinator.portal.JsonSessionState;
 import au.edu.usq.fascinator.portal.services.DynamicPageService;
 import au.edu.usq.fascinator.portal.services.PortalManager;
 import au.edu.usq.fascinator.portal.services.ScriptingServices;
+import au.edu.usq.fascinator.portal.velocity.JythonUberspect;
 
 public class DynamicPageServiceImpl implements DynamicPageService {
 
@@ -103,6 +103,10 @@ public class DynamicPageServiceImpl implements DynamicPageService {
                     JythonUberspect.class.getName());
             Velocity.setProperty(Velocity.FILE_RESOURCE_LOADER_CACHE, false);
             Velocity.setProperty(Velocity.VM_LIBRARY_AUTORELOAD, true);
+            Velocity.setProperty(Velocity.VM_PERM_ALLOW_INLINE, true);
+            Velocity.setProperty(Velocity.VM_PERM_ALLOW_INLINE_REPLACE_GLOBAL,
+                    true);
+            Velocity.setProperty(Velocity.VM_PERM_INLINE_LOCAL, true);
             Velocity.init();
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -166,14 +170,16 @@ public class DynamicPageServiceImpl implements DynamicPageService {
         StringBuilder renderMessages = new StringBuilder();
 
         // setup script and velocity context
+        String contextPath = request.getContextPath();
         bindings.put("Services", scriptingServices);
         bindings.put("systemProperties", System.getProperties());
         bindings.put("request", request);
         bindings.put("response", response);
         bindings.put("formData", formData);
         bindings.put("sessionState", sessionState);
-        bindings.put("contextPath", request.getContextPath());
+        bindings.put("contextPath", contextPath);
         bindings.put("portalId", portalId);
+        bindings.put("portalPath", contextPath + "/" + portalId);
         bindings.put("pageName", pageName);
 
         // run page and template scripts

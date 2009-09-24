@@ -24,7 +24,7 @@
       <artifactId>jersey-server</artifactId>
       <version>1.0.3</version>
     </dependency>
-    <dependency> 
+    <dependency>
       <groupId>javax.servlet</groupId>
       <artifactId>servlet-api</artifactId>
       <version>2.4</version>
@@ -50,7 +50,7 @@
     <dependency>
       <groupId>org.python</groupId>
       <artifactId>jython-standalone</artifactId>
-      <version>2.2.1</version>
+      <version>2.5.1rc2</version>
     </dependency>
     <dependency>
       <groupId>org.tuckey</groupId>
@@ -82,7 +82,7 @@
           <groupId>au.edu.usq.fascinator.plugins</groupId>
           <artifactId>plugin-harvester-jsonq</artifactId>
         </dependency>
-		<dependency>
+        <dependency>
           <groupId>au.edu.usq.fascinator.plugins</groupId>
           <artifactId>plugin-harvester-backup</artifactId>
         </dependency>
