@@ -236,6 +236,7 @@ public class DynamicPageServiceImpl implements DynamicPageService {
                 vc.put("renderMessages", renderMessages.toString());
                 log.error("Failed rendering page: {}, {} ({})", new String[] {
                         pageName, e.getMessage(), isAjax ? "ajax" : "html" });
+                e.printStackTrace();
             }
 
             if (!isAjax) {

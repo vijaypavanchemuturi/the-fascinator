@@ -20,7 +20,10 @@ class SolrDoc:
     
     def getField(self, name):
         field = self.json.getList("response/docs/%s" % name)
-        return field.get(0) if field is not None else ""
+        print " ***** field: %s" % field
+        if field.isEmpty():
+            return None
+        return field.get(0)
     
     def getFieldText(self, name):
         return self.json.get("response/docs/%s" % name)

@@ -45,7 +45,6 @@ $(function() {
 <p title="FIXME">Not found</p>
 #else
 #set($meta = $self.metadata)
-#*
 #set($oid = $self.object.id)
 <p class="debug">storage:</p>
 <pre class="debug">$!self.storageId</pre>
@@ -56,12 +55,9 @@ $(function() {
   <label id="hasSlide">$self.hasSlideShow()</label>
   <label id="hasSlide">$self.hasSlideShow()</label>
 </div>
-*#
-$meta.getField("dc_title")
-#*
 #set($title = $meta.getField("dc_title"))
 #set($description = $meta.getField("dc_description"))
-#if ($title)
+#if($title)
 <h2>$title</h2>
 #else
 <h2>$self.getFileName($oid)</h2>
@@ -98,6 +94,5 @@ $meta.getField("dc_title")
   #end
   </ul>
 </div>
-*#
 #end
 

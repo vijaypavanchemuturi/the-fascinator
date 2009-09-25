@@ -158,18 +158,15 @@ $(function() {
     <ul id="result-item-list">
     #foreach($item in $self.result.getList("response/docs"))
       #set($id = $item.get("id"))
+      #set($dcTitle = "")
       #set($dcTitle = $item.get("dc_title").get(0))
       #if($dcTitle.trim() != "")
         #set($title = $dcTitle)
       #else
         #set($title = $self.getFileName($id))
       #end
-      #set($dcDescription = $item.get("dc_description").get(0))
-      #if($dcDescription.trim() != "")
-        #set($description = $dcDescription)
-      #else
-        #set($description = "[No description]")
-      #end
+      #set($description = "")
+      #set($description = $item.get("dc_description").get(0))
       <li>
         <div id="$id">
           <h3><a href="detail/$id">$title</a></h3>

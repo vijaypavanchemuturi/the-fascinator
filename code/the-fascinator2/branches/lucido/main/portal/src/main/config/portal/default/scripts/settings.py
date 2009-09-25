@@ -1,4 +1,5 @@
 from au.edu.usq.fascinator.api import PluginManager
+from au.edu.usq.fascinator.portal import Portal
 
 from java.io import ByteArrayInputStream, ByteArrayOutputStream
 
@@ -106,17 +107,14 @@ class SettingsData:
     
     def getIndexerPlugins(self):
         return PluginManager.getIndexerPlugins()
-
+    
     def getStoragePlugins(self):
         return PluginManager.getStoragePlugins()
-
+    
     def getHarvesterPlugins(self):
         return PluginManager.getHarvesterPlugins()
-
+    
     def getTransformerPlugins(self):
         return PluginManager.getTransformerPlugins()
-    
-    
-    
 
 scriptObject = SettingsData()

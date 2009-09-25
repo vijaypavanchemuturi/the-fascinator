@@ -3,7 +3,7 @@
 $(function() {
     $("#settings").tabs();
     $("#security-accordion").accordion();
-    $("#plugins-accordion").accordion({ autoHeight: false });
+    // $("#plugins-accordion").accordion({ autoHeight: false });
     $("#backup-accordion").accordion({ autoHeight: false });
     
     $("#add-facet-field").click(function() {
@@ -19,28 +19,16 @@ $(function() {
     });
     
     $("#add-backup-path").click(function() {
-    	var parent = $(this).parent();
-    	var size = parseInt($("#backupUrlSize").val()) + 1;
-    	var id = "backupPaths_" + size;
-    	
-    	parent.append('<li id="' + id + '">\n' +
+        var parent = $(this).parent();
+        var size = parseInt($("#backupUrlSize").val()) + 1;
+        var id = "backupPaths_" + size;
+        
+        parent.append('<li id="' + id + '">\n' +
               '<input class="ui-corner-all ui-widget-content" id="' + id + '_name" name="' + id + '_name" size="25" type="text" value="" />\n' +
               '<input class="ui-corner-all ui-widget-content" id="' + id + '_label" name="' + id + '_label" size="25" type="text" value="" />\n' +
               '<button class="remove-backup-field ui-corner-all ui-state-default">del</button>\n' +
             '</li>');
-    	return false;
-    });
-    
-    $("#add-backup-path").click(function() {
-    	var parent = $(this).parent();
-    	var size = parseInt($("#backupUrlSize").val()) + 1;
-    	var id = "backupPaths_" + size;
-    	
-    	parent.append('<li id="' + id + '">\n' +
-              '<input class="ui-corner-all ui-widget-content" id="' + id + '_name" name="' + id + '_name" size="25" type="text" value="" />\n' +
-              '<input class="ui-corner-all ui-widget-content" id="' + id + '_label" name="' + id + '_label" size="25" type="text" value="" />\n' +
-              '<button class="remove-backup-field ui-corner-all ui-state-default">del</button>\n' +
-            '</li>');
+        return false;
     });
 
     $(".remove-facet-field").live("click", function() {
@@ -60,8 +48,10 @@ $(function() {
 <div id="settings">
   <ul>
     <li><a href="#general-tab">General</a></li>
+    #*
     <li><a href="#security-tab">Security</a></li>
     <li><a href="#plugins-tab">Plugins</a></li>
+    *#
     <li><a href="#backup-tab">Backup</a></li>
   </ul>
   <div id="general-tab">
@@ -96,9 +86,8 @@ $(function() {
           <h4>Facets</h4>
           <input id="portalFacetSize" name="portalFacetSize" type="hidden" value="$self.portal.facetFields.size()" />
           <button id="add-facet-field">add facet</button>
-          #foreach($entry in $self.portal.facetFields)
-          #set($field = $entry.key)
-          #set($label = $entry.value)
+          #foreach($field in $self.portal.facetFields.keySet())
+          #set($label = $self.portal.facetFields.get($field))
           #set($id = "portalFacet_$velocityCount")
           <li id="$id">
             <input id="${id}_name" name="${id}_name" size="25" type="text" value="$field" />
@@ -112,6 +101,7 @@ $(function() {
       <input name="portalAction" type="submit" value="Cancel" />
     </form>
   </div>
+  #*
   <div id="security-tab">
     <div id="security-accordion">
       <h3><a href="#">Users</a></h3>
@@ -160,6 +150,7 @@ $(function() {
       </div>
     </div>
   </div>
+  *#
   <div id="backup-tab">
     <div id="backup-accordion">
       <h4><a href="#">Users</a></h4>
