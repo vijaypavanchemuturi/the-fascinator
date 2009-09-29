@@ -9,7 +9,7 @@ call tf_env.bat
 
 IF "%1"=="" goto USAGE
 
-start /D%TF_HOME%\code\core mvn -Dhttp.nonProxyHosts=localhost -P %1 exec:java
+start /D%TF_HOME%\code\core mvn -Dhttp.nonProxyHosts=localhost -DXmx1024m -P %1 exec:java
 goto :EOF
 
 :USAGE
