@@ -93,12 +93,15 @@ class SearchData:
         oid = formData.get("oid")
         newTag = formData.get("newTag")
         print " * search.py: Tagging '%s' with '%s'" % (oid, newTag)
+        # add tag to storage
         obj = Services.storage.getObject(oid)
         tagsPayload = TagsPayload(obj.getPayload("tags.rdf"), oid)
         tagsPayload.addTag(newTag)
         Services.storage.addPayload(oid, tagsPayload)
         self.__tags = tagsPayload.getTags()
         tagsPayload.close()
+        # now re-index the tag
+        Services.indexer.index(oid)
     
     def __backup(self):
         backupManager = PluginManager.getHarvester("backup")

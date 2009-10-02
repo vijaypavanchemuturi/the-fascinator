@@ -14,5 +14,6 @@
         <field name="f_dc_format">Format</field>
         <field name="repository_type">Source type</field>
         <field name="f_dc_type">Type</field>
+        <field name="tag">Tags</field>
     </facet-fields>
 </portal>
