@@ -31,6 +31,7 @@ import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import au.edu.usq.fascinator.HarvestClient;
 import au.edu.usq.fascinator.api.Configurable;
 import au.edu.usq.fascinator.api.PluginException;
 import au.edu.usq.fascinator.api.harvester.Harvester;
@@ -70,7 +71,7 @@ public class FeedHarvester extends ItemListener implements Harvester, Configurab
 	List<DigitalObject> latestFeedItems;
 	
 	/** Logging */
-	private Logger log = LoggerFactory.getLogger(FeedHarvester.class);
+	private static Logger log = LoggerFactory.getLogger(FeedHarvester.class);
 
 	/*
 	 * (non-Javadoc)
@@ -182,5 +183,19 @@ public class FeedHarvester extends ItemListener implements Harvester, Configurab
 		}
 		return writer.toString();
 	}
+	
+    public static void main(String[] args) {
+        if (args.length < 1) {
+            log.info("Usage: harvest <json-config>");
+        } else {
+            File jsonFile = new File(args[0]);
+            try {
+                HarvestClient harvest = new HarvestClient(jsonFile);
+                harvest.run();
+            } catch (IOException ioe) {
+                log.error("Failed to initialise client: {}", ioe.getMessage());
+            }
+        }
+    }
 
 }

@@ -18,7 +18,6 @@
  */
 package au.edu.usq.fascinator.harvester.feed;
 
-import au.edu.usq.fascinator.common.storage.impl.FilePayload;
 import au.edu.usq.fascinator.common.storage.impl.GenericDigitalObject;
 
 import com.sun.syndication.feed.synd.SyndEntry;
@@ -32,7 +31,8 @@ public class FeedItemDigitalObject extends GenericDigitalObject {
      */
     public FeedItemDigitalObject(SyndEntry entry) {
         super(entry.getUri());
-        this.setMetadataId("feed_object");
-        addPayload(new FeedItemPayload(entry));
+        this.setMetadataId("metadata");
+        addPayload(new FeedItemMetadataPayload(entry));
+        addPayload(new FeedItemContentPayload(entry));
     }
 }

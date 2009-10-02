@@ -86,7 +86,7 @@
 				<artifactId>exec-maven-plugin</artifactId>
 				<version>1.1.1</version>
 				<configuration>
-					<mainClass>au.edu.usq.fascinator.HarvestClient</mainClass>
+					<mainClass>au.edu.usq.fascinator.harvester.feed.FeedHarvester</mainClass>
 					<arguments>
 						<argument>src/test/resources/properties.json</argument>
 					</arguments>

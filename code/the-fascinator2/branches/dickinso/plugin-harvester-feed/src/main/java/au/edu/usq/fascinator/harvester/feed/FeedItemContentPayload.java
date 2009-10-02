@@ -18,10 +18,11 @@
  */
 package au.edu.usq.fascinator.harvester.feed;
 
-import java.io.IOException;
 import java.io.InputStream;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.velocity.exception.ParseErrorException;
+import org.apache.velocity.exception.ResourceNotFoundException;
 
 import au.edu.usq.fascinator.api.storage.PayloadType;
 import au.edu.usq.fascinator.common.storage.impl.GenericPayload;
@@ -29,20 +30,32 @@ import au.edu.usq.fascinator.contrib.feedreader.FeedHelper;
 
 import com.sun.syndication.feed.synd.SyndEntry;
 
-public class FeedItemPayload extends GenericPayload {
+public class FeedItemContentPayload extends GenericPayload {
 
     private SyndEntry feedEntry;
 
-    public FeedItemPayload(SyndEntry payload) {
+    public FeedItemContentPayload(SyndEntry payload) {
         this.feedEntry = payload;
-        setId("feed_object");
+        setId("content");
         setLabel("RSS/ATOM Feed");
         setContentType("text/xml");
-        setType(PayloadType.Annotation);
+        setType(PayloadType.Enrichment);
     }
 
     @Override
-    public InputStream getInputStream() throws IOException {
-        return IOUtils.toInputStream(FeedHelper.toRDFXML(feedEntry));
+    public InputStream getInputStream() {
+        try {
+            return IOUtils.toInputStream(FeedHelper.toXHTMLSegment(feedEntry));
+        } catch (ResourceNotFoundException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (ParseErrorException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (Exception e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        return null;
     }
 }
