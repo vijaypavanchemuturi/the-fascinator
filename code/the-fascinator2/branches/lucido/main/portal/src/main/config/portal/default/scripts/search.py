@@ -1,23 +1,104 @@
-import md5, os
+import array, md5, os
 
 from au.edu.usq.fascinator.api.indexer import SearchRequest
+from au.edu.usq.fascinator.api.storage import Payload, PayloadType
 from au.edu.usq.fascinator.common import JsonConfig, JsonConfigHelper
+from au.edu.usq.fascinator.common.storage.impl import GenericPayload
 from au.edu.usq.fascinator.portal import Pagination, Portal
 
 from java.io import ByteArrayInputStream, ByteArrayOutputStream
-from java.net import URLDecoder
+from java.net import URLDecoder, URLEncoder
 from java.util import HashMap
 
-class SearchData:
+from au.edu.usq.fascinator.common.ctag import Tag, TaggedContent
+
+from org.ontoware.rdf2go import RDF2Go
+from org.ontoware.rdf2go.model import Model, Syntax
+from org.ontoware.rdf2go.model.node import Node, URI
+
+class TagsPayload(GenericPayload):
+    def __init__(self, payload, oid):
+        self.__tags = []
+        self.__model = RDF2Go.getModelFactory().createModel();
+        self.__model.open();
+        self.__content = TaggedContent(self.__model, "urn:" + md5.new(oid).hexdigest(), True);
+        if payload is None:
+            self.setId("tags.rdf")
+            self.setLabel("Tags")
+            self.setContentType("application/rdf+xml")
+            self.setType(PayloadType.Annotation)
+        else:
+            GenericPayload.__init__(self, payload)
+            self.__model.readFrom(payload.getInputStream())
+            tags = self.__content.getAllTagged_as().asArray()
+            for tag in tags:
+                labels = tag.getAllTaglabel_asNode_().asArray()
+                for label in labels:
+                    print " * search.py: Tag Label - %s" % label
+                    self.__tags.append(label)
+        self.setType(PayloadType.Annotation)
     
+    def addTag(self, tag):
+        encodedTag = URLEncoder.encode(tag, "UTF-8")
+        tagNode = Tag(self.__model, "urn:tags:" + encodedTag, True)
+        tagNode.setMeans(self.__model.createURI("urn:tags:" + encodedTag));
+        tagNode.setTaglabel(self.__model.createPlainLiteral(tag))
+        self.__content.addTagged(tagNode);
+    
+    def removeTag(self, tag):
+        print " search.py: Remove Tag: %s [TODO]" % tag
+    
+    def getTags(self):
+        return self.__tags
+    
+    def getInputStream(self):
+        rdf = self.__model.serialize(Syntax.RdfXml)
+        print rdf
+        return ByteArrayInputStream(array.array('b', rdf.encode("UTF-8")))
+    
+    def close(self):
+        self.__model.close()
+
+class SearchData:
     def __init__(self):
-        self.__portal = Services.portalManager.get(portalId)
-        self.__result = JsonConfigHelper()
-        self.__pageNum = sessionState.get("pageNum", 1)
-        self.__selected = []
-        self.__search()
-        if formData.get("backupAction") == "Backup":
-            self.__backup()
+        self.__tags = []
+        if formData.get("verb") == "load-tags":
+            self.__loadTags()
+        else:
+            self.__portal = Services.portalManager.get(portalId)
+            self.__result = JsonConfigHelper()
+            self.__pageNum = sessionState.get("pageNum", 1)
+            self.__selected = []
+            if formData.get("verb") == "tag":
+                self.__tag()
+            self.__search()
+            if formData.get("backupAction") == "Backup":
+                self.__backup()
+    
+    def hasTags(self):
+        return len(self.__tags) > 0
+    
+    def getTags(self):
+        return self.__tags
+    
+    def __loadTags(self):
+        oid = formData.get("oid")
+        obj = Services.storage.getObject(oid)
+        tagsPayload = TagsPayload(obj.getPayload("tags.rdf"), oid)
+        self.__tags = tagsPayload.getTags()
+        print " * search.py: Loaded tags from %s: %s" % (oid, self.__tags)
+        tagsPayload.close()
+    
+    def __tag(self):
+        oid = formData.get("oid")
+        newTag = formData.get("newTag")
+        print " * search.py: Tagging '%s' with '%s'" % (oid, newTag)
+        obj = Services.storage.getObject(oid)
+        tagsPayload = TagsPayload(obj.getPayload("tags.rdf"), oid)
+        tagsPayload.addTag(newTag)
+        Services.storage.addPayload(oid, tagsPayload)
+        self.__tags = tagsPayload.getTags()
+        tagsPayload.close()
     
     def __backup(self):
         backupManager = PluginManager.getHarvester("backup")

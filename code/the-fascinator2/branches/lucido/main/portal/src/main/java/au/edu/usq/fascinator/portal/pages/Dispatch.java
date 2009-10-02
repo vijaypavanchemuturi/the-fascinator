@@ -97,7 +97,7 @@ public class Dispatch {
         }
 
         // save form data for POST requests, since we redirect after POSTs
-        if ("POST".equals(request.getMethod())) {
+        if ("POST".equalsIgnoreCase(request.getMethod())) {
             try {
                 FormData formData = new FormData(request);
                 formDataMap.put(resourceName, formData);

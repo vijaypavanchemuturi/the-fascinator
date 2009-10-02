@@ -18,9 +18,7 @@
  */
 package au.edu.usq.fascinator.portal.velocity;
 
-import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Map;
 
 import org.apache.velocity.util.introspection.Info;
 import org.apache.velocity.util.introspection.UberspectImpl;
@@ -31,10 +29,12 @@ import org.python.core.PyBoolean;
 import org.python.core.PyDictionary;
 import org.python.core.PyInteger;
 import org.python.core.PyJavaType;
+import org.python.core.PyList;
 import org.python.core.PyNone;
 import org.python.core.PyObject;
 import org.python.core.PyObjectDerived;
 import org.python.core.PySequence;
+import org.python.core.PyString;
 import org.python.core.PyType;
 import org.python.core.PyUnicode;
 import org.slf4j.Logger;
@@ -122,18 +122,21 @@ public class JythonUberspect extends UberspectImpl {
             PyObject pyObject = (PyObject) obj;
             if (pyObject instanceof PyNone) {
                 return null;
+            } else if (pyObject instanceof PyString) {
+                return ((PyString) pyObject).asString();
             } else if (pyObject instanceof PyBoolean) {
                 return Boolean.parseBoolean(pyObject.toString());
             } else if (pyObject instanceof PyInteger) {
                 return Integer.parseInt(pyObject.toString());
             } else if (pyObject instanceof PyUnicode) {
                 return new String(((PyUnicode) pyObject).encode("UTF-8"));
-            } else if (pyObject instanceof PyDictionary) {
-                return new HashMap((Map) pyObject);
             } else if (pyObject instanceof PyObjectDerived) {
                 PyType pyType = pyObject.getType();
                 Class cls = ((PyJavaType) pyType).getProxyType();
                 return ((PyObjectDerived) pyObject).__tojava__(cls);
+            } else if (pyObject instanceof PyList
+                    || pyObject instanceof PyDictionary) {
+                return (pyObject);
             } else {
                 log.debug("toJava unhandled type:{}", pyObject.getClass()
                         .getName());

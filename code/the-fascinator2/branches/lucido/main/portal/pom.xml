@@ -13,6 +13,10 @@
   <dependencies>
     <dependency>
       <groupId>au.edu.usq.fascinator</groupId>
+      <artifactId>fascinator-core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>au.edu.usq.fascinator</groupId>
       <artifactId>fascinator-common</artifactId>
     </dependency>
     <dependency>

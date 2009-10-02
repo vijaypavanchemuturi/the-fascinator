@@ -1,3 +1,13 @@
+#if($formData.get("verb") == 'load-tags')
+#if($self.hasTags())
+<label for="tags-list">Current tags</label>	
+<ul id="tags-list">
+#foreach($tag in $self.tags)
+  <li>$tag</li>
+#end
+</ul>
+#end
+#else
 #set($pageTitle = 'Search')
 #set($query = $formData.get("query"))
 #if($query)
@@ -90,6 +100,38 @@ $(function() {
         setActionUri("$portalPath/settings");
         doAction("create_view");
     });
+    
+    //$("#result-item-list").selectable({ filter: 'li' });
+    
+    // setup tag dialog
+    $("#tag-dialog").dialog({
+        autoOpen: false,
+        draggable: true,
+        modal: false,
+        resizable: false,
+        buttons: {
+            "OK": function() {
+                $("#tag-form").submit();
+            },
+            "Cancel": function() {
+                $(this).dialog("close");
+            }
+        }
+    });
+    $("a.tag").click(function() {
+        var oid = $(this).parent("div").attr("id");
+        jQuery.post("$portalPath/search.ajax", { verb: "load-tags", oid: oid }, function(data, status) {
+            var oidElem = $("#tag-oid")
+            if (oidElem.length == 0) {
+                $("#tag-form").append('<input id="tag-oid" name="oid" type="hidden" value="' + oid + '" />');
+            } else {
+                oidElem.attr("value", oid);
+            }
+            $("#current-tags").empty().append(data);
+            $("#tag-dialog").dialog("open");
+        });
+        return false;
+    });
 });
 </script>
 <pre class="debug">$self.selectedFacetIds</pre>
@@ -176,6 +218,7 @@ $(function() {
       <li>
         <div id="$id">
           <h3><a href="detail/$id">$title</a></h3>
+          <a class="tag" href="#">tag</a>
           <p class="item-description">$!description</p>
           #set($format = $item.get("dc_format").get(0))
           #if($format.startsWith("image/"))
@@ -187,4 +230,13 @@ $(function() {
     </ul>
   </div>
 </div>
+<div id="tag-dialog" title="Tagging">
+  <form id="tag-form" method="post">
+    <input name="verb" value="tag" type="hidden" />
+    <label for="tag">Add tag:</label>
+    <input id="tag" name="newTag" size="25" type="text" />
+  </form>
+  <div id="current-tags"></div>
+</div>
+#end
 #end
