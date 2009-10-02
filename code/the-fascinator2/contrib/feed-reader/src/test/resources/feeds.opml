@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<opml version="2.0">
+    <head>
+        <title>Duncan subscriptions in Google Reader</title>
+    </head>
+    <body>
+        <outline text="#DTeRrev - Twitter Search"
+            title="#DTeRrev - Twitter Search" type="rss"
+            xmlUrl="http://search.twitter.com/search.atom?q=%23DTeRrev" htmlUrl="http://search.twitter.com/search?q=%23DTeRrev"/>
+        <outline text="#eraust09 - Twitter Search"
+            title="#eraust09 - Twitter Search" type="rss"
+            xmlUrl="http://search.twitter.com/search.atom?q=%23eraust09" htmlUrl="http://search.twitter.com/search?q=%23eraust09"/>
+        <outline text="#eresearch - Twitter Search"
+            title="#eresearch - Twitter Search" type="rss"
+            xmlUrl="http://search.twitter.com/search.atom?q=%23eresearch" htmlUrl="http://search.twitter.com/search?q=%23eresearch"/>
+        <outline text="Ariadne Web Magazine"
+            title="Ariadne Web Magazine" type="rss"
+            xmlUrl="http://www.ariadne.ac.uk/rss.xml" htmlUrl="http://www.ariadne.ac.uk"/>
+        <outline text="Delicious: ADFI_DER" title="Delicious: ADFI_DER"
+            type="rss"
+            xmlUrl="http://feeds.delicious.com/v2/rss/tag/adfi_der?count=15" htmlUrl="http://delicious.com/tag/adfi_der"/>
+        <outline text="Delicious/tag/adfi" title="Delicious/tag/adfi"
+            type="rss"
+            xmlUrl="http://feeds.delicious.com/v2/rss/tag/adfi?count=15" htmlUrl="http://delicious.com/tag/adfi"/>
+        <outline text="ICE Developers Blog" title="ICE Developers Blog"
+            type="rss" xmlUrl="http://ice.usq.edu.au/blog/feed" htmlUrl="http://ice.usq.edu.au/blog"/>
+        <outline text="The Fascinator: Timeline"
+            title="The Fascinator: Timeline" type="rss"
+            xmlUrl="http://ice.usq.edu.au/projects/fascinator/trac/timeline?milestone=on&amp;ticket=on&amp;changeset=on&amp;wiki=on&amp;max=50&amp;daysback=90&amp;format=rss" htmlUrl="http://fascinator.usq.edu.au/trac/timeline"/>
+        <outline text="Twitter / eresearch" title="Twitter / eresearch"
+            type="rss"
+            xmlUrl="http://twitter.com/statuses/user_timeline/21051246.rss" htmlUrl="http://twitter.com/eresearch"/>
+        <outline title="share" text="share">
+            <outline text="Prag-o-Matic" title="Prag-o-Matic" type="rss"
+                xmlUrl="http://prag-o-matic.blogspot.com/feeds/posts/default" htmlUrl="http://blog.duncan.dickinson.name/"/>
+            <outline text="PT's blog" title="PT's blog" type="rss"
+                xmlUrl="http://ptsefton.com/feed" htmlUrl="http://ptsefton.com"/>
+        </outline>
+    </body>
+</opml>

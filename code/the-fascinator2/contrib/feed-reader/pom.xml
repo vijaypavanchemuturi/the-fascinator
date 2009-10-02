@@ -49,6 +49,13 @@
 			<artifactId>fascinator-common</artifactId>
 			<version>0.2.0-SNAPSHOT</version>
 		</dependency>
+		<dependency>
+			<groupId>org.apache.velocity</groupId>
+			<artifactId>velocity</artifactId>
+			<version>1.6.2</version>
+			<type>jar</type>
+			<scope>compile</scope>
+		</dependency>
 	</dependencies>
 	<scm>
 		<url>http://fascinator.usq.edu.au/svn-auth/code/the-fascinator2/contrib/feed-reader/</url>
@@ -71,7 +78,7 @@
 				<configuration>
 					<archive>
 						<manifest>
-							<mainClass>au.edu.usq.fascinator.reader.atomreader.AtomReader
+							<mainClass>au.edu.usq.fascinator.contrib.feedreader.FeedReader
 							</mainClass>
 						</manifest>
 					</archive>

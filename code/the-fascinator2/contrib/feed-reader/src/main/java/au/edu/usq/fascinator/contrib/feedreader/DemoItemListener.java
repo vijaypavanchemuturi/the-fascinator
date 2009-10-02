@@ -20,6 +20,9 @@ package au.edu.usq.fascinator.contrib.feedreader;
 
 import java.util.List;
 
+import org.apache.velocity.exception.ParseErrorException;
+import org.apache.velocity.exception.ResourceNotFoundException;
+
 import com.sun.syndication.feed.module.DCModuleImpl;
 import com.sun.syndication.feed.module.DCSubject;
 import com.sun.syndication.feed.synd.SyndCategory;
@@ -106,6 +109,18 @@ public class DemoItemListener extends ItemListener {
             }
 
             System.out.println(FeedHelper.toRDFXML(entry));
+            try {
+                System.out.println(FeedHelper.toXHTMLSegment(entry));
+            } catch (ResourceNotFoundException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            } catch (ParseErrorException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            } catch (Exception e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
             System.out.println("\n");
         }
     }
