@@ -201,6 +201,9 @@ div.home-portal-list .ui-state-highlight {
     padding: 0;
 }
 
+#result-item-list .ui-selecting { background: #FECA40; }
+#result-item-list .ui-selected { background: #F39814; color: white; }
+
 a.facet-action {
     color: #1D599B;
     font-size: 0.75em;

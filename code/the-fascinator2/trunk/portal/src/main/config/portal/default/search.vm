@@ -1,24 +1,25 @@
-#set($pageTitle = 'Search')
-#set($portal = $page.portals.get($portalId))
-##set($paging = $self.paging)
-#set($paging = "")
-#if ($formData.get("query"))
-	#set($paging = $formData.get("query"))
+#if($formData.get("verb") == 'load-tags')
+#if($self.hasTags())
+<label for="tags-list">Current tags</label>	
+<ul id="tags-list">
+#foreach($tag in $self.tags)
+  <li>$tag</li>
 #end
-#if ($paging=="")
-	#set($atomLink = "${contextPath}/$portal.name/feed/atom")
+</ul>
+#end
 #else
-   	#set($atomLink = "${contextPath}/$portal.name/feed/atom?query=$paging")	
+#set($pageTitle = 'Search')
+#set($query = $formData.get("query"))
+#if($query)
+  #set($atomLink = "$portalPath/feed/atom?query=$paging") 
+#else
+  #set($atomLink = "$portalPath/feed/atom")
 #end
 #set($pageHeader = '<link rel="stylesheet" type="text/css" href="js/tree/tree_component.css" />
-	<link rel="alternate" type="application/atom+xml" href="'+ $atomLink +'"/>
-    <script type="text/javascript" src="js/tree/lib/css.js"></script>
-    <script type="text/javascript" src="js/tree/tree_component.min.js"></script>
-    <script type="text/javascript" src="js/jquery.truncate.js"></script>')
-#set($numFound = $self.result.get("response/numFound"))
-#set($itemList = $self.result.getList("response/docs").toArray())
-#set($facetFields = $self.result.getMap("facet_counts/facet_fields"))
-#set($portalPath = "$contextPath/$portalId")
+  <link rel="alternate" type="application/atom+xml" href="'+ $atomLink +'"/>
+  <script type="text/javascript" src="js/tree/lib/css.js"></script>
+  <script type="text/javascript" src="js/tree/tree_component.min.js"></script>
+  <script type="text/javascript" src="js/jquery.truncate.js"></script>')
 <script type="text/javascript">
 $(function() {
     addActionParam("query", '$!formData.get("query")');
@@ -99,6 +100,38 @@ $(function() {
         setActionUri("$portalPath/settings");
         doAction("create_view");
     });
+    
+    //$("#result-item-list").selectable({ filter: 'li' });
+    
+    // setup tag dialog
+    $("#tag-dialog").dialog({
+        autoOpen: false,
+        draggable: true,
+        modal: false,
+        resizable: false,
+        buttons: {
+            "OK": function() {
+                $("#tag-form").submit();
+            },
+            "Cancel": function() {
+                $(this).dialog("close");
+            }
+        }
+    });
+    $("a.tag").click(function() {
+        var oid = $(this).parent("div").attr("id");
+        jQuery.post("$portalPath/search.ajax", { verb: "load-tags", oid: oid }, function(data, status) {
+            var oidElem = $("#tag-oid")
+            if (oidElem.length == 0) {
+                $("#tag-form").append('<input id="tag-oid" name="oid" type="hidden" value="' + oid + '" />');
+            } else {
+                oidElem.attr("value", oid);
+            }
+            $("#current-tags").empty().append(data);
+            $("#tag-dialog").dialog("open");
+        });
+        return false;
+    });
 });
 </script>
 <pre class="debug">$self.selectedFacetIds</pre>
@@ -106,50 +139,54 @@ $(function() {
 <h2>Search</h2>
 <div id="search-header">
   <form action="search" id="search-form" method="post">
-    <input id="query" name="query" size="45" type="text" value="$!formData.get('query')"/>
+    <input id="query" name="query" size="45" type="text" #if($query)value="$query"#end/>
     <input name="search" type="submit" value="Go!" />
     #parse($page.getTemplate("search-paging.vm"))
   </form>
-  #if($self.result and $numFound != 0)
+  #if($self.result and $paging.totalFound > 0)
   <p>Displaying <strong>${paging.startNum}</strong> to <strong>${paging.endNum}</strong> of <strong>${paging.totalFound}</strong> records (in $self.queryTime seconds)</p>
   #end
 </div>
-#if(!$self.result or $numFound == 0)
+#if(!$self.result or $paging.totalFound == 0)
 <p class="ui-state-highlight" style="width: 30%">
   <span class="ui-icon ui-icon-info icon"></span>
-  No items found#if($query) for $query#end.
-  <a class="facet-action" id="clear-facets" href="#">Clear selected facets.</a>
+  No items found#if($query) for '$query'#end.
+  #if($self.hasSelectedFacets())
+  <a class="facet-action" id="clear-facets" href="#">Clear selected facets</a>
+  #end
 </p>
 #else
 <div id="split-view">
   <div class="split-panel" id="facet-list">
     <h3>Facets</h3>
-    #if($self.hasSelectedFacets()==1)
+    #if($self.hasSelectedFacets())
       <a class="facet-action with-separator" id="create-view" href="#">Create view</a>
       <a class="facet-action" id="clear-facets" href="#">Clear selection</a>
     #end
     <h4 class="dotted-line">Path</h4>
     <div id="file_path" class="ui-helper-clearfix"></div>
-    #foreach($facetField in $facetFields)
+    #set($facetFields = $self.result.getMap("facet_counts/facet_fields"))
+    #foreach($facetFieldKey in $facetFields.keySet())
+      #set($facetField = $facetFields.get($facetFieldKey))
       <div class="facet-count-list">
-      #set($facetCounts = $self.getFacetCounts($facetField.key))
+      #set($facetCounts = $self.getFacetCounts($facetFieldKey))
       #if($facetCounts.size() > 0)
         ## TODO need a better way to test check for hierarchical facets
-        #if($facetField.key != "file_path")
-          <h4 class="dotted-line"><span class="ui-icon ui-icon-triangle-1-s icon"></span>$self.getFacetName($facetField.key)</h4>
+        #if($facetFieldKey != "file_path")
+          <h4 class="dotted-line"><span class="ui-icon ui-icon-triangle-1-s icon"></span>$self.getFacetName($facetFieldKey)</h4>
           <ul>
-          #foreach($facetCount in $facetCounts)
-            #set($fq = $self.getFacetQuery($facetField.key, $facetCount.key))
-            #set($selected = ($self.isSelected($fq)==1))
+          #foreach($facetCountKey in $facetCounts.keySet())
+            #set($facetCount = $facetCounts.get($facetCountKey))
+            #set($facetQuery = $self.getFacetQuery($facetFieldKey, $facetCountKey))
             <li>
-            #if($self.isPortalQueryFacet($fq)==1)
-              <span class="portal-query-facet">$facetCount.key</span> ($facetCount.value)
+            #if($self.isPortalQueryFacet($facetQuery))
+              <span class="portal-query-facet">$facetCountKey</span> ($facetCount)
             #else
-            #if($selected)
-              <span class="selected-facet">$facetCount.key</span> ($facetCount.value)
-              <a class="remove-facet facet-action" href="#" rel='$facetField.key:"$facetCount.key"'>deselect</a>
+            #if($self.isSelected($facetQuery))
+              <span class="selected-facet">$facetCountKey</span> ($facetCount)
+              <a class="remove-facet facet-action" href="#" rel='$facetFieldKey:"$facetCountKey"'>deselect</a>
             #else
-              <a class="add-facet" href="#" rel='$facetField.key:"$facetCount.key"'>$facetCount.key</a> ($facetCount.value)
+              <a class="add-facet" href="#" rel='$facetFieldKey:"$facetCountKey"'>$facetCountKey</a> ($facetCount)
             #end
             #end
             </li>
@@ -161,31 +198,31 @@ $(function() {
     #end
   </div>
   <div class="split-panel">  	
-  	<form id="backupForm" name="backupForm" method="post">
-    	<input name="backupAction" type="submit" value="Backup" />
+    <form id="backupForm" name="backupForm" method="post">
+      <input name="backupAction" type="submit" value="Backup" />
     </form>
   <div>
   <div class="split-panel" id="result-list">
     <ul id="result-item-list">
-    #foreach($item in $itemList)
+    #foreach($item in $self.result.getList("response/docs"))
       #set($id = $item.get("id"))
-      #set($oid = $page.encodeURL($id))
-      #set($title = $self.getFileName($id))
-      #set($description = "")
-      #if ($item.get("dc_title"))
-      	#set($title = $item.get("dc_title").get(0))
+      #set($dcTitle = "")
+      #set($dcTitle = $item.get("dc_title").get(0))
+      #if($dcTitle.trim() != "")
+        #set($title = $dcTitle)
+      #else
+        #set($title = $self.getFileName($id))
       #end
+      #set($description = "")
       #set($description = $item.get("dc_description").get(0))
-      #set($format = $item.get("dc_format").get(0))
       <li>
         <div id="$id">
-          <h3><a href="detail/$oid">$title</a></h3>
-          #if($description)
+          <h3><a href="detail/$id">$title</a></h3>
+          <a class="tag" href="#">tag</a>
           <p class="item-description">$!description</p>
-          #end
-          #if($self.isImage($format)==1)
-            #set($thumbnail = $self.getThumbnail($id))
-            <img src="download/$oid/$thumbnail"></img>
+          #set($format = $item.get("dc_format").get(0))
+          #if($format.startsWith("image/"))
+            <img src="download/$id/$self.getThumbnail($id)"></img>
           #end
         </div>
       </li>
@@ -193,4 +230,13 @@ $(function() {
     </ul>
   </div>
 </div>
+<div id="tag-dialog" title="Tagging">
+  <form id="tag-form" method="post">
+    <input name="verb" value="tag" type="hidden" />
+    <label for="tag">Add tag:</label>
+    <input id="tag" name="newTag" size="25" type="text" />
+  </form>
+  <div id="current-tags"></div>
+</div>
+#end
 #end

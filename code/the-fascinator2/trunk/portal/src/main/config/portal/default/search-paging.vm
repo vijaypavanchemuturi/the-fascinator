@@ -1,6 +1,5 @@
 <script type="text/javascript">
 $(function() {
-    /* paging */
     $(".paging .select-page").click(function() {
         doAction("select-page", $(this).attr("rel"));
     });
@@ -17,7 +16,7 @@ $(function() {
     </li>
   #end
   #foreach($pageNum in $paging.pages)
-    <li #if($pageNum.selected == 1)class="selected-page"#end>
+    <li #if($pageNum.selected)class="selected-page"#end>
       <a class="select-page" rel="$pageNum.value" href="#">$pageNum.value</a>
     </li>
   #end

@@ -1,12 +1,9 @@
 import md5
-from org.apache.commons.lang import StringEscapeUtils
-# 
-# Script for Template layout
-# 
 
 from java.net import URLEncoder
+from org.apache.commons.lang import StringEscapeUtils
 
-class TemplateData:
+class LayoutData:
     
     def __init__(self):
         self.__checkLogin()
@@ -29,10 +26,6 @@ class TemplateData:
     def getPortalName(self):
         return Services.portalManager.get(portalId).description
     
-    def encodeURL(self, url):
-        #return URLEncoder.encode(url, "UTF-8")
-        return url
-    
     def escapeText(self, text):
         return StringEscapeUtils.escapeXml(text)
     
@@ -44,9 +37,5 @@ class TemplateData:
         if not Services.pageService.resourceExists(portalId, templateName, False):
             portalName = Services.portalManager.DEFAULT_PORTAL_NAME
         return "%s/%s" % (portalName, templateName)
-    
-    def resolve(self, uri):
-        print " * layout.py: resolve uri=%s" % uri
-        return uri
 
-scriptObject = TemplateData()
+scriptObject = LayoutData()

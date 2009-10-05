@@ -1,16 +1,14 @@
+#set($DEBUG = true)
 #if($noLayout)
 $!pageContent
 #else
-#set($DEBUG = true)
-#set($portalPath = "$contextPath/$portalId")
-#set($sessionUsername = "")
-#if ($sessionState.get("username"))
-	#set($sessionUsername = $sessionState.get("username"))
+#if($sessionState.get("username"))
+  #set($sessionUsername = $sessionState.get("username"))
 #end
 <html>
   <head>
     <title>The Fascinator | $!pageTitle</title>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <link rel="icon" type="image/vnd.microsoft.com" href="$portalPath/favicon.ico" />
     <link rel="stylesheet" type="text/css" href="$portalPath/css/ui-lightness/jquery-ui-1.7.2.custom.css" />
     <script type="text/javascript" src="$portalPath/js/jquery-1.3.2.min.js"></script>
@@ -119,7 +117,8 @@ $!pageContent
             #end
             <li class="with-separator"><a id="home-link" href="$portalPath/home">Home</a></li>
             <li class="with-separator"><a id="search-link"  href="$portalPath/search">Search</a></li>
-            <li class="with-separator"><a id="harvest-link" href="$portalPath/harvest">Harvest</a></li>
+            ## harvest not complete yet
+            ##<li class="with-separator"><a id="harvest-link" href="$portalPath/harvest">Harvest</a></li>
             <li class="with-separator"><a id="settings-link" href="$portalPath/settings">Settings</a></li>
             <li>
             #if($sessionUsername)
