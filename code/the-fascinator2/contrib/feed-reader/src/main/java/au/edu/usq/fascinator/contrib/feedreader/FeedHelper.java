@@ -5,7 +5,6 @@ import java.io.StringWriter;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Properties;
 
@@ -24,7 +23,6 @@ import org.ontoware.rdf2go.model.node.impl.PlainLiteralImpl;
 
 import au.edu.usq.fascinator.common.nco.Contact;
 import au.edu.usq.fascinator.common.nco.EmailAddress;
-import au.edu.usq.fascinator.common.nfo.Bookmark;
 import au.edu.usq.fascinator.common.nie.InformationElement;
 
 import com.sun.syndication.feed.module.DCModuleImpl;

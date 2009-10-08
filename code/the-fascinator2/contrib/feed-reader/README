@@ -1,0 +1,13 @@
+To run feed-reader:
+
+mvn clean install
+mvn -P<profile> exec:java
+
+There are a few profiles, please refer to the pom. For example:
+
+mvn -Pslashdot exec:java
+
+Notes:
+ * By default the Rome Fetcher cache is target/
+ * To "reset" a feed, either delete the cache from 
+   target or rerun the commands "mvn clean install" 
