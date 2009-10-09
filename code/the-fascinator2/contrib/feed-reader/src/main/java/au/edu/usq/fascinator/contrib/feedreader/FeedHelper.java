@@ -38,189 +38,185 @@ import com.sun.syndication.feed.synd.SyndPersonImpl;
 
 public class FeedHelper {
 
-    public static List<SyndPerson> getAuthors(SyndEntry entry) {
-        if (entry.getAuthors().size() > 0) {
-            return entry.getAuthors();
+	public static List<SyndPerson> getAuthors(SyndEntry entry) {
+		if (entry.getAuthors().size() > 0) {
+			return entry.getAuthors();
 
-        }
-        ArrayList<SyndPerson> authors = new ArrayList<SyndPerson>();
-        SyndPerson author = new SyndPersonImpl();
-        author.setName(entry.getAuthor());
-        authors.add(author);
-        return authors;
+		}
+		ArrayList<SyndPerson> authors = new ArrayList<SyndPerson>();
+		SyndPerson author = new SyndPersonImpl();
+		author.setName(entry.getAuthor());
+		authors.add(author);
+		return authors;
 
-    }
+	}
 
-    public static List<SyndLink> getLinks(SyndEntry entry) {
-        if (entry.getLinks().size() > 0) {
-            return entry.getLinks();
-        }
-        ArrayList<SyndLink> links = new ArrayList<SyndLink>();
-        SyndLinkImpl link = new SyndLinkImpl();
-        link.setHref(entry.getLink());
-        links.add(link);
-        return links;
-    }
+	public static List<SyndLink> getLinks(SyndEntry entry) {
+		if (entry.getLinks().size() > 0) {
+			return entry.getLinks();
+		}
+		ArrayList<SyndLink> links = new ArrayList<SyndLink>();
+		SyndLinkImpl link = new SyndLinkImpl();
+		link.setHref(entry.getLink());
+		links.add(link);
+		return links;
+	}
 
-    public static List<SyndContent> getContents(SyndEntry entry) {
-        return entry.getContents();
-    }
+	public static List<SyndContent> getContents(SyndEntry entry) {
+		return entry.getContents();
+	}
 
-    public static List<SyndCategory> getCategories(SyndEntry entry) {
-        ArrayList<SyndCategory> categories = new ArrayList<SyndCategory>();
-        categories.addAll(entry.getCategories());
+	public static List<SyndCategory> getCategories(SyndEntry entry) {
+		ArrayList<SyndCategory> categories = new ArrayList<SyndCategory>();
+		categories.addAll(entry.getCategories());
 
-        /*
-         * Services such as Slashdot seem to have their tags/categories within
-         * the Dublin Core
-         */
-        DCModuleImpl dc = (DCModuleImpl) entry
-                .getModule(com.sun.syndication.feed.module.DCModule.URI);
-        if (dc != null) {
-            for (DCSubject dcSubject : (List<DCSubject>) dc.getSubjects()) {
-                SyndCategoryImpl category = new SyndCategoryImpl();
-                category.setName(dcSubject.getValue());
-                category.setTaxonomyUri(dcSubject.getTaxonomyUri());
-                categories.add(category);
-            }
-        }
-        return categories;
-    }
+		/*
+		 * Services such as Slashdot seem to have their tags/categories within
+		 * the Dublin Core
+		 */
+		DCModuleImpl dc = (DCModuleImpl) entry
+				.getModule(com.sun.syndication.feed.module.DCModule.URI);
+		if (dc != null) {
+			for (DCSubject dcSubject : (List<DCSubject>) dc.getSubjects()) {
+				SyndCategoryImpl category = new SyndCategoryImpl();
+				category.setName(dcSubject.getValue());
+				category.setTaxonomyUri(dcSubject.getTaxonomyUri());
+				categories.add(category);
+			}
+		}
+		return categories;
+	}
 
-    public static String dateToXMLDate(Date date) {
-        SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.S'Z'");
-        return df.format(date);
-    }
+	public static String dateToXMLDate(Date date) {
+		SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.S'Z'");
+		return df.format(date);
+	}
 
-    public static String toXHTMLSegment(SyndEntry entry)
-            throws ResourceNotFoundException, ParseErrorException, Exception {
-        Properties props = new Properties();
-        props.setProperty(VelocityEngine.RESOURCE_LOADER, "classpath");
-        props.setProperty("classpath." + VelocityEngine.RESOURCE_LOADER
-                + ".class", ClasspathResourceLoader.class.getName());
+	public static String toXHTMLSegment(SyndEntry entry, String templateFile)
+			throws ResourceNotFoundException, ParseErrorException, Exception {
 
-        VelocityEngine ve = new VelocityEngine();
-        ve.init(props);
+		VelocityEngine ve = new VelocityEngine();
+		ve.init("velocity.properties");
 
-        VelocityContext context = new VelocityContext();
-        Template template = Velocity
-                .getTemplate("target/classes/au/edu/usq/fascinator/contrib/feedreader/FeedEntry.vm");
+		VelocityContext context = new VelocityContext();
 
-        // Title
-        context.put("title", entry.getTitle());
+		Template template = Velocity.getTemplate(templateFile);
 
-        // Published date
-        context.put("date", entry.getPublishedDate());
+		// Title
+		context.put("title", entry.getTitle());
 
-        // Last Modified
-        context.put("modified", entry.getUpdatedDate());
+		// Published date
+		context.put("date", entry.getPublishedDate());
 
-        // Subjects
-        context.put("subject", FeedHelper.getCategories(entry));
+		// Last Modified
+		context.put("modified", entry.getUpdatedDate());
 
-        // Description
-        if (entry.getDescription() != null) {
-            context.put("description", entry.getDescription());
-        }
+		// Subjects
+		context.put("subject", FeedHelper.getCategories(entry));
 
-        // Contents
-        context.put("content", FeedHelper.getContents(entry));
+		// Description
+		if (entry.getDescription() != null) {
+			context.put("description", entry.getDescription());
+		}
 
-        // Links
-        context.put("relation", FeedHelper.getLinks(entry));
+		// Contents
+		context.put("content", FeedHelper.getContents(entry));
 
-        StringWriter sw = new StringWriter();
-        template.merge(context, sw);
-        return sw.toString();
+		// Links
+		context.put("relation", FeedHelper.getLinks(entry));
 
-    }
+		StringWriter sw = new StringWriter();
+		template.merge(context, sw);
+		return sw.toString();
 
-    public static String toRDFXML(SyndEntry entry) {
-        ModelFactory modelFactory = RDF2Go.getModelFactory();
-        Model model = modelFactory.createModel();
-        model.open();
-        InformationElement nie = new InformationElement(model, entry.getUri(),
-                true);
-        nie.setTitle(entry.getTitle());
+	}
 
-        /*
-         * model.addStatement(nie.getResource(),
-         * InformationElement.CONTENTCREATED, dateToXMLDate(entry
-         * .getPublishedDate()), new URIImpl(
-         * "http://www.w3.org/2001/XMLSchema#date"));
-         */
+	public static String toRDFXML(SyndEntry entry) {
+		ModelFactory modelFactory = RDF2Go.getModelFactory();
+		Model model = modelFactory.createModel();
+		model.open();
+		InformationElement nie = new InformationElement(model, entry.getUri(),
+				true);
+		nie.setTitle(entry.getTitle());
 
-        // Add Description
-        if (entry.getDescription() != null) {
-            String description = entry.getDescription().getValue();
-            PlainLiteralImpl node = new PlainLiteralImpl(description);
-            nie.addDescription(node);
+		/*
+		 * model.addStatement(nie.getResource(),
+		 * InformationElement.CONTENTCREATED, dateToXMLDate(entry
+		 * .getPublishedDate()), new URIImpl(
+		 * "http://www.w3.org/2001/XMLSchema#date"));
+		 */
 
-            // model.addStatement(nie.getResource(), Thing.DESCRIPTION, model
-            // .createPlainLiteral(description));
-        }
+		// Add Description
+		if (entry.getDescription() != null) {
+			String description = entry.getDescription().getValue();
+			PlainLiteralImpl node = new PlainLiteralImpl(description);
+			nie.addDescription(node);
 
-        // Add links
-        /*
-         * for (SyndLink link : (List<SyndLink>) FeedHelper.getLinks(entry)) {
-         * System.out.println("  - " + link.getTitle() + ": " + link.getHref() +
-         * "\n"); Bookmark bookmark = new Bookmark(model, true);
-         * InformationElement bookmarkNie = new InformationElement(model, true);
-         * bookmarkNie.setTitle(entry.getTitle());
-         * 
-         * model.addStatement(bookmark.getResource(), InformationElement.TITLE,
-         * bookmarkNie.getResource()); model.addStatement(nie.getResource(),
-         * au.usq.edu.fascinator.common.nfo.InformationElement., bookmark
-         * .getResource()); }
-         */
+			// model.addStatement(nie.getResource(), Thing.DESCRIPTION, model
+			// .createPlainLiteral(description));
+		}
 
-        // Add categories
-        for (SyndCategory category : (List<SyndCategory>) FeedHelper
-                .getCategories(entry)) {
-            nie.addKeyword(category.getName());
-        }
+		// Add links
+		/*
+		 * for (SyndLink link : (List<SyndLink>) FeedHelper.getLinks(entry)) {
+		 * System.out.println("  - " + link.getTitle() + ": " + link.getHref() +
+		 * "\n"); Bookmark bookmark = new Bookmark(model, true);
+		 * InformationElement bookmarkNie = new InformationElement(model, true);
+		 * bookmarkNie.setTitle(entry.getTitle());
+		 * 
+		 * model.addStatement(bookmark.getResource(), InformationElement.TITLE,
+		 * bookmarkNie.getResource()); model.addStatement(nie.getResource(),
+		 * au.usq.edu.fascinator.common.nfo.InformationElement., bookmark
+		 * .getResource()); }
+		 */
 
-        for (SyndPerson author : (List<SyndPerson>) FeedHelper
-                .getAuthors(entry)) {
-            Contact contact = null;
-            if (author.getUri() == null) {
-                contact = new Contact(model, true);
-            } else {
-                contact = new Contact(model, author.getUri(), true);
-            }
-            contact.setFullname(author.getName());
-            if (author.getEmail() != null) {
-                EmailAddress email = new EmailAddress(model, author.getUri(),
-                        false);
-                email.setEmailAddress(author.getEmail());
-            }
+		// Add categories
+		for (SyndCategory category : (List<SyndCategory>) FeedHelper
+				.getCategories(entry)) {
+			nie.addKeyword(category.getName());
+		}
 
-            contact.getAllIdentifier_asNode();
-            model
-                    .addStatement(
-                            nie.getResource(),
-                            au.edu.usq.fascinator.common.nco.InformationElement.CREATOR,
-                            contact.getResource());
-        }
+		for (SyndPerson author : (List<SyndPerson>) FeedHelper
+				.getAuthors(entry)) {
+			Contact contact = null;
+			if (author.getUri() == null) {
+				contact = new Contact(model, true);
+			} else {
+				contact = new Contact(model, author.getUri(), true);
+			}
+			contact.setFullname(author.getName());
+			if (author.getEmail() != null) {
+				EmailAddress email = new EmailAddress(model, author.getUri(),
+						false);
+				email.setEmailAddress(author.getEmail());
+			}
 
-        StringBuilder plainText = new StringBuilder();
-        for (SyndContent content : (List<SyndContent>) FeedHelper
-                .getContents(entry)) {
-            plainText.append(PlainTextExtractor.getPlainText(content.getType(),
-                    content.getValue()));
-        }
-        nie.addPlainTextContent(plainText.toString());
+			contact.getAllIdentifier_asNode();
+			model
+					.addStatement(
+							nie.getResource(),
+							au.edu.usq.fascinator.common.nco.InformationElement.CREATOR,
+							contact.getResource());
+		}
 
-        StringWriter rdfXML = new StringWriter();
-        try {
-            model.writeTo(rdfXML);
-        } catch (ModelRuntimeException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+		StringBuilder plainText = new StringBuilder();
+		for (SyndContent content : (List<SyndContent>) FeedHelper
+				.getContents(entry)) {
+			plainText.append(PlainTextExtractor.getPlainText(content.getType(),
+					content.getValue()));
+		}
+		nie.addPlainTextContent(plainText.toString());
 
-        model.close();
-        return rdfXML.toString();
-    }
+		StringWriter rdfXML = new StringWriter();
+		try {
+			model.writeTo(rdfXML);
+		} catch (ModelRuntimeException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+		model.close();
+		return rdfXML.toString();
+	}
 }

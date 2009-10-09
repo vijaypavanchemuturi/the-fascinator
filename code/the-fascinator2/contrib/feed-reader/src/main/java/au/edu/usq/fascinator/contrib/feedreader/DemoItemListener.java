@@ -18,13 +18,13 @@
  */
 package au.edu.usq.fascinator.contrib.feedreader;
 
+import java.io.FileInputStream;
 import java.util.List;
+import java.util.Properties;
 
 import org.apache.velocity.exception.ParseErrorException;
 import org.apache.velocity.exception.ResourceNotFoundException;
 
-import com.sun.syndication.feed.module.DCModuleImpl;
-import com.sun.syndication.feed.module.DCSubject;
 import com.sun.syndication.feed.synd.SyndCategory;
 import com.sun.syndication.feed.synd.SyndContent;
 import com.sun.syndication.feed.synd.SyndEntry;
@@ -110,7 +110,11 @@ public class DemoItemListener extends ItemListener {
 
             System.out.println(FeedHelper.toRDFXML(entry));
             try {
-                System.out.println(FeedHelper.toXHTMLSegment(entry));
+            	Properties props = new Properties();
+            	FileInputStream in = new FileInputStream("feed-reader.properties");
+            	props.load(in);
+            	in.close();
+                System.out.println(FeedHelper.toXHTMLSegment(entry, props.getProperty("html.template")));
             } catch (ResourceNotFoundException e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
