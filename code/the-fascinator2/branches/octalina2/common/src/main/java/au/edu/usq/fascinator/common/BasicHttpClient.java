@@ -19,6 +19,9 @@
 package au.edu.usq.fascinator.common;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.net.Proxy;
+import java.net.ProxySelector;
 import java.net.URL;
 
 import org.apache.commons.httpclient.HttpClient;
@@ -81,14 +84,13 @@ public class BasicHttpClient {
         HttpClient client = new HttpClient();
         try {
             URL url = new URL(baseUrl);
-            if (!isNonProxyHost(url.getHost())) {
-                String proxyHost = System.getProperty("http.proxyHost");
-                String proxyPort = System.getProperty("http.proxyPort");
-                if (proxyHost != null && !"".equals(proxyHost)) {
-                    client.getHostConfiguration().setProxy(proxyHost,
-                            Integer.parseInt(proxyPort));
-                    log.trace("Using proxy {}:{}", proxyHost, proxyPort);
-                }
+            Proxy proxy = ProxySelector.getDefault().select(url.toURI()).get(0);
+            if (!proxy.type().equals(Proxy.Type.DIRECT)) {
+                InetSocketAddress address = (InetSocketAddress) proxy.address();
+                String proxyHost = address.getHostName();
+                int proxyPort = address.getPort();
+                client.getHostConfiguration().setProxy(proxyHost, proxyPort);
+                log.trace("Using proxy {}:{}", proxyHost, proxyPort);
             }
         } catch (Exception e) {
             log.warn("Failed to get proxy settings: " + e.getMessage());
@@ -137,27 +139,5 @@ public class BasicHttpClient {
         int status = getHttpClient(auth).executeMethod(method);
         log.trace("{} {}", status, HttpStatus.getStatusText(status));
         return status;
-    }
-
-    /**
-     * Tests whether a host should bypass the currently set proxy
-     * 
-     * @param host the host to test
-     * @return true if the host should bypass the proxy, false otherwise
-     */
-    private boolean isNonProxyHost(String host) {
-        String httpNonProxyHosts = System.getProperty("http.nonProxyHosts",
-                "localhost|127.0.0.1");
-        String[] nonProxyHosts = httpNonProxyHosts.split("\\|");
-        for (int i = 0; i < nonProxyHosts.length; ++i) {
-            if (nonProxyHosts[i].startsWith("*")) {
-                if (host.endsWith(nonProxyHosts[i].substring(1))) {
-                    return true;
-                }
-            } else if (host.equals(nonProxyHosts[i])) {
-                return true;
-            }
-        }
-        return false;
     }
 }

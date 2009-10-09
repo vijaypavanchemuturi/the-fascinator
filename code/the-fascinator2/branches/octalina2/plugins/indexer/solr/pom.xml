@@ -25,7 +25,7 @@
       <groupId>dom4j</groupId>
       <artifactId>dom4j</artifactId>
     </dependency>
-    <dependency> 
+    <dependency>
       <groupId>javax.servlet</groupId>
       <artifactId>servlet-api</artifactId>
       <version>2.4</version>
@@ -37,11 +37,6 @@
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>net.java.dev.scripting</groupId>
-      <artifactId>jython-engine</artifactId>
-      <version>2.2.1</version>
     </dependency>
     <dependency>
       <groupId>org.apache.solr</groupId>
@@ -62,11 +57,11 @@
     <dependency>
       <groupId>org.python</groupId>
       <artifactId>jython-standalone</artifactId>
-      <version>2.2.1</version>
+      <version>2.5.1</version>
     </dependency>
     <dependency>
       <groupId>org.semweb4j</groupId>
-      <artifactId>rdf2go.impl.jena24</artifactId>
+      <artifactId>rdf2go.api</artifactId>
       <version>4.7.2</version>
     </dependency>
     <dependency>

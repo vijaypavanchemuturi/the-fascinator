@@ -25,6 +25,7 @@
         "home": "src/main/config/portal",
         "contentDir": "${user.home}/.fascinator/content",
         "default": "default",
-        "layout": "layout"
+        "layout": "layout",
+        "nativeJython": true
     }
 }

@@ -73,13 +73,15 @@ public class GenericPayload implements Payload {
      * @param payload payload to copy
      */
     public GenericPayload(Payload payload) {
-        setId(payload.getId());
-        setLabel(payload.getLabel());
-        setContentType(payload.getContentType());
-        setType(payload.getType());
-        try {
-            setInputStream(payload.getInputStream());
-        } catch (IOException e) {
+        if (payload != null) {
+            setId(payload.getId());
+            setLabel(payload.getLabel());
+            setContentType(payload.getContentType());
+            setType(payload.getType());
+            try {
+                setInputStream(payload.getInputStream());
+            } catch (IOException e) {
+            }
         }
     }
 
