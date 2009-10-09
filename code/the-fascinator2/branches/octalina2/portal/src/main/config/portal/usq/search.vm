@@ -136,8 +136,11 @@ $(function() {
 </script>
 <pre class="debug">$self.selectedFacetIds</pre>
 <pre class="debug">$self.result.toString()</pre>
-<h2>Search</h2>
-<div id="search-header">
+<!--<h2>Search</h2>-->
+<div style="margin-left: 10px">
+<h1>Search</h1>
+<fieldset class="SearchBoxBottom">
+<div id="search-header" class="SearchBoxTop">
   <form action="search" id="search-form" method="post">
     <input id="query" name="query" size="45" type="text" #if($query)value="$query"#end/>
     <input name="search" type="submit" value="Go!" />
@@ -147,6 +150,7 @@ $(function() {
   <p>Displaying <strong>${paging.startNum}</strong> to <strong>${paging.endNum}</strong> of <strong>${paging.totalFound}</strong> records (in $self.queryTime seconds)</p>
   #end
 </div>
+</fieldset>
 #if(!$self.result or $paging.totalFound == 0)
 <p class="ui-state-highlight" style="width: 30%">
   <span class="ui-icon ui-icon-info icon"></span>
@@ -158,12 +162,17 @@ $(function() {
 #else
 <div id="split-view">
   <div class="split-panel" id="facet-list">
-    <h3>Facets</h3>
+  	<!--<h3>Facets</h3>
     #if($self.hasSelectedFacets())
       <a class="facet-action with-separator" id="create-view" href="#">Create view</a>
       <a class="facet-action" id="clear-facets" href="#">Clear selection</a>
     #end
-    <h4 class="dotted-line">Path</h4>
+    -->
+    <div class="mainmenu">
+  		<div class="mainmenu-top"> </div>
+  		<div class="mainmenu-heading">Path</div>
+    </div>
+    <!--<h4 class="dotted-line">Path</h4>-->
     <div id="file_path" class="ui-helper-clearfix"></div>
     #set($facetFields = $self.result.getMap("facet_counts/facet_fields"))
     #foreach($facetFieldKey in $facetFields.keySet())
@@ -173,7 +182,10 @@ $(function() {
       #if($facetCounts.size() > 0)
         ## TODO need a better way to test check for hierarchical facets
         #if($facetFieldKey != "file_path")
-          <h4 class="dotted-line"><span class="ui-icon ui-icon-triangle-1-s icon"></span>$self.getFacetName($facetFieldKey)</h4>
+          <div class="mainmenu">
+          <div class="mainmenu-top"> </div>
+          <div class="mainmenu-heading"><span class="ui-icon ui-icon-triangle-1-s icon"></span>$self.getFacetName($facetFieldKey)</div>
+          <!--<h4 class="dotted-line"><span class="ui-icon ui-icon-triangle-1-s icon"></span>$self.getFacetName($facetFieldKey)</h4> -->
           <ul>
           #foreach($facetCountKey in $facetCounts.keySet())
             #set($facetCount = $facetCounts.get($facetCountKey))
@@ -192,15 +204,17 @@ $(function() {
             </li>
           #end
           </ul>
+          </div>
         #end
       #end
       </div>
+
     #end
   </div>
   <div class="split-panel" id="result-list">
-  	<form id="backupForm" name="backupForm" method="post">
+  	<!--<form id="backupForm" name="backupForm" method="post">
       <input name="backupAction" type="submit" value="Backup" />
-    </form>
+    </form>-->
     <ul id="result-item-list">
     #foreach($item in $self.result.getList("response/docs"))
       #set($id = $item.get("id"))
@@ -215,13 +229,16 @@ $(function() {
       #set($description = $item.get("dc_description").get(0))
       <li>
         <div id="$id">
-          <h3><a href="detail/$id">$title</a></h3>
-          <a class="tag" href="#">tag</a>
-          <p class="item-description">$!description</p>
+          <p><a href="detail/$id">$title</a>
+          <!--<span class="with-separator"></span>
+          <a class="tag" href="#"> tag <img src="images/tag.png" class="tag"/></a>-->
+          <br/>
+          <span class="item-description">$!description</span>
           #set($format = $item.get("dc_format").get(0))
           #if($format.startsWith("image/"))
             <img src="download/$id/$self.getThumbnail($id)"></img>
           #end
+          </p>
         </div>
       </li>
     #end
@@ -238,3 +255,4 @@ $(function() {
 </div>
 #end
 #end
+</div>

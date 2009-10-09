@@ -9,17 +9,25 @@ $(function() {
     });
 });
 </script>
-<h2>Welcome</h2>
+<br/>
+<div style="margin-left: 10px">
+<h1>Welcome</h1>
 <p>Tell a little story about The Fascinator...</p>
 <div id="home-search">
-  <h3>Search</h3>
-  <p>Enter a query to search all content</p>
-  <form action="search" id="search-form" method="post">
-    <input type="text" name="query" size="40" />
-    <input type="submit" name="search" value="Go!" />
-  </form>
+  <h1>Search</h1>
+  <fieldset class="SearchBoxBottom">
+    
+  	<div class="SearchBoxTop">
+	  <form action="search" id="search-form" method="post">
+	    <input type="text" name="query" size="40" />
+	    <input type="submit" name="search" value="Go!" />
+	    <br style="line-height: 0.4;"/>
+	    (Enter a query to search all content)
+	  </form>
+	</div>
+  </fieldset>
 </div>
-<h3>Portals</h3>
+<h1>Portals</h1>
 <div class="home-portal-list">
 #if($page.portals.size() == 1)
   <p class="ui-state-highlight">
@@ -43,4 +51,5 @@ $(function() {
   #end
   </ul>
 #end
+</div>
 </div>

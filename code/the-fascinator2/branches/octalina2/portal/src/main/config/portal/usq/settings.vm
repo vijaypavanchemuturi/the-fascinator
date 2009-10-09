@@ -44,7 +44,8 @@ $(function() {
     });
 });
 </script>
-<h2>Settings</h2>
+<div style="margin-left: 10px">
+<h1>Settings</h1>
 <div id="settings">
   <ul>
     <li><a href="#general-tab">General</a></li>
@@ -188,4 +189,5 @@ $(function() {
       </form>
     </div>
   </div>
+</div>
 </div>

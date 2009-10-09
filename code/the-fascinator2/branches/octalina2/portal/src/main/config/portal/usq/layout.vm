@@ -16,6 +16,7 @@ $!pageContent
     <script type="text/javascript" src="$portalPath/js/jquery.cookie.js"></script>
     <link rel="stylesheet" type="text/css" href="$portalPath/css/layout.css" />
     <link rel="stylesheet" type="text/css" href="$portalPath/css/styles.css" />
+    <link rel="stylesheet" type="text/css" href="$portalPath/css/usq.css" />
     $!pageHeader
     <script type="text/javascript">
     function setActionUri(uri) {
@@ -107,9 +108,66 @@ $!pageContent
   <body>
     <div id="header">
       <div id="menu-bar">
-        <div class="title">
+      	<div class="linetop">
+      		<div class="linetopright" style="text-align: right;">  </div>
+      	</div>
+      	<div class="header_search">
+      		<div class="header_right">
+	      		<div class="header_links">
+					<a href="http://www.usq.edu.au/default.htm">Home</a>
+					|
+					<a href="http://www.usq.edu.au/contact/default.htm">Contact us</a>
+					|
+					<a href="http://apps.usq.edu.au/usqwebsite/aspnet/staffsearch/default.aspx?action=stafflookup">Staff directory</a>
+				</div>
+				<script type="text/javascript">
+					function focusSearch(obj){
+					if(obj.value == " Search USQ "){
+					obj.value = "";
+					}
+					}
+					function blurSearch(obj){
+					if(obj.value == ""){
+					obj.value = " Search USQ ";
+					}
+					}
+				</script>
+				<form action="http://websearch.usq.edu.au/search" method="get" name="gs">
+				<fieldset>
+				<div class="searchbox_go">
+				<label for="usqsearch" style="width: 10px;">
+				<input type="image" alt="Go" src="$portalPath/images/button_go.jpg" name="sa"/>
+				</label>
+				</div>
+				<div class="searchbox_t">
+				<div class="searchbox_b">
+				<div class="searchbox_l">
+				<div class="searchbox_r">
+				<div class="searchbox_bl">
+				<div class="searchbox_br">
+				<div class="searchbox_tl">
+				<div class="searchbox_tr">
+				<input id="usqsearch" class="inpt-search" onblur="blurSearch(this);" onfocus="focusSearch(this);" value=" Search USQ " maxlength="2047" size="2" name="q"/>
+				</div>
+				</div>
+				</div>
+				</div>
+				</div>
+				</div>
+				</div>
+				</div>
+				</fieldset>
+				</form>
+			</div>
+      	</div>
+      	<div class="header_logo">
+      		<a href="http://www.usq.edu.au/"><img alt="USQ Logo" src="$portalPath/images/usqlogo_line.gif"/></a>
+      		<span class="header_text">The Fascinator</span>
+      	</div>
+      	<div class="nobanner"/>
+        <!--<div class="title">
           <h1><a href="$portalPath/home">The Fascinator</a></h1>
-        </div>
+        </div>-->
         <div>
           <ul>
             #if($DEBUG)
@@ -131,7 +189,7 @@ $!pageContent
         </div>
       </div>
       <h3 class="portal-name">$page.portalName</h3>
-    </div>
+    </div></div>
     <div class="debug" id="debug">
       <div class="ui-state-error">
         <pre>$!renderMessages</pre>
@@ -164,6 +222,28 @@ $!pageContent
       <input id="verb" name="verb" type="hidden" />
       <input id="value" name="value" type="hidden" />
     </form>
+    <div class="footer">
+		ABN: 40 234 732 081 | CRICOS:
+		<a href="http://cricos.dest.gov.au/Institution/InstitutionDetails.aspx?Providerclass=244" target="_blank">QLD 00244B</a>
+		<span class="extlinkIMG" title="[External Link]"/>
+		|
+		<a href="http://cricos.dest.gov.au/Institution/InstitutionDetails.aspx?Providerclass=2225" target="_blank">NSW 02225M</a>
+		<span class="extlinkIMG" title="[External Link]"/>
+		|
+		<a href="http://www.usq.edu.au/aboutsite/copyright.htm">&#169; University of Southern Queensland</a>
+		|
+		<span class="noprint">
+		<a href="http://www.usq.edu.au/aboutsite/privacy.htm">Privacy</a>
+		|
+		<a href="http://www.usq.edu.au/aboutsite/feedback.htm">Feedback</a>
+		|
+		<a href="http://www.usq.edu.au/contact/default.htm">Contact us</a>
+		|
+		</span>
+		<div class="linefooter">
+			<div class="linefooterright"> </div>
+		</div>
+	</div>
   </body>
 </html>
 #end

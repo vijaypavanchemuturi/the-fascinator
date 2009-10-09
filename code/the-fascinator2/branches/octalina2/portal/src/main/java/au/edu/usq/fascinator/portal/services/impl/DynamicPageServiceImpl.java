@@ -25,6 +25,8 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.StringWriter;
 import java.io.Writer;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.script.Bindings;
 import javax.script.ScriptContext;
@@ -40,7 +42,7 @@ import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.Velocity;
 import org.apache.velocity.runtime.RuntimeSingleton;
 import org.apache.velocity.runtime.log.Log4JLogChute;
-import org.apache.velocity.tools.generic.introspection.JythonUberspect;
+import org.python.util.PythonInterpreter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,6 +52,7 @@ import au.edu.usq.fascinator.portal.JsonSessionState;
 import au.edu.usq.fascinator.portal.services.DynamicPageService;
 import au.edu.usq.fascinator.portal.services.PortalManager;
 import au.edu.usq.fascinator.portal.services.ScriptingServices;
+import au.edu.usq.fascinator.portal.velocity.JythonUberspect;
 
 public class DynamicPageServiceImpl implements DynamicPageService {
 
@@ -70,21 +73,32 @@ public class DynamicPageServiceImpl implements DynamicPageService {
 
     private String layoutName;
 
+    private boolean nativeJython;
+
     private ScriptEngine scriptEngine;
 
-    private Bindings bindings;
+    private PythonInterpreter python;
+
+    private Map<String, Object> bindings;
 
     public DynamicPageServiceImpl() {
         try {
             JsonConfig config = new JsonConfig();
+            nativeJython = Boolean.parseBoolean(config.get(
+                    "portal/nativeJython", "true"));
             layoutName = config.get("portal/layout", DEFAULT_LAYOUT_TEMPLATE);
 
             // setup scripting engine
-            String engineName = config.get("portal/scriptEngine",
-                    DEFAULT_SCRIPT_ENGINE);
-            ScriptEngineManager scriptEngineManager = new ScriptEngineManager();
-            scriptEngine = scriptEngineManager.getEngineByName(engineName);
-            bindings = scriptEngine.createBindings();
+            if (nativeJython) {
+                python = new PythonInterpreter();
+                bindings = new HashMap<String, Object>();
+            } else {
+                String engineName = config.get("portal/scriptEngine",
+                        DEFAULT_SCRIPT_ENGINE);
+                ScriptEngineManager scriptEngineManager = new ScriptEngineManager();
+                scriptEngine = scriptEngineManager.getEngineByName(engineName);
+                bindings = scriptEngine.createBindings();
+            }
 
             // setup velocity engine
             String home = config.get("portal/home",
@@ -103,6 +117,10 @@ public class DynamicPageServiceImpl implements DynamicPageService {
                     JythonUberspect.class.getName());
             Velocity.setProperty(Velocity.FILE_RESOURCE_LOADER_CACHE, false);
             Velocity.setProperty(Velocity.VM_LIBRARY_AUTORELOAD, true);
+            Velocity.setProperty(Velocity.VM_PERM_ALLOW_INLINE, true);
+            Velocity.setProperty(Velocity.VM_PERM_ALLOW_INLINE_REPLACE_GLOBAL,
+                    true);
+            Velocity.setProperty(Velocity.VM_PERM_INLINE_LOCAL, true);
             Velocity.init();
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -166,14 +184,16 @@ public class DynamicPageServiceImpl implements DynamicPageService {
         StringBuilder renderMessages = new StringBuilder();
 
         // setup script and velocity context
+        String contextPath = request.getContextPath();
         bindings.put("Services", scriptingServices);
         bindings.put("systemProperties", System.getProperties());
         bindings.put("request", request);
         bindings.put("response", response);
         bindings.put("formData", formData);
         bindings.put("sessionState", sessionState);
-        bindings.put("contextPath", request.getContextPath());
+        bindings.put("contextPath", contextPath);
         bindings.put("portalId", portalId);
+        bindings.put("portalPath", contextPath + "/" + portalId);
         bindings.put("pageName", pageName);
 
         // run page and template scripts
@@ -196,6 +216,7 @@ public class DynamicPageServiceImpl implements DynamicPageService {
             renderMessages.append(se.getMessage());
             log.warn("Failed to run page script!\n=====\n{}\n=====", se
                     .getMessage());
+            se.printStackTrace();
         }
         bindings.put("self", pageObject);
         Object mimeTypeAttr = request.getAttribute("Content-Type");
@@ -230,6 +251,7 @@ public class DynamicPageServiceImpl implements DynamicPageService {
                 vc.put("renderMessages", renderMessages.toString());
                 log.error("Failed rendering page: {}, {} ({})", new String[] {
                         pageName, e.getMessage(), isAjax ? "ajax" : "html" });
+                e.printStackTrace();
             }
 
             if (!isAjax) {
@@ -257,9 +279,20 @@ public class DynamicPageServiceImpl implements DynamicPageService {
         log.debug("Running page script {}:{}...", portalId, scriptName);
         InputStream in = getResource(portalId, scriptName);
         if (in != null) {
-            scriptEngine.setBindings(bindings, ScriptContext.GLOBAL_SCOPE);
-            scriptEngine.eval(new InputStreamReader(in));
-            scriptObject = scriptEngine.get("scriptObject");
+            if (nativeJython) {
+                for (String key : bindings.keySet()) {
+                    python.set(key, bindings.get(key));
+                }
+                python.execfile(in);
+                scriptObject = python.get("scriptObject");
+                python.cleanup();
+            } else {
+                Bindings b = scriptEngine.createBindings();
+                b.putAll(bindings);
+                scriptEngine.setBindings(b, ScriptContext.ENGINE_SCOPE);
+                scriptEngine.eval(new InputStreamReader(in));
+                scriptObject = scriptEngine.get("scriptObject");
+            }
         } else {
             log.warn("No script found for {}", scriptName);
         }

@@ -53,6 +53,7 @@ $(function() {
 #if($self.solrResponse.get("response/numFound") == 0)
 <p title="FIXME">Not found</p>
 #else
+<div style="margin-left: 10px">
 #set($meta = $self.metadata)
 #set($oid = $self.object.id)
 <p class="debug">storage:</p>
@@ -67,7 +68,7 @@ $(function() {
 #set($title = $meta.getField("dc_title"))
 #set($description = $meta.getField("dc_description"))
 #if($title)
-<h2>$title</h2>
+<h1>$title</h1>
 #else
 <h2>$self.getFileName($oid)</h2>
 #end
@@ -102,6 +103,7 @@ $(function() {
     </li>
   #end
   </ul>
+</div>
 </div>
 #end
 

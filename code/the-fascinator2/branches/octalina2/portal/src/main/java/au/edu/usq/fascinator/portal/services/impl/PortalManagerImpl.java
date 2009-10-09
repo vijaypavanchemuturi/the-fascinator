@@ -156,7 +156,6 @@ public class PortalManagerImpl implements PortalManager {
         if (portalFile.exists()) {
             lastModified.put(name, portalFile.lastModified());
             portalFiles.put(name, portalFile);
-            log.info(" *** portalFile:" + portalFile);
             try {
                 portal = (Portal) jaxbU.unmarshal(portalFile);
                 add(portal);
