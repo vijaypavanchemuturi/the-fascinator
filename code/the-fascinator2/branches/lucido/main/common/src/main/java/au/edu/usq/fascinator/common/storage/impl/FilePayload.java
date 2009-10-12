@@ -45,7 +45,11 @@ public class FilePayload extends GenericPayload {
         this.payloadFile = payloadFile;
         setId(payloadFile.getName());
         setLabel(payloadFile.getPath());
-        setContentType(MimeTypeUtil.getMimeType(payloadFile));
+        if (payloadFile.exists()) {
+            setContentType(MimeTypeUtil.getMimeType(payloadFile));
+        } else {
+            setContentType(MimeTypeUtil.DEFAULT_MIME_TYPE);
+        }
         setType(PayloadType.Data);
     }
 

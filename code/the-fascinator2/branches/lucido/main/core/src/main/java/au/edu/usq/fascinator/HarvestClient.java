@@ -135,6 +135,16 @@ public class HarvestClient {
             }
         } while (harvester.hasMoreObjects());
 
+        do {
+            try {
+                for (DigitalObject item : harvester.getDeletedObjects()) {
+                    storage.removeObject(item.getId());
+                }
+            } catch (HarvesterException he) {
+                log.error("Failed to delete", he);
+            }
+        } while (harvester.hasMoreDeletedObjects());
+
         try {
             storage.shutdown();
         } catch (PluginException e) {

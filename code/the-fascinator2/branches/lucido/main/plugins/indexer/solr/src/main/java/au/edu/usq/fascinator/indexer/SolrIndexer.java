@@ -188,7 +188,7 @@ public class SolrIndexer implements Indexer {
     public void remove(String oid) throws IndexerException {
         log.debug("Deleting " + oid + " from index");
         try {
-            solr.deleteByQuery("oid:\"" + oid + "\"");
+            solr.deleteByQuery("storage_id:\"" + oid + "\"");
             solr.commit();
         } catch (SolrServerException sse) {
             throw new IndexerException(sse);
@@ -201,7 +201,8 @@ public class SolrIndexer implements Indexer {
     public void remove(String oid, String pid) throws IndexerException {
         log.debug("Deleting {}::{} from index", oid, pid);
         try {
-            solr.deleteByQuery("oid:\"" + oid + "\" AND pid:\"" + pid + "\"");
+            solr.deleteByQuery("storage_id:\"" + oid + "\" AND identifer:\""
+                    + pid + "\"");
             solr.commit();
         } catch (SolrServerException sse) {
             throw new IndexerException(sse);
