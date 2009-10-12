@@ -40,11 +40,29 @@ public interface Harvester extends Plugin {
     public List<DigitalObject> getObjects() throws HarvesterException;
 
     /**
+     * Gets a list of deleted digital objects. If there are no deleted objects,
+     * this method should return an empty list, not null.
+     * 
+     * @return a list of objects, possibly empty
+     * @throws HarvesterException if there was an error retrieving the objects
+     */
+    public List<DigitalObject> getDeletedObjects() throws HarvesterException;
+
+    /**
      * Tests whether there are more objects to retrieve. This method should
      * return true if called before getObjects.
      * 
      * @return true if there are more objects to retrieve, false otherwise
      */
     public boolean hasMoreObjects();
+
+    /**
+     * Tests whether there are more deleted objects to retrieve. This method
+     * should return true if called before getDeletedObjects.
+     * 
+     * @return true if there are more deleted objects to retrieve, false
+     *         otherwise
+     */
+    public boolean hasMoreDeletedObjects();
 
 }

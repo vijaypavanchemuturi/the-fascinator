@@ -28,6 +28,7 @@ import java.io.StringWriter;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -162,6 +163,17 @@ public class JsonQHarvester implements Harvester, Configurable {
 
     @Override
     public boolean hasMoreObjects() {
+        return false;
+    }
+
+    @Override
+    public List<DigitalObject> getDeletedObjects() {
+        // empty for now
+        return Collections.emptyList();
+    }
+
+    @Override
+    public boolean hasMoreDeletedObjects() {
         return false;
     }
 

@@ -25,6 +25,7 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
@@ -183,6 +184,17 @@ public class OaiPmhHarvester implements Harvester, Configurable {
     @Override
     public boolean hasMoreObjects() {
         return token != null && numRequests < maxRequests;
+    }
+
+    @Override
+    public List<DigitalObject> getDeletedObjects() {
+        // empty for now
+        return Collections.emptyList();
+    }
+
+    @Override
+    public boolean hasMoreDeletedObjects() {
+        return false;
     }
 
     @Override
