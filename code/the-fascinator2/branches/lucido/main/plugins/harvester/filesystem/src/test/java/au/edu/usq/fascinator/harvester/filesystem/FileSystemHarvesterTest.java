@@ -178,12 +178,11 @@ public class FileSystemHarvesterTest {
             DigitalObject item = items.get(0);
             String id = item.getId();
             int expectedSize = 0;
-            if (id.contains(FilenameUtils.separatorsToSystem("/books/"))) {
+            if (id.contains("/books/")) {
                 expectedSize = 3;
-            } else if (id.contains(FilenameUtils.separatorsToSystem("/music/"))) {
+            } else if (id.contains("/music/")) {
                 expectedSize = 2;
-            } else if (id.contains(FilenameUtils
-                    .separatorsToSystem("/pictures/"))) {
+            } else if (id.contains("/pictures/")) {
                 expectedSize = 4;
             }
             Assert.assertEquals(expectedSize, items.size());
@@ -207,10 +206,9 @@ public class FileSystemHarvesterTest {
                 DigitalObject item = items.get(0);
                 String id = item.getId();
                 int expectedSize = 0;
-                if (id.contains(FilenameUtils.separatorsToSystem("/books/"))) {
+                if (id.contains("/books/")) {
                     expectedSize = 3;
-                } else if (id.contains(FilenameUtils
-                        .separatorsToSystem("/pictures/"))) {
+                } else if (id.contains("/pictures/")) {
                     // 1 gif file should be ignored
                     expectedSize = 3;
                 }

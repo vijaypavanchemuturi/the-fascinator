@@ -119,8 +119,8 @@ public class IceTransformer implements Transformer {
             String[] filePart = sourceFile.getName().split("\\.");
 
             Part[] parts = { new StringPart("zip", "1"),
-                    new StringPart("dc", "1"), new StringPart("toc", "1"),
-                    new StringPart("pdfLink", "1"),
+                    new StringPart("dc", "1"), new StringPart("toc", "on"),
+                    new StringPart("pdflink", "on"),
                     new StringPart("pathext", ""),
                     new StringPart("template", getTemplate()),
                     new StringPart("resize", imageRatio),
@@ -135,15 +135,16 @@ public class IceTransformer implements Transformer {
             InputStream is = filePost.getResponseBodyAsStream();
             String headerType = filePost.getResponseHeader("Content-Type")
                     .getValue();
-            String outputFilename;
-            outputFilename = outputPath + "/" + filePart[0] + ".zip";
+            String outputFilename = sourceFile.getName();
+            outputFilename = outputFilename.substring(0, outputFilename.lastIndexOf("."));
+            outputFilename = outputPath + "/" + outputFilename + ".zip";
             if (headerType.indexOf("image/jp") > -1) {
                 // for resized image
-                outputFilename = outputPath + "/" + filePart[0] + ".thumb.jpg";
+                outputFilename = outputPath + "/" + outputFilename + ".thumb.jpg";
             }
             if (headerType.indexOf("video/x-flv") > -1) {
                 // for converted media file
-                outputFilename = outputPath + "/" + filePart[0] + ".flv";
+                outputFilename = outputPath + "/" + outputFilename + ".flv";
             }
             // Check if file is exist or not, just incase
             File outputFile = new File(outputFilename);
