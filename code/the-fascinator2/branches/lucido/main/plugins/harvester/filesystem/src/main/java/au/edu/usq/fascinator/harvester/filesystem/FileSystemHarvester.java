@@ -58,6 +58,9 @@ import au.edu.usq.fascinator.common.JsonConfig;
  */
 public class FileSystemHarvester implements Harvester, Configurable {
 
+    /** file containing the full path for caching purposes */
+    private static final String ID_FILE = "id.txt";
+
     /** logging */
     private Logger log = LoggerFactory.getLogger(FileSystemHarvester.class);
 
@@ -168,8 +171,7 @@ public class FileSystemHarvester implements Harvester, Configurable {
             idTxtFilter = new FileFilter() {
                 @Override
                 public boolean accept(File file) {
-                    return file.isDirectory()
-                            || "id.txt".equals(file.getName());
+                    return file.isDirectory() || ID_FILE.equals(file.getName());
                 }
             };
         } catch (IOException ioe) {
@@ -216,7 +218,7 @@ public class FileSystemHarvester implements Harvester, Configurable {
             try {
                 File parentDir = getCacheDirForFile(file);
                 File cacheFile = new File(parentDir, "checksum.txt");
-                File idFile = new File(parentDir, "id.txt");
+                File idFile = new File(parentDir, ID_FILE);
                 if (cacheFile != null) {
                     InputStream fis = new FileInputStream(file);
                     String sha1 = DigestUtils.shaHex(fis);
@@ -271,19 +273,15 @@ public class FileSystemHarvester implements Harvester, Configurable {
         } else {
             if (cacheCurrentDir.isDirectory()) {
                 File[] files = cacheCurrentDir.listFiles(idTxtFilter);
-                for (File file : files) {
-                    if (file.isDirectory()) {
-                        cacheSubDirs.push(file);
-                    } else {
-                        try {
-                            String id = FileUtils.readFileToString(file);
-                            File realFile = new File(id);
-                            if (!realFile.exists()) {
-                                fileObjects.add(new FileSystemDigitalObject(
-                                        realFile));
-                            }
-                        } catch (IOException ioe) {
-                            log.warn("Failed to read {}", file);
+                if (files.length == 0) {
+                    // remove it
+                    FileUtils.deleteQuietly(cacheCurrentDir);
+                } else {
+                    for (File file : files) {
+                        if (file.isDirectory()) {
+                            cacheSubDirs.push(file);
+                        } else {
+                            addDeletedObject(fileObjects, file);
                         }
                     }
                 }
@@ -292,22 +290,26 @@ public class FileSystemHarvester implements Harvester, Configurable {
                     cacheCurrentDir = cacheSubDirs.pop();
                 }
             } else {
-                if ("id.txt".equals(cacheCurrentDir)) {
-                    try {
-                        String id = FileUtils.readFileToString(cacheCurrentDir);
-                        File realFile = new File(id);
-                        if (!realFile.exists()) {
-                            fileObjects.add(new FileSystemDigitalObject(
-                                    realFile));
-                        }
-                    } catch (IOException ioe) {
-                        log.warn("Failed to read {}", cacheCurrentDir);
-                    }
-                }
+                addDeletedObject(fileObjects, cacheCurrentDir);
                 hasMoreDeleted = false;
             }
         }
         return fileObjects;
+    }
+
+    private void addDeletedObject(List<DigitalObject> fileObjects, File idFile) {
+        if (ID_FILE.equals(idFile.getName())) {
+            try {
+                String id = FileUtils.readFileToString(idFile);
+                File realFile = new File(id);
+                if (!realFile.exists()) {
+                    FileUtils.deleteQuietly(idFile.getParentFile());
+                    fileObjects.add(new FileSystemDigitalObject(realFile));
+                }
+            } catch (IOException ioe) {
+                log.warn("Failed to read {}", idFile);
+            }
+        }
     }
 
     @Override
