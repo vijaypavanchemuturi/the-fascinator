@@ -191,7 +191,7 @@ $!pageContent
       </div>
       <h3 class="portal-name">$page.portalName</h3>
     </div></div>
-    <div class="debug" id="debug">
+    <!--<div class="debug" id="debug">
       <div class="ui-state-error">
         <pre>$!renderMessages</pre>
       </div>
@@ -200,11 +200,11 @@ $!pageContent
         <pre>formData: $formData</pre>
         <a href="#" id="clear-session-state">Clear session</a>
       </div>
-    </div>
+    </div> -->
     <div id="content">
       $!pageContent
     </div>
-    <div id="login-dialog" title="Login">
+    <!--<div id="login-dialog" title="Login">
       <form id="login-form" method="post">
         <input name="verb" value="login" type="hidden" />
         <label for="username">Username:</label>
@@ -218,7 +218,7 @@ $!pageContent
         <input name="verb" value="logout" type="hidden" />
       </form>
       <p><span class="ui-icon ui-icon-alert icon"></span>Are you sure you want to log out?</p>
-    </div>
+    </div> -->
     <form action="$portalPath/$pageName" id="action-form" method="post">
       <input id="verb" name="verb" type="hidden" />
       <input id="value" name="value" type="hidden" />

@@ -2,6 +2,7 @@ package au.edu.usq.fascinator.harvester.backup;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 
@@ -114,6 +115,7 @@ public class BackupManager implements Harvester {
             output.getParentFile().mkdirs();
 
             // Using rsync
+            // System.getProperty("os.name");
             String cmd = "rsync " + oid + " " + filePath;
             try {
                 Process proc = Runtime.getRuntime().exec(cmd);
@@ -144,4 +146,14 @@ public class BackupManager implements Harvester {
 
     }
 
+    @Override
+    public List<DigitalObject> getDeletedObjects() {
+        // empty for now
+        return Collections.emptyList();
+    }
+
+    @Override
+    public boolean hasMoreDeletedObjects() {
+        return false;
+    }
 }

@@ -3,6 +3,9 @@
         "type": "file-system",
         "file-system": {
             "baseDir": "${user.home}/Documents/public",
+            "ignoreFilter": ".svn|.ice|.*|~*",
+            "cacheDir": "${user.home}/.fascinator/cache",
+            "force": false,
             "recursive": true
         }
     },
