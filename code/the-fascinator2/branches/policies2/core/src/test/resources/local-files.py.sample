@@ -17,18 +17,41 @@ from au.edu.usq.fascinator.common.ctag import Tag, TaggedContent
 #    storageId : Storage layer identifier
 #
 
-def indexPath(name, path):
+def indexPath(name, path, includeLastPart=False):
     parts = path.split("/")
-    for i in range(1, len(parts)):
+    length = len(parts)
+    if includeLastPart:
+        length +=1
+    for i in range(1, length):
         part = "/".join(parts[:i])
         if part != "":
             if part.startswith("/"):
                 part = part[1:]
             rules.add(AddField(name, part))
-
+            
 def indexList(name, values):
     for value in values:
-        rules.add(AddField(name, value))
+        if name=="usq_document_policy_type":
+            indexPath(name, value, includeLastPart=True)
+        else:
+            rules.add(AddField(name, value))
+            
+def indexTitleGroup(name, values):
+    for value in values:
+        firstChar = ord(value.strip().lower()[:1])
+        rules.add(AddField(name, "All"))
+        ruleValue = "All/ Others"
+        if firstChar in range (97, 102):
+            ruleValue = "All/A-E"
+        elif firstChar in range (102, 107):
+            ruleValue = "All/F-J"
+        elif firstChar in range (107, 112):
+            ruleValue = "All/K-O"
+        elif firstChar in range (112, 117):
+            ruleValue = "All/P-T"
+        elif firstChar in range (117, 173):
+            ruleValue = "All/U-Z"
+        rules.add(AddField(name, ruleValue))
 
 def getNodeValues (doc, xPath):
     nodes = doc.selectNodes(xPath)
@@ -162,6 +185,7 @@ if isMetadata:
                 creationDate.append(informationElement.getContentCreated().getTime().toString())
     
     indexList("dc_title", titleList)
+    indexTitleGroup("title_group", titleList)
     indexList("dc_creator", creatorList)  #no dc_author in schema.xml, need to check
     indexList("dc_contributor", contributorList)
     indexList("dc_description", descriptionList)
