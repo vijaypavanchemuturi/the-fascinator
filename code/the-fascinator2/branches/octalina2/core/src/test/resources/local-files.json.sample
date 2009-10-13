@@ -14,7 +14,8 @@
         },
         "ice2": {
             "url": "http://ec2-75-101-136-199.compute-1.amazonaws.com/api/convert/",
-            "outputPath": "${java.io.tmpdir}/ice2-output"
+            "outputPath": "${java.io.tmpdir}/ice2-output",
+            "resize.image.ratio": "-90"
         }
     },
     

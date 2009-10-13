@@ -10,10 +10,10 @@
         <field name="repository_name">Source</field>
         <field name="file_path">Path</field>
         <field name="f_dc_creator">Author</field>
+        <field name="tag">Tags</field>
         <field name="f_dc_subject">Subject</field>
         <field name="f_dc_format">Format</field>
         <field name="repository_type">Source type</field>
         <field name="f_dc_type">Type</field>
-        <field name="tag">Tags</field>
     </facet-fields>
 </portal>

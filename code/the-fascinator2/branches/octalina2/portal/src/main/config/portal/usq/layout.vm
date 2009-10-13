@@ -174,16 +174,17 @@ $!pageContent
             <li class="debug-link"><span class="ui-icon" id="debug-link" title="Toggle debugging"></span></li>
             #end
             <li class="with-separator"><a id="home-link" href="$portalPath/home">Home</a></li>
-            <li class="with-separator"><a id="search-link"  href="$portalPath/search">Search</a></li>
+            ##<li class="with-separator"><a id="search-link"  href="$portalPath/search">Search</a></li>
+            <li><a id="search-link"  href="$portalPath/search">Search</a></li>
             ## harvest not complete yet
             ##<li class="with-separator"><a id="harvest-link" href="$portalPath/harvest">Harvest</a></li>
-            <li class="with-separator"><a id="settings-link" href="$portalPath/settings">Settings</a></li>
+            ##<li class="with-separator"><a id="settings-link" href="$portalPath/settings">Settings</a></li>
             <li>
-            #if($sessionUsername)
-              <a id="logout-link">Logout: <span class="session-username">$sessionUsername</span></a>
-            #else
-              <a id="login-link" href="#">Login</a>
-            #end
+            ##if($sessionUsername)
+            ##  <a id="logout-link">Logout: <span class="session-username">$sessionUsername</span></a>
+            ##else
+            ##  <a id="login-link" href="#">Login</a>
+            ##end
             </li>
           </ul>
         </div>

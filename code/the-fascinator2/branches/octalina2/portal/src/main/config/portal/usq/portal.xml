@@ -7,12 +7,10 @@
     <facet-sort-by-count>false</facet-sort-by-count>
     <backup-paths/>
     <facet-fields>
-        <field name="repository_name">Source</field>
-        <field name="file_path">Path</field>
+        <field name="f_usq_document_type">Document Type</field>
         <field name="f_dc_creator">Creator</field>
         <field name="f_dc_subject">Subject</field>
-        <field name="f_dc_format">Format</field>
-        <field name="repository_type">Source type</field>
-        <field name="f_dc_type">Type</field>
+        <field name="f_usq_document_div_dept_office">Department</field>
+        <field name="f_title_group">Title</field>
     </facet-fields>
 </portal>
