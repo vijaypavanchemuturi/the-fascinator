@@ -27,11 +27,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 
+import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.httpclient.methods.multipart.FilePart;
 import org.apache.commons.httpclient.methods.multipart.MultipartRequestEntity;
 import org.apache.commons.httpclient.methods.multipart.Part;
 import org.apache.commons.httpclient.methods.multipart.StringPart;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -106,6 +108,7 @@ public class IceTransformer implements Transformer {
      * @return String: filePath if success error message if fail
      */
     public String getRendition(File sourceFile) {
+        log.info("Rendering file {}...", sourceFile);
         // check if the outputPath is available:
         File outputDir = new File(outputPath);
         if (!outputDir.exists()) {
@@ -129,22 +132,27 @@ public class IceTransformer implements Transformer {
 
             filePost.setRequestEntity(new MultipartRequestEntity(parts,
                     filePost.getParams()));
-            client.executeMethod(filePost);
-
+            int status = client.executeMethod(filePost);
+            log.debug("HTTP status: {} {}", status, HttpStatus
+                    .getStatusText(status));
+            if (status != HttpStatus.SC_OK) {
+                log.debug("Response body: {}", filePost
+                        .getResponseBodyAsString());
+            }
             // Get Response
             InputStream is = filePost.getResponseBodyAsStream();
             String headerType = filePost.getResponseHeader("Content-Type")
                     .getValue();
-            String outputFilename = sourceFile.getName();
-            outputFilename = outputFilename.substring(0, outputFilename.lastIndexOf("."));
-            outputFilename = outputPath + "/" + outputFilename + ".zip";
+            String basename = sourceFile.getName();
+            basename = FilenameUtils.getBaseName(sourceFile.getName());
+            String outputFilename = outputPath + "/" + basename + ".zip";
             if (headerType.indexOf("image/jp") > -1) {
                 // for resized image
-                outputFilename = outputPath + "/" + outputFilename + ".thumb.jpg";
+                outputFilename = outputPath + "/" + basename + ".thumb.jpg";
             }
             if (headerType.indexOf("video/x-flv") > -1) {
                 // for converted media file
-                outputFilename = outputPath + "/" + outputFilename + ".flv";
+                outputFilename = outputPath + "/" + basename + ".flv";
             }
             // Check if file is exist or not, just incase
             File outputFile = new File(outputFilename);
@@ -153,14 +161,14 @@ public class IceTransformer implements Transformer {
             }
             FileOutputStream fos = new FileOutputStream(outputFilename);
             IOUtils.copy(is, fos);
-
             is.close();
             fos.close();
+            log.debug("ICE output at {}", outputFilename);
             return outputFilename; // Returning the location of the file
         } catch (Exception e) {
-            System.out.println("An error occurred: " + e.getClass());
+            log.error("An error occurred: {}", e.getMessage());
             // e.printStackTrace();
-            return "Error " + e.getClass();
+            return "Error " + e.getMessage();
         }
     }
 
