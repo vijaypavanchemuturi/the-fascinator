@@ -8,6 +8,7 @@
     <backup-paths/>
     <facet-fields>
         <field name="f_usq_document_type">Document Type</field>
+        <field name="f_usq_document_div_dept_office">Department</field>
         <field name="f_dc_creator">Creator</field>
         <field name="f_dc_subject">Subject</field>
         <field name="f_usq_document_div_dept_office">Department</field>
