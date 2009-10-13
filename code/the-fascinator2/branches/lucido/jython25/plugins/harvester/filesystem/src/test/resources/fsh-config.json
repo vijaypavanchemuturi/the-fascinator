@@ -1,8 +1,0 @@
-{
-    "harvester": {
-        "type": "file-system",
-        "file-system": {
-            "baseDir": "${test.dir}"
-        }
-    }
-}
