@@ -225,7 +225,7 @@
   <copyField source="usq_document_type" dest="f_usq_document_type" />
   <copyField source="usq_document_div_dept_office" dest="f_usq_document_div_dept_office" />
   <copyField source="usq_document_policy_type" dest="f_usq_document_policy_type" />
-  <copyField source="title_group" dest="title_group" />
+  <copyField source="title_group" dest="f_title_group" />
   <copyField source="dc_title" dest="title_sort" />
   
 
