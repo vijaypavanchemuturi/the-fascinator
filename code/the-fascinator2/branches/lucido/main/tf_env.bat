@@ -1,1 +1,0 @@
-set TF_HOME="C:\Program Files\the-fascinator2"
