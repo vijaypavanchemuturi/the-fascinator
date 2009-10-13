@@ -1,0 +1,193 @@
+#set($pageTitle = "Settings")
+<script type="text/javascript">
+$(function() {
+    $("#settings").tabs();
+    $("#security-accordion").accordion();
+    // $("#plugins-accordion").accordion({ autoHeight: false });
+    $("#backup-accordion").accordion({ autoHeight: false });
+    
+    $("#add-facet-field").click(function() {
+        var parent = $(this).parent();
+        var size = parseInt($("#portalFacetSize").val()) + 1;
+        var id = "portalFacet_" + size;
+        parent.append('<li id="' + id + '">\n' +
+              '<input class="ui-corner-all ui-widget-content" id="' + id + '_name" name="' + id + '_name" size="25" type="text" value="" />\n' +
+              '<input class="ui-corner-all ui-widget-content" id="' + id + '_label" name="' + id + '_label" size="25" type="text" value="" />\n' +
+              '<button class="remove-facet-field ui-corner-all ui-state-default">del</button>\n' +
+            '</li>');
+        return false;
+    });
+    
+    $("#add-backup-path").click(function() {
+        var parent = $(this).parent();
+        var size = parseInt($("#backupUrlSize").val()) + 1;
+        var id = "backupPaths_" + size;
+        
+        parent.append('<li id="' + id + '">\n' +
+              '<input class="ui-corner-all ui-widget-content" id="' + id + '_name" name="' + id + '_name" size="25" type="text" value="" />\n' +
+              '<input class="ui-corner-all ui-widget-content" id="' + id + '_label" name="' + id + '_label" size="25" type="text" value="" />\n' +
+              '<button class="remove-backup-field ui-corner-all ui-state-default">del</button>\n' +
+            '</li>');
+        return false;
+    });
+
+    $(".remove-facet-field").live("click", function() {
+        var parent = $(this).parent();
+        parent.fadeOut(function() { parent.remove(); });
+        return false;
+    });
+    
+    $(".remove-backup-field").live("click", function() {
+        var parent = $(this).parent();
+        parent.fadeOut(function() { parent.remove(); });
+        return false;
+    });
+});
+</script>
+<div style="margin-left: 10px">
+<h1>Settings</h1>
+<div id="settings">
+  <ul>
+    <li><a href="#general-tab">General</a></li>
+    #*
+    <li><a href="#security-tab">Security</a></li>
+    <li><a href="#plugins-tab">Plugins</a></li>
+    *#
+    <li><a href="#backup-tab">Backup</a></li>
+  </ul>
+  <div id="general-tab">
+    <form id="portalForm" name="portalForm" method="post">
+      <fieldset>
+        <legend>Current view <span id="portal-description">- $self.portal.description</span></legend>
+        <ol>
+          <li>
+            <label for="portalName">Name</label>
+            <input id="portalName" name="portalName" size="10" type="text" value="$self.portal.name" />
+          </li>
+          <li>
+            <label for="portalDescription">Description</label>
+            <input id="portalDescription" name="portalDescription" size="50" type="text" value="$page.escapeText($self.portal.description)" />
+          </li>
+          <li>
+            <label for="portalQuery">Query</label>
+            <input id="portalQuery" name="portalQuery" size="50" type="text" value="$page.escapeText($self.portal.query)" />
+          </li>
+          <li>
+            <label for="portalRecordsPerPage">Records per page</label>
+            <input id="portalRecordsPerPage" name="portalRecordsPerPage" size="10" type="text" value="$self.portal.recordsPerPage" />
+          </li>
+          <li>
+            <label for="portalFacetLimit">Facet count limit</label>
+            <input id="portalFacetLimit" name="portalFacetLimit" size="10" type="text" value="$self.portal.facetCount" />
+          </li>
+          <li>
+            <label for="portalFacetSort">Sort by facet counts</label>
+            <input id="portalFacetSort" name="portalFacetSort" type="checkbox" value="$self.portal.facetSort" />
+          </li>
+          <h4>Facets</h4>
+          <input id="portalFacetSize" name="portalFacetSize" type="hidden" value="$self.portal.facetFields.size()" />
+          <button id="add-facet-field">add facet</button>
+          #foreach($field in $self.portal.facetFields.keySet())
+          #set($label = $self.portal.facetFields.get($field))
+          #set($id = "portalFacet_$velocityCount")
+          <li id="$id">
+            <input id="${id}_name" name="${id}_name" size="25" type="text" value="$field" />
+            <input id="${id}_label" name="${id}_label" size="25" type="text" value="$label" />
+            <button class="remove-facet-field">del</button>
+          </li>
+          #end
+        </ol>
+      </fieldset>
+      <input name="portalAction" type="submit" value="Update" />
+      <input name="portalAction" type="submit" value="Cancel" />
+    </form>
+  </div>
+  #*
+  <div id="security-tab">
+    <div id="security-accordion">
+      <h3><a href="#">Users</a></h3>
+      <div>
+        <p>Username</p>
+      </div>
+      <h3><a href="#">Roles</a></h3>
+      <div>
+        <p>Role</p>
+      </div>
+    </div>
+  </div>
+  <div id="plugins-tab">
+    <div id="plugins-accordion">
+      <h3><a href="#">Indexer</a></h3>
+      <div>
+        <ul>
+        #foreach($indexer in $self.indexerPlugins)
+          <li>$indexer.value.name</li>
+        #end
+        </ul>
+      </div>
+      <h3><a href="#">Storage</a></h3>
+      <div>
+        <ul>
+        #foreach($storage in $self.storagePlugins)
+          <li>$storage.value.name</li>
+        #end
+        </ul>
+      </div>
+      <h3><a href="#">Harvesting</a></h3>
+      <div>
+        <ul>
+        #foreach($harvester in $self.harvesterPlugins)
+          <li>$harvester.value.name</li>
+        #end
+        </ul>
+      </div>
+      <h3><a href="#">Transformers</a></h3>
+      <div>
+        <ul>
+        #foreach($transformer in $self.transformerPlugins)
+          <li>$transformer.value.name</li>
+        #end
+        </ul>
+      </div>
+    </div>
+  </div>
+  *#
+  <div id="backup-tab">
+    <div id="backup-accordion">
+      <h4><a href="#">Users</a></h4>
+      <form id="userEmail" name="userEmail" method="post">
+	      <fieldset>
+	        <ol>
+	          <li>
+	            <label for="emailAddress">Email Address</label>
+	            <input id="emailAddress" name="emailAddress" size="30" type="text" value="$self.portal.email" />
+	            (This is only temporary solution for backup to differentiate the userspace in backup server)
+	          </li>
+	          <li><label>&nbsp;</label><input name="emailAction" type="submit" value="Update" /></li>
+	        </ol>
+	      </fieldset>
+      </form>
+      <h4><a href="#">Backup Path</a></h4>
+      <form id="backupPathForm" name="backupPathForm" method="post">
+      	  <input id="backupUrlSize" name="backupUrlSize" type="hidden" value="$self.portal.backupPaths.size()" />
+      	  <fieldset>
+	      	  <ol><button id="add-backup-path">Create new backup Path</button>
+	      	  <!--<li><label for="locationName">Location Name</label><label for="locationPath">Location path</label></li>-->
+	      	  #foreach($entry in $self.portal.backupPaths)
+	          #set($field = $entry.key)
+	          #set($label = $entry.value)
+	          #set($id = "backupPaths_$velocityCount")
+		          <li id="$id">
+		            <input id="${id}_name" name="${id}_name" size="25" type="text" value="$field" />
+		            <input id="${id}_label" name="${id}_label" size="25" type="text" value="$label" />
+		            <button class="remove-backup-field">del</button>
+		          </li>
+	          #end
+	          </ol>
+	          <input name="backupAction" type="submit" value="Update" />
+	      </fieldset>
+      </form>
+    </div>
+  </div>
+</div>
+</div>

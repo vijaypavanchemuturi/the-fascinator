@@ -1,0 +1,16 @@
+﻿.columnblock {
+	margin-left: 20px;
+}
+.menubar, .mainbanner, .footer, .navbar, .nobanner{
+	border-top: 1px solid #dbdee0;
+}
+ .mainbanner, .homepagenews-clear, .content-title, .newsevents-clear{
+	border-bottom: 1px solid #dbdee0;
+}
+/* This provides the spacing for the header and search box */
+.header_logo {
+	margin-bottom: 3px;
+}
+.columns_righttop iframe {
+	margin-right: 0px;
+}

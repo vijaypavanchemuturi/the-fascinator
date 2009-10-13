@@ -1,0 +1,243 @@
+#if($noLayout)
+$!pageContent
+#else
+<html>
+  <head>
+    <title>USQ Policies | $!pageTitle</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <link rel="icon" type="image/vnd.microsoft.com" href="$portalPath/favicon.ico" />
+    <link rel="stylesheet" type="text/css" href="$portalPath/css/ui-lightness/jquery-ui-1.7.2.custom.css" />
+    <script type="text/javascript" src="$portalPath/js/jquery-1.3.2.min.js"></script>
+    <script type="text/javascript" src="$portalPath/js/jquery-ui-1.7.2.custom.min.js"></script>
+    <script type="text/javascript" src="$portalPath/js/jquery.cookie.js"></script>
+    <link rel="stylesheet" type="text/css" href="$portalPath/css/styles.css" />
+    <link rel="stylesheet" type="text/css" href="$portalPath/css/common.css" />
+    <!--[if IE]>
+    <link rel="stylesheet" type="text/css" href="$portalPath/css/common-ie.css" />
+    <![endif]-->
+    <!--[if IE6]>
+    <link rel="stylesheet" type="text/css" href="$portalPath/css/common-ie6.css" />
+    <![endif]-->
+    <script type="text/javascript">
+    function setActionUri(uri) {
+        $("#action-form").attr("action", uri);
+    }
+    function addActionParam(name, value) {
+        $("#action-form").append('<input id="' + name + '" name="' + name + '" type="hidden" value="' + value + '" />');
+    }
+    function doAction(action) {
+        doAction(action, "");
+    }
+    function doAction(action, value) {
+        $("#verb").val(action);
+        $("#value").val(value);
+        $("#action-form").submit();
+    }
+    </script>
+    $!pageHeader
+  </head>
+  <body>
+    <div class="header_search">
+      <div class="header_right">
+        <div class="header_links">
+          <a href="http://www.usq.edu.au/" title="USQ website home">Home</a> | 
+          <a href="http://www.usq.edu.au/contact/" title="Contact USQ">Contact us</a> | 
+          <a href="http://apps.usq.edu.au/usqwebsite/aspnet/staffsearch/default.aspx?action=stafflookup" title="Search for USQ staff">Staff directory</a> | 
+          <a target="_blank" href="http://uconnect.usq.edu.au" title="UConnect (Previously USQConnect)">UConnect</a>
+        </div>
+        <!--Search Start-->
+        <!-- Google CSE Search Box Begins -->
+        <script type="text/javascript">
+        function focusSearch(obj){
+          if(obj.value == " Search USQ "){
+            obj.value = "";
+          }
+        }
+        function blurSearch(obj){
+          if(obj.value == ""){
+            obj.value = " Search USQ ";
+          }
+        }
+        </script>
+        <form method="get" action="http://websearch.usq.edu.au/search" name="gs">
+          <fieldset>
+            <div id="ctl8" class="searchbox_go">
+              <label for="usqsearch">
+                <input type="image" name="sa" src="$portalPath/images/button_go.jpg" alt="Go" />
+              </label>
+            </div>
+            <div id="ctl9" class="searchbox_t">
+              <div id="ctl10" class="searchbox_b">
+                <div id="ctl11" class="searchbox_l">
+                  <div id="ctl12" class="searchbox_r">
+                    <div id="ctl13" class="searchbox_bl">
+                      <div id="ctl14" class="searchbox_br">
+                        <div id="ctl15" class="searchbox_tl">
+                          <div id="ctl16" class="searchbox_tr">
+                            <input type="text" name="q" value=" Search USQ " size="2" maxlength="2047" onfocus="focusSearch(this);" onblur="blurSearch(this);" id="usqsearch" class="inpt-search" />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <input type="hidden" name="entqr" value="0" />
+            <input type="hidden" name="output" value="xml_no_dtd" />
+            <input type="hidden" name="sort" value="date:D:L:d1" />
+            <input type="hidden" name="client" value="default_frontend"/>
+            <input type="hidden" name="ud" value="1" />
+            <input type="hidden" name="oe" value="UTF-8" />
+            <input type="hidden" name="ie" value="UTF-8" />
+            <input type="hidden" name="proxystylesheet" value="default_frontend" />
+            <input type="hidden" name="site" value="default_collection" />
+          </fieldset>
+        </form>
+        <!-- Google CSE Search Box Ends -->
+        <!--Search End-->
+      </div>
+    </div>
+    <div class="body">
+      <div class="header">
+        <div class="linetop">
+          <div class="linetopright"></div>
+        </div>
+        <div class="header_logo">
+          <a href="http://www.usq.edu.au/">
+            <img src="$portalPath/images/usqlogo_line.gif" alt="USQ Logo" />
+          </a>
+          <span class="header_text">USQ Policies</span>
+        </div>
+      </div>
+      <div class="navbar">
+        <span class="breadcrumbs">
+          <a href="http://www.usq.edu.au/">USQ Home</a> >
+          <a href="$portalPath/home">USQ Policies</a>
+        </span>
+      </div>
+      <div class="nobanner" />
+      <div class="maincontent">
+        $!pageContent
+      </div>
+      <div class="footer">
+        ABN: 40 234 732 081 | CRICOS:
+        <a title="USQ Queensland CRICOS Provider Code" href="http://cricos.deewr.gov.au/Institution/InstitutionDetails.aspx?ProviderID=244">QLD 00244B</a> |
+        <a title="USQ New South Wales CRICOS Provider Code" href="http://cricos.deewr.gov.au/Institution/InstitutionDetails.aspx?ProviderID=2225">NSW 02225M</a> |
+        <a title="Copyright statement" href="/aboutsite/copyright.htm">© University of Southern Queensland</a> |
+        <a title="Right to Information" href="/records/rtiandlegaldiscovery"> Right to Information</a> |
+        <span class="noprint">
+          <a title="Disclaimer statement" href="/aboutsite/disclaimer">Disclaimer</a> |
+          <a title="Privacy statement" href="/aboutsite/privacy">Privacy</a> |
+          <a title="Provide feedback on the USQ website" href="/aboutsite/feedback">Feedback</a> |
+          <a title="Provide feedback on the USQ website" href="/sitemap">Sitemap</a> | 
+          <a title="Contact USQ" href="/contact">Contact us</a> | 
+        </span>
+        <div class="linefooter">
+          <div class="linefooterright" />
+        </div>
+      </div>
+    </div>
+	
+	
+#*	
+    <div id="header">
+      <div id="menu-bar">
+      	<div class="linetop">
+      		<div class="linetopright" style="text-align: right;">  </div>
+      	</div>
+      	</div>
+      	<div class="header_logo">
+      		<a href="http://www.usq.edu.au/"><img alt="USQ Logo" src="$portalPath/images/usqlogo_line.gif"/></a>
+      		<span class="header_text">The Fascinator</span>
+      	</div>
+      	<div class="nobanner"/>
+        <!--<div class="title">
+          <h1><a href="$portalPath/home">The Fascinator</a></h1>
+        </div>-->
+        <div>
+          <ul>
+            #if($DEBUG)
+            <li class="debug-link"><span class="ui-icon" id="debug-link" title="Toggle debugging"></span></li>
+            #end
+            <li class="with-separator"><a id="home-link" href="$portalPath/home">Home</a></li>
+            ##<li class="with-separator"><a id="search-link"  href="$portalPath/search">Search</a></li>
+            <li><a id="search-link"  href="$portalPath/search">Search</a></li>
+            ## harvest not complete yet
+            ##<li class="with-separator"><a id="harvest-link" href="$portalPath/harvest">Harvest</a></li>
+            ##<li class="with-separator"><a id="settings-link" href="$portalPath/settings">Settings</a></li>
+            <li>
+            ##if($sessionUsername)
+            ##  <a id="logout-link">Logout: <span class="session-username">$sessionUsername</span></a>
+            ##else
+            ##  <a id="login-link" href="#">Login</a>
+            ##end
+            </li>
+          </ul>
+        </div>
+      </div>
+      <h3 class="portal-name">$page.portalName</h3>
+    </div></div>
+    <!--<div class="debug" id="debug">
+      <div class="ui-state-error">
+        <pre>$!renderMessages</pre>
+      </div>
+      <div class="ui-state-highlight">
+        <pre>sessionState: $sessionState</pre>
+        <pre>formData: $formData</pre>
+        <a href="#" id="clear-session-state">Clear session</a>
+      </div>
+    </div> -->
+    <div id="content">
+      $!pageContent
+    </div>
+    <!--<div id="login-dialog" title="Login">
+      <form id="login-form" method="post">
+        <input name="verb" value="login" type="hidden" />
+        <label for="username">Username:</label>
+        <input id="username" name="username" size="25" type="text" />
+        <label for="password">Password:</label>
+        <input id="password" name="password" size="25" type="password" />
+      </form>
+    </div>
+    <div id="logout-dialog" title="Logout">
+      <form id="logout-form" method="post">
+        <input name="verb" value="logout" type="hidden" />
+      </form>
+      <p><span class="ui-icon ui-icon-alert icon"></span>Are you sure you want to log out?</p>
+    </div> -->
+*#
+#*	
+	
+	
+    <div class="footer">
+		ABN: 40 234 732 081 | CRICOS:
+		<a href="http://cricos.dest.gov.au/Institution/InstitutionDetails.aspx?Providerclass=244" target="_blank">QLD 00244B</a>
+		<span class="extlinkIMG" title="[External Link]"/>
+		|
+		<a href="http://cricos.dest.gov.au/Institution/InstitutionDetails.aspx?Providerclass=2225" target="_blank">NSW 02225M</a>
+		<span class="extlinkIMG" title="[External Link]"/>
+		|
+		<a href="http://www.usq.edu.au/aboutsite/copyright.htm">&#169; University of Southern Queensland</a>
+		|
+		<span class="noprint">
+		<a href="http://www.usq.edu.au/aboutsite/privacy.htm">Privacy</a>
+		|
+		<a href="http://www.usq.edu.au/aboutsite/feedback.htm">Feedback</a>
+		|
+		<a href="http://www.usq.edu.au/contact/default.htm">Contact us</a>
+		|
+		</span>
+		<div class="linefooter">
+			<div class="linefooterright"> </div>
+		</div>
+	</div>
+	*#
+	
+    <form action="$portalPath/$pageName" id="action-form" method="post">
+      <input id="verb" name="verb" type="hidden" />
+      <input id="value" name="value" type="hidden" />
+    </form>
+  </body>
+</html>
+#end

@@ -1,0 +1,19 @@
+.mainmenu .facet-list li {
+    color: gray;
+    font-weight: normal;
+}
+
+.mainmenu .facet-list li a {
+    display: inline;
+}
+
+.mainmenu .facet-list li .selected {
+    color: #E17009;
+    font-weight: bold;
+}
+
+.action {
+    color: #1D599B;
+    font-size: 0.75em;
+    text-decoration: none;
+}
