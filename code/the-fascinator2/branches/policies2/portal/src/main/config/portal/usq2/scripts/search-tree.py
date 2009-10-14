@@ -50,40 +50,42 @@ class FacetList:
                     parent = self.getFacet(value[:slash])
                     if parent is not None:
                         parent.addSubFacet(facet)
-
+    
     def getFacets(self):
         return self.__facetList
-
+    
     def getFacet(self, name):
         return self.__facetMap.get(name)
 
 class SearchTreeData:
     def __init__(self):
-        self.__id = formData.get("id")
-        self.__result = JsonConfigHelper()
-        self.__portal = Services.getPortalManager().get(portalId)
         self.__search()
-
+    
     def __search(self):
         query = formData.get("query")
         if query is None or query == "":
             query = "*:*"
+        facetField = formData.get("facet.field")
+        print "\n\nfacetField: %s\n\n" % facetField
+        
         req = SearchRequest(query)
         req.setParam("facet", "true")
         req.setParam("fl", "id")
         req.setParam("fq", 'item_type:"object"')
         req.setParam("rows", "0")
         req.setParam("facet.limit", "-1")
-        req.setParam("facet.field", "usq_document_policy_type")
+        req.setParam("facet.field", facetField)
+        
         out = ByteArrayOutputStream()
         indexer = Services.getIndexer()
         indexer.search(req, out)
-        self.__result = JsonConfigHelper(ByteArrayInputStream(out.toByteArray()))
-        self.__facetList = FacetList("usq_document_policy_type", self.__result)
-
+        result = JsonConfigHelper(ByteArrayInputStream(out.toByteArray()))
+        
+        self.__facetList = FacetList(facetField, result)
+    
     def getFacetList(self):
         return self.__facetList
-
+    
     def getFacet(self, value):
         return self.__facetList.get(value)
 

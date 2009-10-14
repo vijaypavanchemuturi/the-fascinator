@@ -10,17 +10,15 @@
         children: [
         #foreach($subFacet in $facet.subFacets)
             #createFacetNode($subFacet "closed")
-            ,
         #end
         ]
     #end
-}
+},
 #end
-
 #set($id = $formData.get("id"))
 #set($currentFacet = $self.facetList.getFacet($id))
 [
-#if($currentFacet.subFacets.size() == 0)
+#if($currentFacet && $currentFacet.subFacets.size() == 0)
     #createFacetNode($currentFacet "leaf")
 #else
     #foreach($facet in $self.facetList.facets)

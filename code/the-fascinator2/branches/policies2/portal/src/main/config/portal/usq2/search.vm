@@ -1,17 +1,19 @@
 #set($pageTitle = 'Search')
 #set($query = $formData.get("query"))
 #set($atomLink = "$portalPath/feed/atom?query=$!query") 
-#set($pageHeader = '<link rel="stylesheet" type="text/css" href="js/tree/tree_component.css" />
+#set($pageHeader = '
   <link rel="alternate" type="application/atom+xml" href="'+ $atomLink +'"/>
-  <script type="text/javascript" src="js/tree/lib/css.js"></script>
-  <script type="text/javascript" src="js/tree/tree_component.min.js"></script>
-  <script type="text/javascript" src="js/jquery.truncate.js"></script>')
+  <script type="text/javascript" src="js/jquery.tree.min.js"></script>
+  <script type="text/javascript" src="js/jquery.truncate.js"></script>
+')
 <table class="layout">
   <tbody>
     <tr>
       <td class="leftcol">
         <div class="columnbox">
-          ## facets
+          #if($self.hasSelectedFacets())
+            <a class="action" id="clear-facets" href="#">Clear selection</a>
+          #end
           <div class="mainmenu">
             <div class="mainmenu-top"></div>
             <div class="mainmenu-heading">Title</div>
@@ -90,117 +92,87 @@
 $(function() {
     addActionParam("query", "$!query");
     
-    $("#policy_type").tree({
-        data: {
-            async: true,
-            async_data: function(node) {
-                return {
-                    id: $(node).attr("id") || 0,
-                    query: $("#query").val()
-                }
-            },
-            type: "json",
-            url: "search-tree-policy.ajax"
-        },
-        selected: $self.selectedFacetIds,
-        cookies: {
-            prefix: "TFSearchTree",
-            selected: false
-        },
-        ui: {
-            animation: 250,
-            dots: false,
-            theme_name: "checkbox"
-        },
-        rules: {  
-            multiple: "on",
-            renameable: "none",
-            deletable: "none",
-            creatable: "none",
-            draggable: "none",
-            dragrules: "none"
-        },
-        callback: {
-            onchange: function(node, tree) {
-                $(node).children("a").removeClass("clicked");
-                $(node).children("a").toggleClass("checked");
-            },
-            onload: function(tree) {
-                tree.container.find("a").bind("click", function() {
-                    var checked = $(this).hasClass("checked") == false;
-                    doAction(checked ? "add_fq" : "remove_fq", $(this).parent().attr("fq"));
-                });
-            },
-            onrgtclk: function(node, tree, ev) {
-                ev.preventDefault();
-                ev.stopPropagation();
-                return false;
+    var treeCallbacks = {
+        beforedata: function(node, tree) {
+            return {
+                id: $(node).attr("id") || 0,
+                query: $("#query").val()
             }
-        }
-    });
-    
+        },
+        onchange: function(node, tree) {
+            $(node).children("a").removeClass("clicked");
+            $(node).children("a").toggleClass("checked");
+        },
+        onload: function(tree) {
+            tree.container.find("a").bind("click", function() {
+                var checked = $(this).hasClass("checked") == false;
+                doAction(checked ? "add_fq" : "remove_fq", $(this).parent().attr("fq"));
+            });
+        },
+    };
+
     $("#title_group").tree({
         data: {
             async: true,
-            async_data: function(node) {
-                return {
-                    id: $(node).attr("id") || 0,
-                    query: $("#query").val()
-                }
-            },
             type: "json",
-            url: "search-tree-title.ajax"
+            opts: {
+                url: "search-tree.ajax?facet.field=title_group"
+            }
         },
         selected: $self.selectedFacetIds,
-        cookies: {
-            prefix: "TFSearchTree",
-            selected: false
-        },
         ui: {
             animation: 250,
-            dots: false,
             theme_name: "checkbox"
         },
-        rules: {
-            multiple: "on",
-            renameable: "none",
-            deletable: "none",
-            creatable: "none",
-            draggable: "none",
-            dragrules: "none"
-        },
-        callback: {
-            onchange: function(node, tree) {
-                $(node).children("a").removeClass("clicked");
-                $(node).children("a").toggleClass("checked");
-            },
-            onload: function(tree) {
-                tree.container.find("a").bind("click", function() {
-                    var checked = $(this).hasClass("checked") == false;
-                    doAction(checked ? "add_fq" : "remove_fq", $(this).parent().attr("fq"));
-                });
-            },
-            onrgtclk: function(node, tree, ev) {
-                ev.preventDefault();
-                ev.stopPropagation();
-                return false;
+        plugins: {
+            checkbox: {},
+            cookie: {
+                prefix: "tfTitleGroup"
             }
-        }
-    }); 
+        },
+        callback: treeCallbacks
+    });
+    
+    $("#policy_type").tree({
+        data: {
+            async: true,
+            type: "json",
+            opts: {
+                url: "search-tree.ajax?facet.field=usq_document_policy_type"
+            }
+        },
+        selected: $self.selectedFacetIds,
+        ui: {
+            animation: 250,
+            theme_name: "checkbox"
+        },
+        plugins: {
+            checkbox: {},
+            cookie: {
+                prefix: "tfPolicyType"
+            }
+        },
+        callback: treeCallbacks
+    });
+    
     $("#clear-facets").click(function() {
         doAction("clear_fq");
         return false;
     });
+    
     $(".add-facet").click(function() {
         doAction("add_fq", $(this).attr("rel"));
         return false;
     });
+    
     $(".remove-facet").click(function() {
         doAction("remove_fq", $(this).attr("rel"));
         return false;
     });
+    
     // zebra the results
     $("#result-item-list li:even").css("background-color", "#EBEBEB");
+    
     // truncate descriptions
     $("p.item-description").truncate(500, {
         trail: [ '... <a href="#" class="truncate_show">more</a>',

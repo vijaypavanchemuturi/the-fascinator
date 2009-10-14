@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <portal name="usq2">
     <description>USQ Policies</description>
-    <query>repository_name:&quot;Local Files&quot;</query>
+    <query></query>
     <records-per-page>25</records-per-page>
     <facet-count>25</facet-count>
     <facet-sort-by-count>false</facet-sort-by-count>
     <backup-paths/>
     <facet-fields>
-        <field name="f_usq_document_type">Document Type</field>
         <field name="f_dc_creator">Creator</field>
         <field name="f_dc_subject">Subject</field>
+        <field name="f_usq_document_type">Document Type</field>
         <field name="f_usq_document_div_dept_office">Department</field>
         <field name="f_title_group">Title</field>
     </facet-fields>
