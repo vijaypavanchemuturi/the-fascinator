@@ -20,6 +20,7 @@ package au.edu.usq.fascinator.portal.services;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.tapestry5.ioc.Configuration;
 import org.apache.tapestry5.ioc.MappedConfiguration;
 import org.apache.tapestry5.ioc.OrderedConfiguration;
@@ -118,6 +119,8 @@ public class PortalModule {
                 String uri = req.getRequestURI();
                 request.setAttribute("RequestURI", uri.substring(ctxPath
                         .length() + 1));
+                request.setAttribute("RequestID", DigestUtils.md5Hex(uri
+                        + req.getQueryString()));
 
                 // forward all requests to the main dispatcher
                 String path = request.getPath();
