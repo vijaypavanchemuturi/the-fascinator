@@ -10,10 +10,9 @@ class FeedData:
     def __feed(self):
         portal = Services.getPortalManager().get(portalId)
         recordsPerPage = portal.recordsPerPage
+        pageNum = sessionState.get("pageNum", 1)
         
-        query = formData.get("query")
-        if query is None or query == "":
-            query = "*:*"
+        query = "*:*"
         
         req = SearchRequest(query)
         req.setParam("facet", "true")
@@ -29,7 +28,9 @@ class FeedData:
         else:
             fq = sessionState.get("fq")
             req.setParam("fq", fq)
-            
+        
+        req.setParam("start", str((pageNum - 1) * recordsPerPage))
+        
         print " * query: ", query
         print " * portalQuery='%s'" % portalQuery
         print " * feed.py:", req.toString()
@@ -38,6 +39,9 @@ class FeedData:
         Services.indexer.search(req, out)
         self.__result = JsonConfigHelper(ByteArrayInputStream(out.toByteArray()))
         
+    def cleanUp(self, value):
+        return value.replace("<", "&lt;").replace(">", "&gt;").replace("&", "&amp;")
+
     def hasResults(self): 
         return self.__result is not None
         

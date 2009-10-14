@@ -2,6 +2,7 @@ import array, md5, os
 
 from au.edu.usq.fascinator.api.indexer import SearchRequest
 from au.edu.usq.fascinator.api.storage import Payload, PayloadType
+from au.edu.usq.fascinator.api import PluginManager
 from au.edu.usq.fascinator.common import JsonConfig, JsonConfigHelper
 from au.edu.usq.fascinator.common.storage.impl import GenericPayload
 from au.edu.usq.fascinator.common import JsonConfig
@@ -106,6 +107,7 @@ class SearchData:
     
     def __backup(self):
         backupManager = PluginManager.getHarvester("backup")
+        print " *****8 page: ", self.__paging.getPage()
         print " * search.py: Backup email=%s" % self.__portal.email 
         if backupManager and self.__portal.email and self.__portal.backupPaths:
             print " * search.py: backup... "
@@ -118,7 +120,6 @@ class SearchData:
             for key in paths:
                 firstPath = paths[key]
                 break
-            print self.__result
             backupManager.setBackupLocation(firstPath)
             backupManager.backup(self.__result.getList("response/docs").toArray())
     

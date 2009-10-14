@@ -30,7 +30,6 @@ import org.apache.commons.io.FilenameUtils;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import au.edu.usq.fascinator.common.JsonConfigHelper;
@@ -62,11 +61,11 @@ import au.edu.usq.fascinator.common.storage.impl.GenericPayload;
  * @author Linda Octalina
  * 
  */
-@Ignore
+
 public class BackupManagerTest {
     public BackupManager backupManager;
 
-    private GenericDigitalObject fileObject1, fileObject2;
+    private GenericDigitalObject fileObject1, fileObject2, fileObject3;
 
     private MockFileSystemStorage fsStorage;
 
@@ -77,8 +76,7 @@ public class BackupManagerTest {
             + File.separator + ".backup";
     private File backupFile;
 
-    public File testFile1;
-    public File testFile2;
+    public File testFile1, testFile2, testFile3;
 
     @Before
     public void setup() throws Exception {
@@ -96,8 +94,10 @@ public class BackupManagerTest {
 
         String file1 = "/fs-harvest-root/test.txt";
         String file2 = "/fs-harvest-root/books/book1.pdf";
+        String file3 = "/fs-harvest-root/pictures/diagram with space1.gif";
         testFile1 = new File(getClass().getResource(file1).toURI());
         testFile2 = new File(getClass().getResource(file2).toURI());
+        testFile3 = new File(getClass().getResource(file3).toURI());
 
         fileObject1 = new GenericDigitalObject(testFile1.getAbsolutePath());
         GenericPayload testPayload1 = new GenericPayload(testFile1.getName(),
@@ -112,8 +112,15 @@ public class BackupManagerTest {
         testPayload2.setInputStream(getClass().getResourceAsStream(file2));
         fileObject2.addPayload(testPayload2);
 
+        fileObject3 = new GenericDigitalObject(testFile3.getAbsolutePath());
+        GenericPayload testPayload3 = new GenericPayload(testFile3.getName(),
+                "Picture file", "image/gif");
+        testPayload3.setInputStream(getClass().getResourceAsStream(file3));
+        fileObject3.addPayload(testPayload3);
+
         fsStorage.addObject(fileObject1);
         fsStorage.addObject(fileObject2);
+        fsStorage.addObject(fileObject3);
 
         backupManager = new BackupManager();
         backupManager.init(getConfig("/backup-config.json"));
@@ -152,14 +159,18 @@ public class BackupManagerTest {
 
     private JsonConfigHelper searchResult() throws IOException,
             URISyntaxException {
-        String path1 = FilenameUtils.separatorsToUnix(testFile1
+        String path1 = FilenameUtils.separatorsToSystem(testFile1
                 .getAbsolutePath());
-        String path2 = FilenameUtils.separatorsToUnix(testFile2
+        String path2 = FilenameUtils.separatorsToSystem(testFile2
+                .getAbsolutePath());
+        String path3 = FilenameUtils.separatorsToSystem(testFile3
                 .getAbsolutePath());
         String results = "{" + "\"docs\" : [ {" + "\"id\": \"" + path1 + "\""
                 + ", " + "\"storageId\": [ \"" + path1 + "\" ] " + "}, " + "{"
                 + "\"id\": \"" + path2 + "\"" + ", " + "\"storageId\": [ \""
-                + path2 + "\" ] " + "}" + " ] " + "}";
+                + path2 + "\" ] " + "}, " + "{" + "\"id\": \"" + path3 + "\""
+                + ", " + "\"storageId\": [ \"" + path3 + "\" ] " + "}" + " ] "
+                + "}";
         return new JsonConfigHelper(results);
     }
 }

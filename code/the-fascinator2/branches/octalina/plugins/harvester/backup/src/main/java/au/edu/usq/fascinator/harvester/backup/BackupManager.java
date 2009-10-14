@@ -98,7 +98,7 @@ public class BackupManager implements Harvester {
 
     public void backup(Object[] resultList) {
         // Do backup here
-        log.info(" * Backup ()" + resultList);
+        // log.info(" * Backup ()" + resultList);
         for (Object doc : resultList) {
             LinkedHashMap document = (LinkedHashMap) doc;
             String oid = document.get("id").toString();
@@ -111,13 +111,18 @@ public class BackupManager implements Harvester {
 
             String filePath = backupLocation + File.separator + emailAddress
                     + oid;
+
             File output = new File(filePath);
             output.getParentFile().mkdirs();
 
-            // Using rsync
-            String cmd = "rsync " + oid + " " + filePath;
+            // Using rsync for linux/mac or cwrsync for window
+            String cmd = "rsync";
+            if (System.getProperty("os.name").startsWith("Windows")) {
+                cmd = "cwrsync";
+            }
             try {
-                Process proc = Runtime.getRuntime().exec(cmd);
+                Process proc = Runtime.getRuntime().exec(
+                        new String[] { cmd, oid, filePath });
             } catch (IOException e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();

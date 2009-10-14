@@ -2,7 +2,7 @@
   "storage" : {
     "type" : "mock-file-system",
     "file-system" : {
-      "home": "/tmp/_fs_test"
+      "home": "${java.io.tmpdir}/_fs_test"
     }
   }
 }

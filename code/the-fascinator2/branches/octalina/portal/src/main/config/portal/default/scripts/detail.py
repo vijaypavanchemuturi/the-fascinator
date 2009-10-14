@@ -132,7 +132,7 @@ class DetailData:
                     sw.write("</pre>")
                     sw.flush()
                     contentStr = sw.toString()
-        elif mimeType == "application/pdf" or mimeType.find("vnd.ms-")>-1 or mimeType.find("vnd.oasis.opendocument.")>-1:
+        elif mimeType == "application/pdf" or mimeType.find("vnd")>-1 or mimeType.find("vnd.oasis.opendocument.")>-1:
             # get the html version if exist...
             pid = os.path.splitext(self.__pid)[0] + ".htm"
             print " * detail.py: pid=%s" % pid

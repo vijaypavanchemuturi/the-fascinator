@@ -2,13 +2,17 @@
 <portal name="local-files">
     <description>Local Files</description>
     <query>repository_name:&quot;Local Files&quot;</query>
-    <records-per-page>25</records-per-page>
+    <records-per-page>5</records-per-page>
     <facet-count>25</facet-count>
     <facet-sort-by-count>false</facet-sort-by-count>
+    <backup-email>octalina@usq.edu.au</backup-email>
+    <backup-paths>
+        <field name="local1">/tmp/tf-backup</field>
+    </backup-paths>
     <facet-fields>
         <field name="repository_name">Source</field>
-        <field name="file_path">Path</field>
         <field name="f_dc_creator">Creator</field>
+        <field name="file_path">Path</field>
         <field name="f_dc_subject">Subject</field>
         <field name="f_dc_format">Format</field>
         <field name="repository_type">Source type</field>
