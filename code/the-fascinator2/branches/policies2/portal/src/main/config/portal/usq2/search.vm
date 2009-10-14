@@ -60,7 +60,7 @@
       <td class="middlecol">
         <div class="search-box">
           <form action="search" id="search-form" method="post">
-            <input type="text" name="query" size="70" />
+            <input type="text" name="query" size="70" value="$!query" />
             <input type="submit" name="search" value="Search" />
             #set($paging = $self.paging)
             #if($self.result and $paging.totalFound > 0)
@@ -115,6 +115,7 @@ $(function() {
             selected: $self.selectedFacetIds,
             ui: {
                 animation: 250,
+                dots: false,
                 theme_name: "checkbox"
             },
             plugins: {
@@ -144,8 +145,8 @@ $(function() {
         });
     }
     
-    createTree("#title_group", "title_group");
-    createTree("#policy_type", "usq_document_policy_type");
+    createTree("#title_group", "f_title_group");
+    createTree("#policy_type", "f_usq_document_policy_type");
     
     $("#clear-facets").click(function() {
         doAction("clear_fq");
