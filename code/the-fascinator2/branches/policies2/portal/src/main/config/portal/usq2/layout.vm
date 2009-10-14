@@ -1,6 +1,7 @@
 #if($noLayout)
 $!pageContent
 #else
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
   <head>
     <title>USQ Policies | $!pageTitle</title>
@@ -113,10 +114,10 @@ $!pageContent
       <div class="navbar">
         <span class="breadcrumbs">
           <a href="http://www.usq.edu.au/">USQ Home</a> >
-          <a href="$portalPath/home">USQ Policies</a>
+          <a href="$portalPath/search">USQ Policies</a>
         </span>
       </div>
-      <div class="nobanner" />
+      <div class="nobanner"></div>
       <div class="maincontent">
         $!pageContent
       </div>

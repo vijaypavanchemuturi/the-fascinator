@@ -129,8 +129,12 @@ if isMetadata:
         rdfModel = indexer.getRdfModel(rdfPayload)
         
         #Seems like aperture only encode the spaces. Tested against special characters file name
-        #and it's working 
-        rdfId = "file:%s" % object.getId().replace(" ", "%20")
+        #and it's working
+        oid = object.getId().replace(" ", "%20")
+        rdfId = "file:"
+        if not oid.startswith("/"):
+            rdfId += "/"
+        rdfId += oid
         
         #Set write to False so it won't write to the model
         paginationTextDocument = PaginatedTextDocument(rdfModel, rdfId, False)

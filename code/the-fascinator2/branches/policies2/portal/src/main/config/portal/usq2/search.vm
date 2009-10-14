@@ -2,7 +2,7 @@
 #set($query = $formData.get("query"))
 #set($atomLink = "$portalPath/feed/atom?query=$!query") 
 #set($pageHeader = '
-  <link rel="alternate" type="application/atom+xml" href="'+ $atomLink +'"/>
+  <link rel="alternate" type="application/atom+xml" href="'+ $atomLink +'" />
   <script type="text/javascript" src="js/jquery.tree.min.js"></script>
   <script type="text/javascript" src="js/jquery.truncate.js"></script>
 ')
@@ -58,6 +58,17 @@
         </div>
       </td>
       <td class="middlecol">
+        <div class="search-box">
+          <form action="search" id="search-form" method="post">
+            <input type="text" name="query" size="70" />
+            <input type="submit" name="search" value="Search" />
+            #set($paging = $self.paging)
+            #if($self.result and $paging.totalFound > 0)
+              <p style="margin-top: 5px">Displaying <strong>${paging.startNum}</strong> to <strong>${paging.endNum}</strong> of <strong>${paging.totalFound}</strong> records (in $self.queryTime seconds)</p>
+            #end
+            #parse($page.getTemplate("search-paging.vm"))
+          </form>
+        </div>
         <div class="result-list">
           <ul>
           #foreach($item in $self.result.getList("response/docs"))
@@ -70,11 +81,11 @@
               #set($title = $self.getFileName($id))
             #end
             #set($description = "")
-            #set($description = $item.get("dc_description").get(0))
+            #set($description = $item.get("usq_document_purpose").get(0))
             <li>
               <div id="$id">
                 <h3><a href="detail/$id">$title</a></h3>
-                <p class="item-description">$!description</p>
+                <p class="item-description">$page.escapeText($!description)</p>
                 #set($format = $item.get("dc_format").get(0))
                 #if($format.startsWith("image/"))
                   <img src="download/$id/$self.getThumbnail($id)"></img>
@@ -92,68 +103,49 @@
 $(function() {
     addActionParam("query", "$!query");
     
-    var treeCallbacks = {
-        beforedata: function(node, tree) {
-            return {
-                id: $(node).attr("id") || 0,
-                query: $("#query").val()
+    function createTree(selector, facetField) {
+        $(selector).tree({
+            data: {
+                async: true,
+                type: "json",
+                opts: {
+                    url: "search-tree.ajax?facet.field=" + facetField
+                }
+            },
+            selected: $self.selectedFacetIds,
+            ui: {
+                animation: 250,
+                theme_name: "checkbox"
+            },
+            plugins: {
+                checkbox: {},
+                cookie: {
+                    prefix: "tf_tree_" + facetField
+                }
+            },
+            callback: {
+                beforedata: function(node, tree) {
+                    return {
+                        id: $(node).attr("id") || 0,
+                        query: $("#query").val()
+                    };
+                },
+                onchange: function(node, tree) {
+                    $(node).children("a").removeClass("clicked");
+                    $(node).children("a").toggleClass("checked");
+                },
+                onload: function(tree) {
+                    tree.container.find("a").bind("click", function() {
+                        var checked = $(this).hasClass("checked") == false;
+                        doAction(checked ? "add_fq" : "remove_fq", $(this).parent().attr("fq"));
+                    });
+                }
             }
-        },
-        onchange: function(node, tree) {
-            $(node).children("a").removeClass("clicked");
-            $(node).children("a").toggleClass("checked");
-        },
-        onload: function(tree) {
-            tree.container.find("a").bind("click", function() {
-                var checked = $(this).hasClass("checked") == false;
-                doAction(checked ? "add_fq" : "remove_fq", $(this).parent().attr("fq"));
-            });
-        },
-    };
-
-    $("#title_group").tree({
-        data: {
-            async: true,
-            type: "json",
-            opts: {
-                url: "search-tree.ajax?facet.field=title_group"
-            }
-        },
-        selected: $self.selectedFacetIds,
-        ui: {
-            animation: 250,
-            theme_name: "checkbox"
-        },
-        plugins: {
-            checkbox: {},
-            cookie: {
-                prefix: "tfTitleGroup"
-            }
-        },
-        callback: treeCallbacks
-    });
+        });
+    }
     
-    $("#policy_type").tree({
-        data: {
-            async: true,
-            type: "json",
-            opts: {
-                url: "search-tree.ajax?facet.field=usq_document_policy_type"
-            }
-        },
-        selected: $self.selectedFacetIds,
-        ui: {
-            animation: 250,
-            theme_name: "checkbox"
-        },
-        plugins: {
-            checkbox: {},
-            cookie: {
-                prefix: "tfPolicyType"
-            }
-        },
-        callback: treeCallbacks
-    });
+    createTree("#title_group", "title_group");
+    createTree("#policy_type", "usq_document_policy_type");
     
     $("#clear-facets").click(function() {
         doAction("clear_fq");

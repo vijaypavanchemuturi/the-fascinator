@@ -17,3 +17,34 @@
     font-size: 0.75em;
     text-decoration: none;
 }
+
+.search-box {
+    border: thin solid #FFE141;
+    background-color: #FFF8DB;
+    padding: 7px;
+    margin: 7px 0 0 0;
+}
+
+.paging {
+    margin-left: 0;
+    padding-left: 0;
+}
+
+.paging li {
+    display: inline;
+}
+
+.paging li a {
+    border: solid #FFF8DB 1px;
+    color: black;
+    padding-left: 0.2em;
+    padding-right: 0.2em;
+    text-decoration: none;
+}
+
+.paging .selected-page a, .paging li a:hover {
+    background: #FFF;
+    border: solid #C3562E 1px;
+    padding-left: 0.2em;
+    padding-right: 0.2em;
+}

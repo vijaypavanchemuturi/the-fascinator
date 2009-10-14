@@ -1,9 +1,63 @@
 #set($pageTitle = 'Detail')
 #set($pageHeader = '<link rel="stylesheet" type="text/css" href="' + $portalPath + '/js/tree/tree_component.css" />
   <script type="text/javascript" src="' + $portalPath + '/flowplayer/flowplayer-3.1.2.min.js"></script>')
+#if($self.solrResponse.get("response/numFound") == 0)
+<p title="FIXME">Not found</p>
+#else
+<div style="margin-left: 10px">
+#set($meta = $self.metadata)
+#set($oid = $self.object.id)
+<div class="ui-helper-hidden" id="record-meta">
+  <label id="oid">$oid</label>
+  <label id="format">$self.mimeType</label>
+  <label id="hasSlide">$self.hasSlideShow()</label>
+</div>
+#set($title = $meta.getField("dc_title"))
+#set($description = $meta.getField("dc_description"))
+#if($title)
+<h1>$title</h1>
+#else
+<h2>$self.getFileName($oid)</h2>
+#end
+#if($description)
+<h3>Description</h3>
+<p>$description</p>
+#end
+<h3>Metadata</h3>
+<dl>
+#set($dc = $meta.dublinCore)
+#foreach($key in $dc.keySet())
+  #set($name = $self.formatName($key))
+  #set($value = $self.formatValue($dc.get($key)))
+  <dt><strong>$name</strong></dt>
+  <dd>$value</dd>
+#end
+</dl>
+<div class="view-as-slideshow"></div>
+<h3>Preview</h3>
+<div class="content-preview">
+  <div class="content-preview-inline">$!self.payloadContent</div>
+</div>
+### hide this for now
+#*
+<div class="payload-list">
+  <h3>Attachments</h3>
+  <ul>
+  #foreach($payload in $self.object.payloadList)
+    #set($pid = $payload.id)
+    #set($payloadType = $payload.type.toString())
+    <li>
+      <a href='$portalPath/download/$oid/$pid' rel="$payloadType" target="blank">$payload.id</a> ($payload.contentType, $payloadType)
+    </li>
+  #end
+  </ul>
+</div>
+*#
+</div>
+#end
 <script type="text/javascript">
 $(function() {
-	var oid = $("#oid").text();
+    var oid = $("#oid").text();
     $("#hasSlide").each(function() {
         var hasSlide = $(this).text();
         if (hasSlide != "") {
@@ -14,13 +68,13 @@ $(function() {
     });
     
     $("#hasSlide").each(function() {
-		var hasSlide = $(this).text();
-		if (hasSlide != "") {
-			$('div.view-as-slideshow').append("<form action='download/" + oid + "/" + hasSlide + "' target='_blank'>" +
-			"<input type='submit' value='View as Slideshow'>" +  
-			"</form>");
-		} 
-	});
+        var hasSlide = $(this).text();
+        if (hasSlide != "") {
+            $('div.view-as-slideshow').append("<form action='download/" + oid + "/" + hasSlide + "' target='_blank'>" +
+            "<input type='submit' value='View as Slideshow'>" +  
+            "</form>");
+        } 
+    });
     
     $("#format").each(function() {
         var mimeType = $(this).text().toLowerCase();
@@ -48,62 +102,15 @@ $(function() {
             $(this).attr("src", "$portalPath/download/" + oid + "/" + src);
         }
     });
+    
+    $("div.content-preview-inline a").each(function() {
+        var src = $(this).attr("href");
+        if(src != null){
+            var srcVal = src.toLowerCase();
+            if (srcVal.indexOf("http://") == -1 && srcVal.indexOf("file://") == -1) {
+                $(this).attr("href", "$portalPath/download/" + oid + "/" + src);
+            }
+        }
+    });
 });
 </script>
-#if($self.solrResponse.get("response/numFound") == 0)
-<p title="FIXME">Not found</p>
-#else
-<div style="margin-left: 10px">
-#set($meta = $self.metadata)
-#set($oid = $self.object.id)
-<p class="debug">storage:</p>
-<pre class="debug">$!self.storageId</pre>
-<pre class="debug">result: $meta.toString()</pre>
-<div class="ui-helper-hidden" id="record-meta">
-  <label id="oid">$oid</label>
-  <label id="format">$self.mimeType</label>
-  <label id="hasSlide">$self.hasSlideShow()</label>
-  <label id="hasSlide">$self.hasSlideShow()</label>
-</div>
-#set($title = $meta.getField("dc_title"))
-#set($description = $meta.getField("dc_description"))
-#if($title)
-<h1>$title</h1>
-#else
-<h2>$self.getFileName($oid)</h2>
-#end
-<button id="open-this">Open file</button>
-#if($description)
-<h3>Description</h3>
-<p>$description</p>
-#end
-<h3>Metadata</h3>
-<dl>
-#set($dc = $meta.dublinCore)
-#foreach($key in $dc.keySet())
-  #set($name = $self.formatName($key))
-  #set($value = $self.formatValue($dc.get($key)))
-  <dt><strong>$name</strong></dt>
-  <dd>$value</dd>
-#end
-</dl>
-<div class="view-as-slideshow"></div>
-<h3>Preview</h3>
-<div class="content-preview">
-  <div class="content-preview-inline">$!self.payloadContent</div>
-</div>
-<div class="payload-list">
-  <h3>Attachments</h3>
-  <ul>
-  #foreach($payload in $self.object.payloadList)
-    #set($pid = $payload.id)
-    #set($payloadType = $payload.type.toString())
-    <li>
-      <a href='$portalPath/download/$oid/$pid' rel="$payloadType" target="blank">$payload.id</a> ($payload.contentType, $payloadType)
-    </li>
-  #end
-  </ul>
-</div>
-</div>
-#end
-

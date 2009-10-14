@@ -71,10 +71,14 @@ class SearchTreeData:
         req = SearchRequest(query)
         req.setParam("facet", "true")
         req.setParam("fl", "id")
-        req.setParam("fq", 'item_type:"object"')
         req.setParam("rows", "0")
         req.setParam("facet.limit", "-1")
         req.setParam("facet.field", facetField)
+        
+        fq = sessionState.get("fq")
+        if fq is not None:
+            req.setParam("fq", fq)
+        req.addParam("fq", 'item_type:"object"')
         
         out = ByteArrayOutputStream()
         indexer = Services.getIndexer()
