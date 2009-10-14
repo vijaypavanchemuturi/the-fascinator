@@ -119,6 +119,8 @@ if isMetadata:
                 key, value = relation.split("::")
                 value = value.strip()
                 key = key.replace("_5f","") #ICE encoding _ as _5f?
+                if key=="usq_document_policy_type":
+                    value = "All/" + value 
                 if relationDict.has_key(key):
                     relationDict[key].append(value)
                 else:
