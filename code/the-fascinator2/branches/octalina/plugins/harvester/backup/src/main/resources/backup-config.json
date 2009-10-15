@@ -1,0 +1,17 @@
+{
+    "email": {
+        "type": "text",
+        "default": "email@usq.edu.au",
+        "size": 60
+    },
+    "ignoreFilter": {
+        "type": "text",
+        "default": ".svn",
+        "size": 40
+    },
+    "backupDir": {
+        "type": "text",
+        "default": "${user.home}/.fascinator-backup"
+    },
+    "tf-storage-type" : "file-system"
+}

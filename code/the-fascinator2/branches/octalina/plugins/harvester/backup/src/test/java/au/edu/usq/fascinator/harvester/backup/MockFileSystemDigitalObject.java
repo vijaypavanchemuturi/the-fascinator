@@ -30,6 +30,14 @@ import org.slf4j.LoggerFactory;
 import au.edu.usq.fascinator.api.storage.Payload;
 import au.edu.usq.fascinator.common.storage.impl.GenericDigitalObject;
 
+/**
+ * MockFileSystemDigitalObject is the replication of FileSystemDigitalObject
+ * used in fascinator and is used in BackupManagerTest unit test
+ * 
+ * @author Linda Octalina
+ * 
+ */
+
 public class MockFileSystemDigitalObject extends GenericDigitalObject {
 
     private Logger log = LoggerFactory

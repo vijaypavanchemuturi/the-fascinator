@@ -116,7 +116,6 @@ class SearchData:
             backupManager.setEmailAddress(self.__portal.email)
             paths = self.__portal.backupPaths
             firstpath = ""
-            #assume only one path for now... Will have a look when i m back...
             for key in paths:
                 firstPath = paths[key]
                 break

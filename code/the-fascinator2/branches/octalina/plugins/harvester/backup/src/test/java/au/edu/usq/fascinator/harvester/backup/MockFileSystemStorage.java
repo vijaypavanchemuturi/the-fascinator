@@ -15,6 +15,14 @@ import au.edu.usq.fascinator.api.storage.Storage;
 import au.edu.usq.fascinator.api.storage.StorageException;
 import au.edu.usq.fascinator.common.JsonConfig;
 
+/**
+ * MockFileSystemStorage is the replication of FileSystemStorage used in
+ * fascinator and is used in BackupManagerTest unit test
+ * 
+ * @author Linda Octalina
+ * 
+ */
+
 public class MockFileSystemStorage implements Storage {
     private static final String DEFAULT_HOME_DIR = System
             .getProperty("user.home")
