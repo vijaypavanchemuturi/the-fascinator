@@ -199,6 +199,7 @@ $(function() {
   </div>
   <div class="split-panel">  	
     <form id="backupForm" name="backupForm" method="post">
+      <input name="currentPage" type="hidden" value="$self.__paging.getPage()" />
       <input name="backupAction" type="submit" value="Backup" />
     </form>
   <div>

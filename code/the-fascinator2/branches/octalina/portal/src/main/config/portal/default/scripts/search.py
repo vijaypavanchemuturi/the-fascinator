@@ -5,7 +5,6 @@ from au.edu.usq.fascinator.api.storage import Payload, PayloadType
 from au.edu.usq.fascinator.api import PluginManager
 from au.edu.usq.fascinator.common import JsonConfig, JsonConfigHelper
 from au.edu.usq.fascinator.common.storage.impl import GenericPayload
-from au.edu.usq.fascinator.common import JsonConfig
 from au.edu.usq.fascinator.portal import Pagination, Portal
 
 from java.io import ByteArrayInputStream, ByteArrayOutputStream
@@ -106,21 +105,24 @@ class SearchData:
         Services.indexer.index(oid)
     
     def __backup(self):
-        backupManager = PluginManager.getHarvester("backup")
-        print " *****8 page: ", self.__paging.getPage()
-        print " * search.py: Backup email=%s" % self.__portal.email 
-        if backupManager and self.__portal.email and self.__portal.backupPaths:
-            print " * search.py: backup... "
-            json = JsonConfig()
-            backupManager.init(json.getSystemFile())
-            backupManager.setEmailAddress(self.__portal.email)
-            paths = self.__portal.backupPaths
-            firstpath = ""
-            for key in paths:
-                firstPath = paths[key]
-                break
-            backupManager.setBackupLocation(firstPath)
-            backupManager.backup(self.__result.getList("response/docs").toArray())
+        pass
+#        backupManager = PluginManager.getHarvester("backup")
+#        print " *****8 page: ", self.__paging.getPage()
+#        print " * search.py: Backup email=%s" % self.__portal.email 
+#        if backupManager and self.__portal.email and self.__portal.backupPaths:
+#            print " * search.py: backup... "
+#            json = JsonConfig()
+#            backupManager.init(json.getSystemFile())
+#            backupManager.setEmailAddress(self.__portal.email)
+#            paths = self.__portal.backupPaths
+#            firstpath = ""
+#            for key in paths:
+#                firstPath = paths[key]
+#                break
+#            backupManager.setBackupLocation(firstPath)
+#            backupManager.backup(self.__result.getList("response/docs/id").toArray())
+#            
+#            Services.storage.backup(Xxx)
     
     def __search(self):
         recordsPerPage = self.__portal.recordsPerPage

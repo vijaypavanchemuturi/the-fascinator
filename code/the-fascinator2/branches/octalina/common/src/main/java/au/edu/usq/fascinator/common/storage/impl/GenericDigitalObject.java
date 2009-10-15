@@ -23,6 +23,7 @@ import java.util.List;
 
 import au.edu.usq.fascinator.api.storage.DigitalObject;
 import au.edu.usq.fascinator.api.storage.Payload;
+import au.edu.usq.fascinator.api.storage.PayloadType;
 
 /**
  * Generic DigitalObject implementation
@@ -39,6 +40,8 @@ public class GenericDigitalObject implements DigitalObject {
 
     /** List of Payloads attached to this object */
     private List<Payload> payloadList;
+
+    private String sourceId;
 
     /**
      * Creates a DigitalObject with the specified identifier and no metadata
@@ -127,6 +130,9 @@ public class GenericDigitalObject implements DigitalObject {
      */
     public void addPayload(Payload payload) {
         getPayloadList().add(payload);
+        if (payload.getType().equals(PayloadType.Data)) {
+            sourceId = payload.getId();
+        }
     }
 
     @Override
@@ -140,5 +146,10 @@ public class GenericDigitalObject implements DigitalObject {
     @Override
     public String toString() {
         return getId();
+    }
+
+    @Override
+    public Payload getSource() {
+        return getPayload(sourceId);
     }
 }

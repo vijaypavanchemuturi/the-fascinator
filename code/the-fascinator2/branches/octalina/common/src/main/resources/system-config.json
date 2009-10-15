@@ -1,4 +1,5 @@
 {
+	"email": "email@usq.edu.au",
     "storage": {
         "type": "file-system",
         "file-system": {
@@ -11,7 +12,9 @@
         },
         "couchdb": {
             "url": "http://localhost:8080/couch"
-        }
+        },
+        "backupDir": "${user.home}/.fascinator-backup",
+    	"ignoreFilter": ".svn|.ice|.*|~*"
     },
     "indexer": {
         "type": "solr",

@@ -76,4 +76,6 @@ public interface Storage extends Plugin {
      */
     public Payload getPayload(String oid, String pid);
 
+    // Backup method here
+
 }
