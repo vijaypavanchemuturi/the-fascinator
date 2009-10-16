@@ -1,22 +1,23 @@
 #set($pageTitle = 'Home')
 <div class="home">
-  <h2>University Calendar</h2>
-  <p>The University Calendar is the definitive source of current policy and procedural documentation relating to the governance and management of the academic affairs of the University.</p>
-  <h2>Search</h2>
-  <p>Search for policies and procedures using keywords</p>
-  <div class="search-box">
-    <form action="search" id="search-form" method="post">
-      <input type="text" name="query" size="70" value="$!query" />
-      <input type="submit" name="search" value="Search" />
-    </form>
+  <div class="home-welcome">
+    <h2 class="content-title">University Calendar</h2>
+    <p>The University Calendar is the definitive source of current policy and procedural documentation relating to the governance and management of the academic affairs of the University.</p>
   </div>
-  <h2>Browse</h2>
-  <div>
+  <div class="home-search">
+    <h2>Search</h2>
+    <p>Search for policies and procedures using keywords.</p>
+    <div class="search-box">
+      <form action="search" id="search-form" method="post">
+        <input type="text" name="query" size="70" value="$!query" />
+        <input type="submit" name="search" value="Search" />
+      </form>
+    </div>
+  </div>
+  <div id="home-browse">
+    <h2>Browse</h2>
   #if($page.portals.size() == 1)
-    <p class="ui-state-highlight">
-      <span class="ui-icon ui-icon-info icon"></span>
-      There are no other portals available
-    </p>
+    <p>There are currently no other categories available.</p>
   #else
     <p>Browse policies and procedures by category</p>
     <ul>

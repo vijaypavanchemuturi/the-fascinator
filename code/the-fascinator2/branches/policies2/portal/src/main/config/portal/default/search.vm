@@ -1,6 +1,10 @@
 #set($pageTitle = 'Search')
 #set($query = $formData.get("query"))
-#set($atomLink = "$portalPath/feed/atom?query=$!query")
+#if($query)
+  #set($atomLink = "$portalPath/feed/atom?query=$query")
+#else
+  #set($atomLink = "$portalPath/feed/atom")
+#end
 #set($pageHeader = '
   <link rel="alternate" type="application/atom+xml" href="'+ $atomLink +'" />
   <script type="text/javascript" src="js/jquery.tree.min.js"></script>
@@ -17,13 +21,13 @@
           <div class="mainmenu">
             <div class="mainmenu-top"></div>
             <div class="mainmenu-heading">Title</div>
+            <div id="title_group" class="ui-helper-clearfix"></div>
           </div>
-          <div id="title_group" class="ui-helper-clearfix"></div>
           <div class="mainmenu">
             <div class="mainmenu-top"> </div>
             <div class="mainmenu-heading">Policy type</div>
+            <div id="policy_type" class="ui-helper-clearfix"></div>
           </div>
-          <div id="policy_type" class="ui-helper-clearfix"></div>
           #set($facetFields = $self.result.getMap("facet_counts/facet_fields"))
           #foreach($facetFieldKey in $facetFields.keySet())
             #set($facetCounts = $self.getFacetCounts($facetFieldKey))
@@ -37,11 +41,12 @@
                   #foreach($facetCountKey in $facetCounts.keySet())
                     #set($facetCount = $facetCounts.get($facetCountKey))
                     #set($facetQuery = $self.getFacetQuery($facetFieldKey, $facetCountKey))
-                    <li>
+                    #set($selected = $self.isSelected($facetQuery))
+                    <li#if($selected) class="selected"#end>
                     #if($self.isPortalQueryFacet($facetQuery))
                       <span class="selected">$facetCountKey</span> ($facetCount)
                     #else
-                      #if($self.isSelected($facetQuery))
+                      #if($selected)
                         #set($facetClass = "remove-facet selected")
                       #else
                         #set($facetClass = "add-facet")
@@ -58,6 +63,7 @@
         </div>
       </td>
       <td class="middlecol">
+        <h2 class="content-title">Search</h2>
         <div class="search-box">
           <form action="search" id="search-form" method="post">
             <input type="text" name="query" size="70" value="$!query" />
@@ -70,6 +76,7 @@
           </form>
         </div>
         <div class="result-list">
+          <h2>Results</h2>
           <ul>
           #foreach($item in $self.result.getList("response/docs"))
             #set($id = $item.get("id"))
@@ -82,15 +89,9 @@
             #end
             #set($description = "")
             #set($description = $item.get("usq_document_purpose").get(0))
-            <li>
-              <div id="$id">
-                <h3><a href="detail/$id">$title</a></h3>
-                <p class="item-description">$page.escapeText($!description)</p>
-                #set($format = $item.get("dc_format").get(0))
-                #if($format.startsWith("image/"))
-                  <img src="download/$id/$self.getThumbnail($id)"></img>
-                #end
-              </div>
+            <li id="$id">
+              <h3><a href="detail/$id">$page.escapeText($title)</a></h3>
+              <p class="item-description">$page.escapeText($!description)</p>
             </li>
           #end
           </ul>
@@ -107,7 +108,6 @@ $(function() {
         var tree = jQuery.tree.create();
         tree.init($(selector), {
             data: {
-                async: true,
                 type: "json",
                 opts: {
                     url: "search-tree.ajax?facet.field=" + facetField
@@ -148,9 +148,7 @@ $(function() {
         return tree;
     }
     
-    var titleGroupTree = createTree("#title_group", "f_title_group");
-    titleGroupTree.open_all();
-    
+    createTree("#title_group", "f_title_group");
     createTree("#policy_type", "f_usq_document_policy_type");
     
     $("#clear-facets").click(function() {
@@ -167,9 +165,6 @@ $(function() {
         doAction("remove_fq", $(this).attr("rel"));
         return false;
     });
-    
-    // zebra the results
-    $("#result-item-list li:even").css("background-color", "#EBEBEB");
     
     // truncate descriptions
     $("p.item-description").truncate(500, {

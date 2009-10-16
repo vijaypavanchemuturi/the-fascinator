@@ -4,9 +4,9 @@
         id: "$facet.id",
         fq: "$facet.facetQuery"
     },
-    state: $state,
     data: "$facet.name ($facet.count)",
     #if($facet.subFacets.size() > 0)
+        state: "$state",
         children: [
         #foreach($subFacet in $facet.subFacets)
             #createFacetNode($subFacet "closed")
@@ -15,14 +15,8 @@
     #end
 },
 #end
-#set($id = $formData.get("id"))
-#set($currentFacet = $self.facetList.getFacet($id))
 [
-#if($currentFacet && $currentFacet.subFacets.size() == 0)
-    #createFacetNode($currentFacet "leaf")
-#else
-    #foreach($facet in $self.facetList.facets)
-        #createFacetNode($facet "open")
-    #end
+#foreach($facet in $self.facetList.facets)
+    #createFacetNode($facet "open")
 #end
 ]
