@@ -21,17 +21,25 @@
     text-decoration: none;
 }
 
-.home {
+.home, .detail {
     margin-left: 10px;
     margin-right: 10px;
 }
 
 .search-box {
-    border: thin solid #FFE141;
     background-color: #FFF8DB;
+    border: thin solid #FFE141;
+    display: inline-block;
     padding: 7px;
     margin: 7px 0 0 0;
-    width: 41.5em;
+}
+
+.search-box p {
+    margin-top: 7px;
+}
+
+.search-error {
+    color: red;
 }
 
 .paging {
@@ -60,6 +68,10 @@
 
 .mainmenu .tree {
     background: #F0F1F3;
+}
+
+.mainmenu .tree ul {
+    font-size: 1em;
 }
 
 .mainmenu .tree ul li {
@@ -94,4 +106,13 @@
 
 .result-list ul li p {
     margin-bottom: 5px;
+}
+
+.detail .page-toc ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+.detail .pdf-rendition-link {
+    float: right;
 }

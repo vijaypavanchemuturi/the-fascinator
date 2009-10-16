@@ -1,5 +1,61 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
+	<classpathentry kind="src" output="plugin-api/target/classes" path="plugin-api/src/main/java"/>
+	<classpathentry excluding="**" kind="src" output="plugin-api/target/classes" path="plugin-api/src/main/resources"/>
+	<classpathentry kind="src" output="plugin-api/target/test-classes" path="plugin-api/src/test/java"/>
+	<classpathentry excluding="**" kind="src" output="plugin-api/target/test-classes" path="plugin-api/src/test/resources"/>
+	<classpathentry kind="src" output="common/target/classes" path="common/src/main/java"/>
+	<classpathentry excluding="**" kind="src" output="common/target/classes" path="common/src/main/resources"/>
+	<classpathentry kind="src" output="common/target/test-classes" path="common/src/test/java"/>
+	<classpathentry excluding="**" kind="src" output="common/target/test-classes" path="common/src/test/resources"/>
+	<classpathentry kind="src" output="core/target/classes" path="core/src/main/java"/>
+	<classpathentry excluding="**" kind="src" output="core/target/classes" path="core/src/main/resources"/>
+	<classpathentry kind="src" output="core/target/test-classes" path="core/src/test/java"/>
+	<classpathentry excluding="**" kind="src" output="core/target/test-classes" path="core/src/test/resources"/>
+	<classpathentry kind="src" output="plugins/harvester/filesystem/target/classes" path="plugins/harvester/filesystem/src/main/java"/>
+	<classpathentry excluding="**" kind="src" output="plugins/harvester/filesystem/target/classes" path="plugins/harvester/filesystem/src/main/resources"/>
+	<classpathentry kind="src" output="plugins/harvester/filesystem/target/test-classes" path="plugins/harvester/filesystem/src/test/java"/>
+	<classpathentry excluding="**" kind="src" output="plugins/harvester/filesystem/target/test-classes" path="plugins/harvester/filesystem/src/test/resources"/>
+	<classpathentry kind="src" output="plugins/harvester/jsonq/target/classes" path="plugins/harvester/jsonq/src/main/java"/>
+	<classpathentry excluding="**" kind="src" output="plugins/harvester/jsonq/target/classes" path="plugins/harvester/jsonq/src/main/resources"/>
+	<classpathentry kind="src" output="plugins/harvester/jsonq/target/test-classes" path="plugins/harvester/jsonq/src/test/java"/>
+	<classpathentry excluding="**" kind="src" output="plugins/harvester/jsonq/target/test-classes" path="plugins/harvester/jsonq/src/test/resources"/>
+	<classpathentry kind="src" output="plugins/harvester/oai-pmh/target/classes" path="plugins/harvester/oai-pmh/src/main/java"/>
+	<classpathentry excluding="**" kind="src" output="plugins/harvester/oai-pmh/target/classes" path="plugins/harvester/oai-pmh/src/main/resources"/>
+	<classpathentry kind="src" output="plugins/harvester/oai-pmh/target/test-classes" path="plugins/harvester/oai-pmh/src/test/java"/>
+	<classpathentry excluding="**" kind="src" output="plugins/harvester/oai-pmh/target/test-classes" path="plugins/harvester/oai-pmh/src/test/resources"/>
+	<classpathentry kind="src" output="plugins/harvester/backup/target/classes" path="plugins/harvester/backup/src/main/java"/>
+	<classpathentry excluding="**" kind="src" output="plugins/harvester/backup/target/classes" path="plugins/harvester/backup/src/main/resources"/>
+	<classpathentry kind="src" output="plugins/harvester/backup/target/test-classes" path="plugins/harvester/backup/src/test/java"/>
+	<classpathentry excluding="**" kind="src" output="plugins/harvester/backup/target/test-classes" path="plugins/harvester/backup/src/test/resources"/>
+	<classpathentry kind="src" output="plugins/indexer/solr/target/classes" path="plugins/indexer/solr/src/main/java"/>
+	<classpathentry excluding="**" kind="src" output="plugins/indexer/solr/target/classes" path="plugins/indexer/solr/src/main/resources"/>
+	<classpathentry kind="src" output="plugins/indexer/solr/target/test-classes" path="plugins/indexer/solr/src/test/java"/>
+	<classpathentry excluding="**" kind="src" output="plugins/indexer/solr/target/test-classes" path="plugins/indexer/solr/src/test/resources"/>
+	<classpathentry kind="src" output="plugins/storage/couchdb/target/classes" path="plugins/storage/couchdb/src/main/java"/>
+	<classpathentry excluding="**" kind="src" output="plugins/storage/couchdb/target/classes" path="plugins/storage/couchdb/src/main/resources"/>
+	<classpathentry kind="src" output="plugins/storage/couchdb/target/test-classes" path="plugins/storage/couchdb/src/test/java"/>
+	<classpathentry excluding="**" kind="src" output="plugins/storage/couchdb/target/test-classes" path="plugins/storage/couchdb/src/test/resources"/>
+	<classpathentry kind="src" output="plugins/storage/fedora3/target/classes" path="plugins/storage/fedora3/src/main/java"/>
+	<classpathentry excluding="**" kind="src" output="plugins/storage/fedora3/target/classes" path="plugins/storage/fedora3/src/main/resources"/>
+	<classpathentry kind="src" output="plugins/storage/fedora3/target/test-classes" path="plugins/storage/fedora3/src/test/java"/>
+	<classpathentry excluding="**" kind="src" output="plugins/storage/fedora3/target/test-classes" path="plugins/storage/fedora3/src/test/resources"/>
+	<classpathentry kind="src" output="plugins/storage/filesystem/target/classes" path="plugins/storage/filesystem/src/main/java"/>
+	<classpathentry excluding="**" kind="src" output="plugins/storage/filesystem/target/classes" path="plugins/storage/filesystem/src/main/resources"/>
+	<classpathentry kind="src" output="plugins/storage/filesystem/target/test-classes" path="plugins/storage/filesystem/src/test/java"/>
+	<classpathentry excluding="**" kind="src" output="plugins/storage/filesystem/target/test-classes" path="plugins/storage/filesystem/src/test/resources"/>
+	<classpathentry kind="src" output="plugins/transformer/aperture/target/classes" path="plugins/transformer/aperture/src/main/java"/>
+	<classpathentry excluding="**" kind="src" output="plugins/transformer/aperture/target/classes" path="plugins/transformer/aperture/src/main/resources"/>
+	<classpathentry kind="src" output="plugins/transformer/aperture/target/test-classes" path="plugins/transformer/aperture/src/test/java"/>
+	<classpathentry excluding="**" kind="src" output="plugins/transformer/aperture/target/test-classes" path="plugins/transformer/aperture/src/test/resources"/>
+	<classpathentry kind="src" output="plugins/transformer/ice2/target/classes" path="plugins/transformer/ice2/src/main/java"/>
+	<classpathentry excluding="**" kind="src" output="plugins/transformer/ice2/target/classes" path="plugins/transformer/ice2/src/main/resources"/>
+	<classpathentry kind="src" output="plugins/transformer/ice2/target/test-classes" path="plugins/transformer/ice2/src/test/java"/>
+	<classpathentry excluding="**" kind="src" output="plugins/transformer/ice2/target/test-classes" path="plugins/transformer/ice2/src/test/resources"/>
+	<classpathentry kind="src" output="portal/target/classes" path="portal/src/main/java"/>
+	<classpathentry excluding="**" kind="src" output="portal/target/classes" path="portal/src/main/resources"/>
+	<classpathentry kind="src" output="portal/target/test-classes" path="portal/src/test/java"/>
+	<classpathentry excluding="**" kind="src" output="portal/target/test-classes" path="portal/src/test/resources"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.6"/>
 	<classpathentry kind="con" path="org.maven.ide.eclipse.MAVEN2_CLASSPATH_CONTAINER"/>
 	<classpathentry kind="output" path="target/classes"/>

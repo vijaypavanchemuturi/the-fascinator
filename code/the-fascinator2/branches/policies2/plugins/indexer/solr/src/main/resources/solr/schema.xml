@@ -89,7 +89,7 @@
         <tokenizer class="solr.KeywordTokenizerFactory" />
         <filter class="solr.LowerCaseFilterFactory" />
         <filter class="solr.TrimFilterFactory" />
-        <!--<filter class="solr.PatternReplaceFilterFactory" pattern="([^a-z])" replacement="" replace="all" />-->
+        <filter class="solr.PatternReplaceFilterFactory" pattern="([^a-z])" replacement="" replace="all" />
       </analyzer>
     </fieldType>
 
@@ -145,10 +145,10 @@
     <field name="dc_type" type="text" indexed="true" stored="true" multiValued="true" />
     
     <!-- usq metadata fields -->
-    <field name="usq_document_type" type="string" indexed="true" stored="true" multiValued="true" />
-    <field name="usq_document_div_dept_office" type="string" indexed="true" stored="true" multiValued="true" />
-    <field name="usq_document_policy_type" type="string" indexed="true" stored="true" multiValued="true" />
-    <field name="title_group" type="string" indexed="true" stored="true" multiValued="true" />
+    <field name="usq_document_type" type="text" indexed="true" stored="true" multiValued="true" />
+    <field name="usq_document_div_dept_office" type="text" indexed="true" stored="true" multiValued="true" />
+    <field name="usq_document_policy_type" type="text" indexed="true" stored="true" multiValued="true" />
+    <field name="title_group" type="text" indexed="true" stored="true" multiValued="true" />
     <field name="title_sort" type="alphaOnlySort" indexed="true" stored="true" multiValued="true" />
     
     <!-- faceted -->
@@ -168,11 +168,11 @@
     <field name="f_dc_title" type="string" indexed="true" stored="false" multiValued="true" />
     <field name="f_dc_type" type="string" indexed="true" stored="false" multiValued="true" />
 
-	<!-- usq metadata facets -->
-	<field name="f_usq_document_type" type="string" indexed="true" stored="false" multiValued="true" />
-	<field name="f_usq_document_div_dept_office" type="string" indexed="true" stored="false" multiValued="true" />
-	<field name="f_usq_document_policy_type" type="string" indexed="true" stored="false" multiValued="true" />
-	<field name="f_title_group" type="string" indexed="true" stored="false" multiValued="true" />
+    <!-- usq metadata facets -->
+    <field name="f_usq_document_type" type="string" indexed="true" stored="false" multiValued="true" />
+    <field name="f_usq_document_div_dept_office" type="string" indexed="true" stored="false" multiValued="true" />
+    <field name="f_usq_document_policy_type" type="string" indexed="true" stored="false" multiValued="true" />
+    <field name="f_title_group" type="string" indexed="true" stored="false" multiValued="true" />
 
     <!--
       Dynamic field definitions. If a field name is not found, dynamicFields
@@ -228,7 +228,6 @@
   <copyField source="title_group" dest="f_title_group" />
   <copyField source="dc_title" dest="title_sort" />
   
-
   <copyField source="*" dest="full_text" />
 
 </schema>

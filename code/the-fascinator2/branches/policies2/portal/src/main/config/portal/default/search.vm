@@ -1,5 +1,6 @@
 #set($pageTitle = 'Search')
-#set($query = $formData.get("query"))
+#set($query = $self.query)
+#set($paging = $self.paging)
 #if($query)
   #set($atomLink = "$portalPath/feed/atom?query=$query")
 #else
@@ -7,23 +8,34 @@
 #end
 #set($pageHeader = '
   <link rel="alternate" type="application/atom+xml" href="'+ $atomLink +'" />
-  <script type="text/javascript" src="js/jquery.tree.min.js"></script>
-  <script type="text/javascript" src="js/jquery.truncate.js"></script>
+  <script type="text/javascript" src="' + $portalPath + '/js/jquery.tree.min.js"></script>
+  <script type="text/javascript" src="' + $portalPath + '/js/jquery.truncate.js"></script>
 ')
 <table class="layout">
   <tbody>
     <tr>
       <td class="leftcol">
         <div class="columnbox">
-          #if($self.hasSelectedFacets())
-            <a class="action" id="clear-facets" href="#">Clear selection</a>
+          #if($self.hasSelectedFacets() || $query != "")
+            <div class="mainmenu">
+              <div class="mainmenu-top"></div>
+              <div class="mainmenu-heading">Actions</div>
+              <ul>
+                #if($query != "")
+                  <li><a href="$portalPath/search">Clear search</a></li>
+                #end
+                #if($self.hasSelectedFacets())
+                  <li><a id="clear-facets" href="#">Clear selection</a></li>
+                #end
+              </ul>
+            </div>
           #end
-          <div class="mainmenu">
+          <div class="mainmenu ui-helper-hidden">
             <div class="mainmenu-top"></div>
             <div class="mainmenu-heading">Title</div>
             <div id="title_group" class="ui-helper-clearfix"></div>
           </div>
-          <div class="mainmenu">
+          <div class="mainmenu ui-helper-hidden">
             <div class="mainmenu-top"> </div>
             <div class="mainmenu-heading">Policy type</div>
             <div id="policy_type" class="ui-helper-clearfix"></div>
@@ -65,16 +77,18 @@
       <td class="middlecol">
         <h2 class="content-title">Search</h2>
         <div class="search-box">
-          <form action="search" id="search-form" method="post">
+          <form action="$portalPath/search" id="search-form" method="post">
             <input type="text" name="query" size="70" value="$!query" />
             <input type="submit" name="search" value="Search" />
-            #set($paging = $self.paging)
             #if($self.result and $paging.totalFound > 0)
-              <p style="margin-top: 5px">Displaying <strong>${paging.startNum}</strong> to <strong>${paging.endNum}</strong> of <strong>${paging.totalFound}</strong> records (in $self.queryTime seconds)</p>
+              <p class="search-message">Displaying <strong>${paging.startNum}</strong> to <strong>${paging.endNum}</strong> of <strong>${paging.totalFound}</strong> records (in $self.queryTime seconds)</p>
+            #else
+              <p class="search-error">No results have been found for the entered search. Please try again.</p>
             #end
             #parse($page.getTemplate("search-paging.vm"))
           </form>
         </div>
+        #if($self.result and $paging.totalFound > 0)
         <div class="result-list">
           <h2>Results</h2>
           <ul>
@@ -96,6 +110,7 @@
           #end
           </ul>
         </div>
+        #end
       </td>
     </tr>
   </tbody>
@@ -104,13 +119,14 @@
 $(function() {
     addActionParam("query", "$!query");
     
+    // hierarchical facet trees
     function createTree(selector, facetField) {
         var tree = jQuery.tree.create();
         tree.init($(selector), {
             data: {
                 type: "json",
                 opts: {
-                    url: "search-tree.ajax?facet.field=" + facetField
+                    url: "$portalPath/search-tree.ajax?facet.field=" + facetField
                 }
             },
             selected: $self.selectedFacetIds,
@@ -142,27 +158,35 @@ $(function() {
                         var checked = $(this).hasClass("checked") == false;
                         doAction(checked ? "add_fq" : "remove_fq", $(this).parent().attr("fq"));
                     });
+                    var nodeCount = $("#title_group").find("li").length;
+                    if (nodeCount > 0) {
+                        $(selector).parent("div").show();
+                    }
                 }
             }
         });
         return tree;
     }
-    
     createTree("#title_group", "f_title_group");
     createTree("#policy_type", "f_usq_document_policy_type");
     
+    // facet actions
     $("#clear-facets").click(function() {
         doAction("clear_fq");
         return false;
     });
-    
     $(".add-facet").click(function() {
         doAction("add_fq", $(this).attr("rel"));
         return false;
     });
-    
     $(".remove-facet").click(function() {
         doAction("remove_fq", $(this).attr("rel"));
+        return false;
+    });
+    
+    // toggle facets
+    $(".mainmenu-heading").click(function(){
+        $(this).next().toggle('fast');
         return false;
     });
     

@@ -66,7 +66,6 @@ class SearchTreeData:
         if query is None or query == "":
             query = "*:*"
         facetField = formData.get("facet.field")
-        print "\n\nfacetField: %s\n\n" % facetField
         
         req = SearchRequest(query)
         req.setParam("facet", "true")
