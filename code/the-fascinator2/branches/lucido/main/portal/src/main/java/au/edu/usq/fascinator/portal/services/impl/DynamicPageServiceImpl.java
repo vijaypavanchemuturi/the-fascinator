@@ -75,11 +75,7 @@ public class DynamicPageServiceImpl implements DynamicPageService {
 
     private boolean nativeJython;
 
-    private ScriptEngine scriptEngine;
-
-    private PythonInterpreter python;
-
-    private Map<String, Object> bindings;
+    private String engineName;
 
     public DynamicPageServiceImpl() {
         try {
@@ -87,18 +83,8 @@ public class DynamicPageServiceImpl implements DynamicPageService {
             nativeJython = Boolean.parseBoolean(config.get(
                     "portal/nativeJython", "true"));
             layoutName = config.get("portal/layout", DEFAULT_LAYOUT_TEMPLATE);
-
-            // setup scripting engine
-            if (nativeJython) {
-                python = new PythonInterpreter();
-                bindings = new HashMap<String, Object>();
-            } else {
-                String engineName = config.get("portal/scriptEngine",
-                        DEFAULT_SCRIPT_ENGINE);
-                ScriptEngineManager scriptEngineManager = new ScriptEngineManager();
-                scriptEngine = scriptEngineManager.getEngineByName(engineName);
-                bindings = scriptEngine.createBindings();
-            }
+            engineName = config.get("portal/scriptEngine",
+                    DEFAULT_SCRIPT_ENGINE);
 
             // setup velocity engine
             String home = config.get("portal/home",
@@ -185,6 +171,7 @@ public class DynamicPageServiceImpl implements DynamicPageService {
 
         // setup script and velocity context
         String contextPath = request.getContextPath();
+        Map<String, Object> bindings = new HashMap<String, Object>();
         bindings.put("Services", scriptingServices);
         bindings.put("systemProperties", System.getProperties());
         bindings.put("request", request);
@@ -199,7 +186,7 @@ public class DynamicPageServiceImpl implements DynamicPageService {
         // run page and template scripts
         Object layoutObject = new Object();
         try {
-            layoutObject = evalScript(portalId, layoutName, formData);
+            layoutObject = evalScript(portalId, layoutName, bindings);
         } catch (ScriptException se) {
             renderMessages.append("Layout script error:\n");
             renderMessages.append(se.getMessage());
@@ -210,7 +197,7 @@ public class DynamicPageServiceImpl implements DynamicPageService {
 
         Object pageObject = new Object();
         try {
-            pageObject = evalScript(portalId, pageName, formData);
+            pageObject = evalScript(portalId, pageName, bindings);
         } catch (ScriptException se) {
             renderMessages.append("Page script error:\n");
             renderMessages.append(se.getMessage());
@@ -236,7 +223,7 @@ public class DynamicPageServiceImpl implements DynamicPageService {
 
             try {
                 // render the page content
-                log.debug("Rendering page {}:{}.vm...", portalId, pageName);
+                log.debug("Rendering page {}/{}.vm...", portalId, pageName);
                 StringWriter pageContentWriter = new StringWriter();
                 Template pageContent = getTemplate(portalId, pageName);
                 pageContent.merge(vc, pageContentWriter);
@@ -257,7 +244,7 @@ public class DynamicPageServiceImpl implements DynamicPageService {
             if (!isAjax) {
                 try {
                     // render the page using the layout template
-                    log.debug("Rendering layout {}:{}.vm...", portalId,
+                    log.debug("Rendering layout {}/{}.vm...", portalId,
                             layoutName);
                     Template page = getTemplate(portalId, layoutName);
                     Writer pageWriter = new OutputStreamWriter(out, "UTF-8");
@@ -273,13 +260,14 @@ public class DynamicPageServiceImpl implements DynamicPageService {
     }
 
     private Object evalScript(String portalId, String scriptName,
-            FormData formData) throws ScriptException {
+            Map<String, Object> bindings) throws ScriptException {
         Object scriptObject = new Object();
         scriptName = "scripts/" + scriptName + ".py";
-        log.debug("Running page script {}:{}...", portalId, scriptName);
+        log.debug("Running page script {}/{}...", portalId, scriptName);
         InputStream in = getResource(portalId, scriptName);
         if (in != null) {
             if (nativeJython) {
+                PythonInterpreter python = new PythonInterpreter();
                 for (String key : bindings.keySet()) {
                     python.set(key, bindings.get(key));
                 }
@@ -287,6 +275,9 @@ public class DynamicPageServiceImpl implements DynamicPageService {
                 scriptObject = python.get("scriptObject");
                 python.cleanup();
             } else {
+                ScriptEngineManager scriptEngineManager = new ScriptEngineManager();
+                ScriptEngine scriptEngine = scriptEngineManager
+                        .getEngineByName(engineName);
                 Bindings b = scriptEngine.createBindings();
                 b.putAll(bindings);
                 scriptEngine.setBindings(b, ScriptContext.ENGINE_SCOPE);

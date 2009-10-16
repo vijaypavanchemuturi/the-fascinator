@@ -11,7 +11,7 @@
 #set($pageTitle = 'Search')
 #set($query = $formData.get("query"))
 #if($query)
-  #set($atomLink = "$portalPath/feed/atom?query=$paging") 
+  #set($atomLink = "$portalPath/feed/atom?query=$query") 
 #else
   #set($atomLink = "$portalPath/feed/atom")
 #end
