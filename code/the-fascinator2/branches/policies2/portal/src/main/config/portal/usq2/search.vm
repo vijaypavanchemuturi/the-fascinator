@@ -1,6 +1,6 @@
 #set($pageTitle = 'Search')
 #set($query = $formData.get("query"))
-#set($atomLink = "$portalPath/feed/atom?query=$!query") 
+#set($atomLink = "$portalPath/feed/atom?query=$!query")
 #set($pageHeader = '
   <link rel="alternate" type="application/atom+xml" href="'+ $atomLink +'" />
   <script type="text/javascript" src="js/jquery.tree.min.js"></script>
@@ -104,7 +104,8 @@ $(function() {
     addActionParam("query", "$!query");
     
     function createTree(selector, facetField) {
-        $(selector).tree({
+        var tree = jQuery.tree.create();
+        tree.init($(selector), {
             data: {
                 async: true,
                 type: "json",
@@ -118,6 +119,7 @@ $(function() {
                 dots: false,
                 theme_name: "checkbox"
             },
+            opened: [],
             plugins: {
                 checkbox: {},
                 cookie: {
@@ -143,9 +145,12 @@ $(function() {
                 }
             }
         });
+        return tree;
     }
     
-    createTree("#title_group", "f_title_group");
+    var titleGroupTree = createTree("#title_group", "f_title_group");
+    titleGroupTree.open_all();
+    
     createTree("#policy_type", "f_usq_document_policy_type");
     
     $("#clear-facets").click(function() {

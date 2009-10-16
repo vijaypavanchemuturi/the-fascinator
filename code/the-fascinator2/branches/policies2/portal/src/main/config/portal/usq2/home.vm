@@ -1,55 +1,35 @@
 #set($pageTitle = 'Home')
-<script type="text/javascript">
-$(function() {
-    $(".delete-action").click(function() {
-        var portalName = $(this).attr("rel");
-        if(confirm("Are you sure you want to delete the portal?")) {
-            doAction("delete-portal", $(this).attr("rel"));
-        }
-    });
-});
-</script>
-<br/>
-<div style="margin-left: 10px">
-<h1>Welcome</h1>
-<p>Tell a little story about The Fascinator...</p>
-<div id="home-search">
-  <h1>Search</h1>
-  <fieldset class="SearchBoxBottom">
-    
-  	<div class="SearchBoxTop">
-	  <form action="search" id="search-form" method="post">
-	    <input type="text" name="query" size="40" />
-	    <input type="submit" name="search" value="Go!" />
-	    <br style="line-height: 0.4;"/>
-	    (Enter a query to search all content)
-	  </form>
-	</div>
-  </fieldset>
-</div>
-<h1>Portals</h1>
-<div class="home-portal-list">
-#if($page.portals.size() == 1)
-  <p class="ui-state-highlight">
-    <span class="ui-icon ui-icon-info icon"></span>
-    There are currently no other portals available
-  </p>
-#else
-  <p>Select a portal to browse and search</p>
-  <ul class="home-portal-list">
-  #foreach($portal in $page.portals)
-    <li>
-    #if($portal.name == $portalId)
-      <span class="active-link">$portal.description</span>
-    #else
-      <a href="$contextPath/$portal.name/search">$portal.description</a>
+<div class="home">
+  <h2>University Calendar</h2>
+  <p>The University Calendar is the definitive source of current policy and procedural documentation relating to the governance and management of the academic affairs of the University.</p>
+  <h2>Search</h2>
+  <p>Search for policies and procedures using keywords</p>
+  <div class="search-box">
+    <form action="search" id="search-form" method="post">
+      <input type="text" name="query" size="70" value="$!query" />
+      <input type="submit" name="search" value="Search" />
+    </form>
+  </div>
+  <h2>Browse</h2>
+  <div>
+  #if($page.portals.size() == 1)
+    <p class="ui-state-highlight">
+      <span class="ui-icon ui-icon-info icon"></span>
+      There are no other portals available
+    </p>
+  #else
+    <p>Browse policies and procedures by category</p>
+    <ul>
+    #foreach($portal in $page.portals)
+      <li>
+      #if($portal.name == $portalId)
+        <span class="active-link">$portal.description</span>
+      #else
+        <a href="$contextPath/$portal.name/search">$portal.description</a>
+      #end
+      </li>
     #end
-    #if($portal.name != "default")
-      <a class="delete-action" href="#" rel="$portal.name">delete</a>
-    #end
-    </li>
+    </ul>
   #end
-  </ul>
-#end
-</div>
+  </div>
 </div>

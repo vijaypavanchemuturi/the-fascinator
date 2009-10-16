@@ -18,6 +18,10 @@
     text-decoration: none;
 }
 
+.home {
+    margin-left: 10px;
+}
+
 .search-box {
     border: thin solid #FFE141;
     background-color: #FFF8DB;
