@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<portal name="usq2">
-    <description>USQ Policies</description>
+<portal name="default">
+    <description>Everything</description>
     <query></query>
     <records-per-page>25</records-per-page>
     <facet-count>25</facet-count>
