@@ -111,8 +111,12 @@ public class PortalManagerImpl implements PortalManager {
     public void add(Portal portal) {
         String portalName = portal.getName();
         Map<String, String> facetFields = portal.getFacetFields();
+        Map<String, String> backupPaths = portal.getBackupPaths();
         if (!portalName.equals("default") && facetFields.isEmpty()) {
             facetFields.putAll(getDefault().getFacetFields());
+        }
+        if (!portalName.equals("default") && backupPaths.isEmpty()) {
+            backupPaths.putAll(getDefault().getBackupPaths());
         }
         getPortals().put(portalName, portal);
     }

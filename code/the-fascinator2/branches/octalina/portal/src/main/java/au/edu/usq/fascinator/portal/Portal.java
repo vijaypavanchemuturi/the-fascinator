@@ -73,6 +73,13 @@ public class Portal implements Comparable<Portal> {
     @XmlElement
     private String netmask;
 
+    @XmlElement(name = "backup-email")
+    private String email;
+
+    @XmlElement(name = "backup-paths")
+    @XmlJavaTypeAdapter(MapAdapter.class)
+    private Map<String, String> backupPaths;
+
     @XmlElement(name = "facet-fields")
     @XmlJavaTypeAdapter(MapAdapter.class)
     private Map<String, String> facetFields;
@@ -91,6 +98,7 @@ public class Portal implements Comparable<Portal> {
         this.description = description;
         this.query = query;
         facetFields = new HashMap<String, String>();
+        backupPaths = new HashMap<String, String>();
     }
 
     public String getName() {
@@ -199,6 +207,46 @@ public class Portal implements Comparable<Portal> {
 
     public List<String> getFacetFieldList() {
         return new ArrayList<String>(facetFields.keySet());
+    }
+
+    /**
+     * Email setting for backup to determine userspace in backup server
+     * 
+     * @param email
+     */
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    /**
+     * Return email for userspace
+     * 
+     * @return email
+     */
+    public String getEmail() {
+        return email;
+    }
+
+    /**
+     * List of backup addresses (for now only support local paths)
+     * 
+     * @param backupPaths
+     */
+    public void setBackupPaths(Map<String, String> backupPaths) {
+        this.backupPaths = backupPaths;
+    }
+
+    /**
+     * Return list of backup paths
+     * 
+     * @return backupPaths
+     */
+    public Map<String, String> getBackupPaths() {
+        return backupPaths;
+    }
+
+    public List<String> getBackupPathsList() {
+        return new ArrayList<String>(backupPaths.keySet());
     }
 
     @Override
