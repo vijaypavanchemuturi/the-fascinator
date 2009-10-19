@@ -13,9 +13,11 @@ import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.project.MavenProject;
 
 /**
- * Does some stuff
+ * Maven plugin for 
  * 
- * Note: curl  -H "Accept: application/rdf+xml" http://www.semanticdesktop.org/ontologies/nie/
+ * This code is based on Steffen Ryll's Maven plugin.
+ * See http://semanticweb.org/wiki/RDFReactor/Maven2_Plugin
+ * for more details
  * 
  * @goal rdfs
  * @phase generate-sources
@@ -28,7 +30,14 @@ public class RDFSGenerator extends AbstractMojo {
 	 * @parameter
 	 * @required
 	 */
-	private List schemaList;
+	private List<SchemaItem> schemaList;
+
+	/**
+	 * The directory where any downloaded schema shall be written to.
+	 * 
+	 * @parameter expression="${project.build.directory}/downloaded-resources/schema"
+	 */
+	private File workingDirectory;
 
 	/**
 	 * The directory where generated java code shall be written to.
@@ -46,7 +55,6 @@ public class RDFSGenerator extends AbstractMojo {
 	 * @parameter default-value="true"
 	 */
 	private boolean skipBuiltins;
-	
 
 	/**
 	 * The Maven Project Object
@@ -63,28 +71,37 @@ public class RDFSGenerator extends AbstractMojo {
 	 * @readonly
 	 */
 	private File rdfReactorLogfile;
-
+	
 	public void execute() throws MojoExecutionException, MojoFailureException {
-		try {
-			// make sure that directory for log file exists.
-			rdfReactorLogfile.getParentFile().mkdirs();
+		initialiseRDFReactorLogfile();
 
-			// configure logging infrastructure for RDFReactor
-			FileAppender logFileAppender = new FileAppender(new SimpleLayout(),
-					rdfReactorLogfile.getAbsolutePath());
-			BasicConfigurator.configure(logFileAppender);
-
-		} catch (IOException ioe) {
-			throw new MojoExecutionException(
-					"Cannot open log file for writing RDFReactor log messages",
-					ioe);
+		this.workingDirectory.mkdirs();
+		
+		for (SchemaItem schema : schemaList) {
+			getLog().info("Preparing schema: " + schema.getSchemaName());
+			schema.generateCode(skipBuiltins, workingDirectory,
+					outputDirectory, rdfReactorLogfile, getLog());
 		}
-		
-		
 
 		// add generated code to list of files to be compiled
 		if (project != null) {
 			project.addCompileSourceRoot(outputDirectory.getAbsolutePath());
 		}
+	}
+	
+	private void initialiseRDFReactorLogfile() throws MojoExecutionException{
+		try {
+			// make sure that directory for log file exists.
+			rdfReactorLogfile.getParentFile().mkdirs();
+			// configure logging infrastructure for RDFReactor
+			FileAppender logFileAppender = new FileAppender(new SimpleLayout(),
+					rdfReactorLogfile.getAbsolutePath());
+			BasicConfigurator.configure(logFileAppender);
+		} catch (IOException ioe) {
+			throw new MojoExecutionException(
+					"Cannot open log file for writing RDFReactor log messages",
+					ioe);
+		}
+		getLog().info("RDFReactor's log messages are written to " + rdfReactorLogfile);
 	}
 }
