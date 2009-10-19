@@ -25,9 +25,12 @@ class SettingsData:
         else:
             portalName = formData.get("portalName")
             print " * settings.py: portalName=%s, portalId=%s" % (portalName, portalId)
-            #if portalName is None or (formData.get("portalAction") == "Cancel"):
-            self.__portal = Services.portalManager.get(portalId)
-
+            if portalName is None or (formData.get("portalAction") == "Cancel"):
+                self.__portal = Services.portalManager.get(portalId)
+            else:
+                self.__portal = Portal()
+                self.__portal.name = portalName
+                Services.portalManager.add(self.__portal)
             if formData.get("portalAction") == "Update":
                 self.__updatePortal()
             if formData.get("emailAction") == "Update":

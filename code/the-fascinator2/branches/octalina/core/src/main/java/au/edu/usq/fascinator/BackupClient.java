@@ -19,14 +19,17 @@
 
 package au.edu.usq.fascinator;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -56,6 +59,12 @@ public class BackupClient {
 
     private File configFile;
 
+    private String email = null;
+
+    private File backupDir = null;
+
+    private String portalDescription;
+
     public BackupClient(File jsonFile) throws IOException {
         configFile = jsonFile;
         config = new JsonConfig(jsonFile);
@@ -65,23 +74,68 @@ public class BackupClient {
         config = new JsonConfig();
     }
 
+    public void setEmail(String email) {
+        this.email = DigestUtils.md5Hex(email);
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setPortalDescription(String portalDescription) {
+        this.portalDescription = portalDescription;
+    }
+
+    public String getPortalDescription() {
+        return portalDescription;
+    }
+
+    public void setBackupDir(String backupDir) {
+        if (backupDir != null) {
+            this.backupDir = new File(backupDir);
+            if (this.backupDir.exists() == false) {
+                this.backupDir.getParentFile().mkdirs();
+            }
+        }
+    }
+
+    public File getBackupDir() {
+        return backupDir;
+    }
+
     public void run() {
         DateFormat df = new SimpleDateFormat(DATETIME_FORMAT);
         String now = df.format(new Date());
         long start = System.currentTimeMillis();
         log.info("Started at " + now);
 
-        Storage storage, realStorage;
+        Storage realStorage;
         Indexer indexer;
         try {
             realStorage = PluginManager.getStorage(config.get("storage/type",
                     DEFAULT_STORAGE_TYPE));
             indexer = PluginManager.getIndexer(config.get("indexer/type",
                     DEFAULT_INDEXER_TYPE));
-            // storage = new IndexedStorage(realStorage, indexer);
-            // storage.init(configFile);
+            realStorage.init(config.getSystemFile());
+            indexer.init(config.getSystemFile());
             log.info("Loaded {} and {}", realStorage.getName(), indexer
                     .getName());
+
+            // Set default email and backupDir if they are null
+            String defaultEmail = config.get("email", null);
+            String defaultBackupDir = config.get("backupDir", null);
+            if (email == null && defaultEmail == null) {
+                log.error("No email address provided in system-config.json");
+                return;
+            } else if (email == null) {
+                setEmail(defaultEmail);
+            }
+            if (backupDir == null && defaultBackupDir == null) {
+                log.error("No backup Directory provided in system-config.json");
+                return;
+            } else if (backupDir == null) {
+                setBackupDir(defaultBackupDir);
+            }
         } catch (Exception e) {
             log.error("Failed to initialise storage", e);
             return;
@@ -102,48 +156,69 @@ public class BackupClient {
         // }
 
         // Get all the records from solr
+        // ****
 
-        ByteArrayOutputStream result = new ByteArrayOutputStream();
         int startRow = 0;
         int numPerPage = 5;
         int numFound = 0;
         do {
+            ByteArrayOutputStream result = new ByteArrayOutputStream();
             SearchRequest request = new SearchRequest("*:*");
             request.addParam("rows", String.valueOf(numPerPage));
             request.addParam("fq", "item_type:\"object\"");
-            request.addParam("start", String.valueOf(startRow));
+            request.setParam("start", String.valueOf(startRow));
+
+            log.info("---- portalDescription: " + portalDescription);
+            if (portalDescription != null) {
+                request.addParam("fq", "repository_name:\"" + portalDescription
+                        + "\"");
+            }
+
+            // facet_fields: repository_name: ["Local Files", 10]
+            // facet_fields: repository_type: ["Local Files", 10]
             try {
                 indexer.search(request, result);
+                // // backupHarvester.backup(result.toByteArray());
+
+                // File outputFile = new File("someoutputfilename...");
+                // OutputStream output;
+                // output = new FileOutputStream(outputFile);
+                // log.info("result: " + result.toString());
+                JsonConfigHelper js = new JsonConfigHelper(result.toString());
+                log.info("OutputList: " + js.getList("response/docs/id"));
+
+                for (Object oid : js.getList("response/docs/id")) {
+                    DigitalObject digitalObject = realStorage.getObject(oid
+                            .toString());
+
+                    File oidFile = new File(oid.toString());
+                    String outputFileName = backupDir.getAbsolutePath()
+                            + File.separator + email + oid.toString();
+                    File outputFile = new File(outputFileName);
+                    outputFile.getParentFile().mkdirs();
+                    OutputStream output = new FileOutputStream(outputFile);
+
+                    // getSource still can't work. the sourceid is null
+                    // Payload payload = digitalObject.getSource();
+                    Payload payload = digitalObject.getPayload(oidFile
+                            .getName());
+                    if (payload != null) {
+                        IOUtils.copy(payload.getInputStream(), output);
+                    }
+                }
+
+                startRow += numPerPage;
+                numFound = Integer.parseInt(js.get("response/numFound"));
+            } catch (IOException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
             } catch (IndexerException e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
             }
-
-            // backupHarvester.backup(result.toByteArray());
-            JsonConfigHelper js;
-            try {
-                js = new JsonConfigHelper(result.toString());
-                System.out.println("  " + js.getList("response/docs/id"));
-
-                for (Object oid : js.getList("response/docs/id")) {
-                    DigitalObject digobj = realStorage
-                            .getObject(oid.toString());
-                    Payload payload = digobj.getSource();
-                    if (payload != null) {
-                        IOUtils.copy(payload.getInputStream(), output)
-                    }
-                }
-
-            } catch (IOException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            }
-            // realStorage.backup(js.getList("response/docs/id"));
-
-            start += numPerPage;
-            numFound = Integer.parseInt(js.get("response/numFound"));
+            //
         } while (startRow < numFound);
-
+        // *****
         // return Response.ok(result.toByteArray()).build();
 
         // self.__result =
@@ -184,16 +259,21 @@ public class BackupClient {
     }
 
     public static void main(String[] args) {
-        if (args.length < 1) {
-            log.info("Usage: backup <json-config>");
-        } else {
-            File jsonFile = new File(args[0]);
-            try {
-                BackupClient backup = new BackupClient(jsonFile);
-                backup.run();
-            } catch (IOException ioe) {
-                log.error("Failed to initialise client: {}", ioe.getMessage());
-            }
+        // if (args.length < 1 || (args[1] == "-h")) {
+        // log.info("Usage: backup [<portal-name>]");
+        // } else {
+
+        // If without args, it will just backup everything
+
+        // testing ONLY
+        // String portalDescription = "Local Files";
+        try {
+            BackupClient backup = new BackupClient();
+            // backup.setPortalDescription(portalDescription);
+            backup.run();
+        } catch (IOException ioe) {
+            log.error("Failed to initialise client: {}", ioe.getMessage());
         }
+        // }
     }
 }

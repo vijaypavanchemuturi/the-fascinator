@@ -18,8 +18,8 @@ function copy_samples {
         copy_sample usq.py
 }
 
-if [ "$1" == "" ]; then
-        echo "Usage: ./tf_backupAll.sh <profile>"
+if [ "$2" == "-h" ]; then
+        echo "Usage: ./tf_backupAll.sh <profile> [-h] [<portal-name>]"
         echo " Profiles: backup-test"
 else
         OS=`uname`
@@ -31,7 +31,7 @@ else
         if [ $? ]; then
                 copy_samples
                 cd $FASCINATOR_HOME/code/core
-                mvn -P $1 exec:java
+                mvn -P $1 exec:java -Dexec.args="$*"
                 cd $OLDPWD
         else
                 echo "[ERROR] SOLR does not appear to be running"

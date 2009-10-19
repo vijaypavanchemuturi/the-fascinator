@@ -7,6 +7,10 @@ $(function() {
             doAction("delete-portal", $(this).attr("rel"));
         }
     });
+    $(".backup-action").click(function() {
+        var portalName = $(this).attr("rel");
+        doAction("backup-portal", $(this).attr("rel"));
+    });
 });
 </script>
 <h2>Welcome</h2>
@@ -39,6 +43,8 @@ $(function() {
     #if($portal.name != "default")
       <a class="delete-action" href="#" rel="$portal.name">delete</a>
     #end
+    &nbsp;&nbsp;
+    <a class="backup-action" href="#" rel="$portal.name">backup</a>
     </li>
   #end
   </ul>

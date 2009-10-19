@@ -20,6 +20,7 @@ package au.edu.usq.fascinator.portal.services.impl;
 
 import java.io.File;
 import java.io.FileFilter;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -31,6 +32,7 @@ import javax.xml.bind.Unmarshaller;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import au.edu.usq.fascinator.BackupClient;
 import au.edu.usq.fascinator.common.JsonConfig;
 import au.edu.usq.fascinator.portal.Portal;
 import au.edu.usq.fascinator.portal.services.PortalManager;
@@ -169,5 +171,23 @@ public class PortalManagerImpl implements PortalManager {
             }
         }
         return portal;
+    }
+
+    @Override
+    public void backup(String portalDescription, String email, String backupDir) {
+        // TODO Auto-generated method stub
+        BackupClient backupClient;
+        try {
+            log.info("Starting backup:....");
+            backupClient = new BackupClient();
+            backupClient.setPortalDescription(portalDescription);
+            backupClient.setEmail(email);
+            backupClient.setBackupDir(backupDir);
+            backupClient.run();
+            log.info("Done backup:....");
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
     }
 }
