@@ -73,8 +73,6 @@ class SearchData:
             if formData.get("verb") == "tag":
                 self.__tag()
             self.__search()
-            if formData.get("backupAction") == "Backup":
-                self.__backup()
     
     def hasTags(self):
         return len(self.__tags) > 0
@@ -103,26 +101,6 @@ class SearchData:
         tagsPayload.close()
         # now re-index the tag
         Services.indexer.index(oid)
-    
-    def __backup(self):
-        pass
-#        backupManager = PluginManager.getHarvester("backup")
-#        print " *****8 page: ", self.__paging.getPage()
-#        print " * search.py: Backup email=%s" % self.__portal.email 
-#        if backupManager and self.__portal.email and self.__portal.backupPaths:
-#            print " * search.py: backup... "
-#            json = JsonConfig()
-#            backupManager.init(json.getSystemFile())
-#            backupManager.setEmailAddress(self.__portal.email)
-#            paths = self.__portal.backupPaths
-#            firstpath = ""
-#            for key in paths:
-#                firstPath = paths[key]
-#                break
-#            backupManager.setBackupLocation(firstPath)
-#            backupManager.backup(self.__result.getList("response/docs/id").toArray())
-#            
-#            Services.storage.backup(Xxx)
     
     def __search(self):
         recordsPerPage = self.__portal.recordsPerPage

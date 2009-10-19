@@ -197,12 +197,6 @@ $(function() {
       </div>
     #end
   </div>
-  <div class="split-panel">  	
-    <form id="backupForm" name="backupForm" method="post">
-      <input name="currentPage" type="hidden" value="$self.__paging.getPage()" />
-      <input name="backupAction" type="submit" value="Backup" />
-    </form>
-  <div>
   <div class="split-panel" id="result-list">
     <ul id="result-item-list">
     #foreach($item in $self.result.getList("response/docs"))

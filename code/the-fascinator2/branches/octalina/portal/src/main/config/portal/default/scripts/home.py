@@ -7,15 +7,21 @@ class HomeData:
             print " * home.py: delete portal %s" % portalName
             Services.portalManager.remove(portalName)
         if action == "backup-portal":
-            print "&&&&&&&& calling backup: ", portalId
-            portal = Services.portalManager.get(portalId)
+            print "Backing up: ", portalName
             backupPath = ""
-            for key in portal.backupPaths:
-                if key=="default":
-                    backupPath = portal.backupPaths[key]
-            description = ""
-            if portal.getDescription() != "Everything":
-                description = portal.getDescription()
-            Services.portalManager.backup(description, portal.email, backupPath)
+            email = ""
+            portal = Services.portalManager.get(portalId)
+            if portal:
+                email = portal.email
+                if portal.backupPaths:
+                    for key in portal.backupPaths:
+                        if key=="default":
+                            backupPath = portal.backupPaths[key]
+                portalQuery = portal.getQuery()
+                #print " ***** portalQuery: ", portalQuery
+                #print " ***** backupPath: ", backupPath
+                #print " ***** email: ", email
+                #print " ***** description: ", description
+            Services.portalManager.backup(email, backupPath, portalQuery)
     
 scriptObject = HomeData()

@@ -57,16 +57,13 @@ public class BackupClient {
 
     private JsonConfig config;
 
-    private File configFile;
-
     private String email = null;
 
     private File backupDir = null;
 
-    private String portalDescription;
+    private String portalQuery = null;
 
     public BackupClient(File jsonFile) throws IOException {
-        configFile = jsonFile;
         config = new JsonConfig(jsonFile);
     }
 
@@ -74,24 +71,26 @@ public class BackupClient {
         config = new JsonConfig();
     }
 
+    public BackupClient(String email, String backupDir, String portalQuery)
+            throws IOException {
+        config = new JsonConfig();
+        setEmail(email);
+        setBackupDir(backupDir);
+        setPortalQuery(portalQuery);
+    }
+
     public void setEmail(String email) {
-        this.email = DigestUtils.md5Hex(email);
+        if (email != null && email != "") {
+            this.email = DigestUtils.md5Hex(email);
+        }
     }
 
     public String getEmail() {
         return email;
     }
 
-    public void setPortalDescription(String portalDescription) {
-        this.portalDescription = portalDescription;
-    }
-
-    public String getPortalDescription() {
-        return portalDescription;
-    }
-
     public void setBackupDir(String backupDir) {
-        if (backupDir != null) {
+        if (backupDir != null && backupDir != "") {
             this.backupDir = new File(backupDir);
             if (this.backupDir.exists() == false) {
                 this.backupDir.getParentFile().mkdirs();
@@ -101,6 +100,16 @@ public class BackupClient {
 
     public File getBackupDir() {
         return backupDir;
+    }
+
+    public void setPortalQuery(String portalQuery) {
+        if (portalQuery != null && portalQuery != "") {
+            this.portalQuery = portalQuery;
+        }
+    }
+
+    public String getPortalQuery() {
+        return portalQuery;
     }
 
     public void run() {
@@ -141,23 +150,7 @@ public class BackupClient {
             return;
         }
 
-        // Harvester backupHarvester;
-        // try {
-        // backupHarvester = PluginManager.getHarvester("backup");
-        // if (backupHarvester == null) {
-        // throw new PluginException("Backup Harvester plugin not found: "
-        // + "backup");
-        // }
-        // backupHarvester.init(configFile);
-        // log.info("Loaded harvester: " + backupHarvester.getName());
-        // } catch (PluginException pe) {
-        // log.error("Failed to initialise harvester plugin", pe);
-        // return;
-        // }
-
         // Get all the records from solr
-        // ****
-
         int startRow = 0;
         int numPerPage = 5;
         int numFound = 0;
@@ -168,29 +161,19 @@ public class BackupClient {
             request.addParam("fq", "item_type:\"object\"");
             request.setParam("start", String.valueOf(startRow));
 
-            log.info("---- portalDescription: " + portalDescription);
-            if (portalDescription != null) {
-                request.addParam("fq", "repository_name:\"" + portalDescription
-                        + "\"");
+            if (portalQuery != "" && portalQuery != null) {
+                request.addParam("fq", portalQuery);
             }
 
-            // facet_fields: repository_name: ["Local Files", 10]
-            // facet_fields: repository_type: ["Local Files", 10]
             try {
                 indexer.search(request, result);
-                // // backupHarvester.backup(result.toByteArray());
-
-                // File outputFile = new File("someoutputfilename...");
-                // OutputStream output;
-                // output = new FileOutputStream(outputFile);
-                // log.info("result: " + result.toString());
                 JsonConfigHelper js = new JsonConfigHelper(result.toString());
-                log.info("OutputList: " + js.getList("response/docs/id"));
+                // log.info("OutputList: " + js.getList("response/docs/id"));
 
                 for (Object oid : js.getList("response/docs/id")) {
                     DigitalObject digitalObject = realStorage.getObject(oid
                             .toString());
-
+                    log.info("Backingup: " + oid.toString());
                     File oidFile = new File(oid.toString());
                     String outputFileName = backupDir.getAbsolutePath()
                             + File.separator + email + oid.toString();
@@ -218,41 +201,6 @@ public class BackupClient {
             }
             //
         } while (startRow < numFound);
-        // *****
-        // return Response.ok(result.toByteArray()).build();
-
-        // self.__result =
-        // JsonConfigHelper(ByteArrayInputStream(out.toByteArray()))
-
-        // do {
-        // try {
-        // for (DigitalObject item : harvester.getObjects()) {
-        // try {
-        // processObject(storage, item, rulesOid);
-        // } catch (Exception e) {
-        // log.warn("Processing failed: " + item.getId(), e);
-        // }
-        // }
-        // } catch (HarvesterException he) {
-        // log.error("Failed to harvest", he);
-        // }
-        // } while (harvester.hasMoreObjects());
-        //
-        // do {
-        // try {
-        // for (DigitalObject item : harvester.getDeletedObjects()) {
-        // storage.removeObject(item.getId());
-        // }
-        // } catch (HarvesterException he) {
-        // log.error("Failed to delete", he);
-        // }
-        // } while (harvester.hasMoreDeletedObjects());
-        //
-        // try {
-        // storage.shutdown();
-        // } catch (PluginException e) {
-        // log.error("Failed to shutdown storage", e);
-        // }
 
         log.info("Completed in "
                 + ((System.currentTimeMillis() - start) / 1000.0) + " seconds");
@@ -264,9 +212,6 @@ public class BackupClient {
         // } else {
 
         // If without args, it will just backup everything
-
-        // testing ONLY
-        // String portalDescription = "Local Files";
         try {
             BackupClient backup = new BackupClient();
             // backup.setPortalDescription(portalDescription);
@@ -274,6 +219,5 @@ public class BackupClient {
         } catch (IOException ioe) {
             log.error("Failed to initialise client: {}", ioe.getMessage());
         }
-        // }
     }
 }
