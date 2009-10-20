@@ -55,7 +55,6 @@ $(function() {
         $(selector).each(function() {
             var attr = $(this).attr(attrName);
             if (attr != null) {
-                console.log(attr.indexOf("#"));
                 if (attr.indexOf("#") != 0 && attr.indexOf("://") == -1) {
                     $(this).attr(attrName, "$portalPath/download/$self.object.id/" + attr);
                 }
