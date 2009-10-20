@@ -13,7 +13,7 @@
 	<properties>
 		<fascinator-version>0.2.0-SNAPSHOT</fascinator-version>
 		<feed-reader-version>0.0.1-SNAPSHOT</feed-reader-version>
-		<compileSource>1.5</compileSource>
+		
 	</properties>
 
 	<dependencies>
