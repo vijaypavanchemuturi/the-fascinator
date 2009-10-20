@@ -1,16 +1,15 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <portal name="default">
-    <description>Everything</description>
+    <description>All Policies</description>
     <query></query>
     <records-per-page>25</records-per-page>
     <facet-count>25</facet-count>
     <facet-sort-by-count>false</facet-sort-by-count>
     <backup-paths/>
     <facet-fields>
-        <field name="f_dc_creator">Creator</field>
-        <field name="f_dc_subject">Subject</field>
-        <field name="f_usq_document_type">Document Type</field>
-        <field name="f_usq_document_div_dept_office">Department</field>
-        <field name="f_title_group">Title</field>
+        <field name="f_usq_document_type">Category</field>
+        <field name="f_usq_document_div_dept_office">Division/Department</field>
+        <field name="f_usq_document_committee_owner">Committee</field>
+        <field name="f_usq_document_responsible_position">Responsible owner</field>
     </facet-fields>
 </portal>

@@ -9,6 +9,8 @@
 
 .mainmenu .facet-list li.selected {
     background: #FFF5D2 url(../images/959ca1_arrow.gif) no-repeat scroll 5px 8px;
+    color: black;
+    font-weight: bold;
 }
 
 .mainmenu .facet-list li a.selected {
@@ -115,4 +117,15 @@
 
 .detail .pdf-rendition-link {
     float: right;
+}
+
+.advanced h2 {
+    font-size: 100%;
+    margin-left: 10px;
+    margin-right: 10px;
+}
+
+.icon {
+    display: inline;
+    float: left;
 }

@@ -118,6 +118,8 @@
                      should be stored for best performance. -->
 
     <field name="id" type="string" indexed="true" stored="true" required="true" />
+    <field name="oid" type="string" indexed="true" stored="true" />
+    <field name="pid" type="string" indexed="true" stored="true" />
     <field name="storage_id" type="string" indexed="true" stored="true" />
     <field name="last_modified" type="date" indexed="true" stored="true" />
     <field name="group_access" type="string" indexed="true" stored="false" />
@@ -148,8 +150,11 @@
     <field name="usq_document_type" type="text" indexed="true" stored="true" multiValued="true" />
     <field name="usq_document_div_dept_office" type="text" indexed="true" stored="true" multiValued="true" />
     <field name="usq_document_policy_type" type="text" indexed="true" stored="true" multiValued="true" />
+    <field name="usq_document_committee_owner" type="text" indexed="true" stored="false" multiValued="true" />
+    <field name="usq_document_responsible_position" type="text" indexed="true" stored="false" multiValued="true" />
     <field name="title_group" type="text" indexed="true" stored="true" multiValued="true" />
     <field name="title_sort" type="alphaOnlySort" indexed="true" stored="true" multiValued="true" />
+    <field name="d_usq_document_effective_date" type="date" indexed="true" stored="true" multiValued="true" />
     
     <!-- faceted -->
     <field name="f_dc_contributor" type="string" indexed="true" stored="false" multiValued="true" />
@@ -172,6 +177,8 @@
     <field name="f_usq_document_type" type="string" indexed="true" stored="false" multiValued="true" />
     <field name="f_usq_document_div_dept_office" type="string" indexed="true" stored="false" multiValued="true" />
     <field name="f_usq_document_policy_type" type="string" indexed="true" stored="false" multiValued="true" />
+    <field name="f_usq_document_committee_owner" type="string" indexed="true" stored="false" multiValued="true" />
+    <field name="f_usq_document_responsible_position" type="string" indexed="true" stored="false" multiValued="true" />
     <field name="f_title_group" type="string" indexed="true" stored="false" multiValued="true" />
 
     <!--
@@ -225,6 +232,8 @@
   <copyField source="usq_document_type" dest="f_usq_document_type" />
   <copyField source="usq_document_div_dept_office" dest="f_usq_document_div_dept_office" />
   <copyField source="usq_document_policy_type" dest="f_usq_document_policy_type" />
+  <copyField source="usq_document_committee_owner" dest="f_usq_document_committee_owner" />
+  <copyField source="usq_document_responsible_position" dest="f_usq_document_responsible_position" />
   <copyField source="title_group" dest="f_title_group" />
   <copyField source="dc_title" dest="title_sort" />
   

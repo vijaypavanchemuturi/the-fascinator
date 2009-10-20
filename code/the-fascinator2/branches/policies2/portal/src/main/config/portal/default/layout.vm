@@ -118,6 +118,7 @@ $!pageContent
           #if($breadcrumb)$breadcrumb#{else}$pageTitle#end
         </span>
       </div>
+      #*
       <div class="menubar">
         <ul>
           <li>
@@ -126,6 +127,7 @@ $!pageContent
           </li>
         </ul>
       </div>
+      *#
       <div class="nobanner"></div>
       <div class="maincontent">
         $!pageContent

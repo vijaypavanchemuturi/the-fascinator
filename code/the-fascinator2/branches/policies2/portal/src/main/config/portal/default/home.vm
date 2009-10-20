@@ -1,36 +1,67 @@
 #set($pageTitle = 'Home')
-<div class="home">
-  <div class="home-welcome">
-    <h2 class="content-title">University Calendar</h2>
-    <p>The University Calendar is the definitive source of current policy and procedural documentation relating to the governance and management of the academic affairs of the University.</p>
-  </div>
-  <div class="home-search">
-    <h2>Search</h2>
-    <p>Search for policies and procedures using keywords.</p>
-    <div class="search-box">
-      <form action="search" id="search-form" method="post">
-        <input type="text" name="query" size="70" value="$!query" />
-        <input type="submit" name="search" value="Search" />
-      </form>
-    </div>
-  </div>
-  <div id="home-browse">
-    <h2>Browse</h2>
-  #if($page.portals.size() == 1)
-    <p>There are currently no other categories available.</p>
-  #else
-    <p>Browse policies and procedures by category</p>
-    <ul>
-    #foreach($portal in $page.portals)
-      <li>
-      #if($portal.name == $portalId)
-        <span class="active-link">$portal.description</span>
-      #else
-        <a href="$contextPath/$portal.name/search">$portal.description</a>
-      #end
-      </li>
-    #end
-    </ul>
-  #end
-  </div>
-</div>
+<table class="layout">
+  <tbody>
+    <tr>
+      <td class="leftcol">
+        <div class="columnbox">
+          <div class="mainmenu">
+            <div class="mainmenu-top"></div>
+            <div class="mainmenu-heading">USQ Policies</div>
+            <ul class="facet-list">
+              <li class="selected">Home</li>
+              <li><a href="$portalPath/search">Search</a></li>
+              <li><a href="$portalPath/help">Help</a></li>
+            </ul>
+          </div>
+        </div>
+      </td>
+      <td class="middlecol">
+        <div class="home">
+          <div class="home-welcome">
+            <h2 class="content-title">University Calendar</h2>
+            <p>The University Calendar is the definitive source of current policy and procedural documentation relating to the governance and management of the academic affairs of the University.</p>
+          </div>
+          <div class="home-search">
+            <h2>Search</h2>
+            <p>Search for policies and procedures using keywords.</p>
+            <div class="search-box">
+              <form action="search" id="search-form" method="post">
+                <input type="text" name="query" size="70" value="$!query" />
+                <input type="submit" name="search" value="Search" />
+              </form>
+            </div>
+          </div>
+          <div id="newest">
+            <h2>Newest policies</h2>
+            <ul>
+            #foreach($item in $self.latest)
+              <li><a href="$portalPath/detail/$item.get('id')">$item.get("dc_title").get(0)</a></li>
+            #end
+            </ul>
+          </div>
+          #*
+          <div id="home-browse">
+            <h2>Browse</h2>
+          #if($page.portals.size() == 1)
+            <p>There are currently no other categories available.</p>
+          #else
+            <p>Browse policies and procedures by category</p>
+            <ul>
+            #foreach($portal in $page.portals)
+              <li>
+              #if($portal.name == $portalId)
+                <span class="active-link">$portal.description</span>
+              #else
+                <a href="$contextPath/$portal.name/search">$portal.description</a>
+              #end
+              </li>
+            #end
+            </ul>
+          #end
+          </div>
+          *#
+        </div>
+      </td>
+    </tr>
+  </tbody>
+</table>
