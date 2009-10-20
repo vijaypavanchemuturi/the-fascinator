@@ -251,7 +251,7 @@ public class BackupClient {
                     DigitalObject digitalObject = realStorage.getObject(oid
                             .toString());
                     log.info("Backing up: " + oid.toString());
-                    File oidFile = new File(oid.toString());
+                    // File oidFile = new File(oid.toString());
                     String outputFileName = backupDir.getAbsolutePath()
                             + File.separator + email + oid.toString();
                     File outputFile = new File(outputFileName);
