@@ -43,34 +43,76 @@ import au.edu.usq.fascinator.api.storage.Storage;
 import au.edu.usq.fascinator.common.JsonConfig;
 import au.edu.usq.fascinator.common.JsonConfigHelper;
 
+/**
+ * To backup the DigitalObject indexed in Solr
+ * <p>
+ * Rely on configuration either set in:
+ * </p>
+ * <ul>
+ * <li>system-config.json (Default) "email": "email@usq.edu.au", "backupDir":
+ * "${user.home}/.fascinator-backup"</li>
+ * <li>portal.xml <backup-email>email@usq.edu.au</backup-email> <backup-paths>
+ * <field name="default">/home/octalina/.fascinator-backup</field>
+ * </backup-paths></li>
+ * </ul>
+ * 
+ * @author Linda octalina
+ * 
+ */
+
 public class BackupClient {
 
     public static final String DATE_FORMAT = "yyyy-MM-dd";
 
     public static final String DATETIME_FORMAT = DATE_FORMAT + "'T'hh:mm:ss'Z'";
 
+    /** Default storage type will be used if none defined **/
     private static final String DEFAULT_STORAGE_TYPE = "file-system";
 
+    /** Default indexer type if none defined **/
     private static final String DEFAULT_INDEXER_TYPE = "solr";
 
     private static Logger log = LoggerFactory.getLogger(BackupClient.class);
 
+    /** Json configuration file **/
     private JsonConfig config;
 
+    /** Email used to define user space **/
     private String email = null;
 
+    /** Backup location **/
     private File backupDir = null;
 
+    /** Portal query **/
     private String portalQuery = null;
 
-    public BackupClient(File jsonFile) throws IOException {
-        config = new JsonConfig(jsonFile);
-    }
-
+    /**
+     * Backup Client Constructor
+     * 
+     * @throws IOException
+     */
     public BackupClient() throws IOException {
         config = new JsonConfig();
     }
 
+    /**
+     * Backup Client Constructor
+     * 
+     * @param jsonFile
+     * @throws IOException
+     */
+    public BackupClient(File jsonFile) throws IOException {
+        config = new JsonConfig(jsonFile);
+    }
+
+    /**
+     * Backup Client Constructor
+     * 
+     * @param email
+     * @param backupDir
+     * @param portalQuery
+     * @throws IOException
+     */
     public BackupClient(String email, String backupDir, String portalQuery)
             throws IOException {
         config = new JsonConfig();
@@ -79,16 +121,31 @@ public class BackupClient {
         setPortalQuery(portalQuery);
     }
 
+    /**
+     * Create the md5 of the email for the user space
+     * 
+     * @param email
+     */
     public void setEmail(String email) {
         if (email != null && email != "") {
             this.email = DigestUtils.md5Hex(email);
         }
     }
 
+    /**
+     * Get the email
+     * 
+     * @return email
+     */
     public String getEmail() {
         return email;
     }
 
+    /**
+     * Set Backup location being used
+     * 
+     * @param backupDir
+     */
     public void setBackupDir(String backupDir) {
         if (backupDir != null && backupDir != "") {
             this.backupDir = new File(backupDir);
@@ -98,20 +155,39 @@ public class BackupClient {
         }
     }
 
+    /**
+     * Return backup location
+     * 
+     * @return backupDir
+     */
     public File getBackupDir() {
         return backupDir;
     }
 
+    /**
+     * Set the portal Query
+     * 
+     * @param portalQuery
+     */
     public void setPortalQuery(String portalQuery) {
         if (portalQuery != null && portalQuery != "") {
             this.portalQuery = portalQuery;
         }
     }
 
+    /**
+     * Get the portal Query
+     * 
+     * @return portalQuery
+     */
     public String getPortalQuery() {
         return portalQuery;
     }
 
+    /**
+     * Run the backup code
+     * 
+     */
     public void run() {
         DateFormat df = new SimpleDateFormat(DATETIME_FORMAT);
         String now = df.format(new Date());
@@ -161,6 +237,7 @@ public class BackupClient {
             request.addParam("fq", "item_type:\"object\"");
             request.setParam("start", String.valueOf(startRow));
 
+            // Check if the portal has it's own query
             if (portalQuery != "" && portalQuery != null) {
                 request.addParam("fq", portalQuery);
             }
@@ -169,6 +246,7 @@ public class BackupClient {
                 indexer.search(request, result);
                 JsonConfigHelper js = new JsonConfigHelper(result.toString());
 
+                // Backup all the digital object returned by indexer
                 for (Object oid : js.getList("response/docs/id")) {
                     DigitalObject digitalObject = realStorage.getObject(oid
                             .toString());
