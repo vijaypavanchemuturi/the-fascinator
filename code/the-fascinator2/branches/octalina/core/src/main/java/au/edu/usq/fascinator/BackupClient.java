@@ -168,12 +168,11 @@ public class BackupClient {
             try {
                 indexer.search(request, result);
                 JsonConfigHelper js = new JsonConfigHelper(result.toString());
-                // log.info("OutputList: " + js.getList("response/docs/id"));
 
                 for (Object oid : js.getList("response/docs/id")) {
                     DigitalObject digitalObject = realStorage.getObject(oid
                             .toString());
-                    log.info("Backingup: " + oid.toString());
+                    log.info("Backing up: " + oid.toString());
                     File oidFile = new File(oid.toString());
                     String outputFileName = backupDir.getAbsolutePath()
                             + File.separator + email + oid.toString();
@@ -182,9 +181,10 @@ public class BackupClient {
                     OutputStream output = new FileOutputStream(outputFile);
 
                     // getSource still can't work. the sourceid is null
-                    // Payload payload = digitalObject.getSource();
-                    Payload payload = digitalObject.getPayload(oidFile
-                            .getName());
+                    Payload payload = digitalObject.getSource();
+
+                    // Payload payload = digitalObject.getPayload(oidFile
+                    // .getName());
                     if (payload != null) {
                         IOUtils.copy(payload.getInputStream(), output);
                     }
@@ -214,7 +214,6 @@ public class BackupClient {
         // If without args, it will just backup everything
         try {
             BackupClient backup = new BackupClient();
-            // backup.setPortalDescription(portalDescription);
             backup.run();
         } catch (IOException ioe) {
             log.error("Failed to initialise client: {}", ioe.getMessage());
