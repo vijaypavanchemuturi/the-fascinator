@@ -54,7 +54,7 @@
           <div class="mainmenu">
             <div class="mainmenu-top"></div>
             <div class="mainmenu-heading">USQ Policies</div>
-            <ul class="facet-list">
+            <ul class="menu-list">
               <li><a href="$portalPath/home">Home</a></li>
               <li class="selected">Search</li>
               <li><a href="$portalPath/help">Help</a></li>
