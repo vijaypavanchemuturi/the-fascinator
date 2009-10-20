@@ -28,14 +28,17 @@ def indexPath(name, path, includeLastPart=False):
             if part.startswith("/"):
                 part = part[1:]
             rules.add(AddField(name, part))
-            
+
 def indexList(name, values):
     for value in values:
         if name=="usq_document_policy_type":
-            indexPath(name, value, includeLastPart=True)
+            indexPath(name, value, True)
+        elif name=="usq_document_effective_date":
+            indexPath(name, time.strftime("%Y/%B", time.strptime(value, "%Y-%m-%d")), True)
+            rules.add(AddField("d_" + name, value + "T00:00:00Z")) # add field for date querying
         else:
             rules.add(AddField(name, value))
-            
+
 def indexTitleGroup(name, values):
     for value in values:
         firstChar = ord(value.strip().lower()[:1])
@@ -119,8 +122,6 @@ if isMetadata:
                 key, value = relation.split("::")
                 value = value.strip()
                 key = key.replace("_5f","") #ICE encoding _ as _5f?
-                if key=="usq_document_policy_type":
-                    value = "All/" + value 
                 if relationDict.has_key(key):
                     relationDict[key].append(value)
                 else:
@@ -205,7 +206,6 @@ if isMetadata:
     indexPath("file_path", object.getId().replace("\\", "/"))
     
     tagsRdf = object.getPayload("tags.rdf")
-    print "tagsRdf: %s" % tagsRdf
     if tagsRdf is not None:
         tagsModel = indexer.getRdfModel(tagsRdf)
         hashId = md5.new(object.getId()).hexdigest()
