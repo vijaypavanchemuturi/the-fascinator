@@ -56,4 +56,11 @@ public interface DigitalObject {
      */
     public List<Payload> getPayloadList();
 
+    /**
+     * Gets the Source related to this object
+     * 
+     * @return a payload
+     */
+    public Payload getSource();
+
 }

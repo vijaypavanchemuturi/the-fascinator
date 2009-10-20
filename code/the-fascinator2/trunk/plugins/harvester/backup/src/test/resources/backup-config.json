@@ -1,8 +1,8 @@
 {
-  "storage" : {
-    "type" : "mock-file-system",
-    "file-system" : {
-      "home": "/tmp/_fs_test"
-    }
-  }
+  "backup": {
+	   "email": "email@usq.edu.au",
+	   "backupDir": "${user.home}/.fascinator-backup",
+	   "ignoreFilter": ".svn|.ice|.*|~*",
+	   "tf-storage-type": "mock-file-system"
+   }
 }

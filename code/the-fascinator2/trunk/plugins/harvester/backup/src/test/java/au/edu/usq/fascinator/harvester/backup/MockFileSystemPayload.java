@@ -36,6 +36,14 @@ import au.edu.usq.fascinator.api.storage.PayloadType;
 import au.edu.usq.fascinator.common.MimeTypeUtil;
 import au.edu.usq.fascinator.common.storage.impl.GenericPayload;
 
+/**
+ * MockFileSystemPayload is the replication of FileSystemPayload used in
+ * fascinator and is used in BackupManagerTest unit test
+ * 
+ * @author Linda Octalina
+ * 
+ */
+
 public class MockFileSystemPayload extends GenericPayload {
 
     private Logger log = LoggerFactory.getLogger(MockFileSystemPayload.class);

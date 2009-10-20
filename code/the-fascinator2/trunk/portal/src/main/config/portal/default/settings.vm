@@ -172,12 +172,11 @@ $(function() {
       	  <fieldset>
 	      	  <ol><button id="add-backup-path">Create new backup Path</button>
 	      	  <!--<li><label for="locationName">Location Name</label><label for="locationPath">Location path</label></li>-->
-	      	  #foreach($entry in $self.portal.backupPaths)
-	          #set($field = $entry.key)
-	          #set($label = $entry.value)
+	      	  #foreach($entry in $self.portal.backupPaths.keySet())
+	      	  #set($label = $self.portal.backupPaths.get($entry))
 	          #set($id = "backupPaths_$velocityCount")
 		          <li id="$id">
-		            <input id="${id}_name" name="${id}_name" size="25" type="text" value="$field" />
+		            <input id="${id}_name" name="${id}_name" size="25" type="text" value="$entry" />
 		            <input id="${id}_label" name="${id}_label" size="25" type="text" value="$label" />
 		            <button class="remove-backup-field">del</button>
 		          </li>

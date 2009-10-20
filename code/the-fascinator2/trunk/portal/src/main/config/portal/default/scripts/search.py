@@ -2,9 +2,9 @@ import array, md5, os
 
 from au.edu.usq.fascinator.api.indexer import SearchRequest
 from au.edu.usq.fascinator.api.storage import Payload, PayloadType
+from au.edu.usq.fascinator.api import PluginManager
 from au.edu.usq.fascinator.common import JsonConfig, JsonConfigHelper
 from au.edu.usq.fascinator.common.storage.impl import GenericPayload
-from au.edu.usq.fascinator.common import JsonConfig
 from au.edu.usq.fascinator.portal import Pagination, Portal
 
 from java.io import ByteArrayInputStream, ByteArrayOutputStream
@@ -73,8 +73,6 @@ class SearchData:
             if formData.get("verb") == "tag":
                 self.__tag()
             self.__search()
-            if formData.get("backupAction") == "Backup":
-                self.__backup()
     
     def hasTags(self):
         return len(self.__tags) > 0
@@ -103,24 +101,6 @@ class SearchData:
         tagsPayload.close()
         # now re-index the tag
         Services.indexer.index(oid)
-    
-    def __backup(self):
-        backupManager = PluginManager.getHarvester("backup")
-        print " * search.py: Backup email=%s" % self.__portal.email 
-        if backupManager and self.__portal.email and self.__portal.backupPaths:
-            print " * search.py: backup... "
-            json = JsonConfig()
-            backupManager.init(json.getSystemFile())
-            backupManager.setEmailAddress(self.__portal.email)
-            paths = self.__portal.backupPaths
-            firstpath = ""
-            #assume only one path for now... Will have a look when i m back...
-            for key in paths:
-                firstPath = paths[key]
-                break
-            print self.__result
-            backupManager.setBackupLocation(firstPath)
-            backupManager.backup(self.__result.getList("response/docs").toArray())
     
     def __search(self):
         recordsPerPage = self.__portal.recordsPerPage

@@ -30,7 +30,6 @@ import org.apache.commons.io.FilenameUtils;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import au.edu.usq.fascinator.common.JsonConfigHelper;
@@ -49,55 +48,57 @@ import au.edu.usq.fascinator.common.storage.impl.GenericPayload;
  * files are big - Directly copy files one by one to destination</li>
  * </ul>
  * 
- * Note: This test is ignored for now because it fails in Windows due to no
- * "rsync" command
+ * Window uses cwrsync Linux/Mac OS use rsync
  * 
  * Note:
  * <ul>
  * <li>1. Keep the fullpath of the file in the destination</li>
  * </ul>
  * 
- * e.g. <md5 of emailaddress/home/octalina/somedirectory/xxx.odt
+ * e.g. <md5 of emailaddress>/home/octalina/somedirectory/xxx.odt
  * 
  * @author Linda Octalina
  * 
  */
-@Ignore
+
 public class BackupManagerTest {
     public BackupManager backupManager;
 
-    private GenericDigitalObject fileObject1, fileObject2;
+    private GenericDigitalObject fileObject1, fileObject2, fileObject3;
 
+    /** File system storage that is used for the testing */
     private MockFileSystemStorage fsStorage;
 
-    private String tmpDir = System.getProperty("java.io.tmpdir");
+    private File configFile;
 
-    private static final String BACKUPLOCATION = System
-            .getProperty("user.home")
-            + File.separator + ".backup";
-    private File backupFile;
-
-    public File testFile1;
-    public File testFile2;
+    public File testFile1, testFile2, testFile3;
 
     @Before
     public void setup() throws Exception {
         fsStorage = new MockFileSystemStorage();
-        fsStorage.init(getConfig("/backup-config.json"));
-        System.out.println(fsStorage.getHomeDir());
+        configFile = new File(getClass().getResource("/backup-config.json")
+                .toURI());
+        // Set up filesystem storage
+        fsStorage.init(configFile);
         if (fsStorage.getHomeDir().exists()) {
             FileUtils.deleteDirectory(fsStorage.getHomeDir());
         }
 
-        backupFile = new File(BACKUPLOCATION);
-        if (backupFile.exists()) {
-            FileUtils.deleteDirectory(backupFile);
+        // Initialise the backup plugin
+        backupManager = new BackupManager();
+        backupManager.init(configFile);
+
+        // Remove the exsiting backup directory for testing
+        if (backupManager.getBackupDir().exists()) {
+            FileUtils.deleteDirectory(backupManager.getBackupDir());
         }
 
         String file1 = "/fs-harvest-root/test.txt";
         String file2 = "/fs-harvest-root/books/book1.pdf";
+        String file3 = "/fs-harvest-root/pictures/diagram with space1.gif";
         testFile1 = new File(getClass().getResource(file1).toURI());
         testFile2 = new File(getClass().getResource(file2).toURI());
+        testFile3 = new File(getClass().getResource(file3).toURI());
 
         fileObject1 = new GenericDigitalObject(testFile1.getAbsolutePath());
         GenericPayload testPayload1 = new GenericPayload(testFile1.getName(),
@@ -112,54 +113,60 @@ public class BackupManagerTest {
         testPayload2.setInputStream(getClass().getResourceAsStream(file2));
         fileObject2.addPayload(testPayload2);
 
+        fileObject3 = new GenericDigitalObject(testFile3.getAbsolutePath());
+        GenericPayload testPayload3 = new GenericPayload(testFile3.getName(),
+                "Picture file", "image/gif");
+        testPayload3.setInputStream(getClass().getResourceAsStream(file3));
+        fileObject3.addPayload(testPayload3);
+
         fsStorage.addObject(fileObject1);
         fsStorage.addObject(fileObject2);
-
-        backupManager = new BackupManager();
-        backupManager.init(getConfig("/backup-config.json"));
-
-        backupManager.setEmailAddress("someEmail@usq.edu.au");
-        backupManager.setBackupLocation(BACKUPLOCATION);
-
+        fsStorage.addObject(fileObject3);
     }
 
     @After
     public void cleanup() throws IOException {
         FileUtils.deleteDirectory(fsStorage.getHomeDir());
-        if (backupFile.exists()) {
-            FileUtils.deleteDirectory(backupFile);
+        if (backupManager.getBackupDir().exists()) {
+            FileUtils.deleteDirectory(backupManager.getBackupDir());
         }
     }
 
     @Test
     public void testEmailAddress() throws Exception {
-        backupManager.setEmailAddress("someEmail@usq.edu.au");
-        Assert.assertEquals("92069bf2eafca5e28488be4bd77ba225", backupManager
+        Assert.assertEquals("3c6e1c07ccd4f969bbc93f2f0f85d9f5", backupManager
                 .getEmailAddress());
     }
 
     @Test
     public void backupTest() throws IOException, URISyntaxException {
         JsonConfigHelper jsonHelper = searchResult();
-
         backupManager.backup(jsonHelper.getList("docs").toArray());
-        // Should have more checking.
-    }
 
-    private File getConfig(String filename) throws Exception {
-        return new File(getClass().getResource(filename).toURI());
+        String userSpace = backupManager.getBackupDir().getAbsolutePath()
+                + File.separator + backupManager.getEmailAddress();
+
+        File file1BackupPath = new File(userSpace + testFile1.getAbsolutePath());
+        // Assert.assertTrue(file1BackupPath.exists());
+
+        File file2BackupPath = new File(userSpace + testFile2.getAbsolutePath());
+        // Assert.assertTrue(file2BackupPath.exists());
     }
 
     private JsonConfigHelper searchResult() throws IOException,
             URISyntaxException {
-        String path1 = FilenameUtils.separatorsToUnix(testFile1
+        String path1 = FilenameUtils.separatorsToSystem(testFile1
                 .getAbsolutePath());
-        String path2 = FilenameUtils.separatorsToUnix(testFile2
+        String path2 = FilenameUtils.separatorsToSystem(testFile2
+                .getAbsolutePath());
+        String path3 = FilenameUtils.separatorsToSystem(testFile3
                 .getAbsolutePath());
         String results = "{" + "\"docs\" : [ {" + "\"id\": \"" + path1 + "\""
                 + ", " + "\"storageId\": [ \"" + path1 + "\" ] " + "}, " + "{"
                 + "\"id\": \"" + path2 + "\"" + ", " + "\"storageId\": [ \""
-                + path2 + "\" ] " + "}" + " ] " + "}";
+                + path2 + "\" ] " + "}, " + "{" + "\"id\": \"" + path3 + "\""
+                + ", " + "\"storageId\": [ \"" + path3 + "\" ] " + "}" + " ] "
+                + "}";
         return new JsonConfigHelper(results);
     }
 }
