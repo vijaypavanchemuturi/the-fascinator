@@ -2,11 +2,11 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>au.edu.usq.fascinator.maven-plugins</groupId>
-	<artifactId>rdf-reactor-file</artifactId>
+	<artifactId>rdf-reactor</artifactId>
 	<packaging>maven-plugin</packaging>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>rdf-reactor-file Maven Mojo</name>
-	<url>http://maven.apache.org</url>
+	<name>RDF Reactor Maven Plugin</name>
+	<description>A Maven plugin that allows you to list a set of RDF Schemas that the plugin will turn into java classes (using RDF Reactor).</description>
 	<parent>
 		<artifactId>the-fascinator</artifactId>
 		<groupId>au.edu.usq.fascinator</groupId>
@@ -18,13 +18,6 @@
 			<url>http://www.gnu.org/licenses/gpl-2.0.txt</url>
 		</license>
 	</licenses>
-	<repositories>
-		<repository>
-			<id>adfi-usq-repository</id>
-			<url>http://fascinator.usq.edu.au/nexus/content/groups/public</url>
-		</repository>
-	</repositories>
-
 	
 	<dependencies>
 		<dependency>

@@ -3,6 +3,7 @@ package au.edu.usq.fascinator.maven_plugins.rdf_reactor_file;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -13,7 +14,9 @@ import java.util.HashSet;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugin.logging.Log;
+import org.ontoware.rdf2go.RDF2Go;
 import org.ontoware.rdf2go.Reasoning;
+import org.ontoware.rdf2go.model.Model;
 import org.ontoware.rdfreactor.generator.CodeGenerator;
 
 /**
@@ -21,6 +24,8 @@ import org.ontoware.rdfreactor.generator.CodeGenerator;
  * 
  */
 public class SchemaItem {
+
+	private Model model = RDF2Go.getModelFactory().createModel();
 
 	/**
 	 * Just a logger
@@ -36,25 +41,18 @@ public class SchemaItem {
 	private String schemaName;
 
 	/**
-	 * The URL of the RDF Schema.
-	 * 
-	 * @parameter
-	 */
-	private URL url;
-
-	/**
-	 * A local file containing the RDF Schema
-	 * 
-	 * @parameter
-	 */
-	private File file;
-
-	/**
 	 * A list of supporting URLs that are aggregated with the main schema.
 	 * 
 	 * @parameter
 	 */
 	private HashSet<URL> schemaUrlLibrary;
+
+	/**
+	 * A list of supporting filess that are aggregated with the main schema.
+	 * 
+	 * @parameter
+	 */
+	private HashSet<File> schemaFileLibrary;
 
 	/**
 	 * 
@@ -81,20 +79,6 @@ public class SchemaItem {
 	/**
 	 * @return
 	 */
-	public URL getUrl() {
-		return url;
-	}
-
-	/**
-	 * @return
-	 */
-	public File getFile() {
-		return this.file;
-	}
-
-	/**
-	 * @return
-	 */
 	public String getPackageName() {
 		return packageName;
 	}
@@ -114,27 +98,42 @@ public class SchemaItem {
 	}
 
 	/**
+	 * @return
+	 */
+	public HashSet<File> getSchemaFileLibrary() {
+		return schemaFileLibrary;
+	}
+
+	/**
 	 * @param workingDirectory
 	 * @return
 	 * @throws IOException
 	 */
-	private File loadSchema(File workingDirectory) throws IOException {
-		if (file != null) {
-			log.info("Schema requested from " + file.getAbsolutePath());
-			return file;
-		} else if (url != null) {
-			
-			String rdfsFile = workingDirectory.getPath() + "\\"
-					+ schemaName.replaceAll(" ", "_") + "\\"
-					+ url.toExternalForm().replaceAll("\\W", "_") 
-					+ ".rdfs";
-			log.info("Schema requested from " + url.toExternalForm()
-					+ " will be downloaded to " + rdfsFile);
-
-			return downloadSchema(url, rdfsFile);
-
+	private Model loadSchema(File workingDirectory) throws IOException {
+		if (schemaUrlLibrary != null) {
+			for (URL schema : schemaUrlLibrary) {
+				log.info("Schema requested from " + schema.toExternalForm());
+				File rdfs = downloadSchema(schema, getSchemaFilePath(
+						workingDirectory, schema));
+				model.readFrom(new FileReader(rdfs));
+			}
 		}
-		return null;
+
+		if (schemaFileLibrary != null) {
+			for (File schema : schemaFileLibrary) {
+				log.info("Schema requested from " + schema.getAbsolutePath());
+				model.readFrom(new FileReader(schema));
+			}
+		}
+
+		return model;
+	}
+
+	private String getSchemaFilePath(File workingDirectory, URL url) {
+		String rdfsFile = workingDirectory.getPath() + "\\"
+				+ schemaName.replaceAll(" ", "_") + "\\"
+				+ url.toExternalForm().replaceAll("\\W", "_") + ".rdfs";
+		return rdfsFile;
 	}
 
 	private File downloadSchema(URL url, String outputFileName)
@@ -207,38 +206,34 @@ public class SchemaItem {
 	protected void generateCode(boolean skipBuiltins, File workingDirectory,
 			File outputDirectory, File rdfReactorLogfile, Log mavenLogger)
 			throws MojoExecutionException, MojoFailureException {
-
+		model.open();
 		this.log = mavenLogger;
 		// Check to make sure that we have a file or a URL
-		if (url == null && file == null) {
+		if (schemaUrlLibrary == null && schemaFileLibrary == null) {
 			throw new MojoFailureException(this, "Schema file error",
-					"No location (file or URL given for " + this.schemaName);
-		}
-		if (url != null && file != null) {
-			log.info("A file and a URL was provided for " + this.schemaName
-					+ " so I'll use the file - only one should be provided");
+					"No locations (file or URL given for " + this.schemaName);
 		}
 
-		File workingSchemaFile = null;
+		Model workingSchemaModel = null;
 		try {
-			workingSchemaFile = loadSchema(workingDirectory);
+			workingSchemaModel = loadSchema(workingDirectory);
 		} catch (IOException e) {
 			throw new MojoFailureException(e, "Schema access error",
 					"Could not access the requested schema for " + schemaName);
 		}
-		log.info("Generating code for " + schemaName + " from RDF schema file "
-				+ workingSchemaFile + " into dir " + outputDirectory
+		log.info("Generating code for " + schemaName
 				+ ". Classes will be in package " + packageName
 				+ " and with method prefix " + methodPrefix
 				+ ". skipBuiltins is " + skipBuiltins + ".");
 
 		try {
-			CodeGenerator.generate(workingSchemaFile.getAbsolutePath(),
-					outputDirectory.getAbsolutePath(), packageName,
-					Reasoning.rdfs, skipBuiltins, methodPrefix);
+			CodeGenerator.generate(workingSchemaModel, outputDirectory,
+					packageName, Reasoning.rdfs, skipBuiltins, methodPrefix);
 		} catch (Exception e) {
 			throw new MojoFailureException(e, "RDFS processing error",
 					"Could not generate code from the specified RDF schema file.");
+		} finally {
+			model.close();
 		}
 
 	}
