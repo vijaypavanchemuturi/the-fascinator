@@ -139,8 +139,6 @@ public class GenericDigitalObject implements DigitalObject {
 
         if (payload.getType().equals(PayloadType.Data)) {
             sourceId = payload.getId();
-            log.info("**************: {}, {} " + payload.getType(), payload
-                    .getId());
         }
     }
 
@@ -159,7 +157,6 @@ public class GenericDigitalObject implements DigitalObject {
 
     @Override
     public Payload getSource() {
-        log.info("Source id: " + sourceId);
         return getPayload(sourceId);
     }
 }
