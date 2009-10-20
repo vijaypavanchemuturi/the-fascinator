@@ -6,7 +6,6 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Properties;
 
 import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
@@ -14,15 +13,19 @@ import org.apache.velocity.app.Velocity;
 import org.apache.velocity.app.VelocityEngine;
 import org.apache.velocity.exception.ParseErrorException;
 import org.apache.velocity.exception.ResourceNotFoundException;
-import org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader;
 import org.ontoware.rdf2go.ModelFactory;
 import org.ontoware.rdf2go.RDF2Go;
 import org.ontoware.rdf2go.exception.ModelRuntimeException;
 import org.ontoware.rdf2go.model.Model;
+import org.ontoware.rdf2go.model.node.impl.DatatypeLiteralImpl;
 import org.ontoware.rdf2go.model.node.impl.PlainLiteralImpl;
+import org.ontoware.rdf2go.model.node.impl.URIImpl;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import au.edu.usq.fascinator.common.nco.Contact;
 import au.edu.usq.fascinator.common.nco.EmailAddress;
+import au.edu.usq.fascinator.common.nfo.Bookmark;
 import au.edu.usq.fascinator.common.nie.InformationElement;
 
 import com.sun.syndication.feed.module.DCModuleImpl;
@@ -37,6 +40,12 @@ import com.sun.syndication.feed.synd.SyndPerson;
 import com.sun.syndication.feed.synd.SyndPersonImpl;
 
 public class FeedHelper {
+	/**
+	 * Generic logging
+	 */
+	private static Logger log = LoggerFactory.getLogger(FeedHelper.class);
+
+	private static VelocityEngine ve = null;
 
 	public static List<SyndPerson> getAuthors(SyndEntry entry) {
 		if (entry.getAuthors().size() > 0) {
@@ -95,9 +104,10 @@ public class FeedHelper {
 	public static String toXHTMLSegment(SyndEntry entry, String templateFile)
 			throws ResourceNotFoundException, ParseErrorException, Exception {
 
-		VelocityEngine ve = new VelocityEngine();
-		ve.init("velocity.properties");
-
+		if (ve == null) {
+			ve = new VelocityEngine();
+			ve.init("velocity.properties");
+		}
 		VelocityContext context = new VelocityContext();
 
 		Template template = Velocity.getTemplate(templateFile);
@@ -137,37 +147,42 @@ public class FeedHelper {
 		model.open();
 		InformationElement nie = new InformationElement(model, entry.getUri(),
 				true);
+
+		// Set title
 		nie.setTitle(entry.getTitle());
 
-		/*
-		 * model.addStatement(nie.getResource(),
-		 * InformationElement.CONTENTCREATED, dateToXMLDate(entry
-		 * .getPublishedDate()), new URIImpl(
-		 * "http://www.w3.org/2001/XMLSchema#date"));
-		 */
-
+		// Creation/Publish date
+		String pubDate = dateToXMLDate(entry.getPublishedDate());
+		System.out.println(pubDate);
+		DatatypeLiteralImpl pubDateNode = new DatatypeLiteralImpl(pubDate,
+				new URIImpl("http://www.w3.org/2001/XMLSchema#dateTime",false));
+		nie.setContentCreated(pubDateNode);
+		
 		// Add Description
 		if (entry.getDescription() != null) {
 			String description = entry.getDescription().getValue();
 			PlainLiteralImpl node = new PlainLiteralImpl(description);
 			nie.addDescription(node);
-
-			// model.addStatement(nie.getResource(), Thing.DESCRIPTION, model
-			// .createPlainLiteral(description));
 		}
 
 		// Add links
+		// see:
+		// http://www.semanticdesktop.org/ontologies/2007/03/22/nfo/#Bookmark
+		// NIE.links has DataObject type so I chose RemoteDataObject
+		// 
 		/*
 		 * for (SyndLink link : (List<SyndLink>) FeedHelper.getLinks(entry)) {
 		 * System.out.println("  - " + link.getTitle() + ": " + link.getHref() +
-		 * "\n"); Bookmark bookmark = new Bookmark(model, true);
-		 * InformationElement bookmarkNie = new InformationElement(model, true);
-		 * bookmarkNie.setTitle(entry.getTitle());
+		 * "\n");
 		 * 
-		 * model.addStatement(bookmark.getResource(), InformationElement.TITLE,
-		 * bookmarkNie.getResource()); model.addStatement(nie.getResource(),
-		 * au.usq.edu.fascinator.common.nfo.InformationElement., bookmark
-		 * .getResource()); }
+		 * Bookmark bookmark = new Bookmark(model, true);
+		 * 
+		 * // Set the title if (link.getTitle() != null) {
+		 * 
+		 * data.setTitle(link.getTitle()); bookmark.setValue(bookmarkNie); }
+		 * 
+		 * if (link.getHref() != null) { bookmark.setLinks(new
+		 * PlainLiteralImpl(link.getHref())); } nie.addLinks(); }
 		 */
 
 		// Add categories
@@ -176,6 +191,7 @@ public class FeedHelper {
 			nie.addKeyword(category.getName());
 		}
 
+		// Authors
 		for (SyndPerson author : (List<SyndPerson>) FeedHelper
 				.getAuthors(entry)) {
 			Contact contact = null;
@@ -199,6 +215,7 @@ public class FeedHelper {
 							contact.getResource());
 		}
 
+		// Plain text
 		StringBuilder plainText = new StringBuilder();
 		for (SyndContent content : (List<SyndContent>) FeedHelper
 				.getContents(entry)) {
