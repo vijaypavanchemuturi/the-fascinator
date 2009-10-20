@@ -2,9 +2,9 @@
     "harvester": {
         "type": "feed-harvester",
         "feed-harvester": {
-            "urls": ["http://blog.duncan.dickinson.name/feeds/posts/default",
-            		"http://rss.slashdot.org/Slashdot/slashdot"],
-            "cache": "target/feed-reader"
+            "urls": ["http://blog.duncan.dickinson.name/feeds/posts/default"],
+            "cache": "target/feed-reader",
+            "template": "target/classes/FeedEntry.vm"
         }
     },
     

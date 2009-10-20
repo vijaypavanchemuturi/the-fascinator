@@ -18,9 +18,13 @@
  */
 package au.edu.usq.fascinator.harvester.feed;
 
+import java.io.IOException;
+
 import au.edu.usq.fascinator.common.storage.impl.GenericDigitalObject;
 
 import com.sun.syndication.feed.synd.SyndEntry;
+
+
 
 public class FeedItemDigitalObject extends GenericDigitalObject {
 
@@ -30,9 +34,14 @@ public class FeedItemDigitalObject extends GenericDigitalObject {
      * @param file a file
      */
     public FeedItemDigitalObject(SyndEntry entry) {
-        super(entry.getUri());
+        super(entry.getUri() + "/content");
         this.setMetadataId("metadata");
         addPayload(new FeedItemMetadataPayload(entry));
-        addPayload(new FeedItemContentPayload(entry));
+        try {
+			addPayload(new FeedItemContentPayload(entry));
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
     }
 }

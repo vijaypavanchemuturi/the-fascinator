@@ -56,13 +56,14 @@ if rdfPayload is not None:
     rdfModel = indexer.getRdfModel(rdfPayload)
     
     #Set write to False so it won't write to the model
-    informationElement = InformationElement(rdfModel, object.getId(), False)
+    informationElement = InformationElement(rdfModel, object.getId().replace("/content",""), False)
     
     #1. get title 
     allTitles = informationElement.getAllTitle();
     while (allTitles.hasNext()):
         title = allTitles.next()
         titleList.append(title)
+        print "**********************" ,title
 
     print(rdfModel);
     
@@ -76,20 +77,19 @@ if rdfPayload is not None:
 #             creatorList.append(allFullnames.next())
     
     #3. get FullText
-#    if informationElement.hasPlainTextContent():
-#        allPlainTextContents = informationElement.getAllPlainTextContent()
-#        print(allPlainTextContents);
-#        while(allPlainTextContents.hasNext()):
-#            fulltextString = allPlainTextContents.next()
-#            fulltext.append(fulltextString)
+    if informationElement.hasPlainTextContent():
+        allPlainTextContents = informationElement.getAllPlainTextContent()
+        print(allPlainTextContents);
+        while(allPlainTextContents.hasNext()):
+            fulltextString = allPlainTextContents.next()
+            fulltext.append(fulltextString)
             
     #4. get description
-#    if informationElement.hasDescription():
-#        allDescription = informationElement.getAllDescription()
-#        while(allDescription.hasNext()):
-#            print(description);
-#            description = allDescription.next();
-#            descriptionList.append(description)
+    if informationElement.hasDescription():
+        allDescription = informationElement.getAllDescription()
+        while(allDescription.hasNext()):
+            description = allDescription.next();
+            descriptionList.append(description)
 
     
     
@@ -119,7 +119,7 @@ indexing(["dc_title"], titleList)
 #    indexing([key], relationDict[key])
 
 indexing(["dc_description"], descriptionList)
-#indexing(["dc_format"], formatList)
+indexing(["dc_format"], ["text/xml"])
 indexing(["full_text"], fulltext)
 #indexing(["dc_date"], creationDate)
 indexing(["dc_subject"], subjectList)

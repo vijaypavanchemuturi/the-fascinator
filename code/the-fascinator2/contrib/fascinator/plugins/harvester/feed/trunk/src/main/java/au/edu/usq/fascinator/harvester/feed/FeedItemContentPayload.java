@@ -18,7 +18,10 @@
  */
 package au.edu.usq.fascinator.harvester.feed;
 
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStream;
+import java.util.Properties;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.velocity.exception.ParseErrorException;
@@ -32,20 +35,24 @@ import com.sun.syndication.feed.synd.SyndEntry;
 
 public class FeedItemContentPayload extends GenericPayload {
 
+	private static String htmlTemplate = null;
     private SyndEntry feedEntry;
 
-    public FeedItemContentPayload(SyndEntry payload) {
+    public FeedItemContentPayload(SyndEntry payload) throws IOException {
         this.feedEntry = payload;
         setId("content");
         setLabel("RSS/ATOM Feed");
         setContentType("text/xml");
-        setType(PayloadType.Enrichment);
+        setType(PayloadType.Data);
+    	if (FeedItemContentPayload.htmlTemplate == null) {
+        	FeedItemContentPayload.htmlTemplate = FeedHarvester.getTemplate();
+    	}
     }
 
     @Override
-    public InputStream getInputStream() {
+    public InputStream getInputStream()  {
         try {
-            return IOUtils.toInputStream(FeedHelper.toXHTMLSegment(feedEntry));
+            return IOUtils.toInputStream(FeedHelper.toXHTMLSegment(feedEntry,FeedItemContentPayload.htmlTemplate));
         } catch (ResourceNotFoundException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();

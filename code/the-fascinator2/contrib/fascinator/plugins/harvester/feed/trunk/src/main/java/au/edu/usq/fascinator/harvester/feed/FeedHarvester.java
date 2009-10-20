@@ -26,6 +26,7 @@ import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.ServiceLoader;
 
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
@@ -56,6 +57,8 @@ public class FeedHarvester extends ItemListener implements Harvester, Configurab
 	 */
 	private JsonConfig config;
 
+	private static String template=null;
+	
 	/**
 	 * 
 	 */
@@ -91,6 +94,14 @@ public class FeedHarvester extends ItemListener implements Harvester, Configurab
 		return Messages.getString("harvester-plugin-description");
 	}
 
+	public static void setTemplate(String templateFile){
+		template = templateFile;
+	}
+	
+	public static String getTemplate(){
+		return template;
+	}
+	
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -106,7 +117,7 @@ public class FeedHarvester extends ItemListener implements Harvester, Configurab
 		List<Object> urlList = config.getList("harvester/feed-harvester/urls");
 		// Load the cache location
 		cacheDirectory = config.get("harvester/feed-harvester/cache", "");
-
+		FeedHarvester.setTemplate(config.get("harvester/feed-harvester/template", ""));
 		feeds = new HashSet<FeedReader>();
 		
 		// Now iterate through the urls and create FeedReaders
@@ -185,17 +196,7 @@ public class FeedHarvester extends ItemListener implements Harvester, Configurab
 	}
 	
     public static void main(String[] args) {
-        if (args.length < 1) {
-            log.info("Usage: harvest <json-config>");
-        } else {
-            File jsonFile = new File(args[0]);
-            try {
-                HarvestClient harvest = new HarvestClient(jsonFile);
-                harvest.run();
-            } catch (IOException ioe) {
-                log.error("Failed to initialise client: {}", ioe.getMessage());
-            }
-        }
+    	HarvestClient.main(args);
     }
 
 }

@@ -34,11 +34,6 @@
 		</dependency>
 		<dependency>
 			<groupId>au.edu.usq.fascinator.plugins</groupId>
-			<artifactId>plugin-harvester-filesystem</artifactId>
-			<version>${fascinator-version}</version>
-		</dependency>
-		<dependency>
-			<groupId>au.edu.usq.fascinator.plugins</groupId>
 			<artifactId>plugin-storage-filesystem</artifactId>
 			<version>${fascinator-version}</version>
 		</dependency>
@@ -52,6 +47,11 @@
 			<artifactId>feed-reader</artifactId>
 			<version>${feed-reader-version}</version>
 		</dependency>
+		<dependency>
+          <groupId>au.edu.usq.fascinator.plugins</groupId>
+          <artifactId>plugin-harvester-oai-pmh</artifactId>
+          <version>${fascinator-version}</version>
+        </dependency>
 	</dependencies>
 	<build>
 		<pluginManagement>
@@ -75,7 +75,6 @@
 						</links>
 					</configuration>
 					<dependencies>
-
 					</dependencies>
 				</plugin>
 			</plugins>
@@ -86,13 +85,27 @@
 				<artifactId>exec-maven-plugin</artifactId>
 				<version>1.1.1</version>
 				<configuration>
-					<mainClass>au.edu.usq.fascinator.harvester.feed.FeedHarvester</mainClass>
+					<mainClass>au.edu.usq.fascinator.harvester.feed.FeedHarvester
+					</mainClass>
 					<arguments>
 						<argument>src/test/resources/properties.json</argument>
-					</arguments>
+					</arguments>	
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<configuration>
+					<archive>
+						<manifest>
+							<mainClass>au.edu.usq.fascinator.harvester.feed.FeedHarvester
+							</mainClass>
+						</manifest>
+					</archive>
 				</configuration>
 			</plugin>
 		</plugins>
+
 	</build>
 
 </project>
