@@ -6,19 +6,15 @@
 	<packaging>maven-plugin</packaging>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>RDF Reactor Maven Plugin</name>
-	<description>A Maven plugin that allows you to list a set of RDF Schemas that the plugin will turn into java classes (using RDF Reactor).</description>
+	<description>A Maven plugin that allows you to list a set of RDF
+		Schemas that the plugin will turn into java classes (using RDF
+		Reactor).</description>
 	<parent>
-		<artifactId>the-fascinator</artifactId>
-		<groupId>au.edu.usq.fascinator</groupId>
-		<version>0.2.0-SNAPSHOT</version>
+		<groupId>au.edu.usq.fascinator.contrib.maven</groupId>
+		<artifactId>plugins</artifactId>
+		<version>0.0.1-SNAPSHOT</version>
 	</parent>
-	<licenses>
-		<license>
-			<name>GNU GENERAL PUBLIC LICENSE V2</name>
-			<url>http://www.gnu.org/licenses/gpl-2.0.txt</url>
-		</license>
-	</licenses>
-	
+
 	<dependencies>
 		<dependency>
 			<groupId>org.slf4j</groupId>
