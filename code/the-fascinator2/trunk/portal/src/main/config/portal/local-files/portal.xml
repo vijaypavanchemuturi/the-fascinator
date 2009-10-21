@@ -5,7 +5,7 @@
     <records-per-page>5</records-per-page>
     <facet-count>25</facet-count>
     <facet-sort-by-count>false</facet-sort-by-count>
-    <backup-email>octalina@usq.edu.au</backup-email>
+    <backup-email>email@usq.edu.au</backup-email>
     <backup-paths>
         <field name="/home/octalina/.fascinator-backup">default</field>
     </backup-paths>
