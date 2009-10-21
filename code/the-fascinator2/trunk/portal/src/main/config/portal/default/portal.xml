@@ -7,7 +7,6 @@
     <facet-sort-by-count>false</facet-sort-by-count>
     <backup-email>email@usq.edu.au</backup-email>
     <backup-paths>
-        <field>default</field>
         <field name="/home/octalina/.fascinator-backup"></field>
     </backup-paths>
     <facet-fields>
