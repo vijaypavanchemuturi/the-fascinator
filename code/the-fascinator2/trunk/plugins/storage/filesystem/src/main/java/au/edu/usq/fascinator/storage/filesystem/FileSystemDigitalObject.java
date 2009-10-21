@@ -28,6 +28,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import au.edu.usq.fascinator.api.storage.Payload;
+import au.edu.usq.fascinator.api.storage.PayloadType;
 import au.edu.usq.fascinator.common.storage.impl.GenericDigitalObject;
 
 public class FileSystemDigitalObject extends GenericDigitalObject {
@@ -90,8 +91,12 @@ public class FileSystemDigitalObject extends GenericDigitalObject {
                         }
                         payloadFile = new File(relPath, file.getName());
                     }
-                    payloadList.add(new FileSystemPayload(getPath(),
-                            payloadFile));
+                    Payload payload = new FileSystemPayload(getPath(),
+                            payloadFile);
+                    if (payload.getType().equals(PayloadType.Data)) {
+                        setSourceId(payload.getId());
+                    }
+                    payloadList.add(payload);
                 } else if (file.isDirectory()) {
                     addPayloadDir(payloadList, file, depth + 1);
                 }
@@ -104,4 +109,9 @@ public class FileSystemDigitalObject extends GenericDigitalObject {
         return String.format("%s [%s]", getId(), getPath());
     }
 
+    @Override
+    public Payload getSource() {
+        getPayloadList();
+        return super.getSource();
+    }
 }
