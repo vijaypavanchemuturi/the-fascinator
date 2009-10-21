@@ -7,7 +7,7 @@
     <facet-sort-by-count>false</facet-sort-by-count>
     <backup-email>octalina@usq.edu.au</backup-email>
     <backup-paths>
-        <field name="default">/Users/lucido/.fascinator-backup</field>
+        <field name="/home/octalina/.fascinator-backup">default</field>
     </backup-paths>
     <facet-fields>
         <field name="repository_name">Source</field>

@@ -48,12 +48,19 @@ class SettingsData:
         size = int(formData.get("backupUrlSize"))
         for i in range (1, size+2):  
             keyName = "backupPaths_%s_name" % i
-            valueName = "backupPaths_%s_label" % i
+            #valueName = "backupPaths_%s_label" % i
+            valueName = formData.get("default")
             name = formData.get(keyName)
-            value = formData.get(valueName)
-            print "backupPath: keys: %s, value: %s" % (name, value)
-            if name is not None and value is not None:
-                backupPaths.put(name, value)
+            #value = formData.get(valueName)
+            print " * setting.py Updatebackup Path: name='%s', valueName='%s', count='%s'" % (name, valueName, i) 
+            if name==valueName:
+                backupPaths.put(name, "default")
+            elif valueName=="on" and i==size+1: #this will be the newest added path
+                backupPaths.put(name, "default")
+            elif name is not None:
+                backupPaths.put(name, "")
+#            if name is not None and value is not None:
+#                backupPaths.put(name, value)
         Services.portalManager.save(self.__portal)
     
     def __updatePortal(self):
