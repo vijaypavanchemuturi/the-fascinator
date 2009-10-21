@@ -64,6 +64,19 @@
   </dependencies>
   <profiles>
     <profile>
+      <id>policies</id>
+      <dependencies>
+        <dependency>
+          <groupId>au.edu.usq.fascinator.plugins</groupId>
+          <artifactId>plugin-indexer-solr</artifactId>
+        </dependency>
+        <dependency>
+          <groupId>au.edu.usq.fascinator.plugins</groupId>
+          <artifactId>plugin-storage-filesystem</artifactId>
+        </dependency>
+      </dependencies>
+    </profile>
+    <profile>
       <id>test</id>
       <dependencies>
         <dependency>
@@ -86,7 +99,7 @@
           <groupId>au.edu.usq.fascinator.plugins</groupId>
           <artifactId>plugin-harvester-jsonq</artifactId>
         </dependency>
-		<dependency>
+        <dependency>
           <groupId>au.edu.usq.fascinator.plugins</groupId>
           <artifactId>plugin-harvester-backup</artifactId>
         </dependency>
