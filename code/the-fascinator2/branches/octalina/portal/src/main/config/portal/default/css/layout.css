@@ -1,0 +1,41 @@
+/* 
+ Modified 2 column layout
+ Original source: http://matthewjamestaylor.com/blog/ultimate-2-column-left-menu-ems.htm
+ */
+.colmask {
+    clear: both;
+    float: left;
+    overflow: hidden;
+    position: relative;
+    width: 100%;
+}
+
+.leftmenu .colright {
+    /*border-left: 1px dotted #1D599B;*/
+    float: left;
+    left: 20em;
+    position: relative;
+    width: 200%;
+}
+
+.leftmenu .col1wrap {
+    float: right;
+    padding-bottom: 1em;
+    position: relative;
+    right: 20em;
+    width: 50%;
+}
+
+.leftmenu .col1 {
+    margin: 0 1em 0 21em;
+    overflow: hidden;
+    position: relative;
+    right: 100%;
+}
+
+.leftmenu .col2 {
+    float: left;
+    position: relative;
+    right: 19em;
+    width: 18em;
+}
