@@ -21,8 +21,12 @@ package au.edu.usq.fascinator.common.storage.impl;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import au.edu.usq.fascinator.api.storage.DigitalObject;
 import au.edu.usq.fascinator.api.storage.Payload;
+import au.edu.usq.fascinator.api.storage.PayloadType;
 
 /**
  * Generic DigitalObject implementation
@@ -30,6 +34,9 @@ import au.edu.usq.fascinator.api.storage.Payload;
  * @author Oliver Lucido
  */
 public class GenericDigitalObject implements DigitalObject {
+
+    private static Logger log = LoggerFactory
+            .getLogger(GenericDigitalObject.class);
 
     /** Unique identifier */
     private String id;
@@ -39,6 +46,8 @@ public class GenericDigitalObject implements DigitalObject {
 
     /** List of Payloads attached to this object */
     private List<Payload> payloadList;
+
+    private String sourceId;
 
     /**
      * Creates a DigitalObject with the specified identifier and no metadata
@@ -127,6 +136,14 @@ public class GenericDigitalObject implements DigitalObject {
      */
     public void addPayload(Payload payload) {
         getPayloadList().add(payload);
+
+        if (payload.getType().equals(PayloadType.Data)) {
+            sourceId = payload.getId();
+        }
+    }
+
+    public void setSourceId(String sourceId) {
+        this.sourceId = sourceId;
     }
 
     @Override
@@ -140,5 +157,10 @@ public class GenericDigitalObject implements DigitalObject {
     @Override
     public String toString() {
         return getId();
+    }
+
+    @Override
+    public Payload getSource() {
+        return getPayload(sourceId);
     }
 }

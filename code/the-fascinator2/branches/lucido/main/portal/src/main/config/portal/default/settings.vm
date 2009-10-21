@@ -24,9 +24,9 @@ $(function() {
         var id = "backupPaths_" + size;
         
         parent.append('<li id="' + id + '">\n' +
-              '<input class="ui-corner-all ui-widget-content" id="' + id + '_name" name="' + id + '_name" size="25" type="text" value="" />\n' +
-              '<input class="ui-corner-all ui-widget-content" id="' + id + '_label" name="' + id + '_label" size="25" type="text" value="" />\n' +
+              '<strong>Path: </strong><input class="ui-corner-all ui-widget-content" id="' + id + '_name" name="' + id + '_name" size="75" type="text" value="" />\n' +
               '<button class="remove-backup-field ui-corner-all ui-state-default">del</button>\n' +
+              '<input id="default" name="default" type="radio"/> Default\n' +
             '</li>');
         return false;
     });
@@ -172,14 +172,18 @@ $(function() {
       	  <fieldset>
 	      	  <ol><button id="add-backup-path">Create new backup Path</button>
 	      	  <!--<li><label for="locationName">Location Name</label><label for="locationPath">Location path</label></li>-->
-	      	  #foreach($entry in $self.portal.backupPaths)
-	          #set($field = $entry.key)
-	          #set($label = $entry.value)
+	      	  #foreach($entry in $self.portal.backupPaths.keySet())
+	      	  #set($label = $self.portal.backupPaths.get($entry))
 	          #set($id = "backupPaths_$velocityCount")
 		          <li id="$id">
-		            <input id="${id}_name" name="${id}_name" size="25" type="text" value="$field" />
-		            <input id="${id}_label" name="${id}_label" size="25" type="text" value="$label" />
+		            <strong>Path: </strong><input id="${id}_name" name="${id}_name" size="75" type="text" value="$entry" />
+		            #set($checked="")
+		            #if ($label=="default")
+		                #set($checked="checked='checked'")
+		            #end
 		            <button class="remove-backup-field">del</button>
+		            <input id="default" name="default" type="radio" $checked value="$entry"/> Default
+		            
 		          </li>
 	          #end
 	          </ol>

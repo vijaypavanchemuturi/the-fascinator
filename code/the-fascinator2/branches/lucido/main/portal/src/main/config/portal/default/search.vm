@@ -11,7 +11,7 @@
 #set($pageTitle = 'Search')
 #set($query = $formData.get("query"))
 #if($query)
-  #set($atomLink = "$portalPath/feed/atom?query=$query") 
+  #set($atomLink = "$portalPath/feed/atom?query=$self.paging.getPage()") 
 #else
   #set($atomLink = "$portalPath/feed/atom")
 #end
@@ -197,11 +197,6 @@ $(function() {
       </div>
     #end
   </div>
-  <div class="split-panel">  	
-    <form id="backupForm" name="backupForm" method="post">
-      <input name="backupAction" type="submit" value="Backup" />
-    </form>
-  <div>
   <div class="split-panel" id="result-list">
     <ul id="result-item-list">
     #foreach($item in $self.result.getList("response/docs"))

@@ -20,6 +20,7 @@ package au.edu.usq.fascinator.portal.services.impl;
 
 import java.io.File;
 import java.io.FileFilter;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -31,6 +32,7 @@ import javax.xml.bind.Unmarshaller;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import au.edu.usq.fascinator.BackupClient;
 import au.edu.usq.fascinator.common.JsonConfig;
 import au.edu.usq.fascinator.portal.Portal;
 import au.edu.usq.fascinator.portal.services.PortalManager;
@@ -111,8 +113,12 @@ public class PortalManagerImpl implements PortalManager {
     public void add(Portal portal) {
         String portalName = portal.getName();
         Map<String, String> facetFields = portal.getFacetFields();
+        Map<String, String> backupPaths = portal.getBackupPaths();
         if (!portalName.equals("default") && facetFields.isEmpty()) {
             facetFields.putAll(getDefault().getFacetFields());
+        }
+        if (!portalName.equals("default") && backupPaths.isEmpty()) {
+            backupPaths.putAll(getDefault().getBackupPaths());
         }
         getPortals().put(portalName, portal);
     }
@@ -165,5 +171,18 @@ public class PortalManagerImpl implements PortalManager {
             }
         }
         return portal;
+    }
+
+    @Override
+    public void backup(String email, String backupDir, String portalQuery) {
+        // TODO Auto-generated method stub
+        BackupClient backupClient;
+        try {
+            backupClient = new BackupClient(email, backupDir, portalQuery);
+            backupClient.run();
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
     }
 }

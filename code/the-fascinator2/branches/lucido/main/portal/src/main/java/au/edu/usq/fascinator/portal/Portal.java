@@ -210,7 +210,7 @@ public class Portal implements Comparable<Portal> {
     }
 
     /**
-     * Email setting for backup to determine user space in backup server
+     * Email setting for backup to determine userspace in backup server
      * 
      * @param email
      */
@@ -218,12 +218,17 @@ public class Portal implements Comparable<Portal> {
         this.email = email;
     }
 
+    /**
+     * Return email for userspace
+     * 
+     * @return email
+     */
     public String getEmail() {
         return email;
     }
 
     /**
-     * Backup Url list
+     * List of backup addresses (for now only support local paths)
      * 
      * @param backupPaths
      */
@@ -231,6 +236,11 @@ public class Portal implements Comparable<Portal> {
         this.backupPaths = backupPaths;
     }
 
+    /**
+     * Return list of backup paths
+     * 
+     * @return backupPaths
+     */
     public Map<String, String> getBackupPaths() {
         return backupPaths;
     }

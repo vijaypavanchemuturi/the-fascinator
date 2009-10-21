@@ -3,12 +3,12 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>au.edu.usq.fascinator</groupId>
   <artifactId>fascinator-core</artifactId>
-  <version>0.2.0-SNAPSHOT</version>
+  <version>0.3.0-SNAPSHOT</version>
   <name>The Fascinator - Core</name>
   <parent>
     <groupId>au.edu.usq.fascinator</groupId>
     <artifactId>the-fascinator</artifactId>
-    <version>0.2.0-SNAPSHOT</version>
+    <version>0.3.0-SNAPSHOT</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
   <dependencies>
@@ -153,6 +153,31 @@
               <arguments>
                 <argument>src/test/resources/local-files.json</argument>
               </arguments>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    <profile>
+      <id>backup-test</id>
+      <dependencies>
+        <dependency>
+          <groupId>au.edu.usq.fascinator.plugins</groupId>
+          <artifactId>plugin-storage-filesystem</artifactId>
+        </dependency>
+        <dependency>
+          <groupId>au.edu.usq.fascinator.plugins</groupId>
+          <artifactId>plugin-indexer-solr</artifactId>
+        </dependency>
+      </dependencies>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>exec-maven-plugin</artifactId>
+            <version>1.1.1</version>
+            <configuration>
+              <mainClass>au.edu.usq.fascinator.BackupClient</mainClass>
             </configuration>
           </plugin>
         </plugins>
