@@ -248,12 +248,21 @@ public class BackupClient {
 
                 // Backup all the digital object returned by indexer
                 for (Object oid : js.getList("response/docs/id")) {
-                    DigitalObject digitalObject = realStorage.getObject(oid
-                            .toString());
-                    log.info("Backing up: " + oid.toString());
+                    String fileName = oid.toString();
+                    DigitalObject digitalObject = realStorage
+                            .getObject(fileName);
+                    log.info("Backing up: " + fileName);
                     // File oidFile = new File(oid.toString());
+
+                    // For window C: will cause error. so fix it as C_
+                    // NOTE: remember to change it back when doing restore
+                    if (System.getProperty("os.name").toLowerCase().indexOf(
+                            "windows") > -1) {
+                        fileName = fileName
+                                .replace("C:", File.separator + "C_");
+                    }
                     String outputFileName = backupDir.getAbsolutePath()
-                            + File.separator + email + oid.toString();
+                            + File.separator + email + fileName;
                     File outputFile = new File(outputFileName);
                     outputFile.getParentFile().mkdirs();
                     OutputStream output = new FileOutputStream(outputFile);
