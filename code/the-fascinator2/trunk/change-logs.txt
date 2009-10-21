@@ -1,6 +1,6 @@
+==Release 0.2.0==
 Planning notes on this release can be found in: http://fascinator.usq.edu.au/trac/wiki/tf2/Planning
 
-Release 0.2.0
 Feature:
 * Tag system interface 
 * Create view-based grouping system
