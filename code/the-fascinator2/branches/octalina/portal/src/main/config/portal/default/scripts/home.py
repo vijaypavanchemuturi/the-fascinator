@@ -10,7 +10,7 @@ class HomeData:
             print "Backing up: ", portalName
             backupPath = ""
             email = ""
-            portal = Services.portalManager.get(portalName)
+            portal = Services.portalManager.get(portalId)
             if portal:
                 email = portal.email
                 if portal.backupPaths:
