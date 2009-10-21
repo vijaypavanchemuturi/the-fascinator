@@ -142,6 +142,10 @@ public class GenericDigitalObject implements DigitalObject {
         }
     }
 
+    public void setSourceId(String sourceId) {
+        this.sourceId = sourceId;
+    }
+
     @Override
     public List<Payload> getPayloadList() {
         if (payloadList == null) {
