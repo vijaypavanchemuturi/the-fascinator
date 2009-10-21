@@ -2,7 +2,7 @@
   <div class="mainmenu ui-helper-hidden">
     <div class="mainmenu-top"></div>
     <div class="mainmenu-heading">$facetTreeTitle</div>
-    <div id="$facetTreeId" class="ui-helper-clearfix"></div>
+    <div id="$facetTreeId" class="facet-list ui-helper-clearfix"></div>
   </div>
 #end
 #macro(displayFacet $facetFieldKey)
@@ -11,7 +11,7 @@
   <div class="mainmenu">
     <div class="mainmenu-top"></div>
     <div class="mainmenu-heading">$self.getFacetName($facetFieldKey)</div>
-    <ul class="facet-list">
+    <ul class="facet-list" id="$facetFieldKey">
     #foreach($facetCountKey in $facetCounts.keySet())
       #set($facetCount = $facetCounts.get($facetCountKey))
       #set($facetQuery = $self.getFacetQuery($facetFieldKey, $facetCountKey))
@@ -64,7 +64,7 @@
             <div class="mainmenu">
               <div class="mainmenu-top"></div>
               <div class="mainmenu-heading">Actions</div>
-              <ul>
+              <ul class="menu-list">
                 #if($query != "")
                   <li><a href="$portalPath/search">Clear search</a></li>
                 #end
@@ -200,20 +200,48 @@ $(function() {
         return false;
     });
     
+    var cookieOpts = { path: "$portalPath/search" };
+    
     // toggle facets
-    $(".mainmenu-heading").click(function(){
-        $(this).next().toggle();
-        return false;
-    });
+    $(".mainmenu:has(.facet-list) > .mainmenu-heading")
+        .each(function() {
+            var next = $(this).next();
+            var id = next.attr("id");
+            var state = jQuery.cookie("tf_visible_" + id);
+            if (state == "false") {
+                next.hide();
+            }
+        })
+        .click(function() {
+            var next = $(this).next();
+            var id = next.attr("id");
+            next.toggle();
+            jQuery.cookie("tf_visible_" + id, next.is(":visible"), cookieOpts);
+            return false;
+        });
     
     // toggle advanced facets
-    $(".advanced").click(function(){
-        var icon = $(this).children("span");
-        icon.toggleClass("ui-icon-triangle-1-e");
-        icon.toggleClass("ui-icon-triangle-1-s");
-        $(this).children("div").toggle();
-        return false;
-    });
+    $(".advanced h2")
+        .each(function() {
+            var icon = $(this).prev("span");
+            var next = $(this).next();
+            var id = next.attr("id");
+            var state = jQuery.cookie("tf_visible_advanced");
+            if (state == "true") {
+                icon.removeClass("ui-icon-triangle-1-e");
+                icon.addClass("ui-icon-triangle-1-s");
+                next.show();
+            }
+        })
+        .click(function() {
+            var icon = $(this).prev();
+            var next = $(this).next();
+            icon.toggleClass("ui-icon-triangle-1-e");
+            icon.toggleClass("ui-icon-triangle-1-s");
+            $(this).next().toggle();
+            jQuery.cookie("tf_visible_advanced", next.is(":visible"), cookieOpts);
+            return false;
+        });
     
     // truncate descriptions
     $("p.item-description").truncate(500, {
