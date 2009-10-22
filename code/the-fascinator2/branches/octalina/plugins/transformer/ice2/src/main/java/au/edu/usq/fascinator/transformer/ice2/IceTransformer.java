@@ -56,6 +56,8 @@ public class IceTransformer implements Transformer {
     private String convertUrl = "http://ice-service.usq.edu.au/api/convert/";
     private String outputPath;
     private String imageRatio;
+    private String resizeFixedWidth;
+    private String resizeMode; // ratio or fixedWidth
 
     private static Logger log = LoggerFactory.getLogger(IceTransformer.class);
 
@@ -127,6 +129,8 @@ public class IceTransformer implements Transformer {
                     new StringPart("pathext", ""),
                     new StringPart("template", getTemplate()),
                     new StringPart("resize", imageRatio),
+                    new StringPart("resizeOption", resizeMode),
+                    new StringPart("fixedWidth", resizeFixedWidth),
                     new StringPart("mode", "download"),
                     new FilePart("file", sourceFile) };
 
@@ -252,8 +256,12 @@ public class IceTransformer implements Transformer {
                     + File.separator + "tmp");
             convertUrl = config.get("transformer/ice2/url",
                     "http://ice-service.usq.edu.au/api/convert/");
+            resizeMode = config.get("transformer/ice2/resize.image.mode",
+                    "fixWidth");
             imageRatio = config.get("transformer/ice2/resize.image.ratio",
                     "-90");
+            resizeFixedWidth = config.get(
+                    "transformer/ice2/resize.image.fixedWidth", "150");
         } catch (IOException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
