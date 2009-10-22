@@ -58,6 +58,7 @@ public class IceTransformer implements Transformer {
     private String imageRatio;
     private String resizeFixedWidth;
     private String resizeMode; // ratio or fixedWidth
+    private String enlargeImage;
 
     private static Logger log = LoggerFactory.getLogger(IceTransformer.class);
 
@@ -131,6 +132,7 @@ public class IceTransformer implements Transformer {
                     new StringPart("resize", imageRatio),
                     new StringPart("resizeOption", resizeMode),
                     new StringPart("fixedWidth", resizeFixedWidth),
+                    new StringPart("enlargeImage", enlargeImage),
                     new StringPart("mode", "download"),
                     new FilePart("file", sourceFile) };
 
@@ -262,6 +264,7 @@ public class IceTransformer implements Transformer {
                     "-90");
             resizeFixedWidth = config.get(
                     "transformer/ice2/resize.image.fixedWidth", "150");
+            enlargeImage = config.get("transformer/ice2/enlargeImage", "false");
         } catch (IOException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
