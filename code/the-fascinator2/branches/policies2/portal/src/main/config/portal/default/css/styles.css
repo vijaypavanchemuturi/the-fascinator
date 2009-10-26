@@ -135,3 +135,7 @@
     display: inline;
     float: left;
 }
+
+div.body div.Table1 {
+    display: none;
+}

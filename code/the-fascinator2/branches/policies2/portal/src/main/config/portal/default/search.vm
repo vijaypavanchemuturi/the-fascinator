@@ -74,9 +74,9 @@
               </ul>
             </div>
           #end
-          #displayFacetTree("title_group", "Title")
-          #displayFacetTree("policy_type", "Policy type")
           #displayFacet("f_usq_document_type")
+          #displayFacetTree("policy_type", "Policy type")
+          #displayFacetTree("title_group", "Title")
           #displayFacet("f_usq_document_div_dept_office")
           #if($self.result and $paging.totalFound > 0)
           <div class="advanced">

@@ -16,7 +16,7 @@
             <div class="mainmenu-top"></div>
             <div class="mainmenu-heading">Downloads</div>
             <ul class="menu-list">
-              <li><a href="$portalPath/download/$self.pdfUrl">PDF version</a></li>
+              <li><a href="$portalPath/download/$self.pdfUrl">Printable version (PDF)</a></li>
             </ul>
           </div>
         </div>
