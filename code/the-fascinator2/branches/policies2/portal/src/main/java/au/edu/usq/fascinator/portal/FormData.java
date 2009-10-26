@@ -1,5 +1,6 @@
 package au.edu.usq.fascinator.portal;
 
+import java.io.Serializable;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -7,7 +8,7 @@ import java.util.Map;
 
 import org.apache.tapestry5.services.Request;
 
-public class FormData {
+public class FormData implements Serializable {
 
     private Map<String, List<String>> parameters;
 

@@ -21,6 +21,7 @@ package au.edu.usq.fascinator.common;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.Serializable;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.util.ArrayList;
@@ -44,7 +45,7 @@ import org.codehaus.jackson.map.ObjectMapper;
  * @author Oliver Lucido
  */
 @SuppressWarnings("unchecked")
-public class JsonConfigHelper {
+public class JsonConfigHelper implements Serializable {
 
     /** JXPath factory for creating JSON nodes */
     private class JsonMapFactory extends AbstractFactory {

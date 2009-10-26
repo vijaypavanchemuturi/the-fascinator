@@ -25,6 +25,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.Serializable;
 import java.io.Writer;
 import java.util.List;
 import java.util.Map;
@@ -37,7 +38,7 @@ import org.apache.commons.io.IOUtils;
  * 
  * @author Oliver Lucido
  */
-public class JsonConfig {
+public class JsonConfig implements Serializable {
 
     /** Default configuration directory */
     private static final String CONFIG_DIR = System.getProperty("user.home")
@@ -179,7 +180,7 @@ public class JsonConfig {
      */
     public void store(Writer writer, boolean pretty) throws IOException {
         userConfig.store(writer, pretty);
-	FileWriter sysWriter = new FileWriter(getSystemFile());
+        FileWriter sysWriter = new FileWriter(getSystemFile());
         systemConfig.store(sysWriter, pretty);
         sysWriter.close();
     }
