@@ -29,6 +29,7 @@
                 <input type="text" name="query" size="70" value="$!query" />
                 <input type="submit" name="search" value="Search" />
               </form>
+	      <p>There are currently <strong>$self.total</strong> policies available.</p>
             </div>
           </div>
           <div id="newest">
