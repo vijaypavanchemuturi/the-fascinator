@@ -78,6 +78,7 @@
           #displayFacetTree("policy_type", "Policy type")
           #displayFacet("f_usq_document_type")
           #displayFacet("f_usq_document_div_dept_office")
+          #if($self.result and $paging.totalFound > 0)
           <div class="advanced">
             <span class="ui-icon ui-icon-triangle-1-e icon"></span>
             <h2>Advanced</h2>
@@ -87,6 +88,7 @@
               #displayFacet("f_usq_document_responsible_position")
             </div>
           </div>
+	  #end
         </div>
       </td>
       <td class="middlecol">
