@@ -97,7 +97,6 @@ class DetailData:
         return self.__metadata
     
     def getObject(self):
-        print "################test getPayload source: ", self.__storage.getObject(self.__oid).getSource()
         return self.__storage.getObject(self.__oid)
     
     def getStorageId(self):
