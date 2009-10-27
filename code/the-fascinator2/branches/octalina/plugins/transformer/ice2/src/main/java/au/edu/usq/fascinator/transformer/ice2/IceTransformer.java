@@ -160,6 +160,11 @@ public class IceTransformer implements Transformer {
                 // for converted media file
                 outputFilename = outputPath + "/" + basename + ".flv";
             }
+            if (headerType.indexOf("audio/mpeg") > -1) {
+                // for converted media file
+                outputFilename = outputPath + "/" + basename + ".mp3";
+            }
+
             // Check if file is exist or not, just incase
             File outputFile = new File(outputFilename);
             if (outputFile.exists()) {
@@ -335,5 +340,4 @@ public class IceTransformer implements Transformer {
         }
         return true;
     }
-
 }

@@ -113,6 +113,17 @@ class DetailData:
             return ""
         return pid
     
+    def hasSpeechConversion(self):
+        #This is only work for .txt
+        if self.__mimeType=="text/plain":
+            pid = self.__pid
+            pid = pid[:pid.find(".")] + ".mp3"
+            payload = self.__storage.getPayload(self.__oid, pid)
+            if payload is None:
+                return ""
+            return pid
+        return ""
+    
     def getPayloadContent(self):
         mimeType = self.__mimeType
         print " * detail.py: payload content mimeType=%s" % mimeType
