@@ -1,0 +1,19 @@
+body {
+    padding: 0;
+}
+
+h1#branding {
+    padding: 0.25em;
+    margin: 0;
+}
+
+.container_12, .container_16 {
+    margin-left: 2%;
+    margin-left: 2%;
+    width: 96%;
+}
+
+form.search {
+    padding-top: 0.25em;
+    padding-right: 0.25em;
+}
