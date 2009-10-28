@@ -17,6 +17,6 @@
 #end
 [
 #foreach($facet in $self.facetList.facets)
-    #createFacetNode($facet "closed")
+    #createFacetNode($facet "open")
 #end
 ]

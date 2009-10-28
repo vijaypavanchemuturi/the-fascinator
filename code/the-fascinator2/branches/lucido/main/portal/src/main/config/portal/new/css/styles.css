@@ -1,4 +1,5 @@
 body {
+    border-top: none;
     padding: 0;
 }
 
@@ -16,4 +17,17 @@ h1#branding {
 form.search {
     padding-top: 0.25em;
     padding-right: 0.25em;
+}
+
+ul.section li {
+    text-transform: none;
+}
+
+ul.facet-list .selected {
+    background: black;
+    color: white;
+}
+
+ul.facet-list .selected:hover {
+    color: black;
 }

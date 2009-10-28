@@ -1,7 +1,7 @@
 #macro(displayFacetTree $facetTreeId $facetTreeTitle)
-  <div class="box">
+  <div class="box menu">
     <h2><a href="#">$facetTreeTitle</a></h2>
-    <div id="$facetTreeId" class="block facet-list clearfix"></div>
+    <div id="$facetTreeId" class="clearfix facet-list menu"></div>
   </div>
 #end
 #macro(displayFacet $facetFieldKey)
@@ -9,27 +9,25 @@
   #if($facetCounts.size() > 0)
   <div class="box menu">
     <h2><a href="#">$self.getFacetName($facetFieldKey)</a></h2>
-    <div class="block">
-      <ul class="facet-list section menu" id="$facetFieldKey">
-        #foreach($facetCountKey in $facetCounts.keySet())
-          #set($facetCount = $facetCounts.get($facetCountKey))
-          #set($facetQuery = $self.getFacetQuery($facetFieldKey, $facetCountKey))
-          #set($selected = $self.isSelected($facetQuery))
-          <li#if($selected) class="selected"#end>
-          #if($self.isPortalQueryFacet($facetQuery))
-            <span class="selected">$facetCountKey</span> ($facetCount)
-          #else
-            #if($selected)
-              #set($facetClass = "remove-facet selected")
-            #else
-              #set($facetClass = "add-facet")
-            #end
-            <a class="$facetClass" href="#" rel='$facetFieldKey:"$facetCountKey"'>$page.escapeText($facetCountKey)</a> ($facetCount)
-          #end
-          </li>
+    <ul class="facet-list menu" id="$facetFieldKey">
+    #foreach($facetCountKey in $facetCounts.keySet())
+      #set($facetCount = $facetCounts.get($facetCountKey))
+      #set($facetQuery = $self.getFacetQuery($facetFieldKey, $facetCountKey))
+      #set($selected = $self.isSelected($facetQuery))
+      <li#if($selected) class="selected"#end>
+      #if($self.isPortalQueryFacet($facetQuery))
+        <span class="selected">$facetCountKey</span> ($facetCount)
+      #else
+        #if($selected)
+          #set($facetClass = "remove-facet selected")
+        #else
+          #set($facetClass = "add-facet")
         #end
-      </ul>
-    </div>
+        <a class="$facetClass" href="#" rel='$facetFieldKey:"$facetCountKey"'>$page.escapeText($facetCountKey) <span class="facet-count">($facetCount)</span></a>
+      #end
+      </li>
+    #end
+    </ul>
   </div>
   #end
 #end
@@ -61,30 +59,28 @@
 <h2 id="page-heading">Search</h2>
 <div class="grid_4">
   #if($self.hasSelectedFacets() || $query != "")
-  <div class="box">
-    <div class="box menu">
-      <h2>Actions</h2>
-      <div class="block">
-        <ul class="menu-list">
-          #if($query != "")
-            <li><a href="$portalPath/search">Clear search</a></li>
-          #end
-          #if($self.hasSelectedFacets())
-            <li><a id="clear-facets" href="#">Clear selection</a></li>
-          #end
-        </ul>
-      </div>
-    </div>
+  <div class="box menu">
+    <h2>Actions</h2>
+    <ul class="menu">
+      #if($query != "")
+        <li><a href="$portalPath/search">Clear search</a></li>
+      #end
+      #if($self.hasSelectedFacets())
+        <li><a id="clear-facets" href="#">Clear selection</a></li>
+      #end
+    </ul>
   </div>
   #end
   #displayFacetTree("file_path" "File path")
   #set($facetFields = $self.result.getMap("facet_counts/facet_fields"))
   #foreach($facetFieldKey in $facetFields.keySet())
-    #displayFacet($facetFieldKey)
+    #if($facetFieldKey != "file_path")
+      #displayFacet($facetFieldKey)
+    #end
   #end
 </div>
 <div class="grid_12" id="result-list">
-  <ul id="result-item-list">
+  <div class="box articles">
     #foreach($item in $self.result.getList("response/docs"))
       #set($id = $item.get("id"))
       #set($dcTitle = "")
@@ -96,19 +92,19 @@
       #end
       #set($description = "")
       #set($description = $item.get("dc_description").get(0))
-      <li>
-        <div id="$id">
-          <h3><a href="detail/$id">$title</a></h3>
-          <a class="tag" href="#">tag</a>
-          <p class="item-description">$!description</p>
-          #set($format = $item.get("dc_format").get(0))
-          #if($format.startsWith("image/"))
-            <img src="$portalPath/download/$id/$self.getThumbnail($id)"></img>
-          #end
-        </div>
-      </li>
+      #set($format = $item.get("dc_format").get(0))
+      <div id="$id" class="article#if($velocityCount==1) first#end">
+        <h3><a href="$portalPath/detail/$id">$title</a></h3>
+        <p class="meta">$format
+        <a class="tag" style="float:right;" href="#">tag</a>
+        </p>
+        #if($format.startsWith("image/"))
+          <p class="image"><img src="$portalPath/download/$id/$self.getThumbnail($id)"></img></p>
+        #end
+        <p class="item-description">$!description</p>
+      </div>
     #end
-  </ul>
+  </div>
 </div>
 #*
 
