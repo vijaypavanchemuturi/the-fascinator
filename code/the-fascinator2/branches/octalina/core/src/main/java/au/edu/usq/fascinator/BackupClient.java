@@ -26,6 +26,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -82,7 +83,7 @@ public class BackupClient {
     private String email = null;
 
     /** Backup location list **/
-    private List<File> backupDirList = null;
+    private List<File> backupDirList = new ArrayList();
 
     /** Portal query **/
     private String portalQuery = null;
@@ -114,11 +115,11 @@ public class BackupClient {
      * @param portalQuery
      * @throws IOException
      */
-    public BackupClient(String email, List<String> backupDir, String portalQuery)
-            throws IOException {
+    public BackupClient(String email, List<String> backupDirs,
+            String portalQuery) throws IOException {
         config = new JsonConfig();
         setEmail(email);
-        setBackupDir(backupDir);
+        setBackupDir(backupDirs);
         setPortalQuery(portalQuery);
     }
 
@@ -151,12 +152,12 @@ public class BackupClient {
         if (backupDirs != null) {
             for (String backupDir : backupDirs) {
                 File backupDirectory = new File(backupDir);
+                log.info("###backupFile: " + backupDirectory.getAbsolutePath());
+                backupDirList.add(backupDirectory);
                 if (backupDirectory.exists() == false) {
                     backupDirectory.getParentFile().mkdirs();
                 }
-                backupDirList.add(backupDirectory);
             }
-
         }
     }
 
