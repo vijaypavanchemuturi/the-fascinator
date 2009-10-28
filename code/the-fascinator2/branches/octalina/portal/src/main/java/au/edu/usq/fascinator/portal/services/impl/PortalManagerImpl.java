@@ -175,7 +175,7 @@ public class PortalManagerImpl implements PortalManager {
     }
 
     @Override
-    public void backup(String email, List<String> backupDir, String portalQuery) {
+    public void backup(String email, List<Object> backupDir, String portalQuery) {
         // TODO Auto-generated method stub
         BackupClient backupClient;
         try {
