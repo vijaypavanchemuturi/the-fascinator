@@ -26,7 +26,7 @@ $(function() {
         parent.append('<li id="' + id + '">\n' +
               '<strong>Path: </strong><input class="ui-corner-all ui-widget-content" id="' + id + '_name" name="' + id + '_name" size="75" type="text" value="" />\n' +
               '<button class="remove-backup-field ui-corner-all ui-state-default">del</button>\n' +
-              '<input id="default" name="default" type="radio"/> Default\n' +
+              '<input id="' + id + '_label" name="' + id + '_label" type="checkbox"/> Use this backup path\n' +
             '</li>');
         return false;
     });
@@ -178,12 +178,11 @@ $(function() {
 		          <li id="$id">
 		            <strong>Path: </strong><input id="${id}_name" name="${id}_name" size="75" type="text" value="$entry" />
 		            #set($checked="")
-		            #if ($label=="default")
+		            #if ($label=="on")
 		                #set($checked="checked='checked'")
 		            #end
 		            <button class="remove-backup-field">del</button>
-		            <input id="default" name="default" type="radio" $checked value="$entry"/> Default
-		            
+		            <input id="${id}_label" name="${id}_label" type="checkbox" $checked/> Use this backup Path
 		          </li>
 	          #end
 	          </ol>

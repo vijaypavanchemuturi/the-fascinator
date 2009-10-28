@@ -22,6 +22,7 @@ import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.xml.bind.JAXBContext;
@@ -174,7 +175,7 @@ public class PortalManagerImpl implements PortalManager {
     }
 
     @Override
-    public void backup(String email, String backupDir, String portalQuery) {
+    public void backup(String email, List<String> backupDir, String portalQuery) {
         // TODO Auto-generated method stub
         BackupClient backupClient;
         try {
