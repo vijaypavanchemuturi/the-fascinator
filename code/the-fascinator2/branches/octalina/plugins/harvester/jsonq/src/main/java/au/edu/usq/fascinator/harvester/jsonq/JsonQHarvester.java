@@ -196,7 +196,6 @@ public class JsonQHarvester implements Harvester, Configurable {
         List<DigitalObject> objectList = new ArrayList<DigitalObject>();
         objectList = getObjectListFromState(objectList, map, DELETE_STATE);
         return objectList;
-        // return Collections.emptyList();
     }
 
     @Override
