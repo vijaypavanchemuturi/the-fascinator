@@ -97,7 +97,6 @@ class DetailData:
         return self.__metadata
     
     def getObject(self):
-        print "################test getPayload source: ", self.__storage.getObject(self.__oid).getSource()
         return self.__storage.getObject(self.__oid)
     
     def getStorageId(self):
@@ -113,6 +112,17 @@ class DetailData:
         if payload is None:
             return ""
         return pid
+    
+    def hasSpeechConversion(self):
+        #This is only work for .txt
+        if self.__mimeType=="text/plain":
+            pid = self.__pid
+            pid = pid[:pid.find(".")] + ".mp3"
+            payload = self.__storage.getPayload(self.__oid, pid)
+            if payload is None:
+                return ""
+            return pid
+        return ""
     
     def getPayloadContent(self):
         mimeType = self.__mimeType

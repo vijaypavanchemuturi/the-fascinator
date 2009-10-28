@@ -56,6 +56,9 @@ public class IceTransformer implements Transformer {
     private String convertUrl = "http://ice-service.usq.edu.au/api/convert/";
     private String outputPath;
     private String imageRatio;
+    private String resizeFixedWidth;
+    private String resizeMode; // ratio or fixedWidth
+    private String enlargeImage;
 
     private static Logger log = LoggerFactory.getLogger(IceTransformer.class);
 
@@ -127,6 +130,9 @@ public class IceTransformer implements Transformer {
                     new StringPart("pathext", ""),
                     new StringPart("template", getTemplate()),
                     new StringPart("resize", imageRatio),
+                    new StringPart("resizeOption", resizeMode),
+                    new StringPart("fixedWidth", resizeFixedWidth),
+                    new StringPart("enlargeImage", enlargeImage),
                     new StringPart("mode", "download"),
                     new FilePart("file", sourceFile) };
 
@@ -154,6 +160,11 @@ public class IceTransformer implements Transformer {
                 // for converted media file
                 outputFilename = outputPath + "/" + basename + ".flv";
             }
+            if (headerType.indexOf("audio/mpeg") > -1) {
+                // for converted media file
+                outputFilename = outputPath + "/" + basename + ".mp3";
+            }
+
             // Check if file is exist or not, just incase
             File outputFile = new File(outputFilename);
             if (outputFile.exists()) {
@@ -252,8 +263,13 @@ public class IceTransformer implements Transformer {
                     + File.separator + "tmp");
             convertUrl = config.get("transformer/ice2/url",
                     "http://ice-service.usq.edu.au/api/convert/");
+            resizeMode = config.get("transformer/ice2/resize.image.mode",
+                    "fixWidth");
             imageRatio = config.get("transformer/ice2/resize.image.ratio",
                     "-90");
+            resizeFixedWidth = config.get(
+                    "transformer/ice2/resize.image.fixedWidth", "150");
+            enlargeImage = config.get("transformer/ice2/enlargeImage", "false");
         } catch (IOException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
@@ -324,5 +340,4 @@ public class IceTransformer implements Transformer {
         }
         return true;
     }
-
 }
