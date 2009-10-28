@@ -116,7 +116,6 @@ public class JsonQHarvester implements Harvester, Configurable {
             if ("0".equals(lastModified)) {
                 lastModified = null;
             }
-            requestJsonQ();
         } catch (IOException ioe) {
             throw new HarvesterException(ioe);
         }
@@ -164,7 +163,8 @@ public class JsonQHarvester implements Harvester, Configurable {
     }
 
     @Override
-    public List<DigitalObject> getObjects() {
+    public List<DigitalObject> getObjects() throws HarvesterException {
+        requestJsonQ();
         List<DigitalObject> objectList = new ArrayList<DigitalObject>();
         objectList = getObjectListFromState(objectList, map, MODS_STATE);
         return objectList;
@@ -192,7 +192,10 @@ public class JsonQHarvester implements Harvester, Configurable {
     }
 
     @Override
-    public List<DigitalObject> getDeletedObjects() {
+    public List<DigitalObject> getDeletedObjects() throws HarvesterException {
+        if (map == null) {
+            requestJsonQ();
+        }
         List<DigitalObject> objectList = new ArrayList<DigitalObject>();
         objectList = getObjectListFromState(objectList, map, DELETE_STATE);
         return objectList;
