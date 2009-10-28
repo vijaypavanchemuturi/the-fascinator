@@ -28,7 +28,7 @@ import java.io.StringWriter;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -37,6 +37,8 @@ import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.io.IOUtils;
 import org.codehaus.jackson.map.ObjectMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import au.edu.usq.fascinator.api.Configurable;
 import au.edu.usq.fascinator.api.PluginException;
@@ -62,6 +64,8 @@ import au.edu.usq.fascinator.common.JsonConfig;
  * @author Oliver Lucido
  */
 public class JsonQHarvester implements Harvester, Configurable {
+    /** log **/
+    private Logger log = LoggerFactory.getLogger(JsonQHarvester.class);
 
     /** default Watcher queue URL */
     private static final String DEFAULT_URL = "http://localhost:9000";
@@ -84,6 +88,13 @@ public class JsonQHarvester implements Harvester, Configurable {
     /** JSON config file */
     private File jsonFile;
 
+    private static final List<String> MODS_STATE = Arrays
+            .asList("mod", "start");
+    private static final List<String> DELETE_STATE = Arrays.asList("del",
+            "stopmod", "stopdel", "stop");
+
+    private Map<String, Map<String, String>> map;
+
     @Override
     public String getId() {
         return "jsonq";
@@ -105,6 +116,7 @@ public class JsonQHarvester implements Harvester, Configurable {
             if ("0".equals(lastModified)) {
                 lastModified = null;
             }
+            requestJsonQ();
         } catch (IOException ioe) {
             throw new HarvesterException(ioe);
         }
@@ -115,17 +127,15 @@ public class JsonQHarvester implements Harvester, Configurable {
         // Nothing to be done
     }
 
-    @Override
     @SuppressWarnings("unchecked")
-    public List<DigitalObject> getObjects() throws HarvesterException {
-        List<DigitalObject> objectList = new ArrayList<DigitalObject>();
+    public void requestJsonQ() throws HarvesterException {
+        BasicHttpClient client = new BasicHttpClient(url);
+        GetMethod method = new GetMethod(url);
+        if (lastModified != null) {
+            method.setRequestHeader("Last-Modified", lastModified);
+        }
+        config.set("harvester/jsonq/lastModified", now(), false);
         try {
-            BasicHttpClient client = new BasicHttpClient(url);
-            GetMethod method = new GetMethod(url);
-            if (lastModified != null) {
-                method.setRequestHeader("Last-Modified", lastModified);
-            }
-            config.set("harvester/jsonq/lastModified", now(), false);
             int status = client.executeMethod(method);
             if (status == HttpStatus.SC_OK) {
                 ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -133,11 +143,8 @@ public class JsonQHarvester implements Harvester, Configurable {
                 IOUtils.copy(in, out);
                 in.close();
                 ObjectMapper mapper = new ObjectMapper();
-                Map<String, Map<String, String>> map = mapper.readValue(
-                        new ByteArrayInputStream(out.toByteArray()), Map.class);
-                for (String key : map.keySet()) {
-                    objectList.add(new JsonQDigitalObject(key, map.get(key)));
-                }
+                map = mapper.readValue(new ByteArrayInputStream(out
+                        .toByteArray()), Map.class);
             }
             method.releaseConnection();
             config.set("harvester/jsonq/state", "OK", false);
@@ -154,6 +161,24 @@ public class JsonQHarvester implements Harvester, Configurable {
                 throw new HarvesterException(ioe);
             }
         }
+    }
+
+    @Override
+    public List<DigitalObject> getObjects() {
+        List<DigitalObject> objectList = new ArrayList<DigitalObject>();
+        objectList = getObjectListFromState(objectList, map, MODS_STATE);
+        return objectList;
+    }
+
+    public List<DigitalObject> getObjectListFromState(
+            List<DigitalObject> objectList,
+            Map<String, Map<String, String>> map, List<String> state) {
+        for (String key : map.keySet()) {
+            Map<String, String> info = map.get(key);
+            if (state.contains(info.get("state"))) {
+                objectList.add(new JsonQDigitalObject(key, map.get(key)));
+            }
+        }
         return objectList;
     }
 
@@ -168,8 +193,10 @@ public class JsonQHarvester implements Harvester, Configurable {
 
     @Override
     public List<DigitalObject> getDeletedObjects() {
-        // empty for now
-        return Collections.emptyList();
+        List<DigitalObject> objectList = new ArrayList<DigitalObject>();
+        objectList = getObjectListFromState(objectList, map, DELETE_STATE);
+        return objectList;
+        // return Collections.emptyList();
     }
 
     @Override
