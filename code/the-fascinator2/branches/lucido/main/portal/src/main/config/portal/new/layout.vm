@@ -50,7 +50,7 @@ $!pageContent
           <li><a href="$portalPath/home">Home</a></li>
           <li><a href="$portalPath/settings">Settings</a></li>
           <li class="secondary">
-            <form action="search" class="search" method="post">
+            <form action="$portalPath/search" class="search" method="post">
               <input class="text" type="text" name="query" size="30" value="$!formData.get('query')" />
               <input class="button" type="submit" name="search" value="Search" />
             </form>
