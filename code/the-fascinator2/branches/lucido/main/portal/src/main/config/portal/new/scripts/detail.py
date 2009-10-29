@@ -114,6 +114,10 @@ class DetailData:
             return ""
         return pid
     
+    def getPdfUrl(self):
+        pid = os.path.splitext(self.__pid)[0] + ".pdf"
+        return "%s/%s" % (self.__oid, pid)
+    
     def getPayloadContent(self):
         mimeType = self.__mimeType
         print " * detail.py: payload content mimeType=%s" % mimeType

@@ -69,16 +69,19 @@ $!pageContent
       <div class="clear"></div>
       <div class="grid_16">$!pageContent</div>
       <div class="clear"></div>
-    </div>
-    <div class="debug" id="debug">
-      <div class="ui-state-error">
-        <pre>$!renderMessages</pre>
+      <div class="grid_16">
+        <div class="debug" id="debug">
+          <div class="ui-state-error">
+            <pre>$!renderMessages</pre>
+          </div>
+          <div class="ui-state-highlight">
+            <pre>sessionState: $sessionState</pre>
+            <pre>formData: $formData</pre>
+            <a href="#" id="clear-session-state">Clear session</a>
+          </div>
+        </div>
       </div>
-      <div class="ui-state-highlight">
-        <pre>sessionState: $sessionState</pre>
-        <pre>formData: $formData</pre>
-        <a href="#" id="clear-session-state">Clear session</a>
-      </div>
+      <div class="clear"></div>
     </div>
     <div id="login-dialog" title="Login">
       <form id="login-form" method="post">
@@ -102,16 +105,6 @@ $!pageContent
     </div>
     <script type="text/javascript">
     $(function() {
-        // style up input fields and buttons
-        //$(":input").addClass("ui-corner-all");
-        //$(":button, :submit")
-        //    .addClass("ui-state-default")
-        //    .hover(function() { $(this).addClass("ui-state-hover"); },
-        //           function() { $(this).removeClass("ui-state-hover"); });
-        //$(":text, :password").addClass("ui-widget-content");
-        // disable current page link
-        var pageName = $("#${pageName}-link").text();
-        $("#${pageName}-link").replaceWith("<span id='${pageName}-link' class='active-link'>" + pageName + "</span>");
         // setup authentication dialogs
         $("#login-dialog").dialog({
             autoOpen: false,

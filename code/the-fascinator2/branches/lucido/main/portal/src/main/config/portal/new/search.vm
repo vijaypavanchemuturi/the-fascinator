@@ -16,14 +16,14 @@
       #set($selected = $self.isSelected($facetQuery))
       <li#if($selected) class="selected"#end>
       #if($self.isPortalQueryFacet($facetQuery))
-        <span class="selected">$facetCountKey</span> ($facetCount)
+        <span class="selected">$facetCountKey</span>&nbsp;($facetCount)
       #else
         #if($selected)
           #set($facetClass = "remove-facet selected")
         #else
           #set($facetClass = "add-facet")
         #end
-        <a class="$facetClass" href="#" rel='$facetFieldKey:"$facetCountKey"'>$page.escapeText($facetCountKey) <span class="facet-count">($facetCount)</span></a>
+        <a class="$facetClass" href="#" rel='$facetFieldKey:"$facetCountKey"'>$page.escapeText($facetCountKey)&nbsp;<span class="facet-count">($facetCount)</span></a>
       #end
       </li>
     #end
@@ -56,7 +56,13 @@
 ')
 <pre class="debug">$self.selectedFacetIds</pre>
 <pre class="debug">$self.result.toString()</pre>
-<h2 id="page-heading">Search</h2>
+#set($paging = $self.paging)
+#if($self.result and $paging.totalFound > 0)
+#set($navContent="<li class='secondary'><span class='status'>Displaying ${paging.startNum} to ${paging.endNum} of ${paging.totalFound} records (in $self.queryTime seconds)</span></li>")
+#end
+<div class="grid_16">
+  <h2 id="page-heading">Search <span class="paging">#parse($page.getTemplate("search-paging.vm"))</span></h2>
+</div>
 <div class="grid_4">
   #if($self.hasSelectedFacets() || $query != "")
   <div class="box menu">
@@ -81,6 +87,7 @@
 </div>
 <div class="grid_12" id="result-list">
   <div class="box articles">
+    <h2>Results</h2>
     #foreach($item in $self.result.getList("response/docs"))
       #set($id = $item.get("id"))
       #set($dcTitle = "")
@@ -99,10 +106,11 @@
         <a class="tag" style="float:right;" href="#">tag</a>
         </p>
         #if($format.startsWith("image/"))
-          <p class="image"><img src="$portalPath/download/$id/$self.getThumbnail($id)"></img></p>
+          <a class="image" href="$portalPath/detail/$id"><img src="$portalPath/download/$id/$self.getThumbnail($id)"></img></a>
         #end
-        <p class="item-description">$!description</p>
+        <p class="item-description">$!description&nbsp;</p>
       </div>
+      <div class="clear"></div>
     #end
   </div>
 </div>

@@ -1,3 +1,4 @@
+#set($paging = $self.paging)
 <script type="text/javascript">
 $(function() {
     $(".paging .select-page").click(function() {
@@ -5,27 +6,24 @@ $(function() {
     });
 });
 </script>
-#set($paging = $self.paging)
 #if($paging.pages.size() > 1)
-<ul class="paging">
-  <li><a class="select-page" rel="1" href="#">First</a></li>
-  #if($paging.page > 1)
-    #set($prev = $paging.page - 1)
-    <li>
-      <a class="select-page" rel="$prev" href="#">Previous</a>
-    </li>
-  #end
-  #foreach($pageNum in $paging.pages)
-    <li #if($pageNum.selected)class="selected-page"#end>
-      <a class="select-page" rel="$pageNum.value" href="#">$pageNum.value</a>
-    </li>
-  #end
-  #if($paging.page < $paging.lastPage)
-    #set($next = $paging.page + 1)
-    <li>
-      <a class="select-page" rel="$next" href="#">Next</a>
-    </li>
-  #end
-  <li><a class="select-page" rel="$paging.lastPage" href="#">Last</a></li>
-</ul>
+<div class="paging">
+  <ul>
+    <li><a class="select-page" rel="1" href="#">First</a></li>
+    #if($paging.page > 1)
+      #set($prev = $paging.page - 1)
+      <li><a class="select-page" rel="$prev" href="#">Previous</a></li>
+    #end
+    #foreach($pageNum in $paging.pages)
+      <li #if($pageNum.selected)class="selected-page"#end>
+        <a class="select-page" rel="$pageNum.value" href="#">$pageNum.value</a>
+      </li>
+    #end
+    #if($paging.page < $paging.lastPage)
+      #set($next = $paging.page + 1)
+      <li><a class="select-page" rel="$next" href="#">Next</a></li>
+    #end
+    <li><a class="select-page" rel="$paging.lastPage" href="#">Last</a></li>
+  </ul>
+</div>
 #end
