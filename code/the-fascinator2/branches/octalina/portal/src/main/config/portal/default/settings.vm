@@ -168,22 +168,12 @@ $(function() {
       </form>
       <h4><a href="#">Backup Path</a></h4>
       <form id="backupPathForm" name="backupPathForm" method="post">
-      	  <input id="backupUrlSize" name="backupUrlSize" type="hidden" value="$self.portal.backupPaths.size()" />
+      	  ##<input id="backupUrlSize" name="backupUrlSize" type="hidden" value="$self.portal.backupPaths.size()" />
       	  <fieldset>
 	      	  <ol><button id="add-backup-path">Create new backup Path</button>
 	      	  <!--<li><label for="locationName">Location Name</label><label for="locationPath">Location path</label></li>-->
-	      	  #foreach($entry in $self.portal.backupPaths.keySet())
-	      	  #set($label = $self.portal.backupPaths.get($entry))
-	          #set($id = "backupPaths_$velocityCount")
-		          <li id="$id">
-		            <strong>Path: </strong><input id="${id}_name" name="${id}_name" size="75" type="text" value="$entry" />
-		            #set($checked="")
-		            #if ($label=="on")
-		                #set($checked="checked='checked'")
-		            #end
-		            <button class="remove-backup-field">del</button>
-		            <input id="${id}_label" name="${id}_label" type="checkbox" $checked/> Use this backup Path
-		          </li>
+	      	  #foreach($entry in $self.portal.backupPaths.keySet().toString())
+	      	    $entry
 	          #end
 	          </ol>
 	          <input name="backupAction" type="submit" value="Update" />

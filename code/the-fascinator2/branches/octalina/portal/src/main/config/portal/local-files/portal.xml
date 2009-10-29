@@ -7,13 +7,13 @@
     <facet-sort-by-count>false</facet-sort-by-count>
     <backup-email>octalina@usq.edu.au</backup-email>
     <backup-paths>
-        <field name="/home/octalina/backup1">on</field>
+        <field name="/more">on</field>
         <field name="/home/octalina/backup">on</field>
     </backup-paths>
     <facet-fields>
         <field name="repository_name">Source</field>
-        <field name="f_dc_creator">Creator</field>
         <field name="file_path">Path</field>
+        <field name="f_dc_creator">Creator</field>
         <field name="f_dc_subject">Subject</field>
         <field name="f_dc_format">Format</field>
         <field name="repository_type">Source type</field>
