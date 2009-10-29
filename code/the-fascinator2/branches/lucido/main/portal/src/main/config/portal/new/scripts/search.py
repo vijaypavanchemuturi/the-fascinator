@@ -105,9 +105,20 @@ class SearchData:
     def __search(self):
         recordsPerPage = self.__portal.recordsPerPage
         
-        query = formData.get("query")
+        uri = URLDecoder.decode(request.getAttribute("RequestURI"))
+        if uri != portalPath:
+            query = uri[len(portalPath):]
+        if query is None or query == "":
+            query = formData.get("query")
         if query is None or query == "":
             query = "*:*"
+        
+        if query == "*:*":
+            self.__query = ""
+        else:
+            self.__query = query
+        sessionState.set("query", self.__query)
+        
         req = SearchRequest(query)
         req.setParam("facet", "true")
         req.setParam("rows", str(recordsPerPage))

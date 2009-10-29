@@ -1,5 +1,5 @@
 #macro(displayFacetTree $facetTreeId $facetTreeTitle)
-  <div class="box menu">
+  <div class="box menu ui-helper-hidden">
     <h2><a href="#">$facetTreeTitle</a></h2>
     <div id="$facetTreeId" class="clearfix facet-list menu"></div>
   </div>
@@ -43,7 +43,7 @@
 #end
 #else
 #set($pageTitle = 'Search')
-#set($query = $formData.get("query"))
+#set($query = $sessionState.get("query"))
 #if($query)
   #set($atomLink = "$portalPath/feed/atom?query=$self.paging.page") 
 #else
@@ -54,15 +54,11 @@
   <script type="text/javascript" src="' + $portalPath + '/js/tree/jquery.tree.min.js"></script>
   <script type="text/javascript" src="' + $portalPath + '/js/jquery.truncate.js"></script>
 ')
-<pre class="debug">$self.selectedFacetIds</pre>
-<pre class="debug">$self.result.toString()</pre>
 #set($paging = $self.paging)
 #if($self.result and $paging.totalFound > 0)
 #set($navContent="<li class='secondary'><span class='status'>Displaying ${paging.startNum} to ${paging.endNum} of ${paging.totalFound} records (in $self.queryTime seconds)</span></li>")
 #end
-<div class="grid_16">
-  <h2 id="page-heading">Search <span class="paging">#parse($page.getTemplate("search-paging.vm"))</span></h2>
-</div>
+<h2 id="page-heading">Search <span class="paging">#parse($page.getTemplate("search-paging.vm"))</span></h2>
 <div class="grid_4">
   #if($self.hasSelectedFacets() || $query != "")
   <div class="box menu">
@@ -88,6 +84,7 @@
 <div class="grid_12" id="result-list">
   <div class="box articles">
     <h2>Results</h2>
+    #if($self.result and $paging.totalFound > 0)
     #foreach($item in $self.result.getList("response/docs"))
       #set($id = $item.get("id"))
       #set($dcTitle = "")
@@ -112,8 +109,17 @@
       </div>
       <div class="clear"></div>
     #end
+    #else
+      <div class="box no-result">No items found matching your query: '$!query'</div>
+    #end
   </div>
 </div>
+<div class="clear"></div>
+<div class="grid_16">
+  <pre class="debug">$self.selectedFacetIds</pre>
+  <pre class="debug">$self.result.toString()</pre>
+</div>
+
 #*
 
 <div id="search-header">

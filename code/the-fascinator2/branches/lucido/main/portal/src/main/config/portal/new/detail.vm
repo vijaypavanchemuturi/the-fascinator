@@ -7,19 +7,12 @@
 #set($oid = $self.object.id)
 #set($title = $meta.getField("dc_title"))
 #set($description = $meta.getField("dc_description"))
-<div class="ui-helper-hidden" id="record-meta">
-  <label id="oid">$oid</label>
-  <label id="format">$self.mimeType</label>
-  <label id="hasSlide">$self.hasSlideShow()</label>
-</div>
-<div class="grid_16">
-  <h2 id="page-heading">#if($title)$title#{else}$self.getFileName($oid)#end</h2>
-</div>
+<h2 id="page-heading">#if($title)$title#{else}$self.getFileName($oid)#end</h2>
 <div class="grid_4">
   <div class="box menu">
     <h2>Actions</h2>
     <ul class="menu" id="actions">
-      <li><a id="open-this" href="#">Open file</a></li>
+      <li><a id="open-this" href="$portalPath/detail/$oid">Open file</a></li>
     </ul>
   </div>
   <div class="box">
@@ -62,6 +55,11 @@
       </div>
     </div>
   </div>
+</div>
+<div class="ui-helper-hidden" id="record-meta">
+  <label id="oid">$oid</label>
+  <label id="format">$self.mimeType</label>
+  <label id="hasSlide">$self.hasSlideShow()</label>
 </div>
 <script type="text/javascript">
 $(function() {
@@ -111,7 +109,6 @@ $(function() {
     
     $("#open-this").click(function() {
         jQuery.post("$portalPath/detail/" + oid, { verb: "open", value: oid } );
-        return false;
     });
     
     $("div.content-preview-inline img").each(function() {

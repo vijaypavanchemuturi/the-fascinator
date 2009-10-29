@@ -57,14 +57,13 @@ class DetailData:
         print " * detail.py: uri='%s' oid='%s' pid='%s'" % (uri, self.__oid, self.__pid)
         if formData.get("verb") == "open":
             self.__openFile()
+        payload = self.__storage.getPayload(self.__oid, self.__pid)
+        if payload is not None:
+            self.__mimeType = payload.contentType
         else:
-            payload = self.__storage.getPayload(self.__oid, self.__pid)
-            if payload is not None:
-                self.__mimeType = payload.contentType
-            else:
-                self.__mimeType = "application/octet-stream"
-            self.__metadata = JsonConfigHelper()
-            self.__search()
+            self.__mimeType = "application/octet-stream"
+        self.__metadata = JsonConfigHelper()
+        self.__search()
     
     def __search(self):
         req = SearchRequest('id:"%s"' % self.__oid)
@@ -154,6 +153,7 @@ class DetailData:
             #linkNodes = slideNode.selectNodes("//img")
             #contentStr = slideNode.asXML();
             # encode character entities correctly
+            slideNode.setName("div")
             out = ByteArrayOutputStream()
             format = OutputFormat.createPrettyPrint()
             format.setSuppressDeclaration(True)
