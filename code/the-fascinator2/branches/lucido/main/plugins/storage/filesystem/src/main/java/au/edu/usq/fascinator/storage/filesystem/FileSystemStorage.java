@@ -18,6 +18,9 @@
  */
 package au.edu.usq.fascinator.storage.filesystem;
 
+import static au.edu.usq.fascinator.api.storage.PayloadType.Data;
+import static au.edu.usq.fascinator.api.storage.PayloadType.External;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -29,6 +32,7 @@ import org.slf4j.LoggerFactory;
 
 import au.edu.usq.fascinator.api.storage.DigitalObject;
 import au.edu.usq.fascinator.api.storage.Payload;
+import au.edu.usq.fascinator.api.storage.PayloadType;
 import au.edu.usq.fascinator.api.storage.Storage;
 import au.edu.usq.fascinator.api.storage.StorageException;
 import au.edu.usq.fascinator.common.JsonConfig;
@@ -99,7 +103,16 @@ public class FileSystemStorage implements Storage {
         parentDir.mkdirs();
         try {
             FileOutputStream out = new FileOutputStream(payloadFile);
-            IOUtils.copy(filePayload.getInputStream(), out);
+            File realFile = new File(oid);
+            PayloadType type = payload.getType();
+            if (realFile.isFile()
+                    && (Data.equals(type) || External.equals(type))) {
+                filePayload.setLinked(true);
+                filePayload.updateMeta(false);
+                IOUtils.write(oid, out);
+            } else {
+                IOUtils.copy(filePayload.getInputStream(), out);
+            }
             out.close();
         } catch (IOException ioe) {
             log.error("Failed to add payload", ioe);
