@@ -1,6 +1,27 @@
+/* 
+ * The Fascinator - Common Library
+ * Copyright (C) 2008-2009 University of Southern Queensland
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+
 package au.edu.usq.fascinator.portal;
 
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.ArrayList;
@@ -13,8 +34,15 @@ import org.slf4j.LoggerFactory;
 
 import au.edu.usq.fascinator.common.JsonConfigHelper;
 
+/**
+ * Portal class to handle portal.json
+ * 
+ * @author Linda Octalina
+ * 
+ */
 public class Portal {
     private JsonConfigHelper jsonConfig;
+    private static final String PORTAL_JSON = "portal.json";
     private static Logger log = LoggerFactory.getLogger(Portal.class);
 
     /**
@@ -30,20 +58,34 @@ public class Portal {
      * <li>facet-sort-by-count</li>
      * <li>backup-email</li>
      * <li>backup-paths</li>
-     * 
      * </ul>
-     * private String clusterFacet;
-     * 
-     * private String clusterFacetLabel;
-     * 
-     * private String clusterFacetData;
-     * 
-     * private String itemClass;
-     * 
-     * private String network;
-     * 
-     * private String netmask;
      **/
+
+    /**
+     * Portal Constructor
+     * 
+     * @throws IOException
+     */
+    public Portal(String portalName) throws IOException {
+        JsonConfigHelper sysConfig = new JsonConfigHelper();
+        String portalsDir = sysConfig.get("portal/home",
+                "src/main/config/portal");
+        File portalFile = new File(new File(portalsDir, portalName),
+                PORTAL_JSON);
+        if (!portalFile.exists()) {
+            portalFile.getParentFile().mkdirs();
+            log.info("portalFile.getAbsolutePath()"
+                    + portalFile.getAbsolutePath());
+            FileWriter fstream = new FileWriter(portalFile.getAbsolutePath());
+            BufferedWriter out = new BufferedWriter(fstream);
+            out.write("{}");
+            out.close();
+        }
+
+        jsonConfig = new JsonConfigHelper(portalFile);
+        setName(portalName);
+    }
+
     /**
      * Portal Constructor
      * 
@@ -68,7 +110,7 @@ public class Portal {
      * @param name
      */
     public void setName(String name) {
-        jsonConfig.set("name", name.replace(' ', '_'));
+        jsonConfig.set("portal/name", name.replace(' ', '_'));
     }
 
     /**
@@ -177,12 +219,11 @@ public class Portal {
     /**
      * Set facet name and value
      * 
-     * @param name
-     * @param value
+     * @param map
      */
-    public void setFacetFields(String name, String value) {
-        String key = "portal/facet-fields/" + name;
-        jsonConfig.set(key, value);
+
+    public void setFacetFields(Map<String, Object> map) {
+        jsonConfig.setMap("portal/facet-fields", map);
     }
 
     /**
@@ -218,17 +259,25 @@ public class Portal {
      * @return facet-fields
      */
     @SuppressWarnings("unchecked")
-    public Map<String, Map<String, Object>> getBackupPaths() {
+    public Map<String, Map<String, Object>> getBackupPaths() throws IOException {
         Map<String, Object> backupPaths = jsonConfig
-                .getMap("portal/backup-paths");
+                .getMapWithChild("portal/backup-paths");
         Map<String, Map<String, Object>> backupPathsDict = new HashMap<String, Map<String, Object>>();
         for (String key : backupPaths.keySet()) {
-            Map<String, Object> dict = new HashMap<String, Object>();
-            dict = (Map<String, Object>) backupPaths.get(key);
-            backupPathsDict.put(key.toString(),
-                    (Map<String, Object>) backupPaths.get(key));
+            Map<String, Object> newObj = (Map<String, Object>) backupPaths
+                    .get(key);
+            backupPathsDict.put(key, newObj);
         }
         return backupPathsDict;
+    }
+
+    /**
+     * Set up Backup paths information
+     * 
+     * @param backupInfo
+     */
+    public void setBackupPaths(Map<String, Object> backupInfo) {
+        jsonConfig.setMap("portal/backup-paths", backupInfo);
     }
 
     /**
@@ -246,8 +295,9 @@ public class Portal {
      * Return List of facet fields
      * 
      * @return facet fields
+     * @throws IOException
      */
-    public List<String> getBackupPathsList() {
+    public List<String> getBackupPathsList() throws IOException {
         return new ArrayList<String>(getBackupPaths().keySet());
     }
 

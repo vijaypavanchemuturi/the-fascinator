@@ -115,19 +115,11 @@ public class PortalManagerImpl implements PortalManager {
 
     public void add(Portal portal) {
         String portalName = portal.getName();
-        // Map<String, String> facetFields = portal.getFacetFields();
-        // Map<String, String> backupPaths = portal.getBackupPaths();
-        // if (!portalName.equals("default") && facetFields.isEmpty()) {
-        // facetFields.putAll(getDefault().getFacetFields());
-        // }
-        // if (!portalName.equals("default") && backupPaths.isEmpty()) {
-        // backupPaths.putAll(getDefault().getBackupPaths());
-        // }
+        log.info("PORTAL name: " + portalName);
         getPortals().put(portalName, portal);
     }
 
     public void remove(String name) {
-        // delete the portal.xml
         File portalDir = new File(portalsDir, name);
         File portalFile = new File(portalDir, PORTAL_JSON);
         portalFile.delete();
@@ -146,13 +138,6 @@ public class PortalManagerImpl implements PortalManager {
         } catch (IOException ioe) {
 
         }
-        // try {
-        // jaxbM.marshal(portal, portalFile);
-        log.info("Saved portal: " + portal);
-        // } catch (JAXBException e) {
-        // throw new RuntimeException(e);
-        // }
-        // TODO copy velocity templates
     }
 
     private void loadPortals() {
@@ -174,13 +159,9 @@ public class PortalManagerImpl implements PortalManager {
             lastModified.put(name, portalFile.lastModified());
             portalFiles.put(name, portalFile);
             try {
-                // portal = (Portal) jaxbU.unmarshal(portalFile);
                 portal = new Portal(portalFile);
-
                 add(portal);
                 log.info("Loaded portal: " + portal);
-                // } catch (JAXBException e) {
-                // throw new RuntimeException(e);
             } catch (IOException e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
