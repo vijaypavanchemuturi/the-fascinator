@@ -115,7 +115,7 @@ public class BackupClient {
      * @param portalQuery
      * @throws IOException
      */
-    public BackupClient(String email, List<String> backupDirs,
+    public BackupClient(String email, List<Object> backupDirs,
             String portalQuery) throws IOException {
         config = new JsonConfig();
         setEmail(email);
@@ -148,32 +148,15 @@ public class BackupClient {
      * 
      * @param backupDir
      */
-    public void setBackupDir(List<String> backupDirs) {
+    public void setBackupDir(List<Object> backupDirs) {
         if (backupDirs != null) {
-            for (String backupDir : backupDirs) {
-                File backupDirectory = new File(backupDir);
-                log.info("###backupFile: " + backupDirectory.getAbsolutePath());
+            for (Object backupDir : backupDirs) {
+                File backupDirectory = new File(backupDir.toString());
                 backupDirList.add(backupDirectory);
                 if (backupDirectory.exists() == false) {
                     backupDirectory.getParentFile().mkdirs();
                 }
             }
-        }
-    }
-
-    /**
-     * Set Backup location being used TO DO: This function need to be removed
-     * once i know how to get list from json
-     * 
-     * @param backupDir
-     */
-    public void setBackupDir(String backupDir) {
-        if (backupDir != null) {
-            File backupDirectory = new File(backupDir);
-            if (backupDirectory.exists() == false) {
-                backupDirectory.getParentFile().mkdirs();
-            }
-            backupDirList.add(backupDirectory);
         }
     }
 
@@ -230,7 +213,7 @@ public class BackupClient {
 
             // Set default email and backupDir if they are null
             String defaultEmail = config.get("email", null);
-            String defaultBackupDir = config.get("backupDir", null);
+            List<Object> defaultBackupDir = config.getList("backupDir");
             if (email == null && defaultEmail == null) {
                 log.error("No email address provided in system-config.json");
                 return;

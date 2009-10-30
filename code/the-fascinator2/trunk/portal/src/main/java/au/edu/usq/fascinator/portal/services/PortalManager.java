@@ -43,6 +43,6 @@ public interface PortalManager {
 
     public void save(Portal portal);
 
-    public void backup(String email, List<String> backupDir, String portalQuery);
+    public void backup(String email, List<Object> backupDir, String portalQuery);
 
 }

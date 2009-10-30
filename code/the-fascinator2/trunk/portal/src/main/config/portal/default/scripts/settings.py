@@ -18,7 +18,8 @@ class SettingsData:
                 name = ""
                 desc = ""
                 query = str(" ".join(fq))
-            newPortal = Portal(name, desc, query)
+            #newPortal = Portal(name, desc, query)
+            newPortal = Portal(name)
             newPortal.setFacetFields(Services.portalManager.default.facetFields)
             newPortal.setQuery(query)
             self.__portal = newPortal
@@ -28,7 +29,7 @@ class SettingsData:
             if portalName is None or (formData.get("portalAction") == "Cancel"):
                 self.__portal = Services.portalManager.get(portalId)
             else:
-                self.__portal = Portal()
+                self.__portal = Portal(portalName)
                 self.__portal.name = portalName
                 Services.portalManager.add(self.__portal)
             if formData.get("portalAction") == "Update":
@@ -44,19 +45,26 @@ class SettingsData:
         
     def __updateBackupPaths(self):
         backupPaths = self.__portal.backupPaths
-        backupPaths.clear()
         size = int(formData.get("backupUrlSize"))
         for i in range (1, size+2):  
             keyName = "backupPaths_%s_name" % i
-            valueName = "backupPaths_%s_label" % i
-            #valueName = formData.get("default")
+            activeName = "backupPaths_%s_active" % i
+            includeName = "backupPaths_%s_include-rendition-meta" % i
+            filterName = "backupPaths_%s_filter" % i
+            
             name = formData.get(keyName)
-            value = formData.get(valueName)
-            #print " * setting.py Updatebackup Path: name='%s', value='%s', count='%s'" % (name, value, i) 
-            if name is not None and value is not None:
-                backupPaths.put(name, value)
-            elif name is not None and value is None:
-                backupPaths.put(name, "off")
+            activeValue = formData.get(activeName)
+            includeValue = formData.get(includeName)
+            filterValue = formData.get(filterName)
+            #print " * setting.py Updatebackup Path: name='%s', active='%s', include='%s', filter='%s', count='%s'" % \
+            #    (name, activeValue, includeValue, filterValue, i) 
+            if name is not None:
+                newInfo = {}
+                newInfo["active"] = activeValue is not None
+                newInfo["include-rendition-meta"] = includeValue is not None
+                newInfo["ignoreFilter"] = filterValue
+                backupPaths.put(name, newInfo)
+            self.__portal.setBackupPaths(backupPaths)
         Services.portalManager.save(self.__portal)
     
     def __updatePortal(self):
@@ -77,6 +85,7 @@ class SettingsData:
             #print "key: %s, label: %s" % (name, label)
             if name is not None and label is not None:
                 facetFields.put(name, label)
+        self.__portal.setFacetFields(facetFields)
         Services.portalManager.save(self.__portal)
     
     def getPortal(self):
