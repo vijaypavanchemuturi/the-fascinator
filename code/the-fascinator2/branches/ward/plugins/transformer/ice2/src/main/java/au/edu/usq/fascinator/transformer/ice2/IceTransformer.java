@@ -44,6 +44,8 @@ import au.edu.usq.fascinator.api.transformer.Transformer;
 import au.edu.usq.fascinator.api.transformer.TransformerException;
 import au.edu.usq.fascinator.common.BasicHttpClient;
 import au.edu.usq.fascinator.common.JsonConfig;
+import java.util.Map;
+import java.util.HashMap;
 
 /**
  * Transformer Class will send a file to ice-service to get the renditions of
@@ -59,6 +61,7 @@ public class IceTransformer implements Transformer {
     private String resizeFixedWidth;
     private String resizeMode; // ratio or fixedWidth
     private String enlargeImage;
+    private Map<String, Object> ice2ContentPaths;
 
     private static Logger log = LoggerFactory.getLogger(IceTransformer.class);
 
@@ -118,6 +121,22 @@ public class IceTransformer implements Transformer {
             outputDir.mkdirs();
         }
 
+        for(String path : ice2ContentPaths.keySet()) {
+            if(sourceFile.getAbsolutePath().startsWith(path)) {
+                try {
+                    String r = getRenditionDirectFromIce(sourceFile, path,
+                            ice2ContentPaths.get(path).toString());
+                    if(r.startsWith("Error ")) {
+                        throw new Exception(r);
+                    }
+                    return r;
+                } catch(Exception e) {
+                    log.error("Error getting rendition directly from ICE: "
+                            + e.getMessage());
+                }
+            }
+        }
+
         try {
             BasicHttpClient client = new BasicHttpClient(convertUrl);
             PostMethod filePost = new PostMethod(convertUrl);
@@ -160,6 +179,11 @@ public class IceTransformer implements Transformer {
                 // for converted media file
                 outputFilename = outputPath + "/" + basename + ".flv";
             }
+            if (headerType.indexOf("audio/mpeg") > -1) {
+                // for converted media file
+                outputFilename = outputPath + "/" + basename + ".mp3";
+            }
+
             // Check if file is exist or not, just incase
             File outputFile = new File(outputFilename);
             if (outputFile.exists()) {
@@ -173,6 +197,78 @@ public class IceTransformer implements Transformer {
             return outputFilename; // Returning the location of the file
         } catch (Exception e) {
             log.error("An error occurred: {}", e.getMessage());
+            // e.printStackTrace();
+            return "Error " + e.getMessage();
+        }
+    }
+
+    /**
+     * getRenditionDirectFromIce method
+     *
+     * @param File sourceFile
+     * @param String basePath
+     * @param String url
+     * @return String: filePath if success error message if fail
+     */
+    private String getRenditionDirectFromIce(File sourceFile, String basePath,
+            String url) throws Exception {
+        log.info("*** getRenditionDirectFromIce(" + sourceFile.getAbsolutePath() + ")");
+        if(!basePath.endsWith("/")){
+            basePath += "/";
+        }
+        String path = sourceFile.toString().substring(basePath.length());
+        try {
+            String iceUrl = url + path;
+            if(iceUrl.endsWith(".odt") || iceUrl.endsWith(".doc")){
+                iceUrl = iceUrl.substring(0, iceUrl.length()-4) + ".htm";
+            } else {
+                throw new Exception("Error");
+            }
+            log.info("*** iceUrl='{}'", iceUrl);
+            BasicHttpClient client = new BasicHttpClient(iceUrl);
+            PostMethod filePost = new PostMethod(iceUrl);
+
+            Part[] parts = {
+                    new StringPart("func", "exportDocument"),
+                    new StringPart("postback", "True"),
+                    new StringPart("template", "default"),
+                    new StringPart("pdflink", "on"),
+                    //new StringPart("slidelink", ""),
+                    new StringPart("toc", "on"),
+                    //new StringPart("title", ""),
+                    //new StringPart("sourcelink", ""),
+                    //new StringPart("mets", ""),
+                    new StringPart("dc", "1"),
+                    //new StringPart("rdf", ""),
+                    new StringPart("x", "")
+                };
+            filePost.setRequestEntity(new MultipartRequestEntity(parts,
+                    filePost.getParams()));
+            int status = client.executeMethod(filePost);
+            log.debug("+HTTP status: {} {}", status,
+                                        HttpStatus.getStatusText(status));
+            if (status != HttpStatus.SC_OK) {
+                log.debug("+Response body: {}", filePost
+                        .getResponseBodyAsString());
+            }
+            // Get Response
+            InputStream is = filePost.getResponseBodyAsStream();
+            String basename = sourceFile.getName();
+            basename = FilenameUtils.getBaseName(sourceFile.getName());
+            String outputFilename = outputPath + "/" + basename + ".zip";
+            // Check if file is exist or not, just incase
+            File outputFile = new File(outputFilename);
+            if (outputFile.exists()) {
+                outputFile.delete();
+            }
+            FileOutputStream fos = new FileOutputStream(outputFilename);
+            IOUtils.copy(is, fos);
+            is.close();
+            fos.close();
+            log.debug("+ICE output at {}", outputFilename);
+            return outputFilename; // Returning the location of the file
+        } catch (Exception e) {
+            log.error("+An error occurred: {}", e.getMessage());
             // e.printStackTrace();
             return "Error " + e.getMessage();
         }
@@ -265,6 +361,11 @@ public class IceTransformer implements Transformer {
             resizeFixedWidth = config.get(
                     "transformer/ice2/resize.image.fixedWidth", "150");
             enlargeImage = config.get("transformer/ice2/enlargeImage", "false");
+            try {
+                ice2ContentPaths = config.getMap("transformer/ice2/ice2ContentPaths");
+            } catch(Exception e) {
+                ice2ContentPaths = new HashMap<String, Object>();
+            }
         } catch (IOException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
@@ -335,5 +436,4 @@ public class IceTransformer implements Transformer {
         }
         return true;
     }
-
 }
