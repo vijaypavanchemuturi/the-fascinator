@@ -14,8 +14,6 @@ from org.dom4j.io import OutputFormat, XMLWriter, SAXReader
 
 import traceback
 
-import traceback
-
 class SolrDoc:
     def __init__(self, json):
         self.json = json
@@ -117,6 +115,13 @@ class DetailData:
         pid = os.path.splitext(self.__pid)[0] + ".pdf"
         return "%s/%s" % (self.__oid, pid)
     
+    def hasHtml(self):
+        payloadList = self.getObject().getPayloadList()
+        for payload in payloadList:
+            if payload.contentType == "text/html":
+                return True
+        return False
+    
     def getPayloadContent(self):
         mimeType = self.__mimeType
         print " * detail.py: payload content mimeType=%s" % mimeType
@@ -136,7 +141,7 @@ class DetailData:
                     sw.write("</pre>")
                     sw.flush()
                     contentStr = sw.toString()
-        elif mimeType == "application/pdf" or mimeType.find("vnd")>-1 or mimeType.find("vnd.oasis.opendocument.")>-1:
+        elif mimeType == "application/pdf" or mimeType.find("vnd.ms")>-1 or mimeType.find("vnd.oasis.opendocument.")>-1:
             # get the html version if exist...
             pid = os.path.splitext(self.__pid)[0] + ".htm"
             print " * detail.py: pid=%s" % pid

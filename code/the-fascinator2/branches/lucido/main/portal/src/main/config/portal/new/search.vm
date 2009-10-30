@@ -1,7 +1,7 @@
 #macro(displayFacetTree $facetTreeId $facetTreeTitle)
-  <div class="box menu ui-helper-hidden">
+  <div class="menu box hidden">
     <h2><a href="#">$facetTreeTitle</a></h2>
-    <div id="$facetTreeId" class="clearfix facet-list menu"></div>
+    <div id="$facetTreeId" class="menu facet-list clearfix"></div>
   </div>
 #end
 #macro(displayFacet $facetFieldKey)
@@ -23,7 +23,10 @@
         #else
           #set($facetClass = "add-facet")
         #end
-        <a class="$facetClass" href="#" rel='$facetFieldKey:"$facetCountKey"'>$page.escapeText($facetCountKey)&nbsp;<span class="facet-count">($facetCount)</span></a>
+        #set($facetLabel = "$page.escapeText($facetCountKey)")
+        <a class="facet $facetClass" href="#" rel='$facetFieldKey:"$facetCountKey"' title="$facetLabel ($facetCount)">
+          $facetLabel&nbsp;<span class="facet-count">($facetCount)</span>
+        </a>
       #end
       </li>
     #end
@@ -31,7 +34,6 @@
   </div>
   #end
 #end
-
 #if($formData.get("verb") == 'load-tags')
 #if($self.hasTags())
 <label for="tags-list">Current tags</label>	
@@ -56,19 +58,18 @@
 ')
 #set($paging = $self.paging)
 #if($self.result and $paging.totalFound > 0)
-#set($navContent="<li class='secondary'><span class='status'>Displaying ${paging.startNum} to ${paging.endNum} of ${paging.totalFound} records (in $self.queryTime seconds)</span></li>")
 #end
-<h2 id="page-heading">Search <span class="paging">#parse($page.getTemplate("search-paging.vm"))</span></h2>
+<h2 id="page-heading">Search <span class="paging right">#parse($page.getTemplate("search-paging.vm"))</span></h2>
 <div class="grid_4">
   #if($self.hasSelectedFacets() || $query != "")
   <div class="box menu">
-    <h2>Actions</h2>
+    <h2><a href="#">Actions</a></h2>
     <ul class="menu">
       #if($query != "")
-        <li><a href="$portalPath/search">Clear search</a></li>
+        <li><a href="$portalPath/search">Clear search query</a></li>
       #end
       #if($self.hasSelectedFacets())
-        <li><a id="clear-facets" href="#">Clear selection</a></li>
+        <li><a href="#" id="clear-facets">Clear facet selection</a></li>
       #end
     </ul>
   </div>
@@ -83,7 +84,12 @@
 </div>
 <div class="grid_12" id="result-list">
   <div class="box articles">
-    <h2>Results</h2>
+    <h2>
+      <a href="#">
+        Results
+        <span class="right">Showing ${paging.startNum} to ${paging.endNum} of ${paging.totalFound} items ($self.queryTime seconds)</span>
+      </a>
+    </h2>
     #if($self.result and $paging.totalFound > 0)
     #foreach($item in $self.result.getList("response/docs"))
       #set($id = $item.get("id"))
@@ -100,10 +106,12 @@
       <div id="$id" class="article#if($velocityCount==1) first#end">
         <h3><a href="$portalPath/detail/$id">$title</a></h3>
         <p class="meta">$format
-        <a class="tag" style="float:right;" href="#">tag</a>
+          <span class="right"><a class="tag" href="#">tag</a></span>
         </p>
         #if($format.startsWith("image/"))
-          <a class="image" href="$portalPath/detail/$id"><img src="$portalPath/download/$id/$self.getThumbnail($id)"></img></a>
+          <a class="image" href="$portalPath/detail/$id">
+            <img src="$portalPath/download/$id/$self.getThumbnail($id)" />
+          </a>
         #end
         <p class="item-description">$!description&nbsp;</p>
       </div>
@@ -113,11 +121,6 @@
       <div class="box no-result">No items found matching your query: '$!query'</div>
     #end
   </div>
-</div>
-<div class="clear"></div>
-<div class="grid_16">
-  <pre class="debug">$self.selectedFacetIds</pre>
-  <pre class="debug">$self.result.toString()</pre>
 </div>
 
 #*
