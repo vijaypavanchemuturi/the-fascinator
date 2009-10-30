@@ -17,7 +17,7 @@
     },
     "backup-email" : "octalina@usq.edu.au",
     "backup-paths" : {
-      "/home/aa" : {
+      "/home/octalina/backup" : {
         "include-rendition-meta" : false,
         "ignoreFilter" : "",
         "active" : true
