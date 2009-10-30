@@ -39,7 +39,6 @@ import au.edu.usq.fascinator.portal.services.PortalManager;
 
 public class PortalManagerImpl implements PortalManager {
 
-    // private static final String PORTAL_XML = "portal.xml";
     private static final String PORTAL_JSON = "portal.json";
 
     private Logger log = LoggerFactory.getLogger(PortalManagerImpl.class);
@@ -73,12 +72,6 @@ public class PortalManagerImpl implements PortalManager {
     private void init(String portalsDir) {
         try {
             this.portalsDir = new File(portalsDir);
-
-            /*** Change this to use new portal ***/
-            // JAXBContext ctx = JAXBContext.newInstance(Portal.class);
-            // jaxbM = ctx.createMarshaller();
-            // jaxbM.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
-            // jaxbU = ctx.createUnmarshaller();
             lastModified = new HashMap<String, Long>();
             portalFiles = new HashMap<String, File>();
         } catch (Exception e) {
