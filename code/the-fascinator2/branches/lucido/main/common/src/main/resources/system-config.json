@@ -1,6 +1,6 @@
 {
 	"email": "email@usq.edu.au",
-	"backupDir": "${user.home}/.fascinator-backup",
+	"backupDir": ["${user.home}/.fascinator-backup"],
     "storage": {
         "type": "file-system",
         "file-system": {

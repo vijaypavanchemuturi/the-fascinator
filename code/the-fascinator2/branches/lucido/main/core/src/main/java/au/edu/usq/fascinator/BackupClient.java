@@ -26,7 +26,9 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.IOUtils;
@@ -80,8 +82,8 @@ public class BackupClient {
     /** Email used to define user space **/
     private String email = null;
 
-    /** Backup location **/
-    private File backupDir = null;
+    /** Backup location list **/
+    private List<File> backupDirList = new ArrayList();
 
     /** Portal query **/
     private String portalQuery = null;
@@ -113,11 +115,11 @@ public class BackupClient {
      * @param portalQuery
      * @throws IOException
      */
-    public BackupClient(String email, String backupDir, String portalQuery)
-            throws IOException {
+    public BackupClient(String email, List<Object> backupDirs,
+            String portalQuery) throws IOException {
         config = new JsonConfig();
         setEmail(email);
-        setBackupDir(backupDir);
+        setBackupDir(backupDirs);
         setPortalQuery(portalQuery);
     }
 
@@ -146,11 +148,14 @@ public class BackupClient {
      * 
      * @param backupDir
      */
-    public void setBackupDir(String backupDir) {
-        if (backupDir != null && backupDir != "") {
-            this.backupDir = new File(backupDir);
-            if (this.backupDir.exists() == false) {
-                this.backupDir.getParentFile().mkdirs();
+    public void setBackupDir(List<Object> backupDirs) {
+        if (backupDirs != null) {
+            for (Object backupDir : backupDirs) {
+                File backupDirectory = new File(backupDir.toString());
+                backupDirList.add(backupDirectory);
+                if (backupDirectory.exists() == false) {
+                    backupDirectory.getParentFile().mkdirs();
+                }
             }
         }
     }
@@ -160,8 +165,8 @@ public class BackupClient {
      * 
      * @return backupDir
      */
-    public File getBackupDir() {
-        return backupDir;
+    public List<File> getBackupDir() {
+        return backupDirList;
     }
 
     /**
@@ -208,17 +213,17 @@ public class BackupClient {
 
             // Set default email and backupDir if they are null
             String defaultEmail = config.get("email", null);
-            String defaultBackupDir = config.get("backupDir", null);
+            List<Object> defaultBackupDir = config.getList("backupDir");
             if (email == null && defaultEmail == null) {
                 log.error("No email address provided in system-config.json");
                 return;
             } else if (email == null) {
                 setEmail(defaultEmail);
             }
-            if (backupDir == null && defaultBackupDir == null) {
+            if (backupDirList == null && defaultBackupDir == null) {
                 log.error("No backup Directory provided in system-config.json");
                 return;
-            } else if (backupDir == null) {
+            } else if (backupDirList == null) {
                 setBackupDir(defaultBackupDir);
             }
         } catch (Exception e) {
@@ -261,19 +266,21 @@ public class BackupClient {
                         fileName = fileName
                                 .replace("C:", File.separator + "C_");
                     }
-                    String outputFileName = backupDir.getAbsolutePath()
-                            + File.separator + email + fileName;
-                    File outputFile = new File(outputFileName);
-                    outputFile.getParentFile().mkdirs();
-                    OutputStream output = new FileOutputStream(outputFile);
+                    for (File backupDir : backupDirList) {
+                        String outputFileName = backupDir.getAbsolutePath()
+                                + File.separator + email + fileName;
+                        File outputFile = new File(outputFileName);
+                        outputFile.getParentFile().mkdirs();
+                        OutputStream output = new FileOutputStream(outputFile);
 
-                    // getSource still can't work. the sourceid is null
-                    Payload payload = digitalObject.getSource();
+                        // getSource still can't work. the sourceid is null
+                        Payload payload = digitalObject.getSource();
 
-                    // Payload payload = digitalObject.getPayload(oidFile
-                    // .getName());
-                    if (payload != null) {
-                        IOUtils.copy(payload.getInputStream(), output);
+                        // Payload payload = digitalObject.getPayload(oidFile
+                        // .getName());
+                        if (payload != null) {
+                            IOUtils.copy(payload.getInputStream(), output);
+                        }
                     }
                 }
 

@@ -1,5 +1,5 @@
 /* 
- * The Fascinator - Portal
+ * The Fascinator - Common Library
  * Copyright (C) 2008-2009 University of Southern Queensland
  * 
  * This program is free software: you can redistribute it and/or modify
@@ -16,197 +16,223 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
+
 package au.edu.usq.fascinator.portal;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.Writer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import au.edu.usq.fascinator.common.jaxb.MapAdapter;
-import au.edu.usq.fascinator.portal.services.PortalManager;
+import au.edu.usq.fascinator.common.JsonConfigHelper;
 
-@XmlRootElement
-@XmlAccessorType(XmlAccessType.NONE)
-public class Portal implements Comparable<Portal> {
+/**
+ * Portal class to handle portal.json
+ * 
+ * @author Linda Octalina
+ * 
+ */
+public class Portal {
+    private JsonConfigHelper jsonConfig;
+    private static final String PORTAL_JSON = "portal.json";
+    private static Logger log = LoggerFactory.getLogger(Portal.class);
 
-    @XmlAttribute
-    private String name;
+    /**
+     * <p>
+     * Portal Configuration options:
+     * </p>
+     * <ul>
+     * <li>name</li>
+     * <li>description</li>
+     * <li>query</li>
+     * <li>records-per-page</li>
+     * <li>facet-count</li>
+     * <li>facet-sort-by-count</li>
+     * <li>backup-email</li>
+     * <li>backup-paths</li>
+     * </ul>
+     **/
 
-    @XmlElement
-    private String description;
+    /**
+     * Portal Constructor
+     * 
+     * @throws IOException
+     */
+    public Portal(String portalName) throws IOException {
+        JsonConfigHelper sysConfig = new JsonConfigHelper();
+        String portalsDir = sysConfig.get("portal/home",
+                "src/main/config/portal");
+        File portalFile = new File(new File(portalsDir, portalName),
+                PORTAL_JSON);
+        if (!portalFile.exists()) {
+            portalFile.getParentFile().mkdirs();
+            log.info("portalFile.getAbsolutePath()"
+                    + portalFile.getAbsolutePath());
+            FileWriter fstream = new FileWriter(portalFile.getAbsolutePath());
+            BufferedWriter out = new BufferedWriter(fstream);
+            out.write("{}");
+            out.close();
+        }
 
-    @XmlElement
-    private String query;
-
-    @XmlElement(name = "cluster-facet")
-    private String clusterFacet;
-
-    @XmlElement(name = "cluster-facet-label")
-    private String clusterFacetLabel;
-
-    @XmlElement(name = "cluster-facet-data")
-    private String clusterFacetData;
-
-    @XmlElement(name = "records-per-page")
-    private int recordsPerPage = 10;
-
-    @XmlElement(name = "facet-count")
-    private int facetCount = 25;
-
-    @XmlElement(name = "facet-sort-by-count")
-    private boolean facetSort = true;
-
-    @XmlElement(name = "item-class")
-    private String itemClass;
-
-    @XmlElement
-    private String network;
-
-    @XmlElement
-    private String netmask;
-
-    @XmlElement(name = "backup-email")
-    private String email;
-
-    @XmlElement(name = "backup-paths")
-    @XmlJavaTypeAdapter(MapAdapter.class)
-    private Map<String, String> backupPaths;
-
-    @XmlElement(name = "facet-fields")
-    @XmlJavaTypeAdapter(MapAdapter.class)
-    private Map<String, String> facetFields;
-
-    public Portal() {
-        this("", "", "");
+        jsonConfig = new JsonConfigHelper(portalFile);
+        setName(portalName);
     }
 
-    public Portal(String name, String query) {
-        this(name, name.substring(0, 1).toUpperCase() + name.substring(1),
-                query);
+    /**
+     * Portal Constructor
+     * 
+     * @throws IOException
+     */
+    public Portal(File portalConfig) throws IOException {
+        jsonConfig = new JsonConfigHelper(portalConfig);
     }
 
-    public Portal(String name, String description, String query) {
-        setName(name);
-        this.description = description;
-        this.query = query;
-        facetFields = new HashMap<String, String>();
-        backupPaths = new HashMap<String, String>();
-    }
-
+    /**
+     * Return portal name
+     * 
+     * @return name
+     */
     public String getName() {
-        return name;
+        return jsonConfig.get("portal/name", "");
     }
 
+    /**
+     * Set portal name
+     * 
+     * @param name
+     */
     public void setName(String name) {
-        this.name = name.replace(' ', '_');
+        jsonConfig.set("portal/name", name.replace(' ', '_'));
     }
 
+    /**
+     * Return portal description
+     * 
+     * @return description
+     */
     public String getDescription() {
-        return description;
+        return jsonConfig.get("portal/description", "");
     }
 
+    /**
+     * Set portal description
+     * 
+     * @param description
+     */
     public void setDescription(String description) {
-        this.description = description;
+        jsonConfig.set("portal/description", description);
     }
 
+    /**
+     * Return portal query
+     * 
+     * @return query
+     */
     public String getQuery() {
-        return query;
+        return jsonConfig.get("portal/query", "");
     }
 
+    /**
+     * Set portal query
+     * 
+     * @param query
+     */
     public void setQuery(String query) {
-        this.query = query;
+        jsonConfig.set("portal/query", query);
     }
 
-    public String getClusterFacet() {
-        return clusterFacet;
-    }
-
-    public void setClusterFacet(String clusterFacet) {
-        this.clusterFacet = clusterFacet;
-    }
-
-    public String getClusterFacetLabel() {
-        return clusterFacetLabel;
-    }
-
-    public void setClusterFacetLabel(String clusterFacetLabel) {
-        this.clusterFacetLabel = clusterFacetLabel;
-    }
-
-    public String getClusterFacetData() {
-        return clusterFacetData;
-    }
-
-    public void setClusterFacetData(String clusterFacetData) {
-        this.clusterFacetData = clusterFacetData;
-    }
-
+    /**
+     * Return records per page
+     * 
+     * @return records-per-page
+     */
     public int getRecordsPerPage() {
-        return recordsPerPage;
+        return Integer
+                .parseInt(jsonConfig.get("portal/records-per-page", "10"));
     }
 
+    /**
+     * Set records per page
+     * 
+     * @param recordsPerPage
+     */
     public void setRecordsPerPage(int recordsPerPage) {
-        this.recordsPerPage = recordsPerPage;
+        jsonConfig.set("portal/records-per-page", Integer
+                .toString(recordsPerPage));
     }
 
+    /**
+     * Return facet-count
+     * 
+     * @return facet-count
+     */
     public int getFacetCount() {
-        return facetCount;
+        return Integer.parseInt(jsonConfig.get("portal/facet-count", "25"));
     }
 
+    /**
+     * Set facet count
+     * 
+     * @param facetCount
+     */
     public void setFacetCount(int facetCount) {
-        this.facetCount = facetCount;
+        jsonConfig.set("portal/facet-count", Integer.toString(facetCount));
     }
 
+    /**
+     * Return facet sort by count
+     * 
+     * @return facet-sort-by-count
+     */
     public boolean getFacetSort() {
-        return facetSort;
+        return Boolean.parseBoolean(jsonConfig.get(
+                "portal/facet-sort-by-count", "false"));
     }
 
+    /**
+     * Set facet sort by count
+     * 
+     * @param facetSort
+     */
     public void setFacetSort(boolean facetSort) {
-        this.facetSort = facetSort;
+        jsonConfig.set("portal/facet-sort-by-count", Boolean
+                .toString(facetSort));
     }
 
-    public String getItemClass() {
-        return itemClass;
+    /**
+     * Return map of facet-fields
+     * 
+     * @return facet-fields
+     */
+    public Map<String, Object> getFacetFields() {
+        return jsonConfig.getMap("portal/facet-fields");
     }
 
-    public void setItemClass(String itemClass) {
-        this.itemClass = itemClass;
+    /**
+     * Set facet name and value
+     * 
+     * @param map
+     */
+
+    public void setFacetFields(Map<String, Object> map) {
+        jsonConfig.setMap("portal/facet-fields", map);
     }
 
-    public String getNetwork() {
-        return network;
-    }
-
-    public void setNetwork(String network) {
-        this.network = network;
-    }
-
-    public String getNetmask() {
-        return netmask;
-    }
-
-    public void setNetmask(String netmask) {
-        this.netmask = netmask;
-    }
-
-    public Map<String, String> getFacetFields() {
-        return facetFields;
-    }
-
-    public void setFacetFields(Map<String, String> facetFields) {
-        this.facetFields = facetFields;
-    }
-
+    /**
+     * Return List of facet fields
+     * 
+     * @return facet fields
+     */
     public List<String> getFacetFieldList() {
-        return new ArrayList<String>(facetFields.keySet());
+        return new ArrayList<String>(getFacetFields().keySet());
     }
 
     /**
@@ -215,7 +241,7 @@ public class Portal implements Comparable<Portal> {
      * @param email
      */
     public void setEmail(String email) {
-        this.email = email;
+        jsonConfig.set("portal/backup-email", email);
     }
 
     /**
@@ -224,54 +250,83 @@ public class Portal implements Comparable<Portal> {
      * @return email
      */
     public String getEmail() {
-        return email;
+        return jsonConfig.get("portal/backup-email", "");
     }
 
     /**
-     * List of backup addresses (for now only support local paths)
+     * Return map of facet-fields
      * 
-     * @param backupPaths
+     * @return facet-fields
      */
-    public void setBackupPaths(Map<String, String> backupPaths) {
-        this.backupPaths = backupPaths;
+    @SuppressWarnings("unchecked")
+    public Map<String, Map<String, Object>> getBackupPaths() throws IOException {
+        Map<String, Object> backupPaths = jsonConfig
+                .getMapWithChild("portal/backup-paths");
+        Map<String, Map<String, Object>> backupPathsDict = new HashMap<String, Map<String, Object>>();
+        for (String key : backupPaths.keySet()) {
+            Map<String, Object> newObj = (Map<String, Object>) backupPaths
+                    .get(key);
+            backupPathsDict.put(key, newObj);
+        }
+        return backupPathsDict;
     }
 
     /**
-     * Return list of backup paths
+     * Set up Backup paths information
      * 
-     * @return backupPaths
+     * @param backupInfo
      */
-    public Map<String, String> getBackupPaths() {
-        return backupPaths;
+    public void setBackupPaths(Map<String, Object> backupInfo) {
+        jsonConfig.setMap("portal/backup-paths", backupInfo);
     }
 
-    public List<String> getBackupPathsList() {
-        return new ArrayList<String>(backupPaths.keySet());
+    /**
+     * Set facet name and value
+     * 
+     * @param name
+     * @param value
+     */
+    public void setBackupPaths(String path, String name, String value) {
+        String key = "portal/backup-paths/" + path + "/";
+        jsonConfig.set(key, value);
     }
 
-    @Override
-    public boolean equals(Object that) {
-        if (this == that) {
-            return true;
-        }
-        if (that instanceof Portal) {
-            return name.equals(((Portal) that).getName());
-        }
-        return false;
+    /**
+     * Return List of facet fields
+     * 
+     * @return facet fields
+     * @throws IOException
+     */
+    public List<String> getBackupPathsList() throws IOException {
+        return new ArrayList<String>(getBackupPaths().keySet());
     }
 
-    public int compareTo(Portal that) {
-        if (PortalManager.DEFAULT_PORTAL_NAME.equals(name)) {
-            return -1;
-        }
-        if (PortalManager.DEFAULT_PORTAL_NAME.equals(that.getName())) {
-            return 1;
-        }
-        return description.compareTo(that.getDescription());
+    /**
+     * Serialises the current state of the JSON configuration to the specified
+     * writer. By default this doesn't use a pretty printer.
+     * 
+     * @param writer
+     *            a writer
+     * @throws IOException
+     *             if there was an error writing the configuration
+     */
+    public void store(Writer writer) throws IOException {
+        store(writer, false);
     }
 
-    @Override
-    public String toString() {
-        return getDescription() + " [" + getName() + "]";
+    /**
+     * Serialises the current state of the JSON configuration to the specified
+     * writer. The output can be set to be pretty printed if required.
+     * 
+     * @param writer
+     *            a writer
+     * @param pretty
+     *            use pretty printer
+     * @throws IOException
+     *             if there was an error writing the configuration
+     */
+    public void store(Writer writer, boolean pretty) throws IOException {
+        jsonConfig.store(writer, pretty);
     }
+
 }

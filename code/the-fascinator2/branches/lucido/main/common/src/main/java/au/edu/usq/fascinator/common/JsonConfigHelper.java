@@ -193,6 +193,51 @@ public class JsonConfigHelper {
     }
 
     /**
+     * Set map with it's child
+     * 
+     * @param path XPath to node
+     * @param map
+     */
+    public void setMap(String path, Map<String, Object> map) {
+        try {
+            getJXPath().setValue(path, map);
+        } catch (Exception e) {
+            getJXPath().createPathAndSetValue(path, map);
+        }
+
+    }
+
+    /**
+     * Gets a map of the child (and the 2nd level children) nodes of the
+     * specified node
+     * 
+     * @param path XPath to node
+     * @return node map, possibly empty
+     */
+    public Map<String, Object> getMapWithChild(String path) {
+        Map<String, Object> valueMap = new HashMap<String, Object>();
+        Object valueNode = getJXPath().getValue(path);
+        if (valueNode instanceof Map) {
+            Map<String, Object> map = (Map<String, Object>) valueNode;
+            for (String key : map.keySet()) {
+                valueMap.put(key, map.get(key));
+            }
+        }
+        return valueMap;
+    }
+
+    /**
+     * Remove specified path from json
+     * 
+     * @param path to node
+     */
+    public void removePath(String path) {
+        if (get(path) != null) {
+            getJXPath().removePath(path);
+        }
+    }
+
+    /**
      * Sets the value of the specified node. If the node doesn't exist it is
      * created.
      * 
