@@ -1,0 +1,32 @@
+{
+  "portal" : {
+    "name" : "new",
+    "description" : "New layout",
+    "query" : "",
+    "records-per-page" : "5",
+    "facet-count" : "25",
+    "facet-sort-by-count" : "true",
+    "facet-fields" : {
+      "repository_name" : "Source",
+      "f_dc_creator" : "Creator",
+      "file_path" : "Path",
+      "f_dc_subject" : "Subject",
+      "f_dc_format" : "Format",
+      "repository_type" : "Source type",
+      "f_dc_type" : "Type"
+    },
+    "backup-email" : "octalina@usq.edu.au",
+    "backup-paths" : {
+      "/home/octalina/backup" : {
+        "include-rendition-meta" : false,
+        "ignoreFilter" : "",
+        "active" : true
+      },
+      "/home/octalina/backup1" : {
+        "include-rendition-meta" : true,
+        "ignoreFilter" : ".svn|.ice|.*|~*",
+        "active" : false
+      }
+    }
+  }
+}
