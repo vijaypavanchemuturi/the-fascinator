@@ -28,7 +28,7 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<svn-repository>http://fascinator.usq.edu.au/svn/code/
 		</svn-repository>
-		<svn-parent-dir></svn-parent-dir>
+		<jdk-version>1.6</jdk-version>
 		<svn-path>${svn-repository}${svn-parent-dir}</svn-path>
 	</properties>
 	<scm>
@@ -112,7 +112,8 @@
 		</snapshotRepository>
 		<site>
 			<id>fascinator.usq.edu.au</id>
-			<url>scp://fascinator.usq.edu.au/ice/projects/fascinator/maven-site/${groupid}/${artifactid}</url>
+			<url>scp://fascinator.usq.edu.au/ice/projects/fascinator/maven-site/${groupid}/${artifactid}
+			</url>
 		</site>
 
 	</distributionManagement>
@@ -131,19 +132,8 @@
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-compiler-plugin</artifactId>
 					<configuration>
-						<source>1.6</source>
-						<target>1.6</target>
-					</configuration>
-				</plugin>
-				<plugin>
-					<groupId>org.apache.maven.plugins</groupId>
-					<artifactId>maven-javadoc-plugin</artifactId>
-					<version>2.5</version>
-					<configuration>
-						<aggregate>true</aggregate>
-						<links>
-							<link>http://java.sun.com/javase/6/docs/api</link>
-						</links>
+						<source>${jdk-version}</source>
+						<target>${jdk-version}</target>
 					</configuration>
 				</plugin>
 			</plugins>
@@ -151,6 +141,25 @@
 	</build>
 	<reporting>
 		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-project-info-reports-plugin</artifactId>
+				<version>RELEASE</version>
+				<configuration>
+                    <dependencyLocationsEnabled>false</dependencyLocationsEnabled> 
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<version>2.5</version>
+				<configuration>
+					<aggregate>true</aggregate>
+					<links>
+						<link>http://java.sun.com/javase/6/docs/api</link>
+					</links>
+				</configuration>
+			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-jxr-plugin</artifactId>
@@ -165,6 +174,8 @@
 				<version>2.4</version>
 				<configuration>
 					<aggregate>true</aggregate>
+					<targetJdk>${jdk-version}</targetJdk>
+					<linkXref>true</linkXref>
 				</configuration>
 			</plugin>
 			<plugin>
