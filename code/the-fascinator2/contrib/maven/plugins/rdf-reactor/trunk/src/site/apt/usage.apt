@@ -13,7 +13,8 @@ Usage
  You can configure the plugin to access RDF Schema files either locally or via 
 a URL.
 
- Don't forget to change the plugin version as appropriate
+ Don't forget to change the plugin version as appropriate. Also check the 
+ {{{examples.html}Example POM}} for details about the plugin executions. 
 
 *A very basic URL example
 
@@ -35,7 +36,7 @@ a URL.
     <plugins>
 		<plugin>
 		    <groupId>au.edu.usq.fascinator.maven-plugins</groupId>
-		    <artifactId>rdf-reactor-file</artifactId>
+		    <artifactId>rdf-reactor</artifactId>
 		    <version>0.0.1-SNAPSHOT</version>
 		    <configuration>
 		        <schemaList>
@@ -61,7 +62,7 @@ a URL.
 ---
 <plugin>
     <groupId>au.edu.usq.fascinator.maven-plugins</groupId>
-    <artifactId>rdf-reactor-file</artifactId>
+    <artifactId>rdf-reactor</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <configuration>
         <outputDirectory>
@@ -92,7 +93,7 @@ a URL.
 ---
 <plugin>
     <groupId>au.edu.usq.fascinator.maven-plugins</groupId>
-    <artifactId>rdf-reactor-file</artifactId>
+    <artifactId>rdf-reactor</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <configuration>
         <schemaList>
@@ -116,7 +117,7 @@ a URL.
 ---
 <plugin>
     <groupId>au.edu.usq.fascinator.maven-plugins</groupId>
-    <artifactId>rdf-reactor-file</artifactId>
+    <artifactId>rdf-reactor</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <configuration>
         <schemaList>
@@ -153,7 +154,7 @@ a URL.
 ---
 <plugin>
     <groupId>au.edu.usq.fascinator.maven-plugins</groupId>
-    <artifactId>rdf-reactor-file</artifactId>
+    <artifactId>rdf-reactor</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <configuration>
         <schemaList>
@@ -179,7 +180,7 @@ a URL.
 ---
 <plugin>
     <groupId>au.edu.usq.fascinator.maven-plugins</groupId>
-    <artifactId>rdf-reactor-file</artifactId>
+    <artifactId>rdf-reactor</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <configuration>
         <schemaList>
