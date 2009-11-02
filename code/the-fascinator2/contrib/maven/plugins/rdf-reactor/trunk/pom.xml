@@ -6,15 +6,28 @@
 	<packaging>maven-plugin</packaging>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>RDF Reactor Maven Plugin</name>
+	<url>http://fascinator.usq.edu.au/trac/wiki/tf2/contrib/maven/plugins/rdf-reactor</url>
+	<inceptionYear>2009</inceptionYear>
+	<prerequisites>
+		<maven>2.0</maven>
+	</prerequisites>
 	<description>A Maven plugin that allows you to list a set of RDF
-		Schemas that the plugin will turn into java classes (using RDF
-		Reactor).</description>
+		Schemas that the plugin will turn into Java classes (using RDF
+		Reactor).
+		
+		This code is based on
+  Steffen Ryll's Maven plugin. See
+  http://semanticweb.org/wiki/RDFReactor/Maven2_Plugin for more details</description>
 	<parent>
 		<artifactId>organisation</artifactId>
 		<groupId>au.edu.usq.fascinator</groupId>
 		<version>0.0.1-SNAPSHOT</version>
 	</parent>
+	<properties>
 
+		<svn-parent-dir>the-fascinator2/contrib/maven/plugins</svn-parent-dir>
+		<svn-path>${svn-repository}${svn-parent-dir}</svn-path>
+	</properties>
 	<dependencies>
 		<dependency>
 			<groupId>org.slf4j</groupId>
@@ -49,4 +62,13 @@
 			<version>2.0</version>
 		</dependency>
 	</dependencies>
+	<reporting>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-plugin-plugin</artifactId>
+				<version>2.5.1</version>
+			</plugin>
+		</plugins>
+	</reporting>
 </project>

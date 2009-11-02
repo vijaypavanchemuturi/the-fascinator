@@ -7,26 +7,14 @@
   <part id="general">
     <title>General</title>
 
-    <faq id="whats-foo">
+    <faq id="overview">
       <question>
-        What is Foo?
+        What does this plugin do?
       </question>
       <answer>
-        <p>some markup goes here</p>
-
-        <source>some source code</source>
-
-        <p>some markup goes here</p>
+        <p></p>
       </answer>
     </faq>
 
-    <faq id="whats-bar">
-      <question>
-        What is Bar?
-      </question>
-      <answer>
-        <p>some markup goes here</p>
-      </answer>
-    </faq>
   </part>
 </faqs>

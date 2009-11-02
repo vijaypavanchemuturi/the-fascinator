@@ -1,41 +1,34 @@
-------
-Introduction
-------
-Author
-------
-YYYY-MM-DD
-------
+ ---
+ Introduction
+ ---
+ Duncan Dickinson
+ ---
+ 2009-11-02
+ ---
 
-~~ Licensed to the Apache Software Foundation (ASF) under one
-~~ or more contributor license agreements.  See the NOTICE file
-~~ distributed with this work for additional information
-~~ regarding copyright ownership.  The ASF licenses this file
-~~ to you under the Apache License, Version 2.0 (the
-~~ "License"); you may not use this file except in compliance
-~~ with the License.  You may obtain a copy of the License at
-~~
-~~   http://www.apache.org/licenses/LICENSE-2.0
-~~
-~~ Unless required by applicable law or agreed to in writing,
-~~ software distributed under the License is distributed on an
-~~ "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-~~ KIND, either express or implied.  See the License for the
-~~ specific language governing permissions and limitations
-~~ under the License.
+rdf-reactor
 
-~~ NOTE: For help with the syntax of this file, see:
-~~ http://maven.apache.org/doxia/references/apt-format.html
-
-
-Maven Plugin Name
-
-  Plugin introduction, description, and other relevant information.
+  This plugin uses {{{http://semanticweb.org/wiki/RDFReactor}RDF Reactor}} to generate a set of Java classes 
+  for creating RDF.
+  
+  The plugin can accept multiple RDF schema. You can also group together schema to create a comprehensive
+  set of classes. 
+  
+  You can access this plugin via our repository. Just add the following code
+  to your POM's \<repositories\> section:  
+  
+---
+<repository>
+  <id>adfi-usq-releases</id>
+  <url>http://fascinator.usq.edu.au/nexus/content/groups/public</url>
+</repository>
+---
 
 * Goals Overview
 
   General Information about the goals.
 
-  * {{{goal.html}prefix:goal}} short description for this plugin goal.
+  * {{{rdfs-mojo.html}generate-sources:rdfs}} generates the classes from your requested schema.
 
 * Usage
 
@@ -60,8 +53,7 @@ Maven Plugin Name
 * Examples
 
   To provide you with better understanding on some usages of the Plugin Name,
-  you can take a look into the following examples:
+  you can take a look into the following example:
 
-  * {{{examples/short-description1.html}Example Description One}}
+  * {{{examples.html}Example POM}}
 
-  * {{{examples/short-description2.html}Example Description Two}}
