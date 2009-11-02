@@ -77,6 +77,13 @@
 				<role>Tester</role>
 			</roles>
 		</developer>
+		<developer>
+			<id>ward</id>
+			<name>Ron Ward</name>
+			<roles>
+				<role>Developer</role>
+			</roles>
+		</developer>
 	</developers>
 	<url>http://fascinator.usq.edu.au/maven-site</url>
 	<inceptionYear>2009</inceptionYear>
@@ -146,7 +153,7 @@
 				<artifactId>maven-project-info-reports-plugin</artifactId>
 				<version>RELEASE</version>
 				<configuration>
-                    <dependencyLocationsEnabled>false</dependencyLocationsEnabled> 
+					<dependencyLocationsEnabled>false</dependencyLocationsEnabled>
 				</configuration>
 			</plugin>
 			<plugin>
