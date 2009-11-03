@@ -1,3 +1,7 @@
+from au.edu.usq.fascinator.api.indexer import SearchRequest
+from au.edu.usq.fascinator.common import JsonConfigHelper
+from java.io import ByteArrayInputStream, ByteArrayOutputStream
+from java.util import HashMap
 
 class HomeData:
     def __init__(self):
@@ -25,5 +29,32 @@ class HomeData:
             if backupPath is None:
                 " ** Default backup path configured in system-config.json will be used "
             Services.portalManager.backup(email, backupPath, portalQuery)
+        self.__latest = JsonConfigHelper()
+        self.__result = JsonConfigHelper()
+        self.__search()
     
+    def __search(self):
+        indexer = Services.getIndexer()
+        
+        req = SearchRequest("last_modified:[NOW-1MONTH TO *]")
+        req.setParam("fq", 'item_type:"object"')
+        req.setParam("rows", "10")
+        req.setParam("sort", "last_modified asc, f_dc_title asc");
+        out = ByteArrayOutputStream()
+        indexer.search(req, out)
+        self.__latest = JsonConfigHelper(ByteArrayInputStream(out.toByteArray()))
+        
+        req = SearchRequest("*:*")
+        req.setParam("fq", 'item_type:"object"')
+        req.setParam("rows", "0")
+        out = ByteArrayOutputStream()
+        indexer.search(req, out)
+        self.__result = JsonConfigHelper(ByteArrayInputStream(out.toByteArray()))
+    
+    def getLatest(self):
+        return self.__latest.getList("response/docs")
+    
+    def getItemCount(self):
+        return self.__result.get("response/numFound")
+
 scriptObject = HomeData()

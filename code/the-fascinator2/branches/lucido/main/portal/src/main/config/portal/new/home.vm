@@ -1,4 +1,56 @@
 #set($pageTitle = 'Home')
+<h2 id="page-heading">Welcome</h2>
+<div class="grid_4">
+  <div class="box menu">
+    <h2>$page.portalName</h2>
+    <ul class="menu">
+      <li><a href="$portalPath/search">Browse</a></li>
+      <li><a class="backup-view" href="#" rel="$portalId">Backup...</a></li>
+      <li><a class="delete-view" href="#" rel="$portalId">Delete</a></li>
+    </ul>
+  </div>
+</div>
+<div class="grid_12">
+  <div class="box">
+    <h2>Search</h2>
+    <div class="block">
+      <p>Search all items by entering one or more keywords</p>
+      <form action="search" id="search-form" method="post">
+        <input type="text" name="query" size="50" />
+        <input type="submit" name="search" value="Search" />
+      </form>
+    </div>
+    <div class="block">
+      <p>There are currently <strong>$self.itemCount</strong> items available</p>
+    </div>
+  </div>
+</div>
+<div class="clear"></div>
+<div class="prefix_4 grid_6">
+  <div class="box">
+    <h2>Latest additions</h2>
+    <div class="block">
+      <ol>
+      #foreach($item in $self.latest)
+        #set($itemId = $item.get('id'))
+        #set($itemTitle = $item.get("dc_title").get(0))
+        <li>
+          <a href="$portalPath/detail/$itemId">$itemTitle</a>
+        </li>
+      #end
+      </ol>
+    </div>
+  </div>
+</div>
+<div class="grid_6">
+  <div class="box">
+    <h2>Most popular</h2>
+    <div class="block">
+      <p>...</p>
+    </div>
+  </div>
+</div>
+<div class="clear"></div>
 <script type="text/javascript">
 $(function() {
     $(".delete-action").click(function() {
@@ -13,40 +65,3 @@ $(function() {
     });
 });
 </script>
-<h2>Welcome</h2>
-<p>Tell a little story about The Fascinator...</p>
-<div id="home-search">
-  <h3>Search</h3>
-  <p>Enter a query to search all content</p>
-  <form action="search" id="search-form" method="post">
-    <input type="text" name="query" size="40" />
-    <input type="submit" name="search" value="Go!" />
-  </form>
-</div>
-<h3>Portals</h3>
-<div class="home-portal-list">
-#if($page.portals.size() == 1)
-  <p class="ui-state-highlight">
-    <span class="ui-icon ui-icon-info icon"></span>
-    There are currently no other portals available
-  </p>
-#else
-  <p>Select a portal to browse and search</p>
-  <ul class="home-portal-list">
-  #foreach($portal in $page.portals)
-    <li>
-    #if($portal.name == $portalId)
-      <span class="active-link">$portal.description</span>
-    #else
-      <a href="$contextPath/$portal.name/search">$portal.description</a>
-    #end
-    #if($portal.name != "default")
-      <a class="delete-action" href="#" rel="$portal.name">delete</a>
-    #end
-    &nbsp;&nbsp;
-    <a class="backup-action" href="#" rel="$portal.name">backup</a>
-    </li>
-  #end
-  </ul>
-#end
-</div>

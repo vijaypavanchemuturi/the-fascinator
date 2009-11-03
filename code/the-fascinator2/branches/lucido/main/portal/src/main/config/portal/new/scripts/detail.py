@@ -151,21 +151,21 @@ class DetailData:
             saxReader = SAXReader(Boolean.parseBoolean("false"))
             try:
                 document = saxReader.read(payload.getInputStream())
+                slideNode = document.selectSingleNode("//*[local-name()='body']")
+                #linkNodes = slideNode.selectNodes("//img")
+                #contentStr = slideNode.asXML();
+                # encode character entities correctly
+                slideNode.setName("div")
+                out = ByteArrayOutputStream()
+                format = OutputFormat.createPrettyPrint()
+                format.setSuppressDeclaration(True)
+                writer = XMLWriter(out, format)
+                writer.write(slideNode)
+                writer.close()
+                contentStr = out.toString("UTF-8")
             except:
                 traceback.print_exc()
-            #slideNode = document.selectSingleNode("//div[@class='body']")
-            slideNode = document.selectSingleNode("//*[local-name()='body']")
-            #linkNodes = slideNode.selectNodes("//img")
-            #contentStr = slideNode.asXML();
-            # encode character entities correctly
-            slideNode.setName("div")
-            out = ByteArrayOutputStream()
-            format = OutputFormat.createPrettyPrint()
-            format.setSuppressDeclaration(True)
-            writer = XMLWriter(out, format)
-            writer.write(slideNode)
-            writer.close()
-            contentStr = out.toString("UTF-8")
+                contentStr = "<p class=\"error\">No preview available</p>"
         return contentStr
     
     def __openFile(self):

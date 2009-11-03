@@ -16,6 +16,7 @@ $(function() {
         return false;
     });
     $("#blog-button").click(function() {
+        $("#blog-loading").show();
         jQuery.post("$portalPath/blog.ajax",
             {
                 url: $("#blog_url").val(),
@@ -23,12 +24,15 @@ $(function() {
                 username: $("#blog_username").val(),
                 password: $("#blog_password").val(),
                 oid: "$oid",
-            }, function(data, status) {
-            $("#blog-message").html(data);
-        });
+            },
+            function(data, status) {
+                $("#blog-loading").hide();
+                $("#blog-message").html(data);
+            }
+        );
     });
     $("#attachments h2 a").click(function() {
-        $("#attachments ul").toggle("blind");
+        $("#attachments ul").toggle("blind").toggleClass('visible').toggleClass('hidden');
         return false;
     });
 });
@@ -99,7 +103,9 @@ $(function() {
         <label for="blog_password">Password</label>
         <input type="password" id="blog_password" name="blog_password" />
       </p>
-      <p id="blog-message"></p>
+      <p id="blog-message">
+        <img class="hidden" src="$portalPath/css/fluid960gs/ajax-loader.gif" />
+      </p>
       <input class="button" id="blog-button" type="button" value="Blog" />
     </fieldset>
   </form>

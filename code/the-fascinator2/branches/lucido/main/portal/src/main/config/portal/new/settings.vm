@@ -1,4 +1,75 @@
 #set($pageTitle = "Settings")
+<h2 id="page-heading">Settings</h2>
+<div class="grid_4">
+  <div class="box menu">
+    <h2><a href="#">Category</a></h2>
+    <ul class="menu">
+      <li><a href="#">View</a></li>
+      <li><a href="#">Backup</a></li>
+      <li><a href="#">Security</a></li>
+      <li><a href="#">Plugins</a></li>
+    </ul>
+  </div>
+</div>
+<div class="grid_12">
+  <div id="view-section" class="box">
+    <h2><a href="#">View</a></h2>
+    <form id="portalForm" name="portalForm" method="post">
+    <fieldset class="login">
+      <legend>$self.portal.description</legend>
+      <p>
+        <label for="portalName">Name</label>
+        <input id="portalName" name="portalName" size="10" type="text" value="$self.portal.name" />
+      </p>
+      <p>
+        <label for="portalDescription">Description</label>
+        <input id="portalDescription" name="portalDescription" size="50" type="text" value="$page.escapeText($self.portal.description)" />
+      </p>
+      <p>
+        <label for="portalQuery">Query</label>
+        <input id="portalQuery" name="portalQuery" size="50" type="text" value="$page.escapeText($self.portal.query)" />
+      </p>
+      <p>
+        <label for="portalRecordsPerPage">Records per page</label>
+        <input id="portalRecordsPerPage" name="portalRecordsPerPage" size="10" type="text" value="$self.portal.recordsPerPage" />
+      </p>
+      <p>
+        <label for="portalFacetLimit">Facet count limit</label>
+        <input id="portalFacetLimit" name="portalFacetLimit" size="10" type="text" value="$self.portal.facetCount" />
+      </p>
+      <p>
+        <label for="portalFacetSort">Sort by facet counts</label>
+        <input id="portalFacetSort" name="portalFacetSort" type="checkbox" value="$self.portal.facetSort" />
+      </p>
+      #*
+      <h4>Facets</h4>
+      <input id="portalFacetSize" name="portalFacetSize" type="hidden" value="$self.portal.facetFields.size()" />
+      <button id="add-facet-field">add facet</button>
+      #foreach($field in $self.portal.facetFields.keySet())
+      #set($label = $self.portal.facetFields.get($field))
+      #set($id = "portalFacet_$velocityCount")
+      <p id="$id">
+        <input id="${id}_name" name="${id}_name" size="25" type="text" value="$field" />
+        <input id="${id}_label" name="${id}_label" size="25" type="text" value="$label" />
+        <button class="remove-facet-field">del</button>
+        </p>
+        #end*#
+      </fieldset>
+      <input name="portalAction" type="submit" value="Update" />
+      <input name="portalAction" type="submit" value="Cancel" />
+    </form>
+  </div>
+  <div id="backup-section" class="box hidden">
+    <h2><a href="#">Backup</a></h2>
+  </div>
+  <div id="security-section" class="box hidden">
+    <h2><a href="#">Security</a></h2>
+  </div>
+  <div id="plugins-section" class="box hidden">
+    <h2><a href="#">Plugins</a></h2>
+  </div>
+</div>
+#*
 <script type="text/javascript">
 $(function() {
     $("#settings").tabs();
@@ -48,10 +119,8 @@ $(function() {
 <div id="settings">
   <ul>
     <li><a href="#general-tab">General</a></li>
-    #*
     <li><a href="#security-tab">Security</a></li>
     <li><a href="#plugins-tab">Plugins</a></li>
-    *#
     <li><a href="#backup-tab">Backup</a></li>
   </ul>
   <div id="general-tab">
@@ -101,7 +170,6 @@ $(function() {
       <input name="portalAction" type="submit" value="Cancel" />
     </form>
   </div>
-  #*
   <div id="security-tab">
     <div id="security-accordion">
       <h3><a href="#">Users</a></h3>
@@ -150,7 +218,6 @@ $(function() {
       </div>
     </div>
   </div>
-  *#
   <div id="backup-tab">
     <div id="backup-accordion">
       <h4><a href="#">Users</a></h4>
@@ -193,3 +260,4 @@ $(function() {
     </div>
   </div>
 </div>
+*#

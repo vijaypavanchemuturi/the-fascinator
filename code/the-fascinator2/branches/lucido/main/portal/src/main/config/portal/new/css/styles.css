@@ -12,6 +12,11 @@ h1#branding {
     width: 98%;
 }
 
+.box h2 {
+    font-weight: bold;
+}
+
+
 form.search {
     padding-top: 3px;
     padding-right: 5px;

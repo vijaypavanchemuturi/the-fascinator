@@ -1,7 +1,4 @@
-#if($NO_LAYOUT)
-$!pageContent
-#else
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+#if($NO_LAYOUT)$!pageContent#else<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <title>The Fascinator#if($pageTitle) | $!pageTitle#end</title>
@@ -10,12 +7,8 @@ $!pageContent
     <link rel="stylesheet" type="text/css" href="$portalPath/css/fluid960gs/screen.css" media="screen" />
     <!--[if IE 6]><link rel="stylesheet" type="text/css" href="$portalPath/css/fluid960gs/ie6.css" media="screen" /><![endif]-->
     <!--[if IE 7]><link rel="stylesheet" type="text/css" href="$portalPath/css/fluid960gs/ie.css" media="screen" /><![endif]-->
-    <link rel="stylesheet" type="text/css" href="$portalPath/css/ui-lightness/jquery-ui-1.7.2.custom.css" />
     <link rel="stylesheet" type="text/css" href="$portalPath/css/styles.css" />
     <script type="text/javascript" src="$portalPath/js/jquery-1.3.2.min.js"></script>
-    <script type="text/javascript" src="$portalPath/js/jquery-ui-1.7.2.custom.min.js"></script>
-    <script type="text/javascript" src="$portalPath/js/jquery.cookie.js"></script>
-    <script type="text/javascript" src="$portalPath/js/jquery.hotkeys-0.7.9.min.js"></script>
     $!pageHeader
     <script type="text/javascript">
     function setActionUri(uri) {
@@ -54,9 +47,12 @@ $!pageContent
           <li><a href="$portalPath/settings">Settings</a></li>
           <li class="secondary">
             <form action="$portalPath/search" class="search" method="post">
-              <input class="text" type="text" name="query" size="30" value="$!sessionState.get('query')" />
+              <input class="text" type="text" name="query" size="25" value="$!sessionState.get('query')" />
               <input class="button" type="submit" name="search" value="Search" />
             </form>
+          </li>
+          <li class="secondary">
+            <span id="status-bar" class="status"></span>
           </li>
           $!navContent
         </ul>
