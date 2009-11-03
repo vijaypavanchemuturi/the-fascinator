@@ -35,12 +35,12 @@
       <div class="clear"></div>
       <div class="grid_16">
         <ul class="nav main">
-          <li><a href="$portalPath/home">Home</a></li>
+          <li><a href="$portalPath/home">Home ($page.portalName)</a></li>
           <li>
             <a href="#">Views</a>
             <ul>
             #foreach($portal in $page.portals)
-              <li><a href="$contextPath/$portal.name/search">$portal.description</a></li>
+              <li><a href="$contextPath/$portal.name/home">$portal.description</a></li>
             #end
             </ul>
           </li>

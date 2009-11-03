@@ -6,7 +6,9 @@
     <ul class="menu">
       <li><a href="$portalPath/search">Browse</a></li>
       <li><a class="backup-view" href="#" rel="$portalId">Backup...</a></li>
+      #if($portalId != "default")  ## FIXME use proper default
       <li><a class="delete-view" href="#" rel="$portalId">Delete</a></li>
+      #end
     </ul>
   </div>
 </div>

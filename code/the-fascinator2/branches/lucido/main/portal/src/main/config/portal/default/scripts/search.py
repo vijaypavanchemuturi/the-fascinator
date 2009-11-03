@@ -64,14 +64,14 @@ class SearchData:
     def __init__(self):
         self.__tags = []
         if formData.get("verb") == "load-tags":
-            self.__loadTags()
+            self.__tags = self.__loadTags()
         else:
             self.__portal = Services.portalManager.get(portalId)
             self.__result = JsonConfigHelper()
             self.__pageNum = sessionState.get("pageNum", 1)
             self.__selected = []
             if formData.get("verb") == "tag":
-                self.__tag()
+                self.__tags = self.__tag(formData.get("oid"))
             self.__search()
     
     def hasTags(self):
@@ -80,16 +80,15 @@ class SearchData:
     def getTags(self):
         return self.__tags
     
-    def __loadTags(self):
-        oid = formData.get("oid")
+    def __loadTags(self, oid):
         obj = Services.storage.getObject(oid)
         tagsPayload = TagsPayload(obj.getPayload("tags.rdf"), oid)
-        self.__tags = tagsPayload.getTags()
-        print " * search.py: Loaded tags from %s: %s" % (oid, self.__tags)
+        tags = tagsPayload.getTags()
         tagsPayload.close()
+        print " * search.py: Loaded tags from %s: %s" % (oid, tags)
+        return tags
     
-    def __tag(self):
-        oid = formData.get("oid")
+    def __tag(self, oid):
         newTag = formData.get("newTag")
         print " * search.py: Tagging '%s' with '%s'" % (oid, newTag)
         # add tag to storage
@@ -221,5 +220,8 @@ class SearchData:
         ext = os.path.splitext(oid)[1]
         url = oid[oid.rfind("/")+1:-len(ext)] + ".thumb.jpg"
         return url
+    
+    def getTags(self, oid):
+        return self.__loadTags(oid)
 
 scriptObject = SearchData()

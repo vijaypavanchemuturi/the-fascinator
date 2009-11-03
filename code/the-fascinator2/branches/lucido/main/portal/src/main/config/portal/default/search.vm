@@ -1,6 +1,6 @@
 #macro(displayFacetTree $facetTreeId $facetTreeTitle)
   <div class="menu box hidden">
-    <h2><a href="#">$facetTreeTitle</a></h2>
+    <h2>$facetTreeTitle</h2>
     <div id="$facetTreeId" class="menu facet-list clearfix"></div>
   </div>
 #end
@@ -8,7 +8,7 @@
   #set($facetCounts = $self.getFacetCounts($facetFieldKey))
   #if($facetCounts.size() > 0)
   <div class="box menu">
-    <h2><a href="#">$self.getFacetName($facetFieldKey)</a></h2>
+    <h2>$self.getFacetName($facetFieldKey)</h2>
     <ul class="facet-list menu" id="$facetFieldKey">
     #foreach($facetCountKey in $facetCounts.keySet())
       #set($facetCount = $facetCounts.get($facetCountKey))
@@ -16,7 +16,7 @@
       #set($selected = $self.isSelected($facetQuery))
       <li#if($selected) class="selected"#end>
       #if($self.isPortalQueryFacet($facetQuery))
-        <span class="selected">$facetCountKey</span>&nbsp;($facetCount)
+        <a class="portal-facet">$facetCountKey&nbsp;<span class="facet-count">($facetCount)</a></span>
       #else
         #if($selected)
           #set($facetClass = "remove-facet selected")
@@ -85,14 +85,13 @@
 <div class="grid_12" id="result-list">
   <div class="box articles">
     <h2>
-      <a href="#">
         Results
         <span class="right">Showing ${paging.startNum} to ${paging.endNum} of ${paging.totalFound} items ($self.queryTime seconds)</span>
-      </a>
     </h2>
     #if($self.result and $paging.totalFound > 0)
     #foreach($item in $self.result.getList("response/docs"))
       #set($id = $item.get("id"))
+      #set($hashId = $page.md5Hash($id))
       #set($dcTitle = "")
       #set($dcTitle = $item.get("dc_title").get(0))
       #if($dcTitle.trim() != "")
@@ -103,10 +102,22 @@
       #set($description = "")
       #set($description = $item.get("dc_description").get(0))
       #set($format = $item.get("dc_format").get(0))
-      <div id="$id" class="article#if($velocityCount==1) first#end">
+      <div id="$hashId" class="article#if($velocityCount==1) first#end">
         <h3><a href="$portalPath/detail/$id">$title</a></h3>
-        <p class="meta">$format
-          <span class="right"><a class="tag" href="#">tag</a></span>
+        <p class="meta">Tags:
+          <span id="tags-$hashId">
+          #foreach($tag in $self.getTags($id))
+            <a class="tag" href="$portalPath/search/$tag">$tag</a>
+          #end
+          </span>
+          <span class="right">
+            <a class="tag-add right" href="#">Add tag</a>
+            <form class="tag-form hidden" rel="$id">
+              <input type="text" class="new-tag-value" size="20" name="newTag" />
+              <input class="tag-ok-button" type="submit" name="verb" value="OK" />
+              <input class="tag-cancel-button" type="button" name="verb" value="Cancel" />
+            </form>
+          </span>
         </p>
         #if($format.startsWith("image/"))
           <a class="image" href="$portalPath/detail/$id">
@@ -122,221 +133,6 @@
     #end
   </div>
 </div>
-
-#*
-
-<div id="search-header">
-  <form action="search" id="search-form" method="post">
-    <input id="query" name="query" size="45" type="text" #if($query)value="$query"#end/>
-    <input name="search" type="submit" value="Go!" />
-    #parse($page.getTemplate("search-paging.vm"))
-  </form>
-  #if($self.result and $paging.totalFound > 0)
-  <p>Displaying <strong>${paging.startNum}</strong> to <strong>${paging.endNum}</strong> of <strong>${paging.totalFound}</strong> records (in $self.queryTime seconds)</p>
-  #end
-</div>
-#if(!$self.result or $paging.totalFound == 0)
-<p class="ui-state-highlight" style="width: 30%">
-  <span class="ui-icon ui-icon-info icon"></span>
-  No items found#if($query) for '$query'#end.
-  #if($self.hasSelectedFacets())
-  <a class="facet-action" id="clear-facets" href="#">Clear selected facets</a>
-  #end
-</p>
-#else
-<div id="split-view">
-  <div class="split-panel" id="facet-list">
-    <h3>Facets</h3>
-    #if($self.hasSelectedFacets())
-      <a class="facet-action with-separator" id="create-view" href="#">Create view</a>
-      <a class="facet-action" id="clear-facets" href="#">Clear selection</a>
-    #end
-    <h4 class="dotted-line">Path</h4>
-    <div id="file_path" class="ui-helper-clearfix"></div>
-    #set($facetFields = $self.result.getMap("facet_counts/facet_fields"))
-    #foreach($facetFieldKey in $facetFields.keySet())
-      #set($facetField = $facetFields.get($facetFieldKey))
-      <div class="facet-count-list">
-      #set($facetCounts = $self.getFacetCounts($facetFieldKey))
-      #if($facetCounts.size() > 0)
-        ## TODO need a better way to test check for hierarchical facets
-        #if($facetFieldKey != "file_path")
-          <h4 class="dotted-line"><span class="ui-icon ui-icon-triangle-1-s icon"></span>$self.getFacetName($facetFieldKey)</h4>
-          <ul>
-          #foreach($facetCountKey in $facetCounts.keySet())
-            #set($facetCount = $facetCounts.get($facetCountKey))
-            #set($facetQuery = $self.getFacetQuery($facetFieldKey, $facetCountKey))
-            <li>
-            #if($self.isPortalQueryFacet($facetQuery))
-              <span class="portal-query-facet">$facetCountKey</span> ($facetCount)
-            #else
-            #if($self.isSelected($facetQuery))
-              <span class="selected-facet">$facetCountKey</span> ($facetCount)
-              <a class="remove-facet facet-action" href="#" rel='$facetFieldKey:"$facetCountKey"'>deselect</a>
-            #else
-              <a class="add-facet" href="#" rel='$facetFieldKey:"$facetCountKey"'>$facetCountKey</a> ($facetCount)
-            #end
-            #end
-            </li>
-          #end
-          </ul>
-        #end
-      #end
-      </div>
-    #end
-  </div>
-  <div class="split-panel" id="result-list">
-    <ul id="result-item-list">
-    #foreach($item in $self.result.getList("response/docs"))
-      #set($id = $item.get("id"))
-      #set($dcTitle = "")
-      #set($dcTitle = $item.get("dc_title").get(0))
-      #if($dcTitle.trim() != "")
-        #set($title = $dcTitle)
-      #else
-        #set($title = $self.getFileName($id))
-      #end
-      #set($description = "")
-      #set($description = $item.get("dc_description").get(0))
-      <li>
-        <div id="$id">
-          <h3><a href="detail/$id">$title</a></h3>
-          <a class="tag" href="#">tag</a>
-          <p class="item-description">$!description</p>
-          #set($format = $item.get("dc_format").get(0))
-          #if($format.startsWith("image/"))
-            <img src="download/$id/$self.getThumbnail($id)"></img>
-          #end
-        </div>
-      </li>
-    #end
-    </ul>
-  </div>
-</div>
-<div id="tag-dialog" title="Tagging">
-  <form id="tag-form" method="post">
-    <input name="verb" value="tag" type="hidden" />
-    <label for="tag">Add tag:</label>
-    <input id="tag" name="newTag" size="25" type="text" />
-  </form>
-  <div id="current-tags"></div>
-</div>
-#end
-<script type="text/javascript">
-$(function() {
-    addActionParam("query", '$!formData.get("query")');
-    $("#file_path").tree({
-        data: {
-            async: true,
-            async_data: function(node) {
-                return {
-                    id: $(node).attr("id") || 0,
-                    query: $("#query").val()
-                }
-            },
-            type: "json",
-            url: "search-tree.ajax"
-        },
-        selected: $self.selectedFacetIds,
-        cookies: {
-            prefix: "TFSearchTree",
-            selected: false
-        },
-        ui: {
-            animation: 250,
-            dots: false,
-            theme_name: "checkbox"
-        },
-        rules: {
-            multiple: "on",
-            renameable: "none",
-            deletable: "none",
-            creatable: "none",
-            draggable: "none",
-            dragrules: "none"
-        },
-        callback: {
-            onchange: function(node, tree) {
-                $(node).children("a").removeClass("clicked");
-                $(node).children("a").toggleClass("checked");
-            },
-            onload: function(tree) {
-                tree.container.find("a").bind("click", function() {
-                    var checked = $(this).hasClass("checked") == false;
-                    doAction(checked ? "add_fq" : "remove_fq", $(this).parent().attr("fq"));
-                });
-            },
-            onrgtclk: function(node, tree, ev) {
-                ev.preventDefault();
-                ev.stopPropagation();
-                return false;
-            }
-        }
-    });
-    $("#clear-facets").click(function() {
-        doAction("clear_fq");
-    });
-    $(".facet-count-list a.add-facet").click(function() {
-        doAction("add_fq", $(this).attr("rel"));
-    });
-    $(".facet-count-list a.remove-facet").click(function() {
-        doAction("remove_fq", $(this).attr("rel"));
-    });
-    //$(".facet-count-list ul:not(:has(.selected-facet))").hide();
-    $(".facet-count-list h4").click(function(){
-        var icon = $(this).children("span");
-        icon.toggleClass("ui-icon-triangle-1-s");
-        icon.toggleClass("ui-icon-triangle-1-e");
-        $(this).next().toggle('fast');
-        return false;
-    });
-    // zebra the results
-    $("#result-item-list li:even").css("background-color", "#EBEBEB");
-    // truncate descriptions
-    $("p.item-description").truncate(500, {
-        trail: [ '... <a href="#" class="truncate_show">more</a>',
-                 ' <a href="#" class="truncate_hide">less</a>' ]
-    });
-    
-    $("#create-view").click(function() {
-        setActionUri("$portalPath/settings");
-        doAction("create_view");
-    });
-    
-    //$("#result-item-list").selectable({ filter: 'li' });
-    
-    // setup tag dialog
-    $("#tag-dialog").dialog({
-        autoOpen: false,
-        draggable: true,
-        modal: false,
-        resizable: false,
-        buttons: {
-            "OK": function() {
-                $("#tag-form").submit();
-            },
-            "Cancel": function() {
-                $(this).dialog("close");
-            }
-        }
-    });
-    $("a.tag").click(function() {
-        var oid = $(this).parent("div").attr("id");
-        jQuery.post("$portalPath/search.ajax", { verb: "load-tags", oid: oid }, function(data, status) {
-            var oidElem = $("#tag-oid")
-            if (oidElem.length == 0) {
-                $("#tag-form").append('<input id="tag-oid" name="oid" type="hidden" value="' + oid + '" />');
-            } else {
-                oidElem.attr("value", oid);
-            }
-            $("#current-tags").empty().append(data);
-            $("#tag-dialog").dialog("open");
-        });
-        return false;
-    });
-});
-</script>
-*#
 <script type="text/javascript">
 $(function() {
     addActionParam("query", "$!query");
@@ -405,55 +201,35 @@ $(function() {
         return false;
     });
     
-    var cookieOpts = { path: "$portalPath/search" };
-    
-    /*
-    // toggle facets
-    $(".mainmenu:has(.facet-list) > .mainmenu-heading")
-        .each(function() {
-            var next = $(this).next();
-            var id = next.attr("id");
-            var state = jQuery.cookie("tf_visible_" + id);
-            if (state == "false") {
-                next.hide();
-            }
-        })
-        .click(function() {
-            var next = $(this).next();
-            var id = next.attr("id");
-            next.toggle();
-            jQuery.cookie("tf_visible_" + id, next.is(":visible"), cookieOpts);
-            return false;
-        });
-    
-    // toggle advanced facets
-    $(".advanced h2")
-        .each(function() {
-            var icon = $(this).prev("span");
-            var next = $(this).next();
-            var id = next.attr("id");
-            var state = jQuery.cookie("tf_visible_advanced");
-            if (state == "true") {
-                icon.removeClass("ui-icon-triangle-1-e");
-                icon.addClass("ui-icon-triangle-1-s");
-                next.show();
-            }
-        })
-        .click(function() {
-            var icon = $(this).prev();
-            var next = $(this).next();
-            icon.toggleClass("ui-icon-triangle-1-e");
-            icon.toggleClass("ui-icon-triangle-1-s");
-            $(this).next().toggle();
-            jQuery.cookie("tf_visible_advanced", next.is(":visible"), cookieOpts);
-            return false;
-        });
-    */
-    
     // truncate descriptions
     $("p.item-description").truncate(500, {
         trail: [ '... <a href="#" class="truncate_show">more</a>',
                  ' <a href="#" class="truncate_hide">less</a>' ]
+    });
+    
+    // tagging
+    $(".tag-add").click(function() {
+        $(this).hide().next("form").show().find(".new-tag-value").focus();
+        return false;
+    });
+    $(".tag-ok-button").click(function() {
+        var tagForm = $(this).parent("form");
+        var id = tagForm.attr("rel");
+        var hashId = tagForm.parents("div").attr("id");
+        var newTag = tagForm.find(".new-tag-value").val();
+        if (newTag != "") {
+            jQuery.post("$portalPath/tag.ajax", { oid: id, newTag: newTag },
+                function(data, status) {
+                    $("#status-bar").html("Tag added");
+                    tagForm.hide().prev().show();
+                    $("#tags-" + hashId).append('<a class="tag" href="$portalPath/search/' + newTag + '">' + newTag + '</a>');
+                }
+            );
+        }
+        return false;
+    });
+    $(".tag-cancel-button").click(function() {
+        $(this).parent("form").hide().prev().show();
     });
 });
 </script>

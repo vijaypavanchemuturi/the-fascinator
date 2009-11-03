@@ -16,7 +16,6 @@ h1#branding {
     font-weight: bold;
 }
 
-
 form.search {
     padding-top: 3px;
     padding-right: 5px;
@@ -60,6 +59,12 @@ form.search {
     color: black;
 }
 
+.facet-list .portal-facet, .facet-list .portal-facet:hover {
+    background: gray;
+    color: white;
+    font-weight: bold;
+}
+
 .facet {
     overflow: hidden;
 }
@@ -70,4 +75,19 @@ span.right {
 
 #blog-message {
     margin-left: 35%;
+}
+
+span.tag {
+    background: #CCDDEE;
+    color: black;
+}
+
+.tag-form input {
+    margin: 0;
+    padding: 0;
+}
+
+.article p.meta {
+    padding-top: 0.2em;
+    padding-bottom: 0.5em;
 }

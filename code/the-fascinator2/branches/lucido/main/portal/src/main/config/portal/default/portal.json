@@ -1,7 +1,7 @@
 {
   "portal" : {
-    "name" : "new",
-    "description" : "New layout",
+    "name" : "default",
+    "description" : "Everything",
     "query" : "",
     "records-per-page" : "5",
     "facet-count" : "25",

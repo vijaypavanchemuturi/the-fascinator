@@ -46,6 +46,10 @@ class HomeData:
         
         req = SearchRequest("*:*")
         req.setParam("fq", 'item_type:"object"')
+        portalQuery = Services.getPortalManager().get(portalId).getQuery()
+        if portalQuery:
+            req.addParam("fq", portalQuery)
+        req.addParam("fq", "")
         req.setParam("rows", "0")
         out = ByteArrayOutputStream()
         indexer.search(req, out)
