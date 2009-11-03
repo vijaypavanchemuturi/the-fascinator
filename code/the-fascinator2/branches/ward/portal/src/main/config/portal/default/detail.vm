@@ -21,6 +21,16 @@ $(function() {
 			"</form>");
 		} 
 	});
+	
+	$("#hasSpeech").each(function() {
+        var hasSpeech = $(this).text();
+        if (hasSpeech != "") {
+            var filename = '$portalPath/download/' + oid + "/" + hasSpeech;
+            var height = 24;
+            $('div.view-as-speech').append('<h3>Audio Speech format</h3><a href="' + filename + '" id="player" style="display:block;width:425px;height:' + height + 'px;"></a>');
+            flowplayer("player", "$portalPath/flowplayer/flowplayer-3.1.2.swf");
+        } 
+    });
     
     $("#format").each(function() {
         var mimeType = $(this).text().toLowerCase();
@@ -48,6 +58,16 @@ $(function() {
             $(this).attr("src", "$portalPath/download/" + oid + "/" + src);
         }
     });
+    $("div.content-preview-inline a").each(function() {
+        var src = $(this).attr("href");
+        if(src!==undefined && src.substring(0,1)!=="#" && src.substring(0,1)!=="/") {
+            var srcVal = src.toLowerCase();
+            if (srcVal.indexOf("http://") == -1 && srcVal.indexOf("file://") == -1) {
+                $(this).attr("href", "$portalPath/download/" + oid + "/" + src);
+            }
+        }
+    });
+
 });
 </script>
 #if($self.solrResponse.get("response/numFound") == 0)
@@ -62,7 +82,7 @@ $(function() {
   <label id="oid">$oid</label>
   <label id="format">$self.mimeType</label>
   <label id="hasSlide">$self.hasSlideShow()</label>
-  <label id="hasSlide">$self.hasSlideShow()</label>
+  <label id="hasSpeech">$self.hasSpeechConversion()</label>
 </div>
 #set($title = $meta.getField("dc_title"))
 #set($description = $meta.getField("dc_description"))
@@ -87,6 +107,7 @@ $(function() {
 #end
 </dl>
 <div class="view-as-slideshow"></div>
+<div class="view-as-speech"></div>
 <h3>Preview</h3>
 <div class="content-preview">
   <div class="content-preview-inline">$!self.payloadContent</div>

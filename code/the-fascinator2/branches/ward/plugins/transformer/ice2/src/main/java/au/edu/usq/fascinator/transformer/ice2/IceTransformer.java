@@ -245,10 +245,10 @@ public class IceTransformer implements Transformer {
             filePost.setRequestEntity(new MultipartRequestEntity(parts,
                     filePost.getParams()));
             int status = client.executeMethod(filePost);
-            log.debug("+HTTP status: {} {}", status,
+            log.debug(" HTTP status: {} {}", status,
                                         HttpStatus.getStatusText(status));
             if (status != HttpStatus.SC_OK) {
-                log.debug("+Response body: {}", filePost
+                log.debug(" Response body: {}", filePost
                         .getResponseBodyAsString());
             }
             // Get Response
@@ -265,10 +265,10 @@ public class IceTransformer implements Transformer {
             IOUtils.copy(is, fos);
             is.close();
             fos.close();
-            log.debug("+ICE output at {}", outputFilename);
+            log.debug(" ICE output at {}", outputFilename);
             return outputFilename; // Returning the location of the file
         } catch (Exception e) {
-            log.error("+An error occurred: {}", e.getMessage());
+            log.error(" An error occurred: {}", e.getMessage());
             // e.printStackTrace();
             return "Error " + e.getMessage();
         }

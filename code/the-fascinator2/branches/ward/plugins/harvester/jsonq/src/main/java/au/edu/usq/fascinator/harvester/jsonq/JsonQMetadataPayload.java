@@ -25,6 +25,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Map;
 import java.util.Properties;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -62,14 +63,16 @@ public class JsonQMetadataPayload extends GenericPayload {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         Properties props = new Properties();
         try {
+            // Currently this properties are not used
+            // Maybe we should try to index event time
             Object t = info.get("time");
             props.setProperty("uri", info.get("uri"));
             props.setProperty("state", info.get("state"));
             props.setProperty("time", t.toString());
             props.store(out, "File Metadata");
             return new ByteArrayInputStream(out.toByteArray());
-        } catch(IOException ioe) {
-            throw(ioe);
+        } catch (IOException ioe) {
+            throw (ioe);
         }
     }
 }

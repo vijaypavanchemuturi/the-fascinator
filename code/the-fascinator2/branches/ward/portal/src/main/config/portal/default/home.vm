@@ -4,6 +4,7 @@ $(function() {
     $(".delete-action").click(function() {
         var portalName = $(this).attr("rel");
         if(confirm("Are you sure you want to delete the portal?")) {
+            setActionUri("$contextPath/default/home");
             doAction("delete-portal", $(this).attr("rel"));
         }
     });

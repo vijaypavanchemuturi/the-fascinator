@@ -18,6 +18,7 @@
  */
 package au.edu.usq.fascinator.portal.services;
 
+import java.util.List;
 import java.util.Map;
 
 import au.edu.usq.fascinator.portal.Portal;
@@ -42,6 +43,6 @@ public interface PortalManager {
 
     public void save(Portal portal);
 
-    public void backup(String email, String backupDir, String portalQuery);
+    public void backup(String email, List<Object> backupDir, String portalQuery);
 
 }

@@ -20,12 +20,12 @@ package au.edu.usq.fascinator.portal.services.impl;
 
 import java.io.File;
 import java.io.FileFilter;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 
@@ -39,7 +39,7 @@ import au.edu.usq.fascinator.portal.services.PortalManager;
 
 public class PortalManagerImpl implements PortalManager {
 
-    private static final String PORTAL_XML = "portal.xml";
+    private static final String PORTAL_JSON = "portal.json";
 
     private Logger log = LoggerFactory.getLogger(PortalManagerImpl.class);
 
@@ -72,10 +72,6 @@ public class PortalManagerImpl implements PortalManager {
     private void init(String portalsDir) {
         try {
             this.portalsDir = new File(portalsDir);
-            JAXBContext ctx = JAXBContext.newInstance(Portal.class);
-            jaxbM = ctx.createMarshaller();
-            jaxbM.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
-            jaxbU = ctx.createUnmarshaller();
             lastModified = new HashMap<String, Long>();
             portalFiles = new HashMap<String, File>();
         } catch (Exception e) {
@@ -112,36 +108,29 @@ public class PortalManagerImpl implements PortalManager {
 
     public void add(Portal portal) {
         String portalName = portal.getName();
-        Map<String, String> facetFields = portal.getFacetFields();
-        Map<String, String> backupPaths = portal.getBackupPaths();
-        if (!portalName.equals("default") && facetFields.isEmpty()) {
-            facetFields.putAll(getDefault().getFacetFields());
-        }
-        if (!portalName.equals("default") && backupPaths.isEmpty()) {
-            backupPaths.putAll(getDefault().getBackupPaths());
-        }
+        log.info("PORTAL name: " + portalName);
         getPortals().put(portalName, portal);
     }
 
     public void remove(String name) {
-        // delete the portal.xml
         File portalDir = new File(portalsDir, name);
-        File portalFile = new File(portalDir, PORTAL_XML);
+        File portalFile = new File(portalDir, PORTAL_JSON);
         portalFile.delete();
         getPortals().remove(name);
     }
 
     public void save(Portal portal) {
         String portalName = portal.getName();
-        File portalFile = new File(new File(portalsDir, portalName), PORTAL_XML);
+        File portalFile = new File(new File(portalsDir, portalName),
+                PORTAL_JSON);
         portalFile.getParentFile().mkdirs();
         try {
-            jaxbM.marshal(portal, portalFile);
-            log.info("Saved portal: " + portal);
-        } catch (JAXBException e) {
-            throw new RuntimeException(e);
+            FileWriter writer = new FileWriter(portalFile);
+            portal.store(writer, true);
+            writer.close();
+        } catch (IOException ioe) {
+
         }
-        // TODO copy velocity templates
     }
 
     private void loadPortals() {
@@ -158,23 +147,24 @@ public class PortalManagerImpl implements PortalManager {
 
     private Portal loadPortal(String name) {
         Portal portal = null;
-        File portalFile = new File(new File(portalsDir, name), PORTAL_XML);
+        File portalFile = new File(new File(portalsDir, name), PORTAL_JSON);
         if (portalFile.exists()) {
             lastModified.put(name, portalFile.lastModified());
             portalFiles.put(name, portalFile);
             try {
-                portal = (Portal) jaxbU.unmarshal(portalFile);
+                portal = new Portal(portalFile);
                 add(portal);
                 log.info("Loaded portal: " + portal);
-            } catch (JAXBException e) {
-                throw new RuntimeException(e);
+            } catch (IOException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
             }
         }
         return portal;
     }
 
     @Override
-    public void backup(String email, String backupDir, String portalQuery) {
+    public void backup(String email, List<Object> backupDir, String portalQuery) {
         // TODO Auto-generated method stub
         BackupClient backupClient;
         try {

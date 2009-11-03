@@ -23,11 +23,13 @@ $(function() {
         var size = parseInt($("#backupUrlSize").val()) + 1;
         var id = "backupPaths_" + size;
         
-        parent.append('<li id="' + id + '">\n' +
-              '<strong>Path: </strong><input class="ui-corner-all ui-widget-content" id="' + id + '_name" name="' + id + '_name" size="75" type="text" value="" />\n' +
-              '<button class="remove-backup-field ui-corner-all ui-state-default">del</button>\n' +
-              '<input id="default" name="default" type="radio"/> Default\n' +
-            '</li>');
+        parent.append('<fieldset>\n' +
+              '<strong>Path: </strong><input class="ui-corner-all ui-widget-content" id="' + id + '_name" name="' + id + '_name" size="50" type="text" value="" />\n' +
+              '<input id="' + id + '_active" name="' + id + '_active" type="checkbox"/> Active &nbsp;&nbsp;&nbsp;\n' +
+              '<input id="' + id + '_include-rendition-meta" name="' + id + '_include-rendition-meta" type="checkbox"/> Include rendition and metadata\n' +
+              '<br/><strong>Filter: </strong><input class="ui-corner-all ui-widget-content" id="' + id + '_filter" name="' + id + '_filter" size="50" type="text" value="" />\n' +
+              '<br/><button class="remove-backup-field ui-corner-all ui-state-default">Delete</button>\n' +
+            '</fieldset>');
         return false;
     });
 
@@ -81,7 +83,13 @@ $(function() {
           </li>
           <li>
             <label for="portalFacetSort">Sort by facet counts</label>
-            <input id="portalFacetSort" name="portalFacetSort" type="checkbox" value="$self.portal.facetSort" />
+            #set($checked=$self.portal.facetSort)
+            #if ($checked=="true")
+               #set($checked="checked='checked'")
+            #else
+                #set($checked="")
+            #end
+            <input id="portalFacetSort" name="portalFacetSort" type="checkbox" $checked/>
           </li>
           <h4>Facets</h4>
           <input id="portalFacetSize" name="portalFacetSize" type="hidden" value="$self.portal.facetFields.size()" />
@@ -168,27 +176,42 @@ $(function() {
       </form>
       <h4><a href="#">Backup Path</a></h4>
       <form id="backupPathForm" name="backupPathForm" method="post">
-      	  <input id="backupUrlSize" name="backupUrlSize" type="hidden" value="$self.portal.backupPaths.size()" />
-      	  <fieldset>
-	      	  <ol><button id="add-backup-path">Create new backup Path</button>
+          #set($backupPath = $self.portal.getBackupPaths())
+      	      <input id="backupUrlSize" name="backupUrlSize" type="hidden" value="$backupPath.size()" />
 	      	  <!--<li><label for="locationName">Location Name</label><label for="locationPath">Location path</label></li>-->
-	      	  #foreach($entry in $self.portal.backupPaths.keySet())
-	      	  #set($label = $self.portal.backupPaths.get($entry))
-	          #set($id = "backupPaths_$velocityCount")
-		          <li id="$id">
-		            <strong>Path: </strong><input id="${id}_name" name="${id}_name" size="75" type="text" value="$entry" />
-		            #set($checked="")
-		            #if ($label=="default")
-		                #set($checked="checked='checked'")
-		            #end
-		            <button class="remove-backup-field">del</button>
-		            <input id="default" name="default" type="radio" $checked value="$entry"/> Default
-		            
-		          </li>
-	          #end
-	          </ol>
+	      	  <div>
+	      	  <p><button id="add-backup-path">Create new backup Path</button></p>
+	      	  #if ($backupPath)
+    	      	  #foreach($entry in $backupPath.keySet())
+    	      	    #set($id = "backupPaths_$velocityCount")
+    	      	    <fieldset><strong>Path: </strong><input id="${id}_name" name="${id}_name" size="50" type="text" value="$entry" />
+    	      	    #set($props = $backupPath.get($entry))
+    	      	    
+    	      	    #set($active = $props.get("active"))
+    	      	    $active
+    	      	    #if ($active == "true")
+    	      	        #set($checked = "checked='checked'")
+    	      	    #else
+    	      	        #set($checked = "")
+    	      	    #end
+    	      	    <input id="${id}_active" name="${id}_active" type="checkbox" $checked/>Active &nbsp;&nbsp;&nbsp;
+    	      	    
+    	      	    #set($rendition = $props.get("include-rendition-meta"))
+                    #if ($rendition == "true")
+                        #set($checked = "checked='checked'")
+                    #else
+                        #set($checked = "")
+                    #end
+                    <input id="${id}_include-rendition-meta" name="${id}_include-rendition-meta" type="checkbox" $checked/>Include rendition and metadata
+    	      	    
+    	      	    #set($filter = $props.get("ignoreFilter"))
+    	      	    <br/><strong>Filter: </strong><input id="${id}_filter" name="${id}_filter" size="50" type="text" value="$filter" />
+    	      	    <br/><button class="remove-backup-field">Delete</button>
+    	      	    </fieldset>
+    	          #end
+    	      #end
+	          </div>
 	          <input name="backupAction" type="submit" value="Update" />
-	      </fieldset>
       </form>
     </div>
   </div>
