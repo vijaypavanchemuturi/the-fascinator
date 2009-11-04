@@ -21,16 +21,23 @@ package au.edu.usq.fascinator;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileFilter;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,6 +48,7 @@ import au.edu.usq.fascinator.api.indexer.IndexerException;
 import au.edu.usq.fascinator.api.indexer.SearchRequest;
 import au.edu.usq.fascinator.api.storage.DigitalObject;
 import au.edu.usq.fascinator.api.storage.Payload;
+import au.edu.usq.fascinator.api.storage.PayloadType;
 import au.edu.usq.fascinator.api.storage.Storage;
 import au.edu.usq.fascinator.common.JsonConfig;
 import au.edu.usq.fascinator.common.JsonConfigHelper;
@@ -83,18 +91,31 @@ public class BackupClient {
     private String email = null;
 
     /** Backup location list **/
-    private List<File> backupDirList = new ArrayList();
+    private Map<String, Map<String, Object>> backupDirList = new HashMap<String, Map<String, Object>>();
+
+    /** Storage **/
+    private String realStorageType;
+
+    private Storage realStorage;
+
+    /** Indexer **/
+    private String indexerType;
 
     /** Portal query **/
     private String portalQuery = null;
+
+    /** Portal directory **/
+    private File portalDir;
 
     /**
      * Backup Client Constructor
      * 
      * @throws IOException
+     * 
+     * @throws IOException
      */
     public BackupClient() throws IOException {
-        config = new JsonConfig();
+        setDefaultSetting(null);
     }
 
     /**
@@ -102,9 +123,34 @@ public class BackupClient {
      * 
      * @param jsonFile
      * @throws IOException
+     * @throws IOException
      */
     public BackupClient(File jsonFile) throws IOException {
-        config = new JsonConfig(jsonFile);
+        setDefaultSetting(jsonFile);
+    }
+
+    @SuppressWarnings("unchecked")
+    public void setDefaultSetting(File jsonFile) throws IOException {
+        if (jsonFile != null) {
+            config = new JsonConfig(jsonFile);
+        } else {
+            config = new JsonConfig();
+        }
+        indexerType = config.get("indexer/type", DEFAULT_INDEXER_TYPE);
+        realStorageType = config.get("storage/type", DEFAULT_STORAGE_TYPE);
+
+        // Set default email, backupDirList
+        setEmail(config.get("backup-email"));
+
+        Map<String, Object> backupPaths = config
+                .getMapWithChild("backup-paths");
+        Map<String, Map<String, Object>> backupPathsDict = new HashMap<String, Map<String, Object>>();
+        for (String key : backupPaths.keySet()) {
+            Map<String, Object> newObj = (Map<String, Object>) backupPaths
+                    .get(key);
+            backupPathsDict.put(key, newObj);
+        }
+        setBackupDir(backupPathsDict);
     }
 
     /**
@@ -115,11 +161,16 @@ public class BackupClient {
      * @param portalQuery
      * @throws IOException
      */
-    public BackupClient(String email, List<Object> backupDirs,
-            String portalQuery) throws IOException {
-        config = new JsonConfig();
+    public BackupClient(File portalDir, String email,
+            Map<String, Map<String, Object>> backupDirs, String portalQuery)
+            throws IOException {
+        this.portalDir = portalDir;
+        setDefaultSetting(null);
         setEmail(email);
-        setBackupDir(backupDirs);
+        if (backupDirs != null) {
+            backupDirList = new HashMap<String, Map<String, Object>>();
+            setBackupDir(backupDirs);
+        }
         setPortalQuery(portalQuery);
     }
 
@@ -148,14 +199,12 @@ public class BackupClient {
      * 
      * @param backupDir
      */
-    public void setBackupDir(List<Object> backupDirs) {
+    public void setBackupDir(Map<String, Map<String, Object>> backupDirs) {
         if (backupDirs != null) {
-            for (Object backupDir : backupDirs) {
-                File backupDirectory = new File(backupDir.toString());
-                backupDirList.add(backupDirectory);
-                if (backupDirectory.exists() == false) {
-                    backupDirectory.getParentFile().mkdirs();
-                }
+            for (String backupPath : backupDirs.keySet()) {
+                Map<String, Object> backupPathProps = backupDirs
+                        .get(backupPath);
+                backupDirList.put(backupPath, backupPathProps);
             }
         }
     }
@@ -165,7 +214,7 @@ public class BackupClient {
      * 
      * @return backupDir
      */
-    public List<File> getBackupDir() {
+    public Map<String, Map<String, Object>> getBackupDir() {
         return backupDirList;
     }
 
@@ -199,33 +248,14 @@ public class BackupClient {
         long start = System.currentTimeMillis();
         log.info("Started at " + now);
 
-        Storage realStorage;
         Indexer indexer;
         try {
-            realStorage = PluginManager.getStorage(config.get("storage/type",
-                    DEFAULT_STORAGE_TYPE));
-            indexer = PluginManager.getIndexer(config.get("indexer/type",
-                    DEFAULT_INDEXER_TYPE));
+            realStorage = PluginManager.getStorage(realStorageType);
+            indexer = PluginManager.getIndexer(indexerType);
             realStorage.init(config.getSystemFile());
             indexer.init(config.getSystemFile());
             log.info("Loaded {} and {}", realStorage.getName(), indexer
                     .getName());
-
-            // Set default email and backupDir if they are null
-            String defaultEmail = config.get("email", null);
-            List<Object> defaultBackupDir = config.getList("backupDir");
-            if (email == null && defaultEmail == null) {
-                log.error("No email address provided in system-config.json");
-                return;
-            } else if (email == null) {
-                setEmail(defaultEmail);
-            }
-            if (backupDirList == null && defaultBackupDir == null) {
-                log.error("No backup Directory provided in system-config.json");
-                return;
-            } else if (backupDirList == null) {
-                setBackupDir(defaultBackupDir);
-            }
         } catch (Exception e) {
             log.error("Failed to initialise storage", e);
             return;
@@ -249,55 +279,199 @@ public class BackupClient {
 
             try {
                 indexer.search(request, result);
-                JsonConfigHelper js = new JsonConfigHelper(result.toString());
+                JsonConfigHelper js;
 
-                // Backup all the digital object returned by indexer
-                for (Object oid : js.getList("response/docs/id")) {
-                    String fileName = oid.toString();
-                    DigitalObject digitalObject = realStorage
-                            .getObject(fileName);
-                    log.info("Backing up: " + fileName);
-                    // File oidFile = new File(oid.toString());
-
-                    // For window C: will cause error. so fix it as C_
-                    // NOTE: remember to change it back when doing restore
-                    if (System.getProperty("os.name").toLowerCase().indexOf(
-                            "windows") > -1) {
-                        fileName = fileName
-                                .replace("C:", File.separator + "C_");
-                    }
-                    for (File backupDir : backupDirList) {
-                        String outputFileName = backupDir.getAbsolutePath()
-                                + File.separator + email + fileName;
-                        File outputFile = new File(outputFileName);
-                        outputFile.getParentFile().mkdirs();
-                        OutputStream output = new FileOutputStream(outputFile);
-
-                        // getSource still can't work. the sourceid is null
-                        Payload payload = digitalObject.getSource();
-
-                        // Payload payload = digitalObject.getPayload(oidFile
-                        // .getName());
-                        if (payload != null) {
-                            IOUtils.copy(payload.getInputStream(), output);
-                        }
-                    }
-                }
+                js = new JsonConfigHelper(result.toString());
+                startBackup(js);
 
                 startRow += numPerPage;
                 numFound = Integer.parseInt(js.get("response/numFound"));
-            } catch (IOException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
+
             } catch (IndexerException e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
+            } catch (IOException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
             }
-            //
         } while (startRow < numFound);
 
         log.info("Completed in "
                 + ((System.currentTimeMillis() - start) / 1000.0) + " seconds");
+    }
+
+    /**
+     * Start backup files from from the result returned by solr
+     * 
+     * @param js
+     * @throws IOException
+     */
+    public void startBackup(JsonConfigHelper js) throws IOException {
+        // Backup all the digital object returned by indexer
+        log.info("js: " + js.getList("response/docs/id").size());
+        for (Object oid : js.getList("response/docs/id")) {
+            String fileName = oid.toString();
+            File originalFile = new File(fileName);
+            DigitalObject digitalObject = realStorage.getObject(fileName);
+            log.info("fileName: " + fileName);
+            fileName = isWindowFile(fileName);
+
+            // Backup to "active" backup directory
+            for (String backupPath : backupDirList.keySet()) {
+                Map<String, Object> backupProps = backupDirList.get(backupPath);
+                log.info("****: " + backupPath);
+                IgnoreFilter ignoreFilter = new IgnoreFilter(backupProps.get(
+                        "ignoreFilter").toString().split("\\|"));
+                if (ignoreFilter.accept(originalFile) == true) {
+                    String includeMeta = String.valueOf(backupProps
+                            .get("include-rendition-meta"));
+                    String active = String.valueOf(backupProps.get("active"));
+                    String includePortal = String.valueOf(backupProps
+                            .get("include-portal-view"));
+
+                    // Only active path then do backup
+                    if (active == "true") {
+                        File backupDirectory = new File(backupPath.toString()
+                                + File.separator + email + File.separator
+                                + "files");
+                        if (backupDirectory.exists() == false) {
+                            backupDirectory.getParentFile().mkdirs();
+                        }
+                        // Process the source data first
+                        String outputFileName = backupDirectory
+                                .getAbsolutePath()
+                                + fileName;
+                        File outputFile = new File(outputFileName);
+                        outputFile.getParentFile().mkdirs();
+                        OutputStream output = new FileOutputStream(outputFile);
+                        log.info("Backup file: {} to {}", fileName, outputFile
+                                .getAbsolutePath());
+                        Payload payload = digitalObject.getSource();
+                        if (payload != null) {
+                            IOUtils.copy(payload.getInputStream(), output);
+                        }
+
+                        // Process the rest of the metadata if
+                        // includeMeta is true, This will be in the zip file
+                        List<Payload> payloadList = digitalObject
+                                .getPayloadList();
+                        if (includeMeta == "true"
+                                && payloadList.isEmpty() == false) {
+                            String zipFileName = backupDirectory
+                                    .getAbsolutePath()
+                                    + fileName + ".zip";
+                            includeMetadata(zipFileName, payloadList);
+                        }
+
+                        // Process the view/portal files if included
+                        if (includePortal == "true") {
+                            File portalFolder;
+                            if (portalDir == null) {
+                                portalDir = new File(
+                                        "../portal/src/main/config/portal");
+                                portalFolder = new File(backupPath.toString()
+                                        + File.separator + email
+                                        + File.separator + "config/portal");
+                            } else {
+                                portalFolder = new File(backupPath.toString()
+                                        + File.separator + email
+                                        + File.separator + "config/portal"
+                                        + File.separator + portalDir.getName());
+                            }
+                            log.info("portalFolder: "
+                                    + portalFolder.getAbsolutePath());
+                            log.info("portalDir: "
+                                    + portalDir.getAbsolutePath());
+                            portalFolder.getParentFile().mkdirs();
+                            includePortalDir(portalDir, portalFolder);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Zipping payload & metadata
+     * 
+     * @param zipFileName
+     * @param payloadList
+     * @throws IOException
+     */
+    private void includeMetadata(String zipFileName, List<Payload> payloadList)
+            throws IOException {
+        ZipOutputStream out = new ZipOutputStream(new FileOutputStream(
+                zipFileName));
+        for (Payload metaPayload : payloadList) {
+            if (metaPayload.getType() == PayloadType.Enrichment) {
+                out.putNextEntry(new ZipEntry(metaPayload.getId()));
+                IOUtils.copy(metaPayload.getInputStream(), out);
+                out.closeEntry();
+            }
+        }
+        out.close();
+    }
+
+    /**
+     * Copy portal config directory
+     * 
+     * @param portalFolder
+     * @throws IOException
+     */
+    private void includePortalDir(File portalSrc, File portalDest)
+            throws IOException {
+        if (portalSrc.isDirectory()) {
+            if (!portalDest.exists()) {
+                portalDest.mkdir();
+            }
+            for (String file : portalSrc.list()) {
+                includePortalDir(new File(portalSrc, file), new File(
+                        portalDest, file));
+            }
+        } else {
+            InputStream in = new FileInputStream(portalSrc);
+            OutputStream out = new FileOutputStream(portalDest);
+            IOUtils.copy(in, out);
+            in.close();
+            out.close();
+        }
+    }
+
+    /**
+     * Change the name if it's a window file
+     * 
+     * @param fileName
+     * @return
+     */
+    private String isWindowFile(String fileName) {
+        // For window C: will cause error. so fix it as C_
+        // NOTE: remember to change it back when doing restore
+        if (System.getProperty("os.name").toLowerCase().indexOf("windows") > -1) {
+            fileName = fileName.replace("C:", File.separator + "C_");
+        }
+        return fileName;
+    }
+
+    /**
+     * File filter used to ignore specified files
+     */
+    private class IgnoreFilter implements FileFilter {
+
+        /** wildcard patterns of files to ignore */
+        private String[] patterns;
+
+        public IgnoreFilter(String[] patterns) {
+            this.patterns = patterns;
+        }
+
+        public boolean accept(File path) {
+            for (String pattern : patterns) {
+                if (FilenameUtils.wildcardMatch(path.getName(), pattern)) {
+                    return false;
+                }
+            }
+            return true;
+        }
     }
 
     public static void main(String[] args) {

@@ -9,22 +9,21 @@ class HomeData:
             sessionState.remove("fq")
         if action == "backup-portal":
             print "Backing up: ", portalName
-            backupPathList = []
+            backupPathList = None
             email = ""
             portal = Services.portalManager.get(portalName)
             if portal:
                 email = portal.email
                 if portal.backupPaths:
-                    for key in portal.backupPaths:
-                        if portal.backupPaths[key]=="on":
-                            backupPathList.append(key)
+                    backupPathList = portal.backupPaths
                 portalQuery = portal.getQuery()
                 #print " ***** portalQuery: ", portalQuery
-                #print " ***** backupPath: ", backupPath
+                #print " ***** backupPathList: ", backupPathList
                 #print " ***** email: ", email
                 #print " ***** description: ", description
-            if backupPathList == []:
-                " ** Default backup path configured in system-config.json will be used "
-            Services.portalManager.backup(email, backupPathList, portalQuery)
+            if backupPathList is None:
+                print " ** Please configure backup directory in the portal setting "
+            else:
+                Services.portalManager.backup(portal, email, backupPathList, portalQuery)
     
 scriptObject = HomeData()

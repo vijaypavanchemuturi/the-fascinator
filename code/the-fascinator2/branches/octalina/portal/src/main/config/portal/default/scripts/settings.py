@@ -50,19 +50,22 @@ class SettingsData:
             keyName = "backupPaths_%s_name" % i
             activeName = "backupPaths_%s_active" % i
             includeName = "backupPaths_%s_include-rendition-meta" % i
+            includePortal = "backupPaths_%s_include-portal-view" % i
             filterName = "backupPaths_%s_filter" % i
             
             name = formData.get(keyName)
             activeValue = formData.get(activeName)
-            includeValue = formData.get(includeName)
+            includeRenditionValue = formData.get(includeName)
             filterValue = formData.get(filterName)
-            #print " * setting.py Updatebackup Path: name='%s', active='%s', include='%s', filter='%s', count='%s'" % \
-            #    (name, activeValue, includeValue, filterValue, i) 
+            portalViewValue = formData.get(includePortal)
+            #print " * setting.py Updatebackup Path: name='%s', active='%s', includeRenditionValue='%s', filter='%s', count='%s'" % \
+            #    (name, activeValue, includeRenditionValue, filterValue, i) 
             if name is not None:
                 newInfo = {}
                 newInfo["active"] = activeValue is not None
-                newInfo["include-rendition-meta"] = includeValue is not None
+                newInfo["include-rendition-meta"] = includeRenditionValue is not None
                 newInfo["ignoreFilter"] = filterValue
+                newInfo["include-portal-view"] = portalViewValue is not None
                 backupPaths.put(name, newInfo)
             self.__portal.setBackupPaths(backupPaths)
         Services.portalManager.save(self.__portal)
