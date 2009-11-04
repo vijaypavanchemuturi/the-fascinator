@@ -62,7 +62,7 @@ import au.edu.usq.fascinator.common.JsonConfigHelper;
  * <li>system-config.json (Default) "email": "email@usq.edu.au", "backupDir":
  * "${user.home}/.fascinator-backup"</li>
  * <li>portal.xml <backup-email>email@usq.edu.au</backup-email> <backup-paths>
- * <field name="default">/home/octalina/.fascinator-backup</field>
+ * <field name="/home/octalina/.fascinator-backup">default</field>
  * </backup-paths></li>
  * </ul>
  * 

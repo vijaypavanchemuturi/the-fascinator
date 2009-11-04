@@ -44,6 +44,7 @@ class SettingsData:
         
     def __updateBackupPaths(self):
         backupPaths = self.__portal.backupPaths
+        backupPaths.clear()
         size = int(formData.get("backupUrlSize"))
         for i in range (1, size+2):  
             keyName = "backupPaths_%s_name" % i
