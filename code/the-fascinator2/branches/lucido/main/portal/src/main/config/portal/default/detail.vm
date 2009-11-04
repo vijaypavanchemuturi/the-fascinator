@@ -3,7 +3,6 @@
 <h2 id="page-heading">Page not found</h2>
 <p>Please try a different <a href="$portalPath/search">search</a>.</p>
 #else
-#set($pageHeader = '<script type="text/javascript" src="' + $portalPath + '/flowplayer/flowplayer-3.1.2.min.js"></script>')
 #set($meta = $self.metadata)
 #set($oid = $self.object.id)
 #set($title = $meta.getField("dc_title"))
@@ -43,7 +42,7 @@ $(function() {
 <h2 id="page-heading">$title</h2>
 <div class="grid_4">
   <div class="box menu">
-    <h2><a href="#">Actions</a></h2>
+    <h2>Actions</h2>
     <ul class="menu" id="actions">
       <li><a id="open-this" href="$portalPath/detail/$oid">Open file</a></li>
       #if($self.hasHtml())
@@ -52,9 +51,10 @@ $(function() {
     </ul>
   </div>
   <div class="box">
-    <h2><a href="#">Metadata</a></h2>
+    <h2>Metadata</h2>
     #set($dc = $meta.dublinCore)
     <div class="block">
+      #*
       <table>
         <tbody>
         #foreach($key in $dc.keySet())
@@ -67,6 +67,13 @@ $(function() {
         #end
         </tbody>
       </table>
+      *#
+      <dl class="meta">
+      #foreach($key in $dc.keySet())
+        <dt>$self.formatName($key)</dt>
+        <dd>$self.formatValue($dc.get($key))</dd>
+      #end
+      </dl>
     </div>
   </div>
   <div id="attachments" class="box menu">
@@ -75,7 +82,7 @@ $(function() {
     #foreach($payload in $self.object.payloadList)
       #set($pid = $payload.id)
       #set($payloadType = $payload.type.toString())
-      <li>
+      <li class="payload" rel="$payload.contentType">
         <a href='$portalPath/download/$oid/$pid' rel="$payloadType" target="blank" title="$payload.contentType">$payload.id</a>
       </li>
     #end
@@ -112,7 +119,7 @@ $(function() {
   </div>
   <div class="box articles">
     <h2>Preview</h2>
-    <div class="content-preview block">
+    <div class="content-preview">
       <div class="first article clearfix">
         <div class="content-preview-inline">$!self.payloadContent</div>
       </div>
@@ -120,69 +127,67 @@ $(function() {
   </div>
 </div>
 <div class="clear"></div>
+<!-- 
 <div class="ui-helper-hidden" id="record-meta">
   <label id="oid">$oid</label>
   <label id="format">$self.mimeType</label>
   <label id="hasSlide">$self.hasSlideShow()</label>
 </div>
+-->
+#if($self.mimeType.startsWith("audio/") || $self.mimeType.startsWith("video/"))
+<script type="text/javascript" src="$portalPath/flowplayer/flowplayer-3.1.2.min.js"></script>
+#end
 <script type="text/javascript">
 $(function() {
-    var oid = $("#oid").text();
-    $("#hasSlide").each(function() {
-        var hasSlide = $(this).text();
-        if (hasSlide != "") {
-            $('div.view-as-slideshow').append("<form action='$portalPath/download/" + oid + "/" + hasSlide + "' target='_blank'>" +
-            "<input type='submit' value='View as Slideshow'>" +  
-            "</form>");
-        }
-    });
+    var oid = "$oid";
     
-    $("div.content-preview-inline span.slide-link").each(function() {
-        $(this).empty();
-        $("#actions").append("<li><a href='$portalPath/download/$oid/$self.hasSlideShow()' target='_blank'>View slideshow</a></li>");
-    });
-    
-    $("div.content-preview-inline span.pdf-rendition-link").each(function() {
-        $(this).empty();
-        $("#actions").append("<li><a href='$portalPath/download/$self.pdfUrl'>Printable version (PDF)</a></li>");
-    });
-    
-    $("#hasSlide").each(function() {
-        var hasSlide = $(this).text();
-        if (hasSlide != "") {
-            $('div.view-as-slideshow').append("<form action='download/" + oid + "/" + hasSlide + "' target='_blank'>" +
-            "<input type='submit' value='View as Slideshow'>" +  
-            "</form>");
-        } 
-    });
-    
-    $("#format").each(function() {
-        var mimeType = $(this).text().toLowerCase();
-        if (mimeType.indexOf("image") == 0) {
-            var imgsrc = "$portalPath/download/" + oid;
-            $('div.content-preview .article').html("<a class='image' href='" + imgsrc + "'><img src='" + imgsrc + "'/></a>");
-        } else if (mimeType.indexOf("audio") == 0 || mimeType.indexOf("video") == 0) {
-            var filename = '$portalPath/download/' + oid + "/" + oid.substring(oid.lastIndexOf("/")+1).replace("wmv", "flv");
-            var height = 300;
-            if (mimeType.indexOf("audio") == 0) {
-                height = 24;
+    function fixLinks(selector, attrName) {
+        $(selector).each(function() {
+            var attr = $(this).attr(attrName);
+            if (attr != null) {
+                if (attr.indexOf("#") != 0 && attr.indexOf("://") == -1) {
+                    $(this).attr(attrName, "$portalPath/download/$self.object.id/" + attr);
+                }
             }
-            $('div.content-preview-inline').append('<a href="' + filename + '" id="player" style="display:block;width:425px;height:' + height + 'px;"></a>');
-            flowplayer("player", "$portalPath/flowplayer/flowplayer-3.1.2.swf");
-        }
-    });
-    
+        });
+    }
+    fixLinks("div.content-preview-inline a", "href");
+    fixLinks("div.content-preview-inline img", "src");
+
     $("#open-this").click(function() {
-        jQuery.post("$portalPath/detail/" + oid, { verb: "open", value: oid } );
+        jQuery.post("$portalPath/open.ajax", { func: "open-file", file: "$oid" } );
+        return false;
     });
     
-    $("div.content-preview-inline img").each(function() {
-        var src = $(this).attr("src");
-        var srcVal = src.toLowerCase();
-        if (srcVal.indexOf("http://") == -1 && srcVal.indexOf("file://") == -1) {
-            $(this).attr("src", "$portalPath/download/" + oid + "/" + src);
-        }
+    function addRendition(href, label) {
+        $("#actions").append('<li><a href="' + href + '" target="blank">' + label + '</a></li>');
+    }
+    $('li.payload[rel="application/pdf"] a:first').each(function() {
+        addRendition($(this).attr("href"), "PDF version");
     });
+    $("span.slide-link a").each(function() {
+        addRendition($(this).attr("href"), "View slide show");
+    });
+    $("div.rendition-links").remove();
+    
+    var mimeType = "$self.mimeType";
+    if (mimeType.indexOf("image/") == 0) {
+        var src = "$portalPath/download/$oid";
+        $("div.content-preview div.article").html(
+            '<a class="image" href="' + src + '"><img src="' + src + '" /></a>');
+    } else if (mimeType.indexOf("audio/") == 0 || mimeType.indexOf("video/") == 0) {
+        var height = 300;
+        if (mimeType.indexOf("audio/") == 0) {
+            height = 24;
+        }
+        var style = "display: block; width: 425px; height: " + height + "px";
+        var filename = oid.substring(oid.lastIndexOf("/") + 1).replace("wmv", "flv");
+        var href = "$portalPath/download/$oid/" + filename;
+        var player = '<a class="clearfix" href="' + href + '" id="player" style="' + style + '" />';
+        $("div.content-preview div.article").empty().append(player);
+        flowplayer("player", "$portalPath/flowplayer/flowplayer-3.1.2.swf",
+            { clip: { autoPlay: false } });
+    }
 });
 </script>
 #end

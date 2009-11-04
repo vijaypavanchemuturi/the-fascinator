@@ -184,16 +184,18 @@ public class DynamicPageServiceImpl implements DynamicPageService {
         bindings.put("pageName", pageName);
 
         // run page and template scripts
-        Object layoutObject = new Object();
-        try {
-            layoutObject = evalScript(portalId, layoutName, bindings);
-        } catch (ScriptException se) {
-            renderMessages.append("Layout script error:\n");
-            renderMessages.append(se.getMessage());
-            log.warn("Failed to run layout script!\n=====\n{}\n=====", se
-                    .getMessage());
+        if (!isAjax) {
+            Object layoutObject = new Object();
+            try {
+                layoutObject = evalScript(portalId, layoutName, bindings);
+            } catch (ScriptException se) {
+                renderMessages.append("Layout script error:\n");
+                renderMessages.append(se.getMessage());
+                log.warn("Failed to run layout script!\n=====\n{}\n=====", se
+                        .getMessage());
+            }
+            bindings.put("page", layoutObject);
         }
-        bindings.put("page", layoutObject);
 
         Object pageObject = new Object();
         try {
@@ -244,8 +246,8 @@ public class DynamicPageServiceImpl implements DynamicPageService {
             if (!isAjax) {
                 try {
                     // render the page using the layout template
-                    log.debug("Rendering layout {}/{}.vm...", portalId,
-                            layoutName);
+                    log.debug("Rendering layout {}/{}.vm for page {}.vm...",
+                            new Object[] { portalId, layoutName, pageName });
                     Template page = getTemplate(portalId, layoutName);
                     Writer pageWriter = new OutputStreamWriter(out, "UTF-8");
                     page.merge(vc, pageWriter);

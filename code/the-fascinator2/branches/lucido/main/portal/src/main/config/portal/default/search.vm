@@ -87,7 +87,6 @@
       #set($description = "")
       #set($description = $item.get("dc_description").get(0))
       #set($format = $item.get("dc_format").get(0))
-      #set($tags = $self.getTags($id))
       <div id="$hashId" class="article#if($velocityCount==1) first#end">
         <h3><a href="$portalPath/detail/$id">$title</a></h3>
         <div class="tags">

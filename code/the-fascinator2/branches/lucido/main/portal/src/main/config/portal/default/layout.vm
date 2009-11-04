@@ -46,9 +46,11 @@
           </li>
           <li><a href="$portalPath/settings">Settings</a></li>
           <li class="secondary">
+            <a class="search" href="#"><img src="$portalPath/images/icons/magnifier.png" /></a>
+          </li>
+          <li class="secondary">
             <form action="$portalPath/search" class="search" method="post">
               <input class="text" type="text" name="query" size="25" value="$!sessionState.get('query')" />
-              <input class="button" type="submit" name="search" value="Search" />
             </form>
           </li>
           <li class="secondary">
@@ -68,5 +70,13 @@
       <input id="verb" name="verb" type="hidden" />
       <input id="value" name="value" type="hidden" />
     </form>
+    <script type="text/javascript">
+    $(function() {
+        $("a.search").click(function() {
+            $("form.search").submit();
+            return false;
+        });
+    });
+    </script>
   </body>
 </html>

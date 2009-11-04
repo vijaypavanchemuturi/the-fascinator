@@ -46,22 +46,26 @@ class SolrDoc:
 
 class DetailData:
     def __init__(self):
-        self.__storage = Services.storage
-        uri = URLDecoder.decode(request.getAttribute("RequestURI"))
-        basePath = portalId + "/" + pageName
-        self.__oid = uri[len(basePath)+1:]
-        slash = self.__oid.rfind("/")
-        self.__pid = self.__oid[slash+1:]
-        print " * detail.py: uri='%s' oid='%s' pid='%s'" % (uri, self.__oid, self.__pid)
-        if formData.get("verb") == "open":
+        if formData.get("func") == "open-file":
             self.__openFile()
-        payload = self.__storage.getPayload(self.__oid, self.__pid)
-        if payload is not None:
-            self.__mimeType = payload.contentType
+            writer = response.getPrintWriter("text/plain")
+            writer.println("{}")
+            writer.close()
         else:
-            self.__mimeType = "application/octet-stream"
-        self.__metadata = JsonConfigHelper()
-        self.__search()
+            self.__storage = Services.storage
+            uri = URLDecoder.decode(request.getAttribute("RequestURI"))
+            basePath = portalId + "/" + pageName
+            self.__oid = uri[len(basePath)+1:]
+            slash = self.__oid.rfind("/")
+            self.__pid = self.__oid[slash+1:]
+            payload = self.__storage.getPayload(self.__oid, self.__pid)
+            if payload is not None:
+                self.__mimeType = payload.contentType
+            else:
+                self.__mimeType = "application/octet-stream"
+            self.__metadata = JsonConfigHelper()
+            print " * detail.py: uri='%s' oid='%s' pid='%s' mimeType='%s'" % (uri, self.__oid, self.__pid, self.__mimeType)
+            self.__search()
     
     def __search(self):
         req = SearchRequest('id:"%s"' % self.__oid)
@@ -108,7 +112,7 @@ class DetailData:
         pid = pid[:pid.find(".")] + ".slide.htm"
         payload = self.__storage.getPayload(self.__oid, pid)
         if payload is None:
-            return ""
+            return False
         return pid
     
     def getPdfUrl(self):
@@ -118,7 +122,8 @@ class DetailData:
     def hasHtml(self):
         payloadList = self.getObject().getPayloadList()
         for payload in payloadList:
-            if payload.contentType == "text/html":
+            mimeType = payload.contentType
+            if mimeType == "text/html" or mimeType == "application/xhtml+xml":
                 return True
         return False
     
@@ -169,8 +174,8 @@ class DetailData:
         return contentStr
     
     def __openFile(self):
-        value = formData.get("value")
-        print " * detail.py: opening file %s..." % value
-        Desktop.getDesktop().open(File(value))
+        file = formData.get("file")
+        print " * detail.py: opening file %s..." % file
+        Desktop.getDesktop().open(File(file))
 
 scriptObject = DetailData()

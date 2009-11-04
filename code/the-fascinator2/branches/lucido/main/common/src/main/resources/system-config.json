@@ -1,4 +1,5 @@
 {
+    "home": "",
 	"email": "email@usq.edu.au",
 	"backupDir": ["${user.home}/.fascinator-backup"],
     "storage": {
