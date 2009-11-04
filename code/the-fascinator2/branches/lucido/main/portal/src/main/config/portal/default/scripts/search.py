@@ -11,95 +11,13 @@ from java.io import ByteArrayInputStream, ByteArrayOutputStream
 from java.net import URLDecoder, URLEncoder
 from java.util import HashMap
 
-from au.edu.usq.fascinator.common.ctag import Tag, TaggedContent
-
-from org.ontoware.rdf2go import RDF2Go
-from org.ontoware.rdf2go.model import Model, Syntax
-from org.ontoware.rdf2go.model.node import Node, URI
-
-class TagsPayload(GenericPayload):
-    def __init__(self, payload, oid):
-        self.__tags = []
-        self.__model = RDF2Go.getModelFactory().createModel();
-        self.__model.open();
-        self.__content = TaggedContent(self.__model, "urn:" + md5.new(oid).hexdigest(), True);
-        if payload is None:
-            self.setId("tags.rdf")
-            self.setLabel("Tags")
-            self.setContentType("application/rdf+xml")
-            self.setType(PayloadType.Annotation)
-        else:
-            GenericPayload.__init__(self, payload)
-            self.__model.readFrom(payload.getInputStream())
-            tags = self.__content.getAllTagged_as().asArray()
-            for tag in tags:
-                labels = tag.getAllTaglabel_asNode_().asArray()
-                for label in labels:
-                    print " * search.py: Tag Label - %s" % label
-                    self.__tags.append(label)
-        self.setType(PayloadType.Annotation)
-    
-    def addTag(self, tag):
-        encodedTag = URLEncoder.encode(tag, "UTF-8")
-        tagNode = Tag(self.__model, "urn:tags:" + encodedTag, True)
-        tagNode.setMeans(self.__model.createURI("urn:tags:" + encodedTag));
-        tagNode.setTaglabel(self.__model.createPlainLiteral(tag))
-        self.__content.addTagged(tagNode);
-    
-    def removeTag(self, tag):
-        print " search.py: Remove Tag: %s [TODO]" % tag
-    
-    def getTags(self):
-        return self.__tags
-    
-    def getInputStream(self):
-        rdf = self.__model.serialize(Syntax.RdfXml)
-        print rdf
-        return ByteArrayInputStream(array.array('b', rdf.encode("UTF-8")))
-    
-    def close(self):
-        self.__model.close()
-
 class SearchData:
     def __init__(self):
-        self.__tags = []
-        if formData.get("verb") == "load-tags":
-            self.__tags = self.__loadTags()
-        else:
-            self.__portal = Services.portalManager.get(portalId)
-            self.__result = JsonConfigHelper()
-            self.__pageNum = sessionState.get("pageNum", 1)
-            self.__selected = []
-            if formData.get("verb") == "tag":
-                self.__tags = self.__tag(formData.get("oid"))
-            self.__search()
-    
-    def hasTags(self):
-        return len(self.__tags) > 0
-    
-    def getTags(self):
-        return self.__tags
-    
-    def __loadTags(self, oid):
-        obj = Services.storage.getObject(oid)
-        tagsPayload = TagsPayload(obj.getPayload("tags.rdf"), oid)
-        tags = tagsPayload.getTags()
-        tagsPayload.close()
-        print " * search.py: Loaded tags from %s: %s" % (oid, tags)
-        return tags
-    
-    def __tag(self, oid):
-        newTag = formData.get("newTag")
-        print " * search.py: Tagging '%s' with '%s'" % (oid, newTag)
-        # add tag to storage
-        obj = Services.storage.getObject(oid)
-        tagsPayload = TagsPayload(obj.getPayload("tags.rdf"), oid)
-        tagsPayload.addTag(newTag)
-        Services.storage.addPayload(oid, tagsPayload)
-        self.__tags = tagsPayload.getTags()
-        tagsPayload.close()
-        # now re-index the tag
-        Services.indexer.index(oid)
+        self.__portal = Services.portalManager.get(portalId)
+        self.__result = JsonConfigHelper()
+        self.__pageNum = sessionState.get("pageNum", 1)
+        self.__selected = []
+        self.__search()
     
     def __search(self):
         recordsPerPage = self.__portal.recordsPerPage
@@ -220,8 +138,5 @@ class SearchData:
         ext = os.path.splitext(oid)[1]
         url = oid[oid.rfind("/")+1:-len(ext)] + ".thumb.jpg"
         return url
-    
-    def getTags(self, oid):
-        return self.__loadTags(oid)
 
 scriptObject = SearchData()

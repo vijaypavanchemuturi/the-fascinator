@@ -14,8 +14,18 @@ $(function() {
   <ul>
     #if($currentPage > 1)
       #set($prev = $currentPage - 1)
-      <li><a class="select-page" rel="1" href="#">First</a></li>
-      <li><a class="select-page" rel="$prev" href="#">Previous</a></li>
+      <li>
+        <a class="select-page" rel="1" href="#">
+          First
+          <!-- <img src="$portalPath/images/icons/resultset_first.png" /> -->
+        </a>
+      </li>
+      <li>
+        <a class="select-page" rel="$prev" href="#">
+          Previous
+          <!-- <img src="$portalPath/images/icons/resultset_previous.png" /> -->
+        </a>
+      </li>
     #end
     #foreach($pageNum in $paging.pages)
       #if($pageNum.selected)
@@ -26,8 +36,18 @@ $(function() {
     #end
     #if($currentPage < $lastPage)
       #set($next = $currentPage + 1)
-      <li><a class="select-page" rel="$next" href="#">Next</a></li>
-      <li><a class="select-page" rel="$lastPage" href="#">Last</a></li>
+      <li>
+        <a class="select-page" rel="$next" href="#">
+          Next
+          <!-- <img src="$portalPath/images/icons/resultset_next.png" /> -->
+        </a>
+      </li>
+      <li>
+        <a class="select-page" rel="$lastPage" href="#">
+          Last
+          <!-- <img src="$portalPath/images/icons/resultset_last.png" /> -->
+        </a>
+      </li>
     #end
   </ul>
 </div>

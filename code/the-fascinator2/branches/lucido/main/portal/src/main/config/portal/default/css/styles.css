@@ -1,5 +1,9 @@
 .hidden {
-    display:none;
+    display: none;
+}
+
+.inline {
+    display: inline;
 }
 
 h1#branding {
@@ -77,17 +81,24 @@ span.right {
     margin-left: 35%;
 }
 
-span.tag {
-    background: #CCDDEE;
-    color: black;
-}
-
-.tag-form input {
+.tag-form, .tag-form input {
     margin: 0;
     padding: 0;
 }
 
-.article p.meta {
-    padding-top: 0.2em;
-    padding-bottom: 0.5em;
+.article a img {
+    vertical-align: text-bottom;
+}
+
+div.tags ul {
+    border-top: 1px dotted #999999;
+    border-bottom: 1px dotted #999999;
+    padding: 0.3em 0;
+}
+
+div.tags ul li {
+    display: inline;
+    list-style: none;
+    margin: 2px;
+    padding-right: 5px;
 }

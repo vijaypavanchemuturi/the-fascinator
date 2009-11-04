@@ -34,16 +34,6 @@
   </div>
   #end
 #end
-#if($formData.get("verb") == 'load-tags')
-#if($self.hasTags())
-<label for="tags-list">Current tags</label>	
-<ul id="tags-list">
-#foreach($tag in $self.tags)
-  <li>$tag</li>
-#end
-</ul>
-#end
-#else
 #set($pageTitle = 'Search')
 #set($query = $sessionState.get("query"))
 #if($query)
@@ -51,11 +41,7 @@
 #else
   #set($atomLink = "$portalPath/feed/atom")
 #end
-#set($pageHeader = '
-  <link rel="alternate" type="application/atom+xml" href="'+ $atomLink +'"/>
-  <script type="text/javascript" src="' + $portalPath + '/js/tree/jquery.tree.min.js"></script>
-  <script type="text/javascript" src="' + $portalPath + '/js/jquery.truncate.js"></script>
-')
+#set($pageHeader = "<link rel=\"alternate\" type=\"application/atom+xml\" href=\"$atomLink\"/>")
 #set($paging = $self.paging)
 #if($self.result and $paging.totalFound > 0)
 #end
@@ -63,13 +49,13 @@
 <div class="grid_4">
   #if($self.hasSelectedFacets() || $query != "")
   <div class="box menu">
-    <h2><a href="#">Actions</a></h2>
+    <h2>Actions</h2>
     <ul class="menu">
       #if($query != "")
         <li><a href="$portalPath/search">Clear search query</a></li>
       #end
       #if($self.hasSelectedFacets())
-        <li><a href="#" id="clear-facets">Clear facet selection</a></li>
+        <li><a href="#" id="clear-facets">Clear selection</a></li>
       #end
     </ul>
   </div>
@@ -84,9 +70,8 @@
 </div>
 <div class="grid_12" id="result-list">
   <div class="box articles">
-    <h2>
-        Results
-        <span class="right">Showing ${paging.startNum} to ${paging.endNum} of ${paging.totalFound} items ($self.queryTime seconds)</span>
+    <h2>Results
+      <span class="right">Showing ${paging.startNum} to ${paging.endNum} of ${paging.totalFound} items ($self.queryTime seconds)</span>
     </h2>
     #if($self.result and $paging.totalFound > 0)
     #foreach($item in $self.result.getList("response/docs"))
@@ -102,23 +87,24 @@
       #set($description = "")
       #set($description = $item.get("dc_description").get(0))
       #set($format = $item.get("dc_format").get(0))
+      #set($tags = $self.getTags($id))
       <div id="$hashId" class="article#if($velocityCount==1) first#end">
         <h3><a href="$portalPath/detail/$id">$title</a></h3>
-        <p class="meta">Tags:
-          <span id="tags-$hashId">
-          #foreach($tag in $self.getTags($id))
-            <a class="tag" href="$portalPath/search/$tag">$tag</a>
-          #end
-          </span>
-          <span class="right">
-            <a class="tag-add right" href="#">Add tag</a>
-            <form class="tag-form hidden" rel="$id">
-              <input type="text" class="new-tag-value" size="20" name="newTag" />
-              <input class="tag-ok-button" type="submit" name="verb" value="OK" />
-              <input class="tag-cancel-button" type="button" name="verb" value="Cancel" />
-            </form>
-          </span>
-        </p>
+        <div class="tags">
+          <ul class="tags">
+            <li>Tags:</li>
+            <li id="tags-$hashId">
+              <a class="tag-add hidden" href="#"><img alt="Add tag" src="$portalPath/images/icons/add.png" /></a>
+              <form class="tag-form hidden" rel="$id">
+                <input type="text" class="new-tag-value" size="20" name="newTag" />
+                <input class="tag-accept hidden" type="submit" name="submit" />
+                <a class="tag-accept" href="#"><img alt="Accept tag" src="$portalPath/images/icons/tick.png" /></a>
+                <a class="tag-cancel" href="#"><img alt="Cancel tag" src="$portalPath/images/icons/cross.png" /></a>
+              </form>
+              <img class="tag-loading" src="$portalPath/images/icons/loading.gif" />
+            </li>
+          </ul>
+        </div>
         #if($format.startsWith("image/"))
           <a class="image" href="$portalPath/detail/$id">
             <img src="$portalPath/download/$id/$self.getThumbnail($id)" />
@@ -133,6 +119,8 @@
     #end
   </div>
 </div>
+<script type="text/javascript" src="$portalPath/js/tree/jquery.tree.min.js"></script>
+<script type="text/javascript" src="$portalPath/js/jquery.truncate.js"></script>
 <script type="text/javascript">
 $(function() {
     addActionParam("query", "$!query");
@@ -208,29 +196,81 @@ $(function() {
     });
     
     // tagging
-    $(".tag-add").click(function() {
-        $(this).hide().next("form").show().find(".new-tag-value").focus();
+    $("a.tag-add").bind("click", function() {
+        $(this).hide();
+        var tagForm = $(this).next("form");
+        tagForm.addClass("inline").removeClass("hidden");
+        tagForm.find(".new-tag-value").focus().val("");
         return false;
     });
-    $(".tag-ok-button").click(function() {
+    $("form.tag-form").bind("submit", function(e) {
+        $(this).find("a.tag-accept").click();
+        e.preventDefault();
+    });
+    $("a.tag-accept").bind("click", function() {
         var tagForm = $(this).parent("form");
         var id = tagForm.attr("rel");
-        var hashId = tagForm.parents("div").attr("id");
-        var newTag = tagForm.find(".new-tag-value").val();
-        if (newTag != "") {
-            jQuery.post("$portalPath/tag.ajax", { oid: id, newTag: newTag },
+        var hashId = tagForm.parents("div.article").attr("id");
+        var tag = tagForm.find(".new-tag-value").val();
+        if (tag != "") {
+            tagForm.addClass("hidden").removeClass("inline");
+            tagForm.next("img.tag-loading").show();
+            jQuery.post("$portalPath/tags.ajax",
+                { func: "tags-add", oid: id, tag: tag },
                 function(data, status) {
-                    $("#status-bar").html("Tag added");
-                    tagForm.hide().prev().show();
-                    $("#tags-" + hashId).append('<a class="tag" href="$portalPath/search/' + newTag + '">' + newTag + '</a>');
+                    tagForm.prev("a.tag-add").show();
+                    tagForm.next("img.tag-loading").hide();
+                    $("#tags-" + hashId).before(
+                        '<li><a style="color:green;" class="tag" href="$portalPath/search/'
+                        + tag + '">' + tag + '</a></li>');
                 }
             );
         }
         return false;
     });
-    $(".tag-cancel-button").click(function() {
-        $(this).parent("form").hide().prev().show();
+    $("a.tag-cancel").bind("click", function() {
+        var tagForm = $(this).parent("form");
+        tagForm.addClass("hidden").removeClass("inline");
+        tagForm.prev("a.tag-add").show();
+        return false;
+    });
+    
+    $("ul.tags").each(function() {
+        var id = $(this).find("form.tag-form").attr("rel");
+        var hashId = "#tags-" + $(this).parents("div.article").attr("id");
+        jQuery.getJSON("$portalPath/tags.ajax", { func: "tags-load", oid: id },
+            function(data) {
+                jQuery.each(data.tags, function(i, tag) {
+                    $(hashId).before('<li class="tag">' +
+                        '<a class="tag" href="$portalPath/search/' + tag + '">' + tag + '</a>' +
+                        '<a class="tag-remove hidden" href="#" rel="' + tag + '">' +
+                        '&nbsp;<img alt="Remove tag" src="$portalPath/images/icons/delete.png" /></a>' +
+                        '</li>');
+                });
+                $("li.tag").hover(function() { $(this).children(".tag-remove").show(); },
+                                  function() { $(this).children(".tag-remove").hide(); });
+                $("a.tag-remove").live("click", function() {
+                    var tagEl = $(this);
+                    var tagForm = $(this).parents("ul").find("form");
+                    var id = tagForm.attr("rel");
+                    var hashId = tagForm.parents("div.article").attr("id");
+                    var tag = tagEl.attr("rel");
+                    if (tag != "") {
+                        tagForm.next("img.tag-loading").show();
+                        jQuery.post("$portalPath/tags.ajax",
+                            { func: "tags-remove", oid: id, tag: tag },
+                            function(data, status) {
+                                tagForm.next("img.tag-loading").hide();
+                                tagEl.parent("li.tag").remove();
+                            }
+                        );
+                    }
+                    return false;
+                });
+                $(hashId + " a.tag-add").show();
+                $(hashId + " img.tag-loading").hide();
+            }
+        );
     });
 });
 </script>
-#end
