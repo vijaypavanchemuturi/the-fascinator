@@ -16,12 +16,13 @@
     <module>harvester/filesystem</module>
     <module>harvester/jsonq</module>
     <module>harvester/oai-pmh</module>
+    <module>harvester/backup-restore</module>
     <module>indexer/solr</module>
     <module>storage/couchdb</module>
     <module>storage/fedora3</module>
     <module>storage/filesystem</module>
     <module>transformer/aperture</module>
     <module>transformer/ice2</module>
+    <module>The Fascinator - Plugin - Harvester - Backup-restore</module>
   </modules>
 </project>
- 
