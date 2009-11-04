@@ -143,6 +143,21 @@ public class JsonConfig {
     }
 
     /**
+     * Gets a map of the child (and the 2nd level children) nodes of the
+     * specified node
+     * 
+     * @param path XPath to node
+     * @return node map, possibly empty
+     */
+    public Map<String, Object> getMapWithChild(String path) {
+        Map<String, Object> valueMap = userConfig.getMapWithChild(path);
+        if (valueMap.isEmpty()) {
+            valueMap = systemConfig.getMapWithChild(path);
+        }
+        return valueMap;
+    }
+
+    /**
      * Sets the value of the specified node. If the node doesn't exist it is
      * created. The value can be set in the system configuration if necessary.
      * 
@@ -179,7 +194,7 @@ public class JsonConfig {
      */
     public void store(Writer writer, boolean pretty) throws IOException {
         userConfig.store(writer, pretty);
-	FileWriter sysWriter = new FileWriter(getSystemFile());
+        FileWriter sysWriter = new FileWriter(getSystemFile());
         systemConfig.store(sysWriter, pretty);
         sysWriter.close();
     }
