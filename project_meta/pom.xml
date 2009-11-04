@@ -26,9 +26,10 @@
 	</issueManagement>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<svn-repository>http://fascinator.usq.edu.au/svn-auth/code/
+		<svn-repository>http://fascinator.usq.edu.au/svn-auth/
 		</svn-repository>
 		<jdk-version>1.6</jdk-version>
+		<svn-parent-dir>project_meta</svn-parent-dir>
 		<svn-path>${svn-repository}${svn-parent-dir}</svn-path>
 	</properties>
 	<scm>
