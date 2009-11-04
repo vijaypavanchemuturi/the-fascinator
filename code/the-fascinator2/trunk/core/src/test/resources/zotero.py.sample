@@ -57,38 +57,38 @@ def getDocumentDetails(id):
 
 def getDocuments():
     result = runQuery("SELECT ?document WHERE { { ?document a bib:Document } \
-    UNION { ?document a bibo:Article} \
-    UNION { ?document a bibo:AcademicArticle} \
-    UNION { ?document a bibo:AudioDocument} \
-    UNION { ?document a bibo:AudioVisualDocument} \
+    UNION { ?document a bib:Article} \
+    UNION { ?document a bib:AcademicArticle} \
+    UNION { ?document a bib:AudioDocument} \
+    UNION { ?document a bib:AudioVisualDocument} \
     UNION { ?document a bib:Film} \
-    UNION { ?document a bibo:Book} \
+    UNION { ?document a bib:Book} \
     UNION { ?document a bib:Proceedings} \
-    UNION { ?document a bibo:CollectedDocument} \
+    UNION { ?document a bib:CollectedDocument} \
     UNION { ?document a bib:EditedBook} \
     UNION { ?document a bib:Issue} \
-    UNION { ?document a bibo:DocumentPart} \
+    UNION { ?document a bib:DocumentPart} \
     UNION { ?document a bib:BookSection} \
     UNION { ?document a bib:Excerpt} \
     UNION { ?document a bib:Slide} \
-    UNION { ?document a bibo:Image} \
+    UNION { ?document a bib:Image} \
     UNION { ?document a bib:Map} \
-    UNION { ?document a bibo:LegalDocument} \
+    UNION { ?document a bib:LegalDocument} \
     UNION { ?document a bib:LegalCaseDocument} \
     UNION { ?document a bib:Legislation} \
-    UNION { ?document a bibo:Manual} \
-    UNION { ?document a bibo:Manuscript} \
-    UNION { ?document a bibo:Note} \
-    UNION { ?document a bibo:Patent} \
-    UNION { ?document a bibo:PersonalCommunicationDocument} \
+    UNION { ?document a bib:Manual} \
+    UNION { ?document a bib:Manuscript} \
+    UNION { ?document a bib:Note} \
+    UNION { ?document a bib:Patent} \
+    UNION { ?document a bib:PersonalCommunicationDocument} \
     UNION { ?document a bib:Email} \
     UNION { ?document a bib:Letter} \
-    UNION { ?document a bibo:ReferenceSource} \
-    UNION { ?document a bibo:Report} \
-    UNION { ?document a bibo:Slideshow} \
-    UNION { ?document a bibo:Standard} \
-    UNION { ?document a bibo:Thesis} \
-    UNION { ?document a bibo:Webpage} \
+    UNION { ?document a bib:ReferenceSource} \
+    UNION { ?document a bib:Report} \
+    UNION { ?document a bib:Slideshow} \
+    UNION { ?document a bib:Standard} \
+    UNION { ?document a bib:Thesis} \
+    UNION { ?document a bib:Webpage} \
     }")
     for row in result:
         print "Record: " + row.toString()
