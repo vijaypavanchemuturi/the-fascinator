@@ -23,6 +23,5 @@
     <module>storage/filesystem</module>
     <module>transformer/aperture</module>
     <module>transformer/ice2</module>
-    <module>The Fascinator - Plugin - Harvester - Backup-restore</module>
   </modules>
 </project>
