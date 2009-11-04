@@ -74,8 +74,6 @@ public class Portal {
                 PORTAL_JSON);
         if (!portalFile.exists()) {
             portalFile.getParentFile().mkdirs();
-            log.info("portalFile.getAbsolutePath()"
-                    + portalFile.getAbsolutePath());
             FileWriter fstream = new FileWriter(portalFile.getAbsolutePath());
             BufferedWriter out = new BufferedWriter(fstream);
             out.write("{}");
@@ -83,6 +81,7 @@ public class Portal {
         }
 
         jsonConfig = new JsonConfigHelper(portalFile);
+        portalFile.delete();
         setName(portalName);
     }
 

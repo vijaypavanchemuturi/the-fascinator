@@ -18,7 +18,6 @@ class SettingsData:
                 name = ""
                 desc = ""
                 query = str(" ".join(fq))
-            #newPortal = Portal(name, desc, query)
             newPortal = Portal(name)
             newPortal.setFacetFields(Services.portalManager.default.facetFields)
             newPortal.setQuery(query)
