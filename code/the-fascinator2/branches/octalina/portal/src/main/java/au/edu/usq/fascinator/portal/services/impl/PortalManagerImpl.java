@@ -107,7 +107,7 @@ public class PortalManagerImpl implements PortalManager {
 
     public void add(Portal portal) {
         String portalName = portal.getName();
-        log.info("PORTAL name: " + portalName);
+        // log.info("PORTAL name: " + portalName);
         getPortals().put(portalName, portal);
     }
 
