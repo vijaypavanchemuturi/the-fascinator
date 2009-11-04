@@ -102,3 +102,7 @@ div.tags ul li {
     margin: 2px;
     padding-right: 5px;
 }
+
+.new-tag {
+    color: green;
+}
