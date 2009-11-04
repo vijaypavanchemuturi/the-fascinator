@@ -159,6 +159,48 @@
       </build>
     </profile>
     <profile>
+            <id>zotero-test</id>
+            <dependencies>
+                <dependency>
+                    <groupId>au.edu.usq.fascinator.plugins</groupId>
+                    <artifactId>plugin-storage-filesystem</artifactId>
+                </dependency>
+                <dependency>
+                    <groupId>au.edu.usq.fascinator.plugins</groupId>
+                    <artifactId>plugin-harvester-filesystem</artifactId>
+                </dependency>
+                <dependency>
+                    <groupId>au.edu.usq.fascinator.plugins</groupId>
+                    <artifactId>plugin-indexer-solr</artifactId>
+                </dependency>
+                <dependency>
+                    <groupId>org.semweb4j</groupId>
+                    <artifactId>rdf2go.impl.jena24</artifactId>
+                    <version>4.7.2</version>
+                </dependency>
+                <dependency>
+                    <groupId>org.semweb4j</groupId>
+                    <artifactId>rdf2go.api</artifactId>
+                    <version>4.7.2</version>
+                </dependency>
+            </dependencies>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>exec-maven-plugin</artifactId>
+                        <version>1.1.1</version>
+                        <configuration>
+                            <mainClass>au.edu.usq.fascinator.HarvestClient</mainClass>
+                            <arguments>
+                                <argument>src/test/resources/zotero.json</argument>
+                            </arguments>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    <profile>
       <id>backup-test</id>
       <dependencies>
         <dependency>
