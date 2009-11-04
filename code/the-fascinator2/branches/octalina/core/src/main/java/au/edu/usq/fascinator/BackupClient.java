@@ -82,10 +82,15 @@ public class BackupClient {
     /** Default indexer type if none defined **/
     private static final String DEFAULT_INDEXER_TYPE = "solr";
 
+    private static final String DEFAULT_BACKUP_CONFIG = "src/test/resources/backup.json";
+
     private static Logger log = LoggerFactory.getLogger(BackupClient.class);
 
     /** Json configuration file **/
     private JsonConfig config;
+
+    /** Json system config configuration file **/
+    private JsonConfig systemConfig;
 
     /** Email used to define user space **/
     private String email = null;
@@ -133,11 +138,17 @@ public class BackupClient {
     public void setDefaultSetting(File jsonFile) throws IOException {
         if (jsonFile != null) {
             config = new JsonConfig(jsonFile);
+            systemConfig = new JsonConfig(config.getSystemFile());
         } else {
             config = new JsonConfig();
+            systemConfig = new JsonConfig(config.getSystemFile());
+            File nf = new File(systemConfig.get("fascinator-home") + "/core",
+                    DEFAULT_BACKUP_CONFIG);
+            config = new JsonConfig(nf);
         }
-        indexerType = config.get("indexer/type", DEFAULT_INDEXER_TYPE);
-        realStorageType = config.get("storage/type", DEFAULT_STORAGE_TYPE);
+        indexerType = systemConfig.get("indexer/type", DEFAULT_INDEXER_TYPE);
+        realStorageType = systemConfig
+                .get("storage/type", DEFAULT_STORAGE_TYPE);
 
         // Set default email, backupDirList
         setEmail(config.get("backup-email"));
@@ -308,18 +319,15 @@ public class BackupClient {
      */
     public void startBackup(JsonConfigHelper js) throws IOException {
         // Backup all the digital object returned by indexer
-        log.info("js: " + js.getList("response/docs/id").size());
         for (Object oid : js.getList("response/docs/id")) {
             String fileName = oid.toString();
             File originalFile = new File(fileName);
             DigitalObject digitalObject = realStorage.getObject(fileName);
-            log.info("fileName: " + fileName);
             fileName = isWindowFile(fileName);
 
             // Backup to "active" backup directory
             for (String backupPath : backupDirList.keySet()) {
                 Map<String, Object> backupProps = backupDirList.get(backupPath);
-                log.info("****: " + backupPath);
                 IgnoreFilter ignoreFilter = new IgnoreFilter(backupProps.get(
                         "ignoreFilter").toString().split("\\|"));
                 if (ignoreFilter.accept(originalFile) == true) {
@@ -367,8 +375,10 @@ public class BackupClient {
                         if (includePortal == "true") {
                             File portalFolder;
                             if (portalDir == null) {
-                                portalDir = new File(
-                                        "../portal/src/main/config/portal");
+                                portalDir = new File(config
+                                        .get("fascinator-home")
+                                        + "/portal", systemConfig
+                                        .get("portal/home"));
                                 portalFolder = new File(backupPath.toString()
                                         + File.separator + email
                                         + File.separator + "config/portal");
@@ -378,10 +388,6 @@ public class BackupClient {
                                         + File.separator + "config/portal"
                                         + File.separator + portalDir.getName());
                             }
-                            log.info("portalFolder: "
-                                    + portalFolder.getAbsolutePath());
-                            log.info("portalDir: "
-                                    + portalDir.getAbsolutePath());
                             portalFolder.getParentFile().mkdirs();
                             includePortalDir(portalDir, portalFolder);
                         }
@@ -475,16 +481,16 @@ public class BackupClient {
     }
 
     public static void main(String[] args) {
-        // if (args.length < 1 || (args[1] == "-h")) {
-        // log.info("Usage: backup [<portal-name>]");
-        // } else {
-
-        // If without args, it will just backup everything
-        try {
-            BackupClient backup = new BackupClient();
-            backup.run();
-        } catch (IOException ioe) {
-            log.error("Failed to initialise client: {}", ioe.getMessage());
+        if (args.length < 1) {
+            log.info("Usage: harvest <json-config>");
+        } else {
+            File jsonFile = new File(args[0]);
+            try {
+                BackupClient backup = new BackupClient(jsonFile);
+                backup.run();
+            } catch (IOException ioe) {
+                log.error("Failed to initialise client: {}", ioe.getMessage());
+            }
         }
     }
 }

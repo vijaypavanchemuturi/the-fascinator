@@ -178,6 +178,9 @@
             <version>1.1.1</version>
             <configuration>
               <mainClass>au.edu.usq.fascinator.BackupClient</mainClass>
+              <arguments>
+                <argument>src/test/resources/backup.json</argument>
+              </arguments>
             </configuration>
           </plugin>
         </plugins>

@@ -16,6 +16,7 @@ function copy_samples {
 	copy_sample local-files.py
 	copy_sample usq.json
 	copy_sample usq.py
+	copy_sample backup.json
 }
 
 if [ "$1" == "" ]; then
