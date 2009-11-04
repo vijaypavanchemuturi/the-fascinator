@@ -142,9 +142,9 @@ public class BackupClient {
         } else {
             config = new JsonConfig();
             systemConfig = new JsonConfig(config.getSystemFile());
-            File nf = new File(systemConfig.get("fascinator-home") + "/core",
-                    DEFAULT_BACKUP_CONFIG);
-            config = new JsonConfig(nf);
+            File defaultConfig = new File(systemConfig.get("fascinator-home")
+                    + "/core", DEFAULT_BACKUP_CONFIG);
+            config = new JsonConfig(defaultConfig);
         }
         indexerType = systemConfig.get("indexer/type", DEFAULT_INDEXER_TYPE);
         realStorageType = systemConfig
