@@ -28,6 +28,7 @@ import java.io.OutputStream;
 import java.io.Reader;
 import java.util.Properties;
 
+import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,10 +45,12 @@ public class FileSystemPayload extends GenericPayload {
 
     private File homeDir;
 
+    private boolean linked;
+
     public FileSystemPayload(File homeDir, Payload payload) {
         super(payload);
         this.homeDir = homeDir;
-        updateMeta();
+        updateMeta(true);
     }
 
     public FileSystemPayload(File homeDir, File payloadFile) {
@@ -58,10 +61,11 @@ public class FileSystemPayload extends GenericPayload {
         } else {
             setId(payloadFile.getPath());
         }
-        updateMeta();
+        updateMeta(true);
+
     }
 
-    private void updateMeta() {
+    protected void updateMeta(boolean load) {
         // set default payload meta if not already set
         if (getType() == null) {
             setType(PayloadType.Data);
@@ -76,7 +80,7 @@ public class FileSystemPayload extends GenericPayload {
                 + ".meta");
         try {
             Properties props = new Properties();
-            if (metaFile.exists()) {
+            if (load && metaFile.exists()) {
                 Reader metaReader = new FileReader(metaFile);
                 props.load(metaReader);
                 metaReader.close();
@@ -86,17 +90,19 @@ public class FileSystemPayload extends GenericPayload {
                 setLabel(props.getProperty("label", getId()));
                 setContentType(props.getProperty("contentType",
                         getContentType()));
-            } else {
-                metaFile.getParentFile().mkdirs();
-                OutputStream metaOut = new FileOutputStream(metaFile);
-                props.setProperty("id", getId());
-                props.setProperty("payloadType", getType().toString());
-                props.setProperty("label", getLabel());
-                props.setProperty("contentType", getContentType());
-                props.store(metaOut, "Payload metadata for "
-                        + getFile().getAbsolutePath());
-                metaOut.close();
+                setLinked(Boolean.parseBoolean(props.getProperty("linked",
+                        String.valueOf(isLinked()))));
             }
+            metaFile.getParentFile().mkdirs();
+            OutputStream metaOut = new FileOutputStream(metaFile);
+            props.setProperty("id", getId());
+            props.setProperty("payloadType", getType().toString());
+            props.setProperty("label", getLabel());
+            props.setProperty("contentType", getContentType());
+            props.setProperty("linked", String.valueOf(isLinked()));
+            props.store(metaOut, "Payload metadata for "
+                    + getFile().getAbsolutePath());
+            metaOut.close();
         } catch (IOException ioe) {
             log.warn("Failed to read/write metaFile {}: {}", metaFile, ioe
                     .getMessage());
@@ -120,11 +126,28 @@ public class FileSystemPayload extends GenericPayload {
         if (file == null) {
             return super.getInputStream();
         }
+        if (isLinked()) {
+            try {
+                String realPath = FileUtils.readFileToString(getFile());
+                log.debug("realPath: {}", realPath);
+                file = new File(realPath);
+            } catch (IOException ioe) {
+                log.warn("Failed to get linked file", ioe);
+            }
+        }
         return new FileInputStream(getFile());
     }
 
     @Override
     public String toString() {
         return String.format("%s (%s)", getLabel(), getId());
+    }
+
+    public void setLinked(boolean linked) {
+        this.linked = linked;
+    }
+
+    public boolean isLinked() {
+        return linked;
     }
 }
