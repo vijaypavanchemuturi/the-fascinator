@@ -7,35 +7,6 @@
 #set($oid = $self.object.id)
 #set($title = $meta.getField("dc_title"))
 #set($description = $meta.getField("dc_description"))
-<script type="text/javascript">
-$(function() {
-    $("#blog-this").click(function() {
-        $(this).toggleClass("selected");
-        $("#blog-form").toggle("blind");
-        return false;
-    });
-    $("#blog-button").click(function() {
-        $("#blog-loading").show();
-        jQuery.post("$portalPath/blog.ajax",
-            {
-                url: $("#blog_url").val(),
-                title: $("#blog_title").val(),
-                username: $("#blog_username").val(),
-                password: $("#blog_password").val(),
-                oid: "$oid",
-            },
-            function(data, status) {
-                $("#blog-loading").hide();
-                $("#blog-message").html(data);
-            }
-        );
-    });
-    $("#attachments h2 a").click(function() {
-        $("#attachments ul").toggle("blind").toggleClass('visible').toggleClass('hidden');
-        return false;
-    });
-});
-</script>
 #if(!$title)
   #set($title = $self.getFileName($oid))
 #end
@@ -54,20 +25,6 @@ $(function() {
     <h2>Metadata</h2>
     #set($dc = $meta.dublinCore)
     <div class="block">
-      #*
-      <table>
-        <tbody>
-        #foreach($key in $dc.keySet())
-          #set($name = $self.formatName($key))
-          #set($value = $self.formatValue($dc.get($key)))
-          <tr>
-            <th>$name</th>
-            <td>$value</td>
-          </tr>
-        #end
-        </tbody>
-      </table>
-      *#
       <dl class="meta">
       #foreach($key in $dc.keySet())
         <dt>$self.formatName($key)</dt>
@@ -91,31 +48,34 @@ $(function() {
 </div>
 <div class="grid_12">
   <div class="box hidden" id="blog-form">
-  <form id="blog" method="post">
-    <fieldset class="login">
-      <legend>Blog to WordPress</legend>
-      <p>
-        <label for="blog_url">Blog URL</label>
-        <input type="text" id="blog_url" name="blog_url" />
-      </p>
-      <p>
-        <label for="blog_title">Title</label>
-        <input type="text" id="blog_title" name="blog_title" value="$title"/>
-      </p>
-      <p>
-        <label for="blog_username">Username</label>
-        <input type="text" id="blog_username" name="blog_username" />
-      </p>
-      <p>
-        <label for="blog_password">Password</label>
-        <input type="password" id="blog_password" name="blog_password" />
-      </p>
-      <p id="blog-message">
-        <img class="hidden" src="$portalPath/css/fluid960gs/ajax-loader.gif" />
-      </p>
-      <input class="button" id="blog-button" type="button" value="Blog" />
-    </fieldset>
-  </form>
+    <h2>Blog to WordPress</h2>
+    <form id="blog" method="post">
+      <fieldset class="login">
+        <legend>Blog information</legend>
+        <p>
+          <label for="blog_url">Blog URL</label>
+          <input type="text" id="blog_url" name="blog_url" />
+        </p>
+        <p>
+          <label for="blog_title">Title</label>
+          <input type="text" id="blog_title" name="blog_title" value="$title"/>
+        </p>
+        <p>
+          <label for="blog_username">Username</label>
+          <input type="text" id="blog_username" name="blog_username" />
+        </p>
+        <p>
+          <label for="blog_password">Password</label>
+          <input type="password" id="blog_password" name="blog_password" />
+        </p>
+        <p class="message">
+          <img class="hidden" id="blog-loading" src="$portalPath/images/icons/loading.gif" />
+          <span id="blog-message"></span>
+        </p>
+        <input class="button" id="blog-accept" type="button" value="Blog" />
+        <input id="blog-cancel" type="button" value="Close" />
+      </fieldset>
+    </form>
   </div>
   <div class="box articles">
     <h2>Preview</h2>
@@ -127,13 +87,6 @@ $(function() {
   </div>
 </div>
 <div class="clear"></div>
-<!-- 
-<div class="ui-helper-hidden" id="record-meta">
-  <label id="oid">$oid</label>
-  <label id="format">$self.mimeType</label>
-  <label id="hasSlide">$self.hasSlideShow()</label>
-</div>
--->
 #if($self.mimeType.startsWith("audio/") || $self.mimeType.startsWith("video/"))
 <script type="text/javascript" src="$portalPath/flowplayer/flowplayer-3.1.2.min.js"></script>
 #end
@@ -153,7 +106,7 @@ $(function() {
     }
     fixLinks("div.content-preview-inline a", "href");
     fixLinks("div.content-preview-inline img", "src");
-
+    
     $("#open-this").click(function() {
         jQuery.post("$portalPath/open.ajax", { func: "open-file", file: "$oid" } );
         return false;
@@ -165,7 +118,7 @@ $(function() {
     $('li.payload[rel="application/pdf"] a:first').each(function() {
         addRendition($(this).attr("href"), "PDF version");
     });
-    $("span.slide-link a").each(function() {
+    $("span.slide-link > a").each(function() {
         addRendition($(this).attr("href"), "View slide show");
     });
     $("div.rendition-links").remove();
@@ -174,7 +127,9 @@ $(function() {
     if (mimeType.indexOf("image/") == 0) {
         var src = "$portalPath/download/$oid";
         $("div.content-preview div.article").html(
-            '<a class="image" href="' + src + '"><img src="' + src + '" /></a>');
+            '<a class="image" href="' + src + '"  style="max-width:98%">' +
+                '<img src="' + src + '" style="max-width:100%" />' +
+            '</a>');
     } else if (mimeType.indexOf("audio/") == 0 || mimeType.indexOf("video/") == 0) {
         var height = 300;
         if (mimeType.indexOf("audio/") == 0) {
@@ -188,6 +143,34 @@ $(function() {
         flowplayer("player", "$portalPath/flowplayer/flowplayer-3.1.2.swf",
             { clip: { autoPlay: false } });
     }
+    
+    $("#blog-this, #blog-cancel").click(function() {
+        $("#blog-this").toggleClass("selected");
+        $("#blog-message").html();
+        $("#blog-form").toggle("blind");
+        return false;
+    });
+    $("#blog-accept").click(function() {
+        $("#blog-loading").show();
+        jQuery.post("$portalPath/actions/blog.ajax",
+            {
+                url: $("#blog_url").val(),
+                title: $("#blog_title").val(),
+                username: $("#blog_username").val(),
+                password: $("#blog_password").val(),
+                oid: "$oid",
+            },
+            function(data, status) {
+                $("#blog-loading").hide();
+                $("#blog-message").html(data);
+            }
+        );
+    });
+    
+    $("#attachments h2 a").click(function() {
+        $("#attachments ul").toggle("blind").toggleClass('visible').toggleClass('hidden');
+        return false;
+    });
 });
 </script>
 #end

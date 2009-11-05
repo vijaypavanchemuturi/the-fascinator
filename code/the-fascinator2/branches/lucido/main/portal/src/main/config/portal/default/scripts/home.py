@@ -7,6 +7,7 @@ class HomeData:
     def __init__(self):
         action = formData.get("verb")
         portalName = formData.get("value")
+        sessionState.remove("fq")
         if action == "delete-portal":
             print " * home.py: delete portal %s" % portalName
             Services.portalManager.remove(portalName)
@@ -35,9 +36,12 @@ class HomeData:
     
     def __search(self):
         indexer = Services.getIndexer()
+        portalQuery = Services.getPortalManager().get(portalId).getQuery()
         
         req = SearchRequest("last_modified:[NOW-1MONTH TO *]")
         req.setParam("fq", 'item_type:"object"')
+        if portalQuery:
+            req.addParam("fq", portalQuery)
         req.setParam("rows", "10")
         req.setParam("sort", "last_modified asc, f_dc_title asc");
         out = ByteArrayOutputStream()
@@ -46,7 +50,6 @@ class HomeData:
         
         req = SearchRequest("*:*")
         req.setParam("fq", 'item_type:"object"')
-        portalQuery = Services.getPortalManager().get(portalId).getQuery()
         if portalQuery:
             req.addParam("fq", portalQuery)
         req.addParam("fq", "")

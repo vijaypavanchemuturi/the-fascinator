@@ -55,6 +55,7 @@
         <li><a href="$portalPath/search">Clear search query</a></li>
       #end
       #if($self.hasSelectedFacets())
+        <li><a href="#" id="create-view">Create view...</a></li>
         <li><a href="#" id="clear-facets">Clear selection</a></li>
       #end
     </ul>
@@ -69,6 +70,24 @@
   #end
 </div>
 <div class="grid_12" id="result-list">
+  <div class="box hidden" id="create-view-box">
+    <h2>Create view</h2>
+    <form method="post">
+      <fieldset class="login">
+        <legend>View</legend>
+        <p>
+          <label for="create-view-id">Identifier</label>
+          <input type="text" id="create-view-id" name="create-view-id" />
+        </p>
+        <p>
+          <label for="create-view-description">Name</label>
+          <input type="text" id="create-view-description" name="create-view-description" />
+        </p>
+        <input class="button" id="create-view-accept" type="button" value="Create" />
+        <input id="create-view-cancel" type="button" value="Cancel" />
+      </fieldset>
+    </form>
+  </div>
   <div class="box articles">
     <h2>Results
       <span class="right">Showing ${paging.startNum} to ${paging.endNum} of ${paging.totalFound} items ($self.queryTime seconds)</span>
@@ -194,6 +213,30 @@ $(function() {
                  ' <a href="#" class="truncate_hide">less</a>' ]
     });
     
+    // create view
+    $("#create-view, #create-view-cancel").click(function() {
+        $("#create-view").toggleClass("selected");
+        $("#create-view-box").toggle("blind");
+        $("#create-view-id").focus();
+        return false;
+    });
+    $("#create-view-accept").click(function() {
+        jQuery.post("$portalPath/actions/view.ajax",
+            {
+                func: "create-view",
+                id: $("#create-view-id").val(),
+                description: $("#create-view-description").val()
+            },
+            function(data, status) {
+                $("#create-view-box").toggle("blind");
+                $("#create-view-id").val("");
+                $("#create-view-description").val("");
+                window.location = data.url;
+            },
+            "json"
+        );
+    });
+    
     // tagging
     function createTag(tag, tagClass) {
         var tagEl =
@@ -224,7 +267,7 @@ $(function() {
         if (tag != "") {
             tagForm.addClass("hidden").removeClass("inline");
             tagForm.next("img.tag-loading").show();
-            jQuery.post("$portalPath/tags.ajax",
+            jQuery.post("$portalPath/actions/tags.ajax",
                 { func: "tags-add", oid: id, tag: tag },
                 function(data, status) {
                     tagForm.prev("a.tag-add").show();
@@ -251,7 +294,7 @@ $(function() {
         var tag = tagEl.attr("rel");
         if (tag != "") {
             tagForm.next("img.tag-loading").show();
-            jQuery.post("$portalPath/tags.ajax",
+            jQuery.post("$portalPath/actions/tags.ajax",
                 { func: "tags-remove", oid: id, tag: tag },
                 function(data, status) {
                     tagForm.next("img.tag-loading").hide();
@@ -265,7 +308,7 @@ $(function() {
     $("ul.tags").each(function() {
         var id = $(this).find("form.tag-form").attr("rel");
         var hashId = "#tags-" + $(this).parents("div.article").attr("id");
-        jQuery.getJSON("$portalPath/tags.ajax", { func: "tags-load", oid: id },
+        jQuery.getJSON("$portalPath/actions/tags.ajax", { func: "tags-load", oid: id },
             function(data) {
                 jQuery.each(data.tags, function(i, tag) {
                     $(hashId).before(createTag(tag, ""));

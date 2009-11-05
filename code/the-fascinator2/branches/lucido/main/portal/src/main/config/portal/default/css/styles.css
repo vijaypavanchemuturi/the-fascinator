@@ -78,7 +78,7 @@ span.right {
     float: right;
 }
 
-#blog-message {
+form .message {
     margin-left: 35%;
 }
 
@@ -136,3 +136,8 @@ ul.menu li.payload a {
 div.content-preview .article {
     padding-bottom: 13px;
 }
+
+div.content-preview img {
+    max-width: 100%;
+}
+

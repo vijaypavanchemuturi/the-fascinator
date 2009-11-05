@@ -35,7 +35,7 @@
       <div class="clear"></div>
       <div class="grid_16">
         <ul class="nav main">
-          <li><a href="$portalPath/home">Home ($page.portalName)</a></li>
+          <li><a href="$portalPath/home">Home</a></li>
           <li>
             <a href="#">Views</a>
             <ul>
@@ -54,7 +54,7 @@
             </form>
           </li>
           <li class="secondary">
-            <span id="status-bar" class="status"></span>
+            <span class="status">View: $page.portalName</span>
           </li>
           $!navContent
         </ul>

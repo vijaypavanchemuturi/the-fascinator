@@ -111,7 +111,8 @@ class SearchData:
         return values
     
     def hasSelectedFacets(self):
-        return self.__selected is not None and self.__selected.size() > 1
+        return (self.__selected is not None and len(self.__selected) > 1) and \
+            not (self.__portal.query in self.__selected and len(self.__selected) == 2)
     
     def getSelectedFacets(self):
         return self.__selected
