@@ -1,0 +1,201 @@
+ ---
+ Introduction
+ ---
+ Duncan Dickinson
+ ---
+ 2009-11-02
+ ---
+
+Usage
+
+ The rdf-reactor plugin creates Java classes based on RDF schema. 
+ 
+ You can configure the plugin to access RDF Schema files either locally or via 
+a URL.
+
+ Don't forget to change the plugin version as appropriate. Also check the 
+ {{{examples.html}Example POM}} for details about the plugin executions. 
+
+*A very basic URL example
+
+ This example loads the FOAF RDFS from its URL. The following defaults are used (hence not set in the POM:
+ 
+
+  * workingDirectory - default is $\{project.build.directory\}/downloaded-resources/schema
+  
+  * outputDirectory - default is $\{project.build.directory\}/generated-sources/rdfs-classes
+  
+  * skipBuiltins - default is true
+  
+  []
+
+---
+...
+<build>
+    ...
+    <plugins>
+		<plugin>
+		    <groupId>au.edu.usq.fascinator.maven-plugins</groupId>
+		    <artifactId>rdf-reactor</artifactId>
+		    <version>0.0.1-SNAPSHOT</version>
+		    <configuration>
+		        <schemaList>
+		            <schemaItem>
+			            <schemaName>Friend of a Friend</schemaName>
+		                <schemaUrlLibrary>
+		                    <java.net.URL>http://xmlns.com/foaf/spec/</java.net.URL>
+		                </schemaUrlLibrary>
+		                <packageName>au.edu.usq.fascinator.vocabulary.foaf</packageName>
+			            <methodPrefix>foaf</methodPrefix>
+		            </schemaItem>
+		        </schemaList>
+		    </configuration>
+		</plugin>
+	...
+	</plugins>
+    ...
+</build>
+---
+
+ You can set those parameters to your choice:
+
+---
+<plugin>
+    <groupId>au.edu.usq.fascinator.maven-plugins</groupId>
+    <artifactId>rdf-reactor</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <configuration>
+        <outputDirectory>
+            src/main/java
+        </outputDirectory>
+        <workingDirectory>
+            /tmp
+        </workingDirectory>
+        <schemaList>
+            <schemaItem>
+                <schemaName>Friend of a Friend</schemaName>
+                <schemaUrlLibrary>
+                    <java.net.URL>http://xmlns.com/foaf/spec/</java.net.URL>
+                </schemaUrlLibrary>
+                <packageName>au.edu.usq.fascinator.vocabulary.foaf</packageName>
+                <methodPrefix>foaf</methodPrefix>
+            </schemaItem>
+        </schemaList>
+    </configuration>
+</plugin>
+---
+
+
+* A very basic file example
+
+ This example loads the FOAF RDFS from a local file
+ 
+---
+<plugin>
+    <groupId>au.edu.usq.fascinator.maven-plugins</groupId>
+    <artifactId>rdf-reactor</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <configuration>
+        <schemaList>
+            <schemaItem>
+                <schemaName>Friend of a Friend</schemaName>
+                <schemaFileLibrary>
+                    <java.io.File>src/main/resources/schema/foaf.rdfs</java.io.File>
+                </schemaFileLibrary>
+                <packageName>au.edu.usq.fascinator.vocabulary.foaf</packageName>
+                <methodPrefix>foaf</methodPrefix>
+            </schemaItem>
+        </schemaList>
+    </configuration>
+</plugin>
+---
+
+* Lots of schema
+
+** Lots of URLs
+
+---
+<plugin>
+    <groupId>au.edu.usq.fascinator.maven-plugins</groupId>
+    <artifactId>rdf-reactor</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <configuration>
+        <schemaList>
+            <schemaItem>
+                <schemaName>Nepomuk Information Element</schemaName>
+                <packageName>au.edu.usq.fascinator.vocabulary.nie</packageName>
+                <methodPrefix>nepo</methodPrefix>
+                <schemaUrlLibrary>
+                    <java.net.URL>http://www.semanticdesktop.org/ontologies/nie/
+                    </java.net.URL>
+                    <java.net.URL>http://www.semanticdesktop.org/ontologies/nfo/
+                    </java.net.URL>
+                    <java.net.URL>http://www.semanticdesktop.org/ontologies/nco/
+                    </java.net.URL>
+                    <java.net.URL>http://www.semanticdesktop.org/ontologies/nmo/
+                    </java.net.URL>
+                    <java.net.URL>http://www.semanticdesktop.org/ontologies/ncal/
+                    </java.net.URL>
+                    <java.net.URL>http://www.semanticdesktop.org/ontologies/nexif/
+                    </java.net.URL>
+                    <java.net.URL>http://www.semanticdesktop.org/ontologies/nid3/
+                    </java.net.URL>
+                </schemaUrlLibrary>
+            </schemaItem>
+        </schemaList>
+    </configuration>
+</plugin>
+---
+
+** Lots of files
+
+ Lots of files works in a similar way
+ 
+---
+<plugin>
+    <groupId>au.edu.usq.fascinator.maven-plugins</groupId>
+    <artifactId>rdf-reactor</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <configuration>
+        <schemaList>
+            <schemaItem>
+                <schemaName>Nepomuk Information Element</schemaName>
+                <schemaFileLibrary>
+                    <java.io.File>src/main/resources/schema/nie.rdfs</java.io.File>
+                    <java.io.File>src/main/resources/schema/nfo.rdfs</java.io.File>
+                    <java.io.File>src/main/resources/schema/nco.rdfs</java.io.File>
+                </schemaFileLibrary>
+                <packageName>au.edu.usq.fascinator.vocabulary.nie</packageName>
+                <methodPrefix>nie</methodPrefix>
+            </schemaItem>
+        </schemaList>
+    </configuration>
+</plugin>
+---
+
+*A mix
+
+ The example below loads RDFS from both URLs and local files
+ 
+---
+<plugin>
+    <groupId>au.edu.usq.fascinator.maven-plugins</groupId>
+    <artifactId>rdf-reactor</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <configuration>
+        <schemaList>
+            <schemaItem>
+                <schemaName>DOAP</schemaName>
+                <schemaFileLibrary>
+                    <java.io.File>src/main/resources/schema/foaf.rdfs</java.io.File>
+                </schemaFileLibrary>
+                <schemaUrlLibrary>
+                    <java.net.URL>http://usefulinc.com/ns/doap</java.net.URL>
+                </schemaUrlLibrary>
+                <packageName>au.edu.usq.fascinator.vocabulary.foaf</packageName>
+                <methodPrefix>foaf</methodPrefix>
+            </schemaItem>
+        </schemaList>
+    </configuration>
+</plugin>
+---

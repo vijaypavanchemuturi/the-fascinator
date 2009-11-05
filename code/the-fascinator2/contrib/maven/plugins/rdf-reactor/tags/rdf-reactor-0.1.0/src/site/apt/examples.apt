@@ -1,0 +1,98 @@
+ ---
+ Example
+ ---
+ Duncan Dickinson
+ ---
+ 2009-11-02
+ ---
+
+Example Configuration
+
+ The code below displays a sample POM that will generate Java classes 
+ for the designated RDFS. To generate the classes you would run: 
+
+--- 
+ mvn generate-sources
+---
+
+ Please note the rdfs execution goals - you need this.
+ 
+ Also note that the FOAF schema uses a local file - you'll need to add this.
+ 
+---
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>au.edu.usq.adfi</groupId>
+    <artifactId>rdfreactor-test</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>au.edu.usq.fascinator.maven-plugins</groupId>
+                <artifactId>rdf-reactor</artifactId>
+                <version>0.0.1-SNAPSHOT</version>
+                <configuration>
+                    <schemaList>
+                        <schemaItem>
+                            <schemaName>Nepomuk Information Element</schemaName>
+                            <packageName>au.edu.usq.fascinator.vocabulary.nie</packageName>
+                            <methodPrefix>nepo</methodPrefix>
+                            <schemaUrlLibrary>
+                                <java.net.URL>http://www.semanticdesktop.org/ontologies/nie/
+                                </java.net.URL>
+                                <java.net.URL>http://www.semanticdesktop.org/ontologies/nfo/
+                                </java.net.URL>
+                                <java.net.URL>http://www.semanticdesktop.org/ontologies/nco/
+                                </java.net.URL>
+                                <java.net.URL>http://www.semanticdesktop.org/ontologies/nmo/
+                                </java.net.URL>
+                                <java.net.URL>http://www.semanticdesktop.org/ontologies/ncal/
+                                </java.net.URL>
+                                <java.net.URL>http://www.semanticdesktop.org/ontologies/nexif/
+                                </java.net.URL>
+                                <java.net.URL>http://www.semanticdesktop.org/ontologies/nid3/
+                                </java.net.URL>
+                            </schemaUrlLibrary>
+                        </schemaItem>
+                        <schemaItem>
+                            <schemaName>Common Tag</schemaName>
+                            <schemaUrlLibrary>
+                                <java.net.URL>http://commontag.org/ns</java.net.URL>
+                            </schemaUrlLibrary>
+                            <packageName>au.edu.usq.fascinator.vocabulary.commontag
+                            </packageName>
+                            <methodPrefix>tag</methodPrefix>
+                        </schemaItem>
+                        <schemaItem>
+                            <schemaName>Friend of a Friend</schemaName>
+                            <schemaFileLibrary>
+                                <java.io.File>src/main/resources/schema/foaf.rdfs</java.io.File>
+                            </schemaFileLibrary>
+                            <packageName>au.edu.usq.fascinator.vocabulary.foaf</packageName>
+                            <methodPrefix>foaf</methodPrefix>
+                        </schemaItem>
+                        <schemaItem>
+                            <schemaName>Dublin Core Terms</schemaName>
+                            <schemaUrlLibrary>
+                                <java.net.URL>http://dublincore.org/2008/01/14/dcterms.rdf
+                                </java.net.URL>
+                            </schemaUrlLibrary>
+                            <packageName>au.edu.usq.fascinator.vocabulary.dcterms
+                            </packageName>
+                            <methodPrefix>dc</methodPrefix>
+                        </schemaItem>
+                    </schemaList>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>rdfs</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>
+---
