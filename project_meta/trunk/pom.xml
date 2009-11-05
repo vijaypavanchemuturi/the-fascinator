@@ -25,17 +25,17 @@
 	</issueManagement>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<jdk-version>1.6</jdk-version>
 		<svn-repository>http://fascinator.usq.edu.au/svn-auth/
 		</svn-repository>
-		<jdk-version>1.6</jdk-version>
 		<svn-parent-dir>project_meta/trunk</svn-parent-dir>
 		<svn-path>${svn-repository}${svn-parent-dir}</svn-path>
 	</properties>
 	<scm>
-		<url>http://fascinator.usq.edu.au/svn-auth/project_meta/trunk</url>
-		<connection>scm:svn:${svn-repository}${svn-parent-dir}
+		<url>${svn-path}</url>
+		<connection>scm:svn:${svn-path}
 		</connection>
-		<developerConnection>scm:svn:${svn-repository}${svn-parent-dir}
+		<developerConnection>scm:svn:${svn-path}
 		</developerConnection>
 	</scm>
 	<developers>
@@ -130,7 +130,7 @@
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-scm-plugin</artifactId>
-					<version>1.0</version>
+					<version>1.2</version>
 					<configuration>
 						<connectionType>developerConnection</connectionType>
 					</configuration>
