@@ -9,7 +9,7 @@ from au.edu.usq.fascinator.portal import Pagination, Portal
 
 from java.io import ByteArrayInputStream, ByteArrayOutputStream
 from java.net import URLDecoder, URLEncoder
-from java.util import HashMap
+from java.util import LinkedHashMap
 
 class SearchData:
     def __init__(self):
@@ -101,7 +101,7 @@ class SearchData:
         return self.__portal.facetFields.get(key)
     
     def getFacetCounts(self, key):
-        values = HashMap()
+        values = LinkedHashMap()
         valueList = self.__result.getList("facet_counts/facet_fields/%s" % key)
         for i in range(0,len(valueList),2):
             name = valueList[i]
