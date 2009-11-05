@@ -33,7 +33,7 @@ class SolrDoc:
     
     def getDublinCore(self):
         dc = self.json.getList("response/docs").get(0)
-        remove = ["dc_title", "dc_description"]
+        remove = []
         for entry in dc:
             if not entry.startswith("dc_"):
                 remove.append(entry)

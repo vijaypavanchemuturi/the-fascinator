@@ -24,9 +24,9 @@ import java.io.InputStream;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 import org.apache.commons.jxpath.AbstractFactory;
@@ -53,7 +53,7 @@ public class JsonConfigHelper {
                 Object parent, String name, int index) {
             if (parent instanceof Map) {
                 ((Map<String, Object>) parent).put(name,
-                        new HashMap<String, Object>());
+                        new LinkedHashMap<String, Object>());
                 return true;
             }
             return false;
@@ -71,7 +71,7 @@ public class JsonConfigHelper {
      * Creates an empty JSON configuration
      */
     public JsonConfigHelper() {
-        rootNode = new HashMap<String, Object>();
+        rootNode = new LinkedHashMap<String, Object>();
     }
 
     /**
@@ -180,7 +180,7 @@ public class JsonConfigHelper {
      * @return node map, possibly empty
      */
     public Map<String, Object> getMap(String path) {
-        Map<String, Object> valueMap = new HashMap<String, Object>();
+        Map<String, Object> valueMap = new LinkedHashMap<String, Object>();
         Object valueNode = getJXPath().getValue(path);
         if (valueNode instanceof Map) {
             Map<String, Object> map = (Map<String, Object>) valueNode;
@@ -215,7 +215,7 @@ public class JsonConfigHelper {
      * @return node map, possibly empty
      */
     public Map<String, Object> getMapWithChild(String path) {
-        Map<String, Object> valueMap = new HashMap<String, Object>();
+        Map<String, Object> valueMap = new LinkedHashMap<String, Object>();
         Object valueNode = getJXPath().getValue(path);
         if (valueNode instanceof Map) {
             Map<String, Object> map = (Map<String, Object>) valueNode;
