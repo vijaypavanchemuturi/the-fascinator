@@ -1,10 +1,9 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>au.edu.usq.fascinator.maven-plugins</groupId>
 	<artifactId>rdf-reactor</artifactId>
 	<packaging>maven-plugin</packaging>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>0.1.0</version>
 	<name>RDF Reactor Maven Plugin</name>
 	<url>http://fascinator.usq.edu.au/trac/wiki/tf2/contrib/maven/plugins/rdf-reactor</url>
 	<inceptionYear>2009</inceptionYear>
@@ -27,10 +26,10 @@
 		<svn-parent-dir>code/the-fascinator2/contrib/maven/plugins/rdf-reactor/trunk/</svn-parent-dir>
 	</properties>
 	<scm>
-        <url>${svn-path}</url>
-        <connection>scm:svn:${svn-path}
+        <url>http://fascinator.usq.edu.au/svn-auth/code/the-fascinator2/contrib/maven/plugins/rdf-reactor/tags/rdf-reactor-0.1.0</url>
+        <connection>scm:svn:http://fascinator.usq.edu.au/svn-auth/code/the-fascinator2/contrib/maven/plugins/rdf-reactor/tags/rdf-reactor-0.1.0
         </connection>
-        <developerConnection>scm:svn:${svn-path}
+        <developerConnection>scm:svn:http://fascinator.usq.edu.au/svn-auth/code/the-fascinator2/contrib/maven/plugins/rdf-reactor/tags/rdf-reactor-0.1.0
         </developerConnection>
     </scm>
 	<dependencies>
