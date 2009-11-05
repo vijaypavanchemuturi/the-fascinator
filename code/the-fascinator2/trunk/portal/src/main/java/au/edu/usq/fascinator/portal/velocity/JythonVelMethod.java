@@ -51,6 +51,9 @@ public class JythonVelMethod implements VelMethod {
             } else {
                 List<PyObject> args = new ArrayList<PyObject>();
                 for (Object param : params) {
+                    if (param == null) {
+                        return null;
+                    }
                     log.trace("param:" + param + ":" + param.getClass());
                     if (param instanceof String) {
                         args.add(new PyString(param.toString()));

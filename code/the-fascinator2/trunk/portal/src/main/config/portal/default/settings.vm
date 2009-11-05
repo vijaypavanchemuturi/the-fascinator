@@ -1,4 +1,75 @@
 #set($pageTitle = "Settings")
+<h2 id="page-heading">Settings</h2>
+<div class="grid_4">
+  <div class="box menu">
+    <h2><a href="#">Category</a></h2>
+    <ul class="menu">
+      <li><a href="#">View</a></li>
+      <li><a href="#">Backup</a></li>
+      <li><a href="#">Security</a></li>
+      <li><a href="#">Plugins</a></li>
+    </ul>
+  </div>
+</div>
+<div class="grid_12">
+  <div id="view-section" class="box">
+    <h2><a href="#">View</a></h2>
+    <form id="portalForm" name="portalForm" method="post">
+    <fieldset class="login">
+      <legend>$self.portal.description</legend>
+      <p>
+        <label for="portalName">Name</label>
+        <input id="portalName" name="portalName" size="10" type="text" value="$self.portal.name" />
+      </p>
+      <p>
+        <label for="portalDescription">Description</label>
+        <input id="portalDescription" name="portalDescription" size="50" type="text" value="$page.escapeText($self.portal.description)" />
+      </p>
+      <p>
+        <label for="portalQuery">Query</label>
+        <input id="portalQuery" name="portalQuery" size="50" type="text" value="$page.escapeText($self.portal.query)" />
+      </p>
+      <p>
+        <label for="portalRecordsPerPage">Records per page</label>
+        <input id="portalRecordsPerPage" name="portalRecordsPerPage" size="10" type="text" value="$self.portal.recordsPerPage" />
+      </p>
+      <p>
+        <label for="portalFacetLimit">Facet count limit</label>
+        <input id="portalFacetLimit" name="portalFacetLimit" size="10" type="text" value="$self.portal.facetCount" />
+      </p>
+      <p>
+        <label for="portalFacetSort">Sort by facet counts</label>
+        <input id="portalFacetSort" name="portalFacetSort" type="checkbox" value="$self.portal.facetSort" />
+      </p>
+      #*
+      <h4>Facets</h4>
+      <input id="portalFacetSize" name="portalFacetSize" type="hidden" value="$self.portal.facetFields.size()" />
+      <button id="add-facet-field">add facet</button>
+      #foreach($field in $self.portal.facetFields.keySet())
+      #set($label = $self.portal.facetFields.get($field))
+      #set($id = "portalFacet_$velocityCount")
+      <p id="$id">
+        <input id="${id}_name" name="${id}_name" size="25" type="text" value="$field" />
+        <input id="${id}_label" name="${id}_label" size="25" type="text" value="$label" />
+        <button class="remove-facet-field">del</button>
+        </p>
+        #end*#
+      </fieldset>
+      <input name="portalAction" type="submit" value="Update" />
+      <input name="portalAction" type="submit" value="Cancel" />
+    </form>
+  </div>
+  <div id="backup-section" class="box hidden">
+    <h2><a href="#">Backup</a></h2>
+  </div>
+  <div id="security-section" class="box hidden">
+    <h2><a href="#">Security</a></h2>
+  </div>
+  <div id="plugins-section" class="box hidden">
+    <h2><a href="#">Plugins</a></h2>
+  </div>
+</div>
+#*
 <script type="text/javascript">
 $(function() {
     $("#settings").tabs();
@@ -23,14 +94,11 @@ $(function() {
         var size = parseInt($("#backupUrlSize").val()) + 1;
         var id = "backupPaths_" + size;
         
-        parent.append('<fieldset>\n' +
-              '<strong>Path: </strong><input class="ui-corner-all ui-widget-content" id="' + id + '_name" name="' + id + '_name" size="50" type="text" value="" />\n' +
-              '<input id="' + id + '_active" name="' + id + '_active" type="checkbox"/> Active &nbsp;&nbsp;&nbsp;\n' +
-              '<input id="' + id + '_include-rendition-meta" name="' + id + '_include-rendition-meta" type="checkbox"/> Include rendition and metadata &nbsp;&nbsp;&nbsp;\n' +
-              '<input id="' + id + '_include-portal-view" name="' + id + '_include-portal-view" type="checkbox"/> Include Portal View\n' +
-              '<br/><strong>Filter: </strong><input class="ui-corner-all ui-widget-content" id="' + id + '_filter" name="' + id + '_filter" size="50" type="text" value="" />\n' +
-              '<br/><button class="remove-backup-field ui-corner-all ui-state-default">Delete</button>\n' +
-            '</fieldset>');
+        parent.append('<li id="' + id + '">\n' +
+              '<strong>Path: </strong><input class="ui-corner-all ui-widget-content" id="' + id + '_name" name="' + id + '_name" size="75" type="text" value="" />\n' +
+              '<button class="remove-backup-field ui-corner-all ui-state-default">del</button>\n' +
+              '<input id="default" name="default" type="radio"/> Default\n' +
+            '</li>');
         return false;
     });
 
@@ -51,10 +119,8 @@ $(function() {
 <div id="settings">
   <ul>
     <li><a href="#general-tab">General</a></li>
-    #*
     <li><a href="#security-tab">Security</a></li>
     <li><a href="#plugins-tab">Plugins</a></li>
-    *#
     <li><a href="#backup-tab">Backup</a></li>
   </ul>
   <div id="general-tab">
@@ -84,13 +150,7 @@ $(function() {
           </li>
           <li>
             <label for="portalFacetSort">Sort by facet counts</label>
-            #set($checked=$self.portal.facetSort)
-            #if ($checked=="true")
-               #set($checked="checked='checked'")
-            #else
-                #set($checked="")
-            #end
-            <input id="portalFacetSort" name="portalFacetSort" type="checkbox" $checked/>
+            <input id="portalFacetSort" name="portalFacetSort" type="checkbox" value="$self.portal.facetSort" />
           </li>
           <h4>Facets</h4>
           <input id="portalFacetSize" name="portalFacetSize" type="hidden" value="$self.portal.facetFields.size()" />
@@ -110,7 +170,6 @@ $(function() {
       <input name="portalAction" type="submit" value="Cancel" />
     </form>
   </div>
-  #*
   <div id="security-tab">
     <div id="security-accordion">
       <h3><a href="#">Users</a></h3>
@@ -159,7 +218,6 @@ $(function() {
       </div>
     </div>
   </div>
-  *#
   <div id="backup-tab">
     <div id="backup-accordion">
       <h4><a href="#">Users</a></h4>
@@ -177,50 +235,29 @@ $(function() {
       </form>
       <h4><a href="#">Backup Path</a></h4>
       <form id="backupPathForm" name="backupPathForm" method="post">
-          #set($backupPath = $self.portal.getBackupPaths())
-      	      <input id="backupUrlSize" name="backupUrlSize" type="hidden" value="$backupPath.size()" />
+      	  <input id="backupUrlSize" name="backupUrlSize" type="hidden" value="$self.portal.backupPaths.size()" />
+      	  <fieldset>
+	      	  <ol><button id="add-backup-path">Create new backup Path</button>
 	      	  <!--<li><label for="locationName">Location Name</label><label for="locationPath">Location path</label></li>-->
-	      	  <div>
-	      	  <p><button id="add-backup-path">Create new backup Path</button></p>
-	      	  #if ($backupPath)
-    	      	  #foreach($entry in $backupPath.keySet())
-    	      	    #set($id = "backupPaths_$velocityCount")
-    	      	    <fieldset><strong>Path: </strong><input id="${id}_name" name="${id}_name" size="50" type="text" value="$entry" />
-    	      	    #set($props = $backupPath.get($entry))
-    	      	    
-    	      	    #set($active = $props.get("active"))
-    	      	    #if ($active == "true")
-    	      	        #set($checked = "checked='checked'")
-    	      	    #else
-    	      	        #set($checked = "")
-    	      	    #end
-    	      	    <input id="${id}_active" name="${id}_active" type="checkbox" $checked/> Active &nbsp;&nbsp;&nbsp;
-    	      	    
-    	      	    #set($rendition = $props.get("include-rendition-meta"))
-                    #if ($rendition == "true")
-                        #set($checked = "checked='checked'")
-                    #else
-                        #set($checked = "")
-                    #end
-                    <input id="${id}_include-rendition-meta" name="${id}_include-rendition-meta" type="checkbox" $checked/>Include rendition and metadata &nbsp;&nbsp;&nbsp;
-                    
-                    #set($rendition = $props.get("include-portal-view"))
-                    #if ($rendition == "true")
-                        #set($checked = "checked='checked'")
-                    #else
-                        #set($checked = "")
-                    #end
-                    <input id="${id}_include-portal-view" name="${id}_include-portal-view" type="checkbox" $checked/>Include Portal View
-    	      	    
-    	      	    #set($filter = $props.get("ignoreFilter"))
-    	      	    <br/><strong>Filter: </strong><input id="${id}_filter" name="${id}_filter" size="50" type="text" value="$filter" />
-    	      	    <br/><button class="remove-backup-field">Delete</button>
-    	      	    </fieldset>
-    	          #end
-    	      #end
-	          </div>
+	      	  #foreach($entry in $self.portal.backupPaths.keySet())
+	      	  #set($label = $self.portal.backupPaths.get($entry))
+	          #set($id = "backupPaths_$velocityCount")
+		          <li id="$id">
+		            <strong>Path: </strong><input id="${id}_name" name="${id}_name" size="75" type="text" value="$entry" />
+		            #set($checked="")
+		            #if ($label=="default")
+		                #set($checked="checked='checked'")
+		            #end
+		            <button class="remove-backup-field">del</button>
+		            <input id="default" name="default" type="radio" $checked value="$entry"/> Default
+		            
+		          </li>
+	          #end
+	          </ol>
 	          <input name="backupAction" type="submit" value="Update" />
+	      </fieldset>
       </form>
     </div>
   </div>
 </div>
+*#

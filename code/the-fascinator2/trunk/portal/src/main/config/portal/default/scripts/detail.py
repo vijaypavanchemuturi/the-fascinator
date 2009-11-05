@@ -14,8 +14,6 @@ from org.dom4j.io import OutputFormat, XMLWriter, SAXReader
 
 import traceback
 
-import traceback
-
 class SolrDoc:
     def __init__(self, json):
         self.json = json
@@ -48,22 +46,25 @@ class SolrDoc:
 
 class DetailData:
     def __init__(self):
-        self.__storage = Services.storage
-        uri = URLDecoder.decode(request.getAttribute("RequestURI"))
-        basePath = portalId + "/" + pageName
-        self.__oid = uri[len(basePath)+1:]
-        slash = self.__oid.rfind("/")
-        self.__pid = self.__oid[slash+1:]
-        print " * detail.py: uri='%s' oid='%s' pid='%s'" % (uri, self.__oid, self.__pid)
-        if formData.get("verb") == "open":
+        if formData.get("func") == "open-file":
             self.__openFile()
+            writer = response.getPrintWriter("text/plain")
+            writer.println("{}")
+            writer.close()
         else:
+            self.__storage = Services.storage
+            uri = URLDecoder.decode(request.getAttribute("RequestURI"))
+            basePath = portalId + "/" + pageName
+            self.__oid = uri[len(basePath)+1:]
+            slash = self.__oid.rfind("/")
+            self.__pid = self.__oid[slash+1:]
             payload = self.__storage.getPayload(self.__oid, self.__pid)
             if payload is not None:
                 self.__mimeType = payload.contentType
             else:
                 self.__mimeType = "application/octet-stream"
             self.__metadata = JsonConfigHelper()
+            print " * detail.py: uri='%s' oid='%s' pid='%s' mimeType='%s'" % (uri, self.__oid, self.__pid, self.__mimeType)
             self.__search()
     
     def __search(self):
@@ -97,6 +98,7 @@ class DetailData:
         return self.__metadata
     
     def getObject(self):
+        print "################test getPayload source: ", self.__storage.getObject(self.__oid).getSource()
         return self.__storage.getObject(self.__oid)
     
     def getStorageId(self):
@@ -110,19 +112,20 @@ class DetailData:
         pid = pid[:pid.find(".")] + ".slide.htm"
         payload = self.__storage.getPayload(self.__oid, pid)
         if payload is None:
-            return ""
+            return False
         return pid
     
-    def hasSpeechConversion(self):
-        #This is only work for .txt
-        if self.__mimeType=="text/plain":
-            pid = self.__pid
-            pid = pid[:pid.find(".")] + ".mp3"
-            payload = self.__storage.getPayload(self.__oid, pid)
-            if payload is None:
-                return ""
-            return pid
-        return ""
+    def getPdfUrl(self):
+        pid = os.path.splitext(self.__pid)[0] + ".pdf"
+        return "%s/%s" % (self.__oid, pid)
+    
+    def hasHtml(self):
+        payloadList = self.getObject().getPayloadList()
+        for payload in payloadList:
+            mimeType = payload.contentType
+            if mimeType == "text/html" or mimeType == "application/xhtml+xml":
+                return True
+        return False
     
     def getPayloadContent(self):
         mimeType = self.__mimeType
@@ -143,7 +146,7 @@ class DetailData:
                     sw.write("</pre>")
                     sw.flush()
                     contentStr = sw.toString()
-        elif mimeType == "application/pdf" or mimeType.find("vnd")>-1 or mimeType.find("vnd.oasis.opendocument.")>-1:
+        elif mimeType == "application/pdf" or mimeType.find("vnd.ms")>-1 or mimeType.find("vnd.oasis.opendocument.")>-1:
             # get the html version if exist...
             pid = os.path.splitext(self.__pid)[0] + ".htm"
             print " * detail.py: pid=%s" % pid
@@ -153,25 +156,26 @@ class DetailData:
             saxReader = SAXReader(Boolean.parseBoolean("false"))
             try:
                 document = saxReader.read(payload.getInputStream())
+                slideNode = document.selectSingleNode("//*[local-name()='body']")
+                #linkNodes = slideNode.selectNodes("//img")
+                #contentStr = slideNode.asXML();
+                # encode character entities correctly
+                slideNode.setName("div")
+                out = ByteArrayOutputStream()
+                format = OutputFormat.createPrettyPrint()
+                format.setSuppressDeclaration(True)
+                writer = XMLWriter(out, format)
+                writer.write(slideNode)
+                writer.close()
+                contentStr = out.toString("UTF-8")
             except:
                 traceback.print_exc()
-            #slideNode = document.selectSingleNode("//div[@class='body']")
-            slideNode = document.selectSingleNode("//*[local-name()='body']")
-            #linkNodes = slideNode.selectNodes("//img")
-            #contentStr = slideNode.asXML();
-            # encode character entities correctly
-            out = ByteArrayOutputStream()
-            format = OutputFormat.createPrettyPrint()
-            format.setSuppressDeclaration(True)
-            writer = XMLWriter(out, format)
-            writer.write(slideNode)
-            writer.close()
-            contentStr = out.toString("UTF-8")
+                contentStr = "<p class=\"error\">No preview available</p>"
         return contentStr
     
     def __openFile(self):
-        value = formData.get("value")
-        print " * detail.py: opening file %s..." % value
-        Desktop.getDesktop().open(File(value))
+        file = formData.get("file")
+        print " * detail.py: opening file %s..." % file
+        Desktop.getDesktop().open(File(file))
 
 scriptObject = DetailData()

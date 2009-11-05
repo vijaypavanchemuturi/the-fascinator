@@ -61,6 +61,21 @@
       <artifactId>urlrewritefilter</artifactId>
       <version>3.1.0</version>
     </dependency>
+    <dependency>
+      <groupId>rome</groupId>
+      <artifactId>rome</artifactId>
+      <version>1.0</version>
+    </dependency>
+    <dependency>
+      <groupId>rome</groupId>
+      <artifactId>rome-propono</artifactId>
+      <version>1.0RC1</version>
+    </dependency>
+    <dependency>
+      <groupId>commons-beanutils</groupId>
+      <artifactId>commons-beanutils</artifactId>
+      <version>1.6</version>
+    </dependency>
   </dependencies>
   <profiles>
     <profile>

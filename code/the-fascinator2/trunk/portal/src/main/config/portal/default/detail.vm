@@ -1,118 +1,177 @@
 #set($pageTitle = 'Detail')
-#set($pageHeader = '<link rel="stylesheet" type="text/css" href="' + $portalPath + '/js/tree/tree_component.css" />
-  <script type="text/javascript" src="' + $portalPath + '/flowplayer/flowplayer-3.1.2.min.js"></script>')
-<script type="text/javascript">
-$(function() {
-	var oid = $("#oid").text();
-    $("#hasSlide").each(function() {
-        var hasSlide = $(this).text();
-        if (hasSlide != "") {
-            $('div.view-as-slideshow').append("<form action='$portalPath/download/" + oid + "/" + hasSlide + "' target='_blank'>" +
-            "<input type='submit' value='View as Slideshow'>" +  
-            "</form>");
-        }
-    });
-    
-    $("#hasSlide").each(function() {
-		var hasSlide = $(this).text();
-		if (hasSlide != "") {
-			$('div.view-as-slideshow').append("<form action='download/" + oid + "/" + hasSlide + "' target='_blank'>" +
-			"<input type='submit' value='View as Slideshow'>" +  
-			"</form>");
-		} 
-	});
-	
-	$("#hasSpeech").each(function() {
-        var hasSpeech = $(this).text();
-        if (hasSpeech != "") {
-            var filename = '$portalPath/download/' + oid + "/" + hasSpeech;
-            var height = 24;
-            $('div.view-as-speech').append('<h3>Audio Speech format</h3><a href="' + filename + '" id="player" style="display:block;width:425px;height:' + height + 'px;"></a>');
-            flowplayer("player", "$portalPath/flowplayer/flowplayer-3.1.2.swf");
-        } 
-    });
-    
-    $("#format").each(function() {
-        var mimeType = $(this).text().toLowerCase();
-        if (mimeType.indexOf("image") == 0) {
-            $('div.content-preview').append("<img src='$portalPath/download/" + oid + "'/>");
-        } else if (mimeType.indexOf("audio") == 0 || mimeType.indexOf("video") == 0) {
-            var filename = '$portalPath/download/' + oid + "/" + oid.substring(oid.lastIndexOf("/")+1).replace("wmv", "flv");
-            var height = 300;
-            if (mimeType.indexOf("audio") == 0) {
-                height = 24;
-            }
-            $('div.content-preview').append('<a href="' + filename + '" id="player" style="display:block;width:425px;height:' + height + 'px;"></a>');
-            flowplayer("player", "$portalPath/flowplayer/flowplayer-3.1.2.swf");
-        }
-    });
-    
-    $("#open-this").click(function() {
-        jQuery.post("$portalPath/detail/" + oid, { verb: "open", value: oid } );
-    });
-    
-    $("div.content-preview-inline img").each(function() {
-        var src = $(this).attr("src");
-        var srcVal = src.toLowerCase();
-        if (srcVal.indexOf("http://") == -1 && srcVal.indexOf("file://") == -1) {
-            $(this).attr("src", "$portalPath/download/" + oid + "/" + src);
-        }
-    });
-});
-</script>
 #if($self.solrResponse.get("response/numFound") == 0)
-<p title="FIXME">Not found</p>
+<h2 id="page-heading">Page not found</h2>
+<p>Please try a different <a href="$portalPath/search">search</a>.</p>
 #else
 #set($meta = $self.metadata)
 #set($oid = $self.object.id)
-<p class="debug">storage:</p>
-<pre class="debug">$!self.storageId</pre>
-<pre class="debug">result: $meta.toString()</pre>
-<div class="ui-helper-hidden" id="record-meta">
-  <label id="oid">$oid</label>
-  <label id="format">$self.mimeType</label>
-  <label id="hasSlide">$self.hasSlideShow()</label>
-  <label id="hasSpeech">$self.hasSpeechConversion()</label>
-</div>
 #set($title = $meta.getField("dc_title"))
 #set($description = $meta.getField("dc_description"))
-#if($title)
-<h2>$title</h2>
-#else
-<h2>$self.getFileName($oid)</h2>
+#if(!$title)
+  #set($title = $self.getFileName($oid))
 #end
-<button id="open-this">Open file</button>
-#if($description)
-<h3>Description</h3>
-<p>$description</p>
-#end
-<h3>Metadata</h3>
-<dl>
-#set($dc = $meta.dublinCore)
-#foreach($key in $dc.keySet())
-  #set($name = $self.formatName($key))
-  #set($value = $self.formatValue($dc.get($key)))
-  <dt><strong>$name</strong></dt>
-  <dd>$value</dd>
-#end
-</dl>
-<div class="view-as-slideshow"></div>
-<div class="view-as-speech"></div>
-<h3>Preview</h3>
-<div class="content-preview">
-  <div class="content-preview-inline">$!self.payloadContent</div>
+<h2 id="page-heading">$title</h2>
+<div class="grid_4">
+  <div class="box menu">
+    <h2>Actions</h2>
+    <ul class="menu" id="actions">
+      <li><a id="open-this" href="$portalPath/detail/$oid">Open file</a></li>
+      #if($self.hasHtml())
+      <li><a id="blog-this" href="#">Blog to WordPress...</a><li>
+      #end
+    </ul>
+  </div>
+  <div class="box">
+    <h2>Metadata</h2>
+    #set($dc = $meta.dublinCore)
+    <div class="block">
+      <dl class="meta">
+      #foreach($key in $dc.keySet())
+        <dt>$self.formatName($key)</dt>
+        <dd>$self.formatValue($dc.get($key))</dd>
+      #end
+      </dl>
+    </div>
+  </div>
+  <div id="attachments" class="box menu">
+    <h2><a href="#">Attachments</a></h2>
+    <ul class="menu hidden">
+    #foreach($payload in $self.object.payloadList)
+      #set($pid = $payload.id)
+      #set($payloadType = $payload.type.toString())
+      <li class="payload" rel="$payload.contentType">
+        <a href='$portalPath/download/$oid/$pid' rel="$payloadType" target="blank" title="$payload.contentType">$payload.id</a>
+      </li>
+    #end
+    </ul>
+  </div>
 </div>
-<div class="payload-list">
-  <h3>Attachments</h3>
-  <ul>
-  #foreach($payload in $self.object.payloadList)
-    #set($pid = $payload.id)
-    #set($payloadType = $payload.type.toString())
-    <li>
-      <a href='$portalPath/download/$oid/$pid' rel="$payloadType" target="blank">$payload.id</a> ($payload.contentType, $payloadType)
-    </li>
-  #end
-  </ul>
+<div class="grid_12">
+  <div class="box hidden" id="blog-form">
+    <h2>Blog to WordPress</h2>
+    <form id="blog" method="post">
+      <fieldset class="login">
+        <legend>Blog information</legend>
+        <p>
+          <label for="blog_url">Blog URL</label>
+          <input type="text" id="blog_url" name="blog_url" />
+        </p>
+        <p>
+          <label for="blog_title">Title</label>
+          <input type="text" id="blog_title" name="blog_title" value="$title"/>
+        </p>
+        <p>
+          <label for="blog_username">Username</label>
+          <input type="text" id="blog_username" name="blog_username" />
+        </p>
+        <p>
+          <label for="blog_password">Password</label>
+          <input type="password" id="blog_password" name="blog_password" />
+        </p>
+        <p class="message">
+          <img class="hidden" id="blog-loading" src="$portalPath/images/icons/loading.gif" />
+          <span id="blog-message"></span>
+        </p>
+        <input class="button" id="blog-accept" type="button" value="Blog" />
+        <input id="blog-cancel" type="button" value="Close" />
+      </fieldset>
+    </form>
+  </div>
+  <div class="box articles">
+    <h2>Preview</h2>
+    <div class="content-preview">
+      <div class="first article clearfix">
+        <div class="content-preview-inline">$!self.payloadContent</div>
+      </div>
+    </div>
+  </div>
 </div>
+<div class="clear"></div>
+#if($self.mimeType.startsWith("audio/") || $self.mimeType.startsWith("video/"))
+<script type="text/javascript" src="$portalPath/flowplayer/flowplayer-3.1.2.min.js"></script>
+#end
+<script type="text/javascript">
+$(function() {
+    var oid = "$oid";
+    
+    function fixLinks(selector, attrName) {
+        $(selector).each(function() {
+            var attr = $(this).attr(attrName);
+            if (attr != null) {
+                if (attr.indexOf("#") != 0 && attr.indexOf("://") == -1) {
+                    $(this).attr(attrName, "$portalPath/download/$self.object.id/" + attr);
+                }
+            }
+        });
+    }
+    fixLinks("div.content-preview-inline a", "href");
+    fixLinks("div.content-preview-inline img", "src");
+    
+    $("#open-this").click(function() {
+        jQuery.post("$portalPath/open.ajax", { func: "open-file", file: "$oid" } );
+        return false;
+    });
+    
+    function addRendition(href, label) {
+        $("#actions").append('<li><a href="' + href + '" target="blank">' + label + '</a></li>');
+    }
+    $('li.payload[rel="application/pdf"] a:first').each(function() {
+        addRendition($(this).attr("href"), "PDF version");
+    });
+    $("span.slide-link > a").each(function() {
+        addRendition($(this).attr("href"), "View slide show");
+    });
+    $("div.rendition-links").remove();
+    
+    var mimeType = "$self.mimeType";
+    if (mimeType.indexOf("image/") == 0) {
+        var src = "$portalPath/download/$oid";
+        $("div.content-preview div.article").html(
+            '<a class="image" href="' + src + '"  style="max-width:98%">' +
+                '<img src="' + src + '" style="max-width:100%" />' +
+            '</a>');
+    } else if (mimeType.indexOf("audio/") == 0 || mimeType.indexOf("video/") == 0) {
+        var height = 300;
+        if (mimeType.indexOf("audio/") == 0) {
+            height = 24;
+        }
+        var style = "display: block; width: 425px; height: " + height + "px";
+        var filename = oid.substring(oid.lastIndexOf("/") + 1).replace("wmv", "flv");
+        var href = "$portalPath/download/$oid/" + filename;
+        var player = '<a class="clearfix" href="' + href + '" id="player" style="' + style + '" />';
+        $("div.content-preview div.article").empty().append(player);
+        flowplayer("player", "$portalPath/flowplayer/flowplayer-3.1.2.swf",
+            { clip: { autoPlay: false } });
+    }
+    
+    $("#blog-this, #blog-cancel").click(function() {
+        $("#blog-this").toggleClass("selected");
+        $("#blog-message").html();
+        $("#blog-form").toggle("blind");
+        return false;
+    });
+    $("#blog-accept").click(function() {
+        $("#blog-loading").show();
+        jQuery.post("$portalPath/actions/blog.ajax",
+            {
+                url: $("#blog_url").val(),
+                title: $("#blog_title").val(),
+                username: $("#blog_username").val(),
+                password: $("#blog_password").val(),
+                oid: "$oid",
+            },
+            function(data, status) {
+                $("#blog-loading").hide();
+                $("#blog-message").html(data);
+            }
+        );
+    });
+    
+    $("#attachments h2 a").click(function() {
+        $("#attachments ul").toggle("blind").toggleClass('visible').toggleClass('hidden');
+        return false;
+    });
+});
+</script>
 #end
 

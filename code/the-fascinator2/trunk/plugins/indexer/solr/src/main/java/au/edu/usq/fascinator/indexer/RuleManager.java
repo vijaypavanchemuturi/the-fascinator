@@ -99,6 +99,7 @@ public class RuleManager {
                     break;
                 } else {
                     log.warn("Rule " + rule + " failed: " + e.getMessage());
+                    e.printStackTrace();
                 }
             }
         }

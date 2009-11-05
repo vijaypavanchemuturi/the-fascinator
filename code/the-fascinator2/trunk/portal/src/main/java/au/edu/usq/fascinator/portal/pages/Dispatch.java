@@ -31,6 +31,7 @@ import org.apache.tapestry5.StreamResponse;
 import org.apache.tapestry5.annotations.Persist;
 import org.apache.tapestry5.annotations.SessionState;
 import org.apache.tapestry5.ioc.annotations.Inject;
+import org.apache.tapestry5.ioc.util.TimeInterval;
 import org.apache.tapestry5.services.Request;
 import org.apache.tapestry5.services.Response;
 import org.slf4j.Logger;
@@ -96,16 +97,20 @@ public class Dispatch {
                     .synchronizedMap(new HashMap<String, FormData>());
         }
 
+        // make static resources cacheable
+        if (resourceName.indexOf(".") != -1 && !isAjax) {
+            response.setHeader("Cache-Control", "public");
+            response.setDateHeader("Expires", System.currentTimeMillis()
+                    + new TimeInterval("10y").milliseconds());
+        }
+
         // save form data for POST requests, since we redirect after POSTs
         String requestId = request.getAttribute("RequestID").toString();
         if ("POST".equalsIgnoreCase(request.getMethod())) {
             try {
                 FormData formData = new FormData(request);
                 formDataMap.put(requestId, formData);
-                if (isAjax) {
-                    response.setHeader("Cache-Control", "no-cache");
-                    response.setDateHeader("Expires", 0);
-                } else {
+                if (isAjax == false) {
                     String redirectUri = resourceName;
                     if (path.length > 2) {
                         redirectUri += StringUtils.join(path, "/", 2,
