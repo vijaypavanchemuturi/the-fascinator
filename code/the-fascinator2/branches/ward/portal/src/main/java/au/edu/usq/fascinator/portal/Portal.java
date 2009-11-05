@@ -44,6 +44,7 @@ public class Portal {
     private JsonConfigHelper jsonConfig;
     private static final String PORTAL_JSON = "portal.json";
     private static Logger log = LoggerFactory.getLogger(Portal.class);
+    private String portalsDir;
 
     /**
      * <p>
@@ -68,14 +69,11 @@ public class Portal {
      */
     public Portal(String portalName) throws IOException {
         JsonConfigHelper sysConfig = new JsonConfigHelper();
-        String portalsDir = sysConfig.get("portal/home",
-                "src/main/config/portal");
+        portalsDir = sysConfig.get("portal/home", "src/main/config/portal");
         File portalFile = new File(new File(portalsDir, portalName),
                 PORTAL_JSON);
         if (!portalFile.exists()) {
             portalFile.getParentFile().mkdirs();
-            log.info("portalFile.getAbsolutePath()"
-                    + portalFile.getAbsolutePath());
             FileWriter fstream = new FileWriter(portalFile.getAbsolutePath());
             BufferedWriter out = new BufferedWriter(fstream);
             out.write("{}");
@@ -83,6 +81,7 @@ public class Portal {
         }
 
         jsonConfig = new JsonConfigHelper(portalFile);
+        portalFile.delete();
         setName(portalName);
     }
 

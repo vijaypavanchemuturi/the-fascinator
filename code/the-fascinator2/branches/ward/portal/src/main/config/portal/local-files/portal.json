@@ -18,11 +18,11 @@
     "backup-email" : "octalina@usq.edu.au",
     "backup-paths" : {
       "/home/octalina/backup/localfiles" : {
-        "include-rendition-meta" : false,
+        "include-rendition-meta" : true,
         "ignoreFilter" : ".svn|.ice|.*|~*",
-        "active" : true
+        "active" : true,
+        "include-portal-view" : true
       }
     }
-  },
-  "name" : "default"
+  }
 }
