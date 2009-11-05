@@ -1,7 +1,7 @@
 {
   "portal" : {
-    "name" : "default-old",
-    "description" : "Everything (old layout)",
+    "name" : "default",
+    "description" : "Everything",
     "query" : "",
     "records-per-page" : "5",
     "facet-count" : "25",
@@ -17,15 +17,17 @@
     },
     "backup-email" : "octalina@usq.edu.au",
     "backup-paths" : {
-      "/home/octalina/backup" : {
-        "include-rendition-meta" : false,
-        "ignoreFilter" : "",
-        "active" : true
-      },
       "/home/octalina/backup1" : {
         "include-rendition-meta" : true,
         "ignoreFilter" : ".svn|.ice|.*|~*",
-        "active" : false
+        "active" : false,
+        "include-portal-view" : false
+      },
+      "/home/octalina/backup" : {
+        "include-rendition-meta" : true,
+        "ignoreFilter" : ".svn|.ice|.*|~*|*~",
+        "active" : true,
+        "include-portal-view" : true
       }
     }
   }

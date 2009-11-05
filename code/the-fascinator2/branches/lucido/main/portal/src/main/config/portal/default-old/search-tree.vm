@@ -9,11 +9,12 @@
     #if($facet.subFacets.size() > 0)
         children: [
         #foreach($subFacet in $facet.subFacets)
-            #createFacetNode($subFacet "closed"),
+            #createFacetNode($subFacet "closed")
+            ,
         #end
         ]
     #end
-},
+}
 #end
 
 #set($id = $formData.get("id"))

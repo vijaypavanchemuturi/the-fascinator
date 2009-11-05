@@ -23,7 +23,6 @@ import java.io.FileFilter;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import javax.xml.bind.Marshaller;
@@ -108,7 +107,7 @@ public class PortalManagerImpl implements PortalManager {
 
     public void add(Portal portal) {
         String portalName = portal.getName();
-        log.info("PORTAL name: " + portalName);
+        // log.info("PORTAL name: " + portalName);
         getPortals().put(portalName, portal);
     }
 
@@ -164,14 +163,16 @@ public class PortalManagerImpl implements PortalManager {
     }
 
     @Override
-    public void backup(String email, List<Object> backupDir, String portalQuery) {
-        // TODO Auto-generated method stub
+    public void backup(Portal portal, String email,
+            Map<String, Map<String, Object>> backupDir, String portalQuery) {
         BackupClient backupClient;
         try {
-            backupClient = new BackupClient(email, backupDir, portalQuery);
+            File portalDir = new File(portalsDir, portal.getName());
+            log.info("****** " + portalDir);
+            backupClient = new BackupClient(portalDir, email, backupDir,
+                    portalQuery);
             backupClient.run();
         } catch (IOException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         }
     }
