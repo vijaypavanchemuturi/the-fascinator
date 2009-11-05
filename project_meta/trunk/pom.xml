@@ -33,9 +33,9 @@
 	</properties>
 	<scm>
 		<url>http://fascinator.usq.edu.au/svn-auth/project_meta/trunk</url>
-		<connection>scm:svn:http://fascinator.usq.edu.au/svn-auth/project_meta/trunk
+		<connection>scm:svn:${svn-repository}${svn-parent-dir}
 		</connection>
-		<developerConnection>scm:svn:http://fascinator.usq.edu.au/svn-auth/project_meta/trunk
+		<developerConnection>scm:svn:${svn-repository}${svn-parent-dir}
 		</developerConnection>
 	</scm>
 	<developers>
