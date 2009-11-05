@@ -21,13 +21,18 @@
 	<parent>
 		<artifactId>organisation</artifactId>
 		<groupId>au.edu.usq.fascinator</groupId>
-		<version>0.2.0-SNAPSHOT</version>
+		<version>0.1.1</version>
 	</parent>
 	<properties>
-
-		<svn-parent-dir>the-fascinator2/contrib/maven/plugins</svn-parent-dir>
-		<svn-path>${svn-repository}${svn-parent-dir}</svn-path>
+		<svn-parent-dir>code/the-fascinator2/contrib/maven/plugins/rdf-reactor/trunk/</svn-parent-dir>
 	</properties>
+	<scm>
+        <url>${svn-path}</url>
+        <connection>scm:svn:${svn-path}
+        </connection>
+        <developerConnection>scm:svn:${svn-path}
+        </developerConnection>
+    </scm>
 	<dependencies>
 		<dependency>
 			<groupId>org.slf4j</groupId>
