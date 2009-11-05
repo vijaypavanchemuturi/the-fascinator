@@ -21,7 +21,7 @@
       #end
     </ul>
   </div>
-  <div class="box">
+  <div id="metadata" class="box">
     <h2>Metadata</h2>
     #set($dc = $meta.dublinCore)
     <div class="block">
@@ -77,7 +77,7 @@
       </fieldset>
     </form>
   </div>
-  <div class="box articles">
+  <div id="preview" class="box articles">
     <h2>Preview</h2>
     <div class="content-preview">
       <div class="first article clearfix">
@@ -171,6 +171,10 @@ $(function() {
         $("#attachments ul").toggle("blind").toggleClass('visible').toggleClass('hidden');
         return false;
     });
+    
+    #if($self.isMetadataOnly())
+    $("#preview").after($("#metadata")).remove();
+    #end
 });
 </script>
 #end
