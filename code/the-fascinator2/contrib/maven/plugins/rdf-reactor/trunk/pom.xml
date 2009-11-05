@@ -21,11 +21,11 @@
 	<parent>
 		<artifactId>organisation</artifactId>
 		<groupId>au.edu.usq.fascinator</groupId>
-		<version>0.0.1-SNAPSHOT</version>
+		<version>0.1.0</version>
 	</parent>
 	<properties>
 
-		<svn-parent-dir>the-fascinator2/contrib/maven/plugins</svn-parent-dir>
+		<svn-parent-dir>the-fascinator2/contrib/maven/plugins/rdf-reactor/trunk</svn-parent-dir>
 		<svn-path>${svn-repository}${svn-parent-dir}</svn-path>
 	</properties>
 	<dependencies>
@@ -71,4 +71,10 @@
 			</plugin>
 		</plugins>
 	</reporting>
+	<repositories>
+		<repository>
+			<id>adfi-usq-releases</id>
+			<url>http://fascinator.usq.edu.au/nexus/content/groups/public</url>
+		</repository>
+	</repositories>
 </project>
