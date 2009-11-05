@@ -25,7 +25,7 @@
 	</parent>
 	<properties>
 
-		<svn-parent-dir>the-fascinator2/contrib/maven/plugins/rdf-reactor/trunk</svn-parent-dir>
+		<svn-parent-dir>the-fascinator2/contrib/maven/plugins</svn-parent-dir>
 		<svn-path>${svn-repository}${svn-parent-dir}</svn-path>
 	</properties>
 	<dependencies>
