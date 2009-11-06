@@ -17,7 +17,7 @@
     },
     "backup-email" : "octalina@usq.edu.au",
     "backup-paths" : {
-      "/Users/lucido/backup" : {
+      "/home/octalina/backup" : {
         "include-rendition-meta" : true,
         "ignoreFilter" : ".svn|.ice|.*|~*",
         "active" : true,

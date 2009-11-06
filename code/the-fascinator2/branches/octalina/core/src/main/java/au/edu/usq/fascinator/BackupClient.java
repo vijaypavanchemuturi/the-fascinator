@@ -82,7 +82,11 @@ public class BackupClient {
     /** Default indexer type if none defined **/
     private static final String DEFAULT_INDEXER_TYPE = "solr";
 
+    /** Default backup Configuration file **/
     private static final String DEFAULT_BACKUP_CONFIG = "src/test/resources/backup.json";
+
+    /** Default fascinator installation path **/
+    private static final String DEFAULT_FASCINATOR = "/opt/the-fascinator2/code";
 
     private static Logger log = LoggerFactory.getLogger(BackupClient.class);
 
@@ -142,7 +146,8 @@ public class BackupClient {
         } else {
             config = new JsonConfig();
             systemConfig = new JsonConfig(config.getSystemFile());
-            File defaultConfig = new File(systemConfig.get("fascinator-home")
+            File defaultConfig = new File(systemConfig.get("fascinator-home",
+                    DEFAULT_FASCINATOR)
                     + "/core", DEFAULT_BACKUP_CONFIG);
             config = new JsonConfig(defaultConfig);
         }
