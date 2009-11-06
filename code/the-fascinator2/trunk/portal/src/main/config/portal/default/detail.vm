@@ -148,11 +148,12 @@ $(function() {
     
     $("#blog-this, #blog-cancel").click(function() {
         $("#blog-this").toggleClass("selected");
-        $("#blog-message").html();
+        $("#blog-message").empty();
         $("#blog-form").toggle("blind");
         return false;
     });
     $("#blog-accept").click(function() {
+        $("#blog-message").empty();
         $("#blog-loading").show();
         jQuery.post("$portalPath/actions/blog.ajax",
             {
