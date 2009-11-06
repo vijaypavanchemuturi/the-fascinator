@@ -9,7 +9,12 @@ from java.lang import Exception
 
 from org.apache.commons.httpclient.methods import PostMethod
 from org.apache.commons.io import IOUtils
+from org.apache.commons.io.output import NullOutputStream
 from org.dom4j.io import OutputFormat, XMLWriter, SAXReader
+
+from org.w3c.tidy import Tidy
+
+from java.lang import System
 
 class ProxyBasicAuthStrategy(BasicAuthStrategy):
     def __init__(self, username, password, baseUrl):
@@ -20,6 +25,7 @@ class ProxyBasicAuthStrategy(BasicAuthStrategy):
         BasicAuthStrategy.addAuthentication(self, httpClient, method)
         url = URL(self.__baseUrl)
         proxy = ProxySelector.getDefault().select(url.toURI()).get(0)
+        httpClient.getParams().setAuthenticationPreemptive(False);
         if not proxy.type().equals(Proxy.Type.DIRECT):
             address = proxy.address()
             proxyHost = address.getHostName()
@@ -35,8 +41,15 @@ class AtomEntryPoster:
             title = formData.get("title")
             username = formData.get("username")
             password = formData.get("password")
-            content = self.__getContent(formData.get("oid"))
-            success, value = self.__post(username, password, title, content, url)
+            try:
+                auth = ProxyBasicAuthStrategy(username, password, url)
+                self.__service = AtomClientFactory.getAtomService(url, auth)
+                content = self.__getContent(formData.get("oid"))
+                success, value = self.__post(title, content)
+            except Exception, e:
+                e.printStackTrace()
+                success = False
+                value = "Failed to connect"
             if success:
                 altLinks = value.getAlternateLinks()
                 if altLinks is not None:
@@ -46,6 +59,7 @@ class AtomEntryPoster:
             else:
                 responseMsg = "<p class='error'>%s</p>" % value
         except Exception, e:
+            print " * blog.py: Failed to post: %s" % e.getMessage()
             responseMsg = "<p class='error'>%s</p>"  % e.getMessage()
         writer = response.getPrintWriter("text/html")
         writer.println(responseMsg)
@@ -54,47 +68,74 @@ class AtomEntryPoster:
     def __getContent(self, oid):
         slash = oid.rfind("/")
         pid = os.path.splitext(oid[slash+1:])[0] + ".htm"
-        print " * detail.py: oid=%s,pid=%s" % (oid, pid)
         payload = Services.storage.getObject(oid).getPayload(pid)
-        try:
-            saxReader = SAXReader(False)
-            document = saxReader.read(payload.getInputStream())
-        except Exception, e:
-            e.printStackTrace()
-        slideNode = document.selectSingleNode("//*[local-name()='body']")
-        slideNode.setName("div")
+        tidy = Tidy()
+        tidy.setIndentAttributes(False)
+        tidy.setIndentContent(False)
+        tidy.setPrintBodyOnly(True)
+        tidy.setSmartIndent(False)
+        tidy.setWraplen(0)
+        tidy.setXHTML(True)
         out = ByteArrayOutputStream()
-        format = OutputFormat.createPrettyPrint()
-        format.setSuppressDeclaration(True)
-        writer = XMLWriter(out, format)
-        writer.write(slideNode)
-        writer.close()
-        return out.toString("UTF-8")
-    
-    def __post(self, username, password, title, content, url):
-        auth = ProxyBasicAuthStrategy(username, password, url)
         try:
-            service = AtomClientFactory.getAtomService(url, auth)
+            doc = tidy.parseDOM(payload.getInputStream(), out)
+            content = out.toString("UTF-8")
+            content = self.__processMedia(oid, doc, content)
         except Exception, e:
-            return False, "Failed to connect"
-        workspace = None
-        workspaces = service.getWorkspaces()
+            print " * blog.py: Failed to get content: %s" % e.getMessage()
+        return content
+    
+    def __processMedia(self, oid, doc, content):
+        content = self.__uploadMedia(oid, doc, content, "a", "href")
+        content = self.__uploadMedia(oid, doc, content, "img", "src")
+        return content
+    
+    def __uploadMedia(self, oid, doc, content, elem, attr):
+        links = doc.getElementsByTagName(elem)
+        for i in range(0, links.getLength()):
+            elem = links.item(i)
+            pid = elem.getAttribute(attr)
+            payload = Services.getStorage().getObject(oid).getPayload(pid)
+            if payload is not None:
+                #HACK to upload PDFs
+                contentType = payload.getContentType().replace("application/", "image/")
+                entry = self.__postMedia(payload.getLabel(), contentType,
+                                         payload.getInputStream())
+                if entry is not None:
+                    id = entry.getId()
+                    print " * blog.py: replacing %s with %s" % (pid, id)
+                    content = content.replace('%s="%s"' % (attr, pid),
+                                              '%s="%s"' % (attr, id))
+                else:
+                    print " * blog.py: failed to upload %s" % pid
+        return content
+    
+    def __getCollection(self, type):
+        workspaces = self.__service.getWorkspaces()
         if len(workspaces) > 0:
-            workspace = workspaces[0]
+            return workspaces[0].findCollection(None, type)
+        return None
+    
+    def __postMedia(self, slug, type, media):
+        print " * blog.py: uploading media %s, %s" % (slug, type)
+        collection = self.__getCollection(type)
+        if collection is not None:
+            entry = collection.createMediaEntry(slug, slug, type, media)
+            collection.addEntry(entry)
+            return entry
+        return None
+    
+    def __post(self, title, content):
+        collection = self.__getCollection("application/atom+xml;type=entry")
+        if collection is not None:
+            entry = collection.createEntry()
+            entry.setTitle(title)
+            entry.setContent(content, Content.XHTML)
+            collection.addEntry(entry)
+            return True, entry
         else:
-            return False, "No valid workspace found"
-        if workspace is not None:
-            for c in workspace.getCollections():
-                print c.href, c.accepts("entry")
-            collection = workspace.findCollection(None, "application/atom+xml;type=entry")
-            if collection is not None:
-                entry = collection.createEntry()
-                entry.setTitle(title)
-                entry.setContent(content, Content.HTML)
-                collection.addEntry(entry)
-                return True, entry
-            else:
-                return False, "No valid collection found"
+            return False, "No valid collection found"
         return False, "An unknown error occured"
+    
 
 scriptObject = AtomEntryPoster()

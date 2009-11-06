@@ -74,6 +74,9 @@ class DetailData:
         self.__json = JsonConfigHelper(ByteArrayInputStream(out.toByteArray()))
         self.__metadata = SolrDoc(self.__json)
     
+    def isMetadataOnly(self):
+        return self.getObject().getSource() is None
+    
     def getFileName(self, path):
         return os.path.split(path)[1]
     
