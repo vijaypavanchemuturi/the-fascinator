@@ -108,7 +108,11 @@ if isMetadata:
         
         #Seems like aperture only encode the spaces. Tested against special characters file name
         #and it's working 
-        rdfId = "file:%s" % object.getId().replace(" ", "%20")
+        oid = object.getId().replace(" ", "%20")
+        #under windows we need to add a slash
+        if not oid.startswith("/"):
+            oid = "/" + oid
+        rdfId = "file:%s" % oid
         
         #Set write to False so it won't write to the model
         paginationTextDocument = PaginatedTextDocument(rdfModel, rdfId, False)
