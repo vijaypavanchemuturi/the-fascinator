@@ -3,7 +3,7 @@ from au.edu.usq.fascinator.api.indexer import SearchRequest
 from au.edu.usq.fascinator.common import JsonConfigHelper
 from java.io import ByteArrayInputStream, ByteArrayOutputStream
 from java.net import URLEncoder
-from java.util import ArrayList, HashMap
+from java.util import ArrayList, LinkedHashMap
 
 class Facet:
     def __init__(self, key, value, count):
@@ -34,7 +34,7 @@ class Facet:
 
 class FacetList:
     def __init__(self, name, json):
-        self.__facetMap = HashMap()
+        self.__facetMap = LinkedHashMap()
         self.__facetList = ArrayList()
         entries = json.getList("facet_counts/facet_fields/" + name)
         for i in range(0, len(entries), 2):

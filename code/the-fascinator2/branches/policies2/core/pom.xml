@@ -61,12 +61,10 @@
           <groupId>au.edu.usq.fascinator.plugins</groupId>
           <artifactId>plugin-indexer-solr</artifactId>
         </dependency>
-        <!--
         <dependency>
           <groupId>au.edu.usq.fascinator.plugins</groupId>
           <artifactId>plugin-transformer-aperture</artifactId>
         </dependency>
-        -->
         <dependency>
           <groupId>au.edu.usq.fascinator.plugins</groupId>
           <artifactId>plugin-transformer-ice2</artifactId>
@@ -74,6 +72,7 @@
       </dependencies>
       <build>
         <plugins>
+          <!--
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-shade-plugin</artifactId>
@@ -95,6 +94,21 @@
                 </configuration>
               </execution>
             </executions>
+          </plugin>
+          -->
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-assembly-plugin</artifactId>
+            <configuration>
+              <descriptors>
+                <descriptor>src/main/assembly/policies.xml</descriptor>
+              </descriptors>
+              <archive>
+                <manifest>
+                  <mainClass>au.edu.usq.fascinator.HarvestClient</mainClass>
+                </manifest>
+              </archive>
+            </configuration>
           </plugin>
         </plugins>
       </build>

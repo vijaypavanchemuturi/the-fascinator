@@ -63,11 +63,19 @@
           </div>
           <div id="newest">
             <h2>Newest policies</h2>
-            <ul>
+            <table>
+            <tr>
+              <th>Effective date</th>
+              <th>&nbsp;</th>
+            </tr>
             #foreach($item in $self.latest)
-              <li><a href="$portalPath/detail/$item.get('id')">$item.get("dc_title").get(0)</a></li>
+              #set($effDate = $item.get("str_usq_document_effective_date"))
+              <tr>
+                <td>$!effDate</td>
+                <td><a href="$portalPath/detail/$item.get('id')">$item.get("dc_title").get(0)</a></td>
+              </tr>
             #end
-            </ul>
+            </table>
           </div>
           #*
           <div id="home-browse">

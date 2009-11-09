@@ -1,3 +1,7 @@
+.facet-group .mainmenu-heading {
+    padding-left: 3px;
+}
+
 .mainmenu .facet-list li {
     color: gray;
     font-weight: normal;
@@ -20,8 +24,6 @@
     border-bottom: 2px solid #C7CBCE;
     border-right: 2px solid #C7CBCE;
 }
-
-#DBDEE0
 
 .action {
     color: #1D599B;
@@ -134,6 +136,11 @@
 .icon {
     display: inline;
     float: left;
+}
+
+.icon-right {
+    display: inline;
+	float: right;
 }
 
 div.body div.Table1 {

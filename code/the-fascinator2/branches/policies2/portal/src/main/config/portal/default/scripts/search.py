@@ -8,7 +8,7 @@ from au.edu.usq.fascinator.portal import Pagination, Portal
 
 from java.io import ByteArrayInputStream, ByteArrayOutputStream
 from java.net import URLDecoder, URLEncoder
-from java.util import HashMap
+from java.util import LinkedHashMap
 
 
 class SearchData:
@@ -40,7 +40,7 @@ class SearchData:
         req.setParam("facet", "true")
         req.setParam("rows", str(recordsPerPage))
         req.setParam("facet.field", self.__portal.facetFieldList)
-        req.setParam("facet.sort", "true")
+        req.setParam("facet.sort", str(self.__portal.facetSort).lower())
         req.setParam("facet.limit", str(self.__portal.facetCount))
         req.setParam("sort", "title_sort asc")
         
@@ -104,7 +104,7 @@ class SearchData:
         return self.__portal.facetFields.get(key)
     
     def getFacetCounts(self, key):
-        values = HashMap()
+        values = LinkedHashMap()
         valueList = self.__result.getList("facet_counts/facet_fields/%s" % key)
         for i in range(0,len(valueList),2):
             name = valueList[i]
