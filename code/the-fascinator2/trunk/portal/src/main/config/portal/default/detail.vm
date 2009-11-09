@@ -138,7 +138,11 @@ $(function() {
             height = 24;
         }
         var style = "display: block; width: 425px; height: " + height + "px";
-        var filename = oid.substring(oid.lastIndexOf("/") + 1).replace("wmv", "flv");
+        var filename = oid.substring(oid.lastIndexOf("/") + 1);
+        var ext = filename.substring(filename.lastIndexOf(".") + 1);
+        if (ext == "wmv" || ext=="mpg" || ext=="mpeg" || ext=="m3u") {
+        	filename = oid.substring(oid.lastIndexOf("/") + 1).replace(ext, "flv");
+        }
         var href = "$portalPath/download/$oid/" + filename;
         var player = '<a class="clearfix" href="' + href + '" id="player" style="' + style + '" />';
         $("div.content-preview div.article").empty().append(player);
