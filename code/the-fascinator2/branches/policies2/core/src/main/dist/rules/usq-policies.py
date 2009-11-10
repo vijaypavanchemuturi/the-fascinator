@@ -64,9 +64,9 @@ def getNodeValues (doc, xPath):
     if nodes:
         for node in nodes:
             #remove duplicates:
-            nodeValue = node.getText()
+            nodeValue = node.getTextTrim()
             if nodeValue not in valueList:
-                valueList.append(node.getText())
+                valueList.append(nodeValue)
     return valueList 
 
 # start with blank solr document
@@ -122,7 +122,6 @@ if isMetadata:
             relationList = getNodeValues(dcXml, "//dc:relation")
             for relation in relationList:
                 key, value = relation.split("::")
-                value = value.encode("UTF-8").strip()
                 key = key.replace("_5f","") #ICE encoding _ as _5f?
                 if relationDict.has_key(key):
                     relationDict[key].append(value)
