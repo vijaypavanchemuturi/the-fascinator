@@ -135,4 +135,15 @@ public class JsonConfigHelperTest {
         Assert.assertEquals("http://localhost:9000/fedora3", config
                 .get("storage/config/uri"));
     }
+
+    @Test
+    public void getJson() throws Exception {
+        Map<String, JsonConfigHelper> fields = config
+                .getJsonMap("portal/facet-fields");
+        for (String key : fields.keySet()) {
+            System.out.println(key);
+            System.out.println(fields.get(key).get("label"));
+        }
+    }
+
 }

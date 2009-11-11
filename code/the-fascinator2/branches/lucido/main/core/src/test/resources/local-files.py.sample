@@ -18,9 +18,12 @@ from au.edu.usq.fascinator.common.ctag import Tag, TaggedContent
 #    storageId : Storage layer identifier
 #
 
-def indexPath(name, path):
+def indexPath(name, path, includeLastPart=True):
     parts = path.split("/")
-    for i in range(1, len(parts)):
+    length = len(parts)
+    if includeLastPart:
+        length +=1
+    for i in range(1, length):
         part = "/".join(parts[:i])
         if part != "":
             if part.startswith("/"):
@@ -184,7 +187,7 @@ if isMetadata:
         indexList(key, relationDict[key])
     
     indexList("full_text", fulltext)
-    indexPath("file_path", object.getId().replace("\\", "/"))
+    indexPath("file_path", object.getId().replace("\\", "/"), includeLastPart=False)
     
     tagsRdf = object.getPayload("tags.rdf")
     if tagsRdf is not None:

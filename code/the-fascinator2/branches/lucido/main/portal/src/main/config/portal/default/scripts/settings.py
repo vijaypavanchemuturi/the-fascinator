@@ -37,7 +37,13 @@ class SettingsData:
                 self.__updateEmail()
             if formData.get("backupAction") == "Update":    
                 self.__updateBackupPaths()
-        
+    
+    def isSelected(self, category):
+        selected = sessionState.get("settingsCategory")
+        if category == selected:
+            return "selected"
+        return ""
+    
     def __updateEmail(self):
         self.__portal.email = formData.get("emailAddress")
         Services.portalManager.save(self.__portal)

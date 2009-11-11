@@ -50,7 +50,7 @@
           </li>
           <li class="secondary">
             <form action="$portalPath/search" class="search" method="post">
-              <input class="text" type="text" name="query" size="25" value="$!sessionState.get('query')" />
+              <input class="text" type="text" id="query" name="query" size="25" value="$!sessionState.get('query')" />
             </form>
           </li>
           <li class="secondary">

@@ -27,7 +27,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.LinkedHashMap;
 import java.util.Map;
 
 import org.apache.commons.jxpath.AbstractFactory;
@@ -193,19 +192,42 @@ public class JsonConfigHelper {
         return valueMap;
     }
 
+    public List<JsonConfigHelper> getJsonList(String path) {
+        List<Object> list = getList(path);
+        List<JsonConfigHelper> newList = new ArrayList<JsonConfigHelper>();
+        for (Object obj : list) {
+            if (obj instanceof Map) {
+                newList.add(new JsonConfigHelper(((Map<String, Object>) obj)));
+            }
+        }
+        return newList;
+    }
+
+    public Map<String, JsonConfigHelper> getJsonMap(String path) {
+        Map<String, JsonConfigHelper> jsonMap = new LinkedHashMap<String, JsonConfigHelper>();
+        Object valueNode = getJXPath().getValue(path);
+        if (valueNode instanceof Map) {
+            Map<String, Object> map = (Map<String, Object>) valueNode;
+            for (String key : map.keySet()) {
+                jsonMap.put(key, new JsonConfigHelper((Map<String, Object>) map
+                        .get(key)));
+            }
+        }
+        return jsonMap;
+    }
+
     /**
-     * Set map with it's child
+     * Set map with its child
      * 
      * @param path XPath to node
      * @param map
      */
-    public void setMap(String path, Map<String, Object> map) {
+    public void setMap(String path, Map map) {
         try {
             getJXPath().setValue(path, map);
         } catch (Exception e) {
             getJXPath().createPathAndSetValue(path, map);
         }
-
     }
 
     /**

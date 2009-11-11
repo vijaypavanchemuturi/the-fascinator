@@ -4,30 +4,49 @@
     "description" : "Everything",
     "query" : "",
     "records-per-page" : "10",
-    "facet-count" : "25",
+    "facet-count" : "10",
     "facet-sort-by-count" : "true",
-    "facet-fields" : {
-      "repository_name" : "Source",
-      "f_dc_creator" : "Creator",
-      "file_path" : "Path",
-      "f_dc_subject" : "Subject",
-      "f_dc_format" : "Format",
-      "repository_type" : "Source type",
-      "f_dc_type" : "Type"
+    "backup" : {
+      "email" : "fascinator@usq.edu.au",
+      "paths" : {
+        "${user.home}/.fascinator/backup" : {
+          "active" : false,
+          "ignoreFilter" : ".svn|.ice|.*|~*",
+          "include-rendition-meta" : true,
+          "include-portal-view" : false
+        },
+        "${user.home}/.fascinator/backup1" : {
+          "active" : true,
+          "ignoreFilter" : ".svn|.ice|.*|~*",
+          "include-rendition-meta" : true,
+          "include-portal-view" : true
+        }
+      }
     },
-    "backup-email" : "octalina@usq.edu.au",
-    "backup-paths" : {
-      "/home/octalina/backup1" : {
-        "include-rendition-meta" : true,
-        "ignoreFilter" : ".svn|.ice|.*|~*",
-        "active" : false,
-        "include-portal-view" : false
+    "facet-fields" : {
+      "f_dc_subject" : {
+        "label" : "Subject",
+        "display" : "list"
       },
-      "/home/octalina/backup" : {
-        "include-rendition-meta" : true,
-        "ignoreFilter" : ".svn|.ice|.*|~*|*~",
-        "active" : true,
-        "include-portal-view" : true
+      "f_dc_type" : {
+        "label" : "Type",
+        "display" : "list"
+      },
+      "f_dc_format" : {
+        "label" : "Format",
+        "display" : "list"
+      },
+      "repository_name" : {
+        "label" : "Source",
+        "display" : "list"
+      },
+      "repository_type" : {
+        "label" : "Source type",
+        "display" : "list"
+      },
+      "file_path" : {
+        "label" : "Path",
+        "display" : "tree"
       }
     }
   }
