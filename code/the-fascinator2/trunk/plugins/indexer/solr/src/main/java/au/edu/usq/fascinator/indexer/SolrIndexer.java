@@ -18,8 +18,6 @@
  */
 package au.edu.usq.fascinator.indexer;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -261,7 +259,7 @@ public class SolrIndexer implements Indexer {
             }
             if (solrFile != null) {
                 InputStream inputDoc = new FileInputStream(solrFile);
-                String xml = IOUtils.toString(inputDoc);
+                String xml = IOUtils.toString(inputDoc, "UTF-8");
                 inputDoc.close();
                 SolrRequest update = new DirectXmlRequest("/update", xml);
                 solr.request(update);
@@ -281,11 +279,9 @@ public class SolrIndexer implements Indexer {
             File rulesFile, Properties props) throws IOException,
             StorageException, RuleException {
         log.info("Indexing metadata...");
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
         Payload ds = item.getPayload(props.getProperty("metaPid"));
-        IOUtils.copy(ds.getInputStream(), out);
-        InputStreamReader in = new InputStreamReader(new ByteArrayInputStream(
-                out.toByteArray()), "UTF-8");
+        InputStreamReader in = new InputStreamReader(ds.getInputStream(),
+                "UTF-8");
         return index(item, pid, null, set, in, rulesFile, props);
     }
 
