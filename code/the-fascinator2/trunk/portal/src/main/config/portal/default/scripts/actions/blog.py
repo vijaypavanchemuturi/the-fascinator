@@ -49,7 +49,7 @@ class AtomEntryPoster:
             except Exception, e:
                 e.printStackTrace()
                 success = False
-                value = "Failed to connect"
+                value = e.getMessage()
             if success:
                 altLinks = value.getAlternateLinks()
                 if altLinks is not None:
@@ -75,12 +75,14 @@ class AtomEntryPoster:
         tidy.setPrintBodyOnly(True)
         tidy.setSmartIndent(False)
         tidy.setWraplen(0)
-        tidy.setXHTML(True)
+        tidy.setXHTML(False)
+        tidy.setNumEntities(True)
         out = ByteArrayOutputStream()
         try:
             doc = tidy.parseDOM(payload.getInputStream(), out)
             content = out.toString("UTF-8")
             content = self.__processMedia(oid, doc, content)
+            #print "[\n%s\n]" % content
         except Exception, e:
             print " * blog.py: Failed to get content: %s" % e.getMessage()
         return content
@@ -94,8 +96,12 @@ class AtomEntryPoster:
         links = doc.getElementsByTagName(elem)
         for i in range(0, links.getLength()):
             elem = links.item(i)
-            pid = elem.getAttribute(attr)
-            payload = Services.getStorage().getObject(oid).getPayload(pid)
+            attrValue = elem.getAttribute(attr)
+            pid = attrValue
+            payload = Services.getStorage().getPayload(oid, pid)
+            if payload is None:
+                pid = URLDecoder.decode(pid, "UTF-8")
+                payload = Services.getStorage().getPayload(oid, pid)
             if payload is not None:
                 #HACK to upload PDFs
                 contentType = payload.getContentType().replace("application/", "image/")
@@ -103,9 +109,11 @@ class AtomEntryPoster:
                                          payload.getInputStream())
                 if entry is not None:
                     id = entry.getId()
-                    print " * blog.py: replacing %s with %s" % (pid, id)
-                    content = content.replace('%s="%s"' % (attr, pid),
+                    print " * blog.py: replacing %s with %s" % (attrValue, id)
+                    content = content.replace('%s="%s"' % (attr, attrValue),
                                               '%s="%s"' % (attr, id))
+                    content = content.replace("%s='%s'" % (attr, attrValue),
+                                              "%s='%s'" % (attr, id))
                 else:
                     print " * blog.py: failed to upload %s" % pid
         return content
@@ -130,7 +138,7 @@ class AtomEntryPoster:
         if collection is not None:
             entry = collection.createEntry()
             entry.setTitle(title)
-            entry.setContent(content, Content.XHTML)
+            entry.setContent(content, Content.HTML)
             collection.addEntry(entry)
             return True, entry
         else:

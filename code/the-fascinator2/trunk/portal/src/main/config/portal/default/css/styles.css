@@ -2,7 +2,7 @@
     display: none;
 }
 
-.inline {
+.inline, .visible {
     display: inline;
 }
 
@@ -49,6 +49,11 @@ form.search {
     padding: 0.2em;
 }
 
+.facet-list {
+    overflow-x: auto;
+    overflow-y: hidden;
+}
+
 .facet-list a, ul.menu a {
     font-weight: normal;
     word-wrap: break-word;
@@ -87,6 +92,10 @@ form .message {
     padding: 0;
 }
 
+.article a.image {
+    margin-bottom: 5px;
+}
+
 .article a img {
     vertical-align: text-bottom;
 }
@@ -94,6 +103,7 @@ form .message {
 div.tags ul {
     border-top: 1px dotted #999999;
     border-bottom: 1px dotted #999999;
+    margin-bottom: 3px;
     padding: 0.3em 0;
 }
 
@@ -141,3 +151,19 @@ div.content-preview img {
     max-width: 100%;
 }
 
+#facets-form img {
+    vertical-align: text-bottom;
+}
+
+#facets-form th {
+    padding-left: 3px;
+    text-align: left;
+}
+
+#facets-form td {
+    padding-left: 3px;
+}
+
+#facets-form img.facet-grip {
+    padding-right: 3px;
+}

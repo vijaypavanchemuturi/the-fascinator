@@ -1,74 +1,272 @@
+#macro(createFacetRow $id $field $label $display $extraClass)
+  <tr id="$id" class="facet-row $extraClass">
+    <td>
+      <img class="facet-grip" src="$portalPath/images/icons/grippy.png" />
+      <span class="facet-field-text visible">$field</span>
+      <form class="facet-field-form hidden" id="${id}-field">
+        <input class="facet-field-input" name="${id}-field" type="text" value="$field" />
+        <a class="facet-field-accept" href="#"><img alt="Accept" src="$portalPath/images/icons/tick.png" /></a>
+        <a class="facet-field-cancel" href="#"><img alt="Cancel" src="$portalPath/images/icons/cross.png" /></a>
+      </form>
+    </td>
+    <td>
+      <span class="facet-label-text visible">$label</span>
+      <form class="facet-label-form hidden" id="${id}-label">
+        <input class="facet-label-input" name="${id}-label" type="text" value="$label" />
+        <a class="facet-label-accept" href="#"><img alt="Accept" src="$portalPath/images/icons/tick.png" /></a>
+        <a class="facet-label-cancel" href="#"><img alt="Cancel" src="$portalPath/images/icons/cross.png" /></a>
+      </form>
+    </td>
+    <td>
+      <span class="facet-display-text visible">$page.capitalise($display)</span>
+      <form class="facet-display-form hidden" id="${id}-display">
+        <select name="facet-display">
+          <option name="list"#if($display=="list") selected="selected"#end>List</option>
+          <option name="tree"#if($display=="tree") selected="selected"#end>Tree</option>
+        </select>
+        <a class="facet-display-accept" href="#"><img alt="Accept" src="$portalPath/images/icons/tick.png" /></a>
+        <a class="facet-display-cancel" href="#"><img alt="Cancel" src="$portalPath/images/icons/cross.png" /></a>
+      </form>
+    </td>
+    <td>
+      <input class="facet-delete" name="facet-delete" type="checkbox" value="${id}" />
+    </td>
+  </tr>
+#end
 #set($pageTitle = "Settings")
 <h2 id="page-heading">Settings</h2>
 <div class="grid_4">
   <div class="box menu">
-    <h2><a href="#">Category</a></h2>
+    <h2>Category</h2>
     <ul class="menu">
-      <li><a href="#">View</a></li>
-      <li><a href="#">Backup</a></li>
-      <li><a href="#">Security</a></li>
-      <li><a href="#">Plugins</a></li>
+      <li><a id="view-category" class="category selected" href="#" rel="view">View</a></li>
+      <li><a id="facets-category" class="category" href="#" rel="facets">Facets</a></li>
+      <li><a id="backup-category" class="category" href="#" rel="backup">Backup</a></li>
     </ul>
   </div>
 </div>
-<div class="grid_12">
+<div id="form-section" class="grid_12">
   <div id="view-section" class="box">
-    <h2><a href="#">View</a></h2>
-    <form id="portalForm" name="portalForm" method="post">
-    <fieldset class="login">
-      <legend>$self.portal.description</legend>
-      <p>
-        <label for="portalName">Name</label>
-        <input id="portalName" name="portalName" size="10" type="text" value="$self.portal.name" />
-      </p>
-      <p>
-        <label for="portalDescription">Description</label>
-        <input id="portalDescription" name="portalDescription" size="50" type="text" value="$page.escapeText($self.portal.description)" />
-      </p>
-      <p>
-        <label for="portalQuery">Query</label>
-        <input id="portalQuery" name="portalQuery" size="50" type="text" value="$page.escapeText($self.portal.query)" />
-      </p>
-      <p>
-        <label for="portalRecordsPerPage">Records per page</label>
-        <input id="portalRecordsPerPage" name="portalRecordsPerPage" size="10" type="text" value="$self.portal.recordsPerPage" />
-      </p>
-      <p>
-        <label for="portalFacetLimit">Facet count limit</label>
-        <input id="portalFacetLimit" name="portalFacetLimit" size="10" type="text" value="$self.portal.facetCount" />
-      </p>
-      <p>
-        <label for="portalFacetSort">Sort by facet counts</label>
-        <input id="portalFacetSort" name="portalFacetSort" type="checkbox" value="$self.portal.facetSort" />
-      </p>
-      #*
-      <h4>Facets</h4>
-      <input id="portalFacetSize" name="portalFacetSize" type="hidden" value="$self.portal.facetFields.size()" />
-      <button id="add-facet-field">add facet</button>
-      #foreach($field in $self.portal.facetFields.keySet())
-      #set($label = $self.portal.facetFields.get($field))
-      #set($id = "portalFacet_$velocityCount")
-      <p id="$id">
-        <input id="${id}_name" name="${id}_name" size="25" type="text" value="$field" />
-        <input id="${id}_label" name="${id}_label" size="25" type="text" value="$label" />
-        <button class="remove-facet-field">del</button>
+    <h2>View</h2>
+    <form class="block" id="view-form" method="post">
+      <fieldset class="login">
+        <p>
+          <label for="view-id">Identifier</label>
+          <input disabled="disabled" id="view-id" name="view-id" type="text" value="$self.portal.name" />
         </p>
-        #end*#
+        <p>
+          <label for="view-description">Description</label>
+          <input id="view-description" name="view-description" type="text" value="$page.escapeText($self.portal.description)" />
+        </p>
+        <p>
+          <label for="view-query">Query</label>
+          <input id="view-query" name="view-query" type="text" value="$page.escapeText($self.portal.query)" />
+        </p>
+        <p>
+          <label for="view-records-per-page">Records per page</label>
+          <input id="view-records-per-page" name="view-records-per-page"  type="text" value="$self.portal.recordsPerPage" />
+        </p>
+        <p>
+          <label for="view-facet-count">Facet count limit</label>
+          <input id="view-facet-count" name="view-facet-count" type="text" value="$self.portal.facetCount" />
+        </p>
+        <p>
+          <label for="view-facet-sort">Sort by facet counts</label>
+          <input id="view-facet-sort" name="view-facet-sort" type="checkbox" value="$self.portal.facetSort" />
+        </p>
       </fieldset>
-      <input name="portalAction" type="submit" value="Update" />
-      <input name="portalAction" type="submit" value="Cancel" />
     </form>
+    <button id="view-update">Update</button>
+    <button id="view-cancel">Cancel</button>
+    <img class="hidden" id="view-loading" src="$portalPath/images/icons/loading.gif" />
+    <span id="view-message"></span>
+  </div>
+  <div id="facets-section" class="box hidden">
+    <h2>Facets</h2>
+    <div class="block" id="facets-form" method="post">
+      <table>
+        <thead>
+          <tr>
+            <th width="35%">Field</th>
+            <th width="35%">Label</th>
+            <th width="25%">Display</th>
+            <th width="5%">Delete</th>
+          </tr>
+          #createFacetRow("facet-edit-blank" "f_new_facet" "New facet" "list" "hidden")
+        </thead>
+        <tbody id="facet-table">
+        #foreach($field in $self.portal.facetFields.keySet())
+          #set($id = "facet-edit-$velocityCount")
+          #set($facet = $self.getPortal().getFacetFields().get($field))
+          #set($label = $facet.get("label"))
+          #set($display = $facet.get("display"))
+          #createFacetRow($id $field $label $display "")
+        #end
+        </tbody>
+      </table>
+      <button id="facets-add">Add</button>
+      <button id="facets-update">Update</button>
+      <button id="facets-cancel">Cancel</button>
+      <img class="hidden" id="facets-loading" src="$portalPath/images/icons/loading.gif" />
+      <span id="facets-message"></span>
+    </div>
   </div>
   <div id="backup-section" class="box hidden">
-    <h2><a href="#">Backup</a></h2>
-  </div>
-  <div id="security-section" class="box hidden">
-    <h2><a href="#">Security</a></h2>
-  </div>
-  <div id="plugins-section" class="box hidden">
-    <h2><a href="#">Plugins</a></h2>
+    <h2>Backup</h2>
+    <form class="block" id="backup-form" method="post">
+      <fieldset class="login">
+        <legend>User</legend>
+        <p>
+          <label for="user-email">Email address</label>
+          <input id="user-email" type="text" />
+        </p>
+      </fieldset>
+      <fieldset class="login">
+        <legend>Locations</legend>
+        <p>
+          <label for="location1">Email address</label>
+          <input id="user-email" type="text" />
+        </p>
+      </fieldset>
+    </form>
   </div>
 </div>
+<script type="text/javascript" src="$portalPath/js/jquery-ui-1.7.2.custom.min.js"></script>
+<script type="text/javascript">
+$(function() {
+    $(".category").click(function() {
+        if (!$(this).hasClass("selected")) {
+            $(".category").removeClass("selected");
+            $(this).addClass("selected");
+            $("#form-section > div").addClass("hidden")
+            var formId = $(this).attr("rel");
+            $("#" + formId + "-section").removeClass("hidden");
+            jQuery.post("$portalPath/actions/state.ajax",
+                { func: "set", name: "settings/category", value: formId });
+        }
+        return false;
+    });
+    
+    var selected = "$sessionState.get('settings/category')";
+    if (selected) {
+        $("#" + selected + "-category").click();
+    }
+    
+    $("#view-update").removeAttr("disabled").click(function() {
+        $(this).attr("disabled", "disabled");
+        $("#view-loading").show();
+        var data = $("#view-form").serialize();
+        jQuery.post("$portalPath/actions/facets.ajax?" + data,
+            { func: "view-update" },
+            function(data, status) {
+                $("#view-loading").hide();
+                $("#view-message").text("Updated successfully");
+                setTimeout(function() { $("#view-message").empty(); }, 3000);
+                $("#view-update").removeAttr("disabled");
+            },
+            "json"
+        );
+    });
+    
+    $(".facet-field-text, .facet-label-text, .facet-display-text").live("click",
+        function() {
+            $(this).toggleClass("hidden").toggleClass("visible");
+            $(this).next().toggleClass("hidden").toggleClass("inline");
+            return false;
+        });
+    $("#facets-form form").submit(function() {
+        $(this).find(".facet-field-accept, .facet-label-accept").click();
+        return false;
+    });
+    $(".facet-field-accept, .facet-label-accept").live("click", function() {
+        var parentEl = $(this).parent();
+        var textEl = parentEl.prev();
+        var inputEl = $(this).prev("input");
+        parentEl.toggleClass("hidden").toggleClass("inline");
+        textEl.toggleClass("hidden").toggleClass("visible");
+        var oldValue = textEl.text();
+        var newValue = inputEl.attr("value");
+        if (oldValue != newValue) {
+            textEl.css("font-weight", "bold").text(newValue);
+        }
+        return false;
+    });
+    $(".facet-display-accept").live("click", function() {
+        var parentEl = $(this).parents("form");
+        var textEl = parentEl.prev();
+        var inputEl = $(this).prev("select");
+        parentEl.toggleClass("hidden").toggleClass("inline");
+        textEl.toggleClass("hidden").toggleClass("visible");
+        var oldValue = textEl.text();
+        var newValue = inputEl.val();
+        if (oldValue != newValue) {
+            textEl.css("font-weight", "bold").text(newValue);
+        }
+        return false;
+    });
+    $(".facet-field-cancel, .facet-label-cancel, .facet-display-cancel").live("click",
+        function() {
+            $(this).parent().toggleClass("hidden").toggleClass("inline")
+                .prev().toggleClass("hidden").toggleClass("visible");
+            return false;
+        });
+    $("#facet-table").sortable({ axis: 'y' });
+    $("#facets-add").click(function() {
+        var newFacet = $("#facet-edit-blank").clone(true).appendTo($("#facet-table"));
+        newFacet.removeClass("hidden");
+        newFacet.find("span").css("font-weight", "bold");
+        newFacet.attr("id", "facet-edit-" + ($("#facet-table tr").length + 1));
+        newFacet.find(".facet-label-text").text("New facet");
+        newFacet.find(".facet-label-input").attr("value", "New facet");
+        newFacet.find(".facet-field-text").text("f_new_facet").click();
+        newFacet.find(".facet-field-input").attr("value", "f_new_facet").focus();
+    });
+    $("#facets-update").removeAttr("disabled").click(function() {
+        $(this).attr("disabled", "disabled");
+        $("#facets-loading").show();
+        var orderArray = $("#facet-table").sortable("toArray");
+        var data = "";
+        for (var i = 0, len = orderArray.length; i < len; i++) {
+            var id = orderArray[i];
+            var fField = $("#" + id + " .facet-field-input").val();
+            var fLabel = $("#" + id + " .facet-label-input").val();
+            var fDisplay = $("#" + id + " .facet-display-text").text().toLowerCase();
+            var fDelete = $("#" + id + " .facet-delete").attr("checked");
+            data += "&field=" + fField +
+                    "&label=" + fLabel +
+                    "&display=" + fDisplay +
+                    "&delete=" + fDelete;
+        }
+        jQuery.post("$portalPath/actions/facets.ajax?" + data,
+            { func: "facets-update" },
+            function(data, status) {
+                $("#facet-table span").css("font-weight", "normal");
+                $("#facets-loading").hide();
+                $(".facet-delete:checked").parents("tr").remove();
+                $("#facets-message").text("Updated successfully");
+                setTimeout(function() { $("#facets-message").empty(); }, 3000);
+                $("#facets-update").removeAttr("disabled");
+            },
+            "json"
+        );
+    });
+    $("#view-cancel, #facets-cancel").click(function() {
+        window.location.reload();
+    });
+});
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
 #*
 <script type="text/javascript">
 $(function() {
