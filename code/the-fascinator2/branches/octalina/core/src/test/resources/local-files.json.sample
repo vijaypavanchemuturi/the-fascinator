@@ -34,12 +34,5 @@
             "repository.name": "Local Files",
             "repository.type": "Local File System"
         }
-    },
-    
-    "backup": {
-    	"email": "email@usq.edu.au",
-    	"backupDir": "${user.home}/.fascinator-backup",
-    	"ignoreFilter": ".svn|.ice|.*|~*",
-    	"tf-storage-type": "file-system"
     }
 }

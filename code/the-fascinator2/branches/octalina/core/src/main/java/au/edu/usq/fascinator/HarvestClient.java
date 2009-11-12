@@ -162,8 +162,15 @@ public class HarvestClient {
         try {
             log.info("Processing " + oid + "...");
 
-            // Calling conveyer
-            object = cb.transform(object);
+            File oidFile = new File(oid);
+            Payload noRender = object.getPayload(oidFile.getName() + ".render");
+
+            if (noRender == null) {
+                // Calling conveyer
+                object = cb.transform(object);
+            } else {
+                object.removePayload(noRender);
+            }
 
             Properties sofMeta = new Properties();
             sofMeta.setProperty("objectId", oid);

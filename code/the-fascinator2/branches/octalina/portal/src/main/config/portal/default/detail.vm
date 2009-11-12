@@ -5,6 +5,7 @@
 #else
 #set($meta = $self.metadata)
 #set($oid = $self.object.id)
+#set($filenameNoExt = $self.getFilePathWithoutExt($oid))
 #set($title = $meta.getField("dc_title"))
 #set($description = $meta.getField("dc_description"))
 #if(!$title)
@@ -95,7 +96,7 @@
 <script type="text/javascript">
 $(function() {
     var oid = "$oid";
-    
+    var filenameNoExt = "$filenameNoExt";
     function fixLinks(selector, attrName) {
         $(selector).each(function() {
             var attr = $(this).attr(attrName);
@@ -137,8 +138,12 @@ $(function() {
         if (mimeType.indexOf("audio/") == 0) {
             height = 24;
         }
-        var style = "display: block; width: 425px; height: " + height + "px";
-        var filename = oid.substring(oid.lastIndexOf("/") + 1).replace("wmv", "flv");
+        var style = "display: block; width: 425px; height: " + height + "px";     
+        var filename = oid.substring(oid.lastIndexOf("/") + 1);
+        var ext = filename.substring(filename.lastIndexOf(".") + 1).toLowerCase();
+        if (ext == "wmv" || ext=="mpg" || ext=="mpeg" || ext=="m3u") { 
+        	filename = filenameNoExt + ".flv";
+        }
         var href = "$portalPath/download/$oid/" + filename;
         var player = '<a class="clearfix" href="' + href + '" id="player" style="' + style + '" />';
         $("div.content-preview div.article").empty().append(player);

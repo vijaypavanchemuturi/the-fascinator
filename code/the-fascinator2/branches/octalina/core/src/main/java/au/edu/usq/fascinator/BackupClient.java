@@ -384,10 +384,10 @@ public class BackupClient {
                             + File.separator + email + File.separator
                             + "config");
                     portalFolder.getParentFile().mkdirs();
-                    includePortalDir(portalDir, portalFolder);
+                    includePortalDir(portalDir, portalFolder, ignoreFilter);
                 }
 
-                // Process the view/portal files if included
+                // backup only current portal
                 if (includePortal == "true" && backupAll == false) {
                     File portalFolder;
                     if (portalDir == null) {
@@ -404,7 +404,7 @@ public class BackupClient {
                                 + portalDir.getName());
                     }
                     portalFolder.getParentFile().mkdirs();
-                    includePortalDir(portalDir, portalFolder);
+                    includePortalDir(portalDir, portalFolder, ignoreFilter);
                 }
             }
         }
@@ -434,18 +434,20 @@ public class BackupClient {
     /**
      * Copy portal config directory
      * 
-     * @param portalFolder
+     * @param portalSrc
+     * @param portalDest
+     * @param ignoreFilter to filter out .svn directory
      * @throws IOException
      */
-    private void includePortalDir(File portalSrc, File portalDest)
-            throws IOException {
+    private void includePortalDir(File portalSrc, File portalDest,
+            IgnoreFilter ignoreFilter) throws IOException {
         if (portalSrc.isDirectory()) {
             if (!portalDest.exists()) {
                 portalDest.mkdir();
             }
-            for (String file : portalSrc.list()) {
-                includePortalDir(new File(portalSrc, file), new File(
-                        portalDest, file));
+            for (File file : portalSrc.listFiles(ignoreFilter)) {
+                includePortalDir(new File(portalSrc, file.getName()), new File(
+                        portalDest, file.getName()), ignoreFilter);
             }
         } else {
             InputStream in = new FileInputStream(portalSrc);
