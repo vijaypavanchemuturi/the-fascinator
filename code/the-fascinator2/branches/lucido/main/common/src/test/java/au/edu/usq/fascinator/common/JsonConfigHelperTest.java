@@ -140,10 +140,11 @@ public class JsonConfigHelperTest {
     public void getJson() throws Exception {
         Map<String, JsonConfigHelper> fields = config
                 .getJsonMap("portal/facet-fields");
-        for (String key : fields.keySet()) {
-            System.out.println(key);
-            System.out.println(fields.get(key).get("label"));
-        }
+        config.setJsonMap("portal/facet-fields-clone", fields);
+        // System.out.println(config.toString());
+        // for (String key : fields.keySet()) {
+        // System.out.println(key);
+        // System.out.println(fields.get(key).get("label"));
+        // }
     }
-
 }

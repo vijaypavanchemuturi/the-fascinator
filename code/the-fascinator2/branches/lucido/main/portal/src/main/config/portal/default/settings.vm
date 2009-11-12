@@ -1,3 +1,38 @@
+#macro(createFacetRow $id $field $label $display $extraClass)
+  <tr id="$id" class="facet-row $extraClass">
+    <td>
+      <img class="facet-grip" src="$portalPath/images/icons/grippy.png" />
+      <span class="facet-field-text visible">$field</span>
+      <form class="facet-field-form hidden" id="${id}-field">
+        <input class="facet-field-input" name="${id}-field" type="text" value="$field" />
+        <a class="facet-field-accept" href="#"><img alt="Accept" src="$portalPath/images/icons/tick.png" /></a>
+        <a class="facet-field-cancel" href="#"><img alt="Cancel" src="$portalPath/images/icons/cross.png" /></a>
+      </form>
+    </td>
+    <td>
+      <span class="facet-label-text visible">$label</span>
+      <form class="facet-label-form hidden" id="${id}-label">
+        <input class="facet-label-input" name="${id}-label" type="text" value="$label" />
+        <a class="facet-label-accept" href="#"><img alt="Accept" src="$portalPath/images/icons/tick.png" /></a>
+        <a class="facet-label-cancel" href="#"><img alt="Cancel" src="$portalPath/images/icons/cross.png" /></a>
+      </form>
+    </td>
+    <td>
+      <span class="facet-display-text visible">$page.capitalise($display)</span>
+      <form class="facet-display-form hidden" id="${id}-display">
+        <select name="facet-display">
+          <option name="list"#if($display=="list") selected="selected"#end>List</option>
+          <option name="tree"#if($display=="tree") selected="selected"#end>Tree</option>
+        </select>
+        <a class="facet-display-accept" href="#"><img alt="Accept" src="$portalPath/images/icons/tick.png" /></a>
+        <a class="facet-display-cancel" href="#"><img alt="Cancel" src="$portalPath/images/icons/cross.png" /></a>
+      </form>
+    </td>
+    <td>
+      <input class="facet-delete" name="facet-delete" type="checkbox" value="${id}" />
+    </td>
+  </tr>
+#end
 #set($pageTitle = "Settings")
 <h2 id="page-heading">Settings</h2>
 <div class="grid_4">
@@ -57,6 +92,7 @@
             <th width="25%">Display</th>
             <th width="5%">Delete</th>
           </tr>
+          #createFacetRow("facet-edit-blank" "f_new_facet" "New facet" "list" "hidden")
         </thead>
         <tbody id="facet-table">
         #foreach($field in $self.portal.facetFields.keySet())
@@ -64,39 +100,7 @@
           #set($facet = $self.getPortal().getFacetFields().get($field))
           #set($label = $facet.get("label"))
           #set($display = $facet.get("display"))
-          <tr id="$id" class="facet-row">
-            <td>
-              <img class="facet-grip" src="$portalPath/images/icons/grippy.png" />
-              <span class="facet-field-text visible">$field</span>
-              <form class="facet-field-form hidden" id="${id}-field">
-                <input class="facet-field-input" name="${id}-field" type="text" value="$field" />
-                <a class="facet-field-accept" href="#"><img alt="Accept" src="$portalPath/images/icons/tick.png" /></a>
-                <a class="facet-field-cancel" href="#"><img alt="Cancel" src="$portalPath/images/icons/cross.png" /></a>
-              </form>
-            </td>
-            <td>
-              <span class="facet-label-text visible">$label</span>
-              <form class="facet-label-form hidden" id="${id}-label">
-                <input class="facet-label-input" name="${id}-label" type="text" value="$label" />
-                <a class="facet-label-accept" href="#"><img alt="Accept" src="$portalPath/images/icons/tick.png" /></a>
-                <a class="facet-label-cancel" href="#"><img alt="Cancel" src="$portalPath/images/icons/cross.png" /></a>
-              </form>
-            </td>
-            <td>
-              <span class="facet-display-text visible">$page.capitalise($display)</span>
-              <form class="facet-display-form hidden" id="${id}-display">
-                <select name="facet-display">
-                  <option name="list"#if($display=="list") selected="selected"#end>List</option>
-                  <option name="tree"#if($display=="tree") selected="selected"#end>Tree</option>
-                </select>
-                <a class="facet-display-accept" href="#"><img alt="Accept" src="$portalPath/images/icons/tick.png" /></a>
-                <a class="facet-display-cancel" href="#"><img alt="Cancel" src="$portalPath/images/icons/cross.png" /></a>
-              </form>
-            </td>
-            <td>
-              <input class="facet-delete" name="facet-delete" type="checkbox" value="${id}" />
-            </td>
-          </tr>
+          #createFacetRow($id $field $label $display "")
         #end
         </tbody>
       </table>
@@ -208,7 +212,8 @@ $(function() {
         });
     $("#facet-table").sortable({ axis: 'y' });
     $("#facets-add").click(function() {
-        var newFacet = $("#facet-table tr:first").clone(true).appendTo($("#facet-table"));
+        var newFacet = $("#facet-edit-blank").clone(true).appendTo($("#facet-table"));
+        newFacet.removeClass("hidden");
         newFacet.find("span").css("font-weight", "bold");
         newFacet.attr("id", "facet-edit-" + ($("#facet-table tr").length + 1));
         newFacet.find(".facet-label-text").text("New facet");

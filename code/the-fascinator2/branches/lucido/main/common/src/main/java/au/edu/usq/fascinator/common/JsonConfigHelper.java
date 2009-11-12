@@ -52,6 +52,7 @@ public class JsonConfigHelper {
         public boolean createObject(JXPathContext context, Pointer pointer,
                 Object parent, String name, int index) {
             if (parent instanceof Map) {
+                System.out.println("blah");
                 ((Map<String, Object>) parent).put(name,
                         new LinkedHashMap<String, Object>());
                 return true;
@@ -222,11 +223,23 @@ public class JsonConfigHelper {
      * @param path XPath to node
      * @param map
      */
-    public void setMap(String path, Map map) {
+    public void setMap(String path, Map<String, Object> map) {
         try {
             getJXPath().setValue(path, map);
         } catch (Exception e) {
             getJXPath().createPathAndSetValue(path, map);
+        }
+    }
+
+    public void setJsonMap(String path, Map<String, JsonConfigHelper> map) {
+        for (String key : map.keySet()) {
+            JsonConfigHelper json = map.get(key);
+            try {
+                getJXPath().setValue(path + "/" + key, json.getMap("/"));
+            } catch (Exception e) {
+                getJXPath().createPathAndSetValue(path + "/" + key,
+                        json.getMap("/"));
+            }
         }
     }
 

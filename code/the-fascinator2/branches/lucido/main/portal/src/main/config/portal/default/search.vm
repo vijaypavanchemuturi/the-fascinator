@@ -51,7 +51,7 @@
 #if($self.result and $paging.totalFound > 0)
 #end
 <h2 id="page-heading">Search<span class="paging right">#parse($page.getTemplate("search-paging.vm"))</span></h2>
-<div class="grid_4">
+<div id="action-list" class="grid_4">
   #if($self.hasSelectedFacets() || $query != "")
   <div class="box menu">
     <h2>Actions</h2>
@@ -199,6 +199,10 @@
 <script type="text/javascript">
 $(function() {
     addActionParam("query", "$!query");
+    
+    if ($("#action-list div").length == 0) {
+        $("#result-list").removeClass("grid_12").addClass("grid_16");
+    }
     
     // facet actions
     $("#clear-facets").click(function() {

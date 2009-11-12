@@ -111,7 +111,7 @@ public class Portal extends JsonConfigHelper {
     }
 
     public void setFacetFields(Map<String, JsonConfigHelper> map) {
-        setMap("portal/facet-fields", map);
+        setJsonMap("portal/facet-fields", map);
     }
 
     public List<String> getFacetFieldList() {
