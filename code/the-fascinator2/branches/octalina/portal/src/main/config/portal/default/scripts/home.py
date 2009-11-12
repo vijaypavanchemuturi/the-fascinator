@@ -43,7 +43,7 @@ class HomeData:
         if portalQuery:
             req.addParam("fq", portalQuery)
         req.setParam("rows", "10")
-        req.setParam("sort", "last_modified asc, f_dc_title asc");
+        req.setParam("sort", "last_modified desc, f_dc_title asc");
         out = ByteArrayOutputStream()
         indexer.search(req, out)
         self.__latest = JsonConfigHelper(ByteArrayInputStream(out.toByteArray()))

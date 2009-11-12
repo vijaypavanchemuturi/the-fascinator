@@ -233,6 +233,9 @@ public class FileSystemHarvester implements Harvester, Configurable {
                         } else {
                             log.debug("{} has changed", file);
                             changed = true;
+                            FileUtils.writeStringToFile(cacheFile, sha1);
+                            FileUtils.writeStringToFile(idFile, file
+                                    .getAbsolutePath());
                         }
                     } else {
                         log.debug("Caching checksum for {}", file);

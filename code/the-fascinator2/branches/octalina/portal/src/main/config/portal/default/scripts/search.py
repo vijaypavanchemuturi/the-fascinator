@@ -97,8 +97,11 @@ class SearchData:
     def getResult(self):
         return self.__result
     
-    def getFacetName(self, key):
+    def getFacetField(self, key):
         return self.__portal.facetFields.get(key)
+    
+    def getFacetName(self, key):
+        return self.__portal.facetFields.get(key).get("label")
     
     def getFacetCounts(self, key):
         values = LinkedHashMap()
@@ -138,6 +141,8 @@ class SearchData:
     def getThumbnail(self, oid):
         ext = os.path.splitext(oid)[1]
         url = oid[oid.rfind("/")+1:-len(ext)] + ".thumb.jpg"
-        return url
+        if Services.getStorage().getPayload(oid, url):
+            return url
+        return None
 
 scriptObject = SearchData()

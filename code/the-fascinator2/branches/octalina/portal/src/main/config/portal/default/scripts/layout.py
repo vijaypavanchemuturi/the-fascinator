@@ -32,6 +32,9 @@ class LayoutData:
     def md5Hash(self, data):
         return md5.new(data).hexdigest()
     
+    def capitalise(self, text):
+        return text[0].upper() + text[1:]
+    
     def getTemplate(self, templateName):
         portalName = portalId
         if not Services.pageService.resourceExists(portalId, templateName, False):
