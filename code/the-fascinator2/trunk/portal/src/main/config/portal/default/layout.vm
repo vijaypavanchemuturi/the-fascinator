@@ -44,8 +44,7 @@
             #end
             </ul>
           </li>
-          ## FIXME
-          ##<li><a href="$portalPath/settings">Settings</a></li>
+          <li><a href="$portalPath/settings">Settings</a></li>
           <li class="secondary">
             <a class="search" href="#"><img src="$portalPath/images/icons/magnifier.png" /></a>
           </li>
