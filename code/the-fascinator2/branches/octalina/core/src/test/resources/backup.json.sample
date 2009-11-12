@@ -1,10 +1,6 @@
 {
     "harvester": {
-        "type": "jsonq",
-        "jsonq": {
-            "url": "http://localhost:9000/",
-            "lastModified": "0"
-        }
+        "type": "restore-backup"
     },
     
     "transformer": {
@@ -13,7 +9,8 @@
             "outputPath": "${java.io.tmpdir}/ice2-output"
         },
         "ice2": {
-            "url": "http://ec2-75-101-136-199.compute-1.amazonaws.com/api/convert/",
+            "url-amazon": "http://ec2-75-101-136-199.compute-1.amazonaws.com/api/convert/",
+            "url": "http://139.86.35.157:8888/api/convert/",
             "resize.image.mode": "fixedWidth",
             "resize.image.ratio": "-90",
             "resize.image.fixedWidth": "150",
@@ -32,5 +29,26 @@
             "repository.name": "Local Files",
             "repository.type": "Local File System"
         }
+    },
+    
+    "backup-email" : "octalina@usq.edu.au",
+    "backup-paths" : {
+      "/home/octalina/backup" : {
+        "include-rendition-meta" : true,
+        "ignoreFilter" : ".svn|.ice|.*|~*|*~",
+        "active" : true,
+        "include-portal-view" : true
+      }
+    },
+    
+    "restore-email" : "octalina@usq.edu.au",
+    "restore-paths" : {
+      "/home/octalina/backup" : {
+        "include-rendition-meta" : false,
+        "ignoreFilter" : ".svn|.ice|.*|~*|*~",
+        "active" : true,
+        "include-portal-view" : true
+      }
     }
+    
 }

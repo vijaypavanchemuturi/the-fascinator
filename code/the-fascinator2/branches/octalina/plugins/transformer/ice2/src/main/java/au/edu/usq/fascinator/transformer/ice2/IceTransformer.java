@@ -26,6 +26,10 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.httpclient.methods.PostMethod;
@@ -44,8 +48,6 @@ import au.edu.usq.fascinator.api.transformer.Transformer;
 import au.edu.usq.fascinator.api.transformer.TransformerException;
 import au.edu.usq.fascinator.common.BasicHttpClient;
 import au.edu.usq.fascinator.common.JsonConfig;
-import java.util.Map;
-import java.util.HashMap;
 
 /**
  * Transformer Class will send a file to ice-service to get the renditions of
@@ -61,6 +63,7 @@ public class IceTransformer implements Transformer {
     private String resizeFixedWidth;
     private String resizeMode; // ratio or fixedWidth
     private String enlargeImage;
+    private List<String> excludeRenditionExtList;
     private Map<String, Object> ice2ContentPaths;
 
     private static Logger log = LoggerFactory.getLogger(IceTransformer.class);
@@ -121,16 +124,16 @@ public class IceTransformer implements Transformer {
             outputDir.mkdirs();
         }
 
-        for(String path : ice2ContentPaths.keySet()) {
-            if(sourceFile.getAbsolutePath().startsWith(path)) {
+        for (String path : ice2ContentPaths.keySet()) {
+            if (sourceFile.getAbsolutePath().startsWith(path)) {
                 try {
                     String r = getRenditionDirectFromIce(sourceFile, path,
                             ice2ContentPaths.get(path).toString());
-                    if(r.startsWith("Error ")) {
+                    if (r.startsWith("Error ")) {
                         throw new Exception(r);
                     }
                     return r;
-                } catch(Exception e) {
+                } catch (Exception e) {
                     log.error("Error getting rendition directly from ICE: "
                             + e.getMessage());
                 }
@@ -204,7 +207,7 @@ public class IceTransformer implements Transformer {
 
     /**
      * getRenditionDirectFromIce method
-     *
+     * 
      * @param File sourceFile
      * @param String basePath
      * @param String url
@@ -212,15 +215,16 @@ public class IceTransformer implements Transformer {
      */
     private String getRenditionDirectFromIce(File sourceFile, String basePath,
             String url) throws Exception {
-        log.info("*** getRenditionDirectFromIce(" + sourceFile.getAbsolutePath() + ")");
-        if(!basePath.endsWith("/")){
+        log.info("*** getRenditionDirectFromIce("
+                + sourceFile.getAbsolutePath() + ")");
+        if (!basePath.endsWith("/")) {
             basePath += "/";
         }
         String path = sourceFile.toString().substring(basePath.length());
         try {
             String iceUrl = url + path;
-            if(iceUrl.endsWith(".odt") || iceUrl.endsWith(".doc")){
-                iceUrl = iceUrl.substring(0, iceUrl.length()-4) + ".htm";
+            if (iceUrl.endsWith(".odt") || iceUrl.endsWith(".doc")) {
+                iceUrl = iceUrl.substring(0, iceUrl.length() - 4) + ".htm";
             } else {
                 throw new Exception("Error");
             }
@@ -228,25 +232,23 @@ public class IceTransformer implements Transformer {
             BasicHttpClient client = new BasicHttpClient(iceUrl);
             PostMethod filePost = new PostMethod(iceUrl);
 
-            Part[] parts = {
-                    new StringPart("func", "exportDocument"),
+            Part[] parts = { new StringPart("func", "exportDocument"),
                     new StringPart("postback", "True"),
                     new StringPart("template", "default"),
                     new StringPart("pdflink", "on"),
-                    //new StringPart("slidelink", ""),
+                    // new StringPart("slidelink", ""),
                     new StringPart("toc", "on"),
-                    //new StringPart("title", ""),
-                    //new StringPart("sourcelink", ""),
-                    //new StringPart("mets", ""),
+                    // new StringPart("title", ""),
+                    // new StringPart("sourcelink", ""),
+                    // new StringPart("mets", ""),
                     new StringPart("dc", "1"),
-                    //new StringPart("rdf", ""),
-                    new StringPart("x", "")
-                };
+                    // new StringPart("rdf", ""),
+                    new StringPart("x", "") };
             filePost.setRequestEntity(new MultipartRequestEntity(parts,
                     filePost.getParams()));
             int status = client.executeMethod(filePost);
-            log.debug(" HTTP status: {} {}", status,
-                                        HttpStatus.getStatusText(status));
+            log.debug(" HTTP status: {} {}", status, HttpStatus
+                    .getStatusText(status));
             if (status != HttpStatus.SC_OK) {
                 log.debug(" Response body: {}", filePost
                         .getResponseBodyAsString());
@@ -361,15 +363,44 @@ public class IceTransformer implements Transformer {
             resizeFixedWidth = config.get(
                     "transformer/ice2/resize.image.fixedWidth", "150");
             enlargeImage = config.get("transformer/ice2/enlargeImage", "false");
+            String excludeRenditionExt = config.get(
+                    "transformer/ice2/excludeRenditionExt", "false");
+            excludeRenditionExtList = new ArrayList<String>();
+            setExcludeRenditionExtList(excludeRenditionExt);
             try {
-                ice2ContentPaths = config.getMap("transformer/ice2/ice2ContentPaths");
-            } catch(Exception e) {
+                ice2ContentPaths = config
+                        .getMap("transformer/ice2/ice2ContentPaths");
+            } catch (Exception e) {
                 ice2ContentPaths = new HashMap<String, Object>();
             }
         } catch (IOException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
+    }
+
+    /**
+     * Set list of extension to be excluded in rendition process
+     * 
+     * 
+     * @param exts
+     */
+    public void setExcludeRenditionExtList(String exts) {
+        if (exts != null) {
+            String[] extList = exts.split(",");
+            for (String ext : extList) {
+                excludeRenditionExtList.add(ext);
+            }
+        }
+    }
+
+    /**
+     * Return list of extension not to be included in rendition
+     * 
+     * @return list of exts
+     */
+    public List<String> getExcludeRenditionExtList() {
+        return excludeRenditionExtList;
     }
 
     /**
@@ -391,10 +422,9 @@ public class IceTransformer implements Transformer {
     public DigitalObject transform(DigitalObject in)
             throws TransformerException {
         File inFile = new File(in.getId());
-        // && !inFile.getName().endsWith(".html")
-        // && !inFile.getName().endsWith(".htm")
-        if (inFile.exists() && !inFile.getName().endsWith(".mp3")
-                && !inFile.getName().endsWith(".m4a")) {
+        String fileExt = getFileExt(inFile);
+
+        if (inFile.exists() && !excludeRenditionExtList.contains(fileExt)) {
             String result = getRendition(inFile);
             if (!result.startsWith("Error")) {
                 // Check if the file is a zip file or error returned from ice
@@ -410,6 +440,11 @@ public class IceTransformer implements Transformer {
             }
         }
         return in;
+    }
+
+    private String getFileExt(File filePath) {
+        return filePath.getName()
+                .substring(filePath.getName().indexOf('.', -1));
     }
 
     private boolean validZipFile(String zipPath) {

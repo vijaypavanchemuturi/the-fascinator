@@ -31,7 +31,7 @@ else
 	if [ $? ]; then
 		copy_samples
 		cd $FASCINATOR_HOME/code/core
-		mvn -P $1 exec:java -e
+		mvn -P $1 exec:java
 		cd $OLDPWD
 	else
 		echo "[ERROR] SOLR does not appear to be running"
