@@ -33,7 +33,6 @@ import java.util.Map;
 
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.httpclient.methods.PostMethod;
-import org.apache.commons.httpclient.methods.multipart.FilePart;
 import org.apache.commons.httpclient.methods.multipart.MultipartRequestEntity;
 import org.apache.commons.httpclient.methods.multipart.Part;
 import org.apache.commons.httpclient.methods.multipart.StringPart;
@@ -140,69 +139,80 @@ public class IceTransformer implements Transformer {
             }
         }
 
+        // Send extension to ICE and see if ICE support that extension or not
+        String ext = getFileExt(sourceFile);
+        String url = convertUrl + "?pathext=" + ext;
+        BasicHttpClient extClient = new BasicHttpClient(url);
+        PostMethod extPost = new PostMethod(convertUrl);
         try {
-            BasicHttpClient client = new BasicHttpClient(convertUrl);
-            PostMethod filePost = new PostMethod(convertUrl);
-
-            String[] filePart = sourceFile.getName().split("\\.");
-
-            Part[] parts = { new StringPart("zip", "1"),
-                    new StringPart("dc", "1"), new StringPart("toc", "on"),
-                    new StringPart("pdflink", "on"),
-                    new StringPart("pathext", ""),
-                    new StringPart("template", getTemplate()),
-                    new StringPart("resize", imageRatio),
-                    new StringPart("resizeOption", resizeMode),
-                    new StringPart("fixedWidth", resizeFixedWidth),
-                    new StringPart("enlargeImage", enlargeImage),
-                    new StringPart("mode", "download"),
-                    new FilePart("file", sourceFile) };
-
-            filePost.setRequestEntity(new MultipartRequestEntity(parts,
-                    filePost.getParams()));
-            int status = client.executeMethod(filePost);
-            log.debug("HTTP status: {} {}", status, HttpStatus
-                    .getStatusText(status));
-            if (status != HttpStatus.SC_OK) {
-                log.debug("Response body: {}", filePost
-                        .getResponseBodyAsString());
-            }
-            // Get Response
-            InputStream is = filePost.getResponseBodyAsStream();
-            String headerType = filePost.getResponseHeader("Content-Type")
-                    .getValue();
-            String basename = sourceFile.getName();
-            basename = FilenameUtils.getBaseName(sourceFile.getName());
-            String outputFilename = outputPath + "/" + basename + ".zip";
-            if (headerType.indexOf("image/jp") > -1) {
-                // for resized image
-                outputFilename = outputPath + "/" + basename + ".thumb.jpg";
-            }
-            if (headerType.indexOf("video/x-flv") > -1) {
-                // for converted media file
-                outputFilename = outputPath + "/" + basename + ".flv";
-            }
-            if (headerType.indexOf("audio/mpeg") > -1) {
-                // for converted media file
-                outputFilename = outputPath + "/" + basename + ".mp3";
-            }
-
-            // Check if file is exist or not, just incase
-            File outputFile = new File(outputFilename);
-            if (outputFile.exists()) {
-                outputFile.delete();
-            }
-            FileOutputStream fos = new FileOutputStream(outputFilename);
-            IOUtils.copy(is, fos);
-            is.close();
-            fos.close();
-            log.debug("ICE output at {}", outputFilename);
-            return outputFilename; // Returning the location of the file
-        } catch (Exception e) {
-            log.error("An error occurred: {}", e.getMessage());
-            // e.printStackTrace();
-            return "Error " + e.getMessage();
+            log.info("" + extPost.getResponseBodyAsString());
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
         }
+        // try {
+        // BasicHttpClient client = new BasicHttpClient(convertUrl);
+        // PostMethod filePost = new PostMethod(convertUrl);
+        //
+        // String[] filePart = sourceFile.getName().split("\\.");
+        //
+        // Part[] parts = { new StringPart("zip", "1"),
+        // new StringPart("dc", "1"), new StringPart("toc", "on"),
+        // new StringPart("pdflink", "on"),
+        // new StringPart("pathext", ""),
+        // new StringPart("template", getTemplate()),
+        // new StringPart("resize", imageRatio),
+        // new StringPart("resizeOption", resizeMode),
+        // new StringPart("fixedWidth", resizeFixedWidth),
+        // new StringPart("enlargeImage", enlargeImage),
+        // new StringPart("mode", "download"),
+        // new FilePart("file", sourceFile) };
+        //
+        // filePost.setRequestEntity(new MultipartRequestEntity(parts,
+        // filePost.getParams()));
+        // int status = client.executeMethod(filePost);
+        // log.debug("HTTP status: {} {}", status, HttpStatus
+        // .getStatusText(status));
+        // if (status != HttpStatus.SC_OK) {
+        // log.debug("Response body: {}", filePost
+        // .getResponseBodyAsString());
+        // }
+        // // Get Response
+        // InputStream is = filePost.getResponseBodyAsStream();
+        // String headerType = filePost.getResponseHeader("Content-Type")
+        // .getValue();
+        // String basename = sourceFile.getName();
+        // basename = FilenameUtils.getBaseName(sourceFile.getName());
+        // String outputFilename = outputPath + "/" + basename + ".zip";
+        // if (headerType.indexOf("image/jp") > -1) {
+        // // for resized image
+        // outputFilename = outputPath + "/" + basename + ".thumb.jpg";
+        // }
+        // if (headerType.indexOf("video/x-flv") > -1) {
+        // // for converted media file
+        // outputFilename = outputPath + "/" + basename + ".flv";
+        // }
+        // if (headerType.indexOf("audio/mpeg") > -1) {
+        // // for converted media file
+        // outputFilename = outputPath + "/" + basename + ".mp3";
+        // }
+        //
+        // // Check if file is exist or not, just incase
+        // File outputFile = new File(outputFilename);
+        // if (outputFile.exists()) {
+        // outputFile.delete();
+        // }
+        // FileOutputStream fos = new FileOutputStream(outputFilename);
+        // IOUtils.copy(is, fos);
+        // is.close();
+        // fos.close();
+        // log.debug("ICE output at {}", outputFilename);
+        // return outputFilename; // Returning the location of the file
+        // } catch (Exception e) {
+        // log.error("An error occurred: {}", e.getMessage());
+        // // e.printStackTrace();
+        // return "Error " + e.getMessage();
+        // }
     }
 
     /**
@@ -368,6 +378,10 @@ public class IceTransformer implements Transformer {
             excludeRenditionExtList = new ArrayList<String>();
             setExcludeRenditionExtList(excludeRenditionExt);
             try {
+                // Structure: "ice2ContentPaths" :
+                // {"/home/ward/ice/test-content" :
+                // "http://139.86.38.58:8003/rep.TempTest-Content1/"},
+
                 ice2ContentPaths = config
                         .getMap("transformer/ice2/ice2ContentPaths");
             } catch (Exception e) {
