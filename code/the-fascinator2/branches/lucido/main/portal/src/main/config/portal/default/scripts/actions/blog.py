@@ -49,7 +49,7 @@ class AtomEntryPoster:
             except Exception, e:
                 e.printStackTrace()
                 success = False
-                value = "Failed to connect"
+                value = e.getMessage()
             if success:
                 altLinks = value.getAlternateLinks()
                 if altLinks is not None:
@@ -75,7 +75,8 @@ class AtomEntryPoster:
         tidy.setPrintBodyOnly(True)
         tidy.setSmartIndent(False)
         tidy.setWraplen(0)
-        tidy.setXHTML(True)
+        tidy.setXHTML(False)
+        tidy.setNumEntities(True)
         out = ByteArrayOutputStream()
         try:
             doc = tidy.parseDOM(payload.getInputStream(), out)
@@ -130,7 +131,7 @@ class AtomEntryPoster:
         if collection is not None:
             entry = collection.createEntry()
             entry.setTitle(title)
-            entry.setContent(content, Content.XHTML)
+            entry.setContent(content, Content.HTML)
             collection.addEntry(entry)
             return True, entry
         else:
