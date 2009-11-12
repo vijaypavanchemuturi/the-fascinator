@@ -5,7 +5,7 @@
     "query" : "",
     "records-per-page" : "10",
     "facet-count" : "10",
-    "facet-sort-by-count" : "true",
+    "facet-sort-by-count" : "false",
     "backup" : {
       "email" : "fascinator@usq.edu.au",
       "paths" : {
@@ -24,16 +24,20 @@
       }
     },
     "facet-fields" : {
+      "f_dc_format" : {
+        "label" : "Format",
+        "display" : "list"
+      },
       "f_dc_subject" : {
         "label" : "Subject",
         "display" : "list"
       },
+      "file_path" : {
+        "label" : "Path",
+        "display" : "tree"
+      },
       "f_dc_type" : {
         "label" : "Type",
-        "display" : "list"
-      },
-      "f_dc_format" : {
-        "label" : "Format",
         "display" : "list"
       },
       "repository_name" : {
@@ -43,10 +47,6 @@
       "repository_type" : {
         "label" : "Source type",
         "display" : "list"
-      },
-      "file_path" : {
-        "label" : "Path",
-        "display" : "tree"
       }
     }
   }

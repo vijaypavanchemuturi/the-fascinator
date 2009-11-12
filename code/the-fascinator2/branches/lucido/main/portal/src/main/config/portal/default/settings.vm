@@ -17,7 +17,7 @@
       <fieldset class="login">
         <p>
           <label for="view-id">Identifier</label>
-          <input id="view-id" name="view-id" type="text" value="$self.portal.name" />
+          <input disabled="disabled" id="view-id" name="view-id" type="text" value="$self.portal.name" />
         </p>
         <p>
           <label for="view-description">Description</label>
@@ -37,12 +37,14 @@
         </p>
         <p>
           <label for="view-facet-sort">Sort by facet counts</label>
-          <input id="view-facet-sort" name="portalFacetSort" type="checkbox" value="$self.portal.facetSort" />
+          <input id="view-facet-sort" name="view-facet-sort" type="checkbox" value="$self.portal.facetSort" />
         </p>
       </fieldset>
-      <input id="view-accept" type="submit" value="Update" />
-      <input id="view-cancel" type="button" value="Cancel" />
     </form>
+    <button id="view-update">Update</button>
+    <button id="view-cancel">Cancel</button>
+    <img class="hidden" id="view-loading" src="$portalPath/images/icons/loading.gif" />
+    <span id="view-message"></span>
   </div>
   <div id="facets-section" class="box hidden">
     <h2>Facets</h2>
@@ -93,15 +95,16 @@
             </td>
             <td>
               <input class="facet-delete" name="facet-delete" type="checkbox" value="${id}" />
-              <a href="#"><img class="hidden" src="$portalPath/images/icons/delete.png" /></a>
             </td>
           </tr>
         #end
         </tbody>
       </table>
+      <button id="facets-add">Add</button>
       <button id="facets-update">Update</button>
       <button id="facets-cancel">Cancel</button>
       <img class="hidden" id="facets-loading" src="$portalPath/images/icons/loading.gif" />
+      <span id="facets-message"></span>
     </div>
   </div>
   <div id="backup-section" class="box hidden">
@@ -145,6 +148,22 @@ $(function() {
         $("#" + selected + "-category").click();
     }
     
+    $("#view-update").removeAttr("disabled").click(function() {
+        $(this).attr("disabled", "disabled");
+        $("#view-loading").show();
+        var data = $("#view-form").serialize();
+        jQuery.post("$portalPath/actions/facets.ajax?" + data,
+            { func: "view-update" },
+            function(data, status) {
+                $("#view-loading").hide();
+                $("#view-message").text("Updated successfully");
+                setTimeout(function() { $("#view-message").empty(); }, 3000);
+                $("#view-update").removeAttr("disabled");
+            },
+            "json"
+        );
+    });
+    
     $(".facet-field-text, .facet-label-text, .facet-display-text").live("click",
         function() {
             $(this).toggleClass("hidden").toggleClass("visible");
@@ -159,10 +178,8 @@ $(function() {
         var parentEl = $(this).parent();
         var textEl = parentEl.prev();
         var inputEl = $(this).prev("input");
-        
         parentEl.toggleClass("hidden").toggleClass("inline");
         textEl.toggleClass("hidden").toggleClass("visible");
-        
         var oldValue = textEl.text();
         var newValue = inputEl.attr("value");
         if (oldValue != newValue) {
@@ -174,10 +191,8 @@ $(function() {
         var parentEl = $(this).parents("form");
         var textEl = parentEl.prev();
         var inputEl = $(this).prev("select");
-        
         parentEl.toggleClass("hidden").toggleClass("inline");
         textEl.toggleClass("hidden").toggleClass("visible");
-        
         var oldValue = textEl.text();
         var newValue = inputEl.val();
         if (oldValue != newValue) {
@@ -191,8 +206,15 @@ $(function() {
                 .prev().toggleClass("hidden").toggleClass("visible");
             return false;
         });
-    $("#facet-table").sortable({
-        axis: 'y'
+    $("#facet-table").sortable({ axis: 'y' });
+    $("#facets-add").click(function() {
+        var newFacet = $("#facet-table tr:first").clone(true).appendTo($("#facet-table"));
+        newFacet.find("span").css("font-weight", "bold");
+        newFacet.attr("id", "facet-edit-" + ($("#facet-table tr").length + 1));
+        newFacet.find(".facet-label-text").text("New facet");
+        newFacet.find(".facet-label-input").attr("value", "New facet");
+        newFacet.find(".facet-field-text").text("f_new_facet").click();
+        newFacet.find(".facet-field-input").attr("value", "f_new_facet").focus();
     });
     $("#facets-update").removeAttr("disabled").click(function() {
         $(this).attr("disabled", "disabled");
@@ -213,11 +235,18 @@ $(function() {
         jQuery.post("$portalPath/actions/facets.ajax?" + data,
             { func: "facets-update" },
             function(data, status) {
-                $("#facets-update").removeAttr("disabled");
+                $("#facet-table span").css("font-weight", "normal");
                 $("#facets-loading").hide();
+                $(".facet-delete:checked").parents("tr").remove();
+                $("#facets-message").text("Updated successfully");
+                setTimeout(function() { $("#facets-message").empty(); }, 3000);
+                $("#facets-update").removeAttr("disabled");
             },
             "json"
         );
+    });
+    $("#view-cancel, #facets-cancel").click(function() {
+        window.location.reload();
     });
 });
 </script>
