@@ -13,6 +13,8 @@ class FeedData:
         pageNum = sessionState.get("pageNum", 1)
         
         query = "*:*"
+        if formData.get("query"):
+            query = formData.get("query") 
         
         req = SearchRequest(query)
         req.setParam("facet", "true")
