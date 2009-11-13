@@ -18,7 +18,8 @@
             "resize.image.ratio": "-90",
             "resize.image.fixedWidth": "150",
             "enlargeImage": "false",
-            "outputPath": "${java.io.tmpdir}/ice2-output"
+            "outputPath": "${java.io.tmpdir}/ice2-output",
+            "excludeRenditionExt": ".txt,.mp3,.m4a"
         }
     },
     

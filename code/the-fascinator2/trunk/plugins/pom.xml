@@ -16,6 +16,7 @@
     <module>harvester/filesystem</module>
     <module>harvester/jsonq</module>
     <module>harvester/oai-pmh</module>
+    <module>harvester/restore-backup</module>
     <module>indexer/solr</module>
     <module>storage/couchdb</module>
     <module>storage/fedora3</module>
@@ -24,4 +25,3 @@
     <module>transformer/ice2</module>
   </modules>
 </project>
- 
