@@ -18,6 +18,9 @@ class SearchData:
         self.__pageNum = sessionState.get("pageNum", 1)
         self.__selected = []
         self.__search()
+        
+    def getPortalName(self):
+        return Services.portalManager.get(portalId).description
     
     def __search(self):
         recordsPerPage = self.__portal.recordsPerPage
