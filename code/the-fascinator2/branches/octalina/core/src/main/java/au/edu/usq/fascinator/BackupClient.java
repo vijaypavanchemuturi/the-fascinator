@@ -140,7 +140,9 @@ public class BackupClient {
 
     @SuppressWarnings("unchecked")
     public void setDefaultSetting(File jsonFile) throws IOException {
+        Boolean fromPortal = true;
         if (jsonFile != null) {
+            fromPortal = false;
             config = new JsonConfig(jsonFile);
         } else {
             config = new JsonConfig();
@@ -151,18 +153,22 @@ public class BackupClient {
         realStorageType = systemConfig
                 .get("storage/type", DEFAULT_STORAGE_TYPE);
 
-        // Set default email, backupDirList
-        setEmail(config.get("backup-email"));
+        if (fromPortal == false) {
+            // Set default email, backupDirList
+            setEmail(config.get("backup/email"));
 
-        Map<String, Object> backupPaths = config
-                .getMapWithChild("backup-paths");
-        Map<String, Map<String, Object>> backupPathsDict = new HashMap<String, Map<String, Object>>();
-        for (String key : backupPaths.keySet()) {
-            Map<String, Object> newObj = (Map<String, Object>) backupPaths
-                    .get(key);
-            backupPathsDict.put(key, newObj);
+            Map<String, Object> backupPaths = config
+                    .getMapWithChild("backup/paths");
+            if (backupPaths != null) {
+                Map<String, Map<String, Object>> backupPathsDict = new HashMap<String, Map<String, Object>>();
+                for (String key : backupPaths.keySet()) {
+                    Map<String, Object> newObj = (Map<String, Object>) backupPaths
+                            .get(key);
+                    backupPathsDict.put(key, newObj);
+                }
+                setBackupDir(backupPathsDict);
+            }
         }
-        setBackupDir(backupPathsDict);
     }
 
     /**
@@ -320,8 +326,13 @@ public class BackupClient {
      */
     public void startBackup(JsonConfigHelper js) throws IOException {
         // Backup to active backup Directory
+        log
+                .info("backupDirList.keySet(): "
+                        + backupDirList.keySet().toString());
         for (String backupPath : backupDirList.keySet()) {
             Map<String, Object> backupProps = backupDirList.get(backupPath);
+            backupPath = backupPath.replace("${user.home}", System
+                    .getProperty("user.home"));
             String filterString = backupProps.get("ignoreFilter").toString();
             if (filterString == null) {
                 filterString = DEFAULT_IGNORE_FILTER;
@@ -400,7 +411,7 @@ public class BackupClient {
                     } else {
                         portalFolder = new File(backupPath.toString()
                                 + File.separator + email + File.separator
-                                + "config/portal" + File.separator
+                                + "config" + File.separator
                                 + portalDir.getName());
                     }
                     portalFolder.getParentFile().mkdirs();
@@ -501,6 +512,7 @@ public class BackupClient {
         } else {
             File jsonFile = new File(args[0]);
             try {
+                log.info("jsonFile: " + jsonFile.getAbsolutePath());
                 BackupClient backup = new BackupClient(jsonFile);
                 backup.run();
             } catch (IOException ioe) {

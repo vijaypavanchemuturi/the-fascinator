@@ -104,6 +104,9 @@ public class BackupRestoreHarvester implements Harvester, Configurable {
 		
 		for (String restorePath : restoreDirList.keySet()) {
             Map<String, Object> restoreProps = restoreDirList.get(restorePath);
+            restorePath = restorePath.replace("${user.home}", System
+                    .getProperty("user.home"));
+            log.info("**** restorePath: " + restorePath);
             String filterString = restoreProps.get("ignoreFilter").toString();
             if (filterString == null) {
                 filterString = DEFAULT_IGNORE_FILTER;
@@ -256,7 +259,7 @@ public class BackupRestoreHarvester implements Harvester, Configurable {
 		try {
 			config = new JsonConfig(jsonFile);
 			systemConfig = new JsonConfig(config.getSystemFile());
-			Map<String, Object> backupPaths = config.getMapWithChild("restore-paths");
+			Map<String, Object> backupPaths = config.getMapWithChild("restore/paths");
 		    Map<String, Map<String, Object>> backupPathsDict = new HashMap<String, Map<String, Object>>();
 		    for (String key : backupPaths.keySet()) {
 		        Map<String, Object> newObj = (Map<String, Object>) backupPaths
@@ -264,7 +267,7 @@ public class BackupRestoreHarvester implements Harvester, Configurable {
 		        backupPathsDict.put(key, newObj);
 		    }
 		    setRestoreDir(backupPathsDict);
-		    setEmail(config.get("restore-email"));
+		    setEmail(config.get("restore/email"));
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

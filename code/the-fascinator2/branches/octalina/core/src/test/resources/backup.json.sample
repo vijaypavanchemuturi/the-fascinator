@@ -31,24 +31,39 @@
         }
     },
     
-    "backup-email" : "octalina@usq.edu.au",
-    "backup-paths" : {
-      "/home/octalina/backup" : {
-        "include-rendition-meta" : true,
-        "ignoreFilter" : ".svn|.ice|.*|~*|*~",
-        "active" : true,
-        "include-portal-view" : true
+    "backup" : {
+      "email" : "fascinator@usq.edu.au",
+      "paths" : {
+        "${user.home}/.fascinator/backup" : {
+          "active" : false,
+          "ignoreFilter" : ".svn|.ice|.*|~*",
+          "include-rendition-meta" : true,
+          "include-portal-view" : false
+        },
+        "${user.home}/.fascinator/backup1" : {
+          "active" : true,
+          "ignoreFilter" : ".svn|.ice|.*|~*",
+          "include-rendition-meta" : true,
+          "include-portal-view" : true
+        }
       }
     },
     
-    "restore-email" : "octalina@usq.edu.au",
-    "restore-paths" : {
-      "/home/octalina/backup" : {
-        "include-rendition-meta" : false,
-        "ignoreFilter" : ".svn|.ice|.*|~*|*~",
-        "active" : true,
-        "include-portal-view" : true
+    "restore": {
+    	"email" : "fascinator@usq.edu.au",
+    	"paths" : {
+        "${user.home}/.fascinator/backup" : {
+          "active" : false,
+          "ignoreFilter" : ".svn|.ice|.*|~*",
+          "include-rendition-meta" : true,
+          "include-portal-view" : false
+        },
+        "${user.home}/.fascinator/backup1" : {
+          "active" : true,
+          "ignoreFilter" : ".svn|.ice|.*|~*",
+          "include-rendition-meta" : true,
+          "include-portal-view" : true
+        }
       }
     }
-    
 }
