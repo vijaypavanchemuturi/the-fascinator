@@ -9,17 +9,17 @@
     "backup" : {
       "email" : "fascinator@usq.edu.au",
       "paths" : {
-        "${user.home}/.fascinator/backup" : {
-          "active" : false,
-          "ignoreFilter" : ".svn|.ice|.*|~*",
-          "include-rendition-meta" : true,
-          "include-portal-view" : false
+        "/media/external" : {
+          "active" : "false",
+          "include-rendition-meta" : "false",
+          "include-portal-view" : "false",
+          "ignoreFilter" : ".svn|.ice|.*|~*"
         },
-        "${user.home}/.fascinator/backup1" : {
-          "active" : true,
-          "ignoreFilter" : ".svn|.ice|.*|~*",
-          "include-rendition-meta" : true,
-          "include-portal-view" : true
+        "${user.home}/.fascinator/backup" : {
+          "active" : "false",
+          "include-rendition-meta" : "true",
+          "include-portal-view" : "true",
+          "ignoreFilter" : ".svn|.ice|.*|~*"
         }
       }
     },
