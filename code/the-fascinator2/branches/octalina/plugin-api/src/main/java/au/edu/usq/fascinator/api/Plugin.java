@@ -51,6 +51,14 @@ public interface Plugin {
     public void init(File jsonFile) throws PluginException;
 
     /**
+     * Initalises the plugin using the sepcified JSON String
+     * 
+     * @param jsonString JSON configuration string
+     * @throws PluginException if there was an error during initialisation
+     */
+    public void init(String jsonString) throws PluginException;
+
+    /**
      * Shuts down the plugin
      * 
      * @throws PluginException if there was an error during shutdown

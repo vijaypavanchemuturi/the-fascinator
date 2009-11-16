@@ -15,19 +15,23 @@
       "repository_type" : "Source type",
       "f_dc_type" : "Type"
     },
-    "backup-email" : "octalina@usq.edu.au",
-    "backup-paths" : {
-      "/home/octalina/backup1" : {
-        "include-rendition-meta" : true,
-        "ignoreFilter" : ".svn|.ice|.*|~*",
-        "active" : false,
-        "include-portal-view" : false
-      },
-      "/home/octalina/backup" : {
-        "include-rendition-meta" : true,
-        "ignoreFilter" : ".svn|.ice|.*|~*|*~",
-        "active" : true,
-        "include-portal-view" : true
+    "backup" : {
+      "email" : "fascinator@usq.edu.au",
+      "paths" : {
+        "${user.home}/.fascinator/storage1" : {
+          "active" : false,
+          "ignoreFilter" : ".svn|.ice|.*|~*",
+          "include-rendition-meta" : true,
+          "include-portal-view" : false,
+          "storage-type" : "file-system"
+        },
+        "${user.home}/.fascinator/storage2" : {
+          "active" : true,
+          "ignoreFilter" : ".svn|.ice|.*|~*",
+          "include-rendition-meta" : true,
+          "include-portal-view" : true,
+          "storage-type" : "file-system"
+        }
       }
     }
   }
