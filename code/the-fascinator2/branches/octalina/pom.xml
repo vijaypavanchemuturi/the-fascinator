@@ -6,77 +6,21 @@
   <packaging>pom</packaging>
   <name>The Fascinator</name>
   <version>0.3.0-SNAPSHOT</version>
+  <parent>
+    <groupId>au.edu.usq.fascinator</groupId>
+    <artifactId>organisation</artifactId>
+    <version>0.1.1</version>
+  </parent>
   <description>The Desktop Fascinator is an experimental software package based on The Fascinator, which is inspired by the ongoing problem of getting eResearch data/metadata and publications into repositories where they can be backed up, preserved and shared with a network of other researchers.</description>
   <url>http://fascinator.usq.edu.au</url>
-  <inceptionYear>2009</inceptionYear>
-  <mailingLists>
-    <mailingList>
-      <name>Developer List</name>
-      <post>the-fascinator-dev@googlegroups.com</post>
-      <archive>http://groups.google.com/group/the-fascinator-dev</archive>
-    </mailingList>
-  </mailingLists>
-  <licenses>
-    <license>
-      <name>GNU GENERAL PUBLIC LICENSE V2</name>
-      <url>http://www.gnu.org/licenses/gpl-2.0.txt</url>
-    </license>
-  </licenses>
-  <issueManagement>
-    <system>Trac</system>
-    <url>http://fascinator.usq.edu.au/trac/</url>
-  </issueManagement>
-  <developers>
-    <developer> 
-      <id>dickinso</id>
-      <name>Duncan Dickinson</name>
-      <url>duncan.dickinson.name</url>
-      <roles>
-        <role>Project Officer</role>
-        <role>Developer</role>
-      </roles>
-    </developer>
-    <developer>
-      <id>dye</id>
-      <name>Bronwyn Chandler</name>
-      <roles>
-        <role>Project Officer</role>
-      </roles>
-    </developer>
-    <developer>
-      <id>octalina</id>
-      <name>Linda Octalina</name>
-      <roles>
-        <role>Developer</role>
-      </roles>
-    </developer>
-    <developer>
-      <id>lucido</id>
-      <name>Oliver Lucido</name>
-      <roles>
-        <role>Developer</role>
-      </roles>
-    </developer>
-    <developer>
-      <id>sefton</id>
-      <name>Peter Sefton</name>
-      <roles>
-        <role>Consultant</role>
-        <role>Tester</role>
-      </roles>
-    </developer>
-  </developers>
   <scm>
     <url>http://fascinator.usq.edu.au/svn/code/the-fascinator2/trunk</url>
     <connection>scm:svn:http://fascinator.usq.edu.au/svn/code/the-fascinator2/trunk</connection>
     <developerConnection>scm:svn:http://fascinator.usq.edu.au/svn-auth/code/the-fascinator2/trunk</developerConnection>
   </scm>
-  <organization>
-    <name>University of Southern Queensland</name>
-    <url>http://www.usq.edu.au</url>
-  </organization>
   <properties>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+     <svn-repository>http://fascinator.usq.edu.au/svn-auth/</svn-repository>
+     <svn-parent-dir>code/the-fascinator2/trunk</svn-parent-dir>
   </properties>
   <modules>
     <module>common</module>
@@ -85,18 +29,6 @@
     <module>plugins</module>
     <module>portal</module>
   </modules>
-  <distributionManagement>
-    <repository>
-      <id>releases</id>
-      <name>The Fascinator Releases</name>
-      <url>http://fascinator.usq.edu.au/nexus/content/repositories/releases</url>
-    </repository>
-    <snapshotRepository>
-      <id>snapshots</id>
-      <name>The Fascinator Snapshots</name>
-      <url>http://fascinator.usq.edu.au/nexus/content/repositories/snapshots</url>
-    </snapshotRepository>
-  </distributionManagement>
   <dependencyManagement>
     <dependencies>
       <dependency>
@@ -239,37 +171,6 @@
     </dependencies>
   </dependencyManagement>
   <build>
-    <pluginManagement>
-      <plugins>
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-scm-plugin</artifactId>
-          <version>1.0</version>
-          <configuration>
-            <connectionType>developerConnection</connectionType>
-          </configuration>
-        </plugin>
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-compiler-plugin</artifactId>
-          <configuration>
-            <source>1.6</source>
-            <target>1.6</target>
-          </configuration>
-        </plugin>
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-javadoc-plugin</artifactId>
-          <version>2.5</version>
-          <configuration>
-            <aggregate>true</aggregate>
-            <links>
-              <link>http://java.sun.com/javase/6/docs/api</link>
-            </links>
-          </configuration>
-        </plugin>
-      </plugins>
-    </pluginManagement>
     <plugins>
       <!--
       <plugin>
@@ -288,46 +189,4 @@
       </plugin>
     </plugins>
   </build>
-  <reporting>
-    <plugins>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-jxr-plugin</artifactId>
-        <version>2.1</version>
-        <configuration>
-          <aggregate>true</aggregate>
-        </configuration>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-pmd-plugin</artifactId>
-        <version>2.4</version>
-        <configuration>
-          <aggregate>true</aggregate>
-        </configuration>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-checkstyle-plugin</artifactId>
-        <version>2.2</version>
-        <configuration>
-          <aggregate>true</aggregate>
-        </configuration>
-      </plugin>
-      <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>taglist-maven-plugin</artifactId>
-        <version>2.3</version>
-        <configuration>
-          <aggregate>true</aggregate>
-        </configuration>
-      </plugin>
-    </plugins>
-  </reporting>
-  <repositories>
-    <repository>
-      <id>adfi-usq-releases</id>
-      <url>http://fascinator.usq.edu.au/nexus/content/groups/public</url>
-    </repository>
-  </repositories>
 </project>
