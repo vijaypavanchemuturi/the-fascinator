@@ -1,3 +1,6 @@
+#if($noLayout)
+$!pageContent
+#end
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
@@ -45,6 +48,8 @@
             </ul>
           </li>
           <li><a href="$portalPath/settings">Settings</a></li>
+          #### not yet finished
+          ##<li><a href="$portalPath/harvest">Harvest</a></li>
           <li class="secondary">
             <a class="search" href="#"><img src="$portalPath/images/icons/magnifier.png" /></a>
           </li>
@@ -63,6 +68,7 @@
       <div class="grid_16">
         $!pageContent
       </div>
+      <div class="clear"></div>
       <div class="clear"></div>
     </div>
     <div class="clear"></div>

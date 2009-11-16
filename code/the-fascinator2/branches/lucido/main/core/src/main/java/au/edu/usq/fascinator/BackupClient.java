@@ -39,6 +39,7 @@ import java.util.zip.ZipOutputStream;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.text.StrSubstitutor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -82,10 +83,16 @@ public class BackupClient {
     /** Default indexer type if none defined **/
     private static final String DEFAULT_INDEXER_TYPE = "solr";
 
+    /** Default ignore filter if none defined **/
+    private static final String DEFAULT_IGNORE_FILTER = ".svn|.ice|.*|~*|*~";
+
     private static Logger log = LoggerFactory.getLogger(BackupClient.class);
 
     /** Json configuration file **/
     private JsonConfig config;
+
+    /** Json system configuration file **/
+    private JsonConfig systemConfig;
 
     /** Email used to define user space **/
     private String email = null;
@@ -107,6 +114,8 @@ public class BackupClient {
     /** Portal directory **/
     private File portalDir;
 
+    private Boolean backupAll = false;
+
     /**
      * Backup Client Constructor
      * 
@@ -127,30 +136,40 @@ public class BackupClient {
      */
     public BackupClient(File jsonFile) throws IOException {
         setDefaultSetting(jsonFile);
+        backupAll = true;
     }
 
     @SuppressWarnings("unchecked")
     public void setDefaultSetting(File jsonFile) throws IOException {
+        Boolean fromPortal = true;
         if (jsonFile != null) {
+            fromPortal = false;
             config = new JsonConfig(jsonFile);
         } else {
             config = new JsonConfig();
         }
-        indexerType = config.get("indexer/type", DEFAULT_INDEXER_TYPE);
-        realStorageType = config.get("storage/type", DEFAULT_STORAGE_TYPE);
 
-        // Set default email, backupDirList
-        setEmail(config.get("backup-email"));
+        systemConfig = new JsonConfig(config.getSystemFile());
+        indexerType = systemConfig.get("indexer/type", DEFAULT_INDEXER_TYPE);
+        realStorageType = systemConfig
+                .get("storage/type", DEFAULT_STORAGE_TYPE);
 
-        Map<String, Object> backupPaths = config
-                .getMapWithChild("backup-paths");
-        Map<String, Map<String, Object>> backupPathsDict = new HashMap<String, Map<String, Object>>();
-        for (String key : backupPaths.keySet()) {
-            Map<String, Object> newObj = (Map<String, Object>) backupPaths
-                    .get(key);
-            backupPathsDict.put(key, newObj);
+        if (fromPortal == false) {
+            // Set default email, backupDirList
+            setEmail(config.get("backup/email"));
+
+            Map<String, Object> backupPaths = config
+                    .getMapWithChild("backup/paths");
+            if (backupPaths != null) {
+                Map<String, Map<String, Object>> backupPathsDict = new HashMap<String, Map<String, Object>>();
+                for (String key : backupPaths.keySet()) {
+                    Map<String, Object> newObj = (Map<String, Object>) backupPaths
+                            .get(key);
+                    backupPathsDict.put(key, newObj);
+                }
+                setBackupDir(backupPathsDict);
+            }
         }
-        setBackupDir(backupPathsDict);
     }
 
     /**
@@ -307,37 +326,40 @@ public class BackupClient {
      * @throws IOException
      */
     public void startBackup(JsonConfigHelper js) throws IOException {
-        // Backup all the digital object returned by indexer
-        log.info("js: " + js.getList("response/docs/id").size());
-        for (Object oid : js.getList("response/docs/id")) {
-            String fileName = oid.toString();
-            File originalFile = new File(fileName);
-            DigitalObject digitalObject = realStorage.getObject(fileName);
-            log.info("fileName: " + fileName);
-            fileName = isWindowFile(fileName);
+        // Backup to active backup Directory
+        for (String backupPath : backupDirList.keySet()) {
+            Map<String, Object> backupProps = backupDirList.get(backupPath);
+            backupPath = StrSubstitutor.replaceSystemProperties(backupPath);
+            String filterString = backupProps.get("ignoreFilter").toString();
+            if (filterString == null) {
+                filterString = DEFAULT_IGNORE_FILTER;
+            }
+            IgnoreFilter ignoreFilter = new IgnoreFilter(filterString
+                    .split("\\|"));
+            String includeMeta = String.valueOf(backupProps
+                    .get("include-rendition-meta"));
+            String active = String.valueOf(backupProps.get("active"));
+            String includePortal = String.valueOf(backupProps
+                    .get("include-portal-view"));
 
-            // Backup to "active" backup directory
-            for (String backupPath : backupDirList.keySet()) {
-                Map<String, Object> backupProps = backupDirList.get(backupPath);
-                log.info("****: " + backupPath);
-                IgnoreFilter ignoreFilter = new IgnoreFilter(backupProps.get(
-                        "ignoreFilter").toString().split("\\|"));
-                if (ignoreFilter.accept(originalFile) == true) {
-                    String includeMeta = String.valueOf(backupProps
-                            .get("include-rendition-meta"));
-                    String active = String.valueOf(backupProps.get("active"));
-                    String includePortal = String.valueOf(backupProps
-                            .get("include-portal-view"));
+            // Only using active backup path
+            if (active == "true") {
+                File backupDirectory = new File(backupPath.toString()
+                        + File.separator + email + File.separator + "files");
+                if (backupDirectory.exists() == false) {
+                    backupDirectory.getParentFile().mkdirs();
+                }
+                // List all the files to be backup-ed
+                for (Object oid : js.getList("response/docs/id")) {
+                    String fileName = oid.toString();
+                    File originalFile = new File(fileName);
+                    DigitalObject digitalObject = realStorage
+                            .getObject(fileName);
+                    log.info("fileName: " + fileName);
+                    fileName = isWindowFile(fileName);
 
-                    // Only active path then do backup
-                    if (active == "true") {
-                        File backupDirectory = new File(backupPath.toString()
-                                + File.separator + email + File.separator
-                                + "files");
-                        if (backupDirectory.exists() == false) {
-                            backupDirectory.getParentFile().mkdirs();
-                        }
-                        // Process the source data first
+                    if (ignoreFilter.accept(originalFile) == true) {
+                        // Processing original File
                         String outputFileName = backupDirectory
                                 .getAbsolutePath()
                                 + fileName;
@@ -350,42 +372,47 @@ public class BackupClient {
                         if (payload != null) {
                             IOUtils.copy(payload.getInputStream(), output);
                         }
-
-                        // Process the rest of the metadata if
-                        // includeMeta is true, This will be in the zip file
-                        List<Payload> payloadList = digitalObject
-                                .getPayloadList();
-                        if (includeMeta == "true"
-                                && payloadList.isEmpty() == false) {
-                            String zipFileName = backupDirectory
-                                    .getAbsolutePath()
-                                    + fileName + ".zip";
-                            includeMetadata(zipFileName, payloadList);
-                        }
-
-                        // Process the view/portal files if included
-                        if (includePortal == "true") {
-                            File portalFolder;
-                            if (portalDir == null) {
-                                portalDir = new File(
-                                        "../portal/src/main/config/portal");
-                                portalFolder = new File(backupPath.toString()
-                                        + File.separator + email
-                                        + File.separator + "config/portal");
-                            } else {
-                                portalFolder = new File(backupPath.toString()
-                                        + File.separator + email
-                                        + File.separator + "config/portal"
-                                        + File.separator + portalDir.getName());
-                            }
-                            log.info("portalFolder: "
-                                    + portalFolder.getAbsolutePath());
-                            log.info("portalDir: "
-                                    + portalDir.getAbsolutePath());
-                            portalFolder.getParentFile().mkdirs();
-                            includePortalDir(portalDir, portalFolder);
-                        }
                     }
+                    // Process the rest of the metadata if
+                    // includeMeta is true, This will be in the zip file
+                    List<Payload> payloadList = digitalObject.getPayloadList();
+                    if (includeMeta == "true" && payloadList.isEmpty() == false) {
+                        String zipFileName = backupDirectory.getAbsolutePath()
+                                + fileName + ".zip";
+                        includeMetadata(zipFileName, payloadList);
+                    }
+                }
+
+                // backup all the portal
+                if (backupAll == true && includePortal == "true") {
+                    File portalFolder;
+                    portalDir = new File(systemConfig.get("fascinator-home")
+                            + "/portal/" + systemConfig.get("portal/home"));
+                    portalFolder = new File(backupPath.toString()
+                            + File.separator + email + File.separator
+                            + "config");
+                    portalFolder.getParentFile().mkdirs();
+                    includePortalDir(portalDir, portalFolder, ignoreFilter);
+                }
+
+                // backup only current portal
+                if (includePortal == "true" && backupAll == false) {
+                    File portalFolder;
+                    if (portalDir == null) {
+                        portalDir = new File(systemConfig
+                                .get("fascinator-home")
+                                + "/portal/" + systemConfig.get("portal/home"));
+                        portalFolder = new File(backupPath.toString()
+                                + File.separator + email + File.separator
+                                + "config");
+                    } else {
+                        portalFolder = new File(backupPath.toString()
+                                + File.separator + email + File.separator
+                                + "config" + File.separator
+                                + portalDir.getName());
+                    }
+                    portalFolder.getParentFile().mkdirs();
+                    includePortalDir(portalDir, portalFolder, ignoreFilter);
                 }
             }
         }
@@ -415,18 +442,20 @@ public class BackupClient {
     /**
      * Copy portal config directory
      * 
-     * @param portalFolder
+     * @param portalSrc
+     * @param portalDest
+     * @param ignoreFilter to filter out .svn directory
      * @throws IOException
      */
-    private void includePortalDir(File portalSrc, File portalDest)
-            throws IOException {
+    private void includePortalDir(File portalSrc, File portalDest,
+            IgnoreFilter ignoreFilter) throws IOException {
         if (portalSrc.isDirectory()) {
             if (!portalDest.exists()) {
                 portalDest.mkdir();
             }
-            for (String file : portalSrc.list()) {
-                includePortalDir(new File(portalSrc, file), new File(
-                        portalDest, file));
+            for (File file : portalSrc.listFiles(ignoreFilter)) {
+                includePortalDir(new File(portalSrc, file.getName()), new File(
+                        portalDest, file.getName()), ignoreFilter);
             }
         } else {
             InputStream in = new FileInputStream(portalSrc);
@@ -475,16 +504,17 @@ public class BackupClient {
     }
 
     public static void main(String[] args) {
-        // if (args.length < 1 || (args[1] == "-h")) {
-        // log.info("Usage: backup [<portal-name>]");
-        // } else {
-
-        // If without args, it will just backup everything
-        try {
-            BackupClient backup = new BackupClient();
-            backup.run();
-        } catch (IOException ioe) {
-            log.error("Failed to initialise client: {}", ioe.getMessage());
+        if (args.length < 1) {
+            log.info("Usage: backup <json-config>");
+        } else {
+            File jsonFile = new File(args[0]);
+            try {
+                log.info("jsonFile: " + jsonFile.getAbsolutePath());
+                BackupClient backup = new BackupClient(jsonFile);
+                backup.run();
+            } catch (IOException ioe) {
+                log.error("Failed to initialise client: {}", ioe.getMessage());
+            }
         }
     }
 }

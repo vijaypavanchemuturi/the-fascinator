@@ -32,8 +32,14 @@ class FacetActions:
             portal.set("portal/backup/email", formData.get("email"))
             pathIds = formData.get("pathIds").split(",")
             actives = formData.getValues("backup-active")
+            if actives is None:
+                actives = []
             renditions = formData.getValues("backup-rendition")
+            if renditions is None:
+                renditions = []
             views = formData.getValues("backup-view")
+            if views is None:
+                views = []
             paths = HashMap()
             for pathId in pathIds:
                 path = formData.get("%s-path" % pathId)

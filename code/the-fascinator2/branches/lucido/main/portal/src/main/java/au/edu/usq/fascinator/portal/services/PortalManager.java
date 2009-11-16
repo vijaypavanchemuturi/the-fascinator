@@ -42,7 +42,6 @@ public interface PortalManager {
 
     public void save(Portal portal);
 
-    public void backup(Portal portal, String email,
-            Map<String, Map<String, Object>> backupDir, String portalQuery);
+    public void backup(Portal portal);
 
 }

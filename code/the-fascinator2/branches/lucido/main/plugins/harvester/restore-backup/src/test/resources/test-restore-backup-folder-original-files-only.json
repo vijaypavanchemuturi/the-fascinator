@@ -1,0 +1,13 @@
+{   
+    "restore": {
+    	"email" : "octalina@usq.edu.au",
+    	"paths" : {
+        "src/test/resources/backup-folder-original-files-only" : {
+          "active" : true,
+          "ignoreFilter" : ".svn|.ice|.*|~*",
+          "include-rendition-meta" : true,
+          "include-portal-view" : false
+        }
+      }
+    }
+}
