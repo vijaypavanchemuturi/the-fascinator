@@ -63,4 +63,11 @@ public interface DigitalObject {
      */
     public Payload getSource();
 
+    /**
+     * Remove payload from payload list
+     * 
+     * @param payload
+     */
+    public void removePayload(Payload payload);
+
 }

@@ -80,6 +80,9 @@ class DetailData:
     def getFileName(self, path):
         return os.path.split(path)[1]
     
+    def getFilePathWithoutExt(self, path):
+        return os.path.splitext(self.getFileName(path))[0]
+    
     def getMimeType(self):
         return self.__mimeType
     
