@@ -338,12 +338,13 @@ public class BackupClient {
                     .split("\\|"));
             String includeMeta = String.valueOf(backupProps
                     .get("include-rendition-meta"));
-            String active = String.valueOf(backupProps.get("active"));
+            boolean active = Boolean.parseBoolean(backupProps.get("active")
+                    .toString());
             String includePortal = String.valueOf(backupProps
                     .get("include-portal-view"));
 
             // Only using active backup path
-            if (active == "true") {
+            if (active) {
                 File backupDirectory = new File(backupPath.toString()
                         + File.separator + email + File.separator + "files");
                 if (backupDirectory.exists() == false) {
