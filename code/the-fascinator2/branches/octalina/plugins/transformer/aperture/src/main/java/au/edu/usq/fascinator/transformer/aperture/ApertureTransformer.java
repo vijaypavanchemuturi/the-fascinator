@@ -393,4 +393,10 @@ public class ApertureTransformer implements Transformer {
         return in; // If nothing happen, return the same object e.g. File not
         // exist
     }
+
+    @Override
+    public void init(String jsonString) throws PluginException {
+        // TODO Auto-generated method stub
+
+    }
 }

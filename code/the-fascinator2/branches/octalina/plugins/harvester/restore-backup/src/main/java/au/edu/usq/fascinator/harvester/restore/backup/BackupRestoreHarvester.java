@@ -350,4 +350,10 @@ public class BackupRestoreHarvester implements Harvester, Configurable {
         }
     }
 
+	@Override
+	public void init(String jsonString) throws PluginException {
+		// TODO Auto-generated method stub
+		
+	}
+
 }

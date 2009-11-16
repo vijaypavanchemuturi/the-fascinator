@@ -218,4 +218,10 @@ public class JsonQHarvester implements Harvester, Configurable {
         }
         return writer.toString();
     }
+
+    @Override
+    public void init(String jsonString) throws PluginException {
+        // TODO Auto-generated method stub
+
+    }
 }

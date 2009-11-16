@@ -42,6 +42,7 @@ import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import au.edu.usq.fascinator.api.PluginException;
 import au.edu.usq.fascinator.api.PluginManager;
 import au.edu.usq.fascinator.api.indexer.Indexer;
 import au.edu.usq.fascinator.api.indexer.IndexerException;
@@ -338,50 +339,95 @@ public class BackupClient {
                     .split("\\|"));
             String includeMeta = String.valueOf(backupProps
                     .get("include-rendition-meta"));
-            String active = String.valueOf(backupProps.get("active"));
+            boolean active = Boolean.parseBoolean(backupProps.get("active")
+                    .toString());
             String includePortal = String.valueOf(backupProps
                     .get("include-portal-view"));
 
-            // Only using active backup path
-            if (active == "true") {
-                File backupDirectory = new File(backupPath.toString()
-                        + File.separator + email + File.separator + "files");
-                if (backupDirectory.exists() == false) {
-                    backupDirectory.getParentFile().mkdirs();
-                }
-                // List all the files to be backup-ed
-                for (Object oid : js.getList("response/docs/id")) {
-                    String fileName = oid.toString();
-                    File originalFile = new File(fileName);
-                    DigitalObject digitalObject = realStorage
-                            .getObject(fileName);
-                    log.info("fileName: " + fileName);
-                    fileName = isWindowFile(fileName);
+            String destinationStorageType = String.valueOf(backupProps
+                    .get("storage-type"));
+            if (destinationStorageType == null) {
+                destinationStorageType = DEFAULT_STORAGE_TYPE;
+            }
 
-                    if (ignoreFilter.accept(originalFile) == true) {
-                        // Processing original File
-                        String outputFileName = backupDirectory
-                                .getAbsolutePath()
-                                + fileName;
-                        File outputFile = new File(outputFileName);
-                        outputFile.getParentFile().mkdirs();
-                        OutputStream output = new FileOutputStream(outputFile);
-                        log.info("Backup file: {} to {}", fileName, outputFile
-                                .getAbsolutePath());
-                        Payload payload = digitalObject.getSource();
-                        if (payload != null) {
-                            IOUtils.copy(payload.getInputStream(), output);
+            // Assume it's only for filesystem storage for now
+            // TODO how about fedora3 and couchDB?
+            String storageConfig = "{\"storage\": {" + "\"type\": \""
+                    + destinationStorageType + "\"," + "\""
+                    + destinationStorageType + "\": {" + "\"home\": \""
+                    + backupPath.toString() + File.separator + email
+                    + File.separator + "files" + "\"" + "}}}";
+
+            Storage destinationStorage = PluginManager
+                    .getStorage(destinationStorageType);
+            // Only using active backup path
+            if (active && destinationStorage != null) {
+                try {
+                    destinationStorage.init(storageConfig);
+
+                    File backupDirectory = new File(backupPath.toString()
+                            + File.separator + email + File.separator + "files");
+                    if (backupDirectory.exists() == false) {
+                        backupDirectory.getParentFile().mkdirs();
+                    }
+                    // List all the files to be backup-ed
+                    for (Object oid : js.getList("response/docs/id")) {
+                        String objectId = oid.toString();
+                        DigitalObject digitalObject = realStorage
+                                .getObject(objectId);
+                        destinationStorage.addObject(digitalObject);
+
+                        // List all the payloads
+                        List<Payload> payloadList = digitalObject
+                                .getPayloadList();
+                        if (includeMeta == "true"
+                                && payloadList.isEmpty() == false) {
+                            for (Payload payload : payloadList) {
+                                destinationStorage
+                                        .addPayload(objectId, payload);
+                            }
                         }
+
                     }
-                    // Process the rest of the metadata if
-                    // includeMeta is true, This will be in the zip file
-                    List<Payload> payloadList = digitalObject.getPayloadList();
-                    if (includeMeta == "true" && payloadList.isEmpty() == false) {
-                        String zipFileName = backupDirectory.getAbsolutePath()
-                                + fileName + ".zip";
-                        includeMetadata(zipFileName, payloadList);
-                    }
+
+                } catch (PluginException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
                 }
+
+                // for (Object oid : js.getList("response/docs/id")) {
+                // String fileName = oid.toString();
+                // File originalFile = new File(fileName);
+                // DigitalObject digitalObject = realStorage
+                // .getObject(fileName);
+                // log.info("fileName: " + fileName);
+                // fileName = isWindowFile(fileName);
+                //
+                // if (ignoreFilter.accept(originalFile) == true) {
+                // // Processing original File
+                // String outputFileName = backupDirectory
+                // .getAbsolutePath()
+                // + fileName;
+                // File outputFile = new File(outputFileName);
+                // outputFile.getParentFile().mkdirs();
+                // OutputStream output = new FileOutputStream(outputFile);
+                // log.info("Backup file: {} to {}", fileName, outputFile
+                // .getAbsolutePath());
+                // Payload payload = digitalObject.getSource();
+                // if (payload != null) {
+                // IOUtils.copy(payload.getInputStream(), output);
+                // }
+                // }
+                // // Process the rest of the metadata if
+                // // includeMeta is true, This will be in the zip file
+                // List<Payload> payloadList = digitalObject.getPayloadList();
+                // if (includeMeta == "true" && payloadList.isEmpty() == false)
+                // {
+                // String zipFileName = backupDirectory.getAbsolutePath()
+                // + fileName + ".zip";
+                // includeMetadata(zipFileName, payloadList);
+                // }
+                // }
 
                 // backup all the portal
                 if (backupAll == true && includePortal == "true") {

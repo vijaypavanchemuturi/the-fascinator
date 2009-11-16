@@ -91,4 +91,10 @@ public class IndexerServiceImpl implements IndexerService {
     public void shutdown() throws PluginException {
         indexer.shutdown();
     }
+
+    @Override
+    public void init(String jsonString) throws PluginException {
+        // TODO Auto-generated method stub
+
+    }
 }
