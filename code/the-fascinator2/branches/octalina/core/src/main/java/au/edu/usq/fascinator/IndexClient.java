@@ -47,7 +47,7 @@ import au.edu.usq.fascinator.common.storage.impl.GenericPayload;
 /**
  * Index Client class to index the storage
  * 
- * TODO: to index single item
+ * TODO: to index single item and portal
  * 
  * @author Linda Octalina
  * 
@@ -106,34 +106,19 @@ public class IndexClient {
             log.debug("Caching rules file " + rulesFile);
             DigitalObject rulesObject = new RulesDigitalObject(rulesFile);
             realStorage.addObject(rulesObject);
-            log.info("Realstorage: " + realStorage.getId());
+            log.debug("Realstorage: " + realStorage.getId());
             rulesOid = rulesObject.getId();
         } catch (StorageException se) {
             log.error("Failed to cache indexing rules, stopping", se);
             return;
         }
 
-        // String harvesterType = config.get("harvester/type");
-        // Harvester harvester;
-        // try {
-        // harvester = PluginManager.getHarvester(harvesterType);
-        // if (harvester == null) {
-        // throw new PluginException("Harvester plugin not found: "
-        // + harvesterType);
-        // }
-        // harvester.init(configFile);
-        // log.info("Loaded harvester: " + harvester.getName());
-        // } catch (PluginException pe) {
-        // log.error("Failed to initialise harvester plugin", pe);
-        // return;
-        // }
-
         // List all the DigitalObject in the storages
         List<DigitalObject> objectList = realStorage.getObjectList();
         for (DigitalObject object : objectList) {
             try {
-                realStorage.removePayload(object.getId(), "SOF-META");
-                processObject(storage, object, rulesOid, indexer);
+                // realStorage.removePayload(object.getId(), "SOF-META");
+                processObject(storage, realStorage, object, rulesOid, indexer);
             } catch (StorageException e) {
                 e.printStackTrace();
             } catch (IOException e) {
@@ -145,29 +130,35 @@ public class IndexClient {
                 + ((System.currentTimeMillis() - start) / 1000.0) + " seconds");
     }
 
-    private String processObject(Storage storage, DigitalObject object,
-            String rulesOid, Indexer indexer) throws StorageException,
-            IOException {
+    private void indexObject() {
+
+    }
+
+    private void indexPortal() {
+
+    }
+
+    private String processObject(Storage storage, Storage realStorage,
+            DigitalObject object, String rulesOid, Indexer indexer)
+            throws StorageException, IOException {
         String oid = object.getId();
         String sid = null;
 
-        for (Payload p : object.getPayloadList()) {
-            log.info("Payload :" + p.getId());
-        }
-
-        // try {
         log.info("Processing " + oid + "...");
         Properties sofMeta = new Properties();
-
-        for (Payload p : object.getPayloadList()) {
-            log.info("--Payload :" + p.getId());
-        }
-
         sofMeta.setProperty("objectId", oid);
         Payload metadata = object.getMetadata();
+        String metaPid;
         if (metadata != null) {
-            sofMeta.setProperty("metaPid", metadata.getId());
+            metaPid = metadata.getId();
+        } else {
+            // get the meta id from the old sof-meta
+            Payload sofMetaPayload = object.getPayload("SOF-META");
+            Properties oldSofMeta = new Properties();
+            oldSofMeta.load(sofMetaPayload.getInputStream());
+            metaPid = oldSofMeta.getProperty("metaPid");
         }
+        sofMeta.setProperty("metaPid", metaPid);
         sofMeta.setProperty("scriptType", config.get("indexer/script/type",
                 "python"));
         sofMeta.setProperty("rulesOid", rulesOid);
@@ -177,8 +168,12 @@ public class IndexClient {
         for (String key : indexerParams.keySet()) {
             sofMeta.setProperty(key, indexerParams.get(key).toString());
         }
-        log.info("**** sofMeta: " + sofMeta.toString());
+
         ByteArrayOutputStream sofMetaOut = new ByteArrayOutputStream();
+        // Remove the old sof-meta
+        realStorage.removePayload(object.getId(), "SOF-META");
+
+        // Store new sof-meta
         sofMeta.store(sofMetaOut, "The Fascinator Indexer Metadata2");
         GenericPayload sofMetaDs = new GenericPayload("SOF-META",
                 "The Fascinator Indexer Metadata", "text/plain");
@@ -189,7 +184,6 @@ public class IndexClient {
         try {
             indexer.index(oid);
         } catch (IndexerException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         }
 

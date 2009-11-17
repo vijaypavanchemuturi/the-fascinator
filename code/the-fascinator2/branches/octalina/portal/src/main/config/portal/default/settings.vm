@@ -33,6 +33,41 @@
     </td>
   </tr>
 #end
+#macro(createBackupRow $id $active $path $ignoreFilter $includeRenditions $includeViews $extraClass)
+  <tr id="$id" class="backup-row $extraClass">
+    <td>
+      <input class="backup-active" name="backup-active" type="checkbox" value="${id}"
+        #if($active=="true")checked="checked"#end />
+    </td>
+    <td>
+      <span class="backup-path-text visible">$path</span>
+      <form class="backup-path-form hidden" id="${id}-path">
+        <input class="backup-path-input" name="${id}-path" type="text" value="$path" />
+        <a class="backup-path-accept" href="#"><img alt="Accept" src="$portalPath/images/icons/tick.png" /></a>
+        <a class="backup-path-cancel" href="#"><img alt="Cancel" src="$portalPath/images/icons/cross.png" /></a>
+      </form>
+    </td>
+    <td>
+      <span class="backup-ignore-text visible">$ignoreFilter</span>
+      <form class="backup-ignore-form hidden" id="${id}-ignore">
+        <input class="backup-ignore-input" name="${id}-ignore" type="text" value="$ignoreFilter" />
+        <a class="backup-ignore-accept" href="#"><img alt="Accept" src="$portalPath/images/icons/tick.png" /></a>
+        <a class="backup-ignore-cancel" href="#"><img alt="Cancel" src="$portalPath/images/icons/cross.png" /></a>
+      </form>
+    </td>
+    <td>
+      <input class="backup-renditions" name="backup-rendition" type="checkbox" value="${id}"
+        #if($includeRenditions=="true")checked="checked"#end />
+    </td>
+    <td>
+      <input class="backup-views" name="backup-view" type="checkbox" value="${id}"
+        #if($includeViews=="true")checked="checked"#end />
+    </td>
+    <td>
+      <input class="backup-delete" name="backup-delete" type="checkbox" value="${id}" />
+    </td>
+  </tr>
+#end
 #set($pageTitle = "Settings")
 <h2 id="page-heading">Settings</h2>
 <div class="grid_4">
@@ -83,14 +118,14 @@
   </div>
   <div id="facets-section" class="box hidden">
     <h2>Facets</h2>
-    <div class="block" id="facets-form" method="post">
+    <div class="block" id="facets-form">
       <table>
         <thead>
           <tr>
             <th width="35%">Field</th>
             <th width="35%">Label</th>
             <th width="25%">Display</th>
-            <th width="5%">Delete</th>
+            <th>Delete</th>
           </tr>
           #createFacetRow("facet-edit-blank" "f_new_facet" "New facet" "list" "hidden")
         </thead>
@@ -113,22 +148,45 @@
   </div>
   <div id="backup-section" class="box hidden">
     <h2>Backup</h2>
-    <form class="block" id="backup-form" method="post">
-      <fieldset class="login">
-        <legend>User</legend>
+    <div class="block" id="backup-form">
+      <fieldset>
         <p>
-          <label for="user-email">Email address</label>
-          <input id="user-email" type="text" />
+          <label for="backup-email">User email</label>
+          <input id="backup-email" type="text" value="fascinator@usq.edu.au" />
         </p>
+        <label for="backup-table">Backup locations</label>
+        <table>
+          <thead>
+            <tr>
+              <th width="5%">Active</th>
+              <th width="50%">Path</th>
+              <th width="30%">Ignore filter</th>
+              <th>Renditions</th>
+              <th>Views</th>
+              <th>Delete</th>
+            </tr>
+            #createBackupRow("backup-blank" "true" "${user.home}/backup" ".svn|.ice|.*|~*" "true" "true" "hidden")
+          </thead>
+          <tbody id="backup-table">
+          #set($paths = $self.portal.getJsonMap("portal/backup/paths"))
+          #foreach($path in $paths.keySet())
+            #set($options = $paths.get($path))
+            #set($id = "backup-$velocityCount")
+            #set($active = $options.get("active"))
+            #set($ignoreFilter = $options.get("ignoreFilter"))
+            #set($includeRenditions = $options.get("include-rendition-meta"))
+            #set($includeViews = $options.get("include-portal-view"))
+            #createBackupRow($id $active $path $ignoreFilter $includeRenditions $includeViews "")
+          #end
+          </tbody>
+        </table>
+        <button id="backup-add">Add</button>
+        <button id="backup-update">Update</button>
+        <button id="backup-cancel">Cancel</button>
+        <img class="hidden" id="backup-loading" src="$portalPath/images/icons/loading.gif" />
+        <span id="backup-message"></span>
       </fieldset>
-      <fieldset class="login">
-        <legend>Locations</legend>
-        <p>
-          <label for="location1">Email address</label>
-          <input id="user-email" type="text" />
-        </p>
-      </fieldset>
-    </form>
+    </div>
   </div>
 </div>
 <script type="text/javascript" src="$portalPath/js/jquery-ui-1.7.2.custom.min.js"></script>
@@ -168,17 +226,17 @@ $(function() {
         );
     });
     
-    $(".facet-field-text, .facet-label-text, .facet-display-text").live("click",
+    $(".facet-field-text, .facet-label-text, .facet-display-text, .backup-path-text, .backup-ignore-text").live("click",
         function() {
             $(this).toggleClass("hidden").toggleClass("visible");
             $(this).next().toggleClass("hidden").toggleClass("inline");
             return false;
         });
-    $("#facets-form form").submit(function() {
-        $(this).find(".facet-field-accept, .facet-label-accept").click();
+    $("#facets-form form, #backup-form form").submit(function() {
+        $(this).find(".facet-field-accept, .facet-label-accept, .backup-path-accept, .backup-ignore-accept").click();
         return false;
     });
-    $(".facet-field-accept, .facet-label-accept").live("click", function() {
+    $(".facet-field-accept, .facet-label-accept, .backup-path-accept, .backup-ignore-accept").live("click", function() {
         var parentEl = $(this).parent();
         var textEl = parentEl.prev();
         var inputEl = $(this).prev("input");
@@ -204,7 +262,7 @@ $(function() {
         }
         return false;
     });
-    $(".facet-field-cancel, .facet-label-cancel, .facet-display-cancel").live("click",
+    $(".facet-field-cancel, .facet-label-cancel, .facet-display-cancel, .backup-path-cancel, .backup-ignore-cancel").live("click",
         function() {
             $(this).parent().toggleClass("hidden").toggleClass("inline")
                 .prev().toggleClass("hidden").toggleClass("visible");
@@ -216,10 +274,8 @@ $(function() {
         newFacet.removeClass("hidden");
         newFacet.find("span").css("font-weight", "bold");
         newFacet.attr("id", "facet-edit-" + ($("#facet-table tr").length + 1));
-        newFacet.find(".facet-label-text").text("New facet");
-        newFacet.find(".facet-label-input").attr("value", "New facet");
-        newFacet.find(".facet-field-text").text("f_new_facet").click();
-        newFacet.find(".facet-field-input").attr("value", "f_new_facet").focus();
+        newFacet.find(".facet-field-text").click();
+        newFacet.find(".facet-field-input").focus();
     });
     $("#facets-update").removeAttr("disabled").click(function() {
         $(this).attr("disabled", "disabled");
@@ -250,212 +306,55 @@ $(function() {
             "json"
         );
     });
-    $("#view-cancel, #facets-cancel").click(function() {
+    $("#view-cancel, #facets-cancel, #backup-cancel").click(function() {
         window.location.reload();
     });
-});
-</script>
-
-
-
-
-
-
-
-
-
-
-
-
-#*
-<script type="text/javascript">
-$(function() {
-    $("#settings").tabs();
-    $("#security-accordion").accordion();
-    // $("#plugins-accordion").accordion({ autoHeight: false });
-    $("#backup-accordion").accordion({ autoHeight: false });
     
-    $("#add-facet-field").click(function() {
-        var parent = $(this).parent();
-        var size = parseInt($("#portalFacetSize").val()) + 1;
-        var id = "portalFacet_" + size;
-        parent.append('<li id="' + id + '">\n' +
-              '<input class="ui-corner-all ui-widget-content" id="' + id + '_name" name="' + id + '_name" size="25" type="text" value="" />\n' +
-              '<input class="ui-corner-all ui-widget-content" id="' + id + '_label" name="' + id + '_label" size="25" type="text" value="" />\n' +
-              '<button class="remove-facet-field ui-corner-all ui-state-default">del</button>\n' +
-            '</li>');
-        return false;
+    // backup
+    $("#backup-update").removeAttr("disabled").click(function() {
+        $(this).attr("disabled", "disabled");
+        $("#backup-loading").show();
+        var data = $("#backup-table :input").serialize();
+        var ids = "";
+        jQuery.each($("#backup-table tr:not(:has(.backup-delete:checked))"),
+            function(i, tr) {
+                ids += $(tr).attr("id") + ",";
+            });
+        ids = ids.substring(ids, ids.length-1);
+        jQuery.post("$portalPath/actions/facets.ajax?" + data,
+            {
+                func: "backup-update",
+                email: $("#backup-email").val(),
+                pathIds: ids
+            },
+            function(data, status) {
+                $("#backup-table span").css("font-weight", "normal");
+                $("#backup-loading").hide();
+                $(".backup-delete:checked").parents("tr").remove();
+                $("#backup-message").text("Updated successfully");
+                setTimeout(function() { $("#backup-message").empty(); }, 3000);
+                $("#backup-update").removeAttr("disabled");
+            },
+            "json"
+        );
     });
-    
-    $("#add-backup-path").click(function() {
-        var parent = $(this).parent();
-        var size = parseInt($("#backupUrlSize").val()) + 1;
-        var id = "backupPaths_" + size;
-        
-        parent.append('<li id="' + id + '">\n' +
-              '<strong>Path: </strong><input class="ui-corner-all ui-widget-content" id="' + id + '_name" name="' + id + '_name" size="75" type="text" value="" />\n' +
-              '<button class="remove-backup-field ui-corner-all ui-state-default">del</button>\n' +
-              '<input id="default" name="default" type="radio"/> Default\n' +
-            '</li>');
-        return false;
-    });
-
-    $(".remove-facet-field").live("click", function() {
-        var parent = $(this).parent();
-        parent.fadeOut(function() { parent.remove(); });
-        return false;
-    });
-    
-    $(".remove-backup-field").live("click", function() {
-        var parent = $(this).parent();
-        parent.fadeOut(function() { parent.remove(); });
-        return false;
+    $("#backup-add").click(function() {
+        var newPath = $("#backup-blank").clone(true).appendTo($("#backup-table"));
+        newPath.removeClass("hidden");
+        newPath.find("span").css("font-weight", "bold");
+        var newId = "backup-" + ($("#backup-table tr").length);
+        newPath.attr("id", newId);
+        newPath.find("form").each(function() {
+            var id = $(this).attr("id");
+            $(this).attr("id", id.replace("backup-blank", newId));
+        });
+        newPath.find(":input").each(function() {
+            var name = $(this).attr("name");
+            $(this).attr("name", name.replace("backup-blank", newId));
+            $(this).eq("input:checkbox").attr("value", newId);
+        });
+        newPath.find(".backup-path-text").click();
+        newPath.find(".backup-path-input").focus();
     });
 });
 </script>
-<h2>Settings</h2>
-<div id="settings">
-  <ul>
-    <li><a href="#general-tab">General</a></li>
-    <li><a href="#security-tab">Security</a></li>
-    <li><a href="#plugins-tab">Plugins</a></li>
-    <li><a href="#backup-tab">Backup</a></li>
-  </ul>
-  <div id="general-tab">
-    <form id="portalForm" name="portalForm" method="post">
-      <fieldset>
-        <legend>Current view <span id="portal-description">- $self.portal.description</span></legend>
-        <ol>
-          <li>
-            <label for="portalName">Name</label>
-            <input id="portalName" name="portalName" size="10" type="text" value="$self.portal.name" />
-          </li>
-          <li>
-            <label for="portalDescription">Description</label>
-            <input id="portalDescription" name="portalDescription" size="50" type="text" value="$page.escapeText($self.portal.description)" />
-          </li>
-          <li>
-            <label for="portalQuery">Query</label>
-            <input id="portalQuery" name="portalQuery" size="50" type="text" value="$page.escapeText($self.portal.query)" />
-          </li>
-          <li>
-            <label for="portalRecordsPerPage">Records per page</label>
-            <input id="portalRecordsPerPage" name="portalRecordsPerPage" size="10" type="text" value="$self.portal.recordsPerPage" />
-          </li>
-          <li>
-            <label for="portalFacetLimit">Facet count limit</label>
-            <input id="portalFacetLimit" name="portalFacetLimit" size="10" type="text" value="$self.portal.facetCount" />
-          </li>
-          <li>
-            <label for="portalFacetSort">Sort by facet counts</label>
-            <input id="portalFacetSort" name="portalFacetSort" type="checkbox" value="$self.portal.facetSort" />
-          </li>
-          <h4>Facets</h4>
-          <input id="portalFacetSize" name="portalFacetSize" type="hidden" value="$self.portal.facetFields.size()" />
-          <button id="add-facet-field">add facet</button>
-          #foreach($field in $self.portal.facetFields.keySet())
-          #set($label = $self.portal.facetFields.get($field))
-          #set($id = "portalFacet_$velocityCount")
-          <li id="$id">
-            <input id="${id}_name" name="${id}_name" size="25" type="text" value="$field" />
-            <input id="${id}_label" name="${id}_label" size="25" type="text" value="$label" />
-            <button class="remove-facet-field">del</button>
-          </li>
-          #end
-        </ol>
-      </fieldset>
-      <input name="portalAction" type="submit" value="Update" />
-      <input name="portalAction" type="submit" value="Cancel" />
-    </form>
-  </div>
-  <div id="security-tab">
-    <div id="security-accordion">
-      <h3><a href="#">Users</a></h3>
-      <div>
-        <p>Username</p>
-      </div>
-      <h3><a href="#">Roles</a></h3>
-      <div>
-        <p>Role</p>
-      </div>
-    </div>
-  </div>
-  <div id="plugins-tab">
-    <div id="plugins-accordion">
-      <h3><a href="#">Indexer</a></h3>
-      <div>
-        <ul>
-        #foreach($indexer in $self.indexerPlugins)
-          <li>$indexer.value.name</li>
-        #end
-        </ul>
-      </div>
-      <h3><a href="#">Storage</a></h3>
-      <div>
-        <ul>
-        #foreach($storage in $self.storagePlugins)
-          <li>$storage.value.name</li>
-        #end
-        </ul>
-      </div>
-      <h3><a href="#">Harvesting</a></h3>
-      <div>
-        <ul>
-        #foreach($harvester in $self.harvesterPlugins)
-          <li>$harvester.value.name</li>
-        #end
-        </ul>
-      </div>
-      <h3><a href="#">Transformers</a></h3>
-      <div>
-        <ul>
-        #foreach($transformer in $self.transformerPlugins)
-          <li>$transformer.value.name</li>
-        #end
-        </ul>
-      </div>
-    </div>
-  </div>
-  <div id="backup-tab">
-    <div id="backup-accordion">
-      <h4><a href="#">Users</a></h4>
-      <form id="userEmail" name="userEmail" method="post">
-	      <fieldset>
-	        <ol>
-	          <li>
-	            <label for="emailAddress">Email Address</label>
-	            <input id="emailAddress" name="emailAddress" size="30" type="text" value="$self.portal.email" />
-	            (This is only temporary solution for backup to differentiate the userspace in backup server)
-	          </li>
-	          <li><label>&nbsp;</label><input name="emailAction" type="submit" value="Update" /></li>
-	        </ol>
-	      </fieldset>
-      </form>
-      <h4><a href="#">Backup Path</a></h4>
-      <form id="backupPathForm" name="backupPathForm" method="post">
-      	  <input id="backupUrlSize" name="backupUrlSize" type="hidden" value="$self.portal.backupPaths.size()" />
-      	  <fieldset>
-	      	  <ol><button id="add-backup-path">Create new backup Path</button>
-	      	  <!--<li><label for="locationName">Location Name</label><label for="locationPath">Location path</label></li>-->
-	      	  #foreach($entry in $self.portal.backupPaths.keySet())
-	      	  #set($label = $self.portal.backupPaths.get($entry))
-	          #set($id = "backupPaths_$velocityCount")
-		          <li id="$id">
-		            <strong>Path: </strong><input id="${id}_name" name="${id}_name" size="75" type="text" value="$entry" />
-		            #set($checked="")
-		            #if ($label=="default")
-		                #set($checked="checked='checked'")
-		            #end
-		            <button class="remove-backup-field">del</button>
-		            <input id="default" name="default" type="radio" $checked value="$entry"/> Default
-		            
-		          </li>
-	          #end
-	          </ol>
-	          <input name="backupAction" type="submit" value="Update" />
-	      </fieldset>
-      </form>
-    </div>
-  </div>
-</div>
-*#

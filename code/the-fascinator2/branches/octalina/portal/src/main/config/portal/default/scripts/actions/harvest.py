@@ -1,11 +1,19 @@
 from au.edu.usq.fascinator.api import PluginManager
 
 class HarvestData:
-    
     def __init__(self):
         self.__harvestManager = Services.getHarvestManager()
-        self.__content = self.__harvestManager.getContents().values().iterator().next()
-        print self.__content
+        result = "{}"
+        func = formData.get("func")
+        if func == "get-harvester-config":
+            result = self.getHarvester(formData.get("type")).getConfig()
+            writer = response.getPrintWriter("text/html")
+            writer.println(result)
+            writer.close()
+        else:
+            writer = response.getPrintWriter("text/plain")
+            writer.println(result)
+            writer.close()
     
     def getContents(self):
         return self.__harvestManager.getContents()
@@ -15,8 +23,5 @@ class HarvestData:
     
     def getHarvester(self, type):
         return PluginManager.getHarvester(type)
-    
-    def getContent(self):
-        return self.__content
 
 scriptObject = HarvestData()

@@ -13,13 +13,25 @@
           "active" : false,
           "ignoreFilter" : ".svn|.ice|.*|~*",
           "include-rendition-meta" : true,
-          "include-portal-view" : false
+          "include-portal-view" : false,
+          "storage": {
+	        "type": "file-system",
+	        "file-system": {
+	            "home": "${user.home}/.fascinator/backup"
+	        }
+	      }
         },
         "${user.home}/.fascinator/backup1" : {
           "active" : true,
           "ignoreFilter" : ".svn|.ice|.*|~*",
           "include-rendition-meta" : true,
-          "include-portal-view" : true
+          "include-portal-view" : true,
+          "storage": {
+	        "type": "file-system",
+	        "file-system": {
+	            "home": "${user.home}/.fascinator/backup1"
+	        }
+	      }
         }
       }
     },

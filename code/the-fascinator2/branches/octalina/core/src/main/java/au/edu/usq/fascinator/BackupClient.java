@@ -190,11 +190,7 @@ public class BackupClient {
         this.portalDir = portalDir;
         setDefaultSetting(null);
         setEmail(email);
-        backupDirList = config.getJsonMap("backup/paths");
-        // if (backupDirs != null) {
-        // backupDirList = new HashMap<String, Map<String, Object>>();
-        // setBackupDir(backupDirs);
-        // }
+        backupDirList = backupDirs;
         setPortalQuery(portalQuery);
     }
 
@@ -223,24 +219,18 @@ public class BackupClient {
      * 
      * @param backupDir
      */
-    // public void setBackupDir(Map<String, Map<String, Object>> backupDirs) {
-    // if (backupDirs != null) {
-    // for (String backupPath : backupDirs.keySet()) {
-    // Map<String, Object> backupPathProps = backupDirs
-    // .get(backupPath);
-    // backupDirList.put(backupPath, backupPathProps);
-    // }
-    // }
-    // }
+    public void setBackupDir(Map<String, JsonConfigHelper> backupDirList) {
+        this.backupDirList = backupDirList;
+    }
 
     /**
      * Return backup location
      * 
      * @return backupDir
      */
-    // public Map<String, Map<String, Object>> getBackupDir() {
-    // return backupDirList;
-    // }
+    public Map<String, JsonConfigHelper> getBackupDir() {
+        return backupDirList;
+    }
 
     /**
      * Set the portal Query
@@ -343,8 +333,8 @@ public class BackupClient {
             }
             IgnoreFilter ignoreFilter = new IgnoreFilter(filterString
                     .split("\\|"));
-            String includeMeta = String.valueOf(backupProps
-                    .get("include-rendition-meta"));
+            boolean includeMeta = Boolean.parseBoolean(backupProps.get(
+                    "include-rendition-meta").toString());
             boolean active = Boolean.parseBoolean(backupProps.get("active")
                     .toString());
             String includePortal = String.valueOf(backupProps
@@ -356,23 +346,9 @@ public class BackupClient {
                 destinationStorageType = DEFAULT_STORAGE_TYPE;
             }
 
-            String storageConfig = "{\"storage\": "
-                    + String.valueOf(backupProps.get("storage")) + "}";
-
-            // Assume it's only for filesystem storage for now
-            // TODO how about fedora3 and couchDB?
-            // String storageConfig = "{\"storage\": {" + "\"type\": \""
-            // + destinationStorageType + "\"," + "\""
-            // + destinationStorageType + "\": {" + "\"home\": \""
-            // + backupPath.toString() + File.separator + email
-            // + File.separator + "files" + "\"" + "}}}";
-
-            log.info("storageConfig: " + storageConfig);
-
+            String storageConfig = backupProps.toString();
             Storage destinationStorage = PluginManager
                     .getStorage(destinationStorageType);
-            log.info("destination: " + destinationStorageType
-                    + destinationStorage);
             try {
                 destinationStorage.init(storageConfig);
             } catch (PluginException e1) {
@@ -383,24 +359,31 @@ public class BackupClient {
             if (active && destinationStorage != null) {
                 try {
 
-                    File backupDirectory = new File(backupPath.toString()
-                            + File.separator + email + File.separator + "files");
-                    if (backupDirectory.exists() == false) {
-                        backupDirectory.getParentFile().mkdirs();
-                    }
+                    // File backupDirectory = new File(backupPath.toString()
+                    // + File.separator + email + File.separator + "files");
+                    // if (backupDirectory.exists() == false) {
+                    // backupDirectory.getParentFile().mkdirs();
+                    // }
                     // List all the files to be backup-ed
                     for (Object oid : js.getList("response/docs/id")) {
                         String objectId = oid.toString();
                         DigitalObject digitalObject = realStorage
                                 .getObject(objectId);
+                        log
+                                .info("Backing up object: {}", digitalObject
+                                        .getId());
+                        // Original File
                         destinationStorage.addObject(digitalObject);
 
                         // List all the payloads
+                        // NOTE: currently if the above object added, the
+                        // payload will be added automatically
                         List<Payload> payloadList = digitalObject
                                 .getPayloadList();
-                        if (includeMeta == "true"
-                                && payloadList.isEmpty() == false) {
+                        if (includeMeta && payloadList.isEmpty() == false) {
                             for (Payload payload : payloadList) {
+                                log.info("Backing up payload: {}", payload
+                                        .getId());
                                 destinationStorage
                                         .addPayload(objectId, payload);
                             }
