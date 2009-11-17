@@ -33,6 +33,7 @@ import org.slf4j.LoggerFactory;
 
 import au.edu.usq.fascinator.BackupClient;
 import au.edu.usq.fascinator.common.JsonConfig;
+import au.edu.usq.fascinator.common.JsonConfigHelper;
 import au.edu.usq.fascinator.portal.Portal;
 import au.edu.usq.fascinator.portal.services.PortalManager;
 
@@ -164,7 +165,7 @@ public class PortalManagerImpl implements PortalManager {
 
     @Override
     public void backup(Portal portal, String email,
-            Map<String, Map<String, Object>> backupDir, String portalQuery) {
+            Map<String, JsonConfigHelper> backupDir, String portalQuery) {
         BackupClient backupClient;
         try {
             File portalDir = new File(portalsDir, portal.getName());

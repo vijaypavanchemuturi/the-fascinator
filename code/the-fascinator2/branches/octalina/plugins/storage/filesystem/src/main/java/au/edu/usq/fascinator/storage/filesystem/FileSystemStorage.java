@@ -145,6 +145,12 @@ public class FileSystemStorage implements Storage {
 
     public void removePayload(String oid, String pid) {
         log.debug("Removing payload {} from {}", pid, oid);
+        FileSystemPayload payload = (FileSystemPayload) getPayload(oid, pid);
+        File realFile = payload.getFile();
+        if (realFile.exists()) {
+            FileUtils.deleteQuietly(realFile);
+        }
+
     }
 
     public DigitalObject getObject(String oid) {

@@ -218,4 +218,12 @@ public class JsonConfig {
         }
         return configFile;
     }
+
+    public Map<String, JsonConfigHelper> getJsonMap(String path) {
+        Map<String, JsonConfigHelper> value = userConfig.getJsonMap(path);
+        if (value == null) {
+            value = systemConfig.getJsonMap(path);
+        }
+        return value;
+    }
 }
