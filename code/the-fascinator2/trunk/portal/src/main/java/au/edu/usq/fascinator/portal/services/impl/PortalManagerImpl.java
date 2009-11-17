@@ -163,14 +163,13 @@ public class PortalManagerImpl implements PortalManager {
     }
 
     @Override
-    public void backup(Portal portal, String email,
-            Map<String, Map<String, Object>> backupDir, String portalQuery) {
+    public void backup(Portal portal) {
         BackupClient backupClient;
         try {
             File portalDir = new File(portalsDir, portal.getName());
             log.info("****** " + portalDir);
-            backupClient = new BackupClient(portalDir, email, backupDir,
-                    portalQuery);
+            backupClient = new BackupClient(portalDir, portal.getEmail(),
+                    portal.getBackupPaths(), portal.getQuery());
             backupClient.run();
         } catch (IOException e) {
             e.printStackTrace();

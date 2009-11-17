@@ -151,7 +151,7 @@ div.content-preview img {
     max-width: 100%;
 }
 
-#facets-form img {
+form img {
     vertical-align: text-bottom;
 }
 
@@ -166,4 +166,19 @@ div.content-preview img {
 
 #facets-form img.facet-grip {
     padding-right: 3px;
+}
+
+ul.nav li.label {
+    background: #666666 !important;
+    color: #FFFFFF;
+    cursor: auto;
+    display: block;
+    font-weight: bold;
+    height: 2.5em;
+    line-height: 2.5em;
+    padding: 0 1em;
+}
+
+.inline input {
+    width: 80%;
 }
