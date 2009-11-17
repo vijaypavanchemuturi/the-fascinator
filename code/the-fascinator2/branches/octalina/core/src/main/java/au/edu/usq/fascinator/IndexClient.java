@@ -69,20 +69,24 @@ public class IndexClient {
 
     private File rulesFile;
 
+    private Indexer indexer;
+
+    private Storage storage, realStorage;
+
+    public IndexClient() throws IOException {
+        config = new JsonConfig();
+        configFile = config.getSystemFile();
+        setSetting();
+    }
+
     public IndexClient(File jsonFile) throws IOException {
         configFile = jsonFile;
         config = new JsonConfig(jsonFile);
+        setSetting();
     }
 
-    public void run() {
-        DateFormat df = new SimpleDateFormat(DATETIME_FORMAT);
-        String now = df.format(new Date());
-        long start = System.currentTimeMillis();
-        log.info("Started at " + now);
-
+    public void setSetting() {
         // Get the storage type to be indexed...
-        Indexer indexer;
-        Storage storage, realStorage;
         try {
             realStorage = PluginManager.getStorage(config.get("storage/type",
                     DEFAULT_STORAGE_TYPE));
@@ -96,6 +100,13 @@ public class IndexClient {
             log.error("Failed to initialise storage", e);
             return;
         }
+    }
+
+    public void run() {
+        DateFormat df = new SimpleDateFormat(DATETIME_FORMAT);
+        String now = df.format(new Date());
+        long start = System.currentTimeMillis();
+        log.info("Started at " + now);
 
         rulesFile = new File(configFile.getParentFile(), config
                 .get("indexer/script/rules"));
@@ -118,7 +129,7 @@ public class IndexClient {
         for (DigitalObject object : objectList) {
             try {
                 // realStorage.removePayload(object.getId(), "SOF-META");
-                processObject(storage, realStorage, object, rulesOid, indexer);
+                processObject(object, rulesOid, config.getMap("indexer/params"));
             } catch (StorageException e) {
                 e.printStackTrace();
             } catch (IOException e) {
@@ -130,33 +141,62 @@ public class IndexClient {
                 + ((System.currentTimeMillis() - start) / 1000.0) + " seconds");
     }
 
-    private void indexObject() {
+    public void indexObject(String objectId) {
+        DigitalObject object = realStorage.getObject(objectId);
+        // Get the rules from SOF-META
+        Properties sofMeta = getSofMeta(object);
+        String sofMetaRulesOid = sofMeta.getProperty("rulesOid");
+        rulesFile = new File(sofMetaRulesOid);
+
+        String rulesOid;
+        try {
+            log.debug("Caching rules file " + rulesFile);
+            DigitalObject rulesObject = new RulesDigitalObject(rulesFile);
+            realStorage.addObject(rulesObject);
+            log.debug("Realstorage: " + realStorage.getId());
+            rulesOid = rulesObject.getId();
+        } catch (StorageException se) {
+            log.error("Failed to cache indexing rules, stopping", se);
+            return;
+        }
+        try {
+            processObject(object, rulesOid, null);
+        } catch (StorageException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
     }
 
-    private void indexPortal() {
+    public void indexPortal(String portalName) {
 
     }
 
-    private String processObject(Storage storage, Storage realStorage,
-            DigitalObject object, String rulesOid, Indexer indexer)
-            throws StorageException, IOException {
+    private String processObject(DigitalObject object, String rulesOid,
+            Map<String, Object> indexerParams) throws StorageException,
+            IOException {
         String oid = object.getId();
         String sid = null;
 
         log.info("Processing " + oid + "...");
+        Properties oldSofMeta = getSofMeta(object);
         Properties sofMeta = new Properties();
         sofMeta.setProperty("objectId", oid);
         Payload metadata = object.getMetadata();
-        String metaPid;
+        String metaPid = "";
         if (metadata != null) {
             metaPid = metadata.getId();
         } else {
-            // get the meta id from the old sof-meta
-            Payload sofMetaPayload = object.getPayload("SOF-META");
-            Properties oldSofMeta = new Properties();
-            oldSofMeta.load(sofMetaPayload.getInputStream());
-            metaPid = oldSofMeta.getProperty("metaPid");
+            // get the meta id and the repository information from the old
+            // sof-meta
+            if (oldSofMeta != null) {
+                metaPid = oldSofMeta.getProperty("metaPid");
+                sofMeta.setProperty("repository.name", oldSofMeta
+                        .getProperty("repository.name"));
+                sofMeta.setProperty("repository.type", oldSofMeta
+                        .getProperty("repository.type"));
+            }
         }
         sofMeta.setProperty("metaPid", metaPid);
         sofMeta.setProperty("scriptType", config.get("indexer/script/type",
@@ -164,9 +204,10 @@ public class IndexClient {
         sofMeta.setProperty("rulesOid", rulesOid);
         sofMeta.setProperty("rulesPid", rulesFile.getName());
 
-        Map<String, Object> indexerParams = config.getMap("indexer/params");
-        for (String key : indexerParams.keySet()) {
-            sofMeta.setProperty(key, indexerParams.get(key).toString());
+        if (indexerParams != null) {
+            for (String key : indexerParams.keySet()) {
+                sofMeta.setProperty(key, indexerParams.get(key).toString());
+            }
         }
 
         ByteArrayOutputStream sofMetaOut = new ByteArrayOutputStream();
@@ -202,5 +243,18 @@ public class IndexClient {
                 log.error("Failed to initialise client: {}", ioe.getMessage());
             }
         }
+    }
+
+    private Properties getSofMeta(DigitalObject object) {
+        try {
+            Payload sofMetaPayload = object.getPayload("SOF-META");
+            Properties sofMeta = new Properties();
+            sofMeta.load(sofMetaPayload.getInputStream());
+            return sofMeta;
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        return null;
     }
 }

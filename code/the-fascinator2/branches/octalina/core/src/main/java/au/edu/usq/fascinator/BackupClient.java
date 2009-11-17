@@ -161,18 +161,6 @@ public class BackupClient {
 
             backupDirList = config.getJsonMap("backup/paths");
 
-            // Map<String, Object> backupPaths = config
-            // .getMapWithChild("backup/paths");
-            // if (backupPaths != null) {
-            // Map<String, Map<String, Object>> backupPathsDict = new
-            // HashMap<String, Map<String, Object>>();
-            // for (String key : backupPaths.keySet()) {
-            // Map<String, Object> newObj = (Map<String, Object>) backupPaths
-            // .get(key);
-            // backupPathsDict.put(key, newObj);
-            // }
-            // setBackupDir(backupPathsDict);
-            // }
         }
     }
 
@@ -302,10 +290,8 @@ public class BackupClient {
                 numFound = Integer.parseInt(js.get("response/numFound"));
 
             } catch (IndexerException e) {
-                // TODO Auto-generated catch block
                 e.printStackTrace();
             } catch (IOException e) {
-                // TODO Auto-generated catch block
                 e.printStackTrace();
             }
         } while (startRow < numFound);
@@ -359,12 +345,8 @@ public class BackupClient {
             if (active && destinationStorage != null) {
                 try {
 
-                    // File backupDirectory = new File(backupPath.toString()
-                    // + File.separator + email + File.separator + "files");
-                    // if (backupDirectory.exists() == false) {
-                    // backupDirectory.getParentFile().mkdirs();
-                    // }
                     // List all the files to be backup-ed
+                    // TODO: should the rules be backuped as well?
                     for (Object oid : js.getList("response/docs/id")) {
                         String objectId = oid.toString();
                         DigitalObject digitalObject = realStorage
