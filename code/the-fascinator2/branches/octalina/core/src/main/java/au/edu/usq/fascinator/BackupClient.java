@@ -30,7 +30,6 @@ import java.io.OutputStream;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.zip.ZipEntry;
@@ -98,7 +97,9 @@ public class BackupClient {
     private String email = null;
 
     /** Backup location list **/
-    private Map<String, Map<String, Object>> backupDirList = new HashMap<String, Map<String, Object>>();
+    // private Map<String, Map<String, Object>> backupDirList = new
+    // HashMap<String, Map<String, Object>>();
+    private Map<String, JsonConfigHelper> backupDirList;
 
     /** Storage **/
     private String realStorageType;
@@ -158,17 +159,20 @@ public class BackupClient {
             // Set default email, backupDirList
             setEmail(config.get("backup/email"));
 
-            Map<String, Object> backupPaths = config
-                    .getMapWithChild("backup/paths");
-            if (backupPaths != null) {
-                Map<String, Map<String, Object>> backupPathsDict = new HashMap<String, Map<String, Object>>();
-                for (String key : backupPaths.keySet()) {
-                    Map<String, Object> newObj = (Map<String, Object>) backupPaths
-                            .get(key);
-                    backupPathsDict.put(key, newObj);
-                }
-                setBackupDir(backupPathsDict);
-            }
+            backupDirList = config.getJsonMap("backup/paths");
+
+            // Map<String, Object> backupPaths = config
+            // .getMapWithChild("backup/paths");
+            // if (backupPaths != null) {
+            // Map<String, Map<String, Object>> backupPathsDict = new
+            // HashMap<String, Map<String, Object>>();
+            // for (String key : backupPaths.keySet()) {
+            // Map<String, Object> newObj = (Map<String, Object>) backupPaths
+            // .get(key);
+            // backupPathsDict.put(key, newObj);
+            // }
+            // setBackupDir(backupPathsDict);
+            // }
         }
     }
 
@@ -181,15 +185,16 @@ public class BackupClient {
      * @throws IOException
      */
     public BackupClient(File portalDir, String email,
-            Map<String, Map<String, Object>> backupDirs, String portalQuery)
+            Map<String, JsonConfigHelper> backupDirs, String portalQuery)
             throws IOException {
         this.portalDir = portalDir;
         setDefaultSetting(null);
         setEmail(email);
-        if (backupDirs != null) {
-            backupDirList = new HashMap<String, Map<String, Object>>();
-            setBackupDir(backupDirs);
-        }
+        backupDirList = config.getJsonMap("backup/paths");
+        // if (backupDirs != null) {
+        // backupDirList = new HashMap<String, Map<String, Object>>();
+        // setBackupDir(backupDirs);
+        // }
         setPortalQuery(portalQuery);
     }
 
@@ -218,24 +223,24 @@ public class BackupClient {
      * 
      * @param backupDir
      */
-    public void setBackupDir(Map<String, Map<String, Object>> backupDirs) {
-        if (backupDirs != null) {
-            for (String backupPath : backupDirs.keySet()) {
-                Map<String, Object> backupPathProps = backupDirs
-                        .get(backupPath);
-                backupDirList.put(backupPath, backupPathProps);
-            }
-        }
-    }
+    // public void setBackupDir(Map<String, Map<String, Object>> backupDirs) {
+    // if (backupDirs != null) {
+    // for (String backupPath : backupDirs.keySet()) {
+    // Map<String, Object> backupPathProps = backupDirs
+    // .get(backupPath);
+    // backupDirList.put(backupPath, backupPathProps);
+    // }
+    // }
+    // }
 
     /**
      * Return backup location
      * 
      * @return backupDir
      */
-    public Map<String, Map<String, Object>> getBackupDir() {
-        return backupDirList;
-    }
+    // public Map<String, Map<String, Object>> getBackupDir() {
+    // return backupDirList;
+    // }
 
     /**
      * Set the portal Query
@@ -328,7 +333,8 @@ public class BackupClient {
     public void startBackup(JsonConfigHelper js) throws IOException {
         // Backup to active backup Directory
         for (String backupPath : backupDirList.keySet()) {
-            Map<String, Object> backupProps = backupDirList.get(backupPath);
+            // Map<String, Object> backupProps = backupDirList.get(backupPath);
+            JsonConfigHelper backupProps = backupDirList.get(backupPath);
             backupPath = backupPath.replace("${user.home}", System
                     .getProperty("user.home"));
             String filterString = backupProps.get("ignoreFilter").toString();
@@ -345,25 +351,37 @@ public class BackupClient {
                     .get("include-portal-view"));
 
             String destinationStorageType = String.valueOf(backupProps
-                    .get("storage-type"));
+                    .get("storage/type"));
             if (destinationStorageType == null) {
                 destinationStorageType = DEFAULT_STORAGE_TYPE;
             }
 
+            String storageConfig = "{\"storage\": "
+                    + String.valueOf(backupProps.get("storage")) + "}";
+
             // Assume it's only for filesystem storage for now
             // TODO how about fedora3 and couchDB?
-            String storageConfig = "{\"storage\": {" + "\"type\": \""
-                    + destinationStorageType + "\"," + "\""
-                    + destinationStorageType + "\": {" + "\"home\": \""
-                    + backupPath.toString() + File.separator + email
-                    + File.separator + "files" + "\"" + "}}}";
+            // String storageConfig = "{\"storage\": {" + "\"type\": \""
+            // + destinationStorageType + "\"," + "\""
+            // + destinationStorageType + "\": {" + "\"home\": \""
+            // + backupPath.toString() + File.separator + email
+            // + File.separator + "files" + "\"" + "}}}";
+
+            log.info("storageConfig: " + storageConfig);
 
             Storage destinationStorage = PluginManager
                     .getStorage(destinationStorageType);
+            log.info("destination: " + destinationStorageType
+                    + destinationStorage);
+            try {
+                destinationStorage.init(storageConfig);
+            } catch (PluginException e1) {
+                // TODO Auto-generated catch block
+                e1.printStackTrace();
+            }
             // Only using active backup path
             if (active && destinationStorage != null) {
                 try {
-                    destinationStorage.init(storageConfig);
 
                     File backupDirectory = new File(backupPath.toString()
                             + File.separator + email + File.separator + "files");
