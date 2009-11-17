@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <groupId>au.edu.usq.fascinator</groupId>
   <artifactId>the-fascinator</artifactId>
@@ -158,9 +159,14 @@
         <version>1.5.8</version>
       </dependency>
       <dependency>
-        <groupId>org.slf4j</groupId>
-        <artifactId>slf4j-log4j12</artifactId>
-        <version>1.5.8</version>
+        <groupId>ch.qos.logback</groupId>
+        <artifactId>logback-core</artifactId>
+        <version>0.9.17</version>
+      </dependency>
+      <dependency>
+        <groupId>ch.qos.logback</groupId>
+        <artifactId>logback-classic</artifactId>
+        <version>0.9.17</version>
       </dependency>
       <dependency>
         <groupId>junit</groupId>
@@ -173,15 +179,11 @@
   <build>
     <plugins>
       <!--
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-assembly-plugin</artifactId>
-        <configuration>
-          <descriptors>
-            <descriptor>src/main/assembly/dist.xml</descriptor>
-          </descriptors>
-        </configuration>
-      </plugin>
+        <plugin> <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-assembly-plugin</artifactId> <configuration>
+        <descriptors>
+        <descriptor>src/main/assembly/dist.xml</descriptor>
+        </descriptors> </configuration> </plugin>
       -->
       <plugin>
         <groupId>org.codehaus.mojo</groupId>

@@ -20,11 +20,14 @@ class LayoutData:
                 #TODO actual login procedure
                 sessionState.set("username", username)
     
+    def getPortal(self):
+        return Services.getPortalManager().get(portalId)
+    
     def getPortals(self):
-        return Services.portalManager.portals
+        return Services.getPortalManager().portals
     
     def getPortalName(self):
-        return Services.portalManager.get(portalId).description
+        return self.getPortal().getDescription()
     
     def escapeText(self, text):
         return StringEscapeUtils.escapeXml(text)

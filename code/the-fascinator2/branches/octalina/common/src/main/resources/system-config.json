@@ -1,8 +1,11 @@
 {
+	"fascinator-home": "/opt/the-fascinator2/code",
+	"email" : "fascinator@usq.edu.au",
     "storage": {
         "type": "file-system",
         "file-system": {
-            "home": "${user.home}/.fascinator/storage"
+            "home": "${user.home}/.fascinator/storage",
+            "use-link": "true"
         },
         "fedora3": {
             "url": "http://localhost:8080/fedora",
@@ -28,14 +31,5 @@
         "default": "default",
         "layout": "layout",
         "nativeJython": true
-    },
-    "backup-email" : "octalina@usq.edu.au",
-    "backup-paths" : {
-      "/home/octalina/backup" : {
-        "include-rendition-meta" : true,
-        "ignoreFilter" : ".svn|.ice|.*|~*|*~",
-        "active" : true,
-        "include-portal-view" : true
-      }
     }
 }

@@ -52,7 +52,6 @@ public class JsonConfigHelper {
         public boolean createObject(JXPathContext context, Pointer pointer,
                 Object parent, String name, int index) {
             if (parent instanceof Map) {
-                System.out.println("blah");
                 ((Map<String, Object>) parent).put(name,
                         new LinkedHashMap<String, Object>());
                 return true;

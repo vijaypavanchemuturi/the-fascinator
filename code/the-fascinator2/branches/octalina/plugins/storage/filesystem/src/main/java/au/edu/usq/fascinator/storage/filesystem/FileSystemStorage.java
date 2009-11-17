@@ -18,9 +18,6 @@
  */
 package au.edu.usq.fascinator.storage.filesystem;
 
-import static au.edu.usq.fascinator.api.storage.PayloadType.Data;
-import static au.edu.usq.fascinator.api.storage.PayloadType.External;
-
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -33,6 +30,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
@@ -60,6 +58,10 @@ public class FileSystemStorage implements Storage {
 
     private File homeDir;
 
+    private String email;
+
+    private boolean useLink;
+
     public String getId() {
         return "file-system";
     }
@@ -72,11 +74,7 @@ public class FileSystemStorage implements Storage {
         try {
             JsonConfig config = new JsonConfig(new ByteArrayInputStream(
                     jsonString.getBytes("UTF-8")));
-            homeDir = new File(config.get("storage/file-system/home",
-                    DEFAULT_HOME_DIR));
-            if (!homeDir.exists()) {
-                homeDir.mkdirs();
-            }
+            setVariable(config);
         } catch (UnsupportedEncodingException e) {
             throw new StorageException(e);
         } catch (IOException e) {
@@ -84,14 +82,37 @@ public class FileSystemStorage implements Storage {
         }
     }
 
+    private void setVariable(JsonConfig config) {
+        useLink = Boolean.parseBoolean(String.valueOf(config.get(
+                "storage/file-system/use-link", "false")));
+        String email = config.get("email");
+
+        if (!email.equals("")) {
+            email = DigestUtils.md5Hex(config.get("email"));
+        }
+        homeDir = new File(config.get("storage/file-system/home",
+                DEFAULT_HOME_DIR), email);
+        if (!homeDir.exists()) {
+            homeDir.mkdirs();
+        }
+    }
+
     public void init(File jsonFile) throws StorageException {
         try {
             JsonConfig config = new JsonConfig(jsonFile);
-            homeDir = new File(config.get("storage/file-system/home",
-                    DEFAULT_HOME_DIR));
-            if (!homeDir.exists()) {
-                homeDir.mkdirs();
-            }
+            setVariable(config);
+            // useLink = Boolean.parseBoolean(config.get(
+            // "storage/file-system/use-link", "false").toString());
+            // String email = config.get("email");
+            // log.info("********Email: " + email);
+            // if (!email.equals("")) {
+            // email = DigestUtils.md5Hex(config.get("email"));
+            // }
+            // homeDir = new File(config.get("storage/file-system/home",
+            // DEFAULT_HOME_DIR), email);
+            // if (!homeDir.exists()) {
+            // homeDir.mkdirs();
+            // }
         } catch (IOException ioe) {
             throw new StorageException(ioe);
         }
@@ -129,8 +150,9 @@ public class FileSystemStorage implements Storage {
             FileOutputStream out = new FileOutputStream(payloadFile);
             File realFile = new File(oid);
             PayloadType type = payload.getType();
-            if (realFile.isFile()
-                    && (Data.equals(type) || External.equals(type))) {
+            // if (realFile.isFile()
+            // && (Data.equals(type) || External.equals(type))) {
+            if (useLink) {
                 filePayload.setLinked(true);
                 filePayload.updateMeta(false);
                 IOUtils.write(oid, out);
@@ -147,10 +169,16 @@ public class FileSystemStorage implements Storage {
         log.debug("Removing payload {} from {}", pid, oid);
         FileSystemPayload payload = (FileSystemPayload) getPayload(oid, pid);
         File realFile = payload.getFile();
+
         if (realFile.exists()) {
             FileUtils.deleteQuietly(realFile);
         }
 
+        // Need to remove the .meta file as well
+        File metaFile = new File(realFile.getAbsoluteFile(), ".meta");
+        if (metaFile.exists()) {
+            FileUtils.deleteQuietly(realFile);
+        }
     }
 
     public DigitalObject getObject(String oid) {
