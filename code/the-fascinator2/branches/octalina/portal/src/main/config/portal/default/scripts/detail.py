@@ -46,6 +46,7 @@ class SolrDoc:
 
 class DetailData:
     def __init__(self):
+        print "**** formData: ", formData.get("func")
         if formData.get("func") == "open-file":
             self.__openFile()
             writer = response.getPrintWriter("text/plain")
@@ -104,7 +105,7 @@ class DetailData:
         return self.__metadata
     
     def getObject(self):
-        print "################test getPayload source: ", self.__storage.getObject(self.__oid).getSource()
+        #print "################test getPayload source: ", self.__storage.getObject(self.__oid).getSource()
         return self.__storage.getObject(self.__oid)
     
     def getStorageId(self):

@@ -32,6 +32,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import au.edu.usq.fascinator.BackupClient;
+import au.edu.usq.fascinator.IndexClient;
 import au.edu.usq.fascinator.common.JsonConfig;
 import au.edu.usq.fascinator.portal.Portal;
 import au.edu.usq.fascinator.portal.services.PortalManager;
@@ -174,5 +175,17 @@ public class PortalManagerImpl implements PortalManager {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    @Override
+    public void indexObject(String objectId) {
+        IndexClient indexClient;
+        try {
+            indexClient = new IndexClient();
+            indexClient.indexObject(objectId);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
     }
 }
