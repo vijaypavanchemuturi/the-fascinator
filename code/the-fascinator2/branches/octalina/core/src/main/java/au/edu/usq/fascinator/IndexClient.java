@@ -73,18 +73,32 @@ public class IndexClient {
 
     private Storage storage, realStorage;
 
+    /**
+     * IndexClient Constructor
+     * 
+     * @throws IOException
+     */
     public IndexClient() throws IOException {
         config = new JsonConfig();
         configFile = config.getSystemFile();
         setSetting();
     }
 
+    /**
+     * IndexClient Constructor
+     * 
+     * @param jsonFile
+     * @throws IOException
+     */
     public IndexClient(File jsonFile) throws IOException {
         configFile = jsonFile;
         config = new JsonConfig(jsonFile);
         setSetting();
     }
 
+    /**
+     * Set the default setting
+     */
     public void setSetting() {
         // Get the storage type to be indexed...
         try {
@@ -102,6 +116,9 @@ public class IndexClient {
         }
     }
 
+    /**
+     * Start to run the indexing
+     */
     public void run() {
         DateFormat df = new SimpleDateFormat(DATETIME_FORMAT);
         String now = df.format(new Date());
@@ -141,6 +158,11 @@ public class IndexClient {
                 + ((System.currentTimeMillis() - start) / 1000.0) + " seconds");
     }
 
+    /**
+     * Indexing single object
+     * 
+     * @param objectId
+     */
     public void indexObject(String objectId) {
         DigitalObject object = realStorage.getObject(objectId);
         // Get the rules from SOF-META
@@ -169,10 +191,25 @@ public class IndexClient {
 
     }
 
+    /**
+     * Index portal
+     * 
+     * @param portalName
+     */
     public void indexPortal(String portalName) {
 
     }
 
+    /**
+     * Start to process indexing
+     * 
+     * @param object
+     * @param rulesOid
+     * @param indexerParams
+     * @return
+     * @throws StorageException
+     * @throws IOException
+     */
     private String processObject(DigitalObject object, String rulesOid,
             Map<String, Object> indexerParams) throws StorageException,
             IOException {
@@ -231,6 +268,11 @@ public class IndexClient {
         return sid;
     }
 
+    /**
+     * Main function of IndexClient
+     * 
+     * @param args
+     */
     public static void main(String[] args) {
         if (args.length < 1) {
             log.info("Usage: index <json-config>");
