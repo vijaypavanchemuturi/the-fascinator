@@ -48,6 +48,8 @@ $!pageContent
             </ul>
           </li>
           <li><a href="$portalPath/settings">Settings</a></li>
+          #### not yet finished
+          ##<li><a href="$portalPath/harvest">Harvest</a></li>
           <li class="secondary">
             <a class="search" href="#"><img src="$portalPath/images/icons/magnifier.png" /></a>
           </li>
@@ -66,6 +68,7 @@ $!pageContent
       <div class="grid_16">
         $!pageContent
       </div>
+      <div class="clear"></div>
       <div class="clear"></div>
     </div>
     <div class="clear"></div>
