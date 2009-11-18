@@ -40,6 +40,7 @@ class SearchData:
         req.setParam("facet", "true")
         req.setParam("rows", str(recordsPerPage))
         req.setParam("facet.field", self.__portal.facetFieldList)
+        print " *************", self.__portal.facetFieldList
         req.setParam("facet.sort", str(self.__portal.facetSort).lower())
         req.setParam("facet.limit", str(self.__portal.facetCount))
         req.setParam("sort", "title_sort asc")

@@ -31,7 +31,7 @@ class HomeData:
         req.setParam("rows", "0")
         req.setParam("facet", "true")
         req.setParam("facet.sort", "true")
-        req.setParam("facet.field", "f_usq_document_type")
+        req.setParam("facet.field", ["f_title_group", "f_usq_document_policy_type"])
         out = ByteArrayOutputStream()
         indexer.search(req, out)
         self.__result = JsonConfigHelper(ByteArrayInputStream(out.toByteArray()))
