@@ -26,6 +26,7 @@ public class BackupRestoreHarvesterTest{
         backupRestore.init(getConfig("/test-restore-backup-folder-original-files-only.json"));
         
         List<DigitalObject> items = backupRestore.getObjects();
+        System.out.println("aa:" + items.size());
         Assert.assertEquals(8, items.size());
     }
 	
@@ -36,6 +37,7 @@ public class BackupRestoreHarvesterTest{
         
         List<DigitalObject> items = backupRestore.getObjects();
         //Will ignore the rendition zip file
+        System.out.println("aa:" + items.size());
         Assert.assertEquals(3, items.size());
     }
 	

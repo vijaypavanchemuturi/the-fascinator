@@ -30,10 +30,7 @@ import java.io.OutputStream;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.List;
 import java.util.Map;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
 
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.FilenameUtils;
@@ -47,8 +44,6 @@ import au.edu.usq.fascinator.api.indexer.Indexer;
 import au.edu.usq.fascinator.api.indexer.IndexerException;
 import au.edu.usq.fascinator.api.indexer.SearchRequest;
 import au.edu.usq.fascinator.api.storage.DigitalObject;
-import au.edu.usq.fascinator.api.storage.Payload;
-import au.edu.usq.fascinator.api.storage.PayloadType;
 import au.edu.usq.fascinator.api.storage.Storage;
 import au.edu.usq.fascinator.common.JsonConfig;
 import au.edu.usq.fascinator.common.JsonConfigHelper;
@@ -154,11 +149,9 @@ public class BackupClient {
         indexerType = systemConfig.get("indexer/type", DEFAULT_INDEXER_TYPE);
         realStorageType = systemConfig
                 .get("storage/type", DEFAULT_STORAGE_TYPE);
-
+        setEmail(config.get("email"));
         if (fromPortal == false) {
-            // Set default email, backupDirList
-            setEmail(config.get("backup/email"));
-
+            // Set default backupDirList
             backupDirList = config.getJsonMap("backup/paths");
 
         }
@@ -172,12 +165,11 @@ public class BackupClient {
      * @param portalQuery
      * @throws IOException
      */
-    public BackupClient(File portalDir, String email,
+    public BackupClient(File portalDir,
             Map<String, JsonConfigHelper> backupDirs, String portalQuery)
             throws IOException {
         this.portalDir = portalDir;
         setDefaultSetting(null);
-        setEmail(email);
         backupDirList = backupDirs;
         setPortalQuery(portalQuery);
     }
@@ -282,7 +274,6 @@ public class BackupClient {
             try {
                 indexer.search(request, result);
                 JsonConfigHelper js;
-
                 js = new JsonConfigHelper(result.toString());
                 startBackup(js);
 
@@ -308,22 +299,26 @@ public class BackupClient {
      */
     public void startBackup(JsonConfigHelper js) throws IOException {
         // Backup to active backup Directory
-        for (String backupPath : backupDirList.keySet()) {
+        log.debug("backupDir: " + backupDirList.toString());
+        for (String backupName : backupDirList.keySet()) {
             // Map<String, Object> backupProps = backupDirList.get(backupPath);
-            JsonConfigHelper backupProps = backupDirList.get(backupPath);
-            backupPath = backupPath.replace("${user.home}", System
-                    .getProperty("user.home"));
-            String filterString = backupProps.get("ignoreFilter").toString();
+            JsonConfigHelper backupProps = backupDirList.get(backupName);
+
+            String backupPath = String.valueOf(backupProps.get("path"));
+            String filterString = String.valueOf(backupProps
+                    .get("ignoreFilter"));
+
             if (filterString == null) {
                 filterString = DEFAULT_IGNORE_FILTER;
             }
+
             IgnoreFilter ignoreFilter = new IgnoreFilter(filterString
                     .split("\\|"));
-            boolean includeMeta = Boolean.parseBoolean(backupProps.get(
-                    "include-rendition-meta").toString());
+            // boolean includeMeta = Boolean.parseBoolean(backupProps.get(
+            // "include-rendition-meta").toString());
             boolean active = Boolean.parseBoolean(backupProps.get("active")
                     .toString());
-            String includePortal = String.valueOf(backupProps
+            boolean includePortal = Boolean.parseBoolean(backupProps
                     .get("include-portal-view"));
 
             String destinationStorageType = String.valueOf(backupProps
@@ -336,6 +331,7 @@ public class BackupClient {
             Storage destinationStorage = PluginManager
                     .getStorage(destinationStorageType);
             try {
+                log.info("backupProps: " + backupProps.toString());
                 destinationStorage.init(storageConfig);
             } catch (PluginException e1) {
                 // TODO Auto-generated catch block
@@ -360,16 +356,16 @@ public class BackupClient {
                         // List all the payloads
                         // NOTE: currently if the above object added, the
                         // payload will be added automatically
-                        List<Payload> payloadList = digitalObject
-                                .getPayloadList();
-                        if (includeMeta && payloadList.isEmpty() == false) {
-                            for (Payload payload : payloadList) {
-                                log.info("Backing up payload: {}", payload
-                                        .getId());
-                                destinationStorage
-                                        .addPayload(objectId, payload);
-                            }
-                        }
+                        // List<Payload> payloadList = digitalObject
+                        // .getPayloadList();
+                        // if (includeMeta && payloadList.isEmpty() == false) {
+                        // for (Payload payload : payloadList) {
+                        // log.info("Backing up payload: {}", payload
+                        // .getId());
+                        // destinationStorage
+                        // .addPayload(objectId, payload);
+                        // }
+                        // }
 
                     }
 
@@ -378,42 +374,8 @@ public class BackupClient {
                     e.printStackTrace();
                 }
 
-                // for (Object oid : js.getList("response/docs/id")) {
-                // String fileName = oid.toString();
-                // File originalFile = new File(fileName);
-                // DigitalObject digitalObject = realStorage
-                // .getObject(fileName);
-                // log.info("fileName: " + fileName);
-                // fileName = isWindowFile(fileName);
-                //
-                // if (ignoreFilter.accept(originalFile) == true) {
-                // // Processing original File
-                // String outputFileName = backupDirectory
-                // .getAbsolutePath()
-                // + fileName;
-                // File outputFile = new File(outputFileName);
-                // outputFile.getParentFile().mkdirs();
-                // OutputStream output = new FileOutputStream(outputFile);
-                // log.info("Backup file: {} to {}", fileName, outputFile
-                // .getAbsolutePath());
-                // Payload payload = digitalObject.getSource();
-                // if (payload != null) {
-                // IOUtils.copy(payload.getInputStream(), output);
-                // }
-                // }
-                // // Process the rest of the metadata if
-                // // includeMeta is true, This will be in the zip file
-                // List<Payload> payloadList = digitalObject.getPayloadList();
-                // if (includeMeta == "true" && payloadList.isEmpty() == false)
-                // {
-                // String zipFileName = backupDirectory.getAbsolutePath()
-                // + fileName + ".zip";
-                // includeMetadata(zipFileName, payloadList);
-                // }
-                // }
-
                 // backup all the portal
-                if (backupAll == true && includePortal == "true") {
+                if (backupAll == true && includePortal) {
                     File portalFolder;
                     portalDir = new File(systemConfig.get("fascinator-home")
                             + "/portal/" + systemConfig.get("portal/home"));
@@ -425,7 +387,7 @@ public class BackupClient {
                 }
 
                 // backup only current portal
-                if (includePortal == "true" && backupAll == false) {
+                if (includePortal && backupAll == false) {
                     File portalFolder;
                     if (portalDir == null) {
                         portalDir = new File(systemConfig
@@ -445,27 +407,6 @@ public class BackupClient {
                 }
             }
         }
-    }
-
-    /**
-     * Zipping payload & metadata
-     * 
-     * @param zipFileName
-     * @param payloadList
-     * @throws IOException
-     */
-    private void includeMetadata(String zipFileName, List<Payload> payloadList)
-            throws IOException {
-        ZipOutputStream out = new ZipOutputStream(new FileOutputStream(
-                zipFileName));
-        for (Payload metaPayload : payloadList) {
-            if (metaPayload.getType() == PayloadType.Enrichment) {
-                out.putNextEntry(new ZipEntry(metaPayload.getId()));
-                IOUtils.copy(metaPayload.getInputStream(), out);
-                out.closeEntry();
-            }
-        }
-        out.close();
     }
 
     /**

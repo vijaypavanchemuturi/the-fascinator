@@ -169,12 +169,13 @@
           #foreach($path in $paths.keySet())
             #set($options = $paths.get($path))
             #set($id = "backup-$velocityCount")
+            #set($fullPath = $options.getPlainText("path", $path))
             #set($active = $options.get("active"))
             #set($ignoreFilter = $options.get("ignoreFilter"))
             ##set($includeRenditions = $options.get("include-rendition-meta"))
             #set($includeViews = $options.get("include-portal-view"))
             ###createBackupRow($id $active $path $ignoreFilter $includeRenditions $includeViews "")
-            #createBackupRow($id $active $path $ignoreFilter $includeViews "")
+            #createBackupRow($id $active $fullPath $ignoreFilter $includeViews "")
           #end
           </tbody>
         </table>

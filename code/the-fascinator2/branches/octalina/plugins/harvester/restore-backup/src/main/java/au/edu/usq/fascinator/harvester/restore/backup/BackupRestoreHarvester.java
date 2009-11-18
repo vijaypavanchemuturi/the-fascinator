@@ -43,6 +43,7 @@ import au.edu.usq.fascinator.api.harvester.Harvester;
 import au.edu.usq.fascinator.api.harvester.HarvesterException;
 import au.edu.usq.fascinator.api.storage.DigitalObject;
 import au.edu.usq.fascinator.common.JsonConfig;
+import au.edu.usq.fascinator.common.JsonConfigHelper;
 
 /**
  * Restore files in a specified backup directory on the local file system
@@ -74,7 +75,8 @@ public class BackupRestoreHarvester implements Harvester, Configurable {
 	private JsonConfig systemConfig;
 	
 	/** Backup location list **/
-    private Map<String, Map<String, Object>> restoreDirList = new HashMap<String, Map<String, Object>>();
+    //private Map<String, Map<String, Object>> restoreDirList = new HashMap<String, Map<String, Object>>();
+	private Map<String, JsonConfigHelper> restoreDirList;
     
     /** Restore email **/
     private String email;
@@ -103,28 +105,31 @@ public class BackupRestoreHarvester implements Harvester, Configurable {
 		List<DigitalObject> fileObjects = new ArrayList<DigitalObject>();
 		
 		for (String restorePath : restoreDirList.keySet()) {
-            Map<String, Object> restoreProps = restoreDirList.get(restorePath);
-            restorePath = restorePath.replace("${user.home}", System
-                    .getProperty("user.home"));
+            //Map<String, Object> restoreProps = restoreDirList.get(restorePath);
+			JsonConfigHelper restoreProps = restoreDirList.get(restorePath);
+            restorePath = String.valueOf(restoreProps.get("path"));
+            
             String filterString = restoreProps.get("ignoreFilter").toString();
             if (filterString == null) {
                 filterString = DEFAULT_IGNORE_FILTER;
             }
             IgnoreFilter ignoreFilter = new IgnoreFilter(filterString
                     .split("\\|"));
-            String includeMeta = String.valueOf(restoreProps
+            boolean includeMeta = Boolean.parseBoolean(restoreProps
                     .get("include-rendition-meta"));
-            String active = String.valueOf(restoreProps.get("active"));
-            String includePortal = String.valueOf(restoreProps
+            boolean active = Boolean.parseBoolean(restoreProps.get("active"));
+            boolean includePortal = Boolean.parseBoolean(restoreProps
                     .get("include-portal-view"));
-            if (active == "true") {
+            
+            System.out.println("active: " + email);
+            if (active) {
             	File restoredDir = new File(restorePath, email);
+            	System.out.println("restoredDir: " + restoredDir.getAbsolutePath());
             	if (restoredDir.exists()) {
             		//Start to process files folder
-            		File filesFolder = new File(restoredDir, "files");
             		List<File> fileList = new ArrayList<File>();
             		List<String> notZipFileList = new ArrayList<String>();
-            		listFileRecursive(filesFolder, fileList, notZipFileList, ignoreFilter);
+            		listFileRecursive(restoredDir, fileList, notZipFileList, ignoreFilter);
             		for (File file : fileList) {
             			Boolean addAsDigitalObject = true;
             			// Need to ignore rendition zip file
@@ -135,12 +140,12 @@ public class BackupRestoreHarvester implements Harvester, Configurable {
             				}
             			}
             			if (addAsDigitalObject) {
-            				fileObjects.add(new BackupRestoreDigitalObject(file, Boolean.parseBoolean(includeMeta)));
+            				fileObjects.add(new BackupRestoreDigitalObject(file, includeMeta));
             			}
             		}
             	
             		//Start to process portal files
-	            	if (includePortal == "true") {
+	            	if (includePortal) {
 	                	File portalDir = new File(restoredDir, "config");
 	                	if (portalDir.exists()) {
 	                		File destDir = new File(systemConfig.get("fascinator-home")
@@ -258,15 +263,8 @@ public class BackupRestoreHarvester implements Harvester, Configurable {
 		try {
 			config = new JsonConfig(jsonFile);
 			systemConfig = new JsonConfig(config.getSystemFile());
-			Map<String, Object> backupPaths = config.getMapWithChild("restore/paths");
-		    Map<String, Map<String, Object>> backupPathsDict = new HashMap<String, Map<String, Object>>();
-		    for (String key : backupPaths.keySet()) {
-		        Map<String, Object> newObj = (Map<String, Object>) backupPaths
-		                .get(key);
-		        backupPathsDict.put(key, newObj);
-		    }
-		    setRestoreDir(backupPathsDict);
-		    setEmail(config.get("restore/email"));
+			restoreDirList = config.getJsonMap("restore/paths");
+			setEmail(config.get("email"));
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -277,14 +275,8 @@ public class BackupRestoreHarvester implements Harvester, Configurable {
      * 
      * @param backupDir
      */
-    public void setRestoreDir(Map<String, Map<String, Object>> restoreDirs) {
-        if (restoreDirs != null) {
-            for (String backupPath : restoreDirs.keySet()) {
-                Map<String, Object> backupPathProps = restoreDirs
-                        .get(backupPath);
-                restoreDirList.put(backupPath, backupPathProps);
-            }
-        }
+    public void setRestoreDir(Map<String, JsonConfigHelper> restoreDirList) {
+        this.restoreDirList = restoreDirList;
     }
 
     /**
@@ -292,7 +284,7 @@ public class BackupRestoreHarvester implements Harvester, Configurable {
      * 
      * @return backupDir
      */
-    public Map<String, Map<String, Object>> getRestoreDirList() {
+    public Map<String, JsonConfigHelper> getRestoreDirList() {
         return restoreDirList;
     }
 

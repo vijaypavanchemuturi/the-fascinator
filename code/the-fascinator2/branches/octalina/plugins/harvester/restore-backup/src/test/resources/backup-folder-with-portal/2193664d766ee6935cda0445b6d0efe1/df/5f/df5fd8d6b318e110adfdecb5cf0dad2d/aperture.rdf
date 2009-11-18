@@ -1,0 +1,13 @@
+<rdf:RDF
+    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+    xmlns:foaf="http://xmlns.com/foaf/0.1/"
+    xmlns:j.0="http://www.semanticdesktop.org/ontologies/2007/01/19/nie#"
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
+    xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+    xmlns:j.1="http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#" >
+  <rdf:Description rdf:about="file:/Users/lindaoctalina/Documents/public/somefile.txt">
+    <j.0:mimeType>text/plain</j.0:mimeType>
+    <j.0:plainTextContent>test</j.0:plainTextContent>
+    <rdf:type rdf:resource="http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#PlainTextDocument"/>
+  </rdf:Description>
+</rdf:RDF>
