@@ -1,31 +1,3 @@
-#macro(displayFacet $facetFieldKey)
-  #set($facetCounts = $self.getFacetCounts($facetFieldKey))
-  #if($facetCounts.size() > 0)
-  <div class="mainmenu">
-    <div class="mainmenu-top"></div>
-    <div class="mainmenu-heading">$self.getFacetName($facetFieldKey)</div>
-    <ul class="facet-list" id="$facetFieldKey">
-    #foreach($facetCountKey in $facetCounts.keySet())
-      #set($facetCount = $facetCounts.get($facetCountKey))
-      #set($facetQuery = $self.getFacetQuery($facetFieldKey, $facetCountKey))
-      #set($selected = $self.isSelected($facetQuery))
-      <li#if($selected) class="selected"#end>
-      #if($self.isPortalQueryFacet($facetQuery))
-        <span class="selected">$facetCountKey</span> ($facetCount)
-      #else
-        #if($selected)
-          #set($facetClass = "remove-facet selected")
-        #else
-          #set($facetClass = "add-facet")
-        #end
-        <a class="$facetClass" href="#" rel='$facetFieldKey:"$facetCountKey"'>$page.escapeText($facetCountKey)</a> ($facetCount)
-      #end
-      </li>
-    #end
-    </ul>
-  </div>
-  #end
-#end
 #set($pageTitle = 'Home')
 <table class="layout">
   <tbody>
@@ -41,7 +13,8 @@
               <li><a href="$portalPath/help">Help</a></li>
             </ul>
           </div>
-          #displayFacet("f_usq_document_type")
+          #displayFacet("f_title_group")
+          #displayFacetTree("policy_type", "Policy type")
         </div>
       </td>
       <td class="middlecol">
@@ -77,27 +50,6 @@
             #end
             </table>
           </div>
-          #*
-          <div id="home-browse">
-            <h2>Browse</h2>
-          #if($page.portals.size() == 1)
-            <p>There are currently no other categories available.</p>
-          #else
-            <p>Browse policies and procedures by category</p>
-            <ul>
-            #foreach($portal in $page.portals)
-              <li>
-              #if($portal.name == $portalId)
-                <span class="active-link">$portal.description</span>
-              #else
-                <a href="$contextPath/$portal.name/search">$portal.description</a>
-              #end
-              </li>
-            #end
-            </ul>
-          #end
-          </div>
-          *#
         </div>
       </td>
     </tr>
@@ -109,5 +61,37 @@ $(function() {
     $(".add-facet").click(function() {
         doAction("add_fq", $(this).attr("rel"));
     });
+    
+    var cookieOpts = { path: "/", expires: 10 };
+    createTree("#policy_type", "f_usq_document_policy_type", "", "");
+    
+    // toggle facets
+    $(".mainmenu:has(.facet-list) > .mainmenu-heading")
+        .each(function() {
+            var next = $(this).next();
+            var icon = $(this).find("span");
+            var id = next.attr("id");
+            var state = jQuery.cookie("tf_" + id);
+            if (state == "true") {
+                icon.removeClass("ui-icon-triangle-1-e");
+                icon.addClass("ui-icon-triangle-1-s");
+                next.show();
+            } else {
+                icon.addClass("ui-icon-triangle-1-e");
+                icon.removeClass("ui-icon-triangle-1-s");
+                next.hide();
+            }
+        })
+        .click(function() {
+            var next = $(this).next();
+            var icon = $(this).find("span");
+            var id = next.attr("id");
+            icon.toggleClass("ui-icon-triangle-1-e");
+            icon.toggleClass("ui-icon-triangle-1-s");
+            next.toggle();
+            var state = next.is(":visible");
+            jQuery.cookie("tf_" + id, state, cookieOpts);
+            return false;
+        });
 });
 </script>
