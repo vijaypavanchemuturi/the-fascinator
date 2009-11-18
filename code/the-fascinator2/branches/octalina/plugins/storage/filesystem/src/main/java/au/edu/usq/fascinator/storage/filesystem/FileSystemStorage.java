@@ -18,6 +18,9 @@
  */
 package au.edu.usq.fascinator.storage.filesystem;
 
+import static au.edu.usq.fascinator.api.storage.PayloadType.Data;
+import static au.edu.usq.fascinator.api.storage.PayloadType.External;
+
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -152,7 +155,7 @@ public class FileSystemStorage implements Storage {
             PayloadType type = payload.getType();
             // if (realFile.isFile()
             // && (Data.equals(type) || External.equals(type))) {
-            if (useLink) {
+            if (useLink && (Data.equals(type) || External.equals(type))) {
                 filePayload.setLinked(true);
                 filePayload.updateMeta(false);
                 IOUtils.write(oid, out);

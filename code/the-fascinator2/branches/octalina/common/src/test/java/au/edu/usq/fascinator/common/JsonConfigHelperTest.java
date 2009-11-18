@@ -147,4 +147,16 @@ public class JsonConfigHelperTest {
         // System.out.println(fields.get(key).get("label"));
         // }
     }
+
+    @Test
+    public void setJson() throws Exception {
+
+        JsonConfigHelper storage = new JsonConfigHelper();
+        storage.set("type", "file-system");
+        storage.set("file-system/home", "/user");
+        storage.set("file-system/use-link", "false");
+
+        config.setJson("storage", storage);
+        System.out.println("config:  " + config);
+    }
 }

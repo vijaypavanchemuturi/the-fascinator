@@ -205,7 +205,13 @@ public class JsonConfigHelper {
 
     public Map<String, JsonConfigHelper> getJsonMap(String path) {
         Map<String, JsonConfigHelper> jsonMap = new LinkedHashMap<String, JsonConfigHelper>();
-        Object valueNode = getJXPath().getValue(path);
+
+        Object valueNode;
+        try {
+            valueNode = getJXPath().getValue(path);
+        } catch (Exception e) {
+            return null;
+        }
         if (valueNode instanceof Map) {
             Map<String, Object> map = (Map<String, Object>) valueNode;
             for (String key : map.keySet()) {
@@ -228,6 +234,15 @@ public class JsonConfigHelper {
         } catch (Exception e) {
             getJXPath().createPathAndSetValue(path, map);
         }
+    }
+
+    public void setJson(String path, JsonConfigHelper json) {
+        try {
+            getJXPath().setValue(path, json.getMap("/"));
+        } catch (Exception e) {
+            getJXPath().createPathAndSetValue(path, json.getMap("/"));
+        }
+
     }
 
     public void setJsonMap(String path, Map<String, JsonConfigHelper> map) {

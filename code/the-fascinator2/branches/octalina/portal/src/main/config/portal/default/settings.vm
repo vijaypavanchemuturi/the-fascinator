@@ -33,7 +33,8 @@
     </td>
   </tr>
 #end
-#macro(createBackupRow $id $active $path $ignoreFilter $includeRenditions $includeViews $extraClass)
+###macro(createBackupRow $id $active $path $ignoreFilter $includeRenditions $includeViews $extraClass)
+#macro(createBackupRow $id $active $path $ignoreFilter $includeViews $extraClass)
   <tr id="$id" class="backup-row $extraClass">
     <td>
       <input class="backup-active" name="backup-active" type="checkbox" value="${id}"
@@ -55,10 +56,10 @@
         <a class="backup-ignore-cancel" href="#"><img alt="Cancel" src="$portalPath/images/icons/cross.png" /></a>
       </form>
     </td>
-    <td>
-      <input class="backup-renditions" name="backup-rendition" type="checkbox" value="${id}"
-        #if($includeRenditions=="true")checked="checked"#end />
-    </td>
+    ##<td>
+    ##  <input class="backup-renditions" name="backup-rendition" type="checkbox" value="${id}"
+    ##    #if($includeRenditions=="true")checked="checked"#end />
+    ##</td>
     <td>
       <input class="backup-views" name="backup-view" type="checkbox" value="${id}"
         #if($includeViews=="true")checked="checked"#end />
@@ -150,10 +151,6 @@
     <h2>Backup</h2>
     <div class="block" id="backup-form">
       <fieldset>
-        <p>
-          <label for="backup-email">User email</label>
-          <input id="backup-email" type="text" value="fascinator@usq.edu.au" />
-        </p>
         <label for="backup-table">Backup locations</label>
         <table>
           <thead>
@@ -161,11 +158,11 @@
               <th width="5%">Active</th>
               <th width="50%">Path</th>
               <th width="30%">Ignore filter</th>
-              <th>Renditions</th>
+              ##<th>Renditions</th>
               <th>Views</th>
               <th>Delete</th>
             </tr>
-            #createBackupRow("backup-blank" "true" "${user.home}/backup" ".svn|.ice|.*|~*" "true" "true" "hidden")
+            #createBackupRow("backup-blank" "true" "${user.home}/backup" ".svn|.ice|.*|~*" "true" "hidden")
           </thead>
           <tbody id="backup-table">
           #set($paths = $self.portal.getJsonMap("portal/backup/paths"))
@@ -174,9 +171,10 @@
             #set($id = "backup-$velocityCount")
             #set($active = $options.get("active"))
             #set($ignoreFilter = $options.get("ignoreFilter"))
-            #set($includeRenditions = $options.get("include-rendition-meta"))
+            ##set($includeRenditions = $options.get("include-rendition-meta"))
             #set($includeViews = $options.get("include-portal-view"))
-            #createBackupRow($id $active $path $ignoreFilter $includeRenditions $includeViews "")
+            ###createBackupRow($id $active $path $ignoreFilter $includeRenditions $includeViews "")
+            #createBackupRow($id $active $path $ignoreFilter $includeViews "")
           #end
           </tbody>
         </table>
@@ -324,7 +322,7 @@ $(function() {
         jQuery.post("$portalPath/actions/facets.ajax?" + data,
             {
                 func: "backup-update",
-                email: $("#backup-email").val(),
+                //email: $("#backup-email").val(),
                 pathIds: ids
             },
             function(data, status) {
@@ -351,7 +349,7 @@ $(function() {
         newPath.find(":input").each(function() {
             var name = $(this).attr("name");
             $(this).attr("name", name.replace("backup-blank", newId));
-            $(this).eq("input:checkbox").attr("value", newId);
+            $(this).filter("input:checkbox").attr("value", newId);
         });
         newPath.find(".backup-path-text").click();
         newPath.find(".backup-path-input").focus();

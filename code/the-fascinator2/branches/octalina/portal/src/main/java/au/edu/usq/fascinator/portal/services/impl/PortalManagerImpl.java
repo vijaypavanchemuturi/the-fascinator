@@ -154,7 +154,7 @@ public class PortalManagerImpl implements PortalManager {
             try {
                 portal = new Portal(portalFile);
                 add(portal);
-                log.info("Loaded portal: " + portal);
+                // log.info("Loaded portal: " + portal);
             } catch (IOException e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
@@ -168,7 +168,7 @@ public class PortalManagerImpl implements PortalManager {
         BackupClient backupClient;
         try {
             File portalDir = new File(portalsDir, portal.getName());
-            log.info("****** " + portalDir);
+            // log.info("****** " + portalDir);
             backupClient = new BackupClient(portalDir, portal.getEmail(),
                     portal.getBackupPaths(), portal.getQuery());
             backupClient.run();
@@ -187,5 +187,16 @@ public class PortalManagerImpl implements PortalManager {
             e.printStackTrace();
         }
 
+    }
+
+    @Override
+    public void indexPortal(Portal portal) {
+        IndexClient indexClient;
+        try {
+            indexClient = new IndexClient();
+            indexClient.indexPortal(portal.getQuery());
+        } catch (IOException e) {
+
+        }
     }
 }
