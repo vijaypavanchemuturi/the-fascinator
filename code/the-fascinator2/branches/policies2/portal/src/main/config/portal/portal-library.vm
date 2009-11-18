@@ -1,0 +1,35 @@
+#macro(displayFacetTree $facetTreeId $facetTreeTitle)
+  <div class="facet-group mainmenu ui-helper-hidden ui-helper-clearfix">
+    <div class="mainmenu-top"></div>
+    <div class="mainmenu-heading">$facetTreeTitle<span class="ui-icon ui-icon-triangle-1-e icon"></span></div>
+    <div id="$facetTreeId" class="facet-list ui-helper-clearfix ui-helper-hidden"></div>
+  </div>
+#end
+#macro(displayFacet $facetFieldKey)
+  #set($facetCounts = $self.getFacetCounts($facetFieldKey))
+  #if($facetCounts.size() > 0)
+  <div class="facet-group mainmenu ui-helper-clearfix">
+    <div class="mainmenu-top"></div>
+    <div class="mainmenu-heading">$self.getFacetName($facetFieldKey)<span class="ui-icon ui-icon-triangle-1-e icon"></span></div>
+    <ul class="facet-list ui-helper-hidden" id="$facetFieldKey">
+    #foreach($facetCountKey in $facetCounts.keySet())
+      #set($facetCount = $facetCounts.get($facetCountKey))
+      #set($facetQuery = $self.getFacetQuery($facetFieldKey, $facetCountKey))
+      #set($selected = $self.isSelected($facetQuery))
+      <li#if($selected) class="selected"#end>
+      #if($self.isPortalQueryFacet($facetQuery))
+        <span class="selected">$facetCountKey</span> ($facetCount)
+      #else
+        #if($selected)
+          #set($facetClass = "remove-facet selected")
+        #else
+          #set($facetClass = "add-facet")
+        #end
+        <a class="$facetClass" href="#" rel='$facetFieldKey:"$facetCountKey"'>$page.escapeText($facetCountKey)</a> ($facetCount)
+      #end
+      </li>
+    #end
+    </ul>
+  </div>
+  #end
+#end
