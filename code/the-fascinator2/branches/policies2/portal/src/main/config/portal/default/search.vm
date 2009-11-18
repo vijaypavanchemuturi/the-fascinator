@@ -38,15 +38,17 @@
               </ul>
             </div>
           #end
-          #displayFacet("f_usq_document_type")
+          
           #displayFacetTree("policy_type", "Policy type")
           #displayFacet("f_title_group")
-          #displayFacetTree("div_dept_office", "Division/Department")
+
           #if($self.result and $paging.totalFound > 0)
           <div class="advanced">
             <span class="ui-icon ui-icon-triangle-1-e icon"></span>
             <h2>Advanced</h2>
-            <div class="ui-helper-hidden">
+            <div class=""> ##ui-helper-hidden
+              #displayFacet("f_usq_document_type")
+              #displayFacetTree("div_dept_office", "Division/Department")
               #displayFacetTree("next_review_date", "Next review date")
               #displayFacetTree("committee", "Committee")
               #displayFacetTree("responsible_officer", "Responsible officer")
