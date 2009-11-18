@@ -5,6 +5,7 @@ from java.util import LinkedHashMap
 
 class HomeData:
     def __init__(self):
+        sessionState.remove("fq")
         action = formData.get("verb")
         if action == "delete-portal":
             portalName = formData.get("value")
@@ -14,6 +15,7 @@ class HomeData:
         self.__latest = JsonConfigHelper()
         self.__result = JsonConfigHelper()
         self.__search()
+        
     
     def __search(self):
         indexer = Services.getIndexer()
