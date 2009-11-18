@@ -31,6 +31,8 @@ class FacetActions:
         elif func == "backup-update":
             pathIds = formData.get("pathIds").split(",")
             actives = formData.getValues("backup-active")
+            deletes = formData.getValues("backup-delete")
+            print ")))) deletes: ", deletes
             if actives is None:
                 actives = []
             #renditions = formData.getValues("backup-rendition")
@@ -40,64 +42,35 @@ class FacetActions:
             if views is None:
                 views = []
             paths = HashMap()
-            for pathId in pathIds:
-                path = formData.get("%s-path" % pathId)
-                active = str(pathId in actives).lower()
-                #rendition = str(pathId in renditions).lower()
-                view = str(pathId in views).lower()
-                ignoreFilter = formData.get("%s-ignore" % pathId)
-                json = JsonConfigHelper()
-                json.set("active", active)
-                #json.set("include-rendition-meta", rendition)
-                json.set("include-portal-view", view)
-                json.set("ignoreFilter", ignoreFilter)
-                
-                #Another setting for filesystem storage
-                #NOTE: in the future we need to let user choose which storage
-                #      they would like to use
-                #    "storage" : {
-                #    "type" : "file-system",
-                #    "file-system" : {
-                #      "home" : "${user.home}/.fascinator/backup",
-                #      "use-link" : "false"
-                #    }
-                #  }
-                
-                
-                storage = JsonConfigHelper()
-                storage.set("type", "file-system")
-                storage.set("file-system/home", path)
-                storage.set("file-system/use-link", "false")
-                
-                
-#                print "storage:", storage
-#                filesystem = JsonConfigHelper()
-#                filesystem.set("home", path)
-#                filesystem.set("use-link", "false")
-#                print "filesystem:", filesystem.toString()
-#                print '000'
-#                storage.setMap("file-system", filesystem.getMap("/"))
-#                print "storageHelper: ", storage
-
-
-
-                ### NEED to find a way to fix this
-                json.setMap("storage", storage.getMap("/"))
-#                
-#                storageHelper = JsonConfigHelper()
-#                storageHelper.set("type", "file-system")
-#                
-#                filesystem = JsonConfigHelper()
-#                filesystem.set("home", path)
-#                filesystem.set("use-link", "false")
-#                storageHelper.setJsonMap("file-system", filesystem)
-#                
-#                print "filesystem: ", filesystem.getMap("/")
-#                print "storage: ", storageHelper
-                print "json: ", json
-                paths.put(path, json.getMap("/"))
+            for pathId in pathIds: 
+                if deletes is None or pathId not in deletes:
+                    path = formData.get("%s-path" % pathId)
+                    pathName = path.replace("/", "_").replace("${user.home}", "")
+                    active = str(pathId in actives).lower()
+                    #rendition = str(pathId in renditions).lower()
+                    view = str(pathId in views).lower()
+                    ignoreFilter = formData.get("%s-ignore" % pathId)
+                    
+                    json = HashMap()
+                    json.put("path", path)
+                    json.put("active", active)
+                    json.put("include-portal-view", view)
+                    json.put("ignoreFilter", ignoreFilter)
+                    
+                    storage = HashMap()
+                    storage.put("type", "file-system")
+                    
+                    filesystem = HashMap()
+                    filesystem.put("home", path)
+                    filesystem.put("use-link", "false")
+                    storage.put("file-system", filesystem)
+                    
+                    json.put("storage", storage)
+                    paths.put(pathName, json)
             print " *** paths=%s" % paths
-            portal.setMap("portal/backup/paths", paths)
+            # reset the path first
+            portal.setMap("portal/backup/paths", HashMap())
+            portal.setMultiMap("portal/backup/paths", paths)
             portalManager.save(portal)
         writer = response.getPrintWriter("text/plain")
         writer.println(result)

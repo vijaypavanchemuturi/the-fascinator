@@ -9,17 +9,31 @@
     "debug" : "true",
     "backup" : {
       "paths" : {
-        "/media/external" : {
+        "_media_external" : {
+          "path" : "/media/external",
           "active" : "false",
+          "ignoreFilter" : ".svn|.ice|.*|~*",
           "include-portal-view" : "false",
-          "ignoreFilter" : ".svn|.ice|.*|~*",
-          "storage" : "{type=file-system, file-system={home=/media/external, use-link=false}}"
+          "storage" : {
+            "file-system" : {
+              "home" : "/media/external",
+              "use-link" : "false"
+            },
+            "type" : "file-system"
+          }
         },
-        "${user.home}/.fascinator/backup" : {
+        "_.fascinator_backup" : {
+          "path" : "${user.home}/.fascinator/backup",
           "active" : "true",
-          "include-portal-view" : "true",
           "ignoreFilter" : ".svn|.ice|.*|~*",
-          "storage" : "{type=file-system, file-system={home=/home/octalina/.fascinator/backup, use-link=false}}"
+          "include-portal-view" : "true",
+          "storage" : {
+            "file-system" : {
+              "home" : "${user.home}/.fascinator/backup",
+              "use-link" : "false"
+            },
+            "type" : "file-system"
+          }
         }
       }
     },

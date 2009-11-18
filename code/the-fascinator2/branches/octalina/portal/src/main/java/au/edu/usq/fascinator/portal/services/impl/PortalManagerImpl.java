@@ -169,8 +169,8 @@ public class PortalManagerImpl implements PortalManager {
         try {
             File portalDir = new File(portalsDir, portal.getName());
             // log.info("****** " + portalDir);
-            backupClient = new BackupClient(portalDir, portal.getEmail(),
-                    portal.getBackupPaths(), portal.getQuery());
+            backupClient = new BackupClient(portalDir, portal.getBackupPaths(),
+                    portal.getQuery());
             backupClient.run();
         } catch (IOException e) {
             e.printStackTrace();

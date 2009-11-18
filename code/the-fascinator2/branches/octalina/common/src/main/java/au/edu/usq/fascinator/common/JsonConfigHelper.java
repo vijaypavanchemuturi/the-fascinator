@@ -36,6 +36,8 @@ import org.apache.commons.lang.text.StrSubstitutor;
 import org.codehaus.jackson.JsonFactory;
 import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.map.ObjectMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Helper class for working with JSON configuration. Uses the JXPath library to
@@ -45,6 +47,8 @@ import org.codehaus.jackson.map.ObjectMapper;
  */
 @SuppressWarnings("unchecked")
 public class JsonConfigHelper {
+
+    private Logger log = LoggerFactory.getLogger(JsonConfigHelper.class);
 
     /** JXPath factory for creating JSON nodes */
     private class JsonMapFactory extends AbstractFactory {
@@ -156,6 +160,25 @@ public class JsonConfigHelper {
     }
 
     /**
+     * Get the value of specified node, with a specified default if it's not
+     * found
+     * 
+     * @param path
+     * @param defaultValue
+     * @return node value or default Value if not found WITHOUT string
+     *         substitution
+     */
+    public String getPlainText(String path, String defaultValue) {
+        Object valueNode = null;
+        try {
+            valueNode = getJXPath().getValue(path);
+        } catch (Exception e) {
+        }
+        String value = valueNode == null ? defaultValue : valueNode.toString();
+        return value;
+    }
+
+    /**
      * Gets values of the specified node as a list. Use this method for JSON
      * arrays.
      * 
@@ -236,13 +259,22 @@ public class JsonConfigHelper {
         }
     }
 
-    public void setJson(String path, JsonConfigHelper json) {
-        try {
-            getJXPath().setValue(path, json.getMap("/"));
-        } catch (Exception e) {
-            getJXPath().createPathAndSetValue(path, json.getMap("/"));
+    /**
+     * Set Multiple nested map on the specified path
+     * 
+     * @param path
+     * @param json
+     */
+    public void setMultiMap(String path, Map<String, Object> json) {
+        for (String key : json.keySet()) {
+            if (json.get(key) instanceof Map) {
+                setMultiMap(path + "/" + key, (Map<String, Object>) json
+                        .get(key));
+            } else {
+                getJXPath().createPathAndSetValue(path + "/" + key,
+                        json.get(key));
+            }
         }
-
     }
 
     public void setJsonMap(String path, Map<String, JsonConfigHelper> map) {
