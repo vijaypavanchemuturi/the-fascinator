@@ -117,14 +117,6 @@ public class Portal extends JsonConfigHelper {
         return new ArrayList<String>(getFacetFields().keySet());
     }
 
-    public void setEmail(String email) {
-        set("portal/backup/email", email);
-    }
-
-    public String getEmail() {
-        return get("portal/backup/email", "");
-    }
-
     @SuppressWarnings("unchecked")
     public Map<String, JsonConfigHelper> getBackupPaths() throws IOException {
         return getJsonMap("portal/backup/paths");

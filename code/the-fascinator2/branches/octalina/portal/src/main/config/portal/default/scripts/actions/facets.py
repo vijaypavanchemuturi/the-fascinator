@@ -29,14 +29,13 @@ class FacetActions:
                     portal.set("portal/facet-fields/%s/display" % field, displays[i])
             portalManager.save(portal)
         elif func == "backup-update":
-            portal.set("portal/backup/email", formData.get("email"))
             pathIds = formData.get("pathIds").split(",")
             actives = formData.getValues("backup-active")
             if actives is None:
                 actives = []
-            renditions = formData.getValues("backup-rendition")
-            if renditions is None:
-                renditions = []
+            #renditions = formData.getValues("backup-rendition")
+            #if renditions is None:
+            #    renditions = []
             views = formData.getValues("backup-view")
             if views is None:
                 views = []
@@ -44,14 +43,58 @@ class FacetActions:
             for pathId in pathIds:
                 path = formData.get("%s-path" % pathId)
                 active = str(pathId in actives).lower()
-                rendition = str(pathId in renditions).lower()
+                #rendition = str(pathId in renditions).lower()
                 view = str(pathId in views).lower()
                 ignoreFilter = formData.get("%s-ignore" % pathId)
                 json = JsonConfigHelper()
                 json.set("active", active)
-                json.set("include-rendition-meta", rendition)
+                #json.set("include-rendition-meta", rendition)
                 json.set("include-portal-view", view)
                 json.set("ignoreFilter", ignoreFilter)
+                
+                #Another setting for filesystem storage
+                #NOTE: in the future we need to let user choose which storage
+                #      they would like to use
+                #    "storage" : {
+                #    "type" : "file-system",
+                #    "file-system" : {
+                #      "home" : "${user.home}/.fascinator/backup",
+                #      "use-link" : "false"
+                #    }
+                #  }
+                
+                
+                storage = JsonConfigHelper()
+                storage.set("type", "file-system")
+                storage.set("file-system/home", path)
+                storage.set("file-system/use-link", "false")
+                
+                
+#                print "storage:", storage
+#                filesystem = JsonConfigHelper()
+#                filesystem.set("home", path)
+#                filesystem.set("use-link", "false")
+#                print "filesystem:", filesystem.toString()
+#                print '000'
+#                storage.setMap("file-system", filesystem.getMap("/"))
+#                print "storageHelper: ", storage
+
+
+
+                ### NEED to find a way to fix this
+                json.setMap("storage", storage.getMap("/"))
+#                
+#                storageHelper = JsonConfigHelper()
+#                storageHelper.set("type", "file-system")
+#                
+#                filesystem = JsonConfigHelper()
+#                filesystem.set("home", path)
+#                filesystem.set("use-link", "false")
+#                storageHelper.setJsonMap("file-system", filesystem)
+#                
+#                print "filesystem: ", filesystem.getMap("/")
+#                print "storage: ", storageHelper
+                print "json: ", json
                 paths.put(path, json.getMap("/"))
             print " *** paths=%s" % paths
             portal.setMap("portal/backup/paths", paths)

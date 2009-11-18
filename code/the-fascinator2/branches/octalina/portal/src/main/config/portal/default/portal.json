@@ -8,33 +8,18 @@
     "facet-sort-by-count" : "false",
     "debug" : "true",
     "backup" : {
-      "email" : "fascinator@usq.edu.au",
       "paths" : {
         "/media/external" : {
           "active" : "false",
-          "include-rendition-meta" : "false",
           "include-portal-view" : "false",
           "ignoreFilter" : ".svn|.ice|.*|~*",
-          "storage": {
-	        "type": "file-system",
-	        "file-system": {
-	            "home": "/media/external",
-	            "use-link" : "false"
-	        }
-	      }
+          "storage" : "{type=file-system, file-system={home=/media/external, use-link=false}}"
         },
         "${user.home}/.fascinator/backup" : {
           "active" : "true",
-          "include-rendition-meta" : "false",
-          "include-portal-view" : "false",
+          "include-portal-view" : "true",
           "ignoreFilter" : ".svn|.ice|.*|~*",
-          "storage": {
-	        "type": "file-system",
-	        "file-system": {
-	            "home": "${user.home}/.fascinator/backup",
-	            "use-link" : "false"
-	        }
-	      }
+          "storage" : "{type=file-system, file-system={home=/home/octalina/.fascinator/backup, use-link=false}}"
         }
       }
     },
