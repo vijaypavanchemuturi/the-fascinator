@@ -13,8 +13,8 @@
               <li><a href="$portalPath/help">Help</a></li>
             </ul>
           </div>
-          #displayFacet("f_title_group")
           #displayFacetTree("policy_type", "Policy type")
+          #displayFacet("f_title_group")
         </div>
       </td>
       <td class="middlecol">
@@ -28,8 +28,14 @@
             <p>Search for policies and procedures using keywords.</p>
             <div class="search-box">
               <form action="search" id="search-form" method="post">
-                <input type="text" name="query" size="70" value="$!query" />
+                <input type="text" id="query" name="query" size="70" value="$!query" />
                 <input type="submit" name="search" value="Search" />
+                <br />
+                <input type="radio" name="searchType" id="freeText" value="full_text" checked="checked" />
+                <label for="freeText"> Free Text</label>
+                <input type="radio" name="searchType" id="title" value="dc_title" />
+                <label for="title">Title</label>
+                
               </form>
               <p>There are currently <strong>$self.total</strong> policies available.</p>
             </div>
@@ -64,6 +70,9 @@ $(function() {
     
     var cookieOpts = { path: "/", expires: 10 };
     createTree("#policy_type", "f_usq_document_policy_type", "", "");
+    
+    //autocomplete
+    $("input#query").autocomplete("$portalPath/autocomplete.ajax");
     
     // toggle facets
     $(".mainmenu:has(.facet-list) > .mainmenu-heading")
