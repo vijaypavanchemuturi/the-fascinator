@@ -1,7 +1,10 @@
 .facet-group .mainmenu-heading {
     padding-left: 3px;
 }
-
+.mainmenu .facet-list{
+    overflow-x: auto;
+    overflow-y: hidden;
+}
 .mainmenu .facet-list li {
     color: gray;
     font-weight: normal;
