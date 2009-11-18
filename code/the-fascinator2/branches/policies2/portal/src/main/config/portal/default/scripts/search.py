@@ -18,29 +18,36 @@ class SearchData:
         self.__pageNum = sessionState.get("pageNum", 1)
         self.__selected = []
         self.__query = ""
+        self.__searchType = "full_text"
         self.__search()
     
     def __search(self):
         recordsPerPage = self.__portal.recordsPerPage
         
         uri = URLDecoder.decode(request.getAttribute("RequestURI"))
+        searchType = formData.get("searchType")
+        if searchType != "" or searchType is not None:
+            self.__searchType = searchType
+        else:
+            self.__searchType = "full_text"
+        
         if uri != portalPath:
             query = uri[len(portalPath):]
         if query is None or query == "":
             query = formData.get("query")
         if query is None or query == "":
             query = "*:*"
-        
+             
         if query == "*:*":
             self.__query = ""
         else:
             self.__query = query
+            query = "%s:%s" % (searchType,query)
         
         req = SearchRequest(query)
         req.setParam("facet", "true")
         req.setParam("rows", str(recordsPerPage))
         req.setParam("facet.field", self.__portal.facetFieldList)
-        print " *************", self.__portal.facetFieldList
         req.setParam("facet.sort", str(self.__portal.facetSort).lower())
         req.setParam("facet.limit", str(self.__portal.facetCount))
         req.setParam("sort", "title_sort asc")
@@ -88,7 +95,8 @@ class SearchData:
             self.__paging = Pagination(self.__pageNum,
                                        int(self.__result.get("response/numFound")),
                                        self.__portal.recordsPerPage)
-    
+    def getSearchType(self):
+        return self.__searchType
     def getQuery(self):
         return self.__query
     

@@ -1,6 +1,8 @@
 #set($pageTitle = 'Search')
 #set($query = $self.query)
 #set($paging = $self.paging)
+#set($searchType = "full_text")
+#set($searchType = $self.searchType)
 #if($query)
   #set($atomLink = "$portalPath/feed/atom?query=$query")
 #else
@@ -44,7 +46,7 @@
 
           #if($self.result and $paging.totalFound > 0)
           <div class="advanced">
-            <span class="ui-icon ui-icon-triangle-1-e icon"></span>
+            <span class="ui-icon ui-icon-triangle-1-s icon"></span>
             <h2>Advanced</h2>
             <div class=""> ##ui-helper-hidden
               #displayFacet("f_usq_document_type")
@@ -61,8 +63,21 @@
         <h2 class="content-title">Search</h2>
         <div class="search-box">
           <form action="$portalPath/search" id="search-form" method="post">
-            <input type="text" name="query" size="70" value="$!query" />
+            <input type="text" id="query" name="query" size="70" value="$!query" />
             <input type="submit" name="search" value="Search" />
+            <br />
+            <input type="radio" name="searchType" id="freeText" value="full_text" 
+            #if($!searchType != "dc_title")
+                checked="checked" 
+            #end
+            />
+            <label for="freeText"> Free Text</label>
+            <input type="radio" name="searchType" id="title" value="dc_title" 
+            #if($!searchType == "dc_title")
+                checked="checked" 
+            #end
+            />
+            <label for="title">Title</label>
             #if($self.result and $paging.totalFound > 0)
               <p class="search-message">Displaying <strong>${paging.startNum}</strong> to <strong>${paging.endNum}</strong> of <strong>${paging.totalFound}</strong> records (in $self.queryTime seconds)</p>
             #else
@@ -109,6 +124,9 @@ $(function() {
     createTree("#committee", "f_usq_document_committee_owner", selected, query);
     createTree("#next_review_date", "usq_document_next_reviewdate", selected, query);
     createTree("#responsible_officer", "f_usq_document_responsible_position", selected, query);
+    
+    //autocomplete
+    $("input#query").autocomplete("$portalPath/autocomplete.ajax");
     
     // facet actions
     $("#clear-facets").click(function() {
