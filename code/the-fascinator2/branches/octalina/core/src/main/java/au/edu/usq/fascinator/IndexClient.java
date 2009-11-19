@@ -49,30 +49,38 @@ import au.edu.usq.fascinator.common.storage.impl.GenericPayload;
 /**
  * Index Client class to Re-index the storage
  * 
- * TODO: to index single item and portal
- * 
  * @author Linda Octalina
  * 
  */
 public class IndexClient {
+    /** Date format **/
     public static final String DATE_FORMAT = "yyyy-MM-dd";
 
+    /** DateTime format **/
     public static final String DATETIME_FORMAT = DATE_FORMAT + "'T'hh:mm:ss'Z'";
 
+    /** Default indexer type will be used if none defined **/
     private static final String DEFAULT_INDEXER_TYPE = "solr";
 
+    /** Default storage type will be used if none defined **/
     private static final String DEFAULT_STORAGE_TYPE = "file-system";
 
+    /** Logging **/
     private static Logger log = LoggerFactory.getLogger(IndexClient.class);
 
+    /** configuration file **/
     private File configFile;
 
+    /** JsonConfiguration for the configuration file **/
     private JsonConfig config;
 
+    /** rules file **/
     private File rulesFile;
 
+    /** Indexer **/
     private Indexer indexer;
 
+    /** Indexed storage and real storage **/
     private Storage storage, realStorage;
 
     /**
@@ -147,7 +155,6 @@ public class IndexClient {
         List<DigitalObject> objectList = realStorage.getObjectList();
         for (DigitalObject object : objectList) {
             try {
-                // realStorage.removePayload(object.getId(), "SOF-META");
                 processObject(object, rulesOid, config.getMap("indexer/params"));
             } catch (StorageException e) {
                 e.printStackTrace();
@@ -350,6 +357,12 @@ public class IndexClient {
         }
     }
 
+    /**
+     * Getting the sofMeta properties for the DigitalObject
+     * 
+     * @param object
+     * @return properties
+     */
     private Properties getSofMeta(DigitalObject object) {
         try {
             Payload sofMetaPayload = object.getPayload("SOF-META");
@@ -357,7 +370,6 @@ public class IndexClient {
             sofMeta.load(sofMetaPayload.getInputStream());
             return sofMeta;
         } catch (IOException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         }
         return null;

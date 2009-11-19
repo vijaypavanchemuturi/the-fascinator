@@ -17,37 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-/**
- * To restore backup directories to the current storage and index it
- * <p>
- * Rely on configuration either set in:
- * </p>
- * <ul>
- * <li>system-config.json (Default) "email": "fascinator@usq.edu.au"</li>
- * <li>backup paths list consists of:
- * <ul>
- * <li>path: backup full path where need to be restored</li>
- * <li>active: to specify if the backup path is active</li>
- * <li>ignoreFilter: to specify directory/files to be ignored</li>
- * <li>include-portal-view: to backup the current portal view</li>
- * <li>storage:
- * <ul>
- * <li>type: storage type in which the backup directory rely on</li>
- * <li>and the storage information e.g. filesystem storage require home
- * directory path</li>
- * </ul>
- * </li>
- * <ul></li>
- * </ul>
- * 
- * 
- * TODO: In the future when there's option to restore only the
- * original files, conveyerbelt need to be included to run the rendition of the files
- * 
- * @author Linda octalina
- * 
- */
-
 package au.edu.usq.fascinator;
 
 import java.io.File;
@@ -79,10 +48,43 @@ import au.edu.usq.fascinator.api.storage.StorageException;
 import au.edu.usq.fascinator.common.JsonConfig;
 import au.edu.usq.fascinator.common.JsonConfigHelper;
 
+/**
+ * To restore backup directories to the current storage and index it
+ * <p>
+ * Rely on configuration either set in:
+ * </p>
+ * <ul>
+ * <li>system-config.json (Default) "email": "fascinator@usq.edu.au"</li>
+ * <li>backup paths list consists of:
+ * <ul>
+ * <li>path: backup full path where need to be restored</li>
+ * <li>active: to specify if the backup path is active</li>
+ * <li>ignoreFilter: to specify directory/files to be ignored</li>
+ * <li>include-portal-view: to backup the current portal view</li>
+ * <li>storage:
+ * <ul>
+ * <li>type: storage type in which the backup directory rely on</li>
+ * <li>and the storage information e.g. filesystem storage require home
+ * directory path</li>
+ * </ul>
+ * </li>
+ * <ul></li>
+ * </ul>
+ * 
+ * 
+ * TODO: In the future when there's option to restore only the original files,
+ * conveyerbelt need to be included to run the rendition of the files
+ * 
+ * @author Linda octalina
+ * 
+ */
+
 public class RestoreClient {
 
+    /** Date format **/
     public static final String DATE_FORMAT = "yyyy-MM-dd";
 
+    /** DateTime format **/
     public static final String DATETIME_FORMAT = DATE_FORMAT + "'T'hh:mm:ss'Z'";
 
     /** Default storage type will be used if none defined **/
@@ -108,22 +110,20 @@ public class RestoreClient {
     /** Backup location list from where the restore need to be performed **/
     private Map<String, JsonConfigHelper> backupDirList;
 
-    /** Storage **/
+    /** Real storage Type **/
     private String realStorageType;
 
+    /** Real Storage **/
     private Storage realStorage;
 
+    /** configuration file **/
     private File jsonFile;
 
+    /** Indexed storage **/
     private Storage storage;
 
-    private Indexer indexer;
-
     /** Indexer **/
-    private String indexerType;
-
-    /** Portal directory **/
-    private File portalDir;
+    private Indexer indexer;
 
     /**
      * Backup Client Constructor
@@ -286,7 +286,6 @@ public class RestoreClient {
                                 .getProperty("rulesOid");
                         File rulesFile = new File(sofMetaRulesOid);
 
-                        String rulesOid;
                         try {
                             log.debug("Caching rules file " + rulesFile);
                             DigitalObject rulesObject = new RulesDigitalObject(

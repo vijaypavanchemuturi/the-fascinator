@@ -77,8 +77,10 @@ import au.edu.usq.fascinator.common.JsonConfigHelper;
 
 public class BackupClient {
 
+    /** Date format **/
     public static final String DATE_FORMAT = "yyyy-MM-dd";
 
+    /** DateTime format **/
     public static final String DATETIME_FORMAT = DATE_FORMAT + "'T'hh:mm:ss'Z'";
 
     /** Default storage type will be used if none defined **/
@@ -118,6 +120,7 @@ public class BackupClient {
     /** Portal directory **/
     private File portalDir;
 
+    /** Backup all **/
     private Boolean backupAll = false;
 
     /**
@@ -449,14 +452,15 @@ public class BackupClient {
      * @param fileName
      * @return
      */
-    private String isWindowFile(String fileName) {
-        // For window C: will cause error. so fix it as C_
-        // NOTE: remember to change it back when doing restore
-        if (System.getProperty("os.name").toLowerCase().indexOf("windows") > -1) {
-            fileName = fileName.replace("C:", File.separator + "C_");
-        }
-        return fileName;
-    }
+    // private String isWindowFile(String fileName) {
+    // // For window C: will cause error. so fix it as C_
+    // // NOTE: remember to change it back when doing restore
+    // if (System.getProperty("os.name").toLowerCase().indexOf("windows") > -1)
+    // {
+    // fileName = fileName.replace("C:", File.separator + "C_");
+    // }
+    // return fileName;
+    // }
 
     /**
      * File filter used to ignore specified files
