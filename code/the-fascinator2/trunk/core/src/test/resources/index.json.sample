@@ -5,8 +5,8 @@
             "rules": "local-files.py"
         },
         "params": {
-            "repository.name": "Local Files 2",
-            "repository.type": "Local File System 2"
+            "repository.name": "Local Files",
+            "repository.type": "Local File System"
         }
     }
 }
