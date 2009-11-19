@@ -30,6 +30,7 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import au.edu.usq.fascinator.api.PluginException;
 import au.edu.usq.fascinator.api.storage.DigitalObject;
 import au.edu.usq.fascinator.api.storage.Payload;
 import au.edu.usq.fascinator.api.storage.Storage;
@@ -181,5 +182,17 @@ public class Fedora3Storage implements Storage {
         }
         log.debug("findObjects done.");
         return pid;
+    }
+
+    @Override
+    public void init(String jsonString) throws PluginException {
+        // TODO Auto-generated method stub
+
+    }
+
+    @Override
+    public List<DigitalObject> getObjectList() {
+        // TODO Auto-generated method stub
+        return null;
     }
 }

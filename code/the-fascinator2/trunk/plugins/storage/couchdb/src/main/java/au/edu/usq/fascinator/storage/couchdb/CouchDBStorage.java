@@ -38,6 +38,7 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import au.edu.usq.fascinator.api.PluginException;
 import au.edu.usq.fascinator.api.storage.DigitalObject;
 import au.edu.usq.fascinator.api.storage.Payload;
 import au.edu.usq.fascinator.api.storage.PayloadType;
@@ -161,7 +162,7 @@ public class CouchDBStorage implements Storage {
 
     @Override
     public void addPayload(String oid, Payload payload) {
-        String rev = this.getRev(oid);
+        String rev = getRev(oid);
         addPayload2(oid, payload, rev);
     }
 
@@ -229,8 +230,9 @@ public class CouchDBStorage implements Storage {
                     String label = id;
                     String contentType = URLConnection.getFileNameMap()
                             .getContentTypeFor(name);
-                    if (contentType == null)
+                    if (contentType == null) {
                         contentType = "";
+                    }
                     // log.info("  name={}, contentType={}", name, contentType);
                     GenericPayload newPayload = new GenericPayload(id, label,
                             contentType);
@@ -273,6 +275,18 @@ public class CouchDBStorage implements Storage {
                     .getMessage());
         }
         return rev;
+    }
+
+    @Override
+    public void init(String jsonString) throws PluginException {
+        // TODO Auto-generated method stub
+
+    }
+
+    @Override
+    public List<DigitalObject> getObjectList() {
+        // TODO Auto-generated method stub
+        return null;
     }
 
     /*

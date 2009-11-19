@@ -19,7 +19,6 @@
 
 package au.edu.usq.fascinator;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.FileInputStream;
@@ -31,6 +30,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Map;
+import java.util.Properties;
 
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.FilenameUtils;
@@ -41,15 +41,15 @@ import org.slf4j.LoggerFactory;
 import au.edu.usq.fascinator.api.PluginException;
 import au.edu.usq.fascinator.api.PluginManager;
 import au.edu.usq.fascinator.api.indexer.Indexer;
-import au.edu.usq.fascinator.api.indexer.IndexerException;
-import au.edu.usq.fascinator.api.indexer.SearchRequest;
 import au.edu.usq.fascinator.api.storage.DigitalObject;
+import au.edu.usq.fascinator.api.storage.Payload;
 import au.edu.usq.fascinator.api.storage.Storage;
+import au.edu.usq.fascinator.api.storage.StorageException;
 import au.edu.usq.fascinator.common.JsonConfig;
 import au.edu.usq.fascinator.common.JsonConfigHelper;
 
 /**
- * To backup the DigitalObject indexed in Solr
+ * To restore backup directories to the current storage and index it
  * <p>
  * Rely on configuration either set in:
  * </p>
@@ -57,13 +57,13 @@ import au.edu.usq.fascinator.common.JsonConfigHelper;
  * <li>system-config.json (Default) "email": "fascinator@usq.edu.au"</li>
  * <li>backup paths list consists of:
  * <ul>
- * <li>path: backup destination full path</li>
+ * <li>path: backup full path where need to be restored</li>
  * <li>active: to specify if the backup path is active</li>
  * <li>ignoreFilter: to specify directory/files to be ignored</li>
  * <li>include-portal-view: to backup the current portal view</li>
  * <li>storage:
  * <ul>
- * <li>type: storage type to backup to</li>
+ * <li>type: storage type in which the backup directory rely on</li>
  * <li>and the storage information e.g. filesystem storage require home
  * directory path</li>
  * </ul>
@@ -71,11 +71,15 @@ import au.edu.usq.fascinator.common.JsonConfigHelper;
  * <ul></li>
  * </ul>
  * 
+ * 
+ * TODO: In the future when there's option to restore only the original files,
+ * conveyerbelt need to be included to run the rendition of the files
+ * 
  * @author Linda octalina
  * 
  */
 
-public class BackupClient {
+public class RestoreClient {
 
     /** Date format **/
     public static final String DATE_FORMAT = "yyyy-MM-dd";
@@ -92,7 +96,7 @@ public class BackupClient {
     /** Default ignore filter if none defined **/
     private static final String DEFAULT_IGNORE_FILTER = ".svn|.ice|.*|~*|*~";
 
-    private static Logger log = LoggerFactory.getLogger(BackupClient.class);
+    private static Logger log = LoggerFactory.getLogger(RestoreClient.class);
 
     /** Json configuration file **/
     private JsonConfig config;
@@ -103,25 +107,23 @@ public class BackupClient {
     /** Email used to define user space **/
     private String email = null;
 
-    /** Backup location list **/
+    /** Backup location list from where the restore need to be performed **/
     private Map<String, JsonConfigHelper> backupDirList;
 
-    /** Storage **/
+    /** Real storage Type **/
     private String realStorageType;
 
+    /** Real Storage **/
     private Storage realStorage;
 
+    /** configuration file **/
+    private File jsonFile;
+
+    /** Indexed storage **/
+    private Storage storage;
+
     /** Indexer **/
-    private String indexerType;
-
-    /** Portal query **/
-    private String portalQuery = null;
-
-    /** Portal directory **/
-    private File portalDir;
-
-    /** Backup all **/
-    private Boolean backupAll = false;
+    private Indexer indexer;
 
     /**
      * Backup Client Constructor
@@ -129,8 +131,9 @@ public class BackupClient {
      * @throws IOException
      * 
      * @throws IOException
+     * @throws PluginException
      */
-    public BackupClient() throws IOException {
+    public RestoreClient() throws IOException, PluginException {
         setDefaultSetting(null);
     }
 
@@ -140,48 +143,33 @@ public class BackupClient {
      * @param jsonFile
      * @throws IOException
      * @throws IOException
+     * @throws PluginException
      */
-    public BackupClient(File jsonFile) throws IOException {
+    public RestoreClient(File jsonFile) throws IOException, PluginException {
         setDefaultSetting(jsonFile);
-        backupAll = true;
     }
 
-    public void setDefaultSetting(File jsonFile) throws IOException {
-        Boolean fromPortal = true;
+    public void setDefaultSetting(File jsonFile) throws IOException,
+            PluginException {
+
         if (jsonFile != null) {
-            fromPortal = false;
             config = new JsonConfig(jsonFile);
+            this.jsonFile = jsonFile;
         } else {
             config = new JsonConfig();
+            this.jsonFile = config.getSystemFile();
         }
 
         systemConfig = new JsonConfig(config.getSystemFile());
-        indexerType = systemConfig.get("indexer/type", DEFAULT_INDEXER_TYPE);
+        indexer = PluginManager.getIndexer(config.get("indexer/type",
+                DEFAULT_INDEXER_TYPE));
         realStorageType = systemConfig
                 .get("storage/type", DEFAULT_STORAGE_TYPE);
+
         setEmail(config.get("email"));
-        if (fromPortal == false) {
-            // Set default backupDirList
-            backupDirList = config.getJsonMap("backup/paths");
 
-        }
-    }
-
-    /**
-     * Backup Client Constructor
-     * 
-     * @param email
-     * @param backupDir
-     * @param portalQuery
-     * @throws IOException
-     */
-    public BackupClient(File portalDir,
-            Map<String, JsonConfigHelper> backupDirs, String portalQuery)
-            throws IOException {
-        this.portalDir = portalDir;
-        setDefaultSetting(null);
-        backupDirList = backupDirs;
-        setPortalQuery(portalQuery);
+        // Set backupDirList to be restored
+        backupDirList = config.getJsonMap("restore/paths");
     }
 
     /**
@@ -223,27 +211,7 @@ public class BackupClient {
     }
 
     /**
-     * Set the portal Query
-     * 
-     * @param portalQuery
-     */
-    public void setPortalQuery(String portalQuery) {
-        if (portalQuery != null && portalQuery != "") {
-            this.portalQuery = portalQuery;
-        }
-    }
-
-    /**
-     * Get the portal Query
-     * 
-     * @return portalQuery
-     */
-    public String getPortalQuery() {
-        return portalQuery;
-    }
-
-    /**
-     * Run the backup code
+     * Run the restore code
      * 
      */
     public void run() {
@@ -252,64 +220,25 @@ public class BackupClient {
         long start = System.currentTimeMillis();
         log.info("Started at " + now);
 
-        Indexer indexer;
         try {
             realStorage = PluginManager.getStorage(realStorageType);
-            indexer = PluginManager.getIndexer(indexerType);
             realStorage.init(config.getSystemFile());
-            indexer.init(config.getSystemFile());
             log.info("Loaded {} and {}", realStorage.getName(), indexer
                     .getName());
+            storage = new IndexedStorage(realStorage, indexer);
+            storage.init(jsonFile);
         } catch (Exception e) {
-            log.error("Failed to initialise storage", e);
+            log.error("Failed to initialise storage {}", e.getMessage());
             return;
         }
 
-        // Get all the records from solr
-        int startRow = 0;
-        int numPerPage = 5;
-        int numFound = 0;
-        do {
-            ByteArrayOutputStream result = new ByteArrayOutputStream();
-            SearchRequest request = new SearchRequest("*:*");
-            request.addParam("rows", String.valueOf(numPerPage));
-            request.addParam("fq", "item_type:\"object\"");
-            request.setParam("start", String.valueOf(startRow));
-
-            // Check if the portal has it's own query
-            if (portalQuery != "" && portalQuery != null) {
-                request.addParam("fq", portalQuery);
-            }
-
-            try {
-                indexer.search(request, result);
-                JsonConfigHelper js;
-                js = new JsonConfigHelper(result.toString());
-                startBackup(js);
-
-                startRow += numPerPage;
-                numFound = Integer.parseInt(js.get("response/numFound"));
-
-            } catch (IndexerException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        } while (startRow < numFound);
+        startRestore();
 
         log.info("Completed in "
                 + ((System.currentTimeMillis() - start) / 1000.0) + " seconds");
     }
 
-    /**
-     * Start backup files from from the result returned by solr
-     * 
-     * @param js
-     * @throws IOException
-     */
-    public void startBackup(JsonConfigHelper js) throws IOException {
-        // Backup to active backup Directory
-        log.debug("backupDir: " + backupDirList.toString());
+    public void startRestore() {
         for (String backupName : backupDirList.keySet()) {
             // Map<String, Object> backupProps = backupDirList.get(backupPath);
             JsonConfigHelper backupProps = backupDirList.get(backupName);
@@ -331,89 +260,65 @@ public class BackupClient {
             boolean includePortal = Boolean.parseBoolean(backupProps
                     .get("include-portal-view"));
 
-            String destinationStorageType = String.valueOf(backupProps
+            String sourceStorageType = String.valueOf(backupProps
                     .get("storage/type"));
-            if (destinationStorageType == null) {
-                destinationStorageType = DEFAULT_STORAGE_TYPE;
+            if (sourceStorageType == null) {
+                sourceStorageType = DEFAULT_STORAGE_TYPE;
             }
 
             String storageConfig = backupProps.toString();
-            Storage destinationStorage = PluginManager
-                    .getStorage(destinationStorageType);
+            Storage sourceStorage = PluginManager.getStorage(sourceStorageType);
             try {
-                log.info("backupProps: " + backupProps.toString());
-                destinationStorage.init(storageConfig);
+                sourceStorage.init(storageConfig);
             } catch (PluginException e1) {
-                // TODO Auto-generated catch block
                 e1.printStackTrace();
             }
             // Only using active backup path
-            if (active && destinationStorage != null) {
-                try {
+            if (active && sourceStorage != null) {
+                for (DigitalObject object : sourceStorage.getObjectList()) {
+                    try {
+                        // Add the rules first:
+                        Properties sofMetaProps = new Properties();
+                        Payload sofMetaPayload = object.getPayload("SOF-META");
+                        sofMetaProps.load(sofMetaPayload.getInputStream());
 
-                    // List all the files to be backup-ed
-                    // TODO: should the rules be backuped as well?
-                    for (Object oid : js.getList("response/docs/id")) {
-                        String objectId = oid.toString();
-                        DigitalObject digitalObject = realStorage
-                                .getObject(objectId);
-                        log
-                                .info("Backing up object: {}", digitalObject
-                                        .getId());
-                        // Original File
-                        destinationStorage.addObject(digitalObject);
+                        String sofMetaRulesOid = sofMetaProps
+                                .getProperty("rulesOid");
+                        File rulesFile = new File(sofMetaRulesOid);
 
-                        // List all the payloads
-                        // NOTE: currently if the above object added, the
-                        // payload will be added automatically
-                        // List<Payload> payloadList = digitalObject
-                        // .getPayloadList();
-                        // if (includeMeta && payloadList.isEmpty() == false) {
-                        // for (Payload payload : payloadList) {
-                        // log.info("Backing up payload: {}", payload
-                        // .getId());
-                        // destinationStorage
-                        // .addPayload(objectId, payload);
-                        // }
-                        // }
+                        try {
+                            log.debug("Caching rules file " + rulesFile);
+                            DigitalObject rulesObject = new RulesDigitalObject(
+                                    rulesFile);
+                            realStorage.addObject(rulesObject);
+                        } catch (StorageException se) {
+                            log.error(
+                                    "Failed to cache indexing rules, stopping",
+                                    se);
+                            return;
+                        }
+                        storage.addObject(object);
 
+                    } catch (StorageException e) {
+                        e.printStackTrace();
+                    } catch (IOException e) {
+                        e.printStackTrace();
                     }
-
-                } catch (PluginException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
                 }
-
-                // backup all the portal
-                if (backupAll == true && includePortal) {
-                    File portalFolder;
-                    portalDir = new File(systemConfig.get("fascinator-home")
-                            + "/portal/" + systemConfig.get("portal/home"));
-                    portalFolder = new File(backupPath.toString()
-                            + File.separator + email + File.separator
-                            + "config");
-                    portalFolder.getParentFile().mkdirs();
-                    includePortalDir(portalDir, portalFolder, ignoreFilter);
-                }
-
-                // backup only current portal
-                if (includePortal && backupAll == false) {
-                    File portalFolder;
-                    if (portalDir == null) {
-                        portalDir = new File(systemConfig
-                                .get("fascinator-home")
-                                + "/portal/" + systemConfig.get("portal/home"));
-                        portalFolder = new File(backupPath.toString()
-                                + File.separator + email + File.separator
-                                + "config");
-                    } else {
-                        portalFolder = new File(backupPath.toString()
-                                + File.separator + email + File.separator
-                                + "config" + File.separator
-                                + portalDir.getName());
+            }
+            if (includePortal) {
+                File portalDir = new File(systemConfig.get("fascinator-home")
+                        + "/portal/" + systemConfig.get("portal/home"));
+                File restorePortalFolder = new File(backupPath + File.separator
+                        + email, "config");
+                if (restorePortalFolder.exists()) {
+                    try {
+                        includePortalDir(restorePortalFolder, portalDir,
+                                ignoreFilter);
+                    } catch (IOException e) {
+                        // TODO Auto-generated catch block
+                        e.printStackTrace();
                     }
-                    portalFolder.getParentFile().mkdirs();
-                    includePortalDir(portalDir, portalFolder, ignoreFilter);
                 }
             }
         }
@@ -447,22 +352,6 @@ public class BackupClient {
     }
 
     /**
-     * Change the name if it's a window file
-     * 
-     * @param fileName
-     * @return
-     */
-    // private String isWindowFile(String fileName) {
-    // // For window C: will cause error. so fix it as C_
-    // // NOTE: remember to change it back when doing restore
-    // if (System.getProperty("os.name").toLowerCase().indexOf("windows") > -1)
-    // {
-    // fileName = fileName.replace("C:", File.separator + "C_");
-    // }
-    // return fileName;
-    // }
-
-    /**
      * File filter used to ignore specified files
      */
     private class IgnoreFilter implements FileFilter {
@@ -486,13 +375,19 @@ public class BackupClient {
 
     public static void main(String[] args) {
         if (args.length < 1) {
-            log.info("Usage: backup <json-config>");
+            log.info("Usage: restore <json-config>");
         } else {
             File jsonFile = new File(args[0]);
             try {
                 log.info("jsonFile: " + jsonFile.getAbsolutePath());
-                BackupClient backup = new BackupClient(jsonFile);
-                backup.run();
+                RestoreClient restore;
+                try {
+                    restore = new RestoreClient(jsonFile);
+                    restore.run();
+                } catch (PluginException e) {
+                    log.error("Failed to run Restore client: {}", e
+                            .getMessage());
+                }
             } catch (IOException ioe) {
                 log.error("Failed to initialise client: {}", ioe.getMessage());
             }

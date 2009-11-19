@@ -29,32 +29,46 @@ class FacetActions:
                     portal.set("portal/facet-fields/%s/display" % field, displays[i])
             portalManager.save(portal)
         elif func == "backup-update":
-            portal.set("portal/backup/email", formData.get("email"))
             pathIds = formData.get("pathIds").split(",")
             actives = formData.getValues("backup-active")
+            deletes = formData.getValues("backup-delete")
             if actives is None:
                 actives = []
-            renditions = formData.getValues("backup-rendition")
-            if renditions is None:
-                renditions = []
+            #renditions = formData.getValues("backup-rendition")
+            #if renditions is None:
+            #    renditions = []
             views = formData.getValues("backup-view")
             if views is None:
                 views = []
             paths = HashMap()
-            for pathId in pathIds:
-                path = formData.get("%s-path" % pathId)
-                active = str(pathId in actives).lower()
-                rendition = str(pathId in renditions).lower()
-                view = str(pathId in views).lower()
-                ignoreFilter = formData.get("%s-ignore" % pathId)
-                json = JsonConfigHelper()
-                json.set("active", active)
-                json.set("include-rendition-meta", rendition)
-                json.set("include-portal-view", view)
-                json.set("ignoreFilter", ignoreFilter)
-                paths.put(path, json.getMap("/"))
-            print " *** paths=%s" % paths
-            portal.setMap("portal/backup/paths", paths)
+            for pathId in pathIds: 
+                if deletes is None or pathId not in deletes:
+                    path = formData.get("%s-path" % pathId)
+                    pathName = path.replace("/", "_").replace("${user.home}", "")
+                    active = str(pathId in actives).lower()
+                    #rendition = str(pathId in renditions).lower()
+                    view = str(pathId in views).lower()
+                    ignoreFilter = formData.get("%s-ignore" % pathId)
+                    
+                    json = HashMap()
+                    json.put("path", path)
+                    json.put("active", active)
+                    json.put("include-portal-view", view)
+                    json.put("ignoreFilter", ignoreFilter)
+                    
+                    storage = HashMap()
+                    storage.put("type", "file-system")
+                    
+                    filesystem = HashMap()
+                    filesystem.put("home", path)
+                    filesystem.put("use-link", "false")
+                    storage.put("file-system", filesystem)
+                    
+                    json.put("storage", storage)
+                    paths.put(pathName, json)
+            # reset the path first
+            portal.setMap("portal/backup/paths", HashMap())
+            portal.setMultiMap("portal/backup/paths", paths)
             portalManager.save(portal)
         writer = response.getPrintWriter("text/plain")
         writer.println(result)

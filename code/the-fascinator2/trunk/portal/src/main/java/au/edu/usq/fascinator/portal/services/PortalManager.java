@@ -44,4 +44,7 @@ public interface PortalManager {
 
     public void backup(Portal portal);
 
+    public void indexObject(String objectId);
+
+    public void indexPortal(Portal portal);
 }
