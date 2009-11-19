@@ -47,7 +47,7 @@ import au.edu.usq.fascinator.common.JsonConfigHelper;
 import au.edu.usq.fascinator.common.storage.impl.GenericPayload;
 
 /**
- * Index Client class to index the storage
+ * Index Client class to Re-index the storage
  * 
  * TODO: to index single item and portal
  * 
@@ -193,7 +193,6 @@ public class IndexClient {
         } catch (IOException e) {
             e.printStackTrace();
         }
-
     }
 
     /**

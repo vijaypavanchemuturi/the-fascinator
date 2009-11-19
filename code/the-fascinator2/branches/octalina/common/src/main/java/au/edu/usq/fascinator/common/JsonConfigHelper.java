@@ -215,6 +215,12 @@ public class JsonConfigHelper {
         return valueMap;
     }
 
+    /**
+     * Get JsonConfigHelper list
+     * 
+     * @param path
+     * @return
+     */
     public List<JsonConfigHelper> getJsonList(String path) {
         List<Object> list = getList(path);
         List<JsonConfigHelper> newList = new ArrayList<JsonConfigHelper>();
@@ -277,6 +283,12 @@ public class JsonConfigHelper {
         }
     }
 
+    /**
+     * Set Map on the specfied path
+     * 
+     * @param path
+     * @param map
+     */
     public void setJsonMap(String path, Map<String, JsonConfigHelper> map) {
         for (String key : map.keySet()) {
             JsonConfigHelper json = map.get(key);
@@ -361,6 +373,9 @@ public class JsonConfigHelper {
         new ObjectMapper().writeValue(generator, rootNode);
     }
 
+    /**
+     * To String function
+     */
     @Override
     public String toString() {
         StringWriter sw = new StringWriter();

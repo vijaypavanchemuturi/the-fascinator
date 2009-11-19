@@ -1,9 +1,0 @@
-#The Fascinator Indexer Metadata
-#Thu Nov 19 00:07:20 EST 2009
-repository.type=Local File System
-objectId=/Users/lindaoctalina/Documents/public/test Image.odt
-rulesPid=local-files.py
-rulesOid=/Users/lindaoctalina/Sites/workspace-fascinator2-branches/the-fascinator/core/src/test/resources/local-files.py
-metaPid=aperture.rdf
-repository.name=Local Files
-scriptType=python
