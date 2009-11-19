@@ -184,37 +184,6 @@
         <button id="backup-cancel">Cancel</button>
         <img class="hidden" id="backup-loading" src="$portalPath/images/icons/loading.gif" />
         <span id="backup-message"></span>
-        <label for="backup-table">Backup locations</label>
-        <table>
-          <thead>
-            <tr>
-              <th width="5%">Active</th>
-              <th width="50%">Path</th>
-              <th width="30%">Ignore filter</th>
-              <th>Renditions</th>
-              <th>Views</th>
-              <th>Delete</th>
-            </tr>
-            #createBackupRow("backup-blank" "true" "${user.home}/backup" ".svn|.ice|.*|~*" "true" "true" "hidden")
-          </thead>
-          <tbody id="backup-table">
-          #set($paths = $self.portal.getJsonMap("portal/backup/paths"))
-          #foreach($path in $paths.keySet())
-            #set($options = $paths.get($path))
-            #set($id = "backup-$velocityCount")
-            #set($active = $options.get("active"))
-            #set($ignoreFilter = $options.get("ignoreFilter"))
-            #set($includeRenditions = $options.get("include-rendition-meta"))
-            #set($includeViews = $options.get("include-portal-view"))
-            #createBackupRow($id $active $path $ignoreFilter $includeRenditions $includeViews "")
-          #end
-          </tbody>
-        </table>
-        <button id="backup-add">Add</button>
-        <button id="backup-update">Update</button>
-        <button id="backup-cancel">Cancel</button>
-        <img class="hidden" id="backup-loading" src="$portalPath/images/icons/loading.gif" />
-        <span id="backup-message"></span>
       </fieldset>
     </div>
   </div>
