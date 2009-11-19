@@ -104,18 +104,6 @@ public class FileSystemStorage implements Storage {
         try {
             JsonConfig config = new JsonConfig(jsonFile);
             setVariable(config);
-            // useLink = Boolean.parseBoolean(config.get(
-            // "storage/file-system/use-link", "false").toString());
-            // String email = config.get("email");
-            // log.info("********Email: " + email);
-            // if (!email.equals("")) {
-            // email = DigestUtils.md5Hex(config.get("email"));
-            // }
-            // homeDir = new File(config.get("storage/file-system/home",
-            // DEFAULT_HOME_DIR), email);
-            // if (!homeDir.exists()) {
-            // homeDir.mkdirs();
-            // }
         } catch (IOException ioe) {
             throw new StorageException(ioe);
         }

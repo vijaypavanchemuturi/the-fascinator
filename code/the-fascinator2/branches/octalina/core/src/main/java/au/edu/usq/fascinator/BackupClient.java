@@ -54,11 +54,21 @@ import au.edu.usq.fascinator.common.JsonConfigHelper;
  * Rely on configuration either set in:
  * </p>
  * <ul>
- * <li>system-config.json (Default) "email": "email@usq.edu.au", "backupDir":
- * "${user.home}/.fascinator-backup"</li>
- * <li>portal.xml <backup-email>email@usq.edu.au</backup-email> <backup-paths>
- * <field name="default">/home/octalina/.fascinator-backup</field>
- * </backup-paths></li>
+ * <li>system-config.json (Default) "email": "fascinator@usq.edu.au"</li>
+ * <li>backup paths list consists of:
+ * <ul>
+ * <li>path: backup destination full path</li>
+ * <li>active: to specify if the backup path is active</li>
+ * <li>ignoreFilter: to specify directory/files to be ignored</li>
+ * <li>include-portal-view: to backup the current portal view</li>
+ * <li>storage:
+ * <ul>
+ * <li>type: storage type to backup to</li>
+ * <li>and the storage information e.g. filesystem storage require home
+ * directory path</li>
+ * </ul>
+ * </li>
+ * <ul></li>
  * </ul>
  * 
  * @author Linda octalina
@@ -92,8 +102,6 @@ public class BackupClient {
     private String email = null;
 
     /** Backup location list **/
-    // private Map<String, Map<String, Object>> backupDirList = new
-    // HashMap<String, Map<String, Object>>();
     private Map<String, JsonConfigHelper> backupDirList;
 
     /** Storage **/
@@ -135,7 +143,6 @@ public class BackupClient {
         backupAll = true;
     }
 
-    @SuppressWarnings("unchecked")
     public void setDefaultSetting(File jsonFile) throws IOException {
         Boolean fromPortal = true;
         if (jsonFile != null) {

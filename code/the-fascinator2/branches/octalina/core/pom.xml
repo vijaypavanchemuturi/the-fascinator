@@ -236,13 +236,9 @@
     <profile>
       <id>restorebackup-test</id>
       <dependencies>
-      	<dependency>
-          <groupId>au.edu.usq.fascinator.plugins</groupId>
-          <artifactId>plugin-storage-filesystem</artifactId>
-        </dependency>
         <dependency>
           <groupId>au.edu.usq.fascinator.plugins</groupId>
-          <artifactId>plugin-harvester-restore-backup</artifactId>
+          <artifactId>plugin-storage-filesystem</artifactId>
         </dependency>
         <dependency>
           <groupId>au.edu.usq.fascinator.plugins</groupId>
@@ -250,11 +246,7 @@
         </dependency>
         <dependency>
           <groupId>au.edu.usq.fascinator.plugins</groupId>
-          <artifactId>plugin-transformer-aperture</artifactId>
-        </dependency>
-        <dependency>
-          <groupId>au.edu.usq.fascinator.plugins</groupId>
-          <artifactId>plugin-transformer-ice2</artifactId>
+          <artifactId>plugin-harvester-filesystem</artifactId>
         </dependency>
       </dependencies>
       <build>
@@ -264,7 +256,7 @@
             <artifactId>exec-maven-plugin</artifactId>
             <version>1.1.1</version>
             <configuration>
-              <mainClass>au.edu.usq.fascinator.HarvestClient</mainClass>
+              <mainClass>au.edu.usq.fascinator.RestoreClient</mainClass>
               <arguments>
                 <argument>src/test/resources/backup.json</argument>
               </arguments>
