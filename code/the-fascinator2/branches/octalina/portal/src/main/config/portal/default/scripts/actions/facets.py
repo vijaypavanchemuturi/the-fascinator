@@ -32,7 +32,6 @@ class FacetActions:
             pathIds = formData.get("pathIds").split(",")
             actives = formData.getValues("backup-active")
             deletes = formData.getValues("backup-delete")
-            print ")))) deletes: ", deletes
             if actives is None:
                 actives = []
             #renditions = formData.getValues("backup-rendition")
@@ -67,7 +66,6 @@ class FacetActions:
                     
                     json.put("storage", storage)
                     paths.put(pathName, json)
-            print " *** paths=%s" % paths
             # reset the path first
             portal.setMap("portal/backup/paths", HashMap())
             portal.setMultiMap("portal/backup/paths", paths)
