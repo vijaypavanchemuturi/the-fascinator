@@ -188,6 +188,7 @@ public class HarvestClient {
                 sofMeta.setProperty(key, indexerParams.get(key).toString());
             }
             ByteArrayOutputStream sofMetaOut = new ByteArrayOutputStream();
+            log.info("**** sofmeta: " + sofMeta.toString());
             sofMeta.store(sofMetaOut, "The Fascinator Indexer Metadata");
             GenericPayload sofMetaDs = new GenericPayload("SOF-META",
                     "The Fascinator Indexer Metadata", "text/plain");

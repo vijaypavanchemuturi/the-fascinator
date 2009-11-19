@@ -1,6 +1,7 @@
 package au.edu.usq.fascinator;
 
 import java.io.File;
+import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -93,6 +94,18 @@ public class IndexedStorage implements Storage {
     public void shutdown() throws PluginException {
         indexer.shutdown();
         storage.shutdown();
+    }
+
+    @Override
+    public void init(String jsonString) throws PluginException {
+        // TODO Auto-generated method stub
+
+    }
+
+    @Override
+    public List<DigitalObject> getObjectList() {
+        // TODO Auto-generated method stub
+        return null;
     }
 
 }

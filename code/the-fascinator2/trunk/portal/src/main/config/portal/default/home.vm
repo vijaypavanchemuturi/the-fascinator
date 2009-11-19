@@ -1,12 +1,22 @@
 #set($pageTitle = 'Home')
-<h2 id="page-heading">$page.portalName</h2>
+#set($query = $sessionState.get("query"))
+#if($query!="")
+  #set($atomLink = "$portalPath/feed/atom?query=$query") 
+#else
+  #set($atomLink = "$portalPath/feed/atom")
+#end
+#set($pageHeader = "<link rel=alternate type=application/atom+xml href=$atomLink title='$page.portalName'>")
+<h2 id="page-heading">$page.portalName<a class="feed" title="ATOM FEED" href="$atomLink">
+<img alt="ATOM Feed" src="$portalPath/images/icons/rss.png"/>
+</a></h2>
 <div class="grid_4">
   <div class="box menu">
     <h2>Actions</h2>
     <ul class="menu">
       <li><a href="$portalPath/search">Browse all</a></li>
+      <li><a id="reindex" href="#" rel="$portalId">Re-Index View...</a></li>
       ## FIXME
-      ##<li><a id="backup-view" href="#" rel="$portalId">Backup view...</a></li>
+      <li><a id="backup-view" href="#" rel="$portalId">Backup view...</a></li>
       #if($portalId != "default")  ## FIXME use proper default
       <li><a id="delete-view" href="#" rel="$portalId">Delete view...</a></li>
       #end
@@ -99,6 +109,11 @@ $(function() {
                 $("#backup-log").html(data);
             });
     }
+    
+    $("#reindex").click(function() {
+        jQuery.post("$portalPath/reindex.ajax", { func: "reindex", portalId: "$portalId" } );
+        return false;
+    });
     
     $("#backup-view, #backup-cancel").click(function() {
         $("#backup-view").toggleClass("selected");
