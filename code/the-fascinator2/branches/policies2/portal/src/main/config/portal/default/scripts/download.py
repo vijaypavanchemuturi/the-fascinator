@@ -1,5 +1,8 @@
 import os
+from au.edu.usq.fascinator.api.indexer import SearchRequest
+from au.edu.usq.fascinator.common import JsonConfigHelper
 from org.apache.commons.io import IOUtils
+from java.io import ByteArrayInputStream, ByteArrayOutputStream
 from java.net import URLDecoder
 
 class DownloadData:
@@ -26,11 +29,19 @@ class DownloadData:
             writer.println("Not found: uri='%s'" % uri)
             writer.close()
     
+    def __search(self, oid):
+        req = SearchRequest('id:"%s"' % oid)
+        out = ByteArrayOutputStream()
+        Services.indexer.search(req, out)
+        json = JsonConfigHelper(ByteArrayInputStream(out.toByteArray()))
+        return json.getList("response/docs").get(0).get("storage_id")
+    
     def __resolve(self, uri):
         slash = uri.rfind("/")
         oid = uri
+        sid = self.__search(oid)
         pid = uri[slash+1:]
-        payload = Services.storage.getPayload(oid, pid)
+        payload = Services.storage.getPayload(sid, pid)
         #print " ******* oid=%s\n ******* pid=%s\n ******* payload=%s" % (oid, pid, payload)
         if payload is None:
             uri2 = uri
@@ -38,7 +49,7 @@ class DownloadData:
                 slash = uri2.rfind("/")
                 oid = uri[:slash]
                 pid = uri[slash+1:]
-                payload = Services.storage.getPayload(oid, pid)
+                payload = Services.storage.getPayload(sid, pid)
                 uri2 = uri2[:slash]
                 #print " ******* oid=%s\n ******* pid=%s\n ******* payload=%s" % (oid,pid,payload)
         return oid, pid, payload

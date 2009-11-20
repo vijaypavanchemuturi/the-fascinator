@@ -4,7 +4,7 @@ $!pageContent
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-    <title>USQ Policies | $!pageTitle</title>
+    <title>USQ Policy Library | $!pageTitle</title>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <link rel="icon" type="image/vnd.microsoft.com" href="$portalPath/favicon.ico" />
     <link rel="stylesheet" type="text/css" href="$portalPath/css/ui-lightness/jquery-ui-1.7.2.custom.css" />
@@ -161,7 +161,7 @@ $!pageContent
           <a href="http://www.usq.edu.au/">
             <img src="$portalPath/images/usqlogo_line.gif" alt="USQ Logo" />
           </a>
-          <span class="header_text">USQ Policies</span>
+          <span class="header_text">USQ Policy Library</span>
         </div>
       </div>
       <div class="navbar">
@@ -171,16 +171,6 @@ $!pageContent
           #if($breadcrumb)$breadcrumb#{else}$pageTitle#end
         </span>
       </div>
-      #*
-      <div class="menubar">
-        <ul>
-          <li>
-            <a href="$portalPath/home">Home</a>
-            <a href="$portalPath/search">Search</a>
-          </li>
-        </ul>
-      </div>
-      *#
       <div class="nobanner"></div>
       <div class="maincontent">
         $!pageContent
