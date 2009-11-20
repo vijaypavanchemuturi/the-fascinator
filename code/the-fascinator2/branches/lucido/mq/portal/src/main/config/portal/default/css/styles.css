@@ -1,0 +1,184 @@
+.hidden {
+    display: none;
+}
+
+.inline, .visible {
+    display: inline;
+}
+
+h1#branding {
+    padding: 0.3em;
+}
+
+.container_12, .container_16 {
+    margin-left: 1%;
+    margin-right: 1%;
+    width: 98%;
+}
+
+.box h2 {
+    font-weight: bold;
+}
+
+form.search {
+    padding-top: 3px;
+    padding-right: 5px;
+}
+
+.paging {
+    font-size: 0.75em;
+    margin-left: 0;
+    padding-left: 0;
+}
+
+.paging li {
+    display: inline;
+    margin-left: 0;
+}
+
+.paging li a {
+    color: black;
+    padding: 0.2em;
+    text-decoration: none;
+}
+
+.paging a:hover, .paging .selected-page {
+    background: black;
+    color: white;
+    font-weight: bold;
+    padding: 0.2em;
+}
+
+.facet-list {
+    overflow-x: auto;
+    overflow-y: hidden;
+}
+
+.facet-list a, ul.menu a {
+    font-weight: normal;
+    word-wrap: break-word;
+}
+
+.menu .selected, .facet-list .selected {
+    background: black;
+    color: white;
+    font-weight: bold;
+}
+
+.menu .selected:hover, .facet-list .selected:hover {
+    color: black;
+}
+
+.facet-list .portal-facet, .facet-list .portal-facet:hover {
+    background: gray;
+    color: white;
+    font-weight: bold;
+}
+
+.facet {
+    overflow: hidden;
+}
+
+span.right {
+    float: right;
+}
+
+form .message {
+    margin-left: 35%;
+}
+
+.tag-form, .tag-form input {
+    margin: 0;
+    padding: 0;
+}
+
+.article a.image {
+    margin-bottom: 5px;
+}
+
+.article a img {
+    vertical-align: text-bottom;
+}
+
+div.tags ul {
+    border-top: 1px dotted #999999;
+    border-bottom: 1px dotted #999999;
+    margin-bottom: 3px;
+    padding: 0.3em 0;
+}
+
+div.tags ul li {
+    display: inline;
+    list-style: none;
+    margin: 2px;
+    padding-right: 5px;
+}
+
+.new-tag {
+    color: green;
+}
+
+ul.main li.secondary a.search {
+    padding-left: 0.2em;
+    padding-right: 0.4em;
+}
+
+a.search img {
+    padding: 0;
+    vertical-align: text-bottom;
+}
+
+dl.meta dt {
+    font-weight: bold;
+}
+
+dl.meta dd {
+    margin-left: 0.7em;
+    overflow: hidden;
+    word-wrap: break-word;
+}
+
+ul.menu li.payload a {
+    overflow: hidden;
+    word-wrap: break-word;
+}
+
+div.content-preview .article {
+    padding-bottom: 13px;
+}
+
+div.content-preview img {
+    max-width: 100%;
+}
+
+form img {
+    vertical-align: text-bottom;
+}
+
+#facets-form th {
+    padding-left: 3px;
+    text-align: left;
+}
+
+#facets-form td {
+    padding-left: 3px;
+}
+
+#facets-form img.facet-grip {
+    padding-right: 3px;
+}
+
+ul.nav li.label {
+    background: #666666 !important;
+    color: #FFFFFF;
+    cursor: auto;
+    display: block;
+    font-weight: bold;
+    height: 2.5em;
+    line-height: 2.5em;
+    padding: 0 1em;
+}
+
+.inline input {
+    width: 80%;
+}
