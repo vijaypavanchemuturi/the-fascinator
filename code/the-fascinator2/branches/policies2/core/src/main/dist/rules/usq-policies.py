@@ -73,7 +73,10 @@ def getNodeValues (doc, xPath):
 rules.add(New())
 
 # common fields
-solrId = object.getId()
+
+path, filename = os.path.split(object.getId())
+basename, ext = os.path.splitext(filename)
+solrId = basename.lower().replace(" ", "-").replace(".", "")
 if isMetadata:
     itemType = "object"
 else:

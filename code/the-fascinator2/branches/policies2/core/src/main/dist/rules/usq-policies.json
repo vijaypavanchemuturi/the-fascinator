@@ -2,9 +2,9 @@
     "harvester": {
         "type": "file-system",
         "file-system": {
-            "baseDir": "c:/policies",
+            "baseDir": "/policies",
             "ignoreFilter": ".svn|.ice|.*|~*",
-            "cacheDir": "c:/Program Files/The Fascinator/work/cache",
+            "cacheDir": "${user.home}/.fascinator/cache",
             "force": false,
             "recursive": true
         }
@@ -29,7 +29,7 @@
             "rules": "usq-policies.py"
         },
         "params": {
-            "source.name": "USQ Policies",
+            "source.name": "USQ Policy Library",
             "source.type": "Local File System"
         }
     }

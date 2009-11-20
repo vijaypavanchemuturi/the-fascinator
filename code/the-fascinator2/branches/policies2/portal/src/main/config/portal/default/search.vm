@@ -40,15 +40,13 @@
               </ul>
             </div>
           #end
-          
           #displayFacetTree("policy_type", "Policy type")
           #displayFacet("f_title_group")
-
           #if($self.result and $paging.totalFound > 0)
           <div class="advanced">
             <span class="ui-icon ui-icon-triangle-1-s icon"></span>
             <h2>Advanced</h2>
-            <div class=""> ##ui-helper-hidden
+            <div>
               #displayFacet("f_usq_document_type")
               #displayFacetTree("div_dept_office", "Division/Department")
               #displayFacetTree("next_review_date", "Next review date")
@@ -66,17 +64,9 @@
             <input type="text" id="query" name="query" size="70" value="$!query" />
             <input type="submit" name="search" value="Search" />
             <br />
-            <input type="radio" name="searchType" id="freeText" value="full_text" 
-            #if($!searchType != "dc_title")
-                checked="checked" 
-            #end
-            />
-            <label for="freeText"> Free Text</label>
-            <input type="radio" name="searchType" id="title" value="dc_title" 
-            #if($!searchType == "dc_title")
-                checked="checked" 
-            #end
-            />
+            <input type="radio" name="searchType" id="freeText" value="full_text"  #if($searchType == "full_text")checked="checked"#end />
+            <label for="freeText">Free Text</label>
+            <input type="radio" name="searchType" id="title" value="dc_title" #if($searchType == "dc_title")checked="checked"#end />
             <label for="title">Title</label>
             #if($self.result and $paging.totalFound > 0)
               <p class="search-message">Displaying <strong>${paging.startNum}</strong> to <strong>${paging.endNum}</strong> of <strong>${paging.totalFound}</strong> records (in $self.queryTime seconds)</p>
