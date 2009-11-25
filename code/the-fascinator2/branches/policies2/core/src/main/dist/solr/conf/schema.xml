@@ -152,6 +152,7 @@
     <field name="usq_document_policy_type" type="text" indexed="true" stored="true" multiValued="true" />
     <field name="usq_document_committee_owner" type="text" indexed="true" stored="false" multiValued="true" />
     <field name="usq_document_responsible_position" type="text" indexed="true" stored="false" multiValued="true" />
+    <field name="usq_document_strategic_plan" type="text" indexed="true" stored="false" multiValued="true" />
     <field name="title_group" type="text" indexed="true" stored="true" multiValued="true" />
     <field name="title_sort" type="alphaOnlySort" indexed="true" stored="true" multiValued="true" />
     <field name="d_usq_document_effective_date" type="date" indexed="true" stored="true" multiValued="true" />
@@ -179,6 +180,7 @@
     <field name="f_usq_document_policy_type" type="string" indexed="true" stored="false" multiValued="true" />
     <field name="f_usq_document_committee_owner" type="string" indexed="true" stored="false" multiValued="true" />
     <field name="f_usq_document_responsible_position" type="string" indexed="true" stored="false" multiValued="true" />
+    <field name="f_usq_document_strategic_plan" type="string" indexed="true" stored="false" multiValued="true" />
     <field name="f_title_group" type="string" indexed="true" stored="false" multiValued="true" />
 
     <!--
@@ -234,6 +236,7 @@
   <copyField source="usq_document_policy_type" dest="f_usq_document_policy_type" />
   <copyField source="usq_document_committee_owner" dest="f_usq_document_committee_owner" />
   <copyField source="usq_document_responsible_position" dest="f_usq_document_responsible_position" />
+  <copyField source="usq_document_strategic_plan" dest="f_usq_document_strategic_plan" />
   <copyField source="title_group" dest="f_title_group" />
   <copyField source="dc_title" dest="title_sort" />
   
