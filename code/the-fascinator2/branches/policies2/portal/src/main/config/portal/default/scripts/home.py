@@ -20,10 +20,10 @@ class HomeData:
     def __search(self):
         indexer = Services.getIndexer()
         
-        req = SearchRequest("date_usq_document_effective_date:[NOW-1MONTH TO *]")
+        req = SearchRequest("*:*")
         req.setParam("fq", 'item_type:"object"')
         req.setParam("rows", "10")
-        req.setParam("sort", "date_usq_document_effective_date asc, title_sort asc");
+        req.setParam("sort", "date_usq_document_effective_date desc, title_sort asc");
         out = ByteArrayOutputStream()
         indexer.search(req, out)
         self.__latest = JsonConfigHelper(ByteArrayInputStream(out.toByteArray()))
