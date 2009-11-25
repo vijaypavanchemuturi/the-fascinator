@@ -52,6 +52,7 @@
               #displayFacetTree("next_review_date", "Next review date")
               #displayFacetTree("committee", "Committee")
               #displayFacetTree("responsible_officer", "Responsible officer")
+              #displayFacetTree("strategic_plan", "Strategic plan")
             </div>
           </div>
           #end
@@ -107,13 +108,14 @@
 $(function() {
     addActionParam("query", "$!query");
     
-    var selected = "$self.selected";
+    var selected = $self.selectedFacetIds;
     var query = $("#query").val();
     createTree("#policy_type", "f_usq_document_policy_type", selected, query);
     createTree("#div_dept_office", "f_usq_document_div_dept_office", selected, query);
     createTree("#committee", "f_usq_document_committee_owner", selected, query);
     createTree("#next_review_date", "usq_document_next_reviewdate", selected, query);
     createTree("#responsible_officer", "f_usq_document_responsible_position", selected, query);
+    createTree("#strategic_plan", "usq_document_strategic_plan", selected, query);
     
     //autocomplete
     $("input#query").autocomplete("$portalPath/autocomplete.ajax");

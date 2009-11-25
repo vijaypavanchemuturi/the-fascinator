@@ -6,7 +6,7 @@
         <div class="columnbox">
           <div class="mainmenu">
             <div class="mainmenu-top"></div>
-            <div class="mainmenu-heading">USQ Policies</div>
+            <div class="mainmenu-heading">USQ Policy Library</div>
             <ul class="menu-list">
               <li class="selected">Home</li>
               <li><a href="$portalPath/search">Search</a></li>
