@@ -38,6 +38,10 @@
       }
     },
     "facet-fields" : {
+      "tag" : {
+        "label" : "Tags",
+        "display" : "list"
+      },
       "file_path" : {
         "label" : "Path",
         "display" : "tree"
