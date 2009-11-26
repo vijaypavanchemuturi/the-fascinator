@@ -65,6 +65,10 @@
       "repository_type" : {
         "label" : "Source type",
         "display" : "list"
+      },
+      "tag" : {
+        "label" : "Tags",
+        "display" : "list"
       }
     }
   },
