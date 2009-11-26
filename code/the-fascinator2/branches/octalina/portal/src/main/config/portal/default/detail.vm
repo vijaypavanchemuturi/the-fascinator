@@ -84,6 +84,7 @@
   <div id="preview" class="box articles">
     <h2>Preview</h2>
     <div class="content-preview">
+      <span class="mimetype" rel="$self.mimeType"></span>
       <div class="first article clearfix">
         <div class="content-preview-inline">$!self.payloadContent</div>
       </div>

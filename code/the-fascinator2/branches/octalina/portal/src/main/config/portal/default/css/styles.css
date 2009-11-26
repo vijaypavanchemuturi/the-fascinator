@@ -180,5 +180,19 @@ ul.nav li.label {
 }
 
 .inline input {
-    width: 80%;
+    width:60%;
+}
+
+#toc li a {
+    font-size: 1.1em;
+    font-weight: normal;
+    margin-top: 2px;
+    margin-bottom: 2px;
+}
+
+#toc li a.clicked {
+    background: none;
+    border: none;
+    color: black;
+    font-weight: bold;
 }

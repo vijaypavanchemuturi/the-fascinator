@@ -47,6 +47,7 @@ $!pageContent
             #end
             </ul>
           </li>
+          <li><a href="$portalPath/organise">Organise</a></li>
           <li><a href="$portalPath/settings">Settings</a></li>
           #### not yet finished
           ##<li><a href="$portalPath/harvest">Harvest</a></li>
