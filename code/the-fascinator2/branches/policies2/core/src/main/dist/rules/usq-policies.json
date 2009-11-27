@@ -4,7 +4,7 @@
         "file-system": {
             "baseDir": "/policies",
             "ignoreFilter": ".svn|.ice|.*|~*",
-            "cacheDir": "${user.home}/.fascinator/cache",
+            "cacheDir": "/opt/the-fascinator/work/cache",
             "force": false,
             "recursive": true
         }
@@ -13,12 +13,12 @@
     "transformer": {
         "conveyer": "aperture, ice2",
         "aperture": {
-            "outputPath": "${java.io.tmpdir}/aperture-output"
+            "outputPath": "/opt/the-fascinator/work/aperture"
         },
         "ice2": {
             "url": "http://localhost:8000/api/convert/",
             "url-amazon": "http://ec2-75-101-136-199.compute-1.amazonaws.com/api/convert/",
-            "outputPath": "${java.io.tmpdir}/ice2-output",
+            "outputPath": "/opt/the-fascinator/work/ice2",
             "resize.image.ratio": "-90"
         }
     },

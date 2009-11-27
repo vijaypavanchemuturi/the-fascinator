@@ -32,7 +32,7 @@ class HomeData:
         req.setParam("fq", 'item_type:"object"')
         req.setParam("rows", "0")
         req.setParam("facet", "true")
-        req.setParam("facet.sort", "true")
+        req.setParam("facet.sort", "false")
         req.setParam("facet.field", ["f_title_group", "f_usq_document_policy_type"])
         out = ByteArrayOutputStream()
         indexer.search(req, out)

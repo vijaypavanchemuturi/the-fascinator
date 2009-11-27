@@ -29,7 +29,7 @@ def indexPath(name, path, includeLastPart=False):
 
 def indexList(name, values):
     for value in values:
-        if name in ["usq_document_policy_type", "usq_document_div_dept_office", "usq_document_responsible_position", "usq_document_strategic_plan"]:
+        if name in ["usq_document_policy_type", "usq_document_div_dept_office", "usq_document_responsible_position", "usq_document_strategic_plan", "usq_document_committee_owner"]:
             indexPath(name, value, True)
         elif name in ["usq_document_next_reviewdate", "usq_document_effective_date"]:
             try:
