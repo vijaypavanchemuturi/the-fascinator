@@ -1,9 +1,14 @@
 from au.edu.usq.fascinator.api.storage import Payload
-from org.dom4j import DocumentHelper #, XmlWriter
-from java.lang import System
+from org.dom4j import DocumentHelper
+from org.dom4j.io import XMLWriter
+
+from java.lang import System, String
 from java.io import File
-from java.io import FileInputStream
-from java.io import ByteArrayInputStream
+from java.io import FileWriter
+from java.io import FileInputStream, FileOutputStream
+from java.io import ByteArrayInputStream, ByteArrayOutputStream
+from java.util.zip import ZipOutputStream, ZipEntry
+from org.apache.commons.io import IOUtils
 
 class Epub:
     def __init__(self):
@@ -13,22 +18,29 @@ class Epub:
         
         self.__orderedList = []
         self.__itemWithPayload = {}
-        self.__tempDir = File(System.getProperty("java.io.tmpdir"), "epub")
+#        self.__tempDir = File(System.getProperty("java.io.tmpdir"), "epub")
+        self.__tempDir = File("/home/octalina/.fascinator/epub")
         if self.__tempDir.exists():
             self.__tempDir.delete()
         self.__tempDir.mkdirs()
-        self.__contentFolder = File(self.__tempDir.getAbsolutePath(), "OEBPS")
-        self.__contentFolder.mkdir()
+        self.__contentFolder = File(self.__tempDir.getAbsolutePath(), "Content/OEBPS")
+#        self.__contentFolder.mkdir()
         
-        print self.__tempDir.getAbsolutePath()
-        print self.__contentFolder.getAbsolutePath()
-        self.__generateEpub()
+        #print self.__tempDir.getAbsolutePath()
+        #print self.__contentFolder.getAbsolutePath()
         
-    def __generateEpub(self):
+        self.__packageStream = None
+        self.__tocStream = None
+        print "999999 start to generate epub"
+        self.__generate()
+        
+    def __generate(self):
+        print "getManifest"
         manifest = self.__getOrganiserManifest()
+        print "ZZZZZZZZZZZZZZZZZZZZZZZ: ", manifest
         if manifest:
             self.__getHtmlSource(manifest)
-            self.__generateNCXToc()
+            self.__generateEpub()
         
     def __getOrganiserManifest(self):
         return self.__getPortal().getJsonMap("manifest")
@@ -39,9 +51,19 @@ class Epub:
     def __getPortalDescription(self):
         return self.__getPortal().description
     
-    def __generateNCXToc(self):
+    def __generateEpub(self):
+        zipFileName = self.__tempDir.getAbsolutePath() + "/%s.epub" % self.__getPortal().name
+        zipOutputStream = ZipOutputStream(FileOutputStream(zipFileName))
+        
         #toc.ncx
         tocFileName = "toc.ncx"
+        tocFullNamePath = self.__contentFolder.getAbsolutePath() + "/%s" % tocFileName
+        
+#        fileWriter = FileWriter("output.xml")
+#        print "--- fileWriter: ", fileWriter
+#        tocWriter = XMLWriter(fileWriter)
+        
+        
 #        tocWriter = new XMLWriter(
 #            new FileWriter( "output.xml" )
 #        );
@@ -56,7 +78,8 @@ class Epub:
         #content.opf
         packageDocument = DocumentHelper.createDocument()
         packageRootElement = packageDocument.addElement("package")
-        packageRootElement.addNamespace("opf", "http://www.idpf.org/2007/opf")
+        packageRootElement.addNamespace("", "http://www.idpf.org/2007/opf")
+        #packageRootElement.addNamespace("dc", "http://purl.org/dc/elements/1.1/")
         packageRootElement.addAttribute("version", "2.0")
         packageRootElement.addAttribute("unique-identifier", "BookId")
         
@@ -71,12 +94,19 @@ class Epub:
             metadata.addElement(meta).setText(dcMeta[meta])
         manifest = packageRootElement.addElement("manifest")
         
+        #toc item
+        #<item id="toc.ncx" href="toc.ncx" media-type="text/html"/>
+        item = manifest.addElement("item")
+        item.addAttribute("id", tocFileName)
+        item.addAttribute("href", tocFileName)
+        item.addAttribute("media-type", "text/html")
+        
         spine = packageRootElement.addElement("spine")
         spine.addAttribute("toc", tocFileName)
         
         count = 1
         for itemHash in self.__orderedList:
-            id, title, htmlFileName, payloadList = self.__itemWithPayload[itemHash]
+            id, title, payloadType, htmlFileName, payloadList = self.__itemWithPayload[itemHash]
             count = 1
                 
             navPoint = navMap.addElement("navPoint")
@@ -89,39 +119,50 @@ class Epub:
             for payloadId in payloadList:
                 #need to save the payload to the temp file...
                 payload = payloadList[payloadId]
-                print type(payload)
                 contentType = "application/xhtml+xml"
                 if isinstance(payload, Payload):
-                    contentType = payload.contentType
+                    zipOutputStream.putNextEntry(ZipEntry("OEBPS/%s" % payloadId))
+                    IOUtils.copy(payload.getInputStream(), zipOutputStream)
+                    zipOutputStream.closeEntry()
                     #need to save the payload stream
-                else:
+                elif payloadType.startswith("image"):
+                    zipOutputStream.putNextEntry(ZipEntry("OEBPS/%s" % payloadId))
                     #for the image... need to save the html string
-                    pass
+#                    inputStream = ByteArrayInputStream(str(payload).getBytes())
+                    IOUtils.copy(payload, zipOutputStream)
+                    zipOutputStream.closeEntry()
+                
                 item = manifest.addElement("item")
                 item.addAttribute("id", payloadId)
                 item.addAttribute("href", payloadId)
                 item.addAttribute("media-type", contentType)
                 
-            itemRef = spine.addElement("itemRef")
+            itemRef = spine.addElement("itemref")
             itemRef.addAttribute("idref", htmlFileName)
                 
             
             count+=1
             
-        ### Need to save the content.opf 
-        print packageDocument.getRootElement().asXML()
-        
+        ### Need to save the content.opf
+        self.__packageStream = ByteArrayInputStream(String(packageDocument.getRootElement().asXML()).getBytes("UTF-8"))
+        zipOutputStream.putNextEntry(ZipEntry("OEBPS/content.opf"))
+        IOUtils.copy(self.__packageStream, zipOutputStream)
+        zipOutputStream.closeEntry()
+            
+#            zipOutputStream.write(buf, 0, len)
+#        zipOutputStream.write(self.__packageStream)
         
         print    
         ### Need to save the toc.ncx     
-        print document.getRootElement().asXML()
+        self.__tocStream = ByteArrayInputStream(String(document.getRootElement().asXML()).getBytes("UTF-8"))
+        zipOutputStream.putNextEntry(ZipEntry("OEBPS/toc.ncx"))
+        IOUtils.copy(self.__tocStream, zipOutputStream)
+        zipOutputStream.closeEntry()
+        
+        zipOutputStream.close()
+     
     
-    
-    
-    
-    
-    
-    
+        
     
     
     
@@ -137,6 +178,7 @@ class Epub:
             htmlFileName = pid[:pid.rfind(".")] + ".htm"
 
             sourcePayload = Services.storage.getPayload(id, pid)
+            payloadType = sourcePayload.contentType
             htmlPayload = Services.storage.getPayload(id, htmlFileName)
             if htmlPayload:
                 payloadDict[htmlFileName] = htmlPayload
@@ -150,12 +192,10 @@ class Epub:
                     htmlString = "<html><head><title>%s</title></head><body><img src='%s' alt='%s'/></body></html>"
                     htmlString = htmlString % (pid, pid, pid)
                     payloadDict[pid] = sourcePayload
-                    payloadDict[htmlFileName] = htmlString
-#                    payloadDict[htmlFileName] = ByteArrayInputStream(htmlString.getBytes())
-                    #print ByteArrayInputStream(htmlString.getBytes("UTF-8"))
+                    payloadDict[htmlFileName] = ByteArrayInputStream(String(htmlString).getBytes("UTF-8"))
                 
-            self.__itemWithPayload[itemHash] = id, title, htmlFileName, payloadDict
-            print self.__itemWithPayload
+            self.__itemWithPayload[itemHash] = id, title, payloadType, htmlFileName, payloadDict
+        print '******: ', self.__itemWithPayload
 #            if digitalObject:
 #                payloadList = digitalObject.getPayloadList()
                 
