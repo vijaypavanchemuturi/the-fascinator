@@ -40,7 +40,7 @@
             </div>
           </div>
           <div id="newest">
-            <h2>Newest policies</h2>
+            <h2>Recently updated policies</h2>
             <table>
             <tr>
               <th>Effective date</th>
@@ -54,6 +54,10 @@
               </tr>
             #end
             </table>
+          </div>
+          <div id="popular">
+            <h2>Most popular policies</h2>
+            <p><em>Coming soon...</em></p>
           </div>
         </div>
       </td>
