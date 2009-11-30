@@ -44,8 +44,7 @@
           #displayFacet("f_title_group")
           #if($self.result and $paging.totalFound > 0)
           <div class="advanced">
-            <span class="ui-icon ui-icon-triangle-1-s icon"></span>
-            <h2>Advanced</h2>
+            <h2><span class="ui-icon ui-icon-triangle-1-s icon"></span>Advanced</h2>
             <div>
               #displayFacet("f_usq_document_type")
               #displayFacetTree("div_dept_office", "Division/Department")

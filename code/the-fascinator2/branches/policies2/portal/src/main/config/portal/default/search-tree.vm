@@ -1,22 +1,28 @@
-#macro(createFacetNode $facet $state)
+#macro(createFacetNode $facet $state $isLast)
 {
     attributes: {
         id: "$facet.id",
         fq: "$facet.facetQuery"
     },
-    data: "$facet.name ($facet.count)",
-    #if($facet.subFacets.size() > 0)
+    data: "$facet.name ($facet.count)"
+    #set($size = $facet.subFacets.size())
+    #if($size > 0)
+        ,
         state: "$state",
         children: [
         #foreach($subFacet in $facet.subFacets)
-            #createFacetNode($subFacet "closed")
+            #set($isSubLast = $velocityCount == $size)
+            #createFacetNode($subFacet "closed" $isSubLast)
         #end
         ]
     #end
-},
+}
+#if(!$isLast),#end
 #end
 [
 #foreach($facet in $self.facetList.facets)
-    #createFacetNode($facet "closed")
+    #set($size = $self.facetList.facets.size())
+    #set($isLast = $velocityCount == $size)
+    #createFacetNode($facet "closed" $isLast)
 #end
 ]
