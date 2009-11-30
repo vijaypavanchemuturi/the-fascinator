@@ -64,8 +64,9 @@ public class FileSystemStorageTest {
         FileSystemDigitalObject addedObject = (FileSystemDigitalObject) fs
                 .getObject("oai:eprints.usq.edu.au:318");
         Assert.assertEquals(FilenameUtils.normalize(tmpDir
-                + "/_fs_test/e2/92/e292378c5b38b0d5a4aba11fd40e7151"),
-                addedObject.getPath().getAbsolutePath());
+                + "/_fs_test/d0b1c5bd0660ad67a16b7111aafc9389/"
+                + "e2/92/e292378c5b38b0d5a4aba11fd40e7151"), addedObject
+                .getPath().getAbsolutePath());
 
         List<Payload> payloads = addedObject.getPayloadList();
         Assert.assertEquals(1, payloads.size());
@@ -80,8 +81,9 @@ public class FileSystemStorageTest {
         FileSystemDigitalObject addedObject = (FileSystemDigitalObject) fs
                 .getObject("/Users/fascinator/Documents/sample.odt");
         Assert.assertEquals(FilenameUtils.normalize(tmpDir
-                + "/_fs_test/11/b4/11b498d057256a0b602fa0e7c4073fc3"),
-                addedObject.getPath().getAbsolutePath());
+                + "/_fs_test/d0b1c5bd0660ad67a16b7111aafc9389/"
+                + "11/b4/11b498d057256a0b602fa0e7c4073fc3"), addedObject
+                .getPath().getAbsolutePath());
 
         List<Payload> payloads = addedObject.getPayloadList();
         Assert.assertEquals(2, payloads.size());

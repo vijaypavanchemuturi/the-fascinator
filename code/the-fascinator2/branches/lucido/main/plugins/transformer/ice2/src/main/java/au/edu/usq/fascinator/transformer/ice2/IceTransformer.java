@@ -493,4 +493,10 @@ public class IceTransformer implements Transformer {
         }
         return true;
     }
+
+    @Override
+    public void init(String jsonString) throws PluginException {
+        // TODO Auto-generated method stub
+
+    }
 }

@@ -8,19 +8,32 @@
     "facet-sort-by-count" : "false",
     "debug" : "true",
     "backup" : {
-      "email" : "fascinator@usq.edu.au",
       "paths" : {
-        "/media/external" : {
+        "_media_external" : {
+          "path" : "/media/external",
           "active" : "false",
-          "include-rendition-meta" : "false",
+          "ignoreFilter" : ".svn|.ice|.*|~*",
           "include-portal-view" : "false",
-          "ignoreFilter" : ".svn|.ice|.*|~*"
+          "storage" : {
+            "file-system" : {
+              "home" : "/media/external",
+              "use-link" : "false"
+            },
+            "type" : "file-system"
+          }
         },
-        "${user.home}/.fascinator/backup" : {
+        "_.fascinator_backup" : {
+          "path" : "${user.home}/.fascinator/backup",
           "active" : "true",
-          "include-rendition-meta" : "true",
-          "include-portal-view" : "false",
-          "ignoreFilter" : ".svn|.ice|.*|~*"
+          "ignoreFilter" : ".svn|.ice|.*|~*",
+          "include-portal-view" : "true",
+          "storage" : {
+            "file-system" : {
+              "home" : "${user.home}/.fascinator/backup",
+              "use-link" : "false"
+            },
+            "type" : "file-system"
+          }
         }
       }
     },

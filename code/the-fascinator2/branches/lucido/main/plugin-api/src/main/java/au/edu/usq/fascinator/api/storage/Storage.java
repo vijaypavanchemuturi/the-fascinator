@@ -18,6 +18,8 @@
  */
 package au.edu.usq.fascinator.api.storage;
 
+import java.util.List;
+
 import au.edu.usq.fascinator.api.Plugin;
 
 /**
@@ -75,4 +77,11 @@ public interface Storage extends Plugin {
      * @return a payload or null if not found
      */
     public Payload getPayload(String oid, String pid);
+
+    /**
+     * Gets all the objects from the storage
+     * 
+     * @return List of Digital Object
+     */
+    public List<DigitalObject> getObjectList();
 }

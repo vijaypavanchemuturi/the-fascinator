@@ -21,7 +21,6 @@ package au.edu.usq.fascinator.portal;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -118,24 +117,9 @@ public class Portal extends JsonConfigHelper {
         return new ArrayList<String>(getFacetFields().keySet());
     }
 
-    public void setEmail(String email) {
-        set("portal/backup/email", email);
-    }
-
-    public String getEmail() {
-        return get("portal/backup/email", "");
-    }
-
     @SuppressWarnings("unchecked")
-    public Map<String, Map<String, Object>> getBackupPaths() throws IOException {
-        Map<String, Object> backupPaths = getMapWithChild("portal/backup/paths");
-        Map<String, Map<String, Object>> backupPathsDict = new HashMap<String, Map<String, Object>>();
-        for (String key : backupPaths.keySet()) {
-            Map<String, Object> newObj = (Map<String, Object>) backupPaths
-                    .get(key);
-            backupPathsDict.put(key, newObj);
-        }
-        return backupPathsDict;
+    public Map<String, JsonConfigHelper> getBackupPaths() throws IOException {
+        return getJsonMap("portal/backup/paths");
     }
 
     public void setBackupPaths(Map<String, Object> backupInfo) {

@@ -147,4 +147,27 @@ public class JsonConfigHelperTest {
         // System.out.println(fields.get(key).get("label"));
         // }
     }
+
+    @Test
+    public void setMultiMap() throws Exception {
+        Map<String, Object> storageMap = new HashMap<String, Object>();
+        storageMap.put("type", "file-system");
+
+        Map<String, Object> filesystem = new HashMap<String, Object>();
+        filesystem.put("home", "/user");
+        filesystem.put("use-link", "false");
+        storageMap.put("file-system", filesystem);
+
+        Map<String, Object> filesystem1 = new HashMap<String, Object>();
+        filesystem1.put("more", "more");
+        filesystem.put("filesystem1", filesystem1);
+
+        Map<String, Object> filesystem2 = new HashMap<String, Object>();
+        filesystem2.put("more2", "more2");
+        filesystem1.put("filesystem2", filesystem2);
+
+        config.setMultiMap("storage2", storageMap);
+
+        // System.out.println("config:  " + config);
+    }
 }
