@@ -32,6 +32,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import au.edu.usq.fascinator.BackupClient;
+import au.edu.usq.fascinator.IndexClient;
 import au.edu.usq.fascinator.common.JsonConfig;
 import au.edu.usq.fascinator.portal.Portal;
 import au.edu.usq.fascinator.portal.services.PortalManager;
@@ -153,7 +154,7 @@ public class PortalManagerImpl implements PortalManager {
             try {
                 portal = new Portal(portalFile);
                 add(portal);
-                log.info("Loaded portal: " + portal);
+                // log.info("Loaded portal: " + portal);
             } catch (IOException e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
@@ -167,12 +168,35 @@ public class PortalManagerImpl implements PortalManager {
         BackupClient backupClient;
         try {
             File portalDir = new File(portalsDir, portal.getName());
-            log.info("****** " + portalDir);
-            backupClient = new BackupClient(portalDir, portal.getEmail(),
-                    portal.getBackupPaths(), portal.getQuery());
+            // log.info("****** " + portalDir);
+            backupClient = new BackupClient(portalDir, portal.getBackupPaths(),
+                    portal.getQuery());
             backupClient.run();
         } catch (IOException e) {
             e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void indexObject(String objectId) {
+        IndexClient indexClient;
+        try {
+            indexClient = new IndexClient();
+            indexClient.indexObject(objectId);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    @Override
+    public void indexPortal(Portal portal) {
+        IndexClient indexClient;
+        try {
+            indexClient = new IndexClient();
+            indexClient.indexPortal(portal.getQuery());
+        } catch (IOException e) {
+
         }
     }
 }

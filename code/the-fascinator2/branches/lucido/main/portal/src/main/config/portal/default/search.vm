@@ -50,7 +50,10 @@
 #set($paging = $self.paging)
 #if($self.result and $paging.totalFound > 0)
 #end
-<h2 id="page-heading">Search<span class="paging right">#parse($page.getTemplate("search-paging.vm"))</span></h2>
+<h2 id="page-heading">Search<span class="paging right">#parse($page.getTemplate("search-paging.vm"))
+</span><a class="feed" title="ATOM FEED" href="$atomLink">
+<img alt="ATOM Feed" src="$portalPath/images/icons/rss.png"/>
+</a></h2>
 <div id="action-list" class="grid_4">
   #if($self.hasSelectedFacets() || $query != "")
   <div class="box menu">

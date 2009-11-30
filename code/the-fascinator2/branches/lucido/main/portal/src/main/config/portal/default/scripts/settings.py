@@ -44,9 +44,9 @@ class SettingsData:
             return "selected"
         return ""
     
-    def __updateEmail(self):
-        self.__portal.email = formData.get("emailAddress")
-        Services.portalManager.save(self.__portal)
+#    def __updateEmail(self):
+#        self.__portal.email = formData.get("emailAddress")
+#        Services.portalManager.save(self.__portal)
         
     def __updateBackupPaths(self):
         backupPaths = self.__portal.backupPaths

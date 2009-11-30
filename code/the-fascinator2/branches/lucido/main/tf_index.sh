@@ -21,8 +21,8 @@ function copy_samples {
 }
 
 if [ "$1" == "" ]; then
-	echo "Usage: ./tf_harvest.sh <profile>"
-	echo " Profiles: filesystem-test | oai-pmh-test | jsonq-test"
+	echo "Usage: ./tf_index.sh <profile>"
+	echo " Profiles: index-test"
 else
 	OS=`uname`
 	if [ "$OS" == "Darwin" ]; then
