@@ -12,7 +12,7 @@ class UpdateData:
         client.run()
     
     def getLog(self):
-        log = open("/opt/the-fascinator/work/logs/harvest.log")
+        log = open("/opt/the-fascinator/work/harvest.log")
         return log.read()
 
 scriptObject = UpdateData()

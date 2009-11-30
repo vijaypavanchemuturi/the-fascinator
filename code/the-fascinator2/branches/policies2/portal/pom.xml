@@ -74,6 +74,10 @@
           <groupId>au.edu.usq.fascinator.plugins</groupId>
           <artifactId>plugin-storage-filesystem</artifactId>
         </dependency>
+        <dependency>
+          <groupId>au.edu.usq.fascinator.plugins</groupId>
+          <artifactId>plugin-harvester-filesystem</artifactId>
+        </dependency>
       </dependencies>
     </profile>
     <profile>
