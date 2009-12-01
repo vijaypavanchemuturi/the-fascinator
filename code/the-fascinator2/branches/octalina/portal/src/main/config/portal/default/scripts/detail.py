@@ -94,7 +94,8 @@ class DetailData:
         return name[3:4].upper() + name[4:]
     
     def formatValue(self, value):
-        return value[1:-1]
+        print " ************", value
+        return value
     
     def isHidden(self, pid):
         if pid.find("_files%2F")>-1:

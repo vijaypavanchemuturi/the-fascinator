@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.apache.velocity.util.introspection.VelMethod;
 import org.python.core.PyInteger;
+import org.python.core.PyList;
 import org.python.core.PyObject;
 import org.python.core.PyString;
 import org.slf4j.Logger;
@@ -61,6 +62,8 @@ public class JythonVelMethod implements VelMethod {
                         args.add(new PyInteger(((Integer) param).intValue()));
                     } else if (param instanceof PyObject) {
                         args.add((PyObject) param);
+                    } else if (param instanceof List) {
+                        args.add(new PyList((List) param));
                     } else {
                         log.debug("Unsupported param type:"
                                 + param.getClass().getName());
