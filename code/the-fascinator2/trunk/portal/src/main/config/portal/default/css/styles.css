@@ -235,3 +235,12 @@ input.checkbox {
     font-size: 1.2em;
     font-weight: normal;
 }
+
+dd ul {
+    list-style: none;
+    margin-bottom: 5px;
+}
+
+dd ul li {
+    margin-left: 2px;
+}
