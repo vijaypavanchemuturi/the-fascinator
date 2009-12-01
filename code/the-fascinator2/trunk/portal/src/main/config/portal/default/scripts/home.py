@@ -56,8 +56,9 @@ class HomeData:
         req.setParam("rows", "0")
         out = ByteArrayOutputStream()
         indexer.search(req, out)
+        
         sessionState.set("fq", 'item_type:"object"')
-        sessionState.set("query", portalQuery.replace("\"", "'"))
+        #sessionState.set("query", portalQuery.replace("\"", "'"))
         
         self.__result = JsonConfigHelper(ByteArrayInputStream(out.toByteArray()))
     

@@ -1,336 +1,236 @@
-#set($manifest = $self.portal.getJsonMap("manifest"))
-#set($pageTitle = 'Search')
-#set($query = $sessionState.get("query"))
-#if($query!="")
-  #set($atomLink = "$portalPath/feed/atom?query=$query") 
-#else
-  #set($atomLink = "$portalPath/feed/atom")
+#macro(createNavTree $root $class)
+<ul class="$class">
+  #foreach($key in $root.keySet())
+    #set($item = $root.get($key))
+    #set($id = $item.get("id"))
+    #set($children = $item.getJsonMap("children"))
+    #set($numChildren = $children.keySet().size())
+    <li #if($numChildren > 0)class="open"#end id="$key" rel="$id">
+      <a class="#if($id == $self.oid)clicked#end #if($item.get('hidden') == 'true')item-hidden#end" href="$portalPath/organise/$id">
+        $item.get("title")
+      </a>
+      #if($numChildren > 0)
+        #createNavTree($children "children")
+      #end
+    </li>
+  #end
+</ul>
 #end
-#set($pageHeader = "<link rel=alternate type=application/atom+xml href=$atomLink title='$self.portalName'>")
-#set($paging = $self.paging)
-#if($self.result and $paging.totalFound > 0)
+#macro(createToc $root $class)
+<ul class="$class">
+  #foreach($key in $root.keySet())
+    #set($item = $root.get($key))
+    #set($id = $item.get("id"))
+    #set($children = $item.getJsonMap("children"))
+    #set($numChildren = $children.keySet().size())
+    #set($hidden = $item.get("hidden"))
+    #if(!$hidden || $hidden != "true")
+    <li>
+      <a href="$portalPath/$pageName/$id">$item.get("title")</a>
+      #if($numChildren > 0)
+        #createToc($children "page-toc-children")
+      #end
+    </li>
+    #end
+  #end
+</ul>
 #end
-<h2 id="page-heading">Organise<span class="paging right">#parse($page.getTemplate("search-paging.vm"))</span></h2>
+#set($manifest = $self.manifest)
+#set($pageTitle = "$page.portal.description")
+<h2 id="page-heading">$pageTitle</h2>
 <div id="action-list" class="grid_4">
-#*
-  <div class="box menu">
-    <h2>Actions</h2>
-    <ul class="menu">
-      <li><a href="#" id="">Action1</a></li>
-    </ul>
-  </div>
-*#
-  <div class="box menu">
+  <div class="box menu toc hidden">
     <h2>Contents</h2>
     <div id="toc">
-      <ul class="toc" class="hidden">
-        #foreach($itemHashId in $manifest.keySet())
-        #set($item = $manifest.get($itemHashId))
-        #set($itemId = $item.get("id"))
-        <li id="$itemHashId" rel="$itemId">
-          <a href="#">$item.get("title")</a>
-          #set($children = $item.getJsonMap("children"))
-          #if($children.keySet().size() > 0)
-            <ul class="children">
-            #foreach($childHashId in $children.keySet())
-              #set($child = $children.get($childHashId))
-              #set($childId = $child.get("id"))
-              <li id="$childHashId" rel="$childId"><a href="#">$child.get("title")</a></li>
-            #end
-            </ul>
-          #end
-        </li>
-        #end
-      </ul>
+      #createNavTree($self.manifest "toc")
     </div>
     <div class="clear"></div>
   </div>
 </div>
-<div class="grid_12" id="result-list">
-#*
-  <div id="results-toc">
-    <h2>$self.portal.description</h2>
-    <ul class="toc">
-      #foreach($itemHashId in $manifest.keySet())
-      #set($item = $manifest.get($itemHashId))
-      #set($itemId = $item.get("id"))
-      <li id="$itemHashId" rel="$itemId">
-        <a href="#">$item.get("title")</a>
-        #set($children = $item.getJsonMap("children"))
-        #if($children.keySet().size() > 0)
-          <ul class="children">
-          #foreach($childHashId in $children.keySet())
-            #set($child = $children.get($childHashId))
-            #set($childId = $child.get("id"))
-            <li id="$childHashId" rel="$childId"><a href="#">$child.get("title")</a></li>
-          #end
-          </ul>
-        #end
-      </li>
-      #end
-    </ul>
+<div class="grid_12" id="content">
+  #set($manifestItem = $self.manifestItem)
+  #if($manifestItem.get("id"))
+  <div id="item-props" class="box">
+    <h2>Properties</h2>
+    <form id="item-form" method="post">
+      <fieldset>
+        <p>
+          <label for="item_title">Title</label>
+          <input type="text" id="item_title" name="title" value='$manifestItem.get("title")' />
+        </p>
+        <p>
+          <label class="checkbox" for="item_hidden">Hidden</label>
+          <input class="checkbox" type="checkbox" id="item_hidden" name="hidden" #if($manifestItem.get("hidden")=="true")checked="checked"#end/>
+        </p>
+        <p>
+          <label class="checkbox" for="item_blog">Include in blog</label>
+          <input class="checkbox" type="checkbox" id="item_blog" name="blog" #if($manifestItem.get("blog")=="true")checked="checked"#end/>
+        </p>
+        <p class="message">
+          <img class="hidden" id="item-loading" src="$portalPath/images/icons/loading.gif" />
+          <span id="item-message"></span>
+        </p>
+      </fieldset>
+    </form>
   </div>
-*#
-  <div id="results" class="box articles">
-#*
-    #if($self.result and $paging.totalFound > 0)
-      #foreach($item in $self.result.getList("response/docs"))
-        #set($id = $item.get("id"))
-        #set($hashId = $page.md5Hash($id))
-        #set($dcTitle = "")
-        #set($dcTitle = $manifest.get("node-$hashId").get("title"))
-        #if($dcTitle == "")
-          #set($dcTitle = $item.get("dc_title").get(0))
-        #end
-        #if($dcTitle.trim() != "")
-          #set($title = $dcTitle)
-        #else
-          #set($title = $self.getFileName($id))
-        #end
-        #set($description = "")
-        #set($description = $item.get("dc_description").get(0))
-        <div class="result-item hidden">
-          <div id="$hashId" class="article#if($velocityCount==1) first#end">
-            <h3><a href="$portalPath/detail/$id">$title</a></h3>
-            <div class="tags">
-              <ul class="tags">
-                <li>Tags:</li>
-                <li id="tags-$hashId">
-                  <a class="tag-add hidden" href="#"><img alt="Add tag" src="$portalPath/images/icons/add.png" /></a>
-                  <form class="tag-form hidden" rel="$id">
-                    <input type="text" class="new-tag-value" size="20" name="newTag" />
-                    <input class="tag-accept hidden" type="submit" name="submit" />
-                    <a class="tag-accept" href="#"><img alt="Accept tag" src="$portalPath/images/icons/tick.png" /></a>
-                    <a class="tag-cancel" href="#"><img alt="Cancel tag" src="$portalPath/images/icons/cross.png" /></a>
-                  </form>
-                  <img class="tag-loading" src="$portalPath/images/icons/loading.gif" />
-                </li>
-              </ul>
-            </div>
-            #set($thumbnail = $self.getThumbnail($id))
-            #if($thumbnail)
-              <a class="image" href="$portalPath/detail/$id">
-                <img src="$portalPath/download/$id/$thumbnail" />
-              </a>
-            #end
-            <p class="item-description">$!description&nbsp;</p>
-          </div>
-          <div class="clear"></div>
-        </div>
-      #end
-    #else
-      <div class="box no-result">No items found matching your query: '$!query'</div>
-    #end
-    *#
+  <div id="results-loading" class="box articles hidden">
+    <h2>Loading content...</h2>
+    <div class="article first">
+      <img src="$portalPath/images/icons/loading.gif"></img>
+    </div>
   </div>
+  <div id="preview" class="box articles">
+    <h2>Preview</h2>
+    <div class="content-preview">
+      <span class="mimetype" rel="$self.mimeType"></span>
+      <div class="first article clearfix">
+        <div class="content-preview-inline">$!self.payloadContent</div>
+      </div>
+    </div>
+  </div>
+  #else
+    <h2>Table of contents</h2>
+    #createToc($manifest "page-toc")
+  #end
 </div>
-<script type="text/javascript" src="$portalPath/js/jquery-ui-1.7.2.custom.min.js"></script>
 <script type="text/javascript" src="$portalPath/js/tree/jquery.tree.min.js"></script>
-<script type="text/javascript" src="$portalPath/js/jquery.truncate.js"></script>
 <script type="text/javascript">
 $(function() {
-    addActionParam("query", "$!query");
-    
     if ($("#action-list div").length == 0) {
         $("#result-list").removeClass("grid_12").addClass("grid_16");
     }
     
-    // truncate descriptions
-    $("p.item-description").truncate(500, {
-        trail: [ '... <a href="#" class="truncate_show">more</a>',
-                 ' <a href="#" class="truncate_hide">less</a>' ]
-    });
-    
-    // tagging
-    function createTag(tag, tagClass) {
-        var tagEl =
-          '<li class="tag">' +
-            '<a class="tag ' + tagClass + '" href="$portalPath/search/' + tag + '">' + tag + '</a>' +
-            '<a class="tag-remove hidden" href="#" rel="' + tag + '">' +
-              '<img alt="Remove tag" src="$portalPath/images/icons/delete.png" />' +
-            '</a>' +
-          '</li>';
-       return tagEl;
-    }
-    $("a.tag-add").bind("click", function() {
-        $(this).hide();
-        var tagForm = $(this).next("form");
-        tagForm.addClass("inline").removeClass("hidden");
-        tagForm.find(".new-tag-value").focus().val("");
-        return false;
-    });
-    $("form.tag-form").bind("submit", function(e) {
-        $(this).find("a.tag-accept").click();
-        e.preventDefault();
-    });
-    $("a.tag-accept").bind("click", function() {
-        var tagForm = $(this).parent("form");
-        var id = tagForm.attr("rel");
-        var hashId = tagForm.parents("div.article").attr("id");
-        var tag = tagForm.find(".new-tag-value").val();
-        if (tag != "") {
-            tagForm.addClass("hidden").removeClass("inline");
-            tagForm.next("img.tag-loading").show();
-            jQuery.post("$portalPath/actions/tags.ajax",
-                { func: "tags-add", oid: id, tag: tag },
-                function(data, status) {
-                    tagForm.prev("a.tag-add").show();
-                    tagForm.next("img.tag-loading").hide();
-                    $("#tags-" + hashId).before(createTag(tag, "new-tag"));
-                    $("li.tag").hover(function() { $(this).children(".tag-remove").show(); },
-                                      function() { $(this).children(".tag-remove").hide(); });
-                }
-            );
-        }
-        return false;
-    });
-    $("a.tag-cancel").bind("click", function() {
-        var tagForm = $(this).parent("form");
-        tagForm.addClass("hidden").removeClass("inline");
-        tagForm.prev("a.tag-add").show();
-        return false;
-    });
-    $("a.tag-remove").live("click", function() {
-        var tagForm = $(this).parents("ul").find("form");
-        var id = tagForm.attr("rel");
-        var hashId = tagForm.parents("div.article").attr("id");
-        var tagEl = $(this);
-        var tag = tagEl.attr("rel");
-        if (tag != "") {
-            tagForm.next("img.tag-loading").show();
-            jQuery.post("$portalPath/actions/tags.ajax",
-                { func: "tags-remove", oid: id, tag: tag },
-                function(data, status) {
-                    tagForm.next("img.tag-loading").hide();
-                    tagEl.parent("li.tag").remove();
-                }
-            );
-        }
-        return false;
-    });
-    
-    $("ul.tags").each(function() {
-        var id = $(this).find("form.tag-form").attr("rel");
-        var hashId = "#tags-" + $(this).parents("div.article").attr("id");
-        jQuery.getJSON("$portalPath/actions/tags.ajax", { func: "tags-load", oid: id },
-            function(data) {
-                jQuery.each(data.tags, function(i, tag) {
-                    $(hashId).before(createTag(tag, ""));
-                });
-                $("li.tag").hover(function() { $(this).children(".tag-remove").show(); },
-                                  function() { $(this).children(".tag-remove").hide(); });
-                $(hashId + " a.tag-add").show();
-                $(hashId + " img.tag-loading").hide();
-            }
-        );
-    });
-    
-    #set($manifest = $self.portal.getJsonMap("manifest"))
-    
-    function sortToc() {
-        $("#toc li").sort(function(a, b) {
-            var idA = $(a).attr("rel");
-            var idB = $(b).attr("rel");
-            var elemA = $("#results .result-item").index($("#" + idA).parent());
-            var elemB = $("#results .result-item").index($("#" + idB).parent());
-            return elemA > elemB ? 1 : -1;
-        }).appendTo("#toc");
-    }
-    
     function sortResultItems() {
-        $(".article.first").removeClass("first");
-        $("#results div.result-item").sort(function(a, b) {
+        $("#results-combined .article.first").removeClass("first");
+        $("#results-combined div.result-item").sort(function(a, b) {
             var idA = $(a).find(".article").attr("id");
             var idB = $(b).find(".article").attr("id");
             var elemA = $("#toc li[rel='" + idA + "']");
             var elemB = $("#toc li[rel='" + idB + "']")
             return $("#toc li").index(elemA) > $("#toc li").index(elemB) ? 1 : -1;
         }).appendTo("#results");
-        $("#results .result-item .article:first").addClass("first");
+        $("#results-combined .result-item .article:first").addClass("first");
     }
     sortResultItems();
     
-    /*
-    $("#results").sortable({
-        axis: "y",
-        items: "div.result-item",
-        stop: function(event, ui) {
-            $(".article.first").removeClass("first");
-            $("#results .result-item .article:first").addClass("first");
-            sortToc();
+    function getParentIds(node) {
+        var parents = "";
+        $(node).parents("li").each(function() {
+            parents = "," + $(this).attr("id") + parents;
+        });
+        if (parents != "") {
+            parents = parents.substring(1);
         }
-    });
-    
-    $("ul.children").sortable({axis:"y",connectWith: "#toc",items:"li:gt(0)"});
-    $("#toc").sortable({
-        axis: "y",
-        items: "li:gt(0)",
-        connectWith: "ul.children",
-        containment: "parent",
-        opacity: 0.5
-    }).disabledSelection();
-    */
+        return parents;
+    }
     
     $("#toc").tree({
         ui: {
             animation: 250,
             dots: false,
-            theme_name: "default"
+            theme_name: "classic"
         },
-        selected: "node-" + $("#results .article.first").attr("id"),
         callback: {
-            ondrop: function(node, tree) {
+            #*ondblclk: function(node, tree) {
+                $(node).find("> a").removeClass("clicked");
+                return tree.rename(node);
+            },*#
+            onrename: function(node, tree, rollback) {
+                jQuery.post("$portalPath/actions/manifest.ajax",
+                    {
+                        func: "rename",
+                        id: "$portalId",
+                        nodeId: $(node).attr("id"),
+                        title: $(node).children("a").text(),
+                        parents: getParentIds(node)
+                    });
+            },
+            onmove: function(node, refNode, type, tree, rollback) {
+                jQuery.post("$portalPath/actions/manifest.ajax",
+                    {
+                        func: "move",
+                        id: "$portalId",
+                        nodeId: $(node).attr("id"),
+                        refNodeId: $(refNode).attr("id"),
+                        parents: getParentIds(node),
+                        refParents: getParentIds(refNode),
+                        type: type
+                    });
             },
             onselect: function(node, tree) {
-                var id = $(node).attr("rel");
-                var title = $(node).find("a").text();
-                $("#results").load("$portalPath/detail/" + escape(id) + " #preview > .content-preview", function() {
-                    var oid = id;
-                    var filenameNoExt = "$filenameNoExt";
-                    function fixLinks(selector, attrName) {
-                        $(selector).each(function() {
-                            var attr = $(this).attr(attrName);
-                            if (attr != null) {
-                                if (attr.indexOf("#") != 0 && attr.indexOf("://") == -1) {
-                                    $(this).attr(attrName, "$portalPath/download/" + id + "/" + attr);
-                                }
-                            }
-                        });
-                    }
-                    fixLinks("div.content-preview-inline a", "href");
-                    fixLinks("div.content-preview-inline img", "src");
-                    
-                    $("div.rendition-links").remove();
-                    $(this).prepend("<h2>" + title + "</h2>");
-                    var mimeType = $(this).find(".mimetype").attr("rel");
-                    if (mimeType.indexOf("image/") == 0) {
-                        var src = "$portalPath/download/" + id;
-                        $("div.content-preview div.article").html(
-                            '<a class="image" href="' + src + '"  style="max-width:98%">' +
-                                '<img src="' + src + '" style="max-width:100%" />' +
-                            '</a>');
-                    } else if (mimeType.indexOf("audio/") == 0 || mimeType.indexOf("video/") == 0) {
-                        var height = 300;
-                        if (mimeType.indexOf("audio/") == 0) {
-                            height = 24;
-                        }
-                        
-                        var style = "display: block; width: 425px; height: " + height + "px";
-                        var filename = oid.substring(oid.lastIndexOf("/") + 1);
-                        var ext = filename.substring(filename.lastIndexOf(".") + 1).toLowerCase();
-                        if (ext == "wmv" || ext=="mpg" || ext=="mpeg" || ext=="m3u") { 
-                            filename = filenameNoExt + ".flv";
-                        }
-                        
-                        var href = "$portalPath/download/" + id + "/" + filename;
-                        var player = '<a class="clearfix" href="' + href + '" id="player" style="' + style + '" />';
-                        $("div.content-preview div.article").empty().append(player);
-                        flowplayer("player", "$portalPath/flowplayer/flowplayer-3.1.2.swf",
-                            { clip: { autoPlay: false } });
-                    }
-                });
+                document.location.href = "$portalPath/organise/" + $(node).attr("rel");
             }
         }
     });
+    
+    $(".toc.hidden").removeClass("hidden");
+    
+    $("#view-single").click(function() {
+        $(".viewtype").removeClass("selected");
+        $(this).addClass("selected");
+        $("#results").addClass("hidden");
+        $("#results-combined, .result-item").addClass("hidden");
+    });
+    
+    $("#view-combined").click(function() {
+        $(".viewtype").removeClass("selected");
+        $(this).addClass("selected");
+        $("#results").addClass("hidden");
+        $("#results-combined, .result-item").removeClass("hidden");
+    });
+    
+    $("#item_hidden").click(function() {
+        var node = $(".clicked").parent("li");
+        jQuery.post("$portalPath/actions/manifest.ajax",
+            {
+                func: "set-hidden",
+                id: "$portalId",
+                nodeId: node.attr("id"),
+                parents: getParentIds(node),
+                hidden: $(this).is(":checked")
+            });
+    });
+    
+    $("#item_blog").click(function() {
+        var node = $(".clicked").parent("li");
+        jQuery.post("$portalPath/actions/manifest.ajax",
+            {
+                func: "set-blog",
+                id: "$portalId",
+                nodeId: node.attr("id"),
+                parents: getParentIds(node),
+                blog: $(this).is(":checked")
+            });
+    });
+    
+    $("#item-form").submit(function() {
+        var node = $(".clicked").parent("li");
+        var title = $("#item_title").attr("value");
+        jQuery.post("$portalPath/actions/manifest.ajax",
+            {
+                func: "rename",
+                id: "$portalId",
+                nodeId: node.attr("id"),
+                parents: getParentIds(node),
+                title: title
+            }, function() {
+                $("#item_title").blur();
+            });
+        node.find("> a").text(title);
+        return false;
+    });
+
+    function fixLinks(selector, attrName) {
+        $(selector).each(function() {
+            var attr = $(this).attr(attrName);
+            if (attr != null) {
+                if (attr.indexOf("#") != 0 && attr.indexOf("://") == -1) {
+                    $(this).attr(attrName, "$portalPath/download/$self.oid/" + attr);
+                }
+            }
+        });
+    }
+    fixLinks("div.content-preview-inline a", "href");
+    fixLinks("div.content-preview-inline img", "src");
 });
 </script>
