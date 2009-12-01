@@ -36,8 +36,6 @@ import org.apache.commons.lang.text.StrSubstitutor;
 import org.codehaus.jackson.JsonFactory;
 import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.map.ObjectMapper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Helper class for working with JSON configuration. Uses the JXPath library to
@@ -47,8 +45,6 @@ import org.slf4j.LoggerFactory;
  */
 @SuppressWarnings("unchecked")
 public class JsonConfigHelper {
-
-    private Logger log = LoggerFactory.getLogger(JsonConfigHelper.class);
 
     /** JXPath factory for creating JSON nodes */
     private class JsonMapFactory extends AbstractFactory {
@@ -127,6 +123,7 @@ public class JsonConfigHelper {
         if (jxPath == null) {
             jxPath = JXPathContext.newContext(rootNode);
             jxPath.setFactory(new JsonMapFactory());
+            jxPath.setLenient(true);
         }
         return jxPath;
     }
@@ -160,25 +157,6 @@ public class JsonConfigHelper {
     }
 
     /**
-     * Get the value of specified node, with a specified default if it's not
-     * found
-     * 
-     * @param path
-     * @param defaultValue
-     * @return node value or default Value if not found WITHOUT string
-     *         substitution
-     */
-    public String getPlainText(String path, String defaultValue) {
-        Object valueNode = null;
-        try {
-            valueNode = getJXPath().getValue(path);
-        } catch (Exception e) {
-        }
-        String value = valueNode == null ? defaultValue : valueNode.toString();
-        return value;
-    }
-
-    /**
      * Gets values of the specified node as a list. Use this method for JSON
      * arrays.
      * 
@@ -208,19 +186,18 @@ public class JsonConfigHelper {
         if (valueNode instanceof Map) {
             Map<String, Object> map = (Map<String, Object>) valueNode;
             for (String key : map.keySet()) {
-                valueMap.put(key, StrSubstitutor.replaceSystemProperties(map
-                        .get(key)));
+                Object value = map.get(key);
+                if (value instanceof String) {
+                    valueMap.put(key, StrSubstitutor
+                            .replaceSystemProperties(value));
+                } else {
+                    valueMap.put(key, value);
+                }
             }
         }
         return valueMap;
     }
 
-    /**
-     * Get JsonConfigHelper list
-     * 
-     * @param path
-     * @return
-     */
     public List<JsonConfigHelper> getJsonList(String path) {
         List<Object> list = getList(path);
         List<JsonConfigHelper> newList = new ArrayList<JsonConfigHelper>();
@@ -234,13 +211,7 @@ public class JsonConfigHelper {
 
     public Map<String, JsonConfigHelper> getJsonMap(String path) {
         Map<String, JsonConfigHelper> jsonMap = new LinkedHashMap<String, JsonConfigHelper>();
-
-        Object valueNode;
-        try {
-            valueNode = getJXPath().getValue(path);
-        } catch (Exception e) {
-            return null;
-        }
+        Object valueNode = getJXPath().getValue(path);
         if (valueNode instanceof Map) {
             Map<String, Object> map = (Map<String, Object>) valueNode;
             for (String key : map.keySet()) {
@@ -346,6 +317,70 @@ public class JsonConfigHelper {
         }
     }
 
+    public void move(String source, String dest) {
+        Object copyValue = getJXPath().getValue(source);
+        getJXPath().removePath(source);
+        try {
+            getJXPath().setValue(dest, copyValue);
+        } catch (Exception e) {
+            getJXPath().createPathAndSetValue(dest, copyValue);
+        }
+    }
+
+    public void moveBefore(String path, String refPath) {
+        Map<String, Object> newMap = new LinkedHashMap<String, Object>();
+        Object node = getJXPath().getValue(path);
+        Object refNode = getJXPath().getValue(refPath);
+        Map<String, Object> refParent = getMap(refPath + "/..");
+        for (String key : refParent.keySet()) {
+            // find the reference node
+            Object value = refParent.get(key);
+            if (value.equals(refNode)) {
+                // and insert the node to be moved before it
+                Map<String, Object> parent = getMap(path + "/..");
+                for (String nodeKey : parent.keySet()) {
+                    if (parent.get(nodeKey).equals(node)) {
+                        newMap.put(nodeKey, node);
+                        getJXPath().removePath(path);
+                        break;
+                    }
+                }
+            }
+            if (!value.equals(node)) {
+                // insert existing nodes
+                newMap.put(key, value);
+            }
+        }
+        setMap(refPath.substring(0, refPath.lastIndexOf('/')), newMap);
+    }
+
+    public void moveAfter(String path, String refPath) {
+        Map<String, Object> newMap = new LinkedHashMap<String, Object>();
+        Object node = getJXPath().getValue(path);
+        Object refNode = getJXPath().getValue(refPath);
+        Map<String, Object> refParent = getMap(refPath + "/..");
+        for (String key : refParent.keySet()) {
+            // find the reference node
+            Object value = refParent.get(key);
+            if (!value.equals(node)) {
+                // insert existing nodes
+                newMap.put(key, value);
+            }
+            if (value.equals(refNode)) {
+                // and insert the node to be moved after it
+                Map<String, Object> parent = getMap(path + "/..");
+                for (String nodeKey : parent.keySet()) {
+                    if (parent.get(nodeKey).equals(node)) {
+                        newMap.put(nodeKey, node);
+                        getJXPath().removePath(path);
+                        break;
+                    }
+                }
+            }
+        }
+        setMap(refPath.substring(0, refPath.lastIndexOf('/')), newMap);
+    }
+
     /**
      * Serialises the current state of the JSON configuration to the specified
      * writer. By default this doesn't use a pretty printer.
@@ -373,9 +408,6 @@ public class JsonConfigHelper {
         new ObjectMapper().writeValue(generator, rootNode);
     }
 
-    /**
-     * To String function
-     */
     @Override
     public String toString() {
         StringWriter sw = new StringWriter();

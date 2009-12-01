@@ -196,3 +196,24 @@ ul.nav li.label {
     color: black;
     font-weight: bold;
 }
+
+label.checkbox {
+    padding-top: 10px;
+}
+
+input.checkbox {
+    float: left;
+    margin-top: 0;
+    margin-right: 8px;
+    width: auto;
+}
+
+.content-preview-inline h2 a, .content-preview-inline h2 a:hover {
+    background: none;
+}
+
+.tree ul {
+    overflow: auto;
+    text-wrap: normal;
+    word-wrap: break-word;
+}
