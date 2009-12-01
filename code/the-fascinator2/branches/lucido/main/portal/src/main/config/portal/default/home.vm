@@ -103,32 +103,6 @@ $(function() {
             { func: "delete-view", view: "$portalId" });
     });
     
-<<<<<<< .working
-    function getBackupLog() {
-        jQuery.post("$portalPath/actions/backup.ajax", { func: "get-log" },
-            function(data, status) {
-                $("#backup-log").html(data);
-            });
-    }
-    
-    $("#backup-view, #backup-cancel").click(function() {
-        $("#backup-view").toggleClass("selected");
-        $("#backup-form").toggle("blind");
-        jQuery.post("$portalPath/actions/backup.ajax",
-            { func: "get-state" },
-            function(data, status) {
-                if (data.running == true) {
-                    $("#backup-start").hide();
-                    $("#backup-progress, #backup-result").show();
-                }
-                if (data.lastResult == "success") {
-                    getBackupLog();
-                    $("#backup-result").toggle();
-                }
-            },
-            "json");
-        return false;
-=======
     function getBackupLog() {
         jQuery.post("$portalPath/actions/backup.ajax", { func: "get-log" },
             function(data, status) {
