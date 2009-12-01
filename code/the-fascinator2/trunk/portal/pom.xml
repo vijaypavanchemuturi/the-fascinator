@@ -94,6 +94,10 @@
       <artifactId>rome-propono</artifactId>
       <version>1.0RC1</version>
     </dependency>
+    <dependency>
+      <groupId>dom4j</groupId>
+      <artifactId>dom4j</artifactId>
+    </dependency>
   </dependencies>
   <profiles>
     <profile>
