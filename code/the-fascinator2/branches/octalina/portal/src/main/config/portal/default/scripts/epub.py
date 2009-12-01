@@ -12,7 +12,10 @@ import traceback
 class Epub:
     def __init__(self):
         print "generating epub for: ", self.__getPortal().description
-        self.__exportEpub()
+        try:
+            self.__exportEpub()
+        except:
+            traceback.print_exc()
         
     def __exportEpub(self):
         self.__epubFolder = File(System.getProperty("user.home"), ".fascinator/epub")
@@ -28,6 +31,7 @@ class Epub:
             self.__getEpubMimeTypeFiles()
             self.__getDigitalItems(manifest)
             self.__generateEpub()
+        
             
     def __getEpubMimeTypeFiles(self):
         try:
@@ -175,7 +179,8 @@ class Epub:
                 
                 item = manifest.addElement("pac:item")
                 #item.addAttribute("id", payloadId.replace("/", "_"))
-                if payloadId == htmlFileName:
+                #print "payloadId: '%s', id: '%s', htmlFileName: '%s' equal: '%s'"  % (payloadId, id, htmlFileName, payloadId == htmlFileName.lower())
+                if payloadId == htmlFileName.lower():
                     item.addAttribute("id", itemHash)
                 else:
                     item.addAttribute("id", self.__getProperId(payloadId))
@@ -219,31 +224,35 @@ class Epub:
             item = manifest[itemHash]
             id = item.get("id")
             title = item.get("title")
+            hidden = item.get("hidden")
+            children = item.getJsonMap("children")
             pid = id[id.rfind("/")+1:]
             htmlFileName = pid[:pid.rfind(".")] + ".htm"
             
             sourcePayload = Services.storage.getPayload(id, pid)
-            payloadType = sourcePayload.contentType
-            htmlPayload = Services.storage.getPayload(id, htmlFileName)
-            if htmlPayload:
-                #gather all the related payload
-                payloadDict[htmlFileName] = htmlPayload, "application/xhtml+xml"
-                payloadList = Services.storage.getObject(id).getPayloadList()
-                for payload in payloadList:
-                    if payload.id.find("_files") > -1:
-                        payloadDict[payload.id] = payload, payload.contentType
-            elif sourcePayload:
-                #for now only works for images
-                if payloadType.startswith("image"):
-                    htmlString = """<html xmlns="http://www.w3.org/1999/xhtml"><head><title>%s</title>
-                                    <link rel="stylesheet" href="epub.css"/>
-                                    </head><body><div><span style="display: block"><img src="%s" alt="%s"/></span></div></body></html>"""
-                    htmlString = htmlString % (pid, pid.lower(), pid)
-                    payloadDict[pid] = sourcePayload, payloadType
-                    payloadDict[htmlFileName] = ByteArrayInputStream(String(htmlString).getBytes("UTF-8")), "application/xhtml+xml"
-        
-            self.__itemRefDict[itemHash] = id, title, htmlFileName, payloadDict
-        return self.__itemRefDict, self.__orderedItem
+            if sourcePayload and hidden != 'true':
+                payloadType = sourcePayload.contentType
+                htmlPayload = Services.storage.getPayload(id, htmlFileName)
+                if htmlPayload:
+                    #gather all the related payload
+                    payloadDict[htmlFileName] = htmlPayload, "application/xhtml+xml"
+                    payloadList = Services.storage.getObject(id).getPayloadList()
+                    for payload in payloadList:
+                        if payload.id.find("_files") > -1:
+                            payloadDict[payload.id] = payload, payload.contentType
+                elif sourcePayload:
+                    #for now only works for images
+                    if payloadType.startswith("image"):
+                        htmlString = """<html xmlns="http://www.w3.org/1999/xhtml"><head><title>%s</title>
+                                        <link rel="stylesheet" href="epub.css"/>
+                                        </head><body><div><span style="display: block"><img src="%s" alt="%s"/></span></div></body></html>"""
+                        htmlString = htmlString % (pid, pid.lower(), pid)
+                        payloadDict[pid] = sourcePayload, payloadType
+                        payloadDict[htmlFileName] = ByteArrayInputStream(String(htmlString).getBytes("UTF-8")), "application/xhtml+xml"
+            
+                self.__itemRefDict[itemHash] = id, title, htmlFileName, payloadDict
+                if children:
+                    self.__getDigitalItems(children)
     
     def __getPortalManifest(self):
         return self.__getPortal().getJsonMap("manifest")
