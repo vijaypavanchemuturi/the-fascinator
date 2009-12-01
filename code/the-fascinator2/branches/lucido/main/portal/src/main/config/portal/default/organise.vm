@@ -4,32 +4,40 @@
     #set($item = $root.get($key))
     #set($id = $item.get("id"))
     #set($children = $item.getJsonMap("children"))
-    <li id="$key" rel="$id">
-      #set($clicked = "")
-      #if($id == $self.oid)
-        #set($clicked = "clicked")
-      #end
-      #set($hidden = "")
-      #if($id == $self.oid)
-        #set($hidden = "item-hidden")
-      #end
-      <a #if($id == $self.oid)class="clicked"#end href="$portalPath/organise/$id">
-        #if($item.get("hidden") == "true")
-          <em>$item.get("title")</em>
-        #else
-          $item.get("title")
-        #end
+    #set($numChildren = $children.keySet().size())
+    <li #if($numChildren > 0)class="open"#end id="$key" rel="$id">
+      <a class="#if($id == $self.oid)clicked#end #if($item.get('hidden') == 'true')item-hidden#end" href="$portalPath/organise/$id">
+        $item.get("title")
       </a>
-      #if($children.keySet().size() > 0)
+      #if($numChildren > 0)
         #createNavTree($children "children")
       #end
     </li>
   #end
 </ul>
 #end
+#macro(createToc $root $class)
+<ul class="$class">
+  #foreach($key in $root.keySet())
+    #set($item = $root.get($key))
+    #set($id = $item.get("id"))
+    #set($children = $item.getJsonMap("children"))
+    #set($numChildren = $children.keySet().size())
+    #set($hidden = $item.get("hidden"))
+    #if(!$hidden || $hidden != "true")
+    <li>
+      <a href="$portalPath/$pageName/$id">$item.get("title")</a>
+      #if($numChildren > 0)
+        #createToc($children "page-toc-children")
+      #end
+    </li>
+    #end
+  #end
+</ul>
+#end
 #set($manifest = $self.manifest)
-#set($pageTitle = 'Organise')
-<h2 id="page-heading">Organise</h2>
+#set($pageTitle = "$page.portal.description")
+<h2 id="page-heading">$pageTitle</h2>
 <div id="action-list" class="grid_4">
   <div class="box menu toc hidden">
     <h2>Contents</h2>
@@ -38,33 +46,25 @@
     </div>
     <div class="clear"></div>
   </div>
-  #*
-  <div class="box menu">
-    <h2>View</h2>
-    <ul class="menu">
-      <li><a href="#" class="viewtype selected" id="view-single">Single</a></li>
-      <li><a href="#" class="viewtype" id="view-combined">Combined</a></li>
-    </ul>
-  </div>
-  *#
 </div>
-<div class="grid_12" id="result-list">
-  #if($self.manifestItem.get("id"))
+<div class="grid_12" id="content">
+  #set($manifestItem = $self.manifestItem)
+  #if($manifestItem.get("id"))
   <div id="item-props" class="box">
     <h2>Properties</h2>
     <form id="item-form" method="post">
       <fieldset>
         <p>
           <label for="item_title">Title</label>
-          <input type="text" id="item_title" name="title" value='$self.manifestItem.get("title")' />
+          <input type="text" id="item_title" name="title" value='$manifestItem.get("title")' />
         </p>
         <p>
           <label class="checkbox" for="item_hidden">Hidden</label>
-          <input class="checkbox" type="checkbox" id="item_hidden" name="hidden" />
+          <input class="checkbox" type="checkbox" id="item_hidden" name="hidden" #if($manifestItem.get("hidden")=="true")checked="checked"#end/>
         </p>
         <p>
           <label class="checkbox" for="item_blog">Include in blog</label>
-          <input class="checkbox" type="checkbox" id="item_blog" name="blog" />
+          <input class="checkbox" type="checkbox" id="item_blog" name="blog" #if($manifestItem.get("blog")=="true")checked="checked"#end/>
         </p>
         <p class="message">
           <img class="hidden" id="item-loading" src="$portalPath/images/icons/loading.gif" />
@@ -88,26 +88,10 @@
       </div>
     </div>
   </div>
+  #else
+    <h2>Table of contents</h2>
+    #createToc($manifest "page-toc")
   #end
-  #*
-  <div id="results" class="box articles">
-  </div>
-  <div id="results-combined" class="box articles hidden">
-    $manifest.keySet()
-    #foreach($key in $manifest.keySet())
-      #set($item = $manifest.get($key))
-      #set($id = $item.get("id"))
-      #set($hashId = $id.substring(5))
-      #set($title = $item.get("title"))
-      <div class="result-item">
-        <div id="$hashId" class="article#if($velocityCount==1) first#end">
-          <a href="$portalPath/detail/$id" name="$hashId">$title</a>
-        </div>
-        <div class="clear"></div>
-      </div>
-    #end
-  </div>
-  *#
 </div>
 <script type="text/javascript" src="$portalPath/js/tree/jquery.tree.min.js"></script>
 <script type="text/javascript">
@@ -215,7 +199,7 @@ $(function() {
                 id: "$portalId",
                 nodeId: node.attr("id"),
                 parents: getParentIds(node),
-                hidden: $(this).is(":checked")
+                blog: $(this).is(":checked")
             });
     });
     
@@ -229,17 +213,17 @@ $(function() {
                 nodeId: node.attr("id"),
                 parents: getParentIds(node),
                 title: title
+            }, function() {
+                $("#item_title").blur();
             });
         node.find("> a").text(title);
         return false;
     });
 
-    var filenameNoExt = "$filenameNoExt";
     function fixLinks(selector, attrName) {
         $(selector).each(function() {
             var attr = $(this).attr(attrName);
             if (attr != null) {
-                console.log(attr);
                 if (attr.indexOf("#") != 0 && attr.indexOf("://") == -1) {
                     $(this).attr(attrName, "$portalPath/download/$self.oid/" + attr);
                 }
