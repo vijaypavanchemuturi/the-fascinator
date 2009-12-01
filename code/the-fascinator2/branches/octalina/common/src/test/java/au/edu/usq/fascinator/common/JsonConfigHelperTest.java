@@ -20,6 +20,7 @@ package au.edu.usq.fascinator.common;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -102,18 +103,18 @@ public class JsonConfigHelperTest {
      */
     @Test
     public void getMap() throws Exception {
-        Map<String, String> expected1 = new HashMap<String, String>();
+        Map<String, Object> expected1 = new LinkedHashMap<String, Object>();
         expected1.put("uri", "http://localhost:8080/fedora");
         expected1.put("username", "fedoraAdmin");
         expected1.put("password", "fedoraAdmin");
         Assert.assertEquals(expected1, config.getMap("storage/config"));
 
         System.setProperty("solr.password", "solrAdmin");
-        Map<String, String> expected2 = new HashMap<String, String>();
+        Map<String, Object> expected2 = new LinkedHashMap<String, Object>();
         expected2.put("uri", "http://localhost:8080/solr");
         expected2.put("username", "solrAdmin");
         expected2.put("password", "solrAdmin");
-        expected2.put("autocommit", "true");
+        expected2.put("autocommit", true);
         Assert.assertEquals(expected2, config.getMap("indexer/config"));
     }
 
@@ -141,11 +142,20 @@ public class JsonConfigHelperTest {
         Map<String, JsonConfigHelper> fields = config
                 .getJsonMap("portal/facet-fields");
         config.setJsonMap("portal/facet-fields-clone", fields);
-        // System.out.println(config.toString());
-        // for (String key : fields.keySet()) {
-        // System.out.println(key);
-        // System.out.println(fields.get(key).get("label"));
-        // }
+    }
+
+    @Test
+    public void moveBefore() throws Exception {
+        config
+                .moveBefore(
+                        "manifest//node-a920540f873d7e3956b3700b62614dee",
+                        "manifest/node-69c6cfe6629b6cc11b5919afeae5d991/children/node-6dbebd1c4e463dbb5d91aac897b0a37c");
+    }
+
+    @Test
+    public void moveAfter() throws Exception {
+        config.moveAfter("manifest//node-6dbebd1c4e463dbb5d91aac897b0a37c",
+                "manifest/node-c201abb3af92ffc398523cb65c11a5fc");
     }
 
     @Test
