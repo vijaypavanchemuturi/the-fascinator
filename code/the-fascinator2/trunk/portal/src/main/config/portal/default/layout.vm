@@ -38,6 +38,7 @@ $!pageContent
       <div class="clear"></div>
       <div class="grid_16">
         <ul class="nav main">
+          <li><a href="$portalPath/home">Home</a></li>
           <li>
             <a href="#">Views</a>
             <ul>
@@ -46,8 +47,6 @@ $!pageContent
             #end
             </ul>
           </li>
-          <li><a href="$portalPath/home">Home</a></li>
-          <li><a href="$portalPath/search">Browse</a></li>
           <li><a href="$portalPath/organise">Organise</a></li>
           <li><a href="$portalPath/settings">Settings</a></li>
           #### not yet finished

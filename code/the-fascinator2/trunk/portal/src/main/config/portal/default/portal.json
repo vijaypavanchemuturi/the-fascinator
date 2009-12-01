@@ -69,7 +69,29 @@
       "repository_type" : {
         "label" : "Source type",
         "display" : "list"
+      },
+      "tag" : {
+        "label" : "Tags",
+        "display" : "list"
       }
+    }
+  },
+  "manifest" : {
+    "node-72a985cda997eadfd5be5eebe630df9b" : {
+      "title" : "35funny.GIF",
+      "id" : "/home/octalina/Documents/picture/text/35funny.GIF"
+    },
+    "node-0ee3cf2b2e93ed766b71ba20a847a272" : {
+      "title" : "Aliquam pharetra neque ",
+      "id" : "/home/octalina/Documents/picture/text/chapter01.odt"
+    },
+    "node-cc195197a4b69a3badb56a0b0fdcf8d2" : {
+      "title" : "newText1.txt",
+      "id" : "/home/octalina/Documents/picture/text/newText1.txt"
+    },
+    "node-91ada6aa529f505c4ca685b0f263b003" : {
+      "title" : "test.ODT",
+      "id" : "/home/octalina/Documents/picture/text/test.ODT"
     }
   }
 }
