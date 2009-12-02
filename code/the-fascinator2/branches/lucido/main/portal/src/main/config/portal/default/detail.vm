@@ -32,7 +32,14 @@
       <dl class="meta">
       #foreach($key in $dc.keySet())
         <dt>$self.formatName($key)</dt>
-        <dd>$self.formatValue($dc.get($key))</dd>
+        #set($valueList = $dc.get($key))
+        <dd>
+          <ul>
+          #foreach($value in $valueList)
+            <li>$value</li>
+          #end
+          </ul>
+        </dd>
       #end
       </dl>
     </div>
