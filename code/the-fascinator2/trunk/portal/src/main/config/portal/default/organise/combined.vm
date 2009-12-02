@@ -43,7 +43,10 @@
 #set($pageTitle = "$page.portal.description")
 <h2 id="page-heading">
   $pageTitle
-  <span class="view-type right"><a class="selected" id="view-single" href="#" rel="single">Single</a> | <a id="view-combined" href="#" rel="combined">Combined</a></span>
+  <span class="view-type right">
+    <a id="view-single" href="$portalPath/organise/single" rel="single">Single</a> |
+    <a class="selected"  id="view-combined" href="#" rel="combined">Combined</a>
+  </span>
 </h2>
 <div id="action-list" class="grid_4">
   <div class="box menu">
@@ -116,28 +119,12 @@
       </fieldset>
     </form>
   </div>
-  #if($manifestItem.get("id"))
-  <div id="preview-single" class="preview box articles">
+  <div id="preview" class="box articles">
     <h2>Preview</h2>
     <div class="content-preview">
       <span class="mimetype" rel="$self.mimeType"></span>
       <div class="first article clearfix">
-        <div class="content-preview-inline">$!self.payloadContent</div>
-      </div>
-    </div>
-  </div>
-  #else
-    <h2>Table of contents</h2>
-    #createToc($manifest "page-toc")
-  #end
-  <div class="clear"></div>
-  <div id="preview-combined" class="preview box articles hidden">
-    <h2>Combined preview</h2>
-    <div class="content-preview">
-      <span class="mimetype" rel="$self.mimeType"></span>
-      <div class="first article clearfix">
-        <div class="content-preview-inline">
-        </div>
+        <div class="content-preview-inline">$!self.content</div>
       </div>
     </div>
   </div>
@@ -207,12 +194,7 @@ $(function() {
                     });
             },
             onchange: function(node, tree) {
-                var singleView = $("#view-single").hasClass("selected");
-                if (singleView) {
-                    document.location.href = "$portalPath/organise/" + $(node).attr("rel");
-                } else {
-                    alert("combined view");
-                }
+                document.location.href = "$portalPath/organise/combined/" + $(node).attr("rel");
             }
         }
     });
@@ -276,10 +258,11 @@ $(function() {
 
     function fixLinks(selector, attrName) {
         $(selector).each(function() {
+            var oid = $(this).parents("div.combined-item").attr("rel");
             var attr = $(this).attr(attrName);
             if (attr != null) {
                 if (attr.indexOf("#") != 0 && attr.indexOf("://") == -1) {
-                    $(this).attr(attrName, "$portalPath/download/$self.oid/" + attr);
+                    $(this).attr(attrName, "$portalPath/download/" + oid + "/" + attr);
                 }
             }
         });
@@ -302,7 +285,7 @@ $(function() {
                 title: $("#blog_title").val(),
                 username: $("#blog_username").val(),
                 password: $("#blog_password").val(),
-                oid: "$oid",
+                portalId: "$portalId",
             },
             function(data, status) {
                 $("#blog-loading").hide();
@@ -315,17 +298,6 @@ $(function() {
         $(this).toggleClass('hidden');
         $("#item-form").toggle("blind").toggleClass('visible').toggleClass('hidden');
         return false;
-    });
-    
-    $("#view-single, #view-combined").click(function() {
-        $("span.view-type a").removeClass("selected");
-        if (!$(this).hasClass("selected")) {
-            $(this).addClass("selected");
-        }
-        var type = $(this).attr("rel");
-        console.log(type);
-        $(".preview").addClass("hidden");
-        $("#preview-" + type).removeClass("hidden");
     });
 });
 </script>

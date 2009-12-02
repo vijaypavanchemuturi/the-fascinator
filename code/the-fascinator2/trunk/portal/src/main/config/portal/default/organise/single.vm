@@ -43,15 +43,12 @@
 #set($pageTitle = "$page.portal.description")
 <h2 id="page-heading">
   $pageTitle
-  <span class="view-type right"><a class="selected" id="view-single" href="#" rel="single">Single</a> | <a id="view-combined" href="#" rel="combined">Combined</a></span>
+  <span class="view-type right">
+    <a class="selected" id="view-single" href="#" rel="single">Single</a> |
+    <a id="view-combined" href="$portalPath/organise/combined" rel="combined">Combined</a>
+  </span>
 </h2>
 <div id="action-list" class="grid_4">
-  <div class="box menu">
-    <h2>Actions</h2>
-    <ul class="menu">
-      <li><a id="blog-this" href="#">Blog to WordPress...</a><li>
-    </ul>
-  </div>
   #if($manifestItem.get("id"))
   <div id="item-props" class="box">
     <h2><a class="hidden" href="#">Properties</a></h2>
@@ -117,7 +114,13 @@
     </form>
   </div>
   #if($manifestItem.get("id"))
-  <div id="preview-single" class="preview box articles">
+  <div id="results-loading" class="box articles hidden">
+    <h2>Loading content...</h2>
+    <div class="article first">
+      <img src="$portalPath/images/icons/loading.gif"></img>
+    </div>
+  </div>
+  <div id="preview" class="box articles">
     <h2>Preview</h2>
     <div class="content-preview">
       <span class="mimetype" rel="$self.mimeType"></span>
@@ -130,17 +133,6 @@
     <h2>Table of contents</h2>
     #createToc($manifest "page-toc")
   #end
-  <div class="clear"></div>
-  <div id="preview-combined" class="preview box articles hidden">
-    <h2>Combined preview</h2>
-    <div class="content-preview">
-      <span class="mimetype" rel="$self.mimeType"></span>
-      <div class="first article clearfix">
-        <div class="content-preview-inline">
-        </div>
-      </div>
-    </div>
-  </div>
 </div>
 <script type="text/javascript" src="$portalPath/js/tree/jquery.tree.min.js"></script>
 <script type="text/javascript">
@@ -206,13 +198,8 @@ $(function() {
                         type: type
                     });
             },
-            onchange: function(node, tree) {
-                var singleView = $("#view-single").hasClass("selected");
-                if (singleView) {
-                    document.location.href = "$portalPath/organise/" + $(node).attr("rel");
-                } else {
-                    alert("combined view");
-                }
+            onselect: function(node, tree) {
+                document.location.href = "$portalPath/organise/single/" + $(node).attr("rel");
             }
         }
     });
@@ -315,17 +302,6 @@ $(function() {
         $(this).toggleClass('hidden');
         $("#item-form").toggle("blind").toggleClass('visible').toggleClass('hidden');
         return false;
-    });
-    
-    $("#view-single, #view-combined").click(function() {
-        $("span.view-type a").removeClass("selected");
-        if (!$(this).hasClass("selected")) {
-            $(this).addClass("selected");
-        }
-        var type = $(this).attr("rel");
-        console.log(type);
-        $(".preview").addClass("hidden");
-        $("#preview-" + type).removeClass("hidden");
     });
 });
 </script>
