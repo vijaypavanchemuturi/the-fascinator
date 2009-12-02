@@ -5,8 +5,10 @@
     #set($id = $item.get("id"))
     #set($children = $item.getJsonMap("children"))
     #set($numChildren = $children.keySet().size())
+    #set($hidden = "false")
+    #set($hidden = $item.get("hidden"))
     <li #if($numChildren > 0)class="open"#end id="$key" rel="$id">
-      <a class="#if($id == $self.oid)clicked#end #if($item.get('hidden') == 'true')item-hidden#end" href="$portalPath/organise/$id">
+      <a class="#if($id == $self.oid)clicked#end #if($hidden && $hidden == 'true')item-hidden#end" href="$portalPath/organise/$id">
         $item.get("title")
       </a>
       #if($numChildren > 0)
@@ -23,8 +25,9 @@
     #set($id = $item.get("id"))
     #set($children = $item.getJsonMap("children"))
     #set($numChildren = $children.keySet().size())
+    #set($hidden = "false")
     #set($hidden = $item.get("hidden"))
-    #if(!$hidden || $hidden != "true")
+    #if(!$hidden || $hidden == "false")
     <li>
       <a href="$portalPath/$pageName/$id">$item.get("title")</a>
       #if($numChildren > 0)
@@ -36,23 +39,23 @@
 </ul>
 #end
 #set($manifest = $self.manifest)
+#set($manifestItem = $self.manifestItem)
 #set($pageTitle = "$page.portal.description")
-<h2 id="page-heading">$pageTitle</h2>
+<h2 id="page-heading">
+  $pageTitle
+  <span class="view-type right"><a class="selected" id="view-single" href="#" rel="single">Single</a> | <a id="view-combined" href="#" rel="combined">Combined</a></span>
+</h2>
 <div id="action-list" class="grid_4">
-  <div class="box menu toc hidden">
-    <h2>Contents</h2>
-    <div id="toc">
-      #createNavTree($self.manifest "toc")
-    </div>
-    <div class="clear"></div>
+  <div class="box menu">
+    <h2>Actions</h2>
+    <ul class="menu">
+      <li><a id="blog-this" href="#">Blog to WordPress...</a><li>
+    </ul>
   </div>
-</div>
-<div class="grid_12" id="content">
-  #set($manifestItem = $self.manifestItem)
   #if($manifestItem.get("id"))
   <div id="item-props" class="box">
-    <h2>Properties</h2>
-    <form id="item-form" method="post">
+    <h2><a class="hidden" href="#">Properties</a></h2>
+    <form class="hidden" id="item-form" method="post">
       <fieldset>
         <p>
           <label for="item_title">Title</label>
@@ -73,13 +76,48 @@
       </fieldset>
     </form>
   </div>
-  <div id="results-loading" class="box articles hidden">
-    <h2>Loading content...</h2>
-    <div class="article first">
-      <img src="$portalPath/images/icons/loading.gif"></img>
+  #end
+  <div class="box menu toc">
+    <h2>Contents</h2>
+    <div id="toc">
+      #createNavTree($self.manifest "toc")
     </div>
+    <div class="clear"></div>
   </div>
-  <div id="preview" class="box articles">
+</div>
+<div class="grid_12" id="content">
+  <div class="box hidden" id="blog-form">
+    <h2>Blog to WordPress</h2>
+    <form id="blog" method="post">
+      <fieldset class="login">
+        <legend>Blog information</legend>
+        <p>
+          <label for="blog_url">Blog URL</label>
+          <input type="text" id="blog_url" name="blog_url" />
+        </p>
+        <p>
+          <label for="blog_title">Title</label>
+          <input type="text" id="blog_title" name="blog_title" value="$pageTitle"/>
+        </p>
+        <p>
+          <label for="blog_username">Username</label>
+          <input type="text" id="blog_username" name="blog_username" />
+        </p>
+        <p>
+          <label for="blog_password">Password</label>
+          <input type="password" id="blog_password" name="blog_password" />
+        </p>
+        <p class="message">
+          <img class="hidden" id="blog-loading" src="$portalPath/images/icons/loading.gif" />
+          <span id="blog-message"></span>
+        </p>
+        <input class="button" id="blog-accept" type="button" value="Blog" />
+        <input id="blog-cancel" type="button" value="Close" />
+      </fieldset>
+    </form>
+  </div>
+  #if($manifestItem.get("id"))
+  <div id="preview-single" class="preview box articles">
     <h2>Preview</h2>
     <div class="content-preview">
       <span class="mimetype" rel="$self.mimeType"></span>
@@ -92,6 +130,17 @@
     <h2>Table of contents</h2>
     #createToc($manifest "page-toc")
   #end
+  <div class="clear"></div>
+  <div id="preview-combined" class="preview box articles hidden">
+    <h2>Combined preview</h2>
+    <div class="content-preview">
+      <span class="mimetype" rel="$self.mimeType"></span>
+      <div class="first article clearfix">
+        <div class="content-preview-inline">
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 <script type="text/javascript" src="$portalPath/js/tree/jquery.tree.min.js"></script>
 <script type="text/javascript">
@@ -157,8 +206,13 @@ $(function() {
                         type: type
                     });
             },
-            onselect: function(node, tree) {
-                document.location.href = "$portalPath/organise/" + $(node).attr("rel");
+            onchange: function(node, tree) {
+                var singleView = $("#view-single").hasClass("selected");
+                if (singleView) {
+                    document.location.href = "$portalPath/organise/" + $(node).attr("rel");
+                } else {
+                    alert("combined view");
+                }
             }
         }
     });
@@ -232,5 +286,46 @@ $(function() {
     }
     fixLinks("div.content-preview-inline a", "href");
     fixLinks("div.content-preview-inline img", "src");
+
+    $("#blog-this, #blog-cancel").click(function() {
+        $("#blog-this").toggleClass("selected");
+        $("#blog-message").empty();
+        $("#blog-form").toggle("blind");
+        return false;
+    });
+    $("#blog-accept").click(function() {
+        $("#blog-message").empty();
+        $("#blog-loading").show();
+        jQuery.post("$portalPath/actions/blog.ajax",
+            {
+                url: $("#blog_url").val(),
+                title: $("#blog_title").val(),
+                username: $("#blog_username").val(),
+                password: $("#blog_password").val(),
+                oid: "$oid",
+            },
+            function(data, status) {
+                $("#blog-loading").hide();
+                $("#blog-message").html(data);
+            }
+        );
+    });
+    
+    $("#item-props h2 a").click(function() {
+        $(this).toggleClass('hidden');
+        $("#item-form").toggle("blind").toggleClass('visible').toggleClass('hidden');
+        return false;
+    });
+    
+    $("#view-single, #view-combined").click(function() {
+        $("span.view-type a").removeClass("selected");
+        if (!$(this).hasClass("selected")) {
+            $(this).addClass("selected");
+        }
+        var type = $(this).attr("rel");
+        console.log(type);
+        $(".preview").addClass("hidden");
+        $("#preview-" + type).removeClass("hidden");
+    });
 });
 </script>
