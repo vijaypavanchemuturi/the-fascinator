@@ -15,13 +15,15 @@ rdf-reactor
   set of classes. 
   
   You can access this plugin via our repository. Just add the following code
-  to your POM's \<repositories\> section:  
+  to your POM's \<pluginRepositories\> section:  
   
 ---
-<repository>
-  <id>adfi-usq-releases</id>
-  <url>http://fascinator.usq.edu.au/nexus/content/groups/public</url>
-</repository>
+    <pluginRepositories>
+        <pluginRepository>
+            <id>adfi-usq-releases</id>
+            <url>http://fascinator.usq.edu.au/nexus/content/groups/public</url>
+        </pluginRepository>
+    </pluginRepositories>
 ---
 
 * Goals Overview
