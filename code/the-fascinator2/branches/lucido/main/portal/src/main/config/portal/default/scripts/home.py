@@ -56,6 +56,7 @@ class HomeData:
         req.setParam("rows", "0")
         out = ByteArrayOutputStream()
         indexer.search(req, out)
+        
         sessionState.set("fq", 'item_type:"object"')
         #sessionState.set("query", portalQuery.replace("\"", "'"))
         
