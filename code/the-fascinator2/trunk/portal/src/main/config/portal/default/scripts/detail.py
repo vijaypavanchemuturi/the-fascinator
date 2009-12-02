@@ -172,6 +172,7 @@ class DetailData:
                 out = ByteArrayOutputStream()
                 format = OutputFormat.createPrettyPrint()
                 format.setSuppressDeclaration(True)
+                format.setExpandEmptyElements(True)
                 writer = XMLWriter(out, format)
                 writer.write(slideNode)
                 writer.close()
