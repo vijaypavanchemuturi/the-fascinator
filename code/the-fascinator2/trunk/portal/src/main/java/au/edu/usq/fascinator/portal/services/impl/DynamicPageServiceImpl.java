@@ -18,11 +18,13 @@
  */
 package au.edu.usq.fascinator.portal.services.impl;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.io.PrintStream;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.util.HashMap;
@@ -108,6 +110,7 @@ public class DynamicPageServiceImpl implements DynamicPageService {
                     true);
             Velocity.setProperty(Velocity.VM_PERM_INLINE_LOCAL, true);
             Velocity.setProperty(Velocity.VM_CONTEXT_LOCALSCOPE, true);
+            Velocity.setProperty(Velocity.SET_NULL_ALLOWED, true);
             Velocity.init();
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -189,11 +192,13 @@ public class DynamicPageServiceImpl implements DynamicPageService {
             Object layoutObject = new Object();
             try {
                 layoutObject = evalScript(portalId, layoutName, bindings);
-            } catch (ScriptException se) {
+            } catch (Exception e) {
+                ByteArrayOutputStream eOut = new ByteArrayOutputStream();
+                e.printStackTrace(new PrintStream(eOut));
+                String eMsg = eOut.toString();
+                log.warn("Failed to run page script!\n=====\n{}\n=====", eMsg);
                 renderMessages.append("Layout script error:\n");
-                renderMessages.append(se.getMessage());
-                log.warn("Failed to run layout script!\n=====\n{}\n=====", se
-                        .getMessage());
+                renderMessages.append(eMsg);
             }
             bindings.put("page", layoutObject);
         }
@@ -201,12 +206,13 @@ public class DynamicPageServiceImpl implements DynamicPageService {
         Object pageObject = new Object();
         try {
             pageObject = evalScript(portalId, pageName, bindings);
-        } catch (ScriptException se) {
+        } catch (Exception e) {
+            ByteArrayOutputStream eOut = new ByteArrayOutputStream();
+            e.printStackTrace(new PrintStream(eOut));
+            String eMsg = eOut.toString();
+            log.warn("Failed to run page script!\n=====\n{}\n=====", eMsg);
             renderMessages.append("Page script error:\n");
-            renderMessages.append(se.getMessage());
-            log.warn("Failed to run page script!\n=====\n{}\n=====", se
-                    .getMessage());
-            se.printStackTrace();
+            renderMessages.append(eMsg);
         }
         bindings.put("self", pageObject);
         Object mimeTypeAttr = request.getAttribute("Content-Type");
