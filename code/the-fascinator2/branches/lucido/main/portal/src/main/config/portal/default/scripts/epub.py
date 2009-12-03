@@ -219,7 +219,6 @@ class Epub:
     
     def __getDigitalItems(self, manifest):
         for itemHash in manifest.keySet():
-            self.__orderedItem.append(itemHash)
             payloadDict = {}
             item = manifest[itemHash]
             id = item.get("id")
@@ -251,6 +250,7 @@ class Epub:
                         payloadDict[htmlFileName] = ByteArrayInputStream(String(htmlString).getBytes("UTF-8")), "application/xhtml+xml"
             
                 self.__itemRefDict[itemHash] = id, title, htmlFileName, payloadDict
+                self.__orderedItem.append(itemHash)
                 if children:
                     self.__getDigitalItems(children)
     
