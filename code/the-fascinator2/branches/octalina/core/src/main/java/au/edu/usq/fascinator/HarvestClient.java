@@ -81,6 +81,7 @@ public class HarvestClient {
         try {
             realStorage = PluginManager.getStorage(config.get("storage/type",
                     DEFAULT_STORAGE_TYPE));
+            log.info("sss" + config.get("storage/type") + realStorage);
             Indexer indexer = PluginManager.getIndexer(config.get(
                     "indexer/type", DEFAULT_INDEXER_TYPE));
             storage = new IndexedStorage(realStorage, indexer);

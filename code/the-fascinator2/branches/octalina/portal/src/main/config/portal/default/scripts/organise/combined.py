@@ -8,10 +8,8 @@ from au.edu.usq.fascinator.common.storage.impl import GenericPayload
 from au.edu.usq.fascinator.portal import Pagination, Portal
 
 from java.io import ByteArrayInputStream, ByteArrayOutputStream, File, StringWriter
-from java.lang import Boolean
 from java.net import URLDecoder, URLEncoder
 from java.util import LinkedHashMap
-from java.lang import Object
 
 from org.apache.commons.io import IOUtils
 from org.dom4j.io import OutputFormat, XMLWriter, SAXReader
@@ -21,9 +19,7 @@ class OrganiseData:
         self.__portal = Services.portalManager.get(portalId)
         self.__result = JsonConfigHelper()
         self.__pageNum = sessionState.get("pageNum", 1)
-        print " **** %s" % sessionState.getClass().getResource("/")
         self.__selected = []
-        
         self.__storage = Services.storage
         uri = URLDecoder.decode(request.getAttribute("RequestURI"))
         basePath = portalId + "/" + pageName
@@ -36,7 +32,7 @@ class OrganiseData:
         else:
             self.__mimeType = "application/octet-stream"
         self.__metadata = JsonConfigHelper()
-        print " * organise.py: uri='%s' oid='%s' pid='%s' mimeType='%s'" % (uri, self.__oid, self.__pid, self.__mimeType)
+        print " * combined.py: uri='%s' oid='%s' pid='%s' mimeType='%s'" % (uri, self.__oid, self.__pid, self.__mimeType)
         self.__search()
     
     def getManifestItem(self):
@@ -69,9 +65,7 @@ class OrganiseData:
     def __search(self):
         recordsPerPage = self.__portal.recordsPerPage
         
-        uri = URLDecoder.decode(request.getAttribute("RequestURI"))
-        if uri != portalPath:
-            query = uri[len(portalPath)+1:]
+        query = None
         if query is None or query == "":
             query = formData.get("query")
         if query is None or query == "":
@@ -119,7 +113,7 @@ class OrganiseData:
         
         req.setParam("start", str((self.__pageNum - 1) * recordsPerPage))
         
-        print " * organise.py:", req.toString(), self.__pageNum
+        print " * combined.py:", req.toString(), self.__pageNum
         
         out = ByteArrayOutputStream()
         Services.indexer.search(req, out)
@@ -128,16 +122,27 @@ class OrganiseData:
             self.__paging = Pagination(self.__pageNum,
                                        int(self.__result.get("response/numFound")),
                                        self.__portal.recordsPerPage)
-            manifest = self.getPortal().getJsonMap("manifest")
-            if manifest.keySet().size() == 0:
-                print " * organise.py: creating initial manifest..."
-                for doc in self.__result.getList("response/docs"):
-                    hashId = md5.new(doc.get("id")).hexdigest()
-                    self.getPortal().set("manifest/node-%s/title" % hashId, doc.get("dc_title").get(0))
-                    self.getPortal().set("manifest/node-%s/id" % hashId, doc.get("id"))
-                    Services.getPortalManager().save(self.getPortal())
-            else:
-                print " * organise.py: use existing manifest..."
+            print " * combined.py: updating manifest..."
+            portal = self.getPortal()
+            manifest = portal.getJsonMap("manifest")
+            #add new items from search
+            for doc in self.__result.getList("response/docs"):
+                hashId = md5.new(doc.get("id")).hexdigest()
+                node = portal.get("manifest//node-%s" % hashId)
+                print " ********node=", node
+                if node is None:
+                    portal.set("manifest/node-%s/title" % hashId, doc.get("dc_title").get(0))
+                    portal.set("manifest/node-%s/id" % hashId, doc.get("id"))
+            #remove manifest items missing from search result
+            print manifest
+            for key in manifest.keySet():
+                item = manifest.get(key)
+                id = item.get("id")
+                print " ***** doc", len(self.__result.getList("response/docs[@id='%s']" % id))
+                if len(self.__result.getList("response/docs[@id='%s']" % id)) == 0:
+                    print " * id =",id," =" ,self.__result.getList("response/docs[@id='%s']" % id)
+                    portal.removePath("manifest//%s" % key)
+            Services.getPortalManager().save(portal)
     
     def getQueryTime(self):
         return int(self.__result.get("responseHeader/QTime")) / 1000.0;
@@ -196,43 +201,54 @@ class OrganiseData:
             return url
         return None
     
-    def getPayloadContent(self):
-        mimeType = self.__mimeType
-        print " * detail.py: payload content mimeType=%s" % mimeType
+    def getContent(self):
+        contentStr = "<div>"
+        portal = self.getPortal()
+        manifest = portal.getJsonMap("manifest")
+        for key in manifest.keySet():
+            item = manifest.get(key)
+            if item.get("hidden", "false") == "false":
+                oid = item.get("id")
+                slash = oid.rfind("/")
+                pid = oid[slash+1:]
+                contentStr += "<div class='combined-item' rel='%s'><a name='content-%s'><!-- --></a><h2>%s</h2>" % (oid, key, item.get("title"))
+                contentStr += self.__getPayloadContent(oid, pid)
+                contentStr += "</div>"
+                contentStr += "<div class='clear'></div>"
+        return contentStr + "</div>"
+    
+    def __getPayloadContent(self, oid, pid):
+        print " * combined.py: oid='%s' pid='%s'" % (oid, pid)
+        payload = self.__storage.getPayload(oid, pid)
+        if payload is None:
+            return "<div>Error: No content for '%s'</div>" % oid
+        mimeType = payload.contentType
         contentStr = ""
         if mimeType.startswith("text/"):
             if mimeType == "text/html":
                 contentStr = '<iframe class="iframe-preview" src="%s/%s/download/%s"></iframe>' % \
-                    (contextPath, portalId, self.__oid)
+                    (contextPath, portalId, oid)
             else:
-                pid = self.__oid[self.__oid.rfind("/")+1:]
-                payload = self.__storage.getPayload(self.__oid, pid)
-                print " * detail.py: pid=%s payload=%s" % (pid, payload)
-                if payload is not None:
-                    sw = StringWriter()
-                    sw.write("<pre>")
-                    IOUtils.copy(payload.getInputStream(), sw)
-                    sw.write("</pre>")
-                    sw.flush()
-                    contentStr = sw.toString()
+                sw = StringWriter()
+                sw.write("<pre>")
+                IOUtils.copy(payload.getInputStream(), sw)
+                sw.write("</pre>")
+                sw.flush()
+                contentStr = sw.toString()
         elif mimeType == "application/pdf" or mimeType.find("vnd.ms")>-1 or mimeType.find("vnd.oasis.opendocument.")>-1:
             # get the html version if exist...
-            pid = os.path.splitext(self.__pid)[0] + ".htm"
-            print " * detail.py: pid=%s" % pid
-            #contentStr = '<iframe class="iframe-preview" src="%s/%s/download/%s/%s"></iframe>' % \
-            #    (contextPath, portalId, self.__oid, pid)
-            payload = self.__storage.getPayload(self.__oid, pid)
-            saxReader = SAXReader(Boolean.parseBoolean("false"))
+            pid = os.path.splitext(pid)[0] + ".htm"
+            print " * combined.py: pid=%s" % pid
+            payload = self.__storage.getPayload(oid, pid)
+            saxReader = SAXReader(False)
             try:
                 document = saxReader.read(payload.getInputStream())
                 slideNode = document.selectSingleNode("//*[local-name()='body']")
-                #linkNodes = slideNode.selectNodes("//img")
-                #contentStr = slideNode.asXML();
-                # encode character entities correctly
                 slideNode.setName("div")
                 out = ByteArrayOutputStream()
                 format = OutputFormat.createPrettyPrint()
                 format.setSuppressDeclaration(True)
+                format.setExpandEmptyElements(True)
                 writer = XMLWriter(out, format)
                 writer.write(slideNode)
                 writer.close()
@@ -241,9 +257,9 @@ class OrganiseData:
                 traceback.print_exc()
                 contentStr = "<p class=\"error\">No preview available</p>"
         elif mimeType.startswith("image/"):
-            src = "%s/%s" % (self.__oid, self.__pid)
+            src = "%s/%s" % (oid, pid)
             contentStr = '<a class="image" href="%(src)s"  style="max-width:98%%">' \
-                '<img src="%(src)s" style="max-width:100%%" /></a>' % { "src": self.__pid }
+                '<img src="%(src)s" style="max-width:100%%" /></a>' % { "src": pid }
         return contentStr
     
     def getOid(self):

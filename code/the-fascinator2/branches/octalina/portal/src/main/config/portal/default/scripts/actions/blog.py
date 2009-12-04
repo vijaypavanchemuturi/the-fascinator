@@ -14,7 +14,7 @@ from org.dom4j.io import OutputFormat, XMLWriter, SAXReader
 
 from org.w3c.tidy import Tidy
 
-from java.lang import System
+from java.lang import String, System
 
 class ProxyBasicAuthStrategy(BasicAuthStrategy):
     def __init__(self, username, password, baseUrl):
@@ -44,7 +44,11 @@ class AtomEntryPoster:
             try:
                 auth = ProxyBasicAuthStrategy(username, password, url)
                 self.__service = AtomClientFactory.getAtomService(url, auth)
-                content = self.__getContent(formData.get("oid"))
+                oid = formData.get("oid")
+                if oid is not None:
+                    content = self.__getContent(oid)
+                else:
+                    content = self.__getManifestContent(formData.get("portalId"))
                 success, value = self.__post(title, content)
             except Exception, e:
                 e.printStackTrace()
@@ -65,10 +69,58 @@ class AtomEntryPoster:
         writer.println(responseMsg)
         writer.close()
     
+    def __getManifestContent(self, portalId):
+        portal = Services.getPortalManager().get(portalId)
+        manifest = portal.getJsonMap("manifest")
+        contentStr = "<div>"
+        for key in manifest.keySet():
+            item = manifest.get(key)
+            if item.get("hidden", "false") == "false":
+                contentStr += "<div><h2>%s</h2>" % item.get("title")
+                contentStr += self.__getContent(item.get("id"))
+                contentStr += "</div>"
+        contentStr += "</div>"
+        print "[\n%s\n]" % contentStr
+        return contentStr
+    
     def __getContent(self, oid):
+        content = "<div>content not found!</div>"
         slash = oid.rfind("/")
-        pid = os.path.splitext(oid[slash+1:])[0] + ".htm"
-        payload = Services.storage.getObject(oid).getPayload(pid)
+        pid = oid[slash+1:]
+        payload = Services.getStorage().getPayload(oid, pid)
+        if payload is None:
+            print " * blog.py: Failed to get content: %s" % oid
+            return ""
+        else:
+            mimeType = payload.contentType
+            #check for .htm
+            htmlPid = os.path.splitext(pid)[0] + ".htm"
+            htmlPayload = Services.getStorage().getPayload(oid, htmlPid)
+            if htmlPayload is None:
+                if mimeType.startswith("image/"):
+                    content = '<img src="%s" />' % pid
+                elif mimeType.startswith("text/"):
+                    if mimeType in ["text/html", "text/xml"]:
+                        content = self.__getPayloadAsString(payload)
+                    else:
+                        content = "<html><body><pre>%s</pre></body></html>" % \
+                            self.__getPayloadAsString(payload)
+                else:
+                    content = "<div>unsupported content type: %s</div>" % mimeType
+            else:
+                content = self.__getPayloadAsString(htmlPayload)
+        print " ********[\n%s\n]" % content
+        content, doc = self.__tidy(content)
+        content = self.__processMedia(oid, doc, content)
+        return content
+    
+    def __getPayloadAsString(self, payload):
+        sw = StringWriter()
+        IOUtils.copy(payload.getInputStream(), sw)
+        sw.flush()
+        return sw.toString()
+    
+    def __tidy(self, content):
         tidy = Tidy()
         tidy.setIndentAttributes(False)
         tidy.setIndentContent(False)
@@ -78,14 +130,9 @@ class AtomEntryPoster:
         tidy.setXHTML(False)
         tidy.setNumEntities(True)
         out = ByteArrayOutputStream()
-        try:
-            doc = tidy.parseDOM(payload.getInputStream(), out)
-            content = out.toString("UTF-8")
-            content = self.__processMedia(oid, doc, content)
-            #print "[\n%s\n]" % content
-        except Exception, e:
-            print " * blog.py: Failed to get content: %s" % e.getMessage()
-        return content
+        doc = tidy.parseDOM(ByteArrayInputStream(String(content).getBytes()), out)
+        content = out.toString("UTF-8")
+        return content, doc
     
     def __processMedia(self, oid, doc, content):
         content = self.__uploadMedia(oid, doc, content, "a", "href")
