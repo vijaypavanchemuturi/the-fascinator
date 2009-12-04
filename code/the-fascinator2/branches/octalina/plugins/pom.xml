@@ -14,7 +14,6 @@
   </parent>
   <modules>
     <module>harvester/filesystem</module>
-    <module>harvester/fedora3</module>
     <module>harvester/jsonq</module>
     <module>harvester/oai-pmh</module>
     <module>indexer/solr</module>
