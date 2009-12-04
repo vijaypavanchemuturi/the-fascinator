@@ -248,3 +248,48 @@ span.view-type a.selected {
     font-size: 1.2em;
     font-weight: bold;
 }
+
+/*********** ptsefton.com colors :) **************/
+
+body {
+    color: #333333;
+}
+
+h1#branding, .box h2, .box h2 a, ul.nav, ul.main li a, .menu li a.selected {
+    background: #FF33FF;
+}
+
+h1#branding a, .box h2, .box h2 a, ul.nav li a, .menu li a.selected {
+    color: #FFFF3F;
+}
+
+.box {
+    background: white;
+    border: 1px solid #DDDDDD;
+}
+
+ul.nav li, ul.nav li a:focus, ul.nav li ul {
+    background: #FF33FF;
+    color: #FFFF3F;
+}
+
+
+ul.nav li a:focus, ul.nav li a:hover {
+    background: #FFFF3F;
+    color: #FF33FF;
+}
+
+ul.nav li:hover ul li a {
+    background: #FF33FF;
+    border: 1px solid #FFFF3F;
+    color: #FFFF3F;
+    font-weight: bold;
+}
+
+ul.nav li:hover ul li a:hover {
+    background: #FFFF3F;
+    border: 1px solid #FF33FF;
+    color: #FF33FF;
+    font-weight: bold;
+}
+
