@@ -24,9 +24,6 @@ import java.io.IOException;
 import java.util.List;
 
 import org.apache.commons.io.IOUtils;
-import org.codehaus.jackson.JsonNode;
-import org.codehaus.jackson.JsonParseException;
-import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,6 +32,7 @@ import au.edu.usq.fascinator.api.storage.DigitalObject;
 import au.edu.usq.fascinator.api.storage.Payload;
 import au.edu.usq.fascinator.api.storage.Storage;
 import au.edu.usq.fascinator.api.storage.StorageException;
+import au.edu.usq.fascinator.common.JsonConfig;
 import au.edu.usq.fedora.RestClient;
 import au.edu.usq.fedora.types.ListSessionType;
 import au.edu.usq.fedora.types.ObjectFieldType;
@@ -60,30 +58,18 @@ public class Fedora3Storage implements Storage {
 
     public void init(File jsonFile) throws StorageException {
         try {
-            ObjectMapper mapper = new ObjectMapper();
-            JsonNode rootNode = mapper.readValue(jsonFile, JsonNode.class);
-            JsonNode storageNode = rootNode.get("storage");
-            if (storageNode != null) {
-                String type = storageNode.get("type").getTextValue();
-                if (getId().equals(type)) {
-                    JsonNode configNode = storageNode.get("config");
-                    String url = configNode.get("uri").getTextValue();
-                    client = new RestClient(url);
-                    JsonNode usernameNode = configNode.get("username");
-                    JsonNode passwordNode = configNode.get("password");
-                    if (usernameNode != null && passwordNode != null) {
-                        client.authenticate(usernameNode.getTextValue(),
-                                passwordNode.getTextValue());
-                    }
-                } else {
-                    throw new StorageException("Not Fedora 3");
-                }
+            JsonConfig config = new JsonConfig(jsonFile);
+            String url = config.get("storage/fedora3/url");
+
+            client = new RestClient(url);
+            String userName = config.get("storage/fedora3/username");
+            String password = config.get("storage/fedora3/password");
+
+            if (userName != null && password != null) {
+                client.authenticate(userName, password);
             } else {
-                log.info("No configuration defined, using defaults");
-                client = new RestClient(DEFAULT_URL);
+                new StorageException("Not Fedora 3");
             }
-        } catch (JsonParseException jpe) {
-            throw new StorageException(jpe);
         } catch (IOException ioe) {
             throw new StorageException(ioe);
         }
@@ -100,7 +86,8 @@ public class Fedora3Storage implements Storage {
             fedoraId = getFedoraId(oid);
             if (fedoraId == null) {
                 log.debug("Creating object {}", fedoraId);
-                fedoraId = client.createObject("", DEFAULT_NAMESPACE);
+                // fedoraId = client.createObject(oid, DEFAULT_NAMESPACE);
+                fedoraId = createObject(oid);
                 log.debug("Client returned Fedora PID: {}", fedoraId);
             } else {
                 log.debug("Updating object {}", fedoraId);
@@ -122,17 +109,35 @@ public class Fedora3Storage implements Storage {
         }
     }
 
+    private String createObject(String oid) {
+        try {
+            return client.createObject(oid, DEFAULT_NAMESPACE);
+        } catch (IOException e) {
+            log.debug("Failed to creatObject: " + oid, e);
+        }
+        return null;
+    }
+
     public void addPayload(String oid, Payload payload) {
         try {
             String fedoraId = getFedoraId(oid);
+            if (fedoraId == null) {
+                fedoraId = createObject(oid);
+            }
             String dsId = payload.getId();
             String dsLabel = payload.getLabel();
             String type = payload.getContentType();
+            String payloadType = payload.getType().toString();
             File tmpFile = File.createTempFile("f3_", ".tmp");
             FileOutputStream fos = new FileOutputStream(tmpFile);
             IOUtils.copy(payload.getInputStream(), fos);
             fos.close();
-            client.addDatastream(fedoraId, dsId, dsLabel, type, tmpFile);
+
+            // Fedora does not like the id to have slash
+            // The payload type and the original id is stored in AltIDs in
+            // payloadType:dsId format
+            client.addDatastream(fedoraId, dsId.replace('/', '_'), dsLabel,
+                    type, payloadType + ":" + dsId, tmpFile);
             tmpFile.delete();
             // TODO managed content
         } catch (IOException ioe) {
@@ -148,9 +153,12 @@ public class Fedora3Storage implements Storage {
         try {
             String fedoraId = getFedoraId(oid);
             if (fedoraId != null) {
-                return new Fedora3DigitalObject(client, fedoraId);
+                log.debug("Successfully getting object: " + oid
+                        + ", with fedoraid: " + fedoraId);
+                return new Fedora3DigitalObject(client, fedoraId, oid);
             }
         } catch (IOException ioe) {
+            log.debug("Failed to getObject: " + oid);
         }
         return null;
     }
@@ -176,11 +184,14 @@ public class Fedora3Storage implements Storage {
         // requests
         ListSessionType session = result.getListSession();
         while (session != null) {
-            log.debug("resumeFindObjects session to close connection..");
+            log.debug("resumeFindObjects session to close connection...");
             result = client.resumeFindObjects(session.getToken());
-            session = result.getListSession();
+            if (result != null) {
+                session = result.getListSession();
+            } else {
+                session = null;
+            }
         }
-        log.debug("findObjects done.");
         return pid;
     }
 

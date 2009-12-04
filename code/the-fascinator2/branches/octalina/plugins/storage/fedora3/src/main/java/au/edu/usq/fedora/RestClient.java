@@ -44,6 +44,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import au.edu.usq.fascinator.common.BasicHttpClient;
+import au.edu.usq.fedora.types.DatastreamProfile;
 import au.edu.usq.fedora.types.ObjectDatastreamsType;
 import au.edu.usq.fedora.types.PidListType;
 import au.edu.usq.fedora.types.ResultType;
@@ -67,6 +68,7 @@ public class RestClient extends BasicHttpClient {
             this.name = name;
         }
 
+        @Override
         public String toString() {
             return name;
         }
@@ -155,6 +157,35 @@ public class RestClient extends BasicHttpClient {
         } catch (JAXBException jaxbe) {
             log.error("Failed parsing result", jaxbe);
         }
+        return result;
+    }
+
+    public DatastreamProfile getDatastream(String pid, String datastreamId)
+            throws IOException {
+        DatastreamProfile result = null;
+        try {
+            StringBuilder uri = new StringBuilder(getBaseUrl());
+            uri.append("/objects/");
+            uri.append(pid);
+            uri.append("/datastreams/");
+            uri.append(datastreamId);
+            uri.append(".xml");
+
+            GetMethod method = new GetMethod(uri.toString());
+            int status = executeMethod(method, true);
+            if (status == 200) {
+                JAXBContext jc = JAXBContext
+                        .newInstance(DatastreamProfile.class);
+                Unmarshaller um = jc.createUnmarshaller();
+                InputStream in = method.getResponseBodyAsStream();
+                result = (DatastreamProfile) um.unmarshal(in);
+                in.close();
+            }
+            method.releaseConnection();
+        } catch (JAXBException jaxbe) {
+            log.error("Failed parsing result", jaxbe);
+        }
+
         return result;
     }
 
@@ -276,38 +307,48 @@ public class RestClient extends BasicHttpClient {
     }
 
     public void addDatastream(String pid, String dsId, String dsLabel,
-            String contentType, String content) throws IOException {
+            String contentType, String payloadType, String content)
+            throws IOException {
         Properties options = new Properties();
         options.setProperty("dsLabel", dsLabel);
+        options.setProperty("altIDs", payloadType);
         options.setProperty("controlGroup",
                 "text/xml".equals(contentType) ? "X" : "M");
         RequestEntity request = new StringRequestEntity(content, contentType,
                 "UTF-8");
-        addDatastream(pid, dsId, options, contentType, request);
+        addDatastream(pid, dsId, options, contentType, payloadType, request);
     }
 
     public void addDatastream(String pid, String dsId, String dsLabel,
-            String contentType, File content) throws IOException {
+            String contentType, String payloadType, File content)
+            throws IOException {
         Properties options = new Properties();
         options.setProperty("dsLabel", dsLabel);
+        options.setProperty("altIDs", payloadType);
         options.setProperty("controlGroup", "M");
+
         RequestEntity request = new FileRequestEntity(content, contentType);
-        addDatastream(pid, dsId, options, contentType, request);
+        addDatastream(pid, dsId, options, contentType, payloadType, request);
     }
 
     public void addExternalDatastream(String pid, String dsId, String dsLabel,
-            String contentType, String dsLocation) throws IOException {
+            String contentType, String payloadType, String dsLocation)
+            throws IOException {
         Properties options = new Properties();
         options.setProperty("dsLabel", dsLabel);
+        options.setProperty("altIDs", payloadType);
         options.setProperty("controlGroup", "E");
         options.setProperty("dsLocation", dsLocation);
         RequestEntity request = new StringRequestEntity("", contentType,
                 "UTF-8");
-        addDatastream(pid, dsId, options, contentType, request);
+        addDatastream(pid, dsId, options, contentType, payloadType, request);
     }
 
     private void addDatastream(String pid, String dsId, Properties options,
-            String contentType, RequestEntity request) throws IOException {
+            String contentType, String payloadType, RequestEntity request)
+            throws IOException {
+        // dsId = URLEncoder.encode(dsId, "UTF-8");
+
         StringBuilder uri = new StringBuilder(getBaseUrl());
         uri.append("/objects/");
         uri.append(pid);

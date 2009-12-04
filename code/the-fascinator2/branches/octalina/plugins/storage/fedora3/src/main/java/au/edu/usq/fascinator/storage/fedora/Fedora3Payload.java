@@ -30,13 +30,17 @@ public class Fedora3Payload extends GenericPayload {
 
     private String oid;
 
-    public Fedora3Payload(RestClient client, String oid) {
+    private String pid;
+
+    public Fedora3Payload(RestClient client, String oid, String pid) {
         this.client = client;
         this.oid = oid;
+        this.pid = pid;
     }
 
+    @Override
     public InputStream getInputStream() throws IOException {
-        return client.getStream(oid, getId());
+        return client.getStream(oid, pid);
     }
 
 }
