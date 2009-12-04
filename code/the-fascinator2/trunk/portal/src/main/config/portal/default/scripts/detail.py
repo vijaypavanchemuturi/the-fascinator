@@ -46,6 +46,7 @@ class SolrDoc:
 
 class DetailData:
     def __init__(self):
+        self.__object = None
         print "**** formData: ", formData.get("func")
         if formData.get("func") == "open-file":
             self.__openFile()
@@ -60,6 +61,9 @@ class DetailData:
             slash = self.__oid.rfind("/")
             self.__pid = self.__oid[slash+1:]
             payload = self.__storage.getPayload(self.__oid, self.__pid)
+            
+            self.__object = self.__storage.getObject(self.__oid)
+            
             if payload is not None:
                 self.__mimeType = payload.contentType
             else:
@@ -67,6 +71,7 @@ class DetailData:
             self.__metadata = JsonConfigHelper()
             print " * detail.py: uri='%s' oid='%s' pid='%s' mimeType='%s'" % (uri, self.__oid, self.__pid, self.__mimeType)
             self.__search()
+        
     
     def __search(self):
         req = SearchRequest('id:"%s"' % self.__oid)
@@ -76,6 +81,7 @@ class DetailData:
         self.__metadata = SolrDoc(self.__json)
     
     def isMetadataOnly(self):
+        self.getObject().getPayloadList()
         return self.getObject().getSource() is None
     
     def getFileName(self, path):
@@ -107,7 +113,7 @@ class DetailData:
     
     def getObject(self):
         #print "################test getPayload source: ", self.__storage.getObject(self.__oid).getSource()
-        return self.__storage.getObject(self.__oid)
+        return self.__object
     
     def getStorageId(self):
         obj = self.getObject()
