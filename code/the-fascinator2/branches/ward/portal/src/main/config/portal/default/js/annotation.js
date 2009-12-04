@@ -7,9 +7,9 @@ $(function(){
 
 function enableParaAnnotating(jQ)
 {
-    var bodyDiv = jQ("div.body > div:first");
-    var ajaxUrl = "http://localhost:9997/portal/default/annotation.ajax";
     var myUrl = window.location.href;
+    var bodyDiv = jQ("div.body > div:first");
+    ajaxUrl = myUrl.split("/portal/default/")[0] + "/portal/default/annotation.ajax";
     //var query = "?w3c_annotates=" + escape(window.location.href);
     //var rUrl = "?w3c_reply_tree=" + escape(url);
 
@@ -93,14 +93,14 @@ function enableParaAnnotating(jQ)
         if (parentId==""){
             parentId = d.inReplyTo
         }
-        var s = "<div class='inline-annotation' style='padding:.1em;margin-bottom:1em;margin-left:0.5em;background:#ffffcc;color:blue; border:1px solid gray;' id='" + d.about + "'>"
+        var s = "<div class='inline-annotation' style='padding:.1em;margin-bottom:1em;margin-left:0.5em;background:#ffcccc;color:#000080; border:1px solid gray;' id='" + d.about + "'>"
         s += "<input name='parentId' value='" + parentId + "' type='hidden'><!-- --></input>";
         s += "<input name='rootUrl' value='" + d.root + "' type='hidden'><!-- --></input>";
         s += "<input name='selfUrl' value='" + d.about + "' type='hidden'><!-- --></input>";
         s += " <div class='orig-content' style='display:none;'> </div>";
         s += " <div class='anno-info'>Comment by: <span>" + d.creator + "</span>";
-        s += " &nbsp; <span>" + d.created + "</span></div>";
-        s += " <div style='color:green;'>" + d.body + "</div>";
+        s += " &nbsp; <span>" + d.created + " </span></div>";
+        s += " <div style='color:#006600;'>" + d.body + "</div>";
         s += " <div class='anno-children'><!-- --></div>";
         s += "</div>";
         var div = jQ(s);
@@ -126,9 +126,9 @@ function enableParaAnnotating(jQ)
             var d;
             if (anno.hasClass("closed")) d = jQ("<span>&#160; <span class='delete-annotate command'> Delete</span></span>");
             else d = jQ("<span>" +
-                "&#160;<span class='annotate-this command'>Reply</span>" +
-                "&#160;<span class='close-annotate command'>Close</span>" +
-                "&#160;<span class='delete-annotate command'>Delete</span>" +
+                "&#160;<span class='annotate-this command' style='cursor:pointer;'>Reply</span>" +
+                //"&#160;<span class='close-annotate command'>Close</span>" +
+                "&#160;<span class='delete-annotate command' style='cursor:pointer;'>Delete</span>" +
                 "</span>");
             anno.find("div.anno-info:first").append(d);
             var closeClick = function(e) {
@@ -215,11 +215,27 @@ function enableParaAnnotating(jQ)
     }
 
     // Annotate an item (e.g. paragraph)  (called from pilcrow & reply click)
+    var annotations = {};
+    var annotationComments = {};
+    // Annotation Form
+    var annotateDiv = "<div class='annotate-form' style='border:1px solid gray; background-color: transparent;'><textarea cols='80' rows='8'></textarea><br/>";
+    annotateDiv += "<button class='cancel'>Cancel</button>&#160;";
+    annotateDiv += "<button class='submit'>Submit</button> <span class='info'></span>";
+    annotateDiv += "</div>";
+    annotateDiv = jQ(annotateDiv);
+    var commentOnThis = jQ("<div class='app-label' style='color:blue;'>Comment on this:</div>");
+    var textArea = annotateDiv.find("textarea");
+    var last = null;
     function annotate(me) {
-        if(last!=null) { annotateDiv.find("button.close").click(); unWrapLast(); }
-        var id = me.attr("id");
-        if(typeof(id)=="undefined") { return; }
-        var closeClick = function() { annotationComments[id] = jQ.trim(textArea.val()); unWrapLast(); }
+        var unWrapLast = function() {
+            if(last!=null){
+                //last.parent().replaceWith(last);
+                annotateDiv.remove();
+                commentOnThis.remove();
+                last=null;
+            }
+        }
+        var closeClick = function() { unWrapLast(); annotationComments[id] = jQ.trim(textArea.val()); }
         var submitClick = function() {
             var text, html, d, selfUrl;
             unWrapLast();
@@ -244,32 +260,29 @@ function enableParaAnnotating(jQ)
         var restore = function() {
             if(id in annotationComments) {textArea.val(annotationComments[id]);} else {textArea.val("");}
         }
+        if(last!=null) { unWrapLast(); annotateDiv.find("button.cancel").click(); }
+        var id = me.attr("id");
+        if(typeof(id)=="undefined") { return; }
         restore();
         // wrap it
         me.wrap("<div class='inline-annotation-form'/>");
-        me.parent().append(annotateDiv);
+        if(me.hasClass("inline-annotation")) {
+            //alert(me.parent().html())
+            me.find("div.anno-children:first").before(annotateDiv)
+        } else {
+            me.parent().append(annotateDiv);
+        }
         annotateDiv.find("button.clear").click(function(){textArea.val("");});
         annotateDiv.find("button.cancel").click(function(){textArea.val(annotationComments[id]); closeClick();});
         annotateDiv.find("button.close").click(closeClick);
         annotateDiv.find("button.submit").click(submitClick);
-        me.parent().prepend("<div class='app-label'>Comment on this:</div>");
+        me.parent().prepend(commentOnThis);
         unWrapLast();
         last = me;
         textArea.focus();
     }
 
     // ================================================
-    var annotations = {}
-    var annotationComments = {}
-    // Annotation Form
-    var annotateDiv = "<div class='annotate-form' style='border:1px solid gray; background-color: transparent;'><textarea cols='80' rows='8'></textarea><br/>";
-    annotateDiv += "<button class='cancel'>Cancel</button>&#160;"
-    annotateDiv += "<button class='submit'>Submit</button> <span class='info'></span>"
-    annotateDiv += "</div>";
-    annotateDiv = jQ(annotateDiv);
-    var textArea = annotateDiv.find("textarea");
-    var last = null;
-    var unWrapLast = function() { if(last!=null){last.parent().replaceWith(last); last=null;} }
   
 
     var crcs = {}
