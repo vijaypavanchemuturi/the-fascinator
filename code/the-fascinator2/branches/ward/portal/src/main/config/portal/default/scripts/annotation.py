@@ -159,6 +159,7 @@ class Annotation:
                     "state" : st("adfi:state"),
                     "test": "'apos', & \"double quotes\""
                 }
+                data["created"] = data["created"].split(".")[0].replace("T", " ")
                 dataList.append(data)
             d["data"] = dataList
         except Exception, e:
@@ -325,7 +326,7 @@ class Annotation:
         #           Change, Advice
         xpointer = annotates + '#xpointer(id("%s"))' % elemId
         if date is None or date=="":
-            date = time.strftime("%Y-%m%dT%H:%M")
+            date = time.strftime("%Y-%m-%dT%H:%M")
             if time.timezone>0:
                 date += "-"
             else:
@@ -333,7 +334,7 @@ class Annotation:
             date += time.strftime("%H:%M", (0,0,0, abs(time.timezone/3600), 0,0,0,0,0))
         created = date
         if creator is None:
-            creator = "GuestUser"
+            creator = "Anonymous"
         if title=="":
             title = annotationType
         if bodyTitle=="":
