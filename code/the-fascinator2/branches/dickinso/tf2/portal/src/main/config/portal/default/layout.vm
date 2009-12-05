@@ -11,6 +11,7 @@ $!pageContent
     <!--[if IE 6]><link rel="stylesheet" type="text/css" href="$portalPath/css/fluid960gs/ie6.css" media="screen" /><![endif]-->
     <!--[if IE 7]><link rel="stylesheet" type="text/css" href="$portalPath/css/fluid960gs/ie.css" media="screen" /><![endif]-->
     <link rel="stylesheet" type="text/css" href="$portalPath/css/styles.css" />
+    <link rel="stylesheet" type="text/css" href="$portalPath/css/local_styles.css" />
     $!pageHeader
   </head>
   <body>
@@ -47,7 +48,13 @@ $!pageContent
             #end
             </ul>
           </li>
-          <li><a href="$portalPath/organise">Organise</a></li>
+          <li>
+            <a href="#">Organise</a>
+            <ul>
+              <li><a href="$portalPath/organise/single">Single view</a></li>
+              <li><a href="$portalPath/organise/combined">Combined view</a></li>
+            </ul>
+          </li>
           <li><a href="$portalPath/settings">Settings</a></li>
           #### not yet finished
           ##<li><a href="$portalPath/harvest">Harvest</a></li>
