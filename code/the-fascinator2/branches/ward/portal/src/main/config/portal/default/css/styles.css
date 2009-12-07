@@ -248,3 +248,35 @@ span.view-type a.selected {
     font-size: 1.2em;
     font-weight: bold;
 }
+
+/* Annotating */
+.inline-annotation {
+    padding:.1em;
+    margin-bottom:1em;
+    margin-left:0.5em;
+    background:#ddddff; /* #ffcccc; */
+    color:#000080;
+    border:1px solid gray;
+}
+
+.anno-content {
+    color:#006600;
+}
+
+.delete-annotate .annotate-this .close-annotate .pilcrow {
+    cursor:pointer
+}
+
+.annotate-form{
+    border:1px solid gray;
+    background-color: transparent;
+}
+
+.annotating-label{
+    color:blue;
+}
+
+.inline-annotation-form{}
+.orig-content {}
+.anno-children{}
+
