@@ -94,6 +94,7 @@
       <span class="mimetype" rel="$self.mimeType"></span>
       <div class="first article clearfix">
         <div class="content-preview-inline">$!self.payloadContent</div>
+        <script type="text/javascript" src="$portalPath/js/annotation.js"></script>
       </div>
     </div>
   </div>
