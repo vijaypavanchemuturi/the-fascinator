@@ -14,6 +14,7 @@ from java.util import LinkedHashMap
 from java.lang import Object
 
 from org.apache.commons.io import IOUtils
+from org.apache.commons.lang import StringEscapeUtils
 from org.dom4j.io import OutputFormat, XMLWriter, SAXReader
 
 class OrganiseData:
@@ -133,7 +134,6 @@ class OrganiseData:
             for doc in self.__result.getList("response/docs"):
                 hashId = md5.new(doc.get("id")).hexdigest()
                 node = portal.get("manifest//node-%s" % hashId)
-                print " ********node=", node
                 if node is None:
                     portal.set("manifest/node-%s/title" % hashId, doc.get("dc_title").get(0))
                     portal.set("manifest/node-%s/id" % hashId, doc.get("id"))
@@ -142,9 +142,8 @@ class OrganiseData:
             for key in manifest.keySet():
                 item = manifest.get(key)
                 id = item.get("id")
-                print " ***** doc", len(self.__result.getList("response/docs[@id='%s']" % id))
-                if len(self.__result.getList("response/docs[@id='%s']" % id)) == 0:
-                    print " * id =",id," =" ,self.__result.getList("response/docs[@id='%s']" % id)
+                doc = self.__result.getList('response/docs[@id="%s"]' % id)
+                if len(doc) == 0:
                     portal.removePath("manifest//%s" % key)
             Services.getPortalManager().save(portal)
     
@@ -207,7 +206,7 @@ class OrganiseData:
     
     def getPayloadContent(self):
         mimeType = self.__mimeType
-        print " * detail.py: payload content mimeType=%s" % mimeType
+        print " * single.py: payload content mimeType=%s" % mimeType
         contentStr = ""
         if mimeType.startswith("text/"):
             if mimeType == "text/html":
@@ -216,7 +215,7 @@ class OrganiseData:
             else:
                 pid = self.__oid[self.__oid.rfind("/")+1:]
                 payload = self.__storage.getPayload(self.__oid, pid)
-                print " * detail.py: pid=%s payload=%s" % (pid, payload)
+                print " * single.py: pid=%s payload=%s" % (pid, payload)
                 if payload is not None:
                     sw = StringWriter()
                     sw.write("<pre>")
@@ -227,7 +226,7 @@ class OrganiseData:
         elif mimeType == "application/pdf" or mimeType.find("vnd.ms")>-1 or mimeType.find("vnd.oasis.opendocument.")>-1:
             # get the html version if exist...
             pid = os.path.splitext(self.__pid)[0] + ".htm"
-            print " * detail.py: pid=%s" % pid
+            print " * single.py: pid=%s" % pid
             #contentStr = '<iframe class="iframe-preview" src="%s/%s/download/%s/%s"></iframe>' % \
             #    (contextPath, portalId, self.__oid, pid)
             payload = self.__storage.getPayload(self.__oid, pid)
