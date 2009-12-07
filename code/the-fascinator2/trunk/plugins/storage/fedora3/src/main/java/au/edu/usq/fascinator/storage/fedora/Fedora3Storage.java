@@ -23,6 +23,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.List;
 
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -85,13 +86,14 @@ public class Fedora3Storage implements Storage {
         try {
             fedoraId = getFedoraId(oid);
             if (fedoraId == null) {
-                log.debug("Creating object {}", fedoraId);
+                log.debug("Creating new object... ");
                 // fedoraId = client.createObject(oid, DEFAULT_NAMESPACE);
                 fedoraId = createObject(oid);
                 log.debug("Client returned Fedora PID: {}", fedoraId);
             } else {
                 log.debug("Updating object {}", fedoraId);
             }
+
             for (Payload payload : object.getPayloadList()) {
                 addPayload(oid, payload);
             }
@@ -136,8 +138,9 @@ public class Fedora3Storage implements Storage {
             // Fedora does not like the id to have slash
             // The payload type and the original id is stored in AltIDs in
             // payloadType:dsId format
-            client.addDatastream(fedoraId, dsId.replace('/', '_'), dsLabel,
-                    type, payloadType + ":" + dsId, tmpFile);
+
+            client.addDatastream(fedoraId, "DS" + DigestUtils.md5Hex(dsId),
+                    dsLabel, type, payloadType + ":" + dsId, tmpFile);
             tmpFile.delete();
             // TODO managed content
         } catch (IOException ioe) {
@@ -151,6 +154,9 @@ public class Fedora3Storage implements Storage {
 
     public DigitalObject getObject(String oid) {
         try {
+            if (oid == null || oid.equals("")) {
+                return null;
+            }
             String fedoraId = getFedoraId(oid);
             if (fedoraId != null) {
                 log.debug("Successfully getting object: " + oid
