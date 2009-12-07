@@ -72,7 +72,8 @@ public class Fedora3DigitalObject extends GenericDigitalObject {
                     ds.setType(PayloadType.valueOf(altId[0]));
                     if (ds.getType().equals(PayloadType.Data)) {
                         // If it's a source, set the source there
-                        setSourceId(dst.getDsid());
+                        // setSourceId(dst.getDsid());
+                        setSourceId(altId[1]);
                     }
                     ds.setContentType(dst.getMimeType());
                     dsList.add(ds);
