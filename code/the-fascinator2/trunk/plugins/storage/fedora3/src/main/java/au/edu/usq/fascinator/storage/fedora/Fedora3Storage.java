@@ -21,6 +21,7 @@ package au.edu.usq.fascinator.storage.fedora;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.net.URLEncoder;
 import java.util.List;
 
 import org.apache.commons.codec.digest.DigestUtils;
@@ -140,7 +141,8 @@ public class Fedora3Storage implements Storage {
             // payloadType:dsId format
 
             client.addDatastream(fedoraId, "DS" + DigestUtils.md5Hex(dsId),
-                    dsLabel, type, payloadType + ":" + dsId, tmpFile);
+                    dsLabel, type, payloadType + ":"
+                            + URLEncoder.encode(dsId, "UTF-8"), tmpFile);
             tmpFile.delete();
             // TODO managed content
         } catch (IOException ioe) {
