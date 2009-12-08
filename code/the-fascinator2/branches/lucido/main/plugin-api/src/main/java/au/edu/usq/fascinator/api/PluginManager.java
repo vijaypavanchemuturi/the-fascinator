@@ -35,6 +35,8 @@ import au.edu.usq.fascinator.api.transformer.TransformerException;
  */
 public class PluginManager {
 
+    private static Map<String, Indexer> indexers = new HashMap<String, Indexer>();
+
     /**
      * Gets a harvester plugin
      * 
@@ -67,13 +69,17 @@ public class PluginManager {
      * @return a indexer plugin, or null if not found
      */
     public static Indexer getIndexer(String id) {
-        ServiceLoader<Indexer> plugins = ServiceLoader.load(Indexer.class);
-        for (Indexer plugin : plugins) {
-            if (id.equals(plugin.getId())) {
-                return plugin;
+        Indexer loaded = indexers.get(id);
+        if (loaded == null) {
+            ServiceLoader<Indexer> plugins = ServiceLoader.load(Indexer.class);
+            for (Indexer plugin : plugins) {
+                if (id.equals(plugin.getId())) {
+                    indexers.put(id, plugin);
+                    return plugin;
+                }
             }
         }
-        return null;
+        return loaded;
     }
 
     public static Map<String, Indexer> getIndexerPlugins() {

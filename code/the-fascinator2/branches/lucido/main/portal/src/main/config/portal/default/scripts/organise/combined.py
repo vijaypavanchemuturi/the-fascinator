@@ -1,5 +1,7 @@
 import array, md5, os
 
+import traceback
+
 from au.edu.usq.fascinator.api.indexer import SearchRequest
 from au.edu.usq.fascinator.api.storage import Payload, PayloadType
 from au.edu.usq.fascinator.api import PluginManager

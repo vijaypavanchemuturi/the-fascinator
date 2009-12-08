@@ -21,8 +21,10 @@ package au.edu.usq.fascinator.storage.fedora;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.net.URLEncoder;
 import java.util.List;
 
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,6 +39,7 @@ import au.edu.usq.fedora.RestClient;
 import au.edu.usq.fedora.types.ListSessionType;
 import au.edu.usq.fedora.types.ObjectFieldType;
 import au.edu.usq.fedora.types.ResultType;
+import fedora.server.errors.MessagingException;
 
 public class Fedora3Storage implements Storage {
 
@@ -47,6 +50,8 @@ public class Fedora3Storage implements Storage {
     private Logger log = LoggerFactory.getLogger(Fedora3Storage.class);
 
     private RestClient client;
+
+    private Fedora3IndexerService indexerService;
 
     public String getId() {
         return "fedora3";
@@ -68,15 +73,36 @@ public class Fedora3Storage implements Storage {
             if (userName != null && password != null) {
                 client.authenticate(userName, password);
             } else {
-                new StorageException("Not Fedora 3");
+                throw new StorageException("Not Fedora 3");
             }
-        } catch (IOException ioe) {
-            throw new StorageException(ioe);
+
+            Runnable service = new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        indexerService = new Fedora3IndexerService();
+                        indexerService.start();
+                    } catch (Exception e) {
+                        log.error("Failed to start indexer service", e);
+                    }
+                }
+            };
+            new Thread(service, "indexerService").start();
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new StorageException(e);
         }
     }
 
     public void shutdown() throws StorageException {
-        // Don't need to do anything
+        log.info("shutdown service:" + indexerService);
+        if (indexerService != null) {
+            try {
+                indexerService.stop();
+            } catch (MessagingException me) {
+                throw new StorageException(me);
+            }
+        }
     }
 
     public String addObject(DigitalObject object) throws StorageException {
@@ -85,13 +111,14 @@ public class Fedora3Storage implements Storage {
         try {
             fedoraId = getFedoraId(oid);
             if (fedoraId == null) {
-                log.debug("Creating object {}", fedoraId);
+                log.debug("Creating new object... ");
                 // fedoraId = client.createObject(oid, DEFAULT_NAMESPACE);
                 fedoraId = createObject(oid);
                 log.debug("Client returned Fedora PID: {}", fedoraId);
             } else {
                 log.debug("Updating object {}", fedoraId);
             }
+
             for (Payload payload : object.getPayloadList()) {
                 addPayload(oid, payload);
             }
@@ -136,8 +163,10 @@ public class Fedora3Storage implements Storage {
             // Fedora does not like the id to have slash
             // The payload type and the original id is stored in AltIDs in
             // payloadType:dsId format
-            client.addDatastream(fedoraId, dsId.replace('/', '_'), dsLabel,
-                    type, payloadType + ":" + dsId, tmpFile);
+
+            client.addDatastream(fedoraId, "DS" + DigestUtils.md5Hex(dsId),
+                    dsLabel, type, payloadType + ":"
+                            + URLEncoder.encode(dsId, "UTF-8"), tmpFile);
             tmpFile.delete();
             // TODO managed content
         } catch (IOException ioe) {
@@ -151,6 +180,9 @@ public class Fedora3Storage implements Storage {
 
     public DigitalObject getObject(String oid) {
         try {
+            if (oid == null || oid.equals("")) {
+                return null;
+            }
             String fedoraId = getFedoraId(oid);
             if (fedoraId != null) {
                 log.debug("Successfully getting object: " + oid

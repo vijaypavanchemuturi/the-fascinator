@@ -95,7 +95,10 @@ public class SolrIndexer implements Indexer {
     private Map<String, String> namespaces;
 
     private String username;
+
     private String password;
+
+    private boolean loaded;
 
     public String getId() {
         return "solr";
@@ -105,46 +108,54 @@ public class SolrIndexer implements Indexer {
         return "Apache Solr Indexer";
     }
 
+    public SolrIndexer() {
+        loaded = false;
+    }
+
     public void init(File jsonFile) throws IndexerException {
-        try {
-            config = new JsonConfig(jsonFile);
-        } catch (IOException ioe) {
-            throw new IndexerException(ioe);
-        }
-
-        String storageType = config.get("storage/type");
-        try {
-            storage = PluginManager.getStorage(storageType);
-            storage.init(jsonFile);
-        } catch (PluginException pe) {
-            log.error("Failed to load storage plugin: {}", storageType);
-        }
-
-        try {
-            URI solrUri = new URI(config.get("indexer/solr/uri"));
-            solr = new CommonsHttpSolrServer(solrUri.toURL());
-            username = config.get("indexer/solr/username");
-            password = config.get("indexer/solr/password");
-            if (username != null && password != null) {
-                UsernamePasswordCredentials credentials = new UsernamePasswordCredentials(
-                        username, password);
-                HttpClient hc = solr.getHttpClient();
-                hc.getParams().setAuthenticationPreemptive(true);
-                hc.getState().setCredentials(AuthScope.ANY, credentials);
+        if (!loaded) {
+            loaded = true;
+            try {
+                config = new JsonConfig(jsonFile);
+            } catch (IOException ioe) {
+                throw new IndexerException(ioe);
             }
-        } catch (MalformedURLException mue) {
-            log.error("Malformed URL", mue);
-        } catch (URISyntaxException urise) {
-            log.error("Invalid URI", urise);
+
+            String storageType = config.get("storage/type");
+            try {
+                storage = PluginManager.getStorage(storageType);
+                storage.init(jsonFile);
+            } catch (PluginException pe) {
+                log.error("Failed to load storage plugin: {}", storageType);
+            }
+
+            try {
+                URI solrUri = new URI(config.get("indexer/solr/uri"));
+                solr = new CommonsHttpSolrServer(solrUri.toURL());
+                username = config.get("indexer/solr/username");
+                password = config.get("indexer/solr/password");
+                if (username != null && password != null) {
+                    UsernamePasswordCredentials credentials = new UsernamePasswordCredentials(
+                            username, password);
+                    HttpClient hc = solr.getHttpClient();
+                    hc.getParams().setAuthenticationPreemptive(true);
+                    hc.getState().setCredentials(AuthScope.ANY, credentials);
+                }
+            } catch (MalformedURLException mue) {
+                log.error("Malformed URL", mue);
+            } catch (URISyntaxException urise) {
+                log.error("Invalid URI", urise);
+            }
+
+            autoCommit = Boolean.parseBoolean(config.get(
+                    "indexer/solr/autocommit", "true"));
+            propertiesId = config.get("indexer/propertiesId", "SOF-META");
+
+            namespaces = new HashMap<String, String>();
+            DocumentFactory.getInstance().setXPathNamespaceURIs(namespaces);
+            saxReader = new SAXReader();
         }
-
-        autoCommit = Boolean.parseBoolean(config.get("indexer/solr/autocommit",
-                "true"));
-        propertiesId = config.get("indexer/propertiesId", "SOF-META");
-
-        namespaces = new HashMap<String, String>();
-        DocumentFactory.getInstance().setXPathNamespaceURIs(namespaces);
-        saxReader = new SAXReader();
+        loaded = true;
     }
 
     @Override
