@@ -93,14 +93,14 @@ function enableParaAnnotating(jQ)
         if (parentId==""){
             parentId = d.inReplyTo
         }
-        var s = "<div class='inline-annotation' style='padding:.1em;margin-bottom:1em;margin-left:0.5em;background:#ffcccc;color:#000080; border:1px solid gray;' id='" + d.about + "'>"
+        var s = "<div class='inline-annotation' id='" + d.about + "'>"
         s += "<input name='parentId' value='" + parentId + "' type='hidden'><!-- --></input>";
         s += "<input name='rootUrl' value='" + d.root + "' type='hidden'><!-- --></input>";
         s += "<input name='selfUrl' value='" + d.about + "' type='hidden'><!-- --></input>";
         s += " <div class='orig-content' style='display:none;'> </div>";
         s += " <div class='anno-info'>Comment by: <span>" + d.creator + "</span>";
         s += " &nbsp; <span>" + d.created + " </span></div>";
-        s += " <div style='color:#006600;'>" + d.body + "</div>";
+        s += " <div class='anno-content'>" + d.body + "</div>";
         s += " <div class='anno-children'><!-- --></div>";
         s += "</div>";
         var div = jQ(s);
@@ -126,9 +126,9 @@ function enableParaAnnotating(jQ)
             var d;
             if (anno.hasClass("closed")) d = jQ("<span>&#160; <span class='delete-annotate command'> Delete</span></span>");
             else d = jQ("<span>" +
-                "&#160;<span class='annotate-this command' style='cursor:pointer;'>Reply</span>" +
+                "&#160;<span class='annotate-this command'>Reply</span>" +
                 //"&#160;<span class='close-annotate command'>Close</span>" +
-                "&#160;<span class='delete-annotate command' style='cursor:pointer;'>Delete</span>" +
+                "&#160;<span class='delete-annotate command'>Delete</span>" +
                 "</span>");
             anno.find("div.anno-info:first").append(d);
             var closeClick = function(e) {
@@ -218,12 +218,12 @@ function enableParaAnnotating(jQ)
     var annotations = {};
     var annotationComments = {};
     // Annotation Form
-    var annotateDiv = "<div class='annotate-form' style='border:1px solid gray; background-color: transparent;'><textarea cols='80' rows='8'></textarea><br/>";
+    var annotateDiv = "<div class='annotate-form'><textarea cols='80' rows='8'></textarea><br/>";
     annotateDiv += "<button class='cancel'>Cancel</button>&#160;";
     annotateDiv += "<button class='submit'>Submit</button> <span class='info'></span>";
     annotateDiv += "</div>";
     annotateDiv = jQ(annotateDiv);
-    var commentOnThis = jQ("<div class='app-label' style='color:blue;'>Comment on this:</div>");
+    var commentOnThis = jQ("<div class='app-label'>Comment on this:</div>");
     var textArea = annotateDiv.find("textarea");
     var last = null;
     function annotate(me) {

@@ -26,6 +26,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -353,6 +354,34 @@ public class IceTransformer implements Transformer {
         return "ICE Transformer";
     }
 
+    private void init(JsonConfig config) throws PluginException {
+        outputPath = config.get("transformer/ice2/outputPath", System
+                .getProperty("user.home")
+                + File.separator + "tmp");
+        convertUrl = config.get("transformer/ice2/url",
+                "http://ice-service.usq.edu.au/api/convert/");
+        resizeMode = config.get("transformer/ice2/resize.image.mode",
+                "fixWidth");
+        imageRatio = config.get("transformer/ice2/resize.image.ratio", "-90");
+        resizeFixedWidth = config.get(
+                "transformer/ice2/resize.image.fixedWidth", "150");
+        enlargeImage = config.get("transformer/ice2/enlargeImage", "false");
+        String excludeRenditionExt = config.get(
+                "transformer/ice2/excludeRenditionExt", "false");
+        excludeRenditionExtList = new ArrayList<String>();
+        setExcludeRenditionExtList(excludeRenditionExt);
+        try {
+            // Structure: "ice2ContentPaths" :
+            // {"/home/ward/ice/test-content" :
+            // "http://139.86.38.58:8003/rep.TempTest-Content1/"},
+
+            ice2ContentPaths = config
+                    .getMap("transformer/ice2/ice2ContentPaths");
+        } catch (Exception e) {
+            ice2ContentPaths = new HashMap<String, Object>();
+        }
+    }
+
     /**
      * Overridden method init to initialize
      * 
@@ -368,33 +397,7 @@ public class IceTransformer implements Transformer {
     @Override
     public void init(File jsonFile) throws PluginException {
         try {
-            JsonConfig config = new JsonConfig(jsonFile);
-            outputPath = config.get("transformer/ice2/outputPath", System
-                    .getProperty("user.home")
-                    + File.separator + "tmp");
-            convertUrl = config.get("transformer/ice2/url",
-                    "http://ice-service.usq.edu.au/api/convert/");
-            resizeMode = config.get("transformer/ice2/resize.image.mode",
-                    "fixWidth");
-            imageRatio = config.get("transformer/ice2/resize.image.ratio",
-                    "-90");
-            resizeFixedWidth = config.get(
-                    "transformer/ice2/resize.image.fixedWidth", "150");
-            enlargeImage = config.get("transformer/ice2/enlargeImage", "false");
-            String excludeRenditionExt = config.get(
-                    "transformer/ice2/excludeRenditionExt", "false");
-            excludeRenditionExtList = new ArrayList<String>();
-            setExcludeRenditionExtList(excludeRenditionExt);
-            try {
-                // Structure: "ice2ContentPaths" :
-                // {"/home/ward/ice/test-content" :
-                // "http://139.86.38.58:8003/rep.TempTest-Content1/"},
-
-                ice2ContentPaths = config
-                        .getMap("transformer/ice2/ice2ContentPaths");
-            } catch (Exception e) {
-                ice2ContentPaths = new HashMap<String, Object>();
-            }
+            init(new JsonConfig(jsonFile));
         } catch (IOException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
@@ -497,6 +500,13 @@ public class IceTransformer implements Transformer {
     @Override
     public void init(String jsonString) throws PluginException {
         // TODO Auto-generated method stub
-
+        try {
+            init(new JsonConfig(jsonString));
+        } catch (UnsupportedEncodingException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (IOException e) {
+            throw new PluginException(e.getMessage());
+        }
     }
 }

@@ -52,6 +52,7 @@ class DetailData:
         uri = URLDecoder.decode(request.getAttribute("RequestURI"))
         basePath = portalId + "/" + pageName
         self.__oid = uri[len(basePath)+1:]
+        self.__object = self.__storage.getObject(self.__oid)
         slash = self.__oid.rfind("/")
         self.__pid = self.__oid[slash+1:]
         print " * detail.py: uri='%s' oid='%s' pid='%s'" % (uri, self.__oid, self.__pid)
@@ -97,7 +98,8 @@ class DetailData:
         return self.__metadata
     
     def getObject(self):
-        return self.__storage.getObject(self.__oid)
+        return self.__object
+        #return self.__storage.getObject(self.__oid)
     
     def getStorageId(self):
         obj = self.getObject()

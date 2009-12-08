@@ -19,6 +19,7 @@
 package au.edu.usq.fascinator.storage.fedora;
 
 import java.io.IOException;
+import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -66,13 +67,16 @@ public class Fedora3DigitalObject extends GenericDigitalObject {
                 if (dsProfile.getDsAltID() != null) {
                     // Use the PayloadType and dsId from AltID
                     // The dsId will be used to search the data straem in fedora
+
                     String[] altId = dsProfile.getDsAltID().split(":");
-                    ds.setId(altId[1]);
+                    String altId1 = URLDecoder.decode(altId[1], "UTF-8");
+                    ds.setId(altId1);
                     ds.setLabel(dst.getLabel());
                     ds.setType(PayloadType.valueOf(altId[0]));
                     if (ds.getType().equals(PayloadType.Data)) {
                         // If it's a source, set the source there
-                        setSourceId(dst.getDsid());
+                        // setSourceId(dst.getDsid());
+                        setSourceId(altId1);
                     }
                     ds.setContentType(dst.getMimeType());
                     dsList.add(ds);

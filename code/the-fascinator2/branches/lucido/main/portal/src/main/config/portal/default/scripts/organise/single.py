@@ -22,7 +22,6 @@ class OrganiseData:
         self.__portal = Services.portalManager.get(portalId)
         self.__result = JsonConfigHelper()
         self.__pageNum = sessionState.get("pageNum", 1)
-        print " **** %s" % sessionState.getClass().getResource("/")
         self.__selected = []
         
         self.__storage = Services.storage
@@ -31,7 +30,10 @@ class OrganiseData:
         self.__oid = uri[len(basePath)+1:]
         slash = self.__oid.rfind("/")
         self.__pid = self.__oid[slash+1:]
-        payload = self.__storage.getPayload(self.__oid, self.__pid)
+        print "uri='%s' oid='%s' pid='%s'" % (uri, self.__oid, self.__pid)
+        payload = None
+        if (self.__oid is not None and self.__oid != ""):
+            payload = self.__storage.getPayload(self.__oid, self.__pid)
         if payload is not None:
             self.__mimeType = payload.contentType
         else:
