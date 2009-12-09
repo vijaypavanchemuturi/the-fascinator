@@ -142,28 +142,32 @@ public class AddDoc {
     }
 
     /* Internal helper methods */
-    private static JAXBContext context;
-    private static Marshaller marshaller;
-    private static Unmarshaller unmarshaller;
+    // private static JAXBContext context;
+    // private static Marshaller marshaller;
+    // private static Unmarshaller unmarshaller;
 
     private static JAXBContext getContext() throws JAXBException {
-        if (context == null) {
-            context = JAXBContext.newInstance(AddDoc.class);
-        }
-        return context;
+        // if (context == null) {
+        // context = JAXBContext.newInstance(AddDoc.class);
+        // }
+        // return context;
+        return JAXBContext.newInstance(AddDoc.class);
     }
 
     private static Marshaller getMarshaller() throws JAXBException {
-        if (marshaller == null) {
-            marshaller = getContext().createMarshaller();
-        }
-        return marshaller;
+        // if (marshaller == null) {
+        // marshaller = getContext().createMarshaller();
+        // }
+        // return marshaller;
+        return getContext().createMarshaller();
     }
 
     private static Unmarshaller getUnmarshaller() throws JAXBException {
-        if (unmarshaller == null) {
-            unmarshaller = getContext().createUnmarshaller();
-        }
-        return unmarshaller;
+        // if (unmarshaller == null) {
+        // unmarshaller = getContext().createUnmarshaller();
+        // }
+        // return unmarshaller;
+        return getContext().createUnmarshaller();
+
     }
 }

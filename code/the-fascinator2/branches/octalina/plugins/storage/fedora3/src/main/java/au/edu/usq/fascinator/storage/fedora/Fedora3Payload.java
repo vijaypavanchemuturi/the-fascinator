@@ -24,20 +24,41 @@ import java.io.InputStream;
 import au.edu.usq.fascinator.common.storage.impl.GenericPayload;
 import au.edu.usq.fedora.RestClient;
 
+/**
+ * Represent each Datastream of Fedora object
+ * 
+ * @author Linda Octalina & Oliver Lucido
+ * 
+ */
 public class Fedora3Payload extends GenericPayload {
 
+    /** API to talk to Fedora **/
     private RestClient client;
 
+    /** object id **/
     private String oid;
 
+    /** payload id **/
     private String pid;
 
+    /**
+     * Constructor method for Fedora3Payload
+     * 
+     * @param client
+     * @param oid
+     * @param pid
+     */
     public Fedora3Payload(RestClient client, String oid, String pid) {
         this.client = client;
         this.oid = oid;
         this.pid = pid;
     }
 
+    /**
+     * Get the inputstream of the payload
+     * 
+     * @return InputStream of the payload
+     */
     @Override
     public InputStream getInputStream() throws IOException {
         return client.getStream(oid, pid);

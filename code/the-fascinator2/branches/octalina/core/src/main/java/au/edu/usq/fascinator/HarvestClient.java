@@ -35,7 +35,6 @@ import au.edu.usq.fascinator.api.PluginException;
 import au.edu.usq.fascinator.api.PluginManager;
 import au.edu.usq.fascinator.api.harvester.Harvester;
 import au.edu.usq.fascinator.api.harvester.HarvesterException;
-import au.edu.usq.fascinator.api.indexer.Indexer;
 import au.edu.usq.fascinator.api.storage.DigitalObject;
 import au.edu.usq.fascinator.api.storage.Payload;
 import au.edu.usq.fascinator.api.storage.PayloadType;
@@ -68,7 +67,7 @@ public class HarvestClient {
     public HarvestClient(File jsonFile) throws IOException {
         configFile = jsonFile;
         config = new JsonConfig(jsonFile);
-        cb = new ConveyerBelt(jsonFile);
+        cb = new ConveyerBelt(jsonFile, "extractor");
     }
 
     public void run() {
@@ -77,17 +76,12 @@ public class HarvestClient {
         long start = System.currentTimeMillis();
         log.info("Started at " + now);
 
-        Storage storage, realStorage;
+        Storage storage;
         try {
-            realStorage = PluginManager.getStorage(config.get("storage/type",
+            storage = PluginManager.getStorage(config.get("storage/type",
                     DEFAULT_STORAGE_TYPE));
-            log.info("sss" + config.get("storage/type") + realStorage);
-            Indexer indexer = PluginManager.getIndexer(config.get(
-                    "indexer/type", DEFAULT_INDEXER_TYPE));
-            storage = new IndexedStorage(realStorage, indexer);
             storage.init(configFile);
-            log.info("Loaded {} and {}", realStorage.getName(), indexer
-                    .getName());
+            log.info("Loaded {}", storage.getName());
         } catch (Exception e) {
             log.error("Failed to initialise storage", e);
             return;
@@ -101,7 +95,7 @@ public class HarvestClient {
         try {
             log.debug("Caching rules file " + rulesFile);
             DigitalObject rulesObject = new RulesDigitalObject(rulesFile);
-            realStorage.addObject(rulesObject);
+            storage.addObject(rulesObject);
             rulesOid = rulesObject.getId();
         } catch (StorageException se) {
             log.error("Failed to cache indexing rules, stopping", se);
@@ -122,11 +116,13 @@ public class HarvestClient {
             log.error("Failed to initialise harvester plugin", pe);
             return;
         }
+
+        QueueStorage qs = new QueueStorage(storage, configFile);
         do {
             try {
                 for (DigitalObject item : harvester.getObjects()) {
                     try {
-                        processObject(storage, item, rulesOid);
+                        processObject(qs, item, rulesOid);
                     } catch (Exception e) {
                         log.warn("Processing failed: " + item.getId(), e);
                     }
@@ -139,7 +135,7 @@ public class HarvestClient {
         do {
             try {
                 for (DigitalObject item : harvester.getDeletedObjects()) {
-                    storage.removeObject(item.getId());
+                    qs.removeObject(item.getId());
                 }
             } catch (HarvesterException he) {
                 log.error("Failed to delete", he);
@@ -163,15 +159,8 @@ public class HarvestClient {
         try {
             log.info("Processing " + oid + "...");
 
-            File oidFile = new File(oid);
-            Payload noRender = object.getPayload(oidFile.getName() + ".render");
-
-            if (noRender == null) {
-                // Calling conveyer
-                object = cb.transform(object);
-            } else {
-                object.removePayload(noRender);
-            }
+            // Calling conveyer to perform aperture transformation
+            object = cb.transform(object);
 
             Properties sofMeta = new Properties();
             sofMeta.setProperty("objectId", oid);
@@ -196,15 +185,15 @@ public class HarvestClient {
             sofMetaDs.setInputStream(new ByteArrayInputStream(sofMetaOut
                     .toByteArray()));
             sofMetaDs.setType(PayloadType.Annotation);
+            log.info("-- adding softmeta to: " + oid);
             storage.addPayload(oid, sofMetaDs);
 
             storage.addObject(object);
 
         } catch (StorageException re) {
             throw new IOException(re.getMessage());
-        } catch (TransformerException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+        } catch (TransformerException te) {
+            throw new IOException(te.getMessage());
         }
         return sid;
     }

@@ -140,9 +140,8 @@ class OrganiseData:
             for key in manifest.keySet():
                 item = manifest.get(key)
                 id = item.get("id")
-                print " ***** doc", len(self.__result.getList("response/docs[@id='%s']" % id))
-                if len(self.__result.getList("response/docs[@id='%s']" % id)) == 0:
-                    print " * id =",id," =" ,self.__result.getList("response/docs[@id='%s']" % id)
+                doc = self.__result.getList('response/docs[@id="%s"]' % id)
+                if len(doc) == 0:
                     portal.removePath("manifest//%s" % key)
             Services.getPortalManager().save(portal)
     
