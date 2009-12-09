@@ -18,6 +18,7 @@
  */
 package au.edu.usq.fascinator.common;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -85,6 +86,10 @@ public class JsonConfig {
             userConfig = new JsonConfigHelper(jsonIn);
         }
         systemConfig = new JsonConfigHelper(getSystemFile());
+    }
+
+    public JsonConfig(String jsonString) throws IOException {
+        this(new ByteArrayInputStream(jsonString.getBytes("UTF-8")));
     }
 
     /**

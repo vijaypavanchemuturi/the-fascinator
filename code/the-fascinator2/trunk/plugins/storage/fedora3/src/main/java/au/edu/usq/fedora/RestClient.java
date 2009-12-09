@@ -49,16 +49,27 @@ import au.edu.usq.fedora.types.ObjectDatastreamsType;
 import au.edu.usq.fedora.types.PidListType;
 import au.edu.usq.fedora.types.ResultType;
 
+/**
+ * Fedora REST API
+ * 
+ * @author Oliver Lucido
+ * 
+ */
 public class RestClient extends BasicHttpClient {
 
+    /** Logger **/
     private Logger log = LoggerFactory.getLogger(RestClient.class);
 
+    /**
+     * RestClient Constructor
+     * 
+     * @param baseUrl
+     */
     public RestClient(String baseUrl) {
         super(baseUrl);
     }
 
-    // Access methods (Fedora 2.2/3.0 compatible)
-
+    /** Access methods (Fedora 2.2/3.0 compatible) */
     public enum FindObjectsType {
         QUERY("query"), TERMS("terms"), SESSION_TOKEN("sessionToken");
 
@@ -74,21 +85,57 @@ public class RestClient extends BasicHttpClient {
         }
     };
 
+    /**
+     * Find objects method
+     * 
+     * @param terms
+     * @param maxResults
+     * @return ResultType
+     * @throws IOException
+     */
     public ResultType findObjects(String terms, int maxResults)
             throws IOException {
         return findObjects(terms, maxResults, null);
     }
 
+    /**
+     * Find objects methods
+     * 
+     * @param terms
+     * @param maxResults
+     * @param fields
+     * @return ResultType
+     * @throws IOException
+     */
     public ResultType findObjects(String terms, int maxResults, String[] fields)
             throws IOException {
         return findObjects(FindObjectsType.TERMS, terms, maxResults, fields);
     }
 
+    /**
+     * Find objects methods
+     * 
+     * @param type
+     * @param queryOrTermsOrToken
+     * @param maxResults
+     * @return ResultType
+     * @throws IOException
+     */
     public ResultType findObjects(FindObjectsType type,
             String queryOrTermsOrToken, int maxResults) throws IOException {
         return findObjects(type, queryOrTermsOrToken, maxResults, null);
     }
 
+    /**
+     * Find objects methods
+     * 
+     * @param type
+     * @param queryOrTermsOrToken
+     * @param maxResults
+     * @param fields
+     * @return ResultType
+     * @throws IOException
+     */
     public ResultType findObjects(FindObjectsType type,
             String queryOrTermsOrToken, int maxResults, String[] fields)
             throws IOException {
@@ -127,15 +174,37 @@ public class RestClient extends BasicHttpClient {
         return result;
     }
 
+    /**
+     * Resume find object
+     * 
+     * @param token
+     * @return found token object
+     * @throws IOException
+     */
     public ResultType resumeFindObjects(String token) throws IOException {
         return findObjects(FindObjectsType.SESSION_TOKEN, token, 0, null);
     }
 
+    /**
+     * Resume find object
+     * 
+     * @param token
+     * @param fields
+     * @return found token object
+     * @throws IOException
+     */
     public ResultType resumeFindObjects(String token, String[] fields)
             throws IOException {
         return findObjects(FindObjectsType.SESSION_TOKEN, token, 0, fields);
     }
 
+    /**
+     * Get a list of datastream belong to the fedora id
+     * 
+     * @param pid
+     * @return ObjectDatastreamsType
+     * @throws IOException
+     */
     public ObjectDatastreamsType listDatastreams(String pid) throws IOException {
         ObjectDatastreamsType result = null;
         try {
@@ -160,6 +229,14 @@ public class RestClient extends BasicHttpClient {
         return result;
     }
 
+    /**
+     * Get datastream from fedora
+     * 
+     * @param pid
+     * @param datastreamId
+     * @return DatastreamProfile
+     * @throws IOException
+     */
     public DatastreamProfile getDatastream(String pid, String datastreamId)
             throws IOException {
         DatastreamProfile result = null;
@@ -189,10 +266,27 @@ public class RestClient extends BasicHttpClient {
         return result;
     }
 
+    /**
+     * Get the status if object exist in Fedora
+     * 
+     * @param pid
+     * @param out
+     * @return status of the get
+     * @throws IOException
+     */
     public int get(String pid, OutputStream out) throws IOException {
         return get(pid, null, out);
     }
 
+    /**
+     * Get the status if object exist in Fedora
+     * 
+     * @param pid
+     * @param dsId
+     * @param out
+     * @return status of the get
+     * @throws IOException
+     */
     public int get(String pid, String dsId, OutputStream out)
             throws IOException {
         StringBuilder uri = new StringBuilder(getBaseUrl());
@@ -213,6 +307,14 @@ public class RestClient extends BasicHttpClient {
         return status;
     }
 
+    /**
+     * Get InputStream of a Datastream
+     * 
+     * @param pid
+     * @param dsId
+     * @return stream of the datastream
+     * @throws IOException
+     */
     public InputStream getStream(String pid, String dsId) throws IOException {
         StringBuilder uri = new StringBuilder(getBaseUrl());
         uri.append("/get/");
@@ -230,12 +332,24 @@ public class RestClient extends BasicHttpClient {
         return null;
     }
 
-    // Management methods (Fedora 3.0 only)
-
+    /**
+     * Management methods (Fedora 3.0 only)
+     * 
+     * @return result
+     * @throws IOException
+     */
     public String getNextPid() throws IOException {
         return getNextPid(1, null).getPids().get(0);
     }
 
+    /**
+     * Get next fedora id
+     * 
+     * @param numPids
+     * @param namespace
+     * @return PidListType
+     * @throws IOException
+     */
     public PidListType getNextPid(int numPids, String namespace)
             throws IOException {
         PidListType result = null;
@@ -264,6 +378,14 @@ public class RestClient extends BasicHttpClient {
         return result;
     }
 
+    /**
+     * Create new object in Fedora
+     * 
+     * @param label
+     * @param namespace
+     * @return created fedoraid
+     * @throws IOException
+     */
     public String createObject(String label, String namespace)
             throws IOException {
         String pid = namespace + ":" + UUID.randomUUID().toString();
@@ -274,6 +396,14 @@ public class RestClient extends BasicHttpClient {
         return pid;
     }
 
+    /**
+     * Ingest file to fedora repository
+     * 
+     * @param pid
+     * @param label
+     * @param content
+     * @throws IOException
+     */
     public void ingest(String pid, String label, File content)
             throws IOException {
         Properties options = new Properties();
@@ -281,6 +411,14 @@ public class RestClient extends BasicHttpClient {
         ingest(pid, options, content);
     }
 
+    /**
+     * Ingest file to fedora repository
+     * 
+     * @param pid
+     * @param options
+     * @param content
+     * @throws IOException
+     */
     public void ingest(String pid, Properties options, File content)
             throws IOException {
         StringBuilder uri = new StringBuilder(getBaseUrl());
@@ -306,6 +444,17 @@ public class RestClient extends BasicHttpClient {
         method.releaseConnection();
     }
 
+    /**
+     * Add new datastream to current fedora object
+     * 
+     * @param pid
+     * @param dsId
+     * @param dsLabel
+     * @param contentType
+     * @param payloadType
+     * @param content
+     * @throws IOException
+     */
     public void addDatastream(String pid, String dsId, String dsLabel,
             String contentType, String payloadType, String content)
             throws IOException {
@@ -319,6 +468,17 @@ public class RestClient extends BasicHttpClient {
         addDatastream(pid, dsId, options, contentType, payloadType, request);
     }
 
+    /**
+     * Add new datastream to current fedora object
+     * 
+     * @param pid
+     * @param dsId
+     * @param dsLabel
+     * @param contentType
+     * @param payloadType
+     * @param content
+     * @throws IOException
+     */
     public void addDatastream(String pid, String dsId, String dsLabel,
             String contentType, String payloadType, File content)
             throws IOException {
@@ -331,6 +491,17 @@ public class RestClient extends BasicHttpClient {
         addDatastream(pid, dsId, options, contentType, payloadType, request);
     }
 
+    /**
+     * Add new External datastream to current fedora object
+     * 
+     * @param pid
+     * @param dsId
+     * @param dsLabel
+     * @param contentType
+     * @param payloadType
+     * @param dsLocation
+     * @throws IOException
+     */
     public void addExternalDatastream(String pid, String dsId, String dsLabel,
             String contentType, String payloadType, String dsLocation)
             throws IOException {
@@ -344,6 +515,17 @@ public class RestClient extends BasicHttpClient {
         addDatastream(pid, dsId, options, contentType, payloadType, request);
     }
 
+    /**
+     * Add new datastream to current fedora object
+     * 
+     * @param pid
+     * @param dsId
+     * @param options
+     * @param contentType
+     * @param payloadType
+     * @param request
+     * @throws IOException
+     */
     private void addDatastream(String pid, String dsId, Properties options,
             String contentType, String payloadType, RequestEntity request)
             throws IOException {
@@ -371,6 +553,14 @@ public class RestClient extends BasicHttpClient {
         method.releaseConnection();
     }
 
+    /**
+     * Modify current datastream
+     * 
+     * @param pid
+     * @param dsId
+     * @param content
+     * @throws IOException
+     */
     public void modifyDatastream(String pid, String dsId, String content)
             throws IOException {
         StringBuilder uri = new StringBuilder(getBaseUrl());
@@ -385,10 +575,42 @@ public class RestClient extends BasicHttpClient {
         method.releaseConnection();
     }
 
+    /**
+     * Purge datastream method *Not sure if it will work yet*....
+     * 
+     * @param pid
+     * @param dsId
+     * @throws IOException
+     */
+    public void purgeDatastream(String pid, String dsId) throws IOException {
+        StringBuilder uri = new StringBuilder(getBaseUrl());
+        uri.append("/objects/");
+        uri.append(pid);
+        uri.append("/datastreams/");
+        uri.append(dsId);
+        uri.append("true");
+        DeleteMethod method = new DeleteMethod(uri.toString());
+        executeMethod(method);
+        method.releaseConnection();
+    }
+
+    /**
+     * Purge fedora Digital object
+     * 
+     * @param pid
+     * @throws IOException
+     */
     public void purgeObject(String pid) throws IOException {
         purgeObject(pid, false);
     }
 
+    /**
+     * Purge fedora Digital object
+     * 
+     * @param pid
+     * @param force
+     * @throws IOException
+     */
     public void purgeObject(String pid, boolean force) throws IOException {
         StringBuilder uri = new StringBuilder(getBaseUrl());
         uri.append("/objects/");
@@ -400,6 +622,13 @@ public class RestClient extends BasicHttpClient {
         method.releaseConnection();
     }
 
+    /**
+     * Export fedora Digital Object
+     * 
+     * @param pid
+     * @param out
+     * @throws IOException
+     */
     public void export(String pid, OutputStream out) throws IOException {
         StringBuilder uri = new StringBuilder(getBaseUrl());
         uri.append("/objects/");
@@ -417,8 +646,14 @@ public class RestClient extends BasicHttpClient {
         method.releaseConnection();
     }
 
-    // Helper methods
-
+    /**
+     * Helper methods
+     * 
+     * @param uri
+     * @param options
+     * @param name
+     * @throws IOException
+     */
     private void addParam(StringBuilder uri, Properties options, String name)
             throws IOException {
         String value = options.getProperty(name);
@@ -434,6 +669,12 @@ public class RestClient extends BasicHttpClient {
         }
     }
 
+    /**
+     * Get mimetype
+     * 
+     * @param file
+     * @return the mimetype of the file
+     */
     private String getMimeType(File file) {
         return MimetypesFileTypeMap.getDefaultFileTypeMap()
                 .getContentType(file);
