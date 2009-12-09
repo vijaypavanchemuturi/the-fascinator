@@ -138,19 +138,29 @@ public class FileSystemStorage implements Storage {
         File parentDir = payloadFile.getParentFile();
         parentDir.mkdirs();
         try {
-            FileOutputStream out = new FileOutputStream(payloadFile);
+            // FileOutputStream out = new FileOutputStream(payloadFile);
             File realFile = new File(oid);
             PayloadType type = payload.getType();
             // if (realFile.isFile()
             // && (Data.equals(type) || External.equals(type))) {
             if (useLink && (Data.equals(type) || External.equals(type))) {
+                FileOutputStream out = new FileOutputStream(payloadFile);
                 filePayload.setLinked(true);
                 filePayload.updateMeta(false);
                 IOUtils.write(oid, out);
+                out.close();
             } else {
-                IOUtils.copy(filePayload.getInputStream(), out);
+                File tempFile = File.createTempFile("payload", ".temp");
+                FileOutputStream tempOut = new FileOutputStream(tempFile);
+                IOUtils.copy(filePayload.getInputStream(), tempOut);
+                tempOut.close();
+                FileUtils.copyFile(tempFile, payloadFile);
+
+                // IOUtils.copy(tempOut, out);
+                // log.info("sofmeta: " +
+                // FileUtils.readFileToString(payloadFile));
             }
-            out.close();
+            // out.close();
         } catch (IOException ioe) {
             log.error("Failed to add payload", ioe);
         }

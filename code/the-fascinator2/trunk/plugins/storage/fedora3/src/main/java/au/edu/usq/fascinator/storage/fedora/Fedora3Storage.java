@@ -40,24 +40,49 @@ import au.edu.usq.fedora.types.ListSessionType;
 import au.edu.usq.fedora.types.ObjectFieldType;
 import au.edu.usq.fedora.types.ResultType;
 
+/**
+ * Fedora3 storage to store DigitalObject
+ * 
+ * @author Linda Octalina & Oliver Lucido
+ * 
+ */
 public class Fedora3Storage implements Storage {
 
+    /** Default fedora url **/
     private static final String DEFAULT_URL = "http://localhost:8080/fedora";
 
+    /** Default fedora id namespace **/
     private static final String DEFAULT_NAMESPACE = "uuid";
 
+    /** Logger **/
     private Logger log = LoggerFactory.getLogger(Fedora3Storage.class);
 
+    /** API to talk to Fedora **/
     private RestClient client;
 
+    /**
+     * Get the storage id
+     * 
+     * @return storageId
+     */
     public String getId() {
         return "fedora3";
     }
 
+    /**
+     * Get the storage Name
+     * 
+     * @return storageName
+     */
     public String getName() {
         return "Fedora Commons 3.x Storage Module";
     }
 
+    /**
+     * Fedora3 storage initialisation method
+     * 
+     * @param jsonFile
+     */
     public void init(File jsonFile) throws StorageException {
         try {
             JsonConfig config = new JsonConfig(jsonFile);
@@ -70,17 +95,27 @@ public class Fedora3Storage implements Storage {
             if (userName != null && password != null) {
                 client.authenticate(userName, password);
             } else {
-                new StorageException("Not Fedora 3");
+                throw new StorageException("Not Fedora 3");
             }
-        } catch (IOException ioe) {
-            throw new StorageException(ioe);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new StorageException(e);
         }
     }
 
+    /**
+     * Fedora3 shut down method
+     */
     public void shutdown() throws StorageException {
-        // Don't need to do anything
     }
 
+    /**
+     * Fedora3 adding new Digital Object method
+     * 
+     * @param object
+     * @return fedoraId
+     */
     public String addObject(DigitalObject object) throws StorageException {
         String fedoraId = null;
         String oid = object.getId();
@@ -104,6 +139,11 @@ public class Fedora3Storage implements Storage {
         return fedoraId;
     }
 
+    /**
+     * Fedora3 removing Digital object method
+     * 
+     * @param oid
+     */
     public void removeObject(String oid) {
         try {
             client.purgeObject(getFedoraId(oid));
@@ -112,6 +152,12 @@ public class Fedora3Storage implements Storage {
         }
     }
 
+    /**
+     * Fedora3 creating new Digital object method
+     * 
+     * @param oid
+     * @return fedoraId
+     */
     private String createObject(String oid) {
         try {
             return client.createObject(oid, DEFAULT_NAMESPACE);
@@ -121,6 +167,12 @@ public class Fedora3Storage implements Storage {
         return null;
     }
 
+    /**
+     * Fedora3 adding payload method
+     * 
+     * @param oid: object id
+     * @param payload
+     */
     public void addPayload(String oid, Payload payload) {
         try {
             String fedoraId = getFedoraId(oid);
@@ -136,24 +188,45 @@ public class Fedora3Storage implements Storage {
             IOUtils.copy(payload.getInputStream(), fos);
             fos.close();
 
-            // Fedora does not like the id to have slash
-            // The payload type and the original id is stored in AltIDs in
-            // payloadType:dsId format
+            // NOTE: Fedora does not like id and altId to have special
+            // characters like slash or spaces, thus, we are doing the encoding
+            // here. The AltId is in PayloadType:dsId format
 
             client.addDatastream(fedoraId, "DS" + DigestUtils.md5Hex(dsId),
                     dsLabel, type, payloadType + ":"
                             + URLEncoder.encode(dsId, "UTF-8"), tmpFile);
             tmpFile.delete();
-            // TODO managed content
         } catch (IOException ioe) {
             log.debug("Failed to add " + payload + " to item " + oid, ioe);
         }
     }
 
+    /**
+     * FedoraId remove payload method NOTE: note sure if it's working yet...
+     * 
+     * @param oid
+     * @param pid
+     */
     public void removePayload(String oid, String pid) {
-        // TODO
+        String fedoraId;
+        try {
+            fedoraId = getFedoraId(oid);
+            Payload payload = getPayload(oid, pid);
+            if (fedoraId != null && payload != null) {
+                client.purgeDatastream(fedoraId, payload.getId());
+            }
+        } catch (IOException e) {
+            log.debug("Failed to remove " + pid + " from item " + oid, e);
+        }
+
     }
 
+    /**
+     * Get Digital object method
+     * 
+     * @param oid
+     * @return DigitalObject
+     */
     public DigitalObject getObject(String oid) {
         try {
             if (oid == null || oid.equals("")) {
@@ -171,6 +244,13 @@ public class Fedora3Storage implements Storage {
         return null;
     }
 
+    /**
+     * Get Payload from DigitalObject method
+     * 
+     * @param oid
+     * @param pid
+     * @return Payload
+     */
     public Payload getPayload(String oid, String pid) {
         DigitalObject object = getObject(oid);
         if (object != null) {
@@ -179,6 +259,13 @@ public class Fedora3Storage implements Storage {
         return null;
     }
 
+    /**
+     * Get fedora id method
+     * 
+     * @param oid
+     * @return
+     * @throws IOException
+     */
     private String getFedoraId(String oid) throws IOException {
         // TODO cache oid lookups?
         String pid = null;
@@ -203,15 +290,24 @@ public class Fedora3Storage implements Storage {
         return pid;
     }
 
+    /**
+     * Initialisation method that accept jsonString
+     * 
+     * @param jsonString
+     */
     @Override
     public void init(String jsonString) throws PluginException {
-        // TODO Auto-generated method stub
 
     }
 
+    /**
+     * Get List of FedoraDigitalObject *** To be implemented, this will be used
+     * for reindexing
+     */
     @Override
     public List<DigitalObject> getObjectList() {
-        // TODO Auto-generated method stub
+        // Try to use findObjects but need to know what's the term value to
+        // return all objects
         return null;
     }
 }

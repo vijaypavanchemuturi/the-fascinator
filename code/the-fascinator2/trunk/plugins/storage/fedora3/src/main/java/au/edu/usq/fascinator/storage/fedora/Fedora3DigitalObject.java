@@ -35,24 +35,40 @@ import au.edu.usq.fedora.types.DatastreamType;
 import au.edu.usq.fedora.types.ObjectDatastreamsType;
 
 /**
+ * Represent the DigitalObject in the Fedora repository
  * 
  * @author Oliver Lucido & Linda Octalina
  * 
  */
 public class Fedora3DigitalObject extends GenericDigitalObject {
 
+    /** Logger **/
     private Logger log = LoggerFactory.getLogger(Fedora3DigitalObject.class);
 
+    /** API to talk to Fedora **/
     private RestClient client;
 
+    /** fedoraId represent the DigitalObject stored in the Fedora Repository **/
     private String fedoraId;
 
+    /**
+     * Constructor method for Fedora3DigitalObject
+     * 
+     * @param client
+     * @param fedoraId
+     * @param oid
+     */
     public Fedora3DigitalObject(RestClient client, String fedoraId, String oid) {
         super(oid);
         this.fedoraId = fedoraId;
         this.client = client;
     }
 
+    /**
+     * Return the payload list for the FedoraDigitaObject
+     * 
+     * @return List<Payload> of payload
+     */
     @Override
     public List<Payload> getPayloadList() {
         List<Payload> dsList = new ArrayList<Payload>();
@@ -65,17 +81,16 @@ public class Fedora3DigitalObject extends GenericDigitalObject {
                 DatastreamProfile dsProfile = client.getDatastream(fedoraId,
                         dst.getDsid());
                 if (dsProfile.getDsAltID() != null) {
-                    // Use the PayloadType and dsId from AltID
-                    // The dsId will be used to search the data straem in fedora
-
+                    // AltID in Fedora store PayloadType and dsId in
+                    // PayloadType:dsId format
+                    // The dsId will be used to search the data stream in Fedora
                     String[] altId = dsProfile.getDsAltID().split(":");
                     String altId1 = URLDecoder.decode(altId[1], "UTF-8");
                     ds.setId(altId1);
                     ds.setLabel(dst.getLabel());
                     ds.setType(PayloadType.valueOf(altId[0]));
                     if (ds.getType().equals(PayloadType.Data)) {
-                        // If it's a source, set the source there
-                        // setSourceId(dst.getDsid());
+                        // If it's a source, set the source id
                         setSourceId(altId1);
                     }
                     ds.setContentType(dst.getMimeType());
