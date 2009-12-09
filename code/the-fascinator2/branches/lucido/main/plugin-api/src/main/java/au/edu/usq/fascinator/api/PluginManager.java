@@ -69,17 +69,17 @@ public class PluginManager {
      * @return a indexer plugin, or null if not found
      */
     public static Indexer getIndexer(String id) {
-        Indexer loaded = indexers.get(id);
-        if (loaded == null) {
-            ServiceLoader<Indexer> plugins = ServiceLoader.load(Indexer.class);
-            for (Indexer plugin : plugins) {
-                if (id.equals(plugin.getId())) {
-                    indexers.put(id, plugin);
-                    return plugin;
-                }
+        // Indexer loaded = indexers.get(id);
+        // if (loaded == null) {
+        ServiceLoader<Indexer> plugins = ServiceLoader.load(Indexer.class);
+        for (Indexer plugin : plugins) {
+            if (id.equals(plugin.getId())) {
+                // indexers.put(id, plugin);
+                return plugin;
             }
         }
-        return loaded;
+        // }
+        return null;
     }
 
     public static Map<String, Indexer> getIndexerPlugins() {

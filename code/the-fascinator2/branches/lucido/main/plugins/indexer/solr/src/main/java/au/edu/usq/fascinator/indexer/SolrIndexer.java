@@ -36,6 +36,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -152,8 +153,10 @@ public class SolrIndexer implements Indexer {
             propertiesId = config.get("indexer/propertiesId", "SOF-META");
 
             namespaces = new HashMap<String, String>();
-            DocumentFactory.getInstance().setXPathNamespaceURIs(namespaces);
-            saxReader = new SAXReader();
+            DocumentFactory docFactory = new DocumentFactory();
+            docFactory.setXPathNamespaceURIs(namespaces);
+
+            saxReader = new SAXReader(docFactory);
         }
         loaded = true;
     }
@@ -358,7 +361,7 @@ public class SolrIndexer implements Indexer {
             throws IOException {
         File tempFile = File.createTempFile(prefix, postfix);
         if (tempFiles == null) {
-            tempFiles = new ArrayList<File>();
+            tempFiles = Collections.synchronizedList(new ArrayList<File>());
         }
         tempFiles.add(tempFile);
         return tempFile;
@@ -370,7 +373,7 @@ public class SolrIndexer implements Indexer {
                 tempFile.delete();
             }
         }
-        tempFiles = new ArrayList<File>();
+        tempFiles = Collections.synchronizedList(new ArrayList<File>());
     }
 
     // Helper methods
