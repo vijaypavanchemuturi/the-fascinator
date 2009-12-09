@@ -159,7 +159,7 @@ public class HarvestClient {
         try {
             log.info("Processing " + oid + "...");
 
-            // Calling conveyer
+            // Calling conveyer to perform aperture transformation
             object = cb.transform(object);
 
             Properties sofMeta = new Properties();
@@ -185,6 +185,7 @@ public class HarvestClient {
             sofMetaDs.setInputStream(new ByteArrayInputStream(sofMetaOut
                     .toByteArray()));
             sofMetaDs.setType(PayloadType.Annotation);
+            log.info("-- adding softmeta to: " + oid);
             storage.addPayload(oid, sofMetaDs);
 
             storage.addObject(object);

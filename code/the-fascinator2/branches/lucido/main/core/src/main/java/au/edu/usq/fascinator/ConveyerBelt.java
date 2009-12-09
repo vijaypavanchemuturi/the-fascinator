@@ -15,8 +15,13 @@ import au.edu.usq.fascinator.api.transformer.Transformer;
 import au.edu.usq.fascinator.api.transformer.TransformerException;
 import au.edu.usq.fascinator.common.JsonConfig;
 
-//package au.edu.usq.fascinator.extractor.aperture.Extractor;
-
+/**
+ * ConveyerBelt class to handler transformation of an object e.g. ICE & aperture
+ * transformer
+ * 
+ * @author Oliver Lucido & Linda Octalina
+ * 
+ */
 public class ConveyerBelt {
     private JsonConfig config;
     private File jsonFile;
@@ -58,14 +63,12 @@ public class ConveyerBelt {
                         .getTransformer(pluginName.toString().trim());
                 try {
                     if (jsonFile == null) {
-                        // transPlugin.init(config.toString());
                         transPlugin.init(configString);
                     } else {
                         transPlugin.init(jsonFile);
                     }
                     result = transPlugin.transform(result);
                 } catch (PluginException e) {
-                    // TODO Auto-generated catch block
                     e.printStackTrace();
                 }
             }

@@ -26,6 +26,10 @@
     	   "url": "tcp://localhost:61616"
     	}
     },
+    "messaging": {
+    	"url": "tcp://localhost:61616", 
+    	"render-thread": "3"
+    },
     "indexer": {
         "type": "solr",
         "properties": "SOF-META",
