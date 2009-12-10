@@ -1,0 +1,57 @@
+{
+  "portal" : {
+    "name" : "local-files",
+    "description" : "Local Files 2",
+    "query" : "repository_name:\"Local Files 2\"",
+    "records-per-page" : "10",
+    "facet-count" : "10",
+    "facet-sort-by-count" : "false",
+    "backup" : {
+      "paths" : {
+        "_.fascinator_backup" : {
+          "path" : "${user.home}/.fascinator/backup",
+          "active" : "true",
+          "ignoreFilter" : ".svn|.ice|.*|~*",
+          "include-portal-view" : "true",
+          "storage" : {
+            "file-system" : {
+              "home" : "${user.home}/.fascinator/backup",
+              "use-link" : "false"
+            },
+            "type" : "file-system"
+          }
+        }
+      }
+    },
+    "facet-fields" : {
+      "file_path" : {
+        "label" : "Path",
+        "display" : "tree"
+      },
+      "f_dc_format" : {
+        "label" : "Format",
+        "display" : "tree"
+      },
+      "f_dc_creator" : {
+        "label" : "Author",
+        "display" : "list"
+      },
+      "f_dc_subject" : {
+        "label" : "Subject",
+        "display" : "list"
+      },
+      "f_dc_type" : {
+        "label" : "Type",
+        "display" : "list"
+      },
+      "repository_name" : {
+        "label" : "Source",
+        "display" : "list"
+      },
+      "repository_type" : {
+        "label" : "Source type",
+        "display" : "list"
+      }
+    }
+  }
+}
