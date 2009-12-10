@@ -8,7 +8,8 @@
     },
     
     "transformer": {
-        "conveyer": "aperture, ice2",
+        "extractor": ["aperture"],
+        "render": ["ice2"],
         "aperture": {
             "outputPath": "${java.io.tmpdir}/ice2-output"
         },
