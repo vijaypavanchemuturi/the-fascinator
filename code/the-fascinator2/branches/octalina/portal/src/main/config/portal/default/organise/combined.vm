@@ -1,0 +1,303 @@
+#macro(createNavTree $root $class)
+<ul class="$class">
+  #foreach($key in $root.keySet())
+    #set($item = $root.get($key))
+    #set($id = $item.get("id"))
+    #set($children = $item.getJsonMap("children"))
+    #set($numChildren = $children.keySet().size())
+    #set($hidden = "false")
+    #set($hidden = $item.get("hidden"))
+    <li #if($numChildren > 0)class="open"#end id="$key" rel="$id">
+      <a class="#if($id == $self.oid)clicked#end #if($hidden && $hidden == 'true')item-hidden#end" href="$portalPath/organise/$id">
+        $item.get("title")
+      </a>
+      #if($numChildren > 0)
+        #createNavTree($children "children")
+      #end
+    </li>
+  #end
+</ul>
+#end
+#macro(createToc $root $class)
+<ul class="$class">
+  #foreach($key in $root.keySet())
+    #set($item = $root.get($key))
+    #set($id = $item.get("id"))
+    #set($children = $item.getJsonMap("children"))
+    #set($numChildren = $children.keySet().size())
+    #set($hidden = "false")
+    #set($hidden = $item.get("hidden"))
+    #if(!$hidden || $hidden == "false")
+    <li>
+      <a href="$portalPath/$pageName/$id">$item.get("title")</a>
+      #if($numChildren > 0)
+        #createToc($children "page-toc-children")
+      #end
+    </li>
+    #end
+  #end
+</ul>
+#end
+#set($manifest = $self.manifest)
+#set($manifestItem = $self.manifestItem)
+#set($pageTitle = "$page.portal.description")
+<h2 id="page-heading">
+  $pageTitle
+  <span class="view-type right">
+    <a id="view-single" href="$portalPath/organise/single" rel="single">Single</a> |
+    <a class="selected"  id="view-combined" href="#" rel="combined">Combined</a>
+  </span>
+</h2>
+<div id="action-list" class="grid_4">
+  <div class="box menu">
+    <h2>Actions</h2>
+    <ul class="menu">
+      <li><a id="blog-this" href="#">Blog to WordPress...</a><li>
+    </ul>
+  </div>
+  #if($manifestItem.get("id"))
+  <div id="item-props" class="box">
+    <h2><a class="hidden" href="#">Properties</a></h2>
+    <form class="hidden" id="item-form" method="post">
+      <fieldset>
+        <p>
+          <label for="item_title">Title</label>
+          <input type="text" id="item_title" name="title" value='$manifestItem.get("title")' />
+        </p>
+        <p>
+          <label class="checkbox" for="item_hidden">Hidden</label>
+          <input class="checkbox" type="checkbox" id="item_hidden" name="hidden" #if($manifestItem.get("hidden")=="true")checked="checked"#end/>
+        </p>
+        <p>
+          <label class="checkbox" for="item_blog">Include in blog</label>
+          <input class="checkbox" type="checkbox" id="item_blog" name="blog" #if($manifestItem.get("blog")=="true")checked="checked"#end/>
+        </p>
+        <p class="message">
+          <img class="hidden" id="item-loading" src="$portalPath/images/icons/loading.gif" />
+          <span id="item-message"></span>
+        </p>
+      </fieldset>
+    </form>
+  </div>
+  #end
+  <div class="box menu toc">
+    <h2>Contents</h2>
+    <div id="toc">
+      #createNavTree($self.manifest "toc")
+    </div>
+    <div class="clear"></div>
+  </div>
+</div>
+<div class="grid_12" id="content">
+  <div class="box hidden" id="blog-form">
+    <h2>Blog to WordPress</h2>
+    <form id="blog" method="post">
+      <fieldset class="login">
+        <legend>Blog information</legend>
+        <p>
+          <label for="blog_url">Blog URL</label>
+          <input type="text" id="blog_url" name="blog_url" />
+        </p>
+        <p>
+          <label for="blog_title">Title</label>
+          <input type="text" id="blog_title" name="blog_title" value="$pageTitle"/>
+        </p>
+        <p>
+          <label for="blog_username">Username</label>
+          <input type="text" id="blog_username" name="blog_username" />
+        </p>
+        <p>
+          <label for="blog_password">Password</label>
+          <input type="password" id="blog_password" name="blog_password" />
+        </p>
+        <p class="message">
+          <img class="hidden" id="blog-loading" src="$portalPath/images/icons/loading.gif" />
+          <span id="blog-message"></span>
+        </p>
+        <input class="button" id="blog-accept" type="button" value="Blog" />
+        <input id="blog-cancel" type="button" value="Close" />
+      </fieldset>
+    </form>
+  </div>
+  <div id="preview" class="box articles">
+    <h2>Preview</h2>
+    <div class="content-preview">
+      <span class="mimetype" rel="$self.mimeType"></span>
+      <div class="first article clearfix">
+        <div class="content-preview-inline">$!self.content</div>
+      </div>
+    </div>
+  </div>
+</div>
+<script type="text/javascript" src="$portalPath/js/tree/jquery.tree.min.js"></script>
+<script type="text/javascript">
+$(function() {
+    if ($("#action-list div").length == 0) {
+        $("#result-list").removeClass("grid_12").addClass("grid_16");
+    }
+    
+    function sortResultItems() {
+        $("#results-combined .article.first").removeClass("first");
+        $("#results-combined div.result-item").sort(function(a, b) {
+            var idA = $(a).find(".article").attr("id");
+            var idB = $(b).find(".article").attr("id");
+            var elemA = $("#toc li[rel='" + idA + "']");
+            var elemB = $("#toc li[rel='" + idB + "']")
+            return $("#toc li").index(elemA) > $("#toc li").index(elemB) ? 1 : -1;
+        }).appendTo("#results");
+        $("#results-combined .result-item .article:first").addClass("first");
+    }
+    sortResultItems();
+    
+    function getParentIds(node) {
+        var parents = "";
+        $(node).parents("li").each(function() {
+            parents = "," + $(this).attr("id") + parents;
+        });
+        if (parents != "") {
+            parents = parents.substring(1);
+        }
+        return parents;
+    }
+    
+    $("#toc").tree({
+        ui: {
+            animation: 250,
+            dots: false,
+            theme_name: "classic"
+        },
+        callback: {
+            #*ondblclk: function(node, tree) {
+                $(node).find("> a").removeClass("clicked");
+                return tree.rename(node);
+            },*#
+            onrename: function(node, tree, rollback) {
+                jQuery.post("$portalPath/actions/manifest.ajax",
+                    {
+                        func: "rename",
+                        id: "$portalId",
+                        nodeId: $(node).attr("id"),
+                        title: $(node).children("a").text(),
+                        parents: getParentIds(node)
+                    });
+            },
+            onmove: function(node, refNode, type, tree, rollback) {
+                jQuery.post("$portalPath/actions/manifest.ajax",
+                    {
+                        func: "move",
+                        id: "$portalId",
+                        nodeId: $(node).attr("id"),
+                        refNodeId: $(refNode).attr("id"),
+                        parents: getParentIds(node),
+                        refParents: getParentIds(refNode),
+                        type: type
+                    });
+            },
+            onchange: function(node, tree) {
+                document.location.href = "$portalPath/organise/combined/" + $(node).attr("rel");
+            }
+        }
+    });
+    
+    $(".toc.hidden").removeClass("hidden");
+    
+    $("#view-single").click(function() {
+        $(".viewtype").removeClass("selected");
+        $(this).addClass("selected");
+        $("#results").addClass("hidden");
+        $("#results-combined, .result-item").addClass("hidden");
+    });
+    
+    $("#view-combined").click(function() {
+        $(".viewtype").removeClass("selected");
+        $(this).addClass("selected");
+        $("#results").addClass("hidden");
+        $("#results-combined, .result-item").removeClass("hidden");
+    });
+    
+    $("#item_hidden").click(function() {
+        var node = $(".clicked").parent("li");
+        jQuery.post("$portalPath/actions/manifest.ajax",
+            {
+                func: "set-hidden",
+                id: "$portalId",
+                nodeId: node.attr("id"),
+                parents: getParentIds(node),
+                hidden: $(this).is(":checked")
+            });
+    });
+    
+    $("#item_blog").click(function() {
+        var node = $(".clicked").parent("li");
+        jQuery.post("$portalPath/actions/manifest.ajax",
+            {
+                func: "set-blog",
+                id: "$portalId",
+                nodeId: node.attr("id"),
+                parents: getParentIds(node),
+                blog: $(this).is(":checked")
+            });
+    });
+    
+    $("#item-form").submit(function() {
+        var node = $(".clicked").parent("li");
+        var title = $("#item_title").attr("value");
+        jQuery.post("$portalPath/actions/manifest.ajax",
+            {
+                func: "rename",
+                id: "$portalId",
+                nodeId: node.attr("id"),
+                parents: getParentIds(node),
+                title: title
+            }, function() {
+                $("#item_title").blur();
+            });
+        node.find("> a").text(title);
+        return false;
+    });
+
+    function fixLinks(selector, attrName) {
+        $(selector).each(function() {
+            var oid = $(this).parents("div.combined-item").attr("rel");
+            var attr = $(this).attr(attrName);
+            if (attr != null) {
+                if (attr.indexOf("#") != 0 && attr.indexOf("://") == -1) {
+                    $(this).attr(attrName, "$portalPath/download/" + oid + "/" + attr);
+                }
+            }
+        });
+    }
+    fixLinks("div.content-preview-inline a", "href");
+    fixLinks("div.content-preview-inline img", "src");
+
+    $("#blog-this, #blog-cancel").click(function() {
+        $("#blog-this").toggleClass("selected");
+        $("#blog-message").empty();
+        $("#blog-form").toggle("blind");
+        return false;
+    });
+    $("#blog-accept").click(function() {
+        $("#blog-message").empty();
+        $("#blog-loading").show();
+        jQuery.post("$portalPath/actions/blog.ajax",
+            {
+                url: $("#blog_url").val(),
+                title: $("#blog_title").val(),
+                username: $("#blog_username").val(),
+                password: $("#blog_password").val(),
+                portalId: "$portalId",
+            },
+            function(data, status) {
+                $("#blog-loading").hide();
+                $("#blog-message").html(data);
+            }
+        );
+    });
+    
+    $("#item-props h2 a").click(function() {
+        $(this).toggleClass('hidden');
+        $("#item-form").toggle("blind").toggleClass('visible').toggleClass('hidden');
+        return false;
+    });
+});
+</script>
