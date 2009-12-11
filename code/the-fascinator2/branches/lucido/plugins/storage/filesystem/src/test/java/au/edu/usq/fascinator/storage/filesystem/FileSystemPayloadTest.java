@@ -15,7 +15,7 @@ public class FileSystemPayloadTest {
                 .toURI());
         System.err.println(sampleOdtFile.getAbsolutePath());
         FileSystemPayload fsp = new FileSystemPayload(sampleOdtFile
-                .getParentFile(), sampleOdtFile);
+                .getParentFile(), sampleOdtFile, false);
         Assert.assertEquals(PayloadType.External, fsp.getType());
         Assert.assertEquals("application/vnd.oasis.opendocument.text", fsp
                 .getContentType());

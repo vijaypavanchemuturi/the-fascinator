@@ -28,6 +28,7 @@ import java.util.Date;
 import java.util.Map;
 import java.util.Properties;
 
+import org.apache.log4j.MDC;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -65,6 +66,7 @@ public class HarvestClient {
     private ConveyerBelt cb;
 
     public HarvestClient(File jsonFile) throws IOException {
+        MDC.put("name", "client");
         configFile = jsonFile;
         config = new JsonConfig(jsonFile);
         cb = new ConveyerBelt(jsonFile, "extractor");
@@ -76,11 +78,13 @@ public class HarvestClient {
         long start = System.currentTimeMillis();
         log.info("Started at " + now);
 
+        QueueStorage queueStorage;
         Storage storage;
         try {
             storage = PluginManager.getStorage(config.get("storage/type",
                     DEFAULT_STORAGE_TYPE));
-            storage.init(configFile);
+            queueStorage = new QueueStorage(storage, configFile);
+            queueStorage.init(configFile);
             log.info("Loaded {}", storage.getName());
         } catch (Exception e) {
             log.error("Failed to initialise storage", e);
@@ -117,12 +121,11 @@ public class HarvestClient {
             return;
         }
 
-        QueueStorage qs = new QueueStorage(storage, configFile);
         do {
             try {
                 for (DigitalObject item : harvester.getObjects()) {
                     try {
-                        processObject(qs, item, rulesOid);
+                        processObject(queueStorage, item, rulesOid);
                     } catch (Exception e) {
                         log.warn("Processing failed: " + item.getId(), e);
                     }
@@ -135,7 +138,7 @@ public class HarvestClient {
         do {
             try {
                 for (DigitalObject item : harvester.getDeletedObjects()) {
-                    qs.removeObject(item.getId());
+                    queueStorage.removeObject(item.getId());
                 }
             } catch (HarvesterException he) {
                 log.error("Failed to delete", he);
@@ -143,7 +146,7 @@ public class HarvestClient {
         } while (harvester.hasMoreDeletedObjects());
 
         try {
-            storage.shutdown();
+            queueStorage.shutdown();
         } catch (PluginException e) {
             log.error("Failed to shutdown storage", e);
         }
@@ -178,14 +181,14 @@ public class HarvestClient {
                 sofMeta.setProperty(key, indexerParams.get(key).toString());
             }
             ByteArrayOutputStream sofMetaOut = new ByteArrayOutputStream();
-            log.info("**** sofmeta: " + sofMeta.toString());
+            log.debug("** sofmeta: " + sofMeta.toString());
             sofMeta.store(sofMetaOut, "The Fascinator Indexer Metadata");
             GenericPayload sofMetaDs = new GenericPayload("SOF-META",
                     "The Fascinator Indexer Metadata", "text/plain");
             sofMetaDs.setInputStream(new ByteArrayInputStream(sofMetaOut
                     .toByteArray()));
             sofMetaDs.setType(PayloadType.Annotation);
-            log.info("-- adding softmeta to: " + oid);
+            log.debug("-- adding softmeta to: " + oid);
             storage.addPayload(oid, sofMetaDs);
 
             storage.addObject(object);
