@@ -38,6 +38,7 @@ import org.apache.tapestry5.urlrewriter.URLRewriteContext;
 import org.apache.tapestry5.urlrewriter.URLRewriterRule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 
 import au.edu.usq.fascinator.api.PluginManager;
 import au.edu.usq.fascinator.api.indexer.Indexer;
@@ -57,6 +58,10 @@ public class PortalModule {
 
     @SuppressWarnings("unused")
     private static Logger log = LoggerFactory.getLogger(PortalModule.class);
+
+    static {
+        MDC.put("name", "main");
+    }
 
     public static void bind(ServiceBinder binder) {
         binder.bind(HarvestManager.class, HarvestManagerImpl.class);

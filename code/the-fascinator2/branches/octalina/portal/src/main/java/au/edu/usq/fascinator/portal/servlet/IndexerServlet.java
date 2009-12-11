@@ -12,10 +12,11 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.activemq.broker.BrokerService;
-import org.apache.log4j.Logger;
 import org.python.core.PySystemState;
-import org.slf4j.MDC;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import au.edu.usq.fascinator.HarvestQueueConsumer;
 import au.edu.usq.fascinator.RenderQueueConsumer;
@@ -29,15 +30,15 @@ import au.edu.usq.fascinator.common.JsonConfig;
  */
 public class IndexerServlet extends HttpServlet {
 
-    private Logger log = Logger.getLogger(IndexerServlet.class);
+    private Logger log = LoggerFactory.getLogger(IndexerServlet.class);
 
     private Timer timer;
 
-    private HarvestQueueConsumer service;
+    private HarvestQueueConsumer harvester;
 
     private List<RenderQueueConsumer> renderers;
 
-    private JsonConfig json;
+    private JsonConfig config;
 
     /**
      * activemq broker NOTE: Will use Fedora's broker if fedora is running,
@@ -47,23 +48,15 @@ public class IndexerServlet extends HttpServlet {
 
     @Override
     public void init() throws ServletException {
-        try {
-            json = new JsonConfig();
-        } catch (IOException e1) {
-            // TODO Auto-generated catch block
-            e1.printStackTrace();
-        }
-
-        broker = new BrokerService();
-
         // configure the broker
         try {
-            broker.addConnector(json.get("messaging/url",
-                    "tcp://localhost:61616"));
+            config = new JsonConfig();
+            broker = new BrokerService();
+            broker.addConnector(config.get("messaging/url",
+                    ActiveMQConnectionFactory.DEFAULT_BROKER_BIND_URL));
             broker.start();
         } catch (Exception e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            log.error("Failed to start broker: {}", e.getMessage());
         }
 
         // add jars for jython to scan for packages
@@ -80,7 +73,6 @@ public class IndexerServlet extends HttpServlet {
                 new String[] { "" });
         PySystemState.add_classdir(realPath + "WEB-INF/classes");
         PySystemState.add_classdir(realPath + "../../../target/classes");
-
         PySystemState.add_extdir(pythonHome, true);
 
         // use a timer to start the indexer because tomcat's deployment order
@@ -98,32 +90,26 @@ public class IndexerServlet extends HttpServlet {
     }
 
     private void startIndexer() {
-        MDC.put("name", "Main");
         log.info("Starting The Fascinator indexer...");
         try {
-            if (service == null) {
-                service = new HarvestQueueConsumer();
+            if (harvester == null) {
+                harvester = new HarvestQueueConsumer();
             }
-            service.start();
-            log.info("The Fascinator indexer was started successfully");
-            timer.cancel();
-            timer = null;
-        } catch (Exception e) {
-            log.warn("Will retry in 15 seconds.", e);
-        }
-
-        // Start the queue renderer
-        try {
+            harvester.start();
+            // start the render consumers
             if (renderers == null) {
                 renderers = new ArrayList<RenderQueueConsumer>();
-                for (int i = 0; i < Integer.parseInt(json.get(
-                        "messaging/render-thread", "3")); i++) {
+                for (int i = 0; i < Integer.parseInt(config.get(
+                        "messaging/render-threads", "3")); i++) {
                     renderers.add(new RenderQueueConsumer("render" + i));
                 }
             }
             for (RenderQueueConsumer rqc : renderers) {
                 rqc.start();
             }
+            log.info("The Fascinator indexer was started successfully");
+            timer.cancel();
+            timer = null;
         } catch (Exception e) {
             log.warn("Will retry in 15 seconds.", e);
         }
@@ -132,58 +118,28 @@ public class IndexerServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request,
             HttpServletResponse response) throws ServletException, IOException {
-        doPost(request, response);
+        // do nothing
     }
 
     @Override
     protected void doPost(HttpServletRequest request,
             HttpServletResponse response) throws ServletException, IOException {
-        /*
-         * String terms = request.getParameter("terms"); String query =
-         * request.getParameter("query");
-         * 
-         * if (isValidParam(terms) && isValidParam(query)) {
-         * response.sendError(500,
-         * "Must specify only TERMS or QUERY, not both"); } else {
-         * FindObjectsType searchType = null; String searchQuery = null;
-         * 
-         * if (isValidParam(terms)) { searchType = FindObjectsType.TERMS;
-         * searchQuery = terms; } else if (isValidParam(query)) { searchType =
-         * FindObjectsType.QUERY; searchQuery = query; } else {
-         * response.sendError(500,
-         * "Must specify items to reindex using TERMS or QUERY"); return; }
-         * 
-         * FedoraRestClient fedora = service.getFedoraClient(); boolean done =
-         * false; boolean first = true; ResultType results; String token = null;
-         * while (!done) { if (first) { first = false; results =
-         * fedora.findObjects(searchType, searchQuery, 25); } else { results =
-         * fedora.resumeFindObjects(token);
-         * log.info("Resuming search using token: " + token); } for
-         * (ObjectFieldType object : results.getObjectFields()) {
-         * service.index(object.getPid()); } ListSessionType session =
-         * results.getListSession(); if (session != null) { token =
-         * results.getListSession().getToken(); } else { token = null; } done =
-         * token == null; } }
-         */
-    }
-
-    private boolean isValidParam(String param) {
-        return (param != null) && (!"".equals(param.trim()));
+        // do nothing
     }
 
     @Override
     public void destroy() {
         try {
             broker.stop();
-        } catch (Exception e1) {
-            e1.printStackTrace();
+        } catch (Exception e) {
+            log.error("Failed to stop message broker: {}", e.getMessage());
         }
-        if (service != null) {
+        if (harvester != null) {
             try {
-                service.stop();
+                harvester.stop();
                 log.info("The Fascinator indexer stopped");
-            } catch (Exception me) {
-                log.error("Failed to stop the indexer", me);
+            } catch (Exception e) {
+                log.error("Failed to stop the harvester: {}", e.getMessage());
             }
         }
         if (renderers != null) {
@@ -191,8 +147,7 @@ public class IndexerServlet extends HttpServlet {
                 try {
                     rqc.stop();
                 } catch (Exception e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
+                    log.error("Failed to stop renderer: {}", e.getMessage());
                 }
             }
         }
