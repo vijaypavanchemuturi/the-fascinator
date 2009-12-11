@@ -47,13 +47,16 @@ public class FileSystemPayload extends GenericPayload {
 
     private boolean linked;
 
-    public FileSystemPayload(File homeDir, Payload payload) {
+    private boolean useLink;
+
+    public FileSystemPayload(File homeDir, Payload payload, boolean useLink) {
         super(payload);
         this.homeDir = homeDir;
+        this.useLink = useLink;
         updateMeta(true);
     }
 
-    public FileSystemPayload(File homeDir, File payloadFile) {
+    public FileSystemPayload(File homeDir, File payloadFile, boolean useLink) {
         this.homeDir = homeDir;
         file = payloadFile;
         if (file.isAbsolute()) {
@@ -61,6 +64,7 @@ public class FileSystemPayload extends GenericPayload {
         } else {
             setId(payloadFile.getPath());
         }
+        this.useLink = useLink;
         updateMeta(true);
 
     }
@@ -148,6 +152,8 @@ public class FileSystemPayload extends GenericPayload {
     }
 
     public boolean isLinked() {
-        return linked;
+        return linked
+                || (useLink && (PayloadType.Data.equals(getType()) || PayloadType.External
+                        .equals(getType())));
     }
 }

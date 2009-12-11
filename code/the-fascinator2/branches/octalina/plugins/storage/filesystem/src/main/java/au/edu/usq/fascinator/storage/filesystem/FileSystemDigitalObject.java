@@ -41,9 +41,12 @@ public class FileSystemDigitalObject extends GenericDigitalObject {
 
     private String hashId;
 
-    public FileSystemDigitalObject(File homeDir, String oid) {
+    private boolean useLink;
+
+    public FileSystemDigitalObject(File homeDir, String oid, boolean useLink) {
         super(oid);
         this.homeDir = homeDir;
+        this.useLink = useLink;
     }
 
     public String getHashId() {
@@ -92,7 +95,7 @@ public class FileSystemDigitalObject extends GenericDigitalObject {
                         payloadFile = new File(relPath, file.getName());
                     }
                     Payload payload = new FileSystemPayload(getPath(),
-                            payloadFile);
+                            payloadFile, useLink);
                     if (payload.getType().equals(PayloadType.Data)) {
                         setSourceId(payload.getId());
                     }

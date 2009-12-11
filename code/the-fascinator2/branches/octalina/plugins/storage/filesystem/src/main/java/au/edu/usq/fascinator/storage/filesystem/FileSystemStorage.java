@@ -115,7 +115,7 @@ public class FileSystemStorage implements Storage {
 
     public String addObject(DigitalObject object) throws StorageException {
         FileSystemDigitalObject fileObject = new FileSystemDigitalObject(
-                homeDir, object.getId());
+                homeDir, object.getId(), useLink);
         log.debug("Adding object {}", fileObject);
         for (Payload payload : object.getPayloadList()) {
             addPayload(fileObject.getId(), payload);
@@ -133,13 +133,13 @@ public class FileSystemStorage implements Storage {
         log.debug("Adding payload {} to {}", payload.getId(), oid);
         FileSystemDigitalObject fileObject = (FileSystemDigitalObject) getObject(oid);
         FileSystemPayload filePayload = new FileSystemPayload(fileObject
-                .getPath(), payload);
+                .getPath(), payload, useLink);
         File payloadFile = filePayload.getFile();
         File parentDir = payloadFile.getParentFile();
         parentDir.mkdirs();
         try {
             // FileOutputStream out = new FileOutputStream(payloadFile);
-            File realFile = new File(oid);
+            // File realFile = new File(oid);
             PayloadType type = payload.getType();
             // if (realFile.isFile()
             // && (Data.equals(type) || External.equals(type))) {
@@ -184,7 +184,7 @@ public class FileSystemStorage implements Storage {
 
     public DigitalObject getObject(String oid) {
         log.debug("Getting object {}", oid);
-        return new FileSystemDigitalObject(homeDir, oid);
+        return new FileSystemDigitalObject(homeDir, oid, useLink);
     }
 
     public Payload getPayload(String oid, String pid) {
