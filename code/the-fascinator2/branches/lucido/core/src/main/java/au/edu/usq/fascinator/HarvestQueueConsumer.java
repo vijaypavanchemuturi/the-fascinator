@@ -1,5 +1,5 @@
 /* 
- * The Fascinator - Fedora Commons 3.x storage plugin
+ * The Fascinator - Core
  * Copyright (C) 2009 University of Southern Queensland
  * 
  * This program is free software: you can redistribute it and/or modify
@@ -18,8 +18,8 @@
  */
 package au.edu.usq.fascinator;
 
+import java.io.File;
 import java.io.IOException;
-import java.util.Properties;
 
 import javax.jms.Connection;
 import javax.jms.DeliveryMode;
@@ -34,6 +34,7 @@ import javax.jms.TextMessage;
 import javax.xml.bind.JAXBException;
 
 import org.apache.activemq.ActiveMQConnectionFactory;
+import org.apache.log4j.MDC;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,16 +45,20 @@ import au.edu.usq.fascinator.api.indexer.IndexerException;
 import au.edu.usq.fascinator.common.JsonConfig;
 
 /**
- * Harvest Queue Consumer class
+ * Consumer for harvest transformers. Jobs in this queue should be short running
+ * processes as they are run at harvest time.
  * 
  * @author Oliver Lucido
- * 
+ * @author Linda Octalina
  */
 public class HarvestQueueConsumer implements MessageListener {
 
+    public static final String HARVEST_QUEUE = "harvest";
+
+    /** Logging */
     private Logger log = LoggerFactory.getLogger(HarvestQueueConsumer.class);
 
-    private Properties props;
+    private JsonConfig config;
 
     private Indexer indexer;
 
@@ -63,104 +68,105 @@ public class HarvestQueueConsumer implements MessageListener {
 
     private MessageConsumer consumer;
 
-    private Destination destination;
-
-    private JsonConfig config;
+    private MessageProducer producer;
 
     public HarvestQueueConsumer() throws IOException, JAXBException {
-        config = new JsonConfig();
         try {
+            config = new JsonConfig();
+            File sysFile = config.getSystemFile();
             indexer = PluginManager.getIndexer(config.get("indexer/type",
                     "solr"));
-            indexer.init(config.getSystemFile());
+            indexer.init(sysFile);
+        } catch (IOException ioe) {
+            log.error("Failed to read configuration: {}", ioe.getMessage());
         } catch (PluginException pe) {
-            log.error("Failed to initialise indexer: {}", pe.getMessage());
+            log.error("Failed to initialise plugin: {}", pe.getMessage());
         }
     }
 
-    public void start() throws Exception {
-        // Create a ConnectionFactory
+    public void start() throws JMSException {
+        log.info("Starting harvest consumer...");
+        String brokerUrl = config.get("messaging/url",
+                ActiveMQConnectionFactory.DEFAULT_BROKER_BIND_URL);
         ActiveMQConnectionFactory connectionFactory = new ActiveMQConnectionFactory(
-                config.get("messaging/url", "tcp://localhost:61616"));
-
-        // Create a Connection
-        Connection connection = connectionFactory.createConnection();
+                brokerUrl);
+        connection = connectionFactory.createConnection();
         connection.start();
-
-        // connection.setExceptionListener(this);
-
-        // Create a Session
-        Session session = connection.createSession(false,
-                Session.AUTO_ACKNOWLEDGE);
-
-        // Create the destination (Topic or Queue)
-        destination = session.createQueue("harvest");
-        consumer = session.createConsumer(destination);
+        session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
+        Destination harvestDest = session.createQueue(HARVEST_QUEUE);
+        consumer = session.createConsumer(harvestDest);
         consumer.setMessageListener(this);
+        Destination renderDest = session
+                .createQueue(RenderQueueConsumer.RENDER_QUEUE);
+        producer = session.createProducer(renderDest);
+        producer.setDeliveryMode(DeliveryMode.PERSISTENT);
     }
 
-    public void stop() throws Exception {
-        consumer.close();
-        session.close();
-        connection.close();
+    public void stop() {
+        log.info("Stopping harvest consumer...");
+        if (indexer != null) {
+            try {
+                indexer.shutdown();
+            } catch (PluginException pe) {
+                log.error("Failed to shutdown indexer: {}", pe.getMessage());
+            }
+        }
+        if (consumer != null) {
+            try {
+                consumer.close();
+            } catch (JMSException jmse) {
+                log.warn("Failed to close consumer: {}", jmse.getMessage());
+            }
+        }
+        if (producer != null) {
+            try {
+                producer.close();
+            } catch (JMSException jmse) {
+                log.warn("Failed to close producer: {}", jmse.getMessage());
+            }
+        }
+        if (session != null) {
+            try {
+                session.close();
+            } catch (JMSException jmse) {
+                log.warn("Failed to close session: {}", jmse.getMessage());
+            }
+        }
+        if (connection != null) {
+            try {
+                connection.close();
+            } catch (JMSException jmse) {
+                log.warn("Failed to close connection: {}", jmse.getMessage());
+            }
+        }
     }
 
     @Override
     public void onMessage(Message message) {
-        TextMessage tm = (TextMessage) message;
+        MDC.put("name", "harvest");
         try {
-            String text = tm.getText();
+            String text = ((TextMessage) message).getText();
             JsonConfig config = new JsonConfig(text);
             String oid = config.get("oid");
+            log.info("Indexing object...");
             indexer.index(oid);
-            queueRender(oid, text);
-        } catch (JMSException e) {
-            e.printStackTrace();
-        } catch (IndexerException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
+            log.info("Queuing render job...");
+            queueRenderJob(oid, text);
+        } catch (JMSException jmse) {
+            log.error("Failed to receive message: {}", jmse.getMessage());
+        } catch (IOException ioe) {
+            log.error("Failed to parse message: {}", ioe.getMessage());
+        } catch (IndexerException ie) {
+            log.error("Failed to index object: {}", ie.getMessage());
         }
-
     }
 
-    public void queueRender(String oid, String jsonString) {
+    private void queueRenderJob(String oid, String json) {
         try {
-            // Create a ConnectionFactory
-            ActiveMQConnectionFactory connectionFactory = new ActiveMQConnectionFactory(
-                    "tcp://localhost:61616");
-
-            // Create a Connection
-            Connection connection = connectionFactory.createConnection();
-            connection.start();
-
-            // Create a Session
-            Session session = connection.createSession(false,
-                    Session.AUTO_ACKNOWLEDGE);
-
-            // Create the destination (Topic or Queue)
-            Destination destination = session.createQueue("render");
-
-            // Create a MessageProducer from the Session to the Topic or
-            // Queue
-            MessageProducer producer = session.createProducer(destination);
-            producer.setDeliveryMode(DeliveryMode.PERSISTENT);
-
-            // Create a messages
-            TextMessage message = session.createTextMessage(jsonString);
-
-            // Tell the producer to send the message
-            System.out.println("Sent message: " + message.hashCode() + " : "
-                    + Thread.currentThread().getName());
+            TextMessage message = session.createTextMessage(json);
             producer.send(message);
-
-            // Clean up
-            session.close();
-            connection.close();
-        } catch (Exception e) {
-            System.out.println("Caught: " + e);
-            e.printStackTrace();
+        } catch (JMSException jmse) {
+            log.error("Failed to send message: {}", jmse.getMessage());
         }
-
     }
 }
