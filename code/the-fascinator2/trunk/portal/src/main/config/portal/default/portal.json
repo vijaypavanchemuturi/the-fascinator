@@ -71,5 +71,107 @@
         "display" : "list"
       }
     }
+  },
+  "manifest" : {
+    "node-c4231b7bd87a0da9c86cab1b6620a843" : {
+      "title" : "Assessment",
+      "id" : "/home/octalina/ICE/exportedCourse/edu8114/s1/intro_material/assessment.odt"
+    },
+    "node-a35b609863653bb7edec97c8a011c4a3" : {
+      "title" : "Authentic assessment and feedback",
+      "id" : "/home/octalina/ICE/exportedCourse/edu8114/s1/study-modules/theme06.odt"
+    },
+    "node-a5fc17fc7eef5894ca9e55d9519c5d11" : {
+      "title" : "Choosing your own dilemma",
+      "id" : "/home/octalina/ICE/exportedCourse/edu8114/s1/study-modules/theme07.odt"
+    },
+    "node-8a49df38e21e6e3bf510e3df2cbf2e80" : {
+      "title" : "Copyright",
+      "id" : "/home/octalina/ICE/exportedCourse/edu8114/s1/intro_material/generic/help/copyright.odt"
+    },
+    "node-2cdcb37eb812ba233ad68a44ab548309" : {
+      "title" : "Course evaluation",
+      "id" : "/home/octalina/ICE/exportedCourse/edu8114/s1/intro_material/generic/course_evaluation.odt"
+    },
+    "node-7d5d72034163151ef0d03dacd1fe6334" : {
+      "title" : "Creating and sustaining a sense of âpresenceâ online",
+      "id" : "/home/octalina/ICE/exportedCourse/edu8114/s1/study-modules/theme02a.odt"
+    },
+    "node-34ec03c4271db6132712f2c51c9f8251" : {
+      "title" : "Electronic assignment submission",
+      "id" : "/home/octalina/ICE/exportedCourse/edu8114/s1/intro_material/assignment_elect_sub.odt"
+    },
+    "node-44a85142ef9391ed02b20d27eea0faa4" : {
+      "title" : "Getting started",
+      "id" : "/home/octalina/ICE/exportedCourse/edu8114/s1/intro_material/generic/help/getting_started.odt"
+    },
+    "node-2ac6042195f63629b8ac8fa80fae3372" : {
+      "title" : "Introduction to FET8604",
+      "id" : "/home/octalina/ICE/exportedCourse/edu8114/s1/intro_material/introduction.odt"
+    },
+    "node-9e1aa7ba082c8a0e83cde948ddcac612" : {
+      "title" : "Library",
+      "id" : "/home/octalina/ICE/exportedCourse/edu8114/s1/intro_material/generic/help/library.odt"
+    },
+    "node-4fa8837a01df3652ccc90fc0a9a90f9c" : {
+      "title" : "Marking Criteria: Assignment 1",
+      "id" : "/home/octalina/ICE/exportedCourse/edu8114/s1/resources/litreview.doc"
+    },
+    "node-7eb5423d058450d540e468a1e5380d56" : {
+      "title" : "Netiquette (Online Etiquette)",
+      "id" : "/home/octalina/ICE/exportedCourse/edu8114/s1/resources/Netiquette_Online_Etiquette_.odt"
+    },
+    "node-8567bc00be7536505a9aa0bffef82eb0" : {
+      "title" : "Resources",
+      "id" : "/home/octalina/ICE/exportedCourse/edu8114/s1/resources/Resources.odt"
+    },
+    "node-7df259555c38a9e6358c6d6a63f7c993" : {
+      "title" : "Statement of Ethical Practice",
+      "id" : "/home/octalina/ICE/exportedCourse/edu8114/s1/resources/Statement_of_Ethical_Practice.odt"
+    },
+    "node-ae536e93e80ba902d57483d4fe1f2d3d" : {
+      "title" : "Storage and re-use of content: Learning objects",
+      "id" : "/home/octalina/ICE/exportedCourse/edu8114/s1/study-modules/miscellaneous.odt"
+    },
+    "node-a214512a6562132a9178450cfd00c9b9" : {
+      "title" : "Study schedule",
+      "id" : "/home/octalina/ICE/exportedCourse/edu8114/s1/study-modules/study_schedule.odt"
+    },
+    "node-9a0cb0891777c6530804dd1a36a58df3" : {
+      "title" : "Support",
+      "id" : "/home/octalina/ICE/exportedCourse/edu8114/s1/intro_material/generic/support.odt"
+    },
+    "node-d1a3a7192e46173e5bf4638e617fb807" : {
+      "title" : "Theme 1 readings",
+      "id" : "/home/octalina/ICE/exportedCourse/edu8114/s1/study-modules/theme01_readings.odt"
+    },
+    "node-a2d42bec7fde81c7ba58e530845d05cc" : {
+      "title" : "Theme 1 – Online pedagogy: Theory, principles and design",
+      "id" : "/home/octalina/ICE/exportedCourse/edu8114/s1/study-modules/theme01.odt"
+    },
+    "node-826ffa2dc06ced6ae8b986b3e5746205" : {
+      "title" : "Theme 3 – Creating and sustaining online learning communities",
+      "id" : "/home/octalina/ICE/exportedCourse/edu8114/s1/study-modules/theme02b.odt"
+    },
+    "node-0f4224629ec944f1605deb73e8b366f3" : {
+      "title" : "Theme 4 – Promoting and supporting online conversations",
+      "id" : "/home/octalina/ICE/exportedCourse/edu8114/s1/study-modules/theme03.odt"
+    },
+    "node-b6dad8888a3a2fa15212aefea5353719" : {
+      "title" : "Theme 5  – Tools to support online pedagogy",
+      "id" : "/home/octalina/ICE/exportedCourse/edu8114/s1/study-modules/theme05.odt"
+    },
+    "node-9f2546a93b43d10ff2bf1c4f0638e609" : {
+      "title" : "Theme 8 – Managing flexibility in online learning and teaching",
+      "id" : "/home/octalina/ICE/exportedCourse/edu8114/s1/study-modules/theme08.odt"
+    },
+    "node-4a288d12aaebfdc78c32c368d8f15824" : {
+      "title" : "Theme 9 – Looking back to look forward",
+      "id" : "/home/octalina/ICE/exportedCourse/edu8114/s1/study-modules/theme09.odt"
+    },
+    "node-615bc2a7eb35426d36cadb39177ab60a" : {
+      "title" : "USQConnect",
+      "id" : "/home/octalina/ICE/exportedCourse/edu8114/s1/intro_material/generic/usq_connect.odt"
+    }
   }
 }

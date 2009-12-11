@@ -12,7 +12,7 @@
     
     "transformer": {
         "extractor": ["aperture"],
-        "render": ["ice2"],
+        "render": ["ice2", "ims"],
         "aperture": {
             "outputPath": "${java.io.tmpdir}/ice2-output"
         },
