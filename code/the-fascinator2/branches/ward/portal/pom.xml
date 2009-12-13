@@ -62,6 +62,11 @@
       <version>5.1.0.5</version>
     </dependency>
     <dependency>
+      <groupId>org.apache.tapestry</groupId>
+      <artifactId>tapestry-upload</artifactId>
+      <version>5.1.0.5</version>
+    </dependency>
+    <dependency>
       <groupId>org.apache.velocity</groupId>
       <artifactId>velocity</artifactId>
       <version>1.6.2</version>
@@ -98,6 +103,21 @@
       <groupId>dom4j</groupId>
       <artifactId>dom4j</artifactId>
     </dependency>
+    <dependency>
+      <groupId>sword</groupId>
+      <artifactId>common</artifactId>
+      <version>1.0</version>
+    </dependency>
+    <dependency>
+      <groupId>sword</groupId>
+      <artifactId>client</artifactId>
+      <version>1.0</version>
+    </dependency>
+    <dependency>
+      <groupId>xom</groupId>
+      <artifactId>xom</artifactId>
+      <version>1.1</version>
+    </dependency>
   </dependencies>
   <profiles>
     <profile>
@@ -130,10 +150,6 @@
         <dependency>
           <groupId>au.edu.usq.fascinator.plugins</groupId>
           <artifactId>plugin-transformer-ice2</artifactId>
-        </dependency>
-        <dependency>
-          <groupId>au.edu.usq.fascinator.plugins</groupId>
-          <artifactId>plugin-transformer-ims</artifactId>
         </dependency>
         <dependency>
           <groupId>au.edu.usq.fascinator.plugins</groupId>
