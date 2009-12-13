@@ -42,10 +42,15 @@ import au.edu.usq.fascinator.portal.JsonSessionState;
 import au.edu.usq.fascinator.portal.services.DynamicPageService;
 import au.edu.usq.fascinator.portal.services.GenericStreamResponse;
 import au.edu.usq.fascinator.portal.services.HttpStatusCodeResponse;
+import javax.servlet.http.HttpServletRequest;
+import org.apache.tapestry5.services.RequestGlobals;
+import org.apache.tapestry5.upload.services.MultipartDecoder;
 
 public class Dispatch {
 
     private static final String AJAX_EXT = ".ajax";
+
+    private static final String POST_EXT = ".post";
 
     private static final String DEFAULT_PORTAL_ID = "default";
 
@@ -69,6 +74,12 @@ public class Dispatch {
     @Persist
     private Map<String, FormData> formDataMap;
 
+    @Inject
+    private MultipartDecoder decoder;
+
+    @Inject
+    private RequestGlobals rg;
+
     public StreamResponse onActivate(Object... params) {
         log.trace("{} {}", request.getMethod(), request.getPath());
 
@@ -91,6 +102,7 @@ public class Dispatch {
         }
         resourceName = match;
         boolean isAjax = resourceName.endsWith(AJAX_EXT);
+        boolean isPost = requestUri.endsWith(POST_EXT);
 
         if (formDataMap == null) {
             formDataMap = Collections
@@ -106,7 +118,7 @@ public class Dispatch {
 
         // save form data for POST requests, since we redirect after POSTs
         String requestId = request.getAttribute("RequestID").toString();
-        if ("POST".equalsIgnoreCase(request.getMethod())) {
+        if ("POST".equalsIgnoreCase(request.getMethod()) && !isPost) {
             try {
                 FormData formData = new FormData(request);
                 formDataMap.put(requestId, formData);
@@ -132,7 +144,8 @@ public class Dispatch {
         if ((resourceName.indexOf(".") == -1) || isAjax) {
             FormData formData = formDataMap.get(requestId);
             if (formData == null) {
-                formData = new FormData(request);
+                HttpServletRequest hsr = decoder.decode(rg.getHTTPServletRequest());
+                formData = new FormData(request, hsr);
             }
             formDataMap.put(requestId, formData);
             ByteArrayOutputStream out = new ByteArrayOutputStream();
