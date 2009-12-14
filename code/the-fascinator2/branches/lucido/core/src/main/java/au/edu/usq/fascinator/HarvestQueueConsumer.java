@@ -148,10 +148,17 @@ public class HarvestQueueConsumer implements MessageListener {
             String text = ((TextMessage) message).getText();
             JsonConfig config = new JsonConfig(text);
             String oid = config.get("oid");
-            log.info("Indexing object...");
-            indexer.index(oid);
-            log.info("Queuing render job...");
-            queueRenderJob(oid, text);
+            boolean deleted = Boolean.parseBoolean(config.get("deleted",
+                    "false"));
+            if (deleted) {
+                log.info("Removing object {}...", oid);
+                indexer.remove(oid);
+            } else {
+                log.info("Indexing object {}...", oid);
+                indexer.index(oid);
+                log.info("Queuing render job...");
+                queueRenderJob(oid, text);
+            }
         } catch (JMSException jmse) {
             log.error("Failed to receive message: {}", jmse.getMessage());
         } catch (IOException ioe) {
