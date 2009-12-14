@@ -28,6 +28,9 @@ import org.purl.sword.base.ServiceDocument;
 import org.purl.sword.base.ServiceDocumentRequest;
 import org.purl.sword.base.ServiceLevel;
 import org.purl.sword.base.Workspace;
+import org.purl.sword.client.Client;
+import org.purl.sword.client.PostMessage;
+import org.purl.sword.client.PostDestination;
 import org.w3.atom.Author;
 import org.w3.atom.Content;
 import org.w3.atom.Contributor;
@@ -55,6 +58,33 @@ public class SwordSimpleServer implements SWORDServer {
     public SwordSimpleServer(String depositUrl) {
         this.depositUrl = depositUrl;
     }
+
+
+    public Client getClient(){
+        return new Client();
+    }
+
+    public PostMessage getPostMessage() {
+        return new PostMessage();
+    }
+
+    public PostDestination getPostDestination() {
+        return new PostDestination();
+    }
+
+    public ServiceDocument getServiceDocument() {
+        return new ServiceDocument();
+    }
+
+    public ServiceDocumentRequest getServiceDocumentRequest() {
+       // username, password, onBehalfOf, IPAddress
+        return new ServiceDocumentRequest();
+    }
+
+    public Deposit getDeposit() {
+        return new Deposit();
+    }
+
 
     /**
      * Provides a simple service document - it contains
