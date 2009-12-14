@@ -86,7 +86,7 @@ public class QueueStorage implements Storage {
 
     public void removeObject(String oid) {
         storage.removeObject(oid);
-        // TODO queueDelete(oid, jsonFile)
+        queueDelete(oid, jsonFile);
     }
 
     public void removePayload(String oid, String pid) {
@@ -172,6 +172,20 @@ public class QueueStorage implements Storage {
         try {
             JsonConfigHelper json = new JsonConfigHelper(jsonFile);
             json.set("oid", oid);
+            TextMessage message = session.createTextMessage(json.toString());
+            producer.send(message);
+        } catch (IOException ioe) {
+            log.error("Failed to parse message: {}", ioe.getMessage());
+        } catch (JMSException jmse) {
+            log.error("Failed to send message: {}", jmse.getMessage());
+        }
+    }
+
+    private void queueDelete(String oid, File jsonFile) {
+        try {
+            JsonConfigHelper json = new JsonConfigHelper(jsonFile);
+            json.set("oid", oid);
+            json.set("deleted", "true");
             TextMessage message = session.createTextMessage(json.toString());
             producer.send(message);
         } catch (IOException ioe) {
