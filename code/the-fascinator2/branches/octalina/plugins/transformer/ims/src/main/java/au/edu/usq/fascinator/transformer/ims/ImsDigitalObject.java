@@ -37,9 +37,6 @@ public class ImsDigitalObject extends GenericDigitalObject{
 	                    }
 	                } 
                 }
-            } else {
-                File filePathFile = new File(filePath);
-                addPayload(new ImsPayload(filePathFile, null));
             }
         } catch (IOException ioe) {
             log.error("Failed to add payloads: {}", ioe.toString());
