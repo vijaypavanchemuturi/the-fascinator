@@ -75,13 +75,13 @@ class Annotation:
                 d = {"enabled": True, "storageType": self.__storageType,
                         "baseUrl": self.__baseUrl}
             elif method=="getAnnotation":
-                # _design/x/_list/anno/anno?key=
+                # _design/anno/_list/anno/anno?key=
                 key = URLEncoder.encode('"' + url + '"', "utf-8")
                 #json = self.__get(self.__baseUrl + url)
-                json = self.__get(self.__baseUrl + "_design/x/_list/anno/anno?key=" + key)
+                json = self.__get(self.__baseUrl + "_design/anno/_list/anno/anno?key=" + key)
                 return json
             elif method=="getAnnotates":
-                u = self.__baseUrl + '_design/x/_list/annosFor/annotations?key=%s'
+                u = self.__baseUrl + '_design/anno/_list/annosFor/annotations?key=%s'
                 u = u % URLEncoder.encode('"' + url + '"', "utf-8")
                 json = self.__get(u)
                 return json
