@@ -112,6 +112,13 @@ $(function() {
             });
     }
     
+    function getReindexLog() {
+    	jQuery.post("$portalPath/actions/reindex.ajax", { func: "get-log" },
+    		function(data, status) {
+    			$("#reindex-log").html(data);
+    		});
+    }
+    
     $("#reindex").click(function() {
         jQuery.post("$portalPath/reindex.ajax", { func: "reindex", portalId: "$portalId" } );
         return false;

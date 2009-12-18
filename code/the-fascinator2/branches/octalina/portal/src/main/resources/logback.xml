@@ -8,6 +8,9 @@
   <appender name="backup" class="ch.qos.logback.core.read.CyclicBufferAppender">
     <MaxSize>15</MaxSize>
   </appender>
+  <appender name="reindex" class="ch.qos.logback.core.read.CyclicBufferAppender">
+    <MaxSize>15</MaxSize>
+  </appender>
   <root level="INFO">
     <appender-ref ref="stdout" />
   </root>
