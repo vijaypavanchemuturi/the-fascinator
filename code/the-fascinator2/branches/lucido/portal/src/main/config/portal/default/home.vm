@@ -14,7 +14,8 @@
     <h2>Actions</h2>
     <ul class="menu">
       <li><a href="$portalPath/search">Browse all</a></li>
-      <li><a id="epub" href="#" rel="$portalId">Export to ePub...</a></li>
+      <li><a id="epub" href="#" rel="$portalId">Export as ePub...</a></li>
+      <li><a id="ims" href="#" rel="$portalId">Export as IMS Package...</a></li>
       <li><a id="reindex" href="#" rel="$portalId">Re-Index View...</a></li>
       ## FIXME
       <li><a id="backup-view" href="#" rel="$portalId">Backup view...</a></li>
@@ -111,6 +112,13 @@ $(function() {
             });
     }
     
+    function getReindexLog() {
+    	jQuery.post("$portalPath/actions/reindex.ajax", { func: "get-log" },
+    		function(data, status) {
+    			$("#reindex-log").html(data);
+    		});
+    }
+    
     $("#reindex").click(function() {
         jQuery.post("$portalPath/reindex.ajax", { func: "reindex", portalId: "$portalId" } );
         return false;
@@ -118,6 +126,11 @@ $(function() {
     
     $("#epub").click(function() {
     	jQuery.post("$portalPath/epub.ajax", { func: "epub", portalId: "$portalId" } );
+    	return false;
+    });
+    
+    $("#ims").click(function() {
+    	jQuery.post("$portalPath/ims.ajax", { func: "ims", portalId: "$portalId" } );
     	return false;
     });
     
