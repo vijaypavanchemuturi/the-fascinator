@@ -3,7 +3,7 @@
     "name" : "default",
     "description" : "Everything",
     "query" : "",
-    "records-per-page" : "10",
+    "records-per-page" : "1000",
     "facet-count" : "10",
     "facet-sort-by-count" : "false",
     "debug" : "true",
@@ -70,6 +70,144 @@
         "label" : "Source type",
         "display" : "list"
       }
+    }
+  },
+  "manifest" : {
+    "node-0ee3cf2b2e93ed766b71ba20a847a272" : {
+      "title" : "Aliquam pharetra neque ",
+      "id" : "/home/octalina/Documents/picture/text/chapter01.odt"
+    },
+    "node-b9d1e5687882b86f2979e2751e472fe9" : {
+      "title" : "power.odp",
+      "id" : "/home/octalina/Documents/power.odp"
+    },
+    "node-d13cf6317b41e3e414eae2a70389f608" : {
+      "title" : "spreadsheet.ods",
+      "id" : "/home/octalina/Documents/spreadsheet.ods"
+    },
+    "node-91ada6aa529f505c4ca685b0f263b003" : {
+      "title" : "test.ODT",
+      "id" : "/home/octalina/Documents/picture/text/test.ODT"
+    },
+    "node-93b6d0f0589504b3bc6b876cc0fbc586" : {
+      "title" : ".~lock.2009_Duncan_UK.doc#",
+      "id" : "/home/octalina/Documents/picture/text/.~lock.2009_Duncan_UK.doc#"
+    },
+    "node-3b3e63f6c5c4c1ff399f8cd49800f54c" : {
+      "title" : "0fascinator.jpg",
+      "id" : "/home/octalina/Documents/picture/text/0fascinator.jpg"
+    },
+    "node-53f7193684aac5bf88707bef3f56f80f" : {
+      "title" : "184139899_scan0131.JPG",
+      "id" : "/home/octalina/Documents/picture/text/184139899_scan0131.JPG"
+    },
+    "node-ef219bdb394cd7d6d2fdc840fd2e7c42" : {
+      "title" : "2009 Duncan Travel UK ",
+      "id" : "/home/octalina/Documents/picture/text/2009_Duncan_UK.doc"
+    },
+    "node-72a985cda997eadfd5be5eebe630df9b" : {
+      "title" : "35funny.GIF",
+      "id" : "/home/octalina/Documents/picture/text/35funny.GIF"
+    },
+    "node-edb82571b73e8ad4bcf7fba95f8190dc" : {
+      "title" : "Ariel Photo Greg Alexander FSB Coral 13May68.jpg",
+      "id" : "/home/octalina/Documents/picture/text/Ariel Photo Greg Alexander FSB Coral 13May68.jpg"
+    },
+    "node-2a1dca70ee7e0e59d26f83c3514acc15" : {
+      "title" : "C01. Code of Conduct",
+      "id" : "/home/octalina/Documents/policies/C01. Code of Conduct.DOCX"
+    },
+    "node-8fb84d4f1d64b955de510ee84718796d" : {
+      "title" : "Committees Reporting To The Vice-Chancellor",
+      "id" : "/home/octalina/Documents/policies/Committees Reporting To The Vice-Chancellor.docx"
+    },
+    "node-649cc30fa6aad9b7af9a2495ff8761b5" : {
+      "title" : "D01. Position Establishment",
+      "id" : "/home/octalina/Documents/policies/D01. Position Establishment.docx"
+    },
+    "node-db5f389526c540df42a59f086bf73699" : {
+      "title" : "Demonstration Document A",
+      "id" : "/home/octalina/Documents/policies/Demonstration Document A.docx"
+    },
+    "node-89d7b246bd712a5fa897338d6df2aae2" : {
+      "title" : "E01. Principles of Academic Employee Availability",
+      "id" : "/home/octalina/Documents/policies/E01. Principles of Academic Employee Availability.docx"
+    },
+    "node-3fba8624808077e886520ef9555989fe" : {
+      "title" : "Electronic Communication with Students",
+      "id" : "/home/octalina/Documents/policies/Electronic Communication with Students.docx"
+    },
+    "node-1890fd100479a59cb26e2888eceaf10b" : {
+      "title" : "Escada Piano.wmv",
+      "id" : "/home/octalina/Documents/picture/text/Escada Piano.wmv"
+    },
+    "node-67c90722b86b675c559b8b5ea20ae0fa" : {
+      "title" : "Ethan_Galstad_Nagios_3.0_Status_01.pdf",
+      "id" : "/home/octalina/Documents/picture/text/Ethan_Galstad_Nagios_3.0_Status_01.pdf"
+    },
+    "node-51e913407d92e3d57ea25e8acca5c5ec" : {
+      "title" : "Flagrante_increibe_2 (copy).WMV",
+      "id" : "/home/octalina/Documents/picture/text/Flagrante_increibe_2 (copy).WMV"
+    },
+    "node-d05507d524ad3bdc15b1cfe2d94c33d5" : {
+      "title" : "Flagrante_increibe_2.WMV",
+      "id" : "/home/octalina/Documents/picture/text/Flagrante_increibe_2.WMV"
+    },
+    "node-012e2c3d99130605c1bc0de4bbea0e37" : {
+      "title" : "Higher Doctorates",
+      "id" : "/home/octalina/Documents/policies/Higher Doctorates.docx"
+    },
+    "node-fbd8e23c7eaacd948ed507e6eb230755" : {
+      "title" : "Love is Blue",
+      "id" : "/home/octalina/Documents/picture/text/1968 - Paul Mauriat - Love is Blue.MP3"
+    },
+    "node-1477823ddba3d22c746db9f2da721c79" : {
+      "title" : "Pensive Parakeet.jpg",
+      "id" : "/home/octalina/Documents/picture/text/Pensive Parakeet.jpg"
+    },
+    "node-09f03d2139c6b7e4af3f2562bdfb8dae" : {
+      "title" : "Planning, Quality And Review Committee",
+      "id" : "/home/octalina/Documents/policies/Planning, Quality And Review Committee.docx"
+    },
+    "node-ed6cebd97761d10197d2b0c6f90e74d1" : {
+      "title" : "Student Academic Misconduct",
+      "id" : "/home/octalina/Documents/policies/Student Academic Misconduct.docx"
+    },
+    "node-487a6f68c9e46fea5344630d8cb929a2" : {
+      "title" : "Students with a Disability",
+      "id" : "/home/octalina/Documents/policies/Students with a Disability.docx"
+    },
+    "node-0e86b4457dfcfea0b974e8eec6fffe72" : {
+      "title" : "USQ Mission",
+      "id" : "/home/octalina/Documents/policies/USQ Mission.docx"
+    },
+    "node-08004e80abf459626e0fac6e67a81c49" : {
+      "title" : "coralmap120568.jpg",
+      "id" : "/home/octalina/Documents/picture/text/coralmap120568.jpg"
+    },
+    "node-53cc92f88e3188340d293d671d258c40" : {
+      "title" : "cute_icon.gif",
+      "id" : "/home/octalina/Documents/picture/text/cute_icon.gif"
+    },
+    "node-38b79a65ad282940da3aa7dde18070c9" : {
+      "title" : "fish.MPG",
+      "id" : "/home/octalina/Documents/picture/text/fish.MPG"
+    },
+    "node-337f0ad4255bd358558fef371880dd39" : {
+      "title" : "mybook.zip",
+      "id" : "/home/octalina/Documents/picture/zip/mybook.zip"
+    },
+    "node-cc195197a4b69a3badb56a0b0fdcf8d2" : {
+      "title" : "newText1.txt",
+      "id" : "/home/octalina/Documents/picture/text/newText1.txt"
+    },
+    "node-96706ef4b9153e028ce06f987d182a82" : {
+      "title" : "test.MP4",
+      "id" : "/home/octalina/Documents/picture/text/test.MP4"
+    },
+    "node-b3efb8d730cfb13f24998b0e89ad5da0" : {
+      "title" : "trac_logo_mini.png",
+      "id" : "/home/octalina/Documents/picture/text/trac_logo_mini.png"
     }
   }
 }

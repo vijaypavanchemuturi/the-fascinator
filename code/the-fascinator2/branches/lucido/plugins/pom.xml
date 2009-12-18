@@ -22,5 +22,6 @@
     <module>storage/filesystem</module>
     <module>transformer/aperture</module>
     <module>transformer/ice2</module>
+    <module>transformer/ims</module>
   </modules>
 </project>

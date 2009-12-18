@@ -277,7 +277,7 @@ public class IceTransformer implements Transformer {
             String basename = sourceFile.getName();
             basename = FilenameUtils.getBaseName(sourceFile.getName());
             String outputFilename = outputPath + "/" + basename + ".zip";
-            // Check if file is exist or not, just incase
+            // Check if file is exist or not, just in case
             File outputFile = new File(outputFilename);
             if (outputFile.exists()) {
                 outputFile.delete();
@@ -374,7 +374,6 @@ public class IceTransformer implements Transformer {
             // Structure: "ice2ContentPaths" :
             // {"/home/ward/ice/test-content" :
             // "http://139.86.38.58:8003/rep.TempTest-Content1/"},
-
             ice2ContentPaths = config
                     .getMap("transformer/ice2/ice2ContentPaths");
         } catch (Exception e) {
@@ -399,7 +398,6 @@ public class IceTransformer implements Transformer {
         try {
             init(new JsonConfig(jsonFile));
         } catch (IOException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         }
     }
@@ -469,7 +467,7 @@ public class IceTransformer implements Transformer {
 
     private String getFileExt(File filePath) {
         return filePath.getName()
-                .substring(filePath.getName().indexOf('.', -1));
+                .substring(filePath.getName().lastIndexOf('.'));
     }
 
     private boolean validZipFile(String zipPath) {
