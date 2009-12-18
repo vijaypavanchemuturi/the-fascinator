@@ -51,7 +51,7 @@
       #set($pid = $payload.id)
       #set($payloadType = $payload.type.toString())
       <li class="payload" rel="$payload.contentType">
-        <a href='$portalPath/download/$oid/$pid' rel="$payloadType" target="blank" title="$payload.contentType">$payload.id</a>
+        <a href='$portalPath/download/$self.encode($oid)/$self.encode($pid)' rel="$payloadType" target="blank" title="$payload.contentType">$payload.id</a>
       </li>
     #end
     </ul>	
@@ -112,11 +112,11 @@ $(function() {
             var attr = $(this).attr(attrName);
             if (attr != null) {
                 if (attr.indexOf("#") != 0 && attr.indexOf("://") == -1) {
-                    $(this).attr(attrName, "$portalPath/download/$self.object.id/" + attr);
+                    $(this).attr(attrName, escape("$portalPath/download/$self.object.id/" + attr));
                 }
             }
         });
-    }
+    } 
     fixLinks("div.content-preview-inline a", "href");
     fixLinks("div.content-preview-inline img", "src");
     
