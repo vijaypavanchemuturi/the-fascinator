@@ -6,7 +6,7 @@ from au.edu.usq.fascinator.common import JsonConfigHelper
 
 from java.awt import Desktop
 from java.io import ByteArrayInputStream, ByteArrayOutputStream, File, StringWriter
-from java.net import URLDecoder
+from java.net import URLDecoder, URLEncoder
 from java.lang import Boolean
 
 from org.apache.commons.io import IOUtils
@@ -79,6 +79,9 @@ class DetailData:
         Services.indexer.search(req, out)
         self.__json = JsonConfigHelper(ByteArrayInputStream(out.toByteArray()))
         self.__metadata = SolrDoc(self.__json)
+    
+    def encode(self, url):
+        return URLEncoder.encode(url, "UTF-8")
     
     def isMetadataOnly(self):
         self.getObject().getPayloadList()

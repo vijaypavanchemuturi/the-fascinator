@@ -22,6 +22,9 @@ class SearchData:
     def getPortalName(self):
         return Services.portalManager.get(portalId).description
     
+    def encode(self, url):
+        return URLEncoder.encode(url, "UTF-8")
+        
     def __search(self):
         recordsPerPage = self.__portal.recordsPerPage
         
