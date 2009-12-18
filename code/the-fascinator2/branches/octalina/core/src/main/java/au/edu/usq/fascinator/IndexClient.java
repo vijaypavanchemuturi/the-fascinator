@@ -236,7 +236,7 @@ public class IndexClient {
                 for (Object oid : js.getList("response/docs/id")) {
                     DigitalObject object = realStorage
                             .getObject(oid.toString());
-                    log.info("***** indexing: " + object.getId());
+                    log.info("Indexing: " + object.getId());
                     Properties sofMeta = getSofMeta(object);
                     String sofMetaRulesOid = sofMeta.getProperty("rulesOid");
                     rulesFile = new File(sofMetaRulesOid);
