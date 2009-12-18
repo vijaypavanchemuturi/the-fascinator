@@ -16,7 +16,7 @@
       <li><a href="$portalPath/search">Browse all</a></li>
       <li><a id="epub" href="#" rel="$portalId">Export as ePub...</a></li>
       <li><a id="ims" href="#" rel="$portalId">Export as IMS Package...</a></li>
-      <li><a id="reindex" href="#" rel="$portalId">Re-Index View...</a></li>
+      <li><a id="reindex-view" href="#" rel="$portalId">Re-Index View...</a></li>
       ## FIXME
       <li><a id="backup-view" href="#" rel="$portalId">Backup view...</a></li>
       #if($portalId != "default")  ## FIXME use proper default
@@ -51,6 +51,23 @@
     <div class="block hidden" id="backup-result">
       <p>Last backup log</p>
       <div id="backup-log"></div>
+    </div>
+  </div>
+  <div class="box hidden" id="reindex-form">
+    <h2>Reindex view</h2>
+    <div class="block hidden" id="reindex-progress">
+      <p>Reindex is currently running... you must wait for it to finish</p>
+      <button id="reindex-cancel">Close</button>
+      <img id="backup-loading" src="$portalPath/images/icons/loading.gif" />
+    </div>
+    <div class="block" id="reindex-start">
+      <p>The Reindex process may take a while, do you want to start it now?</p>
+      <button id="reindex-accept">Start</button>
+      <button id="reindex-cancel">Close</button>
+    </div>
+    <div class="block hidden" id="reindex-result">
+      <p>Last reindex log</p>
+      <div id="reindex-log"></div>
     </div>
   </div>
   <div class="box">
@@ -112,10 +129,17 @@ $(function() {
             });
     }
     
-    $("#reindex").click(function() {
-        jQuery.post("$portalPath/reindex.ajax", { func: "reindex", portalId: "$portalId" } );
-        return false;
-    });
+    function getReindexLog() {
+        jQuery.post("$portalPath/reindex.ajax", { func: "get-log" },
+            function(data, status) {
+                $("#reindex-log").html(data);
+            });
+    }
+    
+    ##$("#reindex").click(function() {
+    ##    jQuery.post("$portalPath/reindex.ajax", { func: "reindex", portalId: "$portalId" } );
+    ##    return false;
+    ##});
     
     $("#epub").click(function() {
     	jQuery.post("$portalPath/epub.ajax", { func: "epub", portalId: "$portalId" } );
@@ -125,6 +149,25 @@ $(function() {
     $("#ims").click(function() {
     	jQuery.post("$portalPath/ims.ajax", { func: "ims", portalId: "$portalId" } );
     	return false;
+    });
+    
+    $("#reindex-view, #reindex-cancel").click(function() {
+        $("#reindex-view").toggleClass("selected");
+        $("#reindex-form").toggle("blind");
+        jQuery.post("$portalPath/reindex.ajax",
+            { func: "get-state" },
+            function(data, status) {
+                if (data.running == true) {
+                    $("#reindex-start").hide();
+                    $("#reindex-progress, #reindex-result").show();
+                }
+                if (data.lastResult == "success") {
+                    getReindexLog();
+                    $("#reindex-result").toggle();
+                }
+            },
+            "json");
+        return false;
     });
     
     $("#backup-view, #backup-cancel").click(function() {
@@ -145,6 +188,39 @@ $(function() {
             "json");
         return false;
     });
+    
+    $("#reindex-accept").click(function() {
+        var reindexLogTimerId;
+        jQuery.post("$portalPath/reindex.ajax", { func: "get-state" },
+            function(data, status) {
+                if (data.running == true) {
+                    $("#reindex-start").hide();
+                    $("#reindex-progress").show();
+                } else {
+                    jQuery.post("$portalPath/actions/state.ajax",
+                        { func: "set", name: "reindex/running", value: "true" },
+                        function(data, status) {
+                            $("#reindex-start").hide();
+                            $("#reindex-progress, #reindex-result").show();
+                            reindexLogTimerId = setInterval("getReindexLog()", 500);
+                        });
+                    jQuery.post("$portalPath/reindex.ajax",
+                        { func: "reindex", portalId: "$portalId" },
+                        function(data, status) {
+                            jQuery.post("$portalPath/actions/state.ajax",
+                                { func: "set", name: "reindex/running", value: "false" },
+                                function(data, status) {
+                                    getReindexLog();
+                                    $("#reindex-start").show();
+                                    $("#reindex-progress").hide();
+                                    clearInterval(reindexLogTimerId);
+                                });
+                        });
+                }
+            },
+            "json");
+    });
+    
     $("#backup-accept").click(function() {
         var backupLogTimerId;
         jQuery.post("$portalPath/actions/backup.ajax", { func: "get-state" },
