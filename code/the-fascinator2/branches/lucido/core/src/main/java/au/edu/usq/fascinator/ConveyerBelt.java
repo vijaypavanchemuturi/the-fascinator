@@ -65,11 +65,15 @@ public class ConveyerBelt {
                         + pluginName.toString());
                 try {
                     if (jsonFile == null) {
+                        log.info("init from string " + configString);
                         transPlugin.init(configString);
                     } else {
+                        log.info("init from file");
                         transPlugin.init(jsonFile);
                     }
+                    log.info("transforming");
                     result = transPlugin.transform(result);
+                    log.info("transform result = " + result);
                 } catch (PluginException e) {
                     e.printStackTrace();
                 }

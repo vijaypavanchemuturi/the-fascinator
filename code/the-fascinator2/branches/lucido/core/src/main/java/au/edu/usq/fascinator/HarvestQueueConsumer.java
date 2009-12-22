@@ -174,6 +174,7 @@ public class HarvestQueueConsumer implements MessageListener {
             JsonConfig config = new JsonConfig(text);
             String oid = config.get("oid");
             String source = config.get("source");
+            String path = config.get("sourceFile", oid);
             log.info("Received job, object id={}", oid, text);
             boolean deleted = Boolean.parseBoolean(config.get("deleted",
                     "false"));
@@ -185,7 +186,7 @@ public class HarvestQueueConsumer implements MessageListener {
                     log.info("Adding new object {} from {}...", oid, source);
                     File rulesFile = new File(config.get("configDir"), config
                             .get("indexer/script/rules"));
-                    processObject(rulesFile, text, oid);
+                    processObject(rulesFile, text, oid, path);
                 }
                 log.info("Indexing object {}...", oid);
                 indexer.index(oid);
@@ -212,7 +213,7 @@ public class HarvestQueueConsumer implements MessageListener {
         }
     }
 
-    private void processObject(File rulesFile, String jsonStr, String oid)
+    private void processObject(File rulesFile, String jsonStr, String oid, String path)
             throws StorageException, IOException {
 
         String rulesOid;
@@ -230,7 +231,7 @@ public class HarvestQueueConsumer implements MessageListener {
             log.info("Processing " + oid + "...");
 
             // Calling conveyer to perform aperture transformation
-            DigitalObject object = createObject(oid);
+            DigitalObject object = createObject(oid, path);
             ConveyerBelt cb = new ConveyerBelt(jsonStr, "extractor");
             object = cb.transform(object);
 
@@ -265,9 +266,9 @@ public class HarvestQueueConsumer implements MessageListener {
         }
     }
 
-    private DigitalObject createObject(String oid) throws StorageException {
+    private DigitalObject createObject(String oid, String path) throws StorageException {
         GenericDigitalObject object = new GenericDigitalObject(oid);
-        object.addPayload(new FilePayload(new File(oid)));
+        object.addPayload(new FilePayload(new File(path)));
         storage.addObject(object);
         return object;
     }

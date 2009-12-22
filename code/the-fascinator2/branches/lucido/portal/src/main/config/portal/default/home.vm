@@ -53,6 +53,23 @@
       <div id="backup-log"></div>
     </div>
   </div>
+  <div class="box hidden" id="reindex-form">
+    <h2>Reindex view</h2>
+    <div class="block hidden" id="reindex-progress">
+      <p>Reindex is currently running... you must wait for it to finish</p>
+      <button id="reindex-cancel">Close</button>
+      <img id="backup-loading" src="$portalPath/images/icons/loading.gif" />
+    </div>
+    <div class="block" id="reindex-start">
+      <p>The Reindex process may take a while, do you want to start it now?</p>
+      <button id="reindex-accept">Start</button>
+      <button id="reindex-cancel">Close</button>
+    </div>
+    <div class="block hidden" id="reindex-result">
+      <p>Last reindex log</p>
+      <div id="reindex-log"></div>
+    </div>
+  </div>
   <div class="box">
     <h2>Search</h2>
     <div class="block">
@@ -129,6 +146,25 @@ $(function() {
         return false;
     });
     
+    $("#reindex-view, #reindex-cancel").click(function() {
+        $("#reindex-view").toggleClass("selected");
+        $("#reindex-form").toggle("blind");
+        jQuery.post("$portalPath/reindex.ajax",
+            { func: "get-state" },
+            function(data, status) {
+                if (data.running == true) {
+                    $("#reindex-start").hide();
+                    $("#reindex-progress, #reindex-result").show();
+                }
+                if (data.lastResult == "success") {
+                    getReindexLog();
+                    $("#reindex-result").toggle();
+                }
+            },
+            "json");
+        return false;
+    });
+    
     $("#backup-view, #backup-cancel").click(function() {
         $("#backup-view").toggleClass("selected");
         $("#backup-form").toggle("blind");
@@ -147,6 +183,39 @@ $(function() {
             "json");
         return false;
     });
+    
+    $("#reindex-accept").click(function() {
+        var reindexLogTimerId;
+        jQuery.post("$portalPath/reindex.ajax", { func: "get-state" },
+            function(data, status) {
+                if (data.running == true) {
+                    $("#reindex-start").hide();
+                    $("#reindex-progress").show();
+                } else {
+                    jQuery.post("$portalPath/actions/state.ajax",
+                        { func: "set", name: "reindex/running", value: "true" },
+                        function(data, status) {
+                            $("#reindex-start").hide();
+                            $("#reindex-progress, #reindex-result").show();
+                            reindexLogTimerId = setInterval("getReindexLog()", 500);
+                        });
+                    jQuery.post("$portalPath/reindex.ajax",
+                        { func: "reindex", portalId: "$portalId" },
+                        function(data, status) {
+                            jQuery.post("$portalPath/actions/state.ajax",
+                                { func: "set", name: "reindex/running", value: "false" },
+                                function(data, status) {
+                                    getReindexLog();
+                                    $("#reindex-start").show();
+                                    $("#reindex-progress").hide();
+                                    clearInterval(reindexLogTimerId);
+                                });
+                        });
+                }
+            },
+            "json");
+    });
+    
     $("#backup-accept").click(function() {
         var backupLogTimerId;
         jQuery.post("$portalPath/actions/backup.ajax", { func: "get-state" },

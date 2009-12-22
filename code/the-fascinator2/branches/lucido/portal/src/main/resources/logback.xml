@@ -18,4 +18,7 @@
   <logger name="au.edu.usq.fascinator.BackupClient" level="INFO">
     <appender-ref ref="backup" />
   </logger>
+  <logger name="au.edu.usq.fascinator.IndexClient" level="INFO">
+    <appender-ref ref="reindex" />
+  </logger>
 </configuration>
