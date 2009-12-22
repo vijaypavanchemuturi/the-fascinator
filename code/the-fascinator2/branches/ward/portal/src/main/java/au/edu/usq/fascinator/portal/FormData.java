@@ -2,6 +2,7 @@ package au.edu.usq.fascinator.portal;
 
 import java.io.InputStream;
 import java.util.Arrays;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -12,6 +13,7 @@ import org.apache.tapestry5.services.Request;
 public class FormData {
 
     private Map<String, List<String>> parameters;
+    private Map<String, String> headers;
 
     private HttpServletRequest hsr;
 
@@ -53,6 +55,19 @@ public class FormData {
 
     public void clear() {
         parameters.clear();
+    }
+
+    public Map<String, String> getHeaders(){
+        if (this.headers==null) {
+            this.headers = new HashMap<String, String>();
+            Enumeration e = hsr.getHeaderNames();
+            while(e.hasMoreElements()){
+                String name = e.nextElement().toString();
+                String value = hsr.getHeader(name);
+                this.headers.put(name, value);
+            }
+        }
+        return this.headers;
     }
 
     @Override

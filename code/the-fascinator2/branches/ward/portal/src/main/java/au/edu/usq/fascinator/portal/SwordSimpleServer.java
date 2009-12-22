@@ -15,6 +15,7 @@ import java.util.Date;
 import java.util.TimeZone;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
+import java.util.UUID;
 
 import org.purl.sword.base.Collection;
 import org.purl.sword.base.Deposit;
@@ -172,9 +173,11 @@ public class SwordSimpleServer implements SWORDServer {
         se.setTitle(t);
         se.addCategory("Category");
         if (deposit.getSlug() != null) {
-            se.setId(deposit.getSlug() + " - ID: " + counter);
+            //se.setId(deposit.getSlug() + " - ID: " + counter);
+            se.setId(deposit.getSlug() + ":" + UUID.randomUUID().toString());
         } else {
-            se.setId("ID: " + counter);
+            //se.setId("ID: " + counter);
+            se.setId(UUID.randomUUID().toString());
         }
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
         TimeZone utc = TimeZone.getTimeZone("UTC");
