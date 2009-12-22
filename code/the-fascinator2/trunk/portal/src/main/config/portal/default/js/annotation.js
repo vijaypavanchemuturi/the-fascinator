@@ -12,6 +12,7 @@ function enableParaAnnotating(jQ)
     ajaxUrl = myUrl.split("/portal/default/")[0] + "/portal/default/annotation.ajax";
     //var query = "?w3c_annotates=" + escape(window.location.href);
     //var rUrl = "?w3c_reply_tree=" + escape(url);
+    var annotations = {};       // keyed by 'id' (about)
 
     function mainSetup(){
         jQ.get(ajaxUrl, {method:"info"}, function(json){
@@ -24,14 +25,22 @@ function enableParaAnnotating(jQ)
     }
 
     function annotationJsonCallback(dList){
+        //alert(dList.toSource());
+        var div;
         if(typeof(dList)=="string") { alert("string and not a list"); return;}
         jQ.each(dList.data, function(c, d){
-            if(typeof(d.about)=="undefined") alert("??");
-            createAndDisplayAnno(d);
+            if(typeof(d.about)=="undefined") { alert("??"); return; }
+            div = createAnnoDiv(d);
+            div.attached = false;
+            annotations[d.about] = div;
             // If we are a root annotation get any/all of our children (replies)
             if(d.root==d.inReplyTo){
                 getRepliesFor(d.about);
             }
+        });
+        jQ.each(dList.data, function(c, d){
+            div = annotations[d.about];
+            if(div.attached==false) { div.attached=true; positionAndDisplay(div); }
         });
     }
 
@@ -58,6 +67,7 @@ function enableParaAnnotating(jQ)
     function postNewAnnotation(d){
         function _callback(d){
             try {
+                if(typeof(d.url)=="undefined"){d.url=d.id;}
                 getAnnotation(d.url);
             } catch(e){}
         }
@@ -81,11 +91,6 @@ function enableParaAnnotating(jQ)
         jQ.get(ajaxUrl, d, callback, "json");
     }
 
-    function createAndDisplayAnno(d){
-        div = createAnnoDiv(d);
-        positionAndDisplay(div);
-    }
-
     function createAnnoDiv(d){
         var parentId = "";
         try { parentId = d.context.split("#")[1].split('id("')[1].split('")')[0];
@@ -104,23 +109,6 @@ function enableParaAnnotating(jQ)
         s += " <div class='anno-children'><!-- --></div>";
         s += "</div>";
         var div = jQ(s);
-        return div;
-    }
-
-    function positionAndDisplay(inlineAnnotation){
-        var attachAnnotation = function(anno, para) {
-            if(typeof(para)!="undefined" && para.size()>0) {
-                if(para.hasClass("inline-annotation")) {
-                    para.find(">div.anno-children").prepend(anno);
-                } else {
-                    if(!para.parent().hasClass("inline-anno")) {
-                        para.wrap("<div class='inline-anno'/>");
-                    }
-                    para.after(anno);
-                    para.css("margin", "0px");
-                }
-            }
-        }
         // Decorate a annotation with 'Close', 'Delete', 'Reply'
         var decorateAnnotation = function(anno) {
             var d;
@@ -148,7 +136,24 @@ function enableParaAnnotating(jQ)
             d.find("span.delete-annotate").click(deleteClick);
         }
         // add close and reply buttons
-        decorateAnnotation(inlineAnnotation);
+        decorateAnnotation(div);
+        return div;
+    }
+
+    function positionAndDisplay(inlineAnnotation){
+        var attachAnnotation = function(anno, para) {
+            if(typeof(para)!="undefined" && para.size()>0) {
+                if(para.hasClass("inline-annotation")) {
+                    para.find(">div.anno-children").prepend(anno);
+                } else {
+                    if(!para.parent().hasClass("inline-anno")) {
+                        para.wrap("<div class='inline-anno'/>");
+                    }
+                    para.after(anno);
+                    para.css("margin", "0px");
+                }
+            }
+        }
         var parentId = inlineAnnotation.find("input[name='parentId']").val();
         var p = bodyDiv.find("#" + parentId);
         if(parentId in annotations) p = annotations[parentId];
@@ -158,8 +163,6 @@ function enableParaAnnotating(jQ)
             bodyDiv.append(inlineAnnotation);
         }
         attachAnnotation(inlineAnnotation, p);
-        var id = inlineAnnotation.attr("id");
-        annotations[id] = inlineAnnotation;
     }
 
     // Setup Pilcrow marker
@@ -215,7 +218,6 @@ function enableParaAnnotating(jQ)
     }
 
     // Annotate an item (e.g. paragraph)  (called from pilcrow & reply click)
-    var annotations = {};
     var annotationComments = {};
     // Annotation Form
     var annotateDiv = "<div class='annotate-form'><textarea cols='80' rows='8'></textarea><br/>";

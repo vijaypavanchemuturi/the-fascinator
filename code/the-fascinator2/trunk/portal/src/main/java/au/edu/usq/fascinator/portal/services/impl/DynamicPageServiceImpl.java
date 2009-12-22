@@ -186,6 +186,8 @@ public class DynamicPageServiceImpl implements DynamicPageService {
         bindings.put("portalId", portalId);
         bindings.put("portalPath", contextPath + "/" + portalId);
         bindings.put("pageName", pageName);
+        bindings.put("responseOutput", out);
+        bindings.put("bindings", bindings);
 
         // run page and template scripts
         if (!isAjax) {
@@ -220,7 +222,7 @@ public class DynamicPageServiceImpl implements DynamicPageService {
             mimeType = mimeTypeAttr.toString();
         }
 
-        if (resourceExists(portalId, pageName + ".vm")) {
+        if (resourceExists(portalId, bindings.get("pageName").toString() + ".vm") ) {
             // set up the velocity context
             VelocityContext vc = new VelocityContext();
             for (String key : bindings.keySet()) {
@@ -264,7 +266,7 @@ public class DynamicPageServiceImpl implements DynamicPageService {
                 }
             }
         }
-
+        
         return mimeType;
     }
 

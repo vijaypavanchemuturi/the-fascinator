@@ -8,11 +8,16 @@ import au.edu.usq.fascinator.api.storage.DigitalObject;
 import au.edu.usq.fascinator.api.transformer.Transformer;
 import au.edu.usq.fascinator.api.transformer.TransformerException;
 import au.edu.usq.fascinator.common.JsonConfig;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ImsTransformer implements Transformer{
 
 	private JsonConfig config;
-	
+
+        private static Logger log = LoggerFactory
+                .getLogger(ImsTransformer.class);
+
 	public ImsTransformer() {
 		
 	}
@@ -20,15 +25,22 @@ public class ImsTransformer implements Transformer{
 	@Override
 	public DigitalObject transform(DigitalObject in)
 			throws TransformerException {
-		
-		File inFile = new File(in.getId());
-        String fileExt = getFileExt(inFile);
+            File inFile;
+            String filePath = config.get("sourceFile");
+            if(filePath!=null){
+                inFile = new File(filePath);
+            } else {
+                inFile = new File(in.getId());
+            }
 
-        if (inFile.exists()) {
+            if (inFile.exists()) {
+                log.info("unpacking ims");
                 ImsDigitalObject imsObject = new ImsDigitalObject(in, inFile.getAbsolutePath());
                 return imsObject;
-        }
-        return in;
+            } else {
+                log.info("not found inFile {}", inFile);
+            }
+            return in;
 	}
 
 	@Override
