@@ -1,5 +1,6 @@
 package au.edu.usq.fascinator.transformer.ims;
 
+import au.edu.usq.fascinator.api.PluginException;
 import java.io.File;
 import java.net.URISyntaxException;
 
@@ -30,12 +31,13 @@ public class ImsTransformerTest {
 	}
 
 	@Test
-	public void testTransform() throws URISyntaxException, TransformerException {
+	public void testTransform() throws URISyntaxException, TransformerException, PluginException {
 		ImsTransformer imsTransformer = new ImsTransformer();
 		File zipFile = new File(getClass().getResource("/mybook.zip").toURI());
 		
 		GenericDigitalObject zipObject = new GenericDigitalObject(zipFile.getAbsolutePath());
 		
+                imsTransformer.init("{}");
 		DigitalObject object = imsTransformer.transform(zipObject);
 		System.out.println("000 " + object.getPayloadList());
 	}
