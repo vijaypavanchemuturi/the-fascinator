@@ -8,11 +8,17 @@
   <appender name="backup" class="ch.qos.logback.core.read.CyclicBufferAppender">
     <MaxSize>15</MaxSize>
   </appender>
+  <appender name="reindex" class="ch.qos.logback.core.read.CyclicBufferAppender">
+    <MaxSize>15</MaxSize>
+  </appender>
   <root level="INFO">
     <appender-ref ref="stdout" />
   </root>
   <logger name="au.edu.usq" level="DEBUG" />
   <logger name="au.edu.usq.fascinator.BackupClient" level="INFO">
     <appender-ref ref="backup" />
+  </logger>
+  <logger name="au.edu.usq.fascinator.IndexClient" level="INFO">
+    <appender-ref ref="reindex" />
   </logger>
 </configuration>

@@ -32,6 +32,10 @@
       <groupId>org.semweb4j</groupId>
       <artifactId>rdf2go.impl.jena24</artifactId>
       <version>4.7.2</version>
+      <exclusions><exclusion>
+          <artifactId>slf4j-log4j12</artifactId>
+          <groupId>org.slf4j</groupId>
+          </exclusion></exclusions>
     </dependency>
   </dependencies>
   <build>

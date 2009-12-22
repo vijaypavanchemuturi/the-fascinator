@@ -20,8 +20,9 @@ public class ImsDigitalObject extends GenericDigitalObject{
     
     private String manifestFile = "imsmanifest.xml";
     
-	public ImsDigitalObject (DigitalObject zipDigitalObject, String filePath) {
+    public ImsDigitalObject (DigitalObject zipDigitalObject, String filePath) {
 		super(zipDigitalObject);
+                setMetadataId(manifestFile);
 		try {
             if (filePath.endsWith(".zip")) { 
                 File zipPathFile = new File(filePath);
@@ -37,16 +38,13 @@ public class ImsDigitalObject extends GenericDigitalObject{
 	                    }
 	                } 
                 }
-            } else {
-                File filePathFile = new File(filePath);
-                addPayload(new ImsPayload(filePathFile, null));
             }
         } catch (IOException ioe) {
             log.error("Failed to add payloads: {}", ioe.toString());
         }
-	}
+    }
 	
-	public boolean getIsImsPackage() {
-		return isImsPackage;
-	}
+    public boolean getIsImsPackage() {
+	return isImsPackage;
+    }
 }

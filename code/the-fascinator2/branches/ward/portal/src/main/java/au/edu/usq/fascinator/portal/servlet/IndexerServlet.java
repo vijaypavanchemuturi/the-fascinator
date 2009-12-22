@@ -14,6 +14,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.activemq.broker.BrokerService;
+import org.apache.commons.lang.text.StrSubstitutor;
 import org.python.core.PySystemState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,6 +30,9 @@ import au.edu.usq.fascinator.common.JsonConfig;
  * 
  */
 public class IndexerServlet extends HttpServlet {
+
+    public static final String DEFAULT_MESSAGING_HOME = StrSubstitutor
+            .replaceSystemProperties("${user.home}/.fascinator/");
 
     private Logger log = LoggerFactory.getLogger(IndexerServlet.class);
 
@@ -51,9 +55,15 @@ public class IndexerServlet extends HttpServlet {
         // configure the broker
         try {
             config = new JsonConfig();
+            System.setProperty("activemq.base", config.get("messaging/home",
+                    DEFAULT_MESSAGING_HOME));
             broker = new BrokerService();
             broker.addConnector(config.get("messaging/url",
                     ActiveMQConnectionFactory.DEFAULT_BROKER_BIND_URL));
+            String stompUrl = config.get("messaging/stompUrl");
+            if (stompUrl != null) {
+                broker.addConnector(stompUrl);
+            }
             broker.start();
         } catch (Exception e) {
             log.error("Failed to start broker: {}", e.getMessage());
