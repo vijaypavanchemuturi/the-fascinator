@@ -50,6 +50,7 @@ import au.edu.usq.fascinator.api.storage.DigitalObject;
 import au.edu.usq.fascinator.api.transformer.Transformer;
 import au.edu.usq.fascinator.api.transformer.TransformerException;
 import au.edu.usq.fascinator.common.JsonConfig;
+import au.edu.usq.fascinator.common.JsonConfigHelper;
 import au.edu.usq.fascinator.common.MimeTypeUtil;
 
 /**
@@ -372,7 +373,12 @@ public class ApertureTransformer implements Transformer {
     public DigitalObject transform(DigitalObject in)
             throws TransformerException {
         // Get the Object id
-        File inFile = new File(in.getId());
+        File inFile;
+        if (filePath != null && !"".equals(filePath)) {
+            inFile = new File(filePath);
+        } else {
+            inFile = new File(in.getId());
+        }
         try {
             if (inFile.exists()) {
                 RDFContainer rdf = extractRDF(inFile); // Never write to file
@@ -381,6 +387,8 @@ public class ApertureTransformer implements Transformer {
                     RdfDigitalObject rdo = new RdfDigitalObject(in, rdf);
                     return rdo;
                 }
+            } else {
+                log.info("inFile '{}' does not exist!", inFile);
             }
         } catch (IOException e) {
             // TODO Auto-generated catch block
@@ -397,6 +405,12 @@ public class ApertureTransformer implements Transformer {
     @Override
     public void init(String jsonString) throws PluginException {
         // TODO Auto-generated method stub
+        JsonConfigHelper jch;
+        try {
+            jch = new JsonConfigHelper(jsonString);
+            filePath = jch.get("sourceFile");
+        } catch (Exception e) {
 
+        }
     }
 }
