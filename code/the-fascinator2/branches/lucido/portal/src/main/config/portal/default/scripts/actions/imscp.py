@@ -60,6 +60,7 @@ class ImsPackage:
         org.setIdentifier("default")
         org.setTitle(portal.getDescription())
         orgs.getOrganization().add(org)
+        orgs.setDefault(org)
         manifest.setOrganizations(orgs)
         
         resources = ResourcesType()
@@ -69,8 +70,8 @@ class ImsPackage:
             # item
             visible = jsonRes.get("hidden", "false") != "true"
             item = ItemType()
-            item.setIdentifier(key)
-            item.setIdentifierref("default-" + key)
+            item.setIdentifier("default-" + key)
+            item.setIdentifierref(key)
             item.setIsvisible(visible)
             item.setTitle(jsonRes.get("title"))
             # webcontent
