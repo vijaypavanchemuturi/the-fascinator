@@ -92,11 +92,21 @@ public class FileSystemPayload extends GenericPayload {
                 setType(PayloadType.valueOf(props.getProperty("payloadType",
                         getType().toString())));
                 setLabel(props.getProperty("label", getId()));
-                setContentType(props.getProperty("contentType",
-                        getContentType()));
                 setLinked(Boolean.parseBoolean(props.getProperty("linked",
                         String.valueOf(isLinked()))));
+                // get proper mimetype for linked files
+                File payloadFile = getFile();
+                if (isLinked()) {
+                    try {
+                        String realPath = FileUtils.readFileToString(getFile());
+                        payloadFile = new File(realPath);
+                    } catch (IOException ioe) {
+                        log.warn("Failed to get linked file", ioe);
+                    }
+                }
+                setContentType(MimeTypeUtil.getMimeType(payloadFile));
             }
+
             metaFile.getParentFile().mkdirs();
             OutputStream metaOut = new FileOutputStream(metaFile);
             props.setProperty("id", getId());
