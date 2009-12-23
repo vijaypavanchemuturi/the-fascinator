@@ -131,6 +131,14 @@ class DetailData:
             return False
         return pid
     
+    def hasFlv(self):
+        pid = self.__pid
+        pid = pid[:pid.find(".")] + ".flv"
+        payload = self.__storage.getPayload(self.__oid, pid)
+        if payload is None:
+            return ""
+        return pid
+    
     def getPdfUrl(self):
         pid = os.path.splitext(self.__pid)[0] + ".pdf"
         return "%s/%s" % (self.__oid, pid)

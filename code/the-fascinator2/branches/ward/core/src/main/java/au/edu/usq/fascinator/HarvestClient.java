@@ -163,7 +163,9 @@ public class HarvestClient {
             log.info("Processing " + oid + "...");
 
             // Calling conveyer to perform aperture transformation
+            log.info("------------ doing the aperture transformation");
             object = cb.transform(object);
+            log.info("------------ done");
 
             Properties sofMeta = new Properties();
             sofMeta.setProperty("objectId", oid);
