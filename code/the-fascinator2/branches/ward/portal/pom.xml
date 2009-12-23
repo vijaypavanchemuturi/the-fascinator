@@ -176,6 +176,22 @@
           <contextPath>/portal</contextPath>
         </configuration>
       </plugin>
+	  <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>jaxb2-maven-plugin</artifactId>
+        <version>1.3</version>
+        <executions>
+          <execution>
+             <phase>generate-sources</phase>
+             <goals><goal>xjc</goal></goals>
+             <configuration>
+               <packageName>au.edu.usq.fascinator.ims</packageName>
+               <schemaDirectory>src/main/resources/xsd</schemaDirectory>
+               <schemaFiles>imscp_v1p1.xsd</schemaFiles>
+             </configuration>
+          </execution>
+        </executions>
+      </plugin>
     </plugins>
   </build>
 </project>

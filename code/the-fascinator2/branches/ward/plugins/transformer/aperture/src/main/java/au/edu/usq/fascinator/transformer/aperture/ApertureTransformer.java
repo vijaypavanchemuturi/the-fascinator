@@ -374,7 +374,7 @@ public class ApertureTransformer implements Transformer {
             throws TransformerException {
         // Get the Object id
         File inFile;
-        if (filePath!=null) {
+        if (filePath != null && !"".equals(filePath)) {
             inFile = new File(filePath);
         } else {
             inFile = new File(in.getId());
