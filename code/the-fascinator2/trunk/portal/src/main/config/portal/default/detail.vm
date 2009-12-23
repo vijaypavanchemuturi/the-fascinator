@@ -157,15 +157,22 @@ $(function() {
         var style = "display: block; width: 425px; height: " + height + "px";     
         var filename = oid.substring(oid.lastIndexOf("/") + 1);
         var ext = filename.substring(filename.lastIndexOf(".") + 1).toLowerCase();
+        
+        var hasFlv = true
         if (ext == "wmv" || ext=="mpg" || ext=="mpeg" || ext=="m3u") { 
         	filename = filenameNoExt + ".flv";
+        	hasFlv = "$self.hasFlv()";
         }
-
-        var href = "$portalPath/download/$oid/" + filename;
-        var player = '<a class="clearfix" href="' + href + '" id="player" style="' + style + '" />';
-        $("div.content-preview div.article").empty().append(player);
-        flowplayer("player", "$portalPath/flowplayer/flowplayer-3.1.2.swf",
-            { clip: { autoPlay: false } });
+		
+		if (hasFlv!="" || ext=="mp3" || ext=="m4a") {
+	        var href = "$portalPath/download/$oid/" + filename;
+	        var player = '<a class="clearfix" href="' + href + '" id="player" style="' + style + '" />';
+	        $("div.content-preview div.article").empty().append(player);
+	        flowplayer("player", "$portalPath/flowplayer/flowplayer-3.1.2.swf",
+	            { clip: { autoPlay: false } });   
+        } else {
+        	$("div.content-preview div.article").empty().append("No preview available");
+        }
     }
     
     $("#blog-this, #blog-cancel").click(function() {
