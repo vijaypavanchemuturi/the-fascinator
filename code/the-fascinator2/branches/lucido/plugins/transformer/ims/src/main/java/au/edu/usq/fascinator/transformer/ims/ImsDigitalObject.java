@@ -28,14 +28,15 @@ public class ImsDigitalObject extends GenericDigitalObject{
                 ZipFile zipFile = new ZipFile(zipPathFile);
                 ZipEntry manifestEntry = zipFile.getEntry(manifestFile);
                 if (manifestEntry != null) {
-                	isImsPackage = true;
-	                Enumeration<? extends ZipEntry> entries = zipFile.entries();
-	                while (entries.hasMoreElements()) {
-	                    ZipEntry entry = entries.nextElement();
-	                    if (!entry.isDirectory()) {
-	                        addPayload(new ImsPayload(zipPathFile, entry));
-	                    }
-	                } 
+                    isImsPackage = true;
+	            Enumeration<? extends ZipEntry> entries = zipFile.entries();
+	            while (entries.hasMoreElements()) {
+	                ZipEntry entry = entries.nextElement();
+	                if (!entry.isDirectory()) {
+	                    addPayload(new ImsPayload(zipPathFile, entry));
+	                }
+	            }
+                    // imsmanifest.json
                 }
             }
         } catch (IOException ioe) {
