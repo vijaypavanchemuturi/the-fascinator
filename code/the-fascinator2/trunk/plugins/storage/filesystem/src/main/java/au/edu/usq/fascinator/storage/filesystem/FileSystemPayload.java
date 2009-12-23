@@ -156,4 +156,11 @@ public class FileSystemPayload extends GenericPayload {
                 || (useLink && (PayloadType.Data.equals(getType()) || PayloadType.External
                         .equals(getType())));
     }
+    public void test() throws Exception {
+        InputStream is;
+        InputStreamReader isr = new InputStreamReader(is, "UTF-8");
+        BufferedReader br = new Bufferedreader(isr);
+        StringBuilder sb = new StringBuilder();
+        
+    }
 }

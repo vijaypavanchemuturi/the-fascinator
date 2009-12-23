@@ -47,7 +47,6 @@ class SolrDoc:
 class DetailData:
     def __init__(self):
         self.__object = None
-        print "**** formData: ", formData.get("func")
         if formData.get("func") == "open-file":
             self.__openFile()
             writer = response.getPrintWriter("text/plain")
