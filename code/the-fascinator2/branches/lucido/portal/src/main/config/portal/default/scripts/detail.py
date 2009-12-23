@@ -47,7 +47,6 @@ class SolrDoc:
 class DetailData:
     def __init__(self):
         self.__object = None
-        print "**** formData: ", formData.get("func")
         if formData.get("func") == "open-file":
             self.__openFile()
             writer = response.getPrintWriter("text/plain")
@@ -130,6 +129,14 @@ class DetailData:
         payload = self.__storage.getPayload(self.__oid, pid)
         if payload is None:
             return False
+        return pid
+    
+    def hasFlv(self):
+        pid = self.__pid
+        pid = pid[:pid.find(".")] + ".flv"
+        payload = self.__storage.getPayload(self.__oid, pid)
+        if payload is None:
+            return ""
         return pid
     
     def getPdfUrl(self):
