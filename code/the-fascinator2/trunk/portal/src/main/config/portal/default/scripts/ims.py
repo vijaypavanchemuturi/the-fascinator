@@ -1,4 +1,4 @@
-
+from au.edu.usq.fascinator.ims import ImsPackage
 import traceback
 
 class Ims:
@@ -10,7 +10,14 @@ class Ims:
             traceback.print_exc()
             
     def __exportIms(self):
-        
+        #imsPackage = ImsPackage()
         #Ims Package...
-        
-        pass
+        imsPackage = ImsPackage("/home/octalina/Desktop/", self.__getPortal(), self.__getPortalManifest())
+    
+    def __getPortalManifest(self):
+        return self.__getPortal().getJsonMap("manifest")
+    
+    def __getPortal(self):
+        return Services.portalManager.get(portalId)
+                
+scriptObject = Ims()
