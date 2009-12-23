@@ -15,7 +15,7 @@
     <ul class="menu">
       <li><a href="$portalPath/search">Browse all</a></li>
       <li><a id="epub" href="#" rel="$portalId">Export as ePub...</a></li>
-      <li><a id="ims" href="#" rel="$portalId">Export as IMS Package...</a></li>
+      <li><a id="ims" href="$portalPath/actions/imscp" rel="$portalId">Export as IMS Package...</a></li>
       <li><a id="reindex-view" href="#" rel="$portalId">Re-Index View...</a></li>
       ## FIXME
       <li><a id="backup-view" href="#" rel="$portalId">Backup view...</a></li>
@@ -136,19 +136,9 @@ $(function() {
             });
     }
     
-    ##$("#reindex").click(function() {
-    ##    jQuery.post("$portalPath/reindex.ajax", { func: "reindex", portalId: "$portalId" } );
-    ##    return false;
-    ##});
-    
     $("#epub").click(function() {
-    	jQuery.post("$portalPath/epub.ajax", { func: "epub", portalId: "$portalId" } );
-    	return false;
-    });
-    
-    $("#ims").click(function() {
-    	jQuery.post("$portalPath/ims.ajax", { func: "ims", portalId: "$portalId" } );
-    	return false;
+        jQuery.post("$portalPath/epub.ajax", { func: "epub", portalId: "$portalId" } );
+        return false;
     });
     
     $("#reindex-view, #reindex-cancel").click(function() {

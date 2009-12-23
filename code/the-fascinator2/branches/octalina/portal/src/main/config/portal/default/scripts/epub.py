@@ -119,7 +119,7 @@ class Epub:
                 #need to save the payload to the temp file...
                 payload, payloadType = payloadDict[payloadId]
                 if isinstance(payload, Payload):
-                    payloadId = payloadId.lower()
+                    #payloadId = payloadId.lower()
                     zipOutputStream.putNextEntry(ZipEntry("OEBPS/%s" % payloadId))
                     
                     if payloadType == "application/xhtml+xml":
@@ -227,14 +227,16 @@ class Epub:
             children = item.getJsonMap("children")
             pid = id[id.rfind("/")+1:]
             htmlFileName = pid[:pid.rfind(".")] + ".htm"
+            nodeHtm = "%s.htm" % itemHash.replace("-", "_")
             
             sourcePayload = Services.storage.getPayload(id, pid)
             if sourcePayload and hidden != 'true':
                 payloadType = sourcePayload.contentType
                 htmlPayload = Services.storage.getPayload(id, htmlFileName)
+                process = True
                 if htmlPayload:
                     #gather all the related payload
-                    payloadDict[htmlFileName] = htmlPayload, "application/xhtml+xml"
+                    payloadDict[nodeHtm] = htmlPayload, "application/xhtml+xml"
                     payloadList = Services.storage.getObject(id).getPayloadList()
                     for payload in payloadList:
                         if payload.id.find("_files") > -1:
@@ -247,12 +249,15 @@ class Epub:
                                         </head><body><div><span style="display: block"><img src="%s" alt="%s"/></span></div></body></html>"""
                         htmlString = htmlString % (pid, pid.lower(), pid)
                         payloadDict[pid] = sourcePayload, payloadType
-                        payloadDict[htmlFileName] = ByteArrayInputStream(String(htmlString).getBytes("UTF-8")), "application/xhtml+xml"
+                        payloadDict[nodeHtm] = ByteArrayInputStream(String(htmlString).getBytes("UTF-8")), "application/xhtml+xml"
+                else:
+                    process = False
             
-                self.__itemRefDict[itemHash] = id, title, htmlFileName, payloadDict
-                self.__orderedItem.append(itemHash)
-                if children:
-                    self.__getDigitalItems(children)
+                if process:
+                    self.__itemRefDict[itemHash] = id, title, nodeHtm, payloadDict
+                    self.__orderedItem.append(itemHash)
+                    if children:
+                        self.__getDigitalItems(children)
     
     def __getPortalManifest(self):
         return self.__getPortal().getJsonMap("manifest")

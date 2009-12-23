@@ -47,13 +47,87 @@ class Annotation:
         self.saxReader = SAXReader()
         jConfig = JsonConfig()
         self.__baseUrl = jConfig.get("/annotation/server")
+        self.__storageType = jConfig.get("/annotation/storageType", "danno")
         
 
     def getContentType(self):
         return "application/json"
 
-    
+
     def getJson(self):
+        if self.__storageType=="couchdb":
+            return self.__getJsonCouchDB()
+        else:
+            return self.__getJsonDanno()
+    
+    
+    def __getJsonCouchDB(self):
+        if self.__baseUrl is None:
+            d = {"error":"no annotation server setup in the 'system-config.json' file!",
+                "data":[]}
+            return JsonConfigHelper(d).toString()
+        method = formData.get("method")
+        url = formData.get("url")
+        if url is None:
+            url = ""
+        try:
+            if method=="info":
+                d = {"enabled": True, "storageType": self.__storageType,
+                        "baseUrl": self.__baseUrl}
+            elif method=="getAnnotation":
+                # _design/anno/_list/anno/anno?key=
+                key = URLEncoder.encode('"' + url + '"', "utf-8")
+                #json = self.__get(self.__baseUrl + url)
+                json = self.__get(self.__baseUrl + "_design/anno/_list/anno/anno?key=" + key)
+                return json
+            elif method=="getAnnotates":
+                u = self.__baseUrl + '_design/anno/_list/annosFor/annotations?key=%s'
+                u = u % URLEncoder.encode('"' + url + '"', "utf-8")
+                json = self.__get(u)
+                return json
+            elif method=="getReplies":
+                d = {"data":[]}
+            elif method=="delete":
+                r = self.__delete(url)
+                if r:
+                    d = {"deleted": "OK"}
+                else:
+                    d = {"delete": "Failed"}
+            elif method=="close":
+                pass
+            elif method=="create":
+                annotates = formData.get("annotates") or ""
+                elemId = formData.get("elemId") or ""
+                body = formData.get("body") or ""
+                creator = formData.get("creator") or ""
+                date = formData.get("date") or ""
+                bodyTitle = formData.get("bodyTitle") or ""
+                title = formData.get("title") or ""
+                annotationType = formData.get("annotationType") or "Comment"
+                root = formData.get("root") or ""
+                inReplyTo = formData.get("inReplyTo") or ""
+                content = formData.get("content") or ""
+                json = self.__createJson(annotates, elemId, body, creator,
+                    date, bodyTitle, title, annotationType, root, inReplyTo,
+                    content)
+                status, reply = self.__post(self.__baseUrl, json)
+                if status.startswith("2"):
+                    json = reply[:-1] + ', "status":"%s"}' % status
+                    print json
+                    return json
+                else:
+                    d = {"status": status}
+            elif method=="test":
+                return "Testing"
+            else:
+                d = {"error": "Unknown method '%s'" % method, "data":[]}
+        except Exception, e:
+            d = {"error": "Exception '%s'" % repr(e)}
+
+        return JsonConfigHelper(d).toString()
+
+
+    def __getJsonDanno(self):
         #s = self.__getBody("http://localhost:8080/danno/annotea/body/73D4FA5361CE5610")
         #s = self.__getAnnotates("http://139.86.38.58:8003/rep.TempTest-Content1/packages/ATest/one.htm")
         #s = self.__getReplies("http://localhost:8080/danno/annotea/A25A7112EFCBFBD2")
@@ -326,7 +400,7 @@ class Annotation:
         #           Change, Advice
         xpointer = annotates + '#xpointer(id("%s"))' % elemId
         if date is None or date=="":
-            date = time.strftime("%Y-%m-%dT%H:%M")
+            date = time.strftime("%Y-%m-%dT%H:%M.%S")
             if time.timezone>0:
                 date += "-"
             else:
@@ -368,6 +442,34 @@ class Annotation:
             rdf = replyRdfTemplate % (replyType, root, inReplyTo, title, creator,
                     created, date, bodyTitle, body, content)
         return rdf
+
+
+    def __createJson(self, annotates, elemId, body, creator,
+            date="", bodyTitle="", title="", annotationType="Comment",
+            root="",  inReplyTo="", content=""):
+        xpointer = annotates + '#xpointer(id("%s"))' % elemId
+        if date is None or date=="":
+            date = time.strftime("%Y-%m-%dT%H:%M.%S")
+            if time.timezone>0:
+                date += "-"
+            else:
+                date += "+"
+            date += time.strftime("%H:%M", (0,0,0, abs(time.timezone/3600), 0,0,0,0,0))
+        created = date
+        if creator is None or creator=="":
+            creator = "Anonymous"
+        if title=="":
+            title = annotationType
+        if bodyTitle=="":
+            bodyTitle = title
+        replyType = annotationType  #"Comment" or "SeeAlso", "Agree", "Disagree", "Comment"
+
+        d = {"type":"annotation", "annotates":annotates, "xpointer":xpointer,
+             "creator":creator, "created":created, "annotationType":annotationType,
+             "title":title, "bodyTitle":bodyTitle, "body":body, "content":content,
+             "root":root, "inReplyTo":inReplyTo}
+        return JsonConfigHelper(d).toString()
+
 
 
 

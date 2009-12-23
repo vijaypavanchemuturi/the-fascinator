@@ -164,14 +164,14 @@ $(function() {
         	hasFlv = "$self.hasFlv()";
         }
 		
-		if (hasFlv!="" || ext=="mp3" || ext=="mp4") {
+		if (hasFlv!="" || ext=="mp3" || ext=="m4a") {
 	        var href = "$portalPath/download/$oid/" + filename;
 	        var player = '<a class="clearfix" href="' + href + '" id="player" style="' + style + '" />';
 	        $("div.content-preview div.article").empty().append(player);
 	        flowplayer("player", "$portalPath/flowplayer/flowplayer-3.1.2.swf",
 	            { clip: { autoPlay: false } });   
         } else {
-        	$("div.content-preview div.article").empty().append("No Preview Available");
+        	$("div.content-preview div.article").empty().append("No preview available");
         }
     }
     
