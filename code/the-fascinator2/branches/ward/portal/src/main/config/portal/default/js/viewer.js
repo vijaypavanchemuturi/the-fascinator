@@ -4,12 +4,26 @@ $(function(){
     var jQ=jQuery;
     var myUrl = window.location.href.split("#")[0];
     var url = myUrl.replace("/detail/", "/jsonIms/");
+    //==  http://localhost:9997/portal/default/download/3be1c9f2-e80e-4cef-a09a-f24f5e3842a3/skin%2Fusq.001.css
+    var dUrl = myUrl.replace("/detail/", "/download/");
+    var k1 = "<link href='"+ dUrl + "/skin/usq.001.css" + "' rel='stylesheet' type='text/css'/>";
+    var k2 = "<link rel='stylesheet' href='"+dUrl + "/skin/default.css"+"'/>";
+    jQ("head").append(k1);
+    jQ("head").append(k2);
+    //==
     function previewDataCallback(data){
-        gData = data;
         var h=jQ(data);
-        jQ("div.content-preview-inline>div").replaceWith(h.find(".body"))
+        var d=jQ("div.content-preview-inline>div");
+        d.html(h.find(".body"));
+        d.prepend(h.find("div.page-toc"));
+        d.prepend(h.find("h1.content-title"));
         gFixLinks("div.content-preview-inline a", "href");
         gFixLinks("div.content-preview-inline img", "src");
+        //
+        d.css("background-color", "white");
+        d.css("padding", "0.7em");
+        d.css("border", "1px solid #cccccc");
+        d.parent().parent().css("padding", "0.5em");
     }
     function getDocument(id){
         var url = myUrl.replace("/detail/", "/download/");
