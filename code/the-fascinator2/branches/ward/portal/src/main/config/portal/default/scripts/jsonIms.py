@@ -6,6 +6,7 @@ from java.io import BufferedReader
 from java.io import InputStreamReader
 from java.lang import StringBuilder
 
+import types
 
 
 class JsonIms(object):
@@ -48,20 +49,37 @@ class JsonIms(object):
                 organizations = xml.find(ns+"organizations")
                 defaultName = organizations.attrib.get("default")
                 organizations = organizations.findall(ns+"organization")
-                organizations = [o for o in organizations if o.attrib.get("identifier")==defaultName]
+                if defaultName:
+                    organizations = [o for o in organizations if o.attrib.get("identifier")==defaultName]
                 organization = organizations[0]
                 title = organization.find(ns+"title").text
                 data["title"] = title
-                items = []
-                for item in organization.findall(ns+"item"):
-                    a = item.attrib
-                    isVisible = a.get("isvisible")
-                    idr = a.get("identifierref")
-                    id = resources.get(idr)
-                    iTitle = item.find(ns+"title").text
-                    if isVisible and id and id.endswith(".htm"):
-                        items.append({"attributes":{"id":id}, "data":iTitle})
-                data["nodes"] = items
+                def processItems(parentNode):
+                    items = []
+                    for item in parentNode.findall(ns+"item"):
+                        a = item.attrib
+                        isVisible = a.get("isvisible")
+                        idr = a.get("identifierref")
+                        id = resources.get(idr)
+                        iTitle = item.find(ns+"title").text
+                        if type(iTitle) is types.UnicodeType:
+                            iTitle = iTitle.encode("utf-8")
+                        if isVisible and id and id.endswith(".htm"):
+                            children = processItems(item)
+                            items.append({"attributes":{"id":id}, \
+                                    "data":iTitle, "children":children})
+                    return items
+                #items = []
+                #for item in organization.findall(ns+"item"):
+                #    a = item.attrib
+                #    isVisible = a.get("isvisible")
+                #    idr = a.get("identifierref")
+                #    id = resources.get(idr)
+                #    iTitle = item.find(ns+"title").text
+                #    if isVisible and id and id.endswith(".htm"):
+                #        items.append({"attributes":{"id":id}, "data":iTitle})
+                #data["nodes"] = items
+                data["nodes"] = processItems(organization)
             except Exception, e:
                  data["error"] = "Error - %s" % str(e)
                  print data["error"]
