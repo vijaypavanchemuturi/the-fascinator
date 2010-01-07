@@ -128,8 +128,8 @@ public class OaiPmhHarvester implements Harvester, Configurable {
         }
         maxObjects = Integer.parseInt(config.get(
                 "harvester/oai-pmh/maxObjects", "-1"));
-        if (maxRequests == -1) {
-            maxRequests = Integer.MAX_VALUE;
+        if (maxObjects == -1) {
+            maxObjects = Integer.MAX_VALUE;
         }
 
         started = false;
