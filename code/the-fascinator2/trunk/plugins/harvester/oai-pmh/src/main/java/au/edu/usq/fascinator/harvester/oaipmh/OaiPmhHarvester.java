@@ -84,11 +84,16 @@ public class OaiPmhHarvester implements Harvester, Configurable {
     /** Session resumption token */
     private ResumptionToken token;
 
-    /** Current number of requests done */
+    /** Current number of requests/objects done */
     private int numRequests;
+    private int numObjects;
 
-    /** Maximum requests to do */
+    /** Maximum requests/objects to do */
     private int maxRequests;
+    private int maxObjects;
+
+    /** Request for a specific document */
+    private String recordID;
 
     /** Configuration */
     private JsonConfig config;
@@ -111,13 +116,25 @@ public class OaiPmhHarvester implements Harvester, Configurable {
         } catch (IOException ioe) {
             throw new HarvesterException(ioe);
         }
+
+        /** Check for request on a specific ID */
+        recordID = config.get("harvester/oai-pmh/recordID", null);
+
+        /** Check for any specified result set size limits */
         maxRequests = Integer.parseInt(config.get(
                 "harvester/oai-pmh/maxRequests", "-1"));
         if (maxRequests == -1) {
             maxRequests = Integer.MAX_VALUE;
         }
+        maxObjects = Integer.parseInt(config.get(
+                "harvester/oai-pmh/maxObjects", "-1"));
+        if (maxRequests == -1) {
+            maxRequests = Integer.MAX_VALUE;
+        }
+
         started = false;
         numRequests = 0;
+        numObjects = 0;
     }
 
     @Override
@@ -144,9 +161,21 @@ public class OaiPmhHarvester implements Harvester, Configurable {
         RecordsList records;
         try {
             numRequests++;
-            if (started) {
+            /** Request for a specific ID */
+            if (recordID != null) {
+                log.info("Requesting record {}", recordID);
+                Record record = server.getRecord(recordID, metadataPrefix);
+                /** Add the item and return now, so we don't confuse
+                    the record loop further down */
+                items.add(new OaiPmhDigitalObject(record, metadataPrefix));
+                return items;
+
+            /** Continue an already running request */
+            } else if (started) {
                 records = server.listRecords(token);
                 log.info("Resuming harvest using token {}", token.getId());
+
+            /** Start a new request */
             } else {
                 started = true;
                 if (fromDate == null) {
@@ -173,7 +202,10 @@ public class OaiPmhHarvester implements Harvester, Configurable {
                 }
             }
             for (Record record : records.asList()) {
-                items.add(new OaiPmhDigitalObject(record, metadataPrefix));
+                if (numObjects < maxObjects) {
+                    numObjects++;
+                    items.add(new OaiPmhDigitalObject(record, metadataPrefix));
+                }
             }
             token = records.getResumptionToken();
         } catch (OAIException oe) {
@@ -184,7 +216,7 @@ public class OaiPmhHarvester implements Harvester, Configurable {
 
     @Override
     public boolean hasMoreObjects() {
-        return token != null && numRequests < maxRequests;
+        return token != null && numRequests < maxRequests && numObjects < maxObjects;
     }
 
     @Override
