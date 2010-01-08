@@ -74,6 +74,10 @@
         </dependency>
         <dependency>
           <groupId>au.edu.usq.fascinator.plugins</groupId>
+          <artifactId>plugin-storage-fedora3</artifactId>
+        </dependency>
+        <dependency>
+          <groupId>au.edu.usq.fascinator.plugins</groupId>
           <artifactId>plugin-harvester-jsonq</artifactId>
         </dependency>
         <dependency>
@@ -114,6 +118,10 @@
         </dependency>
         <dependency>
           <groupId>au.edu.usq.fascinator.plugins</groupId>
+          <artifactId>plugin-storage-fedora3</artifactId>
+        </dependency>
+        <dependency>
+          <groupId>au.edu.usq.fascinator.plugins</groupId>
           <artifactId>plugin-harvester-oai-pmh</artifactId>
         </dependency>
         <dependency>
@@ -143,6 +151,10 @@
         <dependency>
           <groupId>au.edu.usq.fascinator.plugins</groupId>
           <artifactId>plugin-storage-filesystem</artifactId>
+        </dependency>
+        <dependency>
+          <groupId>au.edu.usq.fascinator.plugins</groupId>
+          <artifactId>plugin-storage-fedora3</artifactId>
         </dependency>
         <dependency>
           <groupId>au.edu.usq.fascinator.plugins</groupId>
@@ -183,6 +195,10 @@
         <dependency>
           <groupId>au.edu.usq.fascinator.plugins</groupId>
           <artifactId>plugin-storage-filesystem</artifactId>
+        </dependency>
+        <dependency>
+          <groupId>au.edu.usq.fascinator.plugins</groupId>
+          <artifactId>plugin-storage-fedora3</artifactId>
         </dependency>
         <dependency>
           <groupId>au.edu.usq.fascinator.plugins</groupId>
@@ -228,6 +244,10 @@
         </dependency>
         <dependency>
           <groupId>au.edu.usq.fascinator.plugins</groupId>
+          <artifactId>plugin-storage-fedora3</artifactId>
+        </dependency>
+        <dependency>
+          <groupId>au.edu.usq.fascinator.plugins</groupId>
           <artifactId>plugin-indexer-solr</artifactId>
         </dependency>
       </dependencies>
@@ -253,6 +273,10 @@
         <dependency>
           <groupId>au.edu.usq.fascinator.plugins</groupId>
           <artifactId>plugin-storage-filesystem</artifactId>
+        </dependency>
+        <dependency>
+          <groupId>au.edu.usq.fascinator.plugins</groupId>
+          <artifactId>plugin-storage-fedora3</artifactId>
         </dependency>
         <dependency>
           <groupId>au.edu.usq.fascinator.plugins</groupId>
@@ -288,6 +312,10 @@
         </dependency>
         <dependency>
           <groupId>au.edu.usq.fascinator.plugins</groupId>
+          <artifactId>plugin-storage-fedora3</artifactId>
+        </dependency>
+        <dependency>
+          <groupId>au.edu.usq.fascinator.plugins</groupId>
           <artifactId>plugin-harvester-filesystem</artifactId>
         </dependency>
         <dependency>
@@ -314,6 +342,10 @@
     <profile>
       <id>fedora-test</id>
       <dependencies>
+        <dependency>
+          <groupId>au.edu.usq.fascinator.plugins</groupId>
+          <artifactId>plugin-storage-filesystem</artifactId>
+        </dependency>
         <dependency>
           <groupId>au.edu.usq.fascinator.plugins</groupId>
           <artifactId>plugin-storage-fedora3</artifactId>
@@ -354,6 +386,10 @@
     <profile>
       <id>ims-test</id>
       <dependencies>
+        <dependency>
+          <groupId>au.edu.usq.fascinator.plugins</groupId>
+          <artifactId>plugin-storage-filesystem</artifactId>
+        </dependency>
         <dependency>
           <groupId>au.edu.usq.fascinator.plugins</groupId>
           <artifactId>plugin-storage-fedora3</artifactId>
@@ -398,6 +434,10 @@
     <profile>
       <id>fedora-jsonq-test</id>
       <dependencies>
+        <dependency>
+          <groupId>au.edu.usq.fascinator.plugins</groupId>
+          <artifactId>plugin-storage-filesystem</artifactId>
+        </dependency>
         <dependency>
           <groupId>au.edu.usq.fascinator.plugins</groupId>
           <artifactId>plugin-storage-fedora3</artifactId>
