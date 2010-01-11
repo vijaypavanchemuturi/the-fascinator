@@ -436,10 +436,6 @@
       <dependencies>
         <dependency>
           <groupId>au.edu.usq.fascinator.plugins</groupId>
-          <artifactId>plugin-storage-filesystem</artifactId>
-        </dependency>
-        <dependency>
-          <groupId>au.edu.usq.fascinator.plugins</groupId>
           <artifactId>plugin-storage-fedora3</artifactId>
         </dependency>
         <dependency>
