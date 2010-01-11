@@ -21,7 +21,7 @@
       <li><a id="open-this" href="$portalPath/detail/$oid">Open file</a></li>
       <li><a id="reindex" href="$portalPath/detail/$oid">Re-Index...</a></li>
       #if($self.hasHtml())
-      <li><a id="blog-this" href="#">Blog to WordPress...</a><li>
+      <li><a id="blog-this" href="#">Blog...</a><li>
       #end
     </ul>
   </div>
@@ -55,12 +55,12 @@
         <a href='$portalPath/download/$self.encode($oid)/$self.encode($pid)' rel="$payloadType" target="blank" title="$payload.contentType">$payload.id</a>
       </li>
     #end
-    </ul>	
+    </ul>
   </div>
 </div>
 <div class="grid_12">
   <div class="box hidden" id="blog-form">
-    <h2>Blog to WordPress</h2>
+    <h2>Blog</h2>
     <form id="blog" method="post">
       <fieldset class="login">
         <legend>Blog information</legend>
@@ -88,6 +88,7 @@
         <input id="blog-cancel" type="button" value="Close" />
       </fieldset>
     </form>
+    <p>Note: Some platforms may not support images or attachments.</p>
   </div>
   <div id="preview" class="box articles">
     <h2>Preview</h2>
