@@ -20,7 +20,6 @@ class SolrDoc:
     
     def getField(self, name):
         field = self.json.getList("response/docs/%s" % name)
-        print " ***** field: %s" % field
         if field.isEmpty():
             return None
         return field.get(0)
@@ -102,7 +101,6 @@ class DetailData:
         return name[3:4].upper() + name[4:]
     
     def formatValue(self, value):
-        print " ************", value
         return value
     
     def isHidden(self, pid):
@@ -114,7 +112,6 @@ class DetailData:
         return self.__metadata
     
     def getObject(self):
-        #print "################test getPayload source: ", self.__storage.getObject(self.__oid).getSource()
         return self.__object
     
     def getStorageId(self):
