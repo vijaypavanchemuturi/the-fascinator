@@ -194,7 +194,8 @@ $(function() {
                     });
             },
             onchange: function(node, tree) {
-                document.location.href = "$portalPath/organise/combined/" + $(node).attr("rel");
+                document.location.href = "$portalPath/organise/combined/"
+                    + $(node).attr("rel") + "#content-" + $(node).attr("id");
             }
         }
     });
