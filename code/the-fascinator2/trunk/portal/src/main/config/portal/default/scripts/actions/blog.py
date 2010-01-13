@@ -1,4 +1,4 @@
-import os
+import md5, os
 
 from com.sun.syndication.feed.atom import Content
 from com.sun.syndication.propono.atom.client import AtomClientFactory, BasicAuthStrategy
@@ -6,9 +6,10 @@ from com.sun.syndication.propono.atom.client import AtomClientFactory, BasicAuth
 from java.io import ByteArrayInputStream, ByteArrayOutputStream, File, StringWriter
 from java.net import Proxy, ProxySelector, URL, URLDecoder
 from java.lang import Exception
+from java.util import HashSet
 
 from org.apache.commons.httpclient.methods import PostMethod
-from org.apache.commons.io import IOUtils
+from org.apache.commons.io import FileUtils, IOUtils
 from org.apache.commons.io.output import NullOutputStream
 from org.dom4j.io import OutputFormat, XMLWriter, SAXReader
 
@@ -35,39 +36,62 @@ class ProxyBasicAuthStrategy(BasicAuthStrategy):
 
 class AtomEntryPoster:
     def __init__(self):
+        responseType = "text/html"
         responseMsg = ""
-        try:
-            url = formData.get("url")
-            title = formData.get("title")
-            username = formData.get("username")
-            password = formData.get("password")
+        func = formData.get("func")
+        if func == "url-history":
+            responseType = "text/plain"
+            responseMsg = "\n".join(self.getUrls())
+        else:
             try:
-                auth = ProxyBasicAuthStrategy(username, password, url)
-                self.__service = AtomClientFactory.getAtomService(url, auth)
-                oid = formData.get("oid")
-                if oid is not None:
-                    content = self.__getContent(oid)
+                url = formData.get("url")
+                title = formData.get("title")
+                username = formData.get("username")
+                password = formData.get("password")
+                try:
+                    auth = ProxyBasicAuthStrategy(username, password, url)
+                    self.__service = AtomClientFactory.getAtomService(url, auth)
+                    oid = formData.get("oid")
+                    if oid is not None:
+                        content = self.__getContent(oid)
+                    else:
+                        content = self.__getManifestContent(formData.get("portalId"))
+                    success, value = self.__post(title, content)
+                except Exception, e:
+                    e.printStackTrace()
+                    success = False
+                    value = e.getMessage()
+                if success:
+                    altLinks = value.getAlternateLinks()
+                    if altLinks is not None:
+                        self.saveUrl(url)
+                        responseMsg = "<p>Success! Visit the <a href='%s' target='_blank'>blog post</a>.</p>" % altLinks[0].href
+                    else:
+                        responseMsg = "<p class='warning'>The server did not return a valid link!</p>"
                 else:
-                    content = self.__getManifestContent(formData.get("portalId"))
-                success, value = self.__post(title, content)
+                    responseMsg = "<p class='error'>%s</p>" % value
             except Exception, e:
-                e.printStackTrace()
-                success = False
-                value = e.getMessage()
-            if success:
-                altLinks = value.getAlternateLinks()
-                if altLinks is not None:
-                    responseMsg = "<p>Success! Visit the <a href='%s' target='_blank'>blog post</a>.</p>" % altLinks[0].href
-                else:
-                    responseMsg = "<p class='warning'>The server did not return a valid link!</p>"
-            else:
-                responseMsg = "<p class='error'>%s</p>" % value
-        except Exception, e:
-            print " * blog.py: Failed to post: %s" % e.getMessage()
-            responseMsg = "<p class='error'>%s</p>"  % e.getMessage()
-        writer = response.getPrintWriter("text/html")
+                print " * blog.py: Failed to post: %s" % e.getMessage()
+                responseMsg = "<p class='error'>%s</p>"  % e.getMessage()
+        writer = response.getPrintWriter(responseType)
         writer.println(responseMsg)
         writer.close()
+    
+    def getUrls(self):
+        return FileUtils.readLines(self.__getHistoryFile())
+    
+    def saveUrl(self, url):
+        historyFile = self.__getHistoryFile()
+        if historyFile.exists():
+            urls = FileUtils.readLines(historyFile)
+            urls.add(url)
+        FileUtils.writeLines(historyFile, [url])
+    
+    def __getHistoryFile(self):
+        f = File(System.getProperty("user.home"), ".fascinator/blog/history.txt")
+        if not f.exists():
+            f.getParentFile().mkdirs()
+        return f
     
     def __getManifestContent(self, portalId):
         portal = Services.getPortalManager().get(portalId)
@@ -109,7 +133,6 @@ class AtomEntryPoster:
                     content = "<div>unsupported content type: %s</div>" % mimeType
             else:
                 content = self.__getPayloadAsString(htmlPayload)
-        print " ********[\n%s\n]" % content
         content, doc = self.__tidy(content)
         content = self.__processMedia(oid, doc, content)
         return content
