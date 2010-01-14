@@ -1,3 +1,4 @@
+<script type="text/javascript" src="$portalPath/js/tree/jquery.tree.min.js"></script>
 #set($pageTitle = 'Detail')
 #if($self.solrResponse.get("response/numFound") == 0)
 <h2 id="page-heading">Page not found</h2>
@@ -95,11 +96,12 @@
       <div class="first article clearfix">
         <div class="content-preview-inline">$!self.payloadContent</div>
         <script type="text/javascript" src="$portalPath/js/annotation.js"></script>
+        <script type="text/javascript" src="$portalPath/js/viewer.js"></script>
       </div>
     </div>
   </div>
 </div>
-<div class="clear"></div>
+<div class="clear"><!--clear--></div>
 #if($self.mimeType.startsWith("audio/") || $self.mimeType.startsWith("video/"))
 <script type="text/javascript" src="$portalPath/flowplayer/flowplayer-3.1.2.min.js"></script>
 #end
@@ -116,7 +118,8 @@ $(function() {
                 }
             }
         });
-    } 
+    }
+    gFixLinks = fixLinks;
     fixLinks("div.content-preview-inline a", "href");
     fixLinks("div.content-preview-inline img", "src");
     
@@ -159,7 +162,7 @@ $(function() {
         var ext = filename.substring(filename.lastIndexOf(".") + 1).toLowerCase();
         
         var hasFlv = true
-        if (ext == "wmv" || ext=="mpg" || ext=="mpeg" || ext=="m3u") { 
+        if (ext == "wmv" || ext=="mpg" || ext=="mpeg" || ext=="m3u" || ext="wav") { 
         	filename = filenameNoExt + ".flv";
         	hasFlv = "$self.hasFlv()";
         }
