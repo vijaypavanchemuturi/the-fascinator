@@ -17,7 +17,9 @@
   <div class="box menu">
     <h2>Actions</h2>
     <ul class="menu" id="actions">
+      #if($self.canOpenFile())
       <li><a id="open-this" href="$portalPath/detail/$oid">Open file</a></li>
+      #end
       <li><a id="reindex" href="$portalPath/detail/$oid">Re-Index...</a></li>
       #if($self.hasHtml())
       <li><a id="blog-this" href="#">Blog...</a><li>
