@@ -169,7 +169,7 @@ $(function() {
         var ext = filename.substring(filename.lastIndexOf(".") + 1).toLowerCase();
         
         var hasFlv = true
-        if (ext == "wmv" || ext=="mpg" || ext=="mpeg" || ext=="m3u" || ext="wav") { 
+        if (ext == "wmv" || ext=="mpg" || ext=="mpeg" || ext=="m3u" || ext=="wav") { 
         	filename = filenameNoExt + ".flv";
         	hasFlv = "$self.hasFlv()";
         }
