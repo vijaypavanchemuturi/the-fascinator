@@ -18,17 +18,19 @@
   <div class="box menu">
     <h2>Actions</h2>
     <ul class="menu" id="actions">
+      #if($self.canOpenFile())
       <li><a id="open-this" href="$portalPath/detail/$oid">Open file</a></li>
+      #end
       <li><a id="reindex" href="$portalPath/detail/$oid">Re-Index...</a></li>
       #if($self.hasHtml())
-      <li><a id="blog-this" href="#">Blog to WordPress...</a><li>
+      <li><a id="blog-this" href="#">Blog...</a><li>
       #end
     </ul>
   </div>
   #end
   <div id="metadata" class="box">
     <h2>Metadata</h2>
-    	#set ($pageHeader="#parse($page.getTemplate('detail-dc-meta.vm'))")
+    #set($pageHeader="#parse($page.getTemplate('detail-dc-meta.vm'))")
     <div class="block">
       <dl class="meta">
       #foreach($key in $dc.keySet())
@@ -55,12 +57,12 @@
         <a href='$portalPath/download/$self.encode($oid)/$self.encode($pid)' rel="$payloadType" target="blank" title="$payload.contentType">$payload.id</a>
       </li>
     #end
-    </ul>	
+    </ul>
   </div>
 </div>
 <div class="grid_12">
   <div class="box hidden" id="blog-form">
-    <h2>Blog to WordPress</h2>
+    <h2>Blog</h2>
     <form id="blog" method="post">
       <fieldset class="login">
         <legend>Blog information</legend>
@@ -88,6 +90,7 @@
         <input id="blog-cancel" type="button" value="Close" />
       </fieldset>
     </form>
+    <p>Note: Some platforms may not support images or attachments.</p>
   </div>
   <div id="preview" class="box articles">
     <h2>Preview</h2>
@@ -105,6 +108,10 @@
 #if($self.mimeType.startsWith("audio/") || $self.mimeType.startsWith("video/"))
 <script type="text/javascript" src="$portalPath/flowplayer/flowplayer-3.1.2.min.js"></script>
 #end
+<script type="text/javascript" src="$portalPath/js/tree/jquery.tree.min.js"></script>
+<script type="text/javascript" src="$portalPath/js/autocomplete/lib/jquery.ajaxQueue.js"></script>
+<script type="text/javascript" src="$portalPath/js/autocomplete/lib/jquery.bgiframe.js"></script>
+<script type="text/javascript" src="$portalPath/js/autocomplete/jquery.autocomplete.pack.js"></script>
 <script type="text/javascript">
 $(function() {
     var oid = "$oid";
@@ -162,7 +169,7 @@ $(function() {
         var ext = filename.substring(filename.lastIndexOf(".") + 1).toLowerCase();
         
         var hasFlv = true
-        if (ext == "wmv" || ext=="mpg" || ext=="mpeg" || ext=="m3u" || ext="wav") { 
+        if (ext == "wmv" || ext=="mpg" || ext=="mpeg" || ext=="m3u" || ext=="wav") { 
         	filename = filenameNoExt + ".flv";
         	hasFlv = "$self.hasFlv()";
         }
@@ -210,6 +217,8 @@ $(function() {
     #if($self.isMetadataOnly())
     $("#preview").after($("#metadata")).remove();
     #end
+    
+    $("#blog_url").autocomplete("$portalPath/actions/blog.ajax?func=url-history");
 });
 </script>
 #end
