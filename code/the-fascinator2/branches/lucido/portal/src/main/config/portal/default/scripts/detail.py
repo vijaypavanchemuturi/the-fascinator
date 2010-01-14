@@ -78,6 +78,11 @@ class DetailData:
         self.__json = JsonConfigHelper(ByteArrayInputStream(out.toByteArray()))
         self.__metadata = SolrDoc(self.__json)
     
+    def canOpenFile(self):
+        #HACK check if mimetypes match between index and real file
+        dcFormat = self.__json.get("response/docs/dc_format")[1:-1]
+        return dcFormat == self.__mimeType
+    
     def encode(self, url):
         return URLEncoder.encode(url, "UTF-8")
     
@@ -152,7 +157,13 @@ class DetailData:
         mimeType = self.__mimeType
         print " * detail.py: payload content mimeType=%s" % mimeType
         contentStr = ""
-        if mimeType.startswith("text/"):
+        if mimeType == "application/octet-stream":
+            dcFormat = self.__json.get("response/docs/dc_format")[1:-1]
+            if dcFormat != mimeType:
+                return "<em>(File not found)</em>"
+            else:
+                return "<em>(Binary file)</em>"
+        elif mimeType.startswith("text/"):
             if mimeType == "text/html":
                 contentStr = '<iframe class="iframe-preview" src="%s/%s/download/%s"></iframe>' % \
                     (contextPath, portalId, self.__oid)
