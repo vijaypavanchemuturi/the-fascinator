@@ -1,6 +1,6 @@
 /* 
- * The Fascinator - Portal
- * Copyright (C) 2008-2009 University of Southern Queensland
+ * The Fascinator - Plugin API
+ * Copyright (C) 2008-2010 University of Southern Queensland
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,27 +16,28 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-package au.edu.usq.fascinator.portal.services;
+package au.edu.usq.fascinator.api.authentication;
 
-import au.edu.usq.fascinator.api.authentication.Authentication;
-import au.edu.usq.fascinator.api.authentication.AuthManager;
-import au.edu.usq.fascinator.api.indexer.Indexer;
-import au.edu.usq.fascinator.api.storage.Storage;
+import au.edu.usq.fascinator.api.PluginException;
 
-public interface ScriptingServices {
+/**
+ * Generic exception for authentication plugin
+ * 
+ * @author Greg Pendlebury
+ */
+@SuppressWarnings("serial")
+public class AuthenticationException extends PluginException {
 
-    public DynamicPageService getPageService();
+    public AuthenticationException(String message) {
+        super(message);
+    }
 
-    public Authentication getAuthentication();
+    public AuthenticationException(Throwable cause) {
+        super(cause);
+    }
 
-    public AuthManager getAuthManager();
-
-    public Indexer getIndexer();
-
-    public Storage getStorage();
-
-    public HarvestManager getHarvestManager();
-
-    public PortalManager getPortalManager();
+    public AuthenticationException(String message, Throwable cause) {
+        super(message, cause);
+    }
 
 }

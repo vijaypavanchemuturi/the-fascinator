@@ -280,3 +280,10 @@ span.view-type a.selected {
 .orig-content {}
 .anno-children{}
 
+.login-error {
+    color: #CC0000;
+}
+.ui-widget-header {
+    border: 1px solid #666666;
+    background: #666666;
+}
