@@ -13,6 +13,8 @@
     <relativePath>../pom.xml</relativePath>
   </parent>
   <modules>
+    <module>authentication/internal</module>
+    <module>authentication/filesystem</module>
     <module>harvester/filesystem</module>
     <module>harvester/jsonq</module>
     <module>harvester/oai-pmh</module>
