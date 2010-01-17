@@ -153,8 +153,13 @@ public class RenderQueueConsumer implements MessageListener {
             String oid = config.get("oid");
             log.info("Received job, object id={}", oid);
             DigitalObject object = storage.getObject(oid);
+            // log.info("-----------------------------BEFORE DO TRANSOFRM: "
+            // + object.getSource().getContentType());
             ConveyerBelt cb = new ConveyerBelt(text, "render");
             object = cb.transform(object);
+            // log
+            // .info("-----------------------------in the render queue consumer-: "
+            // + object.getSource().getContentType());
             log.info("Updating object...");
             storage.addObject(object);
             log.info("Indexing object...");

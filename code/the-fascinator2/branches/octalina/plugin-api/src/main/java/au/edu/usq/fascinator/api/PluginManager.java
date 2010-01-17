@@ -22,6 +22,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.ServiceLoader;
 
+import au.edu.usq.fascinator.api.authentication.Authentication;
 import au.edu.usq.fascinator.api.harvester.Harvester;
 import au.edu.usq.fascinator.api.indexer.Indexer;
 import au.edu.usq.fascinator.api.storage.Storage;
@@ -38,8 +39,33 @@ public class PluginManager {
     private static Map<String, Indexer> indexers = new HashMap<String, Indexer>();
 
     /**
+     * Gets an authentication plugin
+     *
+     * @param id plugin identifier
+     * @return an authentication plugin, or null if not found
+     */
+    public static Authentication getAuthentication(String id) {
+        ServiceLoader<Authentication> plugins = ServiceLoader.load(Authentication.class);
+        for (Authentication plugin : plugins) {
+            if (id.equals(plugin.getId())) {
+                return plugin;
+            }
+        }
+        return null;
+    }
+
+    public static Map<String, Authentication> getAuthenticationPlugins() {
+        Map<String, Authentication> authenticators = new HashMap<String, Authentication>();
+        ServiceLoader<Authentication> plugins = ServiceLoader.load(Authentication.class);
+        for (Authentication plugin : plugins) {
+            authenticators.put(plugin.getId(), plugin);
+        }
+        return authenticators;
+    }
+
+    /**
      * Gets a harvester plugin
-     * 
+     *
      * @param id plugin identifier
      * @return a harvester plugin, or null if not found
      */

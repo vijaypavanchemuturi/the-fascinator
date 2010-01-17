@@ -71,5 +71,19 @@
         "display" : "list"
       }
     }
+  },
+  "manifest" : {
+    "node-2d9e521a1f4de654fe517927ddaf40a2" : {
+      "title" : "NewOliDoco.odt",
+      "id" : "/home/octalina/Documents/picture/text/NewOliDoco.odt"
+    },
+    "node-0c6c06684bf1a1f2a3e5ce1cf6dc3e20" : {
+      "title" : "NewOliDoco2.odt",
+      "id" : "/home/octalina/Documents/picture/text/NewOliDoco2.odt"
+    },
+    "node-48ba2358b340e2617f4f10f306c7efc5" : {
+      "title" : "ARROW Mini-Project SunOfFedora / The Fascinator - Final Report",
+      "id" : "/home/octalina/Documents/picture/text/TF_Final report.pdf"
+    }
   }
 }

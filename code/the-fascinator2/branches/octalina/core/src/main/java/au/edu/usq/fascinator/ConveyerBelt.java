@@ -61,11 +61,11 @@ public class ConveyerBelt {
             for (Object pluginName : pluginList) {
                 Transformer transPlugin = PluginManager
                         .getTransformer(pluginName.toString().trim());
-                log.info("------ conveyer belt, getting: "
-                        + pluginName.toString());
+                // log.info("------ conveyer belt, getting: "
+                // + pluginName.toString());
                 try {
                     if (jsonFile == null) {
-                        log.info("init from string " + configString);
+                        // log.info("init from string " + configString);
                         transPlugin.init(configString);
                     } else {
                         log.info("init from file");
