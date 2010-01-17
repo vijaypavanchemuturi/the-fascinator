@@ -31,7 +31,6 @@ class Authentication:
             username = getVar('sessionState').get("username")
             source   = getVar('sessionState').get("source")
             if username is not None:
-                print "****** Already logged in"
                 self.current_user = self.get_user(username, source)
 
         # User is logging out, make sure we ran get_user() first
@@ -67,9 +66,6 @@ class Authentication:
 
     def get_user(self, username, source):
         try:
-            print "Username : " + username
-            print "Source : " + source
-            print dir(self.auth)
             self.auth.setActivePlugin(source);
             return self.auth.getUser(username)
         except AuthenticationException, e:
