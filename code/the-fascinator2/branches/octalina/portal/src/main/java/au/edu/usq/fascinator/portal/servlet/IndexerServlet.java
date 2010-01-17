@@ -32,7 +32,7 @@ import au.edu.usq.fascinator.common.JsonConfig;
 public class IndexerServlet extends HttpServlet {
 
     public static final String DEFAULT_MESSAGING_HOME = StrSubstitutor
-            .replaceSystemProperties("${user.home}/.fascinator/");
+            .replaceSystemProperties("${user.home}/.fascinator/activemq-data");
 
     private Logger log = LoggerFactory.getLogger(IndexerServlet.class);
 
@@ -55,9 +55,10 @@ public class IndexerServlet extends HttpServlet {
         // configure the broker
         try {
             config = new JsonConfig();
-            System.setProperty("activemq.base", config.get("messaging/home",
-                    DEFAULT_MESSAGING_HOME));
+            String dataDir = config.get("messaging/home",
+                    DEFAULT_MESSAGING_HOME);
             broker = new BrokerService();
+            broker.setDataDirectory(dataDir);
             broker.addConnector(config.get("messaging/url",
                     ActiveMQConnectionFactory.DEFAULT_BROKER_BIND_URL));
             String stompUrl = config.get("messaging/stompUrl");

@@ -1,25 +1,25 @@
+import gc
 import md5
+import sys
 
+# Add path to find includes
+sys.path.append(scriptsPath)
+
+from authentication import Authentication
 from java.net import URLEncoder
 from org.apache.commons.lang import StringEscapeUtils
 
 class LayoutData:
-    
+
     def __init__(self):
-        self.__checkLogin()
-        if formData.get("verb") == "clear-session":
-            sessionState.clear()
-    
-    def __checkLogin(self):
-        action = formData.get("verb")
-        if (action == "logout"):
-            sessionState.set("username", None)
-        else:
-            username = formData.get("username")
-            if username is not None:
-                #TODO actual login procedure
-                sessionState.set("username", username)
-    
+        self.authentication = Authentication(self);
+        self.authentication.session_init();
+
+    # An access point for included files
+    #   to get the bound Jython globals.
+    def __call__(self, var):
+        return globals()[var];
+
     def getPortal(self):
         return Services.getPortalManager().get(portalId)
     

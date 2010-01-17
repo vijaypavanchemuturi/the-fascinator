@@ -125,6 +125,14 @@
       <dependencies>
         <dependency>
           <groupId>au.edu.usq.fascinator.plugins</groupId>
+          <artifactId>plugin-authentication-filesystem</artifactId>
+        </dependency>
+        <dependency>
+          <groupId>au.edu.usq.fascinator.plugins</groupId>
+          <artifactId>plugin-authentication-internal</artifactId>
+        </dependency>
+        <dependency>
+          <groupId>au.edu.usq.fascinator.plugins</groupId>
           <artifactId>plugin-indexer-solr</artifactId>
         </dependency>
         <dependency>

@@ -1,11 +1,17 @@
 {
-	"fascinator-home": "/opt/the-fascinator2/code",
-	"email" : "fascinator@usq.edu.au",
+    "fascinator-home": "/opt/the-fascinator2/code",
+    "email" : "fascinator@usq.edu.au",
+    "authentication": {
+        "type": "internal",
+        "internal": {
+            "path": "${user.home}/.fascinator/users.properties"
+        }
+    },
     "storage": {
         "type": "file-system",
         "file-system": {
             "home": "${user.home}/.fascinator/storage",
-            "use-link": "true"
+            "use-link": true
         },
         "fedora3": {
             "url": "http://localhost:8080/fedora",
@@ -15,11 +21,13 @@
         "couchdb": {
             "url": "http://localhost:8080/couch"
         },
-    	"ignoreFilter": ".svn|.ice|.*|~*"
+        "ignoreFilter": ".svn|.ice|.*|~*"
     },
     "messaging": {
-    	"url": "tcp://localhost:61616", 
-    	"render-thread": "3"
+        "url": "tcp://localhost:61616",
+        "stompUrl": "stomp://localhost:61613",
+        "home": "${user.home}/.fascinator/activemq-data",
+        "render-thread": 3
     },
     "indexer": {
         "type": "solr",

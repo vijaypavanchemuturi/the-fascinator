@@ -20,7 +20,6 @@ class SolrDoc:
     
     def getField(self, name):
         field = self.json.getList("response/docs/%s" % name)
-        print " ***** field: %s" % field
         if field.isEmpty():
             return None
         return field.get(0)
@@ -47,7 +46,6 @@ class SolrDoc:
 class DetailData:
     def __init__(self):
         self.__object = None
-        print "**** formData: ", formData.get("func")
         if formData.get("func") == "open-file":
             self.__openFile()
             writer = response.getPrintWriter("text/plain")
@@ -80,6 +78,11 @@ class DetailData:
         self.__json = JsonConfigHelper(ByteArrayInputStream(out.toByteArray()))
         self.__metadata = SolrDoc(self.__json)
     
+    def canOpenFile(self):
+        #HACK check if mimetypes match between index and real file
+        dcFormat = self.__json.get("response/docs/dc_format")[1:-1]
+        return dcFormat == self.__mimeType
+    
     def encode(self, url):
         return URLEncoder.encode(url, "UTF-8")
     
@@ -103,7 +106,6 @@ class DetailData:
         return name[3:4].upper() + name[4:]
     
     def formatValue(self, value):
-        print " ************", value
         return value
     
     def isHidden(self, pid):
@@ -115,7 +117,6 @@ class DetailData:
         return self.__metadata
     
     def getObject(self):
-        #print "################test getPayload source: ", self.__storage.getObject(self.__oid).getSource()
         return self.__object
     
     def getStorageId(self):
@@ -156,14 +157,20 @@ class DetailData:
         mimeType = self.__mimeType
         print " * detail.py: payload content mimeType=%s" % mimeType
         contentStr = ""
-        if mimeType.startswith("text/"):
+        if mimeType == "application/octet-stream":
+            dcFormat = self.__json.get("response/docs/dc_format")[1:-1]
+            if dcFormat != mimeType:
+                return "<em>(File not found)</em>"
+            else:
+                return "<em>(Binary file)</em>"
+        elif mimeType.startswith("text/"):
             if mimeType == "text/html":
                 contentStr = '<iframe class="iframe-preview" src="%s/%s/download/%s"></iframe>' % \
                     (contextPath, portalId, self.__oid)
             else:
                 pid = self.__oid[self.__oid.rfind("/")+1:]
                 payload = self.__storage.getPayload(self.__oid, pid)
-                print " * detail.py: pid=%s payload=%s" % (pid, payload)
+                #print " * detail.py: pid=%s payload=%s" % (pid, payload)
                 if payload is not None:
                     sw = StringWriter()
                     sw.write("<pre>")
