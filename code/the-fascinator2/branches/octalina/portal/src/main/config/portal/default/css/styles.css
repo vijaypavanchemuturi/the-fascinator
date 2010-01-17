@@ -287,3 +287,9 @@ span.view-type a.selected {
     border: 1px solid #666666;
     background: #666666;
 }
+
+.title-heading {
+	border-bottom:1px solid #CCCCCC;
+	font-weight:normal;
+	margin:0 0 10px;
+}
