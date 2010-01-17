@@ -27,5 +27,7 @@ import au.edu.usq.fascinator.common.authentication.GenericUser;
  * @author Greg Pendlebury
  */
 public class FileSystemUser extends GenericUser {
-    private String email_address;
+    public void init(String user) {
+        setUsername(user);
+    }
 }
