@@ -13,6 +13,8 @@
     <relativePath>../pom.xml</relativePath>
   </parent>
   <modules>
+    <module>authentication/internal</module>
+    <module>authentication/filesystem</module>
     <module>harvester/filesystem</module>
     <module>harvester/jsonq</module>
     <module>harvester/oai-pmh</module>
@@ -20,6 +22,7 @@
     <module>storage/couchdb</module>
     <module>storage/fedora3</module>
     <module>storage/filesystem</module>
+    <module>storage/filesystem2</module>
     <module>transformer/aperture</module>
     <module>transformer/ice2</module>
     <module>transformer/ims</module>

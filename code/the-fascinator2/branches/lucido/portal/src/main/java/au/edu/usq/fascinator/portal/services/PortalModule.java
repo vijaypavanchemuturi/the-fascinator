@@ -40,7 +40,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 
+import au.edu.usq.fascinator.AuthenticationManager;
 import au.edu.usq.fascinator.api.PluginManager;
+import au.edu.usq.fascinator.api.authentication.AuthManager;
 import au.edu.usq.fascinator.api.indexer.Indexer;
 import au.edu.usq.fascinator.api.storage.Storage;
 import au.edu.usq.fascinator.common.JsonConfig;
@@ -51,6 +53,8 @@ import au.edu.usq.fascinator.portal.services.impl.PortalManagerImpl;
 import au.edu.usq.fascinator.portal.services.impl.ScriptingServicesImpl;
 
 public class PortalModule {
+
+    private static final String DEFAULT_AUTH_TYPE = "authmanager";
 
     private static final String DEFAULT_INDEXER_TYPE = "solr";
 
@@ -68,6 +72,17 @@ public class PortalModule {
         binder.bind(DynamicPageService.class, DynamicPageServiceImpl.class);
         binder.bind(PortalManager.class, PortalManagerImpl.class);
         binder.bind(ScriptingServices.class, ScriptingServicesImpl.class);
+    }
+
+    public static AuthManager buildAuthManager() {
+        try {
+            JsonConfig config = new JsonConfig();
+            AuthenticationManager auth = new AuthenticationManager();
+            auth.init(config.getSystemFile());
+            return auth;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public static Indexer buildIndexer() {

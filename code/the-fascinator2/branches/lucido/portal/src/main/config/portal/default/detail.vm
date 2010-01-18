@@ -11,7 +11,8 @@
 #if(!$title)
   #set($title = $self.getFileName($oid))
 #end
-<h2 id="page-heading">$title</h2>
+##<h2 id="page-heading">$title</h2>
+<h2 id="page-heading">Detail</h2>
 <div class="grid_4">
   #if(!$self.isMetadataOnly())
   <div class="box menu">
@@ -96,6 +97,7 @@
     <div class="content-preview">
       <span class="mimetype" rel="$self.mimeType"></span>
       <div class="first article clearfix">
+      	<h3 class="title-heading">$title</h3>
         <div class="content-preview-inline">$!self.payloadContent</div>
         <script type="text/javascript" src="$portalPath/js/annotation.js"></script>
         <script type="text/javascript" src="$portalPath/js/viewer.js"></script>
@@ -168,7 +170,7 @@ $(function() {
         var ext = filename.substring(filename.lastIndexOf(".") + 1).toLowerCase();
         
         var hasFlv = true
-        if (ext == "wmv" || ext=="mpg" || ext=="mpeg" || ext=="m3u") { 
+        if (ext == "wmv" || ext=="mpg" || ext=="mpeg" || ext=="m3u" || ext=="wav") { 
         	filename = filenameNoExt + ".flv";
         	hasFlv = "$self.hasFlv()";
         }

@@ -79,6 +79,8 @@ public class DynamicPageServiceImpl implements DynamicPageService {
 
     private String engineName;
 
+    private String scriptsPath;
+
     public DynamicPageServiceImpl() {
         try {
             JsonConfig config = new JsonConfig();
@@ -95,6 +97,8 @@ public class DynamicPageServiceImpl implements DynamicPageService {
             if (!homeDir.exists()) {
                 home = PortalManager.DEFAULT_PORTAL_HOME_DIR_DEV;
             }
+            File homePath = new File(home);
+            scriptsPath = homePath.getAbsolutePath();
             Velocity.setProperty(Velocity.FILE_RESOURCE_LOADER_PATH, home);
             Velocity.setProperty(Log4JLogChute.RUNTIME_LOG_LOG4J_LOGGER,
                     Velocity.class.getName());
@@ -183,6 +187,7 @@ public class DynamicPageServiceImpl implements DynamicPageService {
         bindings.put("formData", formData);
         bindings.put("sessionState", sessionState);
         bindings.put("contextPath", contextPath);
+        bindings.put("scriptsPath", scriptsPath + "/" + portalId + "/scripts");
         bindings.put("portalId", portalId);
         bindings.put("portalPath", contextPath + "/" + portalId);
         bindings.put("pageName", pageName);

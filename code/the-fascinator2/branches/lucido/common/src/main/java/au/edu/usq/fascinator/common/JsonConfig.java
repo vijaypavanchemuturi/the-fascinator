@@ -231,4 +231,14 @@ public class JsonConfig {
         }
         return value;
     }
+
+    /**
+     *
+     * @return The full JSON string
+     */
+    @Override
+    public String toString() {
+        return userConfig.toString();
+    }
+
 }
