@@ -73,7 +73,7 @@ $!pageContent
           </li>
           <li class="secondary">
             #if($page.authentication.is_logged_in())
-            <span id="user-info" class="status">Welcome $page.authentication.get_name(), <a href="?verb=logout">logout</a></span>
+            <span id="user-info" class="status">Welcome $page.authentication.get_name(), <a href="?verb=logout">logout</a> ($page.authentication.get_roles())</span>
             #else
             <span id="user-info" class="status"><a id="login-now" href="#">Login</a></span>
             #end

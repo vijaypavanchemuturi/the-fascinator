@@ -1,14 +1,17 @@
 from au.edu.usq.fascinator.api.authentication import AuthenticationException;
 from au.edu.usq.fascinator.api.authentication import User;
+from au.edu.usq.fascinator.api.roles import RolesException;
 
 class Authentication:
     current_user = None
     error_message = None
+    GUEST_ROLE = 'guest'
 
     def __init__(self, layout):
         global getVar
         getVar = layout
         self.auth = getVar('Services').getAuthManager()
+        self.role = getVar('Services').getRoleManager()
         self.check_login()
 
     def session_init(self):
@@ -63,6 +66,27 @@ class Authentication:
                 getVar('sessionState').set("source",   None)
             except AuthenticationException, e:
                 self.error_message = self.parse_error(e)
+
+    def get_roles(self):
+        try:
+            if self.current_user is not None:
+                my_roles = self.role.getRoles(self.current_user.getUsername())
+                length = len(my_roles)
+                if length == 0:
+                    return ""
+                elif length > 0:
+                    response = my_roles[0]
+
+                if length > 1:
+                    for role in my_roles[1:]:
+                        response = response + ", " + role
+                return response
+            else:
+                return this.GUEST_ROLE;
+        except RolesException, e:
+            self.error_message = self.parse_error(e)
+        except AuthenticationException, e:
+            self.error_message = self.parse_error(e)
 
     def get_user(self, username, source):
         try:
