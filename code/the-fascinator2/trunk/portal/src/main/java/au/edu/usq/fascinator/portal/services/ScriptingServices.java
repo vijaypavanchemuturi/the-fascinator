@@ -27,8 +27,6 @@ public interface ScriptingServices {
 
     public DynamicPageService getPageService();
 
-    public Authentication getAuthentication();
-
     public AuthManager getAuthManager();
 
     public Indexer getIndexer();

@@ -42,7 +42,6 @@ import org.slf4j.MDC;
 
 import au.edu.usq.fascinator.AuthenticationManager;
 import au.edu.usq.fascinator.api.PluginManager;
-import au.edu.usq.fascinator.api.authentication.Authentication;
 import au.edu.usq.fascinator.api.authentication.AuthManager;
 import au.edu.usq.fascinator.api.indexer.Indexer;
 import au.edu.usq.fascinator.api.storage.Storage;
@@ -73,18 +72,6 @@ public class PortalModule {
         binder.bind(DynamicPageService.class, DynamicPageServiceImpl.class);
         binder.bind(PortalManager.class, PortalManagerImpl.class);
         binder.bind(ScriptingServices.class, ScriptingServicesImpl.class);
-    }
-
-    public static Authentication buildAuthentication() {
-        try {
-            JsonConfig config = new JsonConfig();
-            Authentication authentication =
-                    PluginManager.getAuthentication(DEFAULT_AUTH_TYPE);
-            authentication.init(config.getSystemFile());
-            return authentication;
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
     }
 
     public static AuthManager buildAuthManager() {

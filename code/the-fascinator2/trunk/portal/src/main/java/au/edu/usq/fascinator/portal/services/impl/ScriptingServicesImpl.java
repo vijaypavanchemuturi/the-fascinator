@@ -36,11 +36,6 @@ public class ScriptingServicesImpl implements ScriptingServices {
     private DynamicPageService pageService;
 
     @Inject
-    @Service("Authentication")
-    private Authentication authService;
-
-    @Inject
-    @Service("AuthManager")
     private AuthManager authManager;
 
     @Inject
@@ -58,11 +53,6 @@ public class ScriptingServicesImpl implements ScriptingServices {
     @Override
     public DynamicPageService getPageService() {
         return pageService;
-    }
-
-    @Override
-    public Authentication getAuthentication() {
-        return authService;
     }
 
     @Override
