@@ -25,6 +25,7 @@ import java.util.ServiceLoader;
 import au.edu.usq.fascinator.api.authentication.Authentication;
 import au.edu.usq.fascinator.api.harvester.Harvester;
 import au.edu.usq.fascinator.api.indexer.Indexer;
+import au.edu.usq.fascinator.api.roles.Roles;
 import au.edu.usq.fascinator.api.storage.Storage;
 import au.edu.usq.fascinator.api.transformer.Transformer;
 import au.edu.usq.fascinator.api.transformer.TransformerException;
@@ -115,6 +116,31 @@ public class PluginManager {
             indexers.put(plugin.getId(), plugin);
         }
         return indexers;
+    }
+
+    /**
+     * Gets a roles plugin
+     *
+     * @param id plugin identifier
+     * @return a roles plugin, or null if not found
+     */
+    public static Roles getRoles(String id) {
+        ServiceLoader<Roles> plugins = ServiceLoader.load(Roles.class);
+        for (Roles plugin : plugins) {
+            if (id.equals(plugin.getId())) {
+                return plugin;
+            }
+        }
+        return null;
+    }
+
+    public static Map<String, Roles> getRolesPlugins() {
+        Map<String, Roles> roles = new HashMap<String, Roles>();
+        ServiceLoader<Roles> plugins = ServiceLoader.load(Roles.class);
+        for (Roles plugin : plugins) {
+            roles.put(plugin.getId(), plugin);
+        }
+        return roles;
     }
 
     /**
