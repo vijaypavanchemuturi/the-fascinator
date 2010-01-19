@@ -19,7 +19,6 @@
 
 package au.edu.usq.fascinator;
 
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
@@ -39,12 +38,10 @@ import au.edu.usq.fascinator.api.indexer.IndexerException;
 import au.edu.usq.fascinator.api.indexer.SearchRequest;
 import au.edu.usq.fascinator.api.storage.DigitalObject;
 import au.edu.usq.fascinator.api.storage.Payload;
-import au.edu.usq.fascinator.api.storage.PayloadType;
 import au.edu.usq.fascinator.api.storage.Storage;
 import au.edu.usq.fascinator.api.storage.StorageException;
 import au.edu.usq.fascinator.common.JsonConfig;
 import au.edu.usq.fascinator.common.JsonConfigHelper;
-import au.edu.usq.fascinator.common.storage.impl.GenericPayload;
 
 /**
  * Index Client class to Re-index the storage
@@ -287,48 +284,50 @@ public class IndexClient {
         String sid = null;
 
         log.info("Processing " + oid + "...");
-        Properties oldSofMeta = getSofMeta(object);
-        Properties sofMeta = new Properties();
-        sofMeta.setProperty("objectId", oid);
-        Payload metadata = object.getMetadata();
-        String metaPid = "";
-        if (metadata != null) {
-            metaPid = metadata.getId();
-        } else {
-            // get the meta id and the repository information from the old
-            // sof-meta
-            if (oldSofMeta != null) {
-                metaPid = oldSofMeta.getProperty("metaPid");
-                sofMeta.setProperty("repository.name", oldSofMeta
-                        .getProperty("repository.name"));
-                sofMeta.setProperty("repository.type", oldSofMeta
-                        .getProperty("repository.type"));
-            }
-        }
-        sofMeta.setProperty("metaPid", metaPid);
-        sofMeta.setProperty("scriptType", config.get("indexer/script/type",
-                "python"));
-        sofMeta.setProperty("rulesOid", rulesOid);
-        sofMeta.setProperty("rulesPid", rulesFile.getName());
-
-        if (indexerParams != null) {
-            for (String key : indexerParams.keySet()) {
-                sofMeta.setProperty(key, indexerParams.get(key).toString());
-            }
-        }
-
-        ByteArrayOutputStream sofMetaOut = new ByteArrayOutputStream();
-        // Remove the old sof-meta
-        realStorage.removePayload(object.getId(), "SOF-META");
-
-        // Store new sof-meta
-        sofMeta.store(sofMetaOut, "The Fascinator Indexer Metadata2");
-        GenericPayload sofMetaDs = new GenericPayload("SOF-META",
-                "The Fascinator Indexer Metadata", "text/plain");
-        sofMetaDs.setInputStream(new ByteArrayInputStream(sofMetaOut
-                .toByteArray()));
-        sofMetaDs.setType(PayloadType.Annotation);
-        storage.addPayload(oid, sofMetaDs);
+        // Properties oldSofMeta = getSofMeta(object);
+        // Properties sofMeta = new Properties(oldSofMeta);
+        // sofMeta.setProperty("objectId", oid);
+        // Payload metadata = object.getMetadata();
+        // String metaPid = "";
+        // if (metadata != null) {
+        // metaPid = metadata.getId();
+        // } else {
+        // // get the meta id and the repository information from the old
+        // // sof-meta
+        // if (oldSofMeta != null) {
+        // metaPid = oldSofMeta.getProperty("metaPid");
+        // log.info("************* " + sofMeta + oldSofMeta
+        // + oldSofMeta.getProperty("repository.name"));
+        // sofMeta.setProperty("repository.name", oldSofMeta
+        // .getProperty("repository.name"));
+        // sofMeta.setProperty("repository.type", oldSofMeta
+        // .getProperty("repository.type"));
+        // }
+        // }
+        // sofMeta.setProperty("metaPid", metaPid);
+        // sofMeta.setProperty("scriptType", config.get("indexer/script/type",
+        // "python"));
+        // sofMeta.setProperty("rulesOid", rulesOid);
+        // sofMeta.setProperty("rulesPid", rulesFile.getName());
+        //
+        // if (indexerParams != null) {
+        // for (String key : indexerParams.keySet()) {
+        // sofMeta.setProperty(key, indexerParams.get(key).toString());
+        // }
+        // }
+        //
+        // ByteArrayOutputStream sofMetaOut = new ByteArrayOutputStream();
+        // // Remove the old sof-meta
+        // realStorage.removePayload(object.getId(), "SOF-META");
+        //
+        // // Store new sof-meta
+        // sofMeta.store(sofMetaOut, "The Fascinator Indexer Metadata2");
+        // GenericPayload sofMetaDs = new GenericPayload("SOF-META",
+        // "The Fascinator Indexer Metadata", "text/plain");
+        // sofMetaDs.setInputStream(new ByteArrayInputStream(sofMetaOut
+        // .toByteArray()));
+        // sofMetaDs.setType(PayloadType.Annotation);
+        // storage.addPayload(oid, sofMetaDs);
         try {
             indexer.index(oid);
         } catch (IndexerException e) {

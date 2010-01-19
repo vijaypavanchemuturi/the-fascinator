@@ -25,9 +25,15 @@ import au.edu.usq.fascinator.common.JsonConfig;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.math.BigInteger;
+import java.security.MessageDigest;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,9 +46,11 @@ import org.slf4j.LoggerFactory;
  */
 public class FileSystemAuthentication implements Authentication {
 
+    private static String DEFAULT_FILE_NAME = "users.properties";
     private final Logger log = LoggerFactory.getLogger(FileSystemAuthentication.class);
     private FileSystemUser user_object;
     private String file_path;
+    private Properties file_store;
 
     @Override
     public String getId() {
@@ -77,9 +85,52 @@ public class FileSystemAuthentication implements Authentication {
         }
     }
 
-    private void setConfig(JsonConfig config) {
+    private void setConfig(JsonConfig config) throws IOException {
         user_object = new FileSystemUser();
         file_path = config.get("authentication/file-system/path", null);
+        loadUsers();
+    }
+
+    private void loadUsers() throws IOException {
+        file_store  = new Properties();
+
+        // Load our userbase from disk
+        try {
+            file_store.load(new FileInputStream(file_path));
+        } catch (Exception e) {
+            throw new IOException (e);
+        }
+    }
+
+    private void saveUsers() throws IOException {
+        if (file_store != null) {
+            try {
+                file_store.store(new FileOutputStream(file_path), "");
+            } catch (Exception e) {
+                throw new IOException (e);
+            }
+        }
+    }
+
+    private String encryptPassword(String password) throws AuthenticationException {
+        byte[] passwordBytes = password.getBytes();
+
+        try {
+            MessageDigest algorithm = MessageDigest.getInstance("MD5");
+            algorithm.reset();
+            algorithm.update(passwordBytes);
+
+            byte messageDigest[] = algorithm.digest();
+            BigInteger number = new BigInteger(1, messageDigest);
+
+            password = number.toString(16);
+            if (password.length() == 31) {
+                password = "0" + password;
+            }
+        } catch (Exception e) {
+            throw new AuthenticationException("Internal password encryption failure: " + e.getMessage());
+        }
+        return password;
     }
 
     @Override
@@ -98,7 +149,19 @@ public class FileSystemAuthentication implements Authentication {
     @Override
     public User logIn(String username, String password)
             throws AuthenticationException {
-        return user_object;
+        // Find our user
+        String uPwd = file_store.getProperty(username);
+        if (uPwd == null) {
+            throw new AuthenticationException("User '" + username + "' not found.");
+        }
+        // Encrypt the password given by the user
+        String ePwd = encryptPassword(password);
+        // Compare them
+        if (ePwd.equals(uPwd)) {
+            return getUser(username);
+        } else {
+            throw new AuthenticationException("Invalid password.");
+        }
     }
 
     /**
@@ -121,7 +184,7 @@ public class FileSystemAuthentication implements Authentication {
      */
     @Override
     public boolean supportsUserManagement() {
-        return false;
+        return true;
     }
 
     /**
@@ -148,7 +211,20 @@ public class FileSystemAuthentication implements Authentication {
     @Override
     public User createUser(String username, String password)
             throws AuthenticationException {
-        throw new AuthenticationException("This class does not support user creation.");
+        String user = file_store.getProperty(username);
+        if (user != null) {
+            throw new AuthenticationException("User '" + username + "' already exists.");
+        }
+        // Encrypt the new password
+        String ePwd = encryptPassword(password);
+        file_store.put(username, ePwd);
+        try {
+            saveUsers();
+        } catch(IOException e) {
+            throw new AuthenticationException("Error changing password: ", e);
+        }
+
+        return getUser(username);
     }
 
     /**
@@ -159,7 +235,16 @@ public class FileSystemAuthentication implements Authentication {
      */
     @Override
     public void deleteUser(String username) throws AuthenticationException {
-        throw new AuthenticationException("This class does not support user deletion.");
+        String user = file_store.getProperty(username);
+        if (user == null) {
+            throw new AuthenticationException("User '" + username + "' not found.");
+        }
+        file_store.remove(username);
+        try {
+            saveUsers();
+        } catch(IOException e) {
+            throw new AuthenticationException("Error deleting user: ", e);
+        }
     }
 
     /**
@@ -173,7 +258,18 @@ public class FileSystemAuthentication implements Authentication {
     @Override
     public void changePassword(String username, String password)
             throws AuthenticationException {
-        throw new AuthenticationException("This class does not support password changes.");
+        String user = file_store.getProperty(username);
+        if (user == null) {
+            throw new AuthenticationException("User '" + username + "' not found.");
+        }
+        // Encrypt the new password
+        String ePwd = encryptPassword(password);
+        file_store.put(username, ePwd);
+        try {
+            saveUsers();
+        } catch(IOException e) {
+            throw new AuthenticationException("Error changing password: ", e);
+        }
     }
 
     /**
@@ -212,7 +308,16 @@ public class FileSystemAuthentication implements Authentication {
      */
     @Override
     public User getUser(String username) throws AuthenticationException {
-        throw new AuthenticationException("This class does not support user retrieval.");
+        // Find our user
+        String user = file_store.getProperty(username);
+        if (user == null) {
+            throw new AuthenticationException("User '" + username + "' not found.");
+        }
+        // Purge any old data and init()
+        user_object = new FileSystemUser();
+        user_object.init(username);
+        // before returning
+        return user_object;
     }
 
     /**
@@ -225,7 +330,19 @@ public class FileSystemAuthentication implements Authentication {
     @Override
     public List<User> searchUsers(String search)
             throws AuthenticationException {
-        throw new AuthenticationException("This class does not support user searching.");
+        // Complete list of users
+        String[] users = file_store.keySet().toArray(new String[file_store.size()]);
+        List<User> found = new ArrayList();
+
+        // Look through the list for anyone who matches
+        for (int i = 0; i < users.length; i++) {
+            if (users[i].toLowerCase().contains(search.toLowerCase())) {
+                found.add(getUser(users[i]));
+            }
+        }
+
+        // Return the list
+        return found;
     }
 
 }
