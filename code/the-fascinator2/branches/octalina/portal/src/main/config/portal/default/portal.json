@@ -73,6 +73,62 @@
     }
   },
   "manifest" : {
+    "node-3b3e63f6c5c4c1ff399f8cd49800f54c" : {
+      "title" : "0fascinator.jpg",
+      "id" : "/home/octalina/Documents/picture/text/0fascinator.jpg"
+    },
+    "node-53f7193684aac5bf88707bef3f56f80f" : {
+      "title" : "184139899_scan0131.JPG",
+      "id" : "/home/octalina/Documents/picture/text/184139899_scan0131.JPG"
+    },
+    "node-ef219bdb394cd7d6d2fdc840fd2e7c42" : {
+      "title" : "2009 Duncan Travel UK ",
+      "id" : "/home/octalina/Documents/picture/text/2009_Duncan_UK.doc"
+    },
+    "node-72a985cda997eadfd5be5eebe630df9b" : {
+      "title" : "35funny.GIF",
+      "id" : "/home/octalina/Documents/picture/text/35funny.GIF"
+    },
+    "node-48ba2358b340e2617f4f10f306c7efc5" : {
+      "title" : "ARROW Mini-Project SunOfFedora / The Fascinator - Final Report",
+      "id" : "/home/octalina/Documents/picture/text/TF_Final report.pdf"
+    },
+    "node-0ee3cf2b2e93ed766b71ba20a847a272" : {
+      "title" : "Aliquam pharetra neque ",
+      "id" : "/home/octalina/Documents/picture/text/chapter01.odt"
+    },
+    "node-edb82571b73e8ad4bcf7fba95f8190dc" : {
+      "title" : "Ariel Photo Greg Alexander FSB Coral 13May68.jpg",
+      "id" : "/home/octalina/Documents/picture/text/Ariel Photo Greg Alexander FSB Coral 13May68.jpg"
+    },
+    "node-1890fd100479a59cb26e2888eceaf10b" : {
+      "title" : "Escada Piano.wmv",
+      "id" : "/home/octalina/Documents/picture/text/Escada Piano.wmv"
+    },
+    "node-67c90722b86b675c559b8b5ea20ae0fa" : {
+      "title" : "Ethan_Galstad_Nagios_3.0_Status_01.pdf",
+      "id" : "/home/octalina/Documents/picture/text/Ethan_Galstad_Nagios_3.0_Status_01.pdf"
+    },
+    "node-3a98e528cfceac3714c8e434854bbebe" : {
+      "title" : "Fantasía",
+      "id" : "/home/octalina/Documents/picture/text/07 - Fantasia.mp3"
+    },
+    "node-51e913407d92e3d57ea25e8acca5c5ec" : {
+      "title" : "Flagrante_increibe_2 (copy).WMV",
+      "id" : "/home/octalina/Documents/picture/text/Flagrante_increibe_2 (copy).WMV"
+    },
+    "node-d05507d524ad3bdc15b1cfe2d94c33d5" : {
+      "title" : "Flagrante_increibe_2.WMV",
+      "id" : "/home/octalina/Documents/picture/text/Flagrante_increibe_2.WMV"
+    },
+    "node-fbd8e23c7eaacd948ed507e6eb230755" : {
+      "title" : "Love is Blue",
+      "id" : "/home/octalina/Documents/picture/text/1968 - Paul Mauriat - Love is Blue.MP3"
+    },
+    "node-ff36e530c0ed0313e7f7072b7e7bc899" : {
+      "title" : "Me cat!!!",
+      "id" : "/home/octalina/Documents/picture/text/test%%Thisis test.ODT"
+    },
     "node-2d9e521a1f4de654fe517927ddaf40a2" : {
       "title" : "NewOliDoco.odt",
       "id" : "/home/octalina/Documents/picture/text/NewOliDoco.odt"
@@ -81,9 +137,41 @@
       "title" : "NewOliDoco2.odt",
       "id" : "/home/octalina/Documents/picture/text/NewOliDoco2.odt"
     },
-    "node-48ba2358b340e2617f4f10f306c7efc5" : {
-      "title" : "ARROW Mini-Project SunOfFedora / The Fascinator - Final Report",
-      "id" : "/home/octalina/Documents/picture/text/TF_Final report.pdf"
+    "node-1477823ddba3d22c746db9f2da721c79" : {
+      "title" : "Pensive Parakeet.jpg",
+      "id" : "/home/octalina/Documents/picture/text/Pensive Parakeet.jpg"
+    },
+    "node-615d10ee3113fa4088232ab3de34582e" : {
+      "title" : "burrrrrp.wav",
+      "id" : "/home/octalina/Documents/picture/text/burrrrrp.wav"
+    },
+    "node-08004e80abf459626e0fac6e67a81c49" : {
+      "title" : "coralmap120568.jpg",
+      "id" : "/home/octalina/Documents/picture/text/coralmap120568.jpg"
+    },
+    "node-53cc92f88e3188340d293d671d258c40" : {
+      "title" : "cute_icon.gif",
+      "id" : "/home/octalina/Documents/picture/text/cute_icon.gif"
+    },
+    "node-38b79a65ad282940da3aa7dde18070c9" : {
+      "title" : "fish.MPG",
+      "id" : "/home/octalina/Documents/picture/text/fish.MPG"
+    },
+    "node-cc195197a4b69a3badb56a0b0fdcf8d2" : {
+      "title" : "newText1.txt",
+      "id" : "/home/octalina/Documents/picture/text/newText1.txt"
+    },
+    "node-96706ef4b9153e028ce06f987d182a82" : {
+      "title" : "test.MP4",
+      "id" : "/home/octalina/Documents/picture/text/test.MP4"
+    },
+    "node-91ada6aa529f505c4ca685b0f263b003" : {
+      "title" : "test.ODT",
+      "id" : "/home/octalina/Documents/picture/text/test.ODT"
+    },
+    "node-b3efb8d730cfb13f24998b0e89ad5da0" : {
+      "title" : "trac_logo_mini.png",
+      "id" : "/home/octalina/Documents/picture/text/trac_logo_mini.png"
     }
   }
 }

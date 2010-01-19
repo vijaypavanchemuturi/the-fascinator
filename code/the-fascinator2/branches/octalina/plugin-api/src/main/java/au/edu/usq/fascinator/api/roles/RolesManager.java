@@ -1,6 +1,6 @@
 /*
- * The Fascinator - Internal User
- * Copyright (C) 2010 University of Southern Queensland
+ * The Fascinator - Plugin API
+ * Copyright (C) 2008-2010 University of Southern Queensland
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,18 +16,30 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-
-package au.edu.usq.fascinator.authentication.internal;
-
-import au.edu.usq.fascinator.common.authentication.GenericUser;
+package au.edu.usq.fascinator.api.roles;
 
 /**
- * An internal user object
+ * A simple extension of Roles defining some methods
+ * that general plugins won't need to concern themselves
+ * with.
  *
  * @author Greg Pendlebury
  */
-public class InternalUser extends GenericUser {
-    public void init(String user) {
-        setUsername(user);
-    }
+public interface RolesManager extends Roles {
+
+    /**
+     * Specifies which plugin the role manager should use
+     * when managing roles. This won't effect reading of
+     * data, just writing.
+     *
+     * @param pluginId The id of the plugin.
+     */
+    public void setActivePlugin(String pluginId);
+
+    /**
+     * Return the current active plugin.
+     *
+     * @return The currently active plugin.
+     */
+    public String getActivePlugin();
 }
