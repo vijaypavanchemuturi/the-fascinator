@@ -7,6 +7,12 @@
             "path": "${user.home}/.fascinator/users.properties"
         }
     },
+    "roles": {
+        "type": "internal",
+        "internal": {
+            "path": "${user.home}/.fascinator/roles.properties"
+        }
+    },
     "storage": {
         "type": "file-system",
         "file-system": {
