@@ -177,7 +177,7 @@ class DetailData:
             else:
                 pid = self.__oid[self.__oid.rfind("/")+1:]
                 payload = self.__storage.getPayload(self.__oid, pid)
-                print " * detail.py: pid=%s payload=%s" % (pid, payload)
+                #print " * detail.py: pid=%s payload=%s" % (pid, payload)
                 if payload is not None:
                     sw = StringWriter()
                     sw.write("<pre>")

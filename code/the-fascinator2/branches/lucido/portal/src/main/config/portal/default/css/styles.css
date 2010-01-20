@@ -289,9 +289,9 @@ span.view-type a.selected {
 }
 
 .title-heading {
-	border-bottom:1px solid #CCCCCC;
-	font-weight:normal;
-	margin:0 0 10px;
+    border-bottom:1px solid #CCCCCC;
+    font-weight:normal;
+    margin:0 0 10px;
 }
 fieldset.login p select {
     width: 60%;
