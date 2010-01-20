@@ -7,7 +7,6 @@ $(function(){
     function getDocument(id){
         var url = myUrl.replace("/detail/", "/download/");
         url += "/" + id;
-        console.log(url);
         jQ(".content-preview-inline").empty().append("<div><a name='"+id+"'>loading..</a></div>");
         //jQ.get(url, {}, previewDataCallback, "text");
         jQ(".content-preview-inline").load(url + " .body", function() {
