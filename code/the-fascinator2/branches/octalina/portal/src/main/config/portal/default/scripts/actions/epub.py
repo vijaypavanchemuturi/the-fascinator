@@ -164,7 +164,7 @@ class Epub:
                                     filepath, filename = os.path.split(src)
                                     filename, ext = os.path.splitext(filename)
                                     filename = hashlib.md5(filename).hexdigest()
-                                    src = os.path.join(filepath.lower().replace(" ", "_"), "%s%s" % (filename, ext))
+                                    src = os.path.join(filepath.lower().replace(" ", "_"), "node-%s%s" % (filename, ext))
                                     img.addAttribute(QName("src"), src.replace(" ", "_"))
                                 
                             bodyNode = saxDoc.selectSingleNode("//*[local-name()='div' and @class='body']")
@@ -268,11 +268,11 @@ class Epub:
                                 filepath, filename = os.path.split(payload.id)
                                 filename, ext = os.path.splitext(filename)
                                 filename = hashlib.md5(filename).hexdigest()
-                                payloadid = os.path.join(filepath.lower().replace(" ", "_"), "%s%s" % (filename, ext))
+                                payloadid = os.path.join("%s" % filepath.lower().replace(" ", "_"), "node-%s%s" % (filename, ext))
                             payloadDict[payloadid] = payload, payload.contentType
-                elif sourcePayload:
+                #elif sourcePayload:
                     #for now only works for images
-                    if payloadType.startswith("image"):
+                elif payloadType.startswith("image") and sourcePayload:
                         #hash the file name to avoid invalid id in epub...
                         isImage=True
                         #use thumbnail if exist 
@@ -284,8 +284,8 @@ class Epub:
                                         <link rel="stylesheet" href="epub.css"/>
                                         </head><body><div><span style="display: block"><img src="%s" alt="%s"/></span></div></body></html>"""
                         if thumbNailPayload:
-                            htmlString = htmlString % (pid, "%s.thumb.jpg" % hashedFileName, pid)
-                            payloadDict["%s.thumb.jpg" % hashedFileName] = thumbNailPayload, "image/jpeg"
+                            htmlString = htmlString % (pid, "node-%s.thumb.jpg" % hashedFileName, pid)
+                            payloadDict["node-%s.thumb.jpg" % hashedFileName] = thumbNailPayload, "image/jpeg"
                         else:
                             htmlString = htmlString % (pid, pid.lower().replace(" ", "_"), pid)
                             payloadDict[pid] = sourcePayload, payloadType
