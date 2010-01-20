@@ -17,6 +17,8 @@ from org.apache.commons.io import IOUtils
 from org.apache.commons.lang import StringEscapeUtils
 from org.dom4j.io import OutputFormat, XMLWriter, SAXReader
 
+import traceback
+
 class OrganiseData:
     def __init__(self):
         self.__portal = Services.portalManager.get(portalId)

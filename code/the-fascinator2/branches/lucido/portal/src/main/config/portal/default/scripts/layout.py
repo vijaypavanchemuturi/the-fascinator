@@ -1,6 +1,7 @@
 import md5
 
 from authentication import Authentication
+
 from java.net import URLEncoder
 from org.apache.commons.lang import StringEscapeUtils
 
@@ -17,22 +18,22 @@ class LayoutData:
 
     def getPortal(self):
         return Services.getPortalManager().get(portalId)
-    
+
     def getPortals(self):
         return Services.getPortalManager().portals
-    
+
     def getPortalName(self):
         return self.getPortal().getDescription()
-    
+
     def escapeText(self, text):
         return StringEscapeUtils.escapeXml(text)
-    
+
     def md5Hash(self, data):
         return md5.new(data).hexdigest()
-    
+
     def capitalise(self, text):
         return text[0].upper() + text[1:]
-    
+
     def getTemplate(self, templateName):
         portalName = portalId
         if not Services.pageService.resourceExists(portalId, templateName, False):
