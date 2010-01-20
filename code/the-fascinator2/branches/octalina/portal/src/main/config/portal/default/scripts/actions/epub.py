@@ -9,7 +9,7 @@ from org.dom4j.io import XMLWriter, OutputFormat, SAXReader
 
 from xml.etree import ElementTree as ElementTree
 
-import traceback
+import traceback, os, hashlib
 
 class Epub:
     def __init__(self):
@@ -124,12 +124,11 @@ class Epub:
             id, title, htmlFileName, payloadDict, isImage = self.__itemRefDict[itemHash]
             
             for payloadId in payloadDict:
-                #need to save the payload to the temp file...
                 payload, payloadType = payloadDict[payloadId]
                 if isinstance(payload, Payload):
                     payloadId = payloadId.lower()
-                    zipOutputStream.putNextEntry(ZipEntry("OEBPS/%s" % payloadId.replace(" ", "_")))
                     if payloadType == "application/xhtml+xml":
+                        zipOutputStream.putNextEntry(ZipEntry("OEBPS/%s" % payloadId.replace(" ", "_")))
                         ##process the html....
                         saxReader = SAXReader(Boolean.parseBoolean("false"))
                         try:
@@ -154,7 +153,20 @@ class Epub:
                                 attr = a.attribute(QName("name"))
                                 if attr:
                                     a.remove(attr)
-                            
+                                    
+                            ## fix images src name.... replace space with underscore and all lower case
+                            imgs = saxDoc.selectNodes("//*[local-name()='img' and contains(@src, '_files')]")
+                            for img in imgs:
+                                srcAttr = img.attribute(QName("src"))
+                                if srcAttr:
+                                    src = srcAttr.getValue()
+                                    #hash the sourcename
+                                    filepath, filename = os.path.split(src)
+                                    filename, ext = os.path.splitext(filename)
+                                    filename = hashlib.md5(filename).hexdigest()
+                                    src = os.path.join(filepath.lower().replace(" ", "_"), "%s%s" % (filename, ext))
+                                    img.addAttribute(QName("src"), src.replace(" ", "_"))
+                                
                             bodyNode = saxDoc.selectSingleNode("//*[local-name()='div' and @class='body']")
                             bodyNode.setName("div")
                             
@@ -176,9 +188,10 @@ class Epub:
                         except:
                             traceback.print_exc()
                     else:
-                        #... other than image
+                        #images....
+                        zipOutputStream.putNextEntry(ZipEntry("OEBPS/%s" % payloadId))
                         IOUtils.copy(payload.getInputStream(), zipOutputStream)
-                    zipOutputStream.closeEntry()
+                        zipOutputStream.closeEntry()
                 else:
                     zipOutputStream.putNextEntry(ZipEntry("OEBPS/%s" % payloadId.replace(" ", "_")))
                     IOUtils.copy(payload, zipOutputStream)
@@ -188,26 +201,25 @@ class Epub:
                 if payloadId == htmlFileName.lower():
                     itemNode.set("id", itemHash)
                 else:
-                    itemNode.set("id", self.__getProperId(payloadId.replace(" ", "_")))                  
+                    itemNode.set("id", payloadId.replace("/", "_"))                  
                 manifest.append(itemNode)
                 
-                if not isImage: 
-                    navPoint = ElementTree.Element("navPoint", {"class":"chapter", "id":"%s" % itemHash, 
-                                                                    "playOrder":"%s" % count})
-                else:
-                    navPoint = ElementTree.Element("navPoint", {"class":"chapter", "id":"%s" % htmlFileName, 
-                                                                    "playOrder":"%s" % count})
-                    navMap.append(navPoint)
-                    navLabel = ElementTree.Element("navLabel")
-                    navPoint.append(navLabel)
-                    textNode = ElementTree.Element("text")
-                    textNode.text = title
-                    navLabel.append(textNode)
-                    content = ElementTree.Element("content")
-                    navPoint.append(content)
-                    content.set("src", htmlFileName)
-                    count +=1
-                
+            if not isImage: 
+                navPoint = ElementTree.Element("navPoint", {"class":"chapter", "id":"%s" % itemHash, 
+                                                                "playOrder":"%s" % count})
+            else:
+                navPoint = ElementTree.Element("navPoint", {"class":"chapter", "id":"%s" % htmlFileName, 
+                                                                "playOrder":"%s" % count})
+            navMap.append(navPoint)
+            navLabel = ElementTree.Element("navLabel")
+            navPoint.append(navLabel)
+            textNode = ElementTree.Element("text")
+            textNode.text = title
+            navLabel.append(textNode)
+            content = ElementTree.Element("content")
+            navPoint.append(content)
+            content.set("src", htmlFileName)
+            count +=1
                 
             itemRefNode = ElementTree.Element("itemref")
             spine.append(itemRefNode)
@@ -222,8 +234,6 @@ class Epub:
         zipOutputStream.putNextEntry(ZipEntry("OEBPS/toc.ncx"))
         IOUtils.copy(ByteArrayInputStream(String(ElementTree.tostring(tocXml)).getBytes("UTF-8")), zipOutputStream)
         zipOutputStream.closeEntry()
-        
-        
         
         zipOutputStream.close()
         
@@ -251,17 +261,34 @@ class Epub:
                     payloadDict[nodeHtm] = htmlPayload, "application/xhtml+xml"
                     payloadList = Services.storage.getObject(id).getPayloadList()
                     for payload in payloadList:
-                        if payload.id.find("_files") > -1:
-                            payloadDict[payload.id] = payload, payload.contentType
+                        payloadid = payload.id
+                        if payloadid.find("_files") > -1:
+                            if payload.contentType.startswith("image"):
+                                #hash the name here....
+                                filepath, filename = os.path.split(payload.id)
+                                filename, ext = os.path.splitext(filename)
+                                filename = hashlib.md5(filename).hexdigest()
+                                payloadid = os.path.join(filepath.lower().replace(" ", "_"), "%s%s" % (filename, ext))
+                            payloadDict[payloadid] = payload, payload.contentType
                 elif sourcePayload:
                     #for now only works for images
                     if payloadType.startswith("image"):
+                        #hash the file name to avoid invalid id in epub...
                         isImage=True
+                        #use thumbnail if exist 
+                        ext = os.path.splitext(id)[1]
+                        filename = id[id.rfind("/")+1:-len(ext)] #+ ".thumb.jpg"
+                        hashedFileName = hashlib.md5(filename).hexdigest()
+                        thumbNailPayload = Services.storage.getPayload(id, "%s.thumb.jpg" % filename)
                         htmlString = """<html xmlns="http://www.w3.org/1999/xhtml"><head><title>%s</title>
                                         <link rel="stylesheet" href="epub.css"/>
                                         </head><body><div><span style="display: block"><img src="%s" alt="%s"/></span></div></body></html>"""
-                        htmlString = htmlString % (pid, pid.lower().replace(" ", "_"), pid)
-                        payloadDict[pid] = sourcePayload, payloadType
+                        if thumbNailPayload:
+                            htmlString = htmlString % (pid, "%s.thumb.jpg" % hashedFileName, pid)
+                            payloadDict["%s.thumb.jpg" % hashedFileName] = thumbNailPayload, "image/jpeg"
+                        else:
+                            htmlString = htmlString % (pid, pid.lower().replace(" ", "_"), pid)
+                            payloadDict[pid] = sourcePayload, payloadType
                         payloadDict[nodeHtm] = ByteArrayInputStream(String(htmlString).getBytes("UTF-8")), "application/xhtml+xml"
                 else:
                     process = False
@@ -272,21 +299,12 @@ class Epub:
                     if children:
                         self.__getDigitalItems(children)
         
-    def __getProperId(self, id):
-        #not start with numeric and must not have slash
-        if id[:1].isdigit():
-            id = "_%s" % id
-        return id.replace("/", "_")    
-    
     def __getPortal(self):
         return Services.portalManager.get(portalId)
     
     def __getEpubMimeTypeFiles(self):
         try:
-            print "--- get mimetype fiiel...: ", self.__getPortal().getClass().getResource("/epub/mimetype").toURI()
             mimeTypeFile = File(self.__getPortal().getClass().getResource("/epub/mimetype").toURI())
-            print "---- FILE: ", mimeTypeFile.isFile()
-            print "---- mimeTypeFile: ", self.__getPortal().getClass().getResource("/epub/mimetype").toURI()
             self.__epubMimetypeStream = FileInputStream(mimeTypeFile)
             
             containerFile = File(self.__getPortal().getClass().getResource("/epub/container.xml").toURI())
