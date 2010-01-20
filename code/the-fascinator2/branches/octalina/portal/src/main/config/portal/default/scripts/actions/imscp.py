@@ -1,20 +1,29 @@
+from __main__ import Services, formData, portalId, response
+
 import os.path
 
-from au.edu.usq.fascinator.ims import *
+from au.edu.usq.fascinator.ims import FileType, ItemType, ManifestType, \
+    MetadataType, ObjectFactory, OrganizationType, OrganizationsType, \
+    ResourceType, ResourcesType
 
-from java.io import StringWriter
+from java.io import FileOutputStream, StringWriter
 from java.util.zip import ZipEntry, ZipOutputStream
 from javax.xml.bind import JAXBContext, Marshaller
 
 from org.apache.commons.io import IOUtils
 
 class ImsPackage:
-    def __init__(self):
+    def __init__(self, outputFile=None):
         self.__portal = Services.getPortalManager().get(portalId)
         self.__portalManifest = self.__portal.getJsonMap("manifest")
-        self.__createPackage()
+        print formData
+        url = formData.get("url")
+        if outputFile is None and url is None:
+            self.__createPackage()
+        elif url is not None and outputFile is not None:
+            self.__createPackage(outputFile)
     
-    def __createPackage(self):
+    def __createPackage(self, outputFile=None):
         manifest = self.__createManifest()
         context = JAXBContext.newInstance("au.edu.usq.fascinator.ims")
         m = context.createMarshaller()
@@ -24,8 +33,14 @@ class ImsPackage:
         m.marshal(jaxbElem, writer);
         writer.close()
         
-        response.setHeader("Content-Disposition", "attachment; filename=%s.zip" % self.__portal.getName())
-        out = response.getOutputStream("application/zip")
+        if outputFile is not None:
+            print " * imscp.py: writing to %s..." % outputFile
+            out = FileOutputStream(outputFile)
+        else:
+            print " * imscp.py: writing to http output stream..."
+            response.setHeader("Content-Disposition", "attachment; filename=%s.zip" % self.__portal.getName())
+            out = response.getOutputStream("application/zip")
+        
         zipOut = ZipOutputStream(out)
         
         zipOut.putNextEntry(ZipEntry("imsmanifest.xml"))
@@ -44,6 +59,7 @@ class ImsPackage:
                     zipOut.closeEntry()
         
         zipOut.close()
+        out.close()
     
     def __createManifest(self):
         manifest = ManifestType()
@@ -100,5 +116,6 @@ class ImsPackage:
     
     def __getPortal(self):
         return Services.portalManager.get(portalId)
-    
-scriptObject = ImsPackage()
+
+if __name__ == "__main__":
+    scriptObject = ImsPackage()
