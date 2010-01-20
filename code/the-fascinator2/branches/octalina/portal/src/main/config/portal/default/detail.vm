@@ -118,30 +118,34 @@
 $(function() {
     var oid = "$oid";
     var filenameNoExt = "$filenameNoExt";
-    function fixLinks(selector, attrName) {
+    function fixLinks(baseUrl, selector, attrName) {
         $(selector).each(function() {
             var attr = $(this).attr(attrName);
             if (attr != null) {
                 if (attr.indexOf("#") != 0 && attr.indexOf("://") == -1) {
-                    $(this).attr(attrName, escape("$portalPath/download/$self.object.id/" + attr));
+                    var relUrl = "$portalPath/download/$self.object.id/";
+                    var tmpUrl = baseUrl.substring(baseUrl.indexOf("/", 8));
+                    tmpUrl = tmpUrl.replace(relUrl, "");
+                    tmpUrl = tmpUrl.substring(0, tmpUrl.lastIndexOf("/")+1);
+                    $(this).attr(attrName, escape(relUrl + tmpUrl + attr));
                 }
             }
         });
     }
     gFixLinks = fixLinks;
-    fixLinks("div.content-preview-inline a", "href");
-    fixLinks("div.content-preview-inline img", "src");
-    
+    fixLinks("", "div.content-preview-inline a", "href");
+    fixLinks("", "div.content-preview-inline img", "src");
+
     $("#open-this").click(function() {
         jQuery.post("$portalPath/open.ajax", { func: "open-file", file: "$oid" } );
         return false;
     });
-    
+
     $("#reindex").click(function() {
         jQuery.post("$portalPath/reindex.ajax", { func: "reindex", file: "$oid" } );
         return false;
     });
-    
+
     function addRendition(href, label) {
         $("#actions").append('<li><a href="' + href + '" target="blank">' + label + '</a></li>');
     }
@@ -152,7 +156,7 @@ $(function() {
         addRendition($(this).attr("href"), "View slide show");
     });
     $("div.rendition-links").remove();
-    
+
     var mimeType = "$self.mimeType";
     if (mimeType.indexOf("image/") == 0) {
         var src = "$portalPath/download/$oid";
@@ -166,27 +170,27 @@ $(function() {
             height = 24;
         }
 
-        var style = "display: block; width: 425px; height: " + height + "px";     
+        var style = "display: block; width: 425px; height: " + height + "px";
         var filename = oid.substring(oid.lastIndexOf("/") + 1);
         var ext = filename.substring(filename.lastIndexOf(".") + 1).toLowerCase();
-        
+
         var hasFlv = true
-        if (ext == "wmv" || ext=="mpg" || ext=="mpeg" || ext=="m3u" || ext=="wav") { 
+        if (ext == "wmv" || ext=="mpg" || ext=="mpeg" || ext=="m3u" || ext=="wav") {
         	filename = filenameNoExt + ".flv";
         	hasFlv = "$self.hasFlv()";
         }
-		
+
 		if (hasFlv!="" || ext=="mp3" || ext=="m4a") {
 	        var href = "$portalPath/download/$oid/" + filename;
 	        var player = '<a class="clearfix" href="' + href + '" id="player" style="' + style + '" />';
 	        $("div.content-preview div.article").empty().append(player);
 	        flowplayer("player", "$portalPath/flowplayer/flowplayer-3.1.2.swf",
-	            { clip: { autoPlay: false } });   
+	            { clip: { autoPlay: false } });
         } else {
         	$("div.content-preview div.article").empty().append("No preview available");
         }
     }
-    
+
     $("#blog-this, #blog-cancel").click(function() {
         $("#blog-this").toggleClass("selected");
         $("#blog-message").empty();
@@ -210,16 +214,16 @@ $(function() {
             }
         );
     });
-    
+
     $("#attachments h2 a").click(function() {
         $("#attachments ul").toggle("blind").toggleClass('visible').toggleClass('hidden');
         return false;
     });
-    
+
     #if($self.isMetadataOnly())
     $("#preview").after($("#metadata")).remove();
     #end
-    
+
     $("#blog_url").autocomplete("$portalPath/actions/blog.ajax?func=url-history");
 });
 </script>
