@@ -1,9 +1,4 @@
-import gc
 import md5
-import sys
-
-# Add path to find includes
-sys.path.append(scriptsPath)
 
 from authentication import Authentication
 from java.net import URLEncoder

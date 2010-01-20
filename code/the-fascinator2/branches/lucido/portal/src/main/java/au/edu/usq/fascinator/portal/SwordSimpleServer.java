@@ -1,21 +1,30 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
+/* 
+ * The Fascinator - Portal
+ * Copyright (C) 2008-2009 University of Southern Queensland
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-
 package au.edu.usq.fascinator.portal;
-
-import org.purl.sword.server.SWORDServer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.TimeZone;
+import java.util.UUID;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
-import java.util.UUID;
 
 import org.purl.sword.base.Collection;
 import org.purl.sword.base.Deposit;
@@ -30,8 +39,11 @@ import org.purl.sword.base.ServiceDocumentRequest;
 import org.purl.sword.base.ServiceLevel;
 import org.purl.sword.base.Workspace;
 import org.purl.sword.client.Client;
-import org.purl.sword.client.PostMessage;
 import org.purl.sword.client.PostDestination;
+import org.purl.sword.client.PostMessage;
+import org.purl.sword.server.SWORDServer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3.atom.Author;
 import org.w3.atom.Content;
 import org.w3.atom.Contributor;
@@ -43,25 +55,24 @@ import org.w3.atom.Summary;
 import org.w3.atom.Title;
 
 /**
- *
- * @author ward
+ * Simple SWORD server. Manages a single anonymous collection.
+ * 
+ * @author Ron Ward
+ * @author Oliver Lucido
  */
 public class SwordSimpleServer implements SWORDServer {
-    private Logger log = LoggerFactory.getLogger(JsonSessionState.class);
+
+    private Logger log = LoggerFactory.getLogger(SwordSimpleServer.class);
+
     private static int counter = 0;
 
     private String depositUrl;
-
-    public SwordSimpleServer() {
-        this("");
-    }
 
     public SwordSimpleServer(String depositUrl) {
         this.depositUrl = depositUrl;
     }
 
-
-    public Client getClient(){
+    public Client getClient() {
         return new Client();
     }
 
@@ -78,7 +89,7 @@ public class SwordSimpleServer implements SWORDServer {
     }
 
     public ServiceDocumentRequest getServiceDocumentRequest() {
-       // username, password, onBehalfOf, IPAddress
+        // username, password, onBehalfOf, IPAddress
         return new ServiceDocumentRequest();
     }
 
@@ -86,21 +97,24 @@ public class SwordSimpleServer implements SWORDServer {
         return new Deposit();
     }
 
-
     /**
-     * Provides a simple service document - it contains
-     * an anonymous workspace and collection.
-     *
+     * Provides a simple service document - it contains an anonymous workspace
+     * and collection.
+     * 
      * @throws SWORDAuthenticationException
      */
     public ServiceDocument doServiceDocument(ServiceDocumentRequest sdr)
-                                    throws SWORDAuthenticationException {
+            throws SWORDAuthenticationException {
         // Authenticate the user
         String username = sdr.getUsername();
         String password = sdr.getPassword();
-        if(username==null) username = "anonymous";
-        if(password==null) password = "?";
-        if(!username.equals(password)){
+        if (username == null) {
+            username = "anonymous";
+        }
+        if (password == null) {
+            password = "?";
+        }
+        if (!username.equals(password)) {
             // User not authenticated
             throw new SWORDAuthenticationException("Bad credentials");
         }
@@ -111,27 +125,28 @@ public class SwordSimpleServer implements SWORDServer {
         Collection collection = new Collection();
 
         document.setService(service);
-        workspace.setTitle("The-Fascinator SWORD Workspace");
-        collection.setTitle("Submitters collection");
+        workspace.setTitle("The Fascinator SWORD Workspace");
+        collection.setTitle("Default collection");
         collection.setLocation(depositUrl);
-	collection.addAccepts("application/zip");
-        //collection.setAbstract("An abstract goes in here");
-        //collection.setCollectionPolicy("A collection policy");
-        //collection.setMediation(true);
-	//collection.setTreatment("treatment in here too");
+        collection.addAccepts("application/zip");
+        // collection.setAbstract("An abstract goes in here");
+        // collection.setCollectionPolicy("A collection policy");
+        // collection.setMediation(true);
+        // collection.setTreatment("treatment in here too");
         workspace.addCollection(collection);
         service.addWorkspace(workspace);
         return document;
     }
 
     public DepositResponse doDeposit(Deposit deposit)
-                        throws SWORDAuthenticationException, SWORDException {
+            throws SWORDAuthenticationException, SWORDException {
         // Authenticate the user
         String username = deposit.getUsername();
         String password = deposit.getPassword();
-        if ((username != null) && (password != null) &&
-                (((username.equals("")) && (password.equals(""))) ||
-                (!username.equalsIgnoreCase(password))) ) {
+        if ((username != null)
+                && (password != null)
+                && (((username.equals("")) && (password.equals(""))) || (!username
+                        .equalsIgnoreCase(password)))) {
             // User not authenticated
             throw new SWORDAuthenticationException("Bad credentials");
         }
@@ -151,12 +166,12 @@ public class SwordSimpleServer implements SWORDServer {
                 log.info("  zipEntry '{}'", ze.toString());
             }
         } catch (IOException ioe) {
-            throw new SWORDException("Failed to open deposited zip file",
-                                    null, ErrorCodes.ERROR_CONTENT);
+            throw new SWORDException("Failed to open deposited zip file", null,
+                    ErrorCodes.ERROR_CONTENT);
         }
         // Handle the deposit
         if (!deposit.isNoOp()) {
-                counter++;
+            counter++;
         }
         // SWORD Atom Entry
         SWORDEntry se = getSwordEntry(deposit, filenames.toString(), username);
@@ -166,64 +181,67 @@ public class SwordSimpleServer implements SWORDServer {
     }
 
     public SWORDEntry getSwordEntry(Deposit deposit, String filenames,
-                                                        String username){
-        SWORDEntry se = new SWORDEntry();                   // SWORD Atom Entry
-        Title t = new Title();                              // Atom
+            String username) {
+        SWORDEntry se = new SWORDEntry(); // SWORD Atom Entry
+        Title t = new Title(); // Atom
         t.setContent("SimpleServer Deposit: #" + counter);
         se.setTitle(t);
         se.addCategory("Category");
         if (deposit.getSlug() != null) {
-            //se.setId(deposit.getSlug() + " - ID: " + counter);
+            // se.setId(deposit.getSlug() + " - ID: " + counter);
             se.setId(deposit.getSlug() + ":" + UUID.randomUUID().toString());
         } else {
-            //se.setId("ID: " + counter);
+            // se.setId("ID: " + counter);
             se.setId(UUID.randomUUID().toString());
         }
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
         TimeZone utc = TimeZone.getTimeZone("UTC");
-        sdf.setTimeZone (utc);
+        sdf.setTimeZone(utc);
         String milliFormat = sdf.format(new Date());
         se.setUpdated(milliFormat);
-        Summary s = new Summary();                          // Atom
+        Summary s = new Summary(); // Atom
         s.setContent(filenames);
         se.setSummary(s);
-        Author a = new Author();                            // Atom
+        Author a = new Author(); // Atom
         if (username != null) {
             a.setName(username);
         } else {
             a.setName("unknown");
         }
         se.addAuthors(a);
-        Link e = new Link();                                // Atom
+        Link e = new Link(); // Atom
         e.setRel("edit");
-        e.setHref("http://localhost:9997/portal/default/sword/deposit");
-        se.addLink(e);      // multi
+        e.setHref(depositUrl);
+        se.addLink(e); // multi
         if (deposit.getOnBehalfOf() != null) {
             Contributor c = new Contributor();
             c.setName(deposit.getOnBehalfOf());
-            //c.setEmail(deposit.getOnBehalfOf() + "@usq.edu.au");
+            // c.setEmail(deposit.getOnBehalfOf() + "@usq.edu.au");
             se.addContributor(c);
         }
-        Source source = new Source();                       // Atom
+        Source source = new Source(); // Atom
         Generator generator = new Generator();
-        generator.setContent("au.edu.usq.fascinator.portal.SwordSimpleServer");
+        generator.setContent(getClass().getCanonicalName());
         source.setGenerator(generator);
         se.setSource(source);
-        Content content = new Content();                    // Atom
+        Content content = new Content(); // Atom
         try {
             content.setType("application/zip");
         } catch (InvalidMediaTypeException e1) {
             // TODO Auto-generated catch block
             e1.printStackTrace();
         }
-        content.setSource("http://localhost:9997/portal/default/sword/test/uploads/upload-" + counter + ".zip");
+        content
+                .setSource("http://localhost:9997/portal/default/sword/test/uploads/upload-"
+                        + counter + ".zip");
         se.setContent(content);
-        //se.setTreatment("Short back and sides");
+        // se.setTreatment("Short back and sides");
         if (deposit.isVerbose()) {
-        //    se.setVerboseDescription("I've done a lot of hard work to get this far!");
+            // se.setVerboseDescription("I've done a lot of hard work to get this far!");
         }
         se.setNoOp(deposit.isNoOp());
-        //se.setFormatNamespace("http://www.loc.gov/METS/"); // http://www.imsglobal.org/xsd/imscp_v1p2
+        // se.setFormatNamespace("http://www.loc.gov/METS/"); //
+        // http://www.imsglobal.org/xsd/imscp_v1p2
         return se;
     }
 }
