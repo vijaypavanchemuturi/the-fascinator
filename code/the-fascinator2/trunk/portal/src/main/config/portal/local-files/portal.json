@@ -1,8 +1,8 @@
 {
   "portal" : {
     "name" : "local-files",
-    "description" : "Local Files 2",
-    "query" : "repository_name:\"Local Files 2\"",
+    "description" : "Local Files",
+    "query" : "repository_name:\"Local Files\"",
     "records-per-page" : "10",
     "facet-count" : "10",
     "facet-sort-by-count" : "false",
