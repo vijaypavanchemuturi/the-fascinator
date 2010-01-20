@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
+
 import org.apache.tapestry5.services.Request;
 
 public class FormData {
@@ -39,15 +40,20 @@ public class FormData {
         return values == null ? null : values.get(0);
     }
 
+    public String get(String name, String defaultValue) {
+        String val = get(name);
+        return val == null ? defaultValue : val;
+    }
+
     public List<String> getValues(String name) {
         return parameters.get(name);
     }
 
-    public InputStream getInputStream(){
+    public InputStream getInputStream() {
         InputStream iStream = null;
         try {
             iStream = hsr.getInputStream();
-        } catch(Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
         return iStream;
@@ -57,17 +63,17 @@ public class FormData {
         parameters.clear();
     }
 
-    public Map<String, String> getHeaders(){
-        if (this.headers==null) {
-            this.headers = new HashMap<String, String>();
+    public Map<String, String> getHeaders() {
+        if (headers == null) {
+            headers = new HashMap<String, String>();
             Enumeration e = hsr.getHeaderNames();
-            while(e.hasMoreElements()){
+            while (e.hasMoreElements()) {
                 String name = e.nextElement().toString();
                 String value = hsr.getHeader(name);
-                this.headers.put(name, value);
+                headers.put(name, value);
             }
         }
-        return this.headers;
+        return headers;
     }
 
     @Override

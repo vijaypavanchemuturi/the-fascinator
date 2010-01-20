@@ -38,12 +38,17 @@ import javax.script.ScriptException;
 
 import org.apache.tapestry5.ioc.annotations.Inject;
 import org.apache.tapestry5.services.Request;
+import org.apache.tapestry5.services.RequestGlobals;
 import org.apache.tapestry5.services.Response;
 import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.Velocity;
 import org.apache.velocity.runtime.RuntimeSingleton;
 import org.apache.velocity.runtime.log.Log4JLogChute;
+import org.python.core.Py;
+import org.python.core.PyModule;
+import org.python.core.PySystemState;
+import org.python.core.imp;
 import org.python.util.PythonInterpreter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -63,6 +68,9 @@ public class DynamicPageServiceImpl implements DynamicPageService {
     private static final String DEFAULT_SCRIPT_ENGINE = "python";
 
     private Logger log = LoggerFactory.getLogger(DynamicPageServiceImpl.class);
+
+    @Inject
+    private RequestGlobals requestGlobals;
 
     @Inject
     private Request request;
@@ -192,6 +200,8 @@ public class DynamicPageServiceImpl implements DynamicPageService {
         bindings.put("portalPath", contextPath + "/" + portalId);
         bindings.put("pageName", pageName);
         bindings.put("responseOutput", out);
+        bindings.put("serverPort", requestGlobals.getHTTPServletRequest()
+                .getServerPort());
         bindings.put("bindings", bindings);
 
         // run page and template scripts
@@ -227,7 +237,8 @@ public class DynamicPageServiceImpl implements DynamicPageService {
             mimeType = mimeTypeAttr.toString();
         }
 
-        if (resourceExists(portalId, bindings.get("pageName").toString() + ".vm") ) {
+        if (resourceExists(portalId, bindings.get("pageName").toString()
+                + ".vm")) {
             // set up the velocity context
             VelocityContext vc = new VelocityContext();
             for (String key : bindings.keySet()) {
@@ -271,7 +282,7 @@ public class DynamicPageServiceImpl implements DynamicPageService {
                 }
             }
         }
-        
+
         return mimeType;
     }
 
@@ -283,7 +294,20 @@ public class DynamicPageServiceImpl implements DynamicPageService {
         InputStream in = getResource(portalId, scriptName);
         if (in != null) {
             if (nativeJython) {
+                // add current and default portal directories to python sys.path
+                PySystemState sys = new PySystemState();
+                sys.path.append(Py.newString(scriptsPath + "/" + portalId
+                        + "/scripts"));
+                sys.path.append(Py.newString(scriptsPath + "/"
+                        + PortalManager.DEFAULT_PORTAL_NAME + "/scripts"));
+                Py.setSystemState(sys);
                 PythonInterpreter python = new PythonInterpreter();
+                // add virtual portal namespace - support context passing
+                // between imported modules
+                // need to add from __main__ import * to jython modules to
+                // access the context
+                PyModule mod = imp.addModule("__main__");
+                python.setLocals(mod.__dict__);
                 for (String key : bindings.keySet()) {
                     python.set(key, bindings.get(key));
                 }
