@@ -80,8 +80,12 @@ class DetailData:
     
     def canOpenFile(self):
         #HACK check if mimetypes match between index and real file
-        dcFormat = self.__json.get("response/docs/dc_format")[1:-1]
-        return dcFormat == self.__mimeType
+        #dcFormat = self.__json.get("response/docs/dc_format", "")
+        #if dcFormat is not None:
+        #    dcFormat = dcFormat[1:-1]
+        #return dcFormat == self.__mimeType
+        f = File(self.getObject().getId())
+        return f.exists();
     
     def encode(self, url):
         return URLEncoder.encode(url, "UTF-8")
@@ -158,11 +162,14 @@ class DetailData:
         print " * detail.py: payload content mimeType=%s" % mimeType
         contentStr = ""
         if mimeType == "application/octet-stream":
-            dcFormat = self.__json.get("response/docs/dc_format")[1:-1]
+            dcFormat = self.__json.get("response/docs/dc_format")
+            if dcFormat is not None:
+                dcFormat = dcFormat[1:-1]
+            print dcFormat, mimeType
             if dcFormat != mimeType:
-                return "<em>(File not found)</em>"
+                return "<div><em>(File not found)</em></div>"
             else:
-                return "<em>(Binary file)</em>"
+                return "<div><em>(Binary file)</em></div>"
         elif mimeType.startswith("text/"):
             if mimeType == "text/html":
                 contentStr = '<iframe class="iframe-preview" src="%s/%s/download/%s"></iframe>' % \

@@ -4,19 +4,16 @@ $(function(){
     var jQ=jQuery;
     var myUrl = window.location.href.split("#")[0];
     var url = myUrl.replace("/detail/", "/jsonIms/");
-    function previewDataCallback(data){
-        gData = data;
-        var h=jQ(data);
-        jQ("div.content-preview-inline>div").replaceWith(h.find(".body"))
-        gFixLinks("div.content-preview-inline a", "href");
-        gFixLinks("div.content-preview-inline img", "src");
-    }
     function getDocument(id){
         var url = myUrl.replace("/detail/", "/download/");
         url += "/" + id;
-        //alert(url)
-        jQ.get(url, {}, previewDataCallback, "text");
-        jQ(".content-preview-inline>div").replaceWith("<div><a name='"+id+"'>loading..</a></div>");
+        console.log(url);
+        jQ(".content-preview-inline").empty().append("<div><a name='"+id+"'>loading..</a></div>");
+        //jQ.get(url, {}, previewDataCallback, "text");
+        jQ(".content-preview-inline").load(url + " .body", function() {
+            gFixLinks(url, ".content-preview-inline a", "href");
+            gFixLinks(url, ".content-preview-inline img", "src");
+        });
         window.location.href = myUrl + "#" + id;
     }
     function createTree(nodes) {

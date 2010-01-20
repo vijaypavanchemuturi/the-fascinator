@@ -1,4 +1,4 @@
-from __portal__ import Services, formData, portalId, response
+from __main__ import Services, formData, portalId, response
 
 import os.path
 
@@ -116,5 +116,6 @@ class ImsPackage:
     
     def __getPortal(self):
         return Services.portalManager.get(portalId)
-    
-scriptObject = ImsPackage()
+
+if __name__ == "__main__":
+    scriptObject = ImsPackage()

@@ -304,9 +304,9 @@ public class DynamicPageServiceImpl implements DynamicPageService {
                 PythonInterpreter python = new PythonInterpreter();
                 // add virtual portal namespace - support context passing
                 // between imported modules
-                // need to add from __portal__ import * to jython modules to
+                // need to add from __main__ import * to jython modules to
                 // access the context
-                PyModule mod = imp.addModule("__portal__");
+                PyModule mod = imp.addModule("__main__");
                 python.setLocals(mod.__dict__);
                 for (String key : bindings.keySet()) {
                     python.set(key, bindings.get(key));
