@@ -38,6 +38,7 @@ public class ImsDigitalObject extends GenericDigitalObject{
 	            }
                     // imsmanifest.json
                 }
+                setMetadataId(manifestFile);
             }
         } catch (IOException ioe) {
             log.error("Failed to add payloads: {}", ioe.toString());
