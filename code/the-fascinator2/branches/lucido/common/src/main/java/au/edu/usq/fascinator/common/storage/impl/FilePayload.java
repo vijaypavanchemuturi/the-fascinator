@@ -53,6 +53,11 @@ public class FilePayload extends GenericPayload {
         setType(PayloadType.Data);
     }
 
+    public FilePayload(File payloadFile, String id) {
+        this(payloadFile);
+        setId(id);
+    }
+
     @Override
     public InputStream getInputStream() throws IOException {
         return new FileInputStream(payloadFile);

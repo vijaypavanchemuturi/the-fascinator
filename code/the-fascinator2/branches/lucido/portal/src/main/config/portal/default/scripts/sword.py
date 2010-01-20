@@ -111,7 +111,7 @@ class SwordHelper(object):
                 harvestConfig.store(FileWriter(tFile))
 
                 zipObject = GenericDigitalObject(id)
-                zipObject.addPayload(FilePayload(file))
+                zipObject.addPayload(FilePayload(file, id))
                 #digitalObject = imsPlugin.transform(zipObject, file)
                 qStorage = QueueStorage(storagePlugin, tFile)
                 qStorage.init(jsonConfig.getSystemFile())
