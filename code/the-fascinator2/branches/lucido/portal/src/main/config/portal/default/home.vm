@@ -324,6 +324,7 @@ $(function() {
             function(data, status) {
                 $("#sword-loading").hide();
                 $("#sword-message").html("<p>Successful</p>");
+                $("#sword-start, #sword-accept").removeAttr("disabled");
             }
         );
     });
