@@ -19,75 +19,40 @@ import au.edu.usq.fascinator.HarvestClient as HarvestClient
 import au.edu.usq.fascinator.QueueStorage as QueueStorage
 import java.io.FileWriter as FileWriter
 
-
-class Sword2(object):
+class SwordHelper(object):
     def __init__(self):
-        self.__mimeType = "text/html"       # default mimeType
-        self.__html = self.__getTest()
-        request.setAttribute("Content-Type", self.__mimeType)
+        self.__processRequest()
 
-
-    def getMimeType(self):
-        """ the results content mimeType """
-        return self.__mimeType
-
-    def getHtml(self):
-        """ Called from the template to get the HTML content """
-        return self.__html
-
-    def __getTest(self):
-        """ """
-        # uses responseOutput.write() to output non HTML content
-        depositUrl = "http://localhost:9997/portal/default/sword/deposit.post"
+    def __processRequest(self):
+        baseUrl = "http://%s:%s%s/%s" % (request.serverName, serverPort, contextPath, portalId)
+        depositUrl = "%s/sword/deposit.post" % baseUrl
         sword = SwordSimpleServer(depositUrl)
-        c = sword.getClient()
-        c.clearProxy()
-        c.clearCredentials()
-        postMsg = sword.getPostMessage();
-        postMsg.filetype = "application/zip"
-        postMsg.filepath = "/home/ward/Desktop/Test.zip"
-
         try:
             p =  request.path.split(portalId+"/"+pageName+"/")[1]  # portalPath
         except:
             p = ""
-        if p=="testpost":
-            print "\n--- testpost ---"
-            url = "http://localhost:9997/portal/default/sword/servicedocument"
-            url = "http://localhost:8080/sword/app/servicedocument"
-            username = "fedoraAdmin"
-            password = username
-            if True:
-                pd = sword.getPostDestination()
-                pd.setUrl(url)
-                pd.setUsername(username)
-                pd.setPassword(password)
-                #pd.setUrl(i.location)
-                #print pd
-            c.setServer("localhost", 8080)
-            c.setCredentials(username, password)
-            sd = c.getServiceDocument(url)
-            postMsg.destination = sd.service.workspaces[-1].collections[-1].location
-        elif p=="post":
+        if p=="post":
             print "\n--- post ---"
+            c = sword.getClient()
+            c.clearProxy()
+            c.clearCredentials()
+            postMsg = sword.getPostMessage();
+            postMsg.filetype = "application/zip"
+            postMsg.filepath = "/home/ward/Desktop/Test.zip"
             depositResponse = c.postFile(postMsg)
             return str(depositResponse)
         elif p=="servicedocument":
             #print "\n--- servicedocument ---"
             sdr = sword.getServiceDocumentRequest()
-            sdr.username = "TestUser"
-            sdr.password = sdr.username
+            sdr.username = formData.get("username", "test")
+            sdr.password = formData.get("password", "test")
             if formData.get("test"):
                 depositUrl += "?test=1"
             sd = sword.doServiceDocument(sdr)  # get a serviceDocument
-            print "OK servicedocument"
-            for ws in sd.service.workspaces:
-                for i in ws.collections:
-                    pass
-                    #print i.location
-            self.__mimeType = "text/xml"
+            out = response.getPrintWriter("text/xml")
+            out.println(str(sd))
+            out.close()
             bindings["pageName"] = "-noTemplate-"
-            responseOutput.write(str(sd))
             return sd
         elif p=="deposit.post":
             #print "\n--- deposit ---  formData='%s'" % str(formData)
@@ -174,4 +139,4 @@ class Sword2(object):
         return Services.portalManager.get(portalId)
 
 
-scriptObject = Sword2()
+scriptObject = SwordHelper()

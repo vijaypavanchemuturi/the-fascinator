@@ -41,9 +41,11 @@ import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 
 import au.edu.usq.fascinator.AuthenticationManager;
+import au.edu.usq.fascinator.RoleManager;
 import au.edu.usq.fascinator.api.PluginManager;
 import au.edu.usq.fascinator.api.authentication.AuthManager;
 import au.edu.usq.fascinator.api.indexer.Indexer;
+import au.edu.usq.fascinator.api.roles.RolesManager;
 import au.edu.usq.fascinator.api.storage.Storage;
 import au.edu.usq.fascinator.common.JsonConfig;
 import au.edu.usq.fascinator.portal.JsonSessionState;
@@ -57,6 +59,8 @@ public class PortalModule {
     private static final String DEFAULT_AUTH_TYPE = "authmanager";
 
     private static final String DEFAULT_INDEXER_TYPE = "solr";
+
+    private static final String DEFAULT_ROLES_TYPE = "rolemanager";
 
     private static final String DEFAULT_STORAGE_TYPE = "file-system";
 
@@ -92,6 +96,17 @@ public class PortalModule {
                     "indexer/type", DEFAULT_INDEXER_TYPE));
             indexer.init(config.getSystemFile());
             return indexer;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static RoleManager buildRoleManager() {
+        try {
+            JsonConfig config = new JsonConfig();
+            RoleManager roles = new RoleManager();
+            roles.init(config.getSystemFile());
+            return roles;
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

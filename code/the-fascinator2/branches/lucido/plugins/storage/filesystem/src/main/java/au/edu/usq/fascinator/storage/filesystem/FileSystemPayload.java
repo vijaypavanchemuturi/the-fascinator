@@ -29,6 +29,7 @@ import java.io.Reader;
 import java.util.Properties;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -142,11 +143,15 @@ public class FileSystemPayload extends GenericPayload {
         }
         if (isLinked()) {
             try {
-                String realPath = FileUtils.readFileToString(getFile());
-                log.debug("realPath: {}", realPath);
+                File oldFile = getFile();
+                String realPath = FileUtils.readFileToString(oldFile);
+                log.debug("realPath: {}", StringUtils.left(realPath, 255));
                 file = new File(realPath);
+                if (!file.exists()) {
+                    file = oldFile;
+                }
             } catch (IOException ioe) {
-                log.warn("Failed to get linked file", ioe);
+                log.warn("Failed to get linked file: ", ioe);
             }
         }
         return new FileInputStream(getFile());
