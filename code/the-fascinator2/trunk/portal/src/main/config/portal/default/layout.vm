@@ -58,6 +58,11 @@ $!pageContent
             </ul>
           </li>
           <li><a href="$portalPath/settings">Settings</a></li>
+          #if ($page.authentication.is_admin())
+          <li id="admin-link"><a href="$portalPath/admin">Admin</a></li>
+          #else
+          <li id="admin-link" class="hidden"><a href="$portalPath/admin">Admin</a></li>
+          #end
           #### not yet finished
           ##<li><a href="$portalPath/harvest">Harvest</a></li>
           <li class="secondary">
@@ -73,7 +78,7 @@ $!pageContent
           </li>
           <li class="secondary">
             #if($page.authentication.is_logged_in())
-            <span id="user-info" class="status">Welcome $page.authentication.get_name(), <a href="?verb=logout">logout</a> ($page.authentication.get_roles())</span>
+            <span id="user-info" class="status">Welcome $page.authentication.get_name(), <a href="?verb=logout">logout</a></span>
             #else
             <span id="user-info" class="status"><a id="login-now" href="#">Login</a></span>
             #end
@@ -151,7 +156,13 @@ $!pageContent
             success:
                 function(data, status) {
                     $("#login-loading").hide();
-                    $("#user-info").html("Welcome " + data + ", <a href='?verb=logout'>logout</a>");
+                    var response = data.split(":");
+                    username = jQuery.trim(response[0]);
+                    is_admin = jQuery.trim(response[1]);
+                    $("#user-info").html("Welcome " + username + ", <a href='?verb=logout'>logout</a>");
+                    if (is_admin == "admin") {
+                        $("#admin-link").show();
+                    }
                     $("#login-form").dialog('close');
                 },
             error:

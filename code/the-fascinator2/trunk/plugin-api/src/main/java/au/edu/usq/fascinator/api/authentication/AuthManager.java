@@ -18,6 +18,9 @@
  */
 package au.edu.usq.fascinator.api.authentication;
 
+import au.edu.usq.fascinator.api.PluginDescription;
+import java.util.List;
+
 /**
  * A simple extension of Authentication defining
  * some methods that general plugins won't need
@@ -42,4 +45,11 @@ public interface AuthManager extends Authentication {
      * @return The currently active plugin.
      */
     public String getActivePlugin();
+
+    /**
+     * Return the list of plugins being managed.
+     *
+     * @return A list of plugins.
+     */
+    public List<PluginDescription> getPluginList();
 }
