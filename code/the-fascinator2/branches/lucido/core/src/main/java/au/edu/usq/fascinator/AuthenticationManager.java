@@ -18,6 +18,7 @@
  */
 package au.edu.usq.fascinator;
 
+import au.edu.usq.fascinator.api.PluginDescription;
 import au.edu.usq.fascinator.api.PluginException;
 import au.edu.usq.fascinator.api.PluginManager;
 import au.edu.usq.fascinator.api.authentication.Authentication;
@@ -367,6 +368,25 @@ public class AuthenticationManager implements AuthManager {
         List<User> found = new ArrayList();
         User user;
 
+        // Try the active plugin first
+        if (active != null) {
+            try {
+                Iterator i = plugins.get(active).searchUsers(search).iterator();
+                // Now loop through those
+                while (i.hasNext()) {
+                    user = (User) i.next();
+                    // Record where they came from
+                    user.setSource(active);
+                    // And add to the result set
+                    found.add(user);
+                }
+            } catch (AuthenticationException e) {
+                // Do nothing, not found
+            }
+
+            return found;
+        }
+
         // Loop through each plugin
         Iterator i = plugins.values().iterator();
         while (i.hasNext()) {
@@ -399,6 +419,11 @@ public class AuthenticationManager implements AuthManager {
      */
     @Override
     public void setActivePlugin(String pluginId) {
+        if (pluginId == null) {
+            active = null;
+            return;
+        }
+
         // Make sure it exists
         Iterator i = plugins.values().iterator();
         while (i.hasNext()) {
@@ -417,5 +442,27 @@ public class AuthenticationManager implements AuthManager {
     @Override
     public String getActivePlugin() {
         return active;
+    }
+
+    /**
+     * Return the list of plugins being managed.
+     *
+     * @return A list of plugins.
+     */
+    @Override
+    public List<PluginDescription> getPluginList() {
+        List<PluginDescription> found = new ArrayList();
+        PluginDescription result;
+
+        // Loop through each plugin
+        Iterator i = plugins.values().iterator();
+        while (i.hasNext()) {
+            p = (Authentication) i.next();
+            result = new PluginDescription(p);
+            result.setMetadata(p.describeUser());
+            found.add(result);
+        }
+
+        return found;
     }
 }

@@ -54,7 +54,11 @@ public class GenericUser implements User {
             Class ref_class = Class.forName(class_name);
             Field field_list[] = ref_class.getDeclaredFields();
             response = new JsonConfigHelper();
-            //String response = "";
+
+            // Arbitrarily set username first, as its a private field
+            // of GenericUser inheriting classes can't access it.
+            response.set("username", "String");
+
             for (int i = 0; i < field_list.length; i++) {
                 response.set(field_list[i].getName(), field_list[i].getType().getSimpleName());
             }

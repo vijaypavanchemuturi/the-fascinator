@@ -293,6 +293,57 @@ span.view-type a.selected {
     font-weight:normal;
     margin:0 0 10px;
 }
+
 fieldset.login p select {
     width: 60%;
+}
+
+ul.nobgtabs {
+    background: none;
+}
+ul.nobgtabs li {
+    background: transparent !important;
+    margin-right: 5px;
+}
+ul.nobgtabs li a.ui-state-default {
+    background-color: #CCCCCC;
+}
+ul.nobgtabs li a.ui-state-active {
+    border-color: #666666;
+}
+.tab-section {
+    border: 1px solid #666666;
+    margin-top: 1px;
+    margin-bottom: 10px;
+    padding: 10px;
+}
+.alert {
+    color: #CC0000;
+}
+.stop-error {
+    background-image: url('../images/icons/delete.png');
+    background-position: 0 0.5em;
+    background-repeat: no-repeat;
+    margin-right: 1em;
+    padding: 0.5em 0.5em 0.5em 20px;
+}
+.users-admin {
+    width: 400px;
+    border: 0px;
+}
+.users-admin td {
+    width: 200px;
+    border: 0px;
+    background: transparent;
+}
+.users-admin select {
+    width: 190px;
+}
+.users-admin .button {
+    width: 150px;
+    margin-bottom: 3px;
+}
+#form-section .message {
+    padding: 10px 5px 5px;
+    font-size: 120%;
 }
