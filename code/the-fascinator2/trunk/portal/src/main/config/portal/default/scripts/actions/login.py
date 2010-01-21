@@ -12,7 +12,10 @@ class LoginData:
         self.authentication.session_init()
 
         if self.authentication.is_logged_in():
-            responseMsg = self.authentication.get_name().strip()
+            if self.authentication.is_admin():
+                responseMsg = self.authentication.get_name() + ":admin"
+            else:
+                responseMsg = self.authentication.get_name() + ":notadmin"
         else:
             responseMsg = self.authentication.get_error()
             response.setStatus(500)
