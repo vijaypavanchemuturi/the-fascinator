@@ -19,6 +19,7 @@
 
 package au.edu.usq.fascinator;
 
+import au.edu.usq.fascinator.api.PluginDescription;
 import au.edu.usq.fascinator.api.PluginException;
 import au.edu.usq.fascinator.api.PluginManager;
 import au.edu.usq.fascinator.api.roles.Roles;
@@ -116,21 +117,7 @@ public class RoleManager implements RolesManager{
                 throw new RolesException(e);
             }
         }
-        /*
-        // Finally, we need to pick the plugin for admins
-        // to create/modify roles. The first non-internal
-        // plugin is the default, but admins can also
-        // request one.
-        Iterator i = plugins.values().iterator();
-        while (i.hasNext() && active == null) {
-            p = (Roles) i.next();
-            if (p.getId().equals(INTERNAL_ROLES_PLUGIN)) {
-                // Skip internal
-            } else {
-                active = p.getId();
-            }
-        }
-         */
+
         // Fall back to internal if there were no other plugins
         if (active == null) active = INTERNAL_ROLES_PLUGIN;
     }
@@ -240,7 +227,7 @@ public class RoleManager implements RolesManager{
         // Now try all the others
         Boolean success = false;
         Iterator i = plugins.values().iterator();
-        while (i.hasNext()) {
+        while (i.hasNext() && !success) {
             p = (Roles) i.next();
             try {
                 // Make we don't try the active plugin again
@@ -308,33 +295,11 @@ public class RoleManager implements RolesManager{
     @Override
     public void createRole(String rolename)
             throws RolesException {
-        // Try the active plugin first
         try {
             plugins.get(active).createRole(rolename);
             return;
         } catch (RolesException e) {
-            // We're going to try other sources now
-        }
-
-        // Now try all the others
-        Boolean success = false;
-        Iterator i = plugins.values().iterator();
-        while (i.hasNext()) {
-            p = (Roles) i.next();
-            try {
-                // Make we don't try the active plugin again
-                if (!active.equals(p.getId())) {
-                    p.createRole(rolename);
-                    success = true;
-                }
-            } catch (RolesException e) {
-                // Do nothing, we've set a 'success' flag if
-                //  any one source works.
-            }
-        }
-
-        if (!success) {
-            throw new RolesException("Failed to create role '" + rolename + "'");
+            throw new RolesException(e);
         }
     }
 
@@ -351,28 +316,7 @@ public class RoleManager implements RolesManager{
             plugins.get(active).deleteRole(rolename);
             return;
         } catch (RolesException e) {
-            // We're going to try other sources now
-        }
-
-        // Now try all the others
-        Boolean success = false;
-        Iterator i = plugins.values().iterator();
-        while (i.hasNext()) {
-            p = (Roles) i.next();
-            try {
-                // Make we don't try the active plugin again
-                if (!active.equals(p.getId())) {
-                    p.deleteRole(rolename);
-                    success = true;
-                }
-            } catch (RolesException e) {
-                // Do nothing, we've set a 'success' flag if
-                //  any one source works.
-            }
-        }
-
-        if (!success) {
-            throw new RolesException("Failed to delete role '" + rolename + "'");
+            throw new RolesException(e);
         }
     }
 
@@ -428,6 +372,16 @@ public class RoleManager implements RolesManager{
         List<String> found = new ArrayList();
         String[] result;
 
+        // Try the active plugin first
+        if (active != null) {
+            result = plugins.get(active).searchRoles(search);
+            for (int i = 0; i < result.length; i++) {
+                if (!found.contains(result[i]))
+                    found.add(result[i]);
+            }
+            return found.toArray(new String[found.size()]);
+        }
+
         // Loop through each plugin
         Iterator i = plugins.values().iterator();
         while (i.hasNext()) {
@@ -469,5 +423,26 @@ public class RoleManager implements RolesManager{
     @Override
     public String getActivePlugin() {
         return active;
+    }
+
+    /**
+     * Return the list of plugins being managed.
+     *
+     * @return A list of plugins.
+     */
+    @Override
+    public List<PluginDescription> getPluginList() {
+        List<PluginDescription> found = new ArrayList();
+        PluginDescription result;
+
+        // Loop through each plugin
+        Iterator i = plugins.values().iterator();
+        while (i.hasNext()) {
+            p = (Roles) i.next();
+            result = new PluginDescription(p);
+            found.add(result);
+        }
+
+        return found;
     }
 }

@@ -214,7 +214,7 @@ public class InternalRoles implements Roles {
 
         if (user_list.containsKey(username)) {
             List<String> roles_of_user = user_list.get(username);
-            if (roles_of_user.contains(newrole)) {
+            if (!roles_of_user.contains(newrole)) {
                 // Update our user list
                 roles_of_user.add(newrole);
                 user_list.put(username, roles_of_user);
@@ -238,7 +238,11 @@ public class InternalRoles implements Roles {
                 throw new RolesException("User '" + username + "' already has role '" + newrole + "'!");
             }
         } else {
-            throw new RolesException("User '" + username + "' does not exist!");
+            // Add the user
+            List<String> empty = new ArrayList();
+            user_list.put(username, empty);
+            // Try again
+            this.setRole(username, newrole);
         }
     }
 
@@ -256,7 +260,7 @@ public class InternalRoles implements Roles {
 
         if (user_list.containsKey(username)) {
             List<String> roles_of_user = user_list.get(username);
-            if (!roles_of_user.contains(oldrole)) {
+            if (roles_of_user.contains(oldrole)) {
                 // Update our user list
                 roles_of_user.remove(oldrole);
                 user_list.put(username, roles_of_user);

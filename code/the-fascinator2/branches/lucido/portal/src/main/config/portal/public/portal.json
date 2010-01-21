@@ -37,11 +37,5 @@
         "display" : "list"
       }
     }
-  },
-  "manifest" : {
-    "node-b15868f07bd9438f2d11bb5fabdd8505" : {
-      "title" : "Welcome to Ubuntu",
-      "id" : "/Users/lucido/Documents/public/Welcome_to_Ubuntu.odt"
-    }
   }
 }

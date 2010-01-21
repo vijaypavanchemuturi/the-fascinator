@@ -18,6 +18,9 @@
  */
 package au.edu.usq.fascinator.api.roles;
 
+import au.edu.usq.fascinator.api.PluginDescription;
+import java.util.List;
+
 /**
  * A simple extension of Roles defining some methods
  * that general plugins won't need to concern themselves
@@ -42,4 +45,11 @@ public interface RolesManager extends Roles {
      * @return The currently active plugin.
      */
     public String getActivePlugin();
+
+    /**
+     * Return the list of plugins being managed.
+     *
+     * @return A list of plugins.
+     */
+    public List<PluginDescription> getPluginList();
 }

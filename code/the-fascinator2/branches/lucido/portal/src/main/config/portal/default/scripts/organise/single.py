@@ -142,7 +142,7 @@ class OrganiseData:
                     portal.set("manifest/node-%s/title" % hashId, doc.get("dc_title").get(0))
                     portal.set("manifest/node-%s/id" % hashId, doc.get("id"))
             #remove manifest items missing from search result
-            print manifest
+            #print manifest
             for key in manifest.keySet():
                 item = manifest.get(key)
                 id = item.get("id")
