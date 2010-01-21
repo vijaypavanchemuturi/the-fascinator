@@ -8,13 +8,8 @@ from org.apache.commons.lang import StringEscapeUtils
 class LayoutData:
 
     def __init__(self):
-        self.authentication = Authentication(self);
+        self.authentication = Authentication();
         self.authentication.session_init();
-
-    # An access point for included files
-    #   to get the bound Jython globals.
-    def __call__(self, var):
-        return globals()[var];
 
     def getPortal(self):
         return Services.getPortalManager().get(portalId)
