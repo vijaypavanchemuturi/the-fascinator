@@ -1,0 +1,69 @@
+{
+    "harvester": {
+        "type": "restore-backup"
+    },
+    
+    "transformer": {
+        "conveyer": "aperture, ice2",
+        "aperture": {
+            "outputPath": "${java.io.tmpdir}/ice2-output"
+        },
+        "ice2": {
+            "url": "http://ec2-75-101-136-199.compute-1.amazonaws.com/api/convert/",
+            "resize.image.mode": "fixedWidth",
+            "resize.image.ratio": "-90",
+            "resize.image.fixedWidth": "150",
+            "enlargeImage": "false",
+            "outputPath": "${java.io.tmpdir}/ice2-output",
+            "excludeRenditionExt": ".txt,.mp3,.m4a"
+        }
+    },
+    
+    "indexer": {
+        "script": {
+            "type": "python",
+            "rules": "local-files.py"
+        },
+        "params": {
+            "repository.name": "Local Files",
+            "repository.type": "Local File System"
+        }
+    },
+    
+    "backup" : {
+      "paths" : {
+        "_.fascinator_backup" : {
+          "path" : "${user.home}/.fascinator/backup",
+          "active" : "true",
+          "ignoreFilter" : ".svn|.ice|.*|~*",
+          "include-portal-view" : "true",
+          "storage" : {
+            "file-system" : {
+              "home" : "${user.home}/.fascinator/backup",
+              "use-link" : "false"
+            },
+            "type" : "file-system"
+          }
+        }
+      }
+    },
+    
+    "restore": {
+       "paths": {
+	    	"_.fascinator_backup" : {
+	          "path" : "${user.home}/.fascinator/backup",
+	          "active" : "true",
+	          "ignoreFilter" : ".svn|.ice|.*|~*",
+	          "include-portal-view" : "true",
+	          "storage" : {
+	            "file-system" : {
+	              "home" : "${user.home}/.fascinator/backup",
+	              "use-link" : "false"
+	            },
+	            "type" : "file-system"
+	          }
+	        }
+	     }
+      }
+    }
+}
