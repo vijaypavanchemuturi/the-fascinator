@@ -32,8 +32,8 @@ if [ "$1" == "start" -o "$1" == "restart" ]; then
 	#cd $OLDPWD
 	if [ "$?" == "0" ]; then
 		echo "Starting Solr..."
-		cd $FASCINATOR_HOME/solr
-		java -jar start.jar &>$OLDPWD/solr.out &
+		cd $FASCINATOR_HOME/code/solr
+		./start.sh &>$OLDPWD/solr.out &
 		cd $OLDPWD
 		echo "Starting Portal..."
 		cd $FASCINATOR_HOME/code/portal

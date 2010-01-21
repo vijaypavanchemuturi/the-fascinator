@@ -1,8 +1,8 @@
 #!/bin/sh
 
 # Paths
-JAVA="$JAVA_HOME\bin\java"
-SOLR_HOME="$TF_HOME/code/solr"
+JAVA="$JAVA_HOME/bin/java"
+SOLR_HOME="$FASCINATOR_HOME/code/solr"
 JETTY_HOME="$SOLR_HOME/jetty"
 JETTY_LOG="$JETTY_HOME/logs"
 CONFIG="$JETTY_HOME/etc/jetty.xml"
