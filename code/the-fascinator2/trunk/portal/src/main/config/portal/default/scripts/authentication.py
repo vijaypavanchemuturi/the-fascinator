@@ -3,6 +3,8 @@ from au.edu.usq.fascinator.api.authentication import AuthenticationException;
 from au.edu.usq.fascinator.api.authentication import User;
 from au.edu.usq.fascinator.api.roles import RolesException;
 
+from __main__ import Services, formData, sessionState
+
 class Authentication:
     active_auth_plugin = None
     active_role_plugin = None
@@ -11,11 +13,9 @@ class Authentication:
     error_message = None
     GUEST_ROLE = 'guest'
 
-    def __init__(self, layout):
-        global getVar
-        getVar = layout
-        self.auth = getVar('Services').getAuthManager()
-        self.role = getVar('Services').getRoleManager()
+    def __init__(self):
+        self.auth = Services.getAuthManager()
+        self.role = Services.getRoleManager()
         self.check_login()
 
     def change_password(self, username, password):
@@ -27,19 +27,19 @@ class Authentication:
             self.error_message = self.parse_error(e)
 
     def check_login(self):
-        action = getVar('formData').get("verb")
+        action = formData.get("verb")
 
         # User is logging in
         if (action == "login"):
-            username = getVar('formData').get("username")
+            username = formData.get("username")
             if username is not None:
-                password = getVar('formData').get("password")
+                password = formData.get("password")
                 self.login(username, password)
 
         # Normal page render, or logout
         else:
-            username = getVar('sessionState').get("username")
-            source   = getVar('sessionState').get("source")
+            username = sessionState.get("username")
+            source   = sessionState.get("source")
             if username is not None:
                 self.current_user = self.get_user(username, source)
 
@@ -158,8 +158,8 @@ class Authentication:
         try:
             self.current_user = self.auth.logIn(username, password)
             self.error_message = None
-            getVar('sessionState').set("username", username)
-            getVar('sessionState').set("source",   self.current_user.getSource())
+            sessionState.set("username", username)
+            sessionState.set("source",   self.current_user.getSource())
             self.has_error = False
         except AuthenticationException, e:
             self.current_user  = None
@@ -171,8 +171,8 @@ class Authentication:
                 self.auth.logOut(self.current_user)
                 self.current_user  = None
                 self.error_message = None
-                getVar('sessionState').set("username", None)
-                getVar('sessionState').set("source",   None)
+                sessionState.set("username", None)
+                sessionState.set("source",   None)
                 self.has_error = False
             except AuthenticationException, e:
                 self.error_message = self.parse_error(e)
@@ -217,8 +217,8 @@ class Authentication:
 
     def session_init(self):
         # Debugging purpose
-        if getVar('formData').get("verb") == "clear-session":
-            getVar('sessionState').clear()
+        if formData.get("verb") == "clear-session":
+            sessionState.clear()
 
     def set_auth_plugin(self, plugin_id):
         try:

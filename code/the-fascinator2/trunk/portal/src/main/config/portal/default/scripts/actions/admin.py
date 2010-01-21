@@ -1,14 +1,9 @@
-import sys
-
-# Add path to find includes
-sys.path.append(scriptsPath)
-
 from authentication import Authentication
 
 class LoginData:
 
     def __init__(self):
-        self.authentication = Authentication(self)
+        self.authentication = Authentication()
         self.authentication.session_init()
 
         self.writer = response.getPrintWriter("text/html")
@@ -170,10 +165,5 @@ class LoginData:
 
     def unknown_action(self):
         self.throw_error("Unknown action requested - '" + formData.get("verb") + "'")
-
-    # An access point for included files
-    #   to get the bound Jython globals.
-    def __call__(self, var):
-        return globals()[var];
 
 scriptObject = LoginData()
