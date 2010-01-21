@@ -1,0 +1,1 @@
+set TF_HOME="C:\tf2"
