@@ -1,0 +1,10 @@
+<link rel="stylesheet" type="text/css" href="$portalPath/js/autocomplete/jquery.autocomplete.css" />
+#set($dc = $meta.dublinCore)
+#macro(field $field)#if($field.size()==1)$esc.html($field.get(0))#{else}$esc.html($field)#{end}#{end}
+<!-- DC info as per http://dublincore.org/documents/dc-html/ -->
+<link rel="schema.DC" href="http://purl.org/dc/elements/1.1/" />
+#foreach($key in $dc.keySet())
+#set($name = $self.formatName($key))
+#set($value = $self.formatValue($dc.get($key)))
+<meta name="DC.$name" content="$value"/>
+#end
