@@ -1,0 +1,10 @@
+{
+    "harvester": {
+        "type": "file-system",
+        "file-system": {
+            "baseDir": "${test.dir}",
+            "cacheDir": "${test.cache.dir}",
+            "force": true
+        }
+    }
+}
