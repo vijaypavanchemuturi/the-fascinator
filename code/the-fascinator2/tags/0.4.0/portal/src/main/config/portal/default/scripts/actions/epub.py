@@ -32,7 +32,7 @@ class Epub:
                 traceback.print_exc()
         
     def __createEpub(self):
-        response.setHeader("Content-Disposition", "attachment; filename=%s.zip" % self.__portal.getName())
+        response.setHeader("Content-Disposition", "attachment; filename=%s.epub" % self.__portal.getName())
         out = response.getOutputStream("application/zip")
         zipOutputStream = ZipOutputStream(out)
         
