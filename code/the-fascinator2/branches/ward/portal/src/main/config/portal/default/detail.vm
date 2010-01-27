@@ -1,0 +1,231 @@
+<script type="text/javascript" src="$portalPath/js/tree/jquery.tree.min.js"></script>
+#set($pageTitle = 'Detail')
+#if($self.solrResponse.get("response/numFound") == 0)
+<h2 id="page-heading">Page not found</h2>
+<p>Please try a different <a href="$portalPath/search">search</a>.</p>
+#else
+#set($meta = $self.metadata)
+#set($oid = $self.object.id)
+#set($filenameNoExt = $self.getFilePathWithoutExt($oid))
+#set($title = $meta.getField("dc_title"))
+#set($description = $meta.getField("dc_description"))
+#if(!$title)
+  #set($title = $self.getFileName($oid))
+#end
+##<h2 id="page-heading">$title</h2>
+<h2 id="page-heading">Detail</h2>
+<div class="grid_4">
+  #if(!$self.isMetadataOnly())
+  <div class="box menu">
+    <h2>Actions</h2>
+    <ul class="menu" id="actions">
+      #if($self.canOpenFile())
+      <li><a id="open-this" href="$portalPath/detail/$oid">Open file</a></li>
+      #end
+      <li><a id="reindex" href="$portalPath/detail/$oid">Re-Index...</a></li>
+      #if($self.hasHtml())
+      <li><a id="blog-this" href="#">Blog...</a><li>
+      #end
+    </ul>
+  </div>
+  #end
+  <div id="metadata" class="box">
+    <h2>Metadata</h2>
+    #set($pageHeader="#parse($page.getTemplate('detail-dc-meta.vm'))")
+    <div class="block">
+      <dl class="meta">
+      #foreach($key in $dc.keySet())
+        <dt>$self.formatName($key)</dt>
+        #set($valueList = $dc.get($key))
+        <dd>
+          <ul>
+          #foreach($value in $valueList)
+            <li>$value</li>
+          #end
+          </ul>
+        </dd>
+      #end
+      </dl>
+    </div>
+  </div>
+  <div id="attachments" class="box menu">
+    <h2><a href="#">Attachments</a></h2>
+    <ul class="menu hidden">
+    #foreach($payload in $self.object.payloadList)
+      #set($pid = $payload.id)
+      #set($payloadType = $payload.type.toString())
+      <li class="payload" rel="$payload.contentType">
+        <a href='$portalPath/download/$self.encode($oid)/$self.encode($pid)' rel="$payloadType" target="blank" title="$payload.contentType">$payload.id</a>
+      </li>
+    #end
+    </ul>
+  </div>
+</div>
+<div class="grid_12">
+  <div class="box hidden" id="blog-form">
+    <h2>Blog</h2>
+    <form id="blog" method="post">
+      <fieldset class="login">
+        <legend>Blog information</legend>
+        <p>
+          <label for="blog_url">Blog URL</label>
+          <input type="text" id="blog_url" name="blog_url" />
+        </p>
+        <p>
+          <label for="blog_title">Title</label>
+          <input type="text" id="blog_title" name="blog_title" value="$title"/>
+        </p>
+        <p>
+          <label for="blog_username">Username</label>
+          <input type="text" id="blog_username" name="blog_username" />
+        </p>
+        <p>
+          <label for="blog_password">Password</label>
+          <input type="password" id="blog_password" name="blog_password" />
+        </p>
+        <p class="message">
+          <img class="hidden" id="blog-loading" src="$portalPath/images/icons/loading.gif" />
+          <span id="blog-message"></span>
+        </p>
+        <input class="button" id="blog-accept" type="button" value="Blog" />
+        <input id="blog-cancel" type="button" value="Close" />
+      </fieldset>
+    </form>
+    <p>Note: Some platforms may not support images or attachments.</p>
+  </div>
+  <div id="preview" class="box articles">
+    <h2>Preview</h2>
+    <div class="content-preview">
+      <span class="mimetype" rel="$self.mimeType"></span>
+      <div class="first article clearfix">
+      	<h3 class="title-heading">$title</h3>
+        <div class="content-preview-inline">$!self.payloadContent</div>
+        <script type="text/javascript" src="$portalPath/js/annotation.js"></script>
+        <script type="text/javascript" src="$portalPath/js/viewer.js"></script>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="clear"><!--clear--></div>
+#if($self.mimeType.startsWith("audio/") || $self.mimeType.startsWith("video/"))
+<script type="text/javascript" src="$portalPath/flowplayer/flowplayer-3.1.2.min.js"></script>
+#end
+<script type="text/javascript" src="$portalPath/js/tree/jquery.tree.min.js"></script>
+<script type="text/javascript" src="$portalPath/js/autocomplete/lib/jquery.ajaxQueue.js"></script>
+<script type="text/javascript" src="$portalPath/js/autocomplete/lib/jquery.bgiframe.js"></script>
+<script type="text/javascript" src="$portalPath/js/autocomplete/jquery.autocomplete.pack.js"></script>
+<script type="text/javascript">
+$(function() {
+    var oid = "$oid";
+    var filenameNoExt = "$filenameNoExt";
+    function fixLinks(baseUrl, selector, attrName) {
+        $(selector).each(function() {
+            var attr = $(this).attr(attrName);
+            if (attr != null) {
+                if (attr.indexOf("#") != 0 && attr.indexOf("://") == -1) {
+                    var relUrl = "$portalPath/download/$self.object.id/";
+                    var tmpUrl = baseUrl.substring(baseUrl.indexOf("/", 8));
+                    tmpUrl = tmpUrl.replace(relUrl, "");
+                    tmpUrl = tmpUrl.substring(0, tmpUrl.lastIndexOf("/")+1);
+                    $(this).attr(attrName, escape(relUrl + tmpUrl + attr));
+                }
+            }
+        });
+    }
+    gFixLinks = fixLinks;
+    fixLinks("", "div.content-preview-inline a", "href");
+    fixLinks("", "div.content-preview-inline img", "src");
+
+    $("#open-this").click(function() {
+        jQuery.post("$portalPath/open.ajax", { func: "open-file", file: "$oid" } );
+        return false;
+    });
+
+    $("#reindex").click(function() {
+        jQuery.post("$portalPath/reindex.ajax", { func: "reindex", file: "$oid" } );
+        return false;
+    });
+
+    function addRendition(href, label) {
+        $("#actions").append('<li><a href="' + href + '" target="blank">' + label + '</a></li>');
+    }
+    $('li.payload[rel="application/pdf"] a:first').each(function() {
+        addRendition($(this).attr("href"), "PDF version");
+    });
+    $("span.slide-link > a").each(function() {
+        addRendition($(this).attr("href"), "View slide show");
+    });
+    $("div.rendition-links").remove();
+
+    var mimeType = "$self.mimeType";
+    if (mimeType.indexOf("image/") == 0) {
+        var src = "$portalPath/download/$oid";
+        $("div.content-preview div.article").html(
+            '<a class="image" href="' + src + '"  style="max-width:98%">' +
+                '<img src="' + src + '" style="max-width:100%" />' +
+            '</a>');
+    } else if (mimeType.indexOf("audio/") == 0 || mimeType.indexOf("video/") == 0) {
+        var height = 300;
+        if (mimeType.indexOf("audio/") == 0) {
+            height = 24;
+        }
+
+        var style = "display: block; width: 425px; height: " + height + "px";
+        var filename = oid.substring(oid.lastIndexOf("/") + 1);
+        var ext = filename.substring(filename.lastIndexOf(".") + 1).toLowerCase();
+
+        var hasFlv = true
+        if (ext == "wmv" || ext=="mpg" || ext=="mpeg" || ext=="m3u" || ext=="wav" || ext=="wma") {
+        	filename = filenameNoExt + ".flv";
+        	hasFlv = "$self.hasFlv()";
+        }
+
+		if (hasFlv!="" || ext=="mp3" || ext=="m4a") {
+	        var href = "$portalPath/download/$oid/" + filename;
+	        var player = '<a class="clearfix" href="' + href + '" id="player" style="' + style + '" />';
+	        $("div.content-preview div.article").empty().append(player);
+	        flowplayer("player", "$portalPath/flowplayer/flowplayer-3.1.2.swf",
+	            { clip: { autoPlay: false } });
+        } else {
+        	$("div.content-preview div.article").empty().append("No preview available");
+        }
+    }
+
+    $("#blog-this, #blog-cancel").click(function() {
+        $("#blog-this").toggleClass("selected");
+        $("#blog-message").empty();
+        $("#blog-form").toggle("blind");
+        return false;
+    });
+    $("#blog-accept").click(function() {
+        $("#blog-message").empty();
+        $("#blog-loading").show();
+        jQuery.post("$portalPath/actions/blog.ajax",
+            {
+                url: $("#blog_url").val(),
+                title: $("#blog_title").val(),
+                username: $("#blog_username").val(),
+                password: $("#blog_password").val(),
+                oid: "$oid",
+            },
+            function(data, status) {
+                $("#blog-loading").hide();
+                $("#blog-message").html(data);
+            }
+        );
+    });
+
+    $("#attachments h2 a").click(function() {
+        $("#attachments ul").toggle("blind").toggleClass('visible').toggleClass('hidden');
+        return false;
+    });
+
+    #if($self.isMetadataOnly())
+    $("#preview").after($("#metadata")).remove();
+    #end
+
+    $("#blog_url").autocomplete("$portalPath/actions/blog.ajax?func=url-history");
+});
+</script>
+#end
+
