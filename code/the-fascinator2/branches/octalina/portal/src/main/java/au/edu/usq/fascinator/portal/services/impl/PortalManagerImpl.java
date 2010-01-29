@@ -32,7 +32,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import au.edu.usq.fascinator.BackupClient;
-import au.edu.usq.fascinator.IndexClient;
+import au.edu.usq.fascinator.HarvestClient;
 import au.edu.usq.fascinator.common.JsonConfig;
 import au.edu.usq.fascinator.portal.Portal;
 import au.edu.usq.fascinator.portal.services.PortalManager;
@@ -178,11 +178,11 @@ public class PortalManagerImpl implements PortalManager {
     }
 
     @Override
-    public void indexObject(String objectId) {
-        IndexClient indexClient;
+    public void reHarvestObject(String objectId) {
+        HarvestClient harvestClient;
         try {
-            indexClient = new IndexClient();
-            indexClient.indexObject(objectId);
+            harvestClient = new HarvestClient();
+            harvestClient.reHarvest(objectId);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -190,11 +190,11 @@ public class PortalManagerImpl implements PortalManager {
     }
 
     @Override
-    public void indexPortal(Portal portal) {
-        IndexClient indexClient;
+    public void reHarvestPortal(Portal portal) {
+        HarvestClient harvestClient;
         try {
-            indexClient = new IndexClient();
-            indexClient.indexPortal(portal.getQuery());
+            harvestClient = new HarvestClient();
+            harvestClient.reHarvestView(portal.getQuery());
         } catch (IOException e) {
 
         }
