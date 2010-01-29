@@ -125,6 +125,7 @@
     <div class="content-preview">
       <span class="mimetype" rel="$self.mimeType"></span>
       <div class="first article clearfix">
+        <h2 class="title-heading">$manifestItem.get("title")</h2>
         <div class="content-preview-inline">$!self.payloadContent</div>
       </div>
     </div>
