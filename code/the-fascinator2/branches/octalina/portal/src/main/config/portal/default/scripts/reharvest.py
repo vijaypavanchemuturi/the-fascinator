@@ -1,42 +1,42 @@
 from ch.qos.logback.classic.html import  HTMLLayout
 from org.slf4j import Logger, LoggerFactory
 
-class Reindex:
+class Reharvest:
     def __init__(self):
         func = formData.get("func")
         result = "{}"
         resultType = "text/plain"
-        if func == "reindex":
+        if func == "reharvest":
             file = formData.get("file")
             portalId = formData.get("portalId")
             portalManager = Services.getPortalManager()
             if file:
-                print " * Reindexing: formData=%s" % file
-                portalManager.indexObject(file)
-                sessionState.set("reindex/lastResult", "success")
+                print " * Re-harvesting: formData=%s" % file
+                portalManager.reHarvestObject(file)
+                sessionState.set("reharvest/lastResult", "success")
                 result = '{ status: "ok" }'
             elif portalId:
                 portal = portalManager.get(portalId)
-                print " * Reindexing: Portal=%s" % portal.name
-                portalManager.indexPortal(portal)
-                sessionState.set("reindex/lastResult", "success")
+                print " * Re-harvesting: Portal=%s" % portal.name
+                portalManager.reHarvestPortal(portal)
+                sessionState.set("reharvest/lastResult", "success")
                 result = '{ status: "ok" }'
             else:
-                sessionState.set("reindex/lastResult", "failed")
+                sessionState.set("reharvest/lastResult", "failed")
                 result = '{ status: "failed" }'
         elif func == "get-state":
             result = '{ running: "%s", lastResult: "%s" }' % \
-                (sessionState.get("reindex/running"),
-                 sessionState.get("reindex/lastResult"))
+                (sessionState.get("reharvest/running"),
+                 sessionState.get("reharvest/lastResult"))
         elif func == "get-log":
             context = LoggerFactory.getILoggerFactory()
-            logger = context.getLogger("au.edu.usq.fascinator.IndexClient")
+            logger = context.getLogger("au.edu.usq.fascinator.HarvestClient")
             it = logger.iteratorForAppenders()
-            appender = logger.getAppender("reindex")
+            appender = logger.getAppender("reharvest")
             layout = HTMLLayout()
             layout.setContext(context)
             layout.setPattern("%d%level%msg")
-            layout.setTitle("Index log")
+            layout.setTitle("Reharvest log")
             layout.start()
             result = "<table>"
             count = appender.getLength()
@@ -54,4 +54,4 @@ class Reindex:
         writer.println(result)
         writer.close()
                 
-scriptObject = Reindex()
+scriptObject = Reharvest()
