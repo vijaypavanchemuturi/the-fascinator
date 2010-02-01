@@ -232,6 +232,11 @@ $(function() {
                 parents: getParentIds(node),
                 hidden: $(this).is(":checked")
             });
+        if ($("#item_hidden").is(":checked")) {
+        	node.find("> a").addClass("item-hidden");
+        } else {
+        	node.find("> a").removeClass("item-hidden");
+        }
     });
     
     $("#item_blog").click(function() {
@@ -262,11 +267,6 @@ $(function() {
                 $("#item_title").blur();
             });
         node.find("> a").text(title);
-        if ($("#item_hidden").is(":checked")) {
-        	node.find("> a").addClass("item-hidden");
-        } else {
-        	node.find("> a").removeClass("item-hidden");
-        }
         return false;
     });
     
