@@ -39,8 +39,9 @@
         "type": "solr",
         "properties": "SOF-META",
         "solr": {
-            "uri": "http://localhost:8983/solr",
-            "autocommit": true
+            "uri": "http://localhost:8080/solr/fascinator",
+            "autocommit": true,
+            "embedded": false
         }
     },
     "portal": {
