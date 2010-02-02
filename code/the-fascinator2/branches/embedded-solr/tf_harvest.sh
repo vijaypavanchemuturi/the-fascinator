@@ -3,21 +3,34 @@
 # this script starts a fascinator harvest using maven
 # only usable when installed in development mode
 #
-for /f "tokens=2*" %%i in ('%Cmd% ^| find "ProxyServer"') do set http_proxy=%%j
 
-REM get fascinator home dir
-for %%F in ("%0") do set TF_HOME=%%~dpF
+# suppress console output from pushd/popd
+pushd() {
+	builtin pushd "$@" > /dev/null
+}
+popd() {
+	builtin popd "$@" > /dev/null
+}
 
-if "%1" == "" goto usage
-if "%1" == "start" goto start
-if "%1" == "stop" goto stop
+# get fascinator home dir
+pushd `dirname $0`
+TF_HOME=`pwd`
+popd
 
-REM set environment
-call %TF_HOME%\tf_env.bat
-
-set SAMPLE_DIR=$TF_HOME\core\src\test\resources
-if "%1" == "" then goto usage
-
+SAMPLE_DIR=$TF_HOME/core/src/test/resources
+if [ "$1" == "" ]; then
+	echo "Usage: `basename $0` <jsonFile>"
+	echo "Where jsonFile is a JSON configuration file"
+	echo "If jsonFile is not an absolute path, the file is assumed to be in:"
+	echo "    $SAMPLE_DIR"
+	echo "Available files:"
+	for SAMPLE_FILE in `ls $SAMPLE_DIR/*.json.sample`; do
+		TMP=${SAMPLE_FILE##*/resources/}
+		echo -n "    "
+		echo $TMP | cut -d . -f 1
+	done
+	exit 0
+fi
 
 function copy_sample {
 	if [ ! -f $1.json ]; then
@@ -51,17 +64,3 @@ if [ $NUM_PROCS == 1 ]; then
 else
 	echo "Please start The Fascinator before harvesting."
 fi
-
-:usage
-echo "Usage: `basename $0` <jsonFile>"
-echo "Where jsonFile is a JSON configuration file"
-echo "If jsonFile is not an absolute path, the file is assumed to be in:"
-echo "    $SAMPLE_DIR"
-echo "Available files:"
-for %%i SAMPLE_FILE in `ls $SAMPLE_DIR/*.json.sample`
-	TMP=${SAMPLE_FILE##*/resources/}
-	echo -n "    "
-	echo $TMP | cut -d . -f 1
-done
-
-:end
