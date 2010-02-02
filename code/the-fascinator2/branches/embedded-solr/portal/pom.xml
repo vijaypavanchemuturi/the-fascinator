@@ -122,6 +122,41 @@
   </dependencies>
   <profiles>
     <profile>
+      <id>solr-webapp</id>
+      <activation>
+        <file>
+          <missing>${basedir}/target/dependency/solr-webapp-1.4.0.war</missing>
+        </file>
+      </activation>
+      <build>
+        <finalName>portal</finalName>
+        <plugins>
+          <plugin>
+            <artifactId>maven-dependency-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>copy</id>
+                <phase>generate-sources</phase>
+                <goals>
+                  <goal>copy</goal>
+                </goals>
+              </execution>
+            </executions>
+            <configuration>
+              <artifactItems>
+                <artifactItem>
+                  <groupId>org.apache.solr</groupId>
+                  <artifactId>solr-webapp</artifactId>
+                  <version>1.4.0</version>
+                  <type>war</type>
+                </artifactItem>
+              </artifactItems>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    <profile>
       <id>dev</id>
       <dependencies>
         <dependency>
@@ -176,28 +211,6 @@
       <build>
         <finalName>portal</finalName>
         <plugins>
-          <plugin>
-            <artifactId>maven-dependency-plugin</artifactId>
-            <executions>
-              <execution>
-                <id>copy</id>
-                <phase>generate-sources</phase>
-                <goals>
-                  <goal>copy</goal>
-                </goals>
-              </execution>
-            </executions>
-            <configuration>
-              <artifactItems>
-                <artifactItem>
-                  <groupId>org.apache.solr</groupId>
-                  <artifactId>solr-webapp</artifactId>
-                  <version>1.4.0</version>
-                  <type>war</type>
-                </artifactItem>
-              </artifactItems>
-            </configuration>
-          </plugin>
           <plugin>
             <artifactId>maven-dependency-plugin</artifactId>
             <executions>
