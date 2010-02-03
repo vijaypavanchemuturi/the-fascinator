@@ -178,11 +178,11 @@ class Epub:
                             writer.flush()
                             contentStr = out.toString("UTF-8")
                             
-                            htmlString = """<html xmlns="http://www.w3.org/1999/xhtml"><head><title>%s</title>
+                            htmlString = """<?xml version="1.0" encoding="UTF-8"?>
+                                            <html xmlns="http://www.w3.org/1999/xhtml"><head><title>%s</title>
                                             <link rel="stylesheet" href="epub.css"/>
                                             </head><body>%s</body></html>"""
                             htmlString = htmlString % (title, contentStr)
-                            
                             IOUtils.copy(ByteArrayInputStream(String(htmlString).getBytes("UTF-8")), zipOutputStream)
                             includeFile = False
                         except:
