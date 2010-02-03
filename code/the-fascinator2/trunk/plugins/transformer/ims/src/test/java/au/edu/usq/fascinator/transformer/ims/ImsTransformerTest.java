@@ -39,7 +39,7 @@ public class ImsTransformerTest {
 		
                 imsTransformer.init("{}");
 		DigitalObject object = imsTransformer.transform(zipObject);
-		System.out.println("000 " + object.getPayloadList());
+		//System.out.println("000 " + object.getPayloadList());
 	}
 	
 }
