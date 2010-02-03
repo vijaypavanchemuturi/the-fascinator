@@ -26,7 +26,7 @@ goto end
 
 :stop
 pushd %TF_HOME%\portal
-mvn -P dev jetty:stop
+call mvn -P dev jetty:stop
 popd
 goto end
 
