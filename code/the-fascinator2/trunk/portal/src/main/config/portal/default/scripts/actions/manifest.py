@@ -36,6 +36,13 @@ class ManifestActions:
         elif func == "set-blog":
             portal.set("%s/blog" % originalPath, formData.get("blog"))
             portalManager.save(portal)
+        elif func == "update-all":
+            title = formData.get("title")
+            portal.set("%s/title" % nodePath, title)
+            portal.set("%s/hidden" % originalPath, formData.get("hidden"))
+            portal.set("%s/blog" % originalPath, formData.get("blog"))
+            portalManager.save(portal)
+            
         writer = response.getPrintWriter("text/plain")
         writer.println(result)
         writer.close()

@@ -8,7 +8,7 @@
   <appender name="backup" class="ch.qos.logback.core.read.CyclicBufferAppender">
     <MaxSize>15</MaxSize>
   </appender>
-  <appender name="reindex" class="ch.qos.logback.core.read.CyclicBufferAppender">
+  <appender name="reharvest" class="ch.qos.logback.core.read.CyclicBufferAppender">
     <MaxSize>15</MaxSize>
   </appender>
   <root level="INFO">
@@ -18,7 +18,13 @@
   <logger name="au.edu.usq.fascinator.BackupClient" level="INFO">
     <appender-ref ref="backup" />
   </logger>
-  <logger name="au.edu.usq.fascinator.IndexClient" level="INFO">
-    <appender-ref ref="reindex" />
+  <logger name="au.edu.usq.fascinator.HarvestClient" level="INFO">
+    <appender-ref ref="reharvest" />
+  </logger>
+  <logger name="au.edu.usq.fascinator.HarvestQueueConsumer" level="INFO">
+    <appender-ref ref="reharvest" />
+  </logger>
+  <logger name="au.edu.usq.fascinator.RenderQueueConsumer" level="INFO">
+    <appender-ref ref="reharvest" />
   </logger>
 </configuration>
