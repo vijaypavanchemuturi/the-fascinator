@@ -1,45 +1,55 @@
 #!/bin/bash
+#
+# this script controls the fascinator using maven and jetty
+# only usable when installed in development mode
+#
 
-. tf_env.sh
+# suppress console output from pushd/popd
+pushd() {
+	builtin pushd "$@" > /dev/null
+}
+popd() {
+	builtin popd "$@" > /dev/null
+}
 
-OS=`uname`
+# get fascinator home dir
+pushd `dirname $0`
+TF_HOME=`pwd`
+popd
 
 if [ "$1" == "" ]; then
-	echo "Usage: ./tf.sh start|stop|restart|check"
-elif [ "$1" == "check" ]; then
-	echo "Are these the droids you're looking for?"
+	echo "Usage: `basename $0` start|stop|restart|status"
+	exit 0
+fi
+
+# setup environment
+. $TF_HOME/tf_env.sh
+
+# get platform
+OS=`uname`
+
+if [ "$1" == "status" ]; then
 	if [ "$OS" == "Darwin" ]; then
-		ps a | grep [j]etty
-		ps a | grep "[j]ava -jar start.jar"
+		NUM_PROCS=`ps a | grep [j]etty | wc -l`
 	else
-		pgrep -l -f jetty
-		pgrep -l -f "java -jar start.jar"
+		NUM_PROCS=`pgrep -l -f jetty | wc -l`
+	fi
+	if [ $NUM_PROCS == 1 ]; then
+		echo "The Fascinator is RUNNING."
+	else
+		echo "The Fascinator is STOPPED."
 	fi
 elif [ "$1" == "stop" -o "$1" == "restart" ]; then
-	echo "Stopping..."
-	if [ "$OS" == "Darwin" ]; then
-		killall java
-	else
-		pkill -f "java -jar start.jar"
-		pkill -f jetty
-	fi
+	echo "Stopping The Fascinator..."
+	pushd $TF_HOME/portal
+	mvn -P dev jetty:stop
+	popd
 fi
 
 if [ "$1" == "start" -o "$1" == "restart" ]; then
-	#echo "Updating..."
-	#cd $FASCINATOR_HOME/code
-	#mvn install &>portal.out
-	#cd $OLDPWD
-	if [ "$?" == "0" ]; then
-		echo "Starting Solr..."
-		cd $FASCINATOR_HOME/solr
-		java -jar start.jar &>$OLDPWD/solr.out &
-		cd $OLDPWD
-		echo "Starting Portal..."
-		cd $FASCINATOR_HOME/code/portal
-		mvn -P test -Djetty.port=9997 jetty:run &>$OLDPWD/portal.out &
-		cd $OLDPWD
-	else
-		echo "ERROR: Build failed. Please see $OLDPWD/portal.out for more details."
-	fi
+	echo "Starting The Fascinator..."
+	pushd $TF_HOME/portal
+	nohup mvn -P dev jetty:run &> $TF_HOME/portal.out &
+	echo "Log file is at: $TF_HOME/portal.out"
+	popd
 fi

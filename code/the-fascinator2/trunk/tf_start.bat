@@ -1,14 +1,12 @@
-echo off
+@echo off
 
-REM This script starts SOLR and The Fascinator's portal
-REM Make sure you check to make sure tf_env.bat reflects
-REM your config.
+REM this script controls the fascinator using maven and jetty
+REM only usable when installed in development mode
 
+REM get fascinator home dir
+for %%F in ("%0") do set TF_HOME=%%~dpF
 
-call tf_env.bat
+REM set environment
+call %TF_HOME%\tf_env.bat
 
-start /D%TF_HOME%\solr java -jar start.jar
-
-start /D%TF_HOME%\code\portal mvn -Dhttp.nonProxyHosts=localhost -P test -Djetty.port=9997 jetty:run
-
-cd %TF_HOME%\code
+start "The Fascinator" /D%TF_HOME%\portal mvn -P dev jetty:run
