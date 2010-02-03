@@ -2,7 +2,7 @@
     "harvester": {
         "type": "file-system",
         "file-system": {
-            "baseDir": "${user.home}/Documents/public",
+            "baseDir": "${user.home}/Documents/public/courses/edu/8114/s1",
             "ignoreFilter": ".svn|.ice|.*|~*|Thumbs.db|.DS_Store",
             "cacheDir": "${user.home}/.fascinator/cache",
             "force": false,
