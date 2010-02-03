@@ -66,6 +66,7 @@
           <label class="checkbox" for="item_blog">Include in blog</label>
           <input class="checkbox" type="checkbox" id="item_blog" name="blog" #if($manifestItem.get("blog")=="true")checked="checked"#end/>
         </p>
+        <p><input class="button" id="update-all" type="button" value="Update" /></p>
         <p class="message">
           <img class="hidden" id="item-loading" src="$portalPath/images/icons/loading.gif" />
           <span id="item-message"></span>
@@ -125,6 +126,7 @@
     <div class="content-preview">
       <span class="mimetype" rel="$self.mimeType"></span>
       <div class="first article clearfix">
+        <h2 class="title-heading">$manifestItem.get("title")</h2>
         <div class="content-preview-inline">$!self.payloadContent</div>
       </div>
     </div>
@@ -230,6 +232,11 @@ $(function() {
                 parents: getParentIds(node),
                 hidden: $(this).is(":checked")
             });
+        if ($("#item_hidden").is(":checked")) {
+        	node.find("> a").addClass("item-hidden");
+        } else {
+        	node.find("> a").removeClass("item-hidden");
+        }
     });
     
     $("#item_blog").click(function() {
@@ -242,6 +249,25 @@ $(function() {
                 parents: getParentIds(node),
                 blog: $(this).is(":checked")
             });
+    });
+    
+    $("#update-all").click(function() {
+    	var node = $(".clicked").parent("li");
+        var title = $("#item_title").attr("value");
+        jQuery.post("$portalPath/actions/manifest.ajax",
+            {
+                func: "update-all",
+                id: "$portalId",
+                nodeId: node.attr("id"),
+                parents: getParentIds(node),
+                hidden: $("#item_hidden").is(":checked"),
+                blog: $("#item_blog").is(":checked"),
+                title: title
+            }, function() {
+                $("#item_title").blur();
+            });
+        node.find("> a").text(title);
+        return false;
     });
     
     $("#item-form").submit(function() {

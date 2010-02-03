@@ -29,7 +29,6 @@ import java.io.Reader;
 import java.util.Properties;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -145,7 +144,7 @@ public class FileSystemPayload extends GenericPayload {
             try {
                 File oldFile = getFile();
                 String realPath = FileUtils.readFileToString(oldFile);
-                log.debug("realPath: {}", StringUtils.left(realPath, 255));
+                // log.debug("realPath: {}", StringUtils.left(realPath, 255));
                 file = new File(realPath);
                 if (!file.exists()) {
                     file = oldFile;

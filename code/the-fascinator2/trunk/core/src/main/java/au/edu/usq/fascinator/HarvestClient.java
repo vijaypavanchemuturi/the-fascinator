@@ -36,6 +36,8 @@ import au.edu.usq.fascinator.api.PluginException;
 import au.edu.usq.fascinator.api.PluginManager;
 import au.edu.usq.fascinator.api.harvester.Harvester;
 import au.edu.usq.fascinator.api.harvester.HarvesterException;
+import au.edu.usq.fascinator.api.indexer.Indexer;
+import au.edu.usq.fascinator.api.indexer.SearchRequest;
 import au.edu.usq.fascinator.api.storage.DigitalObject;
 import au.edu.usq.fascinator.api.storage.Payload;
 import au.edu.usq.fascinator.api.storage.PayloadType;
@@ -43,6 +45,7 @@ import au.edu.usq.fascinator.api.storage.Storage;
 import au.edu.usq.fascinator.api.storage.StorageException;
 import au.edu.usq.fascinator.api.transformer.TransformerException;
 import au.edu.usq.fascinator.common.JsonConfig;
+import au.edu.usq.fascinator.common.JsonConfigHelper;
 import au.edu.usq.fascinator.common.storage.impl.GenericPayload;
 
 public class HarvestClient {
@@ -65,11 +68,109 @@ public class HarvestClient {
 
     private ConveyerBelt cb;
 
+    private QueueStorage queueStorage;
+
+    private Storage storage;
+
     public HarvestClient(File jsonFile) throws IOException {
         MDC.put("name", "client");
         configFile = jsonFile;
         config = new JsonConfig(jsonFile);
         cb = new ConveyerBelt(jsonFile, "extractor");
+    }
+
+    public HarvestClient() throws IOException {
+        MDC.put("name", "client");
+        config = new JsonConfig();
+        configFile = config.getSystemFile();
+    }
+
+    public void reHarvest(String objectId) {
+        try {
+            log.info("Reharvesting + Reindexing: {}", objectId);
+            storage = PluginManager.getStorage(config.get("storage/type",
+                    DEFAULT_STORAGE_TYPE));
+            log.debug("Loaded {}", storage.getName());
+            storage.init(configFile);
+
+            // Get the Object from storage
+            DigitalObject object = storage.getObject(objectId);
+
+            // Get the configFile from SOF-META
+            Properties sofMeta = getSofMeta(object);
+            String sofMetaConfigFileOid = sofMeta.getProperty("jsonConfigOid");
+            if (sofMetaConfigFileOid == null) {
+                log
+                        .error(
+                                "Fail to locate json config for {}, Using default config from system-config.json",
+                                objectId);
+
+            } else {
+                configFile = new File(sofMetaConfigFileOid);
+                config = new JsonConfig(configFile);
+            }
+
+            // Aperture transform
+            cb = new ConveyerBelt(configFile, "extractor");
+            object = cb.transform(object);
+
+            // Set up queueStorage & start reharvest
+            queueStorage = new QueueStorage(storage, configFile);
+            queueStorage.init(configFile);
+            queueStorage.addObject(object);
+            log.info("Successfully Reharvest + Reindex {} ", objectId);
+        } catch (Exception e) {
+            log.error("Failed to initialise storage", e);
+            return;
+        }
+    }
+
+    public void reHarvestView(String portalQuery) {
+        DateFormat df = new SimpleDateFormat(DATETIME_FORMAT);
+        String now = df.format(new Date());
+        long start = System.currentTimeMillis();
+        log.info("Started at " + now);
+
+        // Get all the records from solr
+        int startRow = 0;
+        int numPerPage = 5;
+        int numFound = 0;
+        do {
+            ByteArrayOutputStream result = new ByteArrayOutputStream();
+            SearchRequest request = new SearchRequest("*:*");
+            request.addParam("rows", String.valueOf(numPerPage));
+            request.addParam("fq", "item_type:\"object\"");
+            request.setParam("start", String.valueOf(startRow));
+
+            if (portalQuery != "" && portalQuery != null) {
+                request.addParam("fq", portalQuery);
+            }
+
+            try {
+                Indexer indexer = PluginManager.getIndexer(config.get(
+                        "indexer/type", DEFAULT_INDEXER_TYPE));
+                indexer.init(configFile);
+
+                indexer.search(request, result);
+                JsonConfigHelper js;
+
+                js = new JsonConfigHelper(result.toString());
+                for (Object oid : js.getList("response/docs/id")) {
+                    reHarvest(oid.toString());
+                }
+
+                startRow += numPerPage;
+                numFound = Integer.parseInt(js.get("response/numFound"));
+            } catch (PluginException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        } while (startRow < numFound);
+
+        log.info("Completed in "
+                + ((System.currentTimeMillis() - start) / 1000.0) + " seconds");
     }
 
     public void run() {
@@ -78,8 +179,6 @@ public class HarvestClient {
         long start = System.currentTimeMillis();
         log.info("Started at " + now);
 
-        QueueStorage queueStorage;
-        Storage storage;
         try {
             storage = PluginManager.getStorage(config.get("storage/type",
                     DEFAULT_STORAGE_TYPE));
@@ -95,12 +194,18 @@ public class HarvestClient {
                 .get("indexer/script/rules"));
         log.debug("rulesFile=" + rulesFile);
 
-        String rulesOid;
+        String rulesOid, jsonConfigId;
         try {
             log.debug("Caching rules file " + rulesFile);
             DigitalObject rulesObject = new RulesDigitalObject(rulesFile);
             storage.addObject(rulesObject);
             rulesOid = rulesObject.getId();
+
+            log.debug("Caching json config file " + configFile);
+            DigitalObject jsonConfigObject = new RulesDigitalObject(configFile);
+            storage.addObject(jsonConfigObject);
+            jsonConfigId = jsonConfigObject.getId();
+
         } catch (StorageException se) {
             log.error("Failed to cache indexing rules, stopping", se);
             return;
@@ -125,7 +230,8 @@ public class HarvestClient {
             try {
                 for (DigitalObject item : harvester.getObjects()) {
                     try {
-                        processObject(queueStorage, item, rulesOid);
+                        processObject(queueStorage, item, rulesOid,
+                                jsonConfigId);
                     } catch (Exception e) {
                         log.warn("Processing failed: " + item.getId(), e);
                     }
@@ -156,16 +262,15 @@ public class HarvestClient {
     }
 
     private String processObject(Storage storage, DigitalObject object,
-            String rulesOid) throws StorageException, IOException {
+            String rulesOid, String jsonConfigId) throws StorageException,
+            IOException {
         String oid = object.getId();
         String sid = null;
         try {
             log.info("Processing " + oid + "...");
 
             // Calling conveyer to perform aperture transformation
-            log.info("------------ doing the aperture transformation");
             object = cb.transform(object);
-            log.info("------------ done");
 
             Properties sofMeta = new Properties();
             sofMeta.setProperty("objectId", oid);
@@ -177,6 +282,9 @@ public class HarvestClient {
                     "python"));
             sofMeta.setProperty("rulesOid", rulesOid);
             sofMeta.setProperty("rulesPid", rulesFile.getName());
+
+            sofMeta.setProperty("jsonConfigOid", jsonConfigId);
+            sofMeta.setProperty("jsonConfigPid", configFile.getName());
 
             Map<String, Object> indexerParams = config.getMap("indexer/params");
             for (String key : indexerParams.keySet()) {
@@ -215,5 +323,23 @@ public class HarvestClient {
                 log.error("Failed to initialise client: {}", ioe.getMessage());
             }
         }
+    }
+
+    /**
+     * Getting the sofMeta properties for the DigitalObject
+     * 
+     * @param object
+     * @return properties
+     */
+    private Properties getSofMeta(DigitalObject object) {
+        try {
+            Payload sofMetaPayload = object.getPayload("SOF-META");
+            Properties sofMeta = new Properties();
+            sofMeta.load(sofMetaPayload.getInputStream());
+            return sofMeta;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 }
