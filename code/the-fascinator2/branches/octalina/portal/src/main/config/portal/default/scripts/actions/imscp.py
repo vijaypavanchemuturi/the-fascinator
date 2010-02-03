@@ -16,7 +16,7 @@ class ImsPackage:
     def __init__(self, outputFile=None):
         self.__portal = Services.getPortalManager().get(portalId)
         self.__portalManifest = self.__portal.getJsonMap("manifest")
-        print formData
+        #print formData
         url = formData.get("url")
         if outputFile is None and url is None:
             self.__createPackage()
