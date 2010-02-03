@@ -52,12 +52,12 @@ else
 	NUM_PROCS=`pgrep -l -f jetty | wc -l`
 fi
 if [ $NUM_PROCS == 1 ]; then
-	pushd $TF_HOME/core
-	if [[ $1 == /* ]]; then
+	if [ -f $1.json ]; then
 		BASE_FILE=$1
 	else
 		BASE_FILE=$SAMPLE_DIR/$1
 	fi
+	pushd $TF_HOME/core
 	copy_sample $BASE_FILE
 	mvn -P dev -DjsonFile=$BASE_FILE.json exec:java
 	popd
