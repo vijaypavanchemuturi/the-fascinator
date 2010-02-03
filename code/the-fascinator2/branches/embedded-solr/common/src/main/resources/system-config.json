@@ -39,7 +39,7 @@
         "type": "solr",
         "properties": "SOF-META",
         "solr": {
-            "uri": "http://localhost:8080/solr/fascinator",
+            "uri": "http://localhost:9997/solr/fascinator",
             "autocommit": true,
             "embedded": false
         }
