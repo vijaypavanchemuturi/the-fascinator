@@ -23,7 +23,7 @@ if exist "%JSON_FILE%" (set BASE_FILE=%JSON_FILE%) else (set BASE_FILE=%SAMPLE_D
 if not exist "%BASE_FILE%.json" copy "%BASE_FILE%.json.sample" "%BASE_FILE%.json"
 if not exist "%BASE_FILE%.py" copy "%BASE_FILE%.py.sample" "%BASE_FILE%.py"
 pushd %TF_HOME%\core
-mvn -P dev -DjsonFile="%BASE_FILE%.json" exec:java
+call mvn -P dev -DjsonFile="%BASE_FILE%.json" exec:java
 popd
 goto end
 
