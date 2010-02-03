@@ -42,14 +42,14 @@ if [ "$1" == "status" ]; then
 elif [ "$1" == "stop" -o "$1" == "restart" ]; then
 	echo "Stopping The Fascinator..."
 	pushd $TF_HOME/portal
-	mvn jetty:stop
+	mvn -P dev jetty:stop
 	popd
 fi
 
 if [ "$1" == "start" -o "$1" == "restart" ]; then
-	echo -n "Starting The Fascinator..."
+	echo "Starting The Fascinator..."
 	pushd $TF_HOME/portal
-	nohup mvn jetty:run &> $TF_HOME/portal.out &
+	nohup mvn -P dev jetty:run &> $TF_HOME/portal.out &
 	echo "Log file is at: $TF_HOME/portal.out"
 	popd
 fi
