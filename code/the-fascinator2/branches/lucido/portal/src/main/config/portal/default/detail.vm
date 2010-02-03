@@ -174,12 +174,11 @@ $(function() {
         var filename = oid.substring(oid.lastIndexOf("/") + 1);
         var ext = filename.substring(filename.lastIndexOf(".") + 1).toLowerCase();
 
-        var hasFlv = true
-        if (ext == "wmv" || ext=="mpg" || ext=="mpeg" || ext=="m3u" || ext=="wav" || ext=="wma") {
+        var hasFlv = true;
+        if (ext == "wmv" || ext=="mpg" || ext=="mpeg" || ext=="m3u" || ext=="wav" || ext=="wma" || ext=="mp4") {
         	filename = filenameNoExt + ".flv";
         	hasFlv = "$self.hasFlv()";
         }
-
 		if (hasFlv!="" || ext=="mp3" || ext=="m4a") {
 	        var href = "$portalPath/download/$oid/" + filename;
 	        var player = '<a class="clearfix" href="' + href + '" id="player" style="' + style + '" />';
