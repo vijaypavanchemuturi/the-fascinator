@@ -112,6 +112,43 @@ class LoginData:
         else:
             self.throw_error(err)
 
+    def get_current_access(self):
+        record = formData.get("record")
+        roles_list = self.authentication.get_access_roles_list(record)
+
+        err = self.authentication.get_error()
+        if err is None:
+            # We need a JSON string for javascript
+            plugin_strings = []
+            for plugin in roles_list.keys():
+                roles = roles_list[plugin]
+                if len(roles) > 0:
+                    plugin_strings.append("'" + plugin + "' : ['" + "','".join(roles) + "']")
+                else:
+                    plugin_strings.append("'" + plugin + "' : []")
+            responseMessage = "{" + ",".join(plugin_strings) + "}"
+            self.writer.println(responseMessage)
+            self.writer.close()
+
+        else:
+            self.throw_error(err)
+
+    def grant_access(self):
+        record = formData.get("record")
+        role   = formData.get("role")
+        source = formData.get("source")
+        self.authentication.set_access_plugin(source)
+        self.authentication.grant_access(record, role)
+
+        err = self.authentication.get_error()
+        if err is None:
+            self.writer.println(role)
+            self.writer.close()
+            self.reindex_record(record)
+
+        else:
+            self.throw_error(err)
+
     def list_users(self):
         rolename = formData.get("rolename")
         source = formData.get("source")
@@ -132,16 +169,23 @@ class LoginData:
         action = formData.get("verb")
 
         switch = {
-            "add-user"        : self.add_user,
-            "create-role"     : self.create_role,
-            "create-user"     : self.create_user,
-            "delete-role"     : self.delete_role,
-            "delete-user"     : self.delete_user,
-            "change-password" : self.change_password,
-            "list-users"      : self.list_users,
-            "remove-user"     : self.remove_user
+            "add-user"           : self.add_user,
+            "create-role"        : self.create_role,
+            "create-user"        : self.create_user,
+            "delete-role"        : self.delete_role,
+            "delete-user"        : self.delete_user,
+            "change-password"    : self.change_password,
+            "get-current-access" : self.get_current_access,
+            "grant-access"       : self.grant_access,
+            "list-users"         : self.list_users,
+            "remove-user"        : self.remove_user,
+            "revoke-access"      : self.revoke_access
         }
         switch.get(action, self.unknown_action)()
+
+    def reindex_record(self, recordId):
+        portalManager = Services.getPortalManager()
+        portalManager.reHarvestObject(recordId)
 
     def remove_user(self):
         username = formData.get("username")
@@ -154,6 +198,22 @@ class LoginData:
         if err is None:
             self.writer.println(username)
             self.writer.close()
+
+        else:
+            self.throw_error(err)
+
+    def revoke_access(self):
+        record = formData.get("record")
+        role   = formData.get("role")
+        source = formData.get("source")
+        self.authentication.set_access_plugin(source)
+        self.authentication.revoke_access(record, role)
+
+        err = self.authentication.get_error()
+        if err is None:
+            self.writer.println(role)
+            self.writer.close()
+            self.reindex_record(record)
 
         else:
             self.throw_error(err)

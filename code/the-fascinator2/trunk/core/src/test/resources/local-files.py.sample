@@ -61,7 +61,19 @@ rules.add(AddField("id", solrId))
 rules.add(AddField("storage_id", storageId))
 rules.add(AddField("item_type", itemType))
 rules.add(AddField("last_modified", time.strftime("%Y-%m-%dT%H:%M:%SZ")))
-rules.add(AddField("group_access", "guest"))
+
+# Security
+roles = indexer.getRolesWithAccess(solrId)
+if roles is not None:
+    for role in roles:
+        rules.add(AddField("security_filter", role))
+else:
+    # Default to guest access if Null object returned
+    schema = indexer.getAccessSchema("simple");
+    schema.setRecordId(solrId)
+    schema.set("role", "guest")
+    indexer.setAccessSchema(schema, "simple")
+    rules.add(AddField("security_filter", "guest"))
 
 if isMetadata:
     #only need to index metadata for the main object
