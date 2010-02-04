@@ -18,6 +18,8 @@
  */
 package au.edu.usq.fascinator.portal.pages;
 
+import au.edu.usq.fascinator.common.JsonConfig;
+import au.edu.usq.fascinator.common.JsonConfigHelper;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -25,7 +27,9 @@ import java.io.InputStream;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Level;
 
+import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.commons.lang.StringUtils;
 import org.apache.tapestry5.StreamResponse;
 import org.apache.tapestry5.annotations.Persist;
@@ -42,9 +46,12 @@ import au.edu.usq.fascinator.portal.JsonSessionState;
 import au.edu.usq.fascinator.portal.services.DynamicPageService;
 import au.edu.usq.fascinator.portal.services.GenericStreamResponse;
 import au.edu.usq.fascinator.portal.services.HttpStatusCodeResponse;
+import java.io.File;
+import java.util.LinkedHashMap;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.tapestry5.services.RequestGlobals;
 import org.apache.tapestry5.upload.services.MultipartDecoder;
+import org.apache.tapestry5.upload.services.UploadedFile;
 
 public class Dispatch {
 
@@ -80,30 +87,35 @@ public class Dispatch {
     @Inject
     private RequestGlobals rg;
 
+    // Resource Processing variable
+    private String resourceName;
+    private String portalId;
+    private String requestUri;
+    private String requestId;
+    private String[] path;
+    private HttpServletRequest hsr;
+    private boolean isAjax;
+    private boolean isFile;
+    private boolean isPost;
+
+    // Rendering variables
+    private String mimeType;
+    private InputStream stream;
+
     public StreamResponse onActivate(Object... params) {
         log.trace("{} {}", request.getMethod(), request.getPath());
 
-        // determine resource
-        String portalId = (String) sessionState.get("portalId",
-                DEFAULT_PORTAL_ID);
-        String resourceName = DEFAULT_RESOURCE;
+        // Do all our parsing
+        resourceProcessing();
 
-        String requestUri = request.getAttribute("RequestURI").toString();
-        String[] path = requestUri.split("/");
-        if (path.length > 1) {
-            portalId = path[0].toString();
-            resourceName = StringUtils.join(path, "/", 1, path.length);
-        }
-        String match = getBestMatchResource(portalId, resourceName);
-        log.trace("resourceName = {}, match = {}", resourceName, match);
-        if (match == null) {
+        // Make sure it's valid
+        if (resourceName == null) {
             return new HttpStatusCodeResponse(404, "Page not found: "
                     + resourceName);
         }
-        resourceName = match;
-        boolean isAjax = resourceName.endsWith(AJAX_EXT);
-        boolean isPost = requestUri.endsWith(POST_EXT);
 
+        // Initialise storage for our form data
+        //  if there's no persistant data found.
         if (formDataMap == null) {
             formDataMap = Collections
                     .synchronizedMap(new HashMap<String, FormData>());
@@ -116,8 +128,117 @@ public class Dispatch {
                     + new TimeInterval("10y").milliseconds());
         }
 
+        // Are we doing a file upload?
+        hsr = rg.getHTTPServletRequest();
+        isFile = ServletFileUpload.isMultipartContent(hsr);
+        if (isFile) fileProcessing();
+
+        // Redirection?
+        if (redirectTest()) return GenericStreamResponse.noResponse();
+
+        // Page render time
+        renderProcessing();
+
+        // clear formData
+        formDataMap.remove(requestId);
+
+        return new GenericStreamResponse(mimeType, stream);
+    }
+
+    private void fileProcessing() {
+        // What we are looking for
+        UploadedFile uploadedFile = null;
+        String plugin = null;
+
+        // Get all the parameters
+        for (String param : request.getParameterNames()) {
+            // A tmp file
+            UploadedFile tmpFile = decoder.getFileUpload(param);
+            if (tmpFile != null) {
+                // Our file
+                uploadedFile = tmpFile;
+            } else {
+                // Normalf form fields
+                if (param.equals("upload-file-plugin")) {
+                    plugin = request.getParameter(param);
+                }
+            }
+        }
+        if (uploadedFile == null) {
+            log.error("No uploaded file found!");
+            return;
+        }
+        if (plugin == null) {
+            log.error("No plugin provided with form data.");
+            return;
+        }
+
+        // Query the system config file
+        JsonConfigHelper workflow_config;
+        Map<String, JsonConfigHelper> available_plugins;
+        try {
+            JsonConfig config = new JsonConfig();
+            config.getSystemFile();
+            String workflow_config_path =  config.get("portal/uploader");
+            File workflow_config_file = new File(workflow_config_path);
+            workflow_config = new JsonConfigHelper(workflow_config_file);
+            available_plugins = workflow_config.getJsonMap("/");
+        } catch (IOException e) {
+            log.error("Failed to get the System config file.");
+            return;
+        }
+
+        // Get the plugin's file directory
+        String file_path = available_plugins.get(plugin).get("upload-path");
+
+        // Write the file to that directory
+        file_path = file_path + "/" + uploadedFile.getFileName();
+        File file = new File(file_path);
+        if (!file.exists()) {
+            file.getParentFile().mkdirs();
+            try {
+                file.createNewFile();
+            } catch(IOException ex) {
+                log.error("Failed writing file", ex);
+                return;
+            }
+        }
+        log.debug("Writing file to disk : " + file_path);
+        uploadedFile.write(file);
+
+        // Now create some session data for use later
+        Map<String, String> file_details = new LinkedHashMap<String, String>();
+        file_details.put("name",     uploadedFile.getFileName());
+        file_details.put("location", file_path);
+        file_details.put("size",     String.valueOf(uploadedFile.getSize()));
+        file_details.put("type",     uploadedFile.getContentType());
+        sessionState.set(uploadedFile.getFileName(), file_details);
+    }
+
+    private void renderProcessing() {
+        // render the page or retrieve the resource
+        if ((resourceName.indexOf(".") == -1) || isAjax) {
+            FormData formData = formDataMap.get(requestId);
+            if (formData == null) {
+                formData = new FormData(request, hsr);
+            }
+            formDataMap.put(requestId, formData);
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            mimeType = pageService.render(portalId, resourceName, out,
+                    formData, sessionState);
+            stream = new ByteArrayInputStream(out.toByteArray());
+        } else {
+            mimeType = MimeTypeUtil.getMimeType(resourceName);
+            stream = pageService.getResource(portalId, resourceName);
+        }
+    }
+
+    private boolean redirectTest() {
         // save form data for POST requests, since we redirect after POSTs
-        String requestId = request.getAttribute("RequestID").toString();
+
+        // 'isPost' in particular allows special cases to
+        //    override and prevent redirection.
+        requestId = request.getAttribute("RequestID").toString();
         if ("POST".equalsIgnoreCase(request.getMethod()) && !isPost) {
             try {
                 FormData formData = new FormData(request);
@@ -130,41 +251,34 @@ public class Dispatch {
                     }
                     log.info("Redirecting to {}...", redirectUri);
                     response.sendRedirect(redirectUri);
-                    return GenericStreamResponse.noResponse();
+                    return true;
                 }
             } catch (IOException ioe) {
                 log.warn("Failed to redirect after POST", ioe);
             }
         }
-
-        // render the page or retrieve the resource
-        String mimeType;
-        InputStream stream;
-
-        if ((resourceName.indexOf(".") == -1) || isAjax) {
-            FormData formData = formDataMap.get(requestId);
-            if (formData == null) {
-                HttpServletRequest hsr = decoder.decode(rg.getHTTPServletRequest());
-                formData = new FormData(request, hsr);
-            }
-            formDataMap.put(requestId, formData);
-            ByteArrayOutputStream out = new ByteArrayOutputStream();
-            mimeType = pageService.render(portalId, resourceName, out,
-                    formData, sessionState);
-            stream = new ByteArrayInputStream(out.toByteArray());
-        } else {
-            mimeType = MimeTypeUtil.getMimeType(resourceName);
-            stream = pageService.getResource(portalId, resourceName);
-        }
-
-        // clear formData
-        formDataMap.remove(requestId);
-
-        return new GenericStreamResponse(mimeType, stream);
+        return false;
     }
 
-    public String getBestMatchResource(String portalId, String resourceName) {
-        boolean isAjax = resourceName.endsWith(AJAX_EXT);
+    private String resourceProcessing() {
+        portalId = (String) sessionState.get("portalId", DEFAULT_PORTAL_ID);
+        requestUri = request.getAttribute("RequestURI").toString();
+        path = requestUri.split("/");
+        resourceName = DEFAULT_RESOURCE;
+
+        if (path.length > 1) {
+            portalId = path[0].toString();
+            resourceName = StringUtils.join(path, "/", 1, path.length);
+        }
+        String match = getBestMatchResource(resourceName);
+        log.trace("resourceName = {}, match = {}", resourceName, match);
+
+        return match;
+    }
+
+    public String getBestMatchResource(String resourceName) {
+        isPost = requestUri.endsWith(POST_EXT);
+        isAjax = resourceName.endsWith(AJAX_EXT);
         if (isAjax) {
             resourceName = resourceName.substring(0, resourceName
                     .lastIndexOf(AJAX_EXT));
@@ -174,8 +288,7 @@ public class Dispatch {
         }
         int slash = resourceName.lastIndexOf('/');
         if (slash != -1) {
-            return getBestMatchResource(portalId, resourceName.substring(0,
-                    slash));
+            return getBestMatchResource(resourceName.substring(0, slash));
         }
         return null;
     }

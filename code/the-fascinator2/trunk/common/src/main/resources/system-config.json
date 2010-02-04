@@ -63,7 +63,8 @@
         "contentDir": "${user.home}/.fascinator/content",
         "default": "default",
         "layout": "layout",
-        "nativeJython": true
+        "nativeJython": true,
+        "uploader": "${user.home}/.fascinator/workflow-config.json"
     },
     "transformer": {
         "extractor": ["aperture"],
