@@ -27,7 +27,7 @@ class SearchData:
         
     def __search(self):
         recordsPerPage = self.__portal.recordsPerPage
-        
+
         uri = URLDecoder.decode(request.getAttribute("RequestURI"))
         if uri != portalPath:
             query = uri[len(portalPath):]
@@ -41,7 +41,7 @@ class SearchData:
         else:
             self.__query = query
         sessionState.set("query", self.__query)
-        
+
         req = SearchRequest(query)
         req.setParam("facet", "true")
         req.setParam("rows", str(recordsPerPage))
@@ -77,11 +77,16 @@ class SearchData:
         if portalQuery:
             req.addParam("fq", portalQuery)
         
-        self.__selected = req.getParams("fq")
-        
+        self.__selected = list(req.getParams("fq"))
+
         sessionState.set("fq", self.__selected)
         sessionState.set("pageNum", self.__pageNum)
         
+        # Make sure 'fq' has already been set in the session
+        security_roles = page.authentication.get_roles_list();
+        security_query = 'security_filter:("' + '" OR "'.join(security_roles) + '")'
+        req.addParam("fq", security_query)
+
         req.setParam("start", str((self.__pageNum - 1) * recordsPerPage))
         
         print " * search.py:", req.toString(), self.__pageNum
