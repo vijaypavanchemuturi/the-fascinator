@@ -77,21 +77,58 @@ public class GenericUser implements User {
      */
     @Override
     public final String get(String property) {
-        Field field_list[] = this.getClass().getFields();
-        for (int i = 0; i < field_list.length; i++) {
-            if (property.equals(field_list[i].getName())) {
-                try {
-                    return field_list[i].get(this).toString();
-                } catch (IllegalArgumentException ex) {
-                    log.error("User Object, Illegal argument : {}", ex);
-                    return null;
-                } catch (IllegalAccessException ex) {
-                    log.error("User Object, Illegal access : {}", ex);
-                    return null;
+        String class_name = this.getClass().getCanonicalName();
+        try {
+            Class ref_class = Class.forName(class_name);
+            Field field_list[] = ref_class.getDeclaredFields();
+            for (int i = 0; i < field_list.length; i++) {
+                if (property.equals(field_list[i].getName())) {
+                    try {
+                        return field_list[i].get(this).toString();
+                    } catch (IllegalArgumentException ex) {
+                        log.error("User Object, Illegal argument : {}", ex);
+                        return null;
+                    } catch (IllegalAccessException ex) {
+                        log.error("User Object, Illegal access : {}", ex);
+                        return null;
+                    }
                 }
             }
+        } catch (ClassNotFoundException ex) {
+            log.error(ex.getMessage());
+            return null;
         }
+
         return null;
+    }
+
+    /**
+     * Sets a given property for this user object.
+     *
+     * @param property The class field to retrieve
+     * @return The value of the property
+     */
+    @Override
+    public final void set(String property, String value) {
+        String class_name = this.getClass().getCanonicalName();
+        try {
+            Class ref_class = Class.forName(class_name);
+            Field field_list[] = ref_class.getDeclaredFields();
+            for (int i = 0; i < field_list.length; i++) {
+                if (property.equals(field_list[i].getName())) {
+                    try {
+                        field_list[i].set(this, value);
+                    } catch (IllegalArgumentException ex) {
+                        log.error("Security Object, Illegal argument : {}", ex);
+                    } catch (IllegalAccessException ex) {
+                        log.error("Security Object, Illegal access : {}", ex);
+                    }
+                }
+            }
+        } catch (ClassNotFoundException ex) {
+            log.error(ex.getMessage());
+            return;
+        }
     }
 
     @Override
