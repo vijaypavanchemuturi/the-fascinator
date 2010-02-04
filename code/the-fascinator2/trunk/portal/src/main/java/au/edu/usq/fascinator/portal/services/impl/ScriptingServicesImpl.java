@@ -21,6 +21,7 @@ package au.edu.usq.fascinator.portal.services.impl;
 import org.apache.tapestry5.ioc.annotations.Inject;
 import org.apache.tapestry5.annotations.Service;
 
+import au.edu.usq.fascinator.api.access.AccessControlManager;
 import au.edu.usq.fascinator.api.authentication.AuthManager;
 import au.edu.usq.fascinator.api.indexer.Indexer;
 import au.edu.usq.fascinator.api.roles.RolesManager;
@@ -34,6 +35,9 @@ public class ScriptingServicesImpl implements ScriptingServices {
 
     @Inject
     private DynamicPageService pageService;
+
+    @Inject
+    private AccessControlManager accessManager;
 
     @Inject
     private AuthManager authManager;
@@ -56,6 +60,11 @@ public class ScriptingServicesImpl implements ScriptingServices {
     @Override
     public DynamicPageService getPageService() {
         return pageService;
+    }
+
+    @Override
+    public AccessControlManager getAccessControlManager() {
+        return accessManager;
     }
 
     @Override

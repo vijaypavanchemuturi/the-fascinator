@@ -120,7 +120,8 @@
     <field name="id" type="string" indexed="true" stored="true" required="true" />
     <field name="storage_id" type="string" indexed="true" stored="true" />
     <field name="last_modified" type="date" indexed="true" stored="true" />
-    <field name="group_access" type="string" indexed="true" stored="false" />
+    <field name="security_filter" type="string" indexed="true" stored="true" multiValued="true" />
+    <field name="hidden_flag" type="boolean" indexed="true" stored="true" />
     <field name="item_type" type="string" indexed="true" stored="false" />
     <field name="file_path" type="string" indexed="true" stored="true" multiValued="true" />
     <field name="source_name" type="string" indexed="true" stored="true" multiValued="true" />
