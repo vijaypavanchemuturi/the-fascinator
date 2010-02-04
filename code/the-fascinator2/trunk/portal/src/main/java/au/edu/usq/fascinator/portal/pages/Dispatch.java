@@ -106,7 +106,7 @@ public class Dispatch {
         log.trace("{} {}", request.getMethod(), request.getPath());
 
         // Do all our parsing
-        resourceProcessing();
+        resourceName = resourceProcessing();
 
         // Make sure it's valid
         if (resourceName == null) {
@@ -276,19 +276,19 @@ public class Dispatch {
         return match;
     }
 
-    public String getBestMatchResource(String resourceName) {
+    public String getBestMatchResource(String thisResourceName) {
         isPost = requestUri.endsWith(POST_EXT);
-        isAjax = resourceName.endsWith(AJAX_EXT);
+        isAjax = thisResourceName.endsWith(AJAX_EXT);
         if (isAjax) {
-            resourceName = resourceName.substring(0, resourceName
+            thisResourceName = thisResourceName.substring(0, thisResourceName
                     .lastIndexOf(AJAX_EXT));
         }
-        if (pageService.resourceExists(portalId, resourceName)) {
-            return resourceName + (isAjax ? AJAX_EXT : "");
+        if (pageService.resourceExists(portalId, thisResourceName)) {
+            return thisResourceName + (isAjax ? AJAX_EXT : "");
         }
-        int slash = resourceName.lastIndexOf('/');
+        int slash = thisResourceName.lastIndexOf('/');
         if (slash != -1) {
-            return getBestMatchResource(resourceName.substring(0, slash));
+            return getBestMatchResource(thisResourceName.substring(0, slash));
         }
         return null;
     }
