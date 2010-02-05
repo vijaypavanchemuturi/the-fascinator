@@ -161,6 +161,10 @@
       <dependencies>
         <dependency>
           <groupId>au.edu.usq.fascinator.plugins</groupId>
+          <artifactId>plugin-access-simple</artifactId>
+        </dependency>
+        <dependency>
+          <groupId>au.edu.usq.fascinator.plugins</groupId>
           <artifactId>plugin-authentication-filesystem</artifactId>
         </dependency>
         <dependency>
