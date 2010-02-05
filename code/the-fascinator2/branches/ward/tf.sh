@@ -27,29 +27,38 @@ fi
 
 # get platform
 OS=`uname`
+if [ "$OS" == "Darwin" ]; then
+	NUM_PROCS=`ps a | grep [j]etty | wc -l`
+else
+	NUM_PROCS=`pgrep -l -f jetty | wc -l`
+fi
 
 if [ "$1" == "status" ]; then
-	if [ "$OS" == "Darwin" ]; then
-		NUM_PROCS=`ps a | grep [j]etty | wc -l`
-	else
-		NUM_PROCS=`pgrep -l -f jetty | wc -l`
-	fi
 	if [ $NUM_PROCS == 1 ]; then
 		echo "The Fascinator is RUNNING."
 	else
 		echo "The Fascinator is STOPPED."
 	fi
 elif [ "$1" == "stop" -o "$1" == "restart" ]; then
-	echo "Stopping The Fascinator..."
-	pushd $TF_HOME/portal
-	mvn -P dev jetty:stop
-	popd
+	if [ $NUM_PROCS == 1 ]; then
+		echo "Stopping The Fascinator..."
+		pushd $TF_HOME/portal
+		mvn -P dev jetty:stop
+		popd
+	else
+		echo "The Fascinator is already STOPPED."
+	fi
 fi
 
 if [ "$1" == "start" -o "$1" == "restart" ]; then
-	echo "Starting The Fascinator..."
-	pushd $TF_HOME/portal
-	nohup mvn -P dev jetty:run &> $TF_HOME/portal.out &
+	if [ $NUM_PROCS == 1 ]; then
+		echo "The Fascinator is already RUNNING."
+	else
+		echo "Starting The Fascinator..."
+		pushd $TF_HOME/portal
+		nohup mvn -P dev jetty:run &> $TF_HOME/portal.out &
+		popd
+	fi
 	echo "Log file is at: $TF_HOME/portal.out"
-	popd
 fi
+

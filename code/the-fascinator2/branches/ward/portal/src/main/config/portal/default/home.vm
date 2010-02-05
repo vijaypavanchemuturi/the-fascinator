@@ -24,6 +24,7 @@
       #if($portalId != "default")  ## FIXME use proper default
       <li><a id="delete-view" href="#" rel="$portalId">Delete view...</a></li>
       #end
+      <li><a href="$portalPath/upload">Upload a file</a></li>
     </ul>
   </div>
 </div>

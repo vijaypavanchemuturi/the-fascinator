@@ -86,6 +86,12 @@ public class GenericDigitalObject implements DigitalObject {
         for (Payload payload : object.getPayloadList()) {
             addPayload(payload);
         }
+        Payload source = object.getSource();
+        if (source == null) {
+            setSourceId(object.getId());
+        } else {
+            setSourceId(source.getId());
+        }
     }
 
     @Override
