@@ -151,7 +151,7 @@ class SearchData:
     
     def getThumbnail(self, oid):
         ext = os.path.splitext(oid)[1]
-        url = oid[oid.rfind("/")+1:-len(ext)] + ".thumb.jpg"
+        url = oid[oid.rfind("/")+1:-len(ext)] + "_thumbnail.jpg"
         if Services.getStorage().getPayload(oid, url):
             return url
         return None

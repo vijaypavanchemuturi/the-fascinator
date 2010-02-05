@@ -22,12 +22,16 @@ import au.edu.usq.fascinator.common.JsonConfig;
 import au.edu.usq.fascinator.common.JsonConfigHelper;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.logging.Level;
+
+import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.commons.lang.StringUtils;
@@ -37,20 +41,20 @@ import org.apache.tapestry5.annotations.SessionState;
 import org.apache.tapestry5.ioc.annotations.Inject;
 import org.apache.tapestry5.ioc.util.TimeInterval;
 import org.apache.tapestry5.services.Request;
+import org.apache.tapestry5.services.RequestGlobals;
 import org.apache.tapestry5.services.Response;
+import org.apache.tapestry5.upload.services.MultipartDecoder;
+import org.apache.tapestry5.upload.services.UploadedFile;
 import org.slf4j.Logger;
 
+import au.edu.usq.fascinator.common.JsonConfig;
+import au.edu.usq.fascinator.common.JsonConfigHelper;
 import au.edu.usq.fascinator.common.MimeTypeUtil;
 import au.edu.usq.fascinator.portal.FormData;
 import au.edu.usq.fascinator.portal.JsonSessionState;
 import au.edu.usq.fascinator.portal.services.DynamicPageService;
 import au.edu.usq.fascinator.portal.services.GenericStreamResponse;
 import au.edu.usq.fascinator.portal.services.HttpStatusCodeResponse;
-import java.io.File;
-import java.util.LinkedHashMap;
-import javax.servlet.http.HttpServletRequest;
-import org.apache.tapestry5.services.RequestGlobals;
-import org.apache.tapestry5.upload.services.MultipartDecoder;
 import org.apache.tapestry5.upload.services.UploadedFile;
 
 public class Dispatch {
@@ -115,7 +119,7 @@ public class Dispatch {
         }
 
         // Initialise storage for our form data
-        //  if there's no persistant data found.
+        // if there's no persistant data found.
         if (formDataMap == null) {
             formDataMap = Collections
                     .synchronizedMap(new HashMap<String, FormData>());
@@ -131,10 +135,14 @@ public class Dispatch {
         // Are we doing a file upload?
         hsr = rg.getHTTPServletRequest();
         isFile = ServletFileUpload.isMultipartContent(hsr);
-        if (isFile) fileProcessing();
+        if (isFile) {
+            fileProcessing();
+        }
 
         // Redirection?
-        if (redirectTest()) return GenericStreamResponse.noResponse();
+        if (redirectTest()) {
+            return GenericStreamResponse.noResponse();
+        }
 
         // Page render time
         renderProcessing();
@@ -179,7 +187,7 @@ public class Dispatch {
         try {
             JsonConfig config = new JsonConfig();
             config.getSystemFile();
-            String workflow_config_path =  config.get("portal/uploader");
+            String workflow_config_path = config.get("portal/uploader");
             File workflow_config_file = new File(workflow_config_path);
             workflow_config = new JsonConfigHelper(workflow_config_file);
             available_plugins = workflow_config.getJsonMap("/");
@@ -198,7 +206,7 @@ public class Dispatch {
             file.getParentFile().mkdirs();
             try {
                 file.createNewFile();
-            } catch(IOException ex) {
+            } catch (IOException ex) {
                 log.error("Failed writing file", ex);
                 return;
             }
@@ -208,10 +216,10 @@ public class Dispatch {
 
         // Now create some session data for use later
         Map<String, String> file_details = new LinkedHashMap<String, String>();
-        file_details.put("name",     uploadedFile.getFileName());
+        file_details.put("name", uploadedFile.getFileName());
         file_details.put("location", file_path);
-        file_details.put("size",     String.valueOf(uploadedFile.getSize()));
-        file_details.put("type",     uploadedFile.getContentType());
+        file_details.put("size", String.valueOf(uploadedFile.getSize()));
+        file_details.put("type", uploadedFile.getContentType());
         sessionState.set(uploadedFile.getFileName(), file_details);
     }
 
@@ -237,7 +245,7 @@ public class Dispatch {
         // save form data for POST requests, since we redirect after POSTs
 
         // 'isPost' in particular allows special cases to
-        //    override and prevent redirection.
+        // override and prevent redirection.
         requestId = request.getAttribute("RequestID").toString();
         if ("POST".equalsIgnoreCase(request.getMethod()) && !isPost) {
             try {

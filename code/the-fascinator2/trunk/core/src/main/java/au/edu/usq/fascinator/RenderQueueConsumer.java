@@ -22,11 +22,13 @@ import java.io.File;
 import java.io.IOException;
 
 import javax.jms.Connection;
+import javax.jms.DeliveryMode;
 import javax.jms.Destination;
 import javax.jms.JMSException;
 import javax.jms.Message;
 import javax.jms.MessageConsumer;
 import javax.jms.MessageListener;
+import javax.jms.MessageProducer;
 import javax.jms.Session;
 import javax.jms.TextMessage;
 
@@ -56,6 +58,8 @@ public class RenderQueueConsumer implements MessageListener {
 
     public static final String RENDER_QUEUE = "render";
 
+    public static final String MESSAGE_QUEUE = "message";
+
     /** Logging */
     private Logger log = LoggerFactory.getLogger(RenderQueueConsumer.class);
 
@@ -70,6 +74,8 @@ public class RenderQueueConsumer implements MessageListener {
     private Session session;
 
     private MessageConsumer consumer;
+
+    private MessageProducer producer;
 
     private String name;
 
@@ -103,6 +109,9 @@ public class RenderQueueConsumer implements MessageListener {
         Destination destination = session.createQueue(RENDER_QUEUE);
         consumer = session.createConsumer(destination);
         consumer.setMessageListener(this);
+        Destination messageDest = session.createQueue(MESSAGE_QUEUE);
+        producer = session.createProducer(messageDest);
+        producer.setDeliveryMode(DeliveryMode.PERSISTENT);
     }
 
     public void stop() {
@@ -135,6 +144,13 @@ public class RenderQueueConsumer implements MessageListener {
                 log.warn("Failed to close session: {}", jmse.getMessage());
             }
         }
+        if (producer != null) {
+            try {
+                producer.close();
+            } catch (JMSException jmse) {
+                log.warn("Failed to close producer: {}", jmse.getMessage());
+            }
+        }
         if (connection != null) {
             try {
                 connection.close();
@@ -153,13 +169,8 @@ public class RenderQueueConsumer implements MessageListener {
             String oid = config.get("oid");
             log.info("Received job, object id={}", oid);
             DigitalObject object = storage.getObject(oid);
-            // log.info("-----------------------------BEFORE DO TRANSOFRM: "
-            // + object.getSource().getContentType());
             ConveyerBelt cb = new ConveyerBelt(text, "render");
             object = cb.transform(object);
-            // log
-            // .info("-----------------------------in the render queue consumer-: "
-            // + object.getSource().getContentType());
             log.info("Updating object...");
             storage.addObject(object);
             log.info("Indexing object...");
@@ -174,6 +185,15 @@ public class RenderQueueConsumer implements MessageListener {
             log.error("Failed to transform object: {}", te.getMessage());
         } catch (IndexerException ie) {
             log.error("Failed to index object: {}", ie.getMessage());
+        }
+    }
+
+    private void sendMessage(String json) {
+        try {
+            TextMessage message = session.createTextMessage(json);
+            producer.send(message);
+        } catch (JMSException jmse) {
+            log.error("Failed to send message: {}", jmse.getMessage());
         }
     }
 }
