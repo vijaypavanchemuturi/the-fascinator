@@ -25,9 +25,6 @@ import java.io.InputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import au.edu.usq.fascinator.api.storage.PayloadType;
 import au.edu.usq.fascinator.common.MimeTypeUtil;
 import au.edu.usq.fascinator.common.storage.impl.GenericPayload;
@@ -40,33 +37,34 @@ import au.edu.usq.fascinator.common.storage.impl.GenericPayload;
  */
 public class IcePayload extends GenericPayload {
 
-    private Logger log = LoggerFactory.getLogger(IcePayload.class);
+    private File file;
 
-    private File filePath;
-    private boolean isZip = false;
     private ZipEntry zipEntry;
 
-    public IcePayload(File filePath, ZipEntry zipEntry) {
-        this.filePath = filePath;
+    public IcePayload(File file) {
+        this(file, null);
+    }
+
+    public IcePayload(File file, ZipEntry zipEntry) {
+        this.file = file;
         this.zipEntry = zipEntry;
-        String name = filePath.getName();
-        if (this.zipEntry != null) {
-            isZip = true;
+        String name = file.getName();
+        if (zipEntry != null) {
             name = zipEntry.getName();
         }
         setId(name);
         setLabel(name);
         setContentType(MimeTypeUtil.getMimeType(name));
-        setType(PayloadType.Enrichment); // need to store somewhere
+        setType(PayloadType.Enrichment);
     }
 
     @Override
     public InputStream getInputStream() throws IOException {
-        if (isZip) {
-            ZipFile zipFile = new ZipFile(filePath);
-            return zipFile.getInputStream(zipEntry);
+        if (zipEntry == null) {
+            return new FileInputStream(file);
         } else {
-            return new FileInputStream(filePath);
+            ZipFile zipFile = new ZipFile(file);
+            return zipFile.getInputStream(zipEntry);
         }
     }
 }

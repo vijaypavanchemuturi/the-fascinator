@@ -453,7 +453,7 @@ public class IceTransformer implements Transformer {
                 // Check if the file is a zip file or error returned from ice
                 if (validZipFile(result) == true) {
                     IceDigitalObject iceObject = new IceDigitalObject(in,
-                            result);
+                            new File(result));
                     return iceObject;
                 }
             }

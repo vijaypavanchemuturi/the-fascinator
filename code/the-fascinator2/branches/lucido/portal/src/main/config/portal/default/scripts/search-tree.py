@@ -4,6 +4,7 @@ from au.edu.usq.fascinator.common import JsonConfigHelper
 from java.io import ByteArrayInputStream, ByteArrayOutputStream
 from java.net import URLEncoder
 from java.util import ArrayList, HashMap
+from authentication import Authentication
 
 class Facet:
     def __init__(self, key, value, count):
@@ -59,6 +60,8 @@ class FacetList:
 
 class SearchTreeData:
     def __init__(self):
+        self.authentication = Authentication()
+        self.authentication.session_init()
         self.__search()
     
     def __search(self):
@@ -79,6 +82,11 @@ class SearchTreeData:
             req.setParam("fq", fq)
         req.addParam("fq", 'item_type:"object"')
         
+        # Make sure 'fq' has already been set in the session
+        security_roles = self.authentication.get_roles_list();
+        security_query = 'security_filter:("' + '" OR "'.join(security_roles) + '")'
+        req.addParam("fq", security_query)
+
         out = ByteArrayOutputStream()
         indexer = Services.getIndexer()
         indexer.search(req, out)
