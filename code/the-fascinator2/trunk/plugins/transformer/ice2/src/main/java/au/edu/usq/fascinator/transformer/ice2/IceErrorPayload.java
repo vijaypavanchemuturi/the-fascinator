@@ -18,53 +18,37 @@
  */
 package au.edu.usq.fascinator.transformer.ice2;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
+
+import org.apache.commons.io.FilenameUtils;
 
 import au.edu.usq.fascinator.api.storage.PayloadType;
-import au.edu.usq.fascinator.common.MimeTypeUtil;
 import au.edu.usq.fascinator.common.storage.impl.GenericPayload;
 
 /**
- * Wraps a ZipEntry as a payload
+ * Error payload to describe why an ICE render failed
  * 
  * @author Linda Octalina
  * @author Oliver Lucido
  */
-public class IcePayload extends GenericPayload {
+public class IceErrorPayload extends GenericPayload {
 
-    private File file;
+    private String message;
 
-    private ZipEntry zipEntry;
-
-    public IcePayload(File file) {
-        this(file, null);
-    }
-
-    public IcePayload(File file, ZipEntry zipEntry) {
-        this.file = file;
-        this.zipEntry = zipEntry;
-        String name = file.getName();
-        if (zipEntry != null) {
-            name = zipEntry.getName();
-        }
+    public IceErrorPayload(File file, String message) {
+        this.message = message;
+        String name = FilenameUtils.getBaseName(file.getName()) + "_error.htm";
         setId(name);
-        setLabel(name);
-        setContentType(MimeTypeUtil.getMimeType(name));
+        setLabel("ICE conversion errors");
+        setContentType("text/html");
         setType(PayloadType.Enrichment);
     }
 
     @Override
     public InputStream getInputStream() throws IOException {
-        if (zipEntry == null) {
-            return new FileInputStream(file);
-        } else {
-            ZipFile zipFile = new ZipFile(file);
-            return zipFile.getInputStream(zipEntry);
-        }
+        return new ByteArrayInputStream(message.getBytes("UTF-8"));
     }
 }
