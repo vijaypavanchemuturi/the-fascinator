@@ -61,14 +61,6 @@
       "f_dc_type" : {
         "label" : "Type",
         "display" : "list"
-      },
-      "repository_name" : {
-        "label" : "Source",
-        "display" : "list"
-      },
-      "repository_type" : {
-        "label" : "Source type",
-        "display" : "list"
       }
     }
   }

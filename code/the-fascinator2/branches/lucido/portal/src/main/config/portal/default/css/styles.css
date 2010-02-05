@@ -288,10 +288,10 @@ span.view-type a.selected {
     background: #666666;
 }
 
-.title-heading {
-    border-bottom:1px solid #CCCCCC;
-    font-weight:normal;
-    margin:0 0 10px;
+h3.title-heading {
+    border-bottom: 1px solid #CCCCCC;
+    font-weight: normal;
+    margin-bottom: 10px;
 }
 
 fieldset.login p select {
@@ -346,4 +346,54 @@ ul.nobgtabs li a.ui-state-active {
 #form-section .message {
     padding: 10px 5px 5px;
     font-size: 120%;
+}
+.admin-link-holder {
+    padding: 2px 0px 2px 5px;
+    border: 1px solid #666666;
+    background: #999999;
+}
+.admin-security-link {
+    background-image: url('../images/icons/application_key.png');
+    background-position: 0 50%;
+    background-repeat: no-repeat;
+    padding: 0.5em 0.5em 0.5em 20px;
+}
+.security-table {
+    border: 1px solid #333333;
+    margin-bottom: 10px;
+}
+.security-table .add-role-button {
+    background-image: url('../images/icons/add.png');
+    background-position: 0 0.5em;
+    background-repeat: no-repeat;
+    margin-right: 1em;
+    padding: 0.5em 0.5em 0.5em 20px;
+}
+.admin-link-holder .locked {
+    background-image: url('../images/icons/lock.png');
+    background-position: 0 50%;
+    background-repeat: no-repeat;
+    padding: 0.5em 0.5em 0 20px;
+}
+.center {
+    text-align: center;
+}
+.upload-progress-holder {
+    margin-top: 10px;
+    padding: 0px;
+    border: 1px solid black;
+    background: #999999 url(ui-lightness/images/ui-bg_diagonals-thick_20_666666_40x40.png) repeat scroll 50% 50%;
+    height: 20px;
+    width: 90%;
+}
+#upload-progress-filler {
+    background: #33FF33 url('../images/icons/green_sliver.png') repeat scroll 50% 50%;
+    margin: 0px;
+    height: 20px;
+    border-right: 1px solid black;
+}
+#upload-progress-number {
+    font-weight: bold;
+    font-size: 125%;
+    float: right;
 }

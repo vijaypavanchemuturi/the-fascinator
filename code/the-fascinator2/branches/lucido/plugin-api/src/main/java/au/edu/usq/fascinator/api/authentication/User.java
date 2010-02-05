@@ -20,7 +20,10 @@
 package au.edu.usq.fascinator.api.authentication;
 
 /**
+ * A User object that authentication plugins will pass around.
  *
+ * Should encapsulate the metadata schema of an user for
+ * any implementing plugin.
  *
  * @author Greg Pendlebury
  */
@@ -42,6 +45,14 @@ public interface User {
      * @return The value of the property
      */
     public String get(String property);
+
+    /**
+     * Sets a given property for this user object.
+     *
+     * @param property The class field to set
+     * @param value The value to place in the field
+     */
+    public void set(String property, String value);
 
     /**
      * Retrieves how the user should be shown on-screen.
