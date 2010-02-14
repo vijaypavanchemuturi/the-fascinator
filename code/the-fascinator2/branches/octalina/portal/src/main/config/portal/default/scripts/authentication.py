@@ -1,11 +1,11 @@
-from au.edu.usq.fascinator.api import PluginDescription;
+from au.edu.usq.fascinator.api.access import AccessControlException;
 from au.edu.usq.fascinator.api.authentication import AuthenticationException;
-from au.edu.usq.fascinator.api.authentication import User;
 from au.edu.usq.fascinator.api.roles import RolesException;
 
 from __main__ import Services, formData, sessionState
 
 class Authentication:
+    active_access_plugin = None
     active_auth_plugin = None
     active_role_plugin = None
     current_user = None
@@ -14,6 +14,7 @@ class Authentication:
     GUEST_ROLE = 'guest'
 
     def __init__(self):
+        self.access = Services.getAccessControlManager()
         self.auth = Services.getAuthManager()
         self.role = Services.getRoleManager()
         self.check_login()
@@ -91,6 +92,9 @@ class Authentication:
         else:
             return "Guest";
 
+    def get_plugins_access(self):
+        return self.access.getPluginList()
+
     def get_plugins_auth(self):
         return self.auth.getPluginList()
 
@@ -116,10 +120,25 @@ class Authentication:
             if self.current_user is not None:
                 return self.role.getRoles(self.current_user.getUsername())
             else:
-                return [this.GUEST_ROLE];
+                return [self.GUEST_ROLE];
         except RolesException, e:
             self.error_message = self.parse_error(e)
         except AuthenticationException, e:
+            self.error_message = self.parse_error(e)
+
+    def get_access_roles_list(self, recordId):
+        try:
+            roles_list = {}
+            plugins = self.access.getPluginList()
+            for plugin in plugins:
+                self.access.setActivePlugin(plugin.getId())
+                result = self.access.getSchemas(recordId)
+                roles = []
+                for role in result:
+                    roles.append(role.get("role"))
+                roles_list[plugin.getId()] = roles
+            return roles_list
+        except AccessControlException, e:
             self.error_message = self.parse_error(e)
 
     def get_user(self, username, source):
@@ -130,6 +149,16 @@ class Authentication:
             self.has_error = False
             return user
         except AuthenticationException, e:
+            self.error_message = self.parse_error(e)
+
+    def grant_access(self, recordId, newRole):
+        try:
+            newAccess = self.access.getEmptySchema()
+            newAccess.init(recordId)
+            newAccess.set("role", newRole)
+            self.access.applySchema(newAccess)
+            self.has_error = False
+        except AccessControlException, e:
             self.error_message = self.parse_error(e)
 
     def is_admin(self):
@@ -195,6 +224,16 @@ class Authentication:
         except RolesException, e:
             self.error_message = self.parse_error(e)
 
+    def revoke_access(self, recordId, newRole):
+        try:
+            oldAccess = self.access.getEmptySchema()
+            oldAccess.init(recordId)
+            oldAccess.set("role", newRole)
+            self.access.removeSchema(oldAccess)
+            self.has_error = False
+        except AccessControlException, e:
+            self.error_message = self.parse_error(e)
+
     def search_roles(self, query, source):
         try:
             self.active_role_plugin = source
@@ -220,6 +259,14 @@ class Authentication:
         if formData.get("verb") == "clear-session":
             sessionState.clear()
 
+    def set_access_plugin(self, plugin_id):
+        try:
+            self.active_access_plugin = plugin_id
+            self.access.setActivePlugin(plugin_id)
+            self.has_error = False
+        except AccessControlException, e:
+            self.error_message = self.parse_error(e)
+
     def set_auth_plugin(self, plugin_id):
         try:
             self.active_auth_plugin = plugin_id
@@ -242,4 +289,3 @@ class Authentication:
             self.has_error = False
         except RolesException, e:
             self.error_message = self.parse_error(e)
-

@@ -17,5 +17,5 @@ else
 	JAVA_HOME=/usr/lib/jvm/java-6-sun
 fi
 export JAVA_HOME
-export JAVA_OPTS="-Xmx512m -Dhttp.proxyHost=$HOST -Dhttp.proxyPort=$PORT -Dhttp.nonProxyHosts=localhost"
+export JAVA_OPTS="-XX:MaxPermSize=128m -Xmx512m -Dhttp.proxyHost=$HOST -Dhttp.proxyPort=$PORT -Dhttp.nonProxyHosts=localhost"
 export MAVEN_OPTS="$JAVA_OPTS $MAVEN_OPTS"

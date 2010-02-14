@@ -1,3 +1,7 @@
+from java.net import URLDecoder, URLEncoder
+from java.io import StringWriter
+from au.edu.usq.fascinator.common import JsonConfigHelper
+
 import array, md5, os
 
 from au.edu.usq.fascinator.api.indexer import SearchRequest
@@ -19,36 +23,53 @@ from org.dom4j.io import OutputFormat, XMLWriter, SAXReader
 
 import traceback
 
-class OrganiseData:
+class PackageView:
     def __init__(self):
-        self.__portal = Services.portalManager.get(portalId)
-        self.__result = JsonConfigHelper()
-        self.__pageNum = sessionState.get("pageNum", 1)
-        self.__selected = []
-        
         self.__storage = Services.storage
         uri = URLDecoder.decode(request.getAttribute("RequestURI"))
+        
+        print "formData: ", formData
+        print "uri: ", uri
+        self.__filePath = None
+        if uri.find("&")>0:
+            uri, self.__filePath = uri.split("&")
+            
         basePath = portalId + "/" + pageName
         self.__oid = uri[len(basePath)+1:]
         slash = self.__oid.rfind("/")
         self.__pid = self.__oid[slash+1:]
-        print "uri='%s' oid='%s' pid='%s'" % (uri, self.__oid, self.__pid)
-        payload = None
-        if (self.__oid is not None and self.__oid != ""):
-            payload = self.__storage.getPayload(self.__oid, self.__pid)
+        payload = self.__storage.getPayload(self.__oid, self.__pid)
+        
+        print "  packageView.py: uri='%s' oid='%s' pid='%s'" % (uri, self.__oid, self.__pid)
+        print "payload: ", payload.contentType
+        self.__jsonConfigHelper = None
+        #should not use text/plain need to be fixed
         if payload is not None:
-            self.__mimeType = payload.contentType
-        else:
-            self.__mimeType = "application/octet-stream"
-        self.__metadata = JsonConfigHelper()
-        print " * single.py: uri='%s' oid='%s' pid='%s' mimeType='%s'" % (uri, self.__oid, self.__pid, self.__mimeType)
-        self.__search()
+            sw = StringWriter()
+            IOUtils.copy(payload.getInputStream(), sw)
+            sw.flush()
+            self.__jsonConfigHelper = JsonConfigHelper(sw.toString())
+            
+        
     
-    def getManifestItem(self):
-        hashId = md5.new(self.__oid).hexdigest()
-        return self.getPortal().getMap("manifest//node-%s" % hashId)
+    def getPackageId(self):
+        return self.__oid
+    
+    def encode(self, url):
+        return URLEncoder.encode(url, "UTF-8")
+    
+    def getManifestItem(self, id=None):
+        if id is None:
+            id = self.__oid
+        hashId = md5.new(id).hexdigest()
+        return self.__jsonConfigHelper.getMap("manifest//node-%s" % hashId)
+        #return self.getPortal().getMap("manifest//node-%s" % hashId)
+    
+    def getMd5(self, id):
+        return "node-%s" % md5.new(id).hexdigest()
     
     def getMimeType(self):
+        self.__mimeType = ""
         return self.__mimeType
     
     def __search(self):
@@ -59,7 +80,9 @@ class OrganiseData:
         self.__metadata = SolrDoc(self.__json)
     
     def getManifest(self):
-        return self.getPortal().getJsonMap("manifest")
+        if self.__jsonConfigHelper:
+            return self.__jsonConfigHelper.getJsonMap("manifest")
+        return None
     
     def getContent(self):
         content = ""
@@ -208,58 +231,94 @@ class OrganiseData:
             return url
         return None
     
+    def getFilePath(self):
+        return self.__filePath
+    
+    def getSelectedTitle(self):
+        return self.getManifestItem(self.__filePath).get("title")
+        
     def getPayloadContent(self):
-        mimeType = self.__mimeType
-        print " * single.py: payload content mimeType=%s" % mimeType
-        contentStr = ""
-        if mimeType.startswith("text/"):
-            if mimeType == "text/html":
-                contentStr = '<iframe class="iframe-preview" src="%s/%s/download/%s"></iframe>' % \
-                    (contextPath, portalId, self.__oid)
-            else:
-                pid = self.__oid[self.__oid.rfind("/")+1:]
-                payload = self.__storage.getPayload(self.__oid, pid)
-                print " * single.py: pid=%s payload=%s" % (pid, payload)
-                if payload is not None:
-                    sw = StringWriter()
-                    sw.write("<pre>")
-                    IOUtils.copy(payload.getInputStream(), sw)
-                    sw.write("</pre>")
-                    sw.flush()
-                    contentStr = sw.toString()
-        elif mimeType == "application/pdf" or mimeType.find("vnd.ms")>-1 or mimeType.find("vnd.oasis.opendocument.")>-1:
-            # get the html version if exist...
-            pid = os.path.splitext(self.__pid)[0] + ".htm"
-            print " * single.py: pid=%s" % pid
-            #contentStr = '<iframe class="iframe-preview" src="%s/%s/download/%s/%s"></iframe>' % \
-            #    (contextPath, portalId, self.__oid, pid)
-            payload = self.__storage.getPayload(self.__oid, pid)
-            saxReader = SAXReader(Boolean.parseBoolean("false"))
-            try:
-                document = saxReader.read(payload.getInputStream())
-                slideNode = document.selectSingleNode("//*[local-name()='body']")
-                #linkNodes = slideNode.selectNodes("//img")
-                #contentStr = slideNode.asXML();
-                # encode character entities correctly
-                slideNode.setName("div")
-                out = ByteArrayOutputStream()
-                format = OutputFormat.createPrettyPrint()
-                format.setSuppressDeclaration(True)
-                format.setExpandEmptyElements(True)
-                writer = XMLWriter(out, format)
-                writer.write(slideNode)
-                writer.close()
-                contentStr = out.toString("UTF-8")
-            except:
-                traceback.print_exc()
-                contentStr = "<p class=\"error\">No preview available</p>"
-        elif mimeType.startswith("image/"):
-            src = "%s/%s" % (self.__oid, self.__pid)
-            contentStr = '<a class="image" href="%(src)s"  style="max-width:98%%">' \
-                '<img src="%(src)s" style="max-width:100%%" /></a>' % { "src": self.__pid }
+        contentStr = None
+        if self.__filePath:
+            slash = self.__filePath.rfind("/")
+            pid = self.__filePath[slash+1:]
+            payload = self.__storage.getPayload(self.__filePath, pid)
+            if payload is not None:
+                mimeType = payload.contentType
+                print " * single.py: payload content mimeType=%s" % mimeType
+                if mimeType.startswith("text/"):
+                    if mimeType == "text/html":
+                        contentStr = '<iframe class="iframe-preview" src="%s/%s/download/%s"></iframe>' % \
+                            (contextPath, portalId, self.__filePath)
+                    else:
+                        contentPid = self.__filePath[self.__filePath.rfind("/")+1:]
+                        payload = self.__storage.getPayload(self.__filePath, contentPid)
+                        print " * single.py: pid=%s payload=%s" % (contentPid, payload)
+                        if payload is not None:
+                            sw = StringWriter()
+                            sw.write("<pre>")
+                            IOUtils.copy(payload.getInputStream(), sw)
+                            sw.write("</pre>")
+                            sw.flush()
+                            contentStr = sw.toString()
+                elif mimeType == "application/pdf" or mimeType.find("vnd.ms")>-1 or mimeType.find("vnd.oasis.opendocument.")>-1:
+                    # get the html version if exist...
+                    htmPid = os.path.splitext(pid)[0] + ".htm"
+                    print " * single.py: htmPid=%s" % htmPid
+                    #contentStr = '<iframe class="iframe-preview" src="%s/%s/download/%s/%s"></iframe>' % \
+                    #    (contextPath, portalId, self.__oid, pid)
+                    payload = self.__storage.getPayload(self.__filePath, htmPid)
+                    print "----- payload??? ", payload
+                    saxReader = SAXReader(Boolean.parseBoolean("false"))
+                    try:
+                        document = saxReader.read(payload.getInputStream())
+                        slideNode = document.selectSingleNode("//*[local-name()='body']")
+                        #linkNodes = slideNode.selectNodes("//img")
+                        #contentStr = slideNode.asXML();
+                        # encode character entities correctly
+                        slideNode.setName("div")
+                        out = ByteArrayOutputStream()
+                        format = OutputFormat.createPrettyPrint()
+                        format.setSuppressDeclaration(True)
+                        format.setExpandEmptyElements(True)
+                        writer = XMLWriter(out, format)
+                        writer.write(slideNode)
+                        writer.close()
+                        contentStr = out.toString("UTF-8")
+                    except:
+                        traceback.print_exc()
+                        contentStr = "<p class=\"error\">No preview available</p>"
+                elif mimeType.startswith("image/"):
+                    src = "%s/%s" % (self.__oid, self.__pid)
+                    contentStr = '<a class="image" href="%(src)s"  style="max-width:98%%">' \
+                        '<img src="%(src)s" style="max-width:100%%" /></a>' % { "src": self.__pid }
         return contentStr
     
     def getOid(self):
         return self.__oid
+    
+    def oldinit(self):
+        self.__portal = Services.portalManager.get(portalId)
+        self.__result = JsonConfigHelper()
+        self.__pageNum = sessionState.get("pageNum", 1)
+        self.__selected = []
+        
+        self.__storage = Services.storage
+        uri = URLDecoder.decode(request.getAttribute("RequestURI"))
+        basePath = portalId + "/" + pageName
+        self.__oid = uri[len(basePath)+1:]
+        slash = self.__oid.rfind("/")
+        self.__pid = self.__oid[slash+1:]
+        print "uri='%s' oid='%s' pid='%s'" % (uri, self.__oid, self.__pid)
+        payload = None
+        if (self.__oid is not None and self.__oid != ""):
+            payload = self.__storage.getPayload(self.__oid, self.__pid)
+        if payload is not None:
+            self.__mimeType = payload.contentType
+        else:
+            self.__mimeType = "application/octet-stream"
+        self.__metadata = JsonConfigHelper()
+        print " * single.py: uri='%s' oid='%s' pid='%s' mimeType='%s'" % (uri, self.__oid, self.__pid, self.__mimeType)
+        self.__search()
 
-scriptObject = OrganiseData()
+scriptObject = PackageView()

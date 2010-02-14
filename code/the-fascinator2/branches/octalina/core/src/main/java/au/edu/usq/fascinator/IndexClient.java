@@ -19,6 +19,7 @@
 
 package au.edu.usq.fascinator;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.text.DateFormat;
@@ -34,11 +35,13 @@ import org.slf4j.LoggerFactory;
 import au.edu.usq.fascinator.api.PluginManager;
 import au.edu.usq.fascinator.api.indexer.Indexer;
 import au.edu.usq.fascinator.api.indexer.IndexerException;
+import au.edu.usq.fascinator.api.indexer.SearchRequest;
 import au.edu.usq.fascinator.api.storage.DigitalObject;
 import au.edu.usq.fascinator.api.storage.Payload;
 import au.edu.usq.fascinator.api.storage.Storage;
 import au.edu.usq.fascinator.api.storage.StorageException;
 import au.edu.usq.fascinator.common.JsonConfig;
+import au.edu.usq.fascinator.common.JsonConfigHelper;
 
 /**
  * Index Client class to Re-index the storage
@@ -156,6 +159,109 @@ public class IndexClient {
                 e.printStackTrace();
             }
         }
+
+        log.info("Completed in "
+                + ((System.currentTimeMillis() - start) / 1000.0) + " seconds");
+    }
+
+    /**
+     * Indexing single object
+     * 
+     * TODO: Might let the user to fill in form in the portal regards to which
+     * rules to be used
+     * 
+     * @param objectId
+     */
+    public void indexObject(String objectId) {
+        DigitalObject object = realStorage.getObject(objectId);
+        // Get the rules from SOF-META
+        Properties sofMeta = getSofMeta(object);
+        String sofMetaRulesOid = sofMeta.getProperty("rulesOid");
+        rulesFile = new File(sofMetaRulesOid);
+
+        String rulesOid;
+        try {
+            log.debug("Caching rules file " + rulesFile);
+            DigitalObject rulesObject = new RulesDigitalObject(rulesFile);
+            realStorage.addObject(rulesObject);
+            log.debug("Realstorage: " + realStorage.getId());
+            rulesOid = rulesObject.getId();
+        } catch (StorageException se) {
+            log.error("Failed to cache indexing rules, stopping", se);
+            return;
+        }
+        try {
+            processObject(object, rulesOid, null);
+        } catch (StorageException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Index objects found in the portal
+     * 
+     * @param portalName
+     */
+    public void indexPortal(String portalQuery) {
+        DateFormat df = new SimpleDateFormat(DATETIME_FORMAT);
+        String now = df.format(new Date());
+        long start = System.currentTimeMillis();
+        log.info("Started at " + now);
+
+        // Get all the records from solr
+        int startRow = 0;
+        int numPerPage = 5;
+        int numFound = 0;
+        do {
+            ByteArrayOutputStream result = new ByteArrayOutputStream();
+            SearchRequest request = new SearchRequest("*:*");
+            request.addParam("rows", String.valueOf(numPerPage));
+            request.addParam("fq", "item_type:\"object\"");
+            request.setParam("start", String.valueOf(startRow));
+
+            if (portalQuery != "" && portalQuery != null) {
+                request.addParam("fq", portalQuery);
+            }
+
+            try {
+                indexer.search(request, result);
+                JsonConfigHelper js;
+
+                js = new JsonConfigHelper(result.toString());
+                for (Object oid : js.getList("response/docs/id")) {
+                    DigitalObject object = realStorage
+                            .getObject(oid.toString());
+                    log.info("Indexing: " + object.getId());
+                    Properties sofMeta = getSofMeta(object);
+                    String sofMetaRulesOid = sofMeta.getProperty("rulesOid");
+                    rulesFile = new File(sofMetaRulesOid);
+                    String rulesOid;
+                    try {
+                        log.debug("Caching rules file " + rulesFile);
+                        DigitalObject rulesObject = new RulesDigitalObject(
+                                rulesFile);
+                        realStorage.addObject(rulesObject);
+                        log.debug("Realstorage: " + realStorage.getId());
+                        rulesOid = rulesObject.getId();
+                        processObject(object, rulesOid, null);
+                    } catch (StorageException se) {
+                        log.error("Failed to cache indexing rules, stopping",
+                                se);
+                        return;
+                    }
+                }
+
+                startRow += numPerPage;
+                numFound = Integer.parseInt(js.get("response/numFound"));
+
+            } catch (IndexerException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        } while (startRow < numFound);
 
         log.info("Completed in "
                 + ((System.currentTimeMillis() - start) / 1000.0) + " seconds");

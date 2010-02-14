@@ -55,20 +55,23 @@
 <img alt="ATOM Feed" src="$portalPath/images/icons/rss.png"/>
 </a></h2>
 <div id="action-list" class="grid_4">
-  #if($self.hasSelectedFacets() || $query != "")
   <div class="box menu">
     <h2>Actions</h2>
     <ul class="menu">
-      #if($query != "")
-        <li><a href="$portalPath/search">Clear search query</a></li>
+      #if($self.hasSelectedFacets() || $query != "")
+          #if($query != "")
+            <li><a href="$portalPath/search">Clear search query</a></li>
+          #end
+          #if($self.hasSelectedFacets())
+            <li><a href="#" id="create-view">Create view...</a></li>
+            <li><a href="#" id="create-package">Create package...</a></li>
+            <li><a href="#" id="clear-facets">Clear selection</a></li>
+          #end
+      #else
+        <li><a href="#" id="create-package">Create package...</a></li>
       #end
-      #if($self.hasSelectedFacets())
-        <li><a href="#" id="create-view">Create view...</a></li>
-        <li><a href="#" id="clear-facets">Clear selection</a></li>
-      #end
-    </ul>
+  </ul>
   </div>
-  #end
   <script type="text/javascript">
   // hierarchical facet trees
   function createTree(selector, facetField) {
@@ -153,6 +156,7 @@
       <span class="right">Showing ${paging.startNum} to ${paging.endNum} of ${paging.totalFound} items ($self.queryTime seconds)</span>
     </h2>
     #if($self.result and $paging.totalFound > 0)
+    #set ($is_admin = $page.authentication.is_admin())
     #foreach($item in $self.result.getList("response/docs"))
       #set($id = $item.get("id"))
       #set($hashId = $page.md5Hash($id))
@@ -165,8 +169,26 @@
       #end
       #set($description = "")
       #set($description = $item.get("dc_description").get(0))
+      #set($isPackage = false)
+      #if ($id.endsWith("tfpackage"))
+        #set($isPackage = true)
+      #end
       <div id="$hashId" class="article#if($velocityCount==1) first#end">
-        <h3><a href="$portalPath/detail/$self.encode($id)">$title</a></h3>
+        #if($is_admin)
+        <div class="admin-link-holder float-right">
+          <a class="admin-security-link" rel="$id" href="#">Manage Access</a>
+          #foreach ($role in $item.get("security_filter"))
+          <div class="locked">$role</div>
+          #end
+        </div>
+        #end
+        #set($href = "$portalPath/detail/$self.encode($id)")
+        #if (!$isPackage)
+            <input type="checkbox" name="checkboxgroup" value="$id"/>&nbsp;
+        #else
+            #set($href = "$portalPath/organise/single/$self.encode($id)#")
+        #end
+        <a href="$href">$title</a></h3>
         <div class="tags">
           <ul class="tags">
             <li>Tags:</li>
@@ -182,13 +204,15 @@
             </li>
           </ul>
         </div>
-        #set($thumbnail = $self.getThumbnail($id))
-        #if($thumbnail)
-          <a class="image" href="$portalPath/detail/$id">
-            <img src="$portalPath/download/$id/$thumbnail" />
-          </a>
-        #end
-        <p class="item-description">$!description&nbsp;</p>
+        #if (!$isPackage)
+            #set($thumbnail = $self.getThumbnail($id))
+            #if($thumbnail)
+              <a class="image" href="$portalPath/detail/$id">
+                <img src="$portalPath/download/$id/$thumbnail" />
+              </a>
+            #end
+            <p class="item-description">$!description&nbsp;</p>
+         #end
       </div>
       <div class="clear"></div>
     #end
@@ -197,9 +221,54 @@
     #end
   </div>
 </div>
+#if($is_admin)
+#macro(buildSecurityFields $data)
+  #foreach($plugin in $data)
+    <table class="security-table" summary="Security data for $plugin.getId()">
+      <thead>
+        <tr><th class="table-head">$plugin.getName()</th></tr>
+      </thead>
+      <tfoot>
+        <tr id="security-new-$plugin.getId()" class="hidden">
+          <td>
+            New role:
+            <input type="text" id="security-new-role-$plugin.getId()" />
+            <input type="button" class="security-new-submit" rel="$plugin.getId()" value="Add Role" />
+          </td>
+        </tr>
+        <tr><th><a class="add-role-button" href="#" rel="$plugin.getId()">Add a role</a></th></tr>
+      </tfoot>
+      <tbody>
+        <tr><th>Roles current granted access:</th></tr>
+        <tr id="security-loading-$plugin.getId()"><td><img src="$portalPath/images/icons/loading.gif" /></td></tr>
+        <tr id="security-empty-$plugin.getId()" class="hidden"><td>None yet...</td></tr>
+      </tbody>
+      <tbody id="security-rows-$plugin.getId()">
+        <tr><td>&nbsp;</td></tr>
+      </tbody>
+    </table>
+  #end
+#end
+<div class="box hidden" id="security-form">
+  <form id="security" method="post">
+    <fieldset class="search">
+      <legend>Security : '<span id="security-legend"></span>'</legend>
+      <div class="stop-error hidden" id="security-error">
+        <span id="security-message"></span>
+      </div>
+      <p>Below are all the currently active security plugins and the roles they allow access to this item:</p>
+      <div id="security-field-holder">
+#buildSecurityFields($page.authentication.get_plugins_access())
+      </div>
+      <input id="security-cancel" type="button" value="Close" />
+    </fieldset>
+  </form>
+</div>
+#end
 <script type="text/javascript" src="$portalPath/js/tree/jquery.tree.min.js"></script>
 <script type="text/javascript" src="$portalPath/js/jquery.truncate.js"></script>
 <script type="text/javascript">
+<!--
 $(function() {
     addActionParam("query", "$!query");
     
@@ -225,6 +294,39 @@ $(function() {
     $("p.item-description").truncate(500, {
         trail: [ '... <a href="#" class="truncate_show">more</a>',
                  ' <a href="#" class="truncate_hide">less</a>' ]
+    });
+    
+    // create package
+    $("#create-package, #create-package-cancel").click(function() {
+        if ($("input:checkbox[name=checkboxgroup]:checked").length == 0 ) {
+            alert ("Please select the items to be packaged");
+        } else {
+            var fileList = "";
+            $("input:checkbox[name=checkboxgroup]:checked").each(function() {
+                fileList += "fileList=" + $(this).attr("value") + "&";
+            });
+            window.location = "$portalPath/actions/package?" + fileList;
+        }
+    });
+    $("#create-package-accept").click(function() {
+        var fileList = "";
+        $("input:checkbox[name=checkboxgroup]:checked").each(function() {
+            fileList += "fileList=" + $(this).attr("value") + "&";
+        });
+        jQuery.post("$portalPath/actions/package.ajax?" + fileList,
+            {
+                func: "create-package",
+                name: $("#create-package-name").val(),
+                path: $("#create-package-path").val()
+            },
+            function(data, status) {
+                $("#create-package-box").toggle("blind");
+                $("#create-package-name").val("");
+                $("#create-package-path").val("");
+                window.location = data.url;
+            },
+            "json"
+        );
     });
     
     // create view
@@ -335,4 +437,155 @@ $(function() {
         );
     });
 });
+-->
 </script>
+
+#if($is_admin)
+<script type="text/javascript">
+<!--
+$(function() {
+    var dialogOpts = {
+        title: "Manage Security",
+        autoOpen: false,
+        hide: "blind",
+        width: 330,
+        modal: true
+    }
+    $("#security-form").dialog(dialogOpts);
+
+    $(".add-role-button").click(function() {
+        pluginId = $(this).attr("rel");
+        $("#security-message").empty();
+        $("#security-error").hide();
+        $("#security-new-" + pluginId).show();
+        return false;
+    });
+
+    $(".security-new-submit").click(function() {
+        var pluginId = $(this).attr("rel");
+        $("#security-message").empty();
+        $("#security-error").hide();
+        $("#security-new-" + pluginId).hide();
+        $("#security-loading-" + pluginId).show();
+
+        jQuery.ajax({
+            type : "POST",
+            url : "$portalPath/actions/admin.ajax",
+            success:
+                function(data, status) {
+                    addRow(pluginId, data);
+                    $("#security-empty-" + pluginId).hide();
+                    $("#security-loading-" + pluginId).hide();
+                },
+            error:
+                function (req, status, e) {
+                    $("#security-error").show();
+                    $("#security-message").html(req.responseText);
+                    $("#security-loading-" + pluginId).hide();
+                },
+            data: {
+                record: recordId,
+                role: $("#security-new-role-" + pluginId).val(),
+                source: pluginId,
+                verb: "grant-access"
+            }
+        });
+
+        return false;
+    });
+
+    var recordId = "";
+    var refresh_link;
+    $(".admin-security-link").click(function() {
+        refresh_link = $(this);
+        recordId = $(this).attr("rel");
+        $("#security-message").empty();
+        $("#security-error").hide();
+        $("#security-form").dialog('open');
+        $("#security-legend").html(recordId);
+
+        jQuery.ajax({
+            type : "POST",
+            url : "$portalPath/actions/admin.ajax",
+            success: securityQuery,
+            error:
+                function (req, status, e) {
+                    $("#security-error").show();
+                    $("#security-message").html(req.responseText);
+                },
+            data: {
+                record: recordId,
+                verb: "get-current-access"
+            }
+        });
+
+        return false;
+    });
+
+    function securityQuery(data, status) {
+        var response = eval("(" + data + ")");
+        for (var i in response) {
+            $("#security-rows-" + i).html("");
+            if (response[i].length == 0) {
+                $("#security-empty-" + i).show();
+                $("#security-loading-" + i).hide();
+            } else {
+                $("#security-empty-" + i).hide();
+                len = response[i].length;
+                for (var j = 0; j < len; j++) {
+                    addRow(i, response[i][j]);
+                }
+                $("#security-loading-" + i).hide();
+            }
+        }
+        $(".remove-role-link").click(revoke_access);
+    }
+    function addRow(pluginId, value) {
+        var data = $("#security-rows-" + pluginId).html();
+        data += "<tr><td>" + value;
+        data += " <a class='remove-role-link' rel='" + pluginId + "' value='" + value + "' href='#'>";
+        data += "<img src='$portalPath/images/icons/cross.png'/></a>";
+        data += "</td></tr>";
+        $("#security-rows-" + pluginId).html(data);
+    }
+
+    function revoke_access() {
+        var pluginId = $(this).attr("rel");
+        $("#security-message").empty();
+        $("#security-error").hide();
+        $("#security-loading-" + pluginId).show();
+
+        jQuery.ajax({
+            type : "POST",
+            url : "$portalPath/actions/admin.ajax",
+            success:
+                function(data, status) {
+                    refresh_link.click();
+                },
+            error:
+                function (req, status, e) {
+                    $("#security-error").show();
+                    $("#security-message").html(req.responseText);
+                    $("#security-loading-" + pluginId).hide();
+                },
+            data: {
+                record: recordId,
+                role: $(this).attr("value"),
+                source: pluginId,
+                verb: "revoke-access"
+            }
+        });
+
+        return false;
+    }
+
+    $("#security-cancel").click(function() {
+        $("#security-message").empty();
+        $("#security-error").hide();
+        $("#security-form").dialog('close');
+        return false;
+    });
+});
+-->
+</script>
+#end

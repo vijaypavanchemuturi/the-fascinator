@@ -79,8 +79,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xml.sax.SAXException;
 
+import au.edu.usq.fascinator.api.PluginDescription;
 import au.edu.usq.fascinator.api.PluginException;
 import au.edu.usq.fascinator.api.PluginManager;
+import au.edu.usq.fascinator.api.access.AccessControlException;
+import au.edu.usq.fascinator.api.access.AccessControlManager;
+import au.edu.usq.fascinator.api.access.AccessControlSchema;
 import au.edu.usq.fascinator.api.indexer.Indexer;
 import au.edu.usq.fascinator.api.indexer.IndexerException;
 import au.edu.usq.fascinator.api.indexer.SearchRequest;
@@ -100,6 +104,8 @@ public class SolrIndexer implements Indexer {
     private Logger log = LoggerFactory.getLogger(SolrIndexer.class);
 
     private JsonConfig config;
+
+    private AccessControlManager access;
 
     private Storage storage;
 
@@ -142,6 +148,14 @@ public class SolrIndexer implements Indexer {
                 config = new JsonConfig(jsonFile);
             } catch (IOException ioe) {
                 throw new IndexerException(ioe);
+            }
+
+            String accessControlType = "accessmanager";
+            try {
+                access = PluginManager.getAccessManager(accessControlType);
+                access.init(jsonFile);
+            } catch (PluginException pe) {
+                log.error("Failed to load access manager: {}", accessControlType);
             }
 
             String storageType = config.get("storage/type");
@@ -540,6 +554,35 @@ public class SolrIndexer implements Indexer {
             }
         }
         return model;
+    }
+
+    public AccessControlSchema getAccessSchema(String plugin) {
+        if (access == null) return null;
+        access.setActivePlugin(plugin);
+        return access.getEmptySchema();
+    }
+
+    public void setAccessSchema(AccessControlSchema schema, String plugin) {
+        if (access == null) return;
+
+        try {
+            access.setActivePlugin(plugin);
+            access.applySchema(schema);
+        } catch (AccessControlException ex) {
+            log.error("Failed to query security plugin for roles", ex);
+        }
+    }
+
+    public List<String> getRolesWithAccess(String recordId) {
+        if (access == null) {
+            return null;
+        }
+        try {
+            return access.getRoles(recordId);
+        } catch (AccessControlException ex) {
+            log.error("Failed to query security plugin for roles", ex);
+            return null;
+        }
     }
 
     public void registerNamespace(String prefix, String uri) {

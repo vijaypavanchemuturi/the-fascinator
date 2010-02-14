@@ -12,7 +12,7 @@ if "%1" == "start" goto start
 if "%1" == "stop" goto stop
 
 REM set environment
-call %TF_HOME%\tf_env.bat
+call "%TF_HOME%\tf_env.bat"
 
 :status
 set Cmd=tasklist /fi "WINDOWTITLE eq The Fascinator - mvn  -P dev jetty:run" /fo csv /nh
@@ -21,11 +21,11 @@ echo The Fascinator is STOPPED.
 goto end
 
 :start
-start "The Fascinator" /D%TF_HOME%\portal mvn -P dev jetty:run
+start "The Fascinator" /D"%TF_HOME%\portal" mvn -P dev jetty:run
 goto end
 
 :stop
-pushd %TF_HOME%\portal
+pushd "%TF_HOME%\portal"
 call mvn -P dev jetty:stop
 popd
 goto end

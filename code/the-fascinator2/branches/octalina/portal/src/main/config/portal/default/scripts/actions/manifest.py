@@ -10,6 +10,16 @@ class ManifestActions:
         nodePath = self.__getNodePath(formData.get("parents"), nodeId)
         originalPath = "manifest//%s" % nodeId
         print "nodePath: %s" % nodePath
+        
+    def oldInit(self):
+        print " * manifest.py: formData=%s" % formData
+        result = "{}"
+        func = formData.get("func")
+        id = formData.get("id")
+        nodeId = formData.get("nodeId")
+        nodePath = self.__getNodePath(formData.get("parents"), nodeId)
+        originalPath = "manifest//%s" % nodeId
+        print "nodePath: %s" % nodePath
         portalManager = Services.getPortalManager()
         portal = portalManager.get(id)
         if func == "rename":

@@ -201,7 +201,7 @@ class Epub:
                 if payloadId == htmlFileName.lower():
                     itemNode.set("id", itemHash)
                 else:
-                    itemNode.set("id", payloadId.replace("/", "_"))                  
+                    itemNode.set("id", payloadId.replace("/", "_"))
                 manifest.append(itemNode)
                 
             if not isImage: 
