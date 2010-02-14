@@ -56,6 +56,7 @@ import org.slf4j.LoggerFactory;
 import au.edu.usq.fascinator.common.JsonConfig;
 import au.edu.usq.fascinator.portal.FormData;
 import au.edu.usq.fascinator.portal.JsonSessionState;
+import au.edu.usq.fascinator.portal.guitoolkit.GUIToolkit;
 import au.edu.usq.fascinator.portal.services.DynamicPageService;
 import au.edu.usq.fascinator.portal.services.PortalManager;
 import au.edu.usq.fascinator.portal.services.ScriptingServices;
@@ -89,6 +90,8 @@ public class DynamicPageServiceImpl implements DynamicPageService {
 
     private String scriptsPath;
 
+    private GUIToolkit toolkit;
+
     public DynamicPageServiceImpl() {
         try {
             JsonConfig config = new JsonConfig();
@@ -97,6 +100,7 @@ public class DynamicPageServiceImpl implements DynamicPageService {
             layoutName = config.get("portal/layout", DEFAULT_LAYOUT_TEMPLATE);
             engineName = config.get("portal/scriptEngine",
                     DEFAULT_SCRIPT_ENGINE);
+            toolkit = new GUIToolkit(config);
 
             // setup velocity engine
             String home = config.get("portal/home",
@@ -202,6 +206,7 @@ public class DynamicPageServiceImpl implements DynamicPageService {
         bindings.put("responseOutput", out);
         bindings.put("serverPort", requestGlobals.getHTTPServletRequest()
                 .getServerPort());
+        bindings.put("toolkit", toolkit);
         bindings.put("bindings", bindings);
 
         // run page and template scripts

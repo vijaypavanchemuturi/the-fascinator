@@ -22,6 +22,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.ServiceLoader;
 
+import au.edu.usq.fascinator.api.access.AccessControl;
+import au.edu.usq.fascinator.api.access.AccessControlManager;
 import au.edu.usq.fascinator.api.authentication.Authentication;
 import au.edu.usq.fascinator.api.harvester.Harvester;
 import au.edu.usq.fascinator.api.indexer.Indexer;
@@ -38,6 +40,47 @@ import au.edu.usq.fascinator.api.transformer.TransformerException;
 public class PluginManager {
 
     private static Map<String, Indexer> indexers = new HashMap<String, Indexer>();
+
+    /**
+     * Gets an access control plugin
+     *
+     * @param id plugin identifier
+     * @return an access control plugin, or null if not found
+     */
+    public static AccessControl getAccessControl(String id) {
+        ServiceLoader<AccessControl> plugins = ServiceLoader.load(AccessControl.class);
+        for (AccessControl plugin : plugins) {
+            if (id.equals(plugin.getId())) {
+                return plugin;
+            }
+        }
+        return null;
+    }
+
+    public static Map<String, AccessControl> getAccessControlPlugins() {
+        Map<String, AccessControl> access_plugins = new HashMap<String, AccessControl>();
+        ServiceLoader<AccessControl> plugins = ServiceLoader.load(AccessControl.class);
+        for (AccessControl plugin : plugins) {
+            access_plugins.put(plugin.getId(), plugin);
+        }
+        return access_plugins;
+    }
+
+    /**
+     * Get the access manager. Used in The indexer if the portal isn't running
+     *
+     * @param id plugin identifier
+     * @return an access manager plugin, or null if not found
+     */
+    public static AccessControlManager getAccessManager(String id) {
+        ServiceLoader<AccessControlManager> plugins = ServiceLoader.load(AccessControlManager.class);
+        for (AccessControlManager plugin : plugins) {
+            if (id.equals(plugin.getId())) {
+                return plugin;
+            }
+        }
+        return null;
+    }
 
     /**
      * Gets an authentication plugin

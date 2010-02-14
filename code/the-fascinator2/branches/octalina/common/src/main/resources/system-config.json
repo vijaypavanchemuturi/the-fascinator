@@ -1,6 +1,12 @@
 {
     "fascinator-home": "/opt/the-fascinator2/code",
     "email" : "fascinator@usq.edu.au",
+    "accesscontrol": {
+        "type": "simple",
+        "simple": {
+            "path": "${user.home}/.fascinator/access.properties"
+        }
+    },
     "authentication": {
         "type": "internal",
         "internal": {
@@ -57,7 +63,8 @@
         "contentDir": "${user.home}/.fascinator/content",
         "default": "default",
         "layout": "layout",
-        "nativeJython": true
+        "nativeJython": true,
+        "uploader": "${user.home}/.fascinator/workflow-config.json"
     },
     "transformer": {
         "extractor": ["aperture"],
@@ -66,8 +73,7 @@
             "outputPath": "${java.io.tmpdir}/ice2-output"
         },
         "ice2": {
-            "url": "http://139.86.35.139:8888/api/convert/",
-            "url-amazon": "http://ec2-75-101-136-199.compute-1.amazonaws.com/api/convert/",
+            "url": "http://ec2-75-101-136-199.compute-1.amazonaws.com/api/convert/",
             "resize.image.mode": "fixedWidth",
             "resize.image.ratio": "-90",
             "resize.image.fixedWidth": "150",

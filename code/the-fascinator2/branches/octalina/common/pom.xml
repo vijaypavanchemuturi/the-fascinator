@@ -90,57 +90,41 @@
         <version>1.1.1</version> <configuration>
         <mainClass>org.ontoware.rdfreactor.generator.CodeGenerator</mainClass>
         </configuration> </plugin>
-      
+      -->
       <plugin>
         <groupId>au.edu.usq.fascinator.maven-plugins</groupId>
         <artifactId>rdf-reactor</artifactId>
-        <version>0.1.0</version>
+        <version>0.2.0-SNAPSHOT</version>
+        <configuration>
+          <outputDirectory>src/main/java</outputDirectory>
+          <schemaList>
+            <schemaItem>
+              <schemaName>Nepomuk Information Element</schemaName>
+              <packageName>au.edu.usq.fascinator.common.vocabulary.nie</packageName>
+              <methodPrefix>Nepo</methodPrefix>
+              <outputMergedSchema>true</outputMergedSchema>
+              <schemaUrlLibrary>
+                <java.net.URL>http://www.semanticdesktop.org/ontologies/nie/</java.net.URL>
+                <java.net.URL>http://www.semanticdesktop.org/ontologies/nco/</java.net.URL>
+                <java.net.URL>http://www.semanticdesktop.org/ontologies/nid3/</java.net.URL>
+                <java.net.URL>http://www.semanticdesktop.org/ontologies/nfo/</java.net.URL>
+                <!--
+                <java.net.URL>http://www.semanticdesktop.org/ontologies/nmo/</java.net.URL> 
+                <java.net.URL>http://www.semanticdesktop.org/ontologies/ncal/</java.net.URL>
+                <java.net.URL>http://www.semanticdesktop.org/ontologies/nexif/</java.net.URL>-->
+              </schemaUrlLibrary>
+            </schemaItem>
+          </schemaList>
+        </configuration>
         <executions>
           <execution>
-            <id>rdfreactor</id>
-            <phase>generate-sources</phase>
+            <phase>install</phase>
             <goals>
               <goal>rdfs</goal>
             </goals>
           </execution>
         </executions>
-        <configuration>
-          <schemaList>
-            <schemaItem>
-              <schemaName>nie</schemaName>
-              <schemaUrlLibrary>
-                <java.net.URL>http://www.semanticdesktop.org/ontologies/2007/01/19/nie</java.net.URL>
-              </schemaUrlLibrary>
-              <packageName>au.edu.usq.fascinator.common.nie</packageName>
-              <methodPrefix>nie</methodPrefix>
-            </schemaItem>
-            <schemaItem> 
-              <schemaName>nco</schemaName>
-              <schemaUrlLibrary>
-                <java.net.URL>http://www.semanticdesktop.org/ontologies/2007/03/22/nco</java.net.URL>
-              </schemaUrlLibrary>
-              <packageName>au.edu.usq.fascinator.common.nco</packageName>
-              <methodPrefix>nco</methodPrefix> 
-            </schemaItem>
-            <schemaItem> 
-              <schemaName>nid3</schemaName>
-              <schemaUrlLibrary>
-                <java.net.URL>http://www.semanticdesktop.org/ontologies/2007/05/10/nid3</java.net.URL>
-              </schemaUrlLibrary>
-              <packageName>au.edu.usq.fascinator.common.nid3</packageName>
-              <methodPrefix>nid3</methodPrefix> 
-            </schemaItem>
-            <schemaItem> 
-              <schemaName>nfo</schemaName>
-              <schemaUrlLibrary>
-                <java.net.URL>http://www.semanticdesktop.org/ontologies/2007/03/22/nfo</java.net.URL>
-              </schemaUrlLibrary>
-              <packageName>au.edu.usq.fascinator.common.nfo</packageName>
-              <methodPrefix>nfo</methodPrefix> 
-            </schemaItem>
-          </schemaList>
-        </configuration>
-      </plugin>-->
+      </plugin>
     </plugins>
     <pluginManagement></pluginManagement>
   </build>

@@ -28,6 +28,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import au.edu.usq.fascinator.api.storage.DigitalObject;
+import au.edu.usq.fascinator.common.MimeTypeUtil;
 import au.edu.usq.fascinator.common.storage.impl.GenericDigitalObject;
 
 /**
@@ -38,31 +39,36 @@ import au.edu.usq.fascinator.common.storage.impl.GenericDigitalObject;
  */
 public class IceDigitalObject extends GenericDigitalObject {
 
+    private static final String ZIP_MIME_TYPE = "application/zip";
+
     /** Logging */
     private Logger log = LoggerFactory.getLogger(IceDigitalObject.class);
 
+    public IceDigitalObject(DigitalObject object) {
+        super(object);
+    }
+
     /**
-     * Creates a DigitalObject with rendition payloads from the specified zip
+     * Creates a DigitalObject with rendition payloads from the specified ZIP or
+     * regular file
      * 
      * @param object original object
-     * @param filePath path to the zip renditions
+     * @param file path to the ICE rendition
      */
-    public IceDigitalObject(DigitalObject object, String filePath) {
+    public IceDigitalObject(DigitalObject object, File file) {
         super(object);
         try {
-            if (filePath.endsWith(".zip")) {
-                File zipPathFile = new File(filePath);
-                ZipFile zipFile = new ZipFile(zipPathFile);
+            if (ZIP_MIME_TYPE.equals(MimeTypeUtil.getMimeType(file))) {
+                ZipFile zipFile = new ZipFile(file);
                 Enumeration<? extends ZipEntry> entries = zipFile.entries();
                 while (entries.hasMoreElements()) {
                     ZipEntry entry = entries.nextElement();
                     if (!entry.isDirectory()) {
-                        addPayload(new IcePayload(zipPathFile, entry));
+                        addPayload(new IcePayload(file, entry));
                     }
                 }
             } else {
-                File filePathFile = new File(filePath);
-                addPayload(new IcePayload(filePathFile, null));
+                addPayload(new IcePayload(file));
             }
         } catch (IOException ioe) {
             log.error("Failed to add rendition payloads: {}", ioe);

@@ -71,5 +71,163 @@
         "display" : "list"
       }
     }
+  },
+  "manifest" : {
+    "node-0d8024c560de7f52a1d657b87c25a0e0" : {
+      "title" : "ANDS Metadata store: starting point",
+      "id" : "/home/octalina/Dropbox/ICE/ANDS/metadata-store/ANDS-metadata-store-VITAL.odt"
+    },
+    "node-08790bae8df615b6b81713d880bc2366" : {
+      "title" : "An architecture for a distributed digital library from the des",
+      "id" : "/home/octalina/Dropbox/ICE/JCDL/2010/JCDL2010_FascinatorArchitecture.doc"
+    },
+    "node-c5a8bcd4297a87622b8ddf696b274722" : {
+      "title" : "An architecture for a distributed digital library from the des",
+      "id" : "/home/octalina/Dropbox/ICE/JCDL/2010/archive/fascinator-architecture - Duncan.doc"
+    },
+    "node-3852056b6fd303c98be2eedee0a384d9" : {
+      "title" : "An architecture for a distributed digital library from the des",
+      "id" : "/home/octalina/Dropbox/ICE/JCDL/2010/archive/fascinator-architecture.doc"
+    },
+    "node-42841c66d5770d386b3b66097b617599" : {
+      "title" : "An architecture for a distributed digital library from the desktop up: The Fascinator",
+      "id" : "/home/octalina/Dropbox/ICE/JCDL/2010/JCDL2010_FascinatorArchitecture.pdf"
+    },
+    "node-aa437a051856d57d1eceabd9b6a3c8c4" : {
+      "title" : "Blake, Anita  - Vampire Hunter 02 - The Laughing Corpse.pdf",
+      "id" : "/home/octalina/Dropbox/Public/Blake, Anita  - Vampire Hunter 02 - The Laughing Corpse.pdf"
+    },
+    "node-7123889dd1694e3184ac0d01b0b5999e" : {
+      "title" : "Boston City Flow.jpg",
+      "id" : "/home/octalina/Dropbox/Photos/Sample Album/Boston City Flow.jpg"
+    },
+    "node-ceba6e5881be665a6d00e06a18760c97" : {
+      "title" : "Costa Rican Frog.jpg",
+      "id" : "/home/octalina/Dropbox/Photos/Sample Album/Costa Rican Frog.jpg"
+    },
+    "node-03bb925fefec0a4a472539fb42c5cd16" : {
+      "title" : "Creating an eResearch Desktop for the Humanities",
+      "id" : "/home/octalina/Dropbox/ICE/eResearch Australasia/2009/eResearch Desktop.ppt"
+    },
+    "node-c75f7a7f8976f07075193a49ee9f39f9" : {
+      "title" : "CurationBoundaries.odg",
+      "id" : "/home/octalina/Dropbox/ICE/JCDL/2010/CurationBoundaries.odg"
+    },
+    "node-9f4072ab40834ee8ca5725083073404f" : {
+      "title" : "Duncan Dickinson - Study Overview.docx",
+      "id" : "/home/octalina/Dropbox/ICE/duncan/Duncan Dickinson - Study Overview.docx"
+    },
+    "node-1c05d901e4bd998d32d78abe08010dc6" : {
+      "title" : "Enabling Scholarly HTML, how to get repository support?",
+      "id" : "/home/octalina/Dropbox/ICE/ptsefton/ice-packaging.odt"
+    },
+    "node-42df0bf4a1a11d36254c9cd4c8101315" : {
+      "title" : "Getting Started.rtf",
+      "id" : "/home/octalina/Dropbox/Getting Started.rtf"
+    },
+    "node-6671b30f0d4b818dbeae7cf09a66d2ab" : {
+      "title" : "How to use the Photos folder.rtf",
+      "id" : "/home/octalina/Dropbox/Photos/How to use the Photos folder.rtf"
+    },
+    "node-8b2720d003008bac417a20bdcb6ec6c2" : {
+      "title" : "How to use the Public folder.rtf",
+      "id" : "/home/octalina/Dropbox/Public/How to use the Public folder.rtf"
+    },
+    "node-6eaa8353d267cc1f29725555bb76172b" : {
+      "title" : "NCRIS – ANDS Proposal ",
+      "id" : "/home/octalina/Dropbox/ICE/ANDS/metadata-store/USQ Updated_ANDS_proposal_2009_v4.doc"
+    },
+    "node-b18588820cc218c073e3376245fd8829" : {
+      "title" : "New Project: Metadata for data collections",
+      "id" : "/home/octalina/Dropbox/ICE/ANDS/metadata-store/archive/ANDS-metadata-store-first-post.odt"
+    },
+    "node-af747b8651fb89fc27dd2214705142c5" : {
+      "title" : "Pensive Parakeet.jpg",
+      "id" : "/home/octalina/Dropbox/Photos/Sample Album/Pensive Parakeet.jpg"
+    },
+    "node-b6fbacb8d4c4aa1417c0b000b42945a4" : {
+      "title" : "Proceedings Template - WORD",
+      "id" : "/home/octalina/Dropbox/ICE/JCDL/2010/Fascinator_poster.doc"
+    },
+    "node-c2b10a58b53bee42610f96b8f3a93247" : {
+      "title" : "Promising developments in the Australian Access Federation",
+      "id" : "/home/octalina/Dropbox/testshare/encouraging-developments-at-AAF.odt"
+    },
+    "node-82d27d88b067e51d7cddd758167c7fbd" : {
+      "title" : "Slide 1",
+      "id" : "/home/octalina/Dropbox/ICE/Presentations/2010/USQ_ADFI_Internal_Fascinator_Jan_2010.ppt"
+    },
+    "node-f05e0c850c5f234b82d403605a64004f" : {
+      "title" : "Squire_VITAL_proposal.doc",
+      "id" : "/home/octalina/Dropbox/ICE/ANDS/metadata-store/Squire_VITAL_proposal.doc"
+    },
+    "node-8d2d469ceac2a9a7dec32ad7f3365030" : {
+      "title" : "Symphony_No_3.wma",
+      "id" : "/home/octalina/Dropbox/ICE/Testing/Symphony_No_3.wma"
+    },
+    "node-3d1fb4ab5db3076303a125c490b168b3" : {
+      "title" : "TF2.jpeg",
+      "id" : "/home/octalina/Dropbox/ICE/JCDL/2010/poster_images/TF2.jpeg"
+    },
+    "node-e5dcd58133f849e1959e7d41b6c34f2c" : {
+      "title" : "TITLE OF PRESENTATION TO GO HERE",
+      "id" : "/home/octalina/Dropbox/ICE/ANDS/metadata-store/IR and RIF-CS model.ppt"
+    },
+    "node-f84b7faf977d4f64374b92da789263eb" : {
+      "title" : "Test eBook.odt",
+      "id" : "/home/octalina/Dropbox/ICE/Testing/Test eBook.odt"
+    },
+    "node-65692a37b096fcb49bdeb535fc4e2bcb" : {
+      "title" : "The Fascinator – Desktop Edition",
+      "id" : "/home/octalina/Dropbox/ICE/JCDL/2010/FascinatorDemo.docx"
+    },
+    "node-07fa1dc06e908c75c6ca9dfbefcedde6" : {
+      "title" : "Victorian Workcover Authority ",
+      "id" : "/home/octalina/Dropbox/ICE/ANDS/ANDS_Project_Plan_template 3.0-ICE.doc"
+    },
+    "node-27e6cace4e468e59d3f4629b00063894" : {
+      "title" : "What’s ADFI pondering?",
+      "id" : "/home/octalina/Dropbox/ICE/Presentations/2010/USQ_LandTWeek_FascinatorICEThesis_Feb2010.pptx"
+    },
+    "node-f0c4484fa0fd2bef1b0e55d484c5e73f" : {
+      "title" : "backup.jpeg",
+      "id" : "/home/octalina/Dropbox/ICE/JCDL/2010/poster_images/backup.jpeg"
+    },
+    "node-ed385f60e0fa2ccb75e5b53224bb6b6a" : {
+      "title" : "create_view.jpeg",
+      "id" : "/home/octalina/Dropbox/ICE/JCDL/2010/poster_images/create_view.jpeg"
+    },
+    "node-03e418b2be4da251d0514546840bf218" : {
+      "title" : "eResearch Plans for 2010",
+      "id" : "/home/octalina/Dropbox/ICE/eResearch2010.odt"
+    },
+    "node-44da3aca40f866792520104c3440054a" : {
+      "title" : "metadata-store-notes-2009-12-21.html",
+      "id" : "/home/octalina/Dropbox/ICE/ANDS/metadata-store/metadata-store-notes-2009-12-21.html"
+    },
+    "node-d4587147c1d55dbcb5a3e095eb1affdf" : {
+      "title" : "metadata_extract.vue",
+      "id" : "/home/octalina/Dropbox/ICE/JCDL/2010/poster_images/metadata_extract.vue"
+    },
+    "node-53bc803a33700d3d0a5822d589a11028" : {
+      "title" : "metadata_extraction.jpeg",
+      "id" : "/home/octalina/Dropbox/ICE/JCDL/2010/poster_images/metadata_extraction.jpeg"
+    },
+    "node-9b68aec06835347b4faae7714c75d7af" : {
+      "title" : "package.tfpackage",
+      "id" : "/home/octalina/Documents/picture/text/package.tfpackage"
+    },
+    "node-2899b33f020dc2a148731fdeb4167eea" : {
+      "title" : "portal.out",
+      "id" : "/home/octalina/Dropbox/testshare/portal.out"
+    },
+    "node-cfbc94ff550acaa23faf683e786566a3" : {
+      "title" : "sketches.odg",
+      "id" : "/home/octalina/Dropbox/ICE/JCDL/2010/sketches.odg"
+    },
+    "node-e90d11b2ceb7312ad433f60adb49f774" : {
+      "title" : "unicorn_stew_epub1.epub",
+      "id" : "/home/octalina/Dropbox/testshare/unicorn_stew_epub1.epub"
+    }
   }
 }

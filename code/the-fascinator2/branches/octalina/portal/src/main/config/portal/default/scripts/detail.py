@@ -160,6 +160,7 @@ class DetailData:
     def getPayloadContent(self):
         mimeType = self.__mimeType
         print " * detail.py: payload content mimeType=%s" % mimeType
+        print "--- mimetype: ", mimeType.find("application/vnd.")
         contentStr = ""
         if mimeType == "application/octet-stream":
             dcFormat = self.__json.get("response/docs/dc_format")
@@ -185,32 +186,40 @@ class DetailData:
                     sw.write("</pre>")
                     sw.flush()
                     contentStr = sw.toString()
-        elif mimeType == "application/pdf" or mimeType.find("vnd.ms")>-1 or mimeType.find("vnd.oasis.opendocument.")>-1:
+        elif mimeType == "application/pdf" or mimeType.find("vnd.ms")>-1 or mimeType.find("vnd.oasis.opendocument.")>-1 \
+            or mimeType.find("application/vnd.")>-1:
             # get the html version if exist...
-            pid = os.path.splitext(self.__pid)[0] + ".htm"
+            base = os.path.splitext(self.__pid)[0]
+            pid = base + ".htm"
             print " * detail.py: pid=%s" % pid
             #contentStr = '<iframe class="iframe-preview" src="%s/%s/download/%s/%s"></iframe>' % \
             #    (contextPath, portalId, self.__oid, pid)
             payload = self.__storage.getPayload(self.__oid, pid)
-            saxReader = SAXReader(Boolean.parseBoolean("false"))
-            try:
-                document = saxReader.read(payload.getInputStream())
-                slideNode = document.selectSingleNode("//*[local-name()='body']")
-                #linkNodes = slideNode.selectNodes("//img")
-                #contentStr = slideNode.asXML();
-                # encode character entities correctly
-                slideNode.setName("div")
+            if payload is None:
+                payload = self.__storage.getPayload(self.__oid, base + "_error.html")
                 out = ByteArrayOutputStream()
-                format = OutputFormat.createPrettyPrint()
-                format.setSuppressDeclaration(True)
-                format.setExpandEmptyElements(True)
-                writer = XMLWriter(out, format)
-                writer.write(slideNode)
-                writer.close()
-                contentStr = out.toString("UTF-8")
-            except:
-                traceback.print_exc()
-                contentStr = "<p class=\"error\">No preview available</p>"
+                IOUtils.copy(payload.getInputStream(), out)
+                contentStr = '<h4 class="error">No preview available</h4><p>Please try re-rendering by using the Re-Harvest action.</p><h5>Details</h5><pre>' + out.toString("UTF-8") + '</pre>'
+            else:
+                saxReader = SAXReader(Boolean.parseBoolean("false"))
+                try:
+                    document = saxReader.read(payload.getInputStream())
+                    slideNode = document.selectSingleNode("//*[local-name()='body']")
+                    #linkNodes = slideNode.selectNodes("//img")
+                    #contentStr = slideNode.asXML();
+                    # encode character entities correctly
+                    slideNode.setName("div")
+                    out = ByteArrayOutputStream()
+                    format = OutputFormat.createPrettyPrint()
+                    format.setSuppressDeclaration(True)
+                    format.setExpandEmptyElements(True)
+                    writer = XMLWriter(out, format)
+                    writer.write(slideNode)
+                    writer.close()
+                    contentStr = out.toString("UTF-8")
+                except:
+                    traceback.print_exc()
+                    contentStr = "<p class=\"error\">No preview available</p>"
         return contentStr
     
     def __openFile(self):

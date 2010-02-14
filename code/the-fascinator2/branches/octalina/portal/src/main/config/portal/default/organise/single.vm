@@ -7,8 +7,8 @@
     #set($numChildren = $children.keySet().size())
     #set($hidden = "false")
     #set($hidden = $item.get("hidden"))
-    <li #if($numChildren > 0)class="open"#end id="$key" rel="$id">
-      <a class="#if($id == $self.oid)clicked#end #if($hidden && $hidden == 'true')item-hidden#end" href="$portalPath/organise/$id">
+    <li #if($numChildren > 0)class="open"#end id="$key" rel="$self.packageId&$id">
+      <a class="#if($id == $self.filePath)clicked#end #if($hidden && $hidden == 'true')item-hidden#end" href="$portalPath/$pageName/$self.packageId&$id">
         $item.get("title")
       </a>
       #if($numChildren > 0)
@@ -29,7 +29,7 @@
     #set($hidden = $item.get("hidden"))
     #if(!$hidden || $hidden == "false")
     <li>
-      <a href="$portalPath/$pageName/$id">$item.get("title")</a>
+      <a href="$portalPath/$pageName/$self.packageId&$id">$item.get("title")</a>
       #if($numChildren > 0)
         #createToc($children "page-toc-children")
       #end
@@ -49,14 +49,15 @@
   </span>
 </h2>
 <div id="action-list" class="grid_4">
-  #if($manifestItem.get("id"))
+  ##if($manifestItem.get("id"))
+  #if ($self.payloadContent)
   <div id="item-props" class="box">
     <h2><a class="hidden" href="#">Properties</a></h2>
     <form class="hidden" id="item-form" method="post">
       <fieldset>
         <p>
           <label for="item_title">Title</label>
-          <input type="text" id="item_title" name="title" value='$manifestItem.get("title")' />
+          <input type="text" id="item_title" name="title" value='$self.getSelectedTitle()' />
         </p>
         <p>
           <label class="checkbox" for="item_hidden">Hidden</label>
@@ -114,7 +115,8 @@
       </fieldset>
     </form>
   </div>
-  #if($manifestItem.get("id"))
+  ##if($manifestItem.get("id"))
+  #if ($self.payloadContent)
   <div id="results-loading" class="box articles hidden">
     <h2>Loading content...</h2>
     <div class="article first">
@@ -124,9 +126,9 @@
   <div id="preview" class="box articles">
     <h2>Preview</h2>
     <div class="content-preview">
-      <span class="mimetype" rel="$self.mimeType"></span>
+<!--      <span class="mimetype" rel="$self.mimeType"></span> -->
       <div class="first article clearfix">
-        <h2 class="title-heading">$manifestItem.get("title")</h2>
+        <h2 class="title-heading">$self.getSelectedTitle()</h2>
         <div class="content-preview-inline">$!self.payloadContent</div>
       </div>
     </div>
@@ -207,7 +209,7 @@ $(function() {
     });
     
     $(".toc.hidden").removeClass("hidden");
-    
+    /*
     $("#view-single").click(function() {
         $(".viewtype").removeClass("selected");
         $(this).addClass("selected");
@@ -221,21 +223,22 @@ $(function() {
         $("#results").addClass("hidden");
         $("#results-combined, .result-item").removeClass("hidden");
     });
-    
+    */
     $("#item_hidden").click(function() {
         var node = $(".clicked").parent("li");
-        jQuery.post("$portalPath/actions/manifest.ajax",
+        jQuery.post("$portalPath/$pageName/",
             {
                 func: "set-hidden",
                 id: "$portalId",
-                nodeId: node.attr("id"),
+                packageId: "$self.packageId",
+                nodeId: "$self.getMd5($self.filePath)",
                 parents: getParentIds(node),
                 hidden: $(this).is(":checked")
             });
         if ($("#item_hidden").is(":checked")) {
-        	node.find("> a").addClass("item-hidden");
+            node.find("> a").addClass("item-hidden");
         } else {
-        	node.find("> a").removeClass("item-hidden");
+            node.find("> a").removeClass("item-hidden");
         }
     });
     
@@ -252,7 +255,7 @@ $(function() {
     });
     
     $("#update-all").click(function() {
-    	var node = $(".clicked").parent("li");
+        var node = $(".clicked").parent("li");
         var title = $("#item_title").attr("value");
         jQuery.post("$portalPath/actions/manifest.ajax",
             {
@@ -270,6 +273,7 @@ $(function() {
         return false;
     });
     
+    /*
     $("#item-form").submit(function() {
         var node = $(".clicked").parent("li");
         var title = $("#item_title").attr("value");
@@ -299,7 +303,7 @@ $(function() {
     }
     fixLinks("div.content-preview-inline a", "href");
     fixLinks("div.content-preview-inline img", "src");
-
+*/
     $("#blog-this, #blog-cancel").click(function() {
         $("#blog-this").toggleClass("selected");
         $("#blog-message").empty();

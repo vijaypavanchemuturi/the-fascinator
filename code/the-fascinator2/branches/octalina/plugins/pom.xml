@@ -13,6 +13,7 @@
     <relativePath>../pom.xml</relativePath>
   </parent>
   <modules>
+    <module>access/simple</module>
     <module>authentication/internal</module>
     <module>authentication/filesystem</module>
     <module>harvester/filesystem</module>
