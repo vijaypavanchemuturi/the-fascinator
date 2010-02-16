@@ -17,8 +17,14 @@ h1#branding {
 }
 
 .box h2 {
+    background: none;
+    color: #000000;
     font-weight: bold;
 }
+
+.box {
+    background: none;
+ }
 
 form.search {
     padding-top: 3px;
@@ -59,9 +65,9 @@ form.search {
     word-wrap: break-word;
 }
 
-.menu .selected, .facet-list .selected {
-    background: black;
-    color: white;
+.menu .selected, .menu-list .selected, .facet-list .selected {
+    //background: black;
+    //color: white;
     font-weight: bold;
 }
 
@@ -99,6 +105,10 @@ form .message {
 .article a img {
     vertical-align: text-bottom;
 }
+
+.article {
+    border-top: none;
+ }
 
 div.tags ul {
     border-top: 1px dotted #999999;
@@ -396,4 +406,8 @@ ul.nobgtabs li a.ui-state-active {
     font-weight: bold;
     font-size: 125%;
     float: right;
+}
+
+.mainmenu .tree ul {
+    font-size: 10px;
 }

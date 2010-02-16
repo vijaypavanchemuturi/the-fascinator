@@ -7,12 +7,14 @@ from au.edu.usq.fascinator.common import JsonConfigHelper
 from java.awt import Desktop
 from java.io import ByteArrayInputStream, ByteArrayOutputStream, File, StringWriter
 from java.net import URLDecoder, URLEncoder
-from java.lang import Boolean
+from java.lang import Boolean, String
 
 from org.apache.commons.io import IOUtils
 from org.dom4j.io import OutputFormat, XMLWriter, SAXReader
 
 import traceback
+
+from org.w3c.tidy import Tidy
 
 class SolrDoc:
     def __init__(self, json):
@@ -149,12 +151,23 @@ class DetailData:
         pid = os.path.splitext(self.__pid)[0] + ".pdf"
         return "%s/%s" % (self.__oid, pid)
     
+    def getPayLoadUrl(self, pid):
+        return "%s/%s" % (self.__oid, pid)
+    
     def hasHtml(self):
         payloadList = self.getObject().getPayloadList()
         for payload in payloadList:
             mimeType = payload.contentType
             if mimeType == "text/html" or mimeType == "application/xhtml+xml":
                 return True
+        return False
+    
+    def hasError(self):
+        base = os.path.splitext(self.__pid)[0]
+        payload = self.__storage.getPayload(self.__oid, base + "_error.htm")
+        contentStr = ""
+        if payload is not None:
+            return True
         return False
     
     def getPayloadContent(self):
@@ -194,7 +207,7 @@ class DetailData:
             #    (contextPath, portalId, self.__oid, pid)
             payload = self.__storage.getPayload(self.__oid, pid)
             if payload is None:
-                payload = self.__storage.getPayload(self.__oid, base + "_error.html")
+                payload = self.__storage.getPayload(self.__oid, base + "_error.htm")
                 out = ByteArrayOutputStream()
                 IOUtils.copy(payload.getInputStream(), out)
                 contentStr = '<h4 class="error">No preview available</h4><p>Please try re-rendering by using the Re-Harvest action.</p><h5>Details</h5><pre>' + out.toString("UTF-8") + '</pre>'
@@ -218,6 +231,13 @@ class DetailData:
                 except:
                     traceback.print_exc()
                     contentStr = "<p class=\"error\">No preview available</p>"
+        elif self.hasError() == True:
+            #For other digitalobject like video or images
+            base = os.path.splitext(self.__pid)[0]
+            payload = self.__storage.getPayload(self.__oid, base + "_error.htm")
+            out = ByteArrayOutputStream()
+            IOUtils.copy(payload.getInputStream(), out)
+            contentStr = '<h4 class="error">No preview available</h4><p>Please try re-rendering by using the Re-Harvest action.</p><h5>Details</h5><pre>' + out.toString("UTF-8") + '</pre>'
         return contentStr
     
     def __openFile(self):
