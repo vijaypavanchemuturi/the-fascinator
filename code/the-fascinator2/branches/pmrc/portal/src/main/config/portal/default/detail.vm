@@ -9,103 +9,119 @@
 #set($filenameNoExt = $self.getFilePathWithoutExt($oid))
 #set($title = $meta.getField("dc_title"))
 #set($description = $meta.getField("dc_description"))
+#set($error = $self.getErrorPayload())
 #if(!$title)
   #set($title = $self.getFileName($oid))
 #end
 ##<h2 id="page-heading">$title</h2>
-<h2 id="page-heading">Detail</h2>
-<div class="grid_4">
-  #if(!$self.isMetadataOnly())
-  <div class="box menu">
-    <h2>Actions</h2>
-    <ul class="menu" id="actions">
-      #if($self.canOpenFile())
-      <li><a id="open-this" href="$portalPath/detail/$oid">Open file</a></li>
-      #end
-      <li><a id="reharvest" href="$portalPath/detail/$oid">Re-Harvest...</a></li>
-      #if($self.hasHtml())
-      <li><a id="blog-this" href="#">Blog...</a><li>
-      #end
-    </ul>
-  </div>
-  #end
-  <div id="metadata" class="box">
-    <h2>Metadata</h2>
-    #set($pageHeader="#parse($page.getTemplate('detail-dc-meta.vm'))")
-    <div class="block">
-      <dl class="meta">
-      #foreach($key in $dc.keySet())
-        <dt>$self.formatName($key)</dt>
-        #set($valueList = $dc.get($key))
-        <dd>
-          <ul>
-          #foreach($value in $valueList)
-            <li>$value</li>
-          #end
+
+
+<table class="layout">
+  <tbody>
+    <tr>
+      <td class="leftcol">
+        <div class="columnbox">
+          <div class="mainmenu">
+            <div class="mainmenu-top"></div>
+            <div class="mainmenu-heading">Public Memory Research Centre</div>
+            <ul class="menu-list">
+              <li><a href="$portalPath/home">Home</a></li>
+              <li><a href="$portalPath/search">Search</a></li>
+              <li><a href="$portalPath/help">Help</a></li>
+            </ul>
+          </div>
+          <div class="mainmenu">
+            <div class="mainmenu-top"></div>
+            <div class="mainmenu-heading">Actions</div>
+            <ul class="menu-list">
+                #if(!$self.isMetadataOnly())
+                  <li><a id="open-this" href="$portalPath/detail/$oid">Open file</a></li>
+                #end
+                <li><a id="reharvest" href="$portalPath/detail/$oid">Re-Harvest...</a></li>
+            </ul>
+          </div>
+          <div class="mainmenu">
+            <div class="mainmenu-top"></div>
+            <div class="mainmenu-heading">Downloads</div>
+            <ul class="menu-list">
+              <li><a href="$portalPath/download/$self.getPayLoadUrl($title)">$title</a></li>
+            </ul>
+          </div>
+          <!--<div class="mainmenu">
+            <div class="mainmenu-top"></div>
+            <div class="mainmenu-heading">Metadata</div>
+            #set($pageHeader="#parse($page.getTemplate('detail-dc-meta.vm'))")
+            <div class="block">
+              <dl class="meta">
+              #foreach($key in $dc.keySet())
+                <dt>$self.formatName($key)</dt>
+                #set($valueList = $dc.get($key))
+                <dd>
+                  <ul>
+                  #foreach($value in $valueList)
+                    <li>$value</li>
+                  #end
+                  </ul>
+                </dd>
+              #end
+              </dl>
+            </div>
+          </div>
+          <div class="mainmenu">
+            <div class="mainmenu-top"></div>
+            <div class="mainmenu-heading">Attachments</div>
+            <ul class="menu hidden">
+            #foreach($payload in $self.object.payloadList)
+              #set($pid = $payload.id)
+              #set($payloadType = $payload.type.toString())
+              <li class="payload" rel="$payload.contentType">
+                <a href='$portalPath/download/$self.encode($oid)/$self.encode($pid)' rel="$payloadType" target="blank" title="$payload.contentType">$payload.id</a>
+              </li>
+            #end
+            </ul>
+          </div>
+          -->
+        </div>
+      </td>
+      <td class="middlecol">
+        <div class="detail">
+        #if($self.solrResponse.get("response/numFound") == 0)
+          #set($pageTitle = "Not found")
+          #set($breadcrumb = "Not found")
+          <h1 class="content-title">Page not found</h1>
+          <h2>There is no images, audios or videos matching your request.</h2>
+          <p>You have been redirected to this page because one of the following occurred:</p>
+          <ul type="disc">
+            <li>It is possible the URL was misspelled or typed incorrectly.</li>
+            <li>You have requested an item that no longer exists.</li>
           </ul>
-        </dd>
-      #end
-      </dl>
-    </div>
-  </div>
-  <div id="attachments" class="box menu">
-    <h2><a href="#">Attachments</a></h2>
-    <ul class="menu hidden">
-    #foreach($payload in $self.object.payloadList)
-      #set($pid = $payload.id)
-      #set($payloadType = $payload.type.toString())
-      <li class="payload" rel="$payload.contentType">
-        <a href='$portalPath/download/$self.encode($oid)/$self.encode($pid)' rel="$payloadType" target="blank" title="$payload.contentType">$payload.id</a>
-      </li>
-    #end
-    </ul>
-  </div>
-</div>
-<div class="grid_12">
-  <div class="box hidden" id="blog-form">
-    <h2>Blog</h2>
-    <form id="blog" method="post">
-      <fieldset class="login">
-        <legend>Blog information</legend>
-        <p>
-          <label for="blog_url">Blog URL</label>
-          <input type="text" id="blog_url" name="blog_url" />
-        </p>
-        <p>
-          <label for="blog_title">Title</label>
-          <input type="text" id="blog_title" name="blog_title" value="$title"/>
-        </p>
-        <p>
-          <label for="blog_username">Username</label>
-          <input type="text" id="blog_username" name="blog_username" />
-        </p>
-        <p>
-          <label for="blog_password">Password</label>
-          <input type="password" id="blog_password" name="blog_password" />
-        </p>
-        <p class="message">
-          <img class="hidden" id="blog-loading" src="$portalPath/images/icons/loading.gif" />
-          <span id="blog-message"></span>
-        </p>
-        <input class="button" id="blog-accept" type="button" value="Blog" />
-        <input id="blog-cancel" type="button" value="Close" />
-      </fieldset>
-    </form>
-    <p>Note: Some platforms may not support images or attachments.</p>
-  </div>
-  <div id="preview" class="box articles">
-    <h2>Preview</h2>
-    <div class="content-preview">
-      <span class="mimetype" rel="$self.mimeType"></span>
-      <div class="first article clearfix">
-      	<h3 class="title-heading">$title</h3>
-        <div class="content-preview-inline">$!self.payloadContent</div>
-        <script type="text/javascript" src="$portalPath/js/annotation.js"></script>
-        <script type="text/javascript" src="$portalPath/js/viewer.js"></script>
-      </div>
-    </div>
-  </div>
-</div>
+          <p>Return to the <a href="$portalPath/home">Public Memory Research Centre</a>.</p>
+        #else
+          #set($oid = $self.object.id)
+          #set($title = $self.metadata.getField("dc_title"))
+          #set($pageTitle = $title)
+          #set($breadcrumb = '<a href="' + $portalPath  + '/search">Search</a> &gt; ' + $title)
+          <h1 class="content-title">$title</h1>
+          <div id="preview" class="box articles">
+            <h2>Preview</h2>
+            <div class="content-preview">
+              <span class="mimetype" rel="$self.mimeType"></span>
+              <div class="first article clearfix">
+                <h3 class="title-heading">$title</h3>
+                <div class="content-preview-inline">$!self.payloadContent</div>
+                <script type="text/javascript" src="$portalPath/js/annotation.js"></script>
+                <script type="text/javascript" src="$portalPath/js/viewer.js"></script>
+              </div>
+            </div>
+          </div>
+          
+        #end
+        </div>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
 <div class="clear"><!--clear--></div>
 #if($self.mimeType.startsWith("audio/") || $self.mimeType.startsWith("video/"))
 <script type="text/javascript" src="$portalPath/flowplayer/flowplayer-3.1.2.min.js"></script>
@@ -179,14 +195,17 @@ $(function() {
         	filename = filenameNoExt + ".flv";
         	hasFlv = "$self.hasFlv()";
         }
-		if (hasFlv!="" || ext=="mp3" || ext=="m4a") {
+		if (hasFlv!='' || ext=="mp3" || ext=="m4a") {
 	        var href = "$portalPath/download/$oid/" + filename;
 	        var player = '<a class="clearfix" href="' + href + '" id="player" style="' + style + '" />';
 	        $("div.content-preview div.article").empty().append(player);
 	        flowplayer("player", "$portalPath/flowplayer/flowplayer-3.1.2.swf",
 	            { clip: { autoPlay: false } });
         } else {
-        	$("div.content-preview div.article").empty().append("No preview available");
+            var error = "$self.hasError()";
+            if (hasFlv=="false") {
+            	$("div.content-preview div.article").empty().append("No preview available");
+            }
         }
     }
 

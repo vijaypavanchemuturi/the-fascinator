@@ -38,17 +38,13 @@
       }
     },
     "facet-fields" : {
-      "tag" : {
-        "label" : "Tags",
-        "display" : "list"
-      },
       "file_path" : {
         "label" : "Path",
         "display" : "tree"
       },
-      "f_dc_format" : {
-        "label" : "Format",
-        "display" : "tree"
+      "tag" : {
+        "label" : "Tags",
+        "display" : "list"
       },
       "f_dc_creator" : {
         "label" : "Author",
@@ -62,12 +58,8 @@
         "label" : "Type",
         "display" : "list"
       },
-      "repository_name" : {
-        "label" : "Source",
-        "display" : "list"
-      },
-      "repository_type" : {
-        "label" : "Source type",
+      "f_dc_format" : {
+        "label" : "Format",
         "display" : "list"
       }
     }
