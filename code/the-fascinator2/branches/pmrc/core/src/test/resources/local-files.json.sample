@@ -23,7 +23,12 @@
             "resize.image.fixedWidth": "150",
             "enlargeImage": "false",
             "outputPath": "${java.io.tmpdir}/ice2-output",
-            "excludeRenditionExt": ".txt,.mp3,.m4a"
+            "excludeRenditionExt": ".txt,.mp3,.m4a,.avi,.mov,.wmv"
+        },
+        "ffmpeg": {
+            "executable": "ffmpeg",
+            "outputPath": "",
+            "customArgs": ""
         }
     },
     

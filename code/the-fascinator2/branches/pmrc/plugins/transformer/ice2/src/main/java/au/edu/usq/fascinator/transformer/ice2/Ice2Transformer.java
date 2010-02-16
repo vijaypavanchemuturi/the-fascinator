@@ -50,7 +50,7 @@ public class Ice2Transformer implements Transformer {
     public DigitalObject transform(DigitalObject object)
             throws TransformerException {
         File file = new File(object.getId());
-        String ext = FilenameUtils.getExtension(file.getName());
+        String ext = "." + FilenameUtils.getExtension(file.getName());
         List<String> excludeList = Arrays.asList(StringUtils.split(get(
                 "excludeRenditionExt", DEFAULT_EXCLUDE_EXT), ','));
         if (file.exists() && !excludeList.contains(ext)) {

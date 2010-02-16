@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.List;
 
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -58,28 +59,25 @@ public class ConveyerBelt {
         List<Object> pluginList = config.getList("transformer/" + type);
         DigitalObject result = object;
         if (pluginList != null) {
-            for (Object pluginName : pluginList) {
-                Transformer transPlugin = PluginManager
-                        .getTransformer(pluginName.toString().trim());
-                // log.info("------ conveyer belt, getting: "
-                // + pluginName.toString());
+            for (Object pluginId : pluginList) {
+                String id = StringUtils.trim(pluginId.toString());
+                Transformer plugin = PluginManager.getTransformer(id);
+                String name = plugin.getName();
+                log.info("Loading plugin: {} ({})", name, id);
                 try {
+                    log.info("Starting {} on {}...", name, object.getId());
                     if (jsonFile == null) {
-                        // log.info("init from string " + configString);
-                        transPlugin.init(configString);
+                        plugin.init(configString);
                     } else {
-                        log.info("init from file");
-                        transPlugin.init(jsonFile);
+                        plugin.init(jsonFile);
                     }
-                    log.info("transforming");
-                    result = transPlugin.transform(result);
-                    log.info("transform result = " + result);
-                } catch (PluginException e) {
-                    e.printStackTrace();
+                    result = plugin.transform(result);
+                    log.info("Finished {} on {}", name, object.getId());
+                } catch (PluginException pe) {
+                    log.error("Transform failed: ({}) {}", id, pe.getMessage());
                 }
             }
         }
-
         return result;
     }
 }
