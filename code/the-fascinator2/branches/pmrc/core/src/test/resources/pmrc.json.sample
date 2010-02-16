@@ -17,8 +17,7 @@
             "outputPath": "${java.io.tmpdir}/ice2-output"
         },
         "ice2": {
-            "url": "http://139.86.35.139:8888/api/convert/",
-            "url-amazon": "http://ec2-75-101-136-199.compute-1.amazonaws.com/api/convert/",
+            "url": "http://ec2-75-101-136-199.compute-1.amazonaws.com/api/convert/",
             "resize.image.mode": "fixedWidth",
             "resize.image.ratio": "-90",
             "resize.image.fixedWidth": "150",
