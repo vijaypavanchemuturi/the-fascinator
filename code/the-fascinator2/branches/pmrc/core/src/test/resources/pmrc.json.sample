@@ -12,7 +12,7 @@
     
     "transformer": {
         "extractor": ["aperture"],
-        "render": ["ice2", "ims"],
+        "render": ["ice2", "ims", "ffmpeg"],
         "aperture": {
             "outputPath": "${java.io.tmpdir}/ice2-output"
         },
@@ -24,7 +24,16 @@
             "resize.image.fixedWidth": "150",
             "enlargeImage": "false",
             "outputPath": "${java.io.tmpdir}/ice2-output",
-            "excludeRenditionExt": ".txt,.mp3,.m4a"
+            "excludeRenditionExt": ".txt,.mp3,.m4a,.mov,.wmv,.mp4,.wav"
+        },
+        "ffmpeg": {
+            "executable": "ffmpeg",
+            "outputPath": "${java.io.tmpdir}/ffmpeg-output",
+            "params": {
+                "default": ["-f", "flv", "-b", "128", "-ab", "16", "-ar", "11025", "-ac", "1", "-s", "384x288", "-aspect", "4:3"],
+                "mp4": ["-sameq", "-deinterlace", "-s", "384x288", "-aspect", "4:3", "-b", "512k", "-y", "-ac", "1"]
+            },
+            "thumbnailSize": "150x112.5"
         }
     },
     
