@@ -35,7 +35,6 @@ import au.edu.usq.fascinator.api.storage.DigitalObject;
 import au.edu.usq.fascinator.api.transformer.Transformer;
 import au.edu.usq.fascinator.api.transformer.TransformerException;
 import au.edu.usq.fascinator.common.JsonConfig;
-import au.edu.usq.fascinator.common.storage.impl.FilePayload;
 import au.edu.usq.fascinator.common.storage.impl.GenericDigitalObject;
 
 /**
@@ -215,16 +214,5 @@ public class FfmpegTransformer implements Transformer {
 
     @Override
     public void shutdown() throws PluginException {
-    }
-
-    public static void main(String[] args) throws Exception {
-        String filename1 = "/Users/lucido/Documents/FSB CORAL PROJECT/Video/MER-BErebusPanorama.mp4";
-        String filename = "/Users/lucido/Documents/FSB CORAL PROJECT/Photos/Taylor/Coral 02.jpg";
-        FfmpegTransformer t = new FfmpegTransformer();
-        t.init("{}");
-        GenericDigitalObject object = new GenericDigitalObject(filename);
-        object.addPayload(new FilePayload(new File(filename)));
-        DigitalObject result = t.transform(object);
-        System.out.println(result.getPayloadList());
     }
 }
