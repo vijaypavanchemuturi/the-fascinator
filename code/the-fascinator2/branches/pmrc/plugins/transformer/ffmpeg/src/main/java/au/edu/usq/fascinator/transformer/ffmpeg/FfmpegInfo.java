@@ -51,7 +51,7 @@ public class FfmpegInfo {
             proc.waitFor();
             String stderr = IOUtils.toString(proc.getErrorStream());
             // check if supported
-            if (supported = (stderr.indexOf(": Unknown format") != -1)) {
+            if (supported = (stderr.indexOf(": Unknown format") == -1)) {
                 // get duration
                 Pattern p = Pattern.compile("Duration: ((\\d+):(\\d+):(\\d+))");
                 Matcher m = p.matcher(stderr);
@@ -62,9 +62,11 @@ public class FfmpegInfo {
                     duration = hrs + min + sec;
                 }
                 // check for video
-                video = Pattern.matches(stderr, "Stream #.*Video:.*");
+                video = Pattern.compile("Stream #.*Video:.*").matcher(stderr)
+                        .find();
                 // check for audio
-                audio = Pattern.matches(stderr, "Stream #.*Audio:.*");
+                audio = Pattern.compile("Stream #.*Audio:.*").matcher(stderr)
+                        .find();
             }
         } catch (InterruptedException ie) {
             throw new IOException(ie);
@@ -85,5 +87,11 @@ public class FfmpegInfo {
 
     public long getDuration() {
         return duration;
+    }
+
+    @Override
+    public String toString() {
+        return "Supported: " + supported + ", Audio: " + audio + ", Video: "
+                + video + ", Duration: " + duration + " seconds";
     }
 }
