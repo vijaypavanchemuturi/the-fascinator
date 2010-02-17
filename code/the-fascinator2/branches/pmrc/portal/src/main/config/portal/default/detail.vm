@@ -124,7 +124,7 @@
 
 <div class="clear"><!--clear--></div>
 #if($self.mimeType.startsWith("audio/") || $self.mimeType.startsWith("video/"))
-<script type="text/javascript" src="$portalPath/flowplayer/flowplayer-3.1.2.min.js"></script>
+<script type="text/javascript" src="$portalPath/flowplayer/flowplayer-3.1.4.min.js"></script>
 #end
 <script type="text/javascript" src="$portalPath/js/tree/jquery.tree.min.js"></script>
 <script type="text/javascript" src="$portalPath/js/autocomplete/lib/jquery.ajaxQueue.js"></script>
@@ -190,17 +190,17 @@ $(function() {
         var filename = oid.substring(oid.lastIndexOf("/") + 1);
         var ext = filename.substring(filename.lastIndexOf(".") + 1).toLowerCase();
 
-        var hasFlv = true;
-        if (ext == "wmv" || ext=="mpg" || ext=="mpeg" || ext=="m3u" || ext=="wav" || ext=="wma" || ext=="mp4") {
-        	filename = filenameNoExt + ".flv";
-        	hasFlv = "$self.hasFlv()";
+        var hasFlv = "$self.hasFlv()";
+        if (hasFlv!='') {
+            filename = hasFlv;
         }
-		if (hasFlv!='' || ext=="mp3" || ext=="m4a") {
-	        var href = "$portalPath/download/$oid/" + filename;
-	        var player = '<a class="clearfix" href="' + href + '" id="player" style="' + style + '" />';
-	        $("div.content-preview div.article").empty().append(player);
-	        flowplayer("player", "$portalPath/flowplayer/flowplayer-3.1.2.swf",
-	            { clip: { autoPlay: false } });
+        
+        if (hasFlv!='' || ext=="mp3" || ext=="m4a") {
+            var href = "$portalPath/download/$oid/" + filename;
+            var player = '<a class="clearfix" href="' + href + '" id="player" style="' + style + '" />';
+            $("div.content-preview div.article").empty().append(player);
+            flowplayer("player", "$portalPath/flowplayer/flowplayer-3.1.5.swf",
+                { clip: { autoPlay: false } });
         } else {
             var error = "$self.hasError()";
             if (hasFlv=="false") {

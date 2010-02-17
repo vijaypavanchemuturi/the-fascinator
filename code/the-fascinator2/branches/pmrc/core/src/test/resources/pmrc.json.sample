@@ -5,7 +5,7 @@
             "baseDir": "${user.home}/Documents/FSB CORAL PROJECT/",
             "ignoreFilter": ".svn|.ice|.*|~*|Thumbs.db|.DS_Store",
             "cacheDir": "${user.home}/.fascinator/cache",
-            "force": true,
+            "force": false,
             "recursive": true
         }
     },
