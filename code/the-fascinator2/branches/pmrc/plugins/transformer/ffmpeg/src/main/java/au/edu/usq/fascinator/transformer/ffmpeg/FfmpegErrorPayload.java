@@ -37,6 +37,10 @@ public class FfmpegErrorPayload extends GenericPayload {
 
     private String message;
 
+    public FfmpegErrorPayload(File file, Throwable t) {
+        this(file, t.getMessage());
+    }
+
     public FfmpegErrorPayload(File file, String message) {
         this.message = message;
         String name = FilenameUtils.getBaseName(file.getName()) + "_error.htm";
