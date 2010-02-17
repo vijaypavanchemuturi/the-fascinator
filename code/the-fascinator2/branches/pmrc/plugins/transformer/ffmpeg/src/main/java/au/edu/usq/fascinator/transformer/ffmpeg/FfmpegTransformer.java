@@ -112,12 +112,12 @@ public class FfmpegTransformer implements Transformer {
             List<String> params = new ArrayList<String>();
             params.add("-i");
             params.add(sourceFile.getAbsolutePath()); // input file
-            // get random frame from first tenth of video
+            // get random frame from first quarter of video
             params.add("-y"); // overwrite output file
             params.add("-deinterlace");
             params.add("-an"); // disable audio
             params.add("-ss");
-            long start = (long) (Math.random() * duration * 0.1);
+            long start = (long) (Math.random() * duration * 0.25);
             params.add(Long.toString(start)); // start time offset
             params.add("-t");
             params.add("00:00:01"); // duration
