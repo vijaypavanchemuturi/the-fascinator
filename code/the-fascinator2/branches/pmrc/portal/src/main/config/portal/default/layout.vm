@@ -145,6 +145,7 @@ $!pageContent
 	          <a title="Provide feedback on the USQ website" href="http://www.usq.edu.au/sitemap">Sitemap</a> | 
 	          <a title="Contact USQ" href="http://www.usq.edu.au/contact">Contact us</a>
 	        </span>
+	        <p>Developed using: <a title="The Fascinator" href="http://fascinator.usq.edu.au">The Fascinator</a></p> 
 	        <div class="linefooter">
 	          <div class="linefooterright" />
 	        </div>
