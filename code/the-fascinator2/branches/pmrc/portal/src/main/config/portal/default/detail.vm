@@ -104,12 +104,17 @@
           <h1 class="content-title">$title</h1>
           <div id="preview" class="box articles">
             <h2>Preview</h2>
-            <div class="content-preview">
+            <div class="results-list">
+                <div class="result">
+                    <h2>Tags</h2>
+                </div>
+            </div>
+            <div id="anno-root" class="content-preview">
               <span class="mimetype" rel="$self.mimeType"></span>
               <div class="first article clearfix">
                 <h3 class="title-heading">$title</h3>
                 <div class="content-preview-inline">$!self.payloadContent</div>
-                <script type="text/javascript" src="$portalPath/js/annotation.js"></script>
+                <div class="annotatable">Comment on the document here:</div>
                 <script type="text/javascript" src="$portalPath/js/viewer.js"></script>
               </div>
             </div>
@@ -121,7 +126,6 @@
     </tr>
   </tbody>
 </table>
-
 <div class="clear"><!--clear--></div>
 #if($self.mimeType.startsWith("audio/") || $self.mimeType.startsWith("video/"))
 <script type="text/javascript" src="$portalPath/flowplayer/flowplayer-3.1.4.min.js"></script>
@@ -177,9 +181,9 @@ $(function() {
     if (mimeType.indexOf("image/") == 0) {
         var src = "$portalPath/download/$oid";
         $("div.content-preview div.article").html(
-            '<a class="image" href="' + src + '"  style="max-width:98%">' +
+            '<div class="annotatable"><a class="image" href="' + src + '"  style="max-width:98%">' +
                 '<img src="' + src + '" style="max-width:100%" />' +
-            '</a>');
+            '</a><div class="clear"></div></div>');
     } else if (mimeType.indexOf("audio/") == 0 || mimeType.indexOf("video/") == 0) {
         var height = 300;
         if (mimeType.indexOf("audio/") == 0) {
@@ -197,7 +201,8 @@ $(function() {
         
         if (hasFlv!='' || ext=="mp3" || ext=="m4a") {
             var href = "$portalPath/download/$oid/" + filename;
-            var player = '<a class="clearfix" href="' + href + '" id="player" style="' + style + '" />';
+            var player = '<a class="clearfix" href="' + href + '" id="player" style="' + style + '" />' + 
+                         '<div class="annotatable"><br/><div class="clear"></div></div>';
             $("div.content-preview div.article").empty().append(player);
             flowplayer("player", "$portalPath/flowplayer/flowplayer-3.1.5.swf",
                 { clip: { autoPlay: false } });
@@ -208,42 +213,54 @@ $(function() {
             }
         }
     }
-
-    $("#blog-this, #blog-cancel").click(function() {
-        $("#blog-this").toggleClass("selected");
-        $("#blog-message").empty();
-        $("#blog-form").toggle("blind");
-        return false;
-    });
-    $("#blog-accept").click(function() {
-        $("#blog-message").empty();
-        $("#blog-loading").show();
-        jQuery.post("$portalPath/actions/blog.ajax",
-            {
-                url: $("#blog_url").val(),
-                title: $("#blog_title").val(),
-                username: $("#blog_username").val(),
-                password: $("#blog_password").val(),
-                oid: "$oid",
-            },
-            function(data, status) {
-                $("#blog-loading").hide();
-                $("#blog-message").html(data);
-            }
-        );
-    });
-
-    $("#attachments h2 a").click(function() {
-        $("#attachments ul").toggle("blind").toggleClass('visible').toggleClass('hidden');
-        return false;
-    });
-
-    #if($self.isMetadataOnly())
-    $("#preview").after($("#metadata")).remove();
-    #end
-
-    $("#blog_url").autocomplete("$portalPath/actions/blog.ajax?func=url-history");
 });
 </script>
+
+<script type="text/javascript" src="$portalPath/js/anotar/json2.js"></script>
+<script type="text/javascript" src="$portalPath/js/anotar/anotar-0.1.js"></script>
+<script type="text/javascript">
+    $(function(){
+        var notes = new Anotar();
+        notes.setConfig("debug", true);
+        notes.setConfig("page_uri", "$self.object.id");
+        #if($page.authentication.is_logged_in())
+        notes.setConfig("creator", "$page.authentication.get_name()");
+        #end
+        notes.setConfig("tag_list", "p, h1, h2, h3, h4, h5, h6, .annotatable");
+        notes.setConfig("proxy_required", false);
+        notes.setConfig("interface_label", " <img src='$portalPath/images/icons/comment_add.png'/> Comments:");
+        notes.setConfig("reply_label", " <img src='$portalPath/images/icons/comments_add.png'/>");
+        notes.setConfig("server_address", "$portalPath/actions/anotar.ajax");
+        notes.setConfig("server_mode", "fascinator");
+        notes.setConfig("interface_visible", true);
+        notes.init($);
+
+        var tags = new Anotar();
+        tags.setType("Tag");
+        tags.setConfig("debug", true);
+        tags.setConfig("doc_root", ".results-list");
+        tags.setConfig("tag_list", ".result h2"); 
+        tags.setConfig("page_uri", "$self.object.id");
+        //tags.setConfig("uri_attr", "id");
+        tags.setConfig("anno-type", "http://www.purl.org/anotar/ns/type/0.1#Tag");
+        tags.setConfig("style_prefix", "tags-");
+        tags.setConfig("proxy_required", false);
+        tags.setConfig("interface_label", " <img src='$portalPath/images/icons/add.png'/>");
+        tags.setConfig("interface_visible", true);
+        tags.setConfig("form_prepend", true);
+        tags.setConfig("form_custom", "<div class='myTags float-right'>Tag this:" +
+          "<textarea></textarea>" +
+          "<img src='$portalPath/images/icons/tick.png' class='myTag-submit'/>&#160;" +
+          "<img src='$portalPath/images/icons/cross.png' class='myTag-cancel'>" +
+        "</div>");
+        tags.setConfig("form_cancel", ".myTag-cancel");
+        tags.setConfig("form_submit", ".myTag-submit");
+        tags.setConfig("server_address", "$portalPath/actions/anotar.ajax");
+        tags.setConfig("server_mode", "fascinator");
+        tags.setConfig("disable_replies", true);
+        tags.init($); 
+    });
+</script>
+
 #end
 

@@ -100,10 +100,12 @@ form .message {
 
 .article a.image {
     margin-bottom: 5px;
+    display: block;
 }
 
 .article a img {
     vertical-align: text-bottom;
+    float: none;
 }
 
 .article {
@@ -408,6 +410,14 @@ ul.nobgtabs li a.ui-state-active {
     float: right;
 }
 
+.mainmenu .tree li {
+    border-bottom: none;
+}
+
+.mainmenu .tree li a {
+    padding: 2px;
+}
+
 .mainmenu .tree ul {
-    font-size: 10px;
+    font-size: 12px;
 }
