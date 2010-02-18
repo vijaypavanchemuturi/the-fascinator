@@ -53,7 +53,7 @@ public class Ice2Transformer implements Transformer {
         String ext = "." + FilenameUtils.getExtension(file.getName());
         List<String> excludeList = Arrays.asList(StringUtils.split(get(
                 "excludeRenditionExt", DEFAULT_EXCLUDE_EXT), ','));
-        if (file.exists() && !excludeList.contains(ext)) {
+        if (file.exists() && !excludeList.contains(ext.toLowerCase())) {
             outputPath = get("outputPath", DEFAULT_OUTPUT_PATH);
             File outputDir = new File(outputPath);
             outputDir.mkdirs();

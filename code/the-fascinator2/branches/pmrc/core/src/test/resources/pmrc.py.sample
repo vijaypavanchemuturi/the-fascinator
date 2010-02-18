@@ -222,9 +222,9 @@ if isMetadata:
         #get the base folder
         baseDir = baseFilePath.rstrip("/")
         baseDir = "/%s/" % baseDir[baseDir.rfind("/")+1:]
-        filePath = filePath.replace(baseFilePath, baseDir)
+        filePath = filePath.replace("\\", "/").replace(baseFilePath, baseDir)
     #indexPath("file_path", object.getId().replace("\\", "/"), includeLastPart=False)
-    indexPath("file_path", filePath.replace("\\", "/"), includeLastPart=False)
+    indexPath("file_path", filePath, includeLastPart=False)
     
     tagsRdf = object.getPayload("tags.rdf")
     if tagsRdf is not None:

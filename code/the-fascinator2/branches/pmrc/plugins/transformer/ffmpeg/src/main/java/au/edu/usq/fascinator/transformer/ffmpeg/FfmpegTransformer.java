@@ -86,7 +86,7 @@ public class FfmpegTransformer implements Transformer {
                     String ext = FilenameUtils.getExtension(file.getName());
                     List<String> excludeList = Arrays.asList(StringUtils.split(
                             get("excludeExt", DEFAULT_EXCLUDE_EXT), ','));
-                    if (!excludeList.contains(ext)
+                    if (!excludeList.contains(ext.toLowerCase())
                             && (info.hasVideo() || info.hasAudio())) {
                         File converted = convert(file);
                         ffmpegObject.addPayload(new FfmpegPayload(converted));
