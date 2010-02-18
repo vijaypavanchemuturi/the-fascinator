@@ -32,11 +32,11 @@
         <div class="home">
           <div class="home-welcome">
             <h2 class="content-title">Public Memory Research Centre</h2>
-            <p>Public Memory Research Centre description....</p>
+            <p>The Public Memory Research Centre investigates the ways in which the past is archived, understood and utilised by contemporary societies. The Centre will undertake research which is internationally and nationally significant in quality; but it will also be interested in local and regional opportunities, affirming the University’s service commitments to the cultural life of its region. The University has significant expertise in this area with staff with good research records interested in developing collaborative as well as solo projects.</p>
           </div>
           <div class="home-search">
             <h2>Search</h2>
-            <p>Search for images, audios and videos using keywords.</p>
+            <p>Search for media using keywords.</p>
             <div class="search-box">
               <form action="search" id="search-form" method="post">
                 <input type="text" id="query" name="query" size="70" value="$!query" />
@@ -47,11 +47,11 @@
                 <input type="radio" name="searchType" id="title" value="dc_title" />
                 <label for="title">Title search</label> -->
               </form>
-              <p>There are currently <strong>$self.itemCount</strong> files?? available.</p>
+              <p>There are currently <strong>$self.itemCount</strong> media files available.</p>
             </div>
           </div>
           <div id="newest">
-            <h2>Recently added images, audios or videos</h2>
+            <h2>Recently added media</h2>
             <table>
             #foreach($item in $self.latest)
 		        #set($itemId = $item.get('id'))
@@ -62,10 +62,10 @@
             #end
             </table>
           </div>
-          <div id="popular">
+          <!--<div id="popular">
             <h2>Most viewed images, audios or videos</h2>
             <p><em>Coming soon...</em></p>
-          </div>
+          </div>-->
         </div>
       </td>
     </tr>
