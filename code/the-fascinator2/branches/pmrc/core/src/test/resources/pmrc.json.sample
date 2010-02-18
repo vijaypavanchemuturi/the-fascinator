@@ -32,7 +32,7 @@
             "thumbnailSize": "160x120",
             "excludeExt": "flv,m4a,mp3",
             "params": {
-                "default": "-f flv -b 192k -ab 64k -ar 44k -ac 1 -s 400x224 -padtop 30 -padbottom 30"
+                "default": "-f flv -b 192k -ab 64k -ar 44100 -ac 1 -s 400x224 -padtop 30 -padbottom 30"
             }
         }
     },
