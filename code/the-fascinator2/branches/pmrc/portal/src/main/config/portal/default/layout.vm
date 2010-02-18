@@ -20,6 +20,7 @@ $!pageContent
     <![endif]-->
     <link rel="stylesheet" type="text/css" href="$portalPath/css/print.css" media="print" />
     <link rel="stylesheet" type="text/css" href="$portalPath/css/styles.css" />
+    <link rel="stylesheet" type="text/css" href="$portalPath/css/anotar.css" />
     $!pageHeader
   </head>
   <body>

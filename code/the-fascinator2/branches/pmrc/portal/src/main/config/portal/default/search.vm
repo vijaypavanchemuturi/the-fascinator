@@ -147,7 +147,8 @@
                       <p><a href="$portalPath/detail/$self.encode($id)">$title</a></p>
                       <div class="tags">
                         <ul class="tags">
-                          <li>Tags:</li>
+                          <li rel="$id">Tags:</li>
+                          #*
                           <li id="tags-$hashId">
                             <a class="tag-add hidden" href="#"><img alt="Add tag" src="$portalPath/images/icons/add.png" /></a>
                             <form class="tag-form hidden" rel="$id">
@@ -158,6 +159,7 @@
                             </form>
                             <img class="tag-loading" src="$portalPath/images/icons/loading.gif" />
                           </li>
+                          *#
                         </ul>
                       </div>
                       #set($thumbnail = $self.getThumbnail($id))
@@ -309,6 +311,7 @@ $(function() {
         );
     });
     
+    #*
     // tagging
     function createTag(tag, tagClass) {
         var tagEl =
@@ -392,8 +395,40 @@ $(function() {
             }
         );
     });
+    *#
 });
 -->
+</script>
+
+<script type="text/javascript" src="$portalPath/js/anotar/json2.js"></script>
+<script type="text/javascript" src="$portalPath/js/anotar/anotar-0.1.js"></script>
+<script type="text/javascript">
+    $(function(){
+        var tags = new Anotar();
+        tags.setType("Tag");
+        tags.setConfig("debug", true);
+        tags.setConfig("doc_root", ".tags");
+        tags.setConfig("tag_list", ".tags li"); 
+        //tags.setConfig("page_uri", "$self.object.id");
+        tags.setConfig("uri_attr", "rel");
+        tags.setConfig("anno-type", "http://www.purl.org/anotar/ns/type/0.1#Tag");
+        tags.setConfig("style_prefix", "tags-");
+        tags.setConfig("proxy_required", false);
+        tags.setConfig("interface_label", " <img src='$portalPath/images/icons/add.png'/>");
+        tags.setConfig("interface_visible", true);
+        tags.setConfig("form_prepend", true);
+        tags.setConfig("form_custom", "<div class='myTags float-right'>Tag this:" +
+          "<textarea></textarea>" +
+          "<img src='$portalPath/images/icons/tick.png' class='myTag-submit'/>&#160;" +
+          "<img src='$portalPath/images/icons/cross.png' class='myTag-cancel'>" +
+        "</div>");
+        tags.setConfig("form_cancel", ".myTag-cancel");
+        tags.setConfig("form_submit", ".myTag-submit");
+        tags.setConfig("server_address", "$portalPath/actions/anotar.ajax");
+        tags.setConfig("server_mode", "fascinator");
+        tags.setConfig("disable_replies", true);
+        tags.init($); 
+    });
 </script>
 
 #if($is_admin)
