@@ -20,7 +20,7 @@
             "url": "http://ec2-75-101-136-199.compute-1.amazonaws.com/api/convert/",
             "resize.image.mode": "fixedWidth",
             "resize.image.ratio": "-90",
-            "resize.image.fixedWidth": "150",
+            "resize.image.fixedWidth": "160",
             "enlargeImage": "false",
             "outputPath": "${java.io.tmpdir}/ice2-output",
             "excludeRenditionExt": ".txt,.mp3,.m4a,.mov,.mp4,.wav,.wma,.wmv"
@@ -32,7 +32,7 @@
             "thumbnailSize": "160x120",
             "excludeExt": "flv,m4a,mp3",
             "params": {
-                "default": "-f flv -b 400 -ab 48 -ar 22050 -ac 1 -s 400x224 -aspect 16:9"
+                "default": "-f flv -b 400k -ab 48 -ar 22050 -ac 1 -s 400x224 -aspect 16:9"
             }
         }
     },

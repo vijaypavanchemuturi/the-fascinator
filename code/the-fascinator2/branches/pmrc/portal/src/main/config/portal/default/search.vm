@@ -166,6 +166,12 @@
                           <img src="$portalPath/download/$id/$thumbnail" title="$title"/>
                         </a>
                       #else
+                        #set($mimeType=$item.get("dc_format").get(0))
+                        #if ($mimeType.startsWith("audio/"))
+                            <a class="image" href="$portalPath/detail/$id">
+                              <img src="$portalPath/images/usq/audio_icon.png" title="$title"/>
+                            </a>
+                        #end
                         ##<h3><a href="$portalPath/detail/$self.encode($id)">$title</a></h3>
                       #end
                       <p class="item-description">$!description&nbsp;</p>

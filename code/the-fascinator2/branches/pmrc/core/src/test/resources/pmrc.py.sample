@@ -87,6 +87,7 @@ if isMetadata:
     contributorList = [] 
     approverList = []  
     formatList = []
+    typeList = []
     fulltext = []
     relationDict = {}
     
@@ -185,7 +186,17 @@ if isMetadata:
         if informationElement.hasMimeType():
             allMimeTypes = informationElement.getAllMimeType()
             while(allMimeTypes.hasNext()):
-                formatList.append(allMimeTypes.next())
+                format = allMimeTypes.next()
+                formatList.append(format)
+                if format.find("/")>-1:
+                    type = format.split("/")[0]
+                    if type=="video": type="Videos"
+                    elif type=="audio": type="Audios"
+                    elif type=="image": type="Images"
+                    elif type == "application/pdf" or type.find("vnd.ms")>-1 or type.find("vnd.oasis.opendocument.")>-1:
+                        type="Documents"
+                    else: type="Others"  #need to do the document type...
+                    typeList.append(type)
     
         #6. contentCreated
         if creationDate == []:
@@ -197,6 +208,7 @@ if isMetadata:
     indexList("dc_contributor", contributorList)
     indexList("dc_description", descriptionList)
     indexList("dc_format", formatList)
+    indexList("dc_type", typeList)
     indexList("dc_date", creationDate)
     
     for key in relationDict:
