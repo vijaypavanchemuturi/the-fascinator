@@ -57,10 +57,6 @@
       "f_dc_type" : {
         "label" : "Type",
         "display" : "list"
-      },
-      "f_dc_format" : {
-        "label" : "Format",
-        "display" : "list"
       }
     }
   }

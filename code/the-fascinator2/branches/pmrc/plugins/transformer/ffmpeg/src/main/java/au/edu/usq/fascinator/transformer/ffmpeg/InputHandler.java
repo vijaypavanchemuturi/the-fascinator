@@ -18,6 +18,7 @@
  */
 package au.edu.usq.fascinator.transformer.ffmpeg;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
@@ -41,6 +42,11 @@ public class InputHandler extends Thread {
                 out.write(c);
             }
         } catch (Throwable t) {
+        } finally {
+            try {
+                out.flush();
+            } catch (IOException e) {
+            }
         }
     }
 }
