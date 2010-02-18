@@ -1,5 +1,6 @@
 <solr persistent="true" sharedLib="lib">
   <cores adminPath="/admin/multicore">
+    <core name="anotar" instanceDir="indexes/anotar" />
     <core name="fascinator" instanceDir="indexes/fascinator" />
     <core name="security" instanceDir="indexes/security" />
   </cores>

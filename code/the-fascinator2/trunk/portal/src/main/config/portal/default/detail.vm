@@ -95,12 +95,12 @@
   </div>
   <div id="preview" class="box articles">
     <h2>Preview</h2>
-    <div class="content-preview">
+    <div id="anno-root" class="content-preview">
       <span class="mimetype" rel="$self.mimeType"></span>
       <div class="first article clearfix">
       	<h3 class="title-heading">$title</h3>
         <div class="content-preview-inline">$!self.payloadContent</div>
-        <script type="text/javascript" src="$portalPath/js/annotation.js"></script>
+        <div class="annotatable">Comment on the document here:</div>
         <script type="text/javascript" src="$portalPath/js/viewer.js"></script>
       </div>
     </div>
@@ -226,5 +226,26 @@ $(function() {
     $("#blog_url").autocomplete("$portalPath/actions/blog.ajax?func=url-history");
 });
 </script>
+
+<script type="text/javascript" src="$portalPath/js/anotar/json2.js"></script>
+<script type="text/javascript" src="$portalPath/js/anotar/anotar-0.1.js"></script>
+<script type="text/javascript">
+    $(function(){
+        var notes = new Anotar();
+        notes.setConfig("debug", true);
+        notes.setConfig("page_uri", "$self.object.id");
+        #if($page.authentication.is_logged_in())
+        notes.setConfig("creator", "$page.authentication.get_name()");
+        #end
+        notes.setConfig("tag_list", "p, h1, h2, h3, h4, h5, h6, .annotatable");
+        notes.setConfig("proxy_required", false);
+        notes.setConfig("interface_label", " <img src='$portalPath/images/icons/comment_add.png'/>");
+        notes.setConfig("reply_label", " <img src='$portalPath/images/icons/comments_add.png'/>");
+        notes.setConfig("server_address", "$portalPath/actions/anotar.ajax");
+        notes.setConfig("server_mode", "fascinator");
+        notes.init($);
+    });
+</script>
+
 #end
 
