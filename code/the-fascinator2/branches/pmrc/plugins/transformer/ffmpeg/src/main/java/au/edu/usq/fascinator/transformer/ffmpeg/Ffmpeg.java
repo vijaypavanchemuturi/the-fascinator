@@ -26,7 +26,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import org.apache.commons.io.output.NullOutputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -82,14 +81,12 @@ public class Ffmpeg {
         List<String> cmd = new ArrayList<String>();
         cmd.add(executable);
         cmd.addAll(params);
-        log.debug("Executing: {}", params);
-        ProcessBuilder builder = new ProcessBuilder(cmd);
-        return builder.start();
+        log.debug("Executing: {}", cmd);
+        return new ProcessBuilder(cmd).redirectErrorStream(true).start();
     }
 
-    public Process waitFor(Process proc, OutputStream out, OutputStream err) {
+    public Process waitFor(Process proc, OutputStream out) {
         new InputHandler("stdout", proc.getInputStream(), out).start();
-        new InputHandler("stderr", proc.getInputStream(), err).start();
         try {
             proc.waitFor();
         } catch (InterruptedException ie) {
@@ -99,20 +96,25 @@ public class Ffmpeg {
         return proc;
     }
 
-    public Process executeAndWait(OutputStream out, OutputStream err)
+    public Process executeAndWait(OutputStream out) throws IOException {
+        return waitFor(execute(), out);
+    }
+
+    public Process executeAndWait(List<String> params, OutputStream out)
             throws IOException {
-        return waitFor(execute(), out, err);
+        return waitFor(execute(params), out);
     }
 
-    public Process executeAndWait(List<String> params, OutputStream out,
-            OutputStream err) throws IOException {
-        return waitFor(execute(params), out, err);
+    public String executeAndWait() throws IOException {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        executeAndWait(out);
+        return out.toString("UTF-8");
     }
 
-    public String executeAndWaitStdErr(List<String> params) throws IOException {
-        ByteArrayOutputStream err = new ByteArrayOutputStream();
-        executeAndWait(params, new NullOutputStream(), err);
-        return err.toString("UTF-8");
+    public String executeAndWait(List<String> params) throws IOException {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        executeAndWait(params, out);
+        return out.toString("UTF-8");
     }
 
     public FfmpegInfo getInfo(File inputFile) throws IOException {
