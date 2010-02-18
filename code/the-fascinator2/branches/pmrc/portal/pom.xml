@@ -271,6 +271,12 @@
                   <contextPath>/solr</contextPath>
                 </contextHandler>
               </contextHandlers>
+              <userRealms>
+                <userRealm implementation="org.mortbay.jetty.security.HashUserRealm">
+                  <name>Restricted</name>
+                  <config>realm.properties</config>
+                </userRealm>
+              </userRealms>
               <background>true</background>
               <stopKey>portal-stop-key</stopKey>
               <stopPort>8089</stopPort>
