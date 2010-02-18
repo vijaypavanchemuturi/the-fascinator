@@ -44,7 +44,7 @@ public class FfmpegInfo {
         List<String> params = new ArrayList<String>();
         params.add("-i");
         params.add(inputFile.getAbsolutePath());
-        String stderr = ffmpeg.executeAndWaitStdErr(params);
+        String stderr = ffmpeg.executeAndWait(params);
         // check if supported
         if (supported = (stderr.indexOf(": Unknown format") == -1)) {
             // get duration
