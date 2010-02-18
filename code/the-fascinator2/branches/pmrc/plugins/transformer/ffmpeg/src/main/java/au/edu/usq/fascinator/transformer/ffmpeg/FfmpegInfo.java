@@ -25,8 +25,6 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.commons.io.IOUtils;
-
 /**
  * Basic information about a media file
  * 
@@ -46,30 +44,24 @@ public class FfmpegInfo {
         List<String> params = new ArrayList<String>();
         params.add("-i");
         params.add(inputFile.getAbsolutePath());
-        try {
-            Process proc = ffmpeg.execute(params);
-            proc.waitFor();
-            String stderr = IOUtils.toString(proc.getErrorStream());
-            // check if supported
-            if (supported = (stderr.indexOf(": Unknown format") == -1)) {
-                // get duration
-                Pattern p = Pattern.compile("Duration: ((\\d+):(\\d+):(\\d+))");
-                Matcher m = p.matcher(stderr);
-                if (m.find()) {
-                    long hrs = Long.parseLong(m.group(2)) * 3600;
-                    long min = Long.parseLong(m.group(3)) * 60;
-                    long sec = Long.parseLong(m.group(4));
-                    duration = hrs + min + sec;
-                }
-                // check for video
-                video = Pattern.compile("Stream #.*Video:.*").matcher(stderr)
-                        .find();
-                // check for audio
-                audio = Pattern.compile("Stream #.*Audio:.*").matcher(stderr)
-                        .find();
+        String stderr = ffmpeg.executeAndWaitStdErr(params);
+        // check if supported
+        if (supported = (stderr.indexOf(": Unknown format") == -1)) {
+            // get duration
+            Pattern p = Pattern.compile("Duration: ((\\d+):(\\d+):(\\d+))");
+            Matcher m = p.matcher(stderr);
+            if (m.find()) {
+                long hrs = Long.parseLong(m.group(2)) * 3600;
+                long min = Long.parseLong(m.group(3)) * 60;
+                long sec = Long.parseLong(m.group(4));
+                duration = hrs + min + sec;
             }
-        } catch (InterruptedException ie) {
-            throw new IOException(ie);
+            // check for video
+            video = Pattern.compile("Stream #.*Video:.*").matcher(stderr)
+                    .find();
+            // check for audio
+            audio = Pattern.compile("Stream #.*Audio:.*").matcher(stderr)
+                    .find();
         }
     }
 

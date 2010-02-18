@@ -18,6 +18,7 @@
  */
 package au.edu.usq.fascinator.transformer.ffmpeg;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -25,7 +26,6 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -130,14 +130,9 @@ public class FfmpegTransformer implements Transformer {
             params.add("-f");
             params.add("mjpeg"); // mjpeg output format
             params.add(outputFile.getAbsolutePath()); // output file
-            Process proc = ffmpeg.execute(params);
-            proc.waitFor();
-            log.debug("stdout: " + IOUtils.toString(proc.getInputStream()));
-            log.debug("stderr: " + IOUtils.toString(proc.getErrorStream()));
+            String stderr = ffmpeg.executeAndWaitStdErr(params);
+            log.debug(stderr);
             log.info("Thumbnail created: outputFile={}", outputFile);
-        } catch (InterruptedException ie) {
-            log.error("ffmpeg was interrupted!", ie);
-            throw new TransformerException(ie);
         } catch (IOException ioe) {
             log.error("Failed to create thumbnail!", ioe);
             throw new TransformerException(ioe);
@@ -165,14 +160,9 @@ public class FfmpegTransformer implements Transformer {
             }
             params.addAll(Arrays.asList(StringUtils.split(configParams, ' ')));
             params.add(outputFile.getAbsolutePath()); // output file
-            Process proc = ffmpeg.execute(params);
-            proc.waitFor();
-            log.debug("stdout: " + IOUtils.toString(proc.getInputStream()));
-            log.debug("stderr: " + IOUtils.toString(proc.getErrorStream()));
+            String stderr = ffmpeg.executeAndWaitStdErr(params);
+            log.debug(stderr);
             log.info("Conversion successful: outputFile={}", outputFile);
-        } catch (InterruptedException ie) {
-            log.error("ffmpeg was interrupted!", ie);
-            throw new TransformerException(ie);
         } catch (IOException ioe) {
             log.error("Failed to convert!", ioe);
             throw new TransformerException(ioe);
@@ -214,5 +204,16 @@ public class FfmpegTransformer implements Transformer {
 
     @Override
     public void shutdown() throws PluginException {
+    }
+
+    public static void main(String[] args) throws Exception {
+        ProcessBuilder pb = new ProcessBuilder("c:\\ffmpeg\\bin\\ffmpeg.exe");
+        Process p = pb.start();
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        InputHandler ih = new InputHandler("stderr", p.getErrorStream(), out);
+        ih.start();
+        p.waitFor();
+        // IOUtils.copy(p.getErrorStream(), System.out);
+        System.out.println(out.toString());
     }
 }

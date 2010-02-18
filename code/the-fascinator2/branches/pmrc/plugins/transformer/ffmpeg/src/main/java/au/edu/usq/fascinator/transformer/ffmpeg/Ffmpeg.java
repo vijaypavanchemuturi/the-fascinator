@@ -18,12 +18,15 @@
  */
 package au.edu.usq.fascinator.transformer.ffmpeg;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import org.apache.commons.io.output.NullOutputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -82,6 +85,34 @@ public class Ffmpeg {
         log.debug("Executing: {}", params);
         ProcessBuilder builder = new ProcessBuilder(cmd);
         return builder.start();
+    }
+
+    public Process waitFor(Process proc, OutputStream out, OutputStream err) {
+        new InputHandler("stdout", proc.getInputStream(), out).start();
+        new InputHandler("stderr", proc.getInputStream(), err).start();
+        try {
+            proc.waitFor();
+        } catch (InterruptedException ie) {
+            log.error("ffmpeg was interrupted!", ie);
+            proc.destroy();
+        }
+        return proc;
+    }
+
+    public Process executeAndWait(OutputStream out, OutputStream err)
+            throws IOException {
+        return waitFor(execute(), out, err);
+    }
+
+    public Process executeAndWait(List<String> params, OutputStream out,
+            OutputStream err) throws IOException {
+        return waitFor(execute(params), out, err);
+    }
+
+    public String executeAndWaitStdErr(List<String> params) throws IOException {
+        ByteArrayOutputStream err = new ByteArrayOutputStream();
+        executeAndWait(params, new NullOutputStream(), err);
+        return err.toString("UTF-8");
     }
 
     public FfmpegInfo getInfo(File inputFile) throws IOException {
