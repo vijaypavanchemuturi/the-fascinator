@@ -233,9 +233,11 @@ $(function() {
     $(function(){
         var notes = new Anotar();
         notes.setConfig("debug", true);
-        notes.setConfig("page_uri", "$self.object.id");
+        notes.setConfig("object_literal", "$self.object.id");
+        notes.setConfig("page_uri", "$portalPath/$self.object.id");
         #if($page.authentication.is_logged_in())
         notes.setConfig("creator", "$page.authentication.get_name()");
+        notes.setConfig("creator_uri", null);
         #end
         notes.setConfig("tag_list", "p, h1, h2, h3, h4, h5, h6, .annotatable");
         notes.setConfig("proxy_required", false);

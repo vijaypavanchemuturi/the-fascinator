@@ -59,6 +59,27 @@ public interface Indexer extends Plugin {
     public void index(String oid, String pid) throws IndexerException;
 
     /**
+     * Adds a payload entry to annotations index
+     *
+     * @param oid an object identifier
+     * @param pid a payload identifier
+     * @throws IndexerException if an error occurred while indexing
+     */
+    public void annotate(String oid, String pid) throws IndexerException;
+
+    /**
+     * Searches the index using the specified request. The search results are
+     * written into the specified output stream and should generally be in a
+     * JSON or XML format
+     *
+     * @param request search request
+     * @param result search results
+     * @throws IndexerException if an error occurred performing the search
+     */
+    public void annotateSearch(SearchRequest request, OutputStream result)
+            throws IndexerException;
+
+    /**
      * Removes an objects entry from the index
      * 
      * @param oid an object identifier

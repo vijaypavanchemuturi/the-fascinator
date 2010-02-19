@@ -24,13 +24,13 @@ function Anotar() {
         "doc_root" : "#anno-root",
         "tag_list" : "p, h1, h2, h3, h4, h5, h6",
         "label" : "Comment on this:",
+        "lang" : "en",
 
         "creator" : null,
-        "creator_uri": "http://fascinator.usq.edu.au/trac/wiki/Annotate/schema/0.1/anotar-user-ns#Anonymous",
+        "creator_uri": "http://www.purl.org/anotar/ns/user/0.1#Anonymous",
         "creator_email": null,
 
-        "client_version" : "Annotate Client (0.1)",
-        "client_uri" : "http://fascinator.usq.edu.au/annotate/client/version#0.1",
+        "client_uri" : "http://www.purl.org/anotar/client/0.1",
         "anno_type" : "http://www.w3.org/2000/10/annotationType#Comment",
         "server_address" : null,
         "server_mode" : "couch",
@@ -66,6 +66,7 @@ function Anotar() {
         "proxy_required" : true,
         "proxy_url" : null,
 
+        "object_literal" : null,
         "page_uri" : null,
         "uri_attr" : null
     };
@@ -87,6 +88,7 @@ function Anotar() {
     var wait_time = 500;
     var thisCallback = null;
     var isReply = false;
+    var anonUri = "http://www.purl.org/anotar/ns/user/0.1#Anonymous";
 
     this.getConfig = function(property) {
         return config[property];
@@ -486,10 +488,7 @@ function Anotar() {
         var schemaObject = {};
 
         // Version and profile
-        schemaObject.clientVersion = {
-            "literal": config.client_version,
-            "uri": config.client_uri
-        };
+        schemaObject.clientVersionUri = config.client_uri;
         schemaObject.type = config.anno_type;
 
         schemaObject.title = {
@@ -499,7 +498,7 @@ function Anotar() {
 
         // Annotation target
         schemaObject.annotates = {
-            //"literal": null,
+            "literal": config.object_literal,
             "uri": data.uri,
             "rootUri": data.root
         };
@@ -509,7 +508,7 @@ function Anotar() {
             schemaObject.annotates.locators = [];
             var thisHash = {
                 "originalContent": data.content,
-                "type": "http://www.purl.org/anotar/locator",
+                "type": "http://www.purl.org/anotar/locator/0.1",
                 "value": data.hash
             };
             schemaObject.annotates.locators.push(thisHash);
@@ -540,13 +539,13 @@ function Anotar() {
             "literal": data.body,
             "formData": {}
         };
-        //schemaObject.contentUri = null;
+        schemaObject.contentUri = null;
 
         // Privacy
         schemaObject.isPrivate = false;
 
         // Language
-        schemaObject.lang = "en";
+        schemaObject.lang = config.lang;
 
         return schemaObject;
     }
@@ -562,27 +561,27 @@ function Anotar() {
         } else {
             var submitCallback = function (data, status) {
                 var response = JSON.parse(data);
-                if (response.ok !== undefined && response.ok == true) {
-                    var loadCallback = function (data, status) {
-                        switch (config.server_mode) {
-                            case "fascinator":
-                                var anno = JSON.parse(data)[0];
-                                break;
-                            default:
+                switch (config.server_mode) {
+                    case "fascinator":
+                        loadAnnotation(response);
+                        break;
+                    default:
+                        if (response.ok !== undefined && response.ok == true) {
+                            var loadCallback = function (data, status) {
                                 var anno = JSON.parse(data).rows[0].value;
-                                break;
-                        }
-                        if (isReply) {
-                            var parent = config.jQ("#" + uri);
-                            var child = parent.find("." + config.style_prefix + "anno-children");
-                            child.html(child.html() + renderAnnotation(anno));
+                                if (isReply) {
+                                    var parent = config.jQ("#" + uri);
+                                    var child = parent.find("." + config.style_prefix + "anno-children");
+                                    child.html(child.html() + renderAnnotation(anno));
+                                } else {
+                                    loadAnnotation(anno);
+                                }
+                            }
+                            getAnnotation(thisUri, response.id, loadCallback);
                         } else {
-                            loadAnnotation(anno);
+                            alert("Sorry! An error occurred saving that data!");
                         }
-                    }
-                    getAnnotation(thisUri, response.id, loadCallback);
-                } else {
-                    alert("Sorry! An error occurred saving that data!");
+                        break;
                 }
             }
 
@@ -674,6 +673,7 @@ function Anotar() {
             annoObj.annotates.locators.length > 0) {
             annoHash = annoObj.annotates.locators[0].value;
         }
+
         // Find where to attach it
         var attached = false;
         var len = target_list.length;
@@ -750,6 +750,10 @@ function Anotar() {
         // Use the literal first. eg. "Bob"
         if (annoObj.creator.literal != null) {
             creator = annoObj.creator.literal;
+            // Can we add a URI to make a link?
+            if (annoObj.creator.uri != null && annoObj.creator.uri.startsWith("http")) {
+                creator = "<a href='" + annoObj.creator.uri +"'>" + creator + "</a>";
+            }
         } else {
             // Or try their email address.
             if (annoObj.creator.email.literal != null) {
@@ -758,6 +762,10 @@ function Anotar() {
                 // Finally let's look for a URI, such as anonymous
                 if (annoObj.creator.uri != null) {
                     creator = annoObj.creator.uri;
+                    // An hide the anon URI since it's most common (and long)
+                    if (creator == anonUri) {
+                        creator = "<a href='" + anonUri +"'>Anonymous</a>";
+                    }
                 }
             }
         }
@@ -805,16 +813,17 @@ function Anotar() {
     }
 
     var attachAnnotation = function(node, annotation) {
-        var wrapClass = config.style_prefix + "has-annotation";
+        if (isReply) {
+            node.append(annotation);
+        } else {
+            var wrapClass = config.style_prefix + "has-annotation";
 
-        if (!node.parent().hasClass(wrapClass)) {
-            node.wrap("<div class='" + wrapClass + "'/>");
+            if (!node.parent().hasClass(wrapClass)) {
+                node.wrap("<div class='" + wrapClass + "'/>");
+            }
+
+            node.parent().append(annotation);
         }
-
-        node.parent().append(annotation);
-    }
-
-    var attachReply = function(annoObj, target) {
     }
 
     var getAnnotation = function(obj, key, callback) {
@@ -822,8 +831,7 @@ function Anotar() {
         var searchValue = "";
         switch (config.server_mode) {
             case "fascinator":
-                baseQuery = "?action=get&rootUri=" + escape(obj) + "&id=" + escape(key);
-                searchValue = "";
+                debug_die("Not supported, use getAnnotations().");
                 break;
             default:
                 baseQuery = "_design/anotar/_view/id?key=";
@@ -846,8 +854,9 @@ function Anotar() {
         var searchValue = "";
         switch (config.server_mode) {
             case "fascinator":
-                baseQuery = "?action=getList&rootUri=";
-                searchValue = escape(key);
+                baseQuery = "?action=getList";
+                baseQuery += "&rootUri=" + escape(key);
+                baseQuery += "&type=" + escape(config.anno_type);
                 break;
             default:
                 baseQuery = "_design/anotar/_list/nested/all?key=";
@@ -1059,3 +1068,6 @@ function Crc32(str) {
 
     return Crc32Hex(str);
 }
+
+// Basic String util
+String.prototype.startsWith = function(str) {return (this.match("^"+str)==str)}

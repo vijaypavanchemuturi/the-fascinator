@@ -44,6 +44,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+import java.util.logging.Level;
 
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
@@ -94,6 +95,7 @@ import au.edu.usq.fascinator.api.storage.Payload;
 import au.edu.usq.fascinator.api.storage.Storage;
 import au.edu.usq.fascinator.api.storage.StorageException;
 import au.edu.usq.fascinator.common.JsonConfig;
+import au.edu.usq.fascinator.common.JsonConfigHelper;
 
 public class SolrIndexer implements Indexer {
 
@@ -111,9 +113,13 @@ public class SolrIndexer implements Indexer {
 
     private SolrServer solr;
 
+    private SolrServer anotar;
+
     private CoreContainer coreContainer;
 
     private boolean autoCommit;
+
+    private boolean anotarAutoCommit;
 
     private String propertiesId;
 
@@ -166,56 +172,13 @@ public class SolrIndexer implements Indexer {
                 log.error("Failed to load storage plugin: {}", storageType);
             }
 
-            try {
-                boolean isEmbedded = Boolean.parseBoolean(config
-                        .get("indexer/solr/embedded"));
-                if (isEmbedded) {
-                    String home = config.get("indexer/solr/home",
-                            DEFAULT_SOLR_HOME);
-                    log.info("home={}", home);
-                    File homeDir = new File(home);
-                    if (!homeDir.exists()) {
-                        log.info("Preparing default Solr home...");
-                        prepareHome(homeDir);
-                    }
-                    System.setProperty("solr.solr.home", homeDir
-                            .getAbsolutePath());
-                    File coreXmlFile = new File(homeDir, "solr.xml");
-                    coreContainer = new CoreContainer(
-                            homeDir.getAbsolutePath(), coreXmlFile);
-                    for (SolrCore core : coreContainer.getCores()) {
-                        log.info("loaded core: {}", core.getName());
-                    }
-                    solr = new EmbeddedSolrServer(coreContainer, "search");
-                } else {
-                    URI solrUri = new URI(config.get("indexer/solr/uri"));
-                    solr = new CommonsHttpSolrServer(solrUri.toURL());
-                    username = config.get("indexer/solr/username");
-                    password = config.get("indexer/solr/password");
-                    if (username != null && password != null) {
-                        UsernamePasswordCredentials credentials = new UsernamePasswordCredentials(
-                                username, password);
-                        HttpClient hc = ((CommonsHttpSolrServer) solr)
-                                .getHttpClient();
-                        hc.getParams().setAuthenticationPreemptive(true);
-                        hc.getState()
-                                .setCredentials(AuthScope.ANY, credentials);
-                    }
-                }
-            } catch (MalformedURLException mue) {
-                log.error("Malformed URL", mue);
-            } catch (URISyntaxException urise) {
-                log.error("Invalid URI", urise);
-            } catch (IOException ioe) {
-                log.error("Failed to read Solr configuration", ioe);
-            } catch (ParserConfigurationException pce) {
-                log.error("Failed to parse Solr configuration", pce);
-            } catch (SAXException saxe) {
-                log.error("Failed to load Solr configuration", saxe);
-            }
+            solr   = this.initCore("solr");
+            anotar = this.initCore("anotar");
 
             autoCommit = Boolean.parseBoolean(config.get(
                     "indexer/solr/autocommit", "true"));
+            anotarAutoCommit = Boolean.parseBoolean(config.get(
+                    "indexer/anotar/autocommit", "true"));
             propertiesId = config.get("indexer/propertiesId", "SOF-META");
 
             namespaces = new HashMap<String, String>();
@@ -225,6 +188,59 @@ public class SolrIndexer implements Indexer {
             saxReader = new SAXReader(docFactory);
         }
         loaded = true;
+    }
+
+    private SolrServer initCore(String coreName) {
+        try {
+            boolean isEmbedded = Boolean.parseBoolean(
+                    config.get("indexer/" + coreName + "/embedded"));
+            if (isEmbedded) {
+                /* TODO - Fix embedded for Solr 1.4 */
+                String home = config.get("indexer/" + coreName + "/home",
+                        DEFAULT_SOLR_HOME);
+                log.info("home={}", home);
+                File homeDir = new File(home);
+                if (!homeDir.exists()) {
+                    log.info("Preparing default Solr home...");
+                    prepareHome(homeDir);
+                }
+                System.setProperty("solr.solr.home", homeDir
+                        .getAbsolutePath());
+                File coreXmlFile = new File(homeDir, "solr.xml");
+                coreContainer = new CoreContainer(
+                        homeDir.getAbsolutePath(), coreXmlFile);
+                for (SolrCore core : coreContainer.getCores()) {
+                    log.info("loaded core: {}", core.getName());
+                }
+                return new EmbeddedSolrServer(coreContainer, "search");
+            } else {
+                URI solrUri = new URI(config.get("indexer/" + coreName + "/uri"));
+                CommonsHttpSolrServer thisCore = new CommonsHttpSolrServer(solrUri.toURL());
+                username = config.get("indexer/" + coreName + "/username");
+                password = config.get("indexer/" + coreName + "/password");
+                if (username != null && password != null) {
+                    UsernamePasswordCredentials credentials = new UsernamePasswordCredentials(
+                            username, password);
+                    HttpClient hc = ((CommonsHttpSolrServer) solr)
+                            .getHttpClient();
+                    hc.getParams().setAuthenticationPreemptive(true);
+                    hc.getState()
+                            .setCredentials(AuthScope.ANY, credentials);
+                }
+                return thisCore;
+            }
+        } catch (MalformedURLException mue) {
+            log.error(coreName + " : Malformed URL", mue);
+        } catch (URISyntaxException urise) {
+            log.error(coreName + " : Invalid URI", urise);
+        } catch (IOException ioe) {
+            log.error(coreName + " : Failed to read Solr configuration", ioe);
+        } catch (ParserConfigurationException pce) {
+            log.error(coreName + " : Failed to parse Solr configuration", pce);
+        } catch (SAXException saxe) {
+            log.error(coreName + " : Failed to load Solr configuration", saxe);
+        }
+        return null;
     }
 
     private void prepareHome(File homeDir) throws IOException {
@@ -350,6 +366,11 @@ public class SolrIndexer implements Indexer {
         if (propertiesId.equals(pid)) {
             return;
         }
+        // Don't proccess annotation through this function
+        if (pid.startsWith("anotar.")) {
+            annotate(oid, pid);
+            return;
+        }
         log.info("Indexing " + oid + "/" + pid);
 
         // get the indexer properties or we can't index
@@ -403,6 +424,104 @@ public class SolrIndexer implements Indexer {
         }
     }
 
+    @Override
+    public void annotate(String oid, String pid) throws IndexerException {
+
+        if (propertiesId.equals(pid)) {
+            return;
+        }
+
+        DigitalObject object = storage.getObject(oid);
+
+        try {
+            File rules = createTempFile("rules", ".script");
+            FileOutputStream rulesOut = new FileOutputStream(rules);
+            IOUtils.copy(getClass().getResourceAsStream("/anotar.py"), rulesOut);
+            rulesOut.close();
+
+            String set = null; // TODO
+            File solrFile = null;
+            Properties props = new Properties();
+            props.setProperty("metaPid", pid);
+
+            solrFile = indexMetadata(object, oid, set, rules, props);
+            if (solrFile != null) {
+                InputStream inputDoc = new FileInputStream(solrFile);
+                String xml = IOUtils.toString(inputDoc, "UTF-8");
+                inputDoc.close();
+                SolrRequest update = new DirectXmlRequest("/update", xml);
+                anotar.request(update);
+                if (anotarAutoCommit) {
+                    anotar.commit();
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            log.error("Indexing failed!\n-----\n{}\n-----\n", e.getMessage());
+        } finally {
+            cleanupTempFiles();
+        }
+    }
+
+    @Override
+    public void annotateSearch(SearchRequest request, OutputStream response)
+            throws IndexerException {
+        if (anotar instanceof EmbeddedSolrServer) {
+            EmbeddedSolrServer ess = ((EmbeddedSolrServer) anotar);
+            SolrQuery query = new SolrQuery();
+            query.setQuery(request.getQuery());
+            for (String name : request.getParamsMap().keySet()) {
+                Set<String> values = request.getParams(name);
+                query.setParam(name, values.toArray(new String[] {}));
+            }
+            try {
+                QueryResponse resp = ess.query(query);
+                JSONResponseWriter jrw = new JSONResponseWriter();
+                jrw.init(resp.getResponse());
+                SolrQueryRequest a = new LocalSolrQueryRequest(coreContainer
+                        .getCore("search"), query);
+                SolrQueryResponse b = new SolrQueryResponse();
+                b.setAllValues(resp.getResponse());
+                ByteArrayOutputStream out = new ByteArrayOutputStream();
+                Writer w = new OutputStreamWriter(out);
+                jrw.write(w, a, b);
+                w.close();
+                log.info("out={}", out.toString("UTF-8"));
+                IOUtils.copy(new ByteArrayInputStream(out.toByteArray()),
+                        response);
+            } catch (SolrServerException sse) {
+                sse.printStackTrace();
+                throw new IndexerException(sse);
+            } catch (IOException ioe) {
+                throw new IndexerException(ioe);
+            }
+        } else {
+            SolrSearcher searcher = new SolrSearcher(
+                    ((CommonsHttpSolrServer) anotar).getBaseURL());
+            if (username != null && password != null) {
+                searcher.authenticate(username, password);
+            }
+            InputStream result;
+            try {
+                StringBuilder extras = new StringBuilder();
+                for (String name : request.getParamsMap().keySet()) {
+                    for (String param : request.getParams(name)) {
+                        extras.append(name);
+                        extras.append("=");
+                        extras.append(URLEncoder.encode(param, "UTF-8"));
+                        extras.append("&");
+                    }
+                }
+                extras.append("wt=json");
+                result = searcher.get(request.getQuery(), extras.toString(),
+                        false);
+                IOUtils.copy(result, response);
+                result.close();
+            } catch (IOException ioe) {
+                throw new IndexerException(ioe);
+            }
+        }}
+
     private File indexMetadata(DigitalObject item, String pid, String set,
             File rulesFile, Properties props) throws IOException,
             StorageException, RuleException {
@@ -443,6 +562,7 @@ public class SolrIndexer implements Indexer {
             scriptEngine.put("storageId", sid);
             scriptEngine.put("params", props);
             scriptEngine.put("isMetadata", pid == null);
+            scriptEngine.put("inputReader", in);
             // TODO add required solr fields?
             scriptEngine.eval(new FileReader(ruleScript));
             rules.run(in, out);
@@ -522,6 +642,15 @@ public class SolrIndexer implements Indexer {
             }
         }
         return null;
+    }
+
+    public JsonConfigHelper getJsonDocument(Reader jsonReader) {
+        try {
+            return new JsonConfigHelper(jsonReader);
+        } catch (IOException ex) {
+            log.error("Failure during stream access", ex);
+            return null;
+        }
     }
 
     public Model getRdfModel(Payload payload) {
