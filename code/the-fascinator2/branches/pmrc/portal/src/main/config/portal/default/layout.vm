@@ -19,6 +19,7 @@ $!pageContent
     <link rel="stylesheet" type="text/css" href="$portalPath/css/common-ie6.css" />
     <![endif]-->
     <link rel="stylesheet" type="text/css" href="$portalPath/css/print.css" media="print" />
+    <link rel="stylesheet" type="text/css" href="$portalPath/css/image-annotation.css" />
     <link rel="stylesheet" type="text/css" href="$portalPath/css/styles.css" />
     <link rel="stylesheet" type="text/css" href="$portalPath/css/anotar.css" />
     $!pageHeader
