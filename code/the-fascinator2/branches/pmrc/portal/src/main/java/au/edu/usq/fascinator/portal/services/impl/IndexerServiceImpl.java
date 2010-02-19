@@ -57,6 +57,17 @@ public class IndexerServiceImpl implements IndexerService {
     }
 
     @Override
+    public void annotate(String oid, String pid) throws IndexerException {
+        indexer.annotate(oid, pid);
+    }
+
+    @Override
+    public void annotateSearch(SearchRequest request, OutputStream result)
+            throws IndexerException {
+        indexer.annotateSearch(request, result);
+    }
+
+    @Override
     public void remove(String oid) throws IndexerException {
         indexer.remove(oid);
     }
