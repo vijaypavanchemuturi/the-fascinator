@@ -176,21 +176,7 @@
         </div>
         #end
         <h3><a href="$portalPath/detail/$self.encode($id)">$title</a></h3>
-        <div class="tags">
-          <ul class="tags">
-            <li>Tags:</li>
-            <li id="tags-$hashId">
-              <a class="tag-add hidden" href="#"><img alt="Add tag" src="$portalPath/images/icons/add.png" /></a>
-              <form class="tag-form hidden" rel="$id">
-                <input type="text" class="new-tag-value" size="20" name="newTag" />
-                <input class="tag-accept hidden" type="submit" name="submit" />
-                <a class="tag-accept" href="#"><img alt="Accept tag" src="$portalPath/images/icons/tick.png" /></a>
-                <a class="tag-cancel" href="#"><img alt="Cancel tag" src="$portalPath/images/icons/cross.png" /></a>
-              </form>
-              <img class="tag-loading" src="$portalPath/images/icons/loading.gif" />
-            </li>
-          </ul>
-        </div>
+        <div id="$id" class="tags">Tags:<span class="tags-here"></span></div>
         #set($thumbnail = $self.getThumbnail($id))
         #if($thumbnail)
           <a class="image" href="$portalPath/detail/$id">
@@ -305,91 +291,43 @@ $(function() {
         );
     });
     
-    // tagging
-    function createTag(tag, tagClass) {
-        var tagEl =
-          '<li class="tag">' +
-            '<a class="tag ' + tagClass + '" href="$portalPath/search/' + tag + '">' + tag + '</a>' +
-            '<a class="tag-remove hidden" href="#" rel="' + tag + '">' +
-              '<img alt="Remove tag" src="$portalPath/images/icons/delete.png" />' +
-            '</a>' +
-          '</li>';
-       return tagEl;
-    }
-    $("a.tag-add").bind("click", function() {
-        $(this).hide();
-        var tagForm = $(this).next("form");
-        tagForm.addClass("inline").removeClass("hidden");
-        tagForm.find(".new-tag-value").focus().val("");
-        return false;
-    });
-    $("form.tag-form").bind("submit", function(e) {
-        $(this).find("a.tag-accept").click();
-        e.preventDefault();
-    });
-    $("a.tag-accept").bind("click", function() {
-        var tagForm = $(this).parent("form");
-        var id = tagForm.attr("rel");
-        var hashId = tagForm.parents("div.article").attr("id");
-        var tag = tagForm.find(".new-tag-value").val();
-        if (tag != "") {
-            tagForm.addClass("hidden").removeClass("inline");
-            tagForm.next("img.tag-loading").show();
-            jQuery.post("$portalPath/actions/tags.ajax",
-                { func: "tags-add", oid: id, tag: tag },
-                function(data, status) {
-                    tagForm.prev("a.tag-add").show();
-                    tagForm.next("img.tag-loading").hide();
-                    $("#tags-" + hashId).before(createTag(tag, "new-tag"));
-                    $("li.tag").hover(function() { $(this).children(".tag-remove").show(); },
-                                      function() { $(this).children(".tag-remove").hide(); });
-                }
-            );
-        }
-        return false;
-    });
-    $("a.tag-cancel").bind("click", function() {
-        var tagForm = $(this).parent("form");
-        tagForm.addClass("hidden").removeClass("inline");
-        tagForm.prev("a.tag-add").show();
-        return false;
-    });
-    $("a.tag-remove").live("click", function() {
-        var tagForm = $(this).parents("ul").find("form");
-        var id = tagForm.attr("rel");
-        var hashId = tagForm.parents("div.article").attr("id");
-        var tagEl = $(this);
-        var tag = tagEl.attr("rel");
-        if (tag != "") {
-            tagForm.next("img.tag-loading").show();
-            jQuery.post("$portalPath/actions/tags.ajax",
-                { func: "tags-remove", oid: id, tag: tag },
-                function(data, status) {
-                    tagForm.next("img.tag-loading").hide();
-                    tagEl.parent("li.tag").remove();
-                }
-            );
-        }
-        return false;
-    });
-    
-    $("ul.tags").each(function() {
-        var id = $(this).find("form.tag-form").attr("rel");
-        var hashId = "#tags-" + $(this).parents("div.article").attr("id");
-        jQuery.getJSON("$portalPath/actions/tags.ajax", { func: "tags-load", oid: id },
-            function(data) {
-                jQuery.each(data.tags, function(i, tag) {
-                    $(hashId).before(createTag(tag, ""));
-                });
-                $("li.tag").hover(function() { $(this).children(".tag-remove").show(); },
-                                  function() { $(this).children(".tag-remove").hide(); });
-                $(hashId + " a.tag-add").show();
-                $(hashId + " img.tag-loading").hide();
-            }
-        );
-    });
 });
 -->
+</script>
+
+
+<script type="text/javascript" src="$portalPath/js/anotar/json2.js"></script>
+<script type="text/javascript" src="$portalPath/js/anotar/anotar-0.1.js"></script>
+<script type="text/javascript">
+    $(function(){
+        var tags = new Anotar();
+        tags.setType("Tag");
+        tags.setConfig("debug", true);
+        tags.setConfig("doc_root", "#result-list");
+        tags.setConfig("tag_list", ".tags");
+        tags.setConfig("output_in_child", ".tags-here");
+        tags.setConfig("uri_attr", "id");
+        tags.setConfig("style_prefix", "tags-");
+        tags.setConfig("proxy_required", false);
+        #if($page.authentication.is_logged_in())
+        tags.setConfig("creator", "$page.authentication.get_name()");
+        tags.setConfig("creator_uri", null);
+        #end
+        tags.setConfig("server_address", "$portalPath/actions/anotar.ajax");
+        tags.setConfig("interface_label", " <img src='$portalPath/images/icons/add.png'/>");
+        tags.setConfig("interface_visible", true);
+        tags.setConfig("form_prepend", true);
+        tags.setConfig("form_custom", "<div class='myTags float-right'>Tag this:" +
+                "<textarea></textarea>" +
+                "<img src='$portalPath/images/icons/tick.png' class='myTag-submit'/>&#160;" +
+                "<img src='$portalPath/images/icons/cross.png' class='myTag-cancel'>" +
+              "</div>");
+        tags.setConfig("server_mode", "fascinator");
+        tags.setConfig("form_cancel", ".myTag-cancel");
+        tags.setConfig("form_submit", ".myTag-submit");
+        tags.setConfig("disable_replies", true);
+        tags.init($);
+    });
 </script>
 
 #if($is_admin)

@@ -23,6 +23,7 @@ function Anotar() {
         "style_prefix" : "anno-",
         "doc_root" : "#anno-root",
         "tag_list" : "p, h1, h2, h3, h4, h5, h6",
+        "output_in_child" : null,
         "label" : "Comment on this:",
         "lang" : "en",
 
@@ -792,15 +793,16 @@ function Anotar() {
         }
 
         var opt = {
-            style:    config.style_prefix,
-            toggle:   cssToggle,
-            id:       annoObj.uri,
-            root:     annoObj.annotates.rootUri,
-            original: origContent,
-            creator:  creator,
-            date:     annoObj.dateCreated.literal,
-            content:  annoObj.content.literal,
-            children: replyString
+            style:     config.style_prefix,
+            toggle:    cssToggle,
+            id:        annoObj.uri,
+            root:      annoObj.annotates.rootUri,
+            original:  origContent,
+            creator:   creator,
+            date:      annoObj.dateCreated.literal,
+            content:   annoObj.content.literal,
+            children:  replyString,
+            tag_count: annoObj.tagCount
         };
 
         var template = null;
@@ -813,16 +815,21 @@ function Anotar() {
     }
 
     var attachAnnotation = function(node, annotation) {
-        if (isReply) {
-            node.append(annotation);
+        if (config.output_in_child != null) {
+            node.find(config.output_in_child).append(annotation);
+
         } else {
-            var wrapClass = config.style_prefix + "has-annotation";
+            if (isReply) {
+                node.append(annotation);
+            } else {
+                var wrapClass = config.style_prefix + "has-annotation";
 
-            if (!node.parent().hasClass(wrapClass)) {
-                node.wrap("<div class='" + wrapClass + "'/>");
+                if (!node.parent().hasClass(wrapClass)) {
+                    node.wrap("<div class='" + wrapClass + "'/>");
+                }
+
+                node.parent().append(annotation);
             }
-
-            node.parent().append(annotation);
         }
     }
 
@@ -988,7 +995,7 @@ var templates = {
     exampleDisplay: "",
     changeDisplay: "",
     adviceDisplay: "",
-    tagDisplay: "<span class='<%=style%>tag'><%=content%></span>",
+    tagDisplay: "<span class='<%=style%>tag'><%=content%><% if(tag_count > 1){ %> (<%=tag_count%>)<% } %></span>",
     highlightDisplay: "",
 
     orphanHolder: "<p id='<%=style%>orphans'>Below are annotations that we can no longer attach to this document reliably because the data has changed.</p>"
