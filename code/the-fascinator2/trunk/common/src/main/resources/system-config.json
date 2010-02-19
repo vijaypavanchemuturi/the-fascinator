@@ -49,6 +49,11 @@
             "autocommit": true,
             "embedded": false
         },
+        "anotar": {
+            "uri": "http://localhost:9997/solr/anotar",
+            "autocommit": true,
+            "embedded": false
+        },
         "script": {
             "type": "python",
             "rules": "local-files.py"

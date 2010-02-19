@@ -192,6 +192,7 @@ class JsonReader(object):
     def _readArray(self):
         result = []
         assert self._next() == '['
+        self._eatWhitespace()
         done = self._peek() == ']'
         while not done:
             item = self._read()

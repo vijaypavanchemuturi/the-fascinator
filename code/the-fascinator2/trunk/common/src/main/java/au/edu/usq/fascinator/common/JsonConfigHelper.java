@@ -21,6 +21,7 @@ package au.edu.usq.fascinator.common;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.Reader;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.util.ArrayList;
@@ -116,6 +117,16 @@ public class JsonConfigHelper {
      */
     public JsonConfigHelper(InputStream jsonIn) throws IOException {
         rootNode = new ObjectMapper().readValue(jsonIn, Map.class);
+    }
+
+    /**
+     * Creates a JSON configuration from the specified reader
+     *
+     * @param jsonReader a reader for a JSON file
+     * @throws IOException if there was an error parsing or reading the reader
+     */
+    public JsonConfigHelper(Reader jsonReader) throws IOException {
+        rootNode = new ObjectMapper().readValue(jsonReader, Map.class);
     }
 
     /**
@@ -448,9 +459,12 @@ public class JsonConfigHelper {
      */
     @Override
     public String toString() {
+        return toString(true);
+    }
+    public String toString(boolean pretty) {
         StringWriter sw = new StringWriter();
         try {
-            store(sw, true);
+            store(sw, pretty);
         } catch (IOException e) {
         }
         return sw.toString();

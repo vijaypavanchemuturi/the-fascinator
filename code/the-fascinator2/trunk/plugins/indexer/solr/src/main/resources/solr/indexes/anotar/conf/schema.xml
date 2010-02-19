@@ -24,6 +24,9 @@
   </types>
 
   <fields>
+    <field name="schemaVersion" type="string" indexed="true" stored="true" />
+    <field name="clientVersion" type="string" indexed="true" stored="true" />
+    <field name="id" type="string" indexed="true" stored="true" />
     <field name="uri" type="string" indexed="true" stored="true" />
     <field name="type" type="string" indexed="true" stored="true" />
     <field name="titleLiteral" type="string" indexed="true" stored="true" />
@@ -31,7 +34,7 @@
     <field name="annotatesLiteral" type="string" indexed="true" stored="true" />
     <field name="annotatesUri" type="string" indexed="true" stored="true" />
     <field name="rootUri" type="string" indexed="true" stored="true" />
-    <field name="locator" type="string" indexed="false" stored="true" multiValued="true" />
+    <field name="locators" type="string" indexed="false" stored="true" multiValued="true" />
     <field name="locatorValue" type="string" indexed="true" stored="true" multiValued="true" />
     <field name="locatorContent" type="text" indexed="true" stored="true" multiValued="true" />
     <field name="creatorLiteral" type="string" indexed="true" stored="true" />
@@ -39,13 +42,14 @@
     <field name="creatorEmail" type="string" indexed="true" stored="true" />
     <field name="creatorEmailMd5" type="string" indexed="true" stored="true" />
     <field name="dateCreated" type="date" indexed="true" stored="true" />
+    <field name="tzCreated" type="string" indexed="true" stored="true" />
     <field name="dateModified" type="date" indexed="true" stored="true" />
+    <field name="tzModified" type="string" indexed="true" stored="true" />
     <field name="contentType" type="string" indexed="true" stored="true" />
     <field name="contentLiteral" type="text" indexed="true" stored="true" />
-    <field name="formData" type="string" indexed="false" stored="true" />
     <field name="isPrivate" type="boolean" indexed="true" stored="true" />
     <field name="lang" type="string" indexed="true" stored="true" />
-    <field name="schema" type="string" indexed="false" stored="true" />
+    <field name="jsonString" type="string" indexed="false" stored="true" />
   </fields>
 
   <uniqueKey>uri</uniqueKey>
