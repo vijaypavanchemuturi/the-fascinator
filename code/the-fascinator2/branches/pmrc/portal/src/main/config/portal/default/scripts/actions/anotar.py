@@ -4,7 +4,7 @@ from au.edu.usq.fascinator.common.storage.impl import GenericPayload
 from au.edu.usq.fascinator.common import JsonConfigHelper
 
 from java.io import BufferedReader, ByteArrayInputStream, ByteArrayOutputStream, InputStreamReader
-from java.lang import String, StringBuilder
+from java.lang import String, StringBuilder, Boolean
 
 import json, time
 
@@ -96,7 +96,8 @@ class AnotarData:
         
         self.json = formData.get("json")
         self.type = formData.get("type")
-        #print "**** anotar.py : Action : " + action
+        print "**** anotar.py : Action : " + self.action
+        print "**** formData: ", formData
 
         self.obj = Services.storage.getObject(self.rootUri)
 
@@ -109,7 +110,8 @@ class AnotarData:
             #print "**** anotar.py : PUT : " + self.rootUri
             result = self.__put()
         elif self.action == "get-image":
-            self.type = "http://www.purl.org/anotar/ns/type/0.1#ImageTag"
+            self.type = "http://www.purl.org/anotar/ns/type/0.1#Tag"
+            mediaFragType = "http://www.w3.org/TR/2009/WD-media-frags-20091217"
             result = '{"result":' + self.__search_solr() + '}'
             if result:
                 imageTagList = []
@@ -117,7 +119,8 @@ class AnotarData:
                 for imageTag in imageTags:
                     imageAno = JsonConfigHelper()
                     locatorValue = imageTag.getJsonList("annotates/locators").get(0).get("value")
-                    if locatorValue and locatorValue.find("#xywh=")>-1:
+                    locatorType = imageTag.getJsonList("annotates/locators").get(0).get("type")
+                    if locatorValue and locatorValue.find("#xywh=")>-1 and locatorType == mediaFragType:
                         _, locatorValue = locatorValue.split("#xywh=")
                         left, top, width, height = locatorValue.split(",")
                         imageAno.set("top", top)
@@ -126,6 +129,7 @@ class AnotarData:
                         imageAno.set("height", height)
                         imageAno.set("id", imageTag.get("id"))
                         imageAno.set("text", imageTag.get("content/literal"))
+                        #imageAno.set("editable", Boolean(False).toString());
                         imageTagList.append(imageAno.toString())
                 result = "[" + ",".join(imageTagList) + "]"
         elif self.action == "save-image":
@@ -135,7 +139,7 @@ class AnotarData:
     "literal" : "Annotate Client (0.1)",
     "uri" : "http://fascinator.usq.edu.au/annotate/client/version#0.1"
   },
-  "type" : "http://www.purl.org/anotar/ns/type/0.1#ImageTag",
+  "type" : "http://www.purl.org/anotar/ns/type/0.1#Tag",
   "title" : {
     "literal" : null,
     "uri" : null
