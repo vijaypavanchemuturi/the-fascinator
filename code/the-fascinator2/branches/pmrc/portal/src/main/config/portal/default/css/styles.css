@@ -120,11 +120,15 @@ form .message {
     border-top: none;
  }
 
-div.tags ul {
+div.tags {
     border-top: 1px dotted #999999;
     border-bottom: 1px dotted #999999;
     margin-bottom: 3px;
     padding: 0.3em 0;
+}
+
+div.tags img {
+    vertical-align: text-bottom;
 }
 
 div.tags ul li {
