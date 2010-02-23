@@ -218,26 +218,7 @@ class AnotarData:
             return_list.append(AnotarPayload(payload, self.obj))
         return return_list
 
-    def __search_solr(self):
-        query = "(rootUri:\"" + self.rootUri + "\""
-        query += " AND type:\"" + self.type + "\")"
-
-        req = SearchRequest(query)
-        req.setParam("facet", "false")
-        req.setParam("rows", str(99999))
-        req.setParam("sort", "dateCreated asc")
-        req.setParam("start", str(0))
-
-        #security_roles = page.authentication.get_roles_list();
-        #security_query = 'security_filter:("' + '" OR "'.join(security_roles) + '")'
-        #req.addParam("fq", security_query)
-
-        out = ByteArrayOutputStream()
-        Services.indexer.annotateSearch(req, out)
-        result = JsonConfigHelper(ByteArrayInputStream(out.toByteArray()))
-
-        # Every annotation for this URI
-        result = result.getJsonList("response/docs")
+    def __process_response(self, result):
         docs = []
         rootDocs = []
         docsDict = {}
@@ -260,5 +241,49 @@ class AnotarData:
                 d["replies"].append(doc)    # Add ourselves to its reply list
 
         return json.write(rootDocs)
+
+    def __process_tags(self, result):
+        docsDict = {}
+        # Build a dictionary of the tags
+        for doc in result:
+            doc = JsonConfigHelper(doc.get("jsonString"))
+            tag = doc.get("content/literal")
+            if tag in docsDict:
+                d = docsDict[tag]
+                d.set("tagCount", str(int(d.get("tagCount")) + 1))
+            else:
+                doc.set("tagCount", str(1))
+                docsDict[tag] = doc
+
+        tags = []
+        for tag in docsDict:
+            tags.append(docsDict[tag].toString())
+
+        return "[" + ",".join(tags) + "]"
+
+    def __search_solr(self):
+        query = "(rootUri:\"" + self.rootUri + "\""
+        query += " AND type:\"" + self.type + "\")"
+
+        req = SearchRequest(query)
+        req.setParam("facet", "false")
+        req.setParam("rows", str(99999))
+        req.setParam("sort", "dateCreated asc")
+        req.setParam("start", str(0))
+
+        #security_roles = page.authentication.get_roles_list();
+        #security_query = 'security_filter:("' + '" OR "'.join(security_roles) + '")'
+        #req.addParam("fq", security_query)
+
+        out = ByteArrayOutputStream()
+        Services.indexer.annotateSearch(req, out)
+        result = JsonConfigHelper(ByteArrayInputStream(out.toByteArray()))
+        result = result.getJsonList("response/docs")
+
+        # Every annotation for this URI
+        if self.type == "http://www.purl.org/anotar/ns/type/0.1#Tag":
+            return self.__process_tags(result)
+        else:
+            return self.__process_response(result)
 
 scriptObject = AnotarData()
