@@ -76,7 +76,8 @@
               #set($payloadType = $payload.type.toString())
               <li class="payload" rel="$payload.contentType">
                 <a href='$portalPath/download/$self.encode($oid)/$self.encode($pid)' rel="$payloadType" target="blank" title="$payload.contentType">$payload.id</a>
-              </li>
+              </li>player.pause();
+    
             #end
             </ul>
           </div>
@@ -118,6 +119,15 @@
                 <script type="text/javascript" src="$portalPath/js/viewer.js"></script>
               </div>
             </div>
+            #if($self.mimeType.startsWith("audio/") || $self.mimeType.startsWith("video/"))
+                <input class='player_clear_fragment' type='button' value='Reset' />
+                <div class="video-results-list">
+                    <div class="video-result-list" anotar-uri="$portalPath/$self.object.id">
+                        Media Clip
+                    </div>
+                </div>
+                
+            #end
           </div>
           
         #end
@@ -129,6 +139,8 @@
 <div class="clear"><!--clear--></div>
 #if($self.mimeType.startsWith("audio/") || $self.mimeType.startsWith("video/"))
 <script type="text/javascript" src="$portalPath/flowplayer/flowplayer-3.1.4.min.js"></script>
+<script type="text/javascript" src="$portalPath/flowplayer/flowplayer.controls-3.0.2.js"></script>
+<script type="text/javascript" src="$portalPath/js/anotar/video.annotate.js"></script>
 #end
 #if($self.mimeType.startsWith("image/"))
 <script type="text/javascript" src="$portalPath/js/anotar/image.annotate.js"></script>
@@ -189,6 +201,7 @@ $(function() {
     });
     $("div.rendition-links").remove();
 
+    var player;
     var mimeType = "$self.mimeType";
     //<a class="image" href="' + src + '"  style="max-width:98%">
     if (mimeType.indexOf("image/") == 0) {
@@ -204,6 +217,7 @@ $(function() {
         }
 
         var style = "display: block; width: 425px; height: " + height + "px";
+        //var style = "display: block; width: 500px; height: 300px";
         var filename = oid.substring(oid.lastIndexOf("/") + 1);
         var ext = filename.substring(filename.lastIndexOf(".") + 1).toLowerCase();
 
@@ -214,11 +228,18 @@ $(function() {
         
         if (hasFlv!='' || ext=="mp3" || ext=="m4a") {
             var href = "$portalPath/download/$oid/" + filename;
-            var player = '<a class="clearfix" href="' + href + '" id="player" style="' + style + '" />' + 
-                         '<div class="annotatable"><br/><div class="clear"></div></div>';
-            $("div.content-preview div.article").empty().append(player);
-            flowplayer("player", "$portalPath/flowplayer/flowplayer-3.1.5.swf",
-                { clip: { autoPlay: false } });
+            var player1 = '<a class="clearfix" href="' + href + '" id="player" style="' + style + '" />' + 
+                         //'<div id="hulu" class="hulu"></div>' + 
+                         '<div class="annotatable"><br/><div class="clear"></div></div>'; 
+            $("div.content-preview div.article").empty().append(player1);
+            player = flowplayer("player", "$portalPath/flowplayer/flowplayer-3.1.5.swf",
+                { clip: { autoPlay: false },
+                  play: {
+                    label: "Play",
+                    replayLabel: "Click to play again"
+                    }
+                  //plugins: {controls: null} 
+                }); //.controls("hulu", {duration: 25});
         } else {
             var error = "$self.hasError()";
             if (hasFlv=="false") {
@@ -226,13 +247,94 @@ $(function() {
             }
         }
     }
+
+    $("#player_seek_start").live("click", function() {
+        player.seek(0);
+    });
+    
+    $("#player_rewind").live("click", function() {
+        player.seek(player.getTime() - 1);
+    });
+    
+    $("#player_play").live("click", function() {
+        player.toggle();
+    });
+    
+    $("#player_forward").live("click", function() {
+        player.seek(player.getTime()+1);
+    });
+    
+    $("#player_seek_end").live("click", function() {
+        player.seek(player.getClip().fullDuration-1);
+        player.pause();
+    });
+    
+    $("#player_mark_start_time").live("click", function() {
+        $("#txtStartMark").attr("value", player.getTime());
+        $("#player_mark_end_time").attr("disabled", false);
+        $("#txtEndMark").attr("disabled", false);
+    });
+    
+    $("#player_mark_end_time").live("click", function() {
+        $("#txtEndMark").attr("value", player.getTime());
+
+        uri = player.getClip().url + "#";
+        start = $('#txtStartMark').val();
+        end = $('#txtEndMark').val()
+        if (start != "" && end != "") {
+            //Use Normal Play Time as described in http://www.ietf.org/rfc/rfc2326.txt
+            uri += "t=npt:";
+            if (start != "" && start > 0) {
+                uri += start + "s"
+                if (player.getClip().duration < start) {
+                    warning += "<li>The requested start-point is greater than the video's duration.</li>";
+                }
+            }
+            if (end != "") {
+                uri += "," + end + "s";
+                if (player.getClip().duration < end) {
+                    warning += "<li>The requested end-point is greater than the video's duration.</li>";
+                }
+            }
+        }
+        
+        $(".video-result-list").attr("rel", uri);
+    });
+    
+    $(".player_clear_fragment").live("click", function() {
+        $("#txtStartMark").attr("value", "");
+        $("#txtEndMark").attr("value", "");
+        $("#media_clip").attr("rel", "");
+        if (player.getClip()) {
+            player.pause();
+            player.getClip().update({duration:player.getClip().fullDuration});
+        }
+    });
+    
+    $("#player_play_fragment").live("click", function() {
+        player.pause();
+        player.seek($('#txtStartMark').val());
+        player.getClip().update({duration:$('#txtEndMark').val()});
+        player.play();
+    });
+    
+    $(".player_play_clip").live("click", function() {
+        player.play();
+        player.pause();
+        var startTime = $(this).siblings(".startTime").text().replace("s", "");
+        console.log(startTime);
+        var endTime = $(this).siblings(".endTime").text().replace("s", "");
+        player.seek(startTime);
+        player.getClip().update({duration:endTime});
+        player.play();
+    });
 });
 </script>
-
 <script type="text/javascript" src="$portalPath/js/anotar/json2.js"></script>
 <script type="text/javascript" src="$portalPath/js/anotar/anotar-0.1.js"></script>
 <script type="text/javascript">
     $(function(){
+        // Comment annotation
         var notes = new Anotar();
         notes.setConfig("debug", true);
         notes.setConfig("object_literal", "$self.object.id");
@@ -249,7 +351,9 @@ $(function() {
         notes.setConfig("server_mode", "fascinator");
         notes.setConfig("interface_visible", true);
         notes.init($);
-
+        
+        
+        // Tags annotation
         var tags = new Anotar();
         tags.setType("Tag");
         tags.setConfig("debug", true);
@@ -275,15 +379,95 @@ $(function() {
         tags.setConfig("disable_replies", true);
         tags.init($); 
         
-        /*
+        
+        
+        
+        // Video annotation
+        var videoAno = new Anotar();
+        //videoAno.setType("Tag");
+        videoAno.setConfig("debug", true);
+        videoAno.setConfig("label", "Comment on Clip");
+        //videoAno.setConfig("doc_root", ".video-results-list");
+        videoAno.setConfig("object_literal", "$self.object.id"); 
+        videoAno.setConfig("page_uri", "$portalPath/$self.object.id");
+        videoAno.setConfig("doc_root", ".video-results-list");
+        videoAno.setConfig("tag_list", ".video-result-list");
+        videoAno.setConfig("uri_attr", "anotar-uri");
+        videoAno.setConfig("reply_uri_attr", "anotar-uri");
+        videoAno.setConfig("reply_label", " <img src='$portalPath/images/icons/comments_add.png'/>");
+        //videoAno.setConfig("anno_type", "http://www.purl.org/anotar/ns/type/0.1#Tag");
+        videoAno.setConfig("hash_type", "http://www.w3.org/TR/2009/WD-media-frags-20091217");
+        //videoAno.setConfig("hash_attr", "rel");
+        videoAno.setConfig("hash_function", function(me) { console.log(me); return me.attr("rel"); });
+        videoAno.setConfig("style_prefix", "anno-");       //USE tags- for now...
+        videoAno.setConfig("proxy_required", false);
+        videoAno.setConfig("interface_label", " <img src='$portalPath/images/icons/add.png'/>");
+        videoAno.setConfig("interface_visible", true);
+        //videoAno.setConfig("form_prepend", true);
+        videoAno.setConfig("form_custom", "<div id='media_clip'>" +
+        "<p>" + 
+            "<input id='player_seek_start' type='button' value='&lt;&lt;' />" + 
+            "<input id='player_rewind' type='button' value='&lt;' />" + 
+            "<input id='player_play' type='button' value='Play/Pause' />" + 
+            "<input id='player_forward' type='button' value='&gt;' '/>" + 
+            "<input id='player_seek_end' type='button' value='&gt;&gt;' '/>" +
+        "</p>" +
+        "<p>" + 
+            "<input id='player_mark_start_time' type='button' value='Mark start time' value=''/>" +
+            "<input type='text' id='txtStartMark' value=''/>" +
+        "</p>" +
+        "<p>" + 
+            "<input id='player_mark_end_time' type='button' value='Mark end time' value='' disabled='true'/>" +
+            "<input type='text' id='txtEndMark' value='' disabled='true'/>" +
+        "</p>" +
+        "<p>" +
+            "<input class='player_clear_fragment' type='button' value='Reset' />" +
+            "<input id='player_play_fragment' type='button' value='Play Clip' />" +
+        "</p>" +
+        "<p>Comment: <textArea></textArea></p>" +
+        "<img src='$portalPath/images/icons/tick.png' class='myTag-submit'/>&#160;" +
+        "<img src='$portalPath/images/icons/cross.png' class='myTag-cancel'>" +
+        "</div>"); 
+        
+        
+        videoAno.setConfig("form_cancel", ".myTag-cancel");
+        videoAno.setConfig("form_submit", ".myTag-submit");
+        videoAno.setConfig("server_address", "$portalPath/actions/anotar.ajax");
+        videoAno.setConfig("server_mode", "fascinator");
+        videoAno.setConfig("disable_replies", false);
+        videoAno.setConfig("display_custom",
+        "<% var startTime=\"\"; var endTime=\"\"; if (locator != null) {" +
+        "   var npt=locator.split(\"#t=npt:\"); " +
+        "   if (npt.length > 1) { npt=npt[1].split(\",\");" +
+        "   startTime=npt[0]; if (startTime.length==0) startTime=\"0s\";" +
+        "   endTime=npt[1]; if (endTime.length==0) endTime=\"0s\";" +
+        "}} %>" +
+        "<div class='<%=style%>inline-annotation <%=toggle%>' id='<%=id%>'>" +
+            "<input name='rootUri' value='<%=root%>' type='hidden'/>" +
+            "<div class='<%=style%>orig-content' style='display:none;'><%=original%></div>" +
+            "<div class='<%=style%>anno-info'>" +
+                "Comment by: <span class='<%=style%>anno-creator'><%=creator%></span>" +
+                " &nbsp; <span class='<%=style%>anno-date'><%=date%></span>" +
+            "</div>" +
+            "Start: <span class='startTime'><%=startTime%></span>, " +
+            "End: <span class='endTime'><%=endTime%></span><br/>" +
+            "<div class='<%=style%>anno-content'><%=content%></div>" +
+            "<input class='player_play_clip' type='button' value='Play Clip' />" +
+            "<div class='<%=style%>anno-children'><%=children%></div>" +
+        "</div>"
+        );
+        videoAno.init($); 
+        
+        
+        /*// Image annotation
         var imageAno = new Anotar();
-        imageAno.setType("ImageTag");
+        imageAno.setType("Tag");
         imageAno.setConfig("debug", true);
         //imageAno.setConfig("doc_root", "span.image");
         imageAno.setConfig("tag_list", "div.image"); 
         imageAno.setConfig("page_uri", "$self.object.id");
         //imageAno.setConfig("uri_attr", "id");
-        imageAno.setConfig("anno_type", "http://www.purl.org/anotar/ns/type/0.1#ImageTag");
+        imageAno.setConfig("anno_type", "http://www.purl.org/anotar/ns/type/0.1#Tag");
         imageAno.setConfig("style_prefix", "imageAno-");
         imageAno.setConfig("proxy_required", false);
         imageAno.setConfig("interface_label", " <img src='$portalPath/images/icons/add.png'/>");
@@ -304,6 +488,22 @@ $(function() {
         */
     });
 </script>
+
+<!--
+
+
+<form method="post" action="" id="marker">
+                    
+                    <h2>Media Fragment</h2>
+                    <p>
+                        Media fragment URI: <input type="text" id="fragmentUri" value="" size="60"/><input type="button" value="Display URI" onclick="setFragmentUri($('#txtStartMark').val(), $('#txtEndMark').val());"/>
+                    </p>
+                    <h3>Warnings</h3>
+                    <p id="warnings">
+                    None
+                    </p>
+                    </form>
+-->
 
 #end
 

@@ -22,6 +22,7 @@ $!pageContent
     <link rel="stylesheet" type="text/css" href="$portalPath/css/image-annotation.css" />
     <link rel="stylesheet" type="text/css" href="$portalPath/css/styles.css" />
     <link rel="stylesheet" type="text/css" href="$portalPath/css/anotar.css" />
+    <link rel="stylesheet" type="text/css" href="$portalPath/css/controls-hulu.css" />
     $!pageHeader
   </head>
   <body>
