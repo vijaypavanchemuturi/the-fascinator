@@ -25,6 +25,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -107,6 +108,9 @@ public class FfmpegTransformer implements Transformer {
         log.info("Creating thumbnail...");
         String basename = FilenameUtils.getBaseName(sourceFile.getName());
         File outputFile = new File(outputPath, basename + "_thumbnail.jpg");
+        if (outputFile.exists()) {
+            FileUtils.deleteQuietly(outputFile);
+        }
         try {
             List<String> params = new ArrayList<String>();
             params.add("-i");
@@ -145,6 +149,9 @@ public class FfmpegTransformer implements Transformer {
         String filename = sourceFile.getName();
         String basename = FilenameUtils.getBaseName(filename);
         File outputFile = new File(outputPath, basename + "." + outputExt);
+        if (outputFile.exists()) {
+            FileUtils.deleteQuietly(outputFile);
+        }
         try {
             List<String> params = new ArrayList<String>();
             params.add("-i");
