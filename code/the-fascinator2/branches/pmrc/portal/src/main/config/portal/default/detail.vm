@@ -322,7 +322,6 @@ $(function() {
         player.play();
         player.pause();
         var startTime = $(this).siblings(".startTime").text().replace("s", "");
-        console.log(startTime);
         var endTime = $(this).siblings(".endTime").text().replace("s", "");
         player.seek(startTime);
         player.getClip().update({duration:endTime});
@@ -398,36 +397,36 @@ $(function() {
         //videoAno.setConfig("anno_type", "http://www.purl.org/anotar/ns/type/0.1#Tag");
         videoAno.setConfig("hash_type", "http://www.w3.org/TR/2009/WD-media-frags-20091217");
         //videoAno.setConfig("hash_attr", "rel");
-        videoAno.setConfig("hash_function", function(me) { console.log(me); return me.attr("rel"); });
+        videoAno.setConfig("hash_function", function(me) { return me.attr("rel"); });
         videoAno.setConfig("style_prefix", "anno-");       //USE tags- for now...
         videoAno.setConfig("proxy_required", false);
         videoAno.setConfig("interface_label", " <img src='$portalPath/images/icons/add.png'/>");
         videoAno.setConfig("interface_visible", true);
         //videoAno.setConfig("form_prepend", true);
         videoAno.setConfig("form_custom", "<div id='media_clip'>" +
-        "<p>" + 
-            "<input id='player_seek_start' type='button' value='&lt;&lt;' />" + 
+        "<table style='width: 30%'><tr>" + 
+            "<td colspan='2'><input id='player_seek_start' type='button' value='&lt;&lt;' />" + 
             "<input id='player_rewind' type='button' value='&lt;' />" + 
             "<input id='player_play' type='button' value='Play/Pause' />" + 
             "<input id='player_forward' type='button' value='&gt;' '/>" + 
-            "<input id='player_seek_end' type='button' value='&gt;&gt;' '/>" +
-        "</p>" +
-        "<p>" + 
-            "<input id='player_mark_start_time' type='button' value='Mark start time' value=''/>" +
-            "<input type='text' id='txtStartMark' value=''/>" +
-        "</p>" +
-        "<p>" + 
-            "<input id='player_mark_end_time' type='button' value='Mark end time' value='' disabled='true'/>" +
-            "<input type='text' id='txtEndMark' value='' disabled='true'/>" +
-        "</p>" +
-        "<p>" +
-            "<input class='player_clear_fragment' type='button' value='Reset' />" +
-            "<input id='player_play_fragment' type='button' value='Play Clip' />" +
-        "</p>" +
-        "<p>Comment: <textArea></textArea></p>" +
-        "<img src='$portalPath/images/icons/tick.png' class='myTag-submit'/>&#160;" +
-        "<img src='$portalPath/images/icons/cross.png' class='myTag-cancel'>" +
-        "</div>"); 
+            "<input id='player_seek_end' type='button' value='&gt;&gt;' '/></td>" +
+        "</tr>" +
+        "<tr>" + 
+            "<td><input id='player_mark_start_time' type='button' value='Mark start time' value=''/></td>" +
+            "<td><input type='text' id='txtStartMark' value=''/></td>" +
+        "</tr>" +
+        "<tr>" + 
+            "<td><input id='player_mark_end_time' type='button' value='Mark end time' value='' disabled='true'/></td>" +
+            "<td><input type='text' id='txtEndMark' value='' disabled='true'/></td>" +
+        "</tr>" +
+        "<tr>" +
+            "<td><input class='player_clear_fragment' type='button' value='Reset' /></td>" +
+            "<td><input id='player_play_fragment' type='button' value='Play Clip' /></td>" +
+        "</tr>" +
+        "<tr><td>Comment: </td><td><textArea></textArea></td></tr>" +
+        "<tr><td colspan='2'><img src='$portalPath/images/icons/tick.png' class='myTag-submit'/>&#160;" +
+        "<img src='$portalPath/images/icons/cross.png' class='myTag-cancel'></td>" +
+        "</tr></table></div>"); 
         
         
         videoAno.setConfig("form_cancel", ".myTag-cancel");
