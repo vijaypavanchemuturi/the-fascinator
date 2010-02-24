@@ -18,6 +18,7 @@
  */
 package au.edu.usq.fascinator.api.harvester;
 
+import java.io.File;
 import java.util.List;
 
 import au.edu.usq.fascinator.api.Plugin;
@@ -38,6 +39,15 @@ public interface Harvester extends Plugin {
      * @throws HarvesterException if there was an error retrieving the objects
      */
     public List<DigitalObject> getObjects() throws HarvesterException;
+
+    /**
+     * Get an individual uploaded file as a digital object.
+     * For consistancy this should be in a list.
+     *
+     * @return a list of one object
+     * @throws HarvesterException if there was an error retrieving the objects
+     */
+    public List<DigitalObject> getObject(File uploadedFile) throws HarvesterException;
 
     /**
      * Gets a list of deleted digital objects. If there are no deleted objects,

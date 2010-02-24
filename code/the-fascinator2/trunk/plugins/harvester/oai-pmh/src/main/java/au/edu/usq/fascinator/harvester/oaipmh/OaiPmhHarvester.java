@@ -215,6 +215,12 @@ public class OaiPmhHarvester implements Harvester, Configurable {
     }
 
     @Override
+    public List<DigitalObject> getObject(File uploadedFile)
+            throws HarvesterException {
+        throw new HarvesterException("This plugin does not harvest uploaded files");
+    }
+
+    @Override
     public boolean hasMoreObjects() {
         return token != null && numRequests < maxRequests && numObjects < maxObjects;
     }

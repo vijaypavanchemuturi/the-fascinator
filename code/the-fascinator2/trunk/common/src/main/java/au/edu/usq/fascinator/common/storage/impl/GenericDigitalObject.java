@@ -142,8 +142,9 @@ public class GenericDigitalObject implements DigitalObject {
      */
     public void addPayload(Payload payload) {
         getPayloadList().add(payload);
+        PayloadType pt = payload.getType();
 
-        if (payload.getType().equals(PayloadType.Data)) {
+        if (pt.equals(PayloadType.Data) || pt.equals(PayloadType.Uploaded)) {
             sourceId = payload.getId();
         }
     }
