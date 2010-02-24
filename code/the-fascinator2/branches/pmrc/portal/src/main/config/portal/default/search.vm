@@ -140,7 +140,7 @@
                     <td width="33%">
                     <div id="$hashId" class="article#if($velocityCount==1) first#end">
                       <p><a href="$portalPath/detail/$self.encode($id)">$title</a></p>
-                      <div id="$id" class="tags">Tags:<span class="tags-here"></span></div>
+                      <div id="$self.getObject($id).id" class="tags">Tags:<span class="tags-here"></span></div>
                       #set($thumbnail = $self.getThumbnail($id))
                       #if($thumbnail)
                         <a class="image" href="$portalPath/detail/$id">
@@ -354,6 +354,8 @@ $(function() {
         tags.setConfig("creator", "$page.authentication.get_name()");
         tags.setConfig("creator_uri", null);
         #end
+        tags.setConfig("hash_function", function(me) { console.log(me); return me.attr("anotar-hash"); });
+        tags.setConfig("anno_type", "http://www.purl.org/anotar/ns/type/0.1#Tag");
         tags.setConfig("server_address", "$portalPath/actions/anotar.ajax");
         tags.setConfig("interface_label", " <img src='$portalPath/images/icons/add.png'/>");
         tags.setConfig("interface_visible", true);
@@ -368,6 +370,7 @@ $(function() {
         tags.setConfig("form_submit", ".myTag-submit");
         tags.setConfig("disable_replies", true);
         tags.init($);
+        
     });
 </script>
 
