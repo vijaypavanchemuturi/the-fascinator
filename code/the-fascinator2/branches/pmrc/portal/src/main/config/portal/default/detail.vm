@@ -107,7 +107,7 @@
             <h2>Preview</h2>
             <div class="results-list">
                 <div class="result">
-                    <h2>Tags</h2>
+                    <h2>Tags:</h2>
                 </div>
             </div>
             <div id="anno-root" class="content-preview">

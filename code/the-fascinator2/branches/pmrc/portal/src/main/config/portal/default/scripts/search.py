@@ -155,5 +155,9 @@ class SearchData:
         if Services.getStorage().getPayload(oid, url):
             return url
         return None
+    
+    def getObject(self, oid):
+        object = Services.getStorage().getObject(oid)
+        return object
 
 scriptObject = SearchData()
