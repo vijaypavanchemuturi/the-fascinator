@@ -18,6 +18,7 @@
  */
 package au.edu.usq.fascinator.portal.pages;
 
+import au.edu.usq.fascinator.HarvestClient;
 import au.edu.usq.fascinator.common.JsonConfig;
 import au.edu.usq.fascinator.common.JsonConfigHelper;
 import java.io.ByteArrayInputStream;
@@ -213,6 +214,16 @@ public class Dispatch {
         }
         log.debug("Writing file to disk : " + file_path);
         uploadedFile.write(file);
+
+        // Make sure the new file gets harvested
+        File harvest_config = new File(available_plugins.get(plugin).get("json-config"));
+        try {
+            HarvestClient harvester = new HarvestClient(harvest_config, file);
+            harvester.run();
+        } catch (IOException ex) {
+            log.error("Failed harvest", ex);
+            return;
+        }
 
         // Now create some session data for use later
         Map<String, String> file_details = new LinkedHashMap<String, String>();

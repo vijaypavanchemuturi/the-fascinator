@@ -19,6 +19,7 @@
     <module>harvester/filesystem</module>
     <module>harvester/jsonq</module>
     <module>harvester/oai-pmh</module>
+    <module>harvester/workflow</module>
     <module>indexer/solr</module>
     <module>roles/internal</module>
     <module>storage/couchdb</module>
