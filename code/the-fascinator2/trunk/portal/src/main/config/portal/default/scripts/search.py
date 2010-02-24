@@ -83,9 +83,10 @@ class SearchData:
         sessionState.set("pageNum", self.__pageNum)
         
         # Make sure 'fq' has already been set in the session
-        security_roles = page.authentication.get_roles_list();
-        security_query = 'security_filter:("' + '" OR "'.join(security_roles) + '")'
-        req.addParam("fq", security_query)
+        if not page.authentication.is_admin():
+            security_roles = page.authentication.get_roles_list();
+            security_query = 'security_filter:("' + '" OR "'.join(security_roles) + '")'
+            req.addParam("fq", security_query)
 
         req.setParam("start", str((self.__pageNum - 1) * recordsPerPage))
         
