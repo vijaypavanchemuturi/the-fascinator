@@ -352,12 +352,18 @@ ul.nobgtabs li a.ui-state-active {
     font-size: 120%;
 }
 .admin-link-holder {
-    padding: 2px 0px 2px 5px;
+    padding: 2px 2px 2px 5px;
     border: 1px solid #666666;
     background: #999999;
 }
 .admin-security-link {
     background-image: url('../images/icons/application_key.png');
+    background-position: 0 50%;
+    background-repeat: no-repeat;
+    padding: 0.5em 0.5em 0.5em 20px;
+}
+.admin-delete-link {
+    background-image: url('../images/icons/cross.png');
     background-position: 0 50%;
     background-repeat: no-repeat;
     padding: 0.5em 0.5em 0.5em 20px;
@@ -372,6 +378,11 @@ ul.nobgtabs li a.ui-state-active {
     background-repeat: no-repeat;
     margin-right: 1em;
     padding: 0.5em 0.5em 0.5em 20px;
+}
+.admin-link-holder .admin-roles {
+    border: 1px solid #666666;
+    padding: 2px;
+    background-color: #CCCCCC;
 }
 .admin-link-holder .locked {
     background-image: url('../images/icons/lock.png');
