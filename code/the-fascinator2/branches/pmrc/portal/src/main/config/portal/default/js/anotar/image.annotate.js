@@ -21,7 +21,8 @@
         this.notes = opts.notes;
 
         // Add the canvas
-        this.canvas = $('<div class="image-annotate-canvas"><div class="image-annotate-view"></div><div class="image-annotate-edit"><div class="image-annotate-edit-area"></div></div></div>');
+        this.canvas = $('<div class="image-annotate-canvas"><img max-width="800px" src="'+this.attr('src')+'" style="width: '+this.width()+'; display: block; position: absolute;"/><div class="image-annotate-view"></div><div class="image-annotate-edit"><div class="image-annotate-edit-area"></div></div></div>');
+        //this.canvas = $('<div class="image-annotate-canvas"><div class="image-annotate-view"></div><div class="image-annotate-edit"><div class="image-annotate-edit-area"></div></div></div>');
         this.canvas.children('.image-annotate-edit').hide();
         this.canvas.children('.image-annotate-view').hide();
         this.image.after(this.canvas);
@@ -29,7 +30,7 @@
         // Give the canvas and the container their size and background
         this.canvas.height(this.height());
         this.canvas.width(this.width());
-        this.canvas.css('background-image', 'url("' + this.attr('src') + '")');
+        //this.canvas.css('background-image', 'url("' + this.attr('src') + '")');
         this.canvas.children('.image-annotate-view, .image-annotate-edit').height(this.height());
         this.canvas.children('.image-annotate-view, .image-annotate-edit').width(this.width());
 
