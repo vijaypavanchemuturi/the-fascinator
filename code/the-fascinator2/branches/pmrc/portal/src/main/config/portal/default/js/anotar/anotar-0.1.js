@@ -548,7 +548,7 @@ function Anotar() {
             "formData": {}
         };
         schemaObject.contentUri = null;
-        content
+
         // Privacy
         schemaObject.isPrivate = false;
 
@@ -769,7 +769,7 @@ function Anotar() {
             // Or try their email address.
             if (annoObj.creator.email.literal != null) {
                 creator = annoObj.creator.email.literal;
-            } else {content
+            } else {
                 // Finally let's look for a URI, such as anonymous
                 if (annoObj.creator.uri != null) {
                     creator = annoObj.creator.uri;
