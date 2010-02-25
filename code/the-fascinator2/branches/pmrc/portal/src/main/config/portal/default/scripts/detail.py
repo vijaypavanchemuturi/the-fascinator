@@ -170,6 +170,13 @@ class DetailData:
             return True
         return False
     
+    def getPreview(self, oid):
+        ext = os.path.splitext(oid)[1]
+        url = oid[oid.rfind("/")+1:-len(ext)] + "_preview.jpg"
+        if Services.getStorage().getPayload(oid, url):
+            return url
+        return ""
+    
     def getPayloadContent(self):
         mimeType = self.__mimeType
         print " * detail.py: payload content mimeType=%s" % mimeType

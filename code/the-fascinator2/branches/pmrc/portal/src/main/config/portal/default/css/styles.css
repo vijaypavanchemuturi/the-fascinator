@@ -114,6 +114,7 @@ form .message {
     padding: 4px;
     border: 1px solid #bbb;
     background: #fff;
+    max-width: 98%;
 }
 
 .article {

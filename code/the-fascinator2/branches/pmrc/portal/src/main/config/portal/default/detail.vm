@@ -7,6 +7,7 @@
 #set($meta = $self.metadata)
 #set($oid = $self.object.id)
 #set($filenameNoExt = $self.getFilePathWithoutExt($oid))
+#set($hasPreview = $self.getPreview($oid))
 #set($title = $meta.getField("dc_title"))
 #set($description = $meta.getField("dc_description"))
 #set($error = $self.getErrorPayload())
@@ -16,7 +17,7 @@
 ##<h2 id="page-heading">$title</h2>
 
 
-<table class="layout">
+<table class="layout" width="10px">
   <tbody>
     <tr>
       <td class="leftcol">
@@ -76,8 +77,7 @@
               #set($payloadType = $payload.type.toString())
               <li class="payload" rel="$payload.contentType">
                 <a href='$portalPath/download/$self.encode($oid)/$self.encode($pid)' rel="$payloadType" target="blank" title="$payload.contentType">$payload.id</a>
-              </li>player.pause();
-    
+              </li>
             #end
             </ul>
           </div>
@@ -90,7 +90,7 @@
           #set($pageTitle = "Not found")
           #set($breadcrumb = "Not found")
           <h1 class="content-title">Page not found</h1>
-          <h2>There is no images, audios or videos matching your request.</h2>
+          <h2>There is no media matching your request.</h2>
           <p>You have been redirected to this page because one of the following occurred:</p>
           <ul type="disc">
             <li>It is possible the URL was misspelled or typed incorrectly.</li>
@@ -114,7 +114,7 @@
               <span class="mimetype" rel="$self.mimeType"></span>
               <div class="first article clearfix">
                 <h3 class="title-heading">$title</h3>
-                <div class="content-preview-inline">$!self.payloadContent</div>
+                <div class="content-preview-inline" width="100px">$!self.payloadContent</div>
                 <div class="annotatable">Comment on the document here:</div>
                 <script type="text/javascript" src="$portalPath/js/viewer.js"></script>
               </div>
@@ -126,7 +126,6 @@
                         Media Clip
                     </div>
                 </div>
-                
             #end
           </div>
           
@@ -203,12 +202,16 @@ $(function() {
 
     var player;
     var mimeType = "$self.mimeType";
-    //<a class="image" href="' + src + '"  style="max-width:98%">
+    //<a class="image" href="' + src + '" ">
     if (mimeType.indexOf("image/") == 0) {
-        var src = "$portalPath/download/$oid";
+        var src = "$hasPreview";
+        if (src == "")
+            src = "$portalPath/download/$oid";
+        else
+            src = "$portalPath/download/$self.encode($oid)/" + src
         $("div.content-preview div.article").html(
             '<div class="annotatable"><div class="image">' +
-                '<img class="image" id="toAnnotate" src="' + src + '" style="max-width:100%" />' +
+                '<img class="image" id="toAnnotate" src="' + src + '" style="max-width: 900px;" />' +
             '</div><div class="clear"></div></div>');
     } else if (mimeType.indexOf("audio/") == 0 || mimeType.indexOf("video/") == 0) {
         var height = 300;
@@ -233,7 +236,7 @@ $(function() {
                          '<div class="annotatable"><br/><div class="clear"></div></div>'; 
             $("div.content-preview div.article").empty().append(player1);
             player = flowplayer("player", "$portalPath/flowplayer/flowplayer-3.1.5.swf",
-                { clip: { autoPlay: false },
+                { clip: { autoPlay: false, autoBuffering: true },
                   play: {
                     label: "Play",
                     replayLabel: "Click to play again"
@@ -380,7 +383,7 @@ $(function() {
         
         
         
-        
+        #if($self.mimeType.startsWith("audio/") || $self.mimeType.startsWith("video/"))
         // Video annotation
         var videoAno = new Anotar();
         //videoAno.setType("Tag");
@@ -456,7 +459,7 @@ $(function() {
         "</div>"
         );
         videoAno.init($); 
-        
+        #end
         
         /*// Image annotation
         var imageAno = new Anotar();

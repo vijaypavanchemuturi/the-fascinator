@@ -354,7 +354,7 @@ $(function() {
         tags.setConfig("creator", "$page.authentication.get_name()");
         tags.setConfig("creator_uri", null);
         #end
-        tags.setConfig("hash_function", function(me) { console.log(me); return me.attr("anotar-hash"); });
+        tags.setConfig("hash_function", function(me) { return me.attr("anotar-hash"); });
         tags.setConfig("anno_type", "http://www.purl.org/anotar/ns/type/0.1#Tag");
         tags.setConfig("server_address", "$portalPath/actions/anotar.ajax");
         tags.setConfig("interface_label", " <img src='$portalPath/images/icons/add.png'/>");
