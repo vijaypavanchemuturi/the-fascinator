@@ -241,9 +241,12 @@ class AnotarData:
             # If we are NOT a top level annotation
             if doc["annotates"]["uri"]!=doc["annotates"]["rootUri"]:
                 # Find what we are annotating
-                d = docsDict[doc["annotates"]["uri"]]
-                d["replies"].append(doc)    # Add ourselves to its reply list
-
+                try:
+                    d = docsDict[doc["annotates"]["uri"]]
+                    d["replies"].append(doc)    # Add ourselves to its reply list
+                except:
+                    # TODO KeyError
+                    pass
         return json.write(rootDocs)
 
     def __process_tags(self, result):

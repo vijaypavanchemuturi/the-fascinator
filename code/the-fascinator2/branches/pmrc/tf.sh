@@ -18,7 +18,7 @@ TF_HOME=`pwd`
 popd
 
 if [ "$1" == "" ]; then
-	echo "Usage: `basename $0` start|stop|restart|status"
+	echo "Usage: `basename $0` start|stop|restart|status|build|rebuild"
 	exit 0
 fi
 
@@ -60,5 +60,19 @@ if [ "$1" == "start" -o "$1" == "restart" ]; then
 		popd
 	fi
 	echo "Log file is at: $TF_HOME/portal.out"
+fi
+
+if [ "$1" == "build" -o "$1" == "rebuild" ]; then
+	if [ $NUM_PROCS == 1 ]; then
+		echo "The Fascinator is currently RUNNING."
+		echo "Please stop it before attempting a $1."
+	else
+		echo "Building The Fascinator..."
+		if [ "$1" == "build" ]; then
+			mvn install
+		else
+			mvn clean install
+		fi
+	fi
 fi
 
