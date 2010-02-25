@@ -113,20 +113,29 @@
             <div id="anno-root" class="content-preview">
               <span class="mimetype" rel="$self.mimeType"></span>
               <div class="first article clearfix">
+            #if($self.mimeType.startsWith("audio/") || $self.mimeType.startsWith("video/"))
+                <!-- <input class='player_clear_fragment' type='button' value='Reset' /> -->
+                <table>
+                  <tbody>
+                    <tr>
+                      <td id="player-container"></td>
+                      <td>
+                        <div class="video-results-list">
+                          <div class="video-result-list" anotar-uri="$portalPath/$self.object.id">
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+            #else
                 <h3 class="title-heading">$title</h3>
                 <div class="content-preview-inline" width="100px">$!self.payloadContent</div>
-                <div class="annotatable">Comment on the document here:</div>
+                <div class="annotatable">Comment on this document:</div>
                 <script type="text/javascript" src="$portalPath/js/viewer.js"></script>
               </div>
-            </div>
-            #if($self.mimeType.startsWith("audio/") || $self.mimeType.startsWith("video/"))
-                <input class='player_clear_fragment' type='button' value='Reset' />
-                <div class="video-results-list">
-                    <div class="video-result-list" anotar-uri="$portalPath/$self.object.id">
-                        Media Clip
-                    </div>
-                </div>
             #end
+            </div>
           </div>
           
         #end
@@ -231,10 +240,8 @@ $(function() {
         
         if (hasFlv!='' || ext=="mp3" || ext=="m4a") {
             var href = "$portalPath/download/$oid/" + filename;
-            var player1 = '<a class="clearfix" href="' + href + '" id="player" style="' + style + '" />' + 
-                         //'<div id="hulu" class="hulu"></div>' + 
-                         '<div class="annotatable"><br/><div class="clear"></div></div>'; 
-            $("div.content-preview div.article").empty().append(player1);
+            var player1 = '<div href="' + href + '" id="player" style="' + style + '"></div>'; 
+            $("#player-container").attr("style", style).html(player1);
             player = flowplayer("player", "$portalPath/flowplayer/flowplayer-3.1.5.swf",
                 { clip: { autoPlay: false, autoBuffering: true },
                   play: {
@@ -254,19 +261,15 @@ $(function() {
     $("#player_seek_start").live("click", function() {
         player.seek(0);
     });
-    
     $("#player_rewind").live("click", function() {
         player.seek(player.getTime() - 1);
     });
-    
     $("#player_play").live("click", function() {
         player.toggle();
     });
-    
     $("#player_forward").live("click", function() {
         player.seek(player.getTime()+1);
     });
-    
     $("#player_seek_end").live("click", function() {
         player.seek(player.getClip().fullDuration-1);
         player.pause();
@@ -277,10 +280,8 @@ $(function() {
         $("#player_mark_end_time").attr("disabled", false);
         $("#txtEndMark").attr("disabled", false);
     });
-    
     $("#player_mark_end_time").live("click", function() {
         $("#txtEndMark").attr("value", player.getTime());
-
         uri = player.getClip().url + "#";
         start = $('#txtStartMark').val();
         end = $('#txtEndMark').val()
@@ -290,17 +291,16 @@ $(function() {
             if (start != "" && start > 0) {
                 uri += start + "s"
                 if (player.getClip().duration < start) {
-                    warning += "<li>The requested start-point is greater than the video's duration.</li>";
+                    //warning += "<li>The requested start-point is greater than the video's duration.</li>";
                 }
             }
             if (end != "") {
                 uri += "," + end + "s";
                 if (player.getClip().duration < end) {
-                    warning += "<li>The requested end-point is greater than the video's duration.</li>";
+                    //warning += "<li>The requested end-point is greater than the video's duration.</li>";
                 }
             }
         }
-        
         $(".video-result-list").attr("rel", uri);
     });
     
@@ -322,7 +322,6 @@ $(function() {
     });
     
     $(".player_play_clip").live("click", function() {
-        player.play();
         player.pause();
         var startTime = $(this).siblings(".startTime").text().replace("s", "");
         var endTime = $(this).siblings(".endTime").text().replace("s", "");
@@ -336,25 +335,6 @@ $(function() {
 <script type="text/javascript" src="$portalPath/js/anotar/anotar-0.1.js"></script>
 <script type="text/javascript">
     $(function(){
-        // Comment annotation
-        var notes = new Anotar();
-        notes.setConfig("debug", true);
-        notes.setConfig("object_literal", "$self.object.id");
-        notes.setConfig("page_uri", "$portalPath/$self.object.id");
-        #if($page.authentication.is_logged_in())
-        notes.setConfig("creator", "$page.authentication.get_name()");
-        notes.setConfig("creator_uri", null);
-        #end
-        notes.setConfig("tag_list", "p, h1, h2, h3, h4, h5, h6, .annotatable");
-        notes.setConfig("proxy_required", false);
-        notes.setConfig("interface_label", " <img src='$portalPath/images/icons/comment_add.png'/> Comments:");
-        notes.setConfig("reply_label", " <img src='$portalPath/images/icons/comments_add.png'/>");
-        notes.setConfig("server_address", "$portalPath/actions/anotar.ajax");
-        notes.setConfig("server_mode", "fascinator");
-        notes.setConfig("interface_visible", true);
-        notes.init($);
-        
-        
         // Tags annotation
         var tags = new Anotar();
         tags.setType("Tag");
@@ -381,131 +361,127 @@ $(function() {
         tags.setConfig("disable_replies", true);
         tags.init($); 
         
-        
-        
         #if($self.mimeType.startsWith("audio/") || $self.mimeType.startsWith("video/"))
         // Video annotation
+        var videoAnoLabel = "<img src='$portalPath/images/icons/comment_add.png'/>&#160;Comment on this video:";
         var videoAno = new Anotar();
-        //videoAno.setType("Tag");
         videoAno.setConfig("debug", true);
-        videoAno.setConfig("label", "Comment on Clip");
-        //videoAno.setConfig("doc_root", ".video-results-list");
+        videoAno.setConfig("label", videoAnoLabel);
         videoAno.setConfig("object_literal", "$self.object.id"); 
         videoAno.setConfig("page_uri", "$portalPath/$self.object.id");
         videoAno.setConfig("doc_root", ".video-results-list");
         videoAno.setConfig("tag_list", ".video-result-list");
         videoAno.setConfig("uri_attr", "anotar-uri");
-        videoAno.setConfig("reply_uri_attr", "anotar-uri");
         videoAno.setConfig("reply_label", " <img src='$portalPath/images/icons/comments_add.png'/>");
-        //videoAno.setConfig("anno_type", "http://www.purl.org/anotar/ns/type/0.1#Tag");
         videoAno.setConfig("hash_type", "http://www.w3.org/TR/2009/WD-media-frags-20091217");
-        //videoAno.setConfig("hash_attr", "rel");
-        videoAno.setConfig("hash_function", function(me) { return me.attr("rel"); });
-        videoAno.setConfig("style_prefix", "anno-");       //USE tags- for now...
+        videoAno.setConfig("hash_function", function(node) {
+            var rel = node.attr("rel");
+            if (rel == null) { rel = "$oid"; }
+            return rel;
+        });
+        videoAno.setConfig("style_prefix", "anno-");
         videoAno.setConfig("proxy_required", false);
-        videoAno.setConfig("interface_label", " <img src='$portalPath/images/icons/add.png'/>");
+        videoAno.setConfig("interface_label", videoAnoLabel);
         videoAno.setConfig("interface_visible", true);
-        //videoAno.setConfig("form_prepend", true);
-        videoAno.setConfig("form_custom", "<div id='media_clip'>" +
-        "<table style='width: 30%'><tr>" + 
-            "<td colspan='2'><input id='player_seek_start' type='button' value='&lt;&lt;' />" + 
-            "<input id='player_rewind' type='button' value='&lt;' />" + 
-            "<input id='player_play' type='button' value='Play/Pause' />" + 
-            "<input id='player_forward' type='button' value='&gt;' '/>" + 
-            "<input id='player_seek_end' type='button' value='&gt;&gt;' '/></td>" +
-        "</tr>" +
-        "<tr>" + 
-            "<td><input id='player_mark_start_time' type='button' value='Mark start time' value=''/></td>" +
-            "<td><input type='text' id='txtStartMark' value=''/></td>" +
-        "</tr>" +
-        "<tr>" + 
-            "<td><input id='player_mark_end_time' type='button' value='Mark end time' value='' disabled='true'/></td>" +
-            "<td><input type='text' id='txtEndMark' value='' disabled='true'/></td>" +
-        "</tr>" +
-        "<tr>" +
-            "<td><input class='player_clear_fragment' type='button' value='Reset' /></td>" +
-            "<td><input id='player_play_fragment' type='button' value='Play Clip' /></td>" +
-        "</tr>" +
-        "<tr><td>Comment: </td><td><textArea></textArea></td></tr>" +
-        "<tr><td colspan='2'><img src='$portalPath/images/icons/tick.png' class='myTag-submit'/>&#160;" +
-        "<img src='$portalPath/images/icons/cross.png' class='myTag-cancel'></td>" +
-        "</tr></table></div>"); 
-        
-        
+        videoAno.setConfig("form_custom", "media_clip_form");
         videoAno.setConfig("form_cancel", ".myTag-cancel");
         videoAno.setConfig("form_submit", ".myTag-submit");
         videoAno.setConfig("server_address", "$portalPath/actions/anotar.ajax");
         videoAno.setConfig("server_mode", "fascinator");
         videoAno.setConfig("disable_replies", false);
-        videoAno.setConfig("display_custom",
-        "<% var startTime=\"\"; var endTime=\"\"; if (locator != null) {" +
-        "   var npt=locator.split(\"#t=npt:\"); " +
-        "   if (npt.length > 1) { npt=npt[1].split(\",\");" +
-        "   startTime=npt[0]; if (startTime.length==0) startTime=\"0s\";" +
-        "   endTime=npt[1]; if (endTime.length==0) endTime=\"0s\";" +
-        "}} %>" +
-        "<div class='<%=style%>inline-annotation <%=toggle%>' id='<%=id%>'>" +
-            "<input name='rootUri' value='<%=root%>' type='hidden'/>" +
-            "<div class='<%=style%>orig-content' style='display:none;'><%=original%></div>" +
-            "<div class='<%=style%>anno-info'>" +
-                "Comment by: <span class='<%=style%>anno-creator'><%=creator%></span>" +
-                " &nbsp; <span class='<%=style%>anno-date'><%=date%></span>" +
-            "</div>" +
-            "Start: <span class='startTime'><%=startTime%></span>, " +
-            "End: <span class='endTime'><%=endTime%></span><br/>" +
-            "<div class='<%=style%>anno-content'><%=content%></div>" +
-            "<input class='player_play_clip' type='button' value='Play Clip' />" +
-            "<div class='<%=style%>anno-children'><%=children%></div>" +
-        "</div>"
-        );
-        videoAno.init($); 
-        #end
+        videoAno.setConfig("display_custom", "media_clip_comment");
+        videoAno.init($);
         
-        /*// Image annotation
-        var imageAno = new Anotar();
-        imageAno.setType("Tag");
-        imageAno.setConfig("debug", true);
-        //imageAno.setConfig("doc_root", "span.image");
-        imageAno.setConfig("tag_list", "div.image"); 
-        imageAno.setConfig("page_uri", "$self.object.id");
-        //imageAno.setConfig("uri_attr", "id");
-        imageAno.setConfig("anno_type", "http://www.purl.org/anotar/ns/type/0.1#Tag");
-        imageAno.setConfig("style_prefix", "imageAno-");
-        imageAno.setConfig("proxy_required", false);
-        imageAno.setConfig("interface_label", " <img src='$portalPath/images/icons/add.png'/>");
-        //imageAno.setConfig("interface_label", " <a class='image-annotate-add' id='image-annotate-add'>Add Note</a>");
-        imageAno.setConfig("interface_visible", true);
-        imageAno.setConfig("form_prepend", true);
-        imageAno.setConfig("form_custom", "<div class='myimageAno float-right'>Tag this:" +
-          "<textarea></textarea>" +
-          "<img src='$portalPath/images/icons/tick.png' class='myTag-submit'/>&#160;" +
-          "<img src='$portalPath/images/icons/cross.png' class='myTag-cancel'>" +
-        "</div>");
-        imageAno.setConfig("form_cancel", ".myTag-cancel");
-        imageAno.setConfig("form_submit", ".myTag-submit");
-        imageAno.setConfig("server_address", "$portalPath/actions/anotar.ajax");
-        imageAno.setConfig("server_mode", "fascinator");
-        imageAno.setConfig("disable_replies", true);
-        imageAno.init($);
-        */
+        $("#media_clip textArea").live("focus", function() {
+            var replies = $("#media_clip").prev("blockquote.anno-inline-annotation-quote")
+                                          .find(".anno-anno-children");
+            if (replies.length > 0) {
+                $(".annotate_scope").hide();
+            } else {
+                $(".annotate_scope").show();
+            }
+            return false;
+        });
+        #end
     });
 </script>
-
-<!--
-
-
-<form method="post" action="" id="marker">
-                    
-                    <h2>Media Fragment</h2>
-                    <p>
-                        Media fragment URI: <input type="text" id="fragmentUri" value="" size="60"/><input type="button" value="Display URI" onclick="setFragmentUri($('#txtStartMark').val(), $('#txtEndMark').val());"/>
-                    </p>
-                    <h3>Warnings</h3>
-                    <p id="warnings">
-                    None
-                    </p>
-                    </form>
--->
-
+#if($self.mimeType.startsWith("audio/") || $self.mimeType.startsWith("video/"))
+<script type="text/html" id="media_clip_form">
+  <div id="media_clip">
+    <table>
+      <tr>
+        <td colspan="2" class="annotate_scope">
+          <input type="radio" name="annotate_scope" id="annotate_all" checked="true"
+                 onclick="$('.annotate_clip').hide()" />
+          <label for="annotate_all">Comment on the whole video</label><br/>
+          <input type="radio" name="annotate_scope" id="annotate_clip"
+                 onclick="$('.annotate_clip').show()" />
+          <label for="annotate_clip">Select a portion (clip) to annotate</label>
+        </td>
+      </tr>
+      <tr class="hidden annotate_clip">
+        <td colspan="2">
+          <input class="player_clear_fragment" type="button" value="Reset" />
+          <input id="player_seek_start" type="button" value="&lt;&lt;" />
+          <input id="player_rewind" type="button" value="&lt;" />
+          <input id="player_play" type="button" value="Play/Pause" />
+          <input id="player_forward" type="button" value="&gt;" />
+          <input id="player_seek_end" type="button" value="&gt;&gt;" />
+        </td>
+      </tr>
+      <tr class="hidden annotate_clip">
+        <td><input id="player_mark_start_time" type="button" value="Mark start time" value=""/></td>
+        <td><input type="text" id="txtStartMark" value=""/></td>
+      </tr>
+      <tr class="hidden annotate_clip">
+        <td><input id="player_mark_end_time" type="button" value="Mark end time" value="" disabled="true"/></td>
+        <td><input type="text" id="txtEndMark" value="" disabled="true"/></td>
+      </tr>
+      <tr class="hidden annotate_clip">
+        <td colspan="2"><input id="player_play_fragment" type="button" value="Play Clip" /></td>
+      </tr>
+      <tr><td>Comment:</td><td><textArea></textArea></td></tr>
+      <tr><td colspan="2">
+        <button class="myTag-cancel">Cancel</button>&#160;
+        <button class="myTag-submit">Submit</button>
+      </tr>
+    </table>
+  </div>
+</script>
+<script type="text/html" id="media_clip_comment">
+  <%
+  var startTime = "";
+  var endTime = "";
+  if (locator != null) {
+    var npt = locator.split("#t=npt:");
+    if (npt.length > 1) {
+        npt = npt[1].split(",");
+        startTime = npt[0];
+        if (startTime.length == 0) { startTime = "0s"; }
+        endTime = npt[1];
+        if (endTime.length == 0) { endTime = "0s"; }
+    }
+  }
+  %>
+  <div class="<%=style%>inline-annotation <%=toggle%>" id="<%=id%>">
+      <input name="rootUri" value="<%=root%>" type="hidden"/>
+      <div class="<%=style%>orig-content" style="display:none;"><%=original%></div>
+      <div class="<%=style%>anno-info">
+        Comment by: <span class="<%=style%>anno-creator"><%=creator%></span>
+         &nbsp; <span class="<%=style%>anno-date"><%=date%></span>
+      </div>
+      <% if (startTime != "" && endTime != "") { %>
+      <div class="<%=style%>anno-info">
+        Clip duration: <span class="startTime"><%=startTime%></span> to
+        <span class="endTime"><%=endTime%></span>
+      </div>
+      <% } %>
+      <div>
+        <input class="player_play_clip" type="button" value="Play" />
+        <span class="<%=style%>anno-content"><%=content%></span>
+      </div>
+      <div class="<%=style%>anno-children"><%=children%></div>
+  </div>
+</script>
 #end
-
+#end
