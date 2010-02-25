@@ -5,7 +5,7 @@
             "baseDir": "${user.home}/Documents/FSB CORAL PROJECT/",
             "ignoreFilter": ".svn|.ice|.*|~*|Thumbs.db|.DS_Store",
             "cacheDir": "${user.home}/.fascinator/cache",
-            "force": false,
+            "force": true,
             "recursive": true
         }
     },
@@ -18,12 +18,22 @@
         },
         "ice2": {
             "url": "http://ec2-75-101-136-199.compute-1.amazonaws.com/api/convert/",
-            "resize.image.mode": "fixedWidth",
-            "resize.image.ratio": "-90",
-            "resize.image.fixedWidth": "160",
-            "enlargeImage": "false",
             "outputPath": "${java.io.tmpdir}/ice2-output",
-            "excludeRenditionExt": ".txt,.mp3,.m4a,.mov,.mp4,.wav,.wma,.wmv,.mpg"
+            "excludeRenditionExt": "txt,mp3,m4a,mov,mp4,wav,wma,wmv,mpg,flv",
+            "resize": {
+                "thumbnail": {
+                    "option": "fixedWidth",
+                    "ratio": "-90",
+                    "fixedWidth": "160",
+                    "enlarge": "false"
+                }, 
+                "preview": {
+                    "option": "fixedWidth",
+                    "ratio": "-90",
+                    "fixedWidth": "600",
+                    "enlarge": "false"
+                }
+            }
         },
         "ffmpeg": {
             "executable": "ffmpeg",
