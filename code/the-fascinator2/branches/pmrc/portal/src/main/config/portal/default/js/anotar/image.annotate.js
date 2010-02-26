@@ -39,8 +39,18 @@
             if ($(this).children('.image-annotate-edit').css('display') == 'none') {
                 $(this).children('.image-annotate-view').show();
             }
+            $('.image-annotate-area').each(function() {
+                if ($(this).css('display') == 'none') {
+                	$(this).show();
+                }
+            });
         }, function() {
             $(this).children('.image-annotate-view').hide();
+            $('.image-annotate-area').each(function() {
+                if ($(this).css('display') == 'block') {
+                	$(this).hide();
+                }
+            });
         });
 
         this.canvas.children('.image-annotate-view').hover(function() {
@@ -58,13 +68,16 @@
 
         // Add the "Add a note" button
         if (this.editable) {
-            this.button = $('<a class="image-annotate-add" id="image-annotate-add" href="#">Add Note</a>');
+            this.button = $('<p><a class="image-annotate-add" id="image-annotate-add" href="#">Tag image</a></p>');
             this.button.click(function() {
                 $.fn.annotateImage.add(image);
             });
             this.canvas.after(this.button);
         }
 
+        this.list = $('<div class="image-annotate-list"><strong>Image Tags: </strong></div>');
+        this.canvas.after(this.list);
+        
         // Hide the original
         this.hide();
 
@@ -110,7 +123,7 @@
         ///     options object.
         ///	</summary>
         for (var i = 0; i < image.notes.length; i++) {
-            image.notes[image.notes[i]] = new $.fn.annotateView(image, image.notes[i]);
+            image.notes[image.notes[i]] = new $.fn.annotateView(image, image.notes[i], "");
         }
     };
 
@@ -170,7 +183,7 @@
                 note.resetPosition(editable, text);
             } else {
                 editable.note.editable = true;
-                note = new $.fn.annotateView(image, editable.note)
+                note = new $.fn.annotateView(image, editable.note, text)
                 note.resetPosition(editable, text);
                 image.notes.push(editable.note);
             }
@@ -286,7 +299,7 @@
         this.form.remove();
     }
 
-    $.fn.annotateView = function(image, note) {
+    $.fn.annotateView = function(image, note, text) {
         ///	<summary>
         ///		Defines a annotation area.
         ///	</summary>
@@ -305,7 +318,14 @@
         this.form.hide();
         image.canvas.children('.image-annotate-view').append(this.form);
         this.form.children('span.actions').hide();
-
+        
+        // Add the note to list
+        var tagText=text;
+        if (note.text)
+        	tagText = note.text;
+        this.imageList = $('<span class="tags-tag">' + tagText + '</span>');
+        $('.image-annotate-list').append(this.imageList);
+        
         // Set the position and size of the note
         this.setPosition();
 
@@ -315,6 +335,22 @@
             annotation.show();
         }, function() {
             annotation.hide();
+        });
+
+        var imageArea = this.area;
+        this.imageList.hover(function() {
+        	$('.image-annotate-area').each(function() {
+                if ($(this).css('display') == 'block') {
+                	$(this).hide();
+                }
+            });
+            image.canvas.children('.image-annotate-view').show();
+            annotation.form.show();
+            annotation.area.show();
+        }, function() {
+            image.canvas.children('.image-annotate-view').hide();
+            annotation.form.hide();
+            annotation.area.hide();
         });
 
         // Edit a note feature

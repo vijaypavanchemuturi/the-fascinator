@@ -338,11 +338,10 @@ $(function() {
         // Tags annotation
         var tags = new Anotar();
         tags.setType("Tag");
-        tags.setConfig("debug", true);
+        //tags.setConfig("debug", true);
         tags.setConfig("doc_root", ".results-list");
         tags.setConfig("tag_list", ".result h2"); 
         tags.setConfig("page_uri", "$self.object.id");
-        //tags.setConfig("uri_attr", "id");
         tags.setConfig("anno_type", "http://www.purl.org/anotar/ns/type/0.1#Tag");
         tags.setConfig("style_prefix", "tags-");
         tags.setConfig("proxy_required", false);
@@ -365,7 +364,7 @@ $(function() {
         // Video annotation
         var videoAnoLabel = "<img src='$portalPath/images/icons/comment_add.png'/>&#160;Comment on this video:";
         var videoAno = new Anotar();
-        videoAno.setConfig("debug", true);
+        //videoAno.setConfig("debug", true);
         videoAno.setConfig("label", videoAnoLabel);
         videoAno.setConfig("object_literal", "$self.object.id"); 
         videoAno.setConfig("page_uri", "$portalPath/$self.object.id");
@@ -402,6 +401,24 @@ $(function() {
             }
             return false;
         });
+        #else
+        // Comment annotation
+        var notes = new Anotar();
+        //notes.setConfig("debug", true);
+        notes.setConfig("object_literal", "$self.object.id");
+        notes.setConfig("page_uri", "$portalPath/$self.object.id");
+        #if($page.authentication.is_logged_in())
+        notes.setConfig("creator", "$page.authentication.get_name()");
+        notes.setConfig("creator_uri", null);
+        #end
+        notes.setConfig("tag_list", "p, h1, h2, h3, h4, h5, h6, .annotatable");
+        notes.setConfig("proxy_required", false);
+        notes.setConfig("interface_label", " <img src='$portalPath/images/icons/comment_add.png'/> Comments:");
+        notes.setConfig("reply_label", " <img src='$portalPath/images/icons/comments_add.png'/>");
+        notes.setConfig("server_address", "$portalPath/actions/anotar.ajax");
+        notes.setConfig("server_mode", "fascinator");
+        notes.setConfig("interface_visible", true);
+        notes.init($);
         #end
     });
 </script>
@@ -472,12 +489,12 @@ $(function() {
       </div>
       <% if (startTime != "" && endTime != "") { %>
       <div class="<%=style%>anno-info">
+        <input class="player_play_clip" type="button" value="Play" />
         Clip duration: <span class="startTime"><%=startTime%></span> to
         <span class="endTime"><%=endTime%></span>
       </div>
       <% } %>
       <div>
-        <input class="player_play_clip" type="button" value="Play" />
         <span class="<%=style%>anno-content"><%=content%></span>
       </div>
       <div class="<%=style%>anno-children"><%=children%></div>
