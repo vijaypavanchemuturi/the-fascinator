@@ -434,3 +434,9 @@ ul.nobgtabs li a.ui-state-active {
 .mainmenu .tree ul {
     font-size: 12px;
 }
+
+.help_p {
+    font-size: smaller;
+    font-style: italic;
+    display: none;
+}
