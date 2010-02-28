@@ -9,7 +9,7 @@ from java.io import ByteArrayInputStream, ByteArrayOutputStream, File, StringWri
 from java.net import URLDecoder, URLEncoder
 from java.lang import Boolean, String
 
-from org.apache.commons.io import IOUtils
+from org.apache.commons.io import FileUtils, IOUtils
 from org.dom4j.io import OutputFormat, XMLWriter, SAXReader
 
 import traceback
@@ -130,6 +130,9 @@ class DetailData:
         if hasattr(obj, "getPath"):
             return obj.path.absolutePath
         return obj.id
+    
+    def getFileSize(self, path):
+        return FileUtils.byteCountToDisplaySize(os.path.getsize(path))
     
     def hasSlideShow(self):
         pid = self.__pid

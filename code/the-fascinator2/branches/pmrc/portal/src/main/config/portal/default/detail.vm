@@ -45,7 +45,7 @@
             <div class="mainmenu-top"></div>
             <div class="mainmenu-heading">Downloads</div>
             <ul class="menu-list">
-              <li><a href="$portalPath/download/$self.getPayLoadUrl($self.getFileName($oid))">$self.getFileName($oid)</a></li>
+              <li><a href="$portalPath/download/$self.getPayLoadUrl($self.getFileName($oid))">$self.getFileName($oid)</a> <span style="font-weight:normal">($self.getFileSize($oid))</span></li>
             </ul>
           </div>
           <!--<div class="mainmenu">
@@ -167,6 +167,19 @@
 <script type="text/javascript" src="$portalPath/js/autocomplete/lib/jquery.bgiframe.js"></script>
 <script type="text/javascript" src="$portalPath/js/autocomplete/jquery.autocomplete.pack.js"></script>
 <script type="text/javascript">
+var display_help = false;
+function toggleHelp(help_link) {
+    if (!display_help) {
+        $(".help_p").css("display", "block");
+        help_link.text("Hide help");
+        display_help = true;
+    } else {
+        $(".help_p").css("display", "none");
+        help_link.html("Show help");
+        display_help = false;
+    }
+}
+
 $(function() {
     var oid = "$oid";
     var filenameNoExt = "$filenameNoExt";
@@ -362,7 +375,7 @@ $(function() {
         
         #if($self.mimeType.startsWith("audio/") || $self.mimeType.startsWith("video/"))
         // Video annotation
-        var videoAnoLabel = "<img src='$portalPath/images/icons/comment_add.png'/>&#160;Comment on this video:";
+        var videoAnoLabel = "<img src='$portalPath/images/icons/comment_add.png'/>&#160;Comment on this media:";
         var videoAno = new Anotar();
         //videoAno.setConfig("debug", true);
         videoAno.setConfig("label", videoAnoLabel);
@@ -434,11 +447,26 @@ $(function() {
           <input type="radio" name="annotate_scope" id="annotate_clip"
                  onclick="$('.annotate_clip').show()" />
           <label for="annotate_clip">Select a portion (clip) to annotate</label>
+          <span class="hidden annotate_clip">(<a onclick="toggleHelp($(this))">Show help</a>)</span>
         </td>
       </tr>
       <tr class="hidden annotate_clip">
         <td colspan="2">
-          <input class="player_clear_fragment" type="button" value="Reset" />
+          <p class="help_p">The tools below will help you select a specific
+          section of video that you want to comment on. We call this section a
+          "clip". This top row of buttons is similar to those on your home DVD
+          player:</p>
+          <ul class="help_p">
+          <li>To go to the beginning of the video, click the "&lt;&lt; button</li>
+          <li>To move the video forward by 1 second click on the "&lt;" button</li>
+          <li>To play and pause the video click on the "Play/Pause" button</li>
+          <li>To move the video back by 1 second click on the "&gt;" button</li>
+          <li>To go to the end of the video, click the "&gt;&gt; button</li>
+          </ul>
+        </td>
+      </tr>
+      <tr class="hidden annotate_clip">
+        <td colspan="2">
           <input id="player_seek_start" type="button" value="&lt;&lt;" />
           <input id="player_rewind" type="button" value="&lt;" />
           <input id="player_play" type="button" value="Play/Pause" />
@@ -447,17 +475,41 @@ $(function() {
         </td>
       </tr>
       <tr class="hidden annotate_clip">
+        <td colspan="2">
+          <p class="help_p">To create a clip, you need to set a beginning and
+          end time. We use seconds to set the time.
+          <br/>
+          You can start the video playing and press the "Mark start time" and
+          "Mark end time" buttons and the system will set the timing for you.
+          <br/>
+          Alternatively, you can enter the start and end times as seconds in
+          the corresponding text boxes.
+          </p>
+        </td>
+      </tr>
+      <tr class="hidden annotate_clip">
         <td><input id="player_mark_start_time" type="button" value="Mark start time" value=""/></td>
-        <td><input type="text" id="txtStartMark" value=""/></td>
+        <td><input type="text" id="txtStartMark" value="" size="5"/></td>
       </tr>
       <tr class="hidden annotate_clip">
         <td><input id="player_mark_end_time" type="button" value="Mark end time" value="" disabled="true"/></td>
-        <td><input type="text" id="txtEndMark" value="" disabled="true"/></td>
+        <td><input type="text" id="txtEndMark" value="" disabled="true" size="5"/></td>
       </tr>
       <tr class="hidden annotate_clip">
-        <td colspan="2"><input id="player_play_fragment" type="button" value="Play Clip" /></td>
+        <td colspan="2">
+          <p class="help_p">Once you have set the start and end times for your
+          clip you can preview the clip by pressing "Play clip".
+          <br/>You can also scrap the clip by pressing "Clear clip".</p>
+        </td>
       </tr>
-      <tr><td>Comment:</td><td><textArea></textArea></td></tr>
+      <tr class="hidden annotate_clip">
+        <td colspan="2">
+          <input class="player_clear_fragment" type="button" value="Clear clip" />
+          <input id="player_play_fragment" type="button" value="Play clip" />
+        </td>
+      </tr>
+      <tr><td colspan="2">Comment:</td></tr>
+      <tr><td colspan="2"><textArea cols="30"></textArea></td></tr>
       <tr><td colspan="2">
         <button class="myTag-cancel">Cancel</button>&#160;
         <button class="myTag-submit">Submit</button>
