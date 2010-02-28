@@ -107,7 +107,7 @@
             <h2>Preview</h2>
             <div class="results-list">
                 <div class="result">
-                    <h2>Tags:</h2>
+                    <h2 id="$oid">Tags: </h2>
                 </div>
             </div>
             <div id="anno-root" class="content-preview">
@@ -353,8 +353,9 @@ $(function() {
         tags.setType("Tag");
         //tags.setConfig("debug", true);
         tags.setConfig("doc_root", ".results-list");
-        tags.setConfig("tag_list", ".result h2"); 
+        tags.setConfig("tag_list", ".result h2");
         tags.setConfig("page_uri", "$self.object.id");
+        tags.setConfig("uri_attr", "id");
         tags.setConfig("anno_type", "http://www.purl.org/anotar/ns/type/0.1#Tag");
         tags.setConfig("style_prefix", "tags-");
         tags.setConfig("proxy_required", false);
@@ -366,6 +367,7 @@ $(function() {
           "<img src='$portalPath/images/icons/tick.png' class='myTag-submit'/>&#160;" +
           "<img src='$portalPath/images/icons/cross.png' class='myTag-cancel'>" +
         "</div>");
+        //tags.setConfig("hash_function", function(me) { return me.attr("anotar-hash"); });
         tags.setConfig("form_cancel", ".myTag-cancel");
         tags.setConfig("form_submit", ".myTag-submit");
         tags.setConfig("server_address", "$portalPath/actions/anotar.ajax");

@@ -118,19 +118,20 @@ class AnotarData:
                 imageTags = JsonConfigHelper(result).getJsonList("result")
                 for imageTag in imageTags:
                     imageAno = JsonConfigHelper()
-                    locatorValue = imageTag.getJsonList("annotates/locators").get(0).get("value")
-                    locatorType = imageTag.getJsonList("annotates/locators").get(0).get("type")
-                    if locatorValue and locatorValue.find("#xywh=")>-1 and locatorType == mediaFragType:
-                        _, locatorValue = locatorValue.split("#xywh=")
-                        left, top, width, height = locatorValue.split(",")
-                        imageAno.set("top", top)
-                        imageAno.set("left", left)
-                        imageAno.set("width", width)
-                        imageAno.set("height", height)
-                        imageAno.set("id", imageTag.get("id"))
-                        imageAno.set("text", imageTag.get("content/literal"))
-                        #imageAno.set("editable", Boolean(False).toString());
-                        imageTagList.append(imageAno.toString())
+                    if imageTag.getJsonList("annotates/locators"):
+                        locatorValue = imageTag.getJsonList("annotates/locators").get(0).get("value")
+                        locatorType = imageTag.getJsonList("annotates/locators").get(0).get("type")
+                        if locatorValue and locatorValue.find("#xywh=")>-1 and locatorType == mediaFragType:
+                            _, locatorValue = locatorValue.split("#xywh=")
+                            left, top, width, height = locatorValue.split(",")
+                            imageAno.set("top", top)
+                            imageAno.set("left", left)
+                            imageAno.set("width", width)
+                            imageAno.set("height", height)
+                            imageAno.set("id", imageTag.get("id"))
+                            imageAno.set("text", imageTag.get("content/literal"))
+                            #imageAno.set("editable", Boolean(False).toString());
+                            imageTagList.append(imageAno.toString())
                 result = "[" + ",".join(imageTagList) + "]"
         elif self.action == "save-image":
             jsonTemplate = """

@@ -140,7 +140,7 @@
                     <td width="33%">
                     <div id="$hashId" class="article#if($velocityCount==1) first#end">
                       <p><a href="$portalPath/detail/$self.encode($id)">$title</a></p>
-                      <div id="$self.getObject($id).id" class="tags">Tags:<span class="tags-here"></span></div>
+                      <div id="$self.getObject($id).id" class="tags">Tags: <span class="tags-here"></div></span>
                       #set($thumbnail = $self.getThumbnail($id))
                       #if($thumbnail)
                         <a class="image" href="$portalPath/detail/$id">
