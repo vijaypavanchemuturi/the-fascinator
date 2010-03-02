@@ -21,7 +21,7 @@ echo The Fascinator is STOPPED.
 goto end
 
 :start
-start "The Fascinator" /D"%TF_HOME%\portal" mvn -P dev jetty:run
+start "The Fascinator" /D"%TF_HOME%\portal" mvn -P dev jetty:run ^> %TF_HOME%/portal.out
 goto end
 
 :stop
