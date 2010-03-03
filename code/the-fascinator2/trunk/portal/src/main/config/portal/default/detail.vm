@@ -100,7 +100,7 @@
       <div class="first article">
         <div class="article-heading">$title</div>
         <div id="tag-box" class="myTags">
-          <div id="$oid" class="tag-list">Tags: </div>
+          <div id="$oid" class="tag-list">Tags: <span class="tags-here"></span></div>
         </div>
         <div id="content">
         #if($self.mimeType.startsWith("audio/") || $self.mimeType.startsWith("video/"))
@@ -275,9 +275,6 @@ $(function() {
             player.getClip().update({duration:endTime});
             player.play();
         });
-    #else
-        var error = "$self.hasError()";
-        $("div.content-preview div.article").empty().append("No preview available");
     #end
 
     #if($self.hasHtml())
@@ -330,6 +327,7 @@ $(function() {
         tags.setConfig("doc_root", "#tag-box");
         tags.setConfig("tag_list", ".tag-list");
         tags.setConfig("page_uri", "$oid");
+        tags.setConfig("output_in_child", ".tags-here");
         tags.setConfig("uri_attr", "id");
         tags.setConfig("anno_type", "http://www.purl.org/anotar/ns/type/0.1#Tag");
         tags.setConfig("style_prefix", "tags-");
@@ -417,11 +415,15 @@ $(function() {
         #end
         notes.setConfig("tag_list", "p, h1, h2, h3, h4, h5, h6, .annotatable");
         notes.setConfig("proxy_required", false);
-        notes.setConfig("interface_label", " <img src='$portalPath/images/icons/comment_add.png'/> Comments:");
         notes.setConfig("reply_label", " <img src='$portalPath/images/icons/comments_add.png'/>");
         notes.setConfig("server_address", "$portalPath/actions/anotar.ajax");
         notes.setConfig("server_mode", "fascinator");
+        #if ($self.mimeType.startsWith("image/"))
         notes.setConfig("interface_visible", true);
+        notes.setConfig("interface_label", " <img src='$portalPath/images/icons/comment_add.png'/> Comments:");
+        #else
+        notes.setConfig("interface_label", " <img src='$portalPath/images/icons/comment_add.png'/>");
+        #end
         notes.init($);
         #end
     });

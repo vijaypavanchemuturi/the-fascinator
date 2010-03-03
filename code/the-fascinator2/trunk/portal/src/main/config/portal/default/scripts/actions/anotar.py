@@ -129,6 +129,7 @@ class AnotarData:
                             imageAno.set("width", width)
                             imageAno.set("height", height)
                             imageAno.set("id", imageTag.get("id"))
+                            #tagCount = imageTag.get("tagCount")
                             imageAno.set("text", imageTag.get("content/literal"))
                             #imageAno.set("editable", Boolean(False).toString());
                             imageTagList.append(imageAno.toString())
@@ -251,21 +252,25 @@ class AnotarData:
         return json.write(rootDocs)
 
     def __process_tags(self, result):
-        docsDict = {}
+        tags = []
+        tagsDict = {}
         # Build a dictionary of the tags
         for doc in result:
             doc = JsonConfigHelper(doc.get("jsonString"))
             tag = doc.get("content/literal")
-            if tag in docsDict:
-                d = docsDict[tag]
-                d.set("tagCount", str(int(d.get("tagCount")) + 1))
+            locs = doc.getJsonList("annotates/locators").size()
+            if locs == 0:
+                if tag in tagsDict:
+                    d = tagsDict[tag]
+                    d.set("tagCount", str(int(d.get("tagCount")) + 1))
+                else:
+                    doc.set("tagCount", str(1))
+                    tagsDict[tag] = doc
             else:
-                doc.set("tagCount", str(1))
-                docsDict[tag] = doc
+                tags.append(doc.toString())
 
-        tags = []
-        for tag in docsDict:
-            tags.append(docsDict[tag].toString())
+        for tag in tagsDict:
+            tags.append(tagsDict[tag].toString())
 
         return "[" + ",".join(tags) + "]"
 

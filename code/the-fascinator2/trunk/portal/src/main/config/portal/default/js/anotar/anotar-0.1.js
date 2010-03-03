@@ -703,7 +703,7 @@ function Anotar() {
             // Load by URI
             } else {
                 var thisUri = node.attr(config.uri_attr);
-                console.log(thisUri, node.attr(config.uri_attr));
+                //console.log(thisUri, node.attr(config.uri_attr));
                 if (thisUri == annoUri) {
                     attachAnnotation(node, outputDiv);
                     attached = true;
