@@ -100,6 +100,15 @@ form .message {
     vertical-align: text-bottom;
 }
 
+.article div.image {
+    float: left;
+    margin: 3px 10px 3px 0;
+    padding: 4px;
+    border: 1px solid #bbb;
+    background: #fff;
+    width: 600px;
+}
+
 div.tags {
     border-top: 1px dotted #999999;
     border-bottom: 1px dotted #999999;
@@ -292,9 +301,10 @@ span.view-type a.selected {
     background: #666666;
 }
 
-h3.title-heading {
+div.article-heading {
     border-bottom: 1px solid #CCCCCC;
-    font-weight: normal;
+    font-weight: bold;
+    font-size: 1.5em;
     margin-bottom: 10px;
 }
 
@@ -412,3 +422,15 @@ ul.nobgtabs li a.ui-state-active {
     font-size: 125%;
     float: right;
 }
+
+#player-container {
+    margin-bottom: 4px;
+    margin-top: 4px;
+}
+
+.help_p {
+    font-size: smaller;
+    font-style: italic;
+    display: none;
+}
+

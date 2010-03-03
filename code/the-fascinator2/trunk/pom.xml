@@ -103,6 +103,11 @@
       </dependency>
       <dependency>
         <groupId>au.edu.usq.fascinator.plugins</groupId>
+        <artifactId>plugin-transformer-ffmpeg</artifactId>
+        <version>0.5.0-SNAPSHOT</version>
+      </dependency>
+      <dependency>
+        <groupId>au.edu.usq.fascinator.plugins</groupId>
         <artifactId>plugin-transformer-ice2</artifactId>
         <version>0.5.0-SNAPSHOT</version>
       </dependency>

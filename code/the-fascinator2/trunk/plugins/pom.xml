@@ -26,6 +26,7 @@
     <module>storage/fedora3</module>
     <module>storage/filesystem</module>
     <module>transformer/aperture</module>
+    <module>transformer/ffmpeg</module>
     <module>transformer/ice2</module>
     <module>transformer/ims</module>
   </modules>

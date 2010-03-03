@@ -81,7 +81,7 @@
             "url": "http://ec2-75-101-136-199.compute-1.amazonaws.com/api/convert/",
             "resize.image.mode": "fixedWidth",
             "resize.image.ratio": "-90",
-            "resize.image.fixedWidth": "150",
+            "resize.image.fixedWidth": "160",
             "enlargeImage": "false",
             "outputPath": "${java.io.tmpdir}/ice2-output",
             "excludeRenditionExt": ".txt,.mp3,.m4a"

@@ -155,6 +155,7 @@ public class FileSystemStorage implements Storage {
                 IOUtils.copy(filePayload.getInputStream(), tempOut);
                 tempOut.close();
                 FileUtils.copyFile(tempFile, payloadFile);
+                FileUtils.deleteQuietly(tempFile);
 
                 // IOUtils.copy(tempOut, out);
                 // log.info("sofmeta: " +

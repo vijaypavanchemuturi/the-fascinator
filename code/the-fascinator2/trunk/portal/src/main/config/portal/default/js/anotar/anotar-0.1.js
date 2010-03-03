@@ -57,7 +57,9 @@ function Anotar() {
         "disable_replies" : false,
 
         "hash_attr" : "anotar-hash",
-
+        "hash_type" : "http://www.purl.org/anotar/locator/0.1",
+        "hash_function": null,
+        
         "submit_function" : null,
         "load_function" : null,
 
@@ -409,9 +411,14 @@ function Anotar() {
             html = jQ(html).text();
             me.parent().replaceWith(me);
 
+            hashValue = hash;
+            func = config.hash_function;
+            if (func != null) {
+               hashValue = func(me);
+            }
             data = {
                 uri: uri,
-                hash: hash,
+                hash: hashValue,
                 content: me.text(),
                 body: text,
                 title: null
@@ -509,7 +516,7 @@ function Anotar() {
             schemaObject.annotates.locators = [];
             var thisHash = {
                 "originalContent": data.content,
-                "type": "http://www.purl.org/anotar/locator/0.1",
+                "type": config.hash_type,
                 "value": data.hash
             };
             schemaObject.annotates.locators.push(thisHash);
@@ -673,6 +680,9 @@ function Anotar() {
         if (annoObj.annotates.locators !== undefined &&
             annoObj.annotates.locators.length > 0) {
             annoHash = annoObj.annotates.locators[0].value;
+            if (config.hash_type != annoObj.annotates.locators[0].type) {
+                return;
+            }
         }
 
         // Find where to attach it
@@ -693,6 +703,7 @@ function Anotar() {
             // Load by URI
             } else {
                 var thisUri = node.attr(config.uri_attr);
+                console.log(thisUri, node.attr(config.uri_attr));
                 if (thisUri == annoUri) {
                     attachAnnotation(node, outputDiv);
                     attached = true;
@@ -802,9 +813,12 @@ function Anotar() {
             date:      annoObj.dateCreated.literal,
             content:   annoObj.content.literal,
             children:  replyString,
-            tag_count: annoObj.tagCount
+            tag_count: annoObj.tagCount,
+            locator:   null
         };
-
+        if (annoObj.annotates.locators != null) {
+            opt.locator = annoObj.annotates.locators[0].value;
+        }
         var template = null;
         if (config.display_custom != null) {
             template = config.display_custom;
