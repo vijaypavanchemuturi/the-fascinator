@@ -17,5 +17,5 @@ for /f "tokens=1,2 delims=:" %%i in ("%http_proxy%") do set PROXY_HOST=%%i
 for /f "tokens=1,2 delims=:" %%i in ("%http_proxy%") do set PROXY_PORT=%%j
 
 REM set environment
-set JAVA_OPTS=-XX:MaxPermSize=512m -Xmx2048m -Dhttp.proxyHost=%PROXY_HOST% -Dhttp.proxyPort=%PROXY_PORT% -Dhttp.nonProxyHosts=localhost
+set JAVA_OPTS=-XX:MaxPermSize=512m -Xmx512m -Dhttp.proxyHost=%PROXY_HOST% -Dhttp.proxyPort=%PROXY_PORT% -Dhttp.nonProxyHosts=localhost
 set MAVEN_OPTS=%JAVA_OPTS%
