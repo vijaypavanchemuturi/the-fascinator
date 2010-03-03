@@ -66,13 +66,24 @@ public class HarvestClient {
 
     private File rulesFile;
 
+    private File uploadedFile;
+
     private ConveyerBelt cb;
 
     private QueueStorage queueStorage;
 
     private Storage storage;
 
+    public HarvestClient(File jsonFile, File uploadFile) throws IOException {
+        uploadedFile = uploadFile;
+        MDC.put("name", "client");
+        configFile = jsonFile;
+        config = new JsonConfig(jsonFile);
+        cb = new ConveyerBelt(jsonFile, "extractor");
+    }
+
     public HarvestClient(File jsonFile) throws IOException {
+        uploadedFile = null;
         MDC.put("name", "client");
         configFile = jsonFile;
         config = new JsonConfig(jsonFile);
@@ -80,6 +91,7 @@ public class HarvestClient {
     }
 
     public HarvestClient() throws IOException {
+        uploadedFile = null;
         MDC.put("name", "client");
         config = new JsonConfig();
         configFile = config.getSystemFile();
@@ -226,9 +238,10 @@ public class HarvestClient {
             return;
         }
 
-        do {
+        // Uploaded file to be processed
+        if (uploadedFile != null) {
             try {
-                for (DigitalObject item : harvester.getObjects()) {
+                for (DigitalObject item : harvester.getObject(uploadedFile)) {
                     try {
                         processObject(queueStorage, item, rulesOid,
                                 jsonConfigId);
@@ -239,7 +252,24 @@ public class HarvestClient {
             } catch (HarvesterException he) {
                 log.error("Failed to harvest", he);
             }
-        } while (harvester.hasMoreObjects());
+
+        // Normal operations
+        } else {
+            do {
+                try {
+                    for (DigitalObject item : harvester.getObjects()) {
+                        try {
+                            processObject(queueStorage, item, rulesOid,
+                                    jsonConfigId);
+                        } catch (Exception e) {
+                            log.warn("Processing failed: " + item.getId(), e);
+                        }
+                    }
+                } catch (HarvesterException he) {
+                    log.error("Failed to harvest", he);
+                }
+            } while (harvester.hasMoreObjects());
+        }
 
         do {
             try {

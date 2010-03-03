@@ -82,6 +82,10 @@
         </dependency>
         <dependency>
           <groupId>au.edu.usq.fascinator.plugins</groupId>
+          <artifactId>plugin-harvester-workflow</artifactId>
+        </dependency>
+        <dependency>
+          <groupId>au.edu.usq.fascinator.plugins</groupId>
           <artifactId>plugin-storage-filesystem</artifactId>
         </dependency>
         <dependency>

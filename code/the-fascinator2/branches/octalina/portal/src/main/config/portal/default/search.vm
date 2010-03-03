@@ -42,11 +42,11 @@
 #set($pageTitle = 'Search')
 #set($query = $sessionState.get("query"))
 #if($query!="")
-  #set($atomLink = "$portalPath/feed/atom?query=$query") 
+  #set($atomLink = "$portalPath/feed/atom?query=$query")
 #else
   #set($atomLink = "$portalPath/feed/atom")
 #end
-#set($pageHeader = "<link rel=alternate type=application/atom+xml href=$atomLink title='$self.portalName'>")
+#set($pageHeader = "<link rel=\"alternate\" type=\"application/atom+xml\" href=\"$atomLink\" title=\"$self.portalName\">")
 #set($paging = $self.paging)
 #if($self.result and $paging.totalFound > 0)
 #end
@@ -177,9 +177,12 @@
         #if($is_admin)
         <div class="admin-link-holder float-right">
           <a class="admin-security-link" rel="$id" href="#">Manage Access</a>
-          #foreach ($role in $item.get("security_filter"))
-          <div class="locked">$role</div>
-          #end
+          <div class="admin-roles">
+              #foreach ($role in $item.get("security_filter"))
+              <div class="locked">$role</div>
+              #end
+          </div>
+          <a class="admin-delete-link" rel="$id" href="#">Delete Object</a>
         </div>
         #end
         #set($href = "$portalPath/detail/$self.encode($id)")
@@ -189,21 +192,7 @@
             #set($href = "$portalPath/organise/single/$self.encode($id)#")
         #end
         <a href="$href">$title</a></h3>
-        <div class="tags">
-          <ul class="tags">
-            <li>Tags:</li>
-            <li id="tags-$hashId">
-              <a class="tag-add hidden" href="#"><img alt="Add tag" src="$portalPath/images/icons/add.png" /></a>
-              <form class="tag-form hidden" rel="$id">
-                <input type="text" class="new-tag-value" size="20" name="newTag" />
-                <input class="tag-accept hidden" type="submit" name="submit" />
-                <a class="tag-accept" href="#"><img alt="Accept tag" src="$portalPath/images/icons/tick.png" /></a>
-                <a class="tag-cancel" href="#"><img alt="Cancel tag" src="$portalPath/images/icons/cross.png" /></a>
-              </form>
-              <img class="tag-loading" src="$portalPath/images/icons/loading.gif" />
-            </li>
-          </ul>
-        </div>
+        <div id="$id" class="tags">Tags:<span class="tags-here"></span></div>
         #if (!$isPackage)
             #set($thumbnail = $self.getThumbnail($id))
             #if($thumbnail)
@@ -222,33 +211,33 @@
   </div>
 </div>
 #if($is_admin)
-#macro(buildSecurityFields $data)
-  #foreach($plugin in $data)
-    <table class="security-table" summary="Security data for $plugin.getId()">
-      <thead>
-        <tr><th class="table-head">$plugin.getName()</th></tr>
-      </thead>
-      <tfoot>
-        <tr id="security-new-$plugin.getId()" class="hidden">
-          <td>
-            New role:
-            <input type="text" id="security-new-role-$plugin.getId()" />
-            <input type="button" class="security-new-submit" rel="$plugin.getId()" value="Add Role" />
-          </td>
-        </tr>
-        <tr><th><a class="add-role-button" href="#" rel="$plugin.getId()">Add a role</a></th></tr>
-      </tfoot>
-      <tbody>
-        <tr><th>Roles current granted access:</th></tr>
-        <tr id="security-loading-$plugin.getId()"><td><img src="$portalPath/images/icons/loading.gif" /></td></tr>
-        <tr id="security-empty-$plugin.getId()" class="hidden"><td>None yet...</td></tr>
-      </tbody>
-      <tbody id="security-rows-$plugin.getId()">
-        <tr><td>&nbsp;</td></tr>
-      </tbody>
-    </table>
-  #end
-#end
+    #macro(buildSecurityFields $data)
+      #foreach($plugin in $data)
+        <table class="security-table" summary="Security data for $plugin.getId()">
+          <thead>
+            <tr><th class="table-head">$plugin.getName()</th></tr>
+          </thead>
+          <tfoot>
+            <tr id="security-new-$plugin.getId()" class="hidden">
+              <td>
+                New role:
+                <input type="text" id="security-new-role-$plugin.getId()" />
+                <input type="button" class="security-new-submit" rel="$plugin.getId()" value="Add Role" />
+              </td>
+            </tr>
+            <tr><th><a class="add-role-button" href="#" rel="$plugin.getId()">Add a role</a></th></tr>
+          </tfoot>
+          <tbody>
+            <tr><th>Roles current granted access:</th></tr>
+            <tr id="security-loading-$plugin.getId()"><td><img src="$portalPath/images/icons/loading.gif" /></td></tr>
+            <tr id="security-empty-$plugin.getId()" class="hidden"><td>None yet...</td></tr>
+          </tbody>
+          <tbody id="security-rows-$plugin.getId()">
+            <tr><td>&nbsp;</td></tr>
+          </tbody>
+        </table>
+      #end
+    #end
 <div class="box hidden" id="security-form">
   <form id="security" method="post">
     <fieldset class="search">
@@ -264,6 +253,20 @@
     </fieldset>
   </form>
 </div>
+<div class="box hidden" id="delete-dialog">
+  <form id="delete" method="post">
+    <fieldset class="search">
+      <legend>Delete : '<span id="delete-legend"></span>'</legend>
+      <div class="stop-error hidden" id="delete-error">
+        <span id="delete-message"></span>
+      </div>
+      <p>Are you really certain you want to delete this object?</p>
+      <p><strong>This operation cannot be undone</strong></p>
+      <input id="delete-submit" type="button" value="Yes, Delete" />
+      <input id="delete-cancel" type="button" value="Cancel" />
+    </fieldset>
+  </form>
+</div>
 #end
 <script type="text/javascript" src="$portalPath/js/tree/jquery.tree.min.js"></script>
 <script type="text/javascript" src="$portalPath/js/jquery.truncate.js"></script>
@@ -271,11 +274,11 @@
 <!--
 $(function() {
     addActionParam("query", "$!query");
-    
+
     if ($("#action-list div").length == 0) {
         $("#result-list").removeClass("grid_12").addClass("grid_16");
     }
-    
+
     // facet actions
     $("#clear-facets").click(function() {
         doAction("clear_fq");
@@ -289,13 +292,13 @@ $(function() {
         doAction("remove_fq", $(this).attr("rel"));
         return false;
     });
-    
+
     // truncate descriptions
     $("p.item-description").truncate(500, {
         trail: [ '... <a href="#" class="truncate_show">more</a>',
                  ' <a href="#" class="truncate_hide">less</a>' ]
     });
-    
+
     // create package
     $("#create-package, #create-package-cancel").click(function() {
         if ($("input:checkbox[name=checkboxgroup]:checked").length == 0 ) {
@@ -352,92 +355,44 @@ $(function() {
             "json"
         );
     });
-    
-    // tagging
-    function createTag(tag, tagClass) {
-        var tagEl =
-          '<li class="tag">' +
-            '<a class="tag ' + tagClass + '" href="$portalPath/search/' + tag + '">' + tag + '</a>' +
-            '<a class="tag-remove hidden" href="#" rel="' + tag + '">' +
-              '<img alt="Remove tag" src="$portalPath/images/icons/delete.png" />' +
-            '</a>' +
-          '</li>';
-       return tagEl;
-    }
-    $("a.tag-add").bind("click", function() {
-        $(this).hide();
-        var tagForm = $(this).next("form");
-        tagForm.addClass("inline").removeClass("hidden");
-        tagForm.find(".new-tag-value").focus().val("");
-        return false;
-    });
-    $("form.tag-form").bind("submit", function(e) {
-        $(this).find("a.tag-accept").click();
-        e.preventDefault();
-    });
-    $("a.tag-accept").bind("click", function() {
-        var tagForm = $(this).parent("form");
-        var id = tagForm.attr("rel");
-        var hashId = tagForm.parents("div.article").attr("id");
-        var tag = tagForm.find(".new-tag-value").val();
-        if (tag != "") {
-            tagForm.addClass("hidden").removeClass("inline");
-            tagForm.next("img.tag-loading").show();
-            jQuery.post("$portalPath/actions/tags.ajax",
-                { func: "tags-add", oid: id, tag: tag },
-                function(data, status) {
-                    tagForm.prev("a.tag-add").show();
-                    tagForm.next("img.tag-loading").hide();
-                    $("#tags-" + hashId).before(createTag(tag, "new-tag"));
-                    $("li.tag").hover(function() { $(this).children(".tag-remove").show(); },
-                                      function() { $(this).children(".tag-remove").hide(); });
-                }
-            );
-        }
-        return false;
-    });
-    $("a.tag-cancel").bind("click", function() {
-        var tagForm = $(this).parent("form");
-        tagForm.addClass("hidden").removeClass("inline");
-        tagForm.prev("a.tag-add").show();
-        return false;
-    });
-    $("a.tag-remove").live("click", function() {
-        var tagForm = $(this).parents("ul").find("form");
-        var id = tagForm.attr("rel");
-        var hashId = tagForm.parents("div.article").attr("id");
-        var tagEl = $(this);
-        var tag = tagEl.attr("rel");
-        if (tag != "") {
-            tagForm.next("img.tag-loading").show();
-            jQuery.post("$portalPath/actions/tags.ajax",
-                { func: "tags-remove", oid: id, tag: tag },
-                function(data, status) {
-                    tagForm.next("img.tag-loading").hide();
-                    tagEl.parent("li.tag").remove();
-                }
-            );
-        }
-        return false;
-    });
-    
-    $("ul.tags").each(function() {
-        var id = $(this).find("form.tag-form").attr("rel");
-        var hashId = "#tags-" + $(this).parents("div.article").attr("id");
-        jQuery.getJSON("$portalPath/actions/tags.ajax", { func: "tags-load", oid: id },
-            function(data) {
-                jQuery.each(data.tags, function(i, tag) {
-                    $(hashId).before(createTag(tag, ""));
-                });
-                $("li.tag").hover(function() { $(this).children(".tag-remove").show(); },
-                                  function() { $(this).children(".tag-remove").hide(); });
-                $(hashId + " a.tag-add").show();
-                $(hashId + " img.tag-loading").hide();
-            }
-        );
-    });
+
 });
 -->
+</script>
+
+
+<script type="text/javascript" src="$portalPath/js/anotar/json2.js"></script>
+<script type="text/javascript" src="$portalPath/js/anotar/anotar-0.1.js"></script>
+<script type="text/javascript">
+    $(function(){
+        var tags = new Anotar();
+        tags.setType("Tag");
+        tags.setConfig("debug", true);
+        tags.setConfig("doc_root", "#result-list");
+        tags.setConfig("tag_list", ".tags");
+        tags.setConfig("output_in_child", ".tags-here");
+        tags.setConfig("uri_attr", "id");
+        tags.setConfig("style_prefix", "tags-");
+        tags.setConfig("proxy_required", false);
+        #if($page.authentication.is_logged_in())
+        tags.setConfig("creator", "$page.authentication.get_name()");
+        tags.setConfig("creator_uri", null);
+        #end
+        tags.setConfig("server_address", "$portalPath/actions/anotar.ajax");
+        tags.setConfig("interface_label", " <img src='$portalPath/images/icons/add.png'/>");
+        tags.setConfig("interface_visible", true);
+        tags.setConfig("form_prepend", true);
+        tags.setConfig("form_custom", "<div class='myTags float-right'>Tag this:" +
+                "<textarea></textarea>" +
+                "<img src='$portalPath/images/icons/tick.png' class='myTag-submit'/>&#160;" +
+                "<img src='$portalPath/images/icons/cross.png' class='myTag-cancel'>" +
+              "</div>");
+        tags.setConfig("server_mode", "fascinator");
+        tags.setConfig("form_cancel", ".myTag-cancel");
+        tags.setConfig("form_submit", ".myTag-submit");
+        tags.setConfig("disable_replies", true);
+        tags.init($);
+    });
 </script>
 
 #if($is_admin)
@@ -445,13 +400,15 @@ $(function() {
 <!--
 $(function() {
     var dialogOpts = {
-        title: "Manage Security",
         autoOpen: false,
         hide: "blind",
         width: 330,
         modal: true
     }
     $("#security-form").dialog(dialogOpts);
+    $("#security-form").dialog('option', 'title', 'Manage Security');
+    $("#delete-dialog").dialog(dialogOpts);
+    $("#delete-dialog").dialog('option', 'title', 'Delete Object');
 
     $(".add-role-button").click(function() {
         pluginId = $(this).attr("rel");
@@ -540,6 +497,7 @@ $(function() {
         }
         $(".remove-role-link").click(revoke_access);
     }
+
     function addRow(pluginId, value) {
         var data = $("#security-rows-" + pluginId).html();
         data += "<tr><td>" + value;
@@ -585,6 +543,51 @@ $(function() {
         $("#security-form").dialog('close');
         return false;
     });
+
+    var me = null;
+    $(".admin-delete-link").click(function() {
+        recordId = $(this).attr("rel");
+        me = $(this);
+        $("#delete-message").empty();
+        $("#delete-error").hide();
+        $("#delete-dialog").dialog('open');
+        $("#delete-legend").html(recordId);
+        return false;
+    });
+
+    $("#delete-cancel").click(function() {
+        $("#delete-message").empty();
+        $("#delete-error").hide();
+        $("#delete-dialog").dialog('close');
+        return false;
+    });
+
+    $("#delete-submit").click(function() {
+        $("#delete-message").empty();
+        $("#delete-error").hide();
+        $("#delete-dialog").dialog('open');
+
+        jQuery.ajax({
+            type : "POST",
+            url : "$portalPath/actions/delete.ajax",
+            success:
+                function (data, status) {
+                    me.parent().parent().hide();
+                    $("#delete-dialog").dialog('close');
+                },
+            error:
+                function (req, status, e) {
+                    $("#delete-error").show();
+                    $("#delete-message").html(req.responseText);
+                },
+            data: {
+                record: recordId
+            }
+        });
+
+        return false;
+    });
+
 });
 -->
 </script>
