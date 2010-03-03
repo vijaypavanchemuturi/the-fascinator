@@ -1,0 +1,110 @@
+{
+    "fascinator-home": "/opt/the-fascinator2/code",
+    "email" : "fascinator@usq.edu.au",
+    "accesscontrol": {
+        "type": "simple",
+        "simple": {
+            "path": "${user.home}/.fascinator/access.properties"
+        }
+    },
+    "authentication": {
+        "type": "internal",
+        "internal": {
+            "path": "${user.home}/.fascinator/users.properties"
+        }
+    },
+    "roles": {
+        "type": "internal",
+        "internal": {
+            "path": "${user.home}/.fascinator/roles.properties"
+        }
+    },
+    "storage": {
+        "type": "file-system",
+        "file-system": {
+            "home": "${user.home}/.fascinator/storage",
+            "use-link": true
+        },
+        "fedora3": {
+            "url": "http://localhost:8080/fedora",
+            "username": "fedoraAdmin",
+            "password": "fedoraAdmin"
+        },
+        "couchdb": {
+            "url": "http://localhost:8080/couch"
+        },
+        "ignoreFilter": ".svn|.ice|.*|~*"
+    },
+    "messaging": {
+        "url": "tcp://localhost:61616",
+        "stompUrl": "stomp://localhost:61613",
+        "home": "${user.home}/.fascinator/activemq-data",
+        "render-thread": 3
+    },
+    "indexer": {
+        "type": "solr",
+        "properties": "SOF-META",
+        "solr": {
+            "uri": "http://localhost:9997/solr/fascinator",
+            "autocommit": true,
+            "embedded": false
+        },
+        "anotar": {
+            "uri": "http://localhost:9997/solr/anotar",
+            "autocommit": true,
+            "embedded": false
+        },
+        "script": {
+            "type": "python",
+            "rules": "local-files.py"
+        },
+        "params": {
+            "repository.name": "Local Files",
+            "repository.type": "Local File System"
+        }
+    },
+    "portal": {
+        "home": "src/main/config/portal",
+        "contentDir": "${user.home}/.fascinator/content",
+        "default": "default",
+        "layout": "layout",
+        "nativeJython": true,
+        "uploader": "${user.home}/.fascinator/workflow-config.json"
+    },
+    "transformer": {
+        "extractor": ["aperture"],
+        "render": ["ffmpeg", "ice2", "ims"],
+        "aperture": {
+            "outputPath": "${java.io.tmpdir}/ice2-output"
+        },
+        "ice2": {
+            "url": "http://ec2-75-101-136-199.compute-1.amazonaws.com/api/convert/",
+            "outputPath": "${java.io.tmpdir}/ice2-output",
+            "excludeRenditionExt": "txt,mp3,m4a,mov,mp4,wav,wma,wmv,mpg,flv",
+            "resize": {
+                "thumbnail": {
+                    "option": "fixedWidth",
+                    "ratio": "-90",
+                    "fixedWidth": "160",
+                    "enlarge": "false"
+                }, 
+                "preview": {
+                    "option": "fixedWidth",
+                    "ratio": "-90",
+                    "fixedWidth": "600",
+                    "enlarge": "false"
+                }
+            }
+        },
+        "ffmpeg": {
+            "executable": "ffmpeg",
+            "outputPath": "${java.io.tmpdir}/ffmpeg-output",
+            "outputExt": "flv",
+            "thumbnailSize": "160x120",
+            "excludeExt": "flv,m4a,mp3",
+            "params": {
+                "default": "-f flv -b 192k -ab 64k -ar 44100 -ac 1 -s 400x224 -padtop 30 -padbottom 30"
+            }
+        }
+    }
+}
