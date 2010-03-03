@@ -7,12 +7,14 @@ from au.edu.usq.fascinator.common import JsonConfigHelper
 from java.awt import Desktop
 from java.io import ByteArrayInputStream, ByteArrayOutputStream, File, StringWriter
 from java.net import URLDecoder, URLEncoder
-from java.lang import Boolean
+from java.lang import Boolean, String
 
-from org.apache.commons.io import IOUtils
+from org.apache.commons.io import FileUtils, IOUtils
 from org.dom4j.io import OutputFormat, XMLWriter, SAXReader
 
 import traceback
+
+from org.w3c.tidy import Tidy
 
 class SolrDoc:
     def __init__(self, json):
@@ -129,6 +131,9 @@ class DetailData:
             return obj.path.absolutePath
         return obj.id
     
+    def getFileSize(self, path):
+        return FileUtils.byteCountToDisplaySize(os.path.getsize(path))
+    
     def hasSlideShow(self):
         pid = self.__pid
         pid = pid[:pid.find(".")] + ".slide.htm"
@@ -149,6 +154,9 @@ class DetailData:
         pid = os.path.splitext(self.__pid)[0] + ".pdf"
         return "%s/%s" % (self.__oid, pid)
     
+    def getPayLoadUrl(self, pid):
+        return "%s/%s" % (self.__oid, pid)
+    
     def hasHtml(self):
         payloadList = self.getObject().getPayloadList()
         for payload in payloadList:
@@ -156,6 +164,21 @@ class DetailData:
             if mimeType == "text/html" or mimeType == "application/xhtml+xml":
                 return True
         return False
+    
+    def hasError(self):
+        base = os.path.splitext(self.__pid)[0]
+        payload = self.__storage.getPayload(self.__oid, base + "_error.htm")
+        contentStr = ""
+        if payload is not None:
+            return True
+        return False
+    
+    def getPreview(self, oid):
+        ext = os.path.splitext(oid)[1]
+        url = oid[oid.rfind("/")+1:-len(ext)] + "_preview.jpg"
+        if Services.getStorage().getPayload(oid, url):
+            return url
+        return ""
     
     def getPayloadContent(self):
         mimeType = self.__mimeType
@@ -194,7 +217,7 @@ class DetailData:
             #    (contextPath, portalId, self.__oid, pid)
             payload = self.__storage.getPayload(self.__oid, pid)
             if payload is None:
-                payload = self.__storage.getPayload(self.__oid, base + "_error.html")
+                payload = self.__storage.getPayload(self.__oid, base + "_error.htm")
                 out = ByteArrayOutputStream()
                 IOUtils.copy(payload.getInputStream(), out)
                 contentStr = '<h4 class="error">No preview available</h4><p>Please try re-rendering by using the Re-Harvest action.</p><h5>Details</h5><pre>' + out.toString("UTF-8") + '</pre>'
@@ -218,6 +241,13 @@ class DetailData:
                 except:
                     traceback.print_exc()
                     contentStr = "<p class=\"error\">No preview available</p>"
+        elif self.hasError() == True:
+            #For other digitalobject like video or images
+            base = os.path.splitext(self.__pid)[0]
+            payload = self.__storage.getPayload(self.__oid, base + "_error.htm")
+            out = ByteArrayOutputStream()
+            IOUtils.copy(payload.getInputStream(), out)
+            contentStr = '<h4 class="error">No preview available</h4><p>Please try re-rendering by using the Re-Harvest action.</p><h5>Details</h5><pre>' + out.toString("UTF-8") + '</pre>'
         return contentStr
     
     def __openFile(self):

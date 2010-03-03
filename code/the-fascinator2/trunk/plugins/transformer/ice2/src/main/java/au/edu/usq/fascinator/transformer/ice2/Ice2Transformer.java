@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.httpclient.methods.GetMethod;
@@ -27,6 +28,7 @@ import au.edu.usq.fascinator.api.transformer.Transformer;
 import au.edu.usq.fascinator.api.transformer.TransformerException;
 import au.edu.usq.fascinator.common.BasicHttpClient;
 import au.edu.usq.fascinator.common.JsonConfig;
+import au.edu.usq.fascinator.common.JsonConfigHelper;
 
 public class Ice2Transformer implements Transformer {
 
@@ -53,7 +55,7 @@ public class Ice2Transformer implements Transformer {
         String ext = FilenameUtils.getExtension(file.getName());
         List<String> excludeList = Arrays.asList(StringUtils.split(get(
                 "excludeRenditionExt", DEFAULT_EXCLUDE_EXT), ','));
-        if (file.exists() && !excludeList.contains(ext)) {
+        if (file.exists() && !excludeList.contains(ext.toLowerCase())) {
             outputPath = get("outputPath", DEFAULT_OUTPUT_PATH);
             File outputDir = new File(outputPath);
             outputDir.mkdirs();
@@ -79,21 +81,34 @@ public class Ice2Transformer implements Transformer {
         String filename = sourceFile.getName();
         String basename = FilenameUtils.getBaseName(filename);
         int status = HttpStatus.SC_OK;
-        String resizeMode = get("resize.image.mode", "fixedWidth");
-        String imageRatio = get("resize.image.ratio", "-90");
-        String resizeFixedWidth = get("resize.image.fixedWidth", "150");
-        String enlargeImage = get("enlargeImage", "false");
+        // String resizeMode = get("resize.image.mode", "fixedWidth");
+        // String imageRatio = get("resize.image.ratio", "-90");
+        // String resizeFixedWidth = get("resize.image.fixedWidth", "150");
+        // String enlargeImage = get("enlargeImage", "false");
+        Map<String, JsonConfigHelper> resizeConfig = config
+                .getJsonMap("transformer/ice2/resize");
+        String resizeJson = "";
+        for (String key : resizeConfig.keySet()) {
+            JsonConfigHelper j = resizeConfig.get(key);
+            resizeJson += "\"" + key + "\":" + j.toString() + ",";
+        }
+
         PostMethod post = new PostMethod(convertUrl);
         try {
-            Part[] parts = { new StringPart("zip", "on"),
-                    new StringPart("dc", "on"), new StringPart("toc", "on"),
+            Part[] parts = {
+                    new StringPart("zip", "on"),
+                    new StringPart("dc", "on"),
+                    new StringPart("toc", "on"),
                     new StringPart("pdflink", "on"),
                     new StringPart("pathext", ""),
                     new StringPart("template", getTemplate()),
-                    new StringPart("resize", imageRatio),
-                    new StringPart("resizeOption", resizeMode),
-                    new StringPart("fixedWidth", resizeFixedWidth),
-                    new StringPart("enlargeImage", enlargeImage),
+                    new StringPart("multipleImageOptions", "{"
+                            + StringUtils.substringBeforeLast(resizeJson, ",")
+                            + "}"),
+                    // new StringPart("resize", imageRatio),
+                    // new StringPart("resizeOption", resizeMode),
+                    // new StringPart("fixedWidth", resizeFixedWidth),
+                    // new StringPart("enlargeImage", enlargeImage),
                     new StringPart("mode", "download"),
                     new FilePart("file", sourceFile) };
             post.setRequestEntity(new MultipartRequestEntity(parts, post

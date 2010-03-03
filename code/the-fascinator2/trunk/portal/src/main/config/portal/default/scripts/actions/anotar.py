@@ -4,9 +4,9 @@ from au.edu.usq.fascinator.common.storage.impl import GenericPayload
 from au.edu.usq.fascinator.common import JsonConfigHelper
 
 from java.io import BufferedReader, ByteArrayInputStream, ByteArrayOutputStream, InputStreamReader
-from java.lang import String, StringBuilder
+from java.lang import String, StringBuilder, Boolean
 
-import json
+import json, time
 
 class AnotarPayload(GenericPayload):
     def __init__(self, payload, obj):
@@ -21,7 +21,7 @@ class AnotarPayload(GenericPayload):
         self.setType(PayloadType.Annotation)
 
     def add_json(self, json):
-        print "**** anotar.py : add_json() : adding json : " + json
+        #print "**** anotar.py : add_json() : adding json : " + json
         jsonObj = JsonConfigHelper(json)
         jsonObj.set("id", self.getId())
         rootUri = jsonObj.get("annotates/rootUri")
@@ -34,7 +34,7 @@ class AnotarPayload(GenericPayload):
 
         self.__content = jsonObj.toString(False)
         return self.__content
-        print "**** anotar.py : add_json() : completed json : " + self.__content
+        #print "**** anotar.py : add_json() : completed json : " + self.__content
 
     def generate_id(self, obj):
         counter = 0
@@ -73,6 +73,15 @@ class AnotarPayload(GenericPayload):
         else:
             return None
 
+    def get_with_type(self, type):
+        myJson = self.get_content()
+        jsonObj = JsonConfigHelper(myJson)
+        myType = jsonObj.get("type")
+        if myType == type:
+            return jsonObj
+        else:
+            return None
+
     def getInputStream(self):
         ourString = String(self.__content)
         return ByteArrayInputStream(ourString.getBytes("UTF-8"))
@@ -81,23 +90,98 @@ class AnotarData:
     def __init__(self):
         self.action = formData.get("action")
         self.rootUri = formData.get("rootUri")
+        
+        if self.rootUri.find("?ticks") > -1:
+            self.rootUri = self.rootUri[:self.rootUri.find("?ticks")]
+        
         self.json = formData.get("json")
         self.type = formData.get("type")
-        #print "**** anotar.py : Action : " + action
+        print "**** anotar.py : Action : " + self.action
+        print "**** formData: ", formData
 
         self.obj = Services.storage.getObject(self.rootUri)
 
-        if self.action == "getSolr":
-            # Repsonse is a list of object (nested)
-            #print "**** anotar.py : GET_LIST : " + self.rootUri
-            result = self.__get_list()
-        elif self.action == "getList":
+        if self.action == "getList":
             # Repsonse is a list of object (nested)
             #print "**** anotar.py : GET_SOLR : " + self.rootUri
             result = self.__search_solr()
         elif self.action == "put":
             # Response is an ID
             #print "**** anotar.py : PUT : " + self.rootUri
+            result = self.__put()
+        elif self.action == "get-image":
+            self.type = "http://www.purl.org/anotar/ns/type/0.1#Tag"
+            mediaFragType = "http://www.w3.org/TR/2009/WD-media-frags-20091217"
+            result = '{"result":' + self.__search_solr() + '}'
+            if result:
+                imageTagList = []
+                imageTags = JsonConfigHelper(result).getJsonList("result")
+                for imageTag in imageTags:
+                    imageAno = JsonConfigHelper()
+                    if imageTag.getJsonList("annotates/locators"):
+                        locatorValue = imageTag.getJsonList("annotates/locators").get(0).get("value")
+                        locatorType = imageTag.getJsonList("annotates/locators").get(0).get("type")
+                        if locatorValue and locatorValue.find("#xywh=")>-1 and locatorType == mediaFragType:
+                            _, locatorValue = locatorValue.split("#xywh=")
+                            left, top, width, height = locatorValue.split(",")
+                            imageAno.set("top", top)
+                            imageAno.set("left", left)
+                            imageAno.set("width", width)
+                            imageAno.set("height", height)
+                            imageAno.set("id", imageTag.get("id"))
+                            imageAno.set("text", imageTag.get("content/literal"))
+                            #imageAno.set("editable", Boolean(False).toString());
+                            imageTagList.append(imageAno.toString())
+                result = "[" + ",".join(imageTagList) + "]"
+        elif self.action == "save-image":
+            jsonTemplate = """
+{
+  "clientVersion" : {
+    "literal" : "Annotate Client (0.1)",
+    "uri" : "http://fascinator.usq.edu.au/annotate/client/version#0.1"
+  },
+  "type" : "http://www.purl.org/anotar/ns/type/0.1#Tag",
+  "title" : {
+    "literal" : null,
+    "uri" : null
+  },
+  "annotates" : {
+    "uri" : "%s",
+    "rootUri" : "%s",
+    "locators" : [ {
+      "type" : "http://www.w3.org/TR/2009/WD-media-frags-20091217",
+      "value" : "%s"
+    } ]
+  },
+  "creator" : {
+    "literal" : null,
+    "uri" : "http://fascinator.usq.edu.au/trac/wiki/Annotate/schema/0.1/anotar-user-ns#Anonymous",
+    "email" : {
+      "literal" : null
+    }
+  },
+  "dateCreated" : {
+    "literal" : "%s",
+    "uri" : null
+  },
+  "dateModified" : {
+    "literal" : null,
+    "uri" : null
+  },
+  "content" : {
+    "mimeType" : "text/plain",
+    "literal" : "%s",
+    "formData" : {
+    }
+  },
+  "isPrivate" : false,
+  "lang" : "en"
+}
+"""
+            mediaDimension = "xywh=%s,%s,%s,%s" % (formData.get("left"), formData.get("top"), formData.get("width"), formData.get("height"))
+            locatorValue = "%s#%s" % (self.rootUri, mediaDimension)
+            dateCreated = time.strftime("%Y-%m-%dT%H:%M:%SZ")
+            self.json = jsonTemplate % (self.rootUri, self.rootUri, locatorValue, dateCreated, formData.get("text"))
             result = self.__put()
         writer = response.getPrintWriter("text/plain")
         writer.println(result)
@@ -158,9 +242,12 @@ class AnotarData:
             # If we are NOT a top level annotation
             if doc["annotates"]["uri"]!=doc["annotates"]["rootUri"]:
                 # Find what we are annotating
-                d = docsDict[doc["annotates"]["uri"]]
-                d["replies"].append(doc)    # Add ourselves to its reply list
-
+                try:
+                    d = docsDict[doc["annotates"]["uri"]]
+                    d["replies"].append(doc)    # Add ourselves to its reply list
+                except:
+                    # TODO KeyError
+                    pass
         return json.write(rootDocs)
 
     def __process_tags(self, result):

@@ -44,7 +44,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
-import java.util.logging.Level;
 
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
@@ -165,7 +164,8 @@ public class SolrIndexer implements Indexer {
                 access = PluginManager.getAccessManager(accessControlType);
                 access.init(jsonFile);
             } catch (PluginException pe) {
-                log.error("Failed to load access manager: {}", accessControlType);
+                log.error("Failed to load access manager: {}",
+                        accessControlType);
             }
 
             String storageType = config.get("storage/type");
@@ -176,8 +176,8 @@ public class SolrIndexer implements Indexer {
                 log.error("Failed to load storage plugin: {}", storageType);
             }
 
-            solr   = this.initCore("solr");
-            anotar = this.initCore("anotar");
+            solr = initCore("solr");
+            anotar = initCore("anotar");
 
             autoCommit = Boolean.parseBoolean(config.get(
                     "indexer/solr/autocommit", "true"));
@@ -202,8 +202,8 @@ public class SolrIndexer implements Indexer {
 
     private SolrServer initCore(String coreName) {
         try {
-            boolean isEmbedded = Boolean.parseBoolean(
-                    config.get("indexer/" + coreName + "/embedded"));
+            boolean isEmbedded = Boolean.parseBoolean(config.get("indexer/"
+                    + coreName + "/embedded"));
             if (isEmbedded) {
                 /* TODO - Fix embedded for Solr 1.4 */
                 String home = config.get("indexer/" + coreName + "/home",
@@ -214,18 +214,19 @@ public class SolrIndexer implements Indexer {
                     log.info("Preparing default Solr home...");
                     prepareHome(homeDir);
                 }
-                System.setProperty("solr.solr.home", homeDir
-                        .getAbsolutePath());
+                System.setProperty("solr.solr.home", homeDir.getAbsolutePath());
                 File coreXmlFile = new File(homeDir, "solr.xml");
-                coreContainer = new CoreContainer(
-                        homeDir.getAbsolutePath(), coreXmlFile);
+                coreContainer = new CoreContainer(homeDir.getAbsolutePath(),
+                        coreXmlFile);
                 for (SolrCore core : coreContainer.getCores()) {
                     log.info("loaded core: {}", core.getName());
                 }
                 return new EmbeddedSolrServer(coreContainer, "search");
             } else {
-                URI solrUri = new URI(config.get("indexer/" + coreName + "/uri"));
-                CommonsHttpSolrServer thisCore = new CommonsHttpSolrServer(solrUri.toURL());
+                URI solrUri = new URI(config
+                        .get("indexer/" + coreName + "/uri"));
+                CommonsHttpSolrServer thisCore = new CommonsHttpSolrServer(
+                        solrUri.toURL());
                 username = config.get("indexer/" + coreName + "/username");
                 password = config.get("indexer/" + coreName + "/password");
                 if (username != null && password != null) {
@@ -234,8 +235,7 @@ public class SolrIndexer implements Indexer {
                     HttpClient hc = ((CommonsHttpSolrServer) solr)
                             .getHttpClient();
                     hc.getParams().setAuthenticationPreemptive(true);
-                    hc.getState()
-                            .setCredentials(AuthScope.ANY, credentials);
+                    hc.getState().setCredentials(AuthScope.ANY, credentials);
                 }
                 return thisCore;
             }
@@ -399,8 +399,8 @@ public class SolrIndexer implements Indexer {
             String harvestConfPid = props.getProperty("jsonConfigOid");
             File harvestConf = createTempFile("harvestConf", ".json");
             FileOutputStream harvestConfOut = new FileOutputStream(harvestConf);
-            Payload harvestConfJson = storage.getPayload(harvestConfPid,
-                    props.getProperty("jsonConfigPid"));
+            Payload harvestConfJson = storage.getPayload(harvestConfPid, props
+                    .getProperty("jsonConfigPid"));
             IOUtils.copy(harvestConfJson.getInputStream(), harvestConfOut);
             harvestConfOut.close();
 
@@ -421,9 +421,11 @@ public class SolrIndexer implements Indexer {
             String set = null; // TODO
             File solrFile = null;
             if (metaPid.equals(pid)) {
-                solrFile = indexMetadata(object, oid, set, harvestConf, rules, props);
+                solrFile = indexMetadata(object, oid, set, harvestConf, rules,
+                        props);
             } else {
-                solrFile = indexDatastream(object, oid, pid, harvestConf, rules, props);
+                solrFile = indexDatastream(object, oid, pid, harvestConf,
+                        rules, props);
             }
             if (solrFile != null) {
                 InputStream inputDoc = new FileInputStream(solrFile);
@@ -455,7 +457,9 @@ public class SolrIndexer implements Indexer {
         try {
             File rules = createTempFile("rules", ".script");
             FileOutputStream rulesOut = new FileOutputStream(rules);
-            IOUtils.copy(getClass().getResourceAsStream("/anotar.py"), rulesOut);
+            IOUtils
+                    .copy(getClass().getResourceAsStream("/anotar.py"),
+                            rulesOut);
             rulesOut.close();
 
             String set = null; // TODO
@@ -539,11 +543,12 @@ public class SolrIndexer implements Indexer {
             } catch (IOException ioe) {
                 throw new IndexerException(ioe);
             }
-        }}
+        }
+    }
 
     private File indexMetadata(DigitalObject item, String pid, String set,
-            File harvestConf, File rulesFile, Properties props) throws IOException,
-            StorageException, RuleException {
+            File harvestConf, File rulesFile, Properties props)
+            throws IOException, StorageException, RuleException {
         log.info("Indexing metadata...");
         Payload ds = item.getPayload(props.getProperty("metaPid"));
         InputStreamReader in = new InputStreamReader(ds.getInputStream(),
@@ -552,15 +557,16 @@ public class SolrIndexer implements Indexer {
     }
 
     private File indexDatastream(DigitalObject item, String pid, String dsId,
-            File harvestConf, File rulesFile, Properties props) throws IOException, RuleException {
+            File harvestConf, File rulesFile, Properties props)
+            throws IOException, RuleException {
         log.info("Indexing datastream...");
         Reader in = new StringReader("<add><doc/></add>");
         return index(item, pid, dsId, null, in, harvestConf, rulesFile, props);
     }
 
     private File index(DigitalObject object, String sid, String pid,
-            String set, Reader in, File harvestConf, File ruleScript, Properties props)
-            throws IOException, RuleException {
+            String set, Reader in, File harvestConf, File ruleScript,
+            Properties props) throws IOException, RuleException {
         File solrFile = createTempFile("solr", ".xml");
         Writer out = new OutputStreamWriter(new FileOutputStream(solrFile),
                 "UTF-8");
@@ -580,14 +586,15 @@ public class SolrIndexer implements Indexer {
                         + engineName + "'");
             }
             RuleManager rules = new RuleManager();
-            scriptEngine.put("indexer",     this);
-            scriptEngine.put("jsonConfig",  jsonConfig);
-            scriptEngine.put("rules",       rules);
-            scriptEngine.put("object",      object);
-            scriptEngine.put("payloadId",   pid);
-            scriptEngine.put("storageId",   sid);
-            scriptEngine.put("params",      props);
-            scriptEngine.put("isMetadata",  pid == null);
+            scriptEngine.put("indexer", this);
+            scriptEngine.put("jsonConfig", jsonConfig);
+            scriptEngine.put("rules", rules);
+            scriptEngine.put("object", object);
+            scriptEngine.put("payloadId", pid);
+            scriptEngine.put("storageId", sid);
+            scriptEngine.put("params", props);
+            scriptEngine.put("isMetadata", pid == null);
+            scriptEngine.put("inputReader", in);
             scriptEngine.put("inputReader", in);
             // TODO add required solr fields?
             scriptEngine.eval(new FileReader(ruleScript));
@@ -718,13 +725,17 @@ public class SolrIndexer implements Indexer {
     }
 
     public AccessControlSchema getAccessSchema(String plugin) {
-        if (access == null) return null;
+        if (access == null) {
+            return null;
+        }
         access.setActivePlugin(plugin);
         return access.getEmptySchema();
     }
 
     public void setAccessSchema(AccessControlSchema schema, String plugin) {
-        if (access == null) return;
+        if (access == null) {
+            return;
+        }
 
         try {
             access.setActivePlugin(plugin);

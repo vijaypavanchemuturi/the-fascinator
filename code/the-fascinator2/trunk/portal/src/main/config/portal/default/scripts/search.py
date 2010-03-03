@@ -142,7 +142,7 @@ class SearchData:
         return [md5.new(fq).hexdigest() for fq in self.__selected]
     
     def getFileName(self, path):
-        return os.path.split(path)[1]
+        return os.path.splitext(os.path.basename(path))[0]
     
     def getFacetQuery(self, name, value):
         return '%s:"%s"' % (name, value)
@@ -156,5 +156,9 @@ class SearchData:
         if Services.getStorage().getPayload(oid, url):
             return url
         return None
+    
+    def getObject(self, oid):
+        object = Services.getStorage().getObject(oid)
+        return object
 
 scriptObject = SearchData()

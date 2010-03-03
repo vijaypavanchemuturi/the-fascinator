@@ -180,4 +180,17 @@ public class JsonConfigHelperTest {
 
         // System.out.println("config:  " + config);
     }
+
+    @Test
+    public void getJsonMap() {
+        Map<String, JsonConfigHelper> iceConfig = config
+                .getJsonMap("transformer/ice2/resize");
+        String json = "";
+        for (String key : iceConfig.keySet()) {
+            JsonConfigHelper j = iceConfig.get(key);
+            json += key + ":" + j.toString() + ",";
+        }
+        // System.out.println("iceConfig: {"
+        // + StringUtils.substringBeforeLast(json, ",") + "}");
+    }
 }
