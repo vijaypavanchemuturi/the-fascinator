@@ -117,14 +117,19 @@ class Authentication:
 
     def get_roles_list(self):
         try:
+            role_list = []
             if self.current_user is not None:
-                return self.role.getRoles(self.current_user.getUsername())
+                java_list = self.role.getRoles(self.current_user.getUsername())
+                for role in java_list:
+                    role_list.append(role)
             else:
-                return [self.GUEST_ROLE];
+                role_list.append(self.GUEST_ROLE)
         except RolesException, e:
             self.error_message = self.parse_error(e)
         except AuthenticationException, e:
             self.error_message = self.parse_error(e)
+
+        return role_list
 
     def get_access_roles_list(self, recordId):
         try:

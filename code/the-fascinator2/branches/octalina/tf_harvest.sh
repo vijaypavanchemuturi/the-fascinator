@@ -34,10 +34,10 @@ fi
 
 function copy_sample {
 	if [ ! -f $1.json ]; then
-		cp "$1.json.sample" $SAMPLE_DIR/$1.json
+		cp "$1.json.sample" $1.json
 	fi
 	if [ ! -f $1.py ]; then
-		cp "$1.py.sample" $SAMPLE_DIR/$1.py
+		cp "$1.py.sample" $1.py
 	fi
 }
 

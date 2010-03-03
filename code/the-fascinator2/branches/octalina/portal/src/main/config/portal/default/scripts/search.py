@@ -83,9 +83,10 @@ class SearchData:
         sessionState.set("pageNum", self.__pageNum)
         
         # Make sure 'fq' has already been set in the session
-        security_roles = page.authentication.get_roles_list();
-        security_query = 'security_filter:("' + '" OR "'.join(security_roles) + '")'
-        req.addParam("fq", security_query)
+        if not page.authentication.is_admin():
+            security_roles = page.authentication.get_roles_list();
+            security_query = 'security_filter:("' + '" OR "'.join(security_roles) + '")'
+            req.addParam("fq", security_query)
 
         req.setParam("start", str((self.__pageNum - 1) * recordsPerPage))
         
@@ -141,7 +142,7 @@ class SearchData:
         return [md5.new(fq).hexdigest() for fq in self.__selected]
     
     def getFileName(self, path):
-        return os.path.split(path)[1]
+        return os.path.splitext(os.path.basename(path))[0]
     
     def getFacetQuery(self, name, value):
         return '%s:"%s"' % (name, value)
@@ -155,5 +156,9 @@ class SearchData:
         if Services.getStorage().getPayload(oid, url):
             return url
         return None
+    
+    def getObject(self, oid):
+        object = Services.getStorage().getObject(oid)
+        return object
 
 scriptObject = SearchData()

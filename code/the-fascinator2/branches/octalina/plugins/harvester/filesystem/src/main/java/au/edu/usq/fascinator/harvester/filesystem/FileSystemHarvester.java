@@ -213,6 +213,12 @@ public class FileSystemHarvester implements Harvester, Configurable {
         return fileObjects;
     }
 
+    @Override
+    public List<DigitalObject> getObject(File uploadedFile)
+            throws HarvesterException {
+        throw new HarvesterException("This plugin does not harvest uploaded files");
+    }
+
     private boolean hasFileChanged(File file) {
         boolean changed = true;
         if (cacheDir != null) {

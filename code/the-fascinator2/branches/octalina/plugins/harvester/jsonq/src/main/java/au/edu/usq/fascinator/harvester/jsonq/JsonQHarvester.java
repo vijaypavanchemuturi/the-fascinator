@@ -170,6 +170,12 @@ public class JsonQHarvester implements Harvester, Configurable {
         return objectList;
     }
 
+    @Override
+    public List<DigitalObject> getObject(File uploadedFile)
+            throws HarvesterException {
+        throw new HarvesterException("This plugin does not harvest uploaded files");
+    }
+
     public List<DigitalObject> getObjectListFromState(
             List<DigitalObject> objectList,
             Map<String, Map<String, String>> map, List<String> state) {

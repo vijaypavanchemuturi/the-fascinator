@@ -100,11 +100,24 @@ form .message {
     vertical-align: text-bottom;
 }
 
-div.tags ul {
+.article div.image {
+    float: left;
+    margin: 3px 10px 3px 0;
+    padding: 4px;
+    border: 1px solid #bbb;
+    background: #fff;
+    width: 600px;
+}
+
+div.tags {
     border-top: 1px dotted #999999;
     border-bottom: 1px dotted #999999;
     margin-bottom: 3px;
     padding: 0.3em 0;
+}
+
+div.tags img {
+    vertical-align: text-bottom;
 }
 
 div.tags ul li {
@@ -288,9 +301,10 @@ span.view-type a.selected {
     background: #666666;
 }
 
-h3.title-heading {
+div.article-heading {
     border-bottom: 1px solid #CCCCCC;
-    font-weight: normal;
+    font-weight: bold;
+    font-size: 1.5em;
     margin-bottom: 10px;
 }
 
@@ -348,12 +362,18 @@ ul.nobgtabs li a.ui-state-active {
     font-size: 120%;
 }
 .admin-link-holder {
-    padding: 2px 0px 2px 5px;
+    padding: 2px 2px 2px 5px;
     border: 1px solid #666666;
     background: #999999;
 }
 .admin-security-link {
     background-image: url('../images/icons/application_key.png');
+    background-position: 0 50%;
+    background-repeat: no-repeat;
+    padding: 0.5em 0.5em 0.5em 20px;
+}
+.admin-delete-link {
+    background-image: url('../images/icons/cross.png');
     background-position: 0 50%;
     background-repeat: no-repeat;
     padding: 0.5em 0.5em 0.5em 20px;
@@ -368,6 +388,11 @@ ul.nobgtabs li a.ui-state-active {
     background-repeat: no-repeat;
     margin-right: 1em;
     padding: 0.5em 0.5em 0.5em 20px;
+}
+.admin-link-holder .admin-roles {
+    border: 1px solid #666666;
+    padding: 2px;
+    background-color: #CCCCCC;
 }
 .admin-link-holder .locked {
     background-image: url('../images/icons/lock.png');
@@ -397,3 +422,15 @@ ul.nobgtabs li a.ui-state-active {
     font-size: 125%;
     float: right;
 }
+
+#player-container {
+    margin-bottom: 4px;
+    margin-top: 4px;
+}
+
+.help_p {
+    font-size: smaller;
+    font-style: italic;
+    display: none;
+}
+

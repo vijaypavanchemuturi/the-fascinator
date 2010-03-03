@@ -35,6 +35,10 @@ public enum PayloadType {
     Enrichment,
 
     /** Content that is stored externally */
-    External
+    External,
+
+    /** Content that is uploaded to the server
+        and should be forced to store locally */
+    Uploaded
 
 }
