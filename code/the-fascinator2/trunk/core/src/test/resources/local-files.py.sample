@@ -203,7 +203,15 @@ if isMetadata:
         indexList(key, relationDict[key])
     
     indexList("full_text", fulltext)
-    indexPath("file_path", object.getId().replace("\\", "/"), includeLastPart=False)
+    baseFilePath = params["base.file.path"]
+    filePath = object.getId()
+    if baseFilePath:
+        #NOTE: need to change again if the json file accept forward slash in window
+        #get the base folder
+        baseDir = baseFilePath.rstrip("/")
+        baseDir = "/%s/" % baseDir[baseDir.rfind("/")+1:]
+        filePath = filePath.replace("\\", "/").replace(baseFilePath, baseDir)
+    indexPath("file_path", filePath, includeLastPart=False)
     
     tagsRdf = object.getPayload("tags.rdf")
     if tagsRdf is not None:

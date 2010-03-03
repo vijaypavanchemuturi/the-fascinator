@@ -12,7 +12,7 @@
     
     "transformer": {
         "extractor": ["aperture"],
-        "render": ["ice2", "ims"],
+        "render": ["ffmpeg", "ice2", "ims"],
         "aperture": {
             "outputPath": "${java.io.tmpdir}/ice2-output"
         },
@@ -20,15 +20,20 @@
             "url": "http://ec2-75-101-136-199.compute-1.amazonaws.com/api/convert/",
             "resize.image.mode": "fixedWidth",
             "resize.image.ratio": "-90",
-            "resize.image.fixedWidth": "150",
+            "resize.image.fixedWidth": "160",
             "enlargeImage": "false",
             "outputPath": "${java.io.tmpdir}/ice2-output",
-            "excludeRenditionExt": ".txt,.mp3,.m4a,.avi,.mov,.wmv"
+            "excludeRenditionExt": "txt,mp3,m4a,mov,mp4,wav,wma,wmv,mpg"
         },
         "ffmpeg": {
             "executable": "ffmpeg",
-            "outputPath": "",
-            "customArgs": ""
+            "outputPath": "${java.io.tmpdir}/ffmpeg-output",
+            "outputExt": "flv",
+            "thumbnailSize": "160x120",
+            "excludeExt": "flv,m4a,mp3",
+            "params": {
+                "default": "-f flv -b 192k -ab 64k -ar 44100 -ac 1 -s 400x224 -padtop 30 -padbottom 30"
+            }
         }
     },
     
@@ -39,7 +44,8 @@
         },
         "params": {
             "repository.name": "Local Files",
-            "repository.type": "Local File System"
+            "repository.type": "Local File System",
+            "base.file.path": "${user.home}/Documents/public/"
         }
     }
 }
