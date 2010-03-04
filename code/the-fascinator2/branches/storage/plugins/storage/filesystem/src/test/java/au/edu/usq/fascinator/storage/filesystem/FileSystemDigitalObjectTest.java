@@ -30,8 +30,7 @@ public class FileSystemDigitalObjectTest {
         }
 
         String expected = FilenameUtils.separatorsToSystem(
-                "C:/Temp/_fs_test/d0b1c5bd0660ad67a16b7111aafc9389"
-                + "/9f/19/35/9f193517165c524d485ddf8f1cf322da");
+                fs.getHomeDir() + "/9f/19/35/9f193517165c524d485ddf8f1cf322da");
         Assert.assertEquals(expected, newObject.getPath());
     }
 
@@ -44,8 +43,7 @@ public class FileSystemDigitalObjectTest {
             System.err.println("Error creating object");
         }
         String expected = FilenameUtils.separatorsToSystem(
-                "C:/Temp/_fs_test/d0b1c5bd0660ad67a16b7111aafc9389"
-                + "/e2/92/37/e292378c5b38b0d5a4aba11fd40e7151");
+                fs.getHomeDir() + "/e2/92/37/e292378c5b38b0d5a4aba11fd40e7151");
         Assert.assertEquals(expected, newObject.getPath());
     }
 }
