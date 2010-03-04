@@ -39,16 +39,15 @@ import au.edu.usq.fascinator.api.transformer.TransformerException;
  */
 public class PluginManager {
 
-    private static Map<String, Indexer> indexers = new HashMap<String, Indexer>();
-
     /**
      * Gets an access control plugin
-     *
+     * 
      * @param id plugin identifier
      * @return an access control plugin, or null if not found
      */
     public static AccessControl getAccessControl(String id) {
-        ServiceLoader<AccessControl> plugins = ServiceLoader.load(AccessControl.class);
+        ServiceLoader<AccessControl> plugins = ServiceLoader
+                .load(AccessControl.class);
         for (AccessControl plugin : plugins) {
             if (id.equals(plugin.getId())) {
                 return plugin;
@@ -59,7 +58,8 @@ public class PluginManager {
 
     public static Map<String, AccessControl> getAccessControlPlugins() {
         Map<String, AccessControl> access_plugins = new HashMap<String, AccessControl>();
-        ServiceLoader<AccessControl> plugins = ServiceLoader.load(AccessControl.class);
+        ServiceLoader<AccessControl> plugins = ServiceLoader
+                .load(AccessControl.class);
         for (AccessControl plugin : plugins) {
             access_plugins.put(plugin.getId(), plugin);
         }
@@ -68,12 +68,13 @@ public class PluginManager {
 
     /**
      * Get the access manager. Used in The indexer if the portal isn't running
-     *
+     * 
      * @param id plugin identifier
      * @return an access manager plugin, or null if not found
      */
     public static AccessControlManager getAccessManager(String id) {
-        ServiceLoader<AccessControlManager> plugins = ServiceLoader.load(AccessControlManager.class);
+        ServiceLoader<AccessControlManager> plugins = ServiceLoader
+                .load(AccessControlManager.class);
         for (AccessControlManager plugin : plugins) {
             if (id.equals(plugin.getId())) {
                 return plugin;
@@ -84,12 +85,13 @@ public class PluginManager {
 
     /**
      * Gets an authentication plugin
-     *
+     * 
      * @param id plugin identifier
      * @return an authentication plugin, or null if not found
      */
     public static Authentication getAuthentication(String id) {
-        ServiceLoader<Authentication> plugins = ServiceLoader.load(Authentication.class);
+        ServiceLoader<Authentication> plugins = ServiceLoader
+                .load(Authentication.class);
         for (Authentication plugin : plugins) {
             if (id.equals(plugin.getId())) {
                 return plugin;
@@ -100,7 +102,8 @@ public class PluginManager {
 
     public static Map<String, Authentication> getAuthenticationPlugins() {
         Map<String, Authentication> authenticators = new HashMap<String, Authentication>();
-        ServiceLoader<Authentication> plugins = ServiceLoader.load(Authentication.class);
+        ServiceLoader<Authentication> plugins = ServiceLoader
+                .load(Authentication.class);
         for (Authentication plugin : plugins) {
             authenticators.put(plugin.getId(), plugin);
         }
@@ -109,14 +112,16 @@ public class PluginManager {
 
     /**
      * Gets a harvester plugin
-     *
+     * 
      * @param id plugin identifier
+     * @param storage a storage instance
      * @return a harvester plugin, or null if not found
      */
-    public static Harvester getHarvester(String id) {
+    public static Harvester getHarvester(String id, Storage storage) {
         ServiceLoader<Harvester> plugins = ServiceLoader.load(Harvester.class);
         for (Harvester plugin : plugins) {
             if (id.equals(plugin.getId())) {
+                plugin.setStorage(storage);
                 return plugin;
             }
         }
@@ -139,16 +144,12 @@ public class PluginManager {
      * @return a indexer plugin, or null if not found
      */
     public static Indexer getIndexer(String id) {
-        // Indexer loaded = indexers.get(id);
-        // if (loaded == null) {
         ServiceLoader<Indexer> plugins = ServiceLoader.load(Indexer.class);
         for (Indexer plugin : plugins) {
             if (id.equals(plugin.getId())) {
-                // indexers.put(id, plugin);
                 return plugin;
             }
         }
-        // }
         return null;
     }
 
@@ -163,7 +164,7 @@ public class PluginManager {
 
     /**
      * Gets a roles plugin
-     *
+     * 
      * @param id plugin identifier
      * @return a roles plugin, or null if not found
      */
