@@ -98,11 +98,4 @@ public interface Payload {
      * @throws StorageException if there was an error closing the stream
      */
     public void close() throws StorageException;
-
-    /**
-     * Sets the input stream to access the content for this payload
-     *
-     * @param an InputStream
-     */
-    public void setInputStream(InputStream in);
 }

@@ -18,6 +18,7 @@
  */
 package au.edu.usq.fascinator.api.storage;
 
+import java.io.InputStream;
 import java.util.Set;
 
 /**
@@ -65,22 +66,26 @@ public interface DigitalObject {
     /**
      * Creates a new stored payload on the object
      *
-     * @param A string identifier
+     * @param pid A string identifier
+     * @param in An inputStream to the new payload's contents
      * @return a payload
      * @throws StorageException if there was an error creating the payload
      *          or the ID already exists.
      */
-    public Payload createStoredPayload(String pid) throws StorageException;
+    public Payload createStoredPayload(String pid, InputStream in)
+            throws StorageException;
 
     /**
      * Creates a new linked payload on the object
      *
-     * @param A string identifier
+     * @param pid A string identifier
+     * @param linkPath A string showing the path to the linked file
      * @return a payload
      * @throws StorageException if there was an error creating the payload
      *          or the ID already exists.
      */
-    public Payload createLinkedPayload(String pid) throws StorageException;
+    public Payload createLinkedPayload(String pid, String linkPath)
+            throws StorageException;
 
     /**
      * Gets the payload with the specified identifier
@@ -99,6 +104,18 @@ public interface DigitalObject {
      * @throws StorageException if there was an error removing the payload
      */
     public void removePayload(String pid) throws StorageException;
+
+    /**
+     * Updates a payload's contents
+     *
+     * @param pid A string identifier
+     * @param in An InputStream to the new contetnts
+     * @return the updated payload
+     * @throws StorageException if there was an error updating the payload
+     *          or the ID doesn't exist.
+     */
+    public Payload updatePayload(String pid, InputStream in)
+            throws StorageException;
 
     /**
      * Close the object
