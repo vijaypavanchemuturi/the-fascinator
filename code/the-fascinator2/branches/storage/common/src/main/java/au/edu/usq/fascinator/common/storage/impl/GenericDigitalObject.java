@@ -22,10 +22,15 @@ import au.edu.usq.fascinator.api.storage.DigitalObject;
 import au.edu.usq.fascinator.api.storage.Payload;
 import au.edu.usq.fascinator.api.storage.PayloadType;
 import au.edu.usq.fascinator.api.storage.StorageException;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Level;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -57,24 +62,8 @@ public class GenericDigitalObject implements DigitalObject {
         manifest = new HashMap<String, Payload>();
     }
 
-    public void setInManifest(String key, Payload value) {
-        manifest.put(key, value);
-    }
-
-    public Payload getFromManifest(String key) {
-        if (manifest.containsKey(key)) {
-            return manifest.get(key);
-        } else {
-            return null;
-        }
-    }
-
-    public Set<String> getManifestKeys() {
-        return manifest.keySet();
-    }
-
-    public void removeFromManifest(String key) {
-        manifest.remove(key);
+    public Map<String, Payload> getManifest() {
+        return manifest;
     }
 
     @Override
@@ -101,37 +90,53 @@ public class GenericDigitalObject implements DigitalObject {
 
     @Override
     public Set<String> getPayloadIdList() {
-        return this.getManifestKeys();
+        return this.getManifest().keySet();
     }
 
     @Override
-    public Payload createStoredPayload(String pid) throws StorageException {
-        Payload payload = this.createPayload(pid);
-        payload.setType(PayloadType.Data);
+    public Payload createStoredPayload(String pid, InputStream in)
+            throws StorageException {
+        GenericPayload payload = this.createPayload(pid, PayloadType.Data);
+        payload.setInputStream(in);
         return payload;
     }
 
     @Override
-    public Payload createLinkedPayload(String pid) throws StorageException {
-        Payload payload = this.createPayload(pid);
-        payload.setType(PayloadType.External);
+    public Payload createLinkedPayload(String pid, String linkPath)
+            throws StorageException {
+        GenericPayload payload = this.createPayload(pid, PayloadType.External);
+        try {
+            payload.setInputStream(
+                    new ByteArrayInputStream(linkPath.getBytes("UTF-8")));
+        } catch (UnsupportedEncodingException ex) {
+            throw new StorageException(ex);
+        }
         return payload;
     }
 
-    private Payload createPayload(String pid) throws StorageException {
-        if (this.getFromManifest(pid) != null) {
+    private GenericPayload createPayload(String pid, PayloadType defaultType) throws StorageException {
+        Map<String, Payload> man = this.getManifest();
+        if (man.containsKey(pid)) {
             throw new StorageException("ID '" + pid + "' already exists.");
         }
+
         GenericPayload payload = new GenericPayload(pid);
-        this.setInManifest(pid, payload);
+        if (this.getSourceId() == null) {
+            payload.setType(defaultType);
+            this.setSourceId(pid);
+        } else {
+            payload.setType(PayloadType.Enrichment);
+        }
+
+        man.put(pid, payload);
         return payload;
     }
 
     @Override
     public Payload getPayload(String pid) throws StorageException {
-        Payload p = this.getFromManifest(pid);
-        if (p != null) {
-            return p;
+        Map<String, Payload> man = this.getManifest();
+        if (man.containsKey(pid)) {
+            return man.get(pid);
         } else {
             throw new StorageException("ID '" + pid + "' does not exist.");
         }
@@ -139,15 +144,23 @@ public class GenericDigitalObject implements DigitalObject {
 
     @Override
     public void removePayload(String pid) throws StorageException {
-        Payload p = this.getFromManifest(pid);
-        if (p != null) {
+        Map<String, Payload> man = this.getManifest();
+        if (man.containsKey(pid)) {
             // Close the payload just in case,
             //  since we are about to orphan it
-            p.close();
-            this.removeFromManifest(pid);
+            man.get(pid).close();
+            man.remove(pid);
         } else {
             throw new StorageException("ID '" + pid + "' does not exist.");
         }
+    }
+
+    @Override
+    public Payload updatePayload(String pid, InputStream in)
+            throws StorageException {
+        GenericPayload payload = (GenericPayload) this.getPayload(pid);
+        payload.setInputStream(in);
+        return payload;
     }
 
     @Override

@@ -171,7 +171,11 @@ public class GenericPayload implements Payload {
         }
     }
 
-    @Override
+    /**
+     * Sets the input stream to access the content for this payload
+     *
+     * @param an InputStream
+     */
     public void setInputStream(InputStream inputStream) {
         this.inputStream = inputStream;
     }
