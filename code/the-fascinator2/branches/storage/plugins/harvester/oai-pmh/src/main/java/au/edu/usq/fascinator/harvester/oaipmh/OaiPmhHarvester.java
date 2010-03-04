@@ -24,10 +24,10 @@ import java.io.StringWriter;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
@@ -44,6 +44,9 @@ import au.edu.usq.fascinator.api.PluginException;
 import au.edu.usq.fascinator.api.harvester.Harvester;
 import au.edu.usq.fascinator.api.harvester.HarvesterException;
 import au.edu.usq.fascinator.api.storage.DigitalObject;
+import au.edu.usq.fascinator.api.storage.Payload;
+import au.edu.usq.fascinator.api.storage.Storage;
+import au.edu.usq.fascinator.api.storage.StorageException;
 import au.edu.usq.fascinator.common.JsonConfig;
 
 /**
@@ -98,6 +101,8 @@ public class OaiPmhHarvester implements Harvester, Configurable {
     /** Configuration */
     private JsonConfig config;
 
+    private Storage storage;
+
     @Override
     public String getId() {
         return "oai-pmh";
@@ -138,11 +143,20 @@ public class OaiPmhHarvester implements Harvester, Configurable {
     }
 
     @Override
+    public void init(String jsonString) throws PluginException {
+    }
+
+    @Override
     public void shutdown() throws HarvesterException {
     }
 
     @Override
-    public List<DigitalObject> getObjects() throws HarvesterException {
+    public void setStorage(Storage storage) {
+        this.storage = storage;
+    }
+
+    @Override
+    public Set<String> getObjectIdList() throws HarvesterException {
         DateFormat df = new SimpleDateFormat(DATETIME_FORMAT);
         String from = config.get("harvester/oai-pmh/from");
         String until = config.get("harvester/oai-pmh/until");
@@ -154,7 +168,7 @@ public class OaiPmhHarvester implements Harvester, Configurable {
                 log.warn("Failed to parse date {}", from, pe);
             }
         }
-        List<DigitalObject> items = new ArrayList<DigitalObject>();
+        Set<String> items = new HashSet<String>();
         String metadataPrefix = config.get("harvester/oai-pmh/metadataPrefix",
                 DEFAULT_METADATA_PREFIX);
         String setSpec = config.get("harvester/oai-pmh/setSpec");
@@ -165,17 +179,23 @@ public class OaiPmhHarvester implements Harvester, Configurable {
             if (recordID != null) {
                 log.info("Requesting record {}", recordID);
                 Record record = server.getRecord(recordID, metadataPrefix);
-                /** Add the item and return now, so we don't confuse
-                    the record loop further down */
-                items.add(new OaiPmhDigitalObject(record, metadataPrefix));
+                try {
+                    items
+                            .add(createOaiPmhDigitalObject(record,
+                                    metadataPrefix));
+                } catch (StorageException se) {
+                    log.error("Failed to create object", se);
+                } catch (IOException ioe) {
+                    log.error("Failed to read object", ioe);
+                }
                 return items;
 
-            /** Continue an already running request */
+                /** Continue an already running request */
             } else if (started) {
                 records = server.listRecords(token);
                 log.info("Resuming harvest using token {}", token.getId());
 
-            /** Start a new request */
+                /** Start a new request */
             } else {
                 started = true;
                 if (fromDate == null) {
@@ -204,7 +224,14 @@ public class OaiPmhHarvester implements Harvester, Configurable {
             for (Record record : records.asList()) {
                 if (numObjects < maxObjects) {
                     numObjects++;
-                    items.add(new OaiPmhDigitalObject(record, metadataPrefix));
+                    try {
+                        items.add(createOaiPmhDigitalObject(record,
+                                metadataPrefix));
+                    } catch (StorageException se) {
+                        log.error("Failed to create object", se);
+                    } catch (IOException ioe) {
+                        log.error("Failed to read object", ioe);
+                    }
                 }
             }
             token = records.getResumptionToken();
@@ -215,20 +242,33 @@ public class OaiPmhHarvester implements Harvester, Configurable {
     }
 
     @Override
-    public List<DigitalObject> getObject(File uploadedFile)
-            throws HarvesterException {
-        throw new HarvesterException("This plugin does not harvest uploaded files");
+    public Set<String> getObjectId(File uploadedFile) throws HarvesterException {
+        throw new HarvesterException(
+                "This plugin does not harvest uploaded files");
+    }
+
+    private String createOaiPmhDigitalObject(Record record,
+            String metadataPrefix) throws IOException, StorageException {
+        String oid = record.getHeader().getIdentifier();
+        DigitalObject oaiObject = storage.createObject(oid);
+        Payload payload = oaiObject.createStoredPayload(metadataPrefix, IOUtils
+                .toInputStream(record.getMetadataAsString(), "UTF-8"));
+        payload.setContentType("text/xml");
+        payload.close();
+        oaiObject.close();
+        return oaiObject.getId();
     }
 
     @Override
     public boolean hasMoreObjects() {
-        return token != null && numRequests < maxRequests && numObjects < maxObjects;
+        return token != null && numRequests < maxRequests
+                && numObjects < maxObjects;
     }
 
     @Override
-    public List<DigitalObject> getDeletedObjects() {
+    public Set<String> getDeletedObjectIdList() {
         // empty for now
-        return Collections.emptyList();
+        return Collections.emptySet();
     }
 
     @Override
@@ -247,11 +287,5 @@ public class OaiPmhHarvester implements Harvester, Configurable {
                     + "</span>");
         }
         return writer.toString();
-    }
-
-    @Override
-    public void init(String jsonString) throws PluginException {
-        // TODO Auto-generated method stub
-
     }
 }
