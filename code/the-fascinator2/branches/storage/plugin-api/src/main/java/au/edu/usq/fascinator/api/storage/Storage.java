@@ -18,7 +18,7 @@
  */
 package au.edu.usq.fascinator.api.storage;
 
-import java.util.List;
+import java.util.Set;
 
 import au.edu.usq.fascinator.api.Plugin;
 
@@ -30,58 +30,38 @@ import au.edu.usq.fascinator.api.Plugin;
 public interface Storage extends Plugin {
 
     /**
-     * Adds a digital object to the store
+     * Create and return a new digital object to/from the store
      * 
-     * @param object the object to add
-     * @return an internal identifier used by the storage implementation
-     * @throws StorageException if there was an error adding the object
+     * @param A string identifier for the new object
+     * @return An empty DigitalObject
+     * @throws StorageException if there was an error creating the object or
+     *          the ID already exists
      */
-    public String addObject(DigitalObject object) throws StorageException;
+    public DigitalObject createObject(String id) throws StorageException;
+
+    /**
+     * Gets the object with the specified identifier
+     *
+     * @param oid an object identifier
+     * @return a DigitalObject
+     * @throws StorageException if there was an error instantiating the object
+     *          or if the ID does not exist
+     */
+    public DigitalObject getObject(String oid) throws StorageException;
 
     /**
      * Removes the specified object from the store
      * 
      * @param oid an object identifier
+     * @throws StorageException if there was an error deleting the object
+     *          or if the ID does not exist
      */
-    public void removeObject(String oid);
+    public void removeObject(String oid) throws StorageException;
 
     /**
-     * Adds a payload to the specified object
+     * Gets all the objects IDs from the storage
      * 
-     * @param oid an object identifier
-     * @param payload the payload to add
+     * @return List of DigitalObject IDs
      */
-    public void addPayload(String oid, Payload payload);
-
-    /**
-     * Removes a payload from the specified object
-     * 
-     * @param oid an object identifier
-     * @param pid a payload identifier
-     */
-    public void removePayload(String oid, String pid);
-
-    /**
-     * Gets the object with the specified identifier
-     * 
-     * @param oid an object identifier
-     * @return a digital object or null if not found
-     */
-    public DigitalObject getObject(String oid);
-
-    /**
-     * Gets the payload from the specified object
-     * 
-     * @param oid an object identifier
-     * @param pid a payload identifier
-     * @return a payload or null if not found
-     */
-    public Payload getPayload(String oid, String pid);
-
-    /**
-     * Gets all the objects from the storage
-     * 
-     * @return List of Digital Object
-     */
-    public List<DigitalObject> getObjectList();
+    public Set<String> getObjectIdList();
 }

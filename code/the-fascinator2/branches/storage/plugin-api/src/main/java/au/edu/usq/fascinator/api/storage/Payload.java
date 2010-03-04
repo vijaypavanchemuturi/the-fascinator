@@ -29,18 +29,32 @@ import java.io.InputStream;
 public interface Payload {
 
     /**
-     * Gets the type of this payload
-     * 
-     * @return payload type
-     */
-    public PayloadType getType();
-
-    /**
      * Gets the identifier for this payload
      * 
      * @return an identifier
      */
     public String getId();
+
+    /**
+     * Sets the identifier for this payload
+     *
+     * @param id A string identifier for this payload
+     */
+    public void setId(String id);
+
+    /**
+     * Gets the type of this payload
+     *
+     * @return payload type
+     */
+    public PayloadType getType();
+
+    /**
+     * Sets the type of this payload
+     *
+     * @param A PayloadType
+     */
+    public void setType(PayloadType type);
 
     /**
      * Gets the descriptive label for this payload
@@ -50,6 +64,13 @@ public interface Payload {
     public String getLabel();
 
     /**
+     * Sets the descriptive label for this payload
+     *
+     * @param a String label for this payload
+     */
+    public void setLabel(String label);
+
+    /**
      * Gets the content (MIME) type for this payload
      * 
      * @return a MIME type
@@ -57,11 +78,31 @@ public interface Payload {
     public String getContentType();
 
     /**
+     * Sets the content (MIME) type for this payload
+     *
+     * @param a String MIME type
+     */
+    public void setContentType(String mimeType);
+
+    /**
      * Gets the input stream to access the content for this payload
      * 
      * @return an input stream
      * @throws IOException if there was an error reading the stream
      */
-    public InputStream getInputStream() throws IOException;
+    public InputStream open() throws StorageException;
 
+    /**
+     * Close the input stream for this payload
+     *
+     * @throws StorageException if there was an error closing the stream
+     */
+    public void close() throws StorageException;
+
+    /**
+     * Sets the input stream to access the content for this payload
+     *
+     * @param an InputStream
+     */
+    public void setInputStream(InputStream in);
 }
