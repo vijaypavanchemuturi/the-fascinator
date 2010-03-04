@@ -34,11 +34,14 @@ public enum PayloadType {
     /** Content derived from another source */
     Enrichment,
 
+    /** Optional payload type that harvesters and transformers
+        can use to provide error feedback in the portal */
+    Error,
+
     /** Content that is stored externally */
     External,
 
-    /** Content that is uploaded to the server
-        and should be forced to store locally */
-    Uploaded
-
+    /** Similar to Enrichment, but specifically designated
+        as the single payload to use for preview display */
+    Preview
 }

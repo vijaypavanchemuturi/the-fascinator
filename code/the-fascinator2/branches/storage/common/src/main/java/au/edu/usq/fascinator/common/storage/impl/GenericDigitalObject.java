@@ -18,15 +18,17 @@
  */
 package au.edu.usq.fascinator.common.storage.impl;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import au.edu.usq.fascinator.api.storage.DigitalObject;
 import au.edu.usq.fascinator.api.storage.Payload;
 import au.edu.usq.fascinator.api.storage.PayloadType;
+import au.edu.usq.fascinator.api.storage.StorageException;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Generic DigitalObject implementation
@@ -41,13 +43,9 @@ public class GenericDigitalObject implements DigitalObject {
     /** Unique identifier */
     private String id;
 
-    /** Identifier for the metadata payload */
-    private String metadataId;
-
-    /** List of Payloads attached to this object */
-    private List<Payload> payloadList;
-
     private String sourceId;
+
+    private Map<String, Payload> manifest;
 
     /**
      * Creates a DigitalObject with the specified identifier and no metadata
@@ -55,43 +53,8 @@ public class GenericDigitalObject implements DigitalObject {
      * @param id unique identifier
      */
     public GenericDigitalObject(String id) {
-        this(id, null);
-    }
-
-    /**
-     * Creates a DigitalObject with the specified identifier and metadata
-     * 
-     * @param id unique identifier
-     * @param metaId identifier for the payload representing this object's
-     *        metadata
-     */
-    public GenericDigitalObject(String id, String metaId) {
         setId(id);
-        setMetadataId(metaId);
-    }
-
-    /**
-     * Creates a copy of the specified DigitalObject
-     * 
-     * @param object object to copy
-     */
-    public GenericDigitalObject(DigitalObject object) {
-        setId(object.getId());
-        Payload metadata = object.getMetadata();
-        if (metadata == null) {
-            setMetadataId(object.getId());
-        } else {
-            setMetadataId(metadata.getId());
-        }
-        for (Payload payload : object.getPayloadList()) {
-            addPayload(payload);
-        }
-        Payload source = object.getSource();
-        if (source == null) {
-            setSourceId(object.getId());
-        } else {
-            setSourceId(source.getId());
-        }
+        manifest = new HashMap<String, Payload>();
     }
 
     @Override
@@ -99,80 +62,80 @@ public class GenericDigitalObject implements DigitalObject {
         return id;
     }
 
-    /**
-     * Sets the identifier for this object
-     * 
-     * @param id unique identifier
-     */
-    public void setId(String id) {
-        this.id = id.replace("\\", "/");
+    @Override
+    public void setId(String oid) {
+        // TODO : #554 Unique ID generation.
+        // Stop assuming IDs are file paths
+        this.id = oid.replace("\\", "/");
     }
 
     @Override
-    public Payload getMetadata() {
-        return getPayload(metadataId);
-    }
-
-    /**
-     * Sets the identifier for the payload which represents this object's
-     * metadata
-     * 
-     * @param metadataId payload identifier to use as metadata
-     */
-    public void setMetadataId(String metadataId) {
-        this.metadataId = metadataId;
+    public String getSourceId() {
+        return sourceId;
     }
 
     @Override
-    public Payload getPayload(String pid) {
-        if (pid != null) {
-            for (Payload payload : getPayloadList()) {
-                if (pid.equals(payload.getId())) {
-                    return payload;
-                }
-            }
+    public void setSourceId(String pid) {
+        this.sourceId = pid;
+    }
+
+    @Override
+    public Set<String> getPayloadIdList() {
+        return manifest.keySet();
+    }
+
+    @Override
+    public Payload createStoredPayload(String pid) throws StorageException {
+        Payload payload = this.createPayload(pid);
+        payload.setType(PayloadType.Data);
+        return payload;
+    }
+
+    @Override
+    public Payload createLinkedPayload(String pid) throws StorageException {
+        Payload payload = this.createPayload(pid);
+        payload.setType(PayloadType.External);
+        return payload;
+    }
+
+    private Payload createPayload(String pid) throws StorageException {
+        if (manifest.containsKey(pid)) {
+            throw new StorageException("ID '" + pid + "' already exists.");
         }
-        return null;
+        GenericPayload payload = new GenericPayload(pid);
+        manifest.put(pid, payload);
+        return payload;
     }
 
-    /**
-     * Adds a payload to this object
-     * 
-     * @param payload the payload to add
-     */
-    public void addPayload(Payload payload) {
-        getPayloadList().add(payload);
-        PayloadType pt = payload.getType();
-
-        if (pt.equals(PayloadType.Data) || pt.equals(PayloadType.Uploaded)) {
-            sourceId = payload.getId();
+    @Override
+    public Payload getPayload(String pid) throws StorageException {
+        if (manifest.containsKey(pid)) {
+            return manifest.get(pid);
+        } else {
+            throw new StorageException("ID '" + pid + "' does not exist.");
         }
     }
 
     @Override
-    public void removePayload(Payload payload) {
-        getPayloadList().remove(payload);
-    }
-
-    public void setSourceId(String sourceId) {
-        this.sourceId = sourceId;
+    public void removePayload(String pid) throws StorageException {
+        if (manifest.containsKey(pid)) {
+            Payload payload = manifest.get(pid);
+            // Close the payload just in case,
+            //   since we are about orphan it
+            payload.close();
+            manifest.remove(pid);
+        } else {
+            throw new StorageException("ID '" + pid + "' does not exist.");
+        }
     }
 
     @Override
-    public List<Payload> getPayloadList() {
-        if (payloadList == null) {
-            payloadList = new ArrayList<Payload>();
-        }
-        return payloadList;
+    public void close() throws StorageException {
+        // By default do nothing
     }
 
     @Override
     public String toString() {
         return getId();
-    }
-
-    @Override
-    public Payload getSource() {
-        return getPayload(sourceId);
     }
 }
