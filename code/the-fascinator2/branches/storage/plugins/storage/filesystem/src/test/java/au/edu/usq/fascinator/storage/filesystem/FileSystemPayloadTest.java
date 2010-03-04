@@ -11,14 +11,20 @@ public class FileSystemPayloadTest {
 
     @Test
     public void checkMeta() throws Exception {
-        File sampleOdtFile = new File(getClass().getResource("/sample.odt")
-                .toURI());
-        System.err.println(sampleOdtFile.getAbsolutePath());
-        FileSystemPayload fsp = new FileSystemPayload(sampleOdtFile
-                .getParentFile(), sampleOdtFile, false);
-        Assert.assertEquals(PayloadType.External, fsp.getType());
-        Assert.assertEquals("application/vnd.oasis.opendocument.text", fsp
-                .getContentType());
+        // Create a test file
+        File sampleOdtFile =
+                new File(getClass().getResource("/sample.odt").toURI());
+
+        // Create a payload
+        FileSystemPayload fsp = new FileSystemPayload("test", sampleOdtFile);
+        fsp.writeMetadata();
+        Assert.assertEquals("sample.odt", fsp.getLabel());
+        fsp.setLabel("ICE Sample Document");
+        fsp.writeMetadata();
+
+        Assert.assertEquals(PayloadType.Data, fsp.getType());
+        Assert.assertEquals("application/vnd.oasis.opendocument.text",
+                fsp.getContentType());
         Assert.assertEquals("ICE Sample Document", fsp.getLabel());
     }
 }

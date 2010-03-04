@@ -18,62 +18,51 @@
  */
 package au.edu.usq.fascinator.storage.filesystem;
 
-import java.io.File;
-import java.io.FilenameFilter;
-import java.util.ArrayList;
-import java.util.List;
-
-import org.apache.commons.codec.digest.DigestUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import au.edu.usq.fascinator.api.storage.Payload;
 import au.edu.usq.fascinator.api.storage.PayloadType;
+import au.edu.usq.fascinator.api.storage.StorageException;
 import au.edu.usq.fascinator.common.storage.impl.GenericDigitalObject;
+
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FilenameFilter;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.util.Map;
+
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class FileSystemDigitalObject extends GenericDigitalObject {
 
     private Logger log = LoggerFactory.getLogger(FileSystemDigitalObject.class);
 
+    private static String METADATA_SUFFIX = ".meta";
+
     private File homeDir;
 
-    private File path;
-
-    private String hashId;
-
-    private boolean useLink;
-
-    public FileSystemDigitalObject(File homeDir, String oid, boolean useLink) {
+    public FileSystemDigitalObject(File homeDir, String oid) {
         super(oid);
         this.homeDir = homeDir;
-        this.useLink = useLink;
+        this.buildManifest();
     }
 
-    public String getHashId() {
-        if (hashId == null) {
-            hashId = DigestUtils.md5Hex(getId());
-        }
-        return hashId;
+    // Unit testing
+    public String getPath() {
+        return homeDir.getAbsolutePath();
     }
 
-    public File getPath() {
-        if (path == null) {
-            String dir = getHashId().substring(0, 2) + File.separator
-                    + getHashId().substring(2, 4);
-            File parentDir = new File(homeDir, dir);
-            path = new File(parentDir, getHashId());
-        }
-        return path;
+    private void buildManifest() {
+        Map<String, Payload> manifest = this.getManifest();
+        this.readFromDisk(manifest, homeDir, 0);
     }
 
-    @Override
-    public List<Payload> getPayloadList() {
-        List<Payload> payloadList = new ArrayList<Payload>();
-        addPayloadDir(payloadList, getPath(), 0);
-        return payloadList;
-    }
-
-    private void addPayloadDir(List<Payload> payloadList, File dir, int depth) {
+    private void readFromDisk(Map<String, Payload> manifest, File dir, int depth) {
         File[] files = dir.listFiles(new FilenameFilter() {
             @Override
             public boolean accept(File dir, String name) {
@@ -94,27 +83,149 @@ public class FileSystemDigitalObject extends GenericDigitalObject {
                         }
                         payloadFile = new File(relPath, file.getName());
                     }
-                    Payload payload = new FileSystemPayload(getPath(),
-                            payloadFile, useLink);
+                    FileSystemPayload payload =
+                            new FileSystemPayload(payloadFile.getName(), payloadFile);
+                    payload.readExistingMetadata();
                     if (payload.getType().equals(PayloadType.Data)) {
                         setSourceId(payload.getId());
                     }
-                    payloadList.add(payload);
+                    manifest.put(payload.getId(), payload);
                 } else if (file.isDirectory()) {
-                    addPayloadDir(payloadList, file, depth + 1);
+                    readFromDisk(manifest, file, depth + 1);
                 }
             }
         }
     }
 
     @Override
-    public String toString() {
-        return String.format("%s [%s]", getId(), getPath());
+    public Payload createStoredPayload(String pid, InputStream in)
+            throws StorageException {
+        Payload payload = this.createPayload(pid, PayloadType.Data, in);
+        return payload;
     }
 
     @Override
-    public Payload getSource() {
-        getPayloadList();
-        return super.getSource();
+    public Payload createLinkedPayload(String pid, String linkPath)
+            throws StorageException {
+        try {
+            ByteArrayInputStream in =
+                    new ByteArrayInputStream(linkPath.getBytes("UTF-8"));
+            Payload payload = this.createPayload(pid, PayloadType.External, in);
+            return payload;
+        } catch (UnsupportedEncodingException ex) {
+            throw new StorageException(ex);
+        }
+    }
+
+    private Payload createPayload(String pid, PayloadType type, InputStream in)
+            throws StorageException {
+        // Manifest check
+        Map<String, Payload> manifest = this.getManifest();
+        if (manifest.containsKey(pid)) {
+            throw new StorageException("ID '" + pid + "' already exists.");
+        }
+
+        // File creation
+        File newFile = new File(homeDir, pid);
+        if (newFile.exists()) {
+            throw new StorageException("ID '" + pid + "' already exists.");
+        } else {
+            newFile.getParentFile().mkdirs();
+            try {
+                newFile.createNewFile();
+            } catch (IOException ex) {
+                throw new StorageException("Failed to create file", ex);
+            }
+        }
+
+        // File storage
+        try {
+            FileOutputStream out = new FileOutputStream(newFile);
+            IOUtils.copy(in, out);
+            in.close();
+            out.close();
+        } catch (FileNotFoundException ex) {
+            log.error("Failed saving payload to disk", ex);
+        } catch (IOException ex) {
+            log.error("Failed saving payload to disk", ex);
+        }
+
+        // Payload creation
+        FileSystemPayload payload = new FileSystemPayload(pid, newFile);
+        if (this.getSourceId() == null) {
+            payload.setType(type);
+            this.setSourceId(pid);
+        } else {
+            payload.setType(PayloadType.Enrichment);
+        }
+
+        payload.writeMetadata();
+        manifest.put(pid, payload);
+
+        return payload;
+    }
+
+    @Override
+    public void removePayload(String pid) throws StorageException {
+        Map<String, Payload> manifest = this.getManifest();
+        if (!manifest.containsKey(pid)) {
+            throw new StorageException("pID '" + pid + "' not found.");
+        }
+
+        // Close the payload first in case
+        manifest.get(pid).close();
+        File realFile = new File(homeDir, pid);
+        File metaFile = new File(homeDir, pid + METADATA_SUFFIX);
+
+        boolean result = false;
+        if (realFile.exists()) {
+            result = FileUtils.deleteQuietly(realFile);
+            if (!result) {
+                System.out.println("Deleting : " + realFile.getAbsolutePath());
+                throw new StorageException("Failed to delete : "
+                        + realFile.getAbsolutePath());
+            }
+        }
+        if (metaFile.exists()) {
+            result = FileUtils.deleteQuietly(metaFile);
+            if (!result) {
+                System.out.println("Deleting : " + realFile.getAbsolutePath());
+                throw new StorageException("Failed to delete : "
+                        + metaFile.getAbsolutePath());
+            }
+        }
+
+        manifest.remove(pid);
+    }
+
+    @Override
+    public Payload updatePayload(String pid, InputStream in)
+            throws StorageException {
+        File oldFile = new File(homeDir, pid);
+        if (!oldFile.exists()) {
+            throw new StorageException("pID '" + pid + "': file not found");
+        }
+
+        // File update
+        try {
+            FileOutputStream out = new FileOutputStream(oldFile);
+            IOUtils.copy(in, out);
+            in.close();
+            out.close();
+        } catch (FileNotFoundException ex) {
+            log.error("Failed saving payload to disk", ex);
+        } catch (IOException ex) {
+            log.error("Failed saving payload to disk", ex);
+        }
+
+        // Payload update
+        FileSystemPayload payload = (FileSystemPayload) this.getPayload(pid);
+        payload.writeMetadata();
+        return payload;
+    }
+
+    @Override
+    public String toString() {
+        return String.format("%s [%s]", getId(), homeDir);
     }
 }

@@ -162,12 +162,14 @@ public class GenericPayload implements Payload {
 
     @Override
     public void close() throws StorageException {
-        try {
-            inputStream.close();
-        } catch (IOException ex) {
-            // Probably already closed
-            log.warn("Error closing input stream", ex);
-            //throw new StorageException(ex);
+        if (inputStream != null) {
+            try {
+                inputStream.close();
+            } catch (IOException ex) {
+                // Probably already closed
+                log.warn("Error closing input stream", ex);
+                //throw new StorageException(ex);
+            }
         }
     }
 
