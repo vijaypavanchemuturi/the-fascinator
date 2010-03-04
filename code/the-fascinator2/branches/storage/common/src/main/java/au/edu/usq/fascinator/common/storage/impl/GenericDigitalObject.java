@@ -57,6 +57,26 @@ public class GenericDigitalObject implements DigitalObject {
         manifest = new HashMap<String, Payload>();
     }
 
+    public void setInManifest(String key, Payload value) {
+        manifest.put(key, value);
+    }
+
+    public Payload getFromManifest(String key) {
+        if (manifest.containsKey(key)) {
+            return manifest.get(key);
+        } else {
+            return null;
+        }
+    }
+
+    public Set<String> getManifestKeys() {
+        return manifest.keySet();
+    }
+
+    public void removeFromManifest(String key) {
+        manifest.remove(key);
+    }
+
     @Override
     public String getId() {
         return id;
@@ -81,7 +101,7 @@ public class GenericDigitalObject implements DigitalObject {
 
     @Override
     public Set<String> getPayloadIdList() {
-        return manifest.keySet();
+        return this.getManifestKeys();
     }
 
     @Override
@@ -99,18 +119,19 @@ public class GenericDigitalObject implements DigitalObject {
     }
 
     private Payload createPayload(String pid) throws StorageException {
-        if (manifest.containsKey(pid)) {
+        if (this.getFromManifest(pid) != null) {
             throw new StorageException("ID '" + pid + "' already exists.");
         }
         GenericPayload payload = new GenericPayload(pid);
-        manifest.put(pid, payload);
+        this.setInManifest(pid, payload);
         return payload;
     }
 
     @Override
     public Payload getPayload(String pid) throws StorageException {
-        if (manifest.containsKey(pid)) {
-            return manifest.get(pid);
+        Payload p = this.getFromManifest(pid);
+        if (p != null) {
+            return p;
         } else {
             throw new StorageException("ID '" + pid + "' does not exist.");
         }
@@ -118,12 +139,12 @@ public class GenericDigitalObject implements DigitalObject {
 
     @Override
     public void removePayload(String pid) throws StorageException {
-        if (manifest.containsKey(pid)) {
-            Payload payload = manifest.get(pid);
+        Payload p = this.getFromManifest(pid);
+        if (p != null) {
             // Close the payload just in case,
-            //   since we are about orphan it
-            payload.close();
-            manifest.remove(pid);
+            //  since we are about to orphan it
+            p.close();
+            this.removeFromManifest(pid);
         } else {
             throw new StorageException("ID '" + pid + "' does not exist.");
         }
