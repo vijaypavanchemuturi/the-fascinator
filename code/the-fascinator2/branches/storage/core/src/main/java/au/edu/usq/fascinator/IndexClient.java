@@ -79,6 +79,7 @@ public class IndexClient {
 
     /** rules file **/
     private File rulesFile;
+    private List<String> rulesList;
 
     /** Indexer **/
     private Indexer indexer;
@@ -121,6 +122,7 @@ public class IndexClient {
                     DEFAULT_INDEXER_TYPE));
             storage = new IndexedStorage(realStorage, indexer);
             storage.init(configFile);
+            rulesList = new ArrayList<String>();
             log.info("Loaded {} and {}", realStorage.getName(), indexer
                     .getName());
         } catch (Exception e) {
@@ -179,12 +181,13 @@ public class IndexClient {
             log.error("Error getting object", ex);
         }
 
-        // Get the rules from SOF-META
-        Properties sofMeta = getSofMeta(object);
-        String rulesOid = sofMeta.getProperty("rulesOid");
-        this.updateRules(rulesOid);
-
         try {
+            Properties sofMeta = object.getMetadata();
+            String rulesOid = sofMeta.getProperty("rulesOid");
+            if (!rulesList.contains(rulesOid)) {
+                this.updateRules(rulesOid);
+                rulesList.add(rulesOid);
+            }
             processObject(object, rulesOid, null);
         } catch (StorageException e) {
             e.printStackTrace();
@@ -223,8 +226,6 @@ public class IndexClient {
                 indexer.search(request, result);
                 JsonConfigHelper js;
 
-                List<String> rulesList = new ArrayList<String>();
-
                 js = new JsonConfigHelper(result.toString());
                 for (Object oid : js.getList("response/docs/id")) {
                     DigitalObject object = null;
@@ -234,15 +235,13 @@ public class IndexClient {
                         log.error("Error getting object", ex);
                     }
 
-                    // Get the rules from SOF-META
-                    Properties sofMeta = getSofMeta(object);
-                    String rulesOid = sofMeta.getProperty("rulesOid");
-                    if (!rulesList.contains(rulesOid)) {
-                        this.updateRules(rulesOid);
-                        rulesList.add(rulesOid);
-                    }
-
                     try {
+                        Properties sofMeta = object.getMetadata();
+                        String rulesOid = sofMeta.getProperty("rulesOid");
+                        if (!rulesList.contains(rulesOid)) {
+                            this.updateRules(rulesOid);
+                            rulesList.add(rulesOid);
+                        }
                         processObject(object, rulesOid, null);
                     } catch (StorageException ex) {
                         log.error("Error indexing object", ex);
@@ -343,26 +342,5 @@ public class IndexClient {
                 log.error("Error creating rules object", sex);
             }
         }
-    }
-
-    /**
-     * Getting the sofMeta properties for the DigitalObject
-     *
-     * @param object
-     * @return properties
-     */
-    private Properties getSofMeta(DigitalObject object) {
-        try {
-            Payload sofMetaPayload = object.getPayload("SOF-META");
-            Properties sofMeta = new Properties();
-            sofMeta.load(sofMetaPayload.open());
-            sofMetaPayload.close();
-            return sofMeta;
-        } catch (StorageException ex) {
-            ex.printStackTrace();
-        } catch (IOException ex) {
-            ex.printStackTrace();
-        }
-        return null;
     }
 }

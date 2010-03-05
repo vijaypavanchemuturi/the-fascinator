@@ -23,11 +23,13 @@ import au.edu.usq.fascinator.api.storage.Payload;
 import au.edu.usq.fascinator.api.storage.PayloadType;
 import au.edu.usq.fascinator.api.storage.StorageException;
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 
 import org.slf4j.Logger;
@@ -43,12 +45,11 @@ public class GenericDigitalObject implements DigitalObject {
     private static Logger log = LoggerFactory
             .getLogger(GenericDigitalObject.class);
 
-    /** Unique identifier */
+    private static String METADATA_PAYLOAD = "TF-OBJ-META";
+    private Map<String, Payload> manifest;
     private String id;
-
     private String sourceId;
 
-    private Map<String, Payload> manifest;
 
     /**
      * Creates a DigitalObject with the specified identifier and no metadata
@@ -84,6 +85,24 @@ public class GenericDigitalObject implements DigitalObject {
     @Override
     public void setSourceId(String pid) {
         this.sourceId = pid;
+    }
+
+    @Override
+    public Properties getMetadata() throws StorageException {
+        Map<String, Payload> man = this.getManifest();
+        if (!man.containsKey(METADATA_PAYLOAD)) {
+            throw new StorageException("Metadata payload not found");
+        }
+
+        try {
+            Payload metaPayload = man.get(METADATA_PAYLOAD);
+            Properties metadata = new Properties();
+            metadata.load(metaPayload.open());
+            metaPayload.close();
+            return metadata;
+        } catch (IOException ex) {
+            throw new StorageException(ex);
+        }
     }
 
     @Override
