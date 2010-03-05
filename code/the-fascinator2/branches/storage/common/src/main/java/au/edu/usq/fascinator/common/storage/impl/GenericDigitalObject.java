@@ -23,6 +23,7 @@ import au.edu.usq.fascinator.api.storage.Payload;
 import au.edu.usq.fascinator.api.storage.PayloadType;
 import au.edu.usq.fascinator.api.storage.StorageException;
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
@@ -31,6 +32,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+import org.apache.commons.io.IOUtils;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,8 +47,10 @@ public class GenericDigitalObject implements DigitalObject {
     private static Logger log = LoggerFactory
             .getLogger(GenericDigitalObject.class);
 
+    private static String METADATA_LABEL = "The Fascinator Indexer Metadata";
     private static String METADATA_PAYLOAD = "TF-OBJ-META";
     private Map<String, Payload> manifest;
+    private Properties metadata;
     private String id;
     private String sourceId;
 
@@ -89,20 +93,28 @@ public class GenericDigitalObject implements DigitalObject {
 
     @Override
     public Properties getMetadata() throws StorageException {
-        Map<String, Payload> man = this.getManifest();
-        if (!man.containsKey(METADATA_PAYLOAD)) {
-            throw new StorageException("Metadata payload not found");
-        }
+        if (metadata == null) {
+            Map<String, Payload> man = this.getManifest();
+            if (!man.containsKey(METADATA_PAYLOAD)) {
+                Payload payload = this.createStoredPayload(
+                        METADATA_PAYLOAD, IOUtils.toInputStream(""));
+                if (this.getSourceId().equals(METADATA_PAYLOAD)) {
+                    this.setSourceId(null);
+                }
+                payload.setType(PayloadType.Annotation);
+                payload.setLabel(METADATA_LABEL);
+            }
 
-        try {
-            Payload metaPayload = man.get(METADATA_PAYLOAD);
-            Properties metadata = new Properties();
-            metadata.load(metaPayload.open());
-            metaPayload.close();
-            return metadata;
-        } catch (IOException ex) {
-            throw new StorageException(ex);
+            try {
+                Payload metaPayload = man.get(METADATA_PAYLOAD);
+                metadata = new Properties();
+                metadata.load(metaPayload.open());
+                metaPayload.close();
+            } catch (IOException ex) {
+                throw new StorageException(ex);
+            }
         }
+        return metadata;
     }
 
     @Override
@@ -183,7 +195,20 @@ public class GenericDigitalObject implements DigitalObject {
 
     @Override
     public void close() throws StorageException {
-        // By default do nothing
+        if (metadata != null) {
+            Map<String, Payload> man = this.getManifest();
+            if (!man.containsKey(METADATA_PAYLOAD)) {
+                throw new StorageException("Metadata payload not found");
+            }
+            try {
+                ByteArrayOutputStream metaOut = new ByteArrayOutputStream();
+                metadata.store(metaOut, METADATA_LABEL);
+                this.updatePayload(METADATA_PAYLOAD,
+                        new ByteArrayInputStream(metaOut.toByteArray()));
+            } catch (IOException ex) {
+                throw new StorageException(ex);
+            }
+        }
     }
 
     @Override
