@@ -23,14 +23,12 @@ import au.edu.usq.fascinator.api.storage.Payload;
 import au.edu.usq.fascinator.api.storage.PayloadType;
 import au.edu.usq.fascinator.api.storage.StorageException;
 import java.io.ByteArrayInputStream;
-import java.io.File;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-import java.util.logging.Level;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -96,7 +94,7 @@ public class GenericDigitalObject implements DigitalObject {
     @Override
     public Payload createStoredPayload(String pid, InputStream in)
             throws StorageException {
-        GenericPayload payload = this.createPayload(pid, PayloadType.Data);
+        GenericPayload payload = this.createPayload(pid, false);
         payload.setInputStream(in);
         return payload;
     }
@@ -104,7 +102,7 @@ public class GenericDigitalObject implements DigitalObject {
     @Override
     public Payload createLinkedPayload(String pid, String linkPath)
             throws StorageException {
-        GenericPayload payload = this.createPayload(pid, PayloadType.External);
+        GenericPayload payload = this.createPayload(pid, true);
         try {
             payload.setInputStream(
                     new ByteArrayInputStream(linkPath.getBytes("UTF-8")));
@@ -114,7 +112,7 @@ public class GenericDigitalObject implements DigitalObject {
         return payload;
     }
 
-    private GenericPayload createPayload(String pid, PayloadType defaultType) throws StorageException {
+    private GenericPayload createPayload(String pid, boolean linked) throws StorageException {
         Map<String, Payload> man = this.getManifest();
         if (man.containsKey(pid)) {
             throw new StorageException("ID '" + pid + "' already exists.");
@@ -122,11 +120,12 @@ public class GenericDigitalObject implements DigitalObject {
 
         GenericPayload payload = new GenericPayload(pid);
         if (this.getSourceId() == null) {
-            payload.setType(defaultType);
+            payload.setType(PayloadType.Source);
             this.setSourceId(pid);
         } else {
             payload.setType(PayloadType.Enrichment);
         }
+        payload.setLinked(linked);
 
         man.put(pid, payload);
         return payload;

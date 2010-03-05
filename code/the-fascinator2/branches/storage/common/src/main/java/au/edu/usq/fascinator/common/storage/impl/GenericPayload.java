@@ -44,6 +44,9 @@ public class GenericPayload implements Payload {
     /** Payload type */
     private PayloadType type;
 
+    /** Payload storage */
+    private boolean linked = false;
+
     /** Identifier */
     private String id;
 
@@ -128,6 +131,15 @@ public class GenericPayload implements Payload {
     @Override
     public PayloadType getType() {
         return type;
+    }
+
+    @Override
+    public boolean isLinked() {
+        return linked;
+    }
+
+    public void setLinked(boolean newLinked) {
+        linked = newLinked;
     }
 
     @Override

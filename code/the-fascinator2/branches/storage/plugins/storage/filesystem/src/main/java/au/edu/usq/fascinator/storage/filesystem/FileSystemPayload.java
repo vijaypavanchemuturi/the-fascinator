@@ -73,7 +73,9 @@ public class FileSystemPayload extends GenericPayload {
             setType(PayloadType.valueOf(type));
             setLabel(props.getProperty("label", getId()));
 
-            if (this.getType().equals(PayloadType.External)) {
+            String link = props.getProperty("linked", String.valueOf(isLinked()));
+            setLinked(Boolean.parseBoolean(link));
+            if (this.isLinked()) {
                 try {
                     String linkPath = FileUtils.readFileToString(dataFile);
                     File linkFile = new File(linkPath);
@@ -94,7 +96,7 @@ public class FileSystemPayload extends GenericPayload {
             setLabel(dataFile.getName());
         }
         if (getType() == null) {
-            setType(PayloadType.Data);
+            setType(PayloadType.Source);
         }
         if (getContentType() == null) {
             setContentType(MimeTypeUtil.getMimeType(dataFile));
@@ -111,6 +113,7 @@ public class FileSystemPayload extends GenericPayload {
             props.setProperty("id", getId());
             props.setProperty("payloadType", getType().toString());
             props.setProperty("label", getLabel());
+            props.setProperty("linked", String.valueOf(isLinked()));
             props.setProperty("contentType", getContentType());
             props.store(metaOut, "Payload metadata for "
                     + dataFile.getAbsolutePath());
@@ -123,7 +126,7 @@ public class FileSystemPayload extends GenericPayload {
     @Override
     public InputStream open() throws StorageException {
         // Linked files
-        if (this.getType().equals(PayloadType.External)) {
+        if (this.isLinked()) {
             try {
                 String linkPath = FileUtils.readFileToString(dataFile);
                 File linkFile = new File(linkPath);

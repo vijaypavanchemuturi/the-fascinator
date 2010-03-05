@@ -57,6 +57,13 @@ public interface Payload {
     public void setType(PayloadType type);
 
     /**
+     * Returns whether the file is linked or stored
+     *
+     * @return boolean value of true (linked) or false (stored)
+     */
+    public boolean isLinked();
+
+    /**
      * Gets the descriptive label for this payload
      * 
      * @return a label

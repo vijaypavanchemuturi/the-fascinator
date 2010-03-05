@@ -86,7 +86,7 @@ public class FileSystemDigitalObject extends GenericDigitalObject {
                     FileSystemPayload payload =
                             new FileSystemPayload(payloadFile.getName(), payloadFile);
                     payload.readExistingMetadata();
-                    if (payload.getType().equals(PayloadType.Data)) {
+                    if (payload.getType().equals(PayloadType.Source)) {
                         setSourceId(payload.getId());
                     }
                     manifest.put(payload.getId(), payload);
@@ -100,7 +100,7 @@ public class FileSystemDigitalObject extends GenericDigitalObject {
     @Override
     public Payload createStoredPayload(String pid, InputStream in)
             throws StorageException {
-        Payload payload = this.createPayload(pid, PayloadType.Data, in);
+        Payload payload = this.createPayload(pid, in, true);
         return payload;
     }
 
@@ -110,14 +110,14 @@ public class FileSystemDigitalObject extends GenericDigitalObject {
         try {
             ByteArrayInputStream in =
                     new ByteArrayInputStream(linkPath.getBytes("UTF-8"));
-            Payload payload = this.createPayload(pid, PayloadType.External, in);
+            Payload payload = this.createPayload(pid, in, false);
             return payload;
         } catch (UnsupportedEncodingException ex) {
             throw new StorageException(ex);
         }
     }
 
-    private Payload createPayload(String pid, PayloadType type, InputStream in)
+    private Payload createPayload(String pid, InputStream in, boolean linked)
             throws StorageException {
         // Manifest check
         Map<String, Payload> manifest = this.getManifest();
@@ -153,12 +153,12 @@ public class FileSystemDigitalObject extends GenericDigitalObject {
         // Payload creation
         FileSystemPayload payload = new FileSystemPayload(pid, newFile);
         if (this.getSourceId() == null) {
-            payload.setType(type);
+            payload.setType(PayloadType.Source);
             this.setSourceId(pid);
         } else {
             payload.setType(PayloadType.Enrichment);
         }
-
+        payload.setLinked(linked);
         payload.writeMetadata();
         manifest.put(pid, payload);
 
