@@ -22,7 +22,7 @@ public class FileSystemPayloadTest {
         fsp.setLabel("ICE Sample Document");
         fsp.writeMetadata();
 
-        Assert.assertEquals(PayloadType.Data, fsp.getType());
+        Assert.assertEquals(PayloadType.Source, fsp.getType());
         Assert.assertEquals("application/vnd.oasis.opendocument.text",
                 fsp.getContentType());
         Assert.assertEquals("ICE Sample Document", fsp.getLabel());
