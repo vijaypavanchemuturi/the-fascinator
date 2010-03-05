@@ -30,7 +30,6 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Map;
-import java.util.Properties;
 
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.FilenameUtils;
@@ -41,10 +40,7 @@ import org.slf4j.LoggerFactory;
 import au.edu.usq.fascinator.api.PluginException;
 import au.edu.usq.fascinator.api.PluginManager;
 import au.edu.usq.fascinator.api.indexer.Indexer;
-import au.edu.usq.fascinator.api.storage.DigitalObject;
-import au.edu.usq.fascinator.api.storage.Payload;
 import au.edu.usq.fascinator.api.storage.Storage;
-import au.edu.usq.fascinator.api.storage.StorageException;
 import au.edu.usq.fascinator.common.JsonConfig;
 import au.edu.usq.fascinator.common.JsonConfigHelper;
 
@@ -221,12 +217,11 @@ public class RestoreClient {
         log.info("Started at " + now);
 
         try {
-            realStorage = PluginManager.getStorage(realStorageType);
-            realStorage.init(config.getSystemFile());
+            storage = PluginManager.getStorage(realStorageType);
+            storage.init(config.getSystemFile());
             log.info("Loaded {} and {}", realStorage.getName(), indexer
                     .getName());
-            storage = new IndexedStorage(realStorage, indexer);
-            storage.init(jsonFile);
+            indexer.init(jsonFile);
         } catch (Exception e) {
             log.error("Failed to initialise storage {}", e.getMessage());
             return;
@@ -274,38 +269,26 @@ public class RestoreClient {
                 e1.printStackTrace();
             }
             // Only using active backup path
-            if (active && sourceStorage != null) {
-                for (DigitalObject object : sourceStorage.getObjectList()) {
-                    try {
-                        // Add the rules first:
-                        Properties sofMetaProps = new Properties();
-                        Payload sofMetaPayload = object.getPayload("SOF-META");
-                        sofMetaProps.load(sofMetaPayload.getInputStream());
-
-                        String sofMetaRulesOid = sofMetaProps
-                                .getProperty("rulesOid");
-                        File rulesFile = new File(sofMetaRulesOid);
-
-                        try {
-                            log.debug("Caching rules file " + rulesFile);
-                            DigitalObject rulesObject = new RulesDigitalObject(
-                                    rulesFile);
-                            realStorage.addObject(rulesObject);
-                        } catch (StorageException se) {
-                            log.error(
-                                    "Failed to cache indexing rules, stopping",
-                                    se);
-                            return;
-                        }
-                        storage.addObject(object);
-
-                    } catch (StorageException e) {
-                        e.printStackTrace();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }
+            // FIXME update to API
+            /*
+             * if (active && sourceStorage != null) { for (DigitalObject object
+             * : sourceStorage.getObjectList()) { try { // Add the rules first:
+             * Properties sofMetaProps = new Properties(); Payload
+             * sofMetaPayload = object.getPayload("SOF-META");
+             * sofMetaProps.load(sofMetaPayload.getInputStream());
+             * 
+             * String sofMetaRulesOid = sofMetaProps .getProperty("rulesOid");
+             * File rulesFile = new File(sofMetaRulesOid);
+             * 
+             * try { log.debug("Caching rules file " + rulesFile); DigitalObject
+             * rulesObject = new RulesDigitalObject( rulesFile);
+             * realStorage.addObject(rulesObject); } catch (StorageException se)
+             * { log.error( "Failed to cache indexing rules, stopping", se);
+             * return; } storage.addObject(object);
+             * 
+             * } catch (StorageException e) { e.printStackTrace(); } catch
+             * (IOException e) { e.printStackTrace(); } } }
+             */
             if (includePortal) {
                 File portalDir = new File(systemConfig.get("fascinator-home")
                         + "/portal/" + systemConfig.get("portal/home"));

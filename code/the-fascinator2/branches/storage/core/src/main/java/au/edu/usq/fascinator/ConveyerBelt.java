@@ -1,3 +1,21 @@
+/* 
+ * The Fascinator - Core
+ * Copyright (C) 2009 University of Southern Queensland
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
 package au.edu.usq.fascinator;
 
 import java.io.File;
@@ -17,18 +35,24 @@ import au.edu.usq.fascinator.api.transformer.TransformerException;
 import au.edu.usq.fascinator.common.JsonConfig;
 
 /**
- * ConveyerBelt class to handler transformation of an object e.g. ICE & aperture
- * transformer
+ * ConveyerBelt class to handle transformation of an object
  * 
- * @author Oliver Lucido & Linda Octalina
- * 
+ * @author Oliver Lucido
+ * @author Linda Octalina
  */
 public class ConveyerBelt {
+
+    public static final String EXTRACTOR = "extractor";
+
+    public static final String RENDER = "render";
+
     private JsonConfig config;
+
     private File jsonFile;
+
     private String type;
 
-    private String configString;
+    private String jsonString;
 
     private static Logger log = LoggerFactory.getLogger(ConveyerBelt.class);
 
@@ -42,11 +66,11 @@ public class ConveyerBelt {
         }
     }
 
-    public ConveyerBelt(String json, String type) {
+    public ConveyerBelt(String jsonString, String type) {
+        this.jsonString = jsonString;
+        this.type = type;
         try {
-            configString = json;
-            config = new JsonConfig(json);
-            this.type = type;
+            config = new JsonConfig(jsonString);
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         } catch (IOException e) {
@@ -67,7 +91,7 @@ public class ConveyerBelt {
                 try {
                     log.info("Starting {} on {}...", name, object.getId());
                     if (jsonFile == null) {
-                        plugin.init(configString);
+                        plugin.init(jsonString);
                     } else {
                         plugin.init(jsonFile);
                     }

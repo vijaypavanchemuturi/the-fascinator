@@ -172,7 +172,8 @@ public class RenderQueueConsumer implements MessageListener {
             ConveyerBelt cb = new ConveyerBelt(text, "render");
             object = cb.transform(object);
             log.info("Updating object...");
-            storage.addObject(object);
+            // FIXME update to API
+            // storage.addObject(object);
             log.info("Indexing object...");
             indexer.index(object.getId());
         } catch (JMSException jmse) {

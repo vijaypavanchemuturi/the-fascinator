@@ -20,7 +20,7 @@ package au.edu.usq.fascinator;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
+import java.util.Set;
 
 import javax.jms.Connection;
 import javax.jms.DeliveryMode;
@@ -36,7 +36,6 @@ import org.slf4j.LoggerFactory;
 
 import au.edu.usq.fascinator.api.PluginException;
 import au.edu.usq.fascinator.api.storage.DigitalObject;
-import au.edu.usq.fascinator.api.storage.Payload;
 import au.edu.usq.fascinator.api.storage.Storage;
 import au.edu.usq.fascinator.api.storage.StorageException;
 import au.edu.usq.fascinator.common.JsonConfig;
@@ -64,33 +63,6 @@ public class QueueStorage implements Storage {
     public QueueStorage(Storage storage, File jsonFile) {
         this.storage = storage;
         this.jsonFile = jsonFile;
-    }
-
-    public String addObject(DigitalObject object) throws StorageException {
-        String sid = storage.addObject(object);
-        queueHarvest(object.getId(), jsonFile);
-        return sid;
-    }
-
-    public void addPayload(String oid, Payload payload) {
-        storage.addPayload(oid, payload);
-    }
-
-    public DigitalObject getObject(String oid) {
-        return storage.getObject(oid);
-    }
-
-    public Payload getPayload(String oid, String pid) {
-        return storage.getPayload(oid, pid);
-    }
-
-    public void removeObject(String oid) {
-        storage.removeObject(oid);
-        queueDelete(oid, jsonFile);
-    }
-
-    public void removePayload(String oid, String pid) {
-        storage.removePayload(oid, pid);
     }
 
     public String getId() {
@@ -146,8 +118,24 @@ public class QueueStorage implements Storage {
     }
 
     @Override
-    public List<DigitalObject> getObjectList() {
-        return storage.getObjectList();
+    public DigitalObject createObject(String id) throws StorageException {
+        DigitalObject object = storage.createObject(id);
+        queueHarvest(object.getId(), jsonFile);
+        return object;
+    }
+
+    public DigitalObject getObject(String oid) throws StorageException {
+        return storage.getObject(oid);
+    }
+
+    public void removeObject(String oid) throws StorageException {
+        storage.removeObject(oid);
+        queueDelete(oid, jsonFile);
+    }
+
+    @Override
+    public Set<String> getObjectIdList() {
+        return storage.getObjectIdList();
     }
 
     private void initConnection(JsonConfig config) {
