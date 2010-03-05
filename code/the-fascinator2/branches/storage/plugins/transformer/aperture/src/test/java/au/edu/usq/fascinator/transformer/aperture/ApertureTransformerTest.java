@@ -21,16 +21,17 @@ package au.edu.usq.fascinator.transformer.aperture;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URISyntaxException;
 
 import junit.framework.Assert;
 
-import org.junit.Ignore;
 import org.junit.Test;
 
 import au.edu.usq.fascinator.api.storage.DigitalObject;
+import au.edu.usq.fascinator.api.storage.Payload;
+import au.edu.usq.fascinator.api.storage.PayloadType;
+import au.edu.usq.fascinator.api.storage.StorageException;
 import au.edu.usq.fascinator.api.transformer.TransformerException;
 import au.edu.usq.fascinator.common.storage.impl.GenericDigitalObject;
 
@@ -38,38 +39,40 @@ import au.edu.usq.fascinator.common.storage.impl.GenericDigitalObject;
  * @author Linda Octalina
  * 
  */
-@Ignore
-public class ExtractorTest {
+
+public class ApertureTransformerTest {
     private ApertureTransformer ex = new ApertureTransformer("/tmp");
 
     private GenericDigitalObject testObject;
     private DigitalObject testObjectOutput;
 
     @Test
-    public void testPdfFile() throws URISyntaxException, TransformerException {
+    public void testPdfFile() throws URISyntaxException, TransformerException,
+            StorageException {
         File fileNamepdf = new File(getClass().getResource("/AboutStacks.pdf")
                 .toURI());
 
         testObject = new GenericDigitalObject(fileNamepdf.getAbsolutePath());
         testObjectOutput = ex.transform(testObject);
-        Assert.assertEquals("RDF metadata", testObjectOutput.getMetadata()
-                .getLabel());
-        Assert.assertEquals("rdf", testObjectOutput.getMetadata().getId());
-        Assert.assertEquals("application/xml+rdf", testObjectOutput
-                .getMetadata().getContentType());
+        Payload rdfPayload = testObjectOutput.getPayload("aperture.rdf");
+        Assert.assertEquals("aperture.rdf", rdfPayload.getId());
+        Assert.assertEquals("Aperture rdf", rdfPayload.getLabel());
+        Assert.assertEquals("application/xml+rdf", rdfPayload.getContentType());
+        Assert.assertEquals(PayloadType.Enrichment, rdfPayload.getType());
     }
 
     @Test
-    public void testOdtFile() throws URISyntaxException, TransformerException {
+    public void testOdtFile() throws URISyntaxException, TransformerException,
+            StorageException {
         File fileNameodt = new File(getClass().getResource("/test Image.odt")
                 .toURI());
         testObject = new GenericDigitalObject(fileNameodt.getAbsolutePath());
         testObjectOutput = ex.transform(testObject);
-        Assert.assertEquals("RDF metadata", testObjectOutput.getMetadata()
-                .getLabel());
-        Assert.assertEquals("rdf", testObjectOutput.getMetadata().getId());
-        Assert.assertEquals("application/xml+rdf", testObjectOutput
-                .getMetadata().getContentType());
+        Payload rdfPayload = testObjectOutput.getPayload("aperture.rdf");
+        Assert.assertEquals("aperture.rdf", rdfPayload.getId());
+        Assert.assertEquals("Aperture rdf", rdfPayload.getLabel());
+        Assert.assertEquals("application/xml+rdf", rdfPayload.getContentType());
+        Assert.assertEquals(PayloadType.Enrichment, rdfPayload.getType());
     }
 
     // Image file?
@@ -81,10 +84,10 @@ public class ExtractorTest {
         testObjectOutput = ex.transform(testObject);
 
         // Try to print out the rdf content
-        InputStream in;
         try {
-            in = testObjectOutput.getMetadata().getInputStream();
-            BufferedReader r = new BufferedReader(new InputStreamReader(in));
+            Payload rdfPayload = testObjectOutput.getPayload("aperture.rdf");
+            BufferedReader r = new BufferedReader(new InputStreamReader(
+                    rdfPayload.open()));
             StringBuilder sb = new StringBuilder();
 
             String line = null;
@@ -95,20 +98,14 @@ public class ExtractorTest {
             } catch (IOException e) {
                 e.printStackTrace();
             } finally {
-                try {
-                    in.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+                rdfPayload.close();
             }
             System.out.println("String: " + sb.toString());
-        } catch (IOException e1) {
-            // TODO Auto-generated catch block
-            e1.printStackTrace();
+        } catch (StorageException e) {
+            e.printStackTrace();
         }
     }
 
-    // It will be treated as Plaintext
     @Test
     public void testWithoutExtension() throws URISyntaxException,
             TransformerException {
@@ -117,36 +114,26 @@ public class ExtractorTest {
         testObjectOutput = ex.transform(testObject);
 
         // Try to print out the rdf content
-        // InputStream in;
-        // try {
-        // in = testObjectOutput.getMetadata().getInputStream();
-        // BufferedReader r = new BufferedReader(new InputStreamReader(in));
-        // StringBuilder sb = new StringBuilder();
-        //
-        // String line = null;
-        // try {
-        // while ((line = r.readLine()) != null) {
-        // sb.append(line + "\n");
-        // }
-        // } catch (IOException e) {
-        // e.printStackTrace();
-        // } finally {
-        // try {
-        // in.close();
-        // } catch (IOException e) {
-        // e.printStackTrace();
-        // }
-        // }
-        // System.out.println("String: " + sb.toString());
-        // } catch (IOException e1) {
-        // // TODO Auto-generated catch block
-        // e1.printStackTrace();
-        // }
+        try {
+            Payload rdfPayload = testObjectOutput.getPayload("aperture.rdf");
+            BufferedReader r = new BufferedReader(new InputStreamReader(
+                    rdfPayload.open()));
+            StringBuilder sb = new StringBuilder();
 
-        Assert.assertEquals("RDF metadata", testObjectOutput.getMetadata()
-                .getLabel());
-        Assert.assertEquals("rdf", testObjectOutput.getMetadata().getId());
-        Assert.assertEquals("application/xml+rdf", testObjectOutput
-                .getMetadata().getContentType());
+            String line = null;
+            try {
+                while ((line = r.readLine()) != null) {
+                    sb.append(line + "\n");
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            } finally {
+                rdfPayload.close();
+            }
+            System.out.println("String: " + sb.toString());
+        } catch (StorageException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
     }
 }

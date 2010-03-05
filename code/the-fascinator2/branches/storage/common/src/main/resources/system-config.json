@@ -80,7 +80,7 @@
         "ice2": {
             "url": "http://ec2-75-101-136-199.compute-1.amazonaws.com/api/convert/",
             "outputPath": "${java.io.tmpdir}/ice2-output",
-            "excludeRenditionExt": "txt,mp3,m4a,mov,mp4,wav,wma,wmv,mpg,flv",
+            "excludeRenditionExt": "txt,mp3,m4a",
             "resize": {
                 "thumbnail": {
                     "option": "fixedWidth",
@@ -101,7 +101,7 @@
             "outputPath": "${java.io.tmpdir}/ffmpeg-output",
             "outputExt": "flv",
             "thumbnailSize": "160x120",
-            "excludeExt": "flv,m4a,mp3",
+            "excludeExt": "flv,m4a,mp3,mov,mp4,wav,wma,wmv,mpg",
             "params": {
                 "default": "-f flv -b 192k -ab 64k -ar 44100 -ac 1 -s 400x224 -padtop 30 -padbottom 30"
             }
