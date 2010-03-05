@@ -144,7 +144,7 @@ public class Ice2Transformer implements Transformer {
      * Create Payload method for ICE Error
      * 
      * @param object: DigitalObject that store the payload
-     * @param file: File to be transformed
+     * @param file: File to be stored as payload
      * @param message: Error message
      * @return transformed DigitalObject
      * @throws StorageException
@@ -166,7 +166,7 @@ public class Ice2Transformer implements Transformer {
      * Create Payload method for ICE rendition files
      * 
      * @param object: DigitalObject that store the payload
-     * @param file: File to be transformed
+     * @param file: File to be stored as payload
      * @return transformed DigitalObject
      * @throws StorageException
      * @throws IOException
