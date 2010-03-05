@@ -18,9 +18,6 @@
  */
 package au.edu.usq.fascinator.portal.pages;
 
-import au.edu.usq.fascinator.HarvestClient;
-import au.edu.usq.fascinator.common.JsonConfig;
-import au.edu.usq.fascinator.common.JsonConfigHelper;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -30,7 +27,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.logging.Level;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -48,6 +44,7 @@ import org.apache.tapestry5.upload.services.MultipartDecoder;
 import org.apache.tapestry5.upload.services.UploadedFile;
 import org.slf4j.Logger;
 
+import au.edu.usq.fascinator.HarvestClient;
 import au.edu.usq.fascinator.common.JsonConfig;
 import au.edu.usq.fascinator.common.JsonConfigHelper;
 import au.edu.usq.fascinator.common.MimeTypeUtil;
@@ -56,7 +53,6 @@ import au.edu.usq.fascinator.portal.JsonSessionState;
 import au.edu.usq.fascinator.portal.services.DynamicPageService;
 import au.edu.usq.fascinator.portal.services.GenericStreamResponse;
 import au.edu.usq.fascinator.portal.services.HttpStatusCodeResponse;
-import org.apache.tapestry5.upload.services.UploadedFile;
 
 public class Dispatch {
 
@@ -216,11 +212,12 @@ public class Dispatch {
         uploadedFile.write(file);
 
         // Make sure the new file gets harvested
-        File harvest_config = new File(available_plugins.get(plugin).get("json-config"));
+        File harvest_config = new File(available_plugins.get(plugin).get(
+                "json-config"));
         try {
             HarvestClient harvester = new HarvestClient(harvest_config, file);
             harvester.run();
-        } catch (IOException ex) {
+        } catch (Exception ex) {
             log.error("Failed harvest", ex);
             return;
         }

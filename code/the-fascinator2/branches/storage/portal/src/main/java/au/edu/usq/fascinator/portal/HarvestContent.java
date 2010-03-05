@@ -45,7 +45,8 @@ public class HarvestContent extends JsonConfigHelper {
     }
 
     public Harvester getHarvester() {
-        Harvester harvester = PluginManager.getHarvester(get("harvester/type"));
+        Harvester harvester = PluginManager.getHarvester(get("harvester/type"),
+                null);
         if (harvester != null) {
             try {
                 harvester.init(jsonFile);
