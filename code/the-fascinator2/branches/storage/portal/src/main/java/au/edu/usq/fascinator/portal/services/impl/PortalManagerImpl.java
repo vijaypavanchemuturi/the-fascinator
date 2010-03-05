@@ -183,7 +183,7 @@ public class PortalManagerImpl implements PortalManager {
         try {
             harvestClient = new HarvestClient();
             harvestClient.reharvest(objectId);
-        } catch (IOException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
@@ -195,7 +195,7 @@ public class PortalManagerImpl implements PortalManager {
         try {
             harvestClient = new HarvestClient();
             harvestClient.reHarvestView(portal.getQuery());
-        } catch (IOException e) {
+        } catch (Exception e) {
 
         }
     }
