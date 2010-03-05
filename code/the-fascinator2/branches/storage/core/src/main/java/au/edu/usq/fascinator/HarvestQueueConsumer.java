@@ -18,12 +18,8 @@
  */
 package au.edu.usq.fascinator;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.util.Map;
-import java.util.Properties;
 
 import javax.jms.Connection;
 import javax.jms.DeliveryMode;
@@ -47,15 +43,11 @@ import au.edu.usq.fascinator.api.PluginManager;
 import au.edu.usq.fascinator.api.indexer.Indexer;
 import au.edu.usq.fascinator.api.indexer.IndexerException;
 import au.edu.usq.fascinator.api.storage.DigitalObject;
-import au.edu.usq.fascinator.api.storage.Payload;
-import au.edu.usq.fascinator.api.storage.PayloadType;
 import au.edu.usq.fascinator.api.storage.Storage;
 import au.edu.usq.fascinator.api.storage.StorageException;
 import au.edu.usq.fascinator.api.transformer.TransformerException;
 import au.edu.usq.fascinator.common.JsonConfig;
-import au.edu.usq.fascinator.common.storage.impl.FilePayload;
 import au.edu.usq.fascinator.common.storage.impl.GenericDigitalObject;
-import au.edu.usq.fascinator.common.storage.impl.GenericPayload;
 
 /**
  * Consumer for harvest transformers. Jobs in this queue should be short running
@@ -213,10 +205,12 @@ public class HarvestQueueConsumer implements MessageListener {
         }
     }
 
-    private void processObject(File rulesFile, String jsonStr, String oid, String path)
-            throws StorageException, IOException {
+    private void processObject(File rulesFile, String jsonStr, String oid,
+            String path) throws StorageException, IOException {
 
+        // FIXME update to API
         String rulesOid;
+        /*
         try {
             log.debug("Caching rules file " + rulesFile);
             DigitalObject rulesObject = new RulesDigitalObject(rulesFile);
@@ -226,6 +220,7 @@ public class HarvestQueueConsumer implements MessageListener {
             log.error("Failed to cache indexing rules, stopping", se);
             return;
         }
+            */
 
         try {
             log.info("Processing " + oid + "...");
@@ -235,6 +230,8 @@ public class HarvestQueueConsumer implements MessageListener {
             ConveyerBelt cb = new ConveyerBelt(jsonStr, "extractor");
             object = cb.transform(object);
 
+            // FIXME update to API
+            /*
             Properties sofMeta = new Properties();
             sofMeta.setProperty("objectId", oid);
             Payload metadata = object.getMetadata();
@@ -259,6 +256,7 @@ public class HarvestQueueConsumer implements MessageListener {
             sofMetaDs.setType(PayloadType.Annotation);
             storage.addPayload(oid, sofMetaDs);
             storage.addObject(object);
+            */
         } catch (StorageException re) {
             throw new IOException(re.getMessage());
         } catch (TransformerException te) {
@@ -266,10 +264,14 @@ public class HarvestQueueConsumer implements MessageListener {
         }
     }
 
-    private DigitalObject createObject(String oid, String path) throws StorageException {
+    private DigitalObject createObject(String oid, String path)
+            throws StorageException {
         GenericDigitalObject object = new GenericDigitalObject(oid);
+        // FIXME update to API
+        /*
         object.addPayload(new FilePayload(new File(path)));
         storage.addObject(object);
+        */
         return object;
     }
 }

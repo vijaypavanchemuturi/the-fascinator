@@ -34,18 +34,18 @@ public interface Storage extends Plugin {
      * 
      * @param A string identifier for the new object
      * @return An empty DigitalObject
-     * @throws StorageException if there was an error creating the object or
-     *          the ID already exists
+     * @throws StorageException if there was an error creating the object or the
+     *         ID already exists
      */
-    public DigitalObject createObject(String id) throws StorageException;
+    public DigitalObject createObject(String oid) throws StorageException;
 
     /**
      * Gets the object with the specified identifier
-     *
+     * 
      * @param oid an object identifier
      * @return a DigitalObject
      * @throws StorageException if there was an error instantiating the object
-     *          or if the ID does not exist
+     *         or if the ID does not exist
      */
     public DigitalObject getObject(String oid) throws StorageException;
 
@@ -53,8 +53,8 @@ public interface Storage extends Plugin {
      * Removes the specified object from the store
      * 
      * @param oid an object identifier
-     * @throws StorageException if there was an error deleting the object
-     *          or if the ID does not exist
+     * @throws StorageException if there was an error deleting the object or if
+     *         the ID does not exist
      */
     public void removeObject(String oid) throws StorageException;
 

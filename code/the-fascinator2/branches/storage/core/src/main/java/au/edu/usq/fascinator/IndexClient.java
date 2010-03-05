@@ -21,15 +21,18 @@ package au.edu.usq.fascinator;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-import java.util.logging.Level;
+import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,10 +47,6 @@ import au.edu.usq.fascinator.api.storage.Storage;
 import au.edu.usq.fascinator.api.storage.StorageException;
 import au.edu.usq.fascinator.common.JsonConfig;
 import au.edu.usq.fascinator.common.JsonConfigHelper;
-import java.io.FileInputStream;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Set;
 
 /**
  * Index Client class to Re-index the storage
@@ -116,12 +115,12 @@ public class IndexClient {
     public void setSetting() {
         // Get the storage type to be indexed...
         try {
-            realStorage = PluginManager.getStorage(config.get("storage/type",
+            storage = PluginManager.getStorage(config.get("storage/type",
                     DEFAULT_STORAGE_TYPE));
+            storage.init(configFile);
             indexer = PluginManager.getIndexer(config.get("indexer/type",
                     DEFAULT_INDEXER_TYPE));
-            storage = new IndexedStorage(realStorage, indexer);
-            storage.init(configFile);
+            indexer.init(configFile);
             rulesList = new ArrayList<String>();
             log.info("Loaded {} and {}", realStorage.getName(), indexer
                     .getName());
@@ -146,7 +145,7 @@ public class IndexClient {
 
         // Check storage for our rules file
         String rulesOid = rulesFile.getAbsolutePath();
-        this.updateRules(rulesOid);
+        updateRules(rulesOid);
 
         // List all the DigitalObjects in the storages
         Set<String> objectIdList = realStorage.getObjectIdList();
@@ -157,7 +156,7 @@ public class IndexClient {
             } catch (StorageException ex) {
                 log.error("Error getting rules file", ex);
             } catch (IOException ex) {
-               log.error("Error Processing object", ex);
+                log.error("Error Processing object", ex);
             }
         }
 
@@ -185,7 +184,7 @@ public class IndexClient {
             Properties sofMeta = object.getMetadata();
             String rulesOid = sofMeta.getProperty("rulesOid");
             if (!rulesList.contains(rulesOid)) {
-                this.updateRules(rulesOid);
+                updateRules(rulesOid);
                 rulesList.add(rulesOid);
             }
             processObject(object, rulesOid, null);
@@ -239,7 +238,7 @@ public class IndexClient {
                         Properties sofMeta = object.getMetadata();
                         String rulesOid = sofMeta.getProperty("rulesOid");
                         if (!rulesList.contains(rulesOid)) {
-                            this.updateRules(rulesOid);
+                            updateRules(rulesOid);
                             rulesList.add(rulesOid);
                         }
                         processObject(object, rulesOid, null);
@@ -310,7 +309,7 @@ public class IndexClient {
 
     /**
      * Update the rules object associated with this object
-     *
+     * 
      * @param rulesOid The rulesOid to update
      */
     private void updateRules(String rulesOid) {
@@ -326,15 +325,16 @@ public class IndexClient {
                 rulesObj.updatePayload(externalFile.getName(), in);
             }
 
-        // InputStream problem
+            // InputStream problem
         } catch (FileNotFoundException fex) {
             log.error("Error reading rules file", fex);
-        // Doesn't exist, we need to add it
+            // Doesn't exist, we need to add it
         } catch (StorageException ex) {
             try {
                 rulesObj = realStorage.createObject(rulesOid);
                 InputStream in = new FileInputStream(externalFile);
-                Payload p = rulesObj.createStoredPayload(externalFile.getName(), in);
+                Payload p = rulesObj.createStoredPayload(
+                        externalFile.getName(), in);
                 p.setLabel("Fascinator Indexing Rules");
             } catch (FileNotFoundException fex) {
                 log.error("Error reading rules file", fex);
