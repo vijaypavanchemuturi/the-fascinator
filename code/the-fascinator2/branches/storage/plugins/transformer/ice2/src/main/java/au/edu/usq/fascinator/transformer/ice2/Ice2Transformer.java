@@ -73,20 +73,38 @@ import au.edu.usq.fascinator.common.MimeTypeUtil;
  */
 public class Ice2Transformer implements Transformer {
 
+    /** Logging **/
     private Logger log = LoggerFactory.getLogger(Ice2Transformer.class);
 
+    /** Json config file **/
     private JsonConfig config;
 
+    /** ICE rendition output path **/
     private String outputPath;
 
+    /** ICE service url **/
     private String convertUrl;
 
+    /** Default zip mime type **/
     private static final String ZIP_MIME_TYPE = "application/zip";
 
+    /**
+     * ICE transformer constructor
+     */
     public Ice2Transformer() {
 
     }
 
+    /**
+     * Transform method
+     * 
+     * @param object: DigitalObject to be transformed
+     * @return transformed DigitalObject
+     * @throws TransformerException
+     * @throws StorageException
+     * @throws UnsupportedEncodingException
+     * @throws IOException
+     */
     @Override
     public DigitalObject transform(DigitalObject object)
             throws TransformerException {
@@ -122,6 +140,16 @@ public class Ice2Transformer implements Transformer {
         return object;
     }
 
+    /**
+     * Create Payload method for ICE Error
+     * 
+     * @param object: DigitalObject that store the payload
+     * @param file: File to be transformed
+     * @param message: Error message
+     * @return transformed DigitalObject
+     * @throws StorageException
+     * @throws UnsupportedEncodingException
+     */
     public DigitalObject createErrorPayload(DigitalObject object, File file,
             String message) throws StorageException,
             UnsupportedEncodingException {
@@ -134,6 +162,15 @@ public class Ice2Transformer implements Transformer {
         return object;
     }
 
+    /**
+     * Create Payload method for ICE rendition files
+     * 
+     * @param object: DigitalObject that store the payload
+     * @param file: File to be transformed
+     * @return transformed DigitalObject
+     * @throws StorageException
+     * @throws IOException
+     */
     public DigitalObject createIcePayload(DigitalObject object, File file)
             throws StorageException, IOException {
         if (ZIP_MIME_TYPE.equals(MimeTypeUtil.getMimeType(file))) {
@@ -162,6 +199,13 @@ public class Ice2Transformer implements Transformer {
         return object;
     }
 
+    /**
+     * Main render method to send the file to ICE service
+     * 
+     * @param sourceFile: File to be rendered
+     * @return file returned by ICE service
+     * @throws TransformerException
+     */
     private File render(File sourceFile) throws TransformerException {
         log.info("Converting {}...", sourceFile);
         String filename = sourceFile.getName();
@@ -231,6 +275,13 @@ public class Ice2Transformer implements Transformer {
         }
     }
 
+    /**
+     * Check if the file extension is supported
+     * 
+     * @param sourceFile: File to be checked
+     * @return True if it's supported, false otherwise
+     * @throws TransformerException
+     */
     private boolean isSupported(File sourceFile) throws TransformerException {
         String ext = FilenameUtils.getExtension(sourceFile.getName());
         String url = convertUrl + "/query?pathext=" + ext.toLowerCase();
@@ -246,22 +297,45 @@ public class Ice2Transformer implements Transformer {
         }
     }
 
+    /**
+     * Get ICE template
+     * 
+     * @return ice template
+     * @throws IOException
+     */
     private String getTemplate() throws IOException {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         IOUtils.copy(getClass().getResourceAsStream("/template.xhtml"), out);
         return out.toString("UTF-8");
     }
 
+    /**
+     * Get Transformer ID
+     * 
+     * @return id
+     */
     @Override
     public String getId() {
         return "ice2";
     }
 
+    /**
+     * Get Transformer Name
+     * 
+     * @return name;
+     */
     @Override
     public String getName() {
         return "ICE Transformer";
     }
 
+    /**
+     * Init method to initialise ICE transformer
+     * 
+     * @param jsonFile
+     * @throws IOException
+     * @throws PluginException
+     */
     @Override
     public void init(File jsonFile) throws PluginException {
         try {
@@ -271,6 +345,13 @@ public class Ice2Transformer implements Transformer {
         }
     }
 
+    /**
+     * Init method to initialise ICE transformer
+     * 
+     * @param jsonString
+     * @throws IOException
+     * @throws PluginException
+     */
     @Override
     public void init(String jsonString) throws PluginException {
         try {
@@ -280,10 +361,19 @@ public class Ice2Transformer implements Transformer {
         }
     }
 
+    /**
+     * Get configuration value from json file
+     * 
+     * @param key
+     * @return value of the configuration
+     */
     private String get(String key) {
         return config.get("transformer/ice2/" + key);
     }
 
+    /**
+     * Shut down the transformer plugin
+     */
     @Override
     public void shutdown() throws PluginException {
     }
