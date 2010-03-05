@@ -45,7 +45,6 @@ import au.edu.usq.fascinator.common.storage.impl.GenericDigitalObject;
 public class Ice2TransformerTest {
     private GenericDigitalObject testObject;
     private DigitalObject testObjectOutput;
-    // private Ice2Transformer tf = new Ice2Transformer("", "/tmp");
     private Ice2Transformer tf = new Ice2Transformer();
 
     @Test
