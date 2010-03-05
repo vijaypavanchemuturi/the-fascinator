@@ -19,6 +19,7 @@
 package au.edu.usq.fascinator.transformer.aperture;
 
 import java.io.BufferedInputStream;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -47,6 +48,9 @@ import org.slf4j.LoggerFactory;
 
 import au.edu.usq.fascinator.api.PluginException;
 import au.edu.usq.fascinator.api.storage.DigitalObject;
+import au.edu.usq.fascinator.api.storage.Payload;
+import au.edu.usq.fascinator.api.storage.PayloadType;
+import au.edu.usq.fascinator.api.storage.StorageException;
 import au.edu.usq.fascinator.api.transformer.Transformer;
 import au.edu.usq.fascinator.api.transformer.TransformerException;
 import au.edu.usq.fascinator.common.JsonConfig;
@@ -63,7 +67,7 @@ import au.edu.usq.fascinator.common.MimeTypeUtil;
  * @see <a href="http://www.semanticdesktop.org/ontologies/nie/">NEPOMUK
  *      Information Element Ontology</a>
  * 
- * @author Duncan Dickinson
+ * @author Duncan Dickinson, Linda Octalina
  */
 public class ApertureTransformer implements Transformer {
     private String filePath = "";
@@ -287,26 +291,6 @@ public class ApertureTransformer implements Transformer {
         return filePath;
     }
 
-    // @Override
-    // public File transform(File in) throws TransformerException {
-    // // TODO Auto-generated method stub
-    // try {
-    // RDFContainer rdf = extractRDF(in);
-    // String tmp = outputPath + "/" + "rdf.xml";
-    // PrintWriter out = new PrintWriter(new FileWriter(tmp));
-    // out.print(rdf.getModel().serialize(Syntax.RdfXml));
-    // out.close();
-    // return new File(tmp);
-    // } catch (IOException e) {
-    // // TODO Auto-generated catch block
-    // e.printStackTrace();
-    // } catch (ExtractorException e) {
-    // // TODO Auto-generated catch block
-    // e.printStackTrace();
-    // }
-    // return null;
-    // }
-
     /**
      * Overridden method getId
      * 
@@ -384,20 +368,25 @@ public class ApertureTransformer implements Transformer {
                 RDFContainer rdf = extractRDF(inFile); // Never write to file
                 log.info("Done extraction: " + rdf.getClass());
                 if (rdf != null) {
-                    RdfDigitalObject rdo = new RdfDigitalObject(in, rdf);
-                    return rdo;
+                    Payload rdfPayload = in
+                            .createStoredPayload("aperture.rdf",
+                                    new ByteArrayInputStream(
+                                            stripNonValidXMLCharacters(rdf)
+                                                    .getBytes()));
+                    rdfPayload.setLabel("Aperture rdf");
+                    rdfPayload.setContentType("application/xml+rdf");
+                    rdfPayload.setType(PayloadType.Enrichment);
                 }
             } else {
                 log.info("inFile '{}' does not exist!", inFile);
             }
         } catch (IOException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         } catch (ExtractorException e) {
-            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (StorageException e) {
             e.printStackTrace();
         }
-
         return in; // If nothing happen, return the same object e.g. File not
         // exist
     }
@@ -412,5 +401,27 @@ public class ApertureTransformer implements Transformer {
         } catch (Exception e) {
 
         }
+    }
+
+    public String stripNonValidXMLCharacters(RDFContainer rdf) {
+        String rdfString = rdf.getModel().serialize(Syntax.RdfXml).toString();
+
+        StringBuffer out = new StringBuffer(); // Used to hold the output.
+        char current; // Used to reference the current character.
+
+        if (rdfString == null || ("".equals(rdfString))) {
+            return "";
+        }
+        for (int i = 0; i < rdfString.length(); i++) {
+            current = rdfString.charAt(i);
+            if ((current == 0x9) || (current == 0xA) || (current == 0xD)
+                    || ((current >= 0x20) && (current <= 0xD7FF))
+                    || ((current >= 0xE000) && (current <= 0xFFFD))
+                    || ((current >= 0x10000) && (current <= 0x10FFFF))) {
+                out.append(current);
+            }
+        }
+
+        return out.toString();
     }
 }

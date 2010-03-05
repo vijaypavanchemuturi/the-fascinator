@@ -35,7 +35,7 @@ import au.edu.usq.fascinator.api.storage.StorageException;
 import au.edu.usq.fascinator.common.storage.impl.GenericDigitalObject;
 
 /**
- * NOTE: Count not perform the test to talk to ffmpeg directly as ffmpeg might
+ * NOTE: Could not perform the test to talk to ffmpeg directly as ffmpeg might
  * not be installed locally
  * 
  * @author Linda Octalina
@@ -75,11 +75,12 @@ public class FfmpegTransformerTest {
         Set<String> payloads = testObjectOutput.getPayloadIdList();
         Assert.assertEquals(1, payloads.size());
         Payload ffmpegPayload = testObjectOutput
-                .getPayload("african_drum_error.htm");
-        Assert.assertEquals(ffmpegPayload.getId(), "african_drum_error.htm");
+                .getPayload("african_drum_ffmpeg_error.htm");
+        Assert.assertEquals(ffmpegPayload.getId(),
+                "african_drum_ffmpeg_error.htm");
         Assert.assertEquals(ffmpegPayload.getLabel(),
                 "FFMPEG conversion errors");
-        Assert.assertEquals(ffmpegPayload.getType(), PayloadType.Enrichment);
+        Assert.assertEquals(ffmpegPayload.getType(), PayloadType.Error);
         Assert.assertEquals(ffmpegPayload.getContentType(), "text/html");
     }
 

@@ -108,6 +108,7 @@ public class Ice2Transformer implements Transformer {
     @Override
     public DigitalObject transform(DigitalObject object)
             throws TransformerException {
+        // TODO use MIME types instead of assuming object ID == file path
         File file = new File(object.getId());
         String ext = FilenameUtils.getExtension(file.getName());
         List<String> excludeList = Arrays.asList(StringUtils.split(
@@ -153,10 +154,11 @@ public class Ice2Transformer implements Transformer {
     public DigitalObject createErrorPayload(DigitalObject object, File file,
             String message) throws StorageException,
             UnsupportedEncodingException {
-        String name = FilenameUtils.getBaseName(file.getName()) + "_error.htm";
+        String name = FilenameUtils.getBaseName(file.getName())
+                + "_ice_error.htm";
         Payload errorPayload = object.createStoredPayload(name,
                 new ByteArrayInputStream(message.getBytes("UTF-8")));
-        errorPayload.setType(PayloadType.Enrichment);
+        errorPayload.setType(PayloadType.Error);
         errorPayload.setLabel("ICE conversion errors");
         errorPayload.setContentType("text/html");
         return object;
@@ -210,6 +212,7 @@ public class Ice2Transformer implements Transformer {
         log.info("Converting {}...", sourceFile);
         String filename = sourceFile.getName();
         String basename = FilenameUtils.getBaseName(filename);
+        String ext = FilenameUtils.getExtension(filename);
         int status = HttpStatus.SC_OK;
         Map<String, JsonConfigHelper> resizeConfig = config
                 .getJsonMap("transformer/ice2/resize");
@@ -226,7 +229,7 @@ public class Ice2Transformer implements Transformer {
                     new StringPart("dc", "on"),
                     new StringPart("toc", "on"),
                     new StringPart("pdflink", "on"),
-                    new StringPart("pathext", ""),
+                    new StringPart("pathext", ext),
                     new StringPart("template", getTemplate()),
                     new StringPart("multipleImageOptions", "{"
                             + StringUtils.substringBeforeLast(resizeJson, ",")

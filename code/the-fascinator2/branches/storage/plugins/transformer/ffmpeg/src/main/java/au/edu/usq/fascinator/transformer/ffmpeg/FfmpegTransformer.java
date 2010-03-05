@@ -132,10 +132,11 @@ public class FfmpegTransformer implements Transformer {
     public DigitalObject createFfmpegErrorPayload(DigitalObject object,
             File file, String message) throws StorageException,
             FileNotFoundException, UnsupportedEncodingException {
-        String name = FilenameUtils.getBaseName(file.getName()) + "_error.htm";
+        String name = FilenameUtils.getBaseName(file.getName())
+                + "_ffmpeg_error.htm";
         Payload ffmpegPayload = object.createStoredPayload(name,
                 new ByteArrayInputStream(message.getBytes("UTF-8")));
-        ffmpegPayload.setType(PayloadType.Enrichment);
+        ffmpegPayload.setType(PayloadType.Error);
         ffmpegPayload.setContentType("text/html");
         ffmpegPayload.setLabel("FFMPEG conversion errors");
         return object;
