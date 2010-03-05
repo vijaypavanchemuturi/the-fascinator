@@ -66,7 +66,7 @@ public class FileSystemDigitalObject extends GenericDigitalObject {
         File[] files = dir.listFiles(new FilenameFilter() {
             @Override
             public boolean accept(File dir, String name) {
-                return !name.endsWith(".meta");
+                return !name.endsWith(METADATA_SUFFIX);
             }
         });
         if (files != null) {

@@ -19,6 +19,7 @@
 package au.edu.usq.fascinator.api.storage;
 
 import java.io.InputStream;
+import java.util.Properties;
 import java.util.Set;
 
 /**
@@ -55,6 +56,14 @@ public interface DigitalObject {
      * @param a payload id
      */
     public void setSourceId(String pid);
+
+    /**
+     * Instantiates a properties object from the
+     * object's metadata payload.
+     *
+     * @return A properties object
+     */
+    public Properties getMetadata() throws StorageException;
 
     /**
      * Gets the payloads related to this object
