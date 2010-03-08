@@ -95,6 +95,7 @@ public class GenericDigitalObject implements DigitalObject {
     public Properties getMetadata() throws StorageException {
         if (metadata == null) {
             Map<String, Payload> man = this.getManifest();
+            log.debug("Generic Manifest : " + man);
             if (!man.containsKey(METADATA_PAYLOAD)) {
                 Payload payload = this.createStoredPayload(
                         METADATA_PAYLOAD, IOUtils.toInputStream(""));

@@ -72,7 +72,7 @@ public class StorageUtils {
             } catch (StorageException se) {
                 // create new object
                 object = storage.createObject(oid);
-                payload = object.createStoredPayload(oid, in);
+                payload = object.createStoredPayload(pid, in);
             }
         } catch (FileNotFoundException fnfe) {
             throw new StorageException("File not found '" + oid + "'");

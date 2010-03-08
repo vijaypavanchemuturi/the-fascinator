@@ -44,6 +44,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+import java.util.logging.Level;
 
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
@@ -100,6 +101,7 @@ public class SolrIndexer implements Indexer {
     private static final String DEFAULT_SOLR_HOME = System
             .getProperty("user.home")
             + File.separator + ".fascinator" + File.separator + "solr";
+    private static String DEFAULT_METADATA_PAYLOAD = "TF-OBJ-META";
 
     private Logger log = LoggerFactory.getLogger(SolrIndexer.class);
     private JsonConfig config;
@@ -185,7 +187,7 @@ public class SolrIndexer implements Indexer {
                     "indexer/solr/autocommit", "true"));
             anotarAutoCommit = Boolean.parseBoolean(config.get(
                     "indexer/anotar/autocommit", "true"));
-            propertiesId = config.get("indexer/propertiesId", "SOF-META");
+            propertiesId = config.get("indexer/propertiesId", DEFAULT_METADATA_PAYLOAD);
 
             namespaces = new HashMap<String, String>();
             DocumentFactory docFactory = new DocumentFactory();
@@ -403,12 +405,14 @@ public class SolrIndexer implements Indexer {
             annotate(object, payload);
             return;
         }
-        log.info("Indexing " + oid + "/" + pid);
+        log.info("Indexing OID:'" + oid + "', PID: '" + pid + "'");
 
         // get the indexer properties or we can't index
-        Properties props = getIndexerProperties(object);
-        if (props == null) {
-            throw new IndexerException("Indexer properties not found");
+        Properties props;
+        try {
+            props = object.getMetadata();
+        } catch (StorageException ex) {
+            throw new IndexerException("Failed loading properties : ", ex);
         }
 
         try {
@@ -619,25 +623,6 @@ public class SolrIndexer implements Indexer {
             out.close();
         }
         return solrFile;
-    }
-
-    private Properties getIndexerProperties(DigitalObject object) {
-        try {
-            Payload sofMeta = object.getPayload(propertiesId);
-            Properties props = new Properties();
-            props.load(sofMeta.open());
-            sofMeta.close();
-
-            // Merge any runtime parameters provided
-            for (String property : customParams.keySet()) {
-                props.put(property, customParams.get(property));
-            }
-
-            return props;
-        } catch (Exception ioe) {
-            log.warn("Failed to load properties", ioe);
-        }
-        return null;
     }
 
     private File createTempFile(String prefix, String postfix)

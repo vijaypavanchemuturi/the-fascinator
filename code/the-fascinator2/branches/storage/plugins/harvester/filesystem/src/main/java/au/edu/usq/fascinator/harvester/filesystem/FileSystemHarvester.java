@@ -320,19 +320,51 @@ public class FileSystemHarvester extends GenericHarvester {
 
     private String createDigitalObject(File file) throws HarvesterException,
             StorageException {
+        Storage storage = getStorage();
+        String filePath = file.getAbsolutePath();
+        String oid = FilenameUtils.separatorsToUnix(filePath);
+
+        DigitalObject object = null;
         try {
-            Storage storage = getStorage();
+            object = storage.createObject(oid);
+            this.createPayload(object, file);
+        } catch (StorageException ex) {
+            try {
+                object = storage.getObject(oid);
+                this.createPayload(object, file);
+            } catch (StorageException ex1) {
+                throw new StorageException(ex1);
+            }
+        } finally {
+            if (object != null) object.close();
+        }
+        return oid;
+    }
+
+    private void createPayload(DigitalObject object, File file)
+            throws HarvesterException, StorageException {
+        Payload payload = null;
+        InputStream in = null;
+        try {
             String filePath = file.getAbsolutePath();
-            String oid = FilenameUtils.separatorsToUnix(filePath);
-            String pid = FilenameUtils.getBaseName(filePath);
-            DigitalObject oaiObject = storage.createObject(oid);
-            Payload payload = oaiObject.createStoredPayload(pid,
-                    new FileInputStream(file));
-            payload.close();
-            oaiObject.close();
-            return oaiObject.getId();
+            String pid = FilenameUtils.getName(filePath);
+            in = new FileInputStream(file);
+            try {
+                payload = object.createStoredPayload(pid, in);
+            } catch (StorageException ex) {
+                try {
+                    payload = object.updatePayload(pid, in);
+                } catch (StorageException ex1) {
+                    in.close();
+                    throw new HarvesterException(ex1);
+                }
+            }
         } catch (IOException ioe) {
-            throw new StorageException(ioe);
+            throw new HarvesterException(ioe);
+        } finally {
+            if (payload != null) {
+                payload.close();
+            }
         }
     }
 }
