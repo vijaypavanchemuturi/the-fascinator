@@ -77,14 +77,14 @@ public class HarvestClient {
         MDC.put("name", "client");
         this.configFile = configFile;
         this.uploadedFile = uploadedFile;
-        rulesFile = new File(configFile.getParent(), config
-                .get("indexer/script/rules"));
         try {
             config = new JsonConfig(configFile);
         } catch (IOException ioe) {
             throw new HarvesterException("Failed to read configuration file: '"
                     + configFile + "'");
         }
+        rulesFile = new File(configFile.getParent(), config
+                .get("indexer/script/rules"));
     }
 
     public void run() throws PluginException {
