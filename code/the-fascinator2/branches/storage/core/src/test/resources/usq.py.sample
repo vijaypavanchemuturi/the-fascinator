@@ -3,39 +3,42 @@ from au.edu.usq.fascinator.indexer.rules import AddField, CopyField, XslTransfor
 
 #
 # Available objects:
-#    indexer   : Indexer instance
-#    rules     : RuleManager instance
-#    object    : DigitalObject to index
-#    payloadId : Payload identifier
-#    storageId : Storage layer identifier
+#    indexer    : Indexer instance
+#    jsonConfig : JsonConfigHelper of our harvest config file
+#    rules      : RuleManager instance
+#    object     : DigitalObject to index
+#    payload    : Payload to index
+#    props      : Metadata Properties object
 #
 
 # dc to solr transform
 rules.add(XslTransform(indexer.getResource("/xsl/DublinCoreToSolr.xsl")))
 
-if isMetadata:
-    solrId = object.getId();
+oid = object.getId()
+pid = payload.getId()
+metaPid = props.getProperty("metaPid", "DC")
+if pid == metaPid:
     itemType = "object"
 else:
-    solrId = object.getId() + "/" + payloadId
+    oid += "/" + pid
     itemType = "datastream"
-    rules.add(AddField("identifier", payloadId))
+    rules.add(AddField("identifier", pid))
 
-rules.add(AddField("id", solrId))
+rules.add(AddField("id", oid))
+rules.add(AddField("storageId", oid))
 rules.add(AddField("last_modified", time.strftime("%Y-%m-%dT%H:%M:%SZ")))
-rules.add(AddField("storageId", storageId))
 rules.add(AddField("item_type", itemType))
 rules.add(AddField("item_class", "document"))
 
 # Security
-roles = indexer.getRolesWithAccess(solrId)
+roles = indexer.getRolesWithAccess(oid)
 if roles is not None:
     for role in roles:
         rules.add(AddField("security_filter", role))
 else:
     # Default to guest access if Null object returned
     schema = indexer.getAccessSchema("simple");
-    schema.setRecordId(solrId)
+    schema.setRecordId(oid)
     schema.set("role", "guest")
     indexer.setAccessSchema(schema, "simple")
     rules.add(AddField("security_filter", "guest"))
