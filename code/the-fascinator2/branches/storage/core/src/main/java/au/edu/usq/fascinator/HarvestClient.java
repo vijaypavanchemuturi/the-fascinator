@@ -19,10 +19,7 @@
 package au.edu.usq.fascinator;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -39,11 +36,11 @@ import au.edu.usq.fascinator.api.PluginManager;
 import au.edu.usq.fascinator.api.harvester.Harvester;
 import au.edu.usq.fascinator.api.harvester.HarvesterException;
 import au.edu.usq.fascinator.api.storage.DigitalObject;
-import au.edu.usq.fascinator.api.storage.Payload;
 import au.edu.usq.fascinator.api.storage.Storage;
 import au.edu.usq.fascinator.api.storage.StorageException;
 import au.edu.usq.fascinator.api.transformer.TransformerException;
 import au.edu.usq.fascinator.common.JsonConfig;
+import au.edu.usq.fascinator.common.storage.StorageUtils;
 
 public class HarvestClient {
 
@@ -108,8 +105,8 @@ public class HarvestClient {
         log.info("Loaded {}", rawStorage.getName());
 
         // cache harvester config and indexer rules
-        cacheFile(rawStorage, configFile);
-        cacheFile(rawStorage, rulesFile);
+        StorageUtils.storeFile(rawStorage, configFile);
+        StorageUtils.storeFile(rawStorage, rulesFile);
 
         // initialise the harvester
         Harvester harvester = null;
@@ -223,40 +220,6 @@ public class HarvestClient {
     }
 
     // helper methods
-
-    private void cacheFile(Storage storage, File file) throws StorageException {
-        DigitalObject object = null;
-        Payload payload = null;
-        InputStream in = null;
-        String oid = file.getAbsolutePath();
-        String pid = file.getName();
-        try {
-            log.info("Caching file '{}'...", file);
-            in = new FileInputStream(file);
-            try {
-                // try to update existing object
-                object = storage.getObject(oid);
-                try {
-                    payload = object.updatePayload(pid, in);
-                } catch (StorageException se) {
-                    payload = object.createStoredPayload(pid, in);
-                }
-            } catch (StorageException se) {
-                // create new object
-                object = storage.createObject(oid);
-                payload = object.createStoredPayload(oid, in);
-            }
-        } catch (FileNotFoundException fnfe) {
-            throw new StorageException("File not found '" + oid + "'");
-        } finally {
-            if (payload != null) {
-                payload.close();
-            }
-            if (object != null) {
-                object.close();
-            }
-        }
-    }
 
     private void processObject(String oid) throws StorageException,
             TransformerException {
