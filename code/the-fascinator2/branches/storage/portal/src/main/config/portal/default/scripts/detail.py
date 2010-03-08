@@ -60,12 +60,11 @@ class DetailData:
             self.__oid = uri[len(basePath)+1:]
             slash = self.__oid.rfind("/")
             self.__pid = self.__oid[slash+1:]
-            payload = self.__storage.getPayload(self.__oid, self.__pid)
-            
             self.__object = self.__storage.getObject(self.__oid)
-            
+            self.__payload = self.__object.getPayload(self.__pid)
+
             if payload is not None:
-                self.__mimeType = payload.contentType
+                self.__mimeType = self.__payload.getContentType()
             else:
                 self.__mimeType = "application/octet-stream"
             self.__metadata = JsonConfigHelper()
@@ -88,14 +87,16 @@ class DetailData:
         #return dcFormat == self.__mimeType
         f = File(self.getObject().getId())
         return f.exists();
-    
+
+    def containsPid(self, pid):
+        return self.getObject().getPayloadIdList().contains(pid);
+
     def encode(self, url):
         return URLEncoder.encode(url, "UTF-8")
-    
+
     def isMetadataOnly(self):
-        self.getObject().getPayloadList()
-        return self.getObject().getSource() is None
-    
+        return self.getObject().getSourceId() is None
+
     def getFileName(self, path):
         return os.path.split(path)[1]
     
@@ -127,9 +128,7 @@ class DetailData:
     
     def getStorageId(self):
         obj = self.getObject()
-        if hasattr(obj, "getPath"):
-            return obj.path.absolutePath
-        return obj.id
+        return obj.getId()
     
     def getFileSize(self, path):
         return FileUtils.byteCountToDisplaySize(os.path.getsize(path))
@@ -137,18 +136,18 @@ class DetailData:
     def hasSlideShow(self):
         pid = self.__pid
         pid = pid[:pid.find(".")] + ".slide.htm"
-        payload = self.__storage.getPayload(self.__oid, pid)
-        if payload is None:
+        if containsPid(pid):
+            return pid
+        else:
             return False
-        return pid
     
     def hasFlv(self):
         pid = self.__pid
         pid = pid[:pid.find(".")] + ".flv"
-        payload = self.__storage.getPayload(self.__oid, pid)
-        if payload is None:
-            return ""
-        return pid
+        if containsPid(pid):
+            return pid
+        else:
+            return False
     
     def getPdfUrl(self):
         pid = os.path.splitext(self.__pid)[0] + ".pdf"
@@ -158,28 +157,38 @@ class DetailData:
         return "%s/%s" % (self.__oid, pid)
     
     def hasHtml(self):
-        payloadList = self.getObject().getPayloadList()
-        for payload in payloadList:
-            mimeType = payload.contentType
+        payloadIdList = self.getObject().getPayloadIdList()
+        for payloadId in payloadIdList:
+            payload = self.getObject().getPayload(payloadId)
+            mimeType = payload.getContentType()
             if mimeType == "text/html" or mimeType == "application/xhtml+xml":
                 return True
         return False
     
     def hasError(self):
-        base = os.path.splitext(self.__pid)[0]
-        payload = self.__storage.getPayload(self.__oid, base + "_error.htm")
-        contentStr = ""
-        if payload is not None:
-            return True
+        payloadIdList = self.getObject().getPayloadIdList()
+        for payloadId in payloadIdList:
+            payload = self.getObject().getPayload(payloadId)
+            if str(payload.getType()) == "Error":
+                return True
         return False
     
+    def getError(self):
+        payloadIdList = self.getObject().getPayloadIdList()
+        for payloadId in payloadIdList:
+            payload = self.getObject().getPayload(payloadId)
+            if str(payload.getType()) == "Error":
+                return payload
+        return None
+
     def getPreview(self, oid):
-        ext = os.path.splitext(oid)[1]
-        url = oid[oid.rfind("/")+1:-len(ext)] + "_preview.jpg"
-        if Services.getStorage().getPayload(oid, url):
-            return url
+        payloadIdList = self.getObject().getPayloadIdList()
+        for payloadId in payloadIdList:
+            payload = self.getObject().getPayload(payloadId)
+            if str(payload.getType()) == "Preview":
+                return payload.getId()
         return ""
-    
+
     def getPayloadContent(self):
         mimeType = self.__mimeType
         print " * detail.py: payload content mimeType=%s" % mimeType
@@ -198,33 +207,36 @@ class DetailData:
                 contentStr = '<iframe class="iframe-preview" src="%s/%s/download/%s"></iframe>' % \
                     (contextPath, portalId, self.__oid)
             else:
-                pid = self.__oid[self.__oid.rfind("/")+1:]
-                payload = self.__storage.getPayload(self.__oid, pid)
                 #print " * detail.py: pid=%s payload=%s" % (pid, payload)
-                if payload is not None:
+                if self.__payload is not None:
                     sw = StringWriter()
                     sw.write("<pre>")
-                    IOUtils.copy(payload.getInputStream(), sw)
+                    IOUtils.copy(self.__payload.open(), sw)
+                    self.__payload.close()
                     sw.write("</pre>")
                     sw.flush()
                     contentStr = sw.toString()
         elif mimeType == "application/pdf" or mimeType.find("vnd.ms")>-1 or mimeType.find("vnd.oasis.opendocument.")>-1:
             # get the html version if exist...
-            base = os.path.splitext(self.__pid)[0]
-            pid = base + ".htm"
+            pid = self.getPreview(self.__oid)
             print " * detail.py: pid=%s" % pid
             #contentStr = '<iframe class="iframe-preview" src="%s/%s/download/%s/%s"></iframe>' % \
             #    (contextPath, portalId, self.__oid, pid)
-            payload = self.__storage.getPayload(self.__oid, pid)
+            payload = self.getObject().getPayload(pid)
             if payload is None:
-                payload = self.__storage.getPayload(self.__oid, base + "_error.htm")
-                out = ByteArrayOutputStream()
-                IOUtils.copy(payload.getInputStream(), out)
-                contentStr = '<h4 class="error">No preview available</h4><p>Please try re-rendering by using the Re-Harvest action.</p><h5>Details</h5><pre>' + out.toString("UTF-8") + '</pre>'
+                errOut = ""
+                payload = self.getError()
+                if payload is not None:
+                    out = ByteArrayOutputStream()
+                    IOUtils.copy(payload.open(), out)
+                    payload.close()
+                    errOut = '<pre>' + out.toString("UTF-8") + '</pre>'
+                contentStr = '<h4 class="error">No preview available</h4><p>Please try re-rendering by using the Re-Harvest action.</p><h5>Details</h5>' + errOut
             else:
                 saxReader = SAXReader(Boolean.parseBoolean("false"))
                 try:
-                    document = saxReader.read(payload.getInputStream())
+                    document = saxReader.read(payload.open())
+                    payload.close()
                     slideNode = document.selectSingleNode("//*[local-name()='body']")
                     #linkNodes = slideNode.selectNodes("//img")
                     #contentStr = slideNode.asXML();
@@ -241,12 +253,11 @@ class DetailData:
                 except:
                     traceback.print_exc()
                     contentStr = "<p class=\"error\">No preview available</p>"
-        elif self.hasError() == True:
-            #For other digitalobject like video or images
-            base = os.path.splitext(self.__pid)[0]
-            payload = self.__storage.getPayload(self.__oid, base + "_error.htm")
+        elif self.hasError():
+            payload = self.getError()
             out = ByteArrayOutputStream()
-            IOUtils.copy(payload.getInputStream(), out)
+            IOUtils.copy(payload.open(), out)
+            payload.close()
             contentStr = '<h4 class="error">No preview available</h4><p>Please try re-rendering by using the Re-Harvest action.</p><h5>Details</h5><pre>' + out.toString("UTF-8") + '</pre>'
         return contentStr
     
