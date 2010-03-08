@@ -256,7 +256,7 @@ public class HarvestClient {
                 HarvestClient harvest = new HarvestClient(jsonFile);
                 harvest.run();
             } catch (PluginException pe) {
-                log.error("Failed to initialise client: {}", pe.getMessage());
+                log.error("Failed to initialise client: ", pe);
             }
         }
     }

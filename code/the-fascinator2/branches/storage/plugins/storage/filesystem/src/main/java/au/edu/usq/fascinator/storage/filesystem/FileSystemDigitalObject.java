@@ -66,7 +66,9 @@ public class FileSystemDigitalObject extends GenericDigitalObject {
         File[] files = dir.listFiles(new FilenameFilter() {
             @Override
             public boolean accept(File dir, String name) {
-                return !name.endsWith(METADATA_SUFFIX);
+                log.debug("readFromDisk() : '" + name + "' => " + name.endsWith(METADATA_SUFFIX));
+                return true;
+                //return !name.endsWith(METADATA_SUFFIX);
             }
         });
         if (files != null) {
@@ -121,19 +123,21 @@ public class FileSystemDigitalObject extends GenericDigitalObject {
             throws StorageException {
         // Manifest check
         Map<String, Payload> manifest = this.getManifest();
+        log.debug("FileSystem Manifest : " + manifest);
         if (manifest.containsKey(pid)) {
-            throw new StorageException("ID '" + pid + "' already exists.");
+            throw new StorageException("ID '" + pid + "' already exists in manifest.");
         }
 
         // File creation
         File newFile = new File(homeDir, pid);
         if (newFile.exists()) {
-            throw new StorageException("ID '" + pid + "' already exists.");
+            throw new StorageException("ID '" + pid + "' already exists on disk.");
         } else {
             newFile.getParentFile().mkdirs();
             try {
                 newFile.createNewFile();
             } catch (IOException ex) {
+                log.error("Error creating file (" + newFile.getAbsolutePath() + ")");
                 throw new StorageException("Failed to create file", ex);
             }
         }

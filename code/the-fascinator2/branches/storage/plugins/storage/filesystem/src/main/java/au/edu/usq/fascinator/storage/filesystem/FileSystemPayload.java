@@ -42,6 +42,7 @@ public class FileSystemPayload extends GenericPayload {
 
     private Logger log = LoggerFactory.getLogger(FileSystemPayload.class);
 
+    private static PayloadType DEFAULT_PAYLOAD_TYPE = PayloadType.Enrichment;
     private static String METADATA_SUFFIX = ".meta";
 
     private File dataFile;
@@ -69,7 +70,7 @@ public class FileSystemPayload extends GenericPayload {
             }
 
             setId(props.getProperty("id", getId()));
-            String type = props.getProperty("payloadType", getType().toString());
+            String type = props.getProperty("payloadType", DEFAULT_PAYLOAD_TYPE.toString());
             setType(PayloadType.valueOf(type));
             setLabel(props.getProperty("label", getId()));
 
