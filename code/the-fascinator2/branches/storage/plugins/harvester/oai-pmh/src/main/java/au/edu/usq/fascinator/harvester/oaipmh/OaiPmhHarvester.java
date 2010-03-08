@@ -18,13 +18,10 @@
  */
 package au.edu.usq.fascinator.harvester.oaipmh;
 
-import java.io.File;
 import java.io.IOException;
-import java.io.StringWriter;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
@@ -39,15 +36,13 @@ import se.kb.oai.pmh.OaiPmhServer;
 import se.kb.oai.pmh.Record;
 import se.kb.oai.pmh.RecordsList;
 import se.kb.oai.pmh.ResumptionToken;
-import au.edu.usq.fascinator.api.Configurable;
-import au.edu.usq.fascinator.api.PluginException;
-import au.edu.usq.fascinator.api.harvester.Harvester;
 import au.edu.usq.fascinator.api.harvester.HarvesterException;
 import au.edu.usq.fascinator.api.storage.DigitalObject;
 import au.edu.usq.fascinator.api.storage.Payload;
 import au.edu.usq.fascinator.api.storage.Storage;
 import au.edu.usq.fascinator.api.storage.StorageException;
 import au.edu.usq.fascinator.common.JsonConfig;
+import au.edu.usq.fascinator.common.harvester.impl.GenericHarvester;
 
 /**
  * Harvests metadata records from an OAI-PMH server
@@ -64,7 +59,7 @@ import au.edu.usq.fascinator.common.JsonConfig;
  * 
  * @author Oliver Lucido
  */
-public class OaiPmhHarvester implements Harvester, Configurable {
+public class OaiPmhHarvester extends GenericHarvester {
 
     /** Date format */
     public static final String DATE_FORMAT = "yyyy-MM-dd";
@@ -89,38 +84,25 @@ public class OaiPmhHarvester implements Harvester, Configurable {
 
     /** Current number of requests/objects done */
     private int numRequests;
+
     private int numObjects;
 
     /** Maximum requests/objects to do */
     private int maxRequests;
+
     private int maxObjects;
 
     /** Request for a specific document */
     private String recordID;
 
-    /** Configuration */
-    private JsonConfig config;
-
-    private Storage storage;
-
-    @Override
-    public String getId() {
-        return "oai-pmh";
+    public OaiPmhHarvester() {
+        super("oai-pmh", "OAI-PMH Harvester");
     }
 
     @Override
-    public String getName() {
-        return "OAI-PMH Harvester";
-    }
-
-    @Override
-    public void init(File jsonFile) throws HarvesterException {
-        try {
-            config = new JsonConfig(jsonFile);
-            server = new OaiPmhServer(config.get("harvester/oai-pmh/url"));
-        } catch (IOException ioe) {
-            throw new HarvesterException(ioe);
-        }
+    public void init() throws HarvesterException {
+        JsonConfig config = getJsonConfig();
+        server = new OaiPmhServer(config.get("harvester/oai-pmh/url"));
 
         /** Check for request on a specific ID */
         recordID = config.get("harvester/oai-pmh/recordID", null);
@@ -143,20 +125,8 @@ public class OaiPmhHarvester implements Harvester, Configurable {
     }
 
     @Override
-    public void init(String jsonString) throws PluginException {
-    }
-
-    @Override
-    public void shutdown() throws HarvesterException {
-    }
-
-    @Override
-    public void setStorage(Storage storage) {
-        this.storage = storage;
-    }
-
-    @Override
     public Set<String> getObjectIdList() throws HarvesterException {
+        JsonConfig config = getJsonConfig();
         DateFormat df = new SimpleDateFormat(DATETIME_FORMAT);
         String from = config.get("harvester/oai-pmh/from");
         String until = config.get("harvester/oai-pmh/until");
@@ -241,14 +211,10 @@ public class OaiPmhHarvester implements Harvester, Configurable {
         return items;
     }
 
-    @Override
-    public Set<String> getObjectId(File uploadedFile) throws HarvesterException {
-        throw new HarvesterException(
-                "This plugin does not harvest uploaded files");
-    }
-
     private String createOaiPmhDigitalObject(Record record,
-            String metadataPrefix) throws IOException, StorageException {
+            String metadataPrefix) throws HarvesterException, IOException,
+            StorageException {
+        Storage storage = getStorage();
         String oid = record.getHeader().getIdentifier();
         DigitalObject oaiObject = storage.createObject(oid);
         Payload payload = oaiObject.createStoredPayload(metadataPrefix, IOUtils
@@ -263,29 +229,5 @@ public class OaiPmhHarvester implements Harvester, Configurable {
     public boolean hasMoreObjects() {
         return token != null && numRequests < maxRequests
                 && numObjects < maxObjects;
-    }
-
-    @Override
-    public Set<String> getDeletedObjectIdList() {
-        // empty for now
-        return Collections.emptySet();
-    }
-
-    @Override
-    public boolean hasMoreDeletedObjects() {
-        return false;
-    }
-
-    @Override
-    public String getConfig() {
-        StringWriter writer = new StringWriter();
-        try {
-            IOUtils.copy(getClass().getResourceAsStream(
-                    "/" + getId() + "-config.html"), writer);
-        } catch (IOException ioe) {
-            writer.write("<span class=\"error\">" + ioe.getMessage()
-                    + "</span>");
-        }
-        return writer.toString();
     }
 }
