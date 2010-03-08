@@ -121,7 +121,7 @@ if isMetadata:
                 else:
                     relationDict[key] = [value]
     
-    rdfPayload = object.getPayload(metadPid)
+    rdfPayload = object.getPayload("aperture.rdf")
     if rdfPayload is not None:
         rdfModel = indexer.getRdfModel(rdfPayload)
         
