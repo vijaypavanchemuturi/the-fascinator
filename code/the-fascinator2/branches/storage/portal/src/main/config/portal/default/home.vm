@@ -1,6 +1,6 @@
 #set($pageTitle = 'Home')
 #set($query = $sessionState.get("query"))
-#if($query != null && $query != "")
+#if("$!query" != "")
   #set($atomLink = "$portalPath/feed/atom?query=$query") 
 #else
   #set($atomLink = "$portalPath/feed/atom")
