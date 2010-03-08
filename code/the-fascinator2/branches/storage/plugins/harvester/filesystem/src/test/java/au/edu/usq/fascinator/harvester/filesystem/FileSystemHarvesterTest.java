@@ -19,17 +19,18 @@
 package au.edu.usq.fascinator.harvester.filesystem;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.FilenameUtils;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import au.edu.usq.fascinator.api.storage.DigitalObject;
+import au.edu.usq.fascinator.api.PluginManager;
+import au.edu.usq.fascinator.api.harvester.Harvester;
+import au.edu.usq.fascinator.api.storage.Storage;
 
 /**
  * Unit tests for the file system harvester plugin
@@ -38,21 +39,21 @@ import au.edu.usq.fascinator.api.storage.DigitalObject;
  */
 public class FileSystemHarvesterTest {
 
-    private File testDir;
+    private Storage ram;
 
-    private File cacheDir;
-
-    private File testFile;
+    private File testDir, cacheDir, testFile;
 
     /**
      * Sets the "test.dir" and "test.cache.dir" system property for use in the
      * JSON configuration
      * 
-     * @throws Exception if any error occurs
+     * @throws Exception
+     *             if any error occurs
      */
     @Before
     public void setup() throws Exception {
-        File baseDir = new File(getClass().getResource("/").toURI());
+        File baseDir = new File(FileSystemHarvesterTest.class.getResource("/")
+                .toURI());
         testDir = new File(baseDir, "fs-harvest-root");
         cacheDir = new File(baseDir, "fs-harvest-cache");
         cacheDir.mkdirs();
@@ -60,6 +61,9 @@ public class FileSystemHarvesterTest {
         System.setProperty("test.cache.dir", cacheDir.getAbsolutePath());
         testFile = new File(testDir, "test-gen.txt");
         FileUtils.writeStringToFile(testFile, "testing");
+
+        ram = PluginManager.getStorage("ram");
+        ram.init("{}");
     }
 
     @After
@@ -71,13 +75,13 @@ public class FileSystemHarvesterTest {
     /**
      * Tests a non recursive harvest
      * 
-     * @throws Exception if any error occurs
+     * @throws Exception
+     *             if any error occurs
      */
     @Test
-    public void getObjects() throws Exception {
-        FileSystemHarvester fsh = new FileSystemHarvester();
-        fsh.init(getConfig("/fsh-config.json"));
-        List<DigitalObject> items = fsh.getObjects();
+    public void getObjectIdList() throws Exception {
+        FileSystemHarvester fsh = getHarvester("/fsh-config.json");
+        Set<String> items = fsh.getObjectIdList();
         Assert.assertEquals(2, items.size());
         Assert.assertFalse(fsh.hasMoreObjects());
     }
@@ -86,26 +90,24 @@ public class FileSystemHarvesterTest {
      * Tests a non recursive harvest with checksums with no file changes on 2nd
      * harvest, and a forced harvest on 3rd
      * 
-     * @throws Exception if any error occurs
+     * @throws Exception
+     *             if any error occurs
      */
     @Test
-    public void getObjectsWithCachingNoChanges() throws Exception {
+    public void getObjectIdListWithCachingNoChanges() throws Exception {
         // the initial harvest will pick up the file
-        FileSystemHarvester fsh = new FileSystemHarvester();
-        fsh.init(getConfig("/fsh-config-caching.json"));
-        List<DigitalObject> items = fsh.getObjects();
+        FileSystemHarvester fsh = getHarvester("/fsh-config-caching.json");
+        Set<String> items = fsh.getObjectIdList();
         Assert.assertEquals(2, items.size());
 
         // next harvest will detect no change
-        FileSystemHarvester fsh2 = new FileSystemHarvester();
-        fsh2.init(getConfig("/fsh-config-caching.json"));
-        List<DigitalObject> items2 = fsh2.getObjects();
+        FileSystemHarvester fsh2 = getHarvester("/fsh-config-caching.json");
+        Set<String> items2 = fsh2.getObjectIdList();
         Assert.assertEquals(0, items2.size());
 
         // forced harvest
-        FileSystemHarvester fsh3 = new FileSystemHarvester();
-        fsh3.init(getConfig("/fsh-config-caching-force.json"));
-        List<DigitalObject> items3 = fsh3.getObjects();
+        FileSystemHarvester fsh3 = getHarvester("/fsh-config-caching-force.json");
+        Set<String> items3 = fsh3.getObjectIdList();
         Assert.assertEquals(2, items3.size());
     }
 
@@ -113,22 +115,21 @@ public class FileSystemHarvesterTest {
      * Tests a non recursive harvest with checksums with file changes on 2nd
      * harvest
      * 
-     * @throws Exception if any error occurs
+     * @throws Exception
+     *             if any error occurs
      */
     @Test
-    public void getObjectsWithCachingChanges() throws Exception {
+    public void getObjectIdListWithCachingChanges() throws Exception {
         // the initial harvest will pick up the file
-        FileSystemHarvester fsh = new FileSystemHarvester();
-        fsh.init(getConfig("/fsh-config-caching.json"));
-        List<DigitalObject> items = fsh.getObjects();
+        FileSystemHarvester fsh = getHarvester("/fsh-config-caching.json");
+        Set<String> items = fsh.getObjectIdList();
         Assert.assertEquals(2, items.size());
 
         FileUtils.writeStringToFile(testFile, "changed!");
 
         // next harvest will detect the change
-        FileSystemHarvester fsh2 = new FileSystemHarvester();
-        fsh2.init(getConfig("/fsh-config-caching.json"));
-        List<DigitalObject> items2 = fsh2.getObjects();
+        FileSystemHarvester fsh2 = getHarvester("/fsh-config-caching.json");
+        Set<String> items2 = fsh2.getObjectIdList();
         Assert.assertEquals(1, items2.size());
     }
 
@@ -136,27 +137,26 @@ public class FileSystemHarvesterTest {
      * Tests a non recursive harvest with checksums with file deleted on 2nd
      * harvest
      * 
-     * @throws Exception if any error occurs
+     * @throws Exception
+     *             if any error occurs
      */
     @Test
-    public void getObjectsWithCachingDeleted() throws Exception {
+    public void getObjectIdListWithCachingDeleted() throws Exception {
         // the initial harvest will pick up the file
-        FileSystemHarvester fsh = new FileSystemHarvester();
-        fsh.init(getConfig("/fsh-config-caching.json"));
-        List<DigitalObject> items = fsh.getObjects();
+        FileSystemHarvester fsh = getHarvester("/fsh-config-caching.json");
+        Set<String> items = fsh.getObjectIdList();
         Assert.assertEquals(2, items.size());
 
         FileUtils.deleteQuietly(testFile);
 
         // next harvest will detect the change
-        FileSystemHarvester fsh2 = new FileSystemHarvester();
-        fsh2.init(getConfig("/fsh-config-caching.json"));
-        List<DigitalObject> items2 = fsh2.getObjects();
+        FileSystemHarvester fsh2 = getHarvester("/fsh-config-caching.json");
+        Set<String> items2 = fsh2.getObjectIdList();
         Assert.assertEquals(0, items2.size());
 
-        List<DigitalObject> items4 = new ArrayList<DigitalObject>();
+        Set<String> items4 = new HashSet<String>();
         do {
-            List<DigitalObject> items3 = fsh2.getDeletedObjects();
+            Set<String> items3 = fsh2.getDeletedObjectIdList();
             items4.addAll(items3);
         } while (fsh2.hasMoreDeletedObjects());
         Assert.assertEquals(1, items4.size());
@@ -165,18 +165,17 @@ public class FileSystemHarvesterTest {
     /**
      * Tests a recursive harvest
      * 
-     * @throws Exception if any error occurs
+     * @throws Exception
+     *             if any error occurs
      */
     @Test
-    public void getObjectsRecursive() throws Exception {
-        FileSystemHarvester fsh = new FileSystemHarvester();
-        fsh.init(getConfig("/fsh-config-recursive.json"));
-        List<DigitalObject> items = fsh.getObjects();
+    public void getObjectIdListRecursive() throws Exception {
+        FileSystemHarvester fsh = getHarvester("/fsh-config-recursive.json");
+        Set<String> items = fsh.getObjectIdList();
         Assert.assertTrue(fsh.hasMoreObjects());
         while (fsh.hasMoreObjects()) {
-            items = fsh.getObjects();
-            DigitalObject item = items.get(0);
-            String id = item.getId();
+            items = fsh.getObjectIdList();
+            String id = items.iterator().next();
             int expectedSize = 0;
             if (id.contains("/books/")) {
                 expectedSize = 3;
@@ -192,19 +191,18 @@ public class FileSystemHarvesterTest {
     /**
      * Tests a recursive harvest while ignoring *.gif and *.mp3 files
      * 
-     * @throws Exception if any error occurs
+     * @throws Exception
+     *             if any error occurs
      */
     @Test
-    public void getObjectsRecursiveIgnoreJpg() throws Exception {
-        FileSystemHarvester fsh = new FileSystemHarvester();
-        fsh.init(getConfig("/fsh-config-recursive-ignore.json"));
-        List<DigitalObject> items = fsh.getObjects();
+    public void getObjectIdListRecursiveIgnoreJpg() throws Exception {
+        FileSystemHarvester fsh = getHarvester("/fsh-config-recursive-ignore.json");
+        Set<String> items = fsh.getObjectIdList();
         Assert.assertTrue(fsh.hasMoreObjects());
         while (fsh.hasMoreObjects()) {
-            items = fsh.getObjects();
+            items = fsh.getObjectIdList();
             if (!items.isEmpty()) {
-                DigitalObject item = items.get(0);
-                String id = item.getId();
+                String id = items.iterator().next();
                 int expectedSize = 0;
                 if (id.contains("/books/")) {
                     expectedSize = 3;
@@ -217,7 +215,9 @@ public class FileSystemHarvesterTest {
         }
     }
 
-    private File getConfig(String filename) throws Exception {
-        return new File(getClass().getResource(filename).toURI());
+    private FileSystemHarvester getHarvester(String filename) throws Exception {
+        Harvester fsh = PluginManager.getHarvester("file-system", ram);
+        fsh.init(new File(getClass().getResource(filename).toURI()));
+        return (FileSystemHarvester) fsh;
     }
 }
