@@ -3,6 +3,8 @@ package au.edu.usq.fascinator.storage.filesystem;
 import au.edu.usq.fascinator.api.storage.StorageException;
 
 import java.io.File;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.apache.commons.io.FilenameUtils;
 import org.junit.Assert;
@@ -32,6 +34,13 @@ public class FileSystemDigitalObjectTest {
         String expected = FilenameUtils.separatorsToSystem(
                 fs.getHomeDir() + "/9f/19/35/9f193517165c524d485ddf8f1cf322da");
         Assert.assertEquals(expected, newObject.getPath());
+        try {
+            newObject.close();
+            fs.removeObject(newObject.getId());
+        } catch (StorageException ex) {
+            System.err.println("Error : " + ex.getMessage() + "\n====\n");
+            ex.printStackTrace();
+        }
     }
 
     @Test
@@ -45,5 +54,13 @@ public class FileSystemDigitalObjectTest {
         String expected = FilenameUtils.separatorsToSystem(
                 fs.getHomeDir() + "/e2/92/37/e292378c5b38b0d5a4aba11fd40e7151");
         Assert.assertEquals(expected, newObject.getPath());
+
+        try {
+            newObject.close();
+            fs.removeObject(newObject.getId());
+        } catch (StorageException ex) {
+            System.err.println("Error : " + ex.getMessage() + "\n====\n");
+            ex.printStackTrace();
+        }
     }
 }

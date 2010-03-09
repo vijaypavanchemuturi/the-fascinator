@@ -70,15 +70,18 @@ public class MimeTypeUtil {
         InputStream in = null;
         try {
             in = new FileInputStream(file);
-            return identifier.identify(IOUtil.readBytes(in, identifier
-                    .getMinArrayLength()), file.getName(), null);
+            byte[] inBytes = IOUtil.readBytes(
+                    in, identifier.getMinArrayLength());
+            in.close();
+            return identifier.identify(inBytes, file.getName(), null);
         } catch (IOException ioe) {
-            log.warn("Failed to detect MIME type");// : {}", ioe.getMessage());
+            log.warn("Failed to detect MIME type");//, ioe);
         } finally {
             if (in != null) {
                 try {
                     in.close();
                 } catch (IOException ioe) {
+                    log.warn("Failed to detect MIME type");//, ioe);
                 }
             }
         }
@@ -93,10 +96,12 @@ public class MimeTypeUtil {
      */
     public static String getMimeType(InputStream in) {
         try {
-            return identifier.identify(IOUtil.readBytes(in, identifier
-                    .getMinArrayLength()), null, null);
+            byte[] inBytes = IOUtil.readBytes(
+                    in, identifier.getMinArrayLength());
+            in.close();
+            return identifier.identify(inBytes, null, null);
         } catch (IOException ioe) {
-            log.warn("Failed to detect MIME type");// : {}", ioe.getMessage());
+            log.warn("Failed to detect MIME type");//, ioe);
         }
         return DEFAULT_MIME_TYPE;
     }
