@@ -21,6 +21,7 @@ package au.edu.usq.fascinator.common.storage;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStream;
 
 import org.slf4j.Logger;
@@ -84,6 +85,43 @@ public class StorageUtils {
                 object.close();
             }
         }
+    }
+
+    public static DigitalObject getDigitalObject(Storage storage, String oid)
+            throws StorageException {
+        DigitalObject object = null;
+        try {
+            object = storage.createObject(oid);
+            // this.createPayload(object, file);
+        } catch (StorageException ex) {
+            try {
+                object = storage.getObject(oid);
+                // this.createPayload(object, file);
+            } catch (StorageException ex1) {
+                throw new StorageException(ex1);
+            }
+        }
+        return object;
+    }
+
+    public static Payload createOrUpdatePayload(DigitalObject object,
+            String pid, InputStream in) throws StorageException {
+        Payload payload = null;
+        try {
+            try {
+                payload = object.createStoredPayload(pid, in);
+            } catch (StorageException ex) {
+                try {
+                    payload = object.updatePayload(pid, in);
+                } catch (StorageException ex1) {
+                    in.close();
+                    throw ex1;
+                }
+            }
+        } catch (IOException ioe) {
+            throw new StorageException(ioe);
+        }
+        return payload;
     }
 
 }

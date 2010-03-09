@@ -34,6 +34,7 @@ import au.edu.usq.fascinator.api.transformer.Transformer;
 import au.edu.usq.fascinator.api.transformer.TransformerException;
 import au.edu.usq.fascinator.common.JsonConfig;
 import au.edu.usq.fascinator.common.MimeTypeUtil;
+import au.edu.usq.fascinator.common.storage.StorageUtils;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,172 +46,173 @@ import org.slf4j.LoggerFactory;
  */
 public class ImsTransformer implements Transformer {
 
-	/** Json config file **/
-	private JsonConfig config;
+    /** Json config file **/
+    private JsonConfig config;
 
-	/** Logging **/
-	private static Logger log = LoggerFactory.getLogger(ImsTransformer.class);
+    /** Logging **/
+    private static Logger log = LoggerFactory.getLogger(ImsTransformer.class);
 
-	// private boolean isImsPackage = false;
+    // private boolean isImsPackage = false;
 
-	/** ims Manifest file **/
-	private String manifestFile = "imsmanifest.xml";
+    /** ims Manifest file **/
+    private String manifestFile = "imsmanifest.xml";
 
-	/**
-	 * ImsTransformer constructor
-	 */
-	public ImsTransformer() {
+    /**
+     * ImsTransformer constructor
+     */
+    public ImsTransformer() {
 
-	}
+    }
 
-	/**
-	 * Transform method
-	 * 
-	 * @param object
-	 *            : DigitalObject to be transformed
-	 * @return transformed DigitalObject
-	 * @throws TransformerException
-	 * @throws StorageException
-	 * @throws IOException
-	 */
-	@Override
-	public DigitalObject transform(DigitalObject in)
-			throws TransformerException {
-		File inFile;
-		String filePath = config.get("sourceFile");
-		if (filePath != null) {
-			inFile = new File(filePath);
-		} else {
-			inFile = new File(in.getId());
-		}
+    /**
+     * Transform method
+     * 
+     * @param object
+     *            : DigitalObject to be transformed
+     * @return transformed DigitalObject
+     * @throws TransformerException
+     * @throws StorageException
+     * @throws IOException
+     */
+    @Override
+    public DigitalObject transform(DigitalObject in)
+            throws TransformerException {
+        File inFile;
+        String filePath = config.get("sourceFile");
+        if (filePath != null) {
+            inFile = new File(filePath);
+        } else {
+            inFile = new File(in.getId());
+        }
 
-		if (inFile.exists()) {
-			log.info("unpacking ims");
-			try {
-				in = createImsPayload(in, inFile);
-			} catch (StorageException e) {
-				e.printStackTrace();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		} else {
-			log.info("not found inFile {}", inFile);
-		}
-		return in;
-	}
+        if (inFile.exists()) {
+            log.info("unpacking ims");
+            try {
+                in = createImsPayload(in, inFile);
+            } catch (StorageException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        } else {
+            log.info("not found inFile {}", inFile);
+        }
+        return in;
+    }
 
-	/**
-	 * Create Payload method for Ims files
-	 * 
-	 * @param object
-	 *            : DigitalObject that store the payload
-	 * @param file
-	 *            : File to be stored as payload
-	 * @return transformed DigitalObject
-	 * @throws StorageException
-	 * @throws IOException
-	 */
-	public DigitalObject createImsPayload(DigitalObject object, File file)
-			throws StorageException, IOException {
-		if (file.getAbsolutePath().endsWith(".zip")) {
-			ZipFile zipFile = new ZipFile(file);
-			ZipEntry manifestEntry = zipFile.getEntry(manifestFile);
-			if (manifestEntry != null) {
-				Enumeration<? extends ZipEntry> entries = zipFile.entries();
-				while (entries.hasMoreElements()) {
-					ZipEntry entry = entries.nextElement();
-					if (!entry.isDirectory()) {
-						String name = entry.getName();
-						Payload imsPayload = object.createStoredPayload(name,
-								zipFile.getInputStream(entry));
-						// Set to enrichment
-						imsPayload.setType(PayloadType.Enrichment);
-						imsPayload.setLabel(name);
-						imsPayload.setContentType(MimeTypeUtil
-								.getMimeType(name));
-					}
-				}
-			}
-		} else {
-			String name = file.getName();
-			Payload icePayload = object.createStoredPayload(name,
-					new FileInputStream(file));
-			icePayload.setType(PayloadType.Enrichment);
-			icePayload.setLabel(name);
-			icePayload.setContentType(MimeTypeUtil.getMimeType(name));
-		}
-		return object;
-	}
+    /**
+     * Create Payload method for Ims files
+     * 
+     * @param object
+     *            : DigitalObject that store the payload
+     * @param file
+     *            : File to be stored as payload
+     * @return transformed DigitalObject
+     * @throws StorageException
+     * @throws IOException
+     */
+    public DigitalObject createImsPayload(DigitalObject object, File file)
+            throws StorageException, IOException {
+        if (file.getAbsolutePath().endsWith(".zip")) {
+            ZipFile zipFile = new ZipFile(file);
+            ZipEntry manifestEntry = zipFile.getEntry(manifestFile);
+            if (manifestEntry != null) {
+                Enumeration<? extends ZipEntry> entries = zipFile.entries();
+                while (entries.hasMoreElements()) {
+                    ZipEntry entry = entries.nextElement();
+                    if (!entry.isDirectory()) {
+                        String name = entry.getName();
+                        Payload imsPayload = StorageUtils
+                                .createOrUpdatePayload(object, name, zipFile
+                                        .getInputStream(entry));
+                        // Set to enrichment
+                        imsPayload.setType(PayloadType.Enrichment);
+                        imsPayload.setLabel(name);
+                        imsPayload.setContentType(MimeTypeUtil
+                                .getMimeType(name));
+                    }
+                }
+            }
+        } else {
+            String name = file.getName();
+            Payload icePayload = StorageUtils.createOrUpdatePayload(object,
+                    name, new FileInputStream(file));
+            icePayload.setType(PayloadType.Enrichment);
+            icePayload.setLabel(name);
+            icePayload.setContentType(MimeTypeUtil.getMimeType(name));
+        }
+        return object;
+    }
 
-	/**
-	 * Get Transformer ID
-	 * 
-	 * @return id
-	 */
-	@Override
-	public String getId() {
-		return "ims";
-	}
+    /**
+     * Get Transformer ID
+     * 
+     * @return id
+     */
+    @Override
+    public String getId() {
+        return "ims";
+    }
 
-	/**
-	 * Get Transformer Name
-	 * 
-	 * @return name
-	 */
-	@Override
-	public String getName() {
-		return "IMS Transformer";
-	}
+    /**
+     * Get Transformer Name
+     * 
+     * @return name
+     */
+    @Override
+    public String getName() {
+        return "IMS Transformer";
+    }
 
-	/**
-	 * Init method to initialise Ims transformer
-	 * 
-	 * @param jsonFile
-	 * @throws IOException
-	 * @throws PluginException
-	 */
-	@Override
-	public void init(File jsonFile) throws PluginException {
-		try {
-			config = new JsonConfig(jsonFile);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
+    /**
+     * Init method to initialise Ims transformer
+     * 
+     * @param jsonFile
+     * @throws IOException
+     * @throws PluginException
+     */
+    @Override
+    public void init(File jsonFile) throws PluginException {
+        try {
+            config = new JsonConfig(jsonFile);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
-	/**
-	 * Init method to initialise Ims transformer
-	 * 
-	 * @param jsonString
-	 * @throws IOException
-	 * @throws PluginException
-	 */
-	@Override
-	public void init(String jsonString) throws PluginException {
-		try {
-			config = new JsonConfig(jsonString);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
+    /**
+     * Init method to initialise Ims transformer
+     * 
+     * @param jsonString
+     * @throws IOException
+     * @throws PluginException
+     */
+    @Override
+    public void init(String jsonString) throws PluginException {
+        try {
+            config = new JsonConfig(jsonString);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
-	/**
-	 * Shut down the transformer plugin
-	 */
-	@Override
-	public void shutdown() throws PluginException {
+    /**
+     * Shut down the transformer plugin
+     */
+    @Override
+    public void shutdown() throws PluginException {
 
-	}
+    }
 
-	/**
-	 * Get File extension method
-	 * 
-	 * @param fileName
-	 * @return file extension
-	 */
-	public String getFileExt(File fileName) {
-		return fileName.getName()
-				.substring(fileName.getName().lastIndexOf('.'));
-	}
+    /**
+     * Get File extension method
+     * 
+     * @param fileName
+     * @return file extension
+     */
+    public String getFileExt(File fileName) {
+        return fileName.getName()
+                .substring(fileName.getName().lastIndexOf('.'));
+    }
 
 }

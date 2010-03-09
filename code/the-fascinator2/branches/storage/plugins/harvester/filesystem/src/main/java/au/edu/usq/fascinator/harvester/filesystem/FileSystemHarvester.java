@@ -40,6 +40,7 @@ import au.edu.usq.fascinator.api.storage.Storage;
 import au.edu.usq.fascinator.api.storage.StorageException;
 import au.edu.usq.fascinator.common.JsonConfig;
 import au.edu.usq.fascinator.common.harvester.impl.GenericHarvester;
+import au.edu.usq.fascinator.common.storage.StorageUtils;
 
 /**
  * Harvests files in a specified directory on the local file system
@@ -323,48 +324,30 @@ public class FileSystemHarvester extends GenericHarvester {
         Storage storage = getStorage();
         String filePath = file.getAbsolutePath();
         String oid = FilenameUtils.separatorsToUnix(filePath);
+        String pid = FilenameUtils.getName(filePath);
 
         DigitalObject object = null;
-        try {
-            object = storage.createObject(oid);
-            this.createPayload(object, file);
-        } catch (StorageException ex) {
-            try {
-                object = storage.getObject(oid);
-                this.createPayload(object, file);
-            } catch (StorageException ex1) {
-                throw new StorageException(ex1);
-            }
-        } finally {
-            if (object != null) object.close();
-        }
-        return oid;
-    }
-
-    private void createPayload(DigitalObject object, File file)
-            throws HarvesterException, StorageException {
         Payload payload = null;
         InputStream in = null;
         try {
-            String filePath = file.getAbsolutePath();
-            String pid = FilenameUtils.getName(filePath);
             in = new FileInputStream(file);
-            try {
-                payload = object.createStoredPayload(pid, in);
-            } catch (StorageException ex) {
-                try {
-                    payload = object.updatePayload(pid, in);
-                } catch (StorageException ex1) {
-                    in.close();
-                    throw new HarvesterException(ex1);
-                }
+            object = StorageUtils.getDigitalObject(storage, oid);
+            StorageUtils.createOrUpdatePayload(object, pid, in);
+            if (in != null) {
+                in.close();
             }
-        } catch (IOException ioe) {
-            throw new HarvesterException(ioe);
+        } catch (StorageException ex) {
+            throw ex;
+        } catch (Exception e) {
+            throw new HarvesterException(e);
         } finally {
+            if (object != null) {
+                object.close();
+            }
             if (payload != null) {
                 payload.close();
             }
         }
+        return oid;
     }
 }

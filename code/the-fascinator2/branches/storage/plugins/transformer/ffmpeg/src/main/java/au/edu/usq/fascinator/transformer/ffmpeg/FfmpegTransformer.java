@@ -43,6 +43,7 @@ import au.edu.usq.fascinator.api.transformer.Transformer;
 import au.edu.usq.fascinator.api.transformer.TransformerException;
 import au.edu.usq.fascinator.common.JsonConfig;
 import au.edu.usq.fascinator.common.MimeTypeUtil;
+import au.edu.usq.fascinator.common.storage.StorageUtils;
 
 /**
  * Converts audio and video media to web friendly versions using the FFMPEG
@@ -121,8 +122,10 @@ public class FfmpegTransformer implements Transformer {
     /**
      * Create ffmpeg error payload
      * 
-     * @param object: DigitalObject that store the payload
-     * @param file: File to be stored as payload
+     * @param object
+     *            : DigitalObject that store the payload
+     * @param file
+     *            : File to be stored as payload
      * @param message
      * @return transformed DigitalObject
      * @throws StorageException
@@ -134,8 +137,8 @@ public class FfmpegTransformer implements Transformer {
             FileNotFoundException, UnsupportedEncodingException {
         String name = FilenameUtils.getBaseName(file.getName())
                 + "_ffmpeg_error.htm";
-        Payload ffmpegPayload = object.createStoredPayload(name,
-                new ByteArrayInputStream(message.getBytes("UTF-8")));
+        Payload ffmpegPayload = StorageUtils.createOrUpdatePayload(object,
+                name, new ByteArrayInputStream(message.getBytes("UTF-8")));
         ffmpegPayload.setType(PayloadType.Error);
         ffmpegPayload.setContentType("text/html");
         ffmpegPayload.setLabel("FFMPEG conversion errors");
@@ -145,8 +148,10 @@ public class FfmpegTransformer implements Transformer {
     /**
      * Create converted ffmpeg payload
      * 
-     * @param object: DigitalObject that store the payload
-     * @param file: File to be stored as payload
+     * @param object
+     *            : DigitalObject that store the payload
+     * @param file
+     *            : File to be stored as payload
      * @return transformed DigitalObject
      * @throws StorageException
      * @throws FileNotFoundException
@@ -155,8 +160,8 @@ public class FfmpegTransformer implements Transformer {
     public DigitalObject createFfmpegPayload(DigitalObject object, File file)
             throws StorageException, FileNotFoundException {
         String name = file.getName();
-        Payload ffmpegPayload = object.createStoredPayload(name,
-                new FileInputStream(file));
+        Payload ffmpegPayload = StorageUtils.createOrUpdatePayload(object,
+                name, new FileInputStream(file));
         ffmpegPayload.setType(PayloadType.Enrichment);
         ffmpegPayload.setContentType(MimeTypeUtil.getMimeType(name));
         ffmpegPayload.setLabel(name);
@@ -166,8 +171,10 @@ public class FfmpegTransformer implements Transformer {
     /**
      * Generate thumbnail for the video
      * 
-     * @param sourceFile: video file to be generated
-     * @param duration: duration for the thumbnail
+     * @param sourceFile
+     *            : video file to be generated
+     * @param duration
+     *            : duration for the thumbnail
      * @return generated thumbnail file
      * @throws TransformerException
      */
@@ -214,7 +221,8 @@ public class FfmpegTransformer implements Transformer {
     /**
      * Convert audio/video to flv format
      * 
-     * @param sourceFile: to be converted
+     * @param sourceFile
+     *            : to be converted
      * @return converted file
      * @throws TransformerException
      */
