@@ -16,7 +16,7 @@ from au.edu.usq.fascinator.common.ctag import Tag, TaggedContent
 #    rules      : RuleManager instance
 #    object     : DigitalObject to index
 #    payload    : Payload to index
-#    props      : Metadata Properties object
+#    params     : Metadata Properties object
 #
 
 def indexPath(name, path, includeLastPart=True):
@@ -52,7 +52,7 @@ rules.add(New())
 #common fields
 oid = object.getId()
 pid = payload.getId()
-metaPid = props.getProperty("metaPid", "DC")
+metaPid = params.getProperty("metaPid", "DC")
 if pid == metaPid:
     itemType = "object"
 else:
@@ -78,7 +78,7 @@ else:
     indexer.setAccessSchema(schema, "simple")
     rules.add(AddField("security_filter", "guest"))
 
-if isMetadata:
+if pid == metaPid:
     #only need to index metadata for the main object
     rules.add(AddField("repository_name", params["repository.name"]))
     rules.add(AddField("repository_type", params["repository.type"]))
