@@ -12,7 +12,7 @@ import java.io as io
 #    rules      : RuleManager instance
 #    object     : DigitalObject to index
 #    payload    : Payload to index
-#    props      : Metadata Properties object
+#    params     : Metadata Properties object
 #
 
 def indexList(name, values):
