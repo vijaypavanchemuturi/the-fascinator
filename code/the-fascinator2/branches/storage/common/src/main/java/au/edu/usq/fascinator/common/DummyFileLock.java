@@ -41,9 +41,9 @@ import org.slf4j.LoggerFactory;
 public class DummyFileLock {
     private String file_name;
     private FileOutputStream file;
-    private final FileChannel fileChannel;
+    private FileChannel fileChannel;
     private FileLock lock;
-    private final Logger log = LoggerFactory.getLogger(DummyFileLock.class);
+    private Logger log = LoggerFactory.getLogger(DummyFileLock.class);
 
     /**
      * Creates a new lock against the file provided.
@@ -51,32 +51,43 @@ public class DummyFileLock {
      */
     public DummyFileLock(String new_file) throws IOException {
         file_name = new_file;
-        file  = new FileOutputStream(new_file);
-        fileChannel = file.getChannel();
     }
 
     public void getLock() throws IOException {
-        synchronized (fileChannel) {
-            try {
-                // Try to get the lock
-                lock = fileChannel.lock();
+        file  = new FileOutputStream(file_name);
+        fileChannel = file.getChannel();
+        int lockTimeout = 0;
+        int lockSleepTime = 500;
 
-            // If it's already locked
-            } catch (OverlappingFileLockException e) {
-                try {
+        try {
+            // Try to get the lock
+            lock = fileChannel.lock();
+
+        // If it's already locked
+        } catch (OverlappingFileLockException e) {
+            try {
+                // Check for timeout
+                lockTimeout += lockSleepTime;
+                if (lockTimeout > 60000) {
+                    log.error("File Lock Timeout error : Waited more then 60s for access to : " + file_name);
+                    fileChannel.close();
+                    file.close();
+                } else {
                     // Go to sleep briefly
-                    Thread.sleep(100);
+                    Thread.sleep(lockSleepTime);
                     // Try again
                     getLock();
-                } catch (InterruptedException ex) {
-                    // We've been woken up early
-                    throw new IOException("Interrupted waiting for lock! Terminating.");
                 }
+            } catch (InterruptedException ex) {
+                // We've been woken up early
+                throw new IOException("Interrupted waiting for lock! Terminating.");
             }
         }
     }
 
     public void release() throws IOException {
         lock.release();
+        fileChannel.close();
+        file.close();
     }
 }

@@ -21,6 +21,7 @@ package au.edu.usq.fascinator.storage.filesystem;
 import au.edu.usq.fascinator.api.storage.Payload;
 import au.edu.usq.fascinator.api.storage.PayloadType;
 import au.edu.usq.fascinator.api.storage.StorageException;
+import au.edu.usq.fascinator.common.DummyFileLock;
 import au.edu.usq.fascinator.common.storage.impl.GenericDigitalObject;
 
 import java.io.ByteArrayInputStream;
@@ -32,6 +33,7 @@ import java.io.InputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.Map;
+import java.util.logging.Level;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -41,15 +43,20 @@ import org.slf4j.LoggerFactory;
 public class FileSystemDigitalObject extends GenericDigitalObject {
 
     private Logger log = LoggerFactory.getLogger(FileSystemDigitalObject.class);
-
     private static String METADATA_SUFFIX = ".meta";
-
+    private static String MANIFEST_LOCK_FILE = "manifest.lock";
     private File homeDir;
+    private File lockFile;
+    private DummyFileLock manifestLock;
 
     public FileSystemDigitalObject(File homeDir, String oid) {
         super(oid);
         this.homeDir = homeDir;
+        this.buildLock();
+
+        this.lockManifest();
         this.buildManifest();
+        this.unlockManifest();
     }
 
     // Unit testing
@@ -57,18 +64,54 @@ public class FileSystemDigitalObject extends GenericDigitalObject {
         return homeDir.getAbsolutePath();
     }
 
+    private void buildLock() {
+        try {
+            String lockPath = getPath() + File.separator + "manifest.lock";
+            lockFile = new File(lockPath);
+            if (!lockFile.exists()) {
+                log.debug("Creating new lock file : " + lockFile.getAbsolutePath());
+                lockFile.getParentFile().mkdirs();
+                lockFile.createNewFile();
+            }
+            manifestLock = new DummyFileLock(lockPath);
+        } catch (IOException ex) {
+            log.error("Failed accessing manifest lock", ex);
+        }
+    }
+
+    private void lockManifest() {
+        try {
+            log.debug(" * Locking Manifest : " + getId());
+            manifestLock.getLock();
+            log.debug(" * Manifest locked : " + getId());
+        } catch (IOException ex) {
+            log.error("Failed acquiring manifest lock : ", ex);
+        }
+    }
+
+    private void unlockManifest() {
+        try {
+            log.debug(" * Unlocking Manifest : " + getId());
+            manifestLock.release();
+            log.debug(" * Manifest unlocked : " + getId());
+        } catch (IOException ex) {
+            log.error("Failed releasing manifest lock : ", ex);
+        }
+    }
+
     private void buildManifest() {
         Map<String, Payload> manifest = this.getManifest();
         this.readFromDisk(manifest, homeDir, 0);
     }
 
-    private void readFromDisk(Map<String, Payload> manifest, File dir, int depth) {
+    private void readFromDisk(
+            Map<String, Payload> manifest, File dir, int depth) {
         File[] files = dir.listFiles(new FilenameFilter() {
             @Override
             public boolean accept(File dir, String name) {
-                log.debug("readFromDisk() : '" + name + "' => " + name.endsWith(METADATA_SUFFIX));
+                if (name.endsWith(METADATA_SUFFIX)) return false;
+                if (name.endsWith(MANIFEST_LOCK_FILE)) return false;
                 return true;
-                //return !name.endsWith(METADATA_SUFFIX);
             }
         });
         if (files != null) {
@@ -79,14 +122,15 @@ public class FileSystemDigitalObject extends GenericDigitalObject {
                         File parentFile = file.getParentFile();
                         String relPath = "";
                         for (int i = 0; i < depth; i++) {
-                            relPath = parentFile.getName() + File.separator
-                                    + relPath;
+                            relPath = parentFile.getName()
+                                    + File.separator + relPath;
                             parentFile = parentFile.getParentFile();
                         }
                         payloadFile = new File(relPath, file.getName());
                     }
-                    FileSystemPayload payload =
-                            new FileSystemPayload(payloadFile.getName(), payloadFile);
+                    log.debug("File found on disk : " + payloadFile.getName());
+                    FileSystemPayload payload = new FileSystemPayload(
+                            payloadFile.getName(), payloadFile);
                     payload.readExistingMetadata();
                     if (payload.getType().equals(PayloadType.Source)) {
                         setSourceId(payload.getId());
@@ -97,6 +141,7 @@ public class FileSystemDigitalObject extends GenericDigitalObject {
                 }
             }
         }
+        log.debug("New Manifest : " + manifest);
     }
 
     @Override
@@ -121,23 +166,28 @@ public class FileSystemDigitalObject extends GenericDigitalObject {
 
     private Payload createPayload(String pid, InputStream in, boolean linked)
             throws StorageException {
+        log.debug("**** Starting Payload creation : " + pid);
         // Manifest check
+        this.lockManifest();
         Map<String, Payload> manifest = this.getManifest();
         log.debug("FileSystem Manifest : " + manifest);
         if (manifest.containsKey(pid)) {
-            throw new StorageException("ID '" + pid + "' already exists in manifest.");
+            throw new StorageException(
+                    "ID '" + pid + "' already exists in manifest.");
         }
 
         // File creation
         File newFile = new File(homeDir, pid);
         if (newFile.exists()) {
-            throw new StorageException("ID '" + pid + "' already exists on disk.");
+            throw new StorageException(
+                    "ID '" + pid + "' already exists on disk.");
         } else {
             newFile.getParentFile().mkdirs();
             try {
                 newFile.createNewFile();
             } catch (IOException ex) {
-                log.error("Error creating file (" + newFile.getAbsolutePath() + ")");
+                log.error("Error creating file ("
+                        + newFile.getAbsolutePath() + ")");
                 throw new StorageException("Failed to create file", ex);
             }
         }
@@ -166,11 +216,26 @@ public class FileSystemDigitalObject extends GenericDigitalObject {
         payload.writeMetadata();
         manifest.put(pid, payload);
 
+        this.unlockManifest();
         return payload;
     }
 
     @Override
+    public Payload getPayload(String pid) throws StorageException {
+        this.lockManifest();
+        this.unlockManifest();
+
+        Map<String, Payload> man = this.getManifest();
+        if (man.containsKey(pid)) {
+            return man.get(pid);
+        } else {
+            throw new StorageException("ID '" + pid + "' does not exist.");
+        }
+    }
+
+    @Override
     public void removePayload(String pid) throws StorageException {
+        this.lockManifest();
         Map<String, Payload> manifest = this.getManifest();
         if (!manifest.containsKey(pid)) {
             throw new StorageException("pID '" + pid + "' not found.");
@@ -200,11 +265,13 @@ public class FileSystemDigitalObject extends GenericDigitalObject {
         }
 
         manifest.remove(pid);
+        this.unlockManifest();
     }
 
     @Override
     public Payload updatePayload(String pid, InputStream in)
             throws StorageException {
+        this.lockManifest();
         File oldFile = new File(homeDir, pid);
         if (!oldFile.exists()) {
             throw new StorageException("pID '" + pid + "': file not found");
@@ -225,6 +292,7 @@ public class FileSystemDigitalObject extends GenericDigitalObject {
         // Payload update
         FileSystemPayload payload = (FileSystemPayload) this.getPayload(pid);
         payload.writeMetadata();
+        this.unlockManifest();
         return payload;
     }
 

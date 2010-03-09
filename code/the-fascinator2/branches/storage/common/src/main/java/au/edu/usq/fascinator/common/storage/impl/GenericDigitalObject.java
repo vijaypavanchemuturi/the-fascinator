@@ -144,7 +144,8 @@ public class GenericDigitalObject implements DigitalObject {
         return payload;
     }
 
-    private GenericPayload createPayload(String pid, boolean linked) throws StorageException {
+    private GenericPayload createPayload(String pid, boolean linked)
+            throws StorageException {
         Map<String, Payload> man = this.getManifest();
         if (man.containsKey(pid)) {
             throw new StorageException("ID '" + pid + "' already exists.");
