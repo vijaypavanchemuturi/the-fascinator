@@ -131,6 +131,8 @@ public class SolrIndexer implements Indexer {
     private Map<String, File> rulesList;
     private Map<String, File> confList;
 
+    private PythonInterpreter python;
+
     @Override
     public String getId() {
         return "solr";
@@ -197,6 +199,8 @@ public class SolrIndexer implements Indexer {
 
             rulesList = new HashMap<String, File>();
             confList = new HashMap<String, File>();
+
+            python = new PythonInterpreter();
         }
         loaded = true;
     }
@@ -592,6 +596,7 @@ public class SolrIndexer implements Indexer {
         File solrFile = createTempFile("solr", ".xml");
         Writer out = new OutputStreamWriter(new FileOutputStream(solrFile),
                 "UTF-8");
+        InputStream rulesIn = null;
         try {
             // Make our harvest config more useful
             JsonConfigHelper jsonConfig = null;
@@ -601,7 +606,7 @@ public class SolrIndexer implements Indexer {
                 jsonConfig = new JsonConfigHelper(confFile);
             }
 
-            PythonInterpreter python = new PythonInterpreter();
+            rulesIn = new FileInputStream(ruleScript);
             RuleManager rules = new RuleManager();
             python.set("indexer", this);
             python.set("jsonConfig", jsonConfig);
@@ -610,15 +615,19 @@ public class SolrIndexer implements Indexer {
             python.set("payload", payload);
             python.set("params", props);
             python.set("inputReader", in);
-            python.execfile(new FileInputStream(ruleScript));
+            python.execfile(rulesIn);
             rules.run(in, out);
             if (rules.cancelled()) {
                 log.info("Indexing rules were cancelled");
                 return null;
             }
+            python.cleanup();
         } catch (Exception e) {
             throw new RuleException(e);
         } finally {
+            if (rulesIn != null) {
+                rulesIn.close();
+            }
             in.close();
             out.close();
         }
