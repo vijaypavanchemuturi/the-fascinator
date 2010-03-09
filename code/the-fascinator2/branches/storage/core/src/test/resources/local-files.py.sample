@@ -9,6 +9,7 @@ from au.edu.usq.fascinator.common.nie import InformationElement
 
 from au.edu.usq.fascinator.common.ctag import Tag, TaggedContent
 
+from au.edu.usq.fascinator.api.storage import StorageException
 #
 # Available objects:
 #    indexer    : Indexer instance
@@ -94,8 +95,8 @@ if pid == metaPid:
     relationDict = {}
     
     ### Check if dc.xml returned from ice is exist or not. if not... process the dc-rdf
-    dcPayload = object.getPayload("dc.xml")
-    if dcPayload is not None:
+    try:
+        dcPayload = object.getPayload("dc.xml")
         indexer.registerNamespace("dc", "http://purl.org/dc/elements/1.1/")
         dcXml = indexer.getXmlDocument(dcPayload)
         if dcXml is not None:
@@ -119,9 +120,11 @@ if pid == metaPid:
                     relationDict[key].append(value)
                 else:
                     relationDict[key] = [value]
+    except StorageException, e:
+        print " storage exception", str(e)
     
-    rdfPayload = object.getPayload("aperture.rdf")
-    if rdfPayload is not None:
+    try:
+        rdfPayload = object.getPayload("aperture.rdf")
         rdfModel = indexer.getRdfModel(rdfPayload)
         
         #Seems like aperture only encode the spaces. Tested against special characters file name
@@ -194,6 +197,8 @@ if pid == metaPid:
         if creationDate == []:
             if informationElement.hasContentCreated():
                 creationDate.append(informationElement.getContentCreated().getTime().toString())
+    except StorageException, e:
+        print " storage exception", str(e)
     
     indexList("dc_title", titleList)
     indexList("dc_creator", creatorList)  #no dc_author in schema.xml, need to check
@@ -216,13 +221,4 @@ if pid == metaPid:
         filePath = filePath.replace("\\", "/").replace(baseFilePath, baseDir)
     indexPath("file_path", filePath, includeLastPart=False)
     
-    tagsRdf = object.getPayload("tags.rdf")
-    if tagsRdf is not None:
-        tagsModel = indexer.getRdfModel(tagsRdf)
-        hashId = md5.new(oid).hexdigest()
-        content = TaggedContent(tagsModel, "urn:" + hashId, False);
-        tags = content.getAllTagged_as().asArray()
-        for tag in tags:
-            labels = tag.getAllTaglabel_asNode_().asArray()
-            for label in labels:
-                rules.add(AddField("tag", label.toString()))
+    

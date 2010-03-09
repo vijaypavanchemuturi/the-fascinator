@@ -39,6 +39,7 @@ import au.edu.usq.fascinator.common.BasicHttpClient;
 import au.edu.usq.fascinator.common.JsonConfig;
 import au.edu.usq.fascinator.common.JsonConfigHelper;
 import au.edu.usq.fascinator.common.MimeTypeUtil;
+import au.edu.usq.fascinator.common.storage.StorageUtils;
 
 /**
  * Transformer Class will send a file to ice-service to get the renditions of
@@ -98,7 +99,8 @@ public class Ice2Transformer implements Transformer {
     /**
      * Transform method
      * 
-     * @param object: DigitalObject to be transformed
+     * @param object
+     *            : DigitalObject to be transformed
      * @return transformed DigitalObject
      * @throws TransformerException
      * @throws StorageException
@@ -144,9 +146,12 @@ public class Ice2Transformer implements Transformer {
     /**
      * Create Payload method for ICE Error
      * 
-     * @param object: DigitalObject that store the payload
-     * @param file: File to be stored as payload
-     * @param message: Error message
+     * @param object
+     *            : DigitalObject that store the payload
+     * @param file
+     *            : File to be stored as payload
+     * @param message
+     *            : Error message
      * @return transformed DigitalObject
      * @throws StorageException
      * @throws UnsupportedEncodingException
@@ -156,7 +161,7 @@ public class Ice2Transformer implements Transformer {
             UnsupportedEncodingException {
         String name = FilenameUtils.getBaseName(file.getName())
                 + "_ice_error.htm";
-        Payload errorPayload = object.createStoredPayload(name,
+        Payload errorPayload = StorageUtils.createOrUpdatePayload(object, name,
                 new ByteArrayInputStream(message.getBytes("UTF-8")));
         errorPayload.setType(PayloadType.Error);
         errorPayload.setLabel("ICE conversion errors");
@@ -167,8 +172,10 @@ public class Ice2Transformer implements Transformer {
     /**
      * Create Payload method for ICE rendition files
      * 
-     * @param object: DigitalObject that store the payload
-     * @param file: File to be stored as payload
+     * @param object
+     *            : DigitalObject that store the payload
+     * @param file
+     *            : File to be stored as payload
      * @return transformed DigitalObject
      * @throws StorageException
      * @throws IOException
@@ -182,8 +189,8 @@ public class Ice2Transformer implements Transformer {
                 ZipEntry entry = entries.nextElement();
                 if (!entry.isDirectory()) {
                     String name = entry.getName();
-                    Payload icePayload = object.createStoredPayload(name,
-                            zipFile.getInputStream(entry));
+                    Payload icePayload = StorageUtils.createOrUpdatePayload(
+                            object, name, zipFile.getInputStream(entry));
                     // Set to enrichment
                     icePayload.setType(PayloadType.Enrichment);
                     icePayload.setLabel(name);
@@ -192,8 +199,8 @@ public class Ice2Transformer implements Transformer {
             }
         } else {
             String name = file.getName();
-            Payload icePayload = object.createStoredPayload(name,
-                    new FileInputStream(file));
+            Payload icePayload = StorageUtils.createOrUpdatePayload(object,
+                    name, new FileInputStream(file));
             icePayload.setType(PayloadType.Enrichment);
             icePayload.setLabel(name);
             icePayload.setContentType(MimeTypeUtil.getMimeType(name));
@@ -204,7 +211,8 @@ public class Ice2Transformer implements Transformer {
     /**
      * Main render method to send the file to ICE service
      * 
-     * @param sourceFile: File to be rendered
+     * @param sourceFile
+     *            : File to be rendered
      * @return file returned by ICE service
      * @throws TransformerException
      */
@@ -281,7 +289,8 @@ public class Ice2Transformer implements Transformer {
     /**
      * Check if the file extension is supported
      * 
-     * @param sourceFile: File to be checked
+     * @param sourceFile
+     *            : File to be checked
      * @return True if it's supported, false otherwise
      * @throws TransformerException
      */

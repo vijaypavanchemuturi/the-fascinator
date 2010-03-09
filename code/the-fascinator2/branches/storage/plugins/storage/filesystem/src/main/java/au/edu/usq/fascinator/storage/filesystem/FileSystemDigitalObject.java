@@ -18,27 +18,26 @@
  */
 package au.edu.usq.fascinator.storage.filesystem;
 
-import au.edu.usq.fascinator.api.storage.Payload;
-import au.edu.usq.fascinator.api.storage.PayloadType;
-import au.edu.usq.fascinator.api.storage.StorageException;
-import au.edu.usq.fascinator.common.DummyFileLock;
-import au.edu.usq.fascinator.common.storage.impl.GenericDigitalObject;
-
 import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.FilenameFilter;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.InputStream;
+import java.io.FilenameFilter;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.util.Map;
-import java.util.logging.Level;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import au.edu.usq.fascinator.api.storage.Payload;
+import au.edu.usq.fascinator.api.storage.PayloadType;
+import au.edu.usq.fascinator.api.storage.StorageException;
+import au.edu.usq.fascinator.common.DummyFileLock;
+import au.edu.usq.fascinator.common.storage.impl.GenericDigitalObject;
 
 public class FileSystemDigitalObject extends GenericDigitalObject {
 
@@ -52,11 +51,11 @@ public class FileSystemDigitalObject extends GenericDigitalObject {
     public FileSystemDigitalObject(File homeDir, String oid) {
         super(oid);
         this.homeDir = homeDir;
-        this.buildLock();
+        buildLock();
 
-        this.lockManifest();
-        this.buildManifest();
-        this.unlockManifest();
+        lockManifest();
+        buildManifest();
+        unlockManifest();
     }
 
     // Unit testing
@@ -69,7 +68,8 @@ public class FileSystemDigitalObject extends GenericDigitalObject {
             String lockPath = getPath() + File.separator + "manifest.lock";
             lockFile = new File(lockPath);
             if (!lockFile.exists()) {
-                log.debug("Creating new lock file : " + lockFile.getAbsolutePath());
+                log.debug("Creating new lock file : "
+                        + lockFile.getAbsolutePath());
                 lockFile.getParentFile().mkdirs();
                 lockFile.createNewFile();
             }
@@ -100,17 +100,20 @@ public class FileSystemDigitalObject extends GenericDigitalObject {
     }
 
     private void buildManifest() {
-        Map<String, Payload> manifest = this.getManifest();
-        this.readFromDisk(manifest, homeDir, 0);
+        Map<String, Payload> manifest = getManifest();
+        readFromDisk(manifest, homeDir, 0);
     }
 
-    private void readFromDisk(
-            Map<String, Payload> manifest, File dir, int depth) {
+    private void readFromDisk(Map<String, Payload> manifest, File dir, int depth) {
         File[] files = dir.listFiles(new FilenameFilter() {
             @Override
             public boolean accept(File dir, String name) {
-                if (name.endsWith(METADATA_SUFFIX)) return false;
-                if (name.endsWith(MANIFEST_LOCK_FILE)) return false;
+                if (name.endsWith(METADATA_SUFFIX)) {
+                    return false;
+                }
+                if (name.endsWith(MANIFEST_LOCK_FILE)) {
+                    return false;
+                }
                 return true;
             }
         });
@@ -122,8 +125,8 @@ public class FileSystemDigitalObject extends GenericDigitalObject {
                         File parentFile = file.getParentFile();
                         String relPath = "";
                         for (int i = 0; i < depth; i++) {
-                            relPath = parentFile.getName()
-                                    + File.separator + relPath;
+                            relPath = parentFile.getName() + File.separator
+                                    + relPath;
                             parentFile = parentFile.getParentFile();
                         }
                         payloadFile = new File(relPath, file.getName());
@@ -147,7 +150,7 @@ public class FileSystemDigitalObject extends GenericDigitalObject {
     @Override
     public Payload createStoredPayload(String pid, InputStream in)
             throws StorageException {
-        Payload payload = this.createPayload(pid, in, true);
+        Payload payload = createPayload(pid, in, false);
         return payload;
     }
 
@@ -155,9 +158,9 @@ public class FileSystemDigitalObject extends GenericDigitalObject {
     public Payload createLinkedPayload(String pid, String linkPath)
             throws StorageException {
         try {
-            ByteArrayInputStream in =
-                    new ByteArrayInputStream(linkPath.getBytes("UTF-8"));
-            Payload payload = this.createPayload(pid, in, false);
+            ByteArrayInputStream in = new ByteArrayInputStream(linkPath
+                    .getBytes("UTF-8"));
+            Payload payload = createPayload(pid, in, true);
             return payload;
         } catch (UnsupportedEncodingException ex) {
             throw new StorageException(ex);
@@ -168,32 +171,36 @@ public class FileSystemDigitalObject extends GenericDigitalObject {
             throws StorageException {
         log.debug("**** Starting Payload creation : " + pid);
         // Manifest check
-        this.lockManifest();
-        Map<String, Payload> manifest = this.getManifest();
+        lockManifest();
+        Map<String, Payload> manifest = getManifest();
         log.debug("FileSystem Manifest : " + manifest);
         if (manifest.containsKey(pid)) {
-            throw new StorageException(
-                    "ID '" + pid + "' already exists in manifest.");
+            unlockManifest();
+            throw new StorageException("ID '" + pid
+                    + "' already exists in manifest.");
         }
 
         // File creation
         File newFile = new File(homeDir, pid);
         if (newFile.exists()) {
-            throw new StorageException(
-                    "ID '" + pid + "' already exists on disk.");
+            unlockManifest();
+            throw new StorageException("ID '" + pid
+                    + "' already exists on disk.");
         } else {
             newFile.getParentFile().mkdirs();
             try {
                 newFile.createNewFile();
             } catch (IOException ex) {
-                log.error("Error creating file ("
-                        + newFile.getAbsolutePath() + ")");
+                unlockManifest();
+                log.error("Error creating file (" + newFile.getAbsolutePath()
+                        + ")");
                 throw new StorageException("Failed to create file", ex);
             }
         }
 
         // File storage
         try {
+            log.debug("Copying {}", newFile);
             FileOutputStream out = new FileOutputStream(newFile);
             IOUtils.copy(in, out);
             in.close();
@@ -206,9 +213,9 @@ public class FileSystemDigitalObject extends GenericDigitalObject {
 
         // Payload creation
         FileSystemPayload payload = new FileSystemPayload(pid, newFile);
-        if (this.getSourceId() == null) {
+        if (getSourceId() == null) {
             payload.setType(PayloadType.Source);
-            this.setSourceId(pid);
+            setSourceId(pid);
         } else {
             payload.setType(PayloadType.Enrichment);
         }
@@ -216,16 +223,16 @@ public class FileSystemDigitalObject extends GenericDigitalObject {
         payload.writeMetadata();
         manifest.put(pid, payload);
 
-        this.unlockManifest();
+        unlockManifest();
         return payload;
     }
 
     @Override
     public Payload getPayload(String pid) throws StorageException {
-        this.lockManifest();
-        this.unlockManifest();
+        lockManifest();
+        unlockManifest();
 
-        Map<String, Payload> man = this.getManifest();
+        Map<String, Payload> man = getManifest();
         if (man.containsKey(pid)) {
             return man.get(pid);
         } else {
@@ -235,8 +242,8 @@ public class FileSystemDigitalObject extends GenericDigitalObject {
 
     @Override
     public void removePayload(String pid) throws StorageException {
-        this.lockManifest();
-        Map<String, Payload> manifest = this.getManifest();
+        lockManifest();
+        Map<String, Payload> manifest = getManifest();
         if (!manifest.containsKey(pid)) {
             throw new StorageException("pID '" + pid + "' not found.");
         }
@@ -265,13 +272,13 @@ public class FileSystemDigitalObject extends GenericDigitalObject {
         }
 
         manifest.remove(pid);
-        this.unlockManifest();
+        unlockManifest();
     }
 
     @Override
     public Payload updatePayload(String pid, InputStream in)
             throws StorageException {
-        this.lockManifest();
+        lockManifest();
         File oldFile = new File(homeDir, pid);
         if (!oldFile.exists()) {
             throw new StorageException("pID '" + pid + "': file not found");
@@ -288,11 +295,11 @@ public class FileSystemDigitalObject extends GenericDigitalObject {
         } catch (IOException ex) {
             log.error("Failed saving payload to disk", ex);
         }
+        unlockManifest();
 
         // Payload update
-        FileSystemPayload payload = (FileSystemPayload) this.getPayload(pid);
+        FileSystemPayload payload = (FileSystemPayload) getPayload(pid);
         payload.writeMetadata();
-        this.unlockManifest();
         return payload;
     }
 

@@ -23,7 +23,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -44,10 +43,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
-import java.util.logging.Level;
 
-import javax.script.ScriptEngine;
-import javax.script.ScriptEngineManager;
 import javax.xml.parsers.ParserConfigurationException;
 
 import org.apache.commons.httpclient.HttpClient;
@@ -76,6 +72,7 @@ import org.dom4j.io.SAXReader;
 import org.ontoware.rdf2go.RDF2Go;
 import org.ontoware.rdf2go.exception.ModelRuntimeException;
 import org.ontoware.rdf2go.model.Model;
+import org.python.util.PythonInterpreter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xml.sax.SAXException;
@@ -187,7 +184,8 @@ public class SolrIndexer implements Indexer {
                     "indexer/solr/autocommit", "true"));
             anotarAutoCommit = Boolean.parseBoolean(config.get(
                     "indexer/anotar/autocommit", "true"));
-            propertiesId = config.get("indexer/propertiesId", DEFAULT_METADATA_PAYLOAD);
+            propertiesId = config.get("indexer/propertiesId",
+                    DEFAULT_METADATA_PAYLOAD);
 
             namespaces = new HashMap<String, String>();
             DocumentFactory docFactory = new DocumentFactory();
@@ -198,7 +196,7 @@ public class SolrIndexer implements Indexer {
             customParams = new HashMap<String, String>();
 
             rulesList = new HashMap<String, File>();
-            confList  = new HashMap<String, File>();
+            confList = new HashMap<String, File>();
         }
         loaded = true;
     }
@@ -277,6 +275,7 @@ public class SolrIndexer implements Indexer {
         if (coreContainer != null) {
             coreContainer.shutdown();
         }
+        cleanupTempFiles();
     }
 
     public Storage getStorage() {
@@ -395,10 +394,14 @@ public class SolrIndexer implements Indexer {
         }
     }
 
-    public void index(DigitalObject object, Payload payload) throws IndexerException {
+    public void index(DigitalObject object, Payload payload)
+            throws IndexerException {
         String oid = object.getId();
         String pid = payload.getId();
-        if (propertiesId.equals(pid)) return;
+
+        // if (propertiesId.equals(pid)) {
+        // return;
+        // }
 
         // Don't proccess annotations through this function
         if (pid.startsWith("anotar.")) {
@@ -422,9 +425,9 @@ public class SolrIndexer implements Indexer {
             // Have we already cached this one?
             if (confList.containsKey(confOid)) {
                 confFile = confList.get(confOid);
-            // No... cache it
+                // No... cache it
             } else {
-                confFile = this.copyObjectToFile(confOid);
+                confFile = copyObjectToFile(confOid);
                 confList.put(confOid, confFile);
             }
 
@@ -434,9 +437,9 @@ public class SolrIndexer implements Indexer {
             // Have we already cached this one?
             if (rulesList.containsKey(rulesOid)) {
                 rulesFile = rulesList.get(rulesOid);
-            // No... cache it
+                // No... cache it
             } else {
-                rulesFile = this.copyObjectToFile(rulesOid);
+                rulesFile = copyObjectToFile(rulesOid);
                 rulesList.put(rulesOid, rulesFile);
             }
 
@@ -456,8 +459,6 @@ public class SolrIndexer implements Indexer {
         } catch (Exception e) {
             e.printStackTrace();
             log.error("Indexing failed!\n-----\n{}\n-----\n", e.getMessage());
-        } finally {
-            cleanupTempFiles();
         }
     }
 
@@ -472,10 +473,13 @@ public class SolrIndexer implements Indexer {
         }
     }
 
-    private void annotate(DigitalObject object, Payload payload) throws IndexerException {
+    private void annotate(DigitalObject object, Payload payload)
+            throws IndexerException {
         String oid = object.getId();
         String pid = payload.getId();
-        if (propertiesId.equals(pid)) return;
+        if (propertiesId.equals(pid)) {
+            return;
+        }
 
         try {
             // Get the rules file
@@ -483,12 +487,12 @@ public class SolrIndexer implements Indexer {
             // Have we already cached this one?
             if (rulesList.containsKey("anotar.py")) {
                 rulesFile = rulesList.get("anotar.py");
-            // No... cache it
+                // No... cache it
             } else {
                 rulesFile = createTempFile("rules", ".script");
                 FileOutputStream rulesOut = new FileOutputStream(rulesFile);
                 IOUtils.copy(getClass().getResourceAsStream("/anotar.py"),
-                                rulesOut);
+                        rulesOut);
                 rulesOut.close();
                 rulesList.put("anotar.py", rulesFile);
             }
@@ -576,9 +580,8 @@ public class SolrIndexer implements Indexer {
         }
     }
 
-    private File index(DigitalObject object, Payload payload,
-            File confFile, File rulesFile, Properties props)
-            throws IOException, RuleException {
+    private File index(DigitalObject object, Payload payload, File confFile,
+            File rulesFile, Properties props) throws IOException, RuleException {
         Reader in = new StringReader("<add><doc/></add>");
         return index(object, payload, in, confFile, rulesFile, props);
     }
@@ -587,30 +590,27 @@ public class SolrIndexer implements Indexer {
             File confFile, File ruleScript, Properties props)
             throws IOException, RuleException {
         File solrFile = createTempFile("solr", ".xml");
-        Writer out = new OutputStreamWriter(
-                new FileOutputStream(solrFile), "UTF-8");
+        Writer out = new OutputStreamWriter(new FileOutputStream(solrFile),
+                "UTF-8");
         try {
             // Make our harvest config more useful
-            JsonConfigHelper jsonConfig = new JsonConfigHelper(confFile);
-
-            String engineName = props.getProperty("scriptType", "python");
-            ScriptEngineManager scriptEngineManager = new ScriptEngineManager();
-            ScriptEngine scriptEngine = scriptEngineManager
-                    .getEngineByName(engineName);
-            if (scriptEngine == null) {
-                throw new RuleException(
-                        "No script engine found for '" + engineName + "'");
+            JsonConfigHelper jsonConfig = null;
+            if (confFile == null) {
+                jsonConfig = new JsonConfigHelper();
+            } else {
+                jsonConfig = new JsonConfigHelper(confFile);
             }
+
+            PythonInterpreter python = new PythonInterpreter();
             RuleManager rules = new RuleManager();
-            scriptEngine.put("indexer", this);
-            scriptEngine.put("jsonConfig", jsonConfig);
-            scriptEngine.put("rules", rules);
-            scriptEngine.put("object", object);
-            scriptEngine.put("payload", payload);
-            scriptEngine.put("params", props);
-            scriptEngine.put("inputReader", in);
-            // TODO add required solr fields?
-            scriptEngine.eval(new FileReader(ruleScript));
+            python.set("indexer", this);
+            python.set("jsonConfig", jsonConfig);
+            python.set("rules", rules);
+            python.set("object", object);
+            python.set("payload", payload);
+            python.set("params", props);
+            python.set("inputReader", in);
+            python.execfile(new FileInputStream(ruleScript));
             rules.run(in, out);
             if (rules.cancelled()) {
                 log.info("Indexing rules were cancelled");
@@ -764,8 +764,8 @@ public class SolrIndexer implements Indexer {
         namespaces.remove(prefix);
     }
 
-    private File copyObjectToFile(String oid)
-            throws IOException, StorageException {
+    private File copyObjectToFile(String oid) throws IOException,
+            StorageException {
         // Temp file
         File tempFile = createTempFile("objectOutput", ".temp");
         FileOutputStream tempFileOut = new FileOutputStream(tempFile);
@@ -777,6 +777,8 @@ public class SolrIndexer implements Indexer {
         IOUtils.copy(tempPayload.open(), tempFileOut);
         tempPayload.close();
         tempFileOut.close();
+
+        log.debug("tempFile size: {}, {}", oid, tempFile.length());
 
         return tempFile;
     }

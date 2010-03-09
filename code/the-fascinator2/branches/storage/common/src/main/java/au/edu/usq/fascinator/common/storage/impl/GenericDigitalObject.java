@@ -18,24 +18,24 @@
  */
 package au.edu.usq.fascinator.common.storage.impl;
 
-import au.edu.usq.fascinator.api.storage.DigitalObject;
-import au.edu.usq.fascinator.api.storage.Payload;
-import au.edu.usq.fascinator.api.storage.PayloadType;
-import au.edu.usq.fascinator.api.storage.StorageException;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
-import org.apache.commons.io.IOUtils;
 
+import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import au.edu.usq.fascinator.api.storage.DigitalObject;
+import au.edu.usq.fascinator.api.storage.Payload;
+import au.edu.usq.fascinator.api.storage.PayloadType;
+import au.edu.usq.fascinator.api.storage.StorageException;
 
 /**
  * Generic DigitalObject implementation
@@ -54,11 +54,11 @@ public class GenericDigitalObject implements DigitalObject {
     private String id;
     private String sourceId;
 
-
     /**
      * Creates a DigitalObject with the specified identifier and no metadata
      * 
-     * @param id unique identifier
+     * @param id
+     *            unique identifier
      */
     public GenericDigitalObject(String id) {
         setId(id);
@@ -78,7 +78,7 @@ public class GenericDigitalObject implements DigitalObject {
     public void setId(String oid) {
         // TODO : #554 Unique ID generation.
         // Stop assuming IDs are file paths
-        this.id = oid.replace("\\", "/");
+        id = oid.replace("\\", "/");
     }
 
     @Override
@@ -88,19 +88,19 @@ public class GenericDigitalObject implements DigitalObject {
 
     @Override
     public void setSourceId(String pid) {
-        this.sourceId = pid;
+        sourceId = pid;
     }
 
     @Override
     public Properties getMetadata() throws StorageException {
         if (metadata == null) {
-            Map<String, Payload> man = this.getManifest();
+            Map<String, Payload> man = getManifest();
             log.debug("Generic Manifest : " + man);
             if (!man.containsKey(METADATA_PAYLOAD)) {
-                Payload payload = this.createStoredPayload(
-                        METADATA_PAYLOAD, IOUtils.toInputStream(""));
-                if (this.getSourceId().equals(METADATA_PAYLOAD)) {
-                    this.setSourceId(null);
+                Payload payload = createStoredPayload(METADATA_PAYLOAD, IOUtils
+                        .toInputStream(""));
+                if (getSourceId().equals(METADATA_PAYLOAD)) {
+                    setSourceId(null);
                 }
                 payload.setType(PayloadType.Annotation);
                 payload.setLabel(METADATA_LABEL);
@@ -110,6 +110,7 @@ public class GenericDigitalObject implements DigitalObject {
                 Payload metaPayload = man.get(METADATA_PAYLOAD);
                 metadata = new Properties();
                 metadata.load(metaPayload.open());
+                metadata.setProperty("metaPid", METADATA_PAYLOAD);
                 metaPayload.close();
             } catch (IOException ex) {
                 throw new StorageException(ex);
@@ -120,13 +121,13 @@ public class GenericDigitalObject implements DigitalObject {
 
     @Override
     public Set<String> getPayloadIdList() {
-        return this.getManifest().keySet();
+        return getManifest().keySet();
     }
 
     @Override
     public Payload createStoredPayload(String pid, InputStream in)
             throws StorageException {
-        GenericPayload payload = this.createPayload(pid, false);
+        GenericPayload payload = createPayload(pid, false);
         payload.setInputStream(in);
         return payload;
     }
@@ -134,10 +135,10 @@ public class GenericDigitalObject implements DigitalObject {
     @Override
     public Payload createLinkedPayload(String pid, String linkPath)
             throws StorageException {
-        GenericPayload payload = this.createPayload(pid, true);
+        GenericPayload payload = createPayload(pid, true);
         try {
-            payload.setInputStream(
-                    new ByteArrayInputStream(linkPath.getBytes("UTF-8")));
+            payload.setInputStream(new ByteArrayInputStream(linkPath
+                    .getBytes("UTF-8")));
         } catch (UnsupportedEncodingException ex) {
             throw new StorageException(ex);
         }
@@ -146,15 +147,15 @@ public class GenericDigitalObject implements DigitalObject {
 
     private GenericPayload createPayload(String pid, boolean linked)
             throws StorageException {
-        Map<String, Payload> man = this.getManifest();
+        Map<String, Payload> man = getManifest();
         if (man.containsKey(pid)) {
             throw new StorageException("ID '" + pid + "' already exists.");
         }
 
         GenericPayload payload = new GenericPayload(pid);
-        if (this.getSourceId() == null) {
+        if (getSourceId() == null) {
             payload.setType(PayloadType.Source);
-            this.setSourceId(pid);
+            setSourceId(pid);
         } else {
             payload.setType(PayloadType.Enrichment);
         }
@@ -166,7 +167,7 @@ public class GenericDigitalObject implements DigitalObject {
 
     @Override
     public Payload getPayload(String pid) throws StorageException {
-        Map<String, Payload> man = this.getManifest();
+        Map<String, Payload> man = getManifest();
         if (man.containsKey(pid)) {
             return man.get(pid);
         } else {
@@ -176,10 +177,10 @@ public class GenericDigitalObject implements DigitalObject {
 
     @Override
     public void removePayload(String pid) throws StorageException {
-        Map<String, Payload> man = this.getManifest();
+        Map<String, Payload> man = getManifest();
         if (man.containsKey(pid)) {
             // Close the payload just in case,
-            //  since we are about to orphan it
+            // since we are about to orphan it
             man.get(pid).close();
             man.remove(pid);
         } else {
@@ -190,7 +191,7 @@ public class GenericDigitalObject implements DigitalObject {
     @Override
     public Payload updatePayload(String pid, InputStream in)
             throws StorageException {
-        GenericPayload payload = (GenericPayload) this.getPayload(pid);
+        GenericPayload payload = (GenericPayload) getPayload(pid);
         payload.setInputStream(in);
         return payload;
     }
@@ -198,15 +199,15 @@ public class GenericDigitalObject implements DigitalObject {
     @Override
     public void close() throws StorageException {
         if (metadata != null) {
-            Map<String, Payload> man = this.getManifest();
+            Map<String, Payload> man = getManifest();
             if (!man.containsKey(METADATA_PAYLOAD)) {
                 throw new StorageException("Metadata payload not found");
             }
             try {
                 ByteArrayOutputStream metaOut = new ByteArrayOutputStream();
                 metadata.store(metaOut, METADATA_LABEL);
-                this.updatePayload(METADATA_PAYLOAD,
-                        new ByteArrayInputStream(metaOut.toByteArray()));
+                updatePayload(METADATA_PAYLOAD, new ByteArrayInputStream(
+                        metaOut.toByteArray()));
             } catch (IOException ex) {
                 throw new StorageException(ex);
             }

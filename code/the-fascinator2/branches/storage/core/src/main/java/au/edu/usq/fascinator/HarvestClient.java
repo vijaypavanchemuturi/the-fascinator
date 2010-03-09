@@ -27,6 +27,15 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
+import javax.jms.Connection;
+import javax.jms.DeliveryMode;
+import javax.jms.Destination;
+import javax.jms.JMSException;
+import javax.jms.MessageProducer;
+import javax.jms.Session;
+import javax.jms.TextMessage;
+
+import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.log4j.MDC;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,6 +49,7 @@ import au.edu.usq.fascinator.api.storage.Storage;
 import au.edu.usq.fascinator.api.storage.StorageException;
 import au.edu.usq.fascinator.api.transformer.TransformerException;
 import au.edu.usq.fascinator.common.JsonConfig;
+import au.edu.usq.fascinator.common.JsonConfigHelper;
 import au.edu.usq.fascinator.common.storage.StorageUtils;
 
 public class HarvestClient {
@@ -64,6 +74,12 @@ public class HarvestClient {
 
     private Storage storage;
 
+    private Connection connection;
+
+    private Session session;
+
+    private MessageProducer producer;
+
     public HarvestClient() throws HarvesterException {
         this(null, null);
     }
@@ -83,30 +99,53 @@ public class HarvestClient {
             throw new HarvesterException("Failed to read configuration file: '"
                     + configFile + "'");
         }
+        // initialise storage system
+        String storageType = config.get("storage/type", DEFAULT_STORAGE_TYPE);
+        storage = PluginManager.getStorage(storageType);
+        if (storage == null) {
+            throw new HarvesterException("Storage plugin '" + storageType
+                    + "'. Ensure it is in the classpath.");
+        }
+        try {
+            storage.init(configFile);
+            log.info("Loaded {}", storage.getName());
+        } catch (PluginException pe) {
+            throw new HarvesterException("Failed to initialise storage", pe);
+        }
+
         rulesFile = new File(configFile.getParent(), config
                 .get("indexer/script/rules"));
+
+        initConnection();
     }
 
-    public void run() throws PluginException {
+    private void initConnection() {
+        try {
+            String brokerUrl = config.get("messaging/url",
+                    ActiveMQConnectionFactory.DEFAULT_BROKER_BIND_URL);
+            ActiveMQConnectionFactory connectionFactory = new ActiveMQConnectionFactory(
+                    brokerUrl);
+            connection = connectionFactory.createConnection();
+            connection.start();
+            session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
+            Destination destination = session
+                    .createQueue(HarvestQueueConsumer.HARVEST_QUEUE);
+            producer = session.createProducer(destination);
+            producer.setDeliveryMode(DeliveryMode.PERSISTENT);
+        } catch (JMSException jmse) {
+            log.error("Failed to start connection: {}", jmse.getMessage());
+        }
+    }
+
+    public void start() throws PluginException {
         DateFormat df = new SimpleDateFormat(DATETIME_FORMAT);
         String now = df.format(new Date());
         long start = System.currentTimeMillis();
         log.info("Started at " + now);
 
-        // initialise storage system
-        String storageType = config.get("storage/type", DEFAULT_STORAGE_TYPE);
-        Storage rawStorage = PluginManager.getStorage(storageType);
-        if (rawStorage == null) {
-            throw new HarvesterException("Storage plugin '" + storageType
-                    + "'. Ensure it is in the classpath.");
-        }
-        storage = new QueueStorage(rawStorage, configFile);
-        storage.init(configFile);
-        log.info("Loaded {}", rawStorage.getName());
-
         // cache harvester config and indexer rules
-        StorageUtils.storeFile(rawStorage, configFile);
-        StorageUtils.storeFile(rawStorage, rulesFile);
+        StorageUtils.storeFile(storage, configFile);
+        StorageUtils.storeFile(storage, rulesFile);
 
         // initialise the harvester
         Harvester harvester = null;
@@ -139,14 +178,11 @@ public class HarvestClient {
             do {
                 for (String oid : harvester.getDeletedObjectIdList()) {
                     storage.removeObject(oid);
+                    queueDelete(oid, configFile);
                 }
             } while (harvester.hasMoreObjects());
         }
-        try {
-            storage.shutdown();
-        } catch (PluginException e) {
-            log.error("Failed to shutdown storage", e);
-        }
+
         log.info("Completed in "
                 + ((System.currentTimeMillis() - start) / 1000.0) + " seconds");
     }
@@ -219,7 +255,36 @@ public class HarvestClient {
          */
     }
 
-    // helper methods
+    public void shutdown() {
+        if (storage != null) {
+            try {
+                storage.shutdown();
+            } catch (PluginException pe) {
+                log.error("Failed to shutdown storage", pe);
+            }
+        }
+        if (producer != null) {
+            try {
+                producer.close();
+            } catch (JMSException jmse) {
+                log.warn("Failed to close producer", jmse);
+            }
+        }
+        if (session != null) {
+            try {
+                session.close();
+            } catch (JMSException jmse) {
+                log.warn("Failed to close session", jmse);
+            }
+        }
+        if (connection != null) {
+            try {
+                connection.close();
+            } catch (JMSException jmse) {
+                log.warn("Failed to close connection", jmse);
+            }
+        }
+    }
 
     private void processObject(String oid) throws StorageException,
             TransformerException {
@@ -245,6 +310,36 @@ public class HarvestClient {
 
         // done with the object
         object.close();
+
+        // queue the object for indexing
+        queueHarvest(oid, configFile);
+    }
+
+    private void queueHarvest(String oid, File jsonFile) {
+        try {
+            JsonConfigHelper json = new JsonConfigHelper(jsonFile);
+            json.set("oid", oid);
+            TextMessage message = session.createTextMessage(json.toString());
+            producer.send(message);
+        } catch (IOException ioe) {
+            log.error("Failed to parse message: {}", ioe.getMessage());
+        } catch (JMSException jmse) {
+            log.error("Failed to send message: {}", jmse.getMessage());
+        }
+    }
+
+    private void queueDelete(String oid, File jsonFile) {
+        try {
+            JsonConfigHelper json = new JsonConfigHelper(jsonFile);
+            json.set("oid", oid);
+            json.set("deleted", "true");
+            TextMessage message = session.createTextMessage(json.toString());
+            producer.send(message);
+        } catch (IOException ioe) {
+            log.error("Failed to parse message: {}", ioe.getMessage());
+        } catch (JMSException jmse) {
+            log.error("Failed to send message: {}", jmse.getMessage());
+        }
     }
 
     public static void main(String[] args) {
@@ -254,7 +349,8 @@ public class HarvestClient {
             File jsonFile = new File(args[0]);
             try {
                 HarvestClient harvest = new HarvestClient(jsonFile);
-                harvest.run();
+                harvest.start();
+                harvest.shutdown();
             } catch (PluginException pe) {
                 log.error("Failed to initialise client: ", pe);
             }

@@ -216,7 +216,8 @@ public class Dispatch {
                 "json-config"));
         try {
             HarvestClient harvester = new HarvestClient(harvest_config, file);
-            harvester.run();
+            harvester.start();
+            harvester.shutdown();
         } catch (Exception ex) {
             log.error("Failed harvest", ex);
             return;

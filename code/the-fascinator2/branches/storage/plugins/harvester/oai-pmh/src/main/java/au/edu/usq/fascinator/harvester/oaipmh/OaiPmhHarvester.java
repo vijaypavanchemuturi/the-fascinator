@@ -43,6 +43,7 @@ import au.edu.usq.fascinator.api.storage.Storage;
 import au.edu.usq.fascinator.api.storage.StorageException;
 import au.edu.usq.fascinator.common.JsonConfig;
 import au.edu.usq.fascinator.common.harvester.impl.GenericHarvester;
+import au.edu.usq.fascinator.common.storage.StorageUtils;
 
 /**
  * Harvests metadata records from an OAI-PMH server
@@ -216,13 +217,14 @@ public class OaiPmhHarvester extends GenericHarvester {
             StorageException {
         Storage storage = getStorage();
         String oid = record.getHeader().getIdentifier();
-        DigitalObject oaiObject = storage.createObject(oid);
-        Payload payload = oaiObject.createStoredPayload(metadataPrefix, IOUtils
-                .toInputStream(record.getMetadataAsString(), "UTF-8"));
+        DigitalObject object = storage.createObject(oid);
+        Payload payload = StorageUtils.createOrUpdatePayload(object,
+                metadataPrefix, IOUtils.toInputStream(record
+                        .getMetadataAsString(), "UTF-8"));
         payload.setContentType("text/xml");
         payload.close();
-        oaiObject.close();
-        return oaiObject.getId();
+        object.close();
+        return object.getId();
     }
 
     @Override
