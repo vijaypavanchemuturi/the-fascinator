@@ -18,6 +18,7 @@
     <module>authentication/filesystem</module>
     <module>harvester/filesystem</module>
     <module>harvester/oai-pmh</module>
+    <module>harvester/workflow</module>
     <module>indexer/solr</module>
     <module>roles/internal</module>
     <module>storage/filesystem</module>
@@ -29,7 +30,6 @@
     <!-- TODO The following modules need to be updated to new Storage API -->
     <!--
     <module>harvester/jsonq</module>
-    <module>harvester/workflow</module>
     <module>storage/couchdb</module>
     <module>storage/fedora3</module>
     -->

@@ -53,6 +53,7 @@ import au.edu.usq.fascinator.common.storage.StorageUtils;
  * (default: .svn)</li>
  * <li>cacheDir: location for cache files</li>
  * <li>force: set true to force harvest of all files (ignore cache)</li>
+ * <li>link: set true to link to original files, false to create copies</li>
  * </ul>
  * 
  * @author Oliver Lucido
@@ -100,6 +101,9 @@ public class FileSystemHarvester extends GenericHarvester {
 
     /** force harvesting all files */
     private boolean force;
+
+    /** use links instead of copying */
+    private boolean link;
 
     /** filter used when detecting deleted files */
     private FileFilter idTxtFilter;
@@ -152,6 +156,8 @@ public class FileSystemHarvester extends GenericHarvester {
         if (force) {
             log.info("Forcing harvest of all files...");
         }
+        link = Boolean.parseBoolean(config.get("harvester/file-system/link",
+                "false"));
         currentDir = baseDir;
         subDirs = new Stack<File>();
         hasMore = true;
@@ -321,33 +327,9 @@ public class FileSystemHarvester extends GenericHarvester {
 
     private String createDigitalObject(File file) throws HarvesterException,
             StorageException {
-        Storage storage = getStorage();
-        String filePath = file.getAbsolutePath();
-        String oid = FilenameUtils.separatorsToUnix(filePath);
-        String pid = FilenameUtils.getName(filePath);
-
-        DigitalObject object = null;
-        Payload payload = null;
-        InputStream in = null;
-        try {
-            in = new FileInputStream(file);
-            object = StorageUtils.getDigitalObject(storage, oid);
-            StorageUtils.createOrUpdatePayload(object, pid, in);
-            if (in != null) {
-                in.close();
-            }
-        } catch (StorageException ex) {
-            throw ex;
-        } catch (Exception e) {
-            throw new HarvesterException(e);
-        } finally {
-            if (object != null) {
-                object.close();
-            }
-            if (payload != null) {
-                payload.close();
-            }
-        }
+        DigitalObject object = StorageUtils.storeFile(getStorage(), file, link);
+        String oid = object.getId();
+        object.close();
         return oid;
     }
 }

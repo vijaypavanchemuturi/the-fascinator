@@ -18,22 +18,19 @@
  */
 package au.edu.usq.fascinator.harvester.workflow;
 
-import au.edu.usq.fascinator.api.Configurable;
-import au.edu.usq.fascinator.api.harvester.Harvester;
 import au.edu.usq.fascinator.api.harvester.HarvesterException;
 import au.edu.usq.fascinator.api.storage.DigitalObject;
-import au.edu.usq.fascinator.common.JsonConfig;
+import au.edu.usq.fascinator.api.storage.Payload;
+import au.edu.usq.fascinator.api.storage.Storage;
+import au.edu.usq.fascinator.api.storage.StorageException;
+import au.edu.usq.fascinator.common.harvester.impl.GenericHarvester;
+import au.edu.usq.fascinator.common.storage.StorageUtils;
 
-import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.IOException;
-import java.io.StringWriter;
-import java.io.UnsupportedEncodingException;
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
-import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,100 +41,46 @@ import org.slf4j.LoggerFactory;
  *
  * @author Greg Pendlebury
  */
-public class WorkflowHarvester implements Harvester, Configurable {
+public class WorkflowHarvester extends GenericHarvester {
 
     /** logging */
     private Logger log = LoggerFactory.getLogger(WorkflowHarvester.class);
 
-    /** configuration */
-    private JsonConfig config;
-
     /** flag for forcing local storage */
-    private boolean forceLocalStorage = true;
+    private boolean forceLocalStorage;
 
-    @Override
-    public String getId() {
-        return "workflow-harvester";
+    public WorkflowHarvester() {
+        super("workflow-harvester", "Workflow Harvester");
     }
 
     @Override
-    public String getName() {
-        return "Workflow Harvester";
+    public void init() throws HarvesterException {
+        forceLocalStorage = Boolean.parseBoolean(getJsonConfig()
+                .get("harvester/workflow-harvester/force-storage", "true"));
     }
 
     @Override
-    public void init(String jsonString) throws HarvesterException {
-        try {
-            config = new JsonConfig(new ByteArrayInputStream(
-                    jsonString.getBytes("UTF-8")));
-            setConfig();
-        } catch (UnsupportedEncodingException e) {
-            throw new HarvesterException(e);
-        } catch (IOException e) {
-            throw new HarvesterException(e);
-        }
+    public Set<String> getObjectIdList() throws HarvesterException {
+        return Collections.emptySet();
     }
 
     @Override
-    public void init(File jsonFile) throws HarvesterException {
-        try {
-            config = new JsonConfig(jsonFile);
-            setConfig();
-        } catch (IOException ioe) {
-            throw new HarvesterException(ioe);
-        }
-    }
-
-    private void setConfig() throws IOException {
-        forceLocalStorage = Boolean.parseBoolean(
-                String.valueOf(config.get(
-                "harvester/workflow-harvester/force-storage",
-                String.valueOf(forceLocalStorage))));
-    }
-
-    @Override
-    public void shutdown() throws HarvesterException {
-        // Do nothing
-    }
-
-    @Override
-    public List<DigitalObject> getObjects() throws HarvesterException {
-        return Collections.emptyList();
-    }
-
-    @Override
-    public List<DigitalObject> getObject(File uploadedFile)
+    public Set<String> getObjectId(File uploadedFile)
             throws HarvesterException {
-        List<DigitalObject> fileObjects = new ArrayList<DigitalObject>();
-        fileObjects.add(new WorkflowDigitalObject(uploadedFile, forceLocalStorage));
-        return fileObjects;
-    }
-
-    @Override
-    public String getConfig() {
-        StringWriter writer = new StringWriter();
+            Set<String> objectIds = new HashSet<String>();
+        Storage storage = getStorage();
         try {
-            IOUtils.copy(getClass().getResourceAsStream(
-                    "/" + getId() + "-config.html"), writer);
-        } catch (IOException ioe) {
-            writer.write("<span class=\"error\">" + ioe.getMessage()
-                    + "</span>");
+            DigitalObject object = StorageUtils.storeFile(storage, uploadedFile,
+                    forceLocalStorage);
+            objectIds.add(object.getId());
+        } catch (StorageException se) {
+            throw new HarvesterException(se);
         }
-        return writer.toString();
-    }
-
-    @Override
-    public List<DigitalObject> getDeletedObjects() {
-        return Collections.emptyList();
+        return objectIds;
     }
 
     @Override
     public boolean hasMoreObjects() {
-        return false;
-    }
-
-    @Override
-    public boolean hasMoreDeletedObjects() {
         return false;
     }
 }
