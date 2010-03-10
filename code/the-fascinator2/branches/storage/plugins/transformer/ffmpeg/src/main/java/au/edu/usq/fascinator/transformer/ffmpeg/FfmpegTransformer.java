@@ -65,6 +65,10 @@ public class FfmpegTransformer implements Transformer {
     /** Ffmpeg class for conversion **/
     private Ffmpeg ffmpeg;
 
+    public FfmpegTransformer() {
+        // Need a default constructor for ServiceLoader
+    }
+
     public FfmpegTransformer(Ffmpeg ffmpeg) {
         this.ffmpeg = ffmpeg;
     }
