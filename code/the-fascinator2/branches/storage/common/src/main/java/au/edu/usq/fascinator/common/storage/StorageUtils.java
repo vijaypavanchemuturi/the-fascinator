@@ -86,7 +86,7 @@ public class StorageUtils {
         DigitalObject object = null;
         Payload payload = null;
         String oid = FilenameUtils.separatorsToUnix(file.getAbsolutePath());
-        String pid = file.getName();
+        String pid = FilenameUtils.separatorsToUnix(file.getName());
         try {
             try {
                 object = getDigitalObject(storage, oid);
