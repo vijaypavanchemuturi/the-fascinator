@@ -487,10 +487,11 @@ public class SolrIndexer implements Indexer {
 
         try {
             // Get the rules file
+            String rulesOid = "anotar.py";
             File rulesFile = null;
             // Have we already cached this one?
-            if (rulesList.containsKey("anotar.py")) {
-                rulesFile = rulesList.get("anotar.py");
+            if (rulesList.containsKey(rulesOid)) {
+                rulesFile = rulesList.get(rulesOid);
                 // No... cache it
             } else {
                 rulesFile = createTempFile("rules", ".script");
@@ -498,7 +499,7 @@ public class SolrIndexer implements Indexer {
                 IOUtils.copy(getClass().getResourceAsStream("/anotar.py"),
                         rulesOut);
                 rulesOut.close();
-                rulesList.put("anotar.py", rulesFile);
+                rulesList.put(rulesOid, rulesFile);
             }
 
             File solrFile = null;
@@ -521,6 +522,7 @@ public class SolrIndexer implements Indexer {
             log.error("Indexing failed!\n-----\n{}\n-----\n", e.getMessage());
         } finally {
             cleanupTempFiles();
+
         }
     }
 
@@ -651,6 +653,10 @@ public class SolrIndexer implements Indexer {
             }
         }
         tempFiles = Collections.synchronizedList(new ArrayList<File>());
+
+        // Clear the lists of specific types we keep
+        rulesList = new HashMap<String, File>();
+        confList = new HashMap<String, File>();
     }
 
     // Helper methods
@@ -689,9 +695,9 @@ public class SolrIndexer implements Indexer {
         return null;
     }
 
-    public JsonConfigHelper getJsonDocument(Reader jsonReader) {
+    public JsonConfigHelper getJsonObject(InputStream in) {
         try {
-            return new JsonConfigHelper(jsonReader);
+            return new JsonConfigHelper(in);
         } catch (IOException ex) {
             log.error("Failure during stream access", ex);
             return null;
@@ -787,7 +793,7 @@ public class SolrIndexer implements Indexer {
         tempPayload.close();
         tempFileOut.close();
 
-        log.debug("tempFile size: {}, {}", oid, tempFile.length());
+        //log.debug("tempFile size: {}, {}", oid, tempFile.length());
 
         return tempFile;
     }

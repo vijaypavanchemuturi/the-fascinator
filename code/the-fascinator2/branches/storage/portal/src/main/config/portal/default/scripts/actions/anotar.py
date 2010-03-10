@@ -1,5 +1,6 @@
 from au.edu.usq.fascinator.api.indexer import SearchRequest
 from au.edu.usq.fascinator.api.storage import PayloadType
+from au.edu.usq.fascinator.api.storage import StorageException
 from au.edu.usq.fascinator.common.storage.impl import GenericPayload
 from au.edu.usq.fascinator.common import JsonConfigHelper
 
@@ -8,111 +9,36 @@ from java.lang import String, StringBuilder, Boolean
 
 import json, time
 
-class AnotarPayload(GenericPayload):
-    def __init__(self, payload, obj):
-        if payload is None:
-            self.setId(self.generate_id(obj))
-            self.setLabel("Anotar")
-            self.setContentType("application/json")
-        else:
-            GenericPayload.__init__(self, payload)
-            self.__content = self.set_content(payload)
-
-        self.setType(PayloadType.Annotation)
-
-    def add_json(self, json):
-        #print "**** anotar.py : add_json() : adding json : " + json
-        jsonObj = JsonConfigHelper(json)
-        jsonObj.set("id", self.getId())
-        rootUri = jsonObj.get("annotates/rootUri")
-        if rootUri is not None:
-            baseUrl = "http://%s:%s" % (request.serverName, serverPort)
-            myUri = baseUrl + rootUri + "#" + self.getId()
-            jsonObj.set("uri", myUri)
-
-        jsonObj.set("schemaVersionUri", "http://www.purl.org/anotar/schema/0.1")
-
-        self.__content = jsonObj.toString(False)
-        return self.__content
-        #print "**** anotar.py : add_json() : completed json : " + self.__content
-
-    def generate_id(self, obj):
-        counter = 0
-        fileName = "anotar." + str(counter)
-        payload = obj.getPayload(fileName)
-        while payload is not None:
-            counter = counter + 1
-            fileName = "anotar." + str(counter)
-            payload = obj.getPayload(fileName)
-        return fileName
-
-    def get_content(self):
-        return self.__content
-
-    def set_content(self, payload):
-        sb = StringBuilder()
-        line = None
-        inStream = payload.getInputStream()
-        try:
-            reader = BufferedReader(InputStreamReader(inStream, "UTF-8"))
-            line = reader.readLine()
-            while line is not None:
-                sb.append(line).append("\n")
-                line = reader.readLine()
-        finally:
-            inStream.close()
-
-        return sb.toString()
-
-    def get_if_root(self, rootUri):
-        myJson = self.get_content()
-        jsonObj = JsonConfigHelper(myJson)
-        myUri = jsonObj.get("annotates/uri")
-        if myUri == rootUri:
-            return myJson
-        else:
-            return None
-
-    def get_with_type(self, type):
-        myJson = self.get_content()
-        jsonObj = JsonConfigHelper(myJson)
-        myType = jsonObj.get("type")
-        if myType == type:
-            return jsonObj
-        else:
-            return None
-
-    def getInputStream(self):
-        ourString = String(self.__content)
-        return ByteArrayInputStream(ourString.getBytes("UTF-8"))
-
 class AnotarData:
     def __init__(self):
         self.action = formData.get("action")
         self.rootUri = formData.get("rootUri")
-        
-        if self.rootUri.find("?ticks") > -1:
-            self.rootUri = self.rootUri[:self.rootUri.find("?ticks")]
-        
         self.json = formData.get("json")
         self.type = formData.get("type")
-        print "**** anotar.py : Action : " + self.action
-        print "**** formData: ", formData
+        print " * anotar.py : '" + self.action + "' : ", formData
 
-        self.obj = Services.storage.getObject(self.rootUri)
+        # ?? media fragment stuff?
+        if self.rootUri.find("?ticks") > -1:
+            self.rootUri = self.rootUri[:self.rootUri.find("?ticks")]
+
+        # Portal path info
+        portalPath = contextPath + "/" + portalId + "/"
+        self.oid = self.rootUri
+        if self.oid.startswith(portalPath):
+            self.oid = self.oid[len(portalPath):]
 
         if self.action == "getList":
             # Repsonse is a list of object (nested)
             #print "**** anotar.py : GET_SOLR : " + self.rootUri
-            result = self.__search_solr()
+            result = self.search_solr()
         elif self.action == "put":
             # Response is an ID
             #print "**** anotar.py : PUT : " + self.rootUri
-            result = self.__put()
+            result = self.put()
         elif self.action == "get-image":
             self.type = "http://www.purl.org/anotar/ns/type/0.1#Tag"
             mediaFragType = "http://www.w3.org/TR/2009/WD-media-frags-20091217"
-            result = '{"result":' + self.__search_solr() + '}'
+            result = '{"result":' + self.search_solr() + '}'
             if result:
                 imageTagList = []
                 imageTags = JsonConfigHelper(result).getJsonList("result")
@@ -183,48 +109,36 @@ class AnotarData:
             locatorValue = "%s#%s" % (self.rootUri, mediaDimension)
             dateCreated = time.strftime("%Y-%m-%dT%H:%M:%SZ")
             self.json = jsonTemplate % (self.rootUri, self.rootUri, locatorValue, dateCreated, formData.get("text"))
-            result = self.__put()
+            result = self.put()
         writer = response.getPrintWriter("text/plain")
         writer.println(result)
         writer.close()
 
-    def __put(self):
-        #print "**** anotar.py : __put() : start"
-        p = self.__create_payload()
-        #print "**** anotar.py : __put() : adding jason : " + json
-        json = p.add_json(self.json)
-        Services.storage.addPayload(self.rootUri, p)
-        Services.indexer.annotate(self.rootUri, p.getId())
-        #print "**** anotar.py : __put() : ID : " + p.getId()
-        return json
+    def generate_id(self):
+        counter = 0
+        fileName = "anotar." + str(counter)
+        payloadList = self.obj.getPayloadIdList()
+        while fileName in payloadList:
+            counter = counter + 1
+            fileName = "anotar." + str(counter)
+        self.pid = fileName
+        print " * anotar.py : New ID (" + self.pid + ")"
 
-    def __get_list(self):
-        topLevel = "["
-        #print "**** anotar.py : __get_list() : object id : " + self.rootUri
-        payloads = self.__get_payloads()
-        #print "**** anotar.py : __get_list() : payload list size : " + str(len(payloads))
-        for payload in payloads:
-            if payload.getId()[:7] == "anotar.":
-                #print "**** anotar.py : __get_list() : testing : " + payload.getId()
-                p = payload.get_if_root(self.rootUri)
-                if p is not None:
-                    #print "**** anotar.py : __get_list() : found : " + p
-                    topLevel += p + ","
-        return topLevel + "]"
+    def modify_json(self):
+        #print "**** anotar.py : add_json() : adding json : " + json
+        jsonObj = JsonConfigHelper(self.json)
+        jsonObj.set("id", self.pid)
+        rootUri = jsonObj.get("annotates/rootUri")
+        if rootUri is not None:
+            baseUrl = "http://%s:%s" % (request.serverName, serverPort)
+            myUri = baseUrl + rootUri + "#" + self.pid
+            jsonObj.set("uri", myUri)
 
-    def __create_payload(self):
-        #print "**** anotar.py : __create_payload() : start"
-        return AnotarPayload(None, self.obj)
+        jsonObj.set("schemaVersionUri", "http://www.purl.org/anotar/schema/0.1")
 
-    def __get_payloads(self):
-        #print "**** anotar.py : __get_payloads() : start : " + self.rootUri
-        payloads = self.obj.getPayloadList()
-        return_list = []
-        for payload in payloads:
-            return_list.append(AnotarPayload(payload, self.obj))
-        return return_list
+        self.json = jsonObj.toString(False)
 
-    def __process_response(self, result):
+    def process_response(self, result):
         docs = []
         rootDocs = []
         docsDict = {}
@@ -235,23 +149,23 @@ class AnotarData:
             doc["replies"] = []
             docs.append(doc)
             docsDict[doc["uri"]] = doc
-            if doc["annotates"]["uri"]==doc["annotates"]["rootUri"]:
+            if doc["annotates"]["uri"] == doc["annotates"]["rootUri"]:
                 rootDocs.append(doc)
 
         # Now process the dictionary
         for doc in docs:
             # If we are NOT a top level annotation
-            if doc["annotates"]["uri"]!=doc["annotates"]["rootUri"]:
+            if doc["annotates"]["uri"] != doc["annotates"]["rootUri"]:
                 # Find what we are annotating
                 try:
                     d = docsDict[doc["annotates"]["uri"]]
-                    d["replies"].append(doc)    # Add ourselves to its reply list
+                    d["replies"].append(doc) # Add ourselves to its reply list
                 except:
                     # TODO KeyError
                     pass
         return json.write(rootDocs)
 
-    def __process_tags(self, result):
+    def process_tags(self, result):
         tags = []
         tagsDict = {}
         # Build a dictionary of the tags
@@ -274,7 +188,26 @@ class AnotarData:
 
         return "[" + ",".join(tags) + "]"
 
-    def __search_solr(self):
+    def put(self):
+        try:
+            self.obj = Services.storage.getObject(self.oid)
+        except StorageException, e:
+            print " * anotar.py : Error creating object : ", e
+            return e.getMessage()
+
+        self.generate_id()
+        self.modify_json()
+
+        try:
+            p = self.obj.createStoredPayload(self.pid, self.string_to_input_stream(self.json))
+        except StorageException, e:
+            print " * anotar.py : Error creating payload : ", e
+            return e.getMessage()
+
+        Services.indexer.annotate(self.oid, self.pid)
+        return self.json
+
+    def search_solr(self):
         query = "(rootUri:\"" + self.rootUri + "\""
         query += " AND type:\"" + self.type + "\")"
 
@@ -295,8 +228,13 @@ class AnotarData:
 
         # Every annotation for this URI
         if self.type == "http://www.purl.org/anotar/ns/type/0.1#Tag":
-            return self.__process_tags(result)
+            return self.process_tags(result)
         else:
-            return self.__process_response(result)
+            return self.process_response(result)
+
+    def string_to_input_stream(self, inString):
+        jString = String(inString)
+        #print " * anotar.py : ", jString
+        return ByteArrayInputStream(jString.getBytes("UTF-8"))
 
 scriptObject = AnotarData()
