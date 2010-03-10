@@ -89,6 +89,8 @@ public class Ice2Transformer implements Transformer {
     /** Default zip mime type **/
     private static final String ZIP_MIME_TYPE = "application/zip";
 
+    private static final String HTML_MIME_TYPE = "text/html";
+
     /**
      * ICE transformer constructor
      */
@@ -189,12 +191,14 @@ public class Ice2Transformer implements Transformer {
                 ZipEntry entry = entries.nextElement();
                 if (!entry.isDirectory()) {
                     String name = entry.getName();
+                    String mimeType = MimeTypeUtil.getMimeType(name);
                     Payload icePayload = StorageUtils.createOrUpdatePayload(
                             object, name, zipFile.getInputStream(entry));
-                    // Set to enrichment
-                    icePayload.setType(PayloadType.Enrichment);
                     icePayload.setLabel(name);
-                    icePayload.setContentType(MimeTypeUtil.getMimeType(name));
+                    icePayload.setContentType(mimeType);
+                    if (HTML_MIME_TYPE.equals(mimeType)) {
+                        icePayload.setType(PayloadType.Preview);
+                    }
                 }
             }
         } else {
