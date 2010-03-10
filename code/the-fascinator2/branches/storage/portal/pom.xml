@@ -177,10 +177,6 @@
         </dependency>
         <dependency>
           <groupId>au.edu.usq.fascinator.plugins</groupId>
-          <artifactId>plugin-harvester-jsonq</artifactId>
-        </dependency>
-        <dependency>
-          <groupId>au.edu.usq.fascinator.plugins</groupId>
           <artifactId>plugin-harvester-oai-pmh</artifactId>
         </dependency>
         <dependency>
@@ -207,10 +203,12 @@
           <groupId>au.edu.usq.fascinator.plugins</groupId>
           <artifactId>plugin-transformer-ims</artifactId>
         </dependency>
+        <!--
         <dependency>
           <groupId>au.edu.usq.fascinator.plugins</groupId>
           <artifactId>plugin-storage-fedora3</artifactId>
         </dependency>
+        -->
         <dependency>
           <groupId>au.edu.usq.fascinator.plugins</groupId>
           <artifactId>plugin-storage-filesystem</artifactId>
