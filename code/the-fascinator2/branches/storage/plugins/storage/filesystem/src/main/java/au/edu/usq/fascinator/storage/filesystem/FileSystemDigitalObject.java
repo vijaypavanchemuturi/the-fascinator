@@ -56,6 +56,7 @@ public class FileSystemDigitalObject extends GenericDigitalObject {
         lockManifest();
         buildManifest();
         unlockManifest();
+        log.debug("Object instantiation complete : " + oid);
     }
 
     // Unit testing
@@ -68,8 +69,8 @@ public class FileSystemDigitalObject extends GenericDigitalObject {
             String lockPath = getPath() + File.separator + "manifest.lock";
             lockFile = new File(lockPath);
             if (!lockFile.exists()) {
-                log.debug("Creating new lock file : "
-                        + lockFile.getAbsolutePath());
+                //log.debug("Creating new lock file : "
+                //        + lockFile.getAbsolutePath());
                 lockFile.getParentFile().mkdirs();
                 lockFile.createNewFile();
             }
@@ -81,9 +82,9 @@ public class FileSystemDigitalObject extends GenericDigitalObject {
 
     private void lockManifest() {
         try {
-            log.debug(" * Locking Manifest : " + getId());
+            //log.debug(" * Locking Manifest : " + getId());
             manifestLock.getLock();
-            log.debug(" * Manifest locked : " + getId());
+            //log.debug(" * Manifest locked : " + getId());
         } catch (IOException ex) {
             log.error("Failed acquiring manifest lock : ", ex);
         }
@@ -91,9 +92,9 @@ public class FileSystemDigitalObject extends GenericDigitalObject {
 
     private void unlockManifest() {
         try {
-            log.debug(" * Unlocking Manifest : " + getId());
+            //log.debug(" * Unlocking Manifest : " + getId());
             manifestLock.release();
-            log.debug(" * Manifest unlocked : " + getId());
+            //log.debug(" * Manifest unlocked : " + getId());
         } catch (IOException ex) {
             log.error("Failed releasing manifest lock : ", ex);
         }
@@ -131,7 +132,7 @@ public class FileSystemDigitalObject extends GenericDigitalObject {
                         }
                         payloadFile = new File(relPath, file.getName());
                     }
-                    log.debug("File found on disk : " + payloadFile.getName());
+                    //log.debug("File found on disk : " + payloadFile.getName());
                     FileSystemPayload payload = new FileSystemPayload(
                             payloadFile.getName(), payloadFile);
                     payload.readExistingMetadata();
@@ -144,7 +145,7 @@ public class FileSystemDigitalObject extends GenericDigitalObject {
                 }
             }
         }
-        log.debug("New Manifest : " + manifest);
+        //log.debug("New Manifest : " + manifest);
     }
 
     @Override
@@ -169,11 +170,11 @@ public class FileSystemDigitalObject extends GenericDigitalObject {
 
     private Payload createPayload(String pid, InputStream in, boolean linked)
             throws StorageException {
-        log.debug("**** Starting Payload creation : " + pid);
+        log.debug("createPayload(" + pid + ")");
         // Manifest check
         lockManifest();
         Map<String, Payload> manifest = getManifest();
-        log.debug("FileSystem Manifest : " + manifest);
+        //log.debug("FileSystem Manifest : " + manifest);
         if (manifest.containsKey(pid)) {
             unlockManifest();
             throw new StorageException("ID '" + pid
@@ -200,7 +201,7 @@ public class FileSystemDigitalObject extends GenericDigitalObject {
 
         // File storage
         try {
-            log.debug("Copying {}", newFile);
+            //log.debug("Copying {}", newFile);
             FileOutputStream out = new FileOutputStream(newFile);
             IOUtils.copy(in, out);
             in.close();
@@ -229,6 +230,7 @@ public class FileSystemDigitalObject extends GenericDigitalObject {
 
     @Override
     public Payload getPayload(String pid) throws StorageException {
+        log.debug("getPayload(" + pid + ")");
         lockManifest();
         unlockManifest();
 
@@ -242,6 +244,7 @@ public class FileSystemDigitalObject extends GenericDigitalObject {
 
     @Override
     public void removePayload(String pid) throws StorageException {
+        log.debug("removePayload(" + pid + ")");
         lockManifest();
         Map<String, Payload> manifest = getManifest();
         if (!manifest.containsKey(pid)) {
@@ -278,6 +281,7 @@ public class FileSystemDigitalObject extends GenericDigitalObject {
     @Override
     public Payload updatePayload(String pid, InputStream in)
             throws StorageException {
+        log.debug("updatePayload(" + pid + ")");
         lockManifest();
         File oldFile = new File(homeDir, pid);
         if (!oldFile.exists()) {

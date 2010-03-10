@@ -104,7 +104,8 @@ public class Dispatch {
     private InputStream stream;
 
     public StreamResponse onActivate(Object... params) {
-        log.trace("{} {}", request.getMethod(), request.getPath());
+        log.debug("Dispatch starting : {} {}",
+                request.getMethod(), request.getPath());
 
         // Do all our parsing
         resourceName = resourceProcessing();

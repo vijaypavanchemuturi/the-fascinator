@@ -31,6 +31,7 @@ import au.edu.usq.fascinator.api.storage.DigitalObject;
 import au.edu.usq.fascinator.api.storage.Payload;
 import au.edu.usq.fascinator.api.storage.Storage;
 import au.edu.usq.fascinator.api.storage.StorageException;
+import org.apache.commons.io.FilenameUtils;
 
 /**
  * Storage API utility methods.
@@ -84,7 +85,7 @@ public class StorageUtils {
             throws StorageException {
         DigitalObject object = null;
         Payload payload = null;
-        String oid = file.getAbsolutePath();
+        String oid = FilenameUtils.separatorsToUnix(file.getAbsolutePath());
         String pid = file.getName();
         try {
             try {

@@ -5,6 +5,7 @@ from org.apache.commons.io import IOUtils
 from java.io import BufferedReader
 from java.io import InputStreamReader
 from java.lang import StringBuilder
+from au.edu.usq.fascinator.api.storage import StorageException;
 
 
 
@@ -22,14 +23,15 @@ class JsonIms(object):
         basePath = portalId + "/" + pageName
         uri = URLDecoder.decode(request.getAttribute("RequestURI"))
         oid = uri[len(basePath)+1:]
-        payload = Services.storage.getPayload(oid, "imsmanifest.xml")
-        if payload is not None:
+        object = Services.storage.getObject(oid)
+        try:
+            payload = object.getPayload("imsmanifest.xml")
             try:
                 from xml.etree import ElementTree as ElementTree
                 #xml = ElementTree()
                 #IOUtils.copy(payload.inputStream, out)
                 sb = StringBuilder()
-                inputStream = payload.inputStream
+                inputStream = payload.open()
                 reader = BufferedReader(InputStreamReader(inputStream,
                             "UTF-8"))
                 while True:
@@ -37,7 +39,7 @@ class JsonIms(object):
                     if line is None:
                         break
                     sb.append(line).append("\n")
-                inputStream.close()
+                payload.close()
                 xmlStr =  sb.toString()
                 xml = ElementTree.XML(xmlStr)
                 ns = xml.tag[:xml.tag.find("}")+1]
@@ -65,6 +67,9 @@ class JsonIms(object):
             except Exception, e:
                  data["error"] = "Error - %s" % str(e)
                  print data["error"]
+        except StorageException, e:
+            data["DEBUG"] = str(e.getMessage())
+
         return repr(data)
 
 
