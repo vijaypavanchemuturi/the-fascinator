@@ -3,7 +3,7 @@
 <p>Please try a different <a href="$portalPath/search">search</a>.</p>
 #else
 #set($meta = $self.metadata)
-#set($oid = $self.object.id)
+#set($oid = $self.object.getId())
 #set($filenameNoExt = $self.getFilePathWithoutExt($oid))
 #set($title = $meta.getField("dc_title"))
 #set($description = $meta.getField("dc_description"))
@@ -50,11 +50,11 @@
   <div id="attachments" class="box menu">
     <h2><a href="#">Attachments</a></h2>
     <ul class="menu hidden">
-    #foreach($payload in $self.object.payloadList)
-      #set($pid = $payload.id)
-      #set($payloadType = $payload.type.toString())
-      <li class="payload" rel="$payload.contentType">
-        <a href='$portalPath/download/$self.encode($oid)/$self.encode($pid)' rel="$payloadType" target="blank" title="$payload.contentType">$payload.id</a>
+    #foreach($pid in $self.object.getPayloadIdList())
+      #set($payload = $self.object.getPayload($pid))
+      #set($payloadType = $payload.getType().toString())
+      <li class="payload" rel="$payload.getContentType()">
+        <a href='$portalPath/download/$self.encode($oid)/$self.encode($pid)' rel="$payloadType" target="blank" title="$payload.getContentType()">$pid</a>
       </li>
     #end
     </ul>

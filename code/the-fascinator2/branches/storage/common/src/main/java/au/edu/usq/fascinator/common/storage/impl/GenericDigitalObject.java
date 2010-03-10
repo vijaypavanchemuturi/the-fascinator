@@ -198,8 +198,12 @@ public class GenericDigitalObject implements DigitalObject {
 
     @Override
     public void close() throws StorageException {
+        Map<String, Payload> man = getManifest();
+        for (String pid : man.keySet()) {
+            man.get(pid).close();
+        }
+
         if (metadata != null) {
-            Map<String, Payload> man = getManifest();
             if (!man.containsKey(METADATA_PAYLOAD)) {
                 throw new StorageException("Metadata payload not found");
             }

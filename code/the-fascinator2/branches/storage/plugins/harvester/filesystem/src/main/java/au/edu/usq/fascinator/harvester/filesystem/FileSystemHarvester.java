@@ -190,7 +190,8 @@ public class FileSystemHarvester extends GenericHarvester {
                 } else {
                     if (force || hasFileChanged(file)) {
                         try {
-                            fileObjectIdList.add(createDigitalObject(file));
+                            String oid = createDigitalObject(file);
+                            fileObjectIdList.add(oid);
                         } catch (StorageException se) {
                             log.warn("File not harvested {}: {}", file, se
                                     .getMessage());

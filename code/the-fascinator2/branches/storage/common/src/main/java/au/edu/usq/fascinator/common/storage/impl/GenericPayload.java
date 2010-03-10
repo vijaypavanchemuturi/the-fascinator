@@ -59,6 +59,9 @@ public class GenericPayload implements Payload {
     /** Input stream to read content data from */
     private InputStream inputStream;
 
+    /** Input stream to read content data from */
+    private boolean metaChanged = false;
+
     /**
      * Creates an empty payload
      *
@@ -80,6 +83,7 @@ public class GenericPayload implements Payload {
         setId(id);
         setLabel(label);
         setContentType(contentType);
+        metaChanged = false;
     }
 
     /**
@@ -97,6 +101,7 @@ public class GenericPayload implements Payload {
         } catch (IOException e) {
             log.error("Error accessing input stream during payload creation", e);
         }
+        metaChanged = false;
     }
 
     /**
@@ -116,6 +121,11 @@ public class GenericPayload implements Payload {
                 log.error("Error accessing input stream during payload creation", e);
             }
         }
+        metaChanged = false;
+    }
+
+    public boolean hasMetaChanged() {
+        return metaChanged;
     }
 
     @Override
@@ -126,6 +136,7 @@ public class GenericPayload implements Payload {
     @Override
     public void setId(String id) {
         this.id = id;
+        metaChanged = true;
     }
 
     @Override
@@ -140,11 +151,13 @@ public class GenericPayload implements Payload {
 
     public void setLinked(boolean newLinked) {
         linked = newLinked;
+        metaChanged = true;
     }
 
     @Override
     public void setType(PayloadType type) {
         this.type = type;
+        metaChanged = true;
     }
 
     @Override
@@ -155,6 +168,7 @@ public class GenericPayload implements Payload {
     @Override
     public void setLabel(String label) {
         this.label = label;
+        metaChanged = true;
     }
 
     @Override
@@ -165,6 +179,7 @@ public class GenericPayload implements Payload {
     @Override
     public void setContentType(String contentType) {
         this.contentType = contentType;
+        metaChanged = true;
     }
 
     @Override
