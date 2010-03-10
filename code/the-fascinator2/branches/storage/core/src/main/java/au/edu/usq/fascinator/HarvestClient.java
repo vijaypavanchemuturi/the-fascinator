@@ -63,8 +63,10 @@ public class HarvestClient {
     private static Logger log = LoggerFactory.getLogger(HarvestClient.class);
 
     private File configFile;
+    private DigitalObject configObject;
 
     private File rulesFile;
+    private DigitalObject rulesObject;
 
     private File uploadedFile;
 
@@ -144,8 +146,8 @@ public class HarvestClient {
         log.info("Started at " + now);
 
         // cache harvester config and indexer rules
-        StorageUtils.storeFile(storage, configFile);
-        StorageUtils.storeFile(storage, rulesFile);
+        configObject = StorageUtils.storeFile(storage, configFile);
+        rulesObject  = StorageUtils.storeFile(storage, rulesFile);
 
         // initialise the harvester
         Harvester harvester = null;
@@ -299,10 +301,10 @@ public class HarvestClient {
         // FIXME objectId is redundant now?
         props.setProperty("objectId", object.getId());
         props.setProperty("scriptType", config.get("indexer/script/type"));
-        props.setProperty("rulesOid", rulesFile.getAbsolutePath());
-        props.setProperty("rulesPid", rulesFile.getName());
-        props.setProperty("jsonConfigOid", configFile.getAbsolutePath());
-        props.setProperty("jsonConfigPid", configFile.getName());
+        props.setProperty("rulesOid", rulesObject.getId());
+        props.setProperty("rulesPid", rulesObject.getSourceId());
+        props.setProperty("jsonConfigOid", configObject.getId());
+        props.setProperty("jsonConfigPid", configObject.getSourceId());
         Map<String, Object> params = config.getMap("indexer/params");
         for (String key : params.keySet()) {
             props.setProperty(key, params.get(key).toString());
