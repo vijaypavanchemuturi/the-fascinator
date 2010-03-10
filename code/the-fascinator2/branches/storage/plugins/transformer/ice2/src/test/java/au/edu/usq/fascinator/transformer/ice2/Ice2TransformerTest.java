@@ -185,7 +185,7 @@ public class Ice2TransformerTest {
         Payload icePayload = testObjectOutput.getPayload("AboutStacks.pdf");
         Assert.assertEquals(icePayload.getId(), "AboutStacks.pdf");
         Assert.assertEquals(icePayload.getLabel(), "AboutStacks.pdf");
-        Assert.assertEquals(icePayload.getType(), PayloadType.Enrichment);
+        Assert.assertEquals(icePayload.getType(), PayloadType.Source);
         Assert.assertEquals(icePayload.getContentType(), "application/pdf");
     }
 
