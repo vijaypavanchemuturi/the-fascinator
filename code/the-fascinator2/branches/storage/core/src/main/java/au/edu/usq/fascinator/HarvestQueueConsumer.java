@@ -219,7 +219,8 @@ public class HarvestQueueConsumer implements MessageListener {
             DigitalObject object = storage.getObject(oid);
 
             // transform it with just the extractor transformers
-            ConveyerBelt conveyerBelt = new ConveyerBelt(jsonStr, "extractor");
+            ConveyerBelt conveyerBelt = new ConveyerBelt(jsonStr,
+                    ConveyerBelt.EXTRACTOR);
             object = conveyerBelt.transform(object);
 
             // update object metadata
