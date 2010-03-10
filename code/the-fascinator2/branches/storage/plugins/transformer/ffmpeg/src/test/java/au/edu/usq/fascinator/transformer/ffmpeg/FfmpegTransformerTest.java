@@ -19,69 +19,68 @@
 package au.edu.usq.fascinator.transformer.ffmpeg;
 
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.net.URISyntaxException;
-import java.util.Set;
 
-import org.junit.Assert;
+import junit.framework.Assert;
+
+import org.apache.commons.io.FilenameUtils;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 
+import au.edu.usq.fascinator.api.PluginManager;
 import au.edu.usq.fascinator.api.storage.DigitalObject;
-import au.edu.usq.fascinator.api.storage.Payload;
 import au.edu.usq.fascinator.api.storage.PayloadType;
-import au.edu.usq.fascinator.api.storage.StorageException;
-import au.edu.usq.fascinator.common.storage.impl.GenericDigitalObject;
+import au.edu.usq.fascinator.api.storage.Storage;
+import au.edu.usq.fascinator.api.transformer.Transformer;
+import au.edu.usq.fascinator.common.storage.StorageUtils;
 
 /**
- * NOTE: Could not perform the test to talk to ffmpeg directly as ffmpeg might
- * not be installed locally
+ * Uses a mock Ffmpeg wrapper for testing
  * 
  * @author Linda Octalina
- * 
  */
-
 public class FfmpegTransformerTest {
-    private GenericDigitalObject testObject;
-    private DigitalObject testObjectOutput;
-    private FfmpegTransformer ffmpeg = new FfmpegTransformer();
 
-    @Test
-    public void testSingleFile() throws URISyntaxException, StorageException,
-            IOException {
-        File audioFile = new File(getClass().getResource("/african_drum.aif")
-                .toURI());
-        testObject = new GenericDigitalObject(audioFile.getAbsolutePath());
-        testObjectOutput = ffmpeg.createFfmpegPayload(testObject, audioFile);
-        Set<String> payloads = testObjectOutput.getPayloadIdList();
-        Assert.assertEquals(1, payloads.size());
-        Payload ffmpegPayload = testObjectOutput.getPayload("african_drum.aif");
-        Assert.assertEquals(ffmpegPayload.getId(), "african_drum.aif");
-        Assert.assertEquals(ffmpegPayload.getLabel(), "african_drum.aif");
-        Assert.assertEquals(ffmpegPayload.getType(), PayloadType.Enrichment);
-        Assert.assertEquals(ffmpegPayload.getContentType(),
-                "application/octet-stream");
+    private Storage ram;
+
+    private Ffmpeg ffmpeg;
+
+    private DigitalObject sourceObject;
+
+    @Before
+    public void setup() throws Exception {
+        ram = PluginManager.getStorage("ram");
+        ram.init("{}");
+        ffmpeg = new FfmpegMockImpl();
+        sourceObject = StorageUtils.storeFile(ram, new File(getClass()
+                .getResource("/african_drum.aif").toURI()));
+    }
+
+    @After
+    public void shutdown() throws Exception {
+        if (sourceObject != null) {
+            sourceObject.close();
+        }
+        if (ram != null) {
+            ram.shutdown();
+        }
     }
 
     @Test
-    public void testErrorFile() throws URISyntaxException, StorageException,
-            UnsupportedEncodingException, FileNotFoundException {
-        File audioFile = new File(getClass().getResource("/african_drum.aif")
-                .toURI());
-        testObject = new GenericDigitalObject(audioFile.getAbsolutePath());
-        testObjectOutput = ffmpeg.createFfmpegErrorPayload(testObject,
-                audioFile, "This is error messasge");
-        Set<String> payloads = testObjectOutput.getPayloadIdList();
-        Assert.assertEquals(1, payloads.size());
-        Payload ffmpegPayload = testObjectOutput
-                .getPayload("african_drum_ffmpeg_error.htm");
-        Assert.assertEquals(ffmpegPayload.getId(),
-                "african_drum_ffmpeg_error.htm");
-        Assert.assertEquals(ffmpegPayload.getLabel(),
-                "FFMPEG conversion errors");
-        Assert.assertEquals(ffmpegPayload.getType(), PayloadType.Error);
-        Assert.assertEquals(ffmpegPayload.getContentType(), "text/html");
-    }
+    public void transformAudio() throws Exception {
+        Transformer t = new FfmpegTransformer(ffmpeg);
+        t.init(new File(getClass().getResource("/ffmpeg-config.json").toURI()));
+        DigitalObject outputObject = t.transform(sourceObject);
 
+        // should have 2 payloads
+        Assert.assertEquals("There should be 2 Payloads", 2, outputObject
+                .getPayloadIdList().size());
+
+        // should have a preview payload
+        String pid = FilenameUtils.getBaseName(sourceObject.getId()) + ".flv";
+        Assert.assertEquals(pid + " should be of type Preview",
+                PayloadType.Preview, outputObject.getPayload(pid).getType());
+
+        outputObject.close();
+    }
 }
