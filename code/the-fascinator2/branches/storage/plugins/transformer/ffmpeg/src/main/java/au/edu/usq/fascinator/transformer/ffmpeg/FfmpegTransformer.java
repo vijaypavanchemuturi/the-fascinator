@@ -91,7 +91,7 @@ public class FfmpegTransformer implements Transformer {
                 if (info.isSupported()) {
                     if (info.hasVideo()) {
                         File thumbnail = getThumbnail(file, info.getDuration());
-                        object = createFfmpegPayload(object, file);
+                        object = createFfmpegPayload(object, thumbnail);
                     }
                     String ext = FilenameUtils.getExtension(file.getName());
                     List<String> excludeList = Arrays.asList(StringUtils.split(

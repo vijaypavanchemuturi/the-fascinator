@@ -170,7 +170,8 @@ public class RenderQueueConsumer implements MessageListener {
             log.info("Received job, object id={}", oid);
             log.info("Updating object...");
             DigitalObject object = storage.getObject(oid);
-            ConveyerBelt conveyerBelt = new ConveyerBelt(text, "render");
+            ConveyerBelt conveyerBelt = new ConveyerBelt(text,
+                    ConveyerBelt.RENDER);
             object = conveyerBelt.transform(object);
             log.info("Indexing object...");
             indexer.index(object.getId());
