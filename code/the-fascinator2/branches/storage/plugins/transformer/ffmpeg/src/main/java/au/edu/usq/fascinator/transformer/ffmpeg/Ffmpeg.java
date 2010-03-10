@@ -18,121 +18,23 @@
  */
 package au.edu.usq.fascinator.transformer.ffmpeg;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Wrapper for the FFMPEG program
  * 
  * @author Oliver Lucido
  */
-public class Ffmpeg {
+public interface Ffmpeg {
 
     public static final String DEFAULT_EXECUTABLE = "ffmpeg";
 
-    private Logger log = LoggerFactory.getLogger(Ffmpeg.class);
+    public boolean isAvailable();
 
-    private String executable;
+    public String executeAndWait(List<String> params) throws IOException;
 
-    public Ffmpeg() {
-        this(DEFAULT_EXECUTABLE);
-    }
+    public FfmpegInfo getInfo(File inputFile) throws IOException;
 
-    public Ffmpeg(String executable) {
-        this.executable = executable;
-    }
-
-    public boolean isAvailable() {
-        boolean available = false;
-        try {
-            execute();
-            available = true;
-        } catch (IOException ioe) {
-            log.warn("ffmpeg execute failed! searching system path...");
-            File found = searchPathForExecutable(executable);
-            if (found != null) {
-                executable = found.getAbsolutePath();
-                log.info("ffmpeg found at {}", executable);
-                try {
-                    execute();
-                    available = true;
-                } catch (IOException ioe2) {
-                }
-            }
-            log.error("ffmpeg not available!");
-        }
-        return available;
-    }
-
-    public Process execute() throws IOException {
-        List<String> noParams = Collections.emptyList();
-        return execute(noParams);
-    }
-
-    public Process execute(List<String> params) throws IOException {
-        List<String> cmd = new ArrayList<String>();
-        cmd.add(executable);
-        cmd.addAll(params);
-        log.debug("Executing: {}", cmd);
-        return new ProcessBuilder(cmd).redirectErrorStream(true).start();
-    }
-
-    public Process waitFor(Process proc, OutputStream out) {
-        new InputHandler("stdout", proc.getInputStream(), out).start();
-        try {
-            proc.waitFor();
-        } catch (InterruptedException ie) {
-            log.error("ffmpeg was interrupted!", ie);
-            proc.destroy();
-        }
-        return proc;
-    }
-
-    public Process executeAndWait(OutputStream out) throws IOException {
-        return waitFor(execute(), out);
-    }
-
-    public Process executeAndWait(List<String> params, OutputStream out)
-            throws IOException {
-        return waitFor(execute(params), out);
-    }
-
-    public String executeAndWait() throws IOException {
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        executeAndWait(out);
-        return out.toString("UTF-8");
-    }
-
-    public String executeAndWait(List<String> params) throws IOException {
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        executeAndWait(params, out);
-        return out.toString("UTF-8");
-    }
-
-    public FfmpegInfo getInfo(File inputFile) throws IOException {
-        return new FfmpegInfo(this, inputFile);
-    }
-
-    private File searchPathForExecutable(String name) {
-        if (System.getProperty("os.name").startsWith("Windows")
-                && !name.endsWith(".exe")) {
-            name += ".exe";
-        }
-        String[] dirs = System.getenv("PATH").split(File.pathSeparator);
-        for (String dir : dirs) {
-            File file = new File(dir, name);
-            if (file.isFile()) {
-                return file;
-            }
-        }
-        return null;
-    }
 }
