@@ -11,6 +11,7 @@ import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
@@ -142,6 +143,11 @@ public class Ice2Transformer implements Transformer {
                 e.printStackTrace();
             }
         }
+        try {
+            object.close();
+        } catch (StorageException ex) {
+            log.error("Failed writing object metadata", ex);
+        }
         return object;
     }
 
@@ -192,6 +198,7 @@ public class Ice2Transformer implements Transformer {
                 if (!entry.isDirectory()) {
                     String name = entry.getName();
                     String mimeType = MimeTypeUtil.getMimeType(name);
+                    //log.debug("(ZIP) Name : '" + name + "', MimeType : '" + mimeType + "'");
                     Payload icePayload = StorageUtils.createOrUpdatePayload(
                             object, name, zipFile.getInputStream(entry));
                     icePayload.setLabel(name);
@@ -199,15 +206,21 @@ public class Ice2Transformer implements Transformer {
                     if (HTML_MIME_TYPE.equals(mimeType)) {
                         icePayload.setType(PayloadType.Preview);
                     }
+                    icePayload.close();
                 }
             }
         } else {
             String name = file.getName();
+            String mimeType = MimeTypeUtil.getMimeType(name);
+            //log.debug("Name : '" + name + "', MimeType : '" + mimeType + "'");
             Payload icePayload = StorageUtils.createOrUpdatePayload(object,
                     name, new FileInputStream(file));
-            icePayload.setType(PayloadType.Enrichment);
             icePayload.setLabel(name);
-            icePayload.setContentType(MimeTypeUtil.getMimeType(name));
+            icePayload.setContentType(mimeType);
+            if (HTML_MIME_TYPE.equals(mimeType)) {
+                icePayload.setType(PayloadType.Preview);
+            }
+            icePayload.close();
         }
         return object;
     }

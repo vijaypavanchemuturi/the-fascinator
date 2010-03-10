@@ -154,4 +154,12 @@ public class FileSystemPayload extends GenericPayload {
             }
         }
     }
+
+    @Override
+    public void close() throws StorageException {
+        super.close();
+        if (this.hasMetaChanged()) {
+            this.writeMetadata();
+        }
+    }
 }

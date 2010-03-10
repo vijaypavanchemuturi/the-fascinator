@@ -111,15 +111,16 @@ class AtomEntryPoster:
         content = "<div>content not found!</div>"
         slash = oid.rfind("/")
         pid = oid[slash+1:]
-        payload = Services.getStorage().getPayload(oid, pid)
+        self.__object = Services.getStorage().getObject(oid)
+        payload = self.__object.getPayload(pid)
         if payload is None:
             print " * blog.py: Failed to get content: %s" % oid
             return ""
         else:
-            mimeType = payload.contentType
+            mimeType = payload.getContentType()
             #check for .htm
             htmlPid = os.path.splitext(pid)[0] + ".htm"
-            htmlPayload = Services.getStorage().getPayload(oid, htmlPid)
+            htmlPayload = self.__object.getPayload(htmlPid)
             if htmlPayload is None:
                 if mimeType.startswith("image/"):
                     content = '<img src="%s" />' % pid
@@ -134,13 +135,14 @@ class AtomEntryPoster:
             else:
                 content = self.__getPayloadAsString(htmlPayload)
         content, doc = self.__tidy(content)
-        content = self.__processMedia(oid, doc, content)
+        content = self.__processMedia(doc, content)
         return content
     
     def __getPayloadAsString(self, payload):
         sw = StringWriter()
-        IOUtils.copy(payload.getInputStream(), sw)
+        IOUtils.copy(payload.open(), sw)
         sw.flush()
+        payload.close()
         return sw.toString()
     
     def __tidy(self, content):
@@ -157,9 +159,9 @@ class AtomEntryPoster:
         content = out.toString("UTF-8")
         return content, doc
     
-    def __processMedia(self, oid, doc, content):
-        content = self.__uploadMedia(oid, doc, content, "a", "href")
-        content = self.__uploadMedia(oid, doc, content, "img", "src")
+    def __processMedia(self, doc, content):
+        content = self.__uploadMedia(doc, content, "a", "href")
+        content = self.__uploadMedia(doc, content, "img", "src")
         return content
     
     def __uploadMedia(self, oid, doc, content, elem, attr):
@@ -168,15 +170,16 @@ class AtomEntryPoster:
             elem = links.item(i)
             attrValue = elem.getAttribute(attr)
             pid = attrValue
-            payload = Services.getStorage().getPayload(oid, pid)
+            payload = self.__object.getPayload(pid)
             if payload is None:
                 pid = URLDecoder.decode(pid, "UTF-8")
-                payload = Services.getStorage().getPayload(oid, pid)
+                payload = self.__object.getPayload(pid)
             if payload is not None:
                 #HACK to upload PDFs
                 contentType = payload.getContentType().replace("application/", "image/")
                 entry = self.__postMedia(payload.getLabel(), contentType,
-                                         payload.getInputStream())
+                                         payload.open())
+                payload.close()
                 if entry is not None:
                     id = entry.getId()
                     print " * blog.py: replacing %s with %s" % (attrValue, id)
