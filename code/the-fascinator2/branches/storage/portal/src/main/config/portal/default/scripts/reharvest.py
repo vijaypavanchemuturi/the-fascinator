@@ -1,3 +1,9 @@
+from au.edu.usq.fascinator.api.indexer import SearchRequest
+from au.edu.usq.fascinator.common import JsonConfigHelper
+
+from java.io import ByteArrayInputStream, ByteArrayOutputStream
+from java.util import HashSet
+
 from ch.qos.logback.classic.html import  HTMLLayout
 from org.slf4j import Logger, LoggerFactory
 
@@ -12,13 +18,23 @@ class Reharvest:
             portalManager = Services.getPortalManager()
             if file:
                 print " * Re-harvesting: formData=%s" % file
-                portalManager.reHarvestObject(file)
+                portalManager.reharvest(file)
                 sessionState.set("reharvest/lastResult", "success")
                 result = '{ status: "ok" }'
             elif portalId:
                 portal = portalManager.get(portalId)
-                print " * Re-harvesting: Portal=%s" % portal.name
-                portalManager.reHarvestPortal(portal)
+                print " * Re-harvesting: Portal=%s" % portal.getName()
+                indexer = Services.getIndexer()
+                # TODO security filter
+                searchRequest = SearchRequest(portal.getQuery())
+                result = ByteArrayOutputStream();
+                Services.getIndexer().search(searchRequest, result)
+                json = JsonConfigHelper(ByteArrayInputStream(result.toByteArray()))
+                objectIds = HashSet()
+                for doc in json.getJsonList("response/docs"):
+                    objectIds.add(doc.get("id"))
+                if not objectIds.isEmpty():
+                    portalManager.reharvest(objectIds)
                 sessionState.set("reharvest/lastResult", "success")
                 result = '{ status: "ok" }'
             else:
