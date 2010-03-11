@@ -106,7 +106,6 @@ form .message {
     padding: 4px;
     border: 1px solid #bbb;
     background: #fff;
-    width: 600px;
 }
 
 div.tags {
@@ -139,6 +138,14 @@ ul.main li.secondary a.search {
 a.search img {
     padding: 0;
     vertical-align: text-bottom;
+}
+
+table.meta {
+    table-layout: fixed;
+}
+
+table.meta td {
+    overflow: hidden;
 }
 
 dl.meta dt {
