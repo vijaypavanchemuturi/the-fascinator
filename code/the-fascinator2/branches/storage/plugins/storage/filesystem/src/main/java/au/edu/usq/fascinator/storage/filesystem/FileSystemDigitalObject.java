@@ -136,8 +136,8 @@ public class FileSystemDigitalObject extends GenericDigitalObject {
                                 + file.getName(), new File(homeDir, payloadFile
                                 .getPath()));
                     } else {
-                        log.debug("File found on disk : "
-                                + payloadFile.getName());
+                        // log.debug("File found on disk : " +
+                        // payloadFile.getName());
                         payload = new FileSystemPayload(payloadFile.getName(),
                                 payloadFile);
                     }

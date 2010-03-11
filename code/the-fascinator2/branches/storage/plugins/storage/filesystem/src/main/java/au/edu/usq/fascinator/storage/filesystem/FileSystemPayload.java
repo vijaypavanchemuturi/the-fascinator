@@ -54,7 +54,6 @@ public class FileSystemPayload extends GenericPayload {
         metaFile = new File(dataFile.getParentFile(), dataFile.getName()
                 + METADATA_SUFFIX);
         log.debug("Payload instantiation complete : " + id);
-        log.debug("Payload dataFile:{}", dataFile);
     }
 
     public void readExistingMetadata() {

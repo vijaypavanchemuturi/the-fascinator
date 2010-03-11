@@ -19,7 +19,9 @@
 package au.edu.usq.fascinator;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -36,6 +38,7 @@ import javax.jms.Session;
 import javax.jms.TextMessage;
 
 import org.apache.activemq.ActiveMQConnectionFactory;
+import org.apache.commons.io.IOUtils;
 import org.apache.log4j.MDC;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,6 +48,7 @@ import au.edu.usq.fascinator.api.PluginManager;
 import au.edu.usq.fascinator.api.harvester.Harvester;
 import au.edu.usq.fascinator.api.harvester.HarvesterException;
 import au.edu.usq.fascinator.api.storage.DigitalObject;
+import au.edu.usq.fascinator.api.storage.Payload;
 import au.edu.usq.fascinator.api.storage.Storage;
 import au.edu.usq.fascinator.api.storage.StorageException;
 import au.edu.usq.fascinator.api.transformer.TransformerException;
@@ -93,14 +97,23 @@ public class HarvestClient {
     public HarvestClient(File configFile, File uploadedFile)
             throws HarvesterException {
         MDC.put("name", "client");
+
         this.configFile = configFile;
         this.uploadedFile = uploadedFile;
+
         try {
-            config = new JsonConfig(configFile);
+            if (configFile == null) {
+                config = new JsonConfig();
+            } else {
+                config = new JsonConfig(configFile);
+                rulesFile = new File(configFile.getParent(), config
+                        .get("indexer/script/rules"));
+            }
         } catch (IOException ioe) {
             throw new HarvesterException("Failed to read configuration file: '"
                     + configFile + "'");
         }
+
         // initialise storage system
         String storageType = config.get("storage/type", DEFAULT_STORAGE_TYPE);
         storage = PluginManager.getStorage(storageType);
@@ -109,14 +122,11 @@ public class HarvestClient {
                     + "'. Ensure it is in the classpath.");
         }
         try {
-            storage.init(configFile);
+            storage.init(config.toString());
             log.info("Loaded {}", storage.getName());
         } catch (PluginException pe) {
             throw new HarvesterException("Failed to initialise storage", pe);
         }
-
-        rulesFile = new File(configFile.getParent(), config
-                .get("indexer/script/rules"));
 
         initConnection();
     }
@@ -147,7 +157,7 @@ public class HarvestClient {
 
         // cache harvester config and indexer rules
         configObject = StorageUtils.storeFile(storage, configFile);
-        rulesObject  = StorageUtils.storeFile(storage, rulesFile);
+        rulesObject = StorageUtils.storeFile(storage, rulesFile);
 
         // initialise the harvester
         Harvester harvester = null;
@@ -189,72 +199,44 @@ public class HarvestClient {
                 + ((System.currentTimeMillis() - start) / 1000.0) + " seconds");
     }
 
-    public void reharvest(String oid) {
-        /*
-         * try { log.info("Reharvest '{}'...", oid); storage =
-         * PluginManager.getStorage(config.get("storage/type",
-         * DEFAULT_STORAGE_TYPE)); log.debug("Loaded {}", storage.getName());
-         * storage.init(configFile);
-         * 
-         * // Get the Object from storage DigitalObject object =
-         * storage.getObject(oid);
-         * 
-         * // Get the configFile from SOF-META Properties sofMeta =
-         * getSofMeta(object); String sofMetaConfigFileOid =
-         * sofMeta.getProperty("jsonConfigOid"); if (sofMetaConfigFileOid ==
-         * null) { log .error(
-         * "Fail to locate json config for {}, Using default config from system-config.json"
-         * , oid);
-         * 
-         * } else { configFile = new File(sofMetaConfigFileOid); config = new
-         * JsonConfig(configFile); }
-         * 
-         * // Aperture transform cb = new ConveyerBelt(configFile, "extractor");
-         * object = cb.transform(object);
-         * 
-         * // Set up queueStorage & start reharvest queueStorage = new
-         * QueueStorage(storage, configFile); queueStorage.init(configFile);
-         * queueStorage.addObject(object);
-         * log.info("Successfully Reharvest + Reindex {} ", oid); } catch
-         * (Exception e) { log.error("Failed to initialise storage", e); return;
-         * }
-         */
-    }
+    public void reharvest(String oid) throws IOException, PluginException {
+        log.info("Reharvest '{}'...", oid);
 
-    public void reHarvestView(String portalQuery) {
-        /*
-         * DateFormat df = new SimpleDateFormat(DATETIME_FORMAT); String now =
-         * df.format(new Date()); long start = System.currentTimeMillis();
-         * log.info("Started at " + now);
-         * 
-         * // Get all the records from solr int startRow = 0; int numPerPage =
-         * 5; int numFound = 0; do { ByteArrayOutputStream result = new
-         * ByteArrayOutputStream(); SearchRequest request = new
-         * SearchRequest("*:*"); request.addParam("rows",
-         * String.valueOf(numPerPage)); request.addParam("fq",
-         * "item_type:\"object\""); request.setParam("start",
-         * String.valueOf(startRow));
-         * 
-         * if (portalQuery != "" && portalQuery != null) {
-         * request.addParam("fq", portalQuery); }
-         * 
-         * try { Indexer indexer = PluginManager.getIndexer(config.get(
-         * "indexer/type", DEFAULT_INDEXER_TYPE)); indexer.init(configFile);
-         * 
-         * indexer.search(request, result); JsonConfigHelper js;
-         * 
-         * js = new JsonConfigHelper(result.toString()); for (Object oid :
-         * js.getList("response/docs/id")) { reharvest(oid.toString()); }
-         * 
-         * startRow += numPerPage; numFound =
-         * Integer.parseInt(js.get("response/numFound")); } catch
-         * (PluginException e) { // TODO Auto-generated catch block
-         * e.printStackTrace(); } catch (IOException e) { e.printStackTrace(); }
-         * } while (startRow < numFound);
-         * 
-         * log.info("Completed in " + ((System.currentTimeMillis() - start) /
-         * 1000.0) + " seconds");
-         */
+        // get the object from storage
+        DigitalObject object = storage.getObject(oid);
+
+        // get its harvest config
+        boolean usingTempFile = false;
+        String configOid = object.getMetadata().getProperty("jsonConfigOid");
+        if (configOid == null) {
+            log.warn("No harvest config for '{}', using defaults...");
+            configFile = JsonConfig.getSystemFile();
+        } else {
+            log.debug("Using config from '{}'", configOid);
+            DigitalObject configObj = storage.getObject(configOid);
+            Payload payload = configObj.getPayload(configObj.getSourceId());
+            configFile = File.createTempFile("reharvest", ".json");
+            OutputStream out = new FileOutputStream(configFile);
+            IOUtils.copy(payload.open(), out);
+            out.close();
+            payload.close();
+            configObj.close();
+            usingTempFile = true;
+        }
+
+        // run extractor transformers
+        conveyerBelt = new ConveyerBelt(configFile, ConveyerBelt.EXTRACTOR);
+        object = conveyerBelt.transform(object);
+        object.close();
+
+        // queue for rendering
+        queueHarvest(oid, configFile);
+        log.info("Object '{}' now queued for reindexing...", oid);
+
+        // cleanup
+        if (usingTempFile) {
+            configFile.delete();
+        }
     }
 
     public void shutdown() {
