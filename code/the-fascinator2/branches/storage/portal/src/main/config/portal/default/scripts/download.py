@@ -42,7 +42,7 @@ class DownloadData:
             object = Services.storage.getObject(oid)
             payload = object.getPayload(pid)
         except StorageException, e:
-            oid = uri
+            #oid = uri
             if oid.find("/") > -1:
                 slash = oid.rfind("/")
                 oid = uri[:slash]
