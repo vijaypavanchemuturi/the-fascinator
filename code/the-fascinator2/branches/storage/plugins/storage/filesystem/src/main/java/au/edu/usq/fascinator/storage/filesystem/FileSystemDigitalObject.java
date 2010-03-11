@@ -69,8 +69,8 @@ public class FileSystemDigitalObject extends GenericDigitalObject {
             String lockPath = getPath() + File.separator + "manifest.lock";
             lockFile = new File(lockPath);
             if (!lockFile.exists()) {
-                //log.debug("Creating new lock file : "
-                //        + lockFile.getAbsolutePath());
+                // log.debug("Creating new lock file : "
+                // + lockFile.getAbsolutePath());
                 lockFile.getParentFile().mkdirs();
                 lockFile.createNewFile();
             }
@@ -82,9 +82,9 @@ public class FileSystemDigitalObject extends GenericDigitalObject {
 
     private void lockManifest() {
         try {
-            //log.debug(" * Locking Manifest : " + getId());
+            // log.debug(" * Locking Manifest : " + getId());
             manifestLock.getLock();
-            //log.debug(" * Manifest locked : " + getId());
+            // log.debug(" * Manifest locked : " + getId());
         } catch (IOException ex) {
             log.error("Failed acquiring manifest lock : ", ex);
         }
@@ -92,9 +92,9 @@ public class FileSystemDigitalObject extends GenericDigitalObject {
 
     private void unlockManifest() {
         try {
-            //log.debug(" * Unlocking Manifest : " + getId());
+            // log.debug(" * Unlocking Manifest : " + getId());
             manifestLock.release();
-            //log.debug(" * Manifest unlocked : " + getId());
+            // log.debug(" * Manifest unlocked : " + getId());
         } catch (IOException ex) {
             log.error("Failed releasing manifest lock : ", ex);
         }
@@ -121,6 +121,7 @@ public class FileSystemDigitalObject extends GenericDigitalObject {
         if (files != null) {
             for (File file : files) {
                 if (file.isFile()) {
+                    FileSystemPayload payload = null;
                     File payloadFile = file;
                     if (depth > 0) {
                         File parentFile = file.getParentFile();
@@ -131,10 +132,15 @@ public class FileSystemDigitalObject extends GenericDigitalObject {
                             parentFile = parentFile.getParentFile();
                         }
                         payloadFile = new File(relPath, file.getName());
+                        payload = new FileSystemPayload(relPath
+                                + file.getName(), new File(homeDir, payloadFile
+                                .getPath()));
+                    } else {
+                        log.debug("File found on disk : "
+                                + payloadFile.getName());
+                        payload = new FileSystemPayload(payloadFile.getName(),
+                                payloadFile);
                     }
-                    //log.debug("File found on disk : " + payloadFile.getName());
-                    FileSystemPayload payload = new FileSystemPayload(
-                            payloadFile.getName(), payloadFile);
                     payload.readExistingMetadata();
                     if (payload.getType().equals(PayloadType.Source)) {
                         setSourceId(payload.getId());
@@ -145,7 +151,7 @@ public class FileSystemDigitalObject extends GenericDigitalObject {
                 }
             }
         }
-        //log.debug("New Manifest : " + manifest);
+        // log.debug("New Manifest : " + manifest);
     }
 
     @Override
@@ -174,7 +180,7 @@ public class FileSystemDigitalObject extends GenericDigitalObject {
         // Manifest check
         lockManifest();
         Map<String, Payload> manifest = getManifest();
-        //log.debug("FileSystem Manifest : " + manifest);
+        // log.debug("FileSystem Manifest : " + manifest);
         if (manifest.containsKey(pid)) {
             unlockManifest();
             throw new StorageException("ID '" + pid
@@ -201,7 +207,7 @@ public class FileSystemDigitalObject extends GenericDigitalObject {
 
         // File storage
         try {
-            //log.debug("Copying {}", newFile);
+            // log.debug("Copying {}", newFile);
             FileOutputStream out = new FileOutputStream(newFile);
             IOUtils.copy(in, out);
             in.close();
