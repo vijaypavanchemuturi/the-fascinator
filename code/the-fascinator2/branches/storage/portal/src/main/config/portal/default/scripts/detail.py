@@ -140,7 +140,7 @@ class DetailData:
     def hasSlideShow(self):
         pid = self.__pid
         pid = pid[:pid.find(".")] + ".slide.htm"
-        if containsPid(pid):
+        if self.containsPid(pid):
             return pid
         else:
             return False
@@ -148,10 +148,9 @@ class DetailData:
     def hasFlv(self):
         pid = self.__pid
         pid = pid[:pid.find(".")] + ".flv"
-        if containsPid(pid):
+        if self.containsPid(pid):
             return pid
-        else:
-            return False
+        return ""
 
     def getPdfUrl(self):
         pid = os.path.splitext(self.__pid)[0] + ".pdf"
@@ -204,7 +203,7 @@ class DetailData:
                     return payload.getId()
             except StorageException, e:
                 pass
-        return ""
+        return self.getObject().getSourceId()
 
     def getPayloadContent(self):
         mimeType = self.__mimeType

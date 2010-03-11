@@ -32,7 +32,7 @@ class ProxyBasicAuthStrategy(BasicAuthStrategy):
             proxyHost = address.getHostName()
             proxyPort = address.getPort()
             httpClient.getHostConfiguration().setProxy(proxyHost, proxyPort)
-            print "Using proxy %s:%s" % (proxyHost, proxyPort)
+            print " * blog.py: Using proxy '%s:%s'" % (proxyHost, proxyPort)
 
 class AtomEntryPoster:
     def __init__(self):
@@ -53,6 +53,7 @@ class AtomEntryPoster:
                     self.__service = AtomClientFactory.getAtomService(url, auth)
                     oid = formData.get("oid")
                     if oid is not None:
+                        self.__object = Services.getStorage().getObject(oid)
                         content = self.__getContent(oid)
                     else:
                         content = self.__getManifestContent(formData.get("portalId"))
@@ -91,6 +92,7 @@ class AtomEntryPoster:
         f = File(System.getProperty("user.home"), ".fascinator/blog/history.txt")
         if not f.exists():
             f.getParentFile().mkdirs()
+            f.createNewFile()
         return f
     
     def __getManifestContent(self, portalId):
@@ -110,33 +112,37 @@ class AtomEntryPoster:
     def __getContent(self, oid):
         content = "<div>content not found!</div>"
         slash = oid.rfind("/")
-        pid = oid[slash+1:]
-        self.__object = Services.getStorage().getObject(oid)
-        payload = self.__object.getPayload(pid)
+        payload = self.__getPreviewPayload()
+        pid = payload.getId()
+        print " * blog.py: preview payload: %s" % payload
         if payload is None:
             print " * blog.py: Failed to get content: %s" % oid
             return ""
         else:
             mimeType = payload.getContentType()
-            #check for .htm
-            htmlPid = os.path.splitext(pid)[0] + ".htm"
-            htmlPayload = self.__object.getPayload(htmlPid)
-            if htmlPayload is None:
-                if mimeType.startswith("image/"):
-                    content = '<img src="%s" />' % pid
-                elif mimeType.startswith("text/"):
-                    if mimeType in ["text/html", "text/xml"]:
-                        content = self.__getPayloadAsString(payload)
-                    else:
-                        content = "<html><body><pre>%s</pre></body></html>" % \
-                            self.__getPayloadAsString(payload)
-                else:
-                    content = "<div>unsupported content type: %s</div>" % mimeType
+            if mimeType.startswith("image/"):
+                content = '<img src="%s" />' % pid
+            elif mimeType in ["text/html", "text/xml", "application/xhtml+xml"]:
+                content = self.__getPayloadAsString(payload)
+            elif mimeType.startswith("text/"):
+                content = "<html><body><pre>%s</pre></body></html>" % \
+                    self.__getPayloadAsString(payload)
             else:
-                content = self.__getPayloadAsString(htmlPayload)
+                content = "<div>unsupported content type: %s</div>" % mimeType
         content, doc = self.__tidy(content)
         content = self.__processMedia(doc, content)
         return content
+    
+    def __getPreviewPayload(self):
+        payloadIdList = self.__object.getPayloadIdList()
+        for payloadId in payloadIdList:
+            try:
+                payload = self.__object.getPayload(payloadId)
+                if str(payload.getType()) == "Preview":
+                    return payload
+            except StorageException, e:
+                pass
+        return None
     
     def __getPayloadAsString(self, payload):
         sw = StringWriter()
@@ -164,21 +170,30 @@ class AtomEntryPoster:
         content = self.__uploadMedia(doc, content, "img", "src")
         return content
     
-    def __uploadMedia(self, oid, doc, content, elem, attr):
+    def __uploadMedia(self, doc, content, elem, attr):
         links = doc.getElementsByTagName(elem)
         for i in range(0, links.getLength()):
             elem = links.item(i)
             attrValue = elem.getAttribute(attr)
+            if attrValue == '':
+                continue
             pid = attrValue
-            payload = self.__object.getPayload(pid)
-            if payload is None:
-                pid = URLDecoder.decode(pid, "UTF-8")
+            print " * blog.py: uploading '%s' (%s, %s)" % (pid, elem.tagName, attr)
+            found = False
+            try:
                 payload = self.__object.getPayload(pid)
-            if payload is not None:
+                found = True
+            except StorageException, e:
+                pid = URLDecoder.decode(pid, "UTF-8")
+                try:
+                    payload = self.__object.getPayload(pid)
+                    found = True
+                except StorageException, e:
+                    print " * blog.py: payload not found '%s'" % pid
+            if found:
                 #HACK to upload PDFs
                 contentType = payload.getContentType().replace("application/", "image/")
-                entry = self.__postMedia(payload.getLabel(), contentType,
-                                         payload.open())
+                entry = self.__postMedia(payload.getLabel(), contentType, payload.open())
                 payload.close()
                 if entry is not None:
                     id = entry.getId()

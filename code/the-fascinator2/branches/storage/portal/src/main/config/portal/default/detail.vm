@@ -21,7 +21,7 @@
       #if($self.canOpenFile())
       <li><a id="open-this" href="$portalPath/detail/$oid">Open file</a></li>
       #end
-      <li><a id="reharvest" href="$portalPath/detail/$oid">Re-Harvest...</a></li>
+      <li><a id="reharvest" href="$portalPath/detail/$oid">Reharvest...</a></li>
       #if($self.hasHtml())
       <li><a id="blog-this" href="#">Blog...</a><li>
       #end
@@ -37,11 +37,11 @@
         <tr>
         <th>$self.formatName($key)</th>
         #set($valueList = $dc.get($key))
-        <td>
+        </tr>
+        <tr>
           #foreach($value in $valueList)
-            <span>$value</span>
+          <td>$value</td>
           #end
-        </td>
         </tr>
       #end
       </table>
