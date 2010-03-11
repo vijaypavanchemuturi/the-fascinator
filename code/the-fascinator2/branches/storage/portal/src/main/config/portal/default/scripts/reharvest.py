@@ -26,7 +26,12 @@ class Reharvest:
                 print " * Re-harvesting: Portal=%s" % portal.getName()
                 indexer = Services.getIndexer()
                 # TODO security filter
-                searchRequest = SearchRequest(portal.getQuery())
+                # TODO this should loop through the whole portal,
+                #      not just the first page of results
+                if portal.getQuery() == "":
+                    searchRequest = SearchRequest("item_type:object")
+                else:
+                    searchRequest = SearchRequest(portal.getQuery())
                 result = ByteArrayOutputStream();
                 Services.getIndexer().search(searchRequest, result)
                 json = JsonConfigHelper(ByteArrayInputStream(result.toByteArray()))
