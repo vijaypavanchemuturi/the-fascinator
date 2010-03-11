@@ -19,11 +19,13 @@
 package au.edu.usq.fascinator.transformer.ims;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Enumeration;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import au.edu.usq.fascinator.api.PluginException;
 import au.edu.usq.fascinator.api.storage.DigitalObject;
@@ -35,9 +37,6 @@ import au.edu.usq.fascinator.api.transformer.TransformerException;
 import au.edu.usq.fascinator.common.JsonConfig;
 import au.edu.usq.fascinator.common.MimeTypeUtil;
 import au.edu.usq.fascinator.common.storage.StorageUtils;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Unzip Ims package and store the files
@@ -67,8 +66,7 @@ public class ImsTransformer implements Transformer {
     /**
      * Transform method
      * 
-     * @param object
-     *            : DigitalObject to be transformed
+     * @param object : DigitalObject to be transformed
      * @return transformed DigitalObject
      * @throws TransformerException
      * @throws StorageException
@@ -103,10 +101,8 @@ public class ImsTransformer implements Transformer {
     /**
      * Create Payload method for Ims files
      * 
-     * @param object
-     *            : DigitalObject that store the payload
-     * @param file
-     *            : File to be stored as payload
+     * @param object : DigitalObject that store the payload
+     * @param file : File to be stored as payload
      * @return transformed DigitalObject
      * @throws StorageException
      * @throws IOException
@@ -133,13 +129,6 @@ public class ImsTransformer implements Transformer {
                     }
                 }
             }
-        } else {
-            String name = file.getName();
-            Payload icePayload = StorageUtils.createOrUpdatePayload(object,
-                    name, new FileInputStream(file));
-            icePayload.setType(PayloadType.Enrichment);
-            icePayload.setLabel(name);
-            icePayload.setContentType(MimeTypeUtil.getMimeType(name));
         }
         return object;
     }
