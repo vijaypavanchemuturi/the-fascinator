@@ -51,9 +51,10 @@ public class FileSystemPayload extends GenericPayload {
     public FileSystemPayload(String id, File payloadFile) {
         super(id);
         dataFile = payloadFile;
-        metaFile = new File(dataFile.getParentFile(),
-                dataFile.getName() + METADATA_SUFFIX);
+        metaFile = new File(dataFile.getParentFile(), dataFile.getName()
+                + METADATA_SUFFIX);
         log.debug("Payload instantiation complete : " + id);
+        log.debug("Payload dataFile:{}", dataFile);
     }
 
     public void readExistingMetadata() {
@@ -71,13 +72,15 @@ public class FileSystemPayload extends GenericPayload {
             }
 
             setId(props.getProperty("id", getId()));
-            String type = props.getProperty("payloadType", DEFAULT_PAYLOAD_TYPE.toString());
+            String type = props.getProperty("payloadType", DEFAULT_PAYLOAD_TYPE
+                    .toString());
             setType(PayloadType.valueOf(type));
             setLabel(props.getProperty("label", getId()));
 
-            String link = props.getProperty("linked", String.valueOf(isLinked()));
+            String link = props.getProperty("linked", String
+                    .valueOf(isLinked()));
             setLinked(Boolean.parseBoolean(link));
-            if (this.isLinked()) {
+            if (isLinked()) {
                 try {
                     String linkPath = FileUtils.readFileToString(dataFile);
                     File linkFile = new File(linkPath);
@@ -89,7 +92,7 @@ public class FileSystemPayload extends GenericPayload {
                 setContentType(MimeTypeUtil.getMimeType(dataFile));
             }
         } else {
-            this.writeMetadata();
+            writeMetadata();
         }
     }
 
@@ -128,7 +131,7 @@ public class FileSystemPayload extends GenericPayload {
     @Override
     public InputStream open() throws StorageException {
         // Linked files
-        if (this.isLinked()) {
+        if (isLinked()) {
             try {
                 String linkPath = FileUtils.readFileToString(dataFile);
                 File linkFile = new File(linkPath);
@@ -137,17 +140,17 @@ public class FileSystemPayload extends GenericPayload {
                             + linkFile.getAbsolutePath());
                 }
                 InputStream in = new FileInputStream(linkFile);
-                this.setInputStream(in);
+                setInputStream(in);
                 return in;
             } catch (IOException ex) {
                 throw new StorageException(ex);
             }
 
-        // Stored files
+            // Stored files
         } else {
             try {
                 InputStream in = new FileInputStream(dataFile);
-                this.setInputStream(in);
+                setInputStream(in);
                 return in;
             } catch (FileNotFoundException ex) {
                 throw new StorageException(ex);
@@ -158,8 +161,8 @@ public class FileSystemPayload extends GenericPayload {
     @Override
     public void close() throws StorageException {
         super.close();
-        if (this.hasMetaChanged()) {
-            this.writeMetadata();
+        if (hasMetaChanged()) {
+            writeMetadata();
         }
     }
 }

@@ -1,19 +1,19 @@
 package au.edu.usq.fascinator.storage.filesystem;
 
-import au.edu.usq.fascinator.api.storage.Payload;
-import au.edu.usq.fascinator.api.storage.StorageException;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.Set;
 
 import junit.framework.Assert;
 
-import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+
+import au.edu.usq.fascinator.api.storage.Payload;
+import au.edu.usq.fascinator.api.storage.StorageException;
 
 public class FileSystemStorageTest {
     private FileSystemStorage fs;
@@ -38,11 +38,11 @@ public class FileSystemStorageTest {
     @Test
     public void testObject1() throws Exception {
         // Create an object
-        newObject = (FileSystemDigitalObject)
-                fs.createObject("oai:eprints.usq.edu.au:318");
+        newObject = (FileSystemDigitalObject) fs
+                .createObject("oai:eprints.usq.edu.au:318");
         // Give it a payload
-        Payload p = newObject.createStoredPayload(
-                "DC", getClass().getResourceAsStream("/dc.xml"));
+        Payload p = newObject.createStoredPayload("DC", getClass()
+                .getResourceAsStream("/dc.xml"));
         p.setLabel("Dublin Core Metadata");
 
         // Make sure our object is in the correct location
@@ -75,11 +75,11 @@ public class FileSystemStorageTest {
     @Test
     public void testObject2() throws Exception {
         // Create an object
-        fileObject = (FileSystemDigitalObject)
-                fs.createObject("/Users/fascinator/Documents/sample.odt");
+        fileObject = (FileSystemDigitalObject) fs
+                .createObject("/Users/fascinator/Documents/sample.odt");
         // Give it a payload
-        Payload p1 = fileObject.createStoredPayload("sample.odt",
-                getClass().getResourceAsStream("/sample.odt"));
+        Payload p1 = fileObject.createStoredPayload("sample.odt", getClass()
+                .getResourceAsStream("/sample.odt"));
         p1.setLabel("ICE Sample Document");
         // Give it another payload
         Payload p2 = fileObject.createStoredPayload("images/ice-services.png",
@@ -118,5 +118,26 @@ public class FileSystemStorageTest {
         } catch (StorageException ex) {
             Assert.fail("Error deleting fileObject : " + ex.getMessage());
         }
+    }
+
+    @Test
+    public void testObject3() throws Exception {
+        // Create an object
+        String oid = "/Users/fascinator/Documents/sample.odt";
+        fileObject = (FileSystemDigitalObject) fs.createObject(oid);
+        // Give it a payload
+        Payload p1 = fileObject.createStoredPayload("sample.odt", getClass()
+                .getResourceAsStream("/sample.odt"));
+        p1.setLabel("ICE Sample Document");
+        // Give it another payload
+        Payload p2 = fileObject.createStoredPayload("images/ice-services.png",
+                getClass().getResourceAsStream("/images/ice-services.png"));
+        p2.setLabel("ICE Services Diagram");
+        fileObject.close();
+
+        // Try read object from disk
+        fileObject = (FileSystemDigitalObject) fs.getObject(oid);
+        Assert.assertEquals(fileObject.getPayload("images/ice-services.png")
+                .getId(), "images/ice-services.png");
     }
 }
