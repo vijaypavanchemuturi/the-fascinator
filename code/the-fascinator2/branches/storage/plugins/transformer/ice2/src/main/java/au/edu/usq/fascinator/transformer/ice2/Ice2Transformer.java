@@ -92,6 +92,8 @@ public class Ice2Transformer implements Transformer {
 
     private static final String HTML_MIME_TYPE = "text/html";
 
+    private static final String IMG_MIME_TYPE = "image/";
+
     /**
      * ICE transformer constructor
      */
@@ -203,7 +205,9 @@ public class Ice2Transformer implements Transformer {
                             object, name, zipFile.getInputStream(entry));
                     icePayload.setLabel(name);
                     icePayload.setContentType(mimeType);
-                    if (HTML_MIME_TYPE.equals(mimeType)) {
+                    if (mimeType.equals(HTML_MIME_TYPE) ||
+                            (mimeType.contains(IMG_MIME_TYPE) &&
+                            name.contains("_preview"))) {
                         icePayload.setType(PayloadType.Preview);
                     }
                     icePayload.close();
@@ -217,7 +221,9 @@ public class Ice2Transformer implements Transformer {
                     name, new FileInputStream(file));
             icePayload.setLabel(name);
             icePayload.setContentType(mimeType);
-            if (HTML_MIME_TYPE.equals(mimeType)) {
+            if (mimeType.equals(HTML_MIME_TYPE) ||
+                    (mimeType.contains(IMG_MIME_TYPE) &&
+                    name.contains("_preview"))) {
                 icePayload.setType(PayloadType.Preview);
             }
             icePayload.close();
