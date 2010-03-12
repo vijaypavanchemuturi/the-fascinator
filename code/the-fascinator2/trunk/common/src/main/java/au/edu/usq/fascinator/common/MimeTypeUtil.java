@@ -23,6 +23,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
+import org.apache.commons.lang.StringUtils;
 import org.semanticdesktop.aperture.mime.identifier.MimeTypeIdentifier;
 import org.semanticdesktop.aperture.mime.identifier.magic.MagicMimeTypeIdentifier;
 import org.semanticdesktop.aperture.util.IOUtil;
@@ -70,10 +71,12 @@ public class MimeTypeUtil {
         InputStream in = null;
         try {
             in = new FileInputStream(file);
-            return identifier.identify(IOUtil.readBytes(in, identifier
-                    .getMinArrayLength()), file.getName(), null);
+            byte[] inBytes = IOUtil.readBytes(in, identifier
+                    .getMinArrayLength());
+            in.close();
+            return identifier.identify(inBytes, file.getName(), null);
         } catch (IOException ioe) {
-            log.warn("Failed to detect MIME type");// : {}", ioe.getMessage());
+            log.warn("Failed to detect MIME type (File): {}", toPrintable(ioe));
         } finally {
             if (in != null) {
                 try {
@@ -93,11 +96,22 @@ public class MimeTypeUtil {
      */
     public static String getMimeType(InputStream in) {
         try {
-            return identifier.identify(IOUtil.readBytes(in, identifier
-                    .getMinArrayLength()), null, null);
+            byte[] inBytes = IOUtil.readBytes(in, identifier
+                    .getMinArrayLength());
+            in.close();
+            return identifier.identify(inBytes, null, null);
         } catch (IOException ioe) {
-            log.warn("Failed to detect MIME type");// : {}", ioe.getMessage());
+            log.warn("Failed to detect MIME type (InputStream): {}",
+                    toPrintable(ioe));
         }
         return DEFAULT_MIME_TYPE;
+    }
+
+    private static String toPrintable(Exception e) {
+        String msg = e.getMessage();
+        if (StringUtils.isAsciiPrintable(msg)) {
+            return msg;
+        }
+        return StringUtils.left(msg.replaceAll("[^\\p{ASCII}\\n]", "."), 32);
     }
 }

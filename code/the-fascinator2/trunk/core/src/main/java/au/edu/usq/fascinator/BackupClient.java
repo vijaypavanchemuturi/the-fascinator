@@ -361,7 +361,8 @@ public class BackupClient {
                                 .info("Backing up object: {}", digitalObject
                                         .getId());
                         // Original File
-                        destinationStorage.addObject(digitalObject);
+                        // FIXME update to API
+                        // destinationStorage.addObject(digitalObject);
 
                         // List all the payloads
                         // NOTE: currently if the above object added, the

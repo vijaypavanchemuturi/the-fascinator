@@ -168,13 +168,14 @@ public class RenderQueueConsumer implements MessageListener {
             JsonConfig config = new JsonConfig(text);
             String oid = config.get("oid");
             log.info("Received job, object id={}", oid);
-            DigitalObject object = storage.getObject(oid);
-            ConveyerBelt cb = new ConveyerBelt(text, "render");
-            object = cb.transform(object);
             log.info("Updating object...");
-            storage.addObject(object);
+            DigitalObject object = storage.getObject(oid);
+            ConveyerBelt conveyerBelt = new ConveyerBelt(text,
+                    ConveyerBelt.RENDER);
+            object = conveyerBelt.transform(object);
             log.info("Indexing object...");
             indexer.index(object.getId());
+            object.close();
         } catch (JMSException jmse) {
             log.error("Failed to receive message: {}", jmse.getMessage());
         } catch (IOException ioe) {

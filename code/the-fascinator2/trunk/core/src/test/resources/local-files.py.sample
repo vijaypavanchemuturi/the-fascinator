@@ -9,13 +9,15 @@ from au.edu.usq.fascinator.common.nie import InformationElement
 
 from au.edu.usq.fascinator.common.ctag import Tag, TaggedContent
 
+from au.edu.usq.fascinator.api.storage import StorageException
 #
 # Available objects:
-#    indexer   : Indexer instance
-#    rules     : RuleManager instance
-#    object    : DigitalObject to index
-#    payloadId : Payload identifier
-#    storageId : Storage layer identifier
+#    indexer    : Indexer instance
+#    jsonConfig : JsonConfigHelper of our harvest config file
+#    rules      : RuleManager instance
+#    object     : DigitalObject to index
+#    payload    : Payload to index
+#    params     : Metadata Properties object
 #
 
 def indexPath(name, path, includeLastPart=True):
@@ -49,33 +51,35 @@ def getNodeValues (doc, xPath):
 rules.add(New())
 
 #common fields
-solrId = object.getId();
-if isMetadata:
+oid = object.getId()
+pid = payload.getId()
+metaPid = params.getProperty("metaPid", "DC")
+if pid == metaPid:
     itemType = "object"
 else:
-    solrId += "/" + payloadId
+    oid += "/" + pid
     itemType = "datastream"
-    rules.add(AddField("identifier", payloadId))
+    rules.add(AddField("identifier", pid))
 
-rules.add(AddField("id", solrId))
-rules.add(AddField("storage_id", storageId))
+rules.add(AddField("id", oid))
+rules.add(AddField("storage_id", oid))
 rules.add(AddField("item_type", itemType))
 rules.add(AddField("last_modified", time.strftime("%Y-%m-%dT%H:%M:%SZ")))
 
 # Security
-roles = indexer.getRolesWithAccess(solrId)
+roles = indexer.getRolesWithAccess(oid)
 if roles is not None:
     for role in roles:
         rules.add(AddField("security_filter", role))
 else:
     # Default to guest access if Null object returned
     schema = indexer.getAccessSchema("simple");
-    schema.setRecordId(solrId)
+    schema.setRecordId(oid)
     schema.set("role", "guest")
     indexer.setAccessSchema(schema, "simple")
     rules.add(AddField("security_filter", "guest"))
 
-if isMetadata:
+if pid == metaPid:
     #only need to index metadata for the main object
     rules.add(AddField("repository_name", params["repository.name"]))
     rules.add(AddField("repository_type", params["repository.type"]))
@@ -91,8 +95,8 @@ if isMetadata:
     relationDict = {}
     
     ### Check if dc.xml returned from ice is exist or not. if not... process the dc-rdf
-    dcPayload = object.getPayload("dc.xml")
-    if dcPayload is not None:
+    try:
+        dcPayload = object.getPayload("dc.xml")
         indexer.registerNamespace("dc", "http://purl.org/dc/elements/1.1/")
         dcXml = indexer.getXmlDocument(dcPayload)
         if dcXml is not None:
@@ -116,18 +120,20 @@ if isMetadata:
                     relationDict[key].append(value)
                 else:
                     relationDict[key] = [value]
+    except StorageException, e:
+        print " storage exception", str(e)
     
-    rdfPayload = object.getMetadata()
-    if rdfPayload is not None:
+    try:
+        rdfPayload = object.getPayload("aperture.rdf")
         rdfModel = indexer.getRdfModel(rdfPayload)
         
         #Seems like aperture only encode the spaces. Tested against special characters file name
         #and it's working 
-        oid = object.getId().replace(" ", "%20")
+        safeOid = oid.replace(" ", "%20")
         #under windows we need to add a slash
-        if not oid.startswith("/"):
-            oid = "/" + oid
-        rdfId = "file:%s" % oid
+        if not safeOid.startswith("/"):
+            safeOid = "/" + safeOid
+        rdfId = "file:%s" % safeOid
         
         #Set write to False so it won't write to the model
         paginationTextDocument = PaginatedTextDocument(rdfModel, rdfId, False)
@@ -149,7 +155,7 @@ if isMetadata:
         
         #use id/filename if no title
         if titleList == []:
-           title = os.path.split(object.getId())[1]
+           title = os.path.split(oid)[1]
            titleList.append(title)
         
         #2. get creator only if no creator returned by ICE
@@ -191,6 +197,8 @@ if isMetadata:
         if creationDate == []:
             if informationElement.hasContentCreated():
                 creationDate.append(informationElement.getContentCreated().getTime().toString())
+    except StorageException, e:
+        print " storage exception", str(e)
     
     indexList("dc_title", titleList)
     indexList("dc_creator", creatorList)  #no dc_author in schema.xml, need to check
@@ -204,7 +212,7 @@ if isMetadata:
     
     indexList("full_text", fulltext)
     baseFilePath = params["base.file.path"]
-    filePath = object.getId()
+    filePath = oid
     if baseFilePath:
         #NOTE: need to change again if the json file accept forward slash in window
         #get the base folder
@@ -213,13 +221,4 @@ if isMetadata:
         filePath = filePath.replace("\\", "/").replace(baseFilePath, baseDir)
     indexPath("file_path", filePath, includeLastPart=False)
     
-    tagsRdf = object.getPayload("tags.rdf")
-    if tagsRdf is not None:
-        tagsModel = indexer.getRdfModel(tagsRdf)
-        hashId = md5.new(object.getId()).hexdigest()
-        content = TaggedContent(tagsModel, "urn:" + hashId, False);
-        tags = content.getAllTagged_as().asArray()
-        for tag in tags:
-            labels = tag.getAllTaglabel_asNode_().asArray()
-            for label in labels:
-                rules.add(AddField("tag", label.toString()))
+    

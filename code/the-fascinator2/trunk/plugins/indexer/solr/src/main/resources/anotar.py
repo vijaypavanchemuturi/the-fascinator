@@ -2,16 +2,18 @@ from au.edu.usq.fascinator.indexer.rules import AddField, New
 
 #
 # Available objects:
-#    indexer   : Indexer instance
-#    rules     : RuleManager instance
-#    object    : DigitalObject to index
-#    payloadId : Payload identifier
-#    storageId : Storage layer identifier
+#    indexer    : Indexer instance
+#    jsonConfig : JsonConfigHelper of our harvest config file
+#    rules      : RuleManager instance
+#    object     : DigitalObject to index
+#    payload    : Payload to index
+#    params     : Metadata Properties object
 #
 
 # Read the payload json string into
 # a JsonConfigHelper object.
-json = indexer.getJsonDocument(inputReader)
+json = indexer.getJsonObject(payload.open())
+payload.close()
 
 #start with blank solr document
 rules.add(New())

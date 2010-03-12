@@ -21,13 +21,18 @@ package au.edu.usq.fascinator;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -73,6 +78,7 @@ public class IndexClient {
 
     /** rules file **/
     private File rulesFile;
+    private List<String> rulesList;
 
     /** Indexer **/
     private Indexer indexer;
@@ -109,12 +115,13 @@ public class IndexClient {
     public void setSetting() {
         // Get the storage type to be indexed...
         try {
-            realStorage = PluginManager.getStorage(config.get("storage/type",
+            storage = PluginManager.getStorage(config.get("storage/type",
                     DEFAULT_STORAGE_TYPE));
+            storage.init(configFile);
             indexer = PluginManager.getIndexer(config.get("indexer/type",
                     DEFAULT_INDEXER_TYPE));
-            storage = new IndexedStorage(realStorage, indexer);
-            storage.init(configFile);
+            indexer.init(configFile);
+            rulesList = new ArrayList<String>();
             log.info("Loaded {} and {}", realStorage.getName(), indexer
                     .getName());
         } catch (Exception e) {
@@ -136,27 +143,20 @@ public class IndexClient {
                 .get("indexer/script/rules"));
         log.debug("rulesFile=" + rulesFile);
 
-        String rulesOid;
-        try {
-            log.debug("Caching rules file " + rulesFile);
-            DigitalObject rulesObject = new RulesDigitalObject(rulesFile);
-            realStorage.addObject(rulesObject);
-            log.debug("Realstorage: " + realStorage.getId());
-            rulesOid = rulesObject.getId();
-        } catch (StorageException se) {
-            log.error("Failed to cache indexing rules, stopping", se);
-            return;
-        }
+        // Check storage for our rules file
+        String rulesOid = rulesFile.getAbsolutePath();
+        updateRules(rulesOid);
 
-        // List all the DigitalObject in the storages
-        List<DigitalObject> objectList = realStorage.getObjectList();
-        for (DigitalObject object : objectList) {
+        // List all the DigitalObjects in the storages
+        Set<String> objectIdList = realStorage.getObjectIdList();
+        for (String objectId : objectIdList) {
             try {
+                DigitalObject object = realStorage.getObject(objectId);
                 processObject(object, rulesOid, config.getMap("indexer/params"));
-            } catch (StorageException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
-                e.printStackTrace();
+            } catch (StorageException ex) {
+                log.error("Error getting rules file", ex);
+            } catch (IOException ex) {
+                log.error("Error Processing object", ex);
             }
         }
 
@@ -173,24 +173,20 @@ public class IndexClient {
      * @param objectId
      */
     public void indexObject(String objectId) {
-        DigitalObject object = realStorage.getObject(objectId);
-        // Get the rules from SOF-META
-        Properties sofMeta = getSofMeta(object);
-        String sofMetaRulesOid = sofMeta.getProperty("rulesOid");
-        rulesFile = new File(sofMetaRulesOid);
-
-        String rulesOid;
+        DigitalObject object = null;
         try {
-            log.debug("Caching rules file " + rulesFile);
-            DigitalObject rulesObject = new RulesDigitalObject(rulesFile);
-            realStorage.addObject(rulesObject);
-            log.debug("Realstorage: " + realStorage.getId());
-            rulesOid = rulesObject.getId();
-        } catch (StorageException se) {
-            log.error("Failed to cache indexing rules, stopping", se);
-            return;
+            object = realStorage.getObject(objectId);
+        } catch (StorageException ex) {
+            log.error("Error getting object", ex);
         }
+
         try {
+            Properties sofMeta = object.getMetadata();
+            String rulesOid = sofMeta.getProperty("rulesOid");
+            if (!rulesList.contains(rulesOid)) {
+                updateRules(rulesOid);
+                rulesList.add(rulesOid);
+            }
             processObject(object, rulesOid, null);
         } catch (StorageException e) {
             e.printStackTrace();
@@ -221,7 +217,7 @@ public class IndexClient {
             request.addParam("fq", "item_type:\"object\"");
             request.setParam("start", String.valueOf(startRow));
 
-            if (portalQuery != "" && portalQuery != null) {
+            if (portalQuery != null && !portalQuery.isEmpty()) {
                 request.addParam("fq", portalQuery);
             }
 
@@ -231,25 +227,23 @@ public class IndexClient {
 
                 js = new JsonConfigHelper(result.toString());
                 for (Object oid : js.getList("response/docs/id")) {
-                    DigitalObject object = realStorage
-                            .getObject(oid.toString());
-                    log.info("Indexing: " + object.getId());
-                    Properties sofMeta = getSofMeta(object);
-                    String sofMetaRulesOid = sofMeta.getProperty("rulesOid");
-                    rulesFile = new File(sofMetaRulesOid);
-                    String rulesOid;
+                    DigitalObject object = null;
                     try {
-                        log.debug("Caching rules file " + rulesFile);
-                        DigitalObject rulesObject = new RulesDigitalObject(
-                                rulesFile);
-                        realStorage.addObject(rulesObject);
-                        log.debug("Realstorage: " + realStorage.getId());
-                        rulesOid = rulesObject.getId();
+                        object = realStorage.getObject(oid.toString());
+                    } catch (StorageException ex) {
+                        log.error("Error getting object", ex);
+                    }
+
+                    try {
+                        Properties sofMeta = object.getMetadata();
+                        String rulesOid = sofMeta.getProperty("rulesOid");
+                        if (!rulesList.contains(rulesOid)) {
+                            updateRules(rulesOid);
+                            rulesList.add(rulesOid);
+                        }
                         processObject(object, rulesOid, null);
-                    } catch (StorageException se) {
-                        log.error("Failed to cache indexing rules, stopping",
-                                se);
-                        return;
+                    } catch (StorageException ex) {
+                        log.error("Error indexing object", ex);
                     }
                 }
 
@@ -284,50 +278,7 @@ public class IndexClient {
         String sid = null;
 
         log.info("Processing " + oid + "...");
-        // Properties oldSofMeta = getSofMeta(object);
-        // Properties sofMeta = new Properties(oldSofMeta);
-        // sofMeta.setProperty("objectId", oid);
-        // Payload metadata = object.getMetadata();
-        // String metaPid = "";
-        // if (metadata != null) {
-        // metaPid = metadata.getId();
-        // } else {
-        // // get the meta id and the repository information from the old
-        // // sof-meta
-        // if (oldSofMeta != null) {
-        // metaPid = oldSofMeta.getProperty("metaPid");
-        // log.info("************* " + sofMeta + oldSofMeta
-        // + oldSofMeta.getProperty("repository.name"));
-        // sofMeta.setProperty("repository.name", oldSofMeta
-        // .getProperty("repository.name"));
-        // sofMeta.setProperty("repository.type", oldSofMeta
-        // .getProperty("repository.type"));
-        // }
-        // }
-        // sofMeta.setProperty("metaPid", metaPid);
-        // sofMeta.setProperty("scriptType", config.get("indexer/script/type",
-        // "python"));
-        // sofMeta.setProperty("rulesOid", rulesOid);
-        // sofMeta.setProperty("rulesPid", rulesFile.getName());
-        //
-        // if (indexerParams != null) {
-        // for (String key : indexerParams.keySet()) {
-        // sofMeta.setProperty(key, indexerParams.get(key).toString());
-        // }
-        // }
-        //
-        // ByteArrayOutputStream sofMetaOut = new ByteArrayOutputStream();
-        // // Remove the old sof-meta
-        // realStorage.removePayload(object.getId(), "SOF-META");
-        //
-        // // Store new sof-meta
-        // sofMeta.store(sofMetaOut, "The Fascinator Indexer Metadata2");
-        // GenericPayload sofMetaDs = new GenericPayload("SOF-META",
-        // "The Fascinator Indexer Metadata", "text/plain");
-        // sofMetaDs.setInputStream(new ByteArrayInputStream(sofMetaOut
-        // .toByteArray()));
-        // sofMetaDs.setType(PayloadType.Annotation);
-        // storage.addPayload(oid, sofMetaDs);
+
         try {
             indexer.index(oid);
         } catch (IndexerException e) {
@@ -357,20 +308,39 @@ public class IndexClient {
     }
 
     /**
-     * Getting the sofMeta properties for the DigitalObject
+     * Update the rules object associated with this object
      * 
-     * @param object
-     * @return properties
+     * @param rulesOid The rulesOid to update
      */
-    private Properties getSofMeta(DigitalObject object) {
+    private void updateRules(String rulesOid) {
+        File externalFile = new File(rulesOid);
+        DigitalObject rulesObj = null;
+
+        // Make sure our rules file in storage is up-to-date
         try {
-            Payload sofMetaPayload = object.getPayload("SOF-META");
-            Properties sofMeta = new Properties();
-            sofMeta.load(sofMetaPayload.getInputStream());
-            return sofMeta;
-        } catch (IOException e) {
-            e.printStackTrace();
+            rulesObj = realStorage.getObject(rulesOid);
+            // Update if the external rules file exists
+            if (externalFile.exists()) {
+                InputStream in = new FileInputStream(externalFile);
+                rulesObj.updatePayload(externalFile.getName(), in);
+            }
+
+            // InputStream problem
+        } catch (FileNotFoundException fex) {
+            log.error("Error reading rules file", fex);
+            // Doesn't exist, we need to add it
+        } catch (StorageException ex) {
+            try {
+                rulesObj = realStorage.createObject(rulesOid);
+                InputStream in = new FileInputStream(externalFile);
+                Payload p = rulesObj.createStoredPayload(
+                        externalFile.getName(), in);
+                p.setLabel("Fascinator Indexing Rules");
+            } catch (FileNotFoundException fex) {
+                log.error("Error reading rules file", fex);
+            } catch (StorageException sex) {
+                log.error("Error creating rules object", sex);
+            }
         }
-        return null;
     }
 }

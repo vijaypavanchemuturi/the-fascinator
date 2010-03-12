@@ -2,7 +2,7 @@ package au.edu.usq.fascinator.storage.filesystem;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
+import java.util.Set;
 
 import junit.framework.Assert;
 
@@ -13,85 +13,145 @@ import org.junit.Before;
 import org.junit.Test;
 
 import au.edu.usq.fascinator.api.storage.Payload;
-import au.edu.usq.fascinator.common.storage.impl.GenericDigitalObject;
-import au.edu.usq.fascinator.common.storage.impl.GenericPayload;
+import au.edu.usq.fascinator.api.storage.StorageException;
 
 public class FileSystemStorageTest {
-
     private FileSystemStorage fs;
 
-    private GenericDigitalObject newObject, fileObject;
+    private FileSystemDigitalObject newObject, fileObject;
 
     private String tmpDir = System.getProperty("java.io.tmpdir");
 
     @Before
     public void setup() throws Exception {
+        // Prep storage
         fs = new FileSystemStorage();
         fs.init(new File(getClass().getResource("/fs-config.json").toURI()));
-        if (fs.getHomeDir().exists()) {
-            FileUtils.deleteDirectory(fs.getHomeDir());
-        }
-
-        newObject = new GenericDigitalObject("oai:eprints.usq.edu.au:318", "DC");
-        GenericPayload testPayload1 = new GenericPayload("DC",
-                "Dublin Core Metadata", "text/xml");
-        testPayload1.setInputStream(getClass().getResourceAsStream("/dc.xml"));
-        newObject.addPayload(testPayload1);
-
-        fileObject = new GenericDigitalObject(
-                "/Users/fascinator/Documents/sample.odt");
-        GenericPayload testPayload2 = new GenericPayload("sample.odt",
-                "ICE Sample Document",
-                "application/vnd.oasis.opendocument.text");
-        testPayload2.setInputStream(getClass().getResourceAsStream(
-                "/sample.odt"));
-        GenericPayload testPayload3 = new GenericPayload(
-                "images/ice-services.png", "ICE Services Diagram", "image/png");
-        testPayload3.setInputStream(getClass().getResourceAsStream(
-                "/images/ice-services.png"));
-        fileObject.addPayload(testPayload2);
-        fileObject.addPayload(testPayload3);
     }
 
     @After
     public void cleanup() throws IOException {
+        // Purge the storage directory structure
         FileUtils.deleteDirectory(fs.getHomeDir());
     }
 
+    /* Test a basic cycle of:
+     *  - Create object
+     *  - Add payload
+     *  - Delete payload
+     *  - Delete object
+     */
     @Test
-    public void addAndGetObject1() throws Exception {
-        fs.addObject(newObject);
-        FileSystemDigitalObject addedObject = (FileSystemDigitalObject) fs
-                .getObject("oai:eprints.usq.edu.au:318");
+    public void testObject1() throws Exception {
+        // Create an object
+        newObject = (FileSystemDigitalObject) fs
+                .createObject("oai:eprints.usq.edu.au:318");
+        // Give it a payload
+        Payload p = newObject.createStoredPayload("DC", getClass()
+                .getResourceAsStream("/dc.xml"));
+        p.setLabel("Dublin Core Metadata");
+
+        // Make sure our object is in the correct location
         Assert.assertEquals(FilenameUtils.normalize(tmpDir
                 + "/_fs_test/d0b1c5bd0660ad67a16b7111aafc9389/"
-                + "e2/92/e292378c5b38b0d5a4aba11fd40e7151"), addedObject
-                .getPath().getAbsolutePath());
+                + "e2/92/37/e292378c5b38b0d5a4aba11fd40e7151"), newObject
+                .getPath());
 
-        List<Payload> payloads = addedObject.getPayloadList();
+        // Makes sure the object reports only 1 payload
+        Set<String> payloads = newObject.getPayloadIdList();
         Assert.assertEquals(1, payloads.size());
 
-        Payload payload = payloads.get(0);
+        // Make sure our payload retrieves and is labelled correctly
+        Payload payload = newObject.getPayload("DC");
         Assert.assertEquals("Dublin Core Metadata", payload.getLabel());
+
+        // Remove the payload and recheck object payload size
+        newObject.removePayload(payload.getId());
+        payloads = newObject.getPayloadIdList();
+        Assert.assertEquals(0, payloads.size());
+
+        // Remove the object from storage
+        try {
+            fs.removeObject(newObject.getId());
+        } catch (StorageException ex) {
+            Assert.fail("Error deleting newObject : " + ex.getMessage());
+        }
     }
 
+    /* Similar to test1, except:
+     *  - Two payloads
+     *  - One payload is in a subdirectory
+     */
     @Test
-    public void addAndGetObject2() throws Exception {
-        fs.addObject(fileObject);
-        FileSystemDigitalObject addedObject = (FileSystemDigitalObject) fs
-                .getObject("/Users/fascinator/Documents/sample.odt");
+    public void testObject2() throws Exception {
+        // Create an object
+        fileObject = (FileSystemDigitalObject) fs
+                .createObject("/Users/fascinator/Documents/sample.odt");
+        // Give it a payload
+        Payload p1 = fileObject.createStoredPayload("sample.odt", getClass()
+                .getResourceAsStream("/sample.odt"));
+        p1.setLabel("ICE Sample Document");
+        // Give it another payload
+        Payload p2 = fileObject.createStoredPayload("images/ice-services.png",
+                getClass().getResourceAsStream("/images/ice-services.png"));
+        p2.setLabel("ICE Services Diagram");
+
+        // Make sure our object is in the correct location
         Assert.assertEquals(FilenameUtils.normalize(tmpDir
                 + "/_fs_test/d0b1c5bd0660ad67a16b7111aafc9389/"
-                + "11/b4/11b498d057256a0b602fa0e7c4073fc3"), addedObject
-                .getPath().getAbsolutePath());
+                + "11/b4/98/11b498d057256a0b602fa0e7c4073fc3"), fileObject
+                .getPath());
 
-        List<Payload> payloads = addedObject.getPayloadList();
+        // Makes sure the object reports only 1 payload
+        Set<String> payloads = fileObject.getPayloadIdList();
         Assert.assertEquals(2, payloads.size());
 
-        Payload payload1 = addedObject.getPayload("sample.odt");
+        // Make sure our payloads retrieve and are labelled correctly
+        Payload payload1 = fileObject.getPayload("sample.odt");
         Assert.assertEquals("ICE Sample Document", payload1.getLabel());
-
-        Payload payload2 = addedObject.getPayload("images/ice-services.png");
+        Payload payload2 = fileObject.getPayload("images/ice-services.png");
         Assert.assertEquals("ICE Services Diagram", payload2.getLabel());
+
+        // Remove the first payload and recheck object payload size
+        fileObject.removePayload(payload1.getId());
+        payloads = fileObject.getPayloadIdList();
+        Assert.assertEquals(1, payloads.size());
+
+        // Remove the second payload and recheck object payload size
+        fileObject.removePayload(payload2.getId());
+        payloads = fileObject.getPayloadIdList();
+        Assert.assertEquals(0, payloads.size());
+
+        // Remove the object from storage
+        try {
+            fs.removeObject(fileObject.getId());
+        } catch (StorageException ex) {
+            Assert.fail("Error deleting fileObject : " + ex.getMessage());
+        }
+    }
+
+    /* Similar to test2, except:
+     *  - One payload (in a subdirectory)
+     *  - The object is shutdown and reinstantiated from disk
+     */
+    @Test
+    public void testObject3() throws Exception {
+        // Create an object
+        String oid = "/Users/fascinator/Documents/sample.odt";
+        fileObject = (FileSystemDigitalObject) fs.createObject(oid);
+        // Give it a payload
+        Payload p1 = fileObject.createStoredPayload("sample.odt", getClass()
+                .getResourceAsStream("/sample.odt"));
+        p1.setLabel("ICE Sample Document");
+        // Give it another payload
+        Payload p2 = fileObject.createStoredPayload("images/ice-services.png",
+                getClass().getResourceAsStream("/images/ice-services.png"));
+        p2.setLabel("ICE Services Diagram");
+        fileObject.close();
+
+        // Try read object from disk
+        fileObject = (FileSystemDigitalObject) fs.getObject(oid);
+        Assert.assertEquals(fileObject.getPayload("images/ice-services.png")
+                .getId(), "images/ice-services.png");
     }
 }

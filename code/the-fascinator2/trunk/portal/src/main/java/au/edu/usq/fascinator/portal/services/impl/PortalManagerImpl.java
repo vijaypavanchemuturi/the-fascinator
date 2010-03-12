@@ -24,10 +24,9 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
-import javax.xml.bind.Marshaller;
-import javax.xml.bind.Unmarshaller;
-
+import org.apache.tapestry5.ioc.annotations.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,6 +35,7 @@ import au.edu.usq.fascinator.HarvestClient;
 import au.edu.usq.fascinator.common.JsonConfig;
 import au.edu.usq.fascinator.portal.Portal;
 import au.edu.usq.fascinator.portal.services.PortalManager;
+import au.edu.usq.fascinator.portal.services.ScriptingServices;
 
 public class PortalManagerImpl implements PortalManager {
 
@@ -51,9 +51,8 @@ public class PortalManagerImpl implements PortalManager {
 
     private File portalsDir;
 
-    private Marshaller jaxbM;
-
-    private Unmarshaller jaxbU;
+    @Inject
+    private ScriptingServices services;
 
     public PortalManagerImpl() {
         try {
@@ -173,30 +172,29 @@ public class PortalManagerImpl implements PortalManager {
                     portal.getQuery());
             backupClient.run();
         } catch (IOException e) {
-            e.printStackTrace();
+            log.error("Portal backup failed", e);
         }
     }
 
     @Override
-    public void reHarvestObject(String objectId) {
-        HarvestClient harvestClient;
+    public void reharvest(String objectId) {
         try {
-            harvestClient = new HarvestClient();
-            harvestClient.reHarvest(objectId);
-        } catch (IOException e) {
-            e.printStackTrace();
+            HarvestClient client = new HarvestClient();
+            client.reharvest(objectId);
+        } catch (Exception e) {
+            log.error("Object reharvest failed", e);
         }
-
     }
 
     @Override
-    public void reHarvestPortal(Portal portal) {
-        HarvestClient harvestClient;
+    public void reharvest(Set<String> objectIds) {
         try {
-            harvestClient = new HarvestClient();
-            harvestClient.reHarvestView(portal.getQuery());
-        } catch (IOException e) {
-
+            HarvestClient client = new HarvestClient();
+            for (String oid : objectIds) {
+                client.reharvest(oid);
+            }
+        } catch (Exception e) {
+            log.error("Portal reharvest failed", e);
         }
     }
 }

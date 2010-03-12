@@ -18,16 +18,13 @@
  */
 package au.edu.usq.fascinator.harvester.oaipmh;
 
-import java.io.File;
 import java.io.IOException;
-import java.io.StringWriter;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Date;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
@@ -39,12 +36,14 @@ import se.kb.oai.pmh.OaiPmhServer;
 import se.kb.oai.pmh.Record;
 import se.kb.oai.pmh.RecordsList;
 import se.kb.oai.pmh.ResumptionToken;
-import au.edu.usq.fascinator.api.Configurable;
-import au.edu.usq.fascinator.api.PluginException;
-import au.edu.usq.fascinator.api.harvester.Harvester;
 import au.edu.usq.fascinator.api.harvester.HarvesterException;
 import au.edu.usq.fascinator.api.storage.DigitalObject;
+import au.edu.usq.fascinator.api.storage.Payload;
+import au.edu.usq.fascinator.api.storage.Storage;
+import au.edu.usq.fascinator.api.storage.StorageException;
 import au.edu.usq.fascinator.common.JsonConfig;
+import au.edu.usq.fascinator.common.harvester.impl.GenericHarvester;
+import au.edu.usq.fascinator.common.storage.StorageUtils;
 
 /**
  * Harvests metadata records from an OAI-PMH server
@@ -61,7 +60,7 @@ import au.edu.usq.fascinator.common.JsonConfig;
  * 
  * @author Oliver Lucido
  */
-public class OaiPmhHarvester implements Harvester, Configurable {
+public class OaiPmhHarvester extends GenericHarvester {
 
     /** Date format */
     public static final String DATE_FORMAT = "yyyy-MM-dd";
@@ -86,36 +85,25 @@ public class OaiPmhHarvester implements Harvester, Configurable {
 
     /** Current number of requests/objects done */
     private int numRequests;
+
     private int numObjects;
 
     /** Maximum requests/objects to do */
     private int maxRequests;
+
     private int maxObjects;
 
     /** Request for a specific document */
     private String recordID;
 
-    /** Configuration */
-    private JsonConfig config;
-
-    @Override
-    public String getId() {
-        return "oai-pmh";
+    public OaiPmhHarvester() {
+        super("oai-pmh", "OAI-PMH Harvester");
     }
 
     @Override
-    public String getName() {
-        return "OAI-PMH Harvester";
-    }
-
-    @Override
-    public void init(File jsonFile) throws HarvesterException {
-        try {
-            config = new JsonConfig(jsonFile);
-            server = new OaiPmhServer(config.get("harvester/oai-pmh/url"));
-        } catch (IOException ioe) {
-            throw new HarvesterException(ioe);
-        }
+    public void init() throws HarvesterException {
+        JsonConfig config = getJsonConfig();
+        server = new OaiPmhServer(config.get("harvester/oai-pmh/url"));
 
         /** Check for request on a specific ID */
         recordID = config.get("harvester/oai-pmh/recordID", null);
@@ -138,11 +126,8 @@ public class OaiPmhHarvester implements Harvester, Configurable {
     }
 
     @Override
-    public void shutdown() throws HarvesterException {
-    }
-
-    @Override
-    public List<DigitalObject> getObjects() throws HarvesterException {
+    public Set<String> getObjectIdList() throws HarvesterException {
+        JsonConfig config = getJsonConfig();
         DateFormat df = new SimpleDateFormat(DATETIME_FORMAT);
         String from = config.get("harvester/oai-pmh/from");
         String until = config.get("harvester/oai-pmh/until");
@@ -154,7 +139,7 @@ public class OaiPmhHarvester implements Harvester, Configurable {
                 log.warn("Failed to parse date {}", from, pe);
             }
         }
-        List<DigitalObject> items = new ArrayList<DigitalObject>();
+        Set<String> items = new HashSet<String>();
         String metadataPrefix = config.get("harvester/oai-pmh/metadataPrefix",
                 DEFAULT_METADATA_PREFIX);
         String setSpec = config.get("harvester/oai-pmh/setSpec");
@@ -165,17 +150,23 @@ public class OaiPmhHarvester implements Harvester, Configurable {
             if (recordID != null) {
                 log.info("Requesting record {}", recordID);
                 Record record = server.getRecord(recordID, metadataPrefix);
-                /** Add the item and return now, so we don't confuse
-                    the record loop further down */
-                items.add(new OaiPmhDigitalObject(record, metadataPrefix));
+                try {
+                    items
+                            .add(createOaiPmhDigitalObject(record,
+                                    metadataPrefix));
+                } catch (StorageException se) {
+                    log.error("Failed to create object", se);
+                } catch (IOException ioe) {
+                    log.error("Failed to read object", ioe);
+                }
                 return items;
 
-            /** Continue an already running request */
+                /** Continue an already running request */
             } else if (started) {
                 records = server.listRecords(token);
                 log.info("Resuming harvest using token {}", token.getId());
 
-            /** Start a new request */
+                /** Start a new request */
             } else {
                 started = true;
                 if (fromDate == null) {
@@ -204,7 +195,14 @@ public class OaiPmhHarvester implements Harvester, Configurable {
             for (Record record : records.asList()) {
                 if (numObjects < maxObjects) {
                     numObjects++;
-                    items.add(new OaiPmhDigitalObject(record, metadataPrefix));
+                    try {
+                        items.add(createOaiPmhDigitalObject(record,
+                                metadataPrefix));
+                    } catch (StorageException se) {
+                        log.error("Failed to create object", se);
+                    } catch (IOException ioe) {
+                        log.error("Failed to read object", ioe);
+                    }
                 }
             }
             token = records.getResumptionToken();
@@ -214,44 +212,24 @@ public class OaiPmhHarvester implements Harvester, Configurable {
         return items;
     }
 
-    @Override
-    public List<DigitalObject> getObject(File uploadedFile)
-            throws HarvesterException {
-        throw new HarvesterException("This plugin does not harvest uploaded files");
+    private String createOaiPmhDigitalObject(Record record,
+            String metadataPrefix) throws HarvesterException, IOException,
+            StorageException {
+        Storage storage = getStorage();
+        String oid = record.getHeader().getIdentifier();
+        DigitalObject object = storage.createObject(oid);
+        Payload payload = StorageUtils.createOrUpdatePayload(object,
+                metadataPrefix, IOUtils.toInputStream(record
+                        .getMetadataAsString(), "UTF-8"));
+        payload.setContentType("text/xml");
+        payload.close();
+        object.close();
+        return object.getId();
     }
 
     @Override
     public boolean hasMoreObjects() {
-        return token != null && numRequests < maxRequests && numObjects < maxObjects;
-    }
-
-    @Override
-    public List<DigitalObject> getDeletedObjects() {
-        // empty for now
-        return Collections.emptyList();
-    }
-
-    @Override
-    public boolean hasMoreDeletedObjects() {
-        return false;
-    }
-
-    @Override
-    public String getConfig() {
-        StringWriter writer = new StringWriter();
-        try {
-            IOUtils.copy(getClass().getResourceAsStream(
-                    "/" + getId() + "-config.html"), writer);
-        } catch (IOException ioe) {
-            writer.write("<span class=\"error\">" + ioe.getMessage()
-                    + "</span>");
-        }
-        return writer.toString();
-    }
-
-    @Override
-    public void init(String jsonString) throws PluginException {
-        // TODO Auto-generated method stub
-
+        return token != null && numRequests < maxRequests
+                && numObjects < maxObjects;
     }
 }

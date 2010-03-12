@@ -1,8 +1,8 @@
 import array, md5, os
 
+from au.edu.usq.fascinator.api import PluginManager
 from au.edu.usq.fascinator.api.indexer import SearchRequest
 from au.edu.usq.fascinator.api.storage import Payload, PayloadType
-from au.edu.usq.fascinator.api import PluginManager
 from au.edu.usq.fascinator.common import JsonConfig, JsonConfigHelper
 from au.edu.usq.fascinator.common.storage.impl import GenericPayload
 from au.edu.usq.fascinator.portal import Pagination, Portal
@@ -20,14 +20,14 @@ class SearchData:
         self.__search()
         
     def getPortalName(self):
-        return Services.portalManager.get(portalId).description
-    
+        return self.__portal.getDescription()
+        
     def encode(self, url):
         return URLEncoder.encode(url, "UTF-8")
         
     def __search(self):
         recordsPerPage = self.__portal.recordsPerPage
-
+        
         uri = URLDecoder.decode(request.getAttribute("RequestURI"))
         if uri != portalPath:
             query = uri[len(portalPath):]
@@ -151,14 +151,16 @@ class SearchData:
         return format.startswith("image/")
     
     def getThumbnail(self, oid):
-        ext = os.path.splitext(oid)[1]
-        url = oid[oid.rfind("/")+1:-len(ext)] + "_thumbnail.jpg"
-        if Services.getStorage().getPayload(oid, url):
+        try:
+            # TODO should eventually use 'StorageManager' to get the thumbnail
+            # instead of looking at specific payload IDs
+            ext = os.path.splitext(oid)[1]
+            url = oid[oid.rfind("/")+1:-len(ext)] + "_thumbnail.jpg"
+            Services.getStorage().getObject(oid).getPayload(url)
             return url
+        except:
+            pass
         return None
-    
-    def getObject(self, oid):
-        object = Services.getStorage().getObject(oid)
-        return object
 
-scriptObject = SearchData()
+if __name__ == "__main__":
+    scriptObject = SearchData()

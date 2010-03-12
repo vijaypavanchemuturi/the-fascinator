@@ -19,10 +19,10 @@
 package au.edu.usq.fascinator.api.harvester;
 
 import java.io.File;
-import java.util.List;
+import java.util.Set;
 
 import au.edu.usq.fascinator.api.Plugin;
-import au.edu.usq.fascinator.api.storage.DigitalObject;
+import au.edu.usq.fascinator.api.storage.Storage;
 
 /**
  * Provides digital objects from any data source
@@ -32,31 +32,38 @@ import au.edu.usq.fascinator.api.storage.DigitalObject;
 public interface Harvester extends Plugin {
 
     /**
-     * Gets a list of digital objects. If there are no objects, this method
+     * Sets the Storage instance that the Harvester will use to manage objects.
+     * 
+     * @param storage a storage instance
+     */
+    public void setStorage(Storage storage);
+
+    /**
+     * Gets a list of digital object IDs. If there are no objects, this method
      * should return an empty list, not null.
      * 
-     * @return a list of objects, possibly empty
+     * @return a list of object IDs, possibly empty
      * @throws HarvesterException if there was an error retrieving the objects
      */
-    public List<DigitalObject> getObjects() throws HarvesterException;
+    public Set<String> getObjectIdList() throws HarvesterException;
 
     /**
-     * Get an individual uploaded file as a digital object.
-     * For consistancy this should be in a list.
-     *
-     * @return a list of one object
-     * @throws HarvesterException if there was an error retrieving the objects
-     */
-    public List<DigitalObject> getObject(File uploadedFile) throws HarvesterException;
-
-    /**
-     * Gets a list of deleted digital objects. If there are no deleted objects,
-     * this method should return an empty list, not null.
+     * Get an individual uploaded file as a digital object. For consistency this
+     * should be in a list.
      * 
-     * @return a list of objects, possibly empty
+     * @return a list of one object ID
      * @throws HarvesterException if there was an error retrieving the objects
      */
-    public List<DigitalObject> getDeletedObjects() throws HarvesterException;
+    public Set<String> getObjectId(File uploadedFile) throws HarvesterException;
+
+    /**
+     * Gets a list of deleted digital object IDs. If there are no deleted
+     * objects, this method should return an empty list, not null.
+     * 
+     * @return a list of objects IDs, possibly empty
+     * @throws HarvesterException if there was an error retrieving the objects
+     */
+    public Set<String> getDeletedObjectIdList() throws HarvesterException;
 
     /**
      * Tests whether there are more objects to retrieve. This method should

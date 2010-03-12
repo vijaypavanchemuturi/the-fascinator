@@ -18,7 +18,9 @@
  */
 package au.edu.usq.fascinator.api.storage;
 
-import java.util.List;
+import java.io.InputStream;
+import java.util.Properties;
+import java.util.Set;
 
 /**
  * Represents an object and its related payloads (or attachments)
@@ -29,45 +31,105 @@ public interface DigitalObject {
 
     /**
      * Gets the unique identifier for this object
-     * 
+     *
      * @return an identifier
      */
     public String getId();
 
     /**
-     * Gets the payload which represents the metadata for this object
-     * 
-     * @return a payload
+     * Sets the unique identifier for this object
+     *
+     * @param a String identifier
      */
-    public Payload getMetadata();
+    public void setId(String oid);
+
+    /**
+     * Gets the Source related to this object
+     *
+     * @return a payload id
+     */
+    public String getSourceId();
+
+    /**
+     * Sets the Source related to this object
+     *
+     * @param a payload id
+     */
+    public void setSourceId(String pid);
+
+    /**
+     * Instantiates a properties object from the
+     * object's metadata payload.
+     *
+     * @return A properties object
+     */
+    public Properties getMetadata() throws StorageException;
+
+    /**
+     * Gets the payloads related to this object
+     *
+     * @return list of payload ids
+     */
+    public Set<String> getPayloadIdList();
+
+    /**
+     * Creates a new stored payload on the object
+     *
+     * @param pid A string identifier
+     * @param in An inputStream to the new payload's contents
+     * @return a payload
+     * @throws StorageException if there was an error creating the payload
+     *          or the ID already exists.
+     */
+    public Payload createStoredPayload(String pid, InputStream in)
+            throws StorageException;
+
+    /**
+     * Creates a new linked payload on the object
+     *
+     * @param pid A string identifier
+     * @param linkPath A string showing the path to the linked file
+     * @return a payload
+     * @throws StorageException if there was an error creating the payload
+     *          or the ID already exists.
+     */
+    public Payload createLinkedPayload(String pid, String linkPath)
+            throws StorageException;
 
     /**
      * Gets the payload with the specified identifier
      * 
      * @param pid payload identifier
      * @return a payload
+     * @throws StorageException if there was an error instantiating the payload
+     *          or the ID does not exist.
      */
-    public Payload getPayload(String pid);
+    public Payload getPayload(String pid) throws StorageException;
 
     /**
-     * Gets the payloads related to this object
+     * Remove a payload from the object
      * 
-     * @return list of payloads
+     * @param a payload identifier
+     * @throws StorageException if there was an error removing the payload
      */
-    public List<Payload> getPayloadList();
+    public void removePayload(String pid) throws StorageException;
 
     /**
-     * Gets the Source related to this object
-     * 
-     * @return a payload
+     * Updates a payload's contents
+     *
+     * @param pid A string identifier
+     * @param in An InputStream to the new contetnts
+     * @return the updated payload
+     * @throws StorageException if there was an error updating the payload
+     *          or the ID doesn't exist.
      */
-    public Payload getSource();
+    public Payload updatePayload(String pid, InputStream in)
+            throws StorageException;
 
     /**
-     * Remove payload from payload list
-     * 
-     * @param payload
+     * Close the object
+     *
+     * @throws StorageException if there was an error closing the object
      */
-    public void removePayload(Payload payload);
-
+    public void close() throws StorageException;
 }
