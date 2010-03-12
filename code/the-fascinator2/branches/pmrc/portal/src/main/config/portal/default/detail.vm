@@ -106,12 +106,12 @@
             <h2>Preview</h2>
             <div class="results-list">
                 <div class="result">
-                    <h2 id="$oid">Tags: </h2>
+                    <h2 id="$oid">Tags: <span class="tags-here"></span></h2>
                 </div>
             </div>
             <div class="location-results-list">
                 <div class="location-result">
-                    <div id="$oid" class="location">Location: <span class="tags-here"></div></span>
+                    <div id="$oid" class="location">Location: <span class="tags-here"></span></div>
                 </div>
             </div>
             <div id="anno-root" class="content-preview">
@@ -361,6 +361,7 @@ $(function() {
         tags.setConfig("tag_list", ".result h2");
         tags.setConfig("page_uri", "$self.object.id");
         tags.setConfig("uri_attr", "id");
+        tags.setConfig("output_in_child", ".tags-here");
         tags.setConfig("anno_type", "http://www.purl.org/anotar/ns/type/0.1#Tag");
         tags.setConfig("style_prefix", "tags-");
         tags.setConfig("proxy_required", false);
@@ -383,34 +384,33 @@ $(function() {
         // Location Tags annotaion
         var locationTags = new Anotar();
         locationTags.setType("Tag");
-        //tags.setConfig("debug", true);
+        locationTags.setConfig("debug", true);
         locationTags.setConfig("doc_root", ".location-results-list");
         locationTags.setConfig("tag_list", ".location");
+        locationTags.setConfig("content_input", "#txtName");
         locationTags.setConfig("page_uri", "$self.object.id");
         locationTags.setConfig("uri_attr", "id");
         locationTags.setConfig("output_in_child", ".tags-here");
-        locationTags.setConfig("anno_type", "http://www.purl.org/anotar/ns/type/0.1#Tag");
         locationTags.setConfig("style_prefix", "tags-");
         locationTags.setConfig("proxy_required", false);
         locationTags.setConfig("interface_label", " <img src='$portalPath/images/icons/add.png'/>");
         locationTags.setConfig("interface_visible", true);
-        locationTags.setConfig("form_cancel", ".myTag-cancel");
-        
-        locationTags.setConfig("hash_type", "http://www.w3.org/TR/2009/WD-media-frags-20091217");
+        locationTags.setConfig("hash_type", "http://www.geonames.org/");
         locationTags.setConfig("hash_function", function(node) {
             var rel = node.attr("rel");
-            if (rel == null) { rel = "$oid"; }
-            return rel;
+            if (rel == null) {
+                //rel = "$oid";
+                return "http://www.geonames.org/";
+            }
+            return "http://www.geonames.org/" + rel;
         });
-        
-        //locationTags.setConfig("form_prepend", true);
         locationTags.setConfig("form_custom", "location_form");
-        //tags.setConfig("hash_function", function(me) { return me.attr("anotar-hash"); });
-        locationTags.setConfig("form_cancel", ".myTag-cancel");
-        locationTags.setConfig("form_submit", ".myTag-submit");
+        locationTags.setConfig("form_cancel", ".locTag-cancel");
+        locationTags.setConfig("form_submit", ".locTag-submit");
         locationTags.setConfig("server_address", "$portalPath/actions/anotar.ajax");
         locationTags.setConfig("server_mode", "fascinator");
         locationTags.setConfig("disable_replies", true);
+        locationTags.setConfig("display_custom", "location_tag_form");
         locationTags.init($);
         
         #if($self.mimeType.startsWith("audio/") || $self.mimeType.startsWith("video/"))
@@ -477,9 +477,24 @@ $(function() {
     
 </script>
 
-
-<!--<script type="text/javascript" src="$portalPath/js/taxonomy/jsr_class.js"></script>
-<script type="text/javascript" src="$portalPath/js/taxonomy/geonames.js"></script> -->
+<script type="text/javascript">
+    var attached = false;
+    function attach(node) {
+        if (!attached) {
+            attached = true;
+            $(node).autocomplete('$portalPath/actions/geonames.ajax', {
+                extraParams: {"func":"placeName"}, 
+                formatItem: function(row) {
+                    return row[0];
+                }
+            }).result(function(event, item) {
+                if (item) {
+                    $(".location").attr("rel", item[1]);
+                }
+            });
+        }
+    }
+</script>
 
 <script type="text/html" id="location_form">
   <div id="location_div">
@@ -498,9 +513,7 @@ $(function() {
         </td>
       </tr>
       <tr class="annotate_name">
-        <td>Search: <input type="text" id="txtName" onblur="$(this).autocomplete('$portalPath/actions/geonames.ajax?func=placeName')" size="45"/>
-            <input type="button" value="Get Value" id="click" onclick="$(this).autocomplete('$portalPath/actions/geonames.ajax?func=placeName')" />
-        </td>
+        <td>Search: <input type="text" id="txtName" onfocus="attach(this)" size="45"/></td>
       </tr>
       <tr class="hidden annotate_ll">
         <td>Latitude: <input type="text" id="txtLatitude"/>
@@ -510,12 +523,23 @@ $(function() {
         <td>Range: Range</td>
       </tr>
       <tr>
-        <td><button class="myTag-cancel">Cancel</button>&#160;</td>
+        <td><button class="locTag-cancel">Cancel</button>&#160;
+            <button class="locTag-submit">Submit</button></td>
       </tr>
     </table>
   </div>
 </script>
 
+<script type="text/html" id="location_tag_form">
+    <% if (locator != null && locator.indexOf("http://") == 0) { %>
+  <span class='<%=style%>tag'>
+      <a href="<%=locator%>"><%=content%></a>
+  </span>
+    <% } else { %>
+      <span></span>
+      ##<a href="http://www.geonames.org/search.html?q=<%=content%>"><%=content%></a>
+    <% }%>
+</script>
 
 #if($self.mimeType.startsWith("audio/") || $self.mimeType.startsWith("video/"))
 <script type="text/html" id="media_clip_form">
