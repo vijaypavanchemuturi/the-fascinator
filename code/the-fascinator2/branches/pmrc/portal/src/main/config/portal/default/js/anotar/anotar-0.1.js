@@ -23,6 +23,7 @@ function Anotar() {
         "style_prefix" : "anno-",
         "doc_root" : "#anno-root",
         "tag_list" : "p, h1, h2, h3, h4, h5, h6",
+        "content_input" : "textarea",
         "output_in_child" : null,
         "label" : "Comment on this:",
         "lang" : "en",
@@ -363,7 +364,7 @@ function Anotar() {
         }
         annotateDiv = jQ(annotateDiv);
         commentOnThis = jQ(render_template(templates.annotateTitle, opt));
-        textArea = annotateDiv.find("textarea");
+        textArea = annotateDiv.find(config.content_input);
 
         if (config.form_cancel == null)
             this.setConfig("form_cancel", "button." + sp + "cancel");
