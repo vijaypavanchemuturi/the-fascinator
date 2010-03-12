@@ -106,6 +106,7 @@
             <h2>Preview</h2>
             <div class="results-list">
                 <div class="result">
+                    <!--<h2 id="$oid">Tags: <span class="tags-here"></span></h2>-->
                     <h2 id="$oid">Tags: <span class="tags-here"></span></h2>
                 </div>
             </div>
@@ -350,9 +351,45 @@ $(function() {
 });
 </script>
 <script type="text/javascript" src="$portalPath/js/anotar/json2.js"></script>
-<script type="text/javascript" src="$portalPath/js/anotar/anotar-0.1.js"></script>
+<!--<script type="text/javascript" src="$portalPath/js/anotar/anotar-0.1.js"></script>-->
+<script type="text/javascript" src="$portalPath/js/anotar/anotar-0.2.js"></script>
+
+<script type="text/html" id="normal_tag_form">
+    <div class='myTags float-right'>Tag this:
+      <textarea></textarea>
+      <img src='$portalPath/images/icons/tick.png' class='myTag-submit'/>&#160;
+      <img src='$portalPath/images/icons/cross.png' class='myTag-cancel'>
+    </div>
+</script>
+
 <script type="text/javascript">
     $(function(){
+        /*
+        var jQ = jQuery;
+        // Tags annotation
+        tagConfig={
+            debug: true,
+            docRoot: ".results-list",
+            tagList: ".result h2",
+            pageUri: "$self.object.id",
+            uriAttr: "id",
+            //outputInChild: ".tags-here",
+            annotationType: "tag",
+            stylePrefix: "tags-",
+            interfaceLabel: " <img src='$portalPath/images/icons/add.png'/>",
+            formPrepend: true,
+            interfaceVisible: true,
+            formCustom: "normal_tag_form",
+            formCancel: ".myTag-cancel",
+            formSubmit: ".myTag-submit",
+            serverAddress: "$portalPath/actions/anotar.ajax",
+            serverMode: "fascinator"
+        }
+        
+        tag = anotarFactory(jQ, tagConfig);
+        */        
+        
+        
         // Tags annotation
         var tags = new Anotar();
         tags.setType("Tag");
@@ -361,7 +398,6 @@ $(function() {
         tags.setConfig("tag_list", ".result h2");
         tags.setConfig("page_uri", "$self.object.id");
         tags.setConfig("uri_attr", "id");
-        tags.setConfig("output_in_child", ".tags-here");
         tags.setConfig("anno_type", "http://www.purl.org/anotar/ns/type/0.1#Tag");
         tags.setConfig("style_prefix", "tags-");
         tags.setConfig("proxy_required", false);
@@ -540,6 +576,7 @@ $(function() {
       ##<a href="http://www.geonames.org/search.html?q=<%=content%>"><%=content%></a>
     <% }%>
 </script>
+
 
 #if($self.mimeType.startsWith("audio/") || $self.mimeType.startsWith("video/"))
 <script type="text/html" id="media_clip_form">

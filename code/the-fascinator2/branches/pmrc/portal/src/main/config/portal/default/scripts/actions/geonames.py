@@ -8,21 +8,17 @@ class GeoNames:
         responseType = "text/html"
         responseMsg = ""
         func = formData.get("func")
-        print func
         if func == "placeName":
             try:
                 placeName = formData.get("q")
-                print "--- placeName: ",placeName
                 url = "http://ws.geonames.org/searchJSON?q=" + placeName
                 client = BasicHttpClient(url)
                 get = GetMethod(url)
                 statusInt = client.executeMethod(get)
                 r = str(statusInt)
-                print "done"
                 jsonConfigHelper = JsonConfigHelper(get.getResponseBodyAsString().strip())
                 for geoName in jsonConfigHelper.getJsonList("geonames"):
                     responseMsg += "%s, %s|%s \n" % (geoName.get("name"), geoName.get("countryName"), geoName.get("geonameId"))
-                print "done again"
             except Exception, e:
                 print "exception: ", str(e)
                 r = str(e), None
