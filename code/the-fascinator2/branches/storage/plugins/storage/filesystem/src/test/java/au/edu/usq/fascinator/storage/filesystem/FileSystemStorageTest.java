@@ -35,6 +35,12 @@ public class FileSystemStorageTest {
         FileUtils.deleteDirectory(fs.getHomeDir());
     }
 
+    /* Test a basic cycle of:
+     *  - Create object
+     *  - Add payload
+     *  - Delete payload
+     *  - Delete object
+     */
     @Test
     public void testObject1() throws Exception {
         // Create an object
@@ -72,6 +78,10 @@ public class FileSystemStorageTest {
         }
     }
 
+    /* Similar to test1, except:
+     *  - Two payloads
+     *  - One payload is in a subdirectory
+     */
     @Test
     public void testObject2() throws Exception {
         // Create an object
@@ -120,6 +130,10 @@ public class FileSystemStorageTest {
         }
     }
 
+    /* Similar to test2, except:
+     *  - One payload (in a subdirectory)
+     *  - The object is shutdown and reinstantiated from disk
+     */
     @Test
     public void testObject3() throws Exception {
         // Create an object
