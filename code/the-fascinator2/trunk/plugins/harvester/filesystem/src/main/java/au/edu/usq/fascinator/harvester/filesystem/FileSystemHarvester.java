@@ -23,24 +23,24 @@ import java.io.FileFilter;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.StringWriter;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.Stack;
 
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import au.edu.usq.fascinator.api.Configurable;
-import au.edu.usq.fascinator.api.PluginException;
-import au.edu.usq.fascinator.api.harvester.Harvester;
 import au.edu.usq.fascinator.api.harvester.HarvesterException;
 import au.edu.usq.fascinator.api.storage.DigitalObject;
+import au.edu.usq.fascinator.api.storage.Payload;
+import au.edu.usq.fascinator.api.storage.Storage;
+import au.edu.usq.fascinator.api.storage.StorageException;
 import au.edu.usq.fascinator.common.JsonConfig;
+import au.edu.usq.fascinator.common.harvester.impl.GenericHarvester;
+import au.edu.usq.fascinator.common.storage.StorageUtils;
 
 /**
  * Harvests files in a specified directory on the local file system
@@ -53,11 +53,12 @@ import au.edu.usq.fascinator.common.JsonConfig;
  * (default: .svn)</li>
  * <li>cacheDir: location for cache files</li>
  * <li>force: set true to force harvest of all files (ignore cache)</li>
+ * <li>link: set true to link to original files, false to create copies</li>
  * </ul>
  * 
  * @author Oliver Lucido
  */
-public class FileSystemHarvester implements Harvester, Configurable {
+public class FileSystemHarvester extends GenericHarvester {
 
     /** file containing the full path for caching purposes */
     private static final String ID_FILE = "id.txt";
@@ -67,9 +68,6 @@ public class FileSystemHarvester implements Harvester, Configurable {
 
     /** default ignore list */
     private static final String DEFAULT_IGNORE_PATTERNS = ".svn";
-
-    /** configuration */
-    private JsonConfig config;
 
     /** directory to harvest */
     private File baseDir;
@@ -104,6 +102,9 @@ public class FileSystemHarvester implements Harvester, Configurable {
     /** force harvesting all files */
     private boolean force;
 
+    /** use links instead of copying */
+    private boolean link;
+
     /** filter used when detecting deleted files */
     private FileFilter idTxtFilter;
 
@@ -129,55 +130,47 @@ public class FileSystemHarvester implements Harvester, Configurable {
         }
     }
 
-    @Override
-    public String getId() {
-        return "file-system";
+    public FileSystemHarvester() {
+        super("file-system", "File System Harvester");
     }
 
     @Override
-    public String getName() {
-        return "File System Harvester";
-    }
-
-    @Override
-    public void init(File jsonFile) throws HarvesterException {
-        try {
-            config = new JsonConfig(jsonFile);
-            baseDir = new File(config.get("harvester/file-system/baseDir", "."));
-            log.info("Harvesting directory: {}", baseDir);
-            recursive = Boolean.parseBoolean(config.get(
-                    "harvester/file-system/recursive", "false"));
-            ignoreFilter = new IgnoreFilter(config.get(
-                    "harvester/file-system/ignoreFilter",
-                    DEFAULT_IGNORE_PATTERNS).split("\\|"));
-            cacheDir = null;
-            String cacheDirValue = config.get("harvester/file-system/cacheDir");
-            if (cacheDirValue != null) {
-                cacheDir = new File(cacheDirValue);
-                cacheDir.mkdirs();
-                log.info("File system state will be cached in {}", cacheDir);
-            }
-            force = Boolean.parseBoolean(config.get(
-                    "harvester/file-system/force", "false"));
-            if (force) {
-                log.info("Forcing harvest of all files...");
-            }
-            currentDir = baseDir;
-            subDirs = new Stack<File>();
-            hasMore = true;
-
-            cacheCurrentDir = cacheDir;
-            cacheSubDirs = new Stack<File>();
-            hasMoreDeleted = true;
-            idTxtFilter = new FileFilter() {
-                @Override
-                public boolean accept(File file) {
-                    return file.isDirectory() || ID_FILE.equals(file.getName());
-                }
-            };
-        } catch (IOException ioe) {
-            throw new HarvesterException(ioe);
+    public void init() throws HarvesterException {
+        JsonConfig config = getJsonConfig();
+        baseDir = new File(config.get("harvester/file-system/baseDir", "."));
+        log.info("Harvesting directory: {}", baseDir);
+        recursive = Boolean.parseBoolean(config.get(
+                "harvester/file-system/recursive", "false"));
+        ignoreFilter = new IgnoreFilter(config.get(
+                "harvester/file-system/ignoreFilter", DEFAULT_IGNORE_PATTERNS)
+                .split("\\|"));
+        cacheDir = null;
+        String cacheDirValue = config.get("harvester/file-system/cacheDir");
+        if (cacheDirValue != null) {
+            cacheDir = new File(cacheDirValue);
+            cacheDir.mkdirs();
+            log.info("File system state will be cached in {}", cacheDir);
         }
+        force = Boolean.parseBoolean(config.get("harvester/file-system/force",
+                "false"));
+        if (force) {
+            log.info("Forcing harvest of all files...");
+        }
+        link = Boolean.parseBoolean(config.get("harvester/file-system/link",
+                "false"));
+        currentDir = baseDir;
+        subDirs = new Stack<File>();
+        hasMore = true;
+
+        cacheCurrentDir = cacheDir;
+        cacheSubDirs = new Stack<File>();
+        hasMoreDeleted = true;
+        idTxtFilter = new FileFilter() {
+            @Override
+            public boolean accept(File file) {
+                return file.isDirectory() || ID_FILE.equals(file.getName());
+            }
+        };
     }
 
     @Override
@@ -185,8 +178,8 @@ public class FileSystemHarvester implements Harvester, Configurable {
     }
 
     @Override
-    public List<DigitalObject> getObjects() throws HarvesterException {
-        List<DigitalObject> fileObjects = new ArrayList<DigitalObject>();
+    public Set<String> getObjectIdList() throws HarvesterException {
+        Set<String> fileObjectIdList = new HashSet<String>();
         if (currentDir.isDirectory()) {
             File[] files = currentDir.listFiles(ignoreFilter);
             for (File file : files) {
@@ -196,7 +189,13 @@ public class FileSystemHarvester implements Harvester, Configurable {
                     }
                 } else {
                     if (force || hasFileChanged(file)) {
-                        fileObjects.add(new FileSystemDigitalObject(file));
+                        try {
+                            String oid = createDigitalObject(file);
+                            fileObjectIdList.add(oid);
+                        } catch (StorageException se) {
+                            log.warn("File not harvested {}: {}", file, se
+                                    .getMessage());
+                        }
                     }
                 }
             }
@@ -206,17 +205,16 @@ public class FileSystemHarvester implements Harvester, Configurable {
             }
         } else {
             if (force || hasFileChanged(currentDir)) {
-                fileObjects.add(new FileSystemDigitalObject(currentDir));
+                try {
+                    fileObjectIdList.add(createDigitalObject(currentDir));
+                } catch (StorageException se) {
+                    log.warn("File not harvested {}: {}", currentDir, se
+                            .getMessage());
+                }
             }
             hasMore = false;
         }
-        return fileObjects;
-    }
-
-    @Override
-    public List<DigitalObject> getObject(File uploadedFile)
-            throws HarvesterException {
-        throw new HarvesterException("This plugin does not harvest uploaded files");
+        return fileObjectIdList;
     }
 
     private boolean hasFileChanged(File file) {
@@ -276,8 +274,8 @@ public class FileSystemHarvester implements Harvester, Configurable {
     }
 
     @Override
-    public List<DigitalObject> getDeletedObjects() {
-        List<DigitalObject> fileObjects = new ArrayList<DigitalObject>();
+    public Set<String> getDeletedObjectIdList() throws HarvesterException {
+        Set<String> fileObjects = new HashSet<String>();
         if (cacheCurrentDir == null) {
             hasMoreDeleted = false;
         } else {
@@ -307,14 +305,15 @@ public class FileSystemHarvester implements Harvester, Configurable {
         return fileObjects;
     }
 
-    private void addDeletedObject(List<DigitalObject> fileObjects, File idFile) {
+    private void addDeletedObject(Set<String> fileObjectIdList, File idFile)
+            throws HarvesterException {
         if (ID_FILE.equals(idFile.getName())) {
             try {
                 String id = FileUtils.readFileToString(idFile);
                 File realFile = new File(id);
                 if (!realFile.exists()) {
                     FileUtils.deleteQuietly(idFile.getParentFile());
-                    fileObjects.add(new FileSystemDigitalObject(realFile));
+                    fileObjectIdList.add(id);
                 }
             } catch (IOException ioe) {
                 log.warn("Failed to read {}", idFile);
@@ -327,22 +326,11 @@ public class FileSystemHarvester implements Harvester, Configurable {
         return hasMoreDeleted;
     }
 
-    @Override
-    public String getConfig() {
-        StringWriter writer = new StringWriter();
-        try {
-            IOUtils.copy(getClass().getResourceAsStream(
-                    "/" + getId() + "-config.html"), writer);
-        } catch (IOException ioe) {
-            writer.write("<span class=\"error\">" + ioe.getMessage()
-                    + "</span>");
-        }
-        return writer.toString();
-    }
-
-    @Override
-    public void init(String jsonString) throws PluginException {
-        // TODO Auto-generated method stub
-
+    private String createDigitalObject(File file) throws HarvesterException,
+            StorageException {
+        DigitalObject object = StorageUtils.storeFile(getStorage(), file, link);
+        String oid = object.getId();
+        object.close();
+        return oid;
     }
 }

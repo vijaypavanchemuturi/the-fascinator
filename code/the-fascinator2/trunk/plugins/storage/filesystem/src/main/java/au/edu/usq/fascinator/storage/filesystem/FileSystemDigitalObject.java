@@ -18,71 +18,110 @@
  */
 package au.edu.usq.fascinator.storage.filesystem;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.FilenameFilter;
-import java.util.ArrayList;
-import java.util.List;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
+import java.util.Map;
 
-import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import au.edu.usq.fascinator.api.storage.Payload;
 import au.edu.usq.fascinator.api.storage.PayloadType;
+import au.edu.usq.fascinator.api.storage.StorageException;
+import au.edu.usq.fascinator.common.DummyFileLock;
 import au.edu.usq.fascinator.common.storage.impl.GenericDigitalObject;
 
 public class FileSystemDigitalObject extends GenericDigitalObject {
 
     private Logger log = LoggerFactory.getLogger(FileSystemDigitalObject.class);
-
+    private static String METADATA_SUFFIX = ".meta";
+    private static String MANIFEST_LOCK_FILE = "manifest.lock";
     private File homeDir;
+    private File lockFile;
+    private DummyFileLock manifestLock;
 
-    private File path;
-
-    private String hashId;
-
-    private boolean useLink;
-
-    public FileSystemDigitalObject(File homeDir, String oid, boolean useLink) {
+    public FileSystemDigitalObject(File homeDir, String oid) {
         super(oid);
         this.homeDir = homeDir;
-        this.useLink = useLink;
+        buildLock();
+
+        lockManifest();
+        buildManifest();
+        unlockManifest();
+        log.debug("Object instantiation complete : " + oid);
     }
 
-    public String getHashId() {
-        if (hashId == null) {
-            hashId = DigestUtils.md5Hex(getId());
+    // Unit testing
+    public String getPath() {
+        return homeDir.getAbsolutePath();
+    }
+
+    private void buildLock() {
+        try {
+            String lockPath = getPath() + File.separator + "manifest.lock";
+            lockFile = new File(lockPath);
+            if (!lockFile.exists()) {
+                // log.debug("Creating new lock file : "
+                // + lockFile.getAbsolutePath());
+                lockFile.getParentFile().mkdirs();
+                lockFile.createNewFile();
+            }
+            manifestLock = new DummyFileLock(lockPath);
+        } catch (IOException ex) {
+            log.error("Failed accessing manifest lock", ex);
         }
-        return hashId;
     }
 
-    public File getPath() {
-        if (path == null) {
-            String dir = getHashId().substring(0, 2) + File.separator
-                    + getHashId().substring(2, 4);
-            File parentDir = new File(homeDir, dir);
-            path = new File(parentDir, getHashId());
+    private void lockManifest() {
+        try {
+            // log.debug(" * Locking Manifest : " + getId());
+            manifestLock.getLock();
+            // log.debug(" * Manifest locked : " + getId());
+        } catch (IOException ex) {
+            log.error("Failed acquiring manifest lock : ", ex);
         }
-        return path;
     }
 
-    @Override
-    public List<Payload> getPayloadList() {
-        List<Payload> payloadList = new ArrayList<Payload>();
-        addPayloadDir(payloadList, getPath(), 0);
-        return payloadList;
+    private void unlockManifest() {
+        try {
+            // log.debug(" * Unlocking Manifest : " + getId());
+            manifestLock.release();
+            // log.debug(" * Manifest unlocked : " + getId());
+        } catch (IOException ex) {
+            log.error("Failed releasing manifest lock : ", ex);
+        }
     }
 
-    private void addPayloadDir(List<Payload> payloadList, File dir, int depth) {
+    private void buildManifest() {
+        Map<String, Payload> manifest = getManifest();
+        readFromDisk(manifest, homeDir, 0);
+    }
+
+    private void readFromDisk(Map<String, Payload> manifest, File dir, int depth) {
         File[] files = dir.listFiles(new FilenameFilter() {
             @Override
             public boolean accept(File dir, String name) {
-                return !name.endsWith(".meta");
+                if (name.endsWith(METADATA_SUFFIX)) {
+                    return false;
+                }
+                if (name.endsWith(MANIFEST_LOCK_FILE)) {
+                    return false;
+                }
+                return true;
             }
         });
         if (files != null) {
             for (File file : files) {
                 if (file.isFile()) {
+                    FileSystemPayload payload = null;
                     File payloadFile = file;
                     if (depth > 0) {
                         File parentFile = file.getParentFile();
@@ -93,28 +132,189 @@ public class FileSystemDigitalObject extends GenericDigitalObject {
                             parentFile = parentFile.getParentFile();
                         }
                         payloadFile = new File(relPath, file.getName());
+                        payload = new FileSystemPayload(relPath
+                                + file.getName(), new File(homeDir, payloadFile
+                                .getPath()));
+                    } else {
+                        // log.debug("File found on disk : " +
+                        // payloadFile.getName());
+                        payload = new FileSystemPayload(payloadFile.getName(),
+                                payloadFile);
                     }
-                    Payload payload = new FileSystemPayload(getPath(),
-                            payloadFile, useLink);
-                    if (payload.getType().equals(PayloadType.Data)) {
+                    payload.readExistingMetadata();
+                    if (payload.getType().equals(PayloadType.Source)) {
                         setSourceId(payload.getId());
                     }
-                    payloadList.add(payload);
+                    manifest.put(payload.getId(), payload);
                 } else if (file.isDirectory()) {
-                    addPayloadDir(payloadList, file, depth + 1);
+                    readFromDisk(manifest, file, depth + 1);
                 }
             }
+        }
+        // log.debug("New Manifest : " + manifest);
+    }
+
+    @Override
+    public Payload createStoredPayload(String pid, InputStream in)
+            throws StorageException {
+        Payload payload = createPayload(pid, in, false);
+        return payload;
+    }
+
+    @Override
+    public Payload createLinkedPayload(String pid, String linkPath)
+            throws StorageException {
+        try {
+            ByteArrayInputStream in = new ByteArrayInputStream(linkPath
+                    .getBytes("UTF-8"));
+            Payload payload = createPayload(pid, in, true);
+            return payload;
+        } catch (UnsupportedEncodingException ex) {
+            throw new StorageException(ex);
+        }
+    }
+
+    private Payload createPayload(String pid, InputStream in, boolean linked)
+            throws StorageException {
+        log.debug("createPayload(" + pid + ")");
+        // Manifest check
+        lockManifest();
+        Map<String, Payload> manifest = getManifest();
+        // log.debug("FileSystem Manifest : " + manifest);
+        if (manifest.containsKey(pid)) {
+            unlockManifest();
+            throw new StorageException("ID '" + pid
+                    + "' already exists in manifest.");
+        }
+
+        // File creation
+        File newFile = new File(homeDir, pid);
+        if (newFile.exists()) {
+            unlockManifest();
+            throw new StorageException("ID '" + pid
+                    + "' already exists on disk.");
+        } else {
+            newFile.getParentFile().mkdirs();
+            try {
+                newFile.createNewFile();
+            } catch (IOException ex) {
+                unlockManifest();
+                log.error("Error creating file (" + newFile.getAbsolutePath()
+                        + ")");
+                throw new StorageException("Failed to create file", ex);
+            }
+        }
+
+        // File storage
+        try {
+            // log.debug("Copying {}", newFile);
+            FileOutputStream out = new FileOutputStream(newFile);
+            IOUtils.copy(in, out);
+            in.close();
+            out.close();
+        } catch (FileNotFoundException ex) {
+            log.error("Failed saving payload to disk", ex);
+        } catch (IOException ex) {
+            log.error("Failed saving payload to disk", ex);
+        }
+
+        // Payload creation
+        FileSystemPayload payload = new FileSystemPayload(pid, newFile);
+        if (getSourceId() == null) {
+            payload.setType(PayloadType.Source);
+            setSourceId(pid);
+        } else {
+            payload.setType(PayloadType.Enrichment);
+        }
+        payload.setLinked(linked);
+        payload.writeMetadata();
+        manifest.put(pid, payload);
+
+        unlockManifest();
+        return payload;
+    }
+
+    @Override
+    public Payload getPayload(String pid) throws StorageException {
+        log.debug("getPayload(" + pid + ")");
+        lockManifest();
+        unlockManifest();
+
+        Map<String, Payload> man = getManifest();
+        if (man.containsKey(pid)) {
+            return man.get(pid);
+        } else {
+            throw new StorageException("ID '" + pid + "' does not exist.");
         }
     }
 
     @Override
-    public String toString() {
-        return String.format("%s [%s]", getId(), getPath());
+    public void removePayload(String pid) throws StorageException {
+        log.debug("removePayload(" + pid + ")");
+        lockManifest();
+        Map<String, Payload> manifest = getManifest();
+        if (!manifest.containsKey(pid)) {
+            throw new StorageException("pID '" + pid + "' not found.");
+        }
+
+        // Close the payload first in case
+        manifest.get(pid).close();
+        File realFile = new File(homeDir, pid);
+        File metaFile = new File(homeDir, pid + METADATA_SUFFIX);
+
+        boolean result = false;
+        if (realFile.exists()) {
+            result = FileUtils.deleteQuietly(realFile);
+            if (!result) {
+                System.out.println("Deleting : " + realFile.getAbsolutePath());
+                throw new StorageException("Failed to delete : "
+                        + realFile.getAbsolutePath());
+            }
+        }
+        if (metaFile.exists()) {
+            result = FileUtils.deleteQuietly(metaFile);
+            if (!result) {
+                System.out.println("Deleting : " + realFile.getAbsolutePath());
+                throw new StorageException("Failed to delete : "
+                        + metaFile.getAbsolutePath());
+            }
+        }
+
+        manifest.remove(pid);
+        unlockManifest();
     }
 
     @Override
-    public Payload getSource() {
-        getPayloadList();
-        return super.getSource();
+    public Payload updatePayload(String pid, InputStream in)
+            throws StorageException {
+        log.debug("updatePayload(" + pid + ")");
+        lockManifest();
+        File oldFile = new File(homeDir, pid);
+        if (!oldFile.exists()) {
+            throw new StorageException("pID '" + pid + "': file not found");
+        }
+
+        // File update
+        try {
+            FileOutputStream out = new FileOutputStream(oldFile);
+            IOUtils.copy(in, out);
+            in.close();
+            out.close();
+        } catch (FileNotFoundException ex) {
+            log.error("Failed saving payload to disk", ex);
+        } catch (IOException ex) {
+            log.error("Failed saving payload to disk", ex);
+        }
+        unlockManifest();
+
+        // Payload update
+        FileSystemPayload payload = (FileSystemPayload) getPayload(pid);
+        payload.writeMetadata();
+        return payload;
+    }
+
+    @Override
+    public String toString() {
+        return String.format("%s [%s]", getId(), homeDir);
     }
 }

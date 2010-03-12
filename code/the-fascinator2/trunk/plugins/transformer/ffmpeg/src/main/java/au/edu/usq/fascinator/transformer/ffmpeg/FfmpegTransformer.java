@@ -18,91 +18,167 @@
  */
 package au.edu.usq.fascinator.transformer.ffmpeg;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import au.edu.usq.fascinator.api.PluginException;
 import au.edu.usq.fascinator.api.storage.DigitalObject;
+import au.edu.usq.fascinator.api.storage.Payload;
+import au.edu.usq.fascinator.api.storage.PayloadType;
+import au.edu.usq.fascinator.api.storage.StorageException;
 import au.edu.usq.fascinator.api.transformer.Transformer;
 import au.edu.usq.fascinator.api.transformer.TransformerException;
 import au.edu.usq.fascinator.common.JsonConfig;
-import au.edu.usq.fascinator.common.storage.impl.GenericDigitalObject;
+import au.edu.usq.fascinator.common.MimeTypeUtil;
+import au.edu.usq.fascinator.common.storage.StorageUtils;
 
 /**
  * Converts audio and video media to web friendly versions using the FFMPEG
  * library.
  * 
- * @author Oliver Lucido
+ * @author Oliver Lucido, Linda Octalina
  */
 public class FfmpegTransformer implements Transformer {
 
-    private static final String DEFAULT_OUTPUT_EXT = "flv";
-
-    private static final String DEFAULT_OUTPUT_PATH = System
-            .getProperty("user.home")
-            + File.separator + ".fascinator" + File.separator + "ffmpeg-output";
-
-    private static final String DEFAULT_THUMBNAIL_SIZE = "160x120";
-
-    private static final String DEFAULT_EXCLUDE_EXT = "flv,m4a,mp3";
-
-    private static final String DEFAULT_PARAMS = "-f flv -b 400 -ab 48"
-            + " -ar 22050 -ac 1 -s 400x224 -aspect 16:9";
-
+    /** Logger **/
     private Logger log = LoggerFactory.getLogger(FfmpegTransformer.class);
 
+    /** json config file **/
     private JsonConfig config;
 
+    /** FFMPEG output file path **/
     private String outputPath;
 
+    /** Ffmpeg class for conversion **/
     private Ffmpeg ffmpeg;
 
+    public FfmpegTransformer() {
+        // Need a default constructor for ServiceLoader
+    }
+
+    public FfmpegTransformer(Ffmpeg ffmpeg) {
+        this.ffmpeg = ffmpeg;
+    }
+
+    /**
+     * Transforming digital object method
+     * 
+     * @params object: DigitalObject to be transformed
+     * @return transformed digital object
+     * @throws TransformerException
+     * @throws Exception
+     * @throws StorageException
+     * @throws FileNotFoundException
+     * @throws UnsupportedEncodingException
+     */
     @Override
     public DigitalObject transform(DigitalObject object)
             throws TransformerException {
         File file = new File(object.getId());
-        ffmpeg = new Ffmpeg(get("executable", Ffmpeg.DEFAULT_EXECUTABLE));
+        if (ffmpeg == null) {
+            ffmpeg = new FfmpegImpl(get("executable"));
+        }
         if (file.exists() && ffmpeg.isAvailable()) {
-            outputPath = get("outputPath", DEFAULT_OUTPUT_PATH);
+            outputPath = get("outputPath");
             File outputDir = new File(outputPath);
             outputDir.mkdirs();
-            GenericDigitalObject ffmpegObject = new GenericDigitalObject(object);
             try {
                 FfmpegInfo info = ffmpeg.getInfo(file);
                 log.debug("{}: {}", file.getName(), info);
                 if (info.isSupported()) {
                     if (info.hasVideo()) {
                         File thumbnail = getThumbnail(file, info.getDuration());
-                        ffmpegObject.addPayload(new FfmpegPayload(thumbnail));
+                        Payload payload = createFfmpegPayload(object, thumbnail);
+                        payload.setType(PayloadType.Enrichment);
+                        payload.close();
                     }
                     String ext = FilenameUtils.getExtension(file.getName());
                     List<String> excludeList = Arrays.asList(StringUtils.split(
-                            get("excludeExt", DEFAULT_EXCLUDE_EXT), ','));
+                            get("excludeExt"), ','));
                     if (!excludeList.contains(ext.toLowerCase())
                             && (info.hasVideo() || info.hasAudio())) {
                         File converted = convert(file);
-                        ffmpegObject.addPayload(new FfmpegPayload(converted));
+                        Payload payload = createFfmpegPayload(object, converted);
+                        payload.setType(PayloadType.Preview);
+                        payload.close();
                     }
-                    return ffmpegObject;
                 }
             } catch (Exception e) {
-                log.error("Conversion failed for " + file, e);
-                ffmpegObject.addPayload(new FfmpegErrorPayload(file, e));
-                return ffmpegObject;
+                log.error("Conversion failed for '" + file + "'", e);
+                try {
+                    createFfmpegErrorPayload(object, file, e.getMessage());
+                } catch (Exception e2) {
+                    log.error("Failed to add Error payload", e2);
+                }
             }
         }
         return object;
     }
 
+    /**
+     * Create ffmpeg error payload
+     * 
+     * @param object : DigitalObject that store the payload
+     * @param file : File to be stored as payload
+     * @param message
+     * @return error Payload
+     * @throws FileNotFoundException
+     * @throws UnsupportedEncodingException
+     */
+    public Payload createFfmpegErrorPayload(DigitalObject object, File file,
+            String message) throws StorageException, FileNotFoundException,
+            UnsupportedEncodingException {
+        String name = FilenameUtils.getBaseName(file.getName())
+                + "_ffmpeg_error.htm";
+        Payload payload = StorageUtils.createOrUpdatePayload(object, name,
+                new ByteArrayInputStream(message.getBytes("UTF-8")));
+        payload.setType(PayloadType.Error);
+        payload.setContentType("text/html");
+        payload.setLabel("FFMPEG conversion errors");
+        return payload;
+    }
+
+    /**
+     * Create converted ffmpeg payload
+     * 
+     * @param object DigitalObject that store the payload
+     * @param file File to be stored as payload
+     * @return new payload
+     * @throws StorageException
+     * @throws FileNotFoundException
+     * @throws UnsupportedEncodingException
+     */
+    public Payload createFfmpegPayload(DigitalObject object, File file)
+            throws StorageException, FileNotFoundException {
+        String name = file.getName();
+        Payload payload = StorageUtils.createOrUpdatePayload(object, name,
+                new FileInputStream(file));
+        payload.setContentType(MimeTypeUtil.getMimeType(name));
+        payload.setLabel(name);
+        return payload;
+    }
+
+    /**
+     * Generate thumbnail for the video
+     * 
+     * @param sourceFile video file to be generated
+     * @param duration duration for the thumbnail
+     * @return generated thumbnail file
+     * @throws TransformerException
+     */
     private File getThumbnail(File sourceFile, long duration)
             throws TransformerException {
         log.info("Creating thumbnail...");
@@ -127,7 +203,7 @@ public class FfmpegTransformer implements Transformer {
             params.add("-r");
             params.add("1"); // frame rate
             params.add("-s");
-            params.add(get("thumbnailSize", DEFAULT_THUMBNAIL_SIZE)); // size
+            params.add(get("thumbnailSize")); // size
             params.add("-vcodec");
             params.add("mjpeg");
             params.add("-f");
@@ -143,8 +219,15 @@ public class FfmpegTransformer implements Transformer {
         return outputFile;
     }
 
+    /**
+     * Convert audio/video to flv format
+     * 
+     * @param sourceFile to be converted
+     * @return converted file
+     * @throws TransformerException
+     */
     private File convert(File sourceFile) throws TransformerException {
-        String outputExt = get("outputExt", DEFAULT_OUTPUT_EXT);
+        String outputExt = get("outputExt");
         log.info("Converting to {}: {}", outputExt, sourceFile);
         String filename = sourceFile.getName();
         String basename = FilenameUtils.getBaseName(filename);
@@ -158,7 +241,8 @@ public class FfmpegTransformer implements Transformer {
             params.add(sourceFile.getAbsolutePath()); // input file
             params.add("-y"); // overwrite output file
             // load extension specific parameters or use defaults if not found
-            String configParams = get("params/default", DEFAULT_PARAMS);
+            String configParams = get("params/default");
+            log.debug("configParams: ", configParams);
             String ext = FilenameUtils.getExtension(filename);
             if (!"".equals(ext)) {
                 log.debug("Loading params for {}...", ext);
@@ -176,16 +260,33 @@ public class FfmpegTransformer implements Transformer {
         return outputFile;
     }
 
+    /**
+     * Get Transformer id
+     * 
+     * @return id
+     */
     @Override
     public String getId() {
         return "ffmpeg";
     }
 
+    /**
+     * Get Transformer name
+     * 
+     * @return name
+     */
     @Override
     public String getName() {
         return "FFMPEG Transformer";
     }
 
+    /**
+     * Init method to initialise Ffmpeg transformer
+     * 
+     * @param jsonFile
+     * @throws IOException
+     * @throws PluginException
+     */
     @Override
     public void init(File jsonFile) throws PluginException {
         try {
@@ -195,6 +296,13 @@ public class FfmpegTransformer implements Transformer {
         }
     }
 
+    /**
+     * Init method to initialise Ffmpeg transformer
+     * 
+     * @param jsonString
+     * @throws IOException
+     * @throws PluginException
+     */
     @Override
     public void init(String jsonString) throws PluginException {
         try {
@@ -204,10 +312,17 @@ public class FfmpegTransformer implements Transformer {
         }
     }
 
+    private String get(String key) {
+        return get(key, null);
+    }
+
     private String get(String key, String defaultValue) {
         return config.get("transformer/ffmpeg/" + key, defaultValue);
     }
 
+    /**
+     * Shut down the transformer plugin
+     */
     @Override
     public void shutdown() throws PluginException {
     }

@@ -18,11 +18,18 @@
  */
 package au.edu.usq.fascinator.common.storage.impl;
 
+import au.edu.usq.fascinator.api.storage.Payload;
+import au.edu.usq.fascinator.api.storage.PayloadType;
+import au.edu.usq.fascinator.api.storage.StorageException;
+import au.edu.usq.fascinator.common.MimeTypeUtil;
+import java.io.File;
+import java.io.FileInputStream;
+
 import java.io.IOException;
 import java.io.InputStream;
 
-import au.edu.usq.fascinator.api.storage.Payload;
-import au.edu.usq.fascinator.api.storage.PayloadType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Generic Payload implementation
@@ -31,8 +38,14 @@ import au.edu.usq.fascinator.api.storage.PayloadType;
  */
 public class GenericPayload implements Payload {
 
+    private static Logger log = LoggerFactory
+            .getLogger(GenericPayload.class);
+
     /** Payload type */
     private PayloadType type;
+
+    /** Payload storage */
+    private boolean linked = false;
 
     /** Identifier */
     private String id;
@@ -46,16 +59,22 @@ public class GenericPayload implements Payload {
     /** Input stream to read content data from */
     private InputStream inputStream;
 
+    /** Input stream to read content data from */
+    private boolean metaChanged = false;
+
     /**
      * Creates an empty payload
+     *
+     * @param id an identifier
      */
-    public GenericPayload() {
+    public GenericPayload(String id) {
+        setId(id);
     }
 
     /**
      * Creates a data payload with the specified identifier, label and content
      * type, but no content stream
-     * 
+     *
      * @param id an identifier
      * @param label a descriptive label
      * @param contentType the content type
@@ -64,7 +83,25 @@ public class GenericPayload implements Payload {
         setId(id);
         setLabel(label);
         setContentType(contentType);
-        setType(PayloadType.Data);
+        metaChanged = false;
+    }
+
+    /**
+     * Creates an file based payload
+     *
+     * @param id an identifier
+     * @param payloadFile the file for the payload
+     */
+    public GenericPayload(String id, File payloadFile) {
+        setId(id);
+        setLabel(payloadFile.getPath());
+        setContentType(MimeTypeUtil.getMimeType(payloadFile));
+        try {
+            setInputStream(new FileInputStream(payloadFile));
+        } catch (IOException e) {
+            log.error("Error accessing input stream during payload creation", e);
+        }
+        metaChanged = false;
     }
 
     /**
@@ -79,24 +116,16 @@ public class GenericPayload implements Payload {
             setContentType(payload.getContentType());
             setType(payload.getType());
             try {
-                setInputStream(payload.getInputStream());
-            } catch (IOException e) {
+                setInputStream(payload.open());
+            } catch (StorageException e) {
+                log.error("Error accessing input stream during payload creation", e);
             }
         }
+        metaChanged = false;
     }
 
-    @Override
-    public PayloadType getType() {
-        return type;
-    }
-
-    /**
-     * Sets the payload type for this payload
-     * 
-     * @param type payload type
-     */
-    public void setType(PayloadType type) {
-        this.type = type;
+    public boolean hasMetaChanged() {
+        return metaChanged;
     }
 
     @Override
@@ -104,13 +133,31 @@ public class GenericPayload implements Payload {
         return id;
     }
 
-    /**
-     * Sets the identifier for this payload
-     * 
-     * @param id an identifier
-     */
+    @Override
     public void setId(String id) {
         this.id = id;
+        metaChanged = true;
+    }
+
+    @Override
+    public PayloadType getType() {
+        return type;
+    }
+
+    @Override
+    public boolean isLinked() {
+        return linked;
+    }
+
+    public void setLinked(boolean newLinked) {
+        linked = newLinked;
+        metaChanged = true;
+    }
+
+    @Override
+    public void setType(PayloadType type) {
+        this.type = type;
+        metaChanged = true;
     }
 
     @Override
@@ -118,13 +165,10 @@ public class GenericPayload implements Payload {
         return label;
     }
 
-    /**
-     * Sets a descriptive label for this payload
-     * 
-     * @param label a descriptive label
-     */
+    @Override
     public void setLabel(String label) {
         this.label = label;
+        metaChanged = true;
     }
 
     @Override
@@ -132,24 +176,34 @@ public class GenericPayload implements Payload {
         return contentType;
     }
 
-    /**
-     * Sets the content (MIME) type for this payload
-     * 
-     * @param contentType a content type
-     */
+    @Override
     public void setContentType(String contentType) {
         this.contentType = contentType;
+        metaChanged = true;
     }
 
     @Override
-    public InputStream getInputStream() throws IOException {
+    public InputStream open() throws StorageException {
         return inputStream;
     }
 
+    @Override
+    public void close() throws StorageException {
+        if (inputStream != null) {
+            try {
+                inputStream.close();
+            } catch (IOException ex) {
+                // Probably already closed
+                log.warn("Error closing input stream", ex);
+                //throw new StorageException(ex);
+            }
+        }
+    }
+
     /**
-     * Sets the content input stream for this payload
-     * 
-     * @param inputStream an input stream
+     * Sets the input stream to access the content for this payload
+     *
+     * @param an InputStream
      */
     public void setInputStream(InputStream inputStream) {
         this.inputStream = inputStream;

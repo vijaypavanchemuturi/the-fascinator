@@ -2,6 +2,7 @@ import os
 
 from au.edu.usq.fascinator.api.indexer import SearchRequest
 from au.edu.usq.fascinator.api.storage import PayloadType
+from au.edu.usq.fascinator.api.storage import StorageException
 from au.edu.usq.fascinator.common import JsonConfigHelper
 
 from java.awt import Desktop
@@ -19,19 +20,19 @@ from org.w3c.tidy import Tidy
 class SolrDoc:
     def __init__(self, json):
         self.json = json
-    
+
     def getField(self, name):
         field = self.json.getList("response/docs/%s" % name)
         if field.isEmpty():
             return None
         return field.get(0)
-    
+
     def getFieldText(self, name):
         return self.json.get("response/docs/%s" % name)
-    
+
     def getFieldList(self, name):
         return self.json.getList("response/docs/%s" % name)
-    
+
     def getDublinCore(self):
         dc = self.json.getList("response/docs").get(0)
         remove = []
@@ -41,7 +42,7 @@ class SolrDoc:
         for key in remove:
             dc.remove(key)
         return JsonConfigHelper(dc).getMap("/")
-    
+
     def toString(self):
         return self.json.toString()
 
@@ -60,26 +61,24 @@ class DetailData:
             self.__oid = uri[len(basePath)+1:]
             slash = self.__oid.rfind("/")
             self.__pid = self.__oid[slash+1:]
-            payload = self.__storage.getPayload(self.__oid, self.__pid)
-            
-            self.__object = self.__storage.getObject(self.__oid)
-            
-            if payload is not None:
-                self.__mimeType = payload.contentType
-            else:
+            try:
+                self.__object = self.__storage.getObject(self.__oid)
+                self.__payload = self.__object.getPayload(self.__pid)
+                self.__mimeType = self.__payload.getContentType()
+            except StorageException, e:
                 self.__mimeType = "application/octet-stream"
+
             self.__metadata = JsonConfigHelper()
-            print " * detail.py: uri='%s' oid='%s' pid='%s' mimeType='%s'" % (uri, self.__oid, self.__pid, self.__mimeType)
+            print " * detail.py: URI='%s' OID='%s' PID='%s' MIME='%s'" % (uri, self.__oid, self.__pid, self.__mimeType)
             self.__search()
-        
-    
+
     def __search(self):
         req = SearchRequest('id:"%s"' % self.__oid)
         out = ByteArrayOutputStream()
         Services.indexer.search(req, out)
         self.__json = JsonConfigHelper(ByteArrayInputStream(out.toByteArray()))
         self.__metadata = SolrDoc(self.__json)
-    
+
     def canOpenFile(self):
         #HACK check if mimetypes match between index and real file
         #dcFormat = self.__json.get("response/docs/dc_format", "")
@@ -88,98 +87,124 @@ class DetailData:
         #return dcFormat == self.__mimeType
         f = File(self.getObject().getId())
         return f.exists();
-    
+
+    def containsPid(self, pid):
+        return self.getObject().getPayloadIdList().contains(pid);
+
     def encode(self, url):
         return URLEncoder.encode(url, "UTF-8")
-    
+
     def isMetadataOnly(self):
-        self.getObject().getPayloadList()
-        return self.getObject().getSource() is None
-    
+        previewPid = self.getPreview(self.getObject().getId())
+        if previewPid == "":
+            return True
+        else:
+            return False
+
     def getFileName(self, path):
         return os.path.split(path)[1]
-    
+
     def getFilePathWithoutExt(self, path):
         return os.path.splitext(self.getFileName(path))[0]
-    
+
     def getMimeType(self):
         return self.__mimeType
-    
+
     def getSolrResponse(self):
         return self.__json
-    
+
     def formatName(self, name):
         return name[3:4].upper() + name[4:]
-    
+
     def formatValue(self, value):
         return value
-    
+
     def isHidden(self, pid):
         if pid.find("_files%2F")>-1:
             return True
         return False
-    
+
     def getMetadata(self):
         return self.__metadata
-    
+
     def getObject(self):
         return self.__object
-    
+
     def getStorageId(self):
         obj = self.getObject()
-        if hasattr(obj, "getPath"):
-            return obj.path.absolutePath
-        return obj.id
-    
+        return obj.getId()
+
     def getFileSize(self, path):
         return FileUtils.byteCountToDisplaySize(os.path.getsize(path))
-    
+
     def hasSlideShow(self):
         pid = self.__pid
         pid = pid[:pid.find(".")] + ".slide.htm"
-        payload = self.__storage.getPayload(self.__oid, pid)
-        if payload is None:
+        if self.containsPid(pid):
+            return pid
+        else:
             return False
-        return pid
-    
+
     def hasFlv(self):
         pid = self.__pid
         pid = pid[:pid.find(".")] + ".flv"
-        payload = self.__storage.getPayload(self.__oid, pid)
-        if payload is None:
-            return ""
-        return pid
-    
+        if self.containsPid(pid):
+            return pid
+        return ""
+
     def getPdfUrl(self):
         pid = os.path.splitext(self.__pid)[0] + ".pdf"
         return "%s/%s" % (self.__oid, pid)
-    
+
     def getPayLoadUrl(self, pid):
         return "%s/%s" % (self.__oid, pid)
-    
+
     def hasHtml(self):
-        payloadList = self.getObject().getPayloadList()
-        for payload in payloadList:
-            mimeType = payload.contentType
-            if mimeType == "text/html" or mimeType == "application/xhtml+xml":
-                return True
+        payloadIdList = self.getObject().getPayloadIdList()
+        for payloadId in payloadIdList:
+            try:
+                payload = self.getObject().getPayload(payloadId)
+                mimeType = payload.getContentType()
+                if mimeType == "text/html" or mimeType == "application/xhtml+xml":
+                    return True
+            except StorageException, e:
+                pass
         return False
-    
+
     def hasError(self):
-        base = os.path.splitext(self.__pid)[0]
-        payload = self.__storage.getPayload(self.__oid, base + "_error.htm")
-        contentStr = ""
-        if payload is not None:
-            return True
+        payloadIdList = self.getObject().getPayloadIdList()
+        for payloadId in payloadIdList:
+            try:
+                payload = self.getObject().getPayload(payloadId)
+                if str(payload.getType()) == "Error":
+                    return True
+            except StorageException, e:
+                pass
         return False
-    
+
+    def getError(self):
+        payloadIdList = self.getObject().getPayloadIdList()
+        for payloadId in payloadIdList:
+            try:
+                payload = self.getObject().getPayload(payloadId)
+                if str(payload.getType()) == "Error":
+                    return payload
+            except StorageException, e:
+                pass
+        return None
+
     def getPreview(self, oid):
-        ext = os.path.splitext(oid)[1]
-        url = oid[oid.rfind("/")+1:-len(ext)] + "_preview.jpg"
-        if Services.getStorage().getPayload(oid, url):
-            return url
-        return ""
-    
+        payloadIdList = self.getObject().getPayloadIdList()
+        for payloadId in payloadIdList:
+            try:
+                payload = self.getObject().getPayload(payloadId)
+                print " * detail.py : Type = '" + str(payload.getType()) + "'"
+                if str(payload.getType()) == "Preview":
+                    return payload.getId()
+            except StorageException, e:
+                pass
+        return self.getObject().getSourceId()
+
     def getPayloadContent(self):
         mimeType = self.__mimeType
         print " * detail.py: payload content mimeType=%s" % mimeType
@@ -198,33 +223,27 @@ class DetailData:
                 contentStr = '<iframe class="iframe-preview" src="%s/%s/download/%s"></iframe>' % \
                     (contextPath, portalId, self.__oid)
             else:
-                pid = self.__oid[self.__oid.rfind("/")+1:]
-                payload = self.__storage.getPayload(self.__oid, pid)
                 #print " * detail.py: pid=%s payload=%s" % (pid, payload)
-                if payload is not None:
+                if self.__payload is not None:
                     sw = StringWriter()
                     sw.write("<pre>")
-                    IOUtils.copy(payload.getInputStream(), sw)
+                    IOUtils.copy(self.__payload.open(), sw)
+                    self.__payload.close()
                     sw.write("</pre>")
                     sw.flush()
                     contentStr = sw.toString()
         elif mimeType == "application/pdf" or mimeType.find("vnd.ms")>-1 or mimeType.find("vnd.oasis.opendocument.")>-1:
             # get the html version if exist...
-            base = os.path.splitext(self.__pid)[0]
-            pid = base + ".htm"
+            pid = self.getPreview(self.__oid)
             print " * detail.py: pid=%s" % pid
             #contentStr = '<iframe class="iframe-preview" src="%s/%s/download/%s/%s"></iframe>' % \
             #    (contextPath, portalId, self.__oid, pid)
-            payload = self.__storage.getPayload(self.__oid, pid)
-            if payload is None:
-                payload = self.__storage.getPayload(self.__oid, base + "_error.htm")
-                out = ByteArrayOutputStream()
-                IOUtils.copy(payload.getInputStream(), out)
-                contentStr = '<h4 class="error">No preview available</h4><p>Please try re-rendering by using the Re-Harvest action.</p><h5>Details</h5><pre>' + out.toString("UTF-8") + '</pre>'
-            else:
+            try:
+                payload = self.getObject().getPayload(pid)
                 saxReader = SAXReader(Boolean.parseBoolean("false"))
                 try:
-                    document = saxReader.read(payload.getInputStream())
+                    document = saxReader.read(payload.open())
+                    payload.close()
                     slideNode = document.selectSingleNode("//*[local-name()='body']")
                     #linkNodes = slideNode.selectNodes("//img")
                     #contentStr = slideNode.asXML();
@@ -241,15 +260,23 @@ class DetailData:
                 except:
                     traceback.print_exc()
                     contentStr = "<p class=\"error\">No preview available</p>"
-        elif self.hasError() == True:
-            #For other digitalobject like video or images
-            base = os.path.splitext(self.__pid)[0]
-            payload = self.__storage.getPayload(self.__oid, base + "_error.htm")
+            except StorageException, e:
+                errOut = ""
+                payload = self.getError()
+                if payload is not None:
+                    out = ByteArrayOutputStream()
+                    IOUtils.copy(payload.open(), out)
+                    payload.close()
+                    errOut = '<pre>' + out.toString("UTF-8") + '</pre>'
+                contentStr = '<h4 class="error">No preview available</h4><p>Please try re-rendering by using the Re-Harvest action.</p><h5>Details</h5>' + errOut
+        elif self.hasError():
+            payload = self.getError()
             out = ByteArrayOutputStream()
-            IOUtils.copy(payload.getInputStream(), out)
+            IOUtils.copy(payload.open(), out)
+            payload.close()
             contentStr = '<h4 class="error">No preview available</h4><p>Please try re-rendering by using the Re-Harvest action.</p><h5>Details</h5><pre>' + out.toString("UTF-8") + '</pre>'
         return contentStr
-    
+
     def __openFile(self):
         file = formData.get("file")
         print " * detail.py: opening file %s..." % file

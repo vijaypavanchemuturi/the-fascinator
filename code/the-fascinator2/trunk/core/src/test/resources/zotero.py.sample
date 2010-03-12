@@ -7,11 +7,12 @@ import java.io as io
 
 #
 # Available objects:
-#    indexer   : Indexer instance
-#    rules     : RuleManager instance
-#    object    : DigitalObject to index
-#    payloadId : Payload identifier
-#    storageId : Storage layer identifier
+#    indexer    : Indexer instance
+#    jsonConfig : JsonConfigHelper of our harvest config file
+#    rules      : RuleManager instance
+#    object     : DigitalObject to index
+#    payload    : Payload to index
+#    params     : Metadata Properties object
 #
 
 def indexList(name, values):
@@ -105,8 +106,9 @@ dateList = Set()
 typeList = Set()
 
 #common fields
-rules.add(AddField("id", object.getId()))
-rules.add(AddField("storage_id", storageId))
+oid = object.getId()
+rules.add(AddField("id", oid))
+rules.add(AddField("storage_id", oid))
 rules.add(AddField("item_type", "object"))
 rules.add(AddField("last_modified", time.strftime("%Y-%m-%dT%H:%M:%SZ")))
 
@@ -114,21 +116,21 @@ rules.add(AddField("repository_name", params["repository.name"]))
 rules.add(AddField("repository_type", params["repository.type"]))
 
 # Security
-roles = indexer.getRolesWithAccess(solrId)
+roles = indexer.getRolesWithAccess(oid)
 if roles is not None:
     for role in roles:
         rules.add(AddField("security_filter", role))
 else:
     # Default to guest access if Null object returned
     schema = indexer.getAccessSchema("simple");
-    schema.setRecordId(solrId)
+    schema.setRecordId(oid)
     schema.set("role", "guest")
     indexer.setAccessSchema(schema, "simple")
     rules.add(AddField("security_filter", "guest"))
 
 model = rdf2go.RDF2Go.getModelFactory().createModel()
 model.open()
-model.readFrom(io.FileReader(io.File(storageId)))
+model.readFrom(io.FileReader(io.File(oid)))
 getDocuments()
 model.close()
 

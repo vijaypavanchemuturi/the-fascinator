@@ -57,7 +57,7 @@ public class JsonConfig {
      * Creates a config with only the system settings
      * 
      * @throws IOException if these was an error parsing or reading the system
-     *         JSON file
+     *             JSON file
      */
     public JsonConfig() throws IOException {
         this((InputStream) null);
@@ -210,15 +210,15 @@ public class JsonConfig {
      * 
      * @return the system JSON file
      * @throws IOException if there was an error reading or writing the system
-     *         configuration file
+     *             configuration file
      */
-    public File getSystemFile() throws IOException {
+    public static File getSystemFile() throws IOException {
         File configFile = new File(CONFIG_DIR, SYSTEM_CONFIG_FILE);
         if (!configFile.exists()) {
             configFile.getParentFile().mkdirs();
             OutputStream out = new FileOutputStream(configFile);
-            IOUtils.copy(getClass().getResourceAsStream(
-                    "/" + SYSTEM_CONFIG_FILE), out);
+            IOUtils.copy(JsonConfig.class.getResourceAsStream("/"
+                    + SYSTEM_CONFIG_FILE), out);
             out.close();
         }
         return configFile;
@@ -233,7 +233,7 @@ public class JsonConfig {
     }
 
     /**
-     *
+     * 
      * @return The full JSON string
      */
     @Override

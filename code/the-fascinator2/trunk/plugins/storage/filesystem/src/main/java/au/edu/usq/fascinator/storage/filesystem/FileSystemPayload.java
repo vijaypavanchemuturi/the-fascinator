@@ -20,6 +20,7 @@ package au.edu.usq.fascinator.storage.filesystem;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
@@ -32,8 +33,8 @@ import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import au.edu.usq.fascinator.api.storage.Payload;
 import au.edu.usq.fascinator.api.storage.PayloadType;
+import au.edu.usq.fascinator.api.storage.StorageException;
 import au.edu.usq.fascinator.common.MimeTypeUtil;
 import au.edu.usq.fascinator.common.storage.impl.GenericPayload;
 
@@ -41,133 +42,126 @@ public class FileSystemPayload extends GenericPayload {
 
     private Logger log = LoggerFactory.getLogger(FileSystemPayload.class);
 
-    private File file;
+    private static PayloadType DEFAULT_PAYLOAD_TYPE = PayloadType.Enrichment;
+    private static String METADATA_SUFFIX = ".meta";
 
-    private File homeDir;
+    private File dataFile;
+    private File metaFile;
 
-    private boolean linked;
-
-    private boolean useLink;
-
-    public FileSystemPayload(File homeDir, Payload payload, boolean useLink) {
-        super(payload);
-        this.homeDir = homeDir;
-        this.useLink = useLink;
-        updateMeta(true);
+    public FileSystemPayload(String id, File payloadFile) {
+        super(id);
+        dataFile = payloadFile;
+        metaFile = new File(dataFile.getParentFile(), dataFile.getName()
+                + METADATA_SUFFIX);
+        log.debug("Payload instantiation complete : " + id);
     }
 
-    public FileSystemPayload(File homeDir, File payloadFile, boolean useLink) {
-        this.homeDir = homeDir;
-        file = payloadFile;
-        if (file.isAbsolute()) {
-            setId(payloadFile.getName());
-        } else {
-            setId(payloadFile.getPath());
-        }
-        this.useLink = useLink;
-        updateMeta(true);
-
-    }
-
-    protected void updateMeta(boolean load) {
-        // set default payload meta if not already set
-        if (getType() == null) {
-            setType(PayloadType.Data);
-        }
-        if (getLabel() == null) {
-            setLabel(getFile().getAbsolutePath());
-        }
-        if (getContentType() == null) {
-            setContentType(MimeTypeUtil.getMimeType(getFile()));
-        }
-        File metaFile = new File(getFile().getParentFile(), getFile().getName()
-                + ".meta");
-        try {
+    public void readExistingMetadata() {
+        if (metaFile.exists()) {
             Properties props = new Properties();
-            if (load && metaFile.exists()) {
-                Reader metaReader = new FileReader(metaFile);
+            Reader metaReader;
+            try {
+                metaReader = new FileReader(metaFile);
                 props.load(metaReader);
                 metaReader.close();
-                setId(props.getProperty("id", getId()));
-                setType(PayloadType.valueOf(props.getProperty("payloadType",
-                        getType().toString())));
-                setLabel(props.getProperty("label", getId()));
-                setLinked(Boolean.parseBoolean(props.getProperty("linked",
-                        String.valueOf(isLinked()))));
-                // get proper mimetype for linked files
-                File payloadFile = getFile();
-                if (isLinked()) {
-                    try {
-                        String realPath = FileUtils.readFileToString(getFile());
-                        payloadFile = new File(realPath);
-                    } catch (IOException ioe) {
-                        log.warn("Failed to get linked file", ioe);
-                    }
-                }
-                setContentType(MimeTypeUtil.getMimeType(payloadFile));
+            } catch (FileNotFoundException ex) {
+                log.error("Failed reading metadata file", ex);
+            } catch (IOException ex) {
+                log.error("Failed accessing metadata file", ex);
             }
 
-            metaFile.getParentFile().mkdirs();
+            setId(props.getProperty("id", getId()));
+            String type = props.getProperty("payloadType", DEFAULT_PAYLOAD_TYPE
+                    .toString());
+            setType(PayloadType.valueOf(type));
+            setLabel(props.getProperty("label", getId()));
+
+            String link = props.getProperty("linked", String
+                    .valueOf(isLinked()));
+            setLinked(Boolean.parseBoolean(link));
+            if (isLinked()) {
+                try {
+                    String linkPath = FileUtils.readFileToString(dataFile);
+                    File linkFile = new File(linkPath);
+                    setContentType(MimeTypeUtil.getMimeType(linkFile));
+                } catch (IOException ioe) {
+                    log.warn("Failed to get linked file", ioe);
+                }
+            } else {
+                setContentType(MimeTypeUtil.getMimeType(dataFile));
+            }
+        } else {
+            writeMetadata();
+        }
+    }
+
+    public void writeMetadata() {
+        if (getLabel() == null) {
+            setLabel(dataFile.getName());
+        }
+        if (getType() == null) {
+            setType(PayloadType.Source);
+        }
+        if (getContentType() == null) {
+            setContentType(MimeTypeUtil.getMimeType(dataFile));
+        }
+
+        try {
+            if (!metaFile.exists()) {
+                metaFile.getParentFile().mkdirs();
+                metaFile.createNewFile();
+            }
+            Properties props = new Properties();
             OutputStream metaOut = new FileOutputStream(metaFile);
+
             props.setProperty("id", getId());
             props.setProperty("payloadType", getType().toString());
             props.setProperty("label", getLabel());
-            props.setProperty("contentType", getContentType());
             props.setProperty("linked", String.valueOf(isLinked()));
+            props.setProperty("contentType", getContentType());
             props.store(metaOut, "Payload metadata for "
-                    + getFile().getAbsolutePath());
+                    + dataFile.getAbsolutePath());
             metaOut.close();
         } catch (IOException ioe) {
-            log.warn("Failed to read/write metaFile {}: {}", metaFile, ioe
-                    .getMessage());
-        }
-    }
-
-    public File getFile() {
-        if (file == null) {
-            return new File(homeDir, getId());
-        } else {
-            if (file.isAbsolute()) {
-                return file;
-            } else {
-                return new File(homeDir, file.getPath());
-            }
+            log.warn("Failed to read/write metaFile", ioe);
         }
     }
 
     @Override
-    public InputStream getInputStream() throws IOException {
-        if (file == null) {
-            return super.getInputStream();
-        }
+    public InputStream open() throws StorageException {
+        // Linked files
         if (isLinked()) {
             try {
-                File oldFile = getFile();
-                String realPath = FileUtils.readFileToString(oldFile);
-                // log.debug("realPath: {}", StringUtils.left(realPath, 255));
-                file = new File(realPath);
-                if (!file.exists()) {
-                    file = oldFile;
+                String linkPath = FileUtils.readFileToString(dataFile);
+                File linkFile = new File(linkPath);
+                if (!linkFile.exists()) {
+                    throw new StorageException("External file not found : "
+                            + linkFile.getAbsolutePath());
                 }
-            } catch (IOException ioe) {
-                log.warn("Failed to get linked file: ", ioe);
+                InputStream in = new FileInputStream(linkFile);
+                setInputStream(in);
+                return in;
+            } catch (IOException ex) {
+                throw new StorageException(ex);
+            }
+
+            // Stored files
+        } else {
+            try {
+                InputStream in = new FileInputStream(dataFile);
+                setInputStream(in);
+                return in;
+            } catch (FileNotFoundException ex) {
+                throw new StorageException(ex);
             }
         }
-        return new FileInputStream(getFile());
     }
 
     @Override
-    public String toString() {
-        return String.format("%s (%s)", getLabel(), getId());
-    }
-
-    public void setLinked(boolean linked) {
-        this.linked = linked;
-    }
-
-    public boolean isLinked() {
-        return linked
-                || (useLink && (PayloadType.Data.equals(getType()) || PayloadType.External
-                        .equals(getType())));
+    public void close() throws StorageException {
+        super.close();
+        if (hasMetaChanged()) {
+            writeMetadata();
+        }
     }
 }

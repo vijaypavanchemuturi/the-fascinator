@@ -18,8 +18,6 @@
  */
 package au.edu.usq.fascinator;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.util.Map;
@@ -47,15 +45,11 @@ import au.edu.usq.fascinator.api.PluginManager;
 import au.edu.usq.fascinator.api.indexer.Indexer;
 import au.edu.usq.fascinator.api.indexer.IndexerException;
 import au.edu.usq.fascinator.api.storage.DigitalObject;
-import au.edu.usq.fascinator.api.storage.Payload;
-import au.edu.usq.fascinator.api.storage.PayloadType;
 import au.edu.usq.fascinator.api.storage.Storage;
 import au.edu.usq.fascinator.api.storage.StorageException;
 import au.edu.usq.fascinator.api.transformer.TransformerException;
 import au.edu.usq.fascinator.common.JsonConfig;
-import au.edu.usq.fascinator.common.storage.impl.FilePayload;
-import au.edu.usq.fascinator.common.storage.impl.GenericDigitalObject;
-import au.edu.usq.fascinator.common.storage.impl.GenericPayload;
+import au.edu.usq.fascinator.common.storage.StorageUtils;
 
 /**
  * Consumer for harvest transformers. Jobs in this queue should be short running
@@ -213,63 +207,40 @@ public class HarvestQueueConsumer implements MessageListener {
         }
     }
 
-    private void processObject(File rulesFile, String jsonStr, String oid, String path)
-            throws StorageException, IOException {
-
-        String rulesOid;
-        try {
-            log.debug("Caching rules file " + rulesFile);
-            DigitalObject rulesObject = new RulesDigitalObject(rulesFile);
-            storage.addObject(rulesObject);
-            rulesOid = rulesObject.getId();
-        } catch (StorageException se) {
-            log.error("Failed to cache indexing rules, stopping", se);
-            return;
-        }
-
+    private void processObject(File rulesFile, String jsonStr, String oid,
+            String path) throws StorageException, IOException {
         try {
             log.info("Processing " + oid + "...");
 
-            // Calling conveyer to perform aperture transformation
-            DigitalObject object = createObject(oid, path);
-            ConveyerBelt cb = new ConveyerBelt(jsonStr, "extractor");
-            object = cb.transform(object);
+            // cache the rules file
+            StorageUtils.storeFile(storage, rulesFile);
 
-            Properties sofMeta = new Properties();
-            sofMeta.setProperty("objectId", oid);
-            Payload metadata = object.getMetadata();
-            if (metadata != null) {
-                sofMeta.setProperty("metaPid", metadata.getId());
-            }
-            sofMeta.setProperty("scriptType", config.get("indexer/script/type",
-                    "python"));
-            sofMeta.setProperty("rulesOid", rulesOid);
-            sofMeta.setProperty("rulesPid", rulesFile.getName());
+            // get the object
+            DigitalObject object = storage.getObject(oid);
 
-            Map<String, Object> indexerParams = config.getMap("indexer/params");
-            for (String key : indexerParams.keySet()) {
-                sofMeta.setProperty(key, indexerParams.get(key).toString());
+            // transform it with just the extractor transformers
+            ConveyerBelt conveyerBelt = new ConveyerBelt(jsonStr,
+                    ConveyerBelt.EXTRACTOR);
+            object = conveyerBelt.transform(object);
+
+            // update object metadata
+            Properties props = object.getMetadata();
+            // FIXME objectId is redundant now?
+            props.setProperty("objectId", object.getId());
+            props.setProperty("scriptType", config.get("indexer/script/type"));
+            props.setProperty("rulesOid", rulesFile.getAbsolutePath());
+            props.setProperty("rulesPid", rulesFile.getName());
+            Map<String, Object> params = config.getMap("indexer/params");
+            for (String key : params.keySet()) {
+                props.setProperty(key, params.get(key).toString());
             }
-            ByteArrayOutputStream sofMetaOut = new ByteArrayOutputStream();
-            sofMeta.store(sofMetaOut, "The Fascinator Indexer Metadata");
-            GenericPayload sofMetaDs = new GenericPayload("SOF-META",
-                    "The Fascinator Indexer Metadata", "text/plain");
-            sofMetaDs.setInputStream(new ByteArrayInputStream(sofMetaOut
-                    .toByteArray()));
-            sofMetaDs.setType(PayloadType.Annotation);
-            storage.addPayload(oid, sofMetaDs);
-            storage.addObject(object);
+
+            // done with the object
+            object.close();
         } catch (StorageException re) {
-            throw new IOException(re.getMessage());
+            throw new IOException(re);
         } catch (TransformerException te) {
-            throw new IOException(te.getMessage());
+            throw new IOException(te);
         }
-    }
-
-    private DigitalObject createObject(String oid, String path) throws StorageException {
-        GenericDigitalObject object = new GenericDigitalObject(oid);
-        object.addPayload(new FilePayload(new File(path)));
-        storage.addObject(object);
-        return object;
     }
 }

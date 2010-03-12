@@ -23,7 +23,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -45,8 +44,6 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
-import javax.script.ScriptEngine;
-import javax.script.ScriptEngineManager;
 import javax.xml.parsers.ParserConfigurationException;
 
 import org.apache.commons.httpclient.HttpClient;
@@ -75,6 +72,7 @@ import org.dom4j.io.SAXReader;
 import org.ontoware.rdf2go.RDF2Go;
 import org.ontoware.rdf2go.exception.ModelRuntimeException;
 import org.ontoware.rdf2go.model.Model;
+import org.python.util.PythonInterpreter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xml.sax.SAXException;
@@ -100,23 +98,18 @@ public class SolrIndexer implements Indexer {
     private static final String DEFAULT_SOLR_HOME = System
             .getProperty("user.home")
             + File.separator + ".fascinator" + File.separator + "solr";
+    private static String DEFAULT_METADATA_PAYLOAD = "TF-OBJ-META";
 
     private Logger log = LoggerFactory.getLogger(SolrIndexer.class);
-
     private JsonConfig config;
 
     private AccessControlManager access;
-
     private Storage storage;
 
     private SolrServer solr;
-
     private SolrServer anotar;
-
     private CoreContainer coreContainer;
-
     private boolean autoCommit;
-
     private boolean anotarAutoCommit;
 
     private String propertiesId;
@@ -128,12 +121,17 @@ public class SolrIndexer implements Indexer {
     private Map<String, String> namespaces;
 
     private String username;
-
     private String password;
 
     private boolean loaded;
 
     private Map<String, String> customParams;
+
+    // Cache paths of rules/conf files we've seen
+    private Map<String, File> rulesList;
+    private Map<String, File> confList;
+
+    private PythonInterpreter python;
 
     @Override
     public String getId() {
@@ -147,6 +145,11 @@ public class SolrIndexer implements Indexer {
 
     public SolrIndexer() {
         loaded = false;
+    }
+
+    @Override
+    public void init(String jsonString) throws PluginException {
+        // TODO Auto-generated method stub
     }
 
     @Override
@@ -183,7 +186,8 @@ public class SolrIndexer implements Indexer {
                     "indexer/solr/autocommit", "true"));
             anotarAutoCommit = Boolean.parseBoolean(config.get(
                     "indexer/anotar/autocommit", "true"));
-            propertiesId = config.get("indexer/propertiesId", "SOF-META");
+            propertiesId = config.get("indexer/propertiesId",
+                    DEFAULT_METADATA_PAYLOAD);
 
             namespaces = new HashMap<String, String>();
             DocumentFactory docFactory = new DocumentFactory();
@@ -192,6 +196,11 @@ public class SolrIndexer implements Indexer {
             saxReader = new SAXReader(docFactory);
 
             customParams = new HashMap<String, String>();
+
+            rulesList = new HashMap<String, File>();
+            confList = new HashMap<String, File>();
+
+            python = new PythonInterpreter();
         }
         loaded = true;
     }
@@ -270,6 +279,7 @@ public class SolrIndexer implements Indexer {
         if (coreContainer != null) {
             coreContainer.shutdown();
         }
+        cleanupTempFiles();
     }
 
     public Storage getStorage() {
@@ -365,68 +375,81 @@ public class SolrIndexer implements Indexer {
 
     @Override
     public void index(String oid) throws IndexerException {
-        List<Payload> payloadList = storage.getObject(oid).getPayloadList();
-        for (Payload payload : payloadList) {
-            index(oid, payload.getId());
+        try {
+            DigitalObject object = storage.getObject(oid);
+            Set<String> payloadIdList = object.getPayloadIdList();
+            for (String payloadId : payloadIdList) {
+                Payload payload = object.getPayload(payloadId);
+                index(object, payload);
+            }
+        } catch (StorageException ex) {
+            throw new IndexerException(ex);
         }
     }
 
     @Override
     public void index(String oid, String pid) throws IndexerException {
-        if (propertiesId.equals(pid)) {
-            return;
+        try {
+            DigitalObject object = storage.getObject(oid);
+            Payload payload = object.getPayload(pid);
+            index(object, payload);
+        } catch (StorageException ex) {
+            throw new IndexerException(ex);
         }
-        // Don't proccess annotation through this function
+    }
+
+    public void index(DigitalObject object, Payload payload)
+            throws IndexerException {
+        String oid = object.getId();
+        String pid = payload.getId();
+
+        // if (propertiesId.equals(pid)) {
+        // return;
+        // }
+
+        // Don't proccess annotations through this function
         if (pid.startsWith("anotar.")) {
-            annotate(oid, pid);
+            annotate(object, payload);
             return;
         }
-        log.info("Indexing " + oid + "/" + pid);
+        log.info("Indexing OID:'" + oid + "', PID: '" + pid + "'");
 
         // get the indexer properties or we can't index
-        Properties props = getIndexerProperties(oid);
-        if (props == null) {
-            log.warn("Indexer properties not found, object not indexed");
-            throw new IndexerException("Indexer properties not found");
+        Properties props;
+        try {
+            props = object.getMetadata();
+        } catch (StorageException ex) {
+            throw new IndexerException("Failed loading properties : ", ex);
         }
 
         try {
-            // create the item for indexing
-            String objectId = props.getProperty("oid", oid);
-            DigitalObject object = storage.getObject(objectId);
+            // Get the harvester config
+            String confOid = props.getProperty("jsonConfigOid");
+            File confFile = null;
+            // Have we already cached this one?
+            if (confList.containsKey(confOid)) {
+                confFile = confList.get(confOid);
+                // No... cache it
+            } else {
+                confFile = copyObjectToFile(confOid);
+                confList.put(confOid, confFile);
+            }
 
-            // get the harvester config
-            String harvestConfPid = props.getProperty("jsonConfigOid");
-            File harvestConf = createTempFile("harvestConf", ".json");
-            FileOutputStream harvestConfOut = new FileOutputStream(harvestConf);
-            Payload harvestConfJson = storage.getPayload(harvestConfPid, props
-                    .getProperty("jsonConfigPid"));
-            IOUtils.copy(harvestConfJson.getInputStream(), harvestConfOut);
-            harvestConfOut.close();
-
-            // get the indexer rules
-            String rulesPid = props.getProperty("rulesOid");
-            File rules = createTempFile("rules", ".script");
-            FileOutputStream rulesOut = new FileOutputStream(rules);
-            Payload rulesScript = storage.getPayload(rulesPid, props
-                    .getProperty("rulesPid"));
-            IOUtils.copy(rulesScript.getInputStream(), rulesOut);
-            rulesOut.close();
-
-            // primary metadata datastream
-            String metaPid = props.getProperty("metaPid", "DC");
-            object = new IndexerDigitalObject(object, metaPid);
+            // Get the rules file
+            String rulesOid = props.getProperty("rulesOid");
+            File rulesFile = null;
+            // Have we already cached this one?
+            if (rulesList.containsKey(rulesOid)) {
+                rulesFile = rulesList.get(rulesOid);
+                // No... cache it
+            } else {
+                rulesFile = copyObjectToFile(rulesOid);
+                rulesList.put(rulesOid, rulesFile);
+            }
 
             // index the object
-            String set = null; // TODO
-            File solrFile = null;
-            if (metaPid.equals(pid)) {
-                solrFile = indexMetadata(object, oid, set, harvestConf, rules,
-                        props);
-            } else {
-                solrFile = indexDatastream(object, oid, pid, harvestConf,
-                        rules, props);
-            }
+            File solrFile = index(object, payload, confFile, rulesFile, props);
+
             if (solrFile != null) {
                 InputStream inputDoc = new FileInputStream(solrFile);
                 String xml = IOUtils.toString(inputDoc, "UTF-8");
@@ -440,34 +463,50 @@ public class SolrIndexer implements Indexer {
         } catch (Exception e) {
             e.printStackTrace();
             log.error("Indexing failed!\n-----\n{}\n-----\n", e.getMessage());
-        } finally {
-            cleanupTempFiles();
         }
     }
 
     @Override
     public void annotate(String oid, String pid) throws IndexerException {
+        try {
+            DigitalObject object = storage.getObject(oid);
+            Payload payload = object.getPayload(pid);
+            index(object, payload);
+        } catch (StorageException ex) {
+            throw new IndexerException(ex);
+        }
+    }
 
+    private void annotate(DigitalObject object, Payload payload)
+            throws IndexerException {
+        String oid = object.getId();
+        String pid = payload.getId();
         if (propertiesId.equals(pid)) {
             return;
         }
 
-        DigitalObject object = storage.getObject(oid);
-
         try {
-            File rules = createTempFile("rules", ".script");
-            FileOutputStream rulesOut = new FileOutputStream(rules);
-            IOUtils
-                    .copy(getClass().getResourceAsStream("/anotar.py"),
-                            rulesOut);
-            rulesOut.close();
+            // Get the rules file
+            String rulesOid = "anotar.py";
+            File rulesFile = null;
+            // Have we already cached this one?
+            if (rulesList.containsKey(rulesOid)) {
+                rulesFile = rulesList.get(rulesOid);
+                // No... cache it
+            } else {
+                rulesFile = createTempFile("rules", ".script");
+                FileOutputStream rulesOut = new FileOutputStream(rulesFile);
+                IOUtils.copy(getClass().getResourceAsStream("/anotar.py"),
+                        rulesOut);
+                rulesOut.close();
+                rulesList.put(rulesOid, rulesFile);
+            }
 
-            String set = null; // TODO
             File solrFile = null;
             Properties props = new Properties();
             props.setProperty("metaPid", pid);
 
-            solrFile = indexMetadata(object, oid, set, null, rules, props);
+            solrFile = index(object, payload, null, rulesFile, props);
             if (solrFile != null) {
                 InputStream inputDoc = new FileInputStream(solrFile);
                 String xml = IOUtils.toString(inputDoc, "UTF-8");
@@ -483,6 +522,7 @@ public class SolrIndexer implements Indexer {
             log.error("Indexing failed!\n-----\n{}\n-----\n", e.getMessage());
         } finally {
             cleanupTempFiles();
+
         }
     }
 
@@ -546,88 +586,54 @@ public class SolrIndexer implements Indexer {
         }
     }
 
-    private File indexMetadata(DigitalObject item, String pid, String set,
-            File harvestConf, File rulesFile, Properties props)
-            throws IOException, StorageException, RuleException {
-        log.info("Indexing metadata...");
-        Payload ds = item.getPayload(props.getProperty("metaPid"));
-        InputStreamReader in = new InputStreamReader(ds.getInputStream(),
-                "UTF-8");
-        return index(item, pid, null, set, in, harvestConf, rulesFile, props);
-    }
-
-    private File indexDatastream(DigitalObject item, String pid, String dsId,
-            File harvestConf, File rulesFile, Properties props)
-            throws IOException, RuleException {
-        log.info("Indexing datastream...");
+    private File index(DigitalObject object, Payload payload, File confFile,
+            File rulesFile, Properties props) throws IOException, RuleException {
         Reader in = new StringReader("<add><doc/></add>");
-        return index(item, pid, dsId, null, in, harvestConf, rulesFile, props);
+        return index(object, payload, in, confFile, rulesFile, props);
     }
 
-    private File index(DigitalObject object, String sid, String pid,
-            String set, Reader in, File harvestConf, File ruleScript,
-            Properties props) throws IOException, RuleException {
+    private File index(DigitalObject object, Payload payload, Reader in,
+            File confFile, File ruleScript, Properties props)
+            throws IOException, RuleException {
         File solrFile = createTempFile("solr", ".xml");
         Writer out = new OutputStreamWriter(new FileOutputStream(solrFile),
                 "UTF-8");
+        InputStream rulesIn = null;
         try {
             // Make our harvest config more useful
             JsonConfigHelper jsonConfig = null;
-            if (harvestConf != null) {
-                jsonConfig = new JsonConfigHelper(harvestConf);
+            if (confFile == null) {
+                jsonConfig = new JsonConfigHelper();
+            } else {
+                jsonConfig = new JsonConfigHelper(confFile);
             }
 
-            String engineName = props.getProperty("scriptType", "python");
-            ScriptEngineManager scriptEngineManager = new ScriptEngineManager();
-            ScriptEngine scriptEngine = scriptEngineManager
-                    .getEngineByName(engineName);
-            if (scriptEngine == null) {
-                throw new RuleException("No script engine found for '"
-                        + engineName + "'");
-            }
+            rulesIn = new FileInputStream(ruleScript);
             RuleManager rules = new RuleManager();
-            scriptEngine.put("indexer", this);
-            scriptEngine.put("jsonConfig", jsonConfig);
-            scriptEngine.put("rules", rules);
-            scriptEngine.put("object", object);
-            scriptEngine.put("payloadId", pid);
-            scriptEngine.put("storageId", sid);
-            scriptEngine.put("params", props);
-            scriptEngine.put("isMetadata", pid == null);
-            scriptEngine.put("inputReader", in);
-            scriptEngine.put("inputReader", in);
-            // TODO add required solr fields?
-            scriptEngine.eval(new FileReader(ruleScript));
+            python.set("indexer", this);
+            python.set("jsonConfig", jsonConfig);
+            python.set("rules", rules);
+            python.set("object", object);
+            python.set("payload", payload);
+            python.set("params", props);
+            python.set("inputReader", in);
+            python.execfile(rulesIn);
             rules.run(in, out);
             if (rules.cancelled()) {
                 log.info("Indexing rules were cancelled");
                 return null;
             }
+            python.cleanup();
         } catch (Exception e) {
             throw new RuleException(e);
         } finally {
+            if (rulesIn != null) {
+                rulesIn.close();
+            }
             in.close();
             out.close();
         }
         return solrFile;
-    }
-
-    private Properties getIndexerProperties(String oid) {
-        try {
-            Payload sofMeta = storage.getPayload(oid, propertiesId);
-            Properties props = new Properties();
-            props.load(sofMeta.getInputStream());
-
-            // Merge any runtime parameters provided
-            for (String property : customParams.keySet()) {
-                props.put(property, customParams.get(property));
-            }
-
-            return props;
-        } catch (Exception ioe) {
-            log.warn("Failed to load properties", ioe);
-        }
-        return null;
     }
 
     private File createTempFile(String prefix, String postfix)
@@ -647,6 +653,10 @@ public class SolrIndexer implements Indexer {
             }
         }
         tempFiles = Collections.synchronizedList(new ArrayList<File>());
+
+        // Clear the lists of specific types we keep
+        rulesList = new HashMap<String, File>();
+        confList = new HashMap<String, File>();
     }
 
     // Helper methods
@@ -657,9 +667,11 @@ public class SolrIndexer implements Indexer {
 
     public Document getXmlDocument(Payload payload) {
         try {
-            return getXmlDocument(payload.getInputStream());
-        } catch (IOException ioe) {
-            log.error("Failed to parse XML", ioe);
+            Document doc = getXmlDocument(payload.open());
+            payload.close();
+            return doc;
+        } catch (StorageException ex) {
+            log.error("Failed to access payload", ex);
         }
         return null;
     }
@@ -683,9 +695,9 @@ public class SolrIndexer implements Indexer {
         return null;
     }
 
-    public JsonConfigHelper getJsonDocument(Reader jsonReader) {
+    public JsonConfigHelper getJsonObject(InputStream in) {
         try {
-            return new JsonConfigHelper(jsonReader);
+            return new JsonConfigHelper(in);
         } catch (IOException ex) {
             log.error("Failure during stream access", ex);
             return null;
@@ -694,8 +706,10 @@ public class SolrIndexer implements Indexer {
 
     public Model getRdfModel(Payload payload) {
         try {
-            return getRdfModel(payload.getInputStream());
-        } catch (IOException ioe) {
+            Model model = getRdfModel(payload.open());
+            payload.close();
+            return model;
+        } catch (StorageException ioe) {
             log.info("Failed to read payload stream", ioe);
         }
         return null;
@@ -765,10 +779,22 @@ public class SolrIndexer implements Indexer {
         namespaces.remove(prefix);
     }
 
-    @Override
-    public void init(String jsonString) throws PluginException {
-        // TODO Auto-generated method stub
+    private File copyObjectToFile(String oid) throws IOException,
+            StorageException {
+        // Temp file
+        File tempFile = createTempFile("objectOutput", ".temp");
+        FileOutputStream tempFileOut = new FileOutputStream(tempFile);
+        // Payload from storage
+        DigitalObject tempObj = storage.getObject(oid);
+        String tempPid = tempObj.getSourceId();
+        Payload tempPayload = tempObj.getPayload(tempPid);
+        // Copy and close
+        IOUtils.copy(tempPayload.open(), tempFileOut);
+        tempPayload.close();
+        tempFileOut.close();
 
+        //log.debug("tempFile size: {}, {}", oid, tempFile.length());
+
+        return tempFile;
     }
-
 }

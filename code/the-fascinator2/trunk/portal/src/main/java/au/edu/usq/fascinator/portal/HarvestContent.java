@@ -9,6 +9,7 @@ import org.apache.commons.io.FilenameUtils;
 import au.edu.usq.fascinator.api.PluginException;
 import au.edu.usq.fascinator.api.PluginManager;
 import au.edu.usq.fascinator.api.harvester.Harvester;
+import au.edu.usq.fascinator.api.storage.Storage;
 import au.edu.usq.fascinator.common.JsonConfigHelper;
 
 public class HarvestContent extends JsonConfigHelper {
@@ -45,7 +46,8 @@ public class HarvestContent extends JsonConfigHelper {
     }
 
     public Harvester getHarvester() {
-        Harvester harvester = PluginManager.getHarvester(get("harvester/type"));
+        Storage storage = PluginManager.getStorage(get("storage/type"));
+        Harvester harvester = PluginManager.getHarvester(get("harvester/type"), storage);
         if (harvester != null) {
             try {
                 harvester.init(jsonFile);

@@ -17,17 +17,21 @@
     <module>authentication/internal</module>
     <module>authentication/filesystem</module>
     <module>harvester/filesystem</module>
-    <module>harvester/jsonq</module>
     <module>harvester/oai-pmh</module>
     <module>harvester/workflow</module>
     <module>indexer/solr</module>
     <module>roles/internal</module>
-    <module>storage/couchdb</module>
-    <module>storage/fedora3</module>
     <module>storage/filesystem</module>
+    <module>storage/ram</module>
     <module>transformer/aperture</module>
     <module>transformer/ffmpeg</module>
     <module>transformer/ice2</module>
     <module>transformer/ims</module>
+    <!-- TODO The following modules need to be updated to new Storage API -->
+    <!--
+    <module>harvester/jsonq</module>
+    <module>storage/couchdb</module>
+    <module>storage/fedora3</module>
+    -->
   </modules>
 </project>
