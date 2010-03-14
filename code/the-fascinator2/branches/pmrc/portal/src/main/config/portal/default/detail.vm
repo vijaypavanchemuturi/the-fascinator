@@ -104,16 +104,11 @@
           <h1 class="content-title">$title</h1>
           <div id="preview" class="box articles">
             <h2>Preview</h2>
-            <div class="results-list">
-                <div class="result">
-                    <!--<h2 id="$oid">Tags: <span class="tags-here"></span></h2>-->
-                    <h2 id="$oid">Tags: <span class="tags-here"></span></h2>
-                </div>
+            <div id="object-tag-list">
+              <p rel="$page.md5Hash($oid)_object">Tags: <span class="object-tags"></span></p>
             </div>
-            <div class="location-results-list">
-                <div class="location-result">
-                    <div id="$oid" class="location">Location: <span class="tags-here"></span></div>
-                </div>
+            <div id="location-tag-list">
+              <p rel="$page.md5Hash($oid)_location">Location: <span class="location-tags"></span></p>
             </div>
             <div id="anno-root" class="content-preview">
               <span class="mimetype" rel="$self.mimeType"></span>
@@ -171,7 +166,7 @@
 <script type="text/javascript" src="$portalPath/js/autocomplete/lib/jquery.ajaxQueue.js"></script>
 <script type="text/javascript" src="$portalPath/js/autocomplete/lib/jquery.bgiframe.js"></script>
 <script type="text/javascript" src="$portalPath/js/autocomplete/jquery.autocomplete.pack.js"></script>
-<script type="text/javascript" src="$portalPath/js/autocomplete/jquery.autocomplete.js"></script>
+<!--<script type="text/javascript" src="$portalPath/js/autocomplete/jquery.autocomplete.js"></script>-->
 <script type="text/javascript">
 var display_help = false;
 function toggleHelp(help_link) {
@@ -354,48 +349,87 @@ $(function() {
 <!--<script type="text/javascript" src="$portalPath/js/anotar/anotar-0.1.js"></script>-->
 <script type="text/javascript" src="$portalPath/js/anotar/anotar-0.2.js"></script>
 
-<script type="text/html" id="normal_tag_form">
+<script type="text/html" id="object_tag_form">
     <div class='myTags float-right'>Tag this:
-      <textarea></textarea>
-      <img src='$portalPath/images/icons/tick.png' class='myTag-submit'/>&#160;
-      <img src='$portalPath/images/icons/cross.png' class='myTag-cancel'>
+      <input id="object-tag-input" type="text" />
+      <img src='$portalPath/images/icons/tick.png' class='myTag-submit' />&#160;
+      <img src='$portalPath/images/icons/cross.png' class='myTag-cancel' />
     </div>
 </script>
 
 <script type="text/javascript">
     $(function(){
-        /*
         var jQ = jQuery;
+        function getAnnotation(key, callback) {
+        	var request = config.serverAddress;
+        	getHttpData(request, "GET", null, callback);
+        }
+        
         // Tags annotation
-        tagConfig={
-            debug: true,
-            docRoot: ".results-list",
-            tagList: ".result h2",
+        tagConfig = {
+            //debug: true,
+            docRoot: "#object-tag-list",
+            tagList: "p",
+            contentInput: "#object-tag-input",
             pageUri: "$self.object.id",
-            uriAttr: "id",
-            //outputInChild: ".tags-here",
+            uriAttr: "rel",
+            outputInChild: ".object-tags",
             annotationType: "tag",
             stylePrefix: "tags-",
             interfaceLabel: " <img src='$portalPath/images/icons/add.png'/>",
             formPrepend: true,
             interfaceVisible: true,
-            formCustom: "normal_tag_form",
+            formCustom: "object_tag_form",
             formCancel: ".myTag-cancel",
             formSubmit: ".myTag-submit",
             serverAddress: "$portalPath/actions/anotar.ajax",
+            getAnnotation: null;
+            disableReply: true,
             serverMode: "fascinator"
         }
-        
         tag = anotarFactory(jQ, tagConfig);
-        */        
         
         
+        // Location Tags annotation
+        locationConfig={
+            debug: true,
+            docRoot: "#location-tag-list",
+            tagList: "p",
+            contentInput: "#txtName",
+            pageUri: "$self.object.id",
+            uriAttr: "rel",
+            outputInChild: ".tags-loc-here",
+            annotationType: "tag",
+            stylePrefix: "location-tags-",
+            interfaceLabel: " <img src='$portalPath/images/icons/add.png'/>",
+            //formPrepend: true,
+            interfaceVisible: true,
+            formCustom: "location_form",
+            formCancel: ".locTag-cancel",
+            formSubmit: ".locTag-submit",
+            displayCustom: "location_tag_form", 
+            getContentUri: function(node) {
+            	var rel = node.attr("rel");
+				if (rel == null) {
+					// content is not a URI
+					return { isUri: false };
+				}
+				return { isUri: true, contentUri: "http://www.geonames.org/" + rel };
+            },
+            serverAddress: "$portalPath/actions/anotar.ajax",
+            disableReply: true,
+            serverMode: "fascinator"
+        }
+        /// Use formCloseFunction to overwrite close function
+        locationTag = anotarFactory(jQ, locationConfig);
+        
+        /*
         // Tags annotation
         var tags = new Anotar();
         tags.setType("Tag");
         //tags.setConfig("debug", true);
-        tags.setConfig("doc_root", ".results-list");
-        tags.setConfig("tag_list", ".result h2");
+        tags.setConfig("doc_root", "#object-tag-list");
+        tags.setConfig("tag_list", "p");
         tags.setConfig("page_uri", "$self.object.id");
         tags.setConfig("uri_attr", "id");
         tags.setConfig("anno_type", "http://www.purl.org/anotar/ns/type/0.1#Tag");
@@ -407,7 +441,7 @@ $(function() {
         tags.setConfig("form_custom", "<div class='myTags float-right'>Tag this:" +
           "<textarea></textarea>" +
           "<img src='$portalPath/images/icons/tick.png' class='myTag-submit'/>&#160;" +
-          "<img src='$portalPath/images/icons/cross.png' class='myTag-cancel'>" +
+          "<img src='$portalPath/images/icons/cross.png' class='myTag-cancel'/>" +
         "</div>");
         //tags.setConfig("hash_function", function(me) { return me.attr("anotar-hash"); });
         tags.setConfig("form_cancel", ".myTag-cancel");
@@ -415,19 +449,19 @@ $(function() {
         tags.setConfig("server_address", "$portalPath/actions/anotar.ajax");
         tags.setConfig("server_mode", "fascinator");
         tags.setConfig("disable_replies", true);
-        tags.init($); 
+        tags.init($);  
         
         // Location Tags annotaion
         var locationTags = new Anotar();
         locationTags.setType("Tag");
         locationTags.setConfig("debug", true);
-        locationTags.setConfig("doc_root", ".location-results-list");
-        locationTags.setConfig("tag_list", ".location");
+        locationTags.setConfig("doc_root", "#location-tag-list");
+        locationTags.setConfig("tag_list", "p");
         locationTags.setConfig("content_input", "#txtName");
         locationTags.setConfig("page_uri", "$self.object.id");
         locationTags.setConfig("uri_attr", "id");
-        locationTags.setConfig("output_in_child", ".tags-here");
-        locationTags.setConfig("style_prefix", "tags-");
+        locationTags.setConfig("output_in_child", ".location-tags");
+        locationTags.setConfig("style_prefix", "location-tags-");
         locationTags.setConfig("proxy_required", false);
         locationTags.setConfig("interface_label", " <img src='$portalPath/images/icons/add.png'/>");
         locationTags.setConfig("interface_visible", true);
@@ -448,7 +482,70 @@ $(function() {
         locationTags.setConfig("disable_replies", true);
         locationTags.setConfig("display_custom", "location_tag_form");
         locationTags.init($);
+        */
         
+        #if($self.mimeType.startsWith("audio/") || $self.mimeType.startsWith("video/"))
+        // Audio/Video Tags annotation
+        var videoAnoLabel = "<img src='$portalPath/images/icons/comment_add.png'/>&#160;Comment on this media:";
+        videoConfig={
+            debug: true,
+            label: videoAnoLabel,
+            objectLiteral: "self.object.id",
+            pageUri: "$self.object.id",
+            docRoot: ".video-results-list",
+            tagList: ".video-result-list",
+            uriAttr: "anotar-id",
+            replyLabel: "<img src='$portalPath/images/icons/comments_add.png'/>",
+            //formPrepend: true,
+            stylePrefix: "anno-",
+            interfaceLabel: videoAnoLable,
+            interfaceVisible: true,
+            formCustom: "media_clip_form",
+            formCancel: ".myTag-cancel",
+            formSubmit: ".myTag-submit",
+            displayCustom: "media_clip_comment", 
+            hashType: "http://www.w3.org/TR/2009/WD-media-frags-20091217",
+            hashFunction: function(node) {
+				var rel = node.attr("rel");
+				if (rel == null) { rel = "$oid"; }
+				return rel;
+			},
+            serverAddress: "$portalPath/actions/anotar.ajax",
+            disableReply: false,
+            serverMode: "fascinator"
+        }
+        $("#media_clip textArea").live("focus", function() {
+            var replies = $("#media_clip").prev("blockquote.anno-inline-annotation-quote")
+                                          .find(".anno-anno-children");
+            if (replies.length > 0) {
+                $(".annotate_scope").hide();
+            } else {
+                $(".annotate_scope").show();
+            }
+            return false;
+        });
+        
+        videoTag = anotarFactory(jQ, videoConfig);
+        #else
+        
+        noteConfig={
+        	//objectLiteral: "$self.object.id",
+        	pageUri: "$self.object.id",
+        	#if($page.authentication.is_logged_in()) 
+        	creator: "$page.authentication.get_name()",
+        	creatorUri: null,
+       		#end
+       		tagList: "p, h1, h2, h3, h4, h5, h6, .annotatable",
+       		interfaceLabel: " <img src='$portalPath/images/icons/comment_add.png'/> Comments:",
+       		replyLabel: " <img src='$portalPath/images/icons/comments_add.png'/>",
+       		serverAddress: "$portalPath/actions/anotar.ajax",
+       		serverMode: "fascinator",
+       		interfaceVisible: true
+        }
+        noteTag = anotarFactory(jQ, noteConfig);
+        #end
+        
+        /*
         #if($self.mimeType.startsWith("audio/") || $self.mimeType.startsWith("video/"))
         // Video annotation
         var videoAnoLabel = "<img src='$portalPath/images/icons/comment_add.png'/>&#160;Comment on this media:";
@@ -494,7 +591,7 @@ $(function() {
         // Comment annotation
         var notes = new Anotar();
         //notes.setConfig("debug", true);
-        notes.setConfig("object_literal", "$self.object.id");
+        //notes.setConfig("object_literal", "$self.object.id");
         notes.setConfig("page_uri", "$portalPath/$self.object.id");
         #if($page.authentication.is_logged_in())
         notes.setConfig("creator", "$page.authentication.get_name()");
@@ -509,23 +606,24 @@ $(function() {
         notes.setConfig("interface_visible", true);
         notes.init($);
         #end
+        */
     });
     
 </script>
 
 <script type="text/javascript">
-    var attached = false;
     function attach(node) {
-        if (!attached) {
-            attached = true;
+        if (!$(node).attr("attach")) {
+            $(node).attr("attach", "true");
             $(node).autocomplete('$portalPath/actions/geonames.ajax', {
                 extraParams: {"func":"placeName"}, 
                 formatItem: function(row) {
                     return row[0];
                 }
             }).result(function(event, item) {
+            	//console.log(item);
                 if (item) {
-                    $(".location").attr("rel", item[1]);
+                    $(".location-results-list").attr("rel", item[1]);
                 }
             });
         }
@@ -567,9 +665,9 @@ $(function() {
 </script>
 
 <script type="text/html" id="location_tag_form">
-    <% if (locator != null && locator.indexOf("http://") == 0) { %>
+    <% if (contentUri != null && contentUri.indexOf("http://www.geonames.org") == 0) { %>
   <span class='<%=style%>tag'>
-      <a href="<%=locator%>"><%=content%></a>
+      <a href="<%=contentUri%>"><%=content%><% if(tagCount > 1){ %> (<%=tagCount%>)<% } %></a>
   </span>
     <% } else { %>
       <span></span>
