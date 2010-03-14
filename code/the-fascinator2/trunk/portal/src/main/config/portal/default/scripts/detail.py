@@ -72,6 +72,11 @@ class DetailData:
             print " * detail.py: URI='%s' OID='%s' PID='%s' MIME='%s'" % (uri, self.__oid, self.__pid, self.__mimeType)
             self.__search()
 
+    def __openFile(self):
+        file = formData.get("file")
+        print " * detail.py: opening file %s..." % file
+        Desktop.getDesktop().open(File(file))
+
     def __search(self):
         req = SearchRequest('id:"%s"' % self.__oid)
         out = ByteArrayOutputStream()
@@ -94,93 +99,11 @@ class DetailData:
     def encode(self, url):
         return URLEncoder.encode(url, "UTF-8")
 
-    def isMetadataOnly(self):
-        previewPid = self.getPreview(self.getObject().getId())
-        if previewPid == "":
-            return True
-        else:
-            return False
-
-    def getFileName(self, path):
-        return os.path.split(path)[1]
-
-    def getFilePathWithoutExt(self, path):
-        return os.path.splitext(self.getFileName(path))[0]
-
-    def getMimeType(self):
-        return self.__mimeType
-
-    def getSolrResponse(self):
-        return self.__json
-
     def formatName(self, name):
         return name[3:4].upper() + name[4:]
 
     def formatValue(self, value):
         return value
-
-    def isHidden(self, pid):
-        if pid.find("_files%2F")>-1:
-            return True
-        return False
-
-    def getMetadata(self):
-        return self.__metadata
-
-    def getObject(self):
-        return self.__object
-
-    def getStorageId(self):
-        obj = self.getObject()
-        return obj.getId()
-
-    def getFileSize(self, path):
-        return FileUtils.byteCountToDisplaySize(os.path.getsize(path))
-
-    def hasSlideShow(self):
-        pid = self.__pid
-        pid = pid[:pid.find(".")] + ".slide.htm"
-        if self.containsPid(pid):
-            return pid
-        else:
-            return False
-
-    def hasFlv(self):
-        pid = self.__pid
-        pid = pid[:pid.find(".")] + ".flv"
-        if self.containsPid(pid):
-            return pid
-        return ""
-
-    def getPdfUrl(self):
-        pid = os.path.splitext(self.__pid)[0] + ".pdf"
-        return "%s/%s" % (self.__oid, pid)
-
-    def getPayLoadUrl(self, pid):
-        return "%s/%s" % (self.__oid, pid)
-
-    def hasHtml(self):
-        payloadIdList = self.getObject().getPayloadIdList()
-        for payloadId in payloadIdList:
-            try:
-                payload = self.getObject().getPayload(payloadId)
-                mimeType = payload.getContentType()
-                if mimeType == "text/html" or mimeType == "application/xhtml+xml":
-                    return True
-            except StorageException, e:
-                pass
-        return False
-
-    def hasError(self):
-        payloadIdList = self.getObject().getPayloadIdList()
-        for payloadId in payloadIdList:
-            try:
-                payload = self.getObject().getPayload(payloadId)
-                if str(payload.getType()) == "Error":
-                    return True
-            except StorageException, e:
-                pass
-        return False
 
     def getError(self):
         payloadIdList = self.getObject().getPayloadIdList()
@@ -193,17 +116,23 @@ class DetailData:
                 pass
         return None
 
-    def getPreview(self, oid):
-        payloadIdList = self.getObject().getPayloadIdList()
-        for payloadId in payloadIdList:
-            try:
-                payload = self.getObject().getPayload(payloadId)
-                print " * detail.py : Type = '" + str(payload.getType()) + "'"
-                if str(payload.getType()) == "Preview":
-                    return payload.getId()
-            except StorageException, e:
-                pass
-        return self.getObject().getSourceId()
+    def getFileName(self, path):
+        return os.path.split(path)[1]
+
+    def getFilePathWithoutExt(self, path):
+        return os.path.splitext(self.getFileName(path))[0]
+
+    def getFileSize(self, path):
+        return FileUtils.byteCountToDisplaySize(os.path.getsize(path))
+
+    def getMetadata(self):
+        return self.__metadata
+
+    def getMimeType(self):
+        return self.__mimeType
+
+    def getObject(self):
+        return self.__object
 
     def getPayloadContent(self):
         mimeType = self.__mimeType
@@ -277,9 +206,80 @@ class DetailData:
             contentStr = '<h4 class="error">No preview available</h4><p>Please try re-rendering by using the Re-Harvest action.</p><h5>Details</h5><pre>' + out.toString("UTF-8") + '</pre>'
         return contentStr
 
-    def __openFile(self):
-        file = formData.get("file")
-        print " * detail.py: opening file %s..." % file
-        Desktop.getDesktop().open(File(file))
+    def getPayLoadUrl(self, pid):
+        return "%s/%s" % (self.__oid, pid)
+
+    def getPdfUrl(self):
+        pid = os.path.splitext(self.__pid)[0] + ".pdf"
+        return "%s/%s" % (self.__oid, pid)
+
+    def getPreview(self, oid):
+        payloadIdList = self.getObject().getPayloadIdList()
+        for payloadId in payloadIdList:
+            try:
+                payload = self.getObject().getPayload(payloadId)
+                print " * detail.py : Type = '" + str(payload.getType()) + "'"
+                if str(payload.getType()) == "Preview":
+                    return payload.getId()
+            except StorageException, e:
+                pass
+        return self.getObject().getSourceId()
+
+    def getSolrResponse(self):
+        return self.__json
+
+    def getStorageId(self):
+        obj = self.getObject()
+        return obj.getId()
+
+    def hasError(self):
+        payloadIdList = self.getObject().getPayloadIdList()
+        for payloadId in payloadIdList:
+            try:
+                payload = self.getObject().getPayload(payloadId)
+                if str(payload.getType()) == "Error":
+                    return True
+            except StorageException, e:
+                pass
+        return False
+
+    def hasFlv(self):
+        pid = self.__pid
+        pid = pid[:pid.find(".")] + ".flv"
+        if self.containsPid(pid):
+            return pid
+        return ""
+
+    def hasHtml(self):
+        payloadIdList = self.getObject().getPayloadIdList()
+        for payloadId in payloadIdList:
+            try:
+                payload = self.getObject().getPayload(payloadId)
+                mimeType = payload.getContentType()
+                if mimeType == "text/html" or mimeType == "application/xhtml+xml":
+                    return True
+            except StorageException, e:
+                pass
+        return False
+
+    def hasSlideShow(self):
+        pid = self.__pid
+        pid = pid[:pid.find(".")] + ".slide.htm"
+        if self.containsPid(pid):
+            return pid
+        else:
+            return False
+
+    def isHidden(self, pid):
+        if pid.find("_files%2F")>-1:
+            return True
+        return False
+
+    def isMetadataOnly(self):
+        previewPid = self.getPreview(self.getObject().getId())
+        if previewPid == "":
+            return True
+        else:
+            return False
 
 scriptObject = DetailData()
