@@ -267,7 +267,7 @@ $(function() {
         } else {
             var error = "$self.hasError()";
             if (hasFlv=="false") {
-            	$("div.content-preview div.article").empty().append("No preview available");
+                $("div.content-preview div.article").empty().append("No preview available");
             }
         }
     }
@@ -360,10 +360,6 @@ $(function() {
 <script type="text/javascript">
     $(function(){
         var jQ = jQuery;
-        function getAnnotation(key, callback) {
-        	var request = config.serverAddress;
-        	getHttpData(request, "GET", null, callback);
-        }
         
         // Tags annotation
         tagConfig = {
@@ -383,7 +379,7 @@ $(function() {
             formCancel: ".myTag-cancel",
             formSubmit: ".myTag-submit",
             serverAddress: "$portalPath/actions/anotar.ajax",
-            getAnnotation: null;
+            getAnnotation: null,
             disableReply: true,
             serverMode: "fascinator"
         }
@@ -398,9 +394,9 @@ $(function() {
             contentInput: "#txtName",
             pageUri: "$self.object.id",
             uriAttr: "rel",
-            outputInChild: ".tags-loc-here",
+            outputInChild: ".location-tags",
             annotationType: "tag",
-            stylePrefix: "location-tags-",
+            stylePrefix: "tags-",
             interfaceLabel: " <img src='$portalPath/images/icons/add.png'/>",
             //formPrepend: true,
             interfaceVisible: true,
@@ -409,12 +405,12 @@ $(function() {
             formSubmit: ".locTag-submit",
             displayCustom: "location_tag_form", 
             getContentUri: function(node) {
-            	var rel = node.attr("rel");
-				if (rel == null) {
-					// content is not a URI
-					return { isUri: false };
-				}
-				return { isUri: true, contentUri: "http://www.geonames.org/" + rel };
+                var rel = node.attr("rel");
+                if (rel == null) {
+                    // content is not a URI
+                    return { isUri: false };
+                }
+                return { isUri: true, contentUri: "http://www.geonames.org/" + rel };
             },
             serverAddress: "$portalPath/actions/anotar.ajax",
             disableReply: true,
@@ -506,10 +502,10 @@ $(function() {
             displayCustom: "media_clip_comment", 
             hashType: "http://www.w3.org/TR/2009/WD-media-frags-20091217",
             hashFunction: function(node) {
-				var rel = node.attr("rel");
-				if (rel == null) { rel = "$oid"; }
-				return rel;
-			},
+                var rel = node.attr("rel");
+                if (rel == null) { rel = "$oid"; }
+                return rel;
+            },
             serverAddress: "$portalPath/actions/anotar.ajax",
             disableReply: false,
             serverMode: "fascinator"
@@ -529,18 +525,19 @@ $(function() {
         #else
         
         noteConfig={
-        	//objectLiteral: "$self.object.id",
-        	pageUri: "$self.object.id",
-        	#if($page.authentication.is_logged_in()) 
-        	creator: "$page.authentication.get_name()",
-        	creatorUri: null,
-       		#end
-       		tagList: "p, h1, h2, h3, h4, h5, h6, .annotatable",
-       		interfaceLabel: " <img src='$portalPath/images/icons/comment_add.png'/> Comments:",
-       		replyLabel: " <img src='$portalPath/images/icons/comments_add.png'/>",
-       		serverAddress: "$portalPath/actions/anotar.ajax",
-       		serverMode: "fascinator",
-       		interfaceVisible: true
+            //objectLiteral: "$self.object.id",
+            pageUri: "$self.object.id",
+            #if($page.authentication.is_logged_in()) 
+            creator: "$page.authentication.get_name()",
+            creatorUri: null,
+            #end
+            tagList: "p, h1, h2, h3, h4, h5, h6, .annotatable",
+            //uriAttr: "anotar-hash",
+            interfaceLabel: " <img src='$portalPath/images/icons/comment_add.png'/> Comments:",
+            replyLabel: " <img src='$portalPath/images/icons/comments_add.png'/>",
+            serverAddress: "$portalPath/actions/anotar.ajax",
+            serverMode: "fascinator",
+            interfaceVisible: true
         }
         noteTag = anotarFactory(jQ, noteConfig);
         #end
@@ -621,9 +618,8 @@ $(function() {
                     return row[0];
                 }
             }).result(function(event, item) {
-            	//console.log(item);
                 if (item) {
-                    $(".location-results-list").attr("rel", item[1]);
+                    $("#location-tag-list").attr("rel", item[1]);
                 }
             });
         }

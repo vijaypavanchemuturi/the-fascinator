@@ -352,9 +352,13 @@ function anotarFactory(jQ, config) {
         // Find where to attach it
         isReply = false;
        	if(locators.length) {
-       		// Load by hash
-       		annoHash = locators[0].value;
-            node = jQ("*["+config.hashAttr+"='"+annoHash+"']");
+       		// Load by hash and differentiated by locator type
+       		if (locators[0].type == config.hashType) {
+	       		annoHash = locators[0].value;
+	            node = jQ("*["+config.hashAttr+"='"+annoHash+"']");
+       		} else {
+       			return;
+       		}
        	} else {
        	    // Load by URI
        	    node = jQ("*["+config.uriAttr+"='"+annoUri+"']");
@@ -568,7 +572,7 @@ function anotarFactory(jQ, config) {
             }
         }
 
-        if (annoObj.annotates.locators !== undefined)
+        if (annoObj.annotates.locators.length > 0)
             var origContent = annoObj.annotates.locators[0].originalContent;
         if (origContent == undefined) origContent = "";
         
@@ -600,7 +604,7 @@ function anotarFactory(jQ, config) {
             contentUri: annoObj.contentUri
         };
         
-		if (annoObj.annotates.locators != null) {
+		if (annoObj.annotates.locators.length > 0) {
             opt.locator = annoObj.annotates.locators[0].value;
         }
 		
@@ -758,7 +762,6 @@ function anotarFactory(jQ, config) {
 	        if (data.contentUri) {
 	        	schemaObject.contentUri = data.contentUri;
 	        } 
-	        
 	        // Privacy
 	        schemaObject.isPrivate = false;
 	        // Language
@@ -818,7 +821,7 @@ function anotarFactory(jQ, config) {
             	originalContent: me.text(),
             	content: text
             };
-
+            
             if (config.getContentUri) {
             	json = config.getContentUri($(config.docRoot));
             	if (json.isUri) {
@@ -851,19 +854,24 @@ function anotarFactory(jQ, config) {
 	        if(config.uriAttr) {
 	            uri = me.attr(config.uriAttr);
 	            if(uri){
-	            	if(uri.substring(0, config.pageUri.length)===config.pageUri){
+	            	if(uri.substring(uri.search(config.pageUri), config.pageUri.length+uri.search(config.pageUri))===config.pageUri){
 	            		hash = null;
 	            	} else {
 	            		uri = config.pageUri;
 	            	}
-	            }
-	        }
+	            } 
+	        } 
+	        console.log("uri: ", uri);
+	        //if (hasUri == false) {
+	        //	uri = config.pageUri;
+	        //}
+	        
 	        // Do we have any text saved?
 	        restore();
 	        function defaultDisplayForm(){
 	        	me.wrap(renderTemplate(templates.annotateWrap, opt));
 		        if (config.formPrepend) {
-		        	me.parent().prepend(annotateDiv);
+		           me.parent().prepend(annotateDiv);
 		        } else {
 		           me.parent().append(annotateDiv);
 		        }

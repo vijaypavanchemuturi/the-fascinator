@@ -139,7 +139,7 @@ class AnotarData:
 {
   "clientVersion" : {
     "literal" : "Annotate Client (0.1)",
-    "uri" : "http://fascinator.usq.edu.au/annotate/client/version#0.1"
+    "uri" : "http://www.purl.org/anotar/client/0.1"
   },
   "type" : "http://www.purl.org/anotar/ns/type/0.1#Tag",
   "title" : {
@@ -258,8 +258,8 @@ class AnotarData:
         for doc in result:
             doc = JsonConfigHelper(doc.get("jsonString"))
             tag = doc.get("content/literal")
-            locs = doc.getJsonList("annotates/locators").size()
-            if locs == 0:
+            locs = doc.getJsonList("annotates/locators")
+            if locs.size() > 0:
                 if tag in tagsDict:
                     d = tagsDict[tag]
                     d.set("tagCount", str(int(d.get("tagCount")) + 1))
@@ -271,7 +271,6 @@ class AnotarData:
 
         for tag in tagsDict:
             tags.append(tagsDict[tag].toString())
-
         return "[" + ",".join(tags) + "]"
 
     def __search_solr(self):
