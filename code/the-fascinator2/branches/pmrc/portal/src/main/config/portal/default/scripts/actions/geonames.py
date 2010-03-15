@@ -11,7 +11,7 @@ class GeoNames:
         if func == "placeName":
             try:
                 placeName = formData.get("q")
-                url = "http://ws.geonames.org/searchJSON?q=" + placeName
+                url = "http://ws.geonames.org/searchJSON?fuzzy=0.7&q=" + placeName
                 client = BasicHttpClient(url)
                 get = GetMethod(url)
                 statusInt = client.executeMethod(get)

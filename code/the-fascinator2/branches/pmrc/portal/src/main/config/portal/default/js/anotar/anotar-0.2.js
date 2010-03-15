@@ -88,6 +88,7 @@ function anotarFactory(jQ, config) {
      * formClearFunction : null,
      * formCloseFunction : null,
      * formSubmitFunction : null,
+     * onFormDisplay: null,
      * formPopup : false
      * formPopupSettings : {
      * 		autoOpen: true,
@@ -725,8 +726,8 @@ function anotarFactory(jQ, config) {
 	            "rootUri": data.root
 	        };
 	        // Annotation locator(s)
+	        schemaObject.annotates.locators = [];
 	        if (data.hash) {
-	            schemaObject.annotates.locators = [];
 	            var thisHash = {
 	                "originalContent": data.originalContent,
 	                "type": config.hashType,
@@ -854,17 +855,15 @@ function anotarFactory(jQ, config) {
 	        if(config.uriAttr) {
 	            uri = me.attr(config.uriAttr);
 	            if(uri){
-	            	if(uri.substring(uri.search(config.pageUri), config.pageUri.length+uri.search(config.pageUri))===config.pageUri){
+	            	pageUriPos = uri.search(config.pageUri);
+	            	if (pageUriPos == -1) pageUriPos = 0;
+	            	if(uri.substring(pageUriPos, config.pageUri.length + pageUriPos)===config.pageUri){
 	            		hash = null;
 	            	} else {
 	            		uri = config.pageUri;
 	            	}
 	            } 
 	        } 
-	        console.log("uri: ", uri);
-	        //if (hasUri == false) {
-	        //	uri = config.pageUri;
-	        //}
 	        
 	        // Do we have any text saved?
 	        restore();
@@ -895,6 +894,12 @@ function anotarFactory(jQ, config) {
 	        }else{
 	        	defaultDisplayForm();
 	        }
+	        
+	        // call custom form display function
+	        if (config.onFormDisplay) {
+	        	config.onFormDisplay(textArea);
+	        }
+	        
 	        //setup the event click function 
 	        annotateDiv.find(config.formClear).click(config.formClearFunction);
 	        annotateDiv.find(config.formCancel).click(config.formCancelFunction);

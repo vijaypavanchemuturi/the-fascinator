@@ -233,7 +233,7 @@ $(function() {
         else
             src = "$portalPath/download/$self.encode($oid)/" + src
         $("div.content-preview div.article").html(
-            '<div class="annotatable"><div class="image">' +
+            '<div id="$oid" class="annotatable"><div class="image">' +
                 '<img class="image" id="toAnnotate" src="' + src + '" style="max-width: 900px;" />' +
             '</div><div class="clear"></div></div>');
     } else if (mimeType.indexOf("audio/") == 0 || mimeType.indexOf("video/") == 0) {
@@ -404,6 +404,19 @@ $(function() {
             formCancel: ".locTag-cancel",
             formSubmit: ".locTag-submit",
             displayCustom: "location_tag_form", 
+            onFormDisplay: function(node){
+            	console.log("node: ", node);
+				$(node).autocomplete('$portalPath/actions/geonames.ajax', {
+					extraParams: {"func":"placeName"}, 
+					formatItem: function(row) {
+						return row[0];
+					}
+				}).result(function(event, item) {
+					if (item) {
+						$("#location-tag-list").attr("rel", item[1]);
+					}
+				});
+            },
             getContentUri: function(node) {
                 var rel = node.attr("rel");
                 if (rel == null) {
@@ -643,7 +656,7 @@ $(function() {
         </td>
       </tr>
       <tr class="annotate_name">
-        <td>Search: <input type="text" id="txtName" onfocus="attach(this)" size="45"/></td>
+        <td>Search: <input type="text" id="txtName" size="45"/></td>
       </tr>
       <tr class="hidden annotate_ll">
         <td>Latitude: <input type="text" id="txtLatitude"/>
