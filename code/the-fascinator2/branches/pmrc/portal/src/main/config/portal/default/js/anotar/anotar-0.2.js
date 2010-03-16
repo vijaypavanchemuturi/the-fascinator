@@ -351,23 +351,33 @@ function anotarFactory(jQ, config) {
         }
         
         // Find where to attach it
-        isReply = false;
-       	if(locators.length) {
+   		isReply = annoObj.annotates.uri!=annoObj.annotates.rootUri;
+   		console.log("")
+   		console.log(annoObj.toSource());
+   		console.log("annoObj.annotates.uri: ", annoObj.annotates.uri);
+   		console.log("annoObj.annotates.rootUri: ", annoObj.annotates.rootUri);
+       	if(isReply) {
+       	    // Load by URI
+       		console.log("by URI")
+       	    node = jQ("*["+config.uriAttr+"='"+annoUri+"']");
+       	    //console.log(config.uriAttr, annoUri);
+       	} else {
        		// Load by hash and differentiated by locator type
+       		console.log("locators[0].type: ", locators[0].type);
+       		console.log("config.hashType: ", config.hashType);
+       		console.log("annoUri: ", annoUri);
        		if (locators[0].type == config.hashType) {
 	       		annoHash = locators[0].value;
-	            node = jQ("*["+config.hashAttr+"='"+annoHash+"']");
+	       		node = jQ("*["+config.hashAttr+"='"+annoHash+"']");
+	       		
+	            //console.log(config.hashAttr, annoHash);
+	            //if (annoUri.search("#") > 0)
+	            //	isReply = true; 
        		} else {
        			return;
        		}
-       	} else {
-       	    // Load by URI
-       	    node = jQ("*["+config.uriAttr+"='"+annoUri+"']");
-       	    //console.log(config.uriAttr, annoUri);
-       		if (config.annotationType != "tag")
-            	isReply = true;
        	}
-        
+       	
         //Get the object as it should be displayed
     	var cssToggle = "odd";
         if(node.hasClass("odd"))
@@ -793,6 +803,7 @@ function anotarFactory(jQ, config) {
         function clearClick(){
         	textArea.val("");
         }
+        
         // Submit callback
         function submitClick(e) {
             var text, html, d, selfUrl,me;
@@ -812,9 +823,9 @@ function anotarFactory(jQ, config) {
             hashValue = hash;
             func = config.hashFunction;
             if (func != null) {
-               hashValue = func(me);
+               //me is button
+               hashValue = func($(config.docRoot));
             }
-            
             data = {
                 uri: uri,
                 root: config.pageUri,
