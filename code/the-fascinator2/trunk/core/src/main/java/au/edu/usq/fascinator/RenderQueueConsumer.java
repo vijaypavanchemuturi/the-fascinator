@@ -46,6 +46,7 @@ import au.edu.usq.fascinator.api.storage.Storage;
 import au.edu.usq.fascinator.api.storage.StorageException;
 import au.edu.usq.fascinator.api.transformer.TransformerException;
 import au.edu.usq.fascinator.common.JsonConfig;
+import java.util.Properties;
 
 /**
  * Consumer for rendering transformers. Jobs in this queue are generally longer
@@ -175,6 +176,11 @@ public class RenderQueueConsumer implements MessageListener {
             object = conveyerBelt.transform(object);
             log.info("Indexing object...");
             indexer.index(object.getId());
+
+            // update object metadata
+            Properties props = object.getMetadata();
+            props.setProperty("render-pending", "false");
+
             object.close();
         } catch (JMSException jmse) {
             log.error("Failed to receive message: {}", jmse.getMessage());

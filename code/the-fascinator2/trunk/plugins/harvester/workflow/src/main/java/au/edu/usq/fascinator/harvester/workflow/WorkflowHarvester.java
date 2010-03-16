@@ -29,6 +29,7 @@ import au.edu.usq.fascinator.common.storage.StorageUtils;
 import java.io.File;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Properties;
 import java.util.Set;
 
 import org.slf4j.Logger;
@@ -68,11 +69,8 @@ public class WorkflowHarvester extends GenericHarvester {
     public Set<String> getObjectId(File uploadedFile)
             throws HarvesterException {
             Set<String> objectIds = new HashSet<String>();
-        Storage storage = getStorage();
         try {
-            DigitalObject object = StorageUtils.storeFile(storage, uploadedFile,
-                    forceLocalStorage);
-            objectIds.add(object.getId());
+            objectIds.add(createDigitalObject(uploadedFile));
         } catch (StorageException se) {
             throw new HarvesterException(se);
         }
@@ -82,5 +80,19 @@ public class WorkflowHarvester extends GenericHarvester {
     @Override
     public boolean hasMoreObjects() {
         return false;
+    }
+
+    private String createDigitalObject(File file) throws HarvesterException,
+            StorageException {
+        DigitalObject object = StorageUtils.storeFile(getStorage(), file,
+                forceLocalStorage);
+        String oid = object.getId();
+
+        // update object metadata
+        Properties props = object.getMetadata();
+        props.setProperty("render-pending", "true");
+
+        object.close();
+        return oid;
     }
 }

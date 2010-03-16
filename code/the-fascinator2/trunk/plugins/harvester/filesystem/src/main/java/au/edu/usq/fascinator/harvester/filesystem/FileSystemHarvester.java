@@ -41,6 +41,7 @@ import au.edu.usq.fascinator.api.storage.StorageException;
 import au.edu.usq.fascinator.common.JsonConfig;
 import au.edu.usq.fascinator.common.harvester.impl.GenericHarvester;
 import au.edu.usq.fascinator.common.storage.StorageUtils;
+import java.util.Properties;
 
 /**
  * Harvests files in a specified directory on the local file system
@@ -330,6 +331,11 @@ public class FileSystemHarvester extends GenericHarvester {
             StorageException {
         DigitalObject object = StorageUtils.storeFile(getStorage(), file, link);
         String oid = object.getId();
+
+        // update object metadata
+        Properties props = object.getMetadata();
+        props.setProperty("render-pending", "true");
+
         object.close();
         return oid;
     }

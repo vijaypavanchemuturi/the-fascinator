@@ -9,14 +9,14 @@ class DownloadData:
         uri = URLDecoder.decode(request.getAttribute("RequestURI"))
         uri = uri[len(basePath)+1:]
         try:
-            oid, pid, payload = self.__resolve(uri)
-            print " * download.py: URI='%s' OID='%s' PID='%s' PAYLOAD='%s'" % (uri, oid, pid, payload)
+            object, payload = self.__resolve(uri)
+            print " * download.py: URI='%s' OID='%s' PID='%s'" % (uri, object.getId(), payload.getId())
         except StorageException, e:
             payload = None
             print " * download.py : Error {}", e
 
         if payload is not None:
-            filename = os.path.split(pid)[1]
+            filename = os.path.split(payload.getId())[1]
             mimeType = payload.getContentType()
             if mimeType == "application/octet-stream":
                 response.setHeader("Content-Disposition", "attachment; filename=%s" % filename)
@@ -24,6 +24,7 @@ class DownloadData:
             IOUtils.copy(payload.open(), out)
             payload.close()
             out.close()
+            object.close()
         else:
             response.setStatus(404)
             writer = response.getPrintWriter("text/plain")
@@ -50,6 +51,6 @@ class DownloadData:
                 return self.__get_payload(oid, pid, uri)
             else:
                 return None, None, None
-        return oid, pid, payload
+        return object, payload
 
 scriptObject = DownloadData()

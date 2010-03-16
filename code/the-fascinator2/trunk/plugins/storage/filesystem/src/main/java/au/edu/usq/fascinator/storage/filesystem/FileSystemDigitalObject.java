@@ -317,4 +317,15 @@ public class FileSystemDigitalObject extends GenericDigitalObject {
     public String toString() {
         return String.format("%s [%s]", getId(), homeDir);
     }
+
+    @Override
+    public void close() throws StorageException {
+        try {
+            super.close();
+        } catch(StorageException ex) {
+            // It's ok, we expect this, the metadata payload won't exist
+            // in the second part of super.close()
+        }
+        this.unlockManifest();
+    }
 }

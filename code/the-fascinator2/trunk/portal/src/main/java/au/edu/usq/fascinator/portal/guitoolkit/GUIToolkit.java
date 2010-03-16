@@ -19,6 +19,7 @@
 package au.edu.usq.fascinator.portal.guitoolkit;
 
 import au.edu.usq.fascinator.common.JsonConfig;
+import java.util.List;
 
 /**
  * A simple wrapper class for the various toolkit objects.
@@ -38,8 +39,8 @@ public class GUIToolkit {
         return new GUIDisplay(sysConfig);
     }
 
-    public GUIFileUploader getFileUploader() {
-        return new GUIFileUploader(sysConfig);
+    public GUIFileUploader getFileUploader(List<String> user_roles) {
+        return new GUIFileUploader(sysConfig, user_roles);
     }
 
     public GUIFormRenderer getFormRenderer() {

@@ -23,9 +23,11 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
@@ -45,6 +47,8 @@ import org.apache.tapestry5.upload.services.UploadedFile;
 import org.slf4j.Logger;
 
 import au.edu.usq.fascinator.HarvestClient;
+import au.edu.usq.fascinator.api.PluginException;
+import au.edu.usq.fascinator.api.roles.RolesManager;
 import au.edu.usq.fascinator.common.JsonConfig;
 import au.edu.usq.fascinator.common.JsonConfigHelper;
 import au.edu.usq.fascinator.common.MimeTypeUtil;
@@ -66,6 +70,9 @@ public class Dispatch {
 
     @Inject
     private Logger log;
+
+    @Inject
+    private RolesManager roleManager;
 
     @SessionState
     private JsonSessionState sessionState;
@@ -154,48 +161,67 @@ public class Dispatch {
     private void fileProcessing() {
         // What we are looking for
         UploadedFile uploadedFile = null;
-        String plugin = null;
+        String workflow = null;
 
-        // Get all the parameters
-        for (String param : request.getParameterNames()) {
-            // A tmp file
-            UploadedFile tmpFile = decoder.getFileUpload(param);
-            if (tmpFile != null) {
-                // Our file
-                uploadedFile = tmpFile;
-            } else {
-                // Normalf form fields
-                if (param.equals("upload-file-plugin")) {
-                    plugin = request.getParameter(param);
-                }
-            }
+        // Roles of current user
+        String username = (String) sessionState.get("username");
+        List<String> roles = Arrays.asList(roleManager.getRoles(username));
+
+        // The workflow we're using
+        List<String> reqParams = request.getParameterNames();
+        if (reqParams.contains("upload-file-workflow")) {
+            workflow = request.getParameter("upload-file-workflow");
         }
-        if (uploadedFile == null) {
-            log.error("No uploaded file found!");
-            return;
-        }
-        if (plugin == null) {
-            log.error("No plugin provided with form data.");
+        if (workflow == null) {
+            log.error("No workflow provided with form data.");
             return;
         }
 
         // Query the system config file
         JsonConfigHelper workflow_config;
-        Map<String, JsonConfigHelper> available_plugins;
+        Map<String, JsonConfigHelper> available_workflows;
         try {
             JsonConfig config = new JsonConfig();
             config.getSystemFile();
             String workflow_config_path = config.get("portal/uploader");
             File workflow_config_file = new File(workflow_config_path);
             workflow_config = new JsonConfigHelper(workflow_config_file);
-            available_plugins = workflow_config.getJsonMap("/");
+            available_workflows = workflow_config.getJsonMap("/");
         } catch (IOException e) {
             log.error("Failed to get the System config file.");
             return;
         }
 
-        // Get the plugin's file directory
-        String file_path = available_plugins.get(plugin).get("upload-path");
+        // Roles allowed to upload into this workflow
+        List<Object> allowed_roles =
+                available_workflows.get(workflow).getList("security");
+        boolean security_check = false;
+        for (Object role : allowed_roles) {
+            if (roles.contains(role.toString())) {
+                log.debug(" *** Role Match : " + role.toString());
+                security_check = true;
+            }
+        }
+        if (!security_check) {
+            log.error("Security error, current user not allowed to upload.");
+            return;
+        }
+
+        // Get the workflow's file directory
+        String file_path = available_workflows.get(workflow).get("upload-path");
+
+        // Get the uploaded file
+        for (String param : reqParams) {
+            UploadedFile tmpFile = decoder.getFileUpload(param);
+            if (tmpFile != null) {
+                // Our file
+                uploadedFile = tmpFile;
+            }
+        }
+        if (uploadedFile == null) {
+            log.error("No uploaded file found!");
+            return;
+        }
 
         // Write the file to that directory
         file_path = file_path + "/" + uploadedFile.getFileName();
@@ -213,11 +239,19 @@ public class Dispatch {
         uploadedFile.write(file);
 
         // Make sure the new file gets harvested
-        File harvest_config = new File(available_plugins.get(plugin).get(
+        File harvest_config = new File(available_workflows.get(workflow).get(
                 "json-config"));
+        HarvestClient harvester = null;
+        String oid = null;
+        String error = null;
         try {
-            HarvestClient harvester = new HarvestClient(harvest_config, file);
+            harvester = new HarvestClient(harvest_config, file, username);
             harvester.start();
+            oid = harvester.getUploadOid();
+            harvester.shutdown();
+        } catch (PluginException ex) {
+            error = "File upload failed : " + ex.getMessage();
+            log.error(error);
             harvester.shutdown();
         } catch (Exception ex) {
             log.error("Failed harvest", ex);
@@ -226,10 +260,16 @@ public class Dispatch {
 
         // Now create some session data for use later
         Map<String, String> file_details = new LinkedHashMap<String, String>();
-        file_details.put("name", uploadedFile.getFileName());
+        file_details.put("name",     uploadedFile.getFileName());
+        if (error != null) {
+            file_details.put("error", error);
+        }
         file_details.put("location", file_path);
-        file_details.put("size", String.valueOf(uploadedFile.getSize()));
-        file_details.put("type", uploadedFile.getContentType());
+        file_details.put("size",     String.valueOf(uploadedFile.getSize()));
+        file_details.put("type",     uploadedFile.getContentType());
+        if (oid != null) {
+            file_details.put("oid",  oid);
+        }
         sessionState.set(uploadedFile.getFileName(), file_details);
     }
 
