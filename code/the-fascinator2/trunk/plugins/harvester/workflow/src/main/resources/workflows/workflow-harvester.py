@@ -9,13 +9,15 @@ from au.edu.usq.fascinator.common.nie import InformationElement
 
 from au.edu.usq.fascinator.common.ctag import Tag, TaggedContent
 
+from au.edu.usq.fascinator.api.storage import StorageException
 #
 # Available objects:
-#    indexer   : Indexer instance
-#    rules     : RuleManager instance
-#    object    : DigitalObject to index
-#    payloadId : Payload identifier
-#    storageId : Storage layer identifier
+#    indexer    : Indexer instance
+#    jsonConfig : JsonConfigHelper of our harvest config file
+#    rules      : RuleManager instance
+#    object     : DigitalObject to index
+#    payload    : Payload to index
+#    params     : Metadata Properties object
 #
 
 def indexPath(name, path, includeLastPart=True):
@@ -43,62 +45,64 @@ def getNodeValues (doc, xPath):
             nodeValue = node.getText()
             if nodeValue not in valueList:
                 valueList.append(node.getText())
-    return valueList 
+    return valueList
 
 #start with blank solr document
 rules.add(New())
 
 #common fields
-solrId = object.getId();
-if isMetadata:
+oid = object.getId()
+pid = payload.getId()
+metaPid = params.getProperty("metaPid", "DC")
+if pid == metaPid:
     itemType = "object"
 else:
-    solrId += "/" + payloadId
+    oid += "/" + pid
     itemType = "datastream"
-    rules.add(AddField("identifier", payloadId))
+    rules.add(AddField("identifier", pid))
 
-rules.add(AddField("id", solrId))
-rules.add(AddField("storage_id", storageId))
+rules.add(AddField("id", oid))
+rules.add(AddField("storage_id", oid))
 rules.add(AddField("item_type", itemType))
 rules.add(AddField("last_modified", time.strftime("%Y-%m-%dT%H:%M:%SZ")))
 
 # Security
-roles = indexer.getRolesWithAccess(solrId)
+roles = indexer.getRolesWithAccess(oid)
 if roles is not None:
     for role in roles:
         rules.add(AddField("security_filter", role))
 else:
     # Default to guest access if Null object returned
     schema = indexer.getAccessSchema("simple");
-    schema.setRecordId(solrId)
+    schema.setRecordId(oid)
     schema.set("role", "guest")
     indexer.setAccessSchema(schema, "simple")
     rules.add(AddField("security_filter", "guest"))
 
-if isMetadata:
+if pid == metaPid:
     #only need to index metadata for the main object
     rules.add(AddField("repository_name", params["repository.name"]))
     rules.add(AddField("repository_type", params["repository.type"]))
-    
+
     titleList = []
     descriptionList = []
     creatorList = []
     creationDate = []
-    contributorList = [] 
-    approverList = []  
+    contributorList = []
+    approverList = []
     formatList = []
     fulltext = []
     relationDict = {}
-    
+
     ### Check if dc.xml returned from ice is exist or not. if not... process the dc-rdf
-    dcPayload = object.getPayload("dc.xml")
-    if dcPayload is not None:
+    try:
+        dcPayload = object.getPayload("dc.xml")
         indexer.registerNamespace("dc", "http://purl.org/dc/elements/1.1/")
         dcXml = indexer.getXmlDocument(dcPayload)
         if dcXml is not None:
             #get Title
             titleList = getNodeValues(dcXml, "//dc:title")
-            #get abstract/description 
+            #get abstract/description
             descriptionList = getNodeValues(dcXml, "//dc:description")
             #get creator
             creatorList = getNodeValues(dcXml, "//dc:creator")
@@ -116,24 +120,26 @@ if isMetadata:
                     relationDict[key].append(value)
                 else:
                     relationDict[key] = [value]
-    
-    rdfPayload = object.getMetadata()
-    if rdfPayload is not None:
+    except StorageException, e:
+        print " storage exception", str(e)
+
+    try:
+        rdfPayload = object.getPayload("aperture.rdf")
         rdfModel = indexer.getRdfModel(rdfPayload)
-        
+
         #Seems like aperture only encode the spaces. Tested against special characters file name
-        #and it's working 
-        oid = object.getId().replace(" ", "%20")
+        #and it's working
+        safeOid = oid.replace(" ", "%20")
         #under windows we need to add a slash
-        if not oid.startswith("/"):
-            oid = "/" + oid
-        rdfId = "file:%s" % oid
-        
+        if not safeOid.startswith("/"):
+            safeOid = "/" + safeOid
+        rdfId = "file:%s" % safeOid
+
         #Set write to False so it won't write to the model
         paginationTextDocument = PaginatedTextDocument(rdfModel, rdfId, False)
         informationElement = InformationElement(rdfModel, rdfId, False)
         id3Audio = ID3Audio(rdfModel, rdfId, False)
-        
+
         #1. get title only if no title returned by ICE
         if titleList == []:
             allTitles = informationElement.getAllTitle();
@@ -146,12 +152,12 @@ if isMetadata:
                 title = allTitles.next().strip()
                 if title != "":
                     titleList.append(title)
-        
+
         #use id/filename if no title
         if titleList == []:
-           title = os.path.split(object.getId())[1]
+           title = os.path.split(oid)[1]
            titleList.append(title)
-        
+
         #2. get creator only if no creator returned by ICE
         if creatorList == []:
             allCreators = paginationTextDocument.getAllCreator();
@@ -161,14 +167,14 @@ if isMetadata:
                 allFullnames = contacts.getAllFullname()
                 while (allFullnames.hasNext()):
                      creatorList.append(allFullnames.next())
-        
+
         #3. getFullText: only aperture has this information
         if informationElement.hasPlainTextContent():
             allPlainTextContents = informationElement.getAllPlainTextContent()
             while(allPlainTextContents.hasNext()):
                 fulltextString = allPlainTextContents.next()
                 fulltext.append(fulltextString)
-                
+
                 #4. description/abstract will not be returned by aperture, so if no description found
                 # in dc.xml returned by ICE, put first 100 characters
                 if descriptionList == []:
@@ -176,42 +182,41 @@ if isMetadata:
                     if len(fulltextString)>100:
                         descriptionString = fulltextString[:100] + "..."
                     descriptionList.append(descriptionString)
-        
+
         if id3Audio.hasAlbumTitle():
             albumTitle = id3Audio.getAllAlbumTitle().next().strip()
             descriptionList.append("Album: " + albumTitle)
-        
+
         #5. mimeType: only aperture has this information
         if informationElement.hasMimeType():
             allMimeTypes = informationElement.getAllMimeType()
             while(allMimeTypes.hasNext()):
                 formatList.append(allMimeTypes.next())
-    
+
         #6. contentCreated
         if creationDate == []:
             if informationElement.hasContentCreated():
                 creationDate.append(informationElement.getContentCreated().getTime().toString())
-    
+    except StorageException, e:
+        print " storage exception", str(e)
+
     indexList("dc_title", titleList)
     indexList("dc_creator", creatorList)  #no dc_author in schema.xml, need to check
     indexList("dc_contributor", contributorList)
     indexList("dc_description", descriptionList)
     indexList("dc_format", formatList)
     indexList("dc_date", creationDate)
-    
+
     for key in relationDict:
         indexList(key, relationDict[key])
-    
+
     indexList("full_text", fulltext)
-    indexPath("file_path", object.getId().replace("\\", "/"), includeLastPart=False)
-    
-    tagsRdf = object.getPayload("tags.rdf")
-    if tagsRdf is not None:
-        tagsModel = indexer.getRdfModel(tagsRdf)
-        hashId = md5.new(object.getId()).hexdigest()
-        content = TaggedContent(tagsModel, "urn:" + hashId, False);
-        tags = content.getAllTagged_as().asArray()
-        for tag in tags:
-            labels = tag.getAllTaglabel_asNode_().asArray()
-            for label in labels:
-                rules.add(AddField("tag", label.toString()))
+    baseFilePath = params["base.file.path"]
+    filePath = oid
+    if baseFilePath:
+        #NOTE: need to change again if the json file accept forward slash in window
+        #get the base folder
+        baseDir = baseFilePath.rstrip("/")
+        baseDir = "/%s/" % baseDir[baseDir.rfind("/")+1:]
+        filePath = filePath.replace("\\", "/").replace(baseFilePath, baseDir)
+    indexPath("file_path", filePath, includeLastPart=False)

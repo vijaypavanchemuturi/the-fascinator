@@ -94,6 +94,14 @@
     <p>Note: Some platforms may not support images or attachments.</p>
   </div>
   #end
+  #if ($self.isPending())
+  <div id="pending" class="box articles">
+    <h2>Pending</h2>
+    <div class="warning">
+      <b>IMPORTANT</b>Please note that this object is currently in the render queue. There may be pending data/metadata changes not visible below.
+    </div>
+  </div>
+  #end
   <div id="preview" class="box articles">
     <h2>Preview</h2>
     <div id="anno-root" class="content-preview">
@@ -137,7 +145,7 @@ $(function() {
             var attr = $(this).attr(attrName);
             if (attr != null) {
                 if (attr.indexOf("#") != 0 && attr.indexOf("://") == -1) {
-                    var relUrl = "$portalPath/download/$self.object.id/";
+                    var relUrl = "$portalPath/download/$self.object.getId()/";
                     var tmpUrl = baseUrl.substring(baseUrl.indexOf("/", 8));
                     tmpUrl = tmpUrl.replace(relUrl, "");
                     tmpUrl = tmpUrl.substring(0, tmpUrl.lastIndexOf("/")+1);
@@ -563,3 +571,4 @@ $(function() {
 
 #end
 
+$self.closeObject()

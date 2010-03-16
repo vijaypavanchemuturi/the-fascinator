@@ -99,7 +99,7 @@ class SearchData:
             self.__paging = Pagination(self.__pageNum,
                                        int(self.__result.get("response/numFound")),
                                        self.__portal.recordsPerPage)
-    
+
     def getQueryTime(self):
         return int(self.__result.get("responseHeader/QTime")) / 1000.0;
     
@@ -151,16 +151,22 @@ class SearchData:
         return format.startswith("image/")
     
     def getThumbnail(self, oid):
+        # TODO should eventually use 'StorageManager' to get the thumbnail
+        # instead of looking at specific payload IDs
+        ext = os.path.splitext(oid)[1]
+        url = oid[oid.rfind("/")+1:-len(ext)] + "_thumbnail.jpg"
         try:
-            # TODO should eventually use 'StorageManager' to get the thumbnail
-            # instead of looking at specific payload IDs
-            ext = os.path.splitext(oid)[1]
-            url = oid[oid.rfind("/")+1:-len(ext)] + "_thumbnail.jpg"
-            Services.getStorage().getObject(oid).getPayload(url)
-            return url
-        except:
-            pass
-        return None
+            object = Services.getStorage().getObject(oid)
+            try:
+                payload = object.getPayload(url)
+                payload.close()
+                object.close()
+                return url
+            except Exception, e:
+                object.close()
+                return None
+        except Exception, e:
+            return None
 
 if __name__ == "__main__":
     scriptObject = SearchData()

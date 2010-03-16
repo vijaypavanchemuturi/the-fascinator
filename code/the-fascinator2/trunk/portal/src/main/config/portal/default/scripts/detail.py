@@ -93,6 +93,9 @@ class DetailData:
         f = File(self.getObject().getId())
         return f.exists();
 
+    def closeObject(self):
+        self.__object.close()
+
     def containsPid(self, pid):
         return self.getObject().getPayloadIdList().contains(pid);
 
@@ -281,5 +284,14 @@ class DetailData:
             return True
         else:
             return False
+
+    def isPending(self):
+        object = self.getObject()
+        metaProps = object.getMetadata()
+        status = metaProps.get("render-pending")
+        if status is None or status == "false":
+            return False
+        else:
+            return True
 
 scriptObject = DetailData()

@@ -151,10 +151,20 @@ public class FileSystemStorage implements Storage {
         File objHome = getPath(oid);
         if (objHome.exists()) {
             DigitalObject object = new FileSystemDigitalObject(objHome, oid);
-            for (String pid : object.getPayloadIdList()) {
-                object.removePayload(pid);
+            // We can't iterate over getPayloadIdList() directly or a
+            // ConcurrentModificationException will be thrown as we delete
+            // from it.
+            String[] oldManifest = {};
+            oldManifest = object.getPayloadIdList().toArray(oldManifest);
+            for (String pid : oldManifest) {
+                try {
+                    object.removePayload(pid);
+                } catch (StorageException ex) {
+                    log.error("Error deleting payload", ex);
+                }
             }
             try {
+                object.close();
                 FileUtils.deleteDirectory(objHome);
             } catch (IOException ex) {
                 throw new StorageException("Error deleting object", ex);

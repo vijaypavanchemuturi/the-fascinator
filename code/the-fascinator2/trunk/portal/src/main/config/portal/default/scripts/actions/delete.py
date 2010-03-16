@@ -15,11 +15,13 @@ class DeleteData:
 
     def process(self):
         record = formData.get("record")
-        Services.storage.removeObject(record)
-        Services.indexer.remove(record)
-
-        self.writer.println(record)
-        self.writer.close()
+        try:
+            Services.storage.removeObject(record)
+            Services.indexer.remove(record)
+            self.writer.println(record)
+            self.writer.close()
+        except Exception, e:
+            self.throw_error("Error deleting object: " + e.getMessage())
 
     def throw_error(self, message):
         response.setStatus(500)

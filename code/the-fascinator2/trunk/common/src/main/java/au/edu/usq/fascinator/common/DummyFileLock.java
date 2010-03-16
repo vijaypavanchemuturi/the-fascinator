@@ -86,8 +86,12 @@ public class DummyFileLock {
     }
 
     public void release() throws IOException {
-        lock.release();
-        fileChannel.close();
-        file.close();
+        if (lock.isValid()) {
+            lock.release();
+        }
+        if (fileChannel.isOpen()){
+            fileChannel.close();
+            file.close();
+        }
     }
 }

@@ -73,6 +73,8 @@ public class HarvestClient {
     private DigitalObject rulesObject;
 
     private File uploadedFile;
+    private String uploadedOid;
+    private String fileOwner;
 
     private JsonConfig config;
 
@@ -87,19 +89,20 @@ public class HarvestClient {
     private MessageProducer producer;
 
     public HarvestClient() throws HarvesterException {
-        this(null, null);
+        this(null, null, null);
     }
 
     public HarvestClient(File configFile) throws HarvesterException {
-        this(configFile, null);
+        this(configFile, null, null);
     }
 
-    public HarvestClient(File configFile, File uploadedFile)
+    public HarvestClient(File configFile, File uploadedFile, String owner)
             throws HarvesterException {
         MDC.put("name", "client");
 
         this.configFile = configFile;
         this.uploadedFile = uploadedFile;
+        this.fileOwner = owner;
 
         try {
             if (configFile == null) {
@@ -175,9 +178,14 @@ public class HarvestClient {
 
         if (uploadedFile != null) {
             // process the uploaded file only
-            Set<String> objectIds = harvester.getObjectId(uploadedFile);
-            if (!objectIds.isEmpty()) {
-                processObject(objectIds.iterator().next());
+            try {
+                Set<String> objectIds = harvester.getObjectId(uploadedFile);
+                if (!objectIds.isEmpty()) {
+                    uploadedOid = objectIds.iterator().next();
+                    processObject(uploadedOid);
+                }
+            } catch (HarvesterException e) {
+                throw new PluginException(e);
             }
         } else {
             // process harvested objects
@@ -287,6 +295,9 @@ public class HarvestClient {
         props.setProperty("rulesPid", rulesObject.getSourceId());
         props.setProperty("jsonConfigOid", configObject.getId());
         props.setProperty("jsonConfigPid", configObject.getSourceId());
+        if (fileOwner != null) {
+            props.setProperty("owner", fileOwner);
+        }
         Map<String, Object> params = config.getMap("indexer/params");
         for (String key : params.keySet()) {
             props.setProperty(key, params.get(key).toString());
@@ -323,6 +334,19 @@ public class HarvestClient {
             log.error("Failed to parse message: {}", ioe.getMessage());
         } catch (JMSException jmse) {
             log.error("Failed to send message: {}", jmse.getMessage());
+        }
+    }
+
+    /*
+     * Useful only for uploaded files.
+     * 
+     * @return The object ID the uploaded file was given by harvester.
+     */
+    public String getUploadOid() {
+        if (uploadedFile == null) {
+            return null;
+        } else {
+            return uploadedOid;
         }
     }
 

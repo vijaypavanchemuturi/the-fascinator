@@ -8,18 +8,38 @@
 
     "transformer": {
         "extractor": ["aperture"],
-        "render": ["ice2", "ims"],
+        "render": ["ffmpeg", "ice2", "ims"],
         "aperture": {
-            "outputPath": "${java.io.tmpdir}/ice2-output"
+            "outputPath": "${java.io.tmpdir}/${user.name}/ice2-output"
         },
         "ice2": {
             "url": "http://ec2-75-101-136-199.compute-1.amazonaws.com/api/convert/",
-            "resize.image.mode": "fixedWidth",
-            "resize.image.ratio": "-90",
-            "resize.image.fixedWidth": "150",
-            "enlargeImage": "false",
-            "outputPath": "${java.io.tmpdir}/ice2-output",
-            "excludeRenditionExt": ".txt,.mp3,.m4a"
+            "outputPath": "${java.io.tmpdir}/${user.name}/ice2-output",
+            "excludeRenditionExt": "txt,mp3,m4a,mov,mp4,wav,wma,wmv,mpg,flv",
+            "resize": {
+                "thumbnail": {
+                    "option": "fixedWidth",
+                    "ratio": "-90",
+                    "fixedWidth": "160",
+                    "enlarge": "false"
+                },
+                "preview": {
+                    "option": "fixedWidth",
+                    "ratio": "-90",
+                    "fixedWidth": "600",
+                    "enlarge": "false"
+                }
+            }
+        },
+        "ffmpeg": {
+            "executable": "ffmpeg",
+            "outputPath": "${java.io.tmpdir}/${user.name}/ffmpeg-output",
+            "outputExt": "flv",
+            "thumbnailSize": "160x120",
+            "excludeExt": "flv,m4a,mp3",
+            "params": {
+                "default": "-f flv -b 192k -ab 64k -ar 44100 -ac 1 -s 400x224 -padtop 30 -padbottom 30"
+            }
         }
     },
 

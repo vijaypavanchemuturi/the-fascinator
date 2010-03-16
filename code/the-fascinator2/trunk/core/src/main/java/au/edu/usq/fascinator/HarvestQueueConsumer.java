@@ -230,6 +230,8 @@ public class HarvestQueueConsumer implements MessageListener {
             props.setProperty("scriptType", config.get("indexer/script/type"));
             props.setProperty("rulesOid", rulesFile.getAbsolutePath());
             props.setProperty("rulesPid", rulesFile.getName());
+            props.setProperty("render-pending", "true");
+            props.setProperty("owner", "system");
             Map<String, Object> params = config.getMap("indexer/params");
             for (String key : params.keySet()) {
                 props.setProperty(key, params.get(key).toString());

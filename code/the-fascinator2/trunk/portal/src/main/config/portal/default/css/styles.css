@@ -441,3 +441,23 @@ ul.nobgtabs li a.ui-state-active {
     display: none;
 }
 
+#pending h2 {
+    background-color: #CC3300;
+}
+
+#pending {
+    background-color: #FFDDDD;
+}
+
+#pending .warning {
+    padding: 5px;
+    font-size: 125%;
+}
+
+#pending .warning b {
+    display: block;
+    background-image: url('../images/icons/server_error.png');
+    background-position: 0 50%;
+    background-repeat: no-repeat;
+    padding-left: 20px;
+}
