@@ -5,6 +5,7 @@ from org.apache.commons.io import IOUtils
 from java.io import BufferedReader
 from java.io import InputStreamReader
 from java.lang import StringBuilder
+from java.lang import Exception
 from au.edu.usq.fascinator.api.storage import StorageException;
 
 

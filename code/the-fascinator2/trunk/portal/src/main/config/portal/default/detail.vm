@@ -571,4 +571,4 @@ $(function() {
 
 #end
 
-$self.closeObject()
+#set ($_=$self.closeObject())

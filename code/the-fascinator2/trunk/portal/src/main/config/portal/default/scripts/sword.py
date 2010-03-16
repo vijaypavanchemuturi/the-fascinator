@@ -18,6 +18,7 @@ import org.apache.commons.io.FileUtils as FileUtils
 import au.edu.usq.fascinator.HarvestClient as HarvestClient
 import au.edu.usq.fascinator.QueueStorage as QueueStorage
 import java.io.FileWriter as FileWriter
+from java.lang import Exception
 
 class SwordHelper(object):
     def __init__(self):
