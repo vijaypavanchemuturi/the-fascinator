@@ -1,71 +1,59 @@
-#macro(createFacetRow $id $field $label $display $extraClass)
-  <tr id="$id" class="facet-row $extraClass">
+#macro(editableText $id $suffix $value)
+<span class="field-text visible">$value</span>
+<div class="field-form hidden" id="${id}-${suffix}">
+  <input class="field-input" name="${id}-${suffix}" type="text" value="$value" />
+  <a class="accept" href="#"><img alt="Accept" src="$portalPath/images/icons/tick.png" /></a>
+  <a class="cancel" href="#"><img alt="Cancel" src="$portalPath/images/icons/cross.png" /></a>
+</div>
+#end
+#macro(facetRow $id $field $label $display $extraClass)
+  <tr id="$id" class="facets-row $extraClass">
     <td>
-      <img class="facet-grip" src="$portalPath/images/icons/grippy.png" />
-      <span class="facet-field-text visible">$field</span>
-      <form class="facet-field-form hidden" id="${id}-field">
-        <input class="facet-field-input" name="${id}-field" type="text" value="$field" />
-        <a class="facet-field-accept" href="#"><img alt="Accept" src="$portalPath/images/icons/tick.png" /></a>
-        <a class="facet-field-cancel" href="#"><img alt="Cancel" src="$portalPath/images/icons/cross.png" /></a>
-      </form>
+      <img class="facets-grip" src="$portalPath/images/icons/grippy.png" />
+      #editableText($id "field" $field)
     </td>
+    <td>#editableText($id "label" $label)</td>
     <td>
-      <span class="facet-label-text visible">$label</span>
-      <form class="facet-label-form hidden" id="${id}-label">
-        <input class="facet-label-input" name="${id}-label" type="text" value="$label" />
-        <a class="facet-label-accept" href="#"><img alt="Accept" src="$portalPath/images/icons/tick.png" /></a>
-        <a class="facet-label-cancel" href="#"><img alt="Cancel" src="$portalPath/images/icons/cross.png" /></a>
-      </form>
-    </td>
-    <td>
-      <span class="facet-display-text visible">$page.capitalise($display)</span>
-      <form class="facet-display-form hidden" id="${id}-display">
-        <select name="facet-display">
+      <span class="field-text visible">$page.capitalise($display)</span>
+      <div class="field-form hidden" id="${id}-display">
+        <select class="field-input" name="facets-display">
           <option name="list"#if($display=="list") selected="selected"#end>List</option>
           <option name="tree"#if($display=="tree") selected="selected"#end>Tree</option>
         </select>
-        <a class="facet-display-accept" href="#"><img alt="Accept" src="$portalPath/images/icons/tick.png" /></a>
-        <a class="facet-display-cancel" href="#"><img alt="Cancel" src="$portalPath/images/icons/cross.png" /></a>
-      </form>
+        <a class="accept" href="#"><img alt="Accept" src="$portalPath/images/icons/tick.png" /></a>
+        <a class="cancel" href="#"><img alt="Cancel" src="$portalPath/images/icons/cross.png" /></a>
+      </div>
     </td>
     <td>
-      <input class="facet-delete" name="facet-delete" type="checkbox" value="${id}" />
+      <input class="facets-delete" name="facets-delete" type="checkbox" value="$id" />
     </td>
   </tr>
 #end
-###macro(createBackupRow $id $active $path $ignoreFilter $includeRenditions $includeViews $extraClass)
-#macro(createBackupRow $id $active $path $ignoreFilter $includeViews $extraClass)
+#macro(backupRow $id $active $path $ignoreFilter $includeViews $extraClass)
   <tr id="$id" class="backup-row $extraClass">
     <td>
-      <input class="backup-active" name="backup-active" type="checkbox" value="${id}"
-        #if($active=="true")checked="checked"#end />
+      <input class="backup-active" name="backup-active" type="checkbox" value="$id" #if($active=="true")checked="checked"#end />
+    </td>
+    <td>#editableText($id "path" $path)</td>
+    <td>#editableText($id "ignore" $ignoreFilter)</td>
+    <td>
+      <input class="backup-views" name="backup-view" type="checkbox" value="$id" #if($includeViews=="true")checked="checked"#end />
     </td>
     <td>
-      <span class="backup-path-text visible">$path</span>
-      <form class="backup-path-form hidden" id="${id}-path">
-        <input class="backup-path-input" name="${id}-path" type="text" value="$path" />
-        <a class="backup-path-accept" href="#"><img alt="Accept" src="$portalPath/images/icons/tick.png" /></a>
-        <a class="backup-path-cancel" href="#"><img alt="Cancel" src="$portalPath/images/icons/cross.png" /></a>
-      </form>
+      <input class="backup-delete" name="backup-delete" type="checkbox" value="$id" />
     </td>
+  </tr>
+#end
+#macro(watcherRow $id $stopped $path $fileFilter $dirFilter $extraClass)
+  <tr id="$id" class="watcher-row $extraClass">
     <td>
-      <span class="backup-ignore-text visible">$ignoreFilter</span>
-      <form class="backup-ignore-form hidden" id="${id}-ignore">
-        <input class="backup-ignore-input" name="${id}-ignore" type="text" value="$ignoreFilter" />
-        <a class="backup-ignore-accept" href="#"><img alt="Accept" src="$portalPath/images/icons/tick.png" /></a>
-        <a class="backup-ignore-cancel" href="#"><img alt="Cancel" src="$portalPath/images/icons/cross.png" /></a>
-      </form>
+      <input class="watcher-active" name="watcher-active" type="checkbox" value="$id" #if($stopped=="false")checked="checked"#end />
     </td>
-    ##<td>
-    ##  <input class="backup-renditions" name="backup-rendition" type="checkbox" value="${id}"
-    ##    #if($includeRenditions=="true")checked="checked"#end />
-    ##</td>
+    <td>#editableText($id "path" $path)</td>
+    <td>#editableText($id "file" $fileFilter)</td>
+    <td>#editableText($id "dir" $dirFilter)</td>
     <td>
-      <input class="backup-views" name="backup-view" type="checkbox" value="${id}"
-        #if($includeViews=="true")checked="checked"#end />
-    </td>
-    <td>
-      <input class="backup-delete" name="backup-delete" type="checkbox" value="${id}" />
+      <input class="watcher-delete" name="watcher-delete" type="checkbox" value="$id" />
     </td>
   </tr>
 #end
@@ -75,16 +63,17 @@
   <div class="box menu">
     <h2>Category</h2>
     <ul class="menu">
-      <li><a id="view-category" class="category selected" href="#" rel="view">View</a></li>
+      <li><a id="view-category" class="category" href="#" rel="view">View</a></li>
       <li><a id="facets-category" class="category" href="#" rel="facets">Facets</a></li>
       <li><a id="backup-category" class="category" href="#" rel="backup">Backup</a></li>
+      <li><a id="watcher-category" class="category" href="#" rel="watcher">Watcher</a></li>
     </ul>
   </div>
 </div>
 <div id="form-section" class="grid_12">
-  <div id="view-section" class="box">
+  <div id="view-section" class="box hidden">
     <h2>View</h2>
-    <form class="block" id="view-form" method="post">
+    <div class="block category-form" id="view-form" method="post">
       <fieldset class="login">
         <p>
           <label for="view-id">Identifier</label>
@@ -111,15 +100,15 @@
           <input id="view-facet-sort" name="view-facet-sort" type="checkbox" value="$self.portal.facetSort" />
         </p>
       </fieldset>
-    </form>
-    <button id="view-update">Update</button>
-    <button id="view-cancel">Cancel</button>
+    </div>
+    <button class="update">Update</button>
+    <button class="cancel">Cancel</button>
     <img class="hidden" id="view-loading" src="$portalPath/images/icons/loading.gif" />
     <span id="view-message"></span>
   </div>
   <div id="facets-section" class="box hidden">
     <h2>Facets</h2>
-    <div class="block" id="facets-form">
+    <div class="block category-form" id="facets-form">
       <table>
         <thead>
           <tr>
@@ -128,28 +117,28 @@
             <th width="25%">Display</th>
             <th>Delete</th>
           </tr>
-          #createFacetRow("facet-edit-blank" "f_new_facet" "New facet" "list" "hidden")
+          #facetRow("facets-blank" "f_new_facet" "New facet" "list" "hidden")
         </thead>
-        <tbody id="facet-table">
+        <tbody id="facets-table">
         #foreach($field in $self.portal.facetFields.keySet())
-          #set($id = "facet-edit-$velocityCount")
+          #set($id = "facets-$velocityCount")
           #set($facet = $self.getPortal().getFacetFields().get($field))
           #set($label = $facet.get("label"))
           #set($display = $facet.get("display"))
-          #createFacetRow($id $field $label $display "")
+          #facetRow($id $field $label $display "")
         #end
         </tbody>
       </table>
-      <button id="facets-add">Add</button>
-      <button id="facets-update">Update</button>
-      <button id="facets-cancel">Cancel</button>
+      <button class="add" rel="facets">Add</button>
+      <button class="update">Update</button>
+      <button class="cancel">Cancel</button>
       <img class="hidden" id="facets-loading" src="$portalPath/images/icons/loading.gif" />
       <span id="facets-message"></span>
     </div>
   </div>
   <div id="backup-section" class="box hidden">
     <h2>Backup</h2>
-    <div class="block" id="backup-form">
+    <div class="block category-form" id="backup-form">
       <fieldset>
         <label for="backup-table">Backup locations</label>
         <table>
@@ -158,11 +147,10 @@
               <th width="5%">Active</th>
               <th width="50%">Path</th>
               <th width="30%">Ignore filter</th>
-              ##<th>Renditions</th>
               <th>Views</th>
               <th>Delete</th>
             </tr>
-            #createBackupRow("backup-blank" "true" "${user.home}/backup" ".svn|.ice|.*|~*" "true" "hidden")
+            #backupRow("backup-blank" "true" '${user.home}/backup' ".svn|.ice|.*|~*" "true" "hidden")
           </thead>
           <tbody id="backup-table">
           #set($paths = $self.portal.getJsonMap("portal/backup/paths"))
@@ -172,44 +160,146 @@
             #set($fullPath = $options.getPlainText("path", $path))
             #set($active = $options.get("active"))
             #set($ignoreFilter = $options.get("ignoreFilter"))
-            ##set($includeRenditions = $options.get("include-rendition-meta"))
             #set($includeViews = $options.get("include-portal-view"))
-            ###createBackupRow($id $active $path $ignoreFilter $includeRenditions $includeViews "")
-            #createBackupRow($id $active $fullPath $ignoreFilter $includeViews "")
+            #backupRow($id $active $fullPath $ignoreFilter $includeViews "")
           #end
           </tbody>
         </table>
-        <button id="backup-add">Add</button>
-        <button id="backup-update">Update</button>
-        <button id="backup-cancel">Cancel</button>
+        <button class="add" rel="backup">Add</button>
+        <button class="update">Update</button>
+        <button class="cancel">Cancel</button>
         <img class="hidden" id="backup-loading" src="$portalPath/images/icons/loading.gif" />
         <span id="backup-message"></span>
       </fieldset>
     </div>
   </div>
+  <div id="watcher-section" class="box hidden">
+    <h2>Watcher</h2>
+    <div class="block category-form" id="watcher-form" method="post">
+      <fieldset>
+       <table>
+          <thead>
+            <tr>
+              <th width="5%">Active</th>
+              <th width="50%">Path</th>
+              <th width="30%">File filter</th>
+              <th width="30%">Dir filter</th>
+              <th>Delete</th>
+            </tr>
+            #watcherRow("watcher-blank" "false" "watchDir" "*.tmp|$*.*" "tmp|temp|.svn|.ice" "hidden")
+          </thead>
+          <tbody id="watcher-table">
+          #set($watcherConfig = $self.getWatcherConfig())
+          #set($paths = $watcherConfig.getMap("watcher/watchDirs"))
+          #foreach($path in $paths.keySet())
+            #set($options = $paths.get($path))
+            #set($id = "watcher-$velocityCount")
+            #set($stopped = $options.get("stopped"))
+            #set($fileFilter = $options.get("ignoreFileFilter"))
+            #set($dirFilter = $options.get("ignoreDirectories"))
+            #watcherRow($id $stopped $path $fileFilter $dirFilter "")
+          #end
+          </tbody>
+        </table>
+        <button class="add" rel="watcher">Add</button>
+        <button class="update">Update</button>
+        <button class="cancel">Cancel</button>
+        <img class="hidden" id="watcher-loading" src="$portalPath/images/icons/loading.gif" />
+        <span id="watcher-message"></span>
+      </fieldset>
+    </div>
+  </div>
 </div>
 <script type="text/javascript" src="$portalPath/js/jquery-ui-1.7.2.custom.min.js"></script>
+<script type="text/javascript" src="$portalPath/js/jquery.cookie.js"></script>
 <script type="text/javascript">
 $(function() {
+    // change category
     $(".category").click(function() {
-        if (!$(this).hasClass("selected")) {
+        var category = $(this);
+        if (!category.hasClass("selected")) {
             $(".category").removeClass("selected");
-            $(this).addClass("selected");
+            category.addClass("selected");
             $("#form-section > div").addClass("hidden")
-            var formId = $(this).attr("rel");
+            var formId = category.attr("rel");
             $("#" + formId + "-section").removeClass("hidden");
-            jQuery.post("$portalPath/actions/state.ajax",
-                { func: "set", name: "settings/category", value: formId });
+            jQuery.cookie("category", formId, { path: "$portalPath/settings" });
         }
         return false;
     });
     
-    var selected = "$sessionState.get('settings/category')";
-    if (selected) {
-        $("#" + selected + "-category").click();
-    }
+    // restore selected category
+    var selected = jQuery.cookie("category") || "view";
+    if (selected) { $("#" + selected + "-category").click(); }
     
-    $("#view-update").removeAttr("disabled").click(function() {
+    // make text fields editable
+    $(".field-text").live("click", function() {
+        $(this).toggleClass("hidden").toggleClass("visible")
+            .next().toggleClass("hidden").toggleClass("inline");
+        return false;
+    });
+    
+    // submit editable fields
+    $(".field-form").submit(function() {
+        $(this).find(".accept").click();
+        return false;
+    });
+    
+    // accept editable fields
+    $(".field-form .accept").live("click", function() {
+        var parentEl = $(this).parent(".field-form");
+        var textEl = parentEl.prev(".field-text");
+        var inputEl = $(this).prev(".field-input");
+        parentEl.toggleClass("hidden").toggleClass("inline");
+        textEl.toggleClass("hidden").toggleClass("visible");
+        var oldValue = textEl.text();
+        var newValue = inputEl.val();
+        if (oldValue != newValue) {
+            textEl.css("font-weight", "bold").text(newValue);
+        }
+        return false;
+    });
+    
+    // cancel editable fields
+    $(".field-form .cancel").live("click", function() {
+        $(this)
+            .parent().toggleClass("hidden").toggleClass("inline")
+                .prev().toggleClass("hidden").toggleClass("visible");
+        return false;
+    });
+    
+    // add new table row
+    $("button.add").click(function() {
+        var rel = $(this).attr("rel");
+        var blankRowId = rel + "-blank";
+        var tableId = rel + "-table";
+        var newRow = $("#" + blankRowId).clone(true).appendTo($("#" + tableId));
+        newRow.removeClass("hidden");
+        newRow.find(".field-text").css("font-weight", "bold");
+        var newId = rel + "-" + ($("#" + tableId + " tr").length);
+        newRow.attr("id", newId);
+        newRow.find(".field-form").each(function() {
+            var id = $(this).attr("id");
+            $(this).attr("id", id.replace(blankRowId, newId));
+        });
+        newRow.find(":input").each(function() {
+            var name = $(this).attr("name");
+            $(this).attr("name", name.replace(blankRowId, newId));
+            $(this).filter("input:checkbox").attr("value", newId);
+        });
+        newRow.find(".field-text:first").click();
+        newRow.find(".field-input:first").focus();
+        return false;
+    });
+    
+    // cancel form changes
+    $("button.cancel").click(function() {
+        window.location.reload();
+        return false;
+    });
+    
+    // update view category
+    $("#view-section button.update").removeAttr("disabled").click(function() {
         $(this).attr("disabled", "disabled");
         $("#view-loading").show();
         var data = $("#view-form").serialize();
@@ -221,72 +311,24 @@ $(function() {
                 setTimeout(function() { $("#view-message").empty(); }, 3000);
                 $("#view-update").removeAttr("disabled");
             },
-            "json"
-        );
+            "json");
     });
     
-    $(".facet-field-text, .facet-label-text, .facet-display-text, .backup-path-text, .backup-ignore-text").live("click",
-        function() {
-            $(this).toggleClass("hidden").toggleClass("visible");
-            $(this).next().toggleClass("hidden").toggleClass("inline");
-            return false;
-        });
-    $("#facets-form form, #backup-form form").submit(function() {
-        $(this).find(".facet-field-accept, .facet-label-accept, .backup-path-accept, .backup-ignore-accept").click();
-        return false;
-    });
-    $(".facet-field-accept, .facet-label-accept, .backup-path-accept, .backup-ignore-accept").live("click", function() {
-        var parentEl = $(this).parent();
-        var textEl = parentEl.prev();
-        var inputEl = $(this).prev("input");
-        parentEl.toggleClass("hidden").toggleClass("inline");
-        textEl.toggleClass("hidden").toggleClass("visible");
-        var oldValue = textEl.text();
-        var newValue = inputEl.attr("value");
-        if (oldValue != newValue) {
-            textEl.css("font-weight", "bold").text(newValue);
-        }
-        return false;
-    });
-    $(".facet-display-accept").live("click", function() {
-        var parentEl = $(this).parents("form");
-        var textEl = parentEl.prev();
-        var inputEl = $(this).prev("select");
-        parentEl.toggleClass("hidden").toggleClass("inline");
-        textEl.toggleClass("hidden").toggleClass("visible");
-        var oldValue = textEl.text();
-        var newValue = inputEl.val();
-        if (oldValue != newValue) {
-            textEl.css("font-weight", "bold").text(newValue);
-        }
-        return false;
-    });
-    $(".facet-field-cancel, .facet-label-cancel, .facet-display-cancel, .backup-path-cancel, .backup-ignore-cancel").live("click",
-        function() {
-            $(this).parent().toggleClass("hidden").toggleClass("inline")
-                .prev().toggleClass("hidden").toggleClass("visible");
-            return false;
-        });
-    $("#facet-table").sortable({ axis: 'y' });
-    $("#facets-add").click(function() {
-        var newFacet = $("#facet-edit-blank").clone(true).appendTo($("#facet-table"));
-        newFacet.removeClass("hidden");
-        newFacet.find("span").css("font-weight", "bold");
-        newFacet.attr("id", "facet-edit-" + ($("#facet-table tr").length + 1));
-        newFacet.find(".facet-field-text").click();
-        newFacet.find(".facet-field-input").focus();
-    });
-    $("#facets-update").removeAttr("disabled").click(function() {
+    // drag n drop sorting of facets
+    $("#facets-table").sortable({ axis: 'y' });
+    
+    // save facet settings
+    $("#facets-section button.update").removeAttr("disabled").click(function() {
         $(this).attr("disabled", "disabled");
         $("#facets-loading").show();
-        var orderArray = $("#facet-table").sortable("toArray");
+        var orderArray = $("#facets-table").sortable("toArray");
         var data = "";
         for (var i = 0, len = orderArray.length; i < len; i++) {
             var id = orderArray[i];
-            var fField = $("#" + id + " .facet-field-input").val();
-            var fLabel = $("#" + id + " .facet-label-input").val();
-            var fDisplay = $("#" + id + " .facet-display-text").text().toLowerCase();
-            var fDelete = $("#" + id + " .facet-delete").attr("checked");
+            var fField = $("#" + id + "-field .field-input").val();
+            var fLabel = $("#" + id + "-label .field-input").val();
+            var fDisplay = $("#" + id + "-display .field-input").val().toLowerCase();
+            var fDelete = $("#" + id + " .facets-delete").attr("checked");
             data += "&field=" + fField +
                     "&label=" + fLabel +
                     "&display=" + fDisplay +
@@ -295,22 +337,18 @@ $(function() {
         jQuery.post("$portalPath/actions/facets.ajax?" + data,
             { func: "facets-update" },
             function(data, status) {
-                $("#facet-table span").css("font-weight", "normal");
+                $("#facets-table span").css("font-weight", "normal");
                 $("#facets-loading").hide();
-                $(".facet-delete:checked").parents("tr").remove();
+                $(".facets-delete:checked").parents("tr").remove();
                 $("#facets-message").text("Updated successfully");
                 setTimeout(function() { $("#facets-message").empty(); }, 3000);
-                $("#facets-update").removeAttr("disabled");
+                $("#facets-section button.update").removeAttr("disabled");
             },
-            "json"
-        );
-    });
-    $("#view-cancel, #facets-cancel, #backup-cancel").click(function() {
-        window.location.reload();
+            "json");
     });
     
-    // backup
-    $("#backup-update").removeAttr("disabled").click(function() {
+    // save backup settings
+    $("#backup-section button.update").removeAttr("disabled").click(function() {
         $(this).attr("disabled", "disabled");
         $("#backup-loading").show();
         var data = $("#backup-table :input").serialize();
@@ -321,39 +359,40 @@ $(function() {
             });
         ids = ids.substring(ids, ids.length-1);
         jQuery.post("$portalPath/actions/facets.ajax?" + data,
-            {
-                func: "backup-update",
-                //email: $("#backup-email").val(),
-                pathIds: ids
-            },
+            { func: "backup-update", pathIds: ids },
             function(data, status) {
                 $("#backup-table span").css("font-weight", "normal");
                 $("#backup-loading").hide();
                 $(".backup-delete:checked").parents("tr").remove();
                 $("#backup-message").text("Updated successfully");
                 setTimeout(function() { $("#backup-message").empty(); }, 3000);
-                $("#backup-update").removeAttr("disabled");
+                $("#backup-section button.update").removeAttr("disabled");
             },
-            "json"
-        );
+            "json");
     });
-    $("#backup-add").click(function() {
-        var newPath = $("#backup-blank").clone(true).appendTo($("#backup-table"));
-        newPath.removeClass("hidden");
-        newPath.find("span").css("font-weight", "bold");
-        var newId = "backup-" + ($("#backup-table tr").length);
-        newPath.attr("id", newId);
-        newPath.find("form").each(function() {
-            var id = $(this).attr("id");
-            $(this).attr("id", id.replace("backup-blank", newId));
-        });
-        newPath.find(":input").each(function() {
-            var name = $(this).attr("name");
-            $(this).attr("name", name.replace("backup-blank", newId));
-            $(this).filter("input:checkbox").attr("value", newId);
-        });
-        newPath.find(".backup-path-text").click();
-        newPath.find(".backup-path-input").focus();
+    
+    // save watcher settings
+    $("#watcher-section button.update").removeAttr("disabled").click(function() {
+        $(this).attr("disabled", "disabled");
+        $("#watcher-loading").show();
+        var data = $("#watcher-table :input").serialize();
+        var ids = "";
+        jQuery.each($("#watcher-table tr:not(:has(.watcher-delete:checked))"),
+            function(i, tr) {
+                ids += $(tr).attr("id") + ",";
+            });
+        ids = ids.substring(ids, ids.length-1);
+        jQuery.post("$portalPath/actions/facets.ajax?" + data,
+            { func: "watcher-update", pathIds: ids },
+            function(data, status) {
+                $("#watcher-table span").css("font-weight", "normal");
+                $("#watcher-loading").hide();
+                $(".watcher-delete:checked").parents("tr").remove();
+                $("#watcher-message").text("Updated successfully");
+                setTimeout(function() { $("#watcher-message").empty(); }, 3000);
+                $("#watcher-section button.update").removeAttr("disabled");
+            },
+            "json");
     });
 });
 </script>
