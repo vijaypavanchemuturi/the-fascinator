@@ -10,6 +10,7 @@ from au.edu.usq.fascinator.portal import Pagination, Portal
 from java.io import ByteArrayInputStream, ByteArrayOutputStream
 from java.net import URLDecoder, URLEncoder
 from java.util import LinkedHashMap
+from java.lang import Exception
 
 class SearchData:
     def __init__(self):

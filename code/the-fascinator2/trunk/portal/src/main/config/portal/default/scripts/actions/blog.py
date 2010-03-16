@@ -140,7 +140,7 @@ class AtomEntryPoster:
                 payload = self.__object.getPayload(payloadId)
                 if str(payload.getType()) == "Preview":
                     return payload
-            except StorageException, e:
+            except Exception, e:
                 pass
         return None
     
@@ -183,12 +183,12 @@ class AtomEntryPoster:
             try:
                 payload = self.__object.getPayload(pid)
                 found = True
-            except StorageException, e:
+            except Exception, e:
                 pid = URLDecoder.decode(pid, "UTF-8")
                 try:
                     payload = self.__object.getPayload(pid)
                     found = True
-                except StorageException, e:
+                except Exception, e:
                     print " * blog.py: payload not found '%s'" % pid
             if found:
                 #HACK to upload PDFs

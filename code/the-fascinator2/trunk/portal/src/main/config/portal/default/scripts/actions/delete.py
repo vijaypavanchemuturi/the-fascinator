@@ -1,4 +1,5 @@
 from authentication import Authentication
+from java.lang import Exception
 
 class DeleteData:
 

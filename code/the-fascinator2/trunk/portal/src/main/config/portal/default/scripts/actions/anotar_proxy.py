@@ -5,6 +5,8 @@ import org.apache.commons.httpclient.methods.GetMethod as GetMethod
 import org.apache.commons.httpclient.methods.PutMethod as PutMethod
 import org.apache.commons.httpclient.methods.PostMethod as PostMethod
 
+from java.lang import Exception
+
 class Anotar:
     def __init__(self):
         self.url = formData.get("url")

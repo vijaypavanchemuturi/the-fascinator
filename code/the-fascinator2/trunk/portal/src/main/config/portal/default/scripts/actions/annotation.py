@@ -1,6 +1,7 @@
 
 from java.net import URLEncoder
 from java.util import HashMap       #, ArrayList
+from java.lang import Exception
 import java.io.StringReader as StringReader
 #import org.apache.commons.httpclient.HttpStatus as HttpStatus
 import au.edu.usq.fascinator.common.BasicHttpClient as BasicHttpClient
