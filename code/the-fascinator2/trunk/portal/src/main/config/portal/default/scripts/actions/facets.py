@@ -1,5 +1,7 @@
-from au.edu.usq.fascinator.common import JsonConfigHelper
+from au.edu.usq.fascinator.common import JsonConfig, JsonConfigHelper
 from au.edu.usq.fascinator.portal import Portal
+
+from java.io import File, FileWriter
 from java.util import HashMap
 
 class FacetActions:
@@ -41,7 +43,7 @@ class FacetActions:
             if views is None:
                 views = []
             paths = HashMap()
-            for pathId in pathIds: 
+            for pathId in pathIds:
                 if deletes is None or pathId not in deletes:
                     path = formData.get("%s-path" % pathId)
                     pathName = path.replace("/", "_").replace("${user.home}", "")
@@ -70,8 +72,34 @@ class FacetActions:
             portal.setMap("portal/backup/paths", HashMap())
             portal.setMultiMap("portal/backup/paths", paths)
             portalManager.save(portal)
+        elif func == "watcher-update":
+            pathIds = formData.get("pathIds").split(",")
+            actives = formData.getValues("watcher-active")
+            if actives is None:
+                actives = []
+            deletes = formData.getValues("watcher-delete")
+            if deletes is None:
+                deletes = []
+            watchDirs = HashMap()
+            for pathId in pathIds:
+                if pathId not in deletes:
+                    path = formData.get("%s-path" % pathId)
+                    stopped = str(pathId not in actives).lower()
+                    watchDir = HashMap()
+                    watchDir.put("ignoreFileFilter", formData.get("%s-file" % pathId))
+                    watchDir.put("ignoreDirectories", formData.get("%s-dir" % pathId))
+                    watchDir.put("cxtTags", [])
+                    watchDir.put("stopped", stopped)
+                    watchDirs.put(path, watchDir)
+            json = JsonConfigHelper(self.getWatcherFile())
+            json.setMap("watcher/watchDirs", watchDirs)
+            json.store(FileWriter(self.getWatcherFile()), True)
         writer = response.getPrintWriter("text/plain")
         writer.println(result)
         writer.close()
+    
+    def getWatcherFile(self):
+        homeDir = JsonConfig.getSystemFile().getParentFile()
+        return File(homeDir, "watcher-config.json")
 
 scriptObject = FacetActions()
