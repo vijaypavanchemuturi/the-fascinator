@@ -121,7 +121,7 @@
                       <td id="player-container"></td>
                       <td>
                         <div class="video-results-list">
-                          <div class="video-result-list" anotar-uri="$portalPath/$self.object.id">
+                          <div class="video-result-list" anotar-uri="$self.object.id">
                           </div>
                         </div>
                       </td>
@@ -315,7 +315,7 @@ $(function() {
                 }
             }
         }
-        $(".video-result-list").attr("rel", uri);
+        $(".video-results-list").attr("rel", uri);
     });
     
     $(".player_clear_fragment").live("click", function() {
@@ -405,7 +405,6 @@ $(function() {
             formSubmit: ".locTag-submit",
             displayCustom: "location_tag_form", 
             onFormDisplay: function(node){
-            	console.log("node: ", node);
 				$(node).autocomplete('$portalPath/actions/geonames.ajax', {
 					extraParams: {"func":"placeName"}, 
 					formatItem: function(row) {
@@ -499,15 +498,15 @@ $(function() {
         videoConfig={
             debug: true,
             label: videoAnoLabel,
-            objectLiteral: "self.object.id",
+            //objectLiteral: "$self.object.id",
             pageUri: "$self.object.id",
             docRoot: ".video-results-list",
             tagList: ".video-result-list",
-            uriAttr: "anotar-id",
+            uriAttr: "anotar-uri",
             replyLabel: "<img src='$portalPath/images/icons/comments_add.png'/>",
             //formPrepend: true,
-            stylePrefix: "anno-",
-            interfaceLabel: videoAnoLable,
+            //stylePrefix: "anno-",
+            interfaceLabel: videoAnoLabel,
             interfaceVisible: true,
             formCustom: "media_clip_form",
             formCancel: ".myTag-cancel",
@@ -538,14 +537,12 @@ $(function() {
         #else
         
         noteConfig={
-            //objectLiteral: "$self.object.id",
             pageUri: "$self.object.id",
             #if($page.authentication.is_logged_in()) 
             creator: "$page.authentication.get_name()",
             creatorUri: null,
             #end
             tagList: "p, h1, h2, h3, h4, h5, h6, .annotatable",
-            //uriAttr: "anotar-hash",
             interfaceLabel: " <img src='$portalPath/images/icons/comment_add.png'/> Comments:",
             replyLabel: " <img src='$portalPath/images/icons/comments_add.png'/>",
             serverAddress: "$portalPath/actions/anotar.ajax",
@@ -782,7 +779,7 @@ $(function() {
     }
   }
   %>
-  <div class="<%=style%>inline-annotation <%=toggle%>" id="<%=id%>">
+  <div class="<%=style%>inline-annotation <%=toggle%>" anotar-uri="<%=id%>">
       <input name="rootUri" value="<%=root%>" type="hidden"/>
       <div class="<%=style%>orig-content" style="display:none;"><%=original%></div>
       <div class="<%=style%>anno-info">

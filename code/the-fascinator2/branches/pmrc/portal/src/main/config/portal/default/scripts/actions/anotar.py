@@ -235,9 +235,10 @@ class AnotarData:
             doc["replies"] = []
             docs.append(doc)
             docsDict[doc["uri"]] = doc
+            print "********************: ", doc["annotates"]["uri"]
+            print "********************: ", doc["annotates"]["rootUri"]
             if doc["annotates"]["uri"]==doc["annotates"]["rootUri"]:
                 rootDocs.append(doc)
-
         # Now process the dictionary
         for doc in docs:
             # If we are NOT a top level annotation
@@ -249,6 +250,7 @@ class AnotarData:
                 except:
                     # TODO KeyError
                     pass
+        print rootDocs
         return json.write(rootDocs)
 
     def __process_tags(self, result):
@@ -291,7 +293,6 @@ class AnotarData:
         Services.indexer.annotateSearch(req, out)
         result = JsonConfigHelper(ByteArrayInputStream(out.toByteArray()))
         result = result.getJsonList("response/docs")
-
         # Every annotation for this URI
         if self.type == "http://www.purl.org/anotar/ns/type/0.1#Tag":
             return self.__process_tags(result)
