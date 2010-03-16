@@ -352,20 +352,20 @@ function anotarFactory(jQ, config) {
         
         // Find where to attach it
    		isReply = annoObj.annotates.uri!=annoObj.annotates.rootUri;
-   		console.log("")
-   		console.log(annoObj.toSource());
-   		console.log("annoObj.annotates.uri: ", annoObj.annotates.uri);
-   		console.log("annoObj.annotates.rootUri: ", annoObj.annotates.rootUri);
-       	if(isReply) {
+   		//console.log("")
+   		//console.log(annoObj.toSource());
+   		//console.log("annoObj.annotates.uri: ", annoObj.annotates.uri);
+   		//console.log("annoObj.annotates.rootUri: ", annoObj.annotates.rootUri);
+       	if(isReply || locators[0].type != "http://www.purl.org/anotar/locator/0.1") {
        	    // Load by URI
-       		console.log("by URI")
+       		//console.log("by URI")
        	    node = jQ("*["+config.uriAttr+"='"+annoUri+"']");
        	    //console.log(config.uriAttr, annoUri);
        	} else {
        		// Load by hash and differentiated by locator type
-       		console.log("locators[0].type: ", locators[0].type);
-       		console.log("config.hashType: ", config.hashType);
-       		console.log("annoUri: ", annoUri);
+       		//console.log("locators[0].type: ", locators[0].type);
+       		//console.log("config.hashType: ", config.hashType);
+       		//console.log("annoUri: ", annoUri);
        		if (locators[0].type == config.hashType) {
 	       		annoHash = locators[0].value;
 	       		node = jQ("*["+config.hashAttr+"='"+annoHash+"']");
