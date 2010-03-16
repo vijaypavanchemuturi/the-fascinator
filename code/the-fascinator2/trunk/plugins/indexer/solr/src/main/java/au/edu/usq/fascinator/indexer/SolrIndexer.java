@@ -647,12 +647,14 @@ public class SolrIndexer implements Indexer {
     }
 
     private void cleanupTempFiles() {
-        for (File tempFile : tempFiles) {
-            if (tempFile.exists()) {
-                tempFile.delete();
+        if (tempFiles != null) {
+            for (File tempFile : tempFiles) {
+                if (tempFile.exists()) {
+                    tempFile.delete();
+                }
             }
+            tempFiles = null;
         }
-        tempFiles = Collections.synchronizedList(new ArrayList<File>());
 
         // Clear the lists of specific types we keep
         rulesList = new HashMap<String, File>();
@@ -793,7 +795,7 @@ public class SolrIndexer implements Indexer {
         tempPayload.close();
         tempFileOut.close();
 
-        //log.debug("tempFile size: {}, {}", oid, tempFile.length());
+        // log.debug("tempFile size: {}, {}", oid, tempFile.length());
 
         return tempFile;
     }
