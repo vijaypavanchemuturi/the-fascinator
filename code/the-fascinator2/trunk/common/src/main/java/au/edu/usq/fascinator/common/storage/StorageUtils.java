@@ -21,9 +21,9 @@ package au.edu.usq.fascinator.common.storage;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.io.InputStream;
 
+import org.apache.commons.io.FilenameUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,7 +31,6 @@ import au.edu.usq.fascinator.api.storage.DigitalObject;
 import au.edu.usq.fascinator.api.storage.Payload;
 import au.edu.usq.fascinator.api.storage.Storage;
 import au.edu.usq.fascinator.api.storage.StorageException;
-import org.apache.commons.io.FilenameUtils;
 
 /**
  * Storage API utility methods.
@@ -44,9 +43,9 @@ public class StorageUtils {
             .getLogger(StorageUtils.class);
 
     /**
-     * This method stores a copy of a File as a DigitalObject into the
-     * specified Storage
-     *
+     * This method stores a copy of a File as a DigitalObject into the specified
+     * Storage
+     * 
      * @param storage a Storage instance
      * @param file the File to store
      * @return a DigitalObject
@@ -56,11 +55,11 @@ public class StorageUtils {
             throws StorageException {
         return storeFile(storage, file, false);
     }
-    
+
     /**
-     * This method stores a link to a File as a DigitalObject into the
-     * specified Storage
-     *
+     * This method stores a link to a File as a DigitalObject into the specified
+     * Storage
+     * 
      * @param storage a Storage instance
      * @param file the File to store
      * @return a DigitalObject
@@ -81,8 +80,8 @@ public class StorageUtils {
      * @return a DigitalObject
      * @throws StorageException if there was an error storing the file
      */
-    public static DigitalObject storeFile(Storage storage, File file, boolean linked)
-            throws StorageException {
+    public static DigitalObject storeFile(Storage storage, File file,
+            boolean linked) throws StorageException {
         DigitalObject object = null;
         Payload payload = null;
         String oid = FilenameUtils.separatorsToUnix(file.getAbsolutePath());
@@ -91,7 +90,11 @@ public class StorageUtils {
             try {
                 object = getDigitalObject(storage, oid);
                 if (linked) {
-                    payload = createLinkedPayload(object, pid, oid);
+                    try {
+                        payload = createLinkedPayload(object, pid, oid);
+                    } catch (StorageException se) {
+                        payload = object.getPayload(pid);
+                    }
                 } else {
                     payload = createOrUpdatePayload(object, pid,
                             new FileInputStream(file));
@@ -112,7 +115,7 @@ public class StorageUtils {
     /**
      * Gets a DigitalObject from the specified Storage instance. If the object
      * does not exist, this method will attempt to create it.
-     *
+     * 
      * @param storage a Storage instance
      * @param oid the object identifier to get (or create)
      * @return a DigitalObject
@@ -138,7 +141,7 @@ public class StorageUtils {
 
     /**
      * Create or update a stored Payload in the specified DigitalObject
-     *
+     * 
      * @param object the DigitalObject to create the Payload in
      * @param pid the Payload ID
      * @param in the InputStream for the Payload's data
@@ -162,15 +165,15 @@ public class StorageUtils {
 
     /**
      * Creates a linked Payload in the specified DigitalObject
-     *
+     * 
      * @param object the DigitalObject to create the Payload in
      * @param pid the Payload ID
      * @param path the absolute path to the file the Payload links to
      * @return a Payload
      * @throws StorageException if the Payload could not be created
      */
-    public static Payload createLinkedPayload(DigitalObject object,
-            String pid, String path) throws StorageException {
+    public static Payload createLinkedPayload(DigitalObject object, String pid,
+            String path) throws StorageException {
         Payload payload = null;
         try {
             payload = object.createLinkedPayload(pid, path);
