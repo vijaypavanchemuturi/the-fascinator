@@ -44,7 +44,6 @@ import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.Velocity;
 import org.apache.velocity.runtime.RuntimeSingleton;
-import org.apache.velocity.runtime.log.Log4JLogChute;
 import org.python.core.Py;
 import org.python.core.PyModule;
 import org.python.core.PySystemState;
@@ -61,6 +60,7 @@ import au.edu.usq.fascinator.portal.services.DynamicPageService;
 import au.edu.usq.fascinator.portal.services.PortalManager;
 import au.edu.usq.fascinator.portal.services.ScriptingServices;
 import au.edu.usq.fascinator.portal.velocity.JythonUberspect;
+import au.edu.usq.fascinator.portal.velocity.Slf4jLogChute;
 
 public class DynamicPageServiceImpl implements DynamicPageService {
 
@@ -112,10 +112,8 @@ public class DynamicPageServiceImpl implements DynamicPageService {
             File homePath = new File(home);
             scriptsPath = homePath.getAbsolutePath();
             Velocity.setProperty(Velocity.FILE_RESOURCE_LOADER_PATH, home);
-            Velocity.setProperty(Log4JLogChute.RUNTIME_LOG_LOG4J_LOGGER,
-                    Velocity.class.getName());
             Velocity.setProperty(Velocity.RUNTIME_LOG_LOGSYSTEM_CLASS,
-                    Log4JLogChute.class.getName());
+                    Slf4jLogChute.class.getName());
             Velocity.setProperty(Velocity.VM_LIBRARY, "portal-library.vm");
             Velocity.setProperty(Velocity.UBERSPECT_CLASSNAME,
                     JythonUberspect.class.getName());
@@ -316,6 +314,14 @@ public class DynamicPageServiceImpl implements DynamicPageService {
                 for (String key : bindings.keySet()) {
                     python.set(key, bindings.get(key));
                 }
+                /*
+                // FIXME not working yet
+                String loggerName = portalId + "." + scriptName;
+                JythonLogger jythonLogger = new JythonLogger(LoggerFactory
+                        .getLogger(loggerName.replace("/", ".")));
+                python.setOut(jythonLogger);
+                python.setErr(jythonLogger);
+                */
                 python.execfile(in);
                 scriptObject = python.get("scriptObject");
                 python.cleanup();

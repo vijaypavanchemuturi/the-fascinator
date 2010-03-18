@@ -1,0 +1,41 @@
+{
+  "portal" : {
+    "name" : "lolcat",
+    "description" : "LOL Cats!",
+    "query" : "file_path:\"public/lolcat\"",
+    "facet-fields" : {
+      "tag" : {
+        "label" : "Tags",
+        "display" : "list"
+      },
+      "file_path" : {
+        "label" : "Path",
+        "display" : "tree"
+      },
+      "f_dc_format" : {
+        "label" : "Format",
+        "display" : "tree"
+      },
+      "f_dc_creator" : {
+        "label" : "Author",
+        "display" : "list"
+      },
+      "f_dc_subject" : {
+        "label" : "Subject",
+        "display" : "list"
+      },
+      "f_dc_type" : {
+        "label" : "Type",
+        "display" : "list"
+      },
+      "repository_name" : {
+        "label" : "Source",
+        "display" : "list"
+      },
+      "repository_type" : {
+        "label" : "Source type",
+        "display" : "list"
+      }
+    }
+  }
+}
