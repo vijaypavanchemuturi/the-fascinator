@@ -146,7 +146,7 @@
       <id>solr-webapp</id>
       <activation>
         <file>
-          <missing>${basedir}/target/dependency/solr-webapp-1.4.0.war</missing>
+          <missing>target/dependency/solr-webapp-1.4.0.war</missing>
         </file>
       </activation>
       <build>
@@ -294,6 +294,10 @@
                 <systemProperty>
                   <name>solr.solr.home</name>
                   <value>${user.home}/.fascinator/solr</value>
+                </systemProperty>
+                <systemProperty>
+                  <name>java.util.logging.config.file</name>
+                  <value>src/main/resources/solr-logging.properties</value>
                 </systemProperty>
               </systemProperties>
               <contextHandlers>
