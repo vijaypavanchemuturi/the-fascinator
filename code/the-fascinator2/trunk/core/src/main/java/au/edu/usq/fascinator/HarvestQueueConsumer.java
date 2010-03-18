@@ -49,6 +49,7 @@ import au.edu.usq.fascinator.api.storage.Storage;
 import au.edu.usq.fascinator.api.storage.StorageException;
 import au.edu.usq.fascinator.api.transformer.TransformerException;
 import au.edu.usq.fascinator.common.JsonConfig;
+import au.edu.usq.fascinator.common.JsonConfigHelper;
 import au.edu.usq.fascinator.common.storage.StorageUtils;
 
 /**
@@ -79,10 +80,12 @@ public class HarvestQueueConsumer implements MessageListener {
 
     private MessageProducer producer;
 
+    private MessageSender sender;
+
     public HarvestQueueConsumer() throws IOException, JAXBException {
         try {
             config = new JsonConfig();
-            File sysFile = config.getSystemFile();
+            File sysFile = JsonConfig.getSystemFile();
             indexer = PluginManager.getIndexer(config.get("indexer/type",
                     "solr"));
             indexer.init(sysFile);
@@ -112,6 +115,8 @@ public class HarvestQueueConsumer implements MessageListener {
                 .createQueue(RenderQueueConsumer.RENDER_QUEUE);
         producer = session.createProducer(renderDest);
         producer.setDeliveryMode(DeliveryMode.PERSISTENT);
+
+        sender = new MessageSender(MessageSender.MESSAGE_QUEUE);
     }
 
     public void stop() {
@@ -158,6 +163,9 @@ public class HarvestQueueConsumer implements MessageListener {
                 log.warn("Failed to close connection: {}", jmse.getMessage());
             }
         }
+        if (sender != null) {
+            sender.close();
+        }
     }
 
     @Override
@@ -182,8 +190,10 @@ public class HarvestQueueConsumer implements MessageListener {
                             .get("indexer/script/rules"));
                     processObject(rulesFile, text, oid, path);
                 }
+                sendNotification(oid, "Indexing '" + oid + "' started");
                 log.info("Indexing object {}...", oid);
                 indexer.index(oid);
+                sendNotification(oid, "Index of '" + oid + "' completed");
                 log.info("Queuing render job...");
                 queueRenderJob(oid, text);
             }
@@ -196,6 +206,13 @@ public class HarvestQueueConsumer implements MessageListener {
         } catch (IndexerException ie) {
             log.error("Failed to index object: {}", ie.getMessage());
         }
+    }
+
+    private void sendNotification(String oid, String message) {
+        JsonConfigHelper jsonMessage = new JsonConfigHelper();
+        jsonMessage.set("oid", oid);
+        jsonMessage.set("message", message);
+        sender.sendMessage(jsonMessage.toString());
     }
 
     private void queueRenderJob(String oid, String json) {
