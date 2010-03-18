@@ -5,22 +5,20 @@
     <param-name>tapestry.app-package</param-name>
     <param-value>au.edu.usq.fascinator.portal</param-value>
   </context-param>
+  <context-param>
+    <param-name>org.apache.activemq.brokerURL</param-name>
+    <param-value>tcp://localhost:61616</param-value>
+  </context-param>
   <!-- URL Rewrite -->
   <filter>
     <filter-name>UrlRewriteFilter</filter-name>
     <filter-class>org.tuckey.web.filters.urlrewrite.UrlRewriteFilter</filter-class>
-    <!--
-    <init-param>
-      <param-name>logLevel</param-name>
-      <param-value>DEBUG</param-value>
-    </init-param>
-    -->
   </filter>
   <filter-mapping>
     <filter-name>UrlRewriteFilter</filter-name>
     <url-pattern>/*</url-pattern>
   </filter-mapping>
-  <!-- Tapestry 5  -->
+  <!-- Tapestry 5 -->
   <filter>
     <filter-name>portal</filter-name>
     <filter-class>org.apache.tapestry5.TapestryFilter</filter-class>
@@ -36,23 +34,13 @@
     <servlet-class>au.edu.usq.fascinator.portal.servlet.IndexerServlet</servlet-class>
     <load-on-startup>1</load-on-startup>
   </servlet>
-  <servlet-mapping>
-    <servlet-name>indexer</servlet-name>
-    <url-pattern>/indexer</url-pattern>
-  </servlet-mapping>
-  <!-- REST API -->
-  <!--
+  <!-- ActiveMQ AJAX messaging service -->
   <servlet>
-    <servlet-name>JerseyServlet</servlet-name>
-    <servlet-class>com.sun.jersey.spi.container.servlet.ServletContainer</servlet-class>
-    <init-param>
-      <param-name>com.sun.jersey.config.property.packages</param-name>
-      <param-value>au.edu.usq.fascinator.portal.resources</param-value>
-    </init-param>
+    <servlet-name>AjaxServlet</servlet-name>
+    <servlet-class>org.apache.activemq.web.AjaxServlet</servlet-class>
   </servlet>
   <servlet-mapping>
-    <servlet-name>JerseyServlet</servlet-name>
-    <url-pattern>/api/*</url-pattern>
+    <servlet-name>AjaxServlet</servlet-name>
+    <url-pattern>/amq/*</url-pattern>
   </servlet-mapping>
-  -->
 </web-app>

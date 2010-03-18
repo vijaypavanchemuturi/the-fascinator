@@ -8,6 +8,12 @@
     <to last="true">$1</to>
   </rule>
   <rule>
+    <name>ActiveMQ AJAX</name>
+    <note>Don't redirect ActiveMQ AJAX requests</note>
+    <from>^(/amq/.*)$</from>
+    <to last="true">$1</to>
+  </rule>
+  <rule>
     <name>Dispatcher</name>
     <note>Redirects all requests to the main dispatcher</note>
     <from>^/(dispatch/?)?$</from>

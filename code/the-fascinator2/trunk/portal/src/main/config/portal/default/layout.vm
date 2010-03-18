@@ -112,9 +112,15 @@
         $!pageContent
       </div>
       <div class="clear"></div>
+      <div class="grid_16">
+        <div class="box">
+          <h2>Queue messages</h2>
+          <table id="messages">
+          </table>
+        </div>
+      </div>
       <div class="clear"></div>
     </div>
-    <div class="clear"></div>
     <form action="$portalPath/$pageName" id="action-form" method="post">
       <input id="verb" name="verb" type="hidden" />
       <input id="value" name="value" type="hidden" />
@@ -178,7 +184,19 @@
             }
         });
     });
-
+    </script>
+    ## ActiveMQ ajax based messaging
+    <script type="text/javascript" src="$portalPath/js/anotar/json2.js"></script>
+    <script type="text/javascript" src="$portalPath/js/amq/amq_jquery_adapter.js"></script>
+    <script type="text/javascript" src="$portalPath/js/amq/amq.js"></script>
+    <script type="text/javascript">
+    function messageHandler(message) {
+        var json = JSON.parse(message.textContent);
+        $("#messages").append("<tr><td>" + json.message + "</td></tr>");
+    }
+    var amq = org.activemq.Amq;
+    amq.init({ uri: "$contextPath/amq/", timeout: 10 });
+    amq.addListener("tf_messages", "topic://message", messageHandler);
     </script>
   </body>
 </html>
