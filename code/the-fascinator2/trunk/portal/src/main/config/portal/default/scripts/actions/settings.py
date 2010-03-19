@@ -4,9 +4,12 @@ from au.edu.usq.fascinator.portal import Portal
 from java.io import File, FileWriter
 from java.util import HashMap
 
-class FacetActions:
+from org.apache.commons.io.output import NullWriter
+from org.apache.commons.lang import StringUtils
+
+class SettingsActions:
     def __init__(self):
-        print " * facets.py: formData=%s" % formData
+        print " * settings.py: formData=%s" % formData
         result = "{}"
         portalManager = Services.getPortalManager()
         portal = portalManager.get(portalId)
@@ -18,6 +21,19 @@ class FacetActions:
             portal.setFacetCount(int(formData.get("view-facet-count")))
             portal.setFacetSort(formData.get("view-facet-sort") is not None)
             portalManager.save(portal)
+        elif func == "general-update":
+            config = JsonConfig()
+            email = StringUtils.trimToEmpty(formData.get("general-email"))
+            systemEmail = StringUtils.trimToEmpty(config.get("email"))
+            print email, systemEmail
+            if systemEmail != email:
+                config.set("email", formData.get("general-email"), True)
+                config.set("configured", "true", True)
+                config.store(NullWriter(), True)
+                # mark restart
+                sessionState.set("need-restart", "true")
+            else:
+                print " * settings.py: email not updated: did not change"
         elif func == "facets-update":
             portal.removePath("portal/facet-fields")
             fields = formData.getValues("field")
@@ -73,33 +89,46 @@ class FacetActions:
             portal.setMultiMap("portal/backup/paths", paths)
             portalManager.save(portal)
         elif func == "watcher-update":
-            pathIds = formData.get("pathIds").split(",")
-            actives = formData.getValues("watcher-active")
-            if actives is None:
-                actives = []
-            deletes = formData.getValues("watcher-delete")
-            if deletes is None:
-                deletes = []
-            watchDirs = HashMap()
-            for pathId in pathIds:
-                if pathId not in deletes:
-                    path = formData.get("%s-path" % pathId)
-                    stopped = str(pathId not in actives).lower()
-                    watchDir = HashMap()
-                    watchDir.put("ignoreFileFilter", formData.get("%s-file" % pathId))
-                    watchDir.put("ignoreDirectories", formData.get("%s-dir" % pathId))
-                    watchDir.put("cxtTags", [])
-                    watchDir.put("stopped", stopped)
-                    watchDirs.put(path, watchDir)
-            json = JsonConfigHelper(self.getWatcherFile())
-            json.setMap("watcher/watchDirs", watchDirs)
-            json.store(FileWriter(self.getWatcherFile()), True)
+            configFile = self.getWatcherFile()
+            if configFile is not None:
+                pathIds = formData.get("pathIds").split(",")
+                actives = formData.getValues("watcher-active")
+                if actives is None:
+                    actives = []
+                deletes = formData.getValues("watcher-delete")
+                if deletes is None:
+                    deletes = []
+                watchDirs = HashMap()
+                for pathId in pathIds:
+                    if pathId not in deletes:
+                        path = formData.get("%s-path" % pathId)
+                        stopped = str(pathId not in actives).lower()
+                        watchDir = HashMap()
+                        watchDir.put("ignoreFileFilter", formData.get("%s-file" % pathId))
+                        watchDir.put("ignoreDirectories", formData.get("%s-dir" % pathId))
+                        watchDir.put("cxtTags", [])
+                        watchDir.put("stopped", stopped)
+                        watchDirs.put(path, watchDir)
+                json = JsonConfigHelper(self.getWatcherFile())
+                json.setMap("watcher/watchDirs", watchDirs)
+                json.store(FileWriter(configFile), True)
+            else:
+                result = "The Watcher is not installed properly."
+        elif func == "restore-default-config":
+            # delete the file
+            JsonConfig.getSystemFile().delete()
+            # restore default
+            JsonConfig.getSystemFile()
+            # mark restart
+            sessionState.set("need-restart", "true")
         writer = response.getPrintWriter("text/plain")
         writer.println(result)
         writer.close()
     
     def getWatcherFile(self):
-        homeDir = JsonConfig.getSystemFile().getParentFile()
-        return File(homeDir, "watcher-config.json")
+        configFile = FascinatorHome.getPathFile("watcher/config.json")
+        if configFile.exists():
+            return JsonConfigHelper(configFile)
+        return None
 
-scriptObject = FacetActions()
+scriptObject = SettingsActions()

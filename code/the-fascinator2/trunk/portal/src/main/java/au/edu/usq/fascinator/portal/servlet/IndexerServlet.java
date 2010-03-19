@@ -14,13 +14,13 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.activemq.broker.BrokerService;
-import org.apache.commons.lang.text.StrSubstitutor;
 import org.python.core.PySystemState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import au.edu.usq.fascinator.HarvestQueueConsumer;
 import au.edu.usq.fascinator.RenderQueueConsumer;
+import au.edu.usq.fascinator.common.FascinatorHome;
 import au.edu.usq.fascinator.common.JsonConfig;
 
 /**
@@ -31,8 +31,8 @@ import au.edu.usq.fascinator.common.JsonConfig;
  */
 public class IndexerServlet extends HttpServlet {
 
-    public static final String DEFAULT_MESSAGING_HOME = StrSubstitutor
-            .replaceSystemProperties("${user.home}/.fascinator/activemq-data");
+    public static final String DEFAULT_MESSAGING_HOME = FascinatorHome
+            .getPath("activemq-data");
 
     private Logger log = LoggerFactory.getLogger(IndexerServlet.class);
 

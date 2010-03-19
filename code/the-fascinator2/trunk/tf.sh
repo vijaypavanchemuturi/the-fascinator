@@ -59,7 +59,8 @@ if [ "$1" == "start" -o "$1" == "restart" ]; then
 		nohup mvn -P dev jetty:run &> $TF_HOME/portal.out &
 		popd
 	fi
-	echo "Log file is at: $TF_HOME/portal.out"
+	echo "Application logs: $FASCINATOR_HOME/logs"
+	echo "Standard out log: $TF_HOME/portal.out"
 fi
 
 if [ "$1" == "build" -o "$1" == "rebuild" ]; then

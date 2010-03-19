@@ -34,7 +34,7 @@ import au.edu.usq.fascinator.api.storage.PayloadType;
 import au.edu.usq.fascinator.api.storage.StorageException;
 import au.edu.usq.fascinator.api.transformer.Transformer;
 import au.edu.usq.fascinator.api.transformer.TransformerException;
-import au.edu.usq.fascinator.common.JsonConfig;
+import au.edu.usq.fascinator.common.JsonConfigHelper;
 import au.edu.usq.fascinator.common.MimeTypeUtil;
 import au.edu.usq.fascinator.common.storage.StorageUtils;
 
@@ -46,7 +46,7 @@ import au.edu.usq.fascinator.common.storage.StorageUtils;
 public class ImsTransformer implements Transformer {
 
     /** Json config file **/
-    private JsonConfig config;
+    private JsonConfigHelper config;
 
     /** Logging **/
     private static Logger log = LoggerFactory.getLogger(ImsTransformer.class);
@@ -163,7 +163,7 @@ public class ImsTransformer implements Transformer {
     @Override
     public void init(File jsonFile) throws PluginException {
         try {
-            config = new JsonConfig(jsonFile);
+            config = new JsonConfigHelper(jsonFile);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -179,7 +179,7 @@ public class ImsTransformer implements Transformer {
     @Override
     public void init(String jsonString) throws PluginException {
         try {
-            config = new JsonConfig(jsonString);
+            config = new JsonConfigHelper(jsonString);
         } catch (IOException e) {
             e.printStackTrace();
         }

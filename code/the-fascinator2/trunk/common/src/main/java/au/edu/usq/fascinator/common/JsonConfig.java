@@ -31,6 +31,8 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.io.IOUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Manages JSON configuration. Configuration values are read from a specified
@@ -40,9 +42,11 @@ import org.apache.commons.io.IOUtils;
  */
 public class JsonConfig {
 
+    /** Logging */
+    private static Logger log = LoggerFactory.getLogger(JsonConfig.class);
+
     /** Default configuration directory */
-    private static final String CONFIG_DIR = System.getProperty("user.home")
-            + File.separator + ".fascinator";
+    private static final String CONFIG_DIR = FascinatorHome.getPath();
 
     /** Default system configuration file name */
     private static final String SYSTEM_CONFIG_FILE = "system-config.json";
@@ -220,6 +224,7 @@ public class JsonConfig {
             IOUtils.copy(JsonConfig.class.getResourceAsStream("/"
                     + SYSTEM_CONFIG_FILE), out);
             out.close();
+            log.info("Default configuration copied to '{}'", configFile);
         }
         return configFile;
     }
@@ -241,4 +246,30 @@ public class JsonConfig {
         return userConfig.toString();
     }
 
+    /**
+     * Tests whether or not the system-config has been properly configured.
+     * 
+     * @return true if configured, false if still using defaults
+     */
+    public boolean isConfigured() {
+        return Boolean.parseBoolean(systemConfig.get("configured"));
+    }
+
+    public boolean isOutdated() {
+        boolean outdated = false;
+        String systemVersion = systemConfig.get("version");
+        try {
+            JsonConfigHelper compiledConfig = new JsonConfigHelper(getClass()
+                    .getResourceAsStream("/" + SYSTEM_CONFIG_FILE));
+            String compiledVersion = compiledConfig.get("version");
+            outdated = !compiledVersion.equals(systemVersion);
+            if (outdated) {
+                log.debug("Configuration versions do not match! '{}' != '{}'",
+                        systemVersion, compiledVersion);
+            }
+        } catch (IOException ioe) {
+            log.error("Failed to parse compiled configuration!", ioe);
+        }
+        return outdated;
+    }
 }

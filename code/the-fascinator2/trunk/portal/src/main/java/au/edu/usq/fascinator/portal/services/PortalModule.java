@@ -55,7 +55,6 @@ import au.edu.usq.fascinator.portal.services.impl.DynamicPageServiceImpl;
 import au.edu.usq.fascinator.portal.services.impl.HarvestManagerImpl;
 import au.edu.usq.fascinator.portal.services.impl.PortalManagerImpl;
 import au.edu.usq.fascinator.portal.services.impl.ScriptingServicesImpl;
-import org.apache.tapestry5.upload.services.MultipartDecoder;
 
 public class PortalModule {
 
@@ -79,9 +78,8 @@ public class PortalModule {
 
     public static AccessControlManager buildAccessManager() {
         try {
-            JsonConfig config = new JsonConfig();
             AccessManager access = new AccessManager();
-            access.init(config.getSystemFile());
+            access.init(JsonConfig.getSystemFile());
             return access;
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -90,9 +88,8 @@ public class PortalModule {
 
     public static AuthManager buildAuthManager() {
         try {
-            JsonConfig config = new JsonConfig();
             AuthenticationManager auth = new AuthenticationManager();
-            auth.init(config.getSystemFile());
+            auth.init(JsonConfig.getSystemFile());
             return auth;
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -104,7 +101,7 @@ public class PortalModule {
             JsonConfig config = new JsonConfig();
             Indexer indexer = PluginManager.getIndexer(config.get(
                     "indexer/type", DEFAULT_INDEXER_TYPE));
-            indexer.init(config.getSystemFile());
+            indexer.init(JsonConfig.getSystemFile());
             return indexer;
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -113,9 +110,8 @@ public class PortalModule {
 
     public static RolesManager buildRoleManager() {
         try {
-            JsonConfig config = new JsonConfig();
             RoleManager roles = new RoleManager();
-            roles.init(config.getSystemFile());
+            roles.init(JsonConfig.getSystemFile());
             return roles;
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -127,7 +123,7 @@ public class PortalModule {
             JsonConfig config = new JsonConfig();
             Storage storage = PluginManager.getStorage(config.get(
                     "storage/type", DEFAULT_STORAGE_TYPE));
-            storage.init(config.getSystemFile());
+            storage.init(JsonConfig.getSystemFile());
             return storage;
         } catch (Exception e) {
             throw new RuntimeException(e);

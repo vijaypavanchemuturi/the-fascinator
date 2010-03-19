@@ -1,5 +1,7 @@
 import md5, os
 
+from au.edu.usq.fascinator.common import FascinatorHome
+
 from com.sun.syndication.feed.atom import Content
 from com.sun.syndication.propono.atom.client import AtomClientFactory, BasicAuthStrategy
 
@@ -89,7 +91,7 @@ class AtomEntryPoster:
         FileUtils.writeLines(historyFile, [url])
     
     def __getHistoryFile(self):
-        f = File(System.getProperty("user.home"), ".fascinator/blog/history.txt")
+        f = FascinatorHome.getPathFile("blog/history.txt")
         if not f.exists():
             f.getParentFile().mkdirs()
             f.createNewFile()

@@ -68,13 +68,33 @@ public class FascinatorHome {
     }
 
     /**
-     * Gets the Fascinator home directory as a File object. Convenience method
-     * for {@link getFascinatorHome}.
+     * Gets a relative directory inside the Fascinator home directory.
+     * 
+     * @param subDir the directory name
+     * @return a directory path
+     */
+    public static String getPath(String subDir) {
+        return getPath() + File.separator
+                + FilenameUtils.separatorsToSystem(subDir);
+    }
+
+    /**
+     * Gets the Fascinator home directory as a File object.
      * 
      * @return a File representing the Fascinator home directory
      */
     public static File getPathFile() {
         return new File(getPath());
+    }
+
+    /**
+     * Gets a relative directory inside the Fascinator home directory.
+     * 
+     * @param subDir the directory name
+     * @return a File representing the directory
+     */
+    public static File getPathFile(String subDir) {
+        return new File(getPath(subDir));
     }
 
     /**

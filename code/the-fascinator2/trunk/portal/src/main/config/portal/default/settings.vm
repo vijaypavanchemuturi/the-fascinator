@@ -57,23 +57,43 @@
     </td>
   </tr>
 #end
+#macro(category $id $label)
+  <li><a id="${id}-category" class="category" href="#" rel="$id">$label</a></li>
+#end
 #set($pageTitle = "Settings")
 <h2 id="page-heading">Settings</h2>
 <div class="grid_4">
   <div class="box menu">
     <h2>Category</h2>
     <ul class="menu">
-      <li><a id="view-category" class="category" href="#" rel="view">View</a></li>
-      <li><a id="facets-category" class="category" href="#" rel="facets">Facets</a></li>
-      <li><a id="backup-category" class="category" href="#" rel="backup">Backup</a></li>
-      <li><a id="watcher-category" class="category" href="#" rel="watcher">Watcher</a></li>
+      #category("general" "General")
+      #category("view" "View")
+      #category("facets" "Facets")
+      #category("backup" "Backup")
+      #category("watcher" "Watcher")
     </ul>
   </div>
 </div>
 <div id="form-section" class="grid_12">
+  <div id="general-section" class="box hidden">
+    <h2>General</h2>
+    <form class="block category-form" id="general-form" method="post">
+      <fieldset class="login">
+        <p>
+          <label for="general-email">Email address</label>
+          <input id="general-email" name="general-email" type="text" value="$self.getEmail()" />
+        </p>
+      </fieldset>
+      <p><b>Note:</b> Changing email address requires a restart to take effect.</p>
+    </form>
+    <button class="update">Update</button>
+    <button class="cancel">Cancel</button>
+    <img class="hidden" id="general-loading" src="$portalPath/images/icons/loading.gif" />
+    <span id="general-message"></span>
+  </div>
   <div id="view-section" class="box hidden">
     <h2>View</h2>
-    <div class="block category-form" id="view-form" method="post">
+    <form class="block category-form" id="view-form" method="post">
       <fieldset class="login">
         <p>
           <label for="view-id">Identifier</label>
@@ -100,7 +120,7 @@
           <input id="view-facet-sort" name="view-facet-sort" type="checkbox" value="$self.portal.facetSort" />
         </p>
       </fieldset>
-    </div>
+    </form>
     <button class="update">Update</button>
     <button class="cancel">Cancel</button>
     <img class="hidden" id="view-loading" src="$portalPath/images/icons/loading.gif" />
@@ -175,7 +195,9 @@
   </div>
   <div id="watcher-section" class="box hidden">
     <h2>Watcher</h2>
-    <div class="block category-form" id="watcher-form" method="post">
+    <div class="block category-form" id="watcher-form">
+    #set($watcherConfig = $self.getWatcherConfig())
+    #if($watcherConfig)
       <fieldset>
        <table>
           <thead>
@@ -189,7 +211,6 @@
             #watcherRow("watcher-blank" "false" "watchDir" "*.tmp|$*.*" "tmp|temp|.svn|.ice" "hidden")
           </thead>
           <tbody id="watcher-table">
-          #set($watcherConfig = $self.getWatcherConfig())
           #set($paths = $watcherConfig.getMap("watcher/watchDirs"))
           #foreach($path in $paths.keySet())
             #set($options = $paths.get($path))
@@ -207,6 +228,9 @@
         <img class="hidden" id="watcher-loading" src="$portalPath/images/icons/loading.gif" />
         <span id="watcher-message"></span>
       </fieldset>
+    #else
+      <p>The Watcher is not installed properly.</p>
+    #end
     </div>
   </div>
 </div>
@@ -228,9 +252,12 @@ $(function() {
         return false;
     });
     
-    // restore selected category
-    var selected = jQuery.cookie("category") || "view";
-    if (selected) { $("#" + selected + "-category").click(); }
+    var selected = "general";
+    #if($page.isConfigured())
+        // restore selected category
+        selected = jQuery.cookie("category") || selected;
+    #end
+    $("#" + selected + "-category").click();
     
     // make text fields editable
     $(".field-text").live("click", function() {
@@ -298,19 +325,30 @@ $(function() {
         return false;
     });
     
+    // update general category
+    $("#general-section button.update").removeAttr("disabled").click(function() {
+        $(this).attr("disabled", "disabled");
+        $("#general-loading").show();
+        var data = $("#general-form").serialize();
+        jQuery.post("$portalPath/actions/settings.ajax?" + data,
+            { func: "general-update" },
+            function(data, status) {
+                $("#general-loading").hide();
+                $("#general-message").text("Updated successfully");
+                setTimeout(function() { $("#general-message").empty(); }, 3000);
+                $("#general-section button.update").removeAttr("disabled");
+            },
+            "json");
+    });
+    
     // update view category
     $("#view-section button.update").removeAttr("disabled").click(function() {
         $(this).attr("disabled", "disabled");
         $("#view-loading").show();
         var data = $("#view-form").serialize();
-        jQuery.post("$portalPath/actions/facets.ajax?" + data,
+        jQuery.post("$portalPath/actions/settings.ajax?" + data,
             { func: "view-update" },
-            function(data, status) {
-                $("#view-loading").hide();
-                $("#view-message").text("Updated successfully");
-                setTimeout(function() { $("#view-message").empty(); }, 3000);
-                $("#view-update").removeAttr("disabled");
-            },
+            function(data, status) { window.location.reload(); },
             "json");
     });
     
@@ -334,7 +372,7 @@ $(function() {
                     "&display=" + fDisplay +
                     "&delete=" + fDelete;
         }
-        jQuery.post("$portalPath/actions/facets.ajax?" + data,
+        jQuery.post("$portalPath/actions/settings.ajax?" + data,
             { func: "facets-update" },
             function(data, status) {
                 $("#facets-table span").css("font-weight", "normal");
@@ -358,7 +396,7 @@ $(function() {
                 ids += $(tr).attr("id") + ",";
             });
         ids = ids.substring(ids, ids.length-1);
-        jQuery.post("$portalPath/actions/facets.ajax?" + data,
+        jQuery.post("$portalPath/actions/settings.ajax?" + data,
             { func: "backup-update", pathIds: ids },
             function(data, status) {
                 $("#backup-table span").css("font-weight", "normal");
@@ -382,7 +420,7 @@ $(function() {
                 ids += $(tr).attr("id") + ",";
             });
         ids = ids.substring(ids, ids.length-1);
-        jQuery.post("$portalPath/actions/facets.ajax?" + data,
+        jQuery.post("$portalPath/actions/settings.ajax?" + data,
             { func: "watcher-update", pathIds: ids },
             function(data, status) {
                 $("#watcher-table span").css("font-weight", "normal");

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <groupId>au.edu.usq.fascinator</groupId>
   <artifactId>the-fascinator</artifactId>
@@ -19,8 +20,8 @@
     <developerConnection>scm:svn:http://fascinator.usq.edu.au/svn-auth/code/the-fascinator2/releases</developerConnection>
   </scm>
   <properties>
-     <svn-repository>http://fascinator.usq.edu.au/svn-auth/</svn-repository>
-     <svn-parent-dir>code/the-fascinator2/releases</svn-parent-dir>
+    <svn-repository>http://fascinator.usq.edu.au/svn-auth/</svn-repository>
+    <svn-parent-dir>code/the-fascinator2/releases</svn-parent-dir>
   </properties>
   <modules>
     <module>common</module>
@@ -228,12 +229,26 @@
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>rat-maven-plugin</artifactId>
       </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>2.5</version>
+        <configuration>
+          <systemPropertyVariables>
+            <!--
+              set fascinator.home to the current module's target
+              directory during unit testing
+            -->
+            <fascinator.home>${basedir}/target/fascinator-home</fascinator.home>
+          </systemPropertyVariables>
+        </configuration>
+      </plugin>
     </plugins>
   </build>
   <repositories>
-	<repository>
-		<id>adfi-usq-releases</id>
-		<url>http://fascinator.usq.edu.au/nexus/content/groups/public</url>
-	</repository>
+    <repository>
+      <id>adfi-usq-releases</id>
+      <url>http://fascinator.usq.edu.au/nexus/content/groups/public</url>
+    </repository>
   </repositories>
 </project>

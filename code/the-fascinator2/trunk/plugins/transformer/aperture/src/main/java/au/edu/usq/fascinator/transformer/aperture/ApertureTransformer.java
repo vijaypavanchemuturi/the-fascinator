@@ -53,6 +53,7 @@ import au.edu.usq.fascinator.api.storage.PayloadType;
 import au.edu.usq.fascinator.api.storage.StorageException;
 import au.edu.usq.fascinator.api.transformer.Transformer;
 import au.edu.usq.fascinator.api.transformer.TransformerException;
+import au.edu.usq.fascinator.common.FascinatorHome;
 import au.edu.usq.fascinator.common.JsonConfig;
 import au.edu.usq.fascinator.common.JsonConfigHelper;
 import au.edu.usq.fascinator.common.MimeTypeUtil;
@@ -85,8 +86,7 @@ public class ApertureTransformer implements Transformer {
      * 
      * Note: For large files (esp PDF) this can take a while
      * 
-     * @param args
-     *            The file you wish to process
+     * @param args The file you wish to process
      */
     public static void main(String[] args) {
         // check if a commandline argument was specified
@@ -118,8 +118,7 @@ public class ApertureTransformer implements Transformer {
     /**
      * Extractor Constructor
      * 
-     * @param outputPath
-     *            : outputPath stored in json config
+     * @param outputPath : outputPath stored in json config
      */
     public ApertureTransformer(String outputPath) {
         this.outputPath = outputPath;
@@ -128,8 +127,7 @@ public class ApertureTransformer implements Transformer {
     /**
      * Extracts RDF from a file denoted by a String-based descriptor (ie path)
      * 
-     * @param file
-     *            The file to be extracted
+     * @param file The file to be extracted
      * @return An RDFContainer holding the extracted RDF
      * @throws IOException
      * @throws ExtractorException
@@ -218,8 +216,7 @@ public class ApertureTransformer implements Transformer {
     /**
      * Create the RDFContainer that will hold the RDF model
      * 
-     * @param file
-     *            The file to be analysed
+     * @param file The file to be analysed
      * @return
      */
     private static RDFContainer createRDFContainer(File file) {
@@ -242,9 +239,8 @@ public class ApertureTransformer implements Transformer {
      * 
      * @param file
      * @param mimeType
-     * @param container
-     *            (in/out) Contains the metadata and full text extracted from
-     *            the file
+     * @param container (in/out) Contains the metadata and full text extracted
+     *            from the file
      * @throws IOException
      * @throws ExtractorException
      */
@@ -326,10 +322,8 @@ public class ApertureTransformer implements Transformer {
      * "http://ice-service.usq.edu.au/api/convert/", "outputPath":
      * "${user.home}/ice2-output" } }
      * 
-     * @param jsonFile
-     *            to retrieve the configuration for Extractor
-     * @throws PluginException
-     *             if fail to read the config file
+     * @param jsonFile to retrieve the configuration for Extractor
+     * @throws PluginException if fail to read the config file
      */
     @Override
     public void init(File jsonFile) throws PluginException {
@@ -337,9 +331,8 @@ public class ApertureTransformer implements Transformer {
             log.info("--Initializing Extractor plugin--");
             JsonConfig config = new JsonConfig(jsonFile);
             // Default will be HOME_PATH/tmp folder
-            outputPath = config.get("aperture/extractor/outputPath", System
-                    .getProperty("user.home")
-                    + File.separator + "tmp");
+            outputPath = config.get("aperture/extractor/outputPath",
+                    FascinatorHome.getPath("tmp"));
         } catch (IOException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
@@ -358,8 +351,7 @@ public class ApertureTransformer implements Transformer {
     /**
      * Overridden transform method
      * 
-     * @param DigitalObject
-     *            to be processed
+     * @param DigitalObject to be processed
      * @return processed DigitalObject with the rdf metadata
      */
     @Override

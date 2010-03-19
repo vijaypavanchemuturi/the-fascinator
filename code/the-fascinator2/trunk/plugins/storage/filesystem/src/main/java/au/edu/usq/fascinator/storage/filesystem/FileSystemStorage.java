@@ -18,17 +18,12 @@
  */
 package au.edu.usq.fascinator.storage.filesystem;
 
-import au.edu.usq.fascinator.api.storage.DigitalObject;
-import au.edu.usq.fascinator.api.storage.Storage;
-import au.edu.usq.fascinator.api.storage.StorageException;
-import au.edu.usq.fascinator.common.JsonConfig;
-
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.InputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -41,6 +36,12 @@ import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import au.edu.usq.fascinator.api.storage.DigitalObject;
+import au.edu.usq.fascinator.api.storage.Storage;
+import au.edu.usq.fascinator.api.storage.StorageException;
+import au.edu.usq.fascinator.common.FascinatorHome;
+import au.edu.usq.fascinator.common.JsonConfig;
+
 /**
  * File system storage plugin based on Dflat/Pairtree
  * 
@@ -48,8 +49,10 @@ import org.slf4j.LoggerFactory;
  */
 public class FileSystemStorage implements Storage {
 
-    private static final String DEFAULT_HOME_DIR = System.getProperty("user.home")
-            + File.separator + ".fascinator" + File.separator + "storage";
+    private static final String DEFAULT_HOME_DIR = FascinatorHome
+            .getPath("storage");
+
+    private static final String DEFAULT_EMAIL = "fascinator@usq.edu.au";
 
     private final Logger log = LoggerFactory.getLogger(FileSystemStorage.class);
 
@@ -97,12 +100,9 @@ public class FileSystemStorage implements Storage {
     }
 
     private void setVariable(JsonConfig config) {
-        email = config.get("email");
-        if (!email.equals("")) {
-            email = DigestUtils.md5Hex(config.get("email"));
-        }
+        email = config.get("email", DEFAULT_EMAIL);
         homeDir = new File(config.get("storage/file-system/home",
-                DEFAULT_HOME_DIR), email);
+                DEFAULT_HOME_DIR), DigestUtils.md5Hex(email));
         if (!homeDir.exists()) {
             homeDir.mkdirs();
         }
@@ -119,9 +119,9 @@ public class FileSystemStorage implements Storage {
 
     private File getPath(String oid) {
         String hash = getHashId(oid);
-        String dir = hash.substring(0, 2) + File.separator +
-                     hash.substring(2, 4) + File.separator +
-                     hash.substring(4, 6) + File.separator;
+        String dir = hash.substring(0, 2) + File.separator
+                + hash.substring(2, 4) + File.separator + hash.substring(4, 6)
+                + File.separator;
         return new File(homeDir, dir + hash);
     }
 
@@ -130,7 +130,8 @@ public class FileSystemStorage implements Storage {
         log.debug("createObject(" + oid + ")");
         File objHome = getPath(oid);
         if (objHome.exists()) {
-            throw new StorageException("oID '" + oid + "' already exists in storage.");
+            throw new StorageException("oID '" + oid
+                    + "' already exists in storage.");
         }
         return new FileSystemDigitalObject(objHome, oid);
     }
@@ -142,7 +143,8 @@ public class FileSystemStorage implements Storage {
         if (objHome.exists()) {
             return new FileSystemDigitalObject(objHome, oid);
         }
-        throw new StorageException("oID '" + oid + "' doesn't exist in storage.");
+        throw new StorageException("oID '" + oid
+                + "' doesn't exist in storage.");
     }
 
     @Override
@@ -170,14 +172,15 @@ public class FileSystemStorage implements Storage {
                 throw new StorageException("Error deleting object", ex);
             }
         } else {
-            throw new StorageException("oID '" + oid + "' doesn't exist in storage : " + objHome.getPath());
+            throw new StorageException("oID '" + oid
+                    + "' doesn't exist in storage : " + objHome.getPath());
         }
     }
 
     @Override
     public Set<String> getObjectIdList() {
         log.debug("getObjectIdList()");
-        if (objectList == null ) {
+        if (objectList == null) {
             objectList = new HashSet<String>();
 
             List<File> files = new ArrayList<File>();
@@ -193,7 +196,8 @@ public class FileSystemStorage implements Storage {
                     if (objectId != null) {
                         objectList.add(objectId);
                     } else {
-                        log.error("Null object ID found in " + file.getAbsolutePath());
+                        log.error("Null object ID found in "
+                                + file.getAbsolutePath());
                     }
                 } catch (FileNotFoundException e) {
                     log.error("Error reading object metadata file", e);
