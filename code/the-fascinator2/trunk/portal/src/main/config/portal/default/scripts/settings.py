@@ -1,5 +1,5 @@
 from au.edu.usq.fascinator.api import PluginManager
-from au.edu.usq.fascinator.common import JsonConfig, JsonConfigHelper
+from au.edu.usq.fascinator.common import FascinatorHome, JsonConfig, JsonConfigHelper
 from au.edu.usq.fascinator.portal import Portal
 
 from java.io import ByteArrayInputStream, ByteArrayOutputStream, File
@@ -106,7 +106,12 @@ class SettingsData:
         return PluginManager.getTransformerPlugins()
     
     def getWatcherConfig(self):
-        homeDir = JsonConfig.getSystemFile().getParentFile()
-        return JsonConfigHelper(File(homeDir, "watcher-config.json"))
+        configFile = FascinatorHome.getPathFile("watcher/config.json")
+        if configFile.exists():
+            return JsonConfigHelper(configFile)
+        return None
+    
+    def getEmail(self):
+        return JsonConfig().get("email")
 
 scriptObject = SettingsData()

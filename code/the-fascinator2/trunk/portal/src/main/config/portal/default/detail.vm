@@ -95,7 +95,7 @@
   </div>
   #end
   #if ($self.isPending())
-  <div id="pending" class="box articles">
+  <div id="pending" class="box articles notice">
     <h2>Pending</h2>
     <div class="warning">
       <b>IMPORTANT</b>Please note that this object is currently in the render queue. There may be pending data/metadata changes not visible below.

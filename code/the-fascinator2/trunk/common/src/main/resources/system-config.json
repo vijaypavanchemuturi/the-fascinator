@@ -1,29 +1,29 @@
 {
-    "fascinator-home": "/opt/the-fascinator2/code",
+    "version": "0.5.0",
+    "configured": false,
     "email" : "fascinator@usq.edu.au",
     "accesscontrol": {
         "type": "simple",
         "simple": {
-            "path": "${user.home}/.fascinator/access.properties"
+            "path": "${fascinator.home}/security/access.properties"
         }
     },
     "authentication": {
         "type": "internal",
         "internal": {
-            "path": "${user.home}/.fascinator/users.properties"
+            "path": "${fascinator.home}/security/users.properties"
         }
     },
     "roles": {
         "type": "internal",
         "internal": {
-            "path": "${user.home}/.fascinator/roles.properties"
+            "path": "${fascinator.home}/security/roles.properties"
         }
     },
     "storage": {
         "type": "file-system",
         "file-system": {
-            "home": "${user.home}/.fascinator/storage",
-            "use-link": true
+            "home": "${fascinator.home}/storage"
         },
         "fedora3": {
             "url": "http://localhost:8080/fedora",
@@ -38,7 +38,7 @@
     "messaging": {
         "url": "tcp://localhost:61616",
         "stompUrl": "stomp://localhost:61613",
-        "home": "${user.home}/.fascinator/activemq-data",
+        "home": "${fascinator.home}/activemq-data",
         "render-thread": 3
     },
     "indexer": {
@@ -65,11 +65,11 @@
     },
     "portal": {
         "home": "src/main/config/portal",
-        "contentDir": "${user.home}/.fascinator/content",
+        "contentDir": "${fascinator.home}/content",
         "default": "default",
         "layout": "layout",
         "nativeJython": true,
-        "uploader": "${user.home}/.fascinator/workflow-config.json"
+        "uploader": "${fascinator.home}/workflow-config.json"
     },
     "transformer": {
         "extractor": ["aperture"],

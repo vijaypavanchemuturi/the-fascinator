@@ -90,14 +90,15 @@ import au.edu.usq.fascinator.api.storage.DigitalObject;
 import au.edu.usq.fascinator.api.storage.Payload;
 import au.edu.usq.fascinator.api.storage.Storage;
 import au.edu.usq.fascinator.api.storage.StorageException;
+import au.edu.usq.fascinator.common.FascinatorHome;
 import au.edu.usq.fascinator.common.JsonConfig;
 import au.edu.usq.fascinator.common.JsonConfigHelper;
 
 public class SolrIndexer implements Indexer {
 
-    private static final String DEFAULT_SOLR_HOME = System
-            .getProperty("user.home")
-            + File.separator + ".fascinator" + File.separator + "solr";
+    private static final String DEFAULT_SOLR_HOME = FascinatorHome
+            .getPath("solr");
+
     private static String DEFAULT_METADATA_PAYLOAD = "TF-OBJ-META";
 
     private Logger log = LoggerFactory.getLogger(SolrIndexer.class);

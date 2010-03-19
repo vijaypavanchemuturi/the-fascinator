@@ -38,6 +38,36 @@
         <h1 id="branding"><a href="$portalPath/home">The Fascinator</a></h1>
       </div>
       <div class="clear"></div>
+      #set($notConfigured = $page.isNotConfigured())
+      #set($outdated = $page.isOutdated())
+      #set($needRestart = $page.needRestart())
+      #if($notConfigured || $outdated || $needRestart)
+      <div class="grid_16">
+        <div id="config-notices" class="box articles notice">
+          <h2>Configuration</h2>
+          <div class="warning">
+            <b>IMPORTANT</b>
+            #if($outdated)
+            The Fascinator may not work as expected as the current system
+            configuration is outdated. Please update your configuration or
+            <a href="#" id="restore-default-config">restore</a> the default
+            configuration and restart.
+            #elseif($needRestart)
+            The Fascinator may not work as expected as the system configuration
+            was changed and needs a restart to take effect.
+            #elseif($notConfigured)
+            The Fascinator has not yet been configured. Please set your email   
+            address on the <a href="$portalPath/settings">settings</a> page.
+            #else
+            An unexpected error has occurred. Try restarting The Fascinator.
+            #end
+          </div>
+        </div>
+      </div>
+      #if($pageName=="settings" && !$needRestart)
+      <div class="grid_16">$!pageContent</div>
+      #end
+      #else
       <div class="grid_16">
         <ul class="nav main">
           <li><a href="$portalPath/home">Home</a></li>
@@ -86,7 +116,6 @@
           $!navContent
         </ul>
       </div>
-      <div class="clear"></div>
       <div class="grid_16">
         <div class="box hidden" id="login-form">
           <form id="login" method="post">
@@ -120,6 +149,7 @@
         </div>
       </div>
       <div class="clear"></div>
+      #end
     </div>
     <form action="$portalPath/$pageName" id="action-form" method="post">
       <input id="verb" name="verb" type="hidden" />
@@ -129,6 +159,13 @@
     $(function() {
         $("a.search").click(function() {
             $("form.search").submit();
+            return false;
+        });
+        
+        $("#restore-default-config").click(function() {
+            jQuery.post("$portalPath/actions/settings.ajax",
+                { func: "restore-default-config" },
+                function(data, status) { window.location.reload(); });
             return false;
         });
     });
