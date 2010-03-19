@@ -16,6 +16,9 @@ else
 	# assume ubuntu with sun-java6-jdk installed
 	JAVA_HOME=/usr/lib/jvm/java-6-sun
 fi
+
 export JAVA_HOME
-export JAVA_OPTS="-XX:MaxPermSize=128m -Xmx512m -Dhttp.proxyHost=$HOST -Dhttp.proxyPort=$PORT -Dhttp.nonProxyHosts=localhost"
-export MAVEN_OPTS="$JAVA_OPTS $MAVEN_OPTS"
+export FASCINATOR_HOME=$HOME/.fascinator
+if [ "$MAVEN_OPTS" == "" ] ; then
+	export MAVEN_OPTS="-XX:MaxPermSize=128m -Xmx512m -Dhttp.proxyHost=$HOST -Dhttp.proxyPort=$PORT -Dhttp.nonProxyHosts=localhost -Dfascinator.home=$FASCINATOR_HOME"
+fi
