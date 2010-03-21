@@ -78,7 +78,7 @@
             "outputPath": "${java.io.tmpdir}/${user.name}/ice2-output"
         },
         "ice2": {
-            "url": "http://ec2-75-101-136-199.compute-1.amazonaws.com/api/convert/",
+            "url": "http://ice-service.usq.edu.au/api/convert/",
             "outputPath": "${java.io.tmpdir}/${user.name}/ice2-output",
             "excludeRenditionExt": "txt,mp3,m4a",
             "resize": {
