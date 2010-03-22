@@ -156,6 +156,10 @@
         #set($itemTitle = $item.get("dc_title").get(0))
         <li class='wf-$item.get('workflow_step').get(0)'>
           <a href="$portalPath/workflow/$itemId">$itemTitle</a>
+          #set($wfStep = $item.get("workflow_step").get(0))
+          #if ($wfStep != "" && $wfStep != "live")
+          <img class="workflow" src="$portalPath/images/icons/wf_${wfStep}.png" title="Workflow: $wfStep"/>
+          #end
         </li>
       #end
       </ol>
@@ -169,6 +173,10 @@
         #set($itemTitle = $item.get("dc_title").get(0))
         <li class='wf-$item.get('workflow_step').get(0)'>
           <a href="$portalPath/detail/$itemId">$itemTitle</a>
+          #set($wfStep = $item.get("workflow_step").get(0))
+          #if ($wfStep != "" && $wfStep != "live")
+          <img class="workflow" src="$portalPath/images/icons/wf_${wfStep}.png" title="Workflow: $wfStep"/>
+          #end
         </li>
       #end
       </ol>
