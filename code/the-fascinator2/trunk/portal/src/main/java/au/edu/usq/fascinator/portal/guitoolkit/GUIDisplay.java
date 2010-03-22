@@ -19,6 +19,12 @@
 package au.edu.usq.fascinator.portal.guitoolkit;
 
 import au.edu.usq.fascinator.common.JsonConfig;
+import au.edu.usq.fascinator.portal.FormData;
+import au.edu.usq.fascinator.portal.JsonSessionState;
+import au.edu.usq.fascinator.portal.services.DynamicPageService;
+import au.edu.usq.fascinator.portal.services.PortalManager;
+
+import java.io.ByteArrayOutputStream;
 
 /**
  * Displays arbitrary content in the portal.
@@ -26,8 +32,29 @@ import au.edu.usq.fascinator.common.JsonConfig;
  * @author Greg Pendlebury
  */
 public class GUIDisplay {
+    private DynamicPageService pageService;
 
-    public GUIDisplay(JsonConfig config) {
+    public GUIDisplay(JsonConfig config, DynamicPageService renderer) {
+        pageService = renderer;
     }
 
+    public String renderTemplate(String template, FormData formData,
+            JsonSessionState sessionState) {
+        return renderTemplate(template, formData, sessionState, false);
+    }
+
+    public String renderTemplate(String template, FormData formData,
+            JsonSessionState sessionState, boolean useLayout) {
+        // Do we want to see our content wrapped in app. layout?
+        if (!useLayout) {
+            // If not, pretend this is an ajax call
+            template += ".ajax";
+        }
+
+        String portal = PortalManager.DEFAULT_PORTAL_NAME;
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        pageService.render(portal, template, out, formData, sessionState);
+
+        return out.toString();
+    }
 }

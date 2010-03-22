@@ -12,11 +12,25 @@
     <link rel="stylesheet" type="text/css" href="$portalPath/css/styles.css" />
     <link rel="stylesheet" type="text/css" href="$portalPath/css/local_styles.css" />
     <link rel="stylesheet" type="text/css" href="$portalPath/css/anotar.css" />
+    ## jQuery libraries
+    <script type="text/javascript" src="$portalPath/js/jquery-1.3.2.min.js"></script>
+    <script type="text/javascript" src="$portalPath/js/jquery-ui-1.7.2.custom.min.js"></script>
+    ## ActiveMQ ajax based messaging
+    <script type="text/javascript" src="$portalPath/js/anotar/json2.js"></script>
+    <script type="text/javascript" src="$portalPath/js/amq/amq_jquery_adapter.js"></script>
+    <script type="text/javascript" src="$portalPath/js/amq/amq.js"></script>
+    <script type="text/javascript">
+        function messageHandler(message) {
+            var json = JSON.parse(message.textContent);
+            $("#messages").append("<tr><td>" + json.message + "</td></tr>");
+        }
+        var amq = org.activemq.Amq;
+        amq.init({ uri: "$contextPath/amq/", timeout: 10 });
+        amq.addListener("tf_messages", "topic://message", messageHandler);
+    </script>
     $!pageHeader
   </head>
   <body>
-    <script type="text/javascript" src="$portalPath/js/jquery-1.3.2.min.js"></script>
-    <script type="text/javascript" src="$portalPath/js/jquery-ui-1.7.2.custom.min.js"></script>
     <script type="text/javascript">
     function setActionUri(uri) {
         $("#action-form").attr("action", uri);
@@ -221,19 +235,6 @@
             }
         });
     });
-    </script>
-    ## ActiveMQ ajax based messaging
-    <script type="text/javascript" src="$portalPath/js/anotar/json2.js"></script>
-    <script type="text/javascript" src="$portalPath/js/amq/amq_jquery_adapter.js"></script>
-    <script type="text/javascript" src="$portalPath/js/amq/amq.js"></script>
-    <script type="text/javascript">
-    function messageHandler(message) {
-        var json = JSON.parse(message.textContent);
-        $("#messages").append("<tr><td>" + json.message + "</td></tr>");
-    }
-    var amq = org.activemq.Amq;
-    amq.init({ uri: "$contextPath/amq/", timeout: 10 });
-    amq.addListener("tf_messages", "topic://message", messageHandler);
     </script>
   </body>
 </html>

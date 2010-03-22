@@ -110,6 +110,7 @@ public class AccessManager implements AccessControlManager {
             try {
                 access.init(config.toString());
             } catch (PluginException e) {
+                log.error("Failed to initialise access plugin '" + plugin_list[i] + "'", e);
                 throw new AccessControlException(e);
             }
             plugins.put(plugin_list[i], access);

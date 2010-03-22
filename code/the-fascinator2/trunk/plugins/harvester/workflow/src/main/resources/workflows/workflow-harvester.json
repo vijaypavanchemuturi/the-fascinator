@@ -57,16 +57,24 @@
 
     "stages": [
         {
-            "name": "init",
-            "security": ["owner", "admin"],
-            "visibility": ["guest", "owner", "admin"],
-            "template": "${user.home}/.fascinator/workflows/templates/basic-init.vm"
+            "name": "pending",
+            "label": "Pending",
+            "security": ["metadata", "admin"],
+            "visibility": ["metadata", "editor", "admin"]
+        },
+        {
+            "name": "metadata",
+            "label": "Basic Metadata Check",
+            "security": ["editor", "admin"],
+            "visibility": ["metadata", "editor", "admin"],
+            "template": "workflows/basic-init"
         },
         {
             "name": "live",
-            "security": ["owner", "admin"],
-            "visibility": ["guest", "owner", "admin"],
-            "template": "${user.home}/.fascinator/workflows/templates/basic-live.vm"
+            "label": "Live",
+            "security": ["editor", "admin"],
+            "visibility": ["guest"],
+            "template": "workflows/basic-live"
         }
     ]
 }

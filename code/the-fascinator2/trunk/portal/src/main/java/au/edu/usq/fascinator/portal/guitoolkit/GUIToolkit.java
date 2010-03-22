@@ -19,6 +19,7 @@
 package au.edu.usq.fascinator.portal.guitoolkit;
 
 import au.edu.usq.fascinator.common.JsonConfig;
+import au.edu.usq.fascinator.portal.services.DynamicPageService;
 import java.util.List;
 
 /**
@@ -35,8 +36,8 @@ public class GUIToolkit {
         sysConfig = config;
     }
 
-    public GUIDisplay getDisplayComponent() {
-        return new GUIDisplay(sysConfig);
+    public GUIDisplay getDisplayComponent(DynamicPageService renderer) {
+        return new GUIDisplay(sysConfig, renderer);
     }
 
     public GUIFileUploader getFileUploader(List<String> user_roles) {

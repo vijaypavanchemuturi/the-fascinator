@@ -1,17 +1,23 @@
 package au.edu.usq.fascinator.portal;
 
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.tapestry5.services.Request;
 
 public class FormData {
+
+    private Logger log = LoggerFactory.getLogger(FormData.class);
 
     private Map<String, List<String>> parameters;
     private Map<String, String> headers;
@@ -35,6 +41,15 @@ public class FormData {
         this.hsr = hsr;
     }
 
+    public void set(String name, String value) {
+        String[] values = {value};
+        setValues(name, Arrays.asList(values));
+    }
+
+    public void setValues(String name, List<String> values) {
+        parameters.put(name, values);
+    }
+
     public String get(String name) {
         List<String> values = getValues(name);
         return values == null ? null : values.get(0);
@@ -43,6 +58,10 @@ public class FormData {
     public String get(String name, String defaultValue) {
         String val = get(name);
         return val == null ? defaultValue : val;
+    }
+
+    public Set<String> getFormFields() {
+        return parameters.keySet();
     }
 
     public List<String> getValues(String name) {

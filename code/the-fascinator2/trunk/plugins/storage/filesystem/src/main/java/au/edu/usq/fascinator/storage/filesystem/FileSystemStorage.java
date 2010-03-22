@@ -153,9 +153,6 @@ public class FileSystemStorage implements Storage {
         File objHome = getPath(oid);
         if (objHome.exists()) {
             DigitalObject object = new FileSystemDigitalObject(objHome, oid);
-            // We can't iterate over getPayloadIdList() directly or a
-            // ConcurrentModificationException will be thrown as we delete
-            // from it.
             String[] oldManifest = {};
             oldManifest = object.getPayloadIdList().toArray(oldManifest);
             for (String pid : oldManifest) {

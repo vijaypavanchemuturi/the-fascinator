@@ -156,6 +156,16 @@ class Authentication:
         except AuthenticationException, e:
             self.error_message = self.parse_error(e)
 
+    def get_username(self):
+        if self.current_user is None:
+            return "guest"
+
+        user = self.current_user.getUsername()
+        if user is None:
+            return "guest"
+        else:
+            return user
+
     def grant_access(self, recordId, newRole):
         try:
             newAccess = self.access.getEmptySchema()

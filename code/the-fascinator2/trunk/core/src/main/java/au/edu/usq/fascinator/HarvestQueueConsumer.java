@@ -82,7 +82,8 @@ public class HarvestQueueConsumer implements MessageListener {
 
     private MessageSender sender;
 
-    public HarvestQueueConsumer() throws IOException, JAXBException {
+    public HarvestQueueConsumer()
+            throws IOException, JAXBException, PluginException {
         try {
             config = new JsonConfig();
             File sysFile = JsonConfig.getSystemFile();
@@ -94,8 +95,10 @@ public class HarvestQueueConsumer implements MessageListener {
             storage.init(sysFile);
         } catch (IOException ioe) {
             log.error("Failed to read configuration: {}", ioe.getMessage());
+            throw ioe;
         } catch (PluginException pe) {
             log.error("Failed to initialise plugin: {}", pe.getMessage());
+            throw pe;
         }
     }
 
@@ -190,10 +193,10 @@ public class HarvestQueueConsumer implements MessageListener {
                             .get("indexer/script/rules"));
                     processObject(rulesFile, text, oid, path);
                 }
-                sendNotification(oid, "Indexing '" + oid + "' started");
+                sendNotification(oid, "indexStart", "Indexing '" + oid + "' started");
                 log.info("Indexing object {}...", oid);
                 indexer.index(oid);
-                sendNotification(oid, "Index of '" + oid + "' completed");
+                sendNotification(oid, "indexComplete", "Index of '" + oid + "' completed");
                 log.info("Queuing render job...");
                 queueRenderJob(oid, text);
             }
@@ -208,9 +211,11 @@ public class HarvestQueueConsumer implements MessageListener {
         }
     }
 
-    private void sendNotification(String oid, String message) {
+    private void sendNotification(String oid, String status, String message) {
         JsonConfigHelper jsonMessage = new JsonConfigHelper();
-        jsonMessage.set("oid", oid);
+        jsonMessage.set("id", oid);
+        jsonMessage.set("idType", "object");
+        jsonMessage.set("status", status);
         jsonMessage.set("message", message);
         sender.sendMessage(jsonMessage.toString());
     }

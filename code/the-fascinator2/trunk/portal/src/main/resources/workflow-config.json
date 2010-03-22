@@ -1,7 +1,7 @@
 {
     "workflow1": {
         "screen-label": "Workflow 1",
-        "security": ["admin"],
+        "security": ["registered", "metadata", "editor", "admin"],
         "upload-path": "${user.home}/.fascinator/uploads/workflow-harvester",
         "json-config": "${user.home}/.fascinator/workflows/workflow-harvester.json"
     }

@@ -29,7 +29,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -37,7 +36,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -128,9 +126,7 @@ public class SimpleAccessControl implements AccessControl {
             File access_file = new File(file_path);
             if (!access_file.exists()) {
                 access_file.getParentFile().mkdirs();
-                OutputStream out = new FileOutputStream(access_file);
-                IOUtils.copy(getClass().getResourceAsStream("/" + DEFAULT_FILE_NAME), out);
-                out.close();
+                access_file.createNewFile();
             }
             // Our dummy lock file
             access_file = new File(file_path + ".lock");
