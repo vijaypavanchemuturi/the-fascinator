@@ -2,16 +2,22 @@
   <b>Rendering</b>:
   <div class="box">
       <img src="$portalPath/images/loading-progress.gif" />
-      <div id="render-list"></div>
+      <ul id="render-list"></ul>
   </div>
+  ## ActiveMQ ajax based messaging
+  <script type="text/javascript" src="$portalPath/js/anotar/json2.js"></script>
+  <script type="text/javascript" src="$portalPath/js/amq/amq_jquery_adapter.js"></script>
+  <script type="text/javascript" src="$portalPath/js/amq/amq.js"></script>
   <script type="text/javascript">
       function waitRender(message) {
           var json = JSON.parse(message.textContent);
-          $("#render-list").append("<br/>" + json.message);
+          $("#render-list").append("<li>" + json.message + "</li>");
           if (json.status == "renderComplete" && json.id == "$oid") {
               window.location = "$portalPath/workflow/$oid";
           }
       }
+      var amq = org.activemq.Amq;
+      amq.init({ uri: "$contextPath/amq/", timeout: 10 });
       amq.addListener("tf_messages", "topic://message", waitRender);
   </script>
 #end
