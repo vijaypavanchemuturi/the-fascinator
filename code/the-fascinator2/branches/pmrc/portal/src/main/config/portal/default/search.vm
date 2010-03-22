@@ -140,7 +140,8 @@
                     <td width="33%">
                     <div id="$hashId" class="article#if($velocityCount==1) first#end">
                       <p><a href="$portalPath/detail/$self.encode($id)">$title</a></p>
-                      <div id="$self.getObject($id).id" class="tags">Tags: <span class="tags-here"></div></span>
+                      <div id="$self.getObject($id).id" class="tags"/>
+                      ##<div id="$self.getObject($id).id" class="tags">Tags: <span class="tags-here"></span></div>
                       #set($thumbnail = $self.getThumbnail($id))
                       #if($thumbnail)
                         <a class="image" href="$portalPath/detail/$id">
@@ -338,9 +339,37 @@ $(function() {
 </script>
 
 <script type="text/javascript" src="$portalPath/js/anotar/json2.js"></script>
-<script type="text/javascript" src="$portalPath/js/anotar/anotar-0.1.js"></script>
+<script type="text/javascript" src="$portalPath/js/anotar/anotar-0.2.js"></script>
 <script type="text/javascript">
     $(function(){
+        /*jQ = jQuery;
+        // Tags annotation
+        tagConfig = {
+            //debug: true,
+            docRoot: ".result-list",
+            tagList: ".tags",
+            outputInChild: ".tags-here", 
+            uriAttr: "id",
+            stylePrefix: "tags-",
+            #if($page.authentication.is_logged_in())
+            creator: "$page.authentication.get_name()",
+            creatorUri: null,
+            #end
+            hashFunction: function(me) { return me.attr("anotar-hash"); },
+            formCustom: "object_tag_form",
+            annotationType: "tag",
+            interfaceLabel: " <img src='$portalPath/images/icons/add.png'/>",
+            interfaceVisible: true,
+            ##formPrepend: true,
+            formCancel: ".myTag-cancel",
+            formSubmit: ".myTag-submit",
+            serverAddress: "$portalPath/actions/anotar.ajax",
+            getAnnotation: null,
+            disableReply: true,
+            serverMode: "fascinator"
+        }
+        tag = anotarFactory(jQ, tagConfig);
+        
         var tags = new Anotar();
         tags.setType("Tag");
         tags.setConfig("debug", true);
@@ -370,8 +399,17 @@ $(function() {
         tags.setConfig("form_submit", ".myTag-submit");
         tags.setConfig("disable_replies", true);
         tags.init($);
+        */
         
     });
+</script>
+
+<script type="text/html" id="object_tag_form">
+    <div class='myTags float-right'>Tag this:
+      <input id="object-tag-input" type="text" />
+      <img src='$portalPath/images/icons/tick.png' class='myTag-submit' />&#160;
+      <img src='$portalPath/images/icons/cross.png' class='myTag-cancel' />
+    </div>
 </script>
 
 #if($is_admin)
