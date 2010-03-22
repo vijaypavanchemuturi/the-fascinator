@@ -107,16 +107,29 @@
     <div id="anno-root" class="content-preview">
       <div class="first article">
         <div class="article-heading">$title</div>
-        <div id="tag-box" class="myTags">
-          <div id="$oid" class="tag-list">Tags: <span class="tags-here"></span></div>
+        <div id="object-tag-list">
+          <div rel="$page.md5Hash($oid)_object">Tags: <span class="object-tags"></span></div>
         </div>
+        <br/>
+        <div id="location-tag-list">
+          <div rel="$page.md5Hash($oid)_location">Location: <span class="location-tags"></span></div>
+        </div>
+        <br/>
         <div id="content">
         #if($self.mimeType.startsWith("audio/") || $self.mimeType.startsWith("video/"))
-          <div id="player-container"></div>
-          <div class="media-comments">
-            <div class="media-comment" anotar-uri="$portalPath/$oid"><!-- media-comment --></div>
-          </div>
-          <div class="clear"></div>
+          <table>
+	          <tbody>
+	            <tr>
+	              <td id="player-container"></td>
+	              <td>
+	                <div class="video-results-list">
+	                  <div class="video-result-list" anotar-uri="$oid">
+	                  </div>
+	                </div>
+	              </td>
+	            </tr>
+	          </tbody>
+	        </table>
         #else
           <div class="content-preview-inline">$!self.payloadContent</div>
           <script type="text/javascript" src="$portalPath/js/tree/jquery.tree.min.js"></script>
@@ -137,6 +150,19 @@
 <script type="text/javascript" src="$portalPath/js/autocomplete/lib/jquery.bgiframe.js"></script>
 <script type="text/javascript" src="$portalPath/js/autocomplete/jquery.autocomplete.pack.js"></script>
 <script type="text/javascript">
+var display_help = false;
+function toggleHelp(help_link) {
+    if (!display_help) {
+        $(".help_p").css("display", "block");
+        help_link.text("Hide help");
+        display_help = true;
+    } else {
+        $(".help_p").css("display", "none");
+        help_link.html("Show help");
+        display_help = false;
+    }
+}
+
 $(function() {
     var oid = "$oid";
     var filenameNoExt = "$filenameNoExt";
@@ -182,9 +208,9 @@ $(function() {
     var mimeType = "$self.mimeType";
 
     #if($self.mimeType.startsWith("image/"))
-        var src = "$portalPath/download/$oid";
+        var src = "$portalPath/download/$oid/$self.getPreview('$portalPath/download/$oid')";
         $("#content").html(
-            '<div class="annotatable"><div class="image">' +
+            '<div id="$oid" class="annotatable"><div class="image">' +
               '<img class="image" id="image-content" src="' + src + '" style="max-width: 100%" />' +
             '</div><div class="clear"></div></div>');
     #elseif($self.mimeType.startsWith("audio/") || $self.mimeType.startsWith("video/"))
@@ -255,7 +281,7 @@ $(function() {
                     }
                 }
             }
-            $(".video-result-list").attr("rel", uri);
+            $(".video-results-list").attr("rel", uri);
         });
         
         $(".player_clear_fragment").live("click", function() {
@@ -325,68 +351,119 @@ $(function() {
 </script>
 
 <script type="text/javascript" src="$portalPath/js/anotar/json2.js"></script>
-<script type="text/javascript" src="$portalPath/js/anotar/anotar-0.1.js"></script>
+<script type="text/javascript" src="$portalPath/js/anotar/anotar-0.2.js"></script>
+
+<script type="text/html" id="object_tag_form">
+    <div class='myTags float-right'>Tag this:
+      <input id="object-tag-input" type="text" />
+      <img src='$portalPath/images/icons/tick.png' class='myTag-submit' />&#160;
+      <img src='$portalPath/images/icons/cross.png' class='myTag-cancel' />
+    </div>
+</script>
+
 <script type="text/javascript">
     $(function() {
-        // Tags annotation
-        var tags = new Anotar();
-        tags.setType("Tag");
-        //tags.setConfig("debug", true);
-        tags.setConfig("doc_root", "#tag-box");
-        tags.setConfig("tag_list", ".tag-list");
-        tags.setConfig("page_uri", "$oid");
-        tags.setConfig("output_in_child", ".tags-here");
-        tags.setConfig("uri_attr", "id");
-        tags.setConfig("anno_type", "http://www.purl.org/anotar/ns/type/0.1#Tag");
-        tags.setConfig("style_prefix", "tags-");
-        tags.setConfig("proxy_required", false);
-        tags.setConfig("interface_label", " <img src='$portalPath/images/icons/add.png'/>");
-        tags.setConfig("interface_visible", true);
-        tags.setConfig("form_prepend", true);
-        tags.setConfig("form_custom", "<div class='myTags float-right'>Tag this:" +
-          "<textarea></textarea>" +
-          "<img src='$portalPath/images/icons/tick.png' class='myTag-submit'/>&#160;" +
-          "<img src='$portalPath/images/icons/cross.png' class='myTag-cancel'>" +
-        "</div>");
-        tags.setConfig("form_cancel", ".myTag-cancel");
-        tags.setConfig("form_submit", ".myTag-submit");
-        tags.setConfig("server_address", "$portalPath/actions/anotar.ajax");
-        tags.setConfig("server_mode", "fascinator");
-        tags.setConfig("disable_replies", true);
-        tags.init($);
-
+    	var jQ = jQuery;
+    	// Tags annotation
+        tagConfig = {
+            //debug: true,
+            docRoot: "#object-tag-list",
+            tagList: "div",
+            contentInput: "#object-tag-input",
+            pageUri: "$oid",
+            uriAttr: "rel",
+            outputInChild: ".object-tags",
+            annotationType: "tag",
+            stylePrefix: "tags-",
+            interfaceLabel: " <img src='$portalPath/images/icons/add.png'/>",
+            formPrepend: true,
+            interfaceVisible: true,
+            formCustom: "object_tag_form",
+            formCancel: ".myTag-cancel",
+            formSubmit: ".myTag-submit",
+            serverAddress: "$portalPath/actions/anotar.ajax",
+            getAnnotation: null,
+            disableReply: true,
+            serverMode: "fascinator"
+        }
+        tag = anotarFactory(jQ, tagConfig);
+        
+        // Location Tags annotation
+        locationConfig={
+            debug: true,
+            docRoot: "#location-tag-list",
+            tagList: "div",
+            contentInput: "#txtName",
+            pageUri: "$oid",
+            uriAttr: "rel",
+            outputInChild: ".location-tags",
+            annotationType: "tag",
+            stylePrefix: "tags-",
+            interfaceLabel: " <img src='$portalPath/images/icons/add.png'/>",
+            //formPrepend: true,
+            interfaceVisible: true,
+            formCustom: "location_form",
+            formCancel: ".locTag-cancel",
+            formSubmit: ".locTag-submit",
+            displayCustom: "location_tag_form", 
+            onFormDisplay: function(node){
+				$(node).autocomplete('$portalPath/actions/geonames.ajax', {
+					extraParams: {"func":"placeName"}, 
+					formatItem: function(row) {
+						return row[0];
+					}
+				}).result(function(event, item) {
+					if (item) {
+						$("#location-tag-list").attr("rel", item[1]);
+					}
+				});
+            },
+            getContentUri: function(node) {
+                var rel = node.attr("rel");
+                if (rel == null) {
+                    // content is not a URI
+                    return { isUri: false };
+                }
+                return { isUri: true, contentUri: "http://www.geonames.org/" + rel };
+            },
+            serverAddress: "$portalPath/actions/anotar.ajax",
+            disableReply: true,
+            serverMode: "fascinator"
+        }
+        /// Use formCloseFunction to overwrite close function
+        locationTag = anotarFactory(jQ, locationConfig);
+        
+        
         #if($self.mimeType.startsWith("audio/") || $self.mimeType.startsWith("video/"))
-        // Video annotation
-        var mediaAnoLabel = "<img src='$portalPath/images/icons/comment_add.png'/>&#160;Comment on this media:";
-        var mediaAno = new Anotar();
-        //mediaAno.setConfig("debug", true);
-        mediaAno.setConfig("label", mediaAnoLabel);
-        mediaAno.setConfig("object_literal", "$oid");
-        mediaAno.setConfig("page_uri", "$portalPath/$oid");
-        mediaAno.setConfig("doc_root", ".media-comments");
-        mediaAno.setConfig("tag_list", ".media-comment");
-        mediaAno.setConfig("uri_attr", "anotar-uri");
-        mediaAno.setConfig("reply_label", " <img src='$portalPath/images/icons/comments_add.png'/>");
-        mediaAno.setConfig("hash_type", "http://www.w3.org/TR/2009/WD-media-frags-20091217");
-        mediaAno.setConfig("hash_function", function(node) {
-            var rel = node.attr("rel");
-            if (rel == null) { rel = "$oid"; }
-            alert("rel");
-            return rel;
-        });
-        mediaAno.setConfig("style_prefix", "anno-");
-        mediaAno.setConfig("proxy_required", false);
-        mediaAno.setConfig("interface_label", mediaAnoLabel);
-        mediaAno.setConfig("interface_visible", true);
-        mediaAno.setConfig("form_custom", "media_clip_form");
-        mediaAno.setConfig("form_cancel", ".myTag-cancel");
-        mediaAno.setConfig("form_submit", ".myTag-submit");
-        mediaAno.setConfig("server_address", "$portalPath/actions/anotar.ajax");
-        mediaAno.setConfig("server_mode", "fascinator");
-        mediaAno.setConfig("disable_replies", false);
-        mediaAno.setConfig("display_custom", "media_clip_comment");
-        mediaAno.init($);
-
+        // Audio/Video Tags annotation
+        var videoAnoLabel = "<img src='$portalPath/images/icons/comment_add.png'/>&#160;Comment on this media:";
+        videoConfig={
+            debug: true,
+            label: videoAnoLabel,
+            //objectLiteral: "$oid",
+            pageUri: "$oid",
+            docRoot: ".video-results-list",
+            tagList: ".video-result-list",
+            uriAttr: "anotar-uri",
+            replyLabel: "<img src='$portalPath/images/icons/comments_add.png'/>",
+            //formPrepend: true,
+            //stylePrefix: "anno-",
+            interfaceLabel: videoAnoLabel,
+            interfaceVisible: true,
+            formCustom: "media_clip_form",
+            formCancel: ".myTag-cancel",
+            formSubmit: ".myTag-submit",
+            displayCustom: "media_clip_comment", 
+            hashType: "http://www.w3.org/TR/2009/WD-media-frags-20091217",
+            hashFunction: function(node) {
+                var rel = node.attr("rel");
+                if (rel == null) { rel = "$oid"; }
+                return rel;
+            },
+            serverAddress: "$portalPath/actions/anotar.ajax",
+            disableReply: false,
+            serverMode: "fascinator"
+        }
         $("#media_clip textArea").live("focus", function() {
             var replies = $("#media_clip").prev("blockquote.anno-inline-annotation-quote")
                                           .find(".anno-anno-children");
@@ -398,43 +475,89 @@ $(function() {
             return false;
         });
         
-        $("span.annotate_clip a").live("click", 
-            function() {
-                var node = $(this);
-                if (node.text() == "Show help") {
-                    node.text("Hide help");
-                    $(".help_p").show();
-                } else {
-                    node.text("Show help");
-                    $(".help_p").hide();
-                }
-                return false;
-            }
-        );
+        videoTag = anotarFactory(jQ, videoConfig);
         #else
-        // Comment annotation
-        var notes = new Anotar();
-        //notes.setConfig("debug", true);
-        notes.setConfig("object_literal", "$oid");
-        notes.setConfig("page_uri", "$portalPath/$oid");
-        #if($page.authentication.is_logged_in())
-        notes.setConfig("creator", "$page.authentication.get_name()");
-        notes.setConfig("creator_uri", null);
+        
+        noteConfig={
+            pageUri: "$self.object.id",
+            #if($page.authentication.is_logged_in()) 
+            creator: "$page.authentication.get_name()",
+            creatorUri: null,
+            #end
+            tagList: "p, h1, h2, h3, h4, h5, h6, .annotatable",
+            interfaceLabel: " <img src='$portalPath/images/icons/comment_add.png'/> Comments:",
+            replyLabel: " <img src='$portalPath/images/icons/comments_add.png'/>",
+            serverAddress: "$portalPath/actions/anotar.ajax",
+            serverMode: "fascinator",
+            interfaceVisible: true
+        }
+        noteTag = anotarFactory(jQ, noteConfig);
         #end
-        notes.setConfig("tag_list", "p, h1, h2, h3, h4, h5, h6, .annotatable");
-        notes.setConfig("proxy_required", false);
-        notes.setConfig("reply_label", " <img src='$portalPath/images/icons/comments_add.png'/>");
-        notes.setConfig("server_address", "$portalPath/actions/anotar.ajax");
-        notes.setConfig("server_mode", "fascinator");
-        #if ($self.mimeType.startsWith("image/"))
-        notes.setConfig("interface_visible", true);
-        notes.setConfig("interface_label", " <img src='$portalPath/images/icons/comment_add.png'/> Comments:");
-        #else
-        notes.setConfig("interface_label", " <img src='$portalPath/images/icons/comment_add.png'/>");
-        #end
-        notes.init($);
-        #end
+        
     });
+</script>
+
+<script type="text/javascript">
+    function attach(node) {
+        if (!$(node).attr("attach")) {
+            $(node).attr("attach", "true");
+            $(node).autocomplete('$portalPath/actions/geonames.ajax', {
+                extraParams: {"func":"placeName"}, 
+                formatItem: function(row) {
+                    return row[0];
+                }
+            }).result(function(event, item) {
+                if (item) {
+                    $("#location-tag-list").attr("rel", item[1]);
+                }
+            });
+        }
+    }
+</script>
+
+<script type="text/html" id="location_form">
+  <div id="location_div">
+    <table>
+      <tr>
+        <td colspan="2" class="location_scope">
+          <input type="radio" name="location_scope" id="byName" checked="true"
+                 onclick="$('.annotate_name').show();$('.annotate_ll').hide();$('.annotate_range').hide();" />
+          <label for="byName">By Location Name</label>
+          <input type="radio" name="location_scope" id="byLL"
+                 onclick="$('.annotate_name').hide();$('.annotate_ll').show();$('.annotate_range').hide();" />
+          <label for="byLL">By Latitude/Longitude</label>
+          <input type="radio" name="location_scope" id="byRange"
+                 onclick="$('.annotate_name').hide();$('.annotate_ll').hide();$('.annotate_range').show();" />
+          <label for="byRange">By Range</label>
+        </td>
+      </tr>
+      <tr class="annotate_name">
+        <td>Search: <input type="text" id="txtName" size="45"/></td>
+      </tr>
+      <tr class="hidden annotate_ll">
+        <td>Latitude: <input type="text" id="txtLatitude"/>
+        Longitude: <input type="text" id="txtLongitude"/></td>
+      </tr>
+      <tr class="hidden annotate_range">
+        <td>Range: Range</td>
+      </tr>
+      <tr>
+        <td><button class="locTag-cancel">Cancel</button>&#160;
+            <button class="locTag-submit">Submit</button></td>
+      </tr>
+    </table>
+  </div>
+</script>
+
+<script type="text/html" id="location_tag_form">
+    <% if (contentUri != null && contentUri.indexOf("http://www.geonames.org") == 0) { %>
+  <span class='<%=style%>tag'>
+      <a href="<%=contentUri%>"><%=content%><% if(tagCount > 1){ %> (<%=tagCount%>)<% } %></a>
+  </span>
+    <% } else { %>
+      <span></span>
+      ##<a href="http://www.geonames.org/search.html?q=<%=content%>"><%=content%></a>
+    <% }%>
 </script>
 
 #if($self.mimeType.startsWith("audio/") || $self.mimeType.startsWith("video/"))
@@ -449,7 +572,7 @@ $(function() {
           <input type="radio" name="annotate_scope" id="annotate_clip"
                  onclick="$('.annotate_clip').show()" />
           <label for="annotate_clip">Select a portion (clip) to annotate</label>
-          <span class="hidden annotate_clip">(<a href="#">Show help</a>)</span>
+          <span class="hidden annotate_clip">(<a onclick="toggleHelp($(this))">Show help</a>)</span>
         </td>
       </tr>
       <tr class="hidden annotate_clip">
@@ -490,11 +613,11 @@ $(function() {
         </td>
       </tr>
       <tr class="hidden annotate_clip">
-        <td width="10%"><input id="player_mark_start_time" type="button" value="Mark start time" value=""/></td>
+        <td><input id="player_mark_start_time" type="button" value="Mark start time" value=""/></td>
         <td><input type="text" id="txtStartMark" value="" size="5"/></td>
       </tr>
       <tr class="hidden annotate_clip">
-        <td width="10%"><input id="player_mark_end_time" type="button" value="Mark end time" value="" disabled="true"/></td>
+        <td><input id="player_mark_end_time" type="button" value="Mark end time" value="" disabled="true"/></td>
         <td><input type="text" id="txtEndMark" value="" disabled="true" size="5"/></td>
       </tr>
       <tr class="hidden annotate_clip">
@@ -534,7 +657,7 @@ $(function() {
     }
   }
   %>
-  <div class="<%=style%>inline-annotation <%=toggle%>" id="<%=id%>">
+  <div class="<%=style%>inline-annotation <%=toggle%>" anotar-uri="<%=id%>">
       <input name="rootUri" value="<%=root%>" type="hidden"/>
       <div class="<%=style%>orig-content" style="display:none;"><%=original%></div>
       <div class="<%=style%>anno-info">
@@ -568,7 +691,6 @@ $(function() {
     });
 </script>
 #end
-
 #end
 
 #set ($_=$self.closeObject())
