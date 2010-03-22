@@ -20,6 +20,7 @@ package au.edu.usq.fascinator;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.logging.Level;
 
 import javax.jms.Connection;
 import javax.jms.DeliveryMode;
@@ -46,6 +47,7 @@ import au.edu.usq.fascinator.api.storage.Storage;
 import au.edu.usq.fascinator.api.storage.StorageException;
 import au.edu.usq.fascinator.api.transformer.TransformerException;
 import au.edu.usq.fascinator.common.JsonConfig;
+import au.edu.usq.fascinator.common.JsonConfigHelper;
 import java.util.Properties;
 
 /**
@@ -78,6 +80,8 @@ public class RenderQueueConsumer implements MessageListener {
 
     private MessageProducer producer;
 
+    private MessageSender sender;
+
     private String name;
 
     public RenderQueueConsumer(String name) throws IOException {
@@ -91,10 +95,13 @@ public class RenderQueueConsumer implements MessageListener {
             storage = PluginManager.getStorage(config.get("storage/type",
                     "file-system"));
             storage.init(sysFile);
+            sender = new MessageSender(MessageSender.MESSAGE_QUEUE);
         } catch (IOException ioe) {
             log.error("Failed to read configuration: {}", ioe.getMessage());
         } catch (PluginException pe) {
             log.error("Failed to initialise plugin: {}", pe.getMessage());
+        } catch (JMSException je) {
+            log.error("Failed to initialise messaging system: {}", je.getMessage());
         }
     }
 
@@ -159,6 +166,9 @@ public class RenderQueueConsumer implements MessageListener {
                 log.warn("Failed to close connection: {}", jmse.getMessage());
             }
         }
+        if (sender != null) {
+            sender.close();
+        }
     }
 
     @Override
@@ -168,6 +178,7 @@ public class RenderQueueConsumer implements MessageListener {
             String text = ((TextMessage) message).getText();
             JsonConfig config = new JsonConfig(text);
             String oid = config.get("oid");
+            sendNotification(oid, "renderStart", "Renderer starting : '" + oid + "'");
             log.info("Received job, object id={}", oid);
             log.info("Updating object...");
             DigitalObject object = storage.getObject(oid);
@@ -177,6 +188,7 @@ public class RenderQueueConsumer implements MessageListener {
             log.info("Indexing object...");
             indexer.index(object.getId());
 
+            sendNotification(oid, "renderComplete", "Renderer complete : '" + oid + "'");
             // update object metadata
             Properties props = object.getMetadata();
             props.setProperty("render-pending", "false");
@@ -193,6 +205,15 @@ public class RenderQueueConsumer implements MessageListener {
         } catch (IndexerException ie) {
             log.error("Failed to index object: {}", ie.getMessage());
         }
+    }
+
+    private void sendNotification(String oid, String status, String message) {
+        JsonConfigHelper jsonMessage = new JsonConfigHelper();
+        jsonMessage.set("id", oid);
+        jsonMessage.set("idType", "object");
+        jsonMessage.set("status", status);
+        jsonMessage.set("message", message);
+        sender.sendMessage(jsonMessage.toString());
     }
 
     private void sendMessage(String json) {

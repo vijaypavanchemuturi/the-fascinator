@@ -463,3 +463,14 @@ ul.nobgtabs li a.ui-state-active {
     background-repeat: no-repeat;
     padding-left: 20px;
 }
+
+.owner {
+    background-image: url('../images/icons/user.png');
+    background-position: 0 50%;
+    background-repeat: no-repeat;
+    padding-left: 20px;
+}
+
+img.workflow {
+    vertical-align: text-bottom;
+}

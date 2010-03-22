@@ -94,7 +94,9 @@ class DetailData:
         return f.exists();
 
     def closeObject(self):
-        self.__object.close()
+        object = self.getObject()
+        if object is not None:
+            object.close()
 
     def containsPid(self, pid):
         return self.getObject().getPayloadIdList().contains(pid);

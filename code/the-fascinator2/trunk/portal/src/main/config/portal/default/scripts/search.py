@@ -85,9 +85,11 @@ class SearchData:
         
         # Make sure 'fq' has already been set in the session
         if not page.authentication.is_admin():
-            security_roles = page.authentication.get_roles_list();
+            security_roles = page.authentication.get_roles_list()
             security_query = 'security_filter:("' + '" OR "'.join(security_roles) + '")'
-            req.addParam("fq", security_query)
+            current_user = page.authentication.get_username()
+            owner_query = 'owner:"' + current_user + '"'
+            req.addParam("fq", "(" + security_query + ") OR (" + owner_query + ")")
 
         req.setParam("start", str((self.__pageNum - 1) * recordsPerPage))
         
@@ -100,6 +102,13 @@ class SearchData:
             self.__paging = Pagination(self.__pageNum,
                                        int(self.__result.get("response/numFound")),
                                        self.__portal.recordsPerPage)
+
+    def canManage(self, wfSecurity):
+        user_roles = page.authentication.get_roles_list()
+        for role in user_roles:
+            if role in wfSecurity:
+                return True
+        return False
 
     def getQueryTime(self):
         return int(self.__result.get("responseHeader/QTime")) / 1000.0;

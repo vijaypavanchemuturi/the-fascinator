@@ -166,7 +166,12 @@
       #end
       #set($description = "")
       #set($description = $item.get("dc_description").get(0))
-      <div id="$hashId" class="article#if($velocityCount==1) first#end">
+      #set ($resultClass = "article")
+      #if($velocityCount==1)
+        #set ($resultClass = "$resultClass first")
+      #end
+
+      <div id="$hashId" class="$resultClass">
         #if($is_admin)
         <div class="admin-link-holder float-right">
           <a class="admin-security-link" rel="$id" href="#">Manage Access</a>
@@ -178,7 +183,20 @@
           <a class="admin-delete-link" rel="$id" href="#">Delete Object</a>
         </div>
         #end
-        <h3><a href="$portalPath/detail/$self.encode($id)">$title</a></h3>
+        <h3>
+            #set($wfStep = $item.get("workflow_step").get(0))
+            #if ($wfStep != "" && $wfStep != "live")
+            <img class="workflow" src="$portalPath/images/icons/wf_${wfStep}.png" />
+            #end
+            #if($self.canManage($item.get("workflow_security")))
+            <span class="wfMan">
+              <a href="$portalPath/workflow/$self.encode($id)">
+                <img class="workflow" src="$portalPath/images/icons/application_go.png" />
+              </a>
+            </span>
+            #end
+            <a href="$portalPath/detail/$self.encode($id)">$title</a>
+        </h3>
         <div id="$id" class="tags">Tags:<span class="tags-here"></span></div>
         #set($thumbnail = $self.getThumbnail($id))
         #if($thumbnail)
@@ -187,8 +205,8 @@
           </a>
         #end
         <p class="item-description">$!description&nbsp;</p>
+        <div class="clear"></div>
       </div>
-      <div class="clear"></div>
     #end
     #else
       <div class="box no-result">No items found matching your query: '$!query'</div>

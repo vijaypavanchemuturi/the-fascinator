@@ -27,10 +27,13 @@ import au.edu.usq.fascinator.common.harvester.impl.GenericHarvester;
 import au.edu.usq.fascinator.common.storage.StorageUtils;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Properties;
 import java.util.Set;
+import java.util.logging.Level;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -84,9 +87,19 @@ public class WorkflowHarvester extends GenericHarvester {
 
     private String createDigitalObject(File file) throws HarvesterException,
             StorageException {
-        DigitalObject object = StorageUtils.storeFile(getStorage(), file,
-                forceLocalStorage);
-        String oid = object.getId();
+        String oid = StorageUtils.generateOid(file);
+        String pid = StorageUtils.generatePid(file);
+
+        DigitalObject object = getStorage().createObject(oid);
+        if (forceLocalStorage) {
+            try {
+                object.createStoredPayload(pid, new FileInputStream(file));
+            } catch (FileNotFoundException ex) {
+                throw new HarvesterException(ex);
+            }
+        } else {
+            object.createLinkedPayload(pid, file.getAbsolutePath());
+        }
 
         // update object metadata
         Properties props = object.getMetadata();

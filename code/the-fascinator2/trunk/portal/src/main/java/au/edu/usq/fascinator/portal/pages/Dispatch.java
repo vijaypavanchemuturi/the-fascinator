@@ -18,6 +18,18 @@
  */
 package au.edu.usq.fascinator.portal.pages;
 
+import au.edu.usq.fascinator.HarvestClient;
+import au.edu.usq.fascinator.api.PluginException;
+import au.edu.usq.fascinator.api.roles.RolesManager;
+import au.edu.usq.fascinator.common.JsonConfig;
+import au.edu.usq.fascinator.common.JsonConfigHelper;
+import au.edu.usq.fascinator.common.MimeTypeUtil;
+import au.edu.usq.fascinator.portal.FormData;
+import au.edu.usq.fascinator.portal.JsonSessionState;
+import au.edu.usq.fascinator.portal.services.DynamicPageService;
+import au.edu.usq.fascinator.portal.services.GenericStreamResponse;
+import au.edu.usq.fascinator.portal.services.HttpStatusCodeResponse;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -29,6 +41,8 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -45,18 +59,6 @@ import org.apache.tapestry5.services.Response;
 import org.apache.tapestry5.upload.services.MultipartDecoder;
 import org.apache.tapestry5.upload.services.UploadedFile;
 import org.slf4j.Logger;
-
-import au.edu.usq.fascinator.HarvestClient;
-import au.edu.usq.fascinator.api.PluginException;
-import au.edu.usq.fascinator.api.roles.RolesManager;
-import au.edu.usq.fascinator.common.JsonConfig;
-import au.edu.usq.fascinator.common.JsonConfigHelper;
-import au.edu.usq.fascinator.common.MimeTypeUtil;
-import au.edu.usq.fascinator.portal.FormData;
-import au.edu.usq.fascinator.portal.JsonSessionState;
-import au.edu.usq.fascinator.portal.services.DynamicPageService;
-import au.edu.usq.fascinator.portal.services.GenericStreamResponse;
-import au.edu.usq.fascinator.portal.services.HttpStatusCodeResponse;
 
 public class Dispatch {
 
@@ -198,7 +200,6 @@ public class Dispatch {
         boolean security_check = false;
         for (Object role : allowed_roles) {
             if (roles.contains(role.toString())) {
-                log.debug(" *** Role Match : " + role.toString());
                 security_check = true;
             }
         }
@@ -235,12 +236,24 @@ public class Dispatch {
                 return;
             }
         }
-        log.debug("Writing file to disk : " + file_path);
         uploadedFile.write(file);
 
         // Make sure the new file gets harvested
         File harvest_config = new File(available_workflows.get(workflow).get(
                 "json-config"));
+        // Get the workflow template needed for stage 1
+        String template = "";
+        try {
+            JsonConfigHelper workflowConfig = new JsonConfigHelper(harvest_config);
+            List<JsonConfigHelper> stages = workflowConfig.getJsonList("stages");
+            if (stages.size() > 0) {
+                JsonConfigHelper stage = stages.get(0);
+                template = stage.get("template");
+            }
+        } catch (IOException ex) {
+            log.error("Unable to access workflow config : ", ex);
+        }
+
         HarvestClient harvester = null;
         String oid = null;
         String error = null;
@@ -257,13 +270,22 @@ public class Dispatch {
             log.error("Failed harvest", ex);
             return;
         }
+        boolean success = file.delete();
+        if (!success) {
+            log.error("Error deleting uploaded file from cache: " + file.getAbsolutePath());
+        }
 
         // Now create some session data for use later
         Map<String, String> file_details = new LinkedHashMap<String, String>();
         file_details.put("name",     uploadedFile.getFileName());
         if (error != null) {
-            file_details.put("error", error);
+            // Strip our package/class details from error string
+            Pattern pattern = Pattern.compile("au\\..+Exception:");
+            Matcher matcher = pattern.matcher(error);
+            file_details.put("error", matcher.replaceAll(""));
         }
+        file_details.put("workflow", workflow);
+        file_details.put("template", template);
         file_details.put("location", file_path);
         file_details.put("size",     String.valueOf(uploadedFile.getSize()));
         file_details.put("type",     uploadedFile.getContentType());

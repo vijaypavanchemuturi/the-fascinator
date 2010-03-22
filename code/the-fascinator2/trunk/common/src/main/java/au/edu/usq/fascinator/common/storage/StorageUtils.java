@@ -43,6 +43,26 @@ public class StorageUtils {
             .getLogger(StorageUtils.class);
 
     /**
+     * Generates a Object identifier for a given file
+     *
+     * @param file the File to store
+     * @return a String object id
+     */
+    public static String generateOid(File file) {
+        return FilenameUtils.separatorsToUnix(file.getAbsolutePath());
+    }
+
+    /**
+     * Generates a Payload identifier for a given file
+     *
+     * @param file the File to store
+     * @return a String payload id
+     */
+    public static String generatePid(File file) {
+        return FilenameUtils.separatorsToUnix(file.getName());
+    }
+
+    /**
      * This method stores a copy of a File as a DigitalObject into the specified
      * Storage
      * 
@@ -84,8 +104,8 @@ public class StorageUtils {
             boolean linked) throws StorageException {
         DigitalObject object = null;
         Payload payload = null;
-        String oid = FilenameUtils.separatorsToUnix(file.getAbsolutePath());
-        String pid = FilenameUtils.separatorsToUnix(file.getName());
+        String oid = generateOid(file);
+        String pid = generatePid(file);
         try {
             try {
                 object = getDigitalObject(storage, oid);

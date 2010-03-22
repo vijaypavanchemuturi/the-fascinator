@@ -149,35 +149,46 @@ public class SolrIndexer implements Indexer {
     }
 
     @Override
-    public void init(String jsonString) throws PluginException {
-        // TODO Auto-generated method stub
+    public void init(String jsonString) throws IndexerException {
+        try {
+            config = new JsonConfig(new ByteArrayInputStream(
+                    jsonString.getBytes("UTF-8")));
+            init();
+        } catch (UnsupportedEncodingException e) {
+            throw new IndexerException(e);
+        } catch (IOException e) {
+            throw new IndexerException(e);
+        }
     }
 
     @Override
     public void init(File jsonFile) throws IndexerException {
+        try {
+            config = new JsonConfig(jsonFile);
+            init();
+        } catch (IOException ioe) {
+            throw new IndexerException(ioe);
+        }
+    }
+
+    private void init() throws IndexerException {
         if (!loaded) {
             loaded = true;
-            try {
-                config = new JsonConfig(jsonFile);
-            } catch (IOException ioe) {
-                throw new IndexerException(ioe);
-            }
 
             String accessControlType = "accessmanager";
             try {
                 access = PluginManager.getAccessManager(accessControlType);
-                access.init(jsonFile);
+                access.init(config.toString());
             } catch (PluginException pe) {
-                log.error("Failed to load access manager: {}",
-                        accessControlType);
+                throw new IndexerException(pe);
             }
 
             String storageType = config.get("storage/type");
             try {
                 storage = PluginManager.getStorage(storageType);
-                storage.init(jsonFile);
+                storage.init(config.toString());
             } catch (PluginException pe) {
-                log.error("Failed to load storage plugin: {}", storageType);
+                throw new IndexerException(pe);
             }
 
             solr = initCore("solr");
@@ -378,8 +389,11 @@ public class SolrIndexer implements Indexer {
     public void index(String oid) throws IndexerException {
         try {
             DigitalObject object = storage.getObject(oid);
-            Set<String> payloadIdList = object.getPayloadIdList();
-            for (String payloadId : payloadIdList) {
+            // Some workflow actions create payloads, so we can't iterate
+            // directly against the object.
+            String[] oldManifest = {};
+            oldManifest = object.getPayloadIdList().toArray(oldManifest);
+            for (String payloadId : oldManifest) {
                 Payload payload = object.getPayload(payloadId);
                 index(object, payload);
             }
@@ -758,7 +772,20 @@ public class SolrIndexer implements Indexer {
             access.setActivePlugin(plugin);
             access.applySchema(schema);
         } catch (AccessControlException ex) {
-            log.error("Failed to query security plugin for roles", ex);
+            log.error("Failed to add new access schema", ex);
+        }
+    }
+
+    public void removeAccessSchema(AccessControlSchema schema, String plugin) {
+        if (access == null) {
+            return;
+        }
+
+        try {
+            access.setActivePlugin(plugin);
+            access.removeSchema(schema);
+        } catch (AccessControlException ex) {
+            log.error("Failed to revoke existing access schema", ex);
         }
     }
 

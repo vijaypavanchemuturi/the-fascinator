@@ -120,13 +120,19 @@
     <field name="id" type="string" indexed="true" stored="true" required="true" />
     <field name="storage_id" type="string" indexed="true" stored="true" />
     <field name="last_modified" type="date" indexed="true" stored="true" />
-    <field name="security_filter" type="string" indexed="true" stored="true" multiValued="true" />
-    <field name="hidden_flag" type="boolean" indexed="true" stored="true" />
     <field name="item_type" type="string" indexed="true" stored="false" />
     <field name="file_path" type="string" indexed="true" stored="true" multiValued="true" />
     <field name="source_name" type="string" indexed="true" stored="true" multiValued="true" />
     <field name="source_type" type="string" indexed="true" stored="true" multiValued="true" />
     <field name="full_text" type="text" indexed="true" stored="false" multiValued="true" />
+
+    <!-- Workflow/Security fields -->
+    <field name="security_filter" type="string" indexed="true" stored="true" multiValued="true" />
+    <field name="hidden_flag" type="boolean" indexed="true" stored="true" />
+    <field name="owner" type="string" indexed="true" stored="true" />
+    <field name="workflow_id" type="string" indexed="true" stored="true" />
+    <field name="workflow_step" type="string" indexed="true" stored="true" multiValued="true" />
+    <field name="workflow_security" type="string" indexed="true" stored="true" multiValued="true" />
 
     <!-- dublin core fields -->
     <field name="dc_contributor" type="text" indexed="true" stored="true" multiValued="true" />
