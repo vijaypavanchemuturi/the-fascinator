@@ -57,9 +57,9 @@ function anotarFactory(jQ, config) {
 	if (config.docRoot.length == 0)
         debug.die("No document root (" + config.docRoot + ") found!");
     // If we haven't been given a URI or a way to find URIs then use the current URL.
-    if(!config.pageUri){
-        config.pageUri = location.href;		// Not good (HACK)
-    }
+    //if(!config.pageUri){
+    //    config.pageUri = location.href;		// Not good (HACK)
+    //}
     
     var anotarForm;
     /* ##################
@@ -326,7 +326,14 @@ function anotarFactory(jQ, config) {
     			alert("JSON ERROR: " + e);
     		}
     	}
-    	getAnnotations(config.pageUri, callback);
+    	if (config.pageUri) {
+    		getAnnotations(config.pageUri, callback);
+    	} else {
+    		jQ.each(targetList, function(count, item) {
+    			var uri = $(item).attr(config.uriAttr);
+    			getAnnotations(uri, callback);
+    		});
+    	}
     }
 
     function loadAnnotation(annoObj) {
@@ -351,25 +358,29 @@ function anotarFactory(jQ, config) {
         }
         
         // Find where to attach it
-   		isReply = annoObj.annotates.uri!=annoObj.annotates.rootUri;
-       	if ((isReply || locators.length == 0 || locators[0].type != "http://www.purl.org/anotar/locator/0.1") && (
-       		annoObj.type!="http://www.purl.org/anotar/ns/type/0.1#Tag")) {
-       	    // Load by URI
-       		// Currently hardcoded only for comment
+        if (config.pageUri) {
+	   		isReply = annoObj.annotates.uri!=annoObj.annotates.rootUri;
+	       	if ((isReply || locators.length == 0 || locators[0].type != "http://www.purl.org/anotar/locator/0.1") && (
+	       		annoObj.type!="http://www.purl.org/anotar/ns/type/0.1#Tag")) {
+	       	    // Load by URI
+	       		// Currently hardcoded only for comment
+	       	    node = jQ("*["+config.uriAttr+"='"+annoUri+"']");
+	       	} else {
+	       		// Load by hash and differentiated by locator type
+	       		if (locators[0].type == config.hashType) {
+		       		annoHash = locators[0].value;
+		       		node = jQ("*["+config.hashAttr+"='"+annoHash+"']");
+		       		
+		            //console.log(config.hashAttr, annoHash);
+		            //if (annoUri.search("#") > 0)
+		            //	isReply = true; 
+	       		} else {
+	       			return;
+	       		}
+	       	}
+        } else {
        	    node = jQ("*["+config.uriAttr+"='"+annoUri+"']");
-       	} else {
-       		// Load by hash and differentiated by locator type
-       		if (locators[0].type == config.hashType) {
-	       		annoHash = locators[0].value;
-	       		node = jQ("*["+config.hashAttr+"='"+annoHash+"']");
-	       		
-	            //console.log(config.hashAttr, annoHash);
-	            //if (annoUri.search("#") > 0)
-	            //	isReply = true; 
-       		} else {
-       			return;
-       		}
-       	}
+        }
        	
         //Get the object as it should be displayed
     	var cssToggle = "odd";
@@ -814,14 +825,18 @@ function anotarFactory(jQ, config) {
             me.parent().replaceWith(me);
             
             hashValue = hash;
-            func = config.hashFunction;
-            if (func != null) {
-               //me is button
-               hashValue = func($(config.docRoot));
+            if (!config.pageUri) {
+                // HACK - for multiple objects on single page (e.g. search results)
+                //        use first target hash so it won't get orphaned when
+                //        loaded on single object page
+                hashValue = $(targetList[0]).attr(config.hashAttr);
+            } else if (config.hashFunction) {
+                hashValue = config.hashFunction($(config.docRoot));
             }
+            
             data = {
                 uri: uri,
-                root: config.pageUri,
+                root: config.pageUri || uri,
                 hash: hashValue,
             	originalContent: me.text(),
             	content: text
@@ -858,7 +873,7 @@ function anotarFactory(jQ, config) {
 	        hash = me.attr(config.hashAttr);
 	        if(config.uriAttr) {
 	            uri = me.attr(config.uriAttr);
-	            if(uri){
+	            if(uri && config.pageUri){
 	            	pageUriPos = uri.search(config.pageUri);
 	            	if (pageUriPos == -1) pageUriPos = 0;
 	            	if(uri.substring(pageUriPos, config.pageUri.length + pageUriPos)===config.pageUri){
