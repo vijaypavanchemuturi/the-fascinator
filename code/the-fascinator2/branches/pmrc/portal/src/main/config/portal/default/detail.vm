@@ -131,7 +131,7 @@
             #else
                 <h3 class="title-heading">$title</h3>
                 <div class="content-preview-inline" width="100px">$!self.payloadContent</div>
-                <div class="annotatable">Comment on this document:</div>
+                <div class="annotatable">&nbsp;</div>
                 <script type="text/javascript" src="$portalPath/js/viewer.js"></script>
               </div>
             #end
@@ -431,67 +431,6 @@ $(function() {
         /// Use formCloseFunction to overwrite close function
         locationTag = anotarFactory(jQ, locationConfig);
         
-        /*
-        // Tags annotation
-        var tags = new Anotar();
-        tags.setType("Tag");
-        //tags.setConfig("debug", true);
-        tags.setConfig("doc_root", "#object-tag-list");
-        tags.setConfig("tag_list", "p");
-        tags.setConfig("page_uri", "$self.object.id");
-        tags.setConfig("uri_attr", "id");
-        tags.setConfig("anno_type", "http://www.purl.org/anotar/ns/type/0.1#Tag");
-        tags.setConfig("style_prefix", "tags-");
-        tags.setConfig("proxy_required", false);
-        tags.setConfig("interface_label", " <img src='$portalPath/images/icons/add.png'/>");
-        tags.setConfig("interface_visible", true);
-        tags.setConfig("form_prepend", true);
-        tags.setConfig("form_custom", "<div class='myTags float-right'>Tag this:" +
-          "<textarea></textarea>" +
-          "<img src='$portalPath/images/icons/tick.png' class='myTag-submit'/>&#160;" +
-          "<img src='$portalPath/images/icons/cross.png' class='myTag-cancel'/>" +
-        "</div>");
-        //tags.setConfig("hash_function", function(me) { return me.attr("anotar-hash"); });
-        tags.setConfig("form_cancel", ".myTag-cancel");
-        tags.setConfig("form_submit", ".myTag-submit");
-        tags.setConfig("server_address", "$portalPath/actions/anotar.ajax");
-        tags.setConfig("server_mode", "fascinator");
-        tags.setConfig("disable_replies", true);
-        tags.init($);  
-        
-        // Location Tags annotaion
-        var locationTags = new Anotar();
-        locationTags.setType("Tag");
-        locationTags.setConfig("debug", true);
-        locationTags.setConfig("doc_root", "#location-tag-list");
-        locationTags.setConfig("tag_list", "p");
-        locationTags.setConfig("content_input", "#txtName");
-        locationTags.setConfig("page_uri", "$self.object.id");
-        locationTags.setConfig("uri_attr", "id");
-        locationTags.setConfig("output_in_child", ".location-tags");
-        locationTags.setConfig("style_prefix", "location-tags-");
-        locationTags.setConfig("proxy_required", false);
-        locationTags.setConfig("interface_label", " <img src='$portalPath/images/icons/add.png'/>");
-        locationTags.setConfig("interface_visible", true);
-        locationTags.setConfig("hash_type", "http://www.geonames.org/");
-        locationTags.setConfig("hash_function", function(node) {
-            var rel = node.attr("rel");
-            if (rel == null) {
-                //rel = "$oid";
-                return "http://www.geonames.org/";
-            }
-            return "http://www.geonames.org/" + rel;
-        });
-        locationTags.setConfig("form_custom", "location_form");
-        locationTags.setConfig("form_cancel", ".locTag-cancel");
-        locationTags.setConfig("form_submit", ".locTag-submit");
-        locationTags.setConfig("server_address", "$portalPath/actions/anotar.ajax");
-        locationTags.setConfig("server_mode", "fascinator");
-        locationTags.setConfig("disable_replies", true);
-        locationTags.setConfig("display_custom", "location_tag_form");
-        locationTags.init($);
-        */
-        
         #if($self.mimeType.startsWith("audio/") || $self.mimeType.startsWith("video/"))
         // Audio/Video Tags annotation
         var videoAnoLabel = "<img src='$portalPath/images/icons/comment_add.png'/>&#160;Comment on this media:";
@@ -552,68 +491,6 @@ $(function() {
         noteTag = anotarFactory(jQ, noteConfig);
         #end
         
-        /*
-        #if($self.mimeType.startsWith("audio/") || $self.mimeType.startsWith("video/"))
-        // Video annotation
-        var videoAnoLabel = "<img src='$portalPath/images/icons/comment_add.png'/>&#160;Comment on this media:";
-        var videoAno = new Anotar();
-        //videoAno.setConfig("debug", true);
-        videoAno.setConfig("label", videoAnoLabel);
-        videoAno.setConfig("object_literal", "$self.object.id"); 
-        videoAno.setConfig("page_uri", "$portalPath/$self.object.id");
-        videoAno.setConfig("doc_root", ".video-results-list");
-        videoAno.setConfig("tag_list", ".video-result-list");
-        videoAno.setConfig("uri_attr", "anotar-uri");
-        videoAno.setConfig("reply_label", " <img src='$portalPath/images/icons/comments_add.png'/>");
-        videoAno.setConfig("hash_type", "http://www.w3.org/TR/2009/WD-media-frags-20091217");
-        videoAno.setConfig("hash_function", function(node) {
-            var rel = node.attr("rel");
-            if (rel == null) { rel = "$oid"; }
-            return rel;
-        });
-        videoAno.setConfig("style_prefix", "anno-");
-        videoAno.setConfig("proxy_required", false);
-        videoAno.setConfig("interface_label", videoAnoLabel);
-        videoAno.setConfig("interface_visible", true);
-        videoAno.setConfig("form_custom", "media_clip_form");
-        videoAno.setConfig("form_cancel", ".myTag-cancel");
-        videoAno.setConfig("form_submit", ".myTag-submit");
-        videoAno.setConfig("server_address", "$portalPath/actions/anotar.ajax");
-        videoAno.setConfig("server_mode", "fascinator");
-        videoAno.setConfig("disable_replies", false);
-        videoAno.setConfig("display_custom", "media_clip_comment");
-        videoAno.init($);
-        
-        $("#media_clip textArea").live("focus", function() {
-            var replies = $("#media_clip").prev("blockquote.anno-inline-annotation-quote")
-                                          .find(".anno-anno-children");
-            if (replies.length > 0) {
-                $(".annotate_scope").hide();
-            } else {
-                $(".annotate_scope").show();
-            }
-            return false;
-        });
-        #else
-        // Comment annotation
-        var notes = new Anotar();
-        //notes.setConfig("debug", true);
-        //notes.setConfig("object_literal", "$self.object.id");
-        notes.setConfig("page_uri", "$portalPath/$self.object.id");
-        #if($page.authentication.is_logged_in())
-        notes.setConfig("creator", "$page.authentication.get_name()");
-        notes.setConfig("creator_uri", null);
-        #end
-        notes.setConfig("tag_list", "p, h1, h2, h3, h4, h5, h6, .annotatable");
-        notes.setConfig("proxy_required", false);
-        notes.setConfig("interface_label", " <img src='$portalPath/images/icons/comment_add.png'/> Comments:");
-        notes.setConfig("reply_label", " <img src='$portalPath/images/icons/comments_add.png'/>");
-        notes.setConfig("server_address", "$portalPath/actions/anotar.ajax");
-        notes.setConfig("server_mode", "fascinator");
-        notes.setConfig("interface_visible", true);
-        notes.init($);
-        #end
-        */
     });
     
 </script>
