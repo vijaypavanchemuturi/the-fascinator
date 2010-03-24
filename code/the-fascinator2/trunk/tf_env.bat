@@ -12,6 +12,7 @@ for /f "tokens=2*" %%i in ('%Cmd% ^| find "JavaHome"') do set JAVA_HOME=%%j
 REM find proxy server
 set KeyName=HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Internet Settings
 set Cmd=reg query "%KeyName%" /s
+echo Checking for proxy server information in registry...
 for /f "tokens=2*" %%i in ('%Cmd% ^| find "ProxyServer"') do set http_proxy=%%j
 for /f "tokens=1,2 delims=:" %%i in ("%http_proxy%") do set PROXY_HOST=%%i
 for /f "tokens=1,2 delims=:" %%i in ("%http_proxy%") do set PROXY_PORT=%%j
