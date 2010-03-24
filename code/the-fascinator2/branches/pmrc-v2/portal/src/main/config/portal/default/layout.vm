@@ -1,0 +1,219 @@
+#if($noLayout)$!pageContent#else
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <title>The Fascinator#if($pageTitle) | $!pageTitle#end</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <link rel="icon" type="image/vnd.microsoft.com" href="$portalPath/favicon.ico" />
+    <link rel="stylesheet" type="text/css" href="$portalPath/css/fluid960gs/screen.css" media="screen" />
+    <!--[if IE 6]><link rel="stylesheet" type="text/css" href="$portalPath/css/fluid960gs/ie6.css" media="screen" /><![endif]-->
+    <!--[if IE 7]><link rel="stylesheet" type="text/css" href="$portalPath/css/fluid960gs/ie.css" media="screen" /><![endif]-->
+    <link rel="stylesheet" type="text/css" href="$portalPath/css/ui-lightness/jquery-ui-1.7.2.custom.css" media="screen" />
+    <link rel="stylesheet" type="text/css" href="$portalPath/css/styles.css" />
+    <link rel="stylesheet" type="text/css" href="$portalPath/css/local_styles.css" />
+    <link rel="stylesheet" type="text/css" href="$portalPath/css/anotar.css" />
+    $!pageHeader
+  </head>
+  <body>
+    <script type="text/javascript" src="$portalPath/js/jquery-1.3.2.min.js"></script>
+    <script type="text/javascript" src="$portalPath/js/jquery-ui-1.7.2.custom.min.js"></script>
+    <script type="text/javascript">
+    function setActionUri(uri) {
+        $("#action-form").attr("action", uri);
+    }
+    function addActionParam(name, value) {
+        $("#action-form").append('<input id="' + name + '" name="' + name + '" type="hidden" value="' + value + '" />');
+    }
+    function doAction(action) {
+        doAction(action, "");
+    }
+    function doAction(action, value) {
+        $("#verb").val(action);
+        $("#value").val(value);
+        $("#action-form").submit();
+    }
+    </script>
+    <div class="container_16">
+      <div class="grid_16">
+        <h1 id="branding"><a href="$portalPath/home">The Fascinator</a></h1>
+      </div>
+      <div class="clear"></div>
+      #set($notConfigured = $page.isNotConfigured())
+      #set($outdated = $page.isOutdated())
+      #set($needRestart = $page.needRestart())
+      #if($notConfigured || $outdated || $needRestart)
+      <div class="grid_16">
+        <div id="config-notices" class="box articles notice">
+          <h2>Configuration</h2>
+          <div class="warning">
+            <b>IMPORTANT</b>
+            #if($outdated)
+            The Fascinator may not work as expected as the current system
+            configuration is outdated. Please update your configuration or
+            <a href="#" id="restore-default-config">restore</a> the default
+            configuration and restart.
+            #elseif($needRestart)
+            The Fascinator may not work as expected as the system configuration
+            was changed and needs a restart to take effect.
+            #elseif($notConfigured)
+            The Fascinator has not yet been configured. Please set your email   
+            address on the <a href="$portalPath/settings">settings</a> page.
+            #else
+            An unexpected error has occurred. Try restarting The Fascinator.
+            #end
+          </div>
+        </div>
+      </div>
+      #if($pageName=="settings" && !$needRestart)
+      <div class="grid_16">$!pageContent</div>
+      #end
+      #else
+      <div class="grid_16">
+        <ul class="nav main">
+          <li><a href="$portalPath/home">Home</a></li>
+          <li><a href="$portalPath/search">Browse</a></li>
+          <li>
+            <a href="#">Views</a>
+            <ul>
+            #foreach($portal in $page.portals)
+              <li><a href="$contextPath/$portal.name/home">$portal.description</a></li>
+            #end
+            </ul>
+          </li>
+          <li>
+            <a href="#">Organise</a>
+            <ul>
+              <li><a href="$portalPath/organise/single">Single view</a></li>
+              <li><a href="$portalPath/organise/combined">Combined view</a></li>
+            </ul>
+          </li>
+          <li><a href="$portalPath/settings">Settings</a></li>
+          #if ($page.authentication.is_admin())
+          <li id="admin-link"><a href="$portalPath/admin">Admin</a></li>
+          #else
+          <li id="admin-link" class="hidden"><a href="$portalPath/admin">Admin</a></li>
+          #end
+          #### not yet finished
+          ##<li><a href="$portalPath/harvest">Harvest</a></li>
+          <li class="secondary">
+            <a class="search" href="#"><img src="$portalPath/images/icons/magnifier.png" /></a>
+          </li>
+          <li class="secondary">
+            <form action="$portalPath/search" class="search" method="post">
+              <input class="text" type="text" id="query" name="query" size="25" value="$!sessionState.get('query')" />
+            </form>
+          </li>
+          <li class="secondary">
+            <span class="status">View: $page.portalName</span>
+          </li>
+          <li class="secondary">
+            #if($page.authentication.is_logged_in())
+            <span id="user-info" class="status">Welcome $page.authentication.get_name(), <a href="?verb=logout">logout</a></span>
+            #else
+            <span id="user-info" class="status"><a id="login-now" href="#">Login</a></span>
+            #end
+          </li>
+          $!navContent
+        </ul>
+      </div>
+      <div class="grid_16">
+        <div class="box hidden" id="login-form">
+          <form id="login" method="post">
+            <fieldset class="search">
+              <legend>Login details</legend>
+              <div class="login-error hidden" id="login-error">
+                <img class="hidden" id="login-loading" src="$portalPath/images/icons/loading.gif" />
+                <span id="login-message"></span>
+              </div>
+              <p>
+                <label for="username">Username</label>
+                <input type="text" id="username" name="username" />
+              </p>
+              <p>
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" />
+              </p>
+              <input id="login-submit" type="button" value="Login" />
+              <input id="login-cancel" type="button" value="Close" />
+            </fieldset>
+          </form>
+        </div>
+        $!pageContent
+      </div>
+      <div class="clear"></div>
+      #end
+    </div>
+    <form action="$portalPath/$pageName" id="action-form" method="post">
+      <input id="verb" name="verb" type="hidden" />
+      <input id="value" name="value" type="hidden" />
+    </form>
+    <script type="text/javascript">
+    $(function() {
+        $("a.search").click(function() {
+            $("form.search").submit();
+            return false;
+        });
+        
+        $("#restore-default-config").click(function() {
+            jQuery.post("$portalPath/actions/settings.ajax",
+                { func: "restore-default-config" },
+                function(data, status) { window.location.reload(); });
+            return false;
+        });
+    });
+
+    var dialogOpts = {
+        title: "Login",
+        autoOpen: false,
+        hide: "blind",
+        modal: true
+    }
+    $("#login-form").dialog(dialogOpts);
+
+    $("#login-now").click(function() {
+        $("#login-message").empty();
+        $("#login-error").hide();
+        $("#login-form").dialog('open');
+        return false;
+    });
+    $("#login-cancel").click(function() {
+        $("#login-message").empty();
+        $("#login-error").hide();
+        $("#login-form").dialog('close');
+        return false;
+    });
+    $("#login-submit").click(function() {
+        $("#login-message").empty();
+        $("#login-loading").show();
+        jQuery.ajax({
+            type : "POST",
+            url : "$portalPath/actions/login.ajax",
+            success:
+                function(data, status) {
+                    $("#login-loading").hide();
+                    var response = data.split(":");
+                    username = jQuery.trim(response[0]);
+                    is_admin = jQuery.trim(response[1]);
+                    $("#user-info").html("Welcome " + username + ", <a href='?verb=logout'>logout</a>");
+                    if (is_admin == "admin") {
+                        $("#admin-link").show();
+                    }
+                    $("#login-form").dialog('close');
+                },
+            error:
+                function (req, status, e) {
+                    $("#login-loading").hide();
+                    $("#login-error").show();
+                    $("#login-message").html(req.responseText);
+                },
+            data: {
+                username: $("#username").val(),
+                password: $("#password").val(),
+                verb: "login"
+            }
+        });
+    });
+    </script>
+  </body>
+</html>
+#end
