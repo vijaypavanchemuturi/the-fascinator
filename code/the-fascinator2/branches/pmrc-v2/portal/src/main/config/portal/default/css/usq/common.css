@@ -15,7 +15,8 @@ A:visited{FONT-WEIGHT:normal; COLOR:#609}
 A:hover{ TEXT-DECORATION:underline}
 A.img:hover{BACKGROUND-COLOR:transparent}
 a img{border:none;}
-p{margin-top:0px; margin-bottom:0.85em}
+//p{margin-top:0px; margin-bottom:0.85em}
+p{margin-bottom:0.85em}
 body{margin:0 0 0 0; width:100%; border-top: 0px}
 
 tbody th, tbody td{border-top:none; border-bottom:none;}
@@ -236,4 +237,13 @@ p img{
 
 .cmscontent iframe.largeGalleryIframe{
 	height:700px !important;
+}
+
+.ui-widget-header {
+    background-color: #959CA1;
+}
+
+.anno-inline-annotation-form{
+	background-color: #CCCCCC;
+	border: 1px solid #333333
 }
