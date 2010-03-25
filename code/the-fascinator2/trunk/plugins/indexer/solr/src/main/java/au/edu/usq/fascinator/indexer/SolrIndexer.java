@@ -147,8 +147,8 @@ public class SolrIndexer implements Indexer {
     @Override
     public void init(String jsonString) throws IndexerException {
         try {
-            config = new JsonConfig(new ByteArrayInputStream(
-                    jsonString.getBytes("UTF-8")));
+            config = new JsonConfig(new ByteArrayInputStream(jsonString
+                    .getBytes("UTF-8")));
             init();
         } catch (UnsupportedEncodingException e) {
             throw new IndexerException(e);
@@ -479,15 +479,14 @@ public class SolrIndexer implements Indexer {
 
         try {
             // Get the rules file
-            String rulesOid = "anotar.py";
-            DigitalObject rulesObj = storage.getObject(rulesOid);
-            Payload rulesPayload = rulesObj.getPayload(rulesObj.getSourceId());
+            InputStream rulesStream = getClass().getResourceAsStream(
+                    "/anotar.py");
 
             File solrFile = null;
             Properties props = new Properties();
             props.setProperty("metaPid", pid);
 
-            solrFile = index(object, payload, null, rulesPayload.open(), props);
+            solrFile = index(object, payload, null, rulesStream, props);
             if (solrFile != null) {
                 InputStream inputDoc = new FileInputStream(solrFile);
                 String xml = IOUtils.toString(inputDoc, "UTF-8");

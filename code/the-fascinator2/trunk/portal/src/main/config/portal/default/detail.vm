@@ -524,7 +524,11 @@ $(function() {
             replyLabel: " <img src='$portalPath/images/icons/comments_add.png'/>",
             serverAddress: "$portalPath/actions/anotar.ajax",
             serverMode: "fascinator",
-            interfaceVisible: false
+            #if($self.mimeType.startsWith("image/"))
+            	interfaceVisible: true
+            #else
+            	interfaceVisible: false
+            #end
         }
         noteTag = anotarFactory(jQ, noteConfig);
         #end
