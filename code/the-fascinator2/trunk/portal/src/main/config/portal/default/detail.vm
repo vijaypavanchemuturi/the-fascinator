@@ -539,7 +539,7 @@ $(function() {
       <tr>
         <td colspan="2" class="location_scope">
           <input type="radio" name="location_scope" id="byName" checked="true"
-                 onclick="$('.annotate_name').show();$('.annotate_ll').hide();$('.annotate_range').hide();" />
+                 onclick="$('.annotate_name, #txtName').show();$('.annotate_ll').hide();$('.annotate_range').hide();" />
           <label for="byName">By Location Name</label>
           <input type="radio" name="location_scope" id="byLL"
                  onclick="$('.annotate_name, #txtName').hide();$('.annotate_ll').show();$('.annotate_range').hide();" />
