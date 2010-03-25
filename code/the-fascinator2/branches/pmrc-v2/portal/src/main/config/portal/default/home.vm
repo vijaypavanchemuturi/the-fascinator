@@ -1,14 +1,78 @@
 #set($pageTitle = 'Home')
 #set($query = $sessionState.get("query"))
-#if("$!query" != "")
+#if($query!="")
   #set($atomLink = "$portalPath/feed/atom?query=$query") 
 #else
   #set($atomLink = "$portalPath/feed/atom")
 #end
 #set($pageHeader = "<link rel=alternate type=application/atom+xml href=$atomLink title='$page.portalName'>")
-<h2 id="page-heading">$page.portalName<a class="feed" title="ATOM FEED" href="$atomLink">
-<img alt="ATOM Feed" src="$portalPath/images/icons/rss.png"/>
-</a></h2>
+##<h2 id="page-heading">$page.portalName<a class="feed" title="ATOM FEED" href="$atomLink">
+##<img alt="ATOM Feed" src="$portalPath/images/icons/rss.png"/>
+##</a></h2>
+
+<table class="layout">
+  <tbody>
+    <tr>
+      <td class="leftcol">
+        <div class="columnbox">
+          <div class="mainmenu">
+            <div class="mainmenu-top"></div>
+            <div class="mainmenu-heading">Public Memory Research Centre</div>
+            <ul class="menu-list">
+              <li class="selected">Home</li>
+              <li><a href="$portalPath/search">Search</a></li>
+              <li><a href="$portalPath/help">Help</a></li>
+            </ul>
+          </div>
+          ##displayFacetTree("policy_type", "Policy type")
+          ##displayFacet("f_title_group")
+        </div>
+      </td>
+      <td class="middlecol">
+        <div class="home">
+          <div class="home-welcome">
+            <h2 class="content-title">Public Memory Research Centre</h2>
+            <p>The Public Memory Research Centre investigates the ways in which the past is archived, understood and utilised by contemporary societies. The Centre will undertake research which is internationally and nationally significant in quality; but it will also be interested in local and regional opportunities, affirming the University's service commitments to the cultural life of its region. The University has significant expertise in this area with staff with good research records interested in developing collaborative as well as solo projects.</p>
+          </div>
+          <div class="home-search">
+            <h2>Search</h2>
+            <p>Search for media using keywords.</p>
+            <div class="search-box">
+              <form action="search" id="search-form" method="post">
+                <input type="text" id="query" name="query" size="70" value="$!query" />
+                <input type="submit" name="search" value="Search" />
+                <p></p>
+                <!--<input type="radio" name="searchType" id="freeText" value="full_text" checked="checked" />
+                <label for="freeText">Free text search</label>
+                <input type="radio" name="searchType" id="title" value="dc_title" />
+                <label for="title">Title search</label> -->
+              </form>
+              <p>There are currently <strong>$self.itemCount</strong> media files available.</p>
+            </div>
+          </div>
+          <div id="newest">
+            <h2>Recently added media</h2>
+            <table>
+            #foreach($item in $self.latest)
+		        #set($itemId = $item.get('id'))
+		        #set($itemTitle = $item.get("dc_title").get(0))
+		        <tr>
+		          <td><a href="$portalPath/detail/$itemId">$itemTitle</a></td>
+		        </tr>
+            #end
+            </table>
+          </div>
+          <!--<div id="popular">
+            <h2>Most viewed images, audios or videos</h2>
+            <p><em>Coming soon...</em></p>
+          </div>-->
+        </div>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+<!--
 <div class="grid_4">
   <div class="box menu">
     <h2>Actions</h2>
@@ -18,7 +82,7 @@
       <li><a id="epub" href="$portalPath/actions/epub" rel="$portalId">Export as ePub...</a></li>
       <li><a id="ims" href="$portalPath/actions/imscp" rel="$portalId">Export as IMS Package...</a></li>
       <li><a id="sword-view" href="#" rel="$portalId">SWORD Deposit...</a></li>
-      <li><a id="reharvest-view" href="#" rel="$portalId">Reharvest view...</a></li>
+      <li><a id="reharvest-view" href="#" rel="$portalId">Re-Harvest View...</a></li>
       ## FIXME
       <li><a id="backup-view" href="#" rel="$portalId">Backup view...</a></li>
       #if($portalId != "default")  ## FIXME use proper default
@@ -57,19 +121,19 @@
     </div>
   </div>
   <div class="box hidden" id="reharvest-form">
-    <h2>Reharvest view</h2>
+    <h2>Re-Harvest view</h2>
     <div class="block hidden" id="reharvest-progress">
-      <p>Reharvest is currently running... you must wait for it to finish</p>
+      <p>Re-Harvest is currently running... you must wait for it to finish</p>
       <button id="reharvest-cancel">Close</button>
       <img id="backup-loading" src="$portalPath/images/icons/loading.gif" />
     </div>
     <div class="block" id="reharvest-start">
-      <p>The reharvest process may take a while, do you want to start it now?</p>
+      <p>The Re-Harvest process may take a while, do you want to start it now?</p>
       <button id="reharvest-accept">Start</button>
       <button id="reharvest-cancel">Close</button>
     </div>
     <div class="block hidden" id="reharvest-result">
-      <p>Last reharvest log</p>
+      <p>Last Re-Harvest log</p>
       <div id="reharvest-log"></div>
     </div>
   </div>
@@ -127,17 +191,8 @@
       #foreach($item in $self.latest)
         #set($itemId = $item.get('id'))
         #set($itemTitle = $item.get("dc_title").get(0))
-        #if ($item.get("owner") == $page.authentication.get_username())
-            #set ($class = " class='owner'")
-        #else
-            #set ($class = "")
-        #end
-        <li$class>
+        <li>
           <a href="$portalPath/detail/$itemId">$itemTitle</a>
-          #set($wfStep = $item.get("workflow_step").get(0))
-          #if ($wfStep != "" && $wfStep != "live")
-          <img class="workflow" src="$portalPath/images/icons/wf_${wfStep}.png" title="Workflow: $wfStep"/>
-          #end
         </li>
       #end
       </ol>
@@ -146,45 +201,14 @@
 </div>
 <div class="grid_6">
   <div class="box">
-    #set ($workflows = $self.workflows)
-    #if ($workflows.size() > 0)
-    <h2>My Task List</h2>
+    <h2>Most popular</h2>
     <div class="block">
-      <ol>
-      #foreach($item in $self.workflows)
-        #set($itemId = $item.get('id'))
-        #set($itemTitle = $item.get("dc_title").get(0))
-        <li class='wf-$item.get('workflow_step').get(0)'>
-          <a href="$portalPath/workflow/$itemId">$itemTitle</a>
-          #set($wfStep = $item.get("workflow_step").get(0))
-          #if ($wfStep != "" && $wfStep != "live")
-          <img class="workflow" src="$portalPath/images/icons/wf_${wfStep}.png" title="Workflow: $wfStep"/>
-          #end
-        </li>
-      #end
-      </ol>
+      <p>...</p>
     </div>
-    #else
-    <h2>My Items</h2>
-    <div class="block">
-      <ol>
-      #foreach($item in $self.mine)
-        #set($itemId = $item.get('id'))
-        #set($itemTitle = $item.get("dc_title").get(0))
-        <li class='wf-$item.get('workflow_step').get(0)'>
-          <a href="$portalPath/detail/$itemId">$itemTitle</a>
-          #set($wfStep = $item.get("workflow_step").get(0))
-          #if ($wfStep != "" && $wfStep != "live")
-          <img class="workflow" src="$portalPath/images/icons/wf_${wfStep}.png" title="Workflow: $wfStep"/>
-          #end
-        </li>
-      #end
-      </ol>
-    </div>
-    #end
   </div>
 </div>
 <div class="clear"></div>
+-->
 <script type="text/javascript">
 $(function() {
     $("#delete-view, #delete-cancel").click(function() {

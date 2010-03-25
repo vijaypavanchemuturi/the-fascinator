@@ -1,7 +1,11 @@
 #macro(displayFacetTree $facetTreeId $facetField)
-  <div class="menu box hidden">
-    <h2>$facetField.get("label")</h2>
-    <div id="$facetTreeId" class="menu facet-list clearfix"></div>
+  <div class="facet-group mainmenu ui-helper-hidden ui-helper-clearfix">
+      <div class="mainmenu-top"></div>
+      <div class="mainmenu-heading"></span>$facetField.get("label")</div>
+      <div class="menu box hidden">
+        <!--<h2>$facetField.get("label")</h2>-->
+        <div id="$facetTreeId" class="menu facet-list clearfix"></div>
+      </div>
   </div>
   <script type="text/javascript">
   $(function() {
@@ -12,9 +16,12 @@
 #macro(displayFacet $facetFieldKey $facetField)
   #set($facetCounts = $self.getFacetCounts($facetFieldKey))
   #if($facetCounts.size() > 0)
-  <div class="box menu">
-    <h2>$facetField.get("label")</h2>
-    <ul class="facet-list menu" id="$facetFieldKey">
+  <div class="facet-group mainmenu ui-helper-hidden ui-helper-clearfix">
+    <div class="mainmenu-top"></div>
+    <div class="mainmenu-heading">$facetField.get("label")</div>
+    ##<ul class="facet-list menu" id="$facetFieldKey">
+    
+    <ul class="facet-list menu-list" id="$facetFieldKey">
     #foreach($facetCountKey in $facetCounts.keySet())
       #set($facetCount = $facetCounts.get($facetCountKey))
       #set($facetQuery = $self.getFacetQuery($facetFieldKey, $facetCountKey))
@@ -36,39 +43,147 @@
       </li>
     #end
     </ul>
-  </div>
+    </div>
   #end
 #end
 #set($pageTitle = 'Search')
 #set($query = $sessionState.get("query"))
 #if($query!="")
-  #set($atomLink = "$portalPath/feed/atom?query=$query")
+  #set($atomLink = "$portalPath/feed/atom?query=$query") 
 #else
   #set($atomLink = "$portalPath/feed/atom")
 #end
-#set($pageHeader = "<link rel=\"alternate\" type=\"application/atom+xml\" href=\"$atomLink\" title=\"$self.portalName\">")
+#set($pageHeader = "<link rel=alternate type=application/atom+xml href=$atomLink title='$self.portalName'>")
 #set($paging = $self.paging)
 #if($self.result and $paging.totalFound > 0)
 #end
-<h2 id="page-heading">Search<span class="paging right">#parse($page.getTemplate("search-paging.vm"))
-</span><a class="feed" title="ATOM FEED" href="$atomLink">
-<img alt="ATOM Feed" src="$portalPath/images/icons/rss.png"/>
-</a></h2>
-<div id="action-list" class="grid_4">
-  #if($self.hasSelectedFacets() || $query != "")
-  <div class="box menu">
-    <h2>Actions</h2>
-    <ul class="menu">
-      #if($query != "")
-        <li><a href="$portalPath/search">Clear search query</a></li>
-      #end
-      #if($self.hasSelectedFacets())
-        <li><a href="#" id="create-view">Create view...</a></li>
-        <li><a href="#" id="clear-facets">Clear selection</a></li>
-      #end
-    </ul>
-  </div>
-  #end
+
+<table class="layout">
+  <tbody>
+    <tr>
+      <td class="leftcol">
+        <div class="columnbox">
+          <div class="mainmenu">
+            <div class="mainmenu-top"></div>
+            <div class="mainmenu-heading">Public Memory Research Centre</div>
+            <ul class="menu-list">
+              <li><a href="$portalPath/home">Home</a></li>
+              <li class="selected">Search</li>
+              <li><a href="$portalPath/help">Help</a></li>
+            </ul>
+          </div>
+          
+          #if($self.hasSelectedFacets() || $query != "")
+            <div class="mainmenu">
+              <div class="mainmenu-top"></div>
+              <div class="mainmenu-heading">Actions</div>
+              <ul class="menu-list">
+                #if($query != "")
+                  <li><a href="$portalPath/search">Clear search</a></li>
+                #end
+                #if($self.hasSelectedFacets())
+                  <li><a id="clear-facets" href="#">Clear selection</a></li>
+                #end
+              </ul>
+            </div>
+          #end
+          
+          ##<div class="mainmenu">
+          #set($facetFields = $self.result.getMap("facet_counts/facet_fields"))
+          #foreach($facetFieldKey in $facetFields.keySet())
+            #set($facetField = $self.getFacetField($facetFieldKey))
+            #if($facetField.get("display") == "tree")
+              #displayFacetTree($facetFieldKey $facetField)
+            #else
+              #displayFacet($facetFieldKey $facetField)
+            #end
+          #end
+          ##</div>
+        </div>
+      </td>
+      <td class="middlecol">
+        <h2 class="content-title">Search</h2>
+        <div class="search-box">
+          <form action="$portalPath/search" id="search-form" method="post">
+            <input type="text" id="query" name="query" size="70" value="$!query" />
+            <input type="submit" name="search" value="Search" />
+            #if($self.result and $paging.totalFound > 0)
+              <p class="search-message">Displaying <strong>${paging.startNum}</strong> to <strong>${paging.endNum}</strong> of <strong>${paging.totalFound}</strong> records (in $self.queryTime seconds)</p>
+            #else
+              <p class="search-error">No results have been found for the entered search. Please try again.</p>
+            #end
+            #parse($page.getTemplate("search-paging.vm"))
+          </form>
+        </div>
+        #if($self.result and $paging.totalFound > 0)
+        <div class="result-list">
+            <h2>Results
+                ##<span class="right">Showing ${paging.startNum} to ${paging.endNum} of ${paging.totalFound} items ($self.queryTime seconds)</span>
+            </h2>
+            #if($self.result and $paging.totalFound > 0)
+                #set ($is_admin = $page.authentication.is_admin())
+                #set ($count = 1)
+                #set ($row = 1)
+                <table><tr>
+                #foreach($item in $self.result.getList("response/docs"))
+                    #set($id = $item.get("id"))
+                    #set($hashId = $page.md5Hash($id))
+                    #set($dcTitle = "")
+                    #set($dcTitle = $item.get("dc_title").get(0))
+                    #if($dcTitle.trim() != "")
+                      #set($title = $dcTitle)
+                    #else
+                      #set($title = $self.getFileName($id))
+                    #end
+                    #set($description = "")
+                    #set($description = $item.get("dc_description").get(0))
+                    <td width="33%">
+                    <div id="$hashId" class="article#if($velocityCount==1) first#end">
+                      <p><a href="$portalPath/detail/$self.encode($id)">$title</a></p>
+                      <div rel="$id" class="tags">Tags: <span class="tags-here"></span></div>
+                      #set($thumbnail = $self.getThumbnail($id))
+                      #if($thumbnail)
+                        <a class="image" href="$portalPath/detail/$id">
+                          <img src="$portalPath/download/$id/$thumbnail" title="$title"/>
+                        </a>
+                      #else
+                        #set($mimeType=$item.get("dc_format").get(0))
+                        #if ($mimeType.startsWith("audio/"))
+                            <a class="image" href="$portalPath/detail/$id">
+                              <img src="$portalPath/images/usq/audio_icon.png" title="$title"/>
+                            </a>
+                        #end
+                        ##<h3><a href="$portalPath/detail/$self.encode($id)">$title</a></h3>
+                      #end
+                      <p class="item-description">$!description&nbsp;</p>
+                    </div>
+                    <div class="clear"></div>
+                    </td>
+                    #set ($count = $count+1)
+                    #if ($count==4)
+                       #set($mod = $row%2)
+                       </tr>
+                       #if ($mod==0)
+                            <tr>
+                       #else
+                            <tr style="background:#FFFFCC;">
+                       #end
+                       #set ($count = 1)
+                       #set ($row = $row+1)
+                    #end
+                #end
+                ##if ($count<4)  ##need to fix the column that is not properly created
+                </tr></table>
+            #else
+                <div class="box no-result">No items found matching your query: '$!query'</div>
+            #end
+        </div>
+        #end
+      </td>
+    </tr>
+  </tbody>
+</table>
+
   <script type="text/javascript">
   // hierarchical facet trees
   function createTree(selector, facetField) {
@@ -119,128 +234,35 @@
       return tree;
   }
   </script>
-  #set($facetFields = $self.result.getMap("facet_counts/facet_fields"))
-  #foreach($facetFieldKey in $facetFields.keySet())
-    #set($facetField = $self.getFacetField($facetFieldKey))
-    #if($facetField.get("display") == "tree")
-      #displayFacetTree($facetFieldKey $facetField)
-    #else
-      #displayFacet($facetFieldKey $facetField)
-    #end
-  #end
-</div>
-<div class="grid_12" id="result-list">
-  <div class="box hidden" id="create-view-box">
-    <h2>Create view</h2>
-    <form method="post">
-      <fieldset class="login">
-        <legend>View</legend>
-        <p>
-          <label for="create-view-id">Identifier</label>
-          <input type="text" id="create-view-id" name="create-view-id" />
-        </p>
-        <p>
-          <label for="create-view-description">Name</label>
-          <input type="text" id="create-view-description" name="create-view-description" />
-        </p>
-        <input class="button" id="create-view-accept" type="button" value="Create" />
-        <input id="create-view-cancel" type="button" value="Cancel" />
-      </fieldset>
-    </form>
-  </div>
-  <div class="box articles">
-    <h2>Results
-      <span class="right">Showing ${paging.startNum} to ${paging.endNum} of ${paging.totalFound} items ($self.queryTime seconds)</span>
-    </h2>
-    #if($self.result and $paging.totalFound > 0)
-    #set ($is_admin = $page.authentication.is_admin())
-    #foreach($item in $self.result.getList("response/docs"))
-      #set($id = $item.get("id"))
-      #set($hashId = $page.md5Hash($id))
-      #set($dcTitle = "")
-      #set($dcTitle = $item.get("dc_title").get(0))
-      #if($dcTitle.trim() != "")
-        #set($title = $dcTitle)
-      #else
-        #set($title = $self.getFileName($id))
-      #end
-      #set($description = "")
-      #set($description = $item.get("dc_description").get(0))
-      #set ($resultClass = "article")
-      #if($velocityCount==1)
-        #set ($resultClass = "$resultClass first")
-      #end
 
-      <div id="$hashId" class="$resultClass">
-        #if($is_admin)
-        <div class="admin-link-holder float-right">
-          <a class="admin-security-link" rel="$id" href="#">Manage Access</a>
-          <div class="admin-roles">
-              #foreach ($role in $item.get("security_filter"))
-              <div class="locked">$role</div>
-              #end
-          </div>
-          <a class="admin-delete-link" rel="$id" href="#">Delete Object</a>
-        </div>
-        #end
-        <h3>
-            #set($wfStep = $item.get("workflow_step").get(0))
-            #if ($wfStep != "" && $wfStep != "live")
-            <img class="workflow" src="$portalPath/images/icons/wf_${wfStep}.png" />
-            #end
-            #if($self.canManage($item.get("workflow_security")))
-            <span class="wfMan">
-              <a href="$portalPath/workflow/$self.encode($id)">
-                <img class="workflow" src="$portalPath/images/icons/application_go.png" />
-              </a>
-            </span>
-            #end
-            <a href="$portalPath/detail/$self.encode($id)">$title</a>
-        </h3>
-        <div rel="$id" class="tags">Tags: <span class="tags-here"></span></div>
-        #set($thumbnail = $self.getThumbnail($id))
-        #if($thumbnail)
-          <a class="image" href="$portalPath/detail/$id">
-            <img src="$portalPath/download/$id/$thumbnail" />
-          </a>
-        #end
-        <p class="item-description">$!description&nbsp;</p>
-        <div class="clear"></div>
-      </div>
-    #end
-    #else
-      <div class="box no-result">No items found matching your query: '$!query'</div>
-    #end
-  </div>
-</div>
 #if($is_admin)
-    #macro(buildSecurityFields $data)
-      #foreach($plugin in $data)
-        <table class="security-table" summary="Security data for $plugin.getId()">
-          <thead>
-            <tr><th class="table-head">$plugin.getName()</th></tr>
-          </thead>
-          <tfoot>
-            <tr id="security-new-$plugin.getId()" class="hidden">
-              <td>
-                New role:
-                <input type="text" id="security-new-role-$plugin.getId()" />
-                <input type="button" class="security-new-submit" rel="$plugin.getId()" value="Add Role" />
-              </td>
-            </tr>
-            <tr><th><a class="add-role-button" href="#" rel="$plugin.getId()">Add a role</a></th></tr>
-          </tfoot>
-          <tbody>
-            <tr><th>Roles current granted access:</th></tr>
-            <tr id="security-loading-$plugin.getId()"><td><img src="$portalPath/images/icons/loading.gif" /></td></tr>
-            <tr id="security-empty-$plugin.getId()" class="hidden"><td>None yet...</td></tr>
-          </tbody>
-          <tbody id="security-rows-$plugin.getId()">
-            <tr><td>&nbsp;</td></tr>
-          </tbody>
-        </table>
-      #end
-    #end
+#macro(buildSecurityFields $data)
+  #foreach($plugin in $data)
+    <table class="security-table" summary="Security data for $plugin.getId()">
+      <thead>
+        <tr><th class="table-head">$plugin.getName()</th></tr>
+      </thead>
+      <tfoot>
+        <tr id="security-new-$plugin.getId()" class="hidden">
+          <td>
+            New role:
+            <input type="text" id="security-new-role-$plugin.getId()" />
+            <input type="button" class="security-new-submit" rel="$plugin.getId()" value="Add Role" />
+          </td>
+        </tr>
+        <tr><th><a class="add-role-button" href="#" rel="$plugin.getId()">Add a role</a></th></tr>
+      </tfoot>
+      <tbody>
+        <tr><th>Roles current granted access:</th></tr>
+        <tr id="security-loading-$plugin.getId()"><td><img src="$portalPath/images/icons/loading.gif" /></td></tr>
+        <tr id="security-empty-$plugin.getId()" class="hidden"><td>None yet...</td></tr>
+      </tbody>
+      <tbody id="security-rows-$plugin.getId()">
+        <tr><td>&nbsp;</td></tr>
+      </tbody>
+    </table>
+  #end
+#end
 <div class="box hidden" id="security-form">
   <form id="security" method="post">
     <fieldset class="search">
@@ -256,20 +278,6 @@
     </fieldset>
   </form>
 </div>
-<div class="box hidden" id="delete-dialog">
-  <form id="delete" method="post">
-    <fieldset class="search">
-      <legend>Delete : '<span id="delete-legend"></span>'</legend>
-      <div class="stop-error hidden" id="delete-error">
-        <span id="delete-message"></span>
-      </div>
-      <p>Are you really certain you want to delete this object?</p>
-      <p><strong>This operation cannot be undone</strong></p>
-      <input id="delete-submit" type="button" value="Yes, Delete" />
-      <input id="delete-cancel" type="button" value="Cancel" />
-    </fieldset>
-  </form>
-</div>
 #end
 <script type="text/javascript" src="$portalPath/js/tree/jquery.tree.min.js"></script>
 <script type="text/javascript" src="$portalPath/js/jquery.truncate.js"></script>
@@ -277,11 +285,11 @@
 <!--
 $(function() {
     addActionParam("query", "$!query");
-
+    
     if ($("#action-list div").length == 0) {
         $("#result-list").removeClass("grid_12").addClass("grid_16");
     }
-
+    
     // facet actions
     $("#clear-facets").click(function() {
         doAction("clear_fq");
@@ -295,13 +303,13 @@ $(function() {
         doAction("remove_fq", $(this).attr("rel"));
         return false;
     });
-
+    
     // truncate descriptions
     $("p.item-description").truncate(500, {
         trail: [ '... <a href="#" class="truncate_show">more</a>',
                  ' <a href="#" class="truncate_hide">less</a>' ]
     });
-
+    
     // create view
     $("#create-view, #create-view-cancel").click(function() {
         $("#create-view").toggleClass("selected");
@@ -325,21 +333,20 @@ $(function() {
             "json"
         );
     });
-
 });
 -->
 </script>
-
 
 <script type="text/javascript" src="$portalPath/js/anotar/json2.js"></script>
 <script type="text/javascript" src="$portalPath/js/anotar/anotar-0.2.js"></script>
 <script type="text/javascript">
     $(function(){
         jQ = jQuery;
+        
         // Tags annotation
         tagConfig = {
             //debug: true,
-            docRoot: ".articles",
+            docRoot: ".result-list",
             tagList: ".tags",
             contentInput: "#object-tag-input",
             uriAttr: "rel",
@@ -386,21 +393,18 @@ $(function() {
     </div>
 </script>
 
-
 #if($is_admin)
 <script type="text/javascript">
 <!--
 $(function() {
     var dialogOpts = {
+        title: "Manage Security",
         autoOpen: false,
         hide: "blind",
         width: 330,
         modal: true
     }
     $("#security-form").dialog(dialogOpts);
-    $("#security-form").dialog('option', 'title', 'Manage Security');
-    $("#delete-dialog").dialog(dialogOpts);
-    $("#delete-dialog").dialog('option', 'title', 'Delete Object');
 
     $(".add-role-button").click(function() {
         pluginId = $(this).attr("rel");
@@ -489,7 +493,6 @@ $(function() {
         }
         $(".remove-role-link").click(revoke_access);
     }
-
     function addRow(pluginId, value) {
         var data = $("#security-rows-" + pluginId).html();
         data += "<tr><td>" + value;
@@ -535,51 +538,6 @@ $(function() {
         $("#security-form").dialog('close');
         return false;
     });
-
-    var me = null;
-    $(".admin-delete-link").click(function() {
-        recordId = $(this).attr("rel");
-        me = $(this);
-        $("#delete-message").empty();
-        $("#delete-error").hide();
-        $("#delete-dialog").dialog('open');
-        $("#delete-legend").html(recordId);
-        return false;
-    });
-
-    $("#delete-cancel").click(function() {
-        $("#delete-message").empty();
-        $("#delete-error").hide();
-        $("#delete-dialog").dialog('close');
-        return false;
-    });
-
-    $("#delete-submit").click(function() {
-        $("#delete-message").empty();
-        $("#delete-error").hide();
-        $("#delete-dialog").dialog('open');
-
-        jQuery.ajax({
-            type : "POST",
-            url : "$portalPath/actions/delete.ajax",
-            success:
-                function (data, status) {
-                    me.parent().parent().hide();
-                    $("#delete-dialog").dialog('close');
-                },
-            error:
-                function (req, status, e) {
-                    $("#delete-error").show();
-                    $("#delete-message").html(req.responseText);
-                },
-            data: {
-                record: recordId
-            }
-        });
-
-        return false;
-    });
-
 });
 -->
 </script>

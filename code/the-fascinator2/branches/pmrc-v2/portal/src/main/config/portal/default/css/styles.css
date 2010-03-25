@@ -17,8 +17,14 @@ h1#branding {
 }
 
 .box h2 {
+    background: none;
+    color: #000000;
     font-weight: bold;
 }
+
+.box {
+    background: none;
+ }
 
 form.search {
     padding-top: 3px;
@@ -59,9 +65,9 @@ form.search {
     word-wrap: break-word;
 }
 
-.menu .selected, .facet-list .selected {
-    background: black;
-    color: white;
+.menu .selected, .menu-list .selected, .facet-list .selected {
+    //background: black;
+    //color: white;
     font-weight: bold;
 }
 
@@ -94,10 +100,12 @@ form .message {
 
 .article a.image {
     margin-bottom: 5px;
+    display: block;
 }
 
 .article a img {
     vertical-align: text-bottom;
+    float: none;
 }
 
 .article div.image {
@@ -106,7 +114,12 @@ form .message {
     padding: 4px;
     border: 1px solid #bbb;
     background: #fff;
+    max-width: 98%;
 }
+
+.article {
+    border-top: none;
+ }
 
 div.tags {
     border-top: 1px dotted #999999;
@@ -138,14 +151,6 @@ ul.main li.secondary a.search {
 a.search img {
     padding: 0;
     vertical-align: text-bottom;
-}
-
-table.meta {
-    table-layout: fixed;
-}
-
-table.meta td {
-    overflow: hidden;
 }
 
 dl.meta dt {
@@ -308,10 +313,9 @@ span.view-type a.selected {
     background: #666666;
 }
 
-div.article-heading {
+h3.title-heading {
     border-bottom: 1px solid #CCCCCC;
-    font-weight: bold;
-    font-size: 1.5em;
+    font-weight: normal;
     margin-bottom: 10px;
 }
 
@@ -369,18 +373,12 @@ ul.nobgtabs li a.ui-state-active {
     font-size: 120%;
 }
 .admin-link-holder {
-    padding: 2px 2px 2px 5px;
+    padding: 2px 0px 2px 5px;
     border: 1px solid #666666;
     background: #999999;
 }
 .admin-security-link {
     background-image: url('../images/icons/application_key.png');
-    background-position: 0 50%;
-    background-repeat: no-repeat;
-    padding: 0.5em 0.5em 0.5em 20px;
-}
-.admin-delete-link {
-    background-image: url('../images/icons/cross.png');
     background-position: 0 50%;
     background-repeat: no-repeat;
     padding: 0.5em 0.5em 0.5em 20px;
@@ -395,11 +393,6 @@ ul.nobgtabs li a.ui-state-active {
     background-repeat: no-repeat;
     margin-right: 1em;
     padding: 0.5em 0.5em 0.5em 20px;
-}
-.admin-link-holder .admin-roles {
-    border: 1px solid #666666;
-    padding: 2px;
-    background-color: #CCCCCC;
 }
 .admin-link-holder .locked {
     background-image: url('../images/icons/lock.png');
@@ -430,47 +423,20 @@ ul.nobgtabs li a.ui-state-active {
     float: right;
 }
 
-#player-container {
-    margin-bottom: 4px;
-    margin-top: 4px;
+.mainmenu .tree li {
+    border-bottom: none;
+}
+
+.mainmenu .tree li a {
+    padding: 2px;
+}
+
+.mainmenu .tree ul {
+    font-size: 12px;
 }
 
 .help_p {
     font-size: smaller;
     font-style: italic;
     display: none;
-}
-
-.notice h2 {
-    background-color: #CC3300;
-}
-
-.notice {
-    background-color: #FFDDDD;
-    margin-bottom: 5px;
-    margin-top: 5px;
-}
-
-.notice .warning {
-    padding: 5px;
-    font-size: 125%;
-}
-
-.notice .warning b {
-    display: block;
-    background-image: url('../images/icons/server_error.png');
-    background-position: 0 50%;
-    background-repeat: no-repeat;
-    padding-left: 20px;
-}
-
-.owner {
-    background-image: url('../images/icons/user.png');
-    background-position: 0 50%;
-    background-repeat: no-repeat;
-    padding-left: 20px;
-}
-
-img.workflow {
-    vertical-align: text-bottom;
 }

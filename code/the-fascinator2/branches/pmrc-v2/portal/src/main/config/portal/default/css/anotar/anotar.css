@@ -45,16 +45,12 @@
 .tags-inline-annotation-quote {
     margin: 0px;
 }
-.myTags {
-    border: 1px solid #BBBBBB;
+#object-tag-list {
+    border: 1px solid #333333;
     background-color: #CCCCCC;
     padding: 3px;
 }
-.myTags textarea {
-    height: 1.5em;
-    vertical-align: middle;
-}
-.myTags img {
+.tags-command img {
     vertical-align: middle;
 }
 
