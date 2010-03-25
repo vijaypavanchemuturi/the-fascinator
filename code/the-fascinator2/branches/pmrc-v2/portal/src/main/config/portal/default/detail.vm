@@ -117,11 +117,11 @@
               <div class="first article clearfix">
             #if($self.mimeType.startsWith("audio/") || $self.mimeType.startsWith("video/"))
                 <!-- <input class='player_clear_fragment' type='button' value='Reset' /> -->
-                <table>
+                <table border=1>
                   <tbody>
                     <tr>
                       <td id="player-container"></td>
-                      <td>
+                      <td align="left">
                         <div class="video-results-list">
                           <div class="video-result-list" anotar-uri="$self.object.id">
                           </div>
@@ -427,7 +427,8 @@ $(function() {
             displayCustom: "location_display", 
             formPopup: true,
             formPopupSettings: {
-            	width: 500
+            	width: 500,
+            	title: "Location Tag"
             },
             onFormDisplay: function(node){
             	$("#byName").click();
