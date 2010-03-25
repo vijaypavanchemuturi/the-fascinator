@@ -44,6 +44,8 @@ import au.edu.usq.fascinator.api.transformer.TransformerException;
 import au.edu.usq.fascinator.common.JsonConfig;
 import au.edu.usq.fascinator.common.MimeTypeUtil;
 import au.edu.usq.fascinator.common.storage.StorageUtils;
+import java.io.FileOutputStream;
+import org.apache.commons.io.IOUtils;
 
 /**
  * Converts audio and video media to web friendly versions using the FFMPEG
@@ -87,7 +89,29 @@ public class FfmpegTransformer implements Transformer {
     @Override
     public DigitalObject transform(DigitalObject object)
             throws TransformerException {
-        File file = new File(object.getId());
+        File file;
+        try {
+            file = File.createTempFile("ffmpeg", ".object");
+            file.deleteOnExit();
+            FileOutputStream tempFileOut = new FileOutputStream(file);
+            // Payload from storage
+            String tempPid = object.getSourceId();
+            Payload tempPayload;
+            tempPayload = object.getPayload(tempPid);
+            // Copy and close
+            IOUtils.copy(tempPayload.open(), tempFileOut);
+            tempPayload.close();
+            tempFileOut.close();
+        } catch (IOException ex) {
+            log.error("Error writing temp file : ", ex);
+            return object;
+            //throw new TransformerException(ex);
+        } catch (StorageException ex) {
+            log.error("Error accessing storage data : ", ex);
+            return object;
+            //throw new TransformerException(ex);
+        }
+
         if (ffmpeg == null) {
             ffmpeg = new FfmpegImpl(get("executable"));
         }
@@ -104,8 +128,9 @@ public class FfmpegTransformer implements Transformer {
                         Payload payload = createFfmpegPayload(object, thumbnail);
                         payload.setType(PayloadType.Enrichment);
                         payload.close();
+                        thumbnail.delete();
                     }
-                    String ext = FilenameUtils.getExtension(file.getName());
+                    String ext = FilenameUtils.getExtension(object.getSourceId());
                     List<String> excludeList = Arrays.asList(StringUtils.split(
                             get("excludeExt"), ','));
                     if (!excludeList.contains(ext.toLowerCase())
@@ -114,6 +139,7 @@ public class FfmpegTransformer implements Transformer {
                         Payload payload = createFfmpegPayload(object, converted);
                         payload.setType(PayloadType.Preview);
                         payload.close();
+                        converted.delete();
                     }
                 }
             } catch (Exception e) {
@@ -124,6 +150,14 @@ public class FfmpegTransformer implements Transformer {
                     log.error("Failed to add Error payload", e2);
                 }
             }
+        }
+        try {
+            object.close();
+        } catch (StorageException ex) {
+            log.error("Failed writing object metadata", ex);
+        }
+        if (file.exists()) {
+            file.delete();
         }
         return object;
     }

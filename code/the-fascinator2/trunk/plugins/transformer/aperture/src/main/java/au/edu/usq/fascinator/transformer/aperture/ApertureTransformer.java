@@ -27,6 +27,7 @@ import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Set;
+import java.util.logging.Level;
 
 import org.ontoware.rdf2go.RDF2Go;
 import org.ontoware.rdf2go.model.Model;
@@ -58,6 +59,8 @@ import au.edu.usq.fascinator.common.JsonConfig;
 import au.edu.usq.fascinator.common.JsonConfigHelper;
 import au.edu.usq.fascinator.common.MimeTypeUtil;
 import au.edu.usq.fascinator.common.storage.StorageUtils;
+import java.io.FileOutputStream;
+import org.apache.commons.io.IOUtils;
 
 /**
  * Provides static methods for extracting RDF metadata from a given file.
@@ -246,8 +249,8 @@ public class ApertureTransformer implements Transformer {
      */
     private static void determineExtractor(File file, String mimeType,
             RDFContainer container) throws IOException, ExtractorException {
-        FileInputStream stream = new FileInputStream(file);
-        BufferedInputStream buffer = new BufferedInputStream(stream);
+        FileInputStream stream;
+        BufferedInputStream buffer;
         URI uri = new URIImpl(file.toURI().toString());
 
         // create an ExtractorRegistry containing all available
@@ -264,13 +267,14 @@ public class ApertureTransformer implements Transformer {
             Object factory = factories.iterator().next();
             if (factory instanceof ExtractorFactory) {
                 Extractor extractor = ((ExtractorFactory) factory).get();
-                // apply the extractor on the specified file
-                // (just open a new stream rather than buffer the previous
-                // stream)
                 stream = new FileInputStream(file);
                 buffer = new BufferedInputStream(stream, 8192);
                 extractor.extract(uri, buffer, null, mimeType, container);
-                stream.close();
+                try {
+                    buffer.close();
+                    stream.close();
+                } catch (IOException ex) {
+                }
             } else if (factory instanceof FileExtractorFactory) {
                 FileExtractor extractor = ((FileExtractorFactory) factory)
                         .get();
@@ -362,7 +366,27 @@ public class ApertureTransformer implements Transformer {
         if (filePath != null && !"".equals(filePath)) {
             inFile = new File(filePath);
         } else {
-            inFile = new File(in.getId());
+            try {
+                inFile = File.createTempFile("aperture", ".object");
+                inFile.deleteOnExit();
+                FileOutputStream tempFileOut = new FileOutputStream(inFile);
+                // Payload from storage
+                String tempPid = in.getSourceId();
+                Payload tempPayload;
+                tempPayload = in.getPayload(tempPid);
+                // Copy and close
+                IOUtils.copy(tempPayload.open(), tempFileOut);
+                tempPayload.close();
+                tempFileOut.close();
+            } catch (IOException ex) {
+                log.error("Error writing temp file : ", ex);
+                return in;
+                //throw new TransformerException(ex);
+            } catch (StorageException ex) {
+                log.error("Error accessing storage data : ", ex);
+                return in;
+                //throw new TransformerException(ex);
+            }
         }
         try {
             if (inFile.exists()) {
@@ -387,9 +411,12 @@ public class ApertureTransformer implements Transformer {
             e.printStackTrace();
         } catch (StorageException e) {
             e.printStackTrace();
+        } finally {
+            if (inFile.exists()) {
+                inFile.delete();
+            }
         }
-        return in; // If nothing happen, return the same object e.g. File not
-        // exist
+        return in;
     }
 
     @Override

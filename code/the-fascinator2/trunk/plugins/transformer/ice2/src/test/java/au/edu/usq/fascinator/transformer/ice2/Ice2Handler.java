@@ -79,7 +79,8 @@ public class Ice2Handler extends AbstractHandler {
                 Iterator iter = items.iterator();
                 while (iter.hasNext()) {
                     FileItem item = (FileItem) iter.next();
-                    if ("somefile.doc".equals(item.getName())) {
+                    if (item != null && item.getName() != null &&
+                            item.getName().contains("somefile")) {
                         found = true;
                         break;
                     }

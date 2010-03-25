@@ -115,9 +115,31 @@ public class Ice2Transformer implements Transformer {
     @Override
     public DigitalObject transform(DigitalObject object)
             throws TransformerException {
-        // TODO use MIME types instead of assuming object ID == file path
-        File file = new File(object.getId());
-        String ext = FilenameUtils.getExtension(file.getName());
+
+        String sourceId = object.getSourceId();
+        String ext = FilenameUtils.getExtension(sourceId);
+        String fileName = FilenameUtils.getBaseName(sourceId);
+
+        File file;
+        try {
+            file = File.createTempFile(fileName, "." + ext);
+            FileOutputStream out = new FileOutputStream(file);
+            // Payload from storage
+            Payload payload = object.getPayload(sourceId);
+            // Copy and close
+            IOUtils.copy(payload.open(), out);
+            payload.close();
+            out.close();
+        } catch (IOException ex) {
+            log.error("Error writing temp file : ", ex);
+            return object;
+            //throw new TransformerException(ex);
+        } catch (StorageException ex) {
+            log.error("Error accessing storage data : ", ex);
+            return object;
+            //throw new TransformerException(ex);
+        }
+
         List<String> excludeList = Arrays.asList(StringUtils.split(
                 get("excludeRenditionExt"), ','));
         if (file.exists() && !excludeList.contains(ext.toLowerCase())) {
@@ -128,12 +150,14 @@ public class Ice2Transformer implements Transformer {
             try {
                 if (isSupported(file)) {
                     File outputFile = render(file);
+                    outputFile.deleteOnExit();
                     object = createIcePayload(object, outputFile);
+                    outputFile.delete();
                 }
             } catch (TransformerException te) {
                 log.debug("Adding error payload to {}", object.getId());
                 try {
-                    object = createErrorPayload(object, file, te.getMessage());
+                    object = createErrorPayload(object, fileName, te.getMessage());
                 } catch (StorageException e) {
                     e.printStackTrace();
                 } catch (UnsupportedEncodingException e) {
@@ -149,6 +173,9 @@ public class Ice2Transformer implements Transformer {
             object.close();
         } catch (StorageException ex) {
             log.error("Failed writing object metadata", ex);
+        }
+        if (file.exists()) {
+            file.delete();
         }
         return object;
     }
@@ -166,11 +193,10 @@ public class Ice2Transformer implements Transformer {
      * @throws StorageException
      * @throws UnsupportedEncodingException
      */
-    public DigitalObject createErrorPayload(DigitalObject object, File file,
+    public DigitalObject createErrorPayload(DigitalObject object, String file,
             String message) throws StorageException,
             UnsupportedEncodingException {
-        String name = FilenameUtils.getBaseName(file.getName())
-                + "_ice_error.htm";
+        String name = file + "_ice_error.htm";
         Payload errorPayload = StorageUtils.createOrUpdatePayload(object, name,
                 new ByteArrayInputStream(message.getBytes("UTF-8")));
         errorPayload.setType(PayloadType.Error);
@@ -201,8 +227,9 @@ public class Ice2Transformer implements Transformer {
                     String name = entry.getName();
                     String mimeType = MimeTypeUtil.getMimeType(name);
                     //log.debug("(ZIP) Name : '" + name + "', MimeType : '" + mimeType + "'");
+                    InputStream in = zipFile.getInputStream(entry);
                     Payload icePayload = StorageUtils.createOrUpdatePayload(
-                            object, name, zipFile.getInputStream(entry));
+                            object, name, in);
                     icePayload.setLabel(name);
                     icePayload.setContentType(mimeType);
                     if (mimeType.equals(HTML_MIME_TYPE) ||
@@ -213,6 +240,7 @@ public class Ice2Transformer implements Transformer {
                     icePayload.close();
                 }
             }
+            zipFile.close();
         } else {
             String name = file.getName();
             String mimeType = MimeTypeUtil.getMimeType(name);

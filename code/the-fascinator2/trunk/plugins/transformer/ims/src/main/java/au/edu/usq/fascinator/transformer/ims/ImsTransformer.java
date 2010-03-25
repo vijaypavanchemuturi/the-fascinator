@@ -37,6 +37,8 @@ import au.edu.usq.fascinator.api.transformer.TransformerException;
 import au.edu.usq.fascinator.common.JsonConfigHelper;
 import au.edu.usq.fascinator.common.MimeTypeUtil;
 import au.edu.usq.fascinator.common.storage.StorageUtils;
+import java.io.FileOutputStream;
+import org.apache.commons.io.IOUtils;
 
 /**
  * Unzip Ims package and store the files
@@ -80,7 +82,27 @@ public class ImsTransformer implements Transformer {
         if (filePath != null) {
             inFile = new File(filePath);
         } else {
-            inFile = new File(in.getId());
+            try {
+                inFile = File.createTempFile("aperture", ".object");
+                inFile.deleteOnExit();
+                FileOutputStream tempFileOut = new FileOutputStream(inFile);
+                // Payload from storage
+                String tempPid = in.getSourceId();
+                Payload tempPayload;
+                tempPayload = in.getPayload(tempPid);
+                // Copy and close
+                IOUtils.copy(tempPayload.open(), tempFileOut);
+                tempPayload.close();
+                tempFileOut.close();
+            } catch (IOException ex) {
+                log.error("Error writing temp file : ", ex);
+                return in;
+                //throw new TransformerException(ex);
+            } catch (StorageException ex) {
+                log.error("Error accessing storage data : ", ex);
+                return in;
+                //throw new TransformerException(ex);
+            }
         }
 
         if (inFile.exists()) {
@@ -91,6 +113,8 @@ public class ImsTransformer implements Transformer {
                 e.printStackTrace();
             } catch (IOException e) {
                 e.printStackTrace();
+            } finally {
+                inFile.delete();
             }
         } else {
             log.info("not found inFile {}", inFile);
