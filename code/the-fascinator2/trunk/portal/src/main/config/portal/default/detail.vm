@@ -418,7 +418,11 @@ $(function() {
             formCustom: "location_form",
             formCancel: ".locTag-cancel",
             formSubmit: ".locTag-submit",
-            displayCustom: "location_display", 
+            displayCustom: "location_display",
+            formPopup: true,
+            formPopupSettings: {
+            	width: 500
+            }, 
             onFormDisplay: function(node){
             	$("#byName").click();
 				$(node).autocomplete('$portalPath/actions/geonames.ajax', {
