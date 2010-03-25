@@ -11,7 +11,7 @@
   #set($title = $self.getFileName($oid))
 #end
 #set($pageTitle = "Detail | $title")
-##<h2 id="page-heading">$title</h2>
+<script type="text/javascript" src="$portalPath/js/geohash/geohash.js"></script>
 <h2 id="page-heading">Detail</h2>
 <div class="grid_4">
   #if(!$self.isMetadataOnly())
@@ -349,6 +349,17 @@ $(function() {
     #if($self.isMetadataOnly())
     $("#preview").after($("#metadata")).remove();
     #end
+    
+    $("#txtLatitude, #txtLongitude").live("keyup", function() {
+    	var latitude = $("#txtLatitude").attr("value");
+    	var longitude = $("#txtLongitude").attr("value");
+    	if (latitude == undefined) latitude = 0;
+    	if (longitude == undefined) longitude = 0;
+    	
+    	geoHash = "http://www.geohash.org/" + encodeGeoHash(latitude, longitude);
+    	$("#location-tag-list").attr("rel", geoHash);
+    	$("#txtName").attr("value", "Lat: " + latitude + ", Long: " + longitude);
+    });
 });
 </script>
 
@@ -407,8 +418,9 @@ $(function() {
             formCustom: "location_form",
             formCancel: ".locTag-cancel",
             formSubmit: ".locTag-submit",
-            displayCustom: "location_tag_form", 
+            displayCustom: "location_display", 
             onFormDisplay: function(node){
+            	$("#byName").click();
 				$(node).autocomplete('$portalPath/actions/geonames.ajax', {
 					extraParams: {"func":"placeName"}, 
 					formatItem: function(row) {
@@ -416,7 +428,7 @@ $(function() {
 					}
 				}).result(function(event, item) {
 					if (item) {
-						$("#location-tag-list").attr("rel", item[1]);
+						$("#location-tag-list").attr("rel", "http://www.geonames.org/" + item[1]);
 					}
 				});
             },
@@ -426,7 +438,8 @@ $(function() {
                     // content is not a URI
                     return { isUri: false };
                 }
-                return { isUri: true, contentUri: "http://www.geonames.org/" + rel };
+                
+                return { isUri: true, contentUri: rel };
             },
             serverAddress: "$portalPath/actions/anotar.ajax",
             disableReply: true,
@@ -462,6 +475,9 @@ $(function() {
                 if (rel == null) { rel = "$oid"; }
                 return rel;
             },
+            onFormDisplay: function(node){
+                $("#annotate_all").click();
+            },
             serverAddress: "$portalPath/actions/anotar.ajax",
             disableReply: false,
             serverMode: "fascinator"
@@ -481,7 +497,7 @@ $(function() {
         #else
         
         noteConfig={
-            pageUri: "$self.object.id",
+            pageUri: "$oid",
             #if($page.authentication.is_logged_in()) 
             creator: "$page.authentication.get_name()",
             creatorUri: null,
@@ -526,19 +542,24 @@ $(function() {
                  onclick="$('.annotate_name').show();$('.annotate_ll').hide();$('.annotate_range').hide();" />
           <label for="byName">By Location Name</label>
           <input type="radio" name="location_scope" id="byLL"
-                 onclick="$('.annotate_name').hide();$('.annotate_ll').show();$('.annotate_range').hide();" />
+                 onclick="$('.annotate_name, #txtName').hide();$('.annotate_ll').show();$('.annotate_range').hide();" />
           <label for="byLL">By Latitude/Longitude</label>
-          <input type="radio" name="location_scope" id="byRange"
+          <!--<input type="radio" name="location_scope" id="byRange"
                  onclick="$('.annotate_name').hide();$('.annotate_ll').hide();$('.annotate_range').show();" />
-          <label for="byRange">By Range</label>
+          <label for="byRange">By Range</label>-->
         </td>
       </tr>
-      <tr class="annotate_name">
-        <td>Search: <input type="text" id="txtName" size="45"/></td>
-      </tr>
-      <tr class="hidden annotate_ll">
-        <td>Latitude: <input type="text" id="txtLatitude"/>
-        Longitude: <input type="text" id="txtLongitude"/></td>
+      <tr>
+      	<td>
+      	  <span class="hidden annotate_ll">
+      	  	Latitude: <input type="text" id="txtLatitude"/>
+	        Longitude: <input type="text" id="txtLongitude"/>
+      	  </span>
+      	  <span class="annotate_name">
+      	  	Search: 
+      	  </span>
+      	  <input type="text" id="txtName" size="45"/>
+      	</td>
       </tr>
       <tr class="hidden annotate_range">
         <td>Range: Range</td>
@@ -551,15 +572,17 @@ $(function() {
   </div>
 </script>
 
-<script type="text/html" id="location_tag_form">
-    <% if (contentUri != null && contentUri.indexOf("http://www.geonames.org") == 0) { %>
-  <span class='<%=style%>tag'>
-      <a href="<%=contentUri%>"><%=content%><% if(tagCount > 1){ %> (<%=tagCount%>)<% } %></a>
-  </span>
-    <% } else { %>
-      <span></span>
+<script type="text/html" id="location_display">
+	<% if (contentUri != null) { %>
+		<% if (contentUri.indexOf("http://www.geonames.org") == 0 || contentUri.indexOf("http://www.geohash.org") == 0) { %>
+			<span class='<%=style%>tag'>
+				<a href="<%=contentUri%>" target="_blank"><%=content%><% if(tagCount > 1){ %> (<%=tagCount%>)<% } %></a>
+			</span>
+		<% }%>
+	<% } else { %>
+		<span></span>
       ##<a href="http://www.geonames.org/search.html?q=<%=content%>"><%=content%></a>
-    <% }%>
+	<% }%>
 </script>
 
 #if($self.mimeType.startsWith("audio/") || $self.mimeType.startsWith("video/"))

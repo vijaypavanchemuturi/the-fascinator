@@ -1,15 +1,14 @@
 .image-annotate-add {
-    background: #fff url(../images/icons/add.png) no-repeat 3px 3px;
+    background: #fff url(../images/icons/asterisk_yellow.png) no-repeat 3px 3px;
     border: solid 1px #ccc !important;
     color: #000 !important;
     cursor: pointer;
     display: block;
     float: left;
     font-family: Verdana, Sans-Serif;
-    font-size: 0.9em;
-    font-weight: normal;
+    font-size: 0.9em;    
     height: 18px;
-    line-height: 18px;
+    line-height: 18px;    
     padding: 2px 0 2px 24px;
     margin: 5px 0;
     width: 64px;
@@ -53,7 +52,7 @@
     color: #000;
     display: none;
     font-family: Verdana, Sans-Serif;
-    font-size: 0.9em;
+    font-size: 12px;
     max-width: 200px;
     padding: 3px 7px;
     position: absolute;
@@ -88,7 +87,7 @@
 #image-annotate-edit-form textarea {
     height: 50px;
     font-family: Verdana, Sans-Serif;
-    font-size: 0.9em;
+    font-size: 12px;    
     width: 248px;
 }
 #image-annotate-edit-form fieldset {
@@ -110,7 +109,7 @@
     display: block;
     float: left;    
     font-family: Verdana, Sans-Serif;
-    font-size: 0.8em;
+    font-size: 12px;        
     height: 18px;
     line-height: 18px;
     padding: 2px 0 2px 24px;
