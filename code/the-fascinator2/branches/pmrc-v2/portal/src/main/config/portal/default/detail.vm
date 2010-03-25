@@ -1,156 +1,174 @@
+<script type="text/javascript" src="$portalPath/js/tree/jquery.tree.min.js"></script>
+#set($pageTitle = 'Detail')
 #if($self.solrResponse.get("response/numFound") == 0)
 <h2 id="page-heading">Page not found</h2>
 <p>Please try a different <a href="$portalPath/search">search</a>.</p>
 #else
 #set($meta = $self.metadata)
-#set($oid = $self.object.getId())
+#set($oid = $self.object.id)
 #set($filenameNoExt = $self.getFilePathWithoutExt($oid))
+#set($hasPreview = $self.getPreview($oid))
 #set($title = $meta.getField("dc_title"))
 #set($description = $meta.getField("dc_description"))
-#if(!$title)
+#set($error = $self.getErrorPayload())
+#if($title == "")
   #set($title = $self.getFileName($oid))
 #end
-#set($pageTitle = "Detail | $title")
+##<h2 id="page-heading">$title</h2>
+
 <script type="text/javascript" src="$portalPath/js/geohash/geohash.js"></script>
-<h2 id="page-heading">Detail</h2>
-<div class="grid_4">
-  #if(!$self.isMetadataOnly())
-  <div class="box menu">
-    <h2>Actions</h2>
-    <ul class="menu" id="actions">
-      #if($self.canOpenFile())
-      <li><a id="open-this" href="$portalPath/detail/$oid">Open file</a></li>
-      #end
-      <li><a id="reharvest" href="$portalPath/detail/$oid">Reharvest...</a></li>
-      #if($self.hasHtml())
-      <li><a id="blog-this" href="#">Blog...</a><li>
-      #end
-    </ul>
-  </div>
-  #end
-  <div id="metadata" class="box">
-    <h2>Metadata</h2>
-    #set($pageHeader="#parse($page.getTemplate('detail-header.vm'))")
-    <div class="block">
-      <table class="meta">
-      #foreach($key in $dc.keySet())
-        <tr>
-        <th>$self.formatName($key)</th>
-        #set($valueList = $dc.get($key))
-        </tr>
-        <tr>
-          <td>
-          #foreach($value in $valueList)
-          <span class="meta-value">$value</span><br/>
-          #end
-          </td>
-        </tr>
-      #end
-      </table>
-    </div>
-  </div>
-  <div id="attachments" class="box menu">
-    <h2><a href="#">Attachments</a></h2>
-    <ul class="menu hidden">
-    #foreach($pid in $self.object.getPayloadIdList())
-      #set($payload = $self.object.getPayload($pid))
-      #set($payloadType = $payload.getType().toString())
-      <li class="payload" rel="$payload.getContentType()">
-        <a href='$portalPath/download/$self.encode($oid)/$self.encode($pid)' rel="$payloadType" target="blank" title="$payload.getContentType()">$pid</a>
-      </li>
-    #end
-    </ul>
-  </div>
-</div>
-<div class="grid_12">
-  #if($self.hasHtml())
-  <div class="box hidden" id="blog-form">
-    <h2>Blog</h2>
-    <form id="blog" method="post">
-      <fieldset class="login">
-        <legend>Blog information</legend>
-        <p>
-          <label for="blog_url">Blog URL</label>
-          <input type="text" id="blog_url" name="blog_url" />
-        </p>
-        <p>
-          <label for="blog_title">Title</label>
-          <input type="text" id="blog_title" name="blog_title" value="$title"/>
-        </p>
-        <p>
-          <label for="blog_username">Username</label>
-          <input type="text" id="blog_username" name="blog_username" />
-        </p>
-        <p>
-          <label for="blog_password">Password</label>
-          <input type="password" id="blog_password" name="blog_password" />
-        </p>
-        <p class="message">
-          <img class="hidden" id="blog-loading" src="$portalPath/images/icons/loading.gif" />
-          <span id="blog-message"></span>
-        </p>
-        <input class="button" id="blog-accept" type="button" value="Blog" />
-        <input id="blog-cancel" type="button" value="Close" />
-      </fieldset>
-    </form>
-    <p>Note: Some platforms may not support images or attachments.</p>
-  </div>
-  #end
-  #if ($self.isPending())
-  <div id="pending" class="box articles notice">
-    <h2>Pending</h2>
-    <div class="warning">
-      <b>IMPORTANT</b>Please note that this object is currently in the render queue. There may be pending data/metadata changes not visible below.
-    </div>
-  </div>
-  #end
-  <div id="preview" class="box articles">
-    <h2>Preview</h2>
-    <div id="anno-root" class="content-preview">
-      <div class="first article">
-        <div class="article-heading">$title</div>
-        <div id="object-tag-list">
-          <div rel="$page.md5Hash($oid)_object">Tags: <span class="object-tags"></span></div>
+
+<table class="layout" width="10px">
+  <tbody>
+    <tr>
+      <td class="leftcol">
+        <div class="columnbox">
+          <div class="mainmenu">
+            <div class="mainmenu-top"></div>
+            <div class="mainmenu-heading">Public Memory Research Centre</div>
+            <ul class="menu-list">
+              <li><a href="$portalPath/home">Home</a></li>
+              <li><a href="$portalPath/search">Search</a></li>
+              <li><a href="$portalPath/help">Help</a></li>
+            </ul>
+          </div>
+          <div class="mainmenu">
+            <div class="mainmenu-top"></div>
+            <div class="mainmenu-heading">Actions</div>
+            <ul class="menu-list">
+                #if(!$self.isMetadataOnly())
+                  <li><a id="open-this" href="$portalPath/detail/$oid">Open file</a></li>
+                #end
+                <li><a id="reharvest" href="$portalPath/detail/$oid">Re-Harvest...</a></li>
+            </ul>
+          </div>
+          <div class="mainmenu">
+            <div class="mainmenu-top"></div>
+            <div class="mainmenu-heading">Downloads</div>
+            <ul class="menu-list">
+              <li><a href="$portalPath/download/$self.getPayLoadUrl($self.getFileName($oid))">$self.getFileName($oid)</a> <span style="font-weight:normal">($self.getFileSize($oid))</span></li>
+            </ul>
+          </div>
+          <!--<div class="mainmenu">
+            <div class="mainmenu-top"></div>
+            <div class="mainmenu-heading">Metadata</div>
+            #set($pageHeader="#parse($page.getTemplate('detail-header.vm'))")
+            <div class="block">
+              <dl class="meta">
+              #foreach($key in $dc.keySet())
+                <dt>$self.formatName($key)</dt>
+                #set($valueList = $dc.get($key))
+                <dd>
+                  <ul>
+                  #foreach($value in $valueList)
+                    <li>$value</li>
+                  #end
+                  </ul>
+                </dd>
+              #end
+              </dl>
+            </div>
+          </div>
+          <div class="mainmenu">
+            <div class="mainmenu-top"></div>
+            <div class="mainmenu-heading">Attachments</div>
+            <ul class="menu hidden">
+            #foreach($payload in $self.object.payloadList)
+              #set($pid = $payload.id)
+              #set($payloadType = $payload.type.toString())
+              <li class="payload" rel="$payload.contentType">
+                <a href='$portalPath/download/$self.encode($oid)/$self.encode($pid)' rel="$payloadType" target="blank" title="$payload.contentType">$payload.id</a>
+              </li>
+            #end
+            </ul>
+          </div>
+          -->
         </div>
-        <br/>
-        <div id="location-tag-list">
-          <div rel="$page.md5Hash($oid)_location">Location: <span class="location-tags"></span></div>
-        </div>
-        <br/>
-        <div id="content">
-        #if($self.mimeType.startsWith("audio/") || $self.mimeType.startsWith("video/"))
-          <table>
-	          <tbody>
-	            <tr>
-	              <td id="player-container"></td>
-	              <td>
-	                <div class="video-results-list">
-	                  <div class="video-result-list" anotar-uri="$oid">
-	                  </div>
-	                </div>
-	              </td>
-	            </tr>
-	          </tbody>
-	        </table>
+      </td>
+      <td class="middlecol">
+        <div class="detail">
+        #if($self.solrResponse.get("response/numFound") == 0)
+          #set($pageTitle = "Not found")
+          #set($breadcrumb = "Not found")
+          <h1 class="content-title">Page not found</h1>
+          <h2>There is no media matching your request.</h2>
+          <p>You have been redirected to this page because one of the following occurred:</p>
+          <ul type="disc">
+            <li>It is possible the URL was misspelled or typed incorrectly.</li>
+            <li>You have requested an item that no longer exists.</li>
+          </ul>
+          <p>Return to the <a href="$portalPath/home">Public Memory Research Centre</a>.</p>
         #else
-          <div class="content-preview-inline">$!self.payloadContent</div>
-          <script type="text/javascript" src="$portalPath/js/tree/jquery.tree.min.js"></script>
-          <script type="text/javascript" src="$portalPath/js/viewer.js"></script>
-          <div class="annotatable">Comments:</div>
+          #set($oid = $self.object.id)
+          #set($title = $self.metadata.getField("dc_title"))
+          #set($pageTitle = $title)
+          #set($breadcrumb = '<a href="' + $portalPath  + '/search">Search</a> &gt; ' + $title)
+          <h1 class="content-title">$title</h1>
+          <div id="preview" class="box articles">
+            <h2>Preview</h2>
+            <div id="object-tag-list">
+              <p rel="$page.md5Hash($oid)_object">Tags: <span class="object-tags"></span></p>
+            </div>
+            <div id="location-tag-list">
+              <p rel="$page.md5Hash($oid)_location">Location: <span class="location-tags"></span></p>
+            </div>
+            <div id="anno-root" class="content-preview">
+              <span class="mimetype" rel="$self.mimeType"></span>
+              <div class="first article clearfix">
+            #if($self.mimeType.startsWith("audio/") || $self.mimeType.startsWith("video/"))
+                <!-- <input class='player_clear_fragment' type='button' value='Reset' /> -->
+                <table>
+                  <tbody>
+                    <tr>
+                      <td id="player-container"></td>
+                      <td>
+                        <div class="video-results-list">
+                          <div class="video-result-list" anotar-uri="$self.object.id">
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+            #else
+                <h3 class="title-heading">$title</h3>
+                <div class="content-preview-inline" width="100px">$!self.payloadContent</div>
+                <div class="annotatable">&nbsp;</div>
+                <script type="text/javascript" src="$portalPath/js/viewer.js"></script>
+              </div>
+            #end
+            </div>
+          </div>
+          
         #end
         </div>
-      </div>
-    </div>
-  </div>
-</div>
-<div class="clear"><!-- clear --></div>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<div class="clear"><!--clear--></div>
 #if($self.mimeType.startsWith("audio/") || $self.mimeType.startsWith("video/"))
 <script type="text/javascript" src="$portalPath/flowplayer/flowplayer-3.1.4.min.js"></script>
 <script type="text/javascript" src="$portalPath/flowplayer/flowplayer.controls-3.0.2.js"></script>
+<script type="text/javascript" src="$portalPath/js/anotar/video.annotate.js"></script>
 #end
+#if($self.mimeType.startsWith("image/"))
+<script type="text/javascript" src="$portalPath/js/anotar/image.annotate.js"></script>
+<script language="javascript">
+    $(window).load(function() {
+        $("#toAnnotate").annotateImage({
+            editable: true,
+            saveUrl: "$portalPath/actions/anotar.ajax?action=save-image&rootUri=$oid",
+            getUrl: "$portalPath/actions/anotar.ajax?action=get-image&rootUri=$oid"
+        });
+    });
+</script>
+#end
+<script type="text/javascript" src="$portalPath/js/tree/jquery.tree.min.js"></script>
 <script type="text/javascript" src="$portalPath/js/autocomplete/lib/jquery.ajaxQueue.js"></script>
 <script type="text/javascript" src="$portalPath/js/autocomplete/lib/jquery.bgiframe.js"></script>
 <script type="text/javascript" src="$portalPath/js/autocomplete/jquery.autocomplete.pack.js"></script>
+<!--<script type="text/javascript" src="$portalPath/js/autocomplete/jquery.autocomplete.js"></script>-->
 <script type="text/javascript">
 var display_help = false;
 function toggleHelp(help_link) {
@@ -173,7 +191,7 @@ $(function() {
             var attr = $(this).attr(attrName);
             if (attr != null) {
                 if (attr.indexOf("#") != 0 && attr.indexOf("://") == -1) {
-                    var relUrl = "$portalPath/download/$self.object.getId()/";
+                    var relUrl = "$portalPath/download/$self.object.id/";
                     var tmpUrl = baseUrl.substring(baseUrl.indexOf("/", 8));
                     tmpUrl = tmpUrl.replace(relUrl, "");
                     tmpUrl = tmpUrl.substring(0, tmpUrl.lastIndexOf("/")+1);
@@ -207,26 +225,35 @@ $(function() {
     });
     $("div.rendition-links").remove();
 
+    var player;
     var mimeType = "$self.mimeType";
-
-    #if($self.mimeType.startsWith("image/"))
-        var src = "$portalPath/download/$oid/$self.getPreview('$portalPath/download/$oid')";
-        $("#content").html(
+    //<a class="image" href="' + src + '" ">
+    if (mimeType.indexOf("image/") == 0) {
+        var src = "$hasPreview";
+        if (src == "")
+            src = "$portalPath/download/$oid";
+        else
+            src = "$portalPath/download/$self.encode($oid)/" + src
+        $("div.content-preview div.article").html(
             '<div id="$oid" class="annotatable"><div class="image">' +
-              '<img class="image" id="image-content" src="' + src + '" style="max-width: 100%" />' +
+                '<img class="image" id="toAnnotate" src="' + src + '" style="max-width: 900px;" />' +
             '</div><div class="clear"></div></div>');
-    #elseif($self.mimeType.startsWith("audio/") || $self.mimeType.startsWith("video/"))
+    } else if (mimeType.indexOf("audio/") == 0 || mimeType.indexOf("video/") == 0) {
         var height = 300;
         if (mimeType.indexOf("audio/") == 0) {
             height = 24;
         }
+
         var style = "display: block; width: 425px; height: " + height + "px";
+        //var style = "display: block; width: 500px; height: 300px";
         var filename = oid.substring(oid.lastIndexOf("/") + 1);
         var ext = filename.substring(filename.lastIndexOf(".") + 1).toLowerCase();
+
         var hasFlv = "$self.hasFlv()";
         if (hasFlv!='') {
             filename = hasFlv;
         }
+        
         if (hasFlv!='' || ext=="mp3" || ext=="m4a") {
             var href = "$portalPath/download/$oid/" + filename;
             var player1 = '<div href="' + href + '" id="player" style="' + style + '"></div>'; 
@@ -236,119 +263,88 @@ $(function() {
                   play: {
                     label: "Play",
                     replayLabel: "Click to play again"
-                  }
-                });
+                    }
+                  //plugins: {controls: null} 
+                }); //.controls("hulu", {duration: 25});
+        } else {
+            var error = "$self.hasError()";
+            if (hasFlv=="false") {
+                $("div.content-preview div.article").empty().append("No preview available");
+            }
         }
-        
-        $("#player_seek_start").live("click", function() {
-            player.seek(0);
-        });
-        $("#player_rewind").live("click", function() {
-            player.seek(player.getTime() - 1);
-        });
-        $("#player_play").live("click", function() {
-            player.toggle();
-        });
-        $("#player_forward").live("click", function() {
-            player.seek(player.getTime()+1);
-        });
-        $("#player_seek_end").live("click", function() {
-            player.seek(player.getClip().fullDuration-1);
-            player.pause();
-        });
-        
-        $("#player_mark_start_time").live("click", function() {
-            $("#txtStartMark").attr("value", player.getTime());
-            $("#player_mark_end_time").attr("disabled", false);
-            $("#txtEndMark").attr("disabled", false);
-        });
-        $("#player_mark_end_time").live("click", function() {
-            $("#txtEndMark").attr("value", player.getTime());
-            uri = player.getClip().url + "#";
-            start = $('#txtStartMark').val();
-            end = $('#txtEndMark').val()
-            if (start != "" && end != "") {
-                //Use Normal Play Time as described in http://www.ietf.org/rfc/rfc2326.txt
-                uri += "t=npt:";
-                if (start != "" && start > 0) {
-                    uri += start + "s"
-                    if (player.getClip().duration < start) {
-                        //warning += "<li>The requested start-point is greater than the video's duration.</li>";
-                    }
-                }
-                if (end != "") {
-                    uri += "," + end + "s";
-                    if (player.getClip().duration < end) {
-                        //warning += "<li>The requested end-point is greater than the video's duration.</li>";
-                    }
-                }
-            }
-            $(".video-results-list").attr("rel", uri);
-        });
-        
-        $(".player_clear_fragment").live("click", function() {
-            $("#txtStartMark").attr("value", "");
-            $("#txtEndMark").attr("value", "");
-            $("#media_clip").attr("rel", "");
-            if (player.getClip()) {
-                player.pause();
-                player.getClip().update({duration:player.getClip().fullDuration});
-            }
-        });
-        
-        $("#player_play_fragment").live("click", function() {
-            player.pause();
-            player.seek($('#txtStartMark').val());
-            player.getClip().update({duration:$('#txtEndMark').val()});
-            player.play();
-        });
-        
-        $(".player_play_clip").live("click", function() {
-            player.pause();
-            var startTime = $(this).siblings(".startTime").text().replace("s", "");
-            var endTime = $(this).siblings(".endTime").text().replace("s", "");
-            player.seek(startTime);
-            player.getClip().update({duration:endTime});
-            player.play();
-        });
-    #end
+    }
 
-    #if($self.hasHtml())
-    $("#blog-this, #blog-cancel").click(function() {
-        $("#blog-this").toggleClass("selected");
-        $("#blog-message").empty();
-        $("#blog-form").toggle("blind");
-        return false;
+    $("#player_seek_start").live("click", function() {
+        player.seek(0);
     });
-    $("#blog-accept").click(function() {
-        $("#blog-message").empty();
-        $("#blog-loading").show();
-        jQuery.post("$portalPath/actions/blog.ajax",
-            {
-                url: $("#blog_url").val(),
-                title: $("#blog_title").val(),
-                username: $("#blog_username").val(),
-                password: $("#blog_password").val(),
-                oid: "$oid",
-            },
-            function(data, status) {
-                $("#blog-loading").hide();
-                $("#blog-message").html(data);
-            }
-        );
+    $("#player_rewind").live("click", function() {
+        player.seek(player.getTime() - 1);
+    });
+    $("#player_play").live("click", function() {
+        player.toggle();
+    });
+    $("#player_forward").live("click", function() {
+        player.seek(player.getTime()+1);
+    });
+    $("#player_seek_end").live("click", function() {
+        player.seek(player.getClip().fullDuration-1);
+        player.pause();
     });
     
-    $("#blog_url").autocomplete("$portalPath/actions/blog.ajax?func=url-history");
-    #end
-
-    $("#attachments h2 a").click(function() {
-        $("#attachments ul").toggle("blind").toggleClass('visible').toggleClass('hidden');
-        return false;
+    $("#player_mark_start_time").live("click", function() {
+        $("#txtStartMark").attr("value", player.getTime());
+        $("#player_mark_end_time").attr("disabled", false);
+        $("#txtEndMark").attr("disabled", false);
     });
-
-    #if($self.isMetadataOnly())
-    $("#preview").after($("#metadata")).remove();
-    #end
+    $("#player_mark_end_time").live("click", function() {
+        $("#txtEndMark").attr("value", player.getTime());
+        uri = player.getClip().url + "#";
+        start = $('#txtStartMark').val();
+        end = $('#txtEndMark').val()
+        if (start != "" && end != "") {
+            //Use Normal Play Time as described in http://www.ietf.org/rfc/rfc2326.txt
+            uri += "t=npt:";
+            if (start != "" && start > 0) {
+                uri += start + "s"
+                if (player.getClip().duration < start) {
+                    //warning += "<li>The requested start-point is greater than the video's duration.</li>";
+                }
+            }
+            if (end != "") {
+                uri += "," + end + "s";
+                if (player.getClip().duration < end) {
+                    //warning += "<li>The requested end-point is greater than the video's duration.</li>";
+                }
+            }
+        }
+        $(".video-results-list").attr("rel", uri);
+    });
+    
+    $(".player_clear_fragment").live("click", function() {
+        $("#txtStartMark").attr("value", "");
+        $("#txtEndMark").attr("value", "");
+        $("#media_clip").attr("rel", "");
+        if (player.getClip()) {
+            player.pause();
+            player.getClip().update({duration:player.getClip().fullDuration});
+        }
+    });
+    
+    $("#player_play_fragment").live("click", function() {
+        player.pause();
+        player.seek($('#txtStartMark').val());
+        player.getClip().update({duration:$('#txtEndMark').val()});
+        player.play();
+    });
+    
+    $(".player_play_clip").live("click", function() {
+        player.pause();
+        var startTime = $(this).siblings(".startTime").text().replace("s", "");
+        var endTime = $(this).siblings(".endTime").text().replace("s", "");
+        player.seek(startTime);
+        player.getClip().update({duration:endTime});
+        player.play();
+    });
     
     $("#txtLatitude, #txtLongitude").live("keyup", function() {
     	var latitude = $("#txtLatitude").attr("value");
@@ -362,8 +358,8 @@ $(function() {
     });
 });
 </script>
-
 <script type="text/javascript" src="$portalPath/js/anotar/json2.js"></script>
+<!--<script type="text/javascript" src="$portalPath/js/anotar/anotar-0.1.js"></script>-->
 <script type="text/javascript" src="$portalPath/js/anotar/anotar-0.2.js"></script>
 
 <script type="text/html" id="object_tag_form">
@@ -375,13 +371,14 @@ $(function() {
 </script>
 
 <script type="text/javascript">
-    $(function() {
-    	var jQ = jQuery;
-    	// Tags annotation
+    $(function(){
+        var jQ = jQuery;
+        
+        // Tags annotation
         tagConfig = {
             //debug: true,
             docRoot: "#object-tag-list",
-            tagList: "div",
+            tagList: "p",
             contentInput: "#object-tag-input",
             pageUri: "$oid",
             uriAttr: "rel",
@@ -389,6 +386,10 @@ $(function() {
             annotationType: "tag",
             stylePrefix: "tags-",
             interfaceLabel: " <img src='$portalPath/images/icons/add.png'/>",
+            #if($page.authentication.is_logged_in()) 
+            creator: "$page.authentication.get_name()",
+            creatorUri: null,
+            #end
             formPrepend: true,
             interfaceVisible: true,
             formCustom: "object_tag_form",
@@ -401,11 +402,12 @@ $(function() {
         }
         tag = anotarFactory(jQ, tagConfig);
         
+        
         // Location Tags annotation
         locationConfig={
             debug: true,
             docRoot: "#location-tag-list",
-            tagList: "div",
+            tagList: "p",
             contentInput: "#txtName",
             pageUri: "$oid",
             uriAttr: "rel",
@@ -413,6 +415,10 @@ $(function() {
             annotationType: "tag",
             stylePrefix: "tags-",
             interfaceLabel: " <img src='$portalPath/images/icons/add.png'/>",
+            #if($page.authentication.is_logged_in()) 
+            creator: "$page.authentication.get_name()",
+            creatorUri: null,
+            #end
             //formPrepend: true,
             interfaceVisible: true,
             formCustom: "location_form",
@@ -448,7 +454,6 @@ $(function() {
         /// Use formCloseFunction to overwrite close function
         locationTag = anotarFactory(jQ, locationConfig);
         
-        
         #if($self.mimeType.startsWith("audio/") || $self.mimeType.startsWith("video/"))
         // Audio/Video Tags annotation
         var videoAnoLabel = "<img src='$portalPath/images/icons/comment_add.png'/>&#160;Comment on this media:";
@@ -461,6 +466,10 @@ $(function() {
             tagList: ".video-result-list",
             uriAttr: "anotar-uri",
             replyLabel: "<img src='$portalPath/images/icons/comments_add.png'/>",
+            #if($page.authentication.is_logged_in()) 
+            creator: "$page.authentication.get_name()",
+            creatorUri: null,
+            #end
             //formPrepend: true,
             //stylePrefix: "anno-",
             interfaceLabel: videoAnoLabel,
@@ -507,12 +516,13 @@ $(function() {
             replyLabel: " <img src='$portalPath/images/icons/comments_add.png'/>",
             serverAddress: "$portalPath/actions/anotar.ajax",
             serverMode: "fascinator",
-            interfaceVisible: false
+            interfaceVisible: true
         }
         noteTag = anotarFactory(jQ, noteConfig);
         #end
         
     });
+    
 </script>
 
 <script type="text/javascript">
@@ -703,19 +713,4 @@ $(function() {
   </div>
 </script>
 #end
-
-#if($self.mimeType.startsWith("image/"))
-<script type="text/javascript" src="$portalPath/js/image.annotate.js"></script>
-<script type="text/javascript">
-    $(window).load(function() {
-        $("#image-content").annotateImage({
-            editable: true,
-            saveUrl: "$portalPath/actions/anotar.ajax?action=save-image&rootUri=$oid",
-            getUrl: "$portalPath/actions/anotar.ajax?action=get-image&rootUri=$oid"
-        });
-    });
-</script>
 #end
-#end
-
-#set ($_=$self.closeObject())
