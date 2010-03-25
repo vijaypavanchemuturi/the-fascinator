@@ -1,5 +1,5 @@
 .image-annotate-add {
-    background: #fff url(../images/icons/add.png) no-repeat 3px 3px;
+    background: #fff url(../../images/icons/add.png) no-repeat 3px 3px;
     border: solid 1px #ccc !important;
     color: #000 !important;
     cursor: pointer;
@@ -135,13 +135,13 @@
     opacity: 0.8;
 }
 .image-annotate-edit-ok {
-    background-image: url(../images/icons/tick.png);
+    background-image: url(../../images/icons/tick.png);
 }
 .image-annotate-edit-delete {
-    background-image: url(../images/icons/delete.png);
+    background-image: url(../../images/icons/delete.png);
 }
 .image-annotate-edit-close {
-    background-image: url(../images/icons/cross.png);
+    background-image: url(../../images/icons/cross.png);
 }
 .ui-resizable {
     position: relative;
