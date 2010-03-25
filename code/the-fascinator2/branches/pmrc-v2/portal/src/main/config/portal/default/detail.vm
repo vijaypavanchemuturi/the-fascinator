@@ -425,6 +425,10 @@ $(function() {
             formCancel: ".locTag-cancel",
             formSubmit: ".locTag-submit",
             displayCustom: "location_display", 
+            formPopup: true,
+            formPopupSettings: {
+            	width: 500
+            },
             onFormDisplay: function(node){
             	$("#byName").click();
 				$(node).autocomplete('$portalPath/actions/geonames.ajax', {
@@ -549,7 +553,7 @@ $(function() {
       <tr>
         <td colspan="2" class="location_scope">
           <input type="radio" name="location_scope" id="byName" checked="true"
-                 onclick="$('.annotate_name').show();$('.annotate_ll').hide();$('.annotate_range').hide();" />
+                 onclick="$('.annotate_name, #txtName').show();$('.annotate_ll').hide();$('.annotate_range').hide();" />
           <label for="byName">By Location Name</label>
           <input type="radio" name="location_scope" id="byLL"
                  onclick="$('.annotate_name, #txtName').hide();$('.annotate_ll').show();$('.annotate_range').hide();" />
@@ -562,8 +566,8 @@ $(function() {
       <tr>
       	<td>
       	  <span class="hidden annotate_ll">
-      	  	Latitude: <input type="text" id="txtLatitude"/>
-	        Longitude: <input type="text" id="txtLongitude"/>
+      	  	Latitude: <input type="text" id="txtLatitude" size="10"/>
+	        Longitude: <input type="text" id="txtLongitude" size="10"/>
       	  </span>
       	  <span class="annotate_name">
       	  	Search: 
