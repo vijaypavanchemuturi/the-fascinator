@@ -11,7 +11,7 @@
     <link rel="stylesheet" type="text/css" href="$portalPath/css/ui-lightness/jquery-ui-1.7.2.custom.css" media="screen" />
     <link rel="stylesheet" type="text/css" href="$portalPath/css/styles.css" />
     <link rel="stylesheet" type="text/css" href="$portalPath/css/local_styles.css" />
-    <link rel="stylesheet" type="text/css" href="$portalPath/css/anotar.css" />
+    <link rel="stylesheet" type="text/css" href="$portalPath/css/anotar/anotar.css" />
     $!pageHeader
   </head>
   <body>
