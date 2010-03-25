@@ -19,6 +19,7 @@
 package au.edu.usq.fascinator.transformer.ims;
 
 import au.edu.usq.fascinator.api.PluginException;
+import au.edu.usq.fascinator.api.PluginManager;
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -28,9 +29,13 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import au.edu.usq.fascinator.api.storage.DigitalObject;
+import au.edu.usq.fascinator.api.storage.Storage;
 import au.edu.usq.fascinator.api.storage.StorageException;
 import au.edu.usq.fascinator.api.transformer.TransformerException;
+import au.edu.usq.fascinator.common.storage.StorageUtils;
 import au.edu.usq.fascinator.common.storage.impl.GenericDigitalObject;
+import org.junit.After;
+import org.junit.Before;
 
 /**
  * NOTE: Count not perform the test to talk to ffmpeg directly as ffmpeg might
@@ -42,19 +47,35 @@ import au.edu.usq.fascinator.common.storage.impl.GenericDigitalObject;
 
 public class ImsTransformerTest {
 
-	private GenericDigitalObject zipObject;
-	private DigitalObject imsDigitalObject;
+    private Storage ram;
+	private DigitalObject zipObject, imsDigitalObject;
 	private ImsTransformer imsTransformer = new ImsTransformer();
+
+    @Before
+    public void setup() throws Exception {
+        ram = PluginManager.getStorage("ram");
+        ram.init("{}");
+    }
+
+    @After
+    public void shutdown() throws Exception {
+        if (zipObject != null) {
+            zipObject.close();
+        }
+        if (ram != null) {
+            ram.shutdown();
+        }
+    }
 
 	@Test
 	public void testCheckIfZipIsImsPackage() throws URISyntaxException,
 			StorageException, IOException {
 		File zipFile = new File(getClass().getResource("/mybook.zip").toURI());
+        zipObject = StorageUtils.storeFile(ram, zipFile);
 
-		zipObject = new GenericDigitalObject(zipFile.getAbsolutePath());
 		imsDigitalObject = imsTransformer.createImsPayload(zipObject, zipFile);
 		// Assert.assertTrue(imsDigitalObject.getIsImsPackage());
-		Assert.assertEquals(imsDigitalObject.getPayloadIdList().size(), 194);
+		Assert.assertEquals(imsDigitalObject.getPayloadIdList().size(), 195);
 	}
 
 	@Test
@@ -69,9 +90,7 @@ public class ImsTransformerTest {
 			TransformerException, PluginException {
 		ImsTransformer imsTransformer = new ImsTransformer();
 		File zipFile = new File(getClass().getResource("/mybook.zip").toURI());
-
-		GenericDigitalObject zipObject = new GenericDigitalObject(zipFile
-				.getAbsolutePath());
+        zipObject = StorageUtils.storeFile(ram, zipFile);
 
 		imsTransformer.init("{}");
 		DigitalObject object = imsTransformer.transform(zipObject);

@@ -18,22 +18,26 @@
  */
 package au.edu.usq.fascinator.transformer.aperture;
 
+import au.edu.usq.fascinator.api.PluginManager;
+import au.edu.usq.fascinator.api.storage.DigitalObject;
+import au.edu.usq.fascinator.api.storage.Payload;
+import au.edu.usq.fascinator.api.storage.PayloadType;
+import au.edu.usq.fascinator.api.storage.Storage;
+import au.edu.usq.fascinator.api.storage.StorageException;
+import au.edu.usq.fascinator.api.transformer.TransformerException;
+import au.edu.usq.fascinator.common.storage.StorageUtils;
+
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.IOException;
 import java.net.URISyntaxException;
 
 import junit.framework.Assert;
 
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
-
-import au.edu.usq.fascinator.api.storage.DigitalObject;
-import au.edu.usq.fascinator.api.storage.Payload;
-import au.edu.usq.fascinator.api.storage.PayloadType;
-import au.edu.usq.fascinator.api.storage.StorageException;
-import au.edu.usq.fascinator.api.transformer.TransformerException;
-import au.edu.usq.fascinator.common.storage.impl.GenericDigitalObject;
 
 /**
  * @author Linda Octalina
@@ -43,8 +47,24 @@ import au.edu.usq.fascinator.common.storage.impl.GenericDigitalObject;
 public class ApertureTransformerTest {
     private ApertureTransformer ex = new ApertureTransformer("/tmp");
 
-    private GenericDigitalObject testObject;
-    private DigitalObject testObjectOutput;
+    private Storage ram;
+    private DigitalObject testObject, testObjectOutput;
+
+    @Before
+    public void setup() throws Exception {
+        ram = PluginManager.getStorage("ram");
+        ram.init("{}");
+    }
+
+    @After
+    public void shutdown() throws Exception {
+        if (testObject != null) {
+            testObject.close();
+        }
+        if (ram != null) {
+            ram.shutdown();
+        }
+    }
 
     @Test
     public void testPdfFile() throws URISyntaxException, TransformerException,
@@ -52,7 +72,7 @@ public class ApertureTransformerTest {
         File fileNamepdf = new File(getClass().getResource("/AboutStacks.pdf")
                 .toURI());
 
-        testObject = new GenericDigitalObject(fileNamepdf.getAbsolutePath());
+        testObject = StorageUtils.storeFile(ram, fileNamepdf);
         testObjectOutput = ex.transform(testObject);
         Payload rdfPayload = testObjectOutput.getPayload("aperture.rdf");
         Assert.assertEquals("aperture.rdf", rdfPayload.getId());
@@ -66,7 +86,8 @@ public class ApertureTransformerTest {
             StorageException {
         File fileNameodt = new File(getClass().getResource("/test Image.odt")
                 .toURI());
-        testObject = new GenericDigitalObject(fileNameodt.getAbsolutePath());
+
+        testObject = StorageUtils.storeFile(ram, fileNameodt);
         testObjectOutput = ex.transform(testObject);
         Payload rdfPayload = testObjectOutput.getPayload("aperture.rdf");
         Assert.assertEquals("aperture.rdf", rdfPayload.getId());
@@ -77,10 +98,12 @@ public class ApertureTransformerTest {
 
     // Image file?
     @Test
-    public void testImageFile() throws URISyntaxException, TransformerException {
+    public void testImageFile() throws URISyntaxException, TransformerException,
+            StorageException {
         File imageFile = new File(getClass().getResource("/presentation01.jpg")
                 .toURI());
-        testObject = new GenericDigitalObject(imageFile.getAbsolutePath());
+
+        testObject = StorageUtils.storeFile(ram, imageFile);
         testObjectOutput = ex.transform(testObject);
 
         // Try to print out the rdf content
@@ -108,9 +131,10 @@ public class ApertureTransformerTest {
 
     @Test
     public void testWithoutExtension() throws URISyntaxException,
-            TransformerException {
+            TransformerException, StorageException {
         File fileWOExt = new File(getClass().getResource("/somefile").toURI());
-        testObject = new GenericDigitalObject(fileWOExt.getAbsolutePath());
+
+        testObject = StorageUtils.storeFile(ram, fileWOExt);
         testObjectOutput = ex.transform(testObject);
 
         // Try to print out the rdf content

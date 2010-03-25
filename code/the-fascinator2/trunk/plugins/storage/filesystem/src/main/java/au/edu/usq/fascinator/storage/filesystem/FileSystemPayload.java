@@ -139,7 +139,6 @@ public class FileSystemPayload extends GenericPayload {
                             + linkFile.getAbsolutePath());
                 }
                 InputStream in = new FileInputStream(linkFile);
-                setInputStream(in);
                 return in;
             } catch (IOException ex) {
                 throw new StorageException(ex);
@@ -149,7 +148,6 @@ public class FileSystemPayload extends GenericPayload {
         } else {
             try {
                 InputStream in = new FileInputStream(dataFile);
-                setInputStream(in);
                 return in;
             } catch (FileNotFoundException ex) {
                 throw new StorageException(ex);

@@ -35,8 +35,12 @@ import au.edu.usq.fascinator.api.PluginManager;
 import au.edu.usq.fascinator.api.storage.DigitalObject;
 import au.edu.usq.fascinator.api.storage.Payload;
 import au.edu.usq.fascinator.api.storage.PayloadType;
+import au.edu.usq.fascinator.api.storage.Storage;
 import au.edu.usq.fascinator.api.transformer.Transformer;
+import au.edu.usq.fascinator.common.storage.StorageUtils;
 import au.edu.usq.fascinator.common.storage.impl.GenericDigitalObject;
+import org.junit.After;
+import org.junit.Before;
 
 /**
  * ICE 2 Transformer tests. Uses a mock ICE server implementation.
@@ -47,6 +51,7 @@ public class Ice2TransformerTest {
 
     private static Server server;
 
+    private Storage ram;
     private DigitalObject sourceObject, outputObject;
 
     @BeforeClass
@@ -63,18 +68,35 @@ public class Ice2TransformerTest {
         }
     }
 
+    @Before
+    public void init() throws Exception {
+        ram = PluginManager.getStorage("ram");
+        ram.init("{}");
+    }
+
+    @After
+    public void close() throws Exception {
+        if (sourceObject != null) {
+            sourceObject.close();
+        }
+        if (ram != null) {
+            ram.shutdown();
+        }
+    }
+
     @Test
     public void testSingleFile() throws URISyntaxException, IOException,
             PluginException {
         File file = new File(getClass().getResource("/first-post.odt").toURI());
-        sourceObject = new GenericDigitalObject(file.getAbsolutePath());
+        sourceObject = StorageUtils.storeFile(ram, file);
+
         Transformer iceTransformer = PluginManager.getTransformer("ice2");
         iceTransformer.init(new File(getClass().getResource(
                 "/ice-transformer.json").toURI()));
         outputObject = iceTransformer.transform(sourceObject);
         Set<String> payloads = outputObject.getPayloadIdList();
 
-        Assert.assertEquals(3, payloads.size());
+        Assert.assertEquals(4, payloads.size());
 
         // check for the Preview payload
         boolean foundPreview = false;
@@ -91,7 +113,7 @@ public class Ice2TransformerTest {
     public void testErrorFile() throws URISyntaxException,
             UnsupportedEncodingException, PluginException {
         File file = new File(getClass().getResource("/somefile.doc").toURI());
-        sourceObject = new GenericDigitalObject(file.getAbsolutePath());
+        sourceObject = StorageUtils.storeFile(ram, file);
 
         Transformer iceTransformer = PluginManager.getTransformer("ice2");
         iceTransformer.init(new File(getClass().getResource(
@@ -101,7 +123,7 @@ public class Ice2TransformerTest {
         Set<String> payloads = outputObject.getPayloadIdList();
 
         Payload icePayload = outputObject.getPayload("somefile_ice_error.htm");
-        Assert.assertEquals(1, payloads.size());
+        Assert.assertEquals(2, payloads.size());
         Assert.assertEquals(icePayload.getId(), "somefile_ice_error.htm");
         Assert.assertEquals(icePayload.getLabel(), "ICE conversion errors");
         Assert.assertEquals(icePayload.getType(), PayloadType.Error);

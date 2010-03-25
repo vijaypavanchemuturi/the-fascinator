@@ -29,6 +29,7 @@ import org.junit.Test;
 
 import au.edu.usq.fascinator.api.PluginManager;
 import au.edu.usq.fascinator.api.storage.DigitalObject;
+import au.edu.usq.fascinator.api.storage.Payload;
 import au.edu.usq.fascinator.api.storage.PayloadType;
 import au.edu.usq.fascinator.api.storage.Storage;
 import au.edu.usq.fascinator.api.transformer.Transformer;
@@ -76,11 +77,16 @@ public class FfmpegTransformerTest {
         Assert.assertEquals("There should be 2 Payloads", 2, outputObject
                 .getPayloadIdList().size());
 
-        // should have a preview payload
-        String pid = FilenameUtils.getBaseName(sourceObject.getId()) + ".flv";
-        Assert.assertEquals(pid + " should be of type Preview",
-                PayloadType.Preview, outputObject.getPayload(pid).getType());
+        String preview = null;
+        for (String i : outputObject.getPayloadIdList()) {
+            Payload p = outputObject.getPayload(i);
+            if (p.getType() == PayloadType.Preview) {
+                preview = i;
+            }
+        }
 
+        // should have a preview payload
+        Assert.assertNotNull("Should have a Preview", preview);
         outputObject.close();
     }
 }
