@@ -382,6 +382,10 @@ $(function() {
             //debug: true,
             docRoot: "#object-tag-list",
             tagList: "div",
+            #if($page.authentication.is_logged_in()) 
+            creator: "$page.authentication.get_name()",
+            creatorUri: null,
+            #end
             contentInput: "#object-tag-input",
             pageUri: "$oid",
             uriAttr: "rel",
@@ -403,9 +407,13 @@ $(function() {
         
         // Location Tags annotation
         locationConfig={
-            debug: true,
+            //debug: true,
             docRoot: "#location-tag-list",
             tagList: "div",
+            #if($page.authentication.is_logged_in()) 
+            creator: "$page.authentication.get_name()",
+            creatorUri: null,
+            #end
             contentInput: "#txtName",
             pageUri: "$oid",
             uriAttr: "rel",
@@ -467,6 +475,10 @@ $(function() {
             replyLabel: "<img src='$portalPath/images/icons/comments_add.png'/>",
             //formPrepend: true,
             //stylePrefix: "anno-",
+            #if($page.authentication.is_logged_in()) 
+            creator: "$page.authentication.get_name()",
+            creatorUri: null,
+            #end
             interfaceLabel: videoAnoLabel,
             interfaceVisible: true,
             formCustom: "media_clip_form",
