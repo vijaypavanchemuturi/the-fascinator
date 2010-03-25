@@ -429,7 +429,8 @@ $(function() {
             displayCustom: "location_display",
             formPopup: true,
             formPopupSettings: {
-            	width: 500
+            	width: 500,
+                title: "Location Tag"
             }, 
             onFormDisplay: function(node){
             	$("#byName").click();
