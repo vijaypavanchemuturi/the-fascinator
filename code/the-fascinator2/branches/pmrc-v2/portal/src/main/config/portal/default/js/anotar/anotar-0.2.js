@@ -21,17 +21,18 @@ function anotarFactory(jQ, config) {
 	 * Required configuration parameters:
 	 *   docRoot
 	 *   serverAddress
+         *   pageUri
 	 */
 	var anotar = {};
 	if(!config) config={};
 	// default settings
 	config.docRoot = config.docRoot || "#anno-root";
 	config.tagList = config.tagList || "p, h1, h2, h3, h4, h5, h6";
+	config.listElementTagNames = config.listElementTagNames || "li,lh,dd,dt"; //list of list elements defined
 	config.label = config.label || "Comment on this:";
 	config.lang = config.lang || "en";
 	config.creatorUri = config.creatorUri || "http://www.purl.org/anotar/ns/user/0.1#Anonymous";
 	config.clientUri = config.clientUri || "http://www.purl.org/anotar/client/0.1";
-	config.serverMode = config.serverMode || "couch";
 	config.stylePrefix = config.stylePrefix ||  "anno-";
 	config.interfaceLabel = config.interfaceLabel || " &#xb6;";
 	config.interfaceVisible = config.interfaceVisible || false;
@@ -43,11 +44,12 @@ function anotarFactory(jQ, config) {
 	config.uriAttr = config.uriAttr || "id";
 	config.disableReply = config.disableReply || false;
 	
+	//function overwritten
 	config.submitAnnotation = config.submitAnnotation || postNewAnnotation;
 	config.loadAnnotation = config.loadAnnotation || loadAnnotation;
-	config.getAnnotation = config.getAnnotation || getAnnotation;
-	
-	//config.getHttpData = config.getHttpData || getHttpData;
+	config.loadAnnotations = config.loadAnnotations || loadAnnotations;
+	config.getHttpData = config.getHttpData || getHttpData;
+	config.postHttpData = config.postHttpData || postHttpData;
 	
 	annotationType = config.annotationType || "comment";
 	setType(annotationType);		// sets config.annoType
@@ -57,9 +59,9 @@ function anotarFactory(jQ, config) {
 	if (config.docRoot.length == 0)
         debug.die("No document root (" + config.docRoot + ") found!");
     // If we haven't been given a URI or a way to find URIs then use the current URL.
-    if(!config.pageUri){
-        config.pageUri = location.href;		// Not good (HACK)
-    }
+    //if(!config.pageUri){
+    //    config.pageUri = location.href;		// Not good (HACK)
+    //}
     
     var anotarForm;
     /* ##################
@@ -75,6 +77,7 @@ function anotarFactory(jQ, config) {
      * "proxyUrl" : null,
      * "creator" : null,
      * "creatorEmail": null,
+     * "creatorWebsite":null,
      * "uriAttr" : "id"   //to look for element's id
      * 
      * ----- form -----
@@ -88,7 +91,6 @@ function anotarFactory(jQ, config) {
      * formClearFunction : null,
      * formCloseFunction : null,
      * formSubmitFunction : null,
-     * onFormDisplay: null,
      * formPopup : false
      * formPopupSettings : {
      * 		autoOpen: true,
@@ -115,7 +117,7 @@ function anotarFactory(jQ, config) {
      * 	}
      * 
      * ----- Interface -----
-     * 
+     * collapseComments : false, 
      * 
      * ----- Others -----
      * "orphanHolder": null,
@@ -124,17 +126,17 @@ function anotarFactory(jQ, config) {
 
     var debug;
 	if(config.debug){
-		debug = {
-			die:function(message){ alert("DEBUG: " + message); }
-		}
+		debug = {die:function(message){ }} //alert("DEBUG: " + message); }}
 	}else{
-		debug = {
-				die:function(message){}
-			}
+		debug = {die:function(message){}}
 	}
-		
+	
+	//to make the anotar classnames.
+    function getClassSelector(name) { return "."+ getClassName(name); }
+    function getClassName(name) { return config.stylePrefix + name;  }
+	
     // Variables accessible throughout this object
-	var errorMsg = "";
+    var errorMsg = "";
     var templateCache = {};
     var anonUri = "http://www.purl.org/anotar/ns/user/0.1#Anonymous";
     var targetList = [];
@@ -172,7 +174,12 @@ function anotarFactory(jQ, config) {
 	             "<div class='<%=style%>anno-content'><%=content%></div>" +
 	             "<div class='<%=style%>anno-children'><%=children%></div>" +
 	         "</div>",
-	
+	    
+	    showHideButton :"<a href='' class='<%=style%>showHideComments'>[<span class='<%=style%>showHideText' /> " +
+	    			"<span class='<%=style%>annotationCount'><%=count%></span> comments...]</a>",
+	    commentContainer : "<div class='<%=style%>has-annotation' <%=style%>locatorhash='<%=hash%>' />",
+	    commentList : "<div class='<%=style%>commentList'></div>",
+	         
 	    seeAlsoDisplay: "",
 	    questionDisplay: "",
 	    explanationDisplay: "",
@@ -189,7 +196,7 @@ function anotarFactory(jQ, config) {
     anotarForm = anotarFormFactory(config);
     addIds(targetList);
     addCommands(targetList);
-    loadAnnotations();
+    config.loadAnnotations();
     
     // Public functions
     function setType(value){
@@ -247,13 +254,13 @@ function anotarFactory(jQ, config) {
         	addId(jQ(i));
         });
     }
-    
+   
     function addCommand(node){
     	if(!addCommand.interfaceSpan){ //set up the spans if not there.
     		//reply interface span only if defined
     		if (config.replyLabel && !config.disableReply) {
-				var replyInterfaceLabel = renderTemplate(config.replyLabel,{style: config.stylePrefix});
-				var opt = {style: config.stylePrefix, label: replyInterfaceLabel};
+			var replyInterfaceLabel = renderTemplate(config.replyLabel,{style: config.stylePrefix});
+			var opt = {style: config.stylePrefix, label: replyInterfaceLabel};
 				addCommand.replySpan = jQ(renderTemplate(templates.commandText, opt));
     	    }
     	    //general interface span
@@ -262,15 +269,21 @@ function anotarFactory(jQ, config) {
     	}
     	var prepend = config.interfacePrepend;
     	var iNode = addCommand.interfaceSpan;
-    	if(node.hasClass(config.stylePrefix+"inline-annotation")){
+    	var visible = config.interfaceVisible; 
+    	if(node.hasClass(getClassName("inline-annotation"))){
     		prepend = true;
     		iNode = addCommand.replySpan;
+    		visible = true;
     	}
         var addInterface = function(jqe) {
-        	if(prepend){
-                jqe.prepend(iNode);
+            if(prepend){
+        	jqe.prepend(iNode);
             }else{
-                jqe.append(iNode);
+            	if(jqe.children(getClassSelector("has-annotation")).size()!=0){ //in case of list elements
+            		jqe.children(getClassSelector("has-annotation")).before(iNode);
+            	}else{
+            		jqe.append(iNode);
+            	}
             }
             iNode.unbind();
             iNode.mousedown(function(e) {return false;});
@@ -289,8 +302,8 @@ function anotarFactory(jQ, config) {
         var removeInterface = function() {
         	iNode.remove();
         }
-    	if(config.interfaceVisible){		// Commands always visible
-    		var newSpan = iNode.clone();
+        if(visible){		// Commands always visible
+    	    var newSpan = iNode.clone();
             newSpan.mousedown(function(e) {return false;});
             newSpan.mouseup(interfaceClick); // for I.E.
             if(prepend){ 
@@ -299,7 +312,7 @@ function anotarFactory(jQ, config) {
                 node.append(newSpan);
             }
         } else {	//if hover
-        	node.hover(function(e) {addInterface(node);},function(e) {removeInterface();})
+            node.hover(function(e) {addInterface(node);},function(e) {removeInterface();})
             node.mousedown(function(e) {removeInterface();});
         }
     }
@@ -323,75 +336,136 @@ function anotarFactory(jQ, config) {
     			//load each annotations
         		jQ.each(json, function(c, i){config.loadAnnotation(i);});
     		}catch(e){ 
-    			alert("JSON ERROR: " + e);
+    			//alert("JSON ERROR: " + e);
     		}
     	}
-    	getAnnotations(config.pageUri, callback);
+        if (config.pageUri) {
+    	    getAnnotations(config.pageUri, callback);
+        } else {
+            jQ.each(targetList, function(count, item) {
+    		var uri = $(item).attr(config.uriAttr);
+    		getAnnotations(uri, callback);
+    	    });
+        }
     }
-
+    
     function loadAnnotation(annoObj) {
     	var annoUri = annoObj.annotates.uri;
         var locators = annoObj.annotates.locators || [];
         var annoHash = null;
         var node, isReply;
+        function collapseButton(commentContainer){ //add or update the show/hide button
+        	if(config.collapseComments){
+    	    	var commentCount, aNode;
+    	    	commentCount = commentContainer.find(getClassSelector("inline-annotation")).size();
+    	    	aNode =commentContainer.find(getClassSelector("showHideComments")); 
+    	    	if(aNode.size()===0){ //add new
+    		    	aNode = jQ(renderTemplate(templates.showHideButton,{style:config.stylePrefix,count:commentCount}));
+    		    	commentContainer.prepend(aNode);
+    				function showHideNode(e){
+    		    		var node,target;
+    		    		target = jQ(e.target);
+    		    		node = target.parent().find(getClassSelector("commentList"));
+    		    		if(node.is(":visible")){
+    		    			node.hide();
+    		    			target.find(getClassSelector("showHideText")).html("View");
+    		    		}else{
+    		    			node.show();
+    		    			target.find(getClassSelector("showHideText")).html("Collapse");
+    		    		}
+    		    		return false;
+    		    	}
+    		    	aNode.click(showHideNode);
+    		    	aNode.click(); //hide the node
+    	    	}else{//update the count
+    	    		aNode.find(getClassSelector("annotationCount")).html(commentCount);
+    	    	}
+        	}
+        }
         var attachAnnotation = function(node, annotation, isReply) {
-        	if (config.outputInChild){
+            var wrapClass, hash,tagName, commentContainer;
+            if (config.outputInChild){ //Mainly for tags
                 node.find(config.outputInChild).append(annotation);
             } else {
-                if (isReply) {
+                if (isReply) { 
+                	if(!node.hasClass(getClassName("anno-children"))){  //just in case wrong parent
+                		node = node.children(getClassSelector("anno-children"));
+                	}
                     node.append(annotation);
-                } else {
-                    var wrapClass = config.stylePrefix + "has-annotation";
-                    if (!node.parent().hasClass(wrapClass)) {
-                        node.wrap("<div class='" + wrapClass + "'/>");
-                    }
-                    node.parent().append(annotation);
+                    
+                } else { //adding new annotation 
+                    wrapClass = getClassName("has-annotation");
+                    hash = node.attr(config.hashAttr);
+                    commentContainer = docRoot.find("["+config.stylePrefix +"locatorhash='"+hash+"']");
+                    if(commentContainer.size() === 0) {  //Make a container for the comments
+                    	tagName = node[0].tagName.toLowerCase();
+                    	commentContainer = jQ(renderTemplate(templates.commentContainer,{style: config.stylePrefix, hash:hash}));
+                    	commentContainer.append(renderTemplate(templates.commentList,{style:config.stylePrefix}));
+                    	if(config.listElementTagNames.search(tagName) === -1){ // if not list,then add as a sibling
+                    		 node.after(commentContainer);
+                    	}else{//otherwise, add as a child
+                    		node.append(commentContainer);
+                    	}
+                    } 
+                    commentContainer.children(getClassSelector("commentList")).append(annotation);
                 }
             }
+            if(!commentContainer){
+            	commentContainer = annotation.closest(getClassSelector("has-annotation"));
+            }
+            collapseButton(commentContainer); //modify show/hide button
         }
         
         // Find where to attach it
-   		isReply = annoObj.annotates.uri!=annoObj.annotates.rootUri;
-       	if ((isReply || locators.length == 0 || locators[0].type != "http://www.purl.org/anotar/locator/0.1") && (
-       		annoObj.type!="http://www.purl.org/anotar/ns/type/0.1#Tag")) {
-       	    // Load by URI
-       		// Currently hardcoded only for comment
+        if (config.pageUri) {
+	   	isReply = annoObj.annotates.uri!=annoObj.annotates.rootUri;
+	       	if ((isReply || locators.length == 0 || locators[0].type != "http://www.purl.org/anotar/locator/0.1") && (
+	       		annoObj.type!="http://www.purl.org/anotar/ns/type/0.1#Tag")) {
+	       	    // Load by URI
+	       	    // Currently hardcoded only for comment
+	       	    node = jQ("*["+config.uriAttr+"='"+annoUri+"']");
+	       	} else {
+	       		// Load by hash and differentiated by locator type
+	       		if (locators[0].type == config.hashType) {
+		       		annoHash = locators[0].value;
+		       		node = jQ("*["+config.hashAttr+"='"+annoHash+"']");
+	       		} else {
+	       			return;
+	       		}
+	       	}
+        } else {
        	    node = jQ("*["+config.uriAttr+"='"+annoUri+"']");
+        }        
+
+        /* Find where to attach it *** previously
+        isReply = false;
+       	if(locators.length) {//TODO: Make this more robust
+       	    // Load by hash
+       	    annoHash = locators[0].value;
+            node = docRoot.find("*["+config.hashAttr+"='"+annoHash+"']");
        	} else {
-       		// Load by hash and differentiated by locator type
-       		if (locators[0].type == config.hashType) {
-	       		annoHash = locators[0].value;
-	       		node = jQ("*["+config.hashAttr+"='"+annoHash+"']");
-	       		
-	            //console.log(config.hashAttr, annoHash);
-	            //if (annoUri.search("#") > 0)
-	            //	isReply = true; 
-       		} else {
-       			return;
-       		}
+       	    // Load by URI
+   	    node = docRoot.find("*["+config.uriAttr+"='"+annoUri+"']");
+   	    if (config.annotationType != "tag")  isReply = true;
        	}
-       	
+        */
+
         //Get the object as it should be displayed
     	var cssToggle = "odd";
-        if(node.hasClass("odd"))
-        	cssToggle = "even";
+        if(node.hasClass("odd"))  cssToggle = "even";
 		
         var outputDiv = getAnnontationNode(annoObj, cssToggle);
-        if (!config.disableReply) {
-    		addCommand(outputDiv, true);
-    	}
-        addId(outputDiv);
-        attached = false;
-       	if(node.size()){
+        if (!config.disableReply)  addCommand(outputDiv, true);
+    	addId(outputDiv);
+        
+    	if(node.size()!==0){
        		attachAnnotation(node, outputDiv, isReply);
-       		attached= true;
        		if(annoObj.replies){
        			//if there is replies, load them as well.
        			jQ.each(annoObj.replies,function(c,i){config.loadAnnotation(i);});
        		}
-       	}
-	    // Orphan handling
-        if (!attached) {
+       		
+       	}else{ // Orphan handling
             var orphanId = config.stylePrefix + "orphans";
             var orphanTemplate = templates.orphanHolder;
             if (config.orphanHolder != null &&
@@ -400,14 +474,14 @@ function anotarFactory(jQ, config) {
                 orphanTemplate = config.orphanHolder;
             }
             // Find our holder
-            var holder = jQ("#" + orphanId);
+            var holder = docRoot.find("#" + orphanId);
             if (holder.size() == 0) {     // Create the holder
                 docRoot.append(renderTemplate(orphanTemplate, {style: config.stylePrefix}))
-                holder = jQ("#" + orphanId);
+                holder = docRoot.find("#" + orphanId);
             }
             holder.append(outputDiv);
         }
-        return outputDiv;
+    	return outputDiv;
     }
 
     //connection 
@@ -424,8 +498,7 @@ function anotarFactory(jQ, config) {
                 searchValue = escape('"' + key + '"');
                 break;
         }
-        var request = config.serverAddress + baseQuery + searchValue;
-        getHttpData(request, "GET", null, callback);
+        getHttpData2(request, "GET", null, callback);
     }
 
     function getAnnotations(key, callback) {
@@ -445,33 +518,44 @@ function anotarFactory(jQ, config) {
         }
         
         var request = config.serverAddress + baseQuery + searchValue;
-        getHttpData(request, "GET", null, callback);
+        getHttpData2(request, "GET", null, callback);
     }
     
     function postAnnotation(request, payload, callback) {
-        getHttpData(request, "POST", payload, callback);
+        getHttpData2(request, "POST", payload, callback);
     }
 
-    function getHttpData(requestUrl, method, payload, callback) {
+    function getHttpData2(requestUrl, method, payload, callback) {
     	var success = function(data, status) {
         	errorMsg = "";
             try{     // to avoid infinite loop, if error in callback.  
             	callback(data, status);
             }catch(e){
-            	alert("Error in callback: " + e +", requestURL: " + requestUrl +", method :"+method);
+            	//alert("Error in callback: " + e +", requestURL: " + requestUrl +", method :"+method);
             	return;
             }
         }
         var error = function(req, status, e) {
             errorMsg = "ERROR (STATUS: '" + status + "', CODE: '" + req.responseCode + "', BODY: '" + req.responseText + "')";
-            alert(errorMsg);
+            //alert(errorMsg);
         }
-        if(config.getHttpData){ //for ajax function overwritten. 
-        	config.getHttpData(requestUrl, method, payload, success, error)
-        	return;
-        }
+        if(method=="GET") config.getHttpData(requestUrl, success, error);
+        else if(method=="POST") config.postHttpData(requestUrl, payload, success, error);
+    }
+    
+    function getHttpData(requestUrl, success, error){
         jQ.ajax({
-            type: method,
+            type: "GET",
+            url: requestUrl,
+            success: success,
+            error: error,
+            dataType: "text"
+        });
+    }
+    
+    function postHttpData(requestUrl, payload, success, error){
+        jQ.ajax({
+            type: "POST",
             url: requestUrl,
             success: success,
             error: error,
@@ -486,36 +570,42 @@ function anotarFactory(jQ, config) {
         var submitCallback = function (data, status) {
         	if(!data) return;
         	var response = JSON.parse(data);
-        	switch (config.serverMode) {
-                    case "fascinator":
-                        loadAnnotation(response);
-                        break;
-                    default:
-						if(typeof(response.ok) !== "undefined" && response.ok == true) {
-							var loadCallback = function (data, status) {
-								var anno = JSON.parse(data).rows[0].value;
-								config.loadAnnotation(anno);
-							}
-							getAnnotation(response.id, loadCallback);
-						} else {
-							alert("Sorry! An error occurred saving that data!");
-						}
-						break;
+		if(response.ok == true) {
+			// if the response is post success result only, 
+			// then request the annotation from server again
+			var loadCallback = function (data, status) {
+				var anno = JSON.parse(data).rows[0].value;
+				var container = config.loadAnnotation(anno);
+				container = container.closest(getClassSelector("has-annotation")); 
+				if(!container.find(getClassSelector("commentList")).is(":visible")){
+					container.find(getClassSelector("showHideComments")).click();//show the comments
+				}
 			}
+			getAnnotation(response.id, loadCallback);
+		} else if(response.annotates){	
+			//if server return annotation json back
+			var container = config.loadAnnotation(response);
+			container = container.closest(getClassSelector("has-annotation")); 
+			if(!container.find(getClassSelector("commentList")).is(":visible")){
+				container.find(getClassSelector("showHideComments")).click();//show the comments
+			}
+		} else {
+			//alert("Sorry! An error occurred saving that data!");
+		}
         }
         var payload = null;
-		switch (config.serverMode) {
-			case "fascinator":
-				payload = {
-					action: "put",
-					rootUri: data.annotates.rootUri,
-					json: JSON.stringify(data)
-				};
-				break;
-			default:
-				payload = JSON.stringify(data);
-				break;
-		}
+	switch (config.serverMode) {
+		case "fascinator":
+			payload = {
+				action: "put",
+				rootUri: data.annotates.rootUri,
+				json: JSON.stringify(data)
+			};
+			break;
+		default:
+			payload = JSON.stringify(data);
+			break;
+	}
         
         postAnnotation(config.serverAddress, payload, submitCallback);
     }
@@ -528,7 +618,7 @@ function anotarFactory(jQ, config) {
     }
 
     var renderAnnotation = function(annoObj, cssToggle) {
-        var creator = "";
+        var creator = "Anonymous";
         var getDisplayTemplate = function(type) {
             switch (type) {
                 case "http://www.purl.org/anotar/ns/type/0.1#Tag":
@@ -557,26 +647,11 @@ function anotarFactory(jQ, config) {
         if (annoObj.creator.literal != null) {
             creator = annoObj.creator.literal;
             // Can we add a URI to make a link?
-            if (annoObj.creator.uri != null && annoObj.creator.uri.startsWith("http")) {
-                creator = "<a href='" + annoObj.creator.uri +"'>" + creator + "</a>";
-            }
-        } else {
-            // Or try their email address.
-            if (annoObj.creator.email.literal != null) {
-                creator = annoObj.creator.email.literal;
-            } else {
-                // Finally let's look for a URI, such as anonymous
-                if (annoObj.creator.uri != null) {
-                    creator = annoObj.creator.uri;
-                    // An hide the anon URI since it's most common (and long)
-                    if (creator == anonUri) {
-                        creator = "<a href='" + anonUri +"'>Anonymous</a>";
-                    }
-                }
-            }
-        }
-
-        if (annoObj.annotates.locators.length > 0)
+           
+        } 
+        //Removed stuff which links to URI or exposes email address PS
+        
+        if (annoObj.annotates.locators && annoObj.annotates.locators.length > 0)
             var origContent = annoObj.annotates.locators[0].originalContent;
         if (origContent == undefined) origContent = "";
         
@@ -587,9 +662,11 @@ function anotarFactory(jQ, config) {
         	str = str.replace(/\</g,"&lt;");
         	str = str.replace(/\>/g,"&gt;");
         	str = str.replace(/\'/g,"&apos;");
+        	str = str.replace(/\\&apos;/g,"&apos;");  //remove the extra backslash
         	str = str.replace(/\"/g,"&quot;");
         	str = str.replace(/\n/g,"<br />");
         	str = str.replace(/\r/g,"<br />");
+        	str = unescape(str); //for unicode char
         	return str;
         }
         
@@ -608,7 +685,7 @@ function anotarFactory(jQ, config) {
             contentUri: annoObj.contentUri
         };
         
-		if (annoObj.annotates.locators.length > 0) {
+        if (annoObj.annotates.locators && annoObj.annotates.locators.length > 0) {
             opt.locator = annoObj.annotates.locators[0].value;
         }
 		
@@ -729,7 +806,7 @@ function anotarFactory(jQ, config) {
 	            "rootUri": data.root
 	        };
 	        // Annotation locator(s)
-	        schemaObject.annotates.locators = [];
+                schemaObject.annotates.locators = [];
 	        if (data.hash) {
 	            var thisHash = {
 	                "originalContent": data.originalContent,
@@ -742,6 +819,7 @@ function anotarFactory(jQ, config) {
 	        schemaObject.creator = {
 	            "literal": config.creator,
 	            "uri": config.creatorUri,
+	            "website":config.creatorWebsite,
 	            "email": {
 	                "literal": config.creatorEmail
 	            }
@@ -757,15 +835,16 @@ function anotarFactory(jQ, config) {
 	        };
 	        // Content
 	        schemaObject.content = {
-				"mimeType": "text/plain",
-				"literal": data.content,
-				"formData": {}
-			};
+			"mimeType": "text/plain",
+			"literal": data.content,
+			"formData": {}
+		};
 			
-			// Content Uri
+		// Content Uri
 	        if (data.contentUri) {
 	        	schemaObject.contentUri = data.contentUri;
 	        } 
+	        
 	        // Privacy
 	        schemaObject.isPrivate = false;
 	        // Language
@@ -777,7 +856,7 @@ function anotarFactory(jQ, config) {
             if (last != null) {
                 annotateDiv.remove();
                 commentOnThis.remove();
-                if(last.parent().hasClass(sp+"inline-annotation-quote")){
+                if(last.parent().hasClass(getClassName("inline-annotation-quote"))){
                 	last.parent().parent().replaceWith(last);
                 }
                 last = null;
@@ -796,34 +875,48 @@ function anotarFactory(jQ, config) {
         function clearClick(){
         	textArea.val("");
         }
-        
         // Submit callback
         function submitClick(e) {
-            var text, html, d, selfUrl,me;
+            var text, html, d, selfUrl,originalContent;
+            var linkNode, me,originalContentNode,annoNode;
             me = jQ(e.target);
-            // Hide the form
-            unWrapLast();
+            
             // Wipe any saved text we have
             annotationComments[hash] = "";
             // Return if there's nothing to submit
             text = jQ.trim(textArea.val());
             if (text == "") return;
+            
+            //get the original content
+            originalContentNode = me.closest(getClassSelector("inline-annotation-form")).find(getClassSelector("inline-annotation-quote>*"));
+            if(originalContentNode.children(getClassSelector("has-annotation")).size()!==0){//in case there is other comments
+            	annoNode = originalContentNode.children(getClassSelector("has-annotation"));
+            	originalContentNode.parent().append(annoNode);
+            }
+            originalContent = originalContentNode.text();
+            if(linkNode) originalContentNode.append(linkNode);
+            if(annoNode) originalContentNode.append(annoNode);
+            
             // If this is a reply or not
             html = me.wrap("<div/>").parent().html();
             html = jQ(html).text();
             me.parent().replaceWith(me);
             
             hashValue = hash;
-            func = config.hashFunction;
-            if (func != null) {
-               //me is button
-               hashValue = func($(config.docRoot));
+            if (!config.pageUri) {
+                // HACK - for multiple objects on single page (e.g. search results)
+                //        use first target hash so it won't get orphaned when
+                //        loaded on single object page
+                hashValue = $(targetList[0]).attr(config.hashAttr);
+            } else if (config.hashFunction) {
+                hashValue = config.hashFunction($(config.docRoot));
             }
+            
             data = {
                 uri: uri,
-                root: config.pageUri,
+                root: config.pageUri || uri,
                 hash: hashValue,
-            	originalContent: me.text(),
+            	originalContent: originalContent,
             	content: text
             };
             
@@ -833,9 +926,12 @@ function anotarFactory(jQ, config) {
             		data.contentUri = json.contentUri;
             	}
             }
-
+            
+            //got all the data so hide the form now
+            unWrapLast();
+            
             data = createPayload(data);
-            config.submitAnnotation(data);
+            config.submitAnnotation(data, annotateDiv); //Added second parameter so plugins can process custom forms
         }
         // Retrieve comments if we have them
         var restore = function() {
@@ -857,24 +953,27 @@ function anotarFactory(jQ, config) {
 	        // What are we annotating?
 	        hash = me.attr(config.hashAttr);
 	        if(config.uriAttr) {
-	            uri = me.attr(config.uriAttr);
-	            if(uri){
-	            	pageUriPos = uri.search(config.pageUri);
-	            	if (pageUriPos == -1) pageUriPos = 0;
-	            	if(uri.substring(pageUriPos, config.pageUri.length + pageUriPos)===config.pageUri){
-	            		hash = null;
-	            	} else {
-	            		uri = config.pageUri;
-	            	}
-	            } 
-	        } 
-	        
+                uri = me.attr(config.uriAttr);
+                if (config.pageUri) {
+                        if(uri){
+                            pageUriPos = uri.search(config.pageUri);
+                            if (pageUriPos == -1) pageUriPos = 0;
+                            if(uri.substring(pageUriPos, config.pageUri.length + pageUriPos)===config.pageUri){
+                                    hash = null;
+                            } else {
+                                    uri = config.pageUri;
+                            }
+                        } else {
+                            uri = config.pageUri;
+                        }
+                }
+            } 
 	        // Do we have any text saved?
 	        restore();
 	        function defaultDisplayForm(){
 	        	me.wrap(renderTemplate(templates.annotateWrap, opt));
 		        if (config.formPrepend) {
-		           me.parent().prepend(annotateDiv);
+		        	me.parent().prepend(annotateDiv);
 		        } else {
 		           me.parent().append(annotateDiv);
 		        }
@@ -998,3 +1097,4 @@ function Crc32(str) {
 }
 
 // Basic String util
+
