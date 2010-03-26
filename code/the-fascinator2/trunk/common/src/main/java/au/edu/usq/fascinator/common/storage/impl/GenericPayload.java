@@ -22,10 +22,11 @@ import au.edu.usq.fascinator.api.storage.Payload;
 import au.edu.usq.fascinator.api.storage.PayloadType;
 import au.edu.usq.fascinator.api.storage.StorageException;
 import au.edu.usq.fascinator.common.MimeTypeUtil;
+
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
-
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -209,12 +210,21 @@ public class GenericPayload implements Payload {
      * @param an InputStream
      */
     public void setInputStream(InputStream inputStream) {
-        String str = inputStream.toString();
-        ramStore = str.getBytes();
+        ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+        int c;
         try {
-            inputStream.close();
-        } catch (IOException ex) {
-            log.error("Failed to close new input stream after reading : ", ex);
+            while ((c = inputStream.read()) != -1) {
+                bytes.write((char) c);
+            }
+            ramStore = bytes.toByteArray();
+        } catch (Exception e) {
+            log.error("Error during input storage", e);
+        } finally {
+            try {
+                inputStream.close();
+            } catch (IOException ex) {
+                log.error("Error during inputStream closure", ex);
+            }
         }
     }
 
