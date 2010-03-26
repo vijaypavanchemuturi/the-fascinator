@@ -65,6 +65,8 @@ class LoginData:
 
     def create_user(self):
         username = formData.get("username")
+        displayname = formData.get("displayname")
+        uri = formData.get("uri")
         password = formData.get("password")
         password_confirm = formData.get("password_confirm")
 
@@ -75,6 +77,7 @@ class LoginData:
             source = formData.get("source")
             self.authentication.set_auth_plugin(source)
             self.authentication.create_user(username, password)
+            self.authentication.modify_user(username, "displayName", displayName)
 
             err = self.authentication.get_error()
             if err is None:

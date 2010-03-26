@@ -388,7 +388,7 @@ $(function() {
             interfaceLabel: " <img src='$portalPath/images/icons/add.png'/>",
             #if($page.authentication.is_logged_in()) 
             creator: "$page.authentication.get_name()",
-            creatorUri: null,
+            creatorUri: "$page.authentication.get_uri()",
             #end
             formPrepend: true,
             interfaceVisible: true,
@@ -417,7 +417,7 @@ $(function() {
             interfaceLabel: " <img src='$portalPath/images/icons/add.png'/>",
             #if($page.authentication.is_logged_in()) 
             creator: "$page.authentication.get_name()",
-            creatorUri: null,
+            creatorUri: "$page.authentication.get_uri()",
             #end
             //formPrepend: true,
             interfaceVisible: true,
@@ -473,7 +473,7 @@ $(function() {
             replyLabel: "<img src='$portalPath/images/icons/comments_add.png'/>",
             #if($page.authentication.is_logged_in()) 
             creator: "$page.authentication.get_name()",
-            creatorUri: null,
+            creatorUri: "$page.authentication.get_uri()",
             #end
             //formPrepend: true,
             //stylePrefix: "anno-",
@@ -514,7 +514,7 @@ $(function() {
             pageUri: "$oid",
             #if($page.authentication.is_logged_in()) 
             creator: "$page.authentication.get_name()",
-            creatorUri: null,
+            creatorUri: "$page.authentication.get_uri()",
             #end
             tagList: "p, h1, h2, h3, h4, h5, h6, .annotatable",
             interfaceLabel: " <img src='$portalPath/images/icons/comment_add.png'/> Comments:",

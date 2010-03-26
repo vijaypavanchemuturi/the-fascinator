@@ -15,6 +15,7 @@
   <modules>
     <module>access/simple</module>
     <module>authentication/internal</module>
+    <module>authentication/pmrc</module>
     <module>authentication/filesystem</module>
     <module>harvester/filesystem</module>
     <module>harvester/oai-pmh</module>

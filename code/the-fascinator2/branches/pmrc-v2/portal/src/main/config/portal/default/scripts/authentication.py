@@ -64,6 +64,14 @@ class Authentication:
         except AuthenticationException, e:
             self.error_message = self.parse_error(e)
 
+    def modify_user(self, username, name, value):
+        try:
+            self.auth.modifyUser(username, name, value)
+            self.has_error = False
+            return username
+        except AuthenticationException, e:
+            self.error_message = self.parse_error(e)
+
     def delete_role(self, rolename):
         try:
             self.role.deleteRole(rolename)
@@ -165,6 +173,12 @@ class Authentication:
             return "guest"
         else:
             return user
+    
+    def get_uri(self):
+        if self.current_user is not None:
+            return self.current_user.get("uri")
+        else:
+            return None
 
     def grant_access(self, recordId, newRole):
         try:
