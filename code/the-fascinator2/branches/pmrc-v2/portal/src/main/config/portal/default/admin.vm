@@ -162,6 +162,14 @@
           <input type="text" id="create-user-username" name="create-user-username" />
         </p>
         <p>
+          <label for="create-user-username">Display Name</label>
+          <input type="text" id="create-user-displayname" name="create-user-displayname" />
+        </p>
+        <p>
+          <label for="create-user-uri">User Uri</label>
+          <input type="text" id="create-user-uri" name="create-user-uri" />
+        </p>
+        <p>
           <label for="create-user-password">Password</label>
           <input type="password" id="create-user-password" name="create-user-password" />
         </p>
@@ -284,6 +292,8 @@ $(function() {
         $("#create-user-message").empty();
         $("#create-user-error").hide();
         $("#create-user-username").val("");
+        $("#create-user-displayname").val("");
+        $("#create-user-uri").val("");
         $("#create-user-password").val("");
         $("#create-user-password-confirm").val("");
         $("#create-user-source").val(plugin);
@@ -317,6 +327,8 @@ $(function() {
                 },
             data: {
                 username: $("#create-user-username").val(),
+                displayname: $("#create-user-displayname").val(),
+                uri: $("#create-user-uri").val(),
                 password: $("#create-user-password").val(),
                 password_confirm: $("#create-user-password-confirm").val(),
                 source: $("#create-user-source").val(),

@@ -356,7 +356,7 @@ $(function() {
             displayCustom: "tag_display",
             #if($page.authentication.is_logged_in()) 
             creator: "$page.authentication.get_name()",
-            creatorUri: null,
+            creatorUri: "$page.authentication.get_uri()",
             #end
             interfaceLabel: " <img src='$portalPath/images/icons/add.png'/>",
             interfaceVisible: true,
