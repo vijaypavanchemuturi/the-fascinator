@@ -45,7 +45,7 @@ import org.junit.Test;
  */
 
 public class ApertureTransformerTest {
-    private ApertureTransformer ex = new ApertureTransformer("/tmp");
+    private ApertureTransformer ex = new ApertureTransformer(System.getProperty("java.io.tmpdir"));
 
     private Storage ram;
     private DigitalObject testObject, testObjectOutput;

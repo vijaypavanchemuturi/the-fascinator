@@ -89,18 +89,24 @@ public class FfmpegTransformer implements Transformer {
     @Override
     public DigitalObject transform(DigitalObject object)
             throws TransformerException {
+
+        outputPath = get("outputPath");
+        File outputDir = new File(outputPath);
+        outputDir.mkdirs();
+
+        String sourceId = object.getSourceId();
+        String ext = FilenameUtils.getExtension(sourceId);
+
         File file;
         try {
-            file = File.createTempFile("ffmpeg", ".object");
+            file = new File(outputDir, sourceId);
             file.deleteOnExit();
             FileOutputStream tempFileOut = new FileOutputStream(file);
             // Payload from storage
-            String tempPid = object.getSourceId();
-            Payload tempPayload;
-            tempPayload = object.getPayload(tempPid);
+            Payload payload = object.getPayload(sourceId);
             // Copy and close
-            IOUtils.copy(tempPayload.open(), tempFileOut);
-            tempPayload.close();
+            IOUtils.copy(payload.open(), tempFileOut);
+            payload.close();
             tempFileOut.close();
         } catch (IOException ex) {
             log.error("Error writing temp file : ", ex);
@@ -116,9 +122,6 @@ public class FfmpegTransformer implements Transformer {
             ffmpeg = new FfmpegImpl(get("executable"));
         }
         if (file.exists() && ffmpeg.isAvailable()) {
-            outputPath = get("outputPath");
-            File outputDir = new File(outputPath);
-            outputDir.mkdirs();
             try {
                 FfmpegInfo info = ffmpeg.getInfo(file);
                 log.debug("{}: {}", file.getName(), info);
@@ -130,7 +133,6 @@ public class FfmpegTransformer implements Transformer {
                         payload.close();
                         thumbnail.delete();
                     }
-                    String ext = FilenameUtils.getExtension(object.getSourceId());
                     List<String> excludeList = Arrays.asList(StringUtils.split(
                             get("excludeExt"), ','));
                     if (!excludeList.contains(ext.toLowerCase())

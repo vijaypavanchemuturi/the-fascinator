@@ -116,13 +116,17 @@ public class Ice2Transformer implements Transformer {
     public DigitalObject transform(DigitalObject object)
             throws TransformerException {
 
+        outputPath = get("outputPath");
+        File outputDir = new File(outputPath);
+        outputDir.mkdirs();
+
         String sourceId = object.getSourceId();
         String ext = FilenameUtils.getExtension(sourceId);
         String fileName = FilenameUtils.getBaseName(sourceId);
 
         File file;
         try {
-            file = File.createTempFile(fileName, "." + ext);
+            file = new File(outputDir, sourceId);
             FileOutputStream out = new FileOutputStream(file);
             // Payload from storage
             Payload payload = object.getPayload(sourceId);
@@ -143,9 +147,6 @@ public class Ice2Transformer implements Transformer {
         List<String> excludeList = Arrays.asList(StringUtils.split(
                 get("excludeRenditionExt"), ','));
         if (file.exists() && !excludeList.contains(ext.toLowerCase())) {
-            outputPath = get("outputPath");
-            File outputDir = new File(outputPath);
-            outputDir.mkdirs();
             convertUrl = get("url");
             try {
                 if (isSupported(file)) {
