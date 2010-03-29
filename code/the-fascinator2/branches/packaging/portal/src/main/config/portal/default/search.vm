@@ -1,0 +1,586 @@
+#macro(displayFacetTree $facetTreeId $facetField)
+  <div class="menu box hidden">
+    <h2>$facetField.get("label")</h2>
+    <div id="$facetTreeId" class="menu facet-list clearfix"></div>
+  </div>
+  <script type="text/javascript">
+  $(function() {
+      createTree("#$facetTreeId", "$facetTreeId");
+  });
+  </script>
+#end
+#macro(displayFacet $facetFieldKey $facetField)
+  #set($facetCounts = $self.getFacetCounts($facetFieldKey))
+  #if($facetCounts.size() > 0)
+  <div class="box menu">
+    <h2>$facetField.get("label")</h2>
+    <ul class="facet-list menu" id="$facetFieldKey">
+    #foreach($facetCountKey in $facetCounts.keySet())
+      #set($facetCount = $facetCounts.get($facetCountKey))
+      #set($facetQuery = $self.getFacetQuery($facetFieldKey, $facetCountKey))
+      #set($selected = $self.isSelected($facetQuery))
+      <li#if($selected) class="selected"#end>
+      #if($self.isPortalQueryFacet($facetQuery))
+        <a class="portal-facet">$facetCountKey&nbsp;<span class="facet-count">($facetCount)</a></span>
+      #else
+        #if($selected)
+          #set($facetClass = "remove-facet selected")
+        #else
+          #set($facetClass = "add-facet")
+        #end
+        #set($facetLabel = "$page.escapeText($facetCountKey)")
+        <a class="facet $facetClass" href="#" rel='$facetFieldKey:"$facetCountKey"' title="$facetLabel ($facetCount)">
+          $facetLabel&nbsp;<span class="facet-count">($facetCount)</span>
+        </a>
+      #end
+      </li>
+    #end
+    </ul>
+  </div>
+  #end
+#end
+#set($pageTitle = 'Search')
+#set($query = $sessionState.get("query"))
+#if($query!="")
+  #set($atomLink = "$portalPath/feed/atom?query=$query")
+#else
+  #set($atomLink = "$portalPath/feed/atom")
+#end
+#set($pageHeader = "<link rel=\"alternate\" type=\"application/atom+xml\" href=\"$atomLink\" title=\"$self.portalName\">")
+#set($paging = $self.paging)
+#if($self.result and $paging.totalFound > 0)
+#end
+<h2 id="page-heading">Search<span class="paging right">#parse($page.getTemplate("search-paging.vm"))
+</span><a class="feed" title="ATOM FEED" href="$atomLink">
+<img alt="ATOM Feed" src="$portalPath/images/icons/rss.png"/>
+</a></h2>
+<div id="action-list" class="grid_4">
+  #if($self.hasSelectedFacets() || $query != "")
+  <div class="box menu">
+    <h2>Actions</h2>
+    <ul class="menu">
+      #if($query != "")
+        <li><a href="$portalPath/search">Clear search query</a></li>
+      #end
+      #if($self.hasSelectedFacets())
+        <li><a href="#" id="create-view">Create view...</a></li>
+        <li><a href="#" id="clear-facets">Clear selection</a></li>
+      #end
+    </ul>
+  </div>
+  #end
+  <script type="text/javascript">
+  // hierarchical facet trees
+  function createTree(selector, facetField) {
+      var tree = jQuery.tree.create();
+      tree.init($(selector), {
+          data: {
+              type: "json",
+              opts: {
+                  url: "$portalPath/search-tree.ajax?facet.field=" + facetField
+              }
+          },
+          selected: $self.selectedFacetIds,
+          ui: {
+              animation: 250,
+              dots: false,
+              theme_name: "checkbox"
+          },
+          opened: [],
+          plugins: {
+              checkbox: {},
+              cookie: {
+                  prefix: "tf_tree_" + facetField
+              }
+          },
+          callback: {
+              beforedata: function(node, tree) {
+                  return {
+                      id: $(node).attr("id") || 0,
+                      query: $("#query").val()
+                  };
+              },
+              onchange: function(node, tree) {
+                  $(node).children("a").removeClass("clicked");
+                  $(node).children("a").toggleClass("checked");
+              },
+              onload: function(tree) {
+                  tree.container.find("a").bind("click", function() {
+                      var checked = $(this).hasClass("checked") == false;
+                      doAction(checked ? "add_fq" : "remove_fq", $(this).parent().attr("fq"));
+                  });
+                  var nodeCount = $(selector).find("li").length;
+                  if (nodeCount > 0) {
+                      $(selector).parent("div").show();
+                  }
+              }
+          }
+      });
+      return tree;
+  }
+  </script>
+  #set($facetFields = $self.result.getMap("facet_counts/facet_fields"))
+  #foreach($facetFieldKey in $facetFields.keySet())
+    #set($facetField = $self.getFacetField($facetFieldKey))
+    #if($facetField.get("display") == "tree")
+      #displayFacetTree($facetFieldKey $facetField)
+    #else
+      #displayFacet($facetFieldKey $facetField)
+    #end
+  #end
+</div>
+<div class="grid_12" id="result-list">
+  <div class="box hidden" id="create-view-box">
+    <h2>Create view</h2>
+    <form method="post">
+      <fieldset class="login">
+        <legend>View</legend>
+        <p>
+          <label for="create-view-id">Identifier</label>
+          <input type="text" id="create-view-id" name="create-view-id" />
+        </p>
+        <p>
+          <label for="create-view-description">Name</label>
+          <input type="text" id="create-view-description" name="create-view-description" />
+        </p>
+        <input class="button" id="create-view-accept" type="button" value="Create" />
+        <input id="create-view-cancel" type="button" value="Cancel" />
+      </fieldset>
+    </form>
+  </div>
+  <div class="box articles">
+    <h2>Results
+      <span class="right">Showing ${paging.startNum} to ${paging.endNum} of ${paging.totalFound} items ($self.queryTime seconds)</span>
+    </h2>
+    #if($self.result and $paging.totalFound > 0)
+    #set ($is_admin = $page.authentication.is_admin())
+    #foreach($item in $self.result.getList("response/docs"))
+      #set($id = $item.get("id"))
+      #set($hashId = $page.md5Hash($id))
+      #set($dcTitle = "")
+      #set($dcTitle = $item.get("dc_title").get(0))
+      #if($dcTitle.trim() != "")
+        #set($title = $dcTitle)
+      #else
+        #set($title = $self.getFileName($id))
+      #end
+      #set($description = "")
+      #set($description = $item.get("dc_description").get(0))
+      #set ($resultClass = "article")
+      #if($velocityCount==1)
+        #set ($resultClass = "$resultClass first")
+      #end
+
+      <div id="$hashId" class="$resultClass">
+        #if($is_admin)
+        <div class="admin-link-holder float-right">
+          <a class="admin-security-link" rel="$id" href="#">Manage Access</a>
+          <div class="admin-roles">
+              #foreach ($role in $item.get("security_filter"))
+              <div class="locked">$role</div>
+              #end
+          </div>
+          <a class="admin-delete-link" rel="$id" href="#">Delete Object</a>
+        </div>
+        #end
+        <h3>
+            #set($wfStep = $item.get("workflow_step").get(0))
+            #if ($wfStep != "" && $wfStep != "live")
+            <img class="workflow" src="$portalPath/images/icons/wf_${wfStep}.png" />
+            #end
+            #if($self.canManage($item.get("workflow_security")))
+            <span class="wfMan">
+              <a href="$portalPath/workflow/$self.encode($id)">
+                <img class="workflow" src="$portalPath/images/icons/application_go.png" />
+              </a>
+            </span>
+            #end
+            <a href="$portalPath/detail/$self.encode($id)">$title</a>
+        </h3>
+        <div rel="$id" class="tags">Tags: <span class="tags-here"></span></div>
+        #set($thumbnail = $self.getThumbnail($id))
+        #if($thumbnail)
+          <a class="image" href="$portalPath/detail/$id">
+            <img src="$portalPath/download/$id/$thumbnail" />
+          </a>
+        #end
+        <p class="item-description">$!description&nbsp;</p>
+        <div class="clear"></div>
+      </div>
+    #end
+    #else
+      <div class="box no-result">No items found matching your query: '$!query'</div>
+    #end
+  </div>
+</div>
+#if($is_admin)
+    #macro(buildSecurityFields $data)
+      #foreach($plugin in $data)
+        <table class="security-table" summary="Security data for $plugin.getId()">
+          <thead>
+            <tr><th class="table-head">$plugin.getName()</th></tr>
+          </thead>
+          <tfoot>
+            <tr id="security-new-$plugin.getId()" class="hidden">
+              <td>
+                New role:
+                <input type="text" id="security-new-role-$plugin.getId()" />
+                <input type="button" class="security-new-submit" rel="$plugin.getId()" value="Add Role" />
+              </td>
+            </tr>
+            <tr><th><a class="add-role-button" href="#" rel="$plugin.getId()">Add a role</a></th></tr>
+          </tfoot>
+          <tbody>
+            <tr><th>Roles current granted access:</th></tr>
+            <tr id="security-loading-$plugin.getId()"><td><img src="$portalPath/images/icons/loading.gif" /></td></tr>
+            <tr id="security-empty-$plugin.getId()" class="hidden"><td>None yet...</td></tr>
+          </tbody>
+          <tbody id="security-rows-$plugin.getId()">
+            <tr><td>&nbsp;</td></tr>
+          </tbody>
+        </table>
+      #end
+    #end
+<div class="box hidden" id="security-form">
+  <form id="security" method="post">
+    <fieldset class="search">
+      <legend>Security : '<span id="security-legend"></span>'</legend>
+      <div class="stop-error hidden" id="security-error">
+        <span id="security-message"></span>
+      </div>
+      <p>Below are all the currently active security plugins and the roles they allow access to this item:</p>
+      <div id="security-field-holder">
+#buildSecurityFields($page.authentication.get_plugins_access())
+      </div>
+      <input id="security-cancel" type="button" value="Close" />
+    </fieldset>
+  </form>
+</div>
+<div class="box hidden" id="delete-dialog">
+  <form id="delete" method="post">
+    <fieldset class="search">
+      <legend>Delete : '<span id="delete-legend"></span>'</legend>
+      <div class="stop-error hidden" id="delete-error">
+        <span id="delete-message"></span>
+      </div>
+      <p>Are you really certain you want to delete this object?</p>
+      <p><strong>This operation cannot be undone</strong></p>
+      <input id="delete-submit" type="button" value="Yes, Delete" />
+      <input id="delete-cancel" type="button" value="Cancel" />
+    </fieldset>
+  </form>
+</div>
+#end
+<script type="text/javascript" src="$portalPath/js/tree/jquery.tree.min.js"></script>
+<script type="text/javascript" src="$portalPath/js/jquery.truncate.js"></script>
+<script type="text/javascript">
+<!--
+$(function() {
+    addActionParam("query", "$!query");
+
+    if ($("#action-list div").length == 0) {
+        $("#result-list").removeClass("grid_12").addClass("grid_16");
+    }
+
+    // facet actions
+    $("#clear-facets").click(function() {
+        doAction("clear_fq");
+        return false;
+    });
+    $(".add-facet").click(function() {
+        doAction("add_fq", $(this).attr("rel"));
+        return false;
+    });
+    $(".remove-facet").click(function() {
+        doAction("remove_fq", $(this).attr("rel"));
+        return false;
+    });
+
+    // truncate descriptions
+    $("p.item-description").truncate(500, {
+        trail: [ '... <a href="#" class="truncate_show">more</a>',
+                 ' <a href="#" class="truncate_hide">less</a>' ]
+    });
+
+    // create view
+    $("#create-view, #create-view-cancel").click(function() {
+        $("#create-view").toggleClass("selected");
+        $("#create-view-box").toggle("blind");
+        $("#create-view-id").focus();
+        return false;
+    });
+    $("#create-view-accept").click(function() {
+        jQuery.post("$portalPath/actions/view.ajax",
+            {
+                func: "create-view",
+                id: $("#create-view-id").val(),
+                description: $("#create-view-description").val()
+            },
+            function(data, status) {
+                $("#create-view-box").toggle("blind");
+                $("#create-view-id").val("");
+                $("#create-view-description").val("");
+                window.location = data.url;
+            },
+            "json"
+        );
+    });
+
+});
+-->
+</script>
+
+
+<script type="text/javascript" src="$portalPath/js/anotar/json2.js"></script>
+<script type="text/javascript" src="$portalPath/js/anotar/anotar-0.2.js"></script>
+<script type="text/javascript">
+    $(function(){
+        jQ = jQuery;
+        // Tags annotation
+        tagConfig = {
+            //debug: true,
+            docRoot: ".articles",
+            tagList: ".tags",
+            contentInput: "#object-tag-input",
+            uriAttr: "rel",
+            outputInChild: ".tags-here",
+            annotationType: "tag",
+            stylePrefix: "tags-",
+            displayCustom: "tag_display",
+            #if($page.authentication.is_logged_in()) 
+            creator: "$page.authentication.get_name()",
+            creatorUri: null,
+            #end
+            interfaceLabel: " <img src='$portalPath/images/icons/add.png'/>",
+            interfaceVisible: true,
+            formCustom: "object_tag_form",
+            formCancel: ".myTag-cancel",
+            formSubmit: ".myTag-submit",
+            serverAddress: "$portalPath/actions/anotar.ajax",
+            disableReply: true,
+            serverMode: "fascinator"
+        }
+        tag = anotarFactory(jQ, tagConfig);
+        
+    });
+</script>
+
+<script type="text/html" id="tag_display">
+	<% if (contentUri != null) { %>
+		<% if (contentUri.indexOf("http://www.geonames.org") == 0 || contentUri.indexOf("http://www.geohash.org") == 0) { %>
+			<span class='<%=style%>tag'>
+				<a href="<%=contentUri%>" target="_blank"><%=content%><% if(tagCount > 1){ %> (<%=tagCount%>)<% } %></a>
+			</span>
+		<% }%>
+	<% } else { %>
+		<span class='<%=style%>tag'><%=content%></span>
+      ##<a href="http://www.geonames.org/search.html?q=<%=content%>"><%=content%></a>
+	<% }%>
+</script>
+
+<script type="text/html" id="object_tag_form">
+    <div class='myTags float-right'>Tag this:
+      <input id="object-tag-input" type="text" />
+      <img src='$portalPath/images/icons/tick.png' class='myTag-submit' />&#160;
+      <img src='$portalPath/images/icons/cross.png' class='myTag-cancel' />
+    </div>
+</script>
+
+
+#if($is_admin)
+<script type="text/javascript">
+<!--
+$(function() {
+    var dialogOpts = {
+        autoOpen: false,
+        hide: "blind",
+        width: 330,
+        modal: true
+    }
+    $("#security-form").dialog(dialogOpts);
+    $("#security-form").dialog('option', 'title', 'Manage Security');
+    $("#delete-dialog").dialog(dialogOpts);
+    $("#delete-dialog").dialog('option', 'title', 'Delete Object');
+
+    $(".add-role-button").click(function() {
+        pluginId = $(this).attr("rel");
+        $("#security-message").empty();
+        $("#security-error").hide();
+        $("#security-new-" + pluginId).show();
+        return false;
+    });
+
+    $(".security-new-submit").click(function() {
+        var pluginId = $(this).attr("rel");
+        $("#security-message").empty();
+        $("#security-error").hide();
+        $("#security-new-" + pluginId).hide();
+        $("#security-loading-" + pluginId).show();
+
+        jQuery.ajax({
+            type : "POST",
+            url : "$portalPath/actions/admin.ajax",
+            success:
+                function(data, status) {
+                    addRow(pluginId, data);
+                    $("#security-empty-" + pluginId).hide();
+                    $("#security-loading-" + pluginId).hide();
+                },
+            error:
+                function (req, status, e) {
+                    $("#security-error").show();
+                    $("#security-message").html(req.responseText);
+                    $("#security-loading-" + pluginId).hide();
+                },
+            data: {
+                record: recordId,
+                role: $("#security-new-role-" + pluginId).val(),
+                source: pluginId,
+                verb: "grant-access"
+            }
+        });
+
+        return false;
+    });
+
+    var recordId = "";
+    var refresh_link;
+    $(".admin-security-link").click(function() {
+        refresh_link = $(this);
+        recordId = $(this).attr("rel");
+        $("#security-message").empty();
+        $("#security-error").hide();
+        $("#security-form").dialog('open');
+        $("#security-legend").html(recordId);
+
+        jQuery.ajax({
+            type : "POST",
+            url : "$portalPath/actions/admin.ajax",
+            success: securityQuery,
+            error:
+                function (req, status, e) {
+                    $("#security-error").show();
+                    $("#security-message").html(req.responseText);
+                },
+            data: {
+                record: recordId,
+                verb: "get-current-access"
+            }
+        });
+
+        return false;
+    });
+
+    function securityQuery(data, status) {
+        var response = eval("(" + data + ")");
+        for (var i in response) {
+            $("#security-rows-" + i).html("");
+            if (response[i].length == 0) {
+                $("#security-empty-" + i).show();
+                $("#security-loading-" + i).hide();
+            } else {
+                $("#security-empty-" + i).hide();
+                len = response[i].length;
+                for (var j = 0; j < len; j++) {
+                    addRow(i, response[i][j]);
+                }
+                $("#security-loading-" + i).hide();
+            }
+        }
+        $(".remove-role-link").click(revoke_access);
+    }
+
+    function addRow(pluginId, value) {
+        var data = $("#security-rows-" + pluginId).html();
+        data += "<tr><td>" + value;
+        data += " <a class='remove-role-link' rel='" + pluginId + "' value='" + value + "' href='#'>";
+        data += "<img src='$portalPath/images/icons/cross.png'/></a>";
+        data += "</td></tr>";
+        $("#security-rows-" + pluginId).html(data);
+    }
+
+    function revoke_access() {
+        var pluginId = $(this).attr("rel");
+        $("#security-message").empty();
+        $("#security-error").hide();
+        $("#security-loading-" + pluginId).show();
+
+        jQuery.ajax({
+            type : "POST",
+            url : "$portalPath/actions/admin.ajax",
+            success:
+                function(data, status) {
+                    refresh_link.click();
+                },
+            error:
+                function (req, status, e) {
+                    $("#security-error").show();
+                    $("#security-message").html(req.responseText);
+                    $("#security-loading-" + pluginId).hide();
+                },
+            data: {
+                record: recordId,
+                role: $(this).attr("value"),
+                source: pluginId,
+                verb: "revoke-access"
+            }
+        });
+
+        return false;
+    }
+
+    $("#security-cancel").click(function() {
+        $("#security-message").empty();
+        $("#security-error").hide();
+        $("#security-form").dialog('close');
+        return false;
+    });
+
+    var me = null;
+    $(".admin-delete-link").click(function() {
+        recordId = $(this).attr("rel");
+        me = $(this);
+        $("#delete-message").empty();
+        $("#delete-error").hide();
+        $("#delete-dialog").dialog('open');
+        $("#delete-legend").html(recordId);
+        return false;
+    });
+
+    $("#delete-cancel").click(function() {
+        $("#delete-message").empty();
+        $("#delete-error").hide();
+        $("#delete-dialog").dialog('close');
+        return false;
+    });
+
+    $("#delete-submit").click(function() {
+        $("#delete-message").empty();
+        $("#delete-error").hide();
+        $("#delete-dialog").dialog('open');
+
+        jQuery.ajax({
+            type : "POST",
+            url : "$portalPath/actions/delete.ajax",
+            success:
+                function (data, status) {
+                    me.parent().parent().hide();
+                    $("#delete-dialog").dialog('close');
+                },
+            error:
+                function (req, status, e) {
+                    $("#delete-error").show();
+                    $("#delete-message").html(req.responseText);
+                },
+            data: {
+                record: recordId
+            }
+        });
+
+        return false;
+    });
+
+});
+-->
+</script>
+#end

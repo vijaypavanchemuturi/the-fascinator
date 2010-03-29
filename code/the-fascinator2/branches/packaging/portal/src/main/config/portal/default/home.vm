@@ -1,0 +1,371 @@
+#set($pageTitle = 'Home')
+#set($query = $sessionState.get("query"))
+#if("$!query" != "")
+  #set($atomLink = "$portalPath/feed/atom?query=$query") 
+#else
+  #set($atomLink = "$portalPath/feed/atom")
+#end
+#set($pageHeader = "<link rel=alternate type=application/atom+xml href=$atomLink title='$page.portalName'>")
+<h2 id="page-heading">$page.portalName<a class="feed" title="ATOM FEED" href="$atomLink">
+<img alt="ATOM Feed" src="$portalPath/images/icons/rss.png"/>
+</a></h2>
+<div class="grid_4">
+  <div class="box menu">
+    <h2>Actions</h2>
+    <ul class="menu">
+      <li><a href="$portalPath/search">Browse all</a></li>
+      ##<li><a id="epub" href="#" rel="$portalId">Export as ePub...</a></li>
+      <li><a id="epub" href="$portalPath/actions/epub" rel="$portalId">Export as ePub...</a></li>
+      <li><a id="ims" href="$portalPath/actions/imscp" rel="$portalId">Export as IMS Package...</a></li>
+      <li><a id="sword-view" href="#" rel="$portalId">SWORD Deposit...</a></li>
+      <li><a id="reharvest-view" href="#" rel="$portalId">Reharvest view...</a></li>
+      ## FIXME
+      <li><a id="backup-view" href="#" rel="$portalId">Backup view...</a></li>
+      #if($portalId != "default")  ## FIXME use proper default
+      <li><a id="delete-view" href="#" rel="$portalId">Delete view...</a></li>
+      #end
+      <li><a href="$portalPath/upload">Upload a file</a></li>
+    </ul>
+  </div>
+</div>
+<div class="grid_12">
+  <div class="box hidden" id="delete-form" >
+    <h2>Delete view</h2>
+    <div class="block">
+      <p>Are you sure you want to delete this view ($page.portalName)?</p>
+      <a id="delete-accept" href="$contextPath/default/home">
+        <img src="$portalPath/images/icons/tick.png" />
+      </a>
+      <a id="delete-cancel" href="#"><img src="$portalPath/images/icons/cross.png" /></a>
+    </div>
+  </div>
+  <div class="box hidden" id="backup-form">
+    <h2>Backup view</h2>
+    <div class="block hidden" id="backup-progress">
+      <p>Backup is currently running... you must wait for it to finish</p>
+      <button id="backup-cancel">Close</button>
+      <img id="backup-loading" src="$portalPath/images/icons/loading.gif" />
+    </div>
+    <div class="block" id="backup-start">
+      <p>The backup process may take a while, do you want to start it now?</p>
+      <button id="backup-accept">Start</button>
+      <button id="backup-cancel">Close</button>
+    </div>
+    <div class="block hidden" id="backup-result">
+      <p>Last backup log</p>
+      <div id="backup-log"></div>
+    </div>
+  </div>
+  <div class="box hidden" id="reharvest-form">
+    <h2>Reharvest view</h2>
+    <div class="block hidden" id="reharvest-progress">
+      <p>Reharvest is currently running... you must wait for it to finish</p>
+      <button id="reharvest-cancel">Close</button>
+      <img id="backup-loading" src="$portalPath/images/icons/loading.gif" />
+    </div>
+    <div class="block" id="reharvest-start">
+      <p>The reharvest process may take a while, do you want to start it now?</p>
+      <button id="reharvest-accept">Start</button>
+      <button id="reharvest-cancel">Close</button>
+    </div>
+    <div class="block hidden" id="reharvest-result">
+      <p>Last reharvest log</p>
+      <div id="reharvest-log"></div>
+    </div>
+  </div>
+  <div class="box hidden" id="sword-form">
+    <h2>SWORD Deposit</h2>
+    <form id="sword" method="post">
+      <fieldset class="login">
+        <legend>Service information</legend>
+        <p>
+          <label for="sword_url">Service URL</label>
+          <input type="text" id="sword_url" name="sword_url" />
+        </p>
+        <p>
+          <label for="sword_username">Username</label>
+          <input type="text" id="sword_username" name="sword_username" />
+        </p>
+        <p>
+          <label for="sword_password">Password</label>
+          <input type="password" id="sword_password" name="sword_password" />
+        </p>
+        <p id="sword-collections" class="hidden">
+          <label for="sword_collections">Collections</label>
+          <select id="sword_collections"></select>
+        </p>
+        <p class="message">
+          <img class="hidden" id="sword-loading" src="$portalPath/images/icons/loading.gif" />
+          <span id="sword-message"></span>
+        </p>
+        <input class="button" id="sword-start" type="button" value="Get collections" />
+        <input disabled="disabled" id="sword-accept" type="button" value="Deposit" />
+        <input id="sword-cancel" type="button" value="Close" />
+      </fieldset>
+    </form>
+  </div>
+  <div class="box">
+    <h2>Search</h2>
+    <div class="block">
+      <p>Search all items by entering one or more keywords</p>
+      <form action="search" id="search-form" method="post">
+        <input type="text" name="query" size="50" />
+        <input type="submit" name="search" value="Search" />
+      </form>
+    </div>
+    <div class="block">
+      <p>There are currently <strong>$self.itemCount</strong> items available</p>
+    </div>
+  </div>
+</div>
+<div class="clear"></div>
+<div class="prefix_4 grid_6">
+  <div class="box">
+    <h2>Latest additions</h2>
+    <div class="block">
+      <ol>
+      #foreach($item in $self.latest)
+        #set($itemId = $item.get('id'))
+        #set($itemTitle = $item.get("dc_title").get(0))
+        #set($owner = $item.get("owner"))
+        #if ("$!owner" != "" && $owner == $page.authentication.get_username())
+            #set ($class = " class='owner'")
+        #else
+            #set ($class = "")
+        #end
+        <li$class>
+          <a href="$portalPath/detail/$itemId">$itemTitle</a>
+          #set($wfStep = $item.get("workflow_step").get(0))
+          #if ("$!wfStep" != "" && $wfStep != "" && $wfStep != "live")
+          <img class="workflow" src="$portalPath/images/icons/wf_${wfStep}.png" title="Workflow: $wfStep"/>
+          #end
+        </li>
+      #end
+      </ol>
+    </div>
+  </div>
+</div>
+<div class="grid_6">
+  <div class="box">
+    #set ($workflows = $self.workflows)
+    #if ($workflows.size() > 0)
+    <h2>My Task List</h2>
+    <div class="block">
+      <ol>
+      #foreach($item in $self.workflows)
+        #set($itemId = $item.get('id'))
+        #set($itemTitle = $item.get("dc_title").get(0))
+        <li class='wf-$item.get('workflow_step').get(0)'>
+          <a href="$portalPath/workflow/$itemId">$itemTitle</a>
+          #set($wfStep = $item.get("workflow_step").get(0))
+          #if ($wfStep != "" && $wfStep != "live")
+          <img class="workflow" src="$portalPath/images/icons/wf_${wfStep}.png" title="Workflow: $wfStep"/>
+          #end
+        </li>
+      #end
+      </ol>
+    </div>
+    #else
+    <h2>My Items</h2>
+    <div class="block">
+      <ol>
+      #foreach($item in $self.mine)
+        #set($itemId = $item.get('id'))
+        #set($itemTitle = $item.get("dc_title").get(0))
+        <li class='wf-$item.get('workflow_step').get(0)'>
+          <a href="$portalPath/detail/$itemId">$itemTitle</a>
+          #set($wfStep = $item.get("workflow_step").get(0))
+          #if ($wfStep != "" && $wfStep != "live")
+          <img class="workflow" src="$portalPath/images/icons/wf_${wfStep}.png" title="Workflow: $wfStep"/>
+          #end
+        </li>
+      #end
+      </ol>
+    </div>
+    #end
+  </div>
+</div>
+<div class="clear"></div>
+<script type="text/javascript">
+$(function() {
+    $("#delete-view, #delete-cancel").click(function() {
+        $("#delete-view").toggleClass("selected");
+        $("#delete-form").toggle("blind");
+        return false;
+    });
+    $("#delete-accept").click(function() {
+        jQuery.post("$portalPath/actions/view.ajax",
+            { func: "delete-view", view: "$portalId" });
+    });
+    
+    function getBackupLog() {
+        jQuery.post("$portalPath/actions/backup.ajax", { func: "get-log" },
+            function(data, status) {
+                $("#backup-log").html(data);
+            });
+    }
+    
+    function getReharvestLog() {
+        jQuery.post("$portalPath/actions/reharvest.ajax", { func: "get-log" },
+            function(data, status) {
+                $("#reharvest-log").html(data);
+            });
+    }
+    
+    $("#reharvest-view, #reharvest-cancel").click(function() {
+        $("#reharvest-view").toggleClass("selected");
+        $("#reharvest-form").toggle("blind");
+        jQuery.post("$portalPath/reharvest.ajax",
+            { func: "get-state" },
+            function(data, status) {
+                if (data.running == true) {
+                    $("#reharvest-start").hide();
+                    $("#reharvest-progress, #reharvest-result").show();
+                }
+                if (data.lastResult == "success") {
+                    getReharvestLog();
+                    $("#reharvest-result").toggle();
+                }
+            },
+            "json");
+        return false;
+    });
+    
+    $("#backup-view, #backup-cancel").click(function() {
+        $("#backup-view").toggleClass("selected");
+        $("#backup-form").toggle("blind");
+        jQuery.post("$portalPath/actions/backup.ajax",
+            { func: "get-state" },
+            function(data, status) {
+                if (data.running == true) {
+                    $("#backup-start").hide();
+                    $("#backup-progress, #backup-result").show();
+                }
+                if (data.lastResult == "success") {
+                    getBackupLog();
+                    $("#backup-result").toggle();
+                }
+            },
+            "json");
+        return false;
+    });
+    
+    $("#reharvest-accept").click(function() {
+        var reharvestLogTimerId;
+        jQuery.post("$portalPath/reharvest.ajax", { func: "get-state" },
+            function(data, status) {
+                if (data.running == true) {
+                    $("#reharvest-start").hide();
+                    $("#reharvest-progress").show();
+                } else {
+                    jQuery.post("$portalPath/actions/state.ajax",
+                        { func: "set", name: "reharvest/running", value: "true" },
+                        function(data, status) {
+                            $("#reharvest-start").hide();
+                            $("#reharvest-progress, #reharvest-result").show();
+                            reharvestLogTimerId = setInterval("getReharvestLog()", 500);
+                        });
+                    jQuery.post("$portalPath/reharvest.ajax",
+                        { func: "reharvest", portalId: "$portalId" },
+                        function(data, status) {
+                            jQuery.post("$portalPath/actions/state.ajax",
+                                { func: "set", name: "reharvest/running", value: "false" },
+                                function(data, status) {
+                                    getReharvestLog();
+                                    $("#reharvest-start").show();
+                                    $("#reharvest-progress").hide();
+                                    clearInterval(reharvestLogTimerId);
+                                });
+                        });
+                }
+            },
+            "json");
+    });
+    
+    $("#backup-accept").click(function() {
+        var backupLogTimerId;
+        jQuery.post("$portalPath/actions/backup.ajax", { func: "get-state" },
+            function(data, status) {
+                if (data.running == true) {
+                    $("#backup-start").hide();
+                    $("#backup-progress").show();
+                } else {
+                    jQuery.post("$portalPath/actions/state.ajax",
+                        { func: "set", name: "backup/running", value: "true" },
+                        function(data, status) {
+                            $("#backup-start").hide();
+                            $("#backup-progress, #backup-result").show();
+                            backupLogTimerId = setInterval("getBackupLog()", 500);
+                        });
+                    jQuery.post("$portalPath/actions/backup.ajax",
+                        { func: "backup-view" },
+                        function(data, status) {
+                            jQuery.post("$portalPath/actions/state.ajax",
+                                { func: "set", name: "backup/running", value: "false" },
+                                function(data, status) {
+                                    getBackupLog();
+                                    $("#backup-start").show();
+                                    $("#backup-progress").hide();
+                                    clearInterval(backupLogTimerId);
+                                });
+                        });
+                }
+            },
+            "json");
+    });
+    
+    $("#sword-view, #sword-cancel").click(function() {
+        $("#sword-view").toggleClass("selected");
+        $("#sword-collections").hide();
+        $("#sword_collections").empty();
+        $("#sword-accept").attr("disabled", "disabled");
+        $("#sword-message").empty();
+        $("#sword-form").toggle("blind");
+        return false;
+    });
+    $("#sword-start").click(function() {
+        $("#sword-message").empty();
+        $("#sword-loading").show();
+        jQuery.post("$portalPath/actions/sword.ajax?func=collections",
+            {
+                url: $("#sword_url").val(),
+                username: $("#sword_username").val(),
+                password: $("#sword_password").val()
+            },
+            function(data, status) {
+                $("#sword-loading").hide();
+                $("#sword_collections").empty();
+                if (data.error) {
+                    $("#sword-message").html(data.error);
+                } else {
+                    jQuery.each(data.collections, function(i, val) {
+                        $("#sword_collections")
+                            .append('<option value="' + val.location + '">' + val.title + '</option>');
+                        $("#sword-collections").show();
+                        $("#sword-accept").removeAttr("disabled");
+                    });
+                }
+                $("#sword-collections-form").show();
+            },
+            "json"
+        );
+    });
+    $("#sword-accept").click(function() {
+        $("#sword-message").empty();
+        $("#sword-loading").show();
+        $("#sword-start, #sword-accept").attr("disabled", "disabled");
+        jQuery.post("$portalPath/actions/sword.ajax?func=post",
+            {
+                url: $("#sword_collections").val(),
+                username: $("#sword_username").val(),
+                password: $("#sword_password").val()
+            },
+            function(data, status) {
+                $("#sword-loading").hide();
+                $("#sword-message").html("<p>Successful</p>");
+                $("#sword-start, #sword-accept").removeAttr("disabled");
+            }
+        );
+    });
+});
+</script>
