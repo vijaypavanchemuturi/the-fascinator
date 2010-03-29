@@ -1,3 +1,7 @@
+<table class="layout" width="10px">
+  <tbody>
+    <tr>
+      <td class="leftcol">
 #macro(buildAuthAdminForm $data)
 <form id="users-$data.getId()" method="post" action="">
   <fieldset class="search">
@@ -13,7 +17,7 @@
           <strong>List of users:</strong><br/>
           <select id="users-$data.getId()-list" name="users-list" size="10">
             #foreach ($user in $page.authentication.search_users("", $data.getId()))
-              <option>$user.getUsername()</option>
+              <option value="$user.get("displayName")|$user.get("uri")">$user.getUsername()</option>
             #end
           </select>
         </td>
@@ -21,6 +25,7 @@
           <strong>Actions:</strong><br/>
           <input type="button" class="button create-user-button" rel="$data.getId()" name="create_user" value="Create user" /><br/>
           <input type="button" class="button delete-user-button" rel="$data.getId()" name="delete_user" value="Delete user" /><br/>
+          <input type="button" class="button change-user-detail-button" rel="$data.getId()" name="change_user_detail" value="Change User Detail" />
           <input type="button" class="button change-password-button" rel="$data.getId()" name="change_password" value="Change Password" />
         </td>
       </tr>
@@ -162,8 +167,8 @@
           <input type="text" id="create-user-username" name="create-user-username" />
         </p>
         <p>
-          <label for="create-user-username">Display Name</label>
-          <input type="text" id="create-user-displayname" name="create-user-displayname" />
+          <label for="create-user-displayName">Display Name</label>
+          <input type="text" id="create-user-displayName" name="create-user-displayName" />
         </p>
         <p>
           <label for="create-user-uri">User Uri</label>
@@ -180,6 +185,30 @@
         <input id="create-user-source" type="hidden" value="" />
         <input id="create-user-submit" type="button" value="Create User" />
         <input id="create-user-cancel" type="button" value="Close" />
+      </fieldset>
+    </form>
+  </div>
+
+  <div class="box hidden" id="change-user-detail-form">
+    <form id="change-user-detail" method="post" action="">
+      <fieldset class="search">
+        <!--<legend>Force Password Reset for '<span id="change-password-userlabel"></span>'</legend> -->
+        <img class="hidden" id="change-user-detail-loading" src="$portalPath/images/icons/loading.gif" alt="Loading"/>
+        <div class="stop-error hidden" id="change-user-detail-error">
+          <span id="change-user-detail-message"></span>
+        </div>
+        <p>
+          <label for="user-displayName">Display Name</label>
+          <input type="text" id="displayName" name="displayName" />
+        </p>
+        <p>
+          <label for="user-uri">User uri</label>
+          <input type="text" id="uri" name="uri" />
+        </p>
+        <input id="change-user-detail-username" type="hidden" value="" />
+        <input id="change-user-detail-source" type="hidden" value="" />
+        <input id="change-user-detail-submit" type="button" value="Change User Detail" />
+        <input id="change-user-detail-cancel" type="button" value="Close" />
       </fieldset>
     </form>
   </div>
@@ -277,6 +306,8 @@ $(function() {
     }
     $("#create-user-form").dialog(dialogOpts);
     $("#create-user-form").dialog('option', 'title', 'Create User');
+    $("#change-user-detail-form").dialog(dialogOpts);
+    $("#change-user-detail-form").dialog('option', 'title', 'Change User Detail');
     $("#change-password-form").dialog(dialogOpts);
     $("#change-password-form").dialog('option', 'title', 'Change Password');
     $("#simple-dialog").dialog(dialogOpts);
@@ -292,7 +323,7 @@ $(function() {
         $("#create-user-message").empty();
         $("#create-user-error").hide();
         $("#create-user-username").val("");
-        $("#create-user-displayname").val("");
+        $("#create-user-displayName").val("");
         $("#create-user-uri").val("");
         $("#create-user-password").val("");
         $("#create-user-password-confirm").val("");
@@ -327,7 +358,7 @@ $(function() {
                 },
             data: {
                 username: $("#create-user-username").val(),
-                displayname: $("#create-user-displayname").val(),
+                displayName: $("#create-user-displayName").val(),
                 uri: $("#create-user-uri").val(),
                 password: $("#create-user-password").val(),
                 password_confirm: $("#create-user-password-confirm").val(),
@@ -379,6 +410,79 @@ $(function() {
                 }
             });
         }
+    });
+
+    /******************************
+     *   Change User Details
+     */
+    $(".change-user-detail-button").click(function() {
+        var plugin = $(this).attr("rel");
+        var username = $("#users-" + plugin + "-list option:selected").text();
+        var userDetail = $("#users-pmrc-list").val();
+        var userDisplayName = "";
+        var userUri = "";
+        if (userDetail != '') {
+            userDetails = userDetail.split('|');
+            if (userDetails.length > 1) {
+                userDisplayName = userDetails[0];
+                userUri = userDetails[1];
+            }
+            if (userDetails.length == 1) {
+                userDisplayName = userDetails[0];
+            }
+        }
+        if (username == "") {
+            $("#users-" + plugin + "-alert").show();
+            $("#users-" + plugin + "-error").show();
+            $("#users-" + plugin + "-message").html("No username selected");
+        } else {
+            $("#users-" + plugin + "-message").empty();
+            $("#users-" + plugin + "-error").hide();
+            $("#users-" + plugin + "-alert").hide();
+            $("#change-user-detail-message").empty();
+            $("#change-user-detail-error").hide();
+            $("#change-user-detail-username").val(username);
+            $("#change-user-detail-userlabel").html(username);
+            $("#displayName").val(userDisplayName);
+            $("#uri").val(userUri);
+            $("#change-user-detail-source").val(plugin);
+            $("#change-user-detail-form").dialog('open');
+        }
+        return false;
+    });
+    $("#change-user-detail-cancel").click(function() {
+        $("#change-user-detail-form").dialog('close');
+        return false;
+    });
+    $("#change-user-detail-submit").click(function() {
+        $("#change-user-detail-message").empty();
+        $("#change-user-detail-loading").show();
+        jQuery.ajax({
+            type : "POST",
+            url : "$portalPath/actions/admin.ajax",
+            success:
+                function(data, status) {
+                    $("#change-user-detail-loading").hide();
+                    $("#change-user-detail-form").dialog('close');
+                    var source = $("#change-user-detail-source").val();
+                    $("#users-" + source + "-alert").show();
+                    $("#users-" + source + "-error").hide();
+                    $("#users-" + source + "-message").html("User Detail for '" + jQuery.trim(data) + "' changed successfully");
+                },
+            error:
+                function (req, status, e) {
+                    $("#change-user-detail-loading").hide();
+                    $("#change-user-detail-error").show();
+                    $("#change-user-detail-message").html(req.responseText);
+                },
+            data: {
+                username: $("#change-user-detail-username").val(),
+                displayName: $("#displayName").val(),
+                uri: $("#uri").val(),
+                source: $("#change-user-detail-source").val(),
+                verb: "change-user-detail"
+            }
+        });
     });
 
     /******************************
@@ -694,3 +798,7 @@ $(function() {
 </script>
 
 #end
+      </td>
+    </tr>
+  </tbody>
+</table>

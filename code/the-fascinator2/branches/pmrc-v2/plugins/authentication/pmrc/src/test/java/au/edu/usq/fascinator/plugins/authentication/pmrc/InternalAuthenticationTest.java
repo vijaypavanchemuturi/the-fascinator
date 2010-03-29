@@ -22,11 +22,13 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
 import java.net.URISyntaxException;
+import java.util.List;
 
 import org.apache.commons.io.IOUtils;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -71,83 +73,40 @@ public class InternalAuthenticationTest {
     @Test
     public void createUser() throws AuthenticationException {
         User newUser = internalAuthentication.createUser("NewUser", "NewPassword");
+        Assert.assertTrue(newUser!= null);
+        newUser = internalAuthentication.modifyUser("NewUser", "displayName", "new user displayName");
+        Assert.assertEquals(newUser.get("displayName"), "new user displayName");
+        newUser = internalAuthentication.modifyUser("NewUser", "uri", "http://newuser.com");
+        Assert.assertEquals(newUser.get("uri"), "http://newuser.com");
     }
     
     @Test
     public void getUser() throws AuthenticationException {
-        User user = internalAuthentication.getUser("NewUser");
-        System.out.println(user.realName());
-//        Assert.assertEquals(user.realName(), "Administrator");
-//        Assert.assertEquals(user.get("uri"), "http://admin.uri");
+        User user = internalAuthentication.getUser("admin");
+        Assert.assertEquals(user.realName(), "Administrator");
+        Assert.assertEquals(user.get("uri"), "http://admin.uri");
     }
     
-    //    @Test
-    //    public void testInit() throws URISyntaxException, AuthenticationException {
-    //        File userprops = new File(getClass().getResource(
-    //                "/users.properties.json").toURI());
-    //        System.out.println(config.toString(true));
-    //    }
-
-    //    private static Server server;
-    //
-    //    private DigitalObject sourceObject, outputObject;
-    //
-    //    @BeforeClass
-    //    public static void setup() throws Exception {
-    //        server = new Server(10002);
-    //        server.setHandler(new Ice2Handler());
-    //        server.start();
-    //    }
-    //
-    //    @AfterClass
-    //    public static void shutdown() throws Exception {
-    //        if (server != null) {
-    //            server.stop();
-    //        }
-    //    }
-    //
-    //    @Test
-    //    public void testSingleFile() throws URISyntaxException, IOException,
-    //            PluginException {
-    //        File file = new File(getClass().getResource("/first-post.odt").toURI());
-    //        sourceObject = new GenericDigitalObject(file.getAbsolutePath());
-    //        Transformer iceTransformer = PluginManager.getTransformer("ice2");
-    //        iceTransformer.init(new File(getClass().getResource(
-    //                "/ice-transformer.json").toURI()));
-    //        outputObject = iceTransformer.transform(sourceObject);
-    //        Set<String> payloads = outputObject.getPayloadIdList();
-    //
-    //        Assert.assertEquals(3, payloads.size());
-    //
-    //        // check for the Preview payload
-    //        boolean foundPreview = false;
-    //        for (String pid : payloads) {
-    //            Payload payload = outputObject.getPayload(pid);
-    //            if (PayloadType.Preview.equals(payload.getType())) {
-    //                foundPreview = true;
-    //            }
-    //        }
-    //        Assert.assertTrue("There should be a Preview payload!", foundPreview);
-    //    }
-    //
-    //    @Test
-    //    public void testErrorFile() throws URISyntaxException,
-    //            UnsupportedEncodingException, PluginException {
-    //        File file = new File(getClass().getResource("/somefile.doc").toURI());
-    //        sourceObject = new GenericDigitalObject(file.getAbsolutePath());
-    //
-    //        Transformer iceTransformer = PluginManager.getTransformer("ice2");
-    //        iceTransformer.init(new File(getClass().getResource(
-    //                "/ice-transformer.json").toURI()));
-    //
-    //        outputObject = iceTransformer.transform(sourceObject);
-    //        Set<String> payloads = outputObject.getPayloadIdList();
-    //
-    //        Payload icePayload = outputObject.getPayload("somefile_ice_error.htm");
-    //        Assert.assertEquals(1, payloads.size());
-    //        Assert.assertEquals(icePayload.getId(), "somefile_ice_error.htm");
-    //        Assert.assertEquals(icePayload.getLabel(), "ICE conversion errors");
-    //        Assert.assertEquals(icePayload.getType(), PayloadType.Error);
-    //        Assert.assertEquals(icePayload.getContentType(), "text/html");
-    //    }
+    @Test
+    public void searchUser() throws AuthenticationException {
+        List<User> userList = internalAuthentication.searchUsers("admin");
+        Assert.assertEquals(userList.size(), 1);
+        
+        userList = internalAuthentication.searchUsers("Registered");
+        Assert.assertEquals(userList.size(), 1);
+    }
+    
+    @Test
+    public void listAllUser() throws AuthenticationException {
+        List<User> userList = internalAuthentication.searchUsers("");
+        Assert.assertEquals(userList.size(), 4);
+    }
+    
+    @Test
+    public void testLogin() throws AuthenticationException {
+        User user = internalAuthentication.logIn("admin ", "admin");
+        Assert.assertEquals(user.realName(), "Administrator");
+        Assert.assertEquals(user.get("uri"), "http://admin.uri");
+    }
+    
 }

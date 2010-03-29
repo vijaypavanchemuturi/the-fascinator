@@ -141,13 +141,13 @@ class DetailData:
 
     def getPayloadContent(self):
         mimeType = self.__mimeType
-        print " * detail.py: payload content mimeType=%s" % mimeType
+        #print " * detail.py: payload content mimeType=%s" % mimeType
         contentStr = ""
         if mimeType == "application/octet-stream":
             dcFormat = self.__json.get("response/docs/dc_format")
             if dcFormat is not None:
                 dcFormat = dcFormat[1:-1]
-            print dcFormat, mimeType
+            #print dcFormat, mimeType
             if dcFormat != mimeType:
                 return "<div><em>(File not found)</em></div>"
             else:
@@ -169,7 +169,7 @@ class DetailData:
         elif mimeType == "application/pdf" or mimeType.find("vnd.ms")>-1 or mimeType.find("vnd.oasis.opendocument.")>-1:
             # get the html version if exist...
             pid = self.getPreview(self.__oid)
-            print " * detail.py: pid=%s" % pid
+            #print " * detail.py: pid=%s" % pid
             #contentStr = '<iframe class="iframe-preview" src="%s/%s/download/%s/%s"></iframe>' % \
             #    (contextPath, portalId, self.__oid, pid)
             try:
@@ -223,7 +223,7 @@ class DetailData:
         for payloadId in payloadIdList:
             try:
                 payload = self.getObject().getPayload(payloadId)
-                print " * detail.py : Type = '" + str(payload.getType()) + "'"
+                #print " * detail.py : Type = '" + str(payload.getType()) + "'"
                 if str(payload.getType()) == "Preview":
                     return payload.getId()
             except StorageException, e:

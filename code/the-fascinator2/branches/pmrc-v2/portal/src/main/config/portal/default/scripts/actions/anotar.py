@@ -15,7 +15,7 @@ class AnotarData:
         self.rootUri = formData.get("rootUri")
         self.json = formData.get("json")
         self.type = formData.get("type")
-        print " * anotar.py : '" + self.action + "' : ", formData
+        #print " * anotar.py : '" + self.action + "' : ", formData
 
         # ?? media fragment stuff?
         if self.rootUri.find("?ticks") > -1:
@@ -122,7 +122,7 @@ class AnotarData:
             counter = counter + 1
             fileName = "anotar." + str(counter)
         self.pid = fileName
-        print " * anotar.py : New ID (" + self.pid + ")"
+        #print " * anotar.py : New ID (" + self.pid + ")"
 
     def modify_json(self):
         #print "**** anotar.py : add_json() : adding json : " + json
@@ -192,7 +192,7 @@ class AnotarData:
         try:
             self.obj = Services.storage.getObject(self.oid)
         except StorageException, e:
-            print " * anotar.py : Error creating object : ", e
+            #print " * anotar.py : Error creating object : ", e
             return e.getMessage()
 
         self.generate_id()
@@ -201,7 +201,7 @@ class AnotarData:
         try:
             p = self.obj.createStoredPayload(self.pid, self.string_to_input_stream(self.json))
         except StorageException, e:
-            print " * anotar.py : Error creating payload : ", e
+            #print " * anotar.py : Error creating payload : ", e
             return e.getMessage()
 
         Services.indexer.annotate(self.oid, self.pid)

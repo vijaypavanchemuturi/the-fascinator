@@ -28,6 +28,23 @@ class LoginData:
         else:
             self.throw_error(err)
 
+    def change_userdetail(self):
+        username = formData.get("username")
+        displayName = formData.get("displayName")
+        uri = formData.get("uri")
+
+        source = formData.get("source")
+        self.authentication.set_auth_plugin(source)
+        self.authentication.modify_user(username, "displayName", displayName)
+        self.authentication.modify_user(username, "uri", uri)
+
+        err = self.authentication.get_error()
+        if err is None:
+            self.writer.println(username)
+            self.writer.close()
+        else:
+            self.throw_error(err)
+
     def change_password(self):
         username = formData.get("username")
         password = formData.get("password")
@@ -51,7 +68,7 @@ class LoginData:
 
     def create_role(self):
         rolename = formData.get("field")
-        source   = formData.get("source")
+        source = formData.get("source")
         self.authentication.set_role_plugin(source)
         self.authentication.create_role(rolename)
 
@@ -65,7 +82,7 @@ class LoginData:
 
     def create_user(self):
         username = formData.get("username")
-        displayname = formData.get("displayname")
+        displayName = formData.get("displayName")
         uri = formData.get("uri")
         password = formData.get("password")
         password_confirm = formData.get("password_confirm")
@@ -78,6 +95,7 @@ class LoginData:
             self.authentication.set_auth_plugin(source)
             self.authentication.create_user(username, password)
             self.authentication.modify_user(username, "displayName", displayName)
+            self.authentication.modify_user(username, "uri", uri)
 
             err = self.authentication.get_error()
             if err is None:
@@ -86,6 +104,11 @@ class LoginData:
 
             else:
                 self.throw_error(err)
+                
+    def get_user(self, username):
+        user = self.authentication.getUser(username)
+        print "0000 user: ", user
+        return user
 
     def delete_role(self):
         rolename = formData.get("rolename")
@@ -138,7 +161,7 @@ class LoginData:
 
     def grant_access(self):
         record = formData.get("record")
-        role   = formData.get("role")
+        role = formData.get("role")
         source = formData.get("source")
         self.authentication.set_access_plugin(source)
         self.authentication.grant_access(record, role)
@@ -178,6 +201,7 @@ class LoginData:
             "delete-role"        : self.delete_role,
             "delete-user"        : self.delete_user,
             "change-password"    : self.change_password,
+            "change-user-detail" : self.change_userdetail,
             "get-current-access" : self.get_current_access,
             "grant-access"       : self.grant_access,
             "list-users"         : self.list_users,
@@ -207,7 +231,7 @@ class LoginData:
 
     def revoke_access(self):
         record = formData.get("record")
-        role   = formData.get("role")
+        role = formData.get("role")
         source = formData.get("source")
         self.authentication.set_access_plugin(source)
         self.authentication.revoke_access(record, role)
