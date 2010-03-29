@@ -33,6 +33,7 @@ import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -245,22 +246,26 @@ public class InternalAuthentication implements Authentication {
     @Override
     public User createUser(String username, String password)
             throws AuthenticationException {
-        
+
         //Just to check if user exist
-        User user = getUser(username);
-        if (user != null) {
+        Map<String, Object> userInfo = usersConfig.getMap(username);
+        if (userInfo == null || userInfo.isEmpty()) {
+            //Create new user here
+            //Encrypt the new password
+            String ePwd = encryptPassword(password);
+            Map<String, Object> newUserInfo = new HashMap<String, Object>();
+            newUserInfo.put("password", ePwd);
+
+            usersConfig.setMap(username, newUserInfo);
+            try {
+                saveUsers();
+            } catch (IOException e) {
+                throw new AuthenticationException("Error changing password: ",
+                        e);
+            }
+        } else {
             throw new AuthenticationException("User '" + username
                     + "' already exists.");
-        }
-        // Encrypt the new password
-        String ePwd = encryptPassword(password);
-        //file_store.put(username, ePwd);
-        //file_store.put("displayName", displayname);
-        //file_store.put("uri", uri);
-        try {
-            saveUsers();
-        } catch (IOException e) {
-            throw new AuthenticationException("Error changing password: ", e);
         }
 
         return getUser(username);
@@ -295,13 +300,7 @@ public class InternalAuthentication implements Authentication {
             throws AuthenticationException {
         // Encrypt the new password
         String ePwd = encryptPassword(password);
-
-        getUser(username).set(password, ePwd);
-        try {
-            saveUsers();
-        } catch (IOException e) {
-            throw new AuthenticationException("Error changing password: ", e);
-        }
+        modifyUser(username, "password", ePwd);
     }
 
     /**
@@ -319,11 +318,21 @@ public class InternalAuthentication implements Authentication {
     public User modifyUser(String username, String property, String newValue)
             throws AuthenticationException {
         // Purge any old data and init()
-        User user = getUser(username);
-        user.set(property, newValue);
-
-        // before returning
-        return user;
+        //Just to check if user exist
+        Map<String, Object> userInfo = usersConfig.getMap(username);
+        if (userInfo == null || userInfo.isEmpty()) {
+            throw new AuthenticationException("User '" + username
+                    + "' not found.");
+        } else {
+            // Store to the config
+            usersConfig.set(username + "/" + property, newValue);
+            try {
+                saveUsers();
+            } catch (IOException e) {
+                throw new AuthenticationException("Error modifying user: ", e);
+            }
+            return getUser(username);
+        }
     }
 
     @Override
@@ -354,15 +363,20 @@ public class InternalAuthentication implements Authentication {
         // Find our user
         //String user = file_store.getProperty(username);
         Map<String, Object> userInfo = usersConfig.getMap(username);
-        if (userInfo == null) {
+        if (userInfo == null || userInfo.isEmpty()) {
             throw new AuthenticationException("User '" + username
                     + "' not found.");
         }
         // Purge any old data and init()
         user_object = new InternalUser();
         user_object.init(username);
-        user_object.displayName = userInfo.get("displayName").toString();
-        user_object.uri = userInfo.get("uri").toString();
+        user_object.password = userInfo.get("password").toString();
+        if (userInfo.get("displayName") != null) {
+            user_object.displayName = userInfo.get("displayName").toString();
+        }
+        if (userInfo.get("uri") != null) {
+            user_object.uri = userInfo.get("uri").toString();
+        }
 
         // before returning
         return user_object;
@@ -380,15 +394,30 @@ public class InternalAuthentication implements Authentication {
         // Complete list of users
         //        String[] users = file_store.keySet().toArray(new String[file_store.size()]);
         List<User> found = new ArrayList();
-        //
-        //        // Look through the list for anyone who matches
-        //        for (int i = 0; i < users.length; i++) {
-        //            if (users[i].toLowerCase().contains(search.toLowerCase())) {
-        //                found.add(getUser(users[i]));
-        //            }
-        //        }
-
-        // Return the list
+        for (String username : usersConfig.getJsonMap("/").keySet()) {
+            String foundUser = "";
+            if (username.toLowerCase().contains(search.toLowerCase())) {
+                foundUser = username;
+            }
+            Map<String, Object>userInfo = usersConfig.getMap(username);
+            //check displayname and uri 
+            if (foundUser == ""
+                    && userInfo.get("displayName") != null
+                    && userInfo.get("displayName").toString().toLowerCase()
+                            .contains(search.toLowerCase())) {
+                found.add(getUser(username));
+            }
+            if (foundUser == ""
+                    && userInfo.get("uri") != null
+                    && userInfo.get("uri").toString().toLowerCase()
+                            .contains(search.toLowerCase())) {
+                found.add(getUser(username));
+            }
+            if (foundUser != "") {
+                found.add(getUser(foundUser));
+            }
+        }
+        
         return found;
     }
 

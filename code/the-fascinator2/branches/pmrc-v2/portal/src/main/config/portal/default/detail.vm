@@ -112,6 +112,9 @@
             <div id="location-tag-list">
               <p rel="$page.md5Hash($oid)_location">Location: <span class="location-tags"></span></p>
             </div>
+            <div id="people-tag-list">
+              <p rel="$page.md5Hash($oid)_people">People: <span class="people-tags"></span></p>
+            </div>
             <div id="anno-root" class="content-preview">
               <span class="mimetype" rel="$self.mimeType"></span>
               <div class="first article clearfix">
@@ -356,6 +359,15 @@ $(function() {
     	$("#location-tag-list").attr("rel", geoHash);
     	$("#txtName").attr("value", "Lat: " + latitude + ", Long: " + longitude);
     });
+    
+    $(".peopleTag-search").live("click", function() {
+        jQuery.post("$portalPath/actions/people.ajax", { 
+            func: "searchName", 
+            file: "$oid",
+            firstName: $("#txtFirstName").attr("value"),
+            surname: $("#txtSurname").attr("value")
+        });
+    });
 });
 </script>
 <script type="text/javascript" src="$portalPath/js/anotar/json2.js"></script>
@@ -405,7 +417,7 @@ $(function() {
         
         // Location Tags annotation
         locationConfig={
-            debug: true,
+            //debug: true,
             docRoot: "#location-tag-list",
             tagList: "p",
             contentInput: "#txtName",
@@ -459,11 +471,66 @@ $(function() {
         /// Use formCloseFunction to overwrite close function
         locationTag = anotarFactory(jQ, locationConfig);
         
+        // People Tags annotation
+        peopleConfig={
+            debug: true,
+            docRoot: "#people-tag-list",
+            tagList: "p",
+            contentInput: "#txtPeople",
+            pageUri: "$oid",
+            uriAttr: "rel",
+            outputInChild: ".people-tags",
+            annotationType: "tag",
+            stylePrefix: "tags-",
+            interfaceLabel: " <img src='$portalPath/images/icons/add.png'/>",
+            #if($page.authentication.is_logged_in()) 
+            creator: "$page.authentication.get_name()",
+            creatorUri: "$page.authentication.get_uri()",
+            #end
+            //formPrepend: true,
+            interfaceVisible: true,
+            formCustom: "people_form",
+            formCancel: ".peopleTag-cancel",
+            formSubmit: ".peopleTag-submit",
+            displayCustom: "people_display", 
+            formPopup: true,
+            formPopupSettings: {
+                width: 500,
+                title: "People Tag"
+            },
+            onFormDisplay: function(node){
+                /*$(node).autocomplete('$portalPath/actions/geonames.ajax', {
+                    extraParams: {"func":"placeName"}, 
+                    formatItem: function(row) {
+                        return row[0];
+                    }
+                }).result(function(event, item) {
+                    if (item) {
+                        $("#location-tag-list").attr("rel", "http://www.geonames.org/" + item[1]);
+                    }
+                }); */
+            },
+            getContentUri: function(node) {
+                var rel = node.attr("rel");
+                if (rel == null) {
+                    // content is not a URI
+                    return { isUri: false };
+                }
+                
+                return { isUri: true, contentUri: rel };
+            },
+            serverAddress: "$portalPath/actions/anotar.ajax",
+            disableReply: true,
+            serverMode: "fascinator"
+        }
+        // Use formCloseFunction to overwrite close function
+        peopleTag = anotarFactory(jQ, peopleConfig);
+        
         #if($self.mimeType.startsWith("audio/") || $self.mimeType.startsWith("video/"))
         // Audio/Video Tags annotation
         var videoAnoLabel = "<img src='$portalPath/images/icons/comment_add.png'/>&#160;Comment on this media:";
         videoConfig={
-            debug: true,
+            //debug: true,
             label: videoAnoLabel,
             //objectLiteral: "$oid",
             pageUri: "$oid",
@@ -509,7 +576,6 @@ $(function() {
         
         videoTag = anotarFactory(jQ, videoConfig);
         #else
-        
         noteConfig={
             pageUri: "$oid",
             #if($page.authentication.is_logged_in()) 
@@ -598,6 +664,51 @@ $(function() {
 		<span></span>
       ##<a href="http://www.geonames.org/search.html?q=<%=content%>"><%=content%></a>
 	<% }%>
+</script>
+
+<script type="text/html" id="people_form">
+  <div id="people_div">
+    <table>
+      <tr>
+        <td class="people_scope">
+          <label for="txtFirstName">First Name</label>
+        </td>
+        <td>
+          <input type="text" id="txtFirstName" size="35"/><br/>
+        </td>
+      </tr>
+      <tr>
+        <td>
+          <label for="txtSurname">Surname</label>
+        </td>
+        <td>
+          <input type="text" id="txtSurname" size="35"/><br/>
+        </td>
+      </tr>
+      <tr>
+        <td colspan="2" align="right">
+          <button class="peopleTag-search">Search</button>
+        </td>
+      </tr>
+      <tr>
+        <td colspan="2"><button class="peopleTag-cancel">Cancel</button>&#160;
+            <button class="peopleTag-submit">Submit</button></td>
+      </tr>
+    </table>
+  </div>
+</script>
+
+<script type="text/html" id="people_display">
+    <% if (contentUri != null) { %>
+        <% if (contentUri.indexOf("http://www.geonames.org") == 0 || contentUri.indexOf("http://www.geohash.org") == 0) { %>
+            <span class='<%=style%>tag'>
+                <a href="<%=contentUri%>" target="_blank"><%=content%><% if(tagCount > 1){ %> (<%=tagCount%>)<% } %></a>
+            </span>
+        <% }%>
+    <% } else { %>
+        <span></span>
+      ##<a href="http://www.geonames.org/search.html?q=<%=content%>"><%=content%></a>
+    <% }%>
 </script>
 
 #if($self.mimeType.startsWith("audio/") || $self.mimeType.startsWith("video/"))

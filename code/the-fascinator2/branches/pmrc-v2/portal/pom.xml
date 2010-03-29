@@ -194,6 +194,10 @@
         </dependency>
         <dependency>
           <groupId>au.edu.usq.fascinator.plugins</groupId>
+          <artifactId>plugin-authentication-pmrc</artifactId>
+        </dependency>
+        <dependency>
+          <groupId>au.edu.usq.fascinator.plugins</groupId>
           <artifactId>plugin-harvester-filesystem</artifactId>
         </dependency>
         <dependency>
