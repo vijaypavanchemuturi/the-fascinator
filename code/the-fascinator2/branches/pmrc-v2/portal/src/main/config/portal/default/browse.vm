@@ -105,13 +105,8 @@
         </div>
       </td>
       <td class="middlecol">
+        #if($page.authentication.is_logged_in())
         <div class="search-box">
-            #if($page.authentication.is_logged_in())
-            #else
-              <h2 class="content-title">Browse</h2>
-              <!--<p class="search-error">No results have been found for the entered search. Please try again.</p>-->
-              <p>You do not have permission to view this page. Please login to proceed<!--<a id="login-now" href="#">Login</a>-->.</p>
-            #end
             #parse($page.getTemplate("search-paging.vm"))
         </div>
         #if($self.result and $paging.totalFound > 0)
@@ -177,6 +172,11 @@
                 <div class="box no-result">No items found matching your query: '$!query'</div>
             #end
         </div>
+        #end
+        #else
+          <h2 class="content-title">Browse</h2>
+          <!--<p class="search-error">No results have been found for the entered search. Please try again.</p>-->
+          <p>You do not have permission to view this page. Please login to proceed<!--<a id="login-now" href="#">Login</a>-->.</p>
         #end
       </td>
     </tr>
@@ -372,16 +372,13 @@ $(function() {
 </script>
 
 <script type="text/html" id="tag_display">
-    <% if (contentUri != null) { %>
-        <% if (contentUri.indexOf("http://www.geonames.org") == 0 || contentUri.indexOf("http://www.geohash.org") == 0) { %>
-            <span class='<%=style%>tag'>
-                <a href="<%=contentUri%>" target="_blank"><%=content%><% if(tagCount > 1){ %> (<%=tagCount%>)<% } %></a>
-            </span>
-        <% }%>
+    <% if (contentUri) { %>
+        <span class='<%=style%>tag'>
+		    <a href='<%=contentUri%>' target='_blank'><%=content%><% if(tagCount > 1){ %> (<%=tagCount%>)<% } %></a>
+        </span>
     <% } else { %>
         <span class='<%=style%>tag'><%=content%></span>
-      ##<a href="http://www.geonames.org/search.html?q=<%=content%>"><%=content%></a>
-    <% }%>
+    <% } %>
 </script>
 
 <script type="text/html" id="object_tag_form">
