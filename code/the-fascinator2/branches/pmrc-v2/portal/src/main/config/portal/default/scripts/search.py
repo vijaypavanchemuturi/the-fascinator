@@ -108,9 +108,9 @@ class SearchData:
         self.__result = JsonConfigHelper(ByteArrayInputStream(out.toByteArray()))
         
         anotarOut = ByteArrayOutputStream()
-        Services.indexer.annotateSearch(annoReq, out)
-        resultForAnotar = JsonConfigHelper(ByteArrayInputStream(out.toByteArray()))
-        print " * anotar search.py: ", resultForAnotar
+        Services.indexer.annotateSearch(annoReq, anotarOut)
+        resultForAnotar = JsonConfigHelper(ByteArrayInputStream(anotarOut.toByteArray()))
+        print " **** anotar search.py: ", resultForAnotar
         resultForAnotar = resultForAnotar.getJsonList("response/docs")
         
         if self.__result is not None:

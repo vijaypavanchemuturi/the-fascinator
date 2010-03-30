@@ -9,7 +9,10 @@
         }
     },
     "authentication": {
-        "type": "internal",
+        "type": "pmrc",
+        "pmrc": {
+            "path": "${fascinator.home}/security/users.properties.json"
+        },
         "internal": {
             "path": "${fascinator.home}/security/users.properties"
         }

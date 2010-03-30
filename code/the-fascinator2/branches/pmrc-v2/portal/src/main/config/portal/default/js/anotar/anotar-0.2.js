@@ -334,9 +334,15 @@ function anotarFactory(jQ, config) {
     		try{
     			json = JSON.parse(data);
     			//load each annotations
-        		jQ.each(json, function(c, i){config.loadAnnotation(i);});
+        		jQ.each(json, function(c, i){
+        			try{
+        				config.loadAnnotation(i);
+        			}catch(e){
+        				alert("ERROR: " + e);
+        			}
+        		});
     		}catch(e){ 
-    			//alert("JSON ERROR: " + e);
+    			alert("JSON ERROR: " + e);
     		}
     	}
         if (config.pageUri) {

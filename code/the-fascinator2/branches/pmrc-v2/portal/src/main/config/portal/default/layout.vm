@@ -51,7 +51,7 @@
           <a href="http://apps.usq.edu.au/usqwebsite/aspnet/staffsearch/default.aspx?action=stafflookup" title="Search for USQ staff">Staff directory</a> | 
           <a target="_blank" href="http://uconnect.usq.edu.au" title="UConnect (Previously USQConnect)">UConnect</a> |
           #if($page.authentication.is_logged_in())
-            <span id="user-info" class="status">Welcome $page.authentication.get_name(), <a href="?verb=logout">logout</a></span>
+            <span id="user-info" class="status">Welcome $page.authentication.get_name(), <a href="#" id="logout-now">logout</a></span>
             #else
             <span id="user-info" class="status"><a id="login-now" href="#">Login</a></span>
           #end
@@ -202,6 +202,16 @@
 		        $("#login-form").dialog('open');
 		        return false;
 		    });
+			
+			$("#logout-now").click(function() {
+               jQuery.post("$portalPath/authentication.ajax",
+                   { verb: "logout" },
+                   function(data, status) {
+                       window.location.reload();
+                   });
+               return false;
+            });
+			
 		    $("#login-cancel").click(function() {
 		        $("#login-message").empty();
 		        $("#login-error").hide();
@@ -216,15 +226,7 @@
 		            url : "$portalPath/actions/login.ajax",
 		            success:
 		                function(data, status) {
-		                    $("#login-loading").hide();
-		                    var response = data.split(":");
-		                    username = jQuery.trim(response[0]);
-		                    is_admin = jQuery.trim(response[1]);
-		                    $("#user-info").html("Welcome " + username + ", <a href='?verb=logout'>logout</a>");
-		                    if (is_admin == "admin") {
-		                        $("#admin-link").show();
-		                    }
-		                    $("#login-form").dialog('close');
+		                    window.location.reload();						
 		                },
 		            error:
 		                function (req, status, e) {

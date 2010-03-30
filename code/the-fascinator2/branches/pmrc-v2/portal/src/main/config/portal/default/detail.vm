@@ -661,16 +661,13 @@ $(function() {
 </script>
 
 <script type="text/html" id="location_display">
-	<% if (contentUri != null) { %>
-		<% if (contentUri.indexOf("http://www.geonames.org") == 0 || contentUri.indexOf("http://www.geohash.org") == 0) { %>
-			<span class='<%=style%>tag'>
-				<a href="<%=contentUri%>" target="_blank"><%=content%><% if(tagCount > 1){ %> (<%=tagCount%>)<% } %></a>
-			</span>
-		<% }%>
-	<% } else { %>
-		<span></span>
-      <a href="http://www.geonames.org/search.html?q=<%=content%>"><%=content%></a>
-	<% }%>
+    <% if (contentUri) { %>
+        <span class='<%=style%>tag'>
+		    <a href='<%=contentUri%>' target='_blank'><%=content%><% if(tagCount > 1){ %> (<%=tagCount%>)<% } %></a>
+        </span>
+    <% } else { %>
+        <span class='<%=style%>tag'><%=content%></span>
+    <% } %>
 </script>
 
 <script type="text/html" id="people_form">
@@ -712,15 +709,13 @@ $(function() {
 </script>
 
 <script type="text/html" id="people_display">
-    <% if (contentUri != null) { %>
-        <% if (contentUri.indexOf("http://www.vietnamroll.gov.au/") == 0 ) { %>
-            <span class='<%=style%>tag'>
-                <a href="<%=contentUri%>" target="_blank"><%=content%><% if(tagCount > 1){ %> (<%=tagCount%>)<% } %></a>
-            </span>
-        <% }%>
+    <% if (contentUri) { %>
+        <span class='<%=style%>tag'>
+		    <a href='<%=contentUri%>' target='_blank'><%=content%><% if(tagCount > 1){ %> (<%=tagCount%>)<% } %></a>
+        </span>
     <% } else { %>
-        <span></span>
-    <% }%>
+        <span class='<%=style%>tag'><%=content%></span>
+    <% } %>
 </script>
 
 #if($self.mimeType.startsWith("audio/") || $self.mimeType.startsWith("video/"))
