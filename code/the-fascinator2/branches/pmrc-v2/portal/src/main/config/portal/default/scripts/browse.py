@@ -51,14 +51,6 @@ class SearchData:
         req.setParam("facet.limit", str(self.__portal.facetCount))
         req.setParam("sort", "f_dc_title asc")
         
-        anotarQuery = "*:*"
-
-        annoReq = SearchRequest(anotarQuery)
-        annoReq.setParam("facet", "false")
-        annoReq.setParam("rows", str(99999))
-        annoReq.setParam("sort", "dateCreated asc")
-        annoReq.setParam("start", str(0))
-        
         # setup facets
         action = formData.get("verb")
         value = formData.get("value")
@@ -106,13 +98,6 @@ class SearchData:
         out = ByteArrayOutputStream()
         Services.indexer.search(req, out)
         self.__result = JsonConfigHelper(ByteArrayInputStream(out.toByteArray()))
-        
-        anotarOut = ByteArrayOutputStream()
-        Services.indexer.annotateSearch(annoReq, out)
-        resultForAnotar = JsonConfigHelper(ByteArrayInputStream(out.toByteArray()))
-        print " * anotar search.py: ", resultForAnotar
-        resultForAnotar = resultForAnotar.getJsonList("response/docs")
-        
         if self.__result is not None:
             self.__paging = Pagination(self.__pageNum,
                                        int(self.__result.get("response/numFound")),

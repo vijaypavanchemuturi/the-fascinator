@@ -79,6 +79,14 @@ class DetailData:
 
     def __search(self):
         req = SearchRequest('id:"%s"' % self.__oid)
+        
+        if not page.authentication.is_admin():
+            security_roles = page.authentication.get_roles_list()
+            security_query = 'security_filter:("' + '" OR "'.join(security_roles) + '")'
+            current_user = page.authentication.get_username()
+            owner_query = 'owner:"' + current_user + '"'
+            req.addParam("fq", "(" + security_query + ") OR (" + owner_query + ")")
+        
         out = ByteArrayOutputStream()
         Services.indexer.search(req, out)
         self.__json = JsonConfigHelper(ByteArrayInputStream(out.toByteArray()))
