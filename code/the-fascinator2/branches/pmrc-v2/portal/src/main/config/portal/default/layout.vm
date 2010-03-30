@@ -19,6 +19,7 @@
     <link rel="stylesheet" type="text/css" href="$portalPath/css/usq/common-ie6.css" />
     <![endif]-->
     <link rel="stylesheet" type="text/css" href="$portalPath/css/usq/print.css" media="print" />
+    <link rel="stylesheet" type="text/css" href="$portalPath/css/usq/dialogbox.css" media="screen" />
     <link rel="stylesheet" type="text/css" href="$portalPath/css/anotar/image-annotation.css" />
     <!--<link rel="stylesheet" type="text/css" href="$portalPath/css/controls-hulu.css" />-->
     $!pageHeader

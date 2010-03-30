@@ -69,7 +69,7 @@
             <ul class="menu-list">
               <li><a href="$portalPath/home">Home</a></li>
               <li><a href="$portalPath/browse">Browse</a></li>
-              <li class="selected">Search</li>
+              <li><a href="$portalPath/search">Search</a></li>
               <li><a href="$portalPath/help">Help</a></li>
             </ul>
           </div>
@@ -90,7 +90,7 @@
           #end
           
           ##<div class="mainmenu">
-          #if($page.authentication.is_logged_in())
+          #* #if($page.authentication.is_logged_in())
               #set($facetFields = $self.result.getMap("facet_counts/facet_fields"))
               #foreach($facetFieldKey in $facetFields.keySet())
                 #set($facetField = $self.getFacetField($facetFieldKey))
@@ -100,28 +100,23 @@
                   #displayFacet($facetFieldKey $facetField)
                 #end
               #end
-          #end
+          #end *#
           ##</div>
         </div>
       </td>
       <td class="middlecol">
-        <h2 class="content-title">Search</h2>
         <div class="search-box">
-          <form action="$portalPath/search" id="search-form" method="post">
             #if($page.authentication.is_logged_in())
-              <input type="text" id="query" name="query" size="70" value="$!query" />
-              <input type="submit" name="search" value="Search" />
-              <p class="search-message">Displaying <strong>${paging.startNum}</strong> to <strong>${paging.endNum}</strong> of <strong>${paging.totalFound}</strong> records (in $self.queryTime seconds)</p>
             #else
+              <h2 class="content-title">Browse</h2>
               <!--<p class="search-error">No results have been found for the entered search. Please try again.</p>-->
               <p>You do not have permission to view this page. Please login to proceed<!--<a id="login-now" href="#">Login</a>-->.</p>
             #end
             #parse($page.getTemplate("search-paging.vm"))
-          </form>
         </div>
         #if($self.result and $paging.totalFound > 0)
         <div class="result-list">
-            <h2>Results
+            <h2>Browse
                 ##<span class="right">Showing ${paging.startNum} to ${paging.endNum} of ${paging.totalFound} items ($self.queryTime seconds)</span>
             </h2>
             #if($self.result and $paging.totalFound > 0)
@@ -377,16 +372,16 @@ $(function() {
 </script>
 
 <script type="text/html" id="tag_display">
-	<% if (contentUri != null) { %>
-		<% if (contentUri.indexOf("http://www.geonames.org") == 0 || contentUri.indexOf("http://www.geohash.org") == 0) { %>
-			<span class='<%=style%>tag'>
-				<a href="<%=contentUri%>" target="_blank"><%=content%><% if(tagCount > 1){ %> (<%=tagCount%>)<% } %></a>
-			</span>
-		<% }%>
-	<% } else { %>
-		<span class='<%=style%>tag'><%=content%></span>
+    <% if (contentUri != null) { %>
+        <% if (contentUri.indexOf("http://www.geonames.org") == 0 || contentUri.indexOf("http://www.geohash.org") == 0) { %>
+            <span class='<%=style%>tag'>
+                <a href="<%=contentUri%>" target="_blank"><%=content%><% if(tagCount > 1){ %> (<%=tagCount%>)<% } %></a>
+            </span>
+        <% }%>
+    <% } else { %>
+        <span class='<%=style%>tag'><%=content%></span>
       ##<a href="http://www.geonames.org/search.html?q=<%=content%>"><%=content%></a>
-	<% }%>
+    <% }%>
 </script>
 
 <script type="text/html" id="object_tag_form">

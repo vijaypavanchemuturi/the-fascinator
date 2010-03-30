@@ -20,6 +20,7 @@
             <div class="mainmenu-heading">Public Memory Research Centre</div>
             <ul class="menu-list">
               <li class="selected">Home</li>
+              <li><a href="$portalPath/browse">Browse</a></li>
               <li><a href="$portalPath/search">Search</a></li>
               <li><a href="$portalPath/help">Help</a></li>
             </ul>
@@ -36,31 +37,39 @@
           </div>
           <div class="home-search">
             <h2>Search</h2>
+            #if($page.authentication.is_logged_in())
             <p>Search for media using keywords.</p>
-            <div class="search-box">
-              <form action="search" id="search-form" method="post">
-                <input type="text" id="query" name="query" size="70" value="$!query" />
-                <input type="submit" name="search" value="Search" />
-                <p></p>
-                <!--<input type="radio" name="searchType" id="freeText" value="full_text" checked="checked" />
-                <label for="freeText">Free text search</label>
-                <input type="radio" name="searchType" id="title" value="dc_title" />
-                <label for="title">Title search</label> -->
-              </form>
-              <p>There are currently <strong>$self.itemCount</strong> media files available.</p>
-            </div>
+                <div class="search-box">
+                  <form action="search" id="search-form" method="post">
+                    <input type="text" id="query" name="query" size="70" value="$!query" />
+                    <input type="submit" name="search" value="Search" />
+                    <p></p>
+                    <!--<input type="radio" name="searchType" id="freeText" value="full_text" checked="checked" />
+                    <label for="freeText">Free text search</label>
+                    <input type="radio" name="searchType" id="title" value="dc_title" />
+                    <label for="title">Title search</label> -->
+                  </form>
+                  <p>There are currently <strong>$self.itemCount</strong> media files available.</p>
+                </div>
+             #else
+                <p>You do not have permission to perform searching in this page. Please login to proceed<!--<a id="login-now" href="#">Login</a>-->.</p>
+             #end
           </div>
           <div id="newest">
             <h2>Recently added media</h2>
-            <table>
-            #foreach($item in $self.latest)
-		        #set($itemId = $item.get('id'))
-		        #set($itemTitle = $item.get("dc_title").get(0))
-		        <tr>
-		          <td><a href="$portalPath/detail/$itemId">$itemTitle</a></td>
-		        </tr>
-            #end
-            </table>
+            #if($page.authentication.is_logged_in())
+                <table>
+                #foreach($item in $self.latest)
+    		        #set($itemId = $item.get('id'))
+    		        #set($itemTitle = $item.get("dc_title").get(0))
+    		        <tr>
+    		          <td><a href="$portalPath/detail/$itemId">$itemTitle</a></td>
+    		        </tr>
+                #end
+                </table>
+            #else
+                <p>You do not have permission to view recently added media. Please login to proceed<!--<a id="login-now" href="#">Login</a>-->.</p>
+             #end
           </div>
           <!--<div id="popular">
             <h2>Most viewed images, audios or videos</h2>
