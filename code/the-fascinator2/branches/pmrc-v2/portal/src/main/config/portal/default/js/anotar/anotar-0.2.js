@@ -17,124 +17,122 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 function anotarFactory(jQ, config) {
-	/*
-	 * Required configuration parameters:
-	 *   docRoot
-	 *   serverAddress
-         *   pageUri
-	 */
-	var anotar = {};
-	if(!config) config={};
-	// default settings
-	config.docRoot = config.docRoot || "#anno-root";
-	config.tagList = config.tagList || "p, h1, h2, h3, h4, h5, h6";
-	config.listElementTagNames = config.listElementTagNames || "li,lh,dd,dt"; //list of list elements defined
-	config.label = config.label || "Comment on this:";
-	config.lang = config.lang || "en";
-	config.creatorUri = config.creatorUri || "http://www.purl.org/anotar/ns/user/0.1#Anonymous";
-	config.clientUri = config.clientUri || "http://www.purl.org/anotar/client/0.1";
-	config.stylePrefix = config.stylePrefix ||  "anno-";
-	config.interfaceLabel = config.interfaceLabel || " &#xb6;";
-	config.interfaceVisible = config.interfaceVisible || false;
-	config.contentInput = config.contentInput || "textArea";
-	config.getContentUri = config.getContentUri || null;
-	config.hashAttr = config.hashAttr || "anotar-hash";
-	config.hashType = config.hashType || "http://www.purl.org/anotar/locator/0.1";
-	config.hashFunction = config.hashFunction || null;
-	config.uriAttr = config.uriAttr || "id";
-	config.disableReply = config.disableReply || false;
-	
-	//function overwritten
-	config.submitAnnotation = config.submitAnnotation || postNewAnnotation;
-	config.loadAnnotation = config.loadAnnotation || loadAnnotation;
-	config.loadAnnotations = config.loadAnnotations || loadAnnotations;
-	config.getHttpData = config.getHttpData || getHttpData;
-	config.postHttpData = config.postHttpData || postHttpData;
-	
-	annotationType = config.annotationType || "comment";
-	setType(annotationType);		// sets config.annoType
-	anotar.config = config;
-	
-	// Checks
-	if (config.docRoot.length == 0)
+    /*
+     * Required configuration parameters: docRoot serverAddress pageUri
+     */
+    var anotar = {};
+    if(!config) config={};
+    // default settings
+    config.docRoot = config.docRoot || "#anno-root";
+    config.tagList = config.tagList || "p, h1, h2, h3, h4, h5, h6";
+    config.listElementTagNames = config.listElementTagNames || "li,lh,dd,dt"; // list of list elements defined
+    config.label = config.label || "Comment on this:";
+    config.lang = config.lang || "en";
+    config.creatorUri = config.creatorUri || "http://www.purl.org/anotar/ns/user/0.1#Anonymous";
+    config.clientUri = config.clientUri || "http://www.purl.org/anotar/client/0.1";
+    config.stylePrefix = config.stylePrefix ||  "anno-";
+    config.interfaceLabel = config.interfaceLabel || " &#xb6;";
+    config.interfaceVisible = config.interfaceVisible || false;
+    config.contentInput = config.contentInput || "textArea";
+    config.getContentUri = config.getContentUri || null;
+    config.hashAttr = config.hashAttr || "anotar-hash";
+    config.hashType = config.hashType || "http://www.purl.org/anotar/locator/0.1";
+    config.hashFunction = config.hashFunction || null;
+    config.uriAttr = config.uriAttr || "id";
+    config.disableReply = config.disableReply || false;
+    
+    // function overwritten
+    config.submitAnnotation = config.submitAnnotation || postNewAnnotation;
+    config.loadAnnotation = config.loadAnnotation || loadAnnotation;
+    config.loadAnnotations = config.loadAnnotations || loadAnnotations;
+    config.getHttpData = config.getHttpData || getHttpData;
+    config.postHttpData = config.postHttpData || postHttpData;
+    
+    annotationType = config.annotationType || "comment";
+    setType(annotationType);        // sets config.annoType
+    anotar.config = config;
+    
+    // Checks
+    if (config.docRoot.length == 0)
         debug.die("No document root (" + config.docRoot + ") found!");
-    // If we haven't been given a URI or a way to find URIs then use the current URL.
-    //if(!config.pageUri){
-    //    config.pageUri = location.href;		// Not good (HACK)
-    //}
+    // If we haven't been given a URI or a way to find URIs then use the current
+    // URL.
+    // if(!config.pageUri) config.pageUri = location.href; // Not good (HACK)
     
     var anotarForm;
-    /* ##################
-     * Other Options
-     * #################
+    /*
+     * ################## Other Options #################
      * 
-     * ----- Debug -----
-     * "debug" : false,
+     * ----- Debug ----- "debug" : false,
      * 
-     * ----- Setting -----
-     * "serverAddress" : null,
+     * ----- Setting ----- 
+     * "serverAddress" : null, 
      * "proxyRequired" : false,
-     * "proxyUrl" : null,
-     * "creator" : null,
+     * "proxyUrl" : null, 
+     * "creator" : null, 
      * "creatorEmail": null,
-     * "creatorWebsite":null,
-     * "uriAttr" : "id"   //to look for element's id
+     * "creatorWebsite":null, 
+     * "uriAttr" : "id" //to look for element's id
      * 
-     * ----- form -----
-     * "formPrepend" : false,
-     * "formCustom" : null,
-     * "formCancel" : null,
-     * "formSubmit" : null,
-     * "formClear" : null,
+     * ----- Private/Public setting ----- 
+     * usePrivacy : false, 
+     * privacyClassName : "privacy",
+     * 
+     * ----- form ----- 
+     * "formPrepend" : false, 
+     * "formCustom" : null, 
+     * "formCancel" : null, 
+     * "formSubmit" : null, 
+     * "formClear" : null, 
      * "formClose" : null,
-     * formCancelFunction : null,
-     * formClearFunction : null,
-     * formCloseFunction : null,
-     * formSubmitFunction : null,
-     * formPopup : false
+     * formCancelFunction : null, 
+     * formClearFunction : null, 
+     * formCloseFunction : null, 
+     * formSubmitFunction : null, 
+     * formPopup : false 
      * formPopupSettings : {
-     * 		autoOpen: true,
-     * 		bgiframe: false,
-     * 		buttons: {},
-     * 		closeOnEscape: true,
-     * 		closeText: 'close',
-     * 		dialogClass: '',
-     * 		draggable: true,
-     * 		hide: null,
-     * 		height: 'auto',
-     * 		maxHeight: false,
-     * 		maxWidth: false,
-     * 		minHeight: 150,
-     * 		minWidth: 150,
-     * 		modal: false,
-     * 		position: 'center',
-     * 		resizable: true,
-     * 		show: null,
-     * 		stack: true,
-     * 		title: '',
-     * 		width: 300,
-     * 		zIndex: 1000
-     * 	}
+     *             autoOpen: true, 
+     *             bgiframe: false, 
+     *             buttons: {}, 
+     *             closeOnEscape: true,
+     *             closeText: 'close', 
+     *             dialogClass: '', 
+     *             draggable: true, 
+     *             hide: null, 
+     *             height: 'auto', 
+     *             maxHeight: false, 
+     *             maxWidth: false, 
+     *             minHeight: 150, 
+     *             minWidth: 150,
+     *             modal: false, 
+     *             position: 'center', 
+     *             resizable: true, 
+     *             show: null, 
+     *             stack: true, 
+     *             title: '', 
+     *             width: 300, 
+     *             zIndex: 1000 
+     *        }
      * 
-     * ----- Interface -----
+     * ----- Interface ----- 
      * collapseComments : false, 
+     * showHideFunction : showHideNode, //see in loadAnnotation
      * 
-     * ----- Others -----
-     * "orphanHolder": null,
+     * ----- Others ----- 
+     * "orphanHolder": null, 
      * "orphanHolder_id": null,
      */
 
     var debug;
-	if(config.debug){
-		debug = {die:function(message){ }} //alert("DEBUG: " + message); }}
-	}else{
-		debug = {die:function(message){}}
-	}
-	
-	//to make the anotar classnames.
+    if(config.debug){
+        debug = {die:function(message){ }} //alert("DEBUG: " + message); }}
+    }else{
+        debug = {die:function(message){}}
+    }
+    // to make the anotar classnames.
     function getClassSelector(name) { return "."+ getClassName(name); }
     function getClassName(name) { return config.stylePrefix + name;  }
-	
+    
     // Variables accessible throughout this object
     var errorMsg = "";
     var templateCache = {};
@@ -142,55 +140,55 @@ function anotarFactory(jQ, config) {
     var targetList = [];
     var docRoot = jQ(config.docRoot);
 
-	//=======================================
-	// Default Templates
-	//=======================================
-	var templates = {
-		commandText: "<span class='<%=style%>command'><%=label%></span>",
-	
-	    annotateForm:
-	         "<div class='<%=style%>annotate-form'>" +
-	           "<div class='<%=style%>annotate-form-elements'>" +
-	             "<textarea class='<%=style%>annotate-text'></textarea><br/>" +
-	             "<button class='<%=style%>cancel'>Cancel</button>&#160;" +
-	             "<button class='<%=style%>submit'>Submit</button> " +
-	           "</div>" +
-	           "<span class='<%=style%>info'></span>" +
-	         "</div>",
-	    annotateTitle: "<div class='<%=style%>app-label'><%=label%></div>",
-	    annotateWrap: "<div class='<%=style%>inline-annotation-form'/>",
-	    annotateQuote: "<blockquote class='<%=style%>inline-annotation-quote'/>",
-	
-	    replyButton: "<button class='<%=style%>reply'>Reply</button>",
-	
-	    commentDisplay:
-	         "<div class='<%=style%>inline-annotation <%=toggle%>' id='<%=id%>'>" +
-	             "<input name='rootUri' value='<%=root%>' type='hidden'/>" +
-	             "<div class='<%=style%>orig-content' style='display:none;'><%=original%></div>" +
-	             "<div class='<%=style%>anno-info'>" +
-	                 "Comment by: <span class='<%=style%>anno-creator'><%=creator%></span>" +
-	                 " &nbsp; <span class='<%=style%>anno-date timeago' title='<%=date%>'><%=date%></span>" +
-	             "</div>" +
-	             "<div class='<%=style%>anno-content'><%=content%></div>" +
-	             "<div class='<%=style%>anno-children'><%=children%></div>" +
-	         "</div>",
-	    
-	    showHideButton :"<a href='' class='<%=style%>showHideComments'>[<span class='<%=style%>showHideText' /> " +
-	    			"<span class='<%=style%>annotationCount'><%=count%></span> comments...]</a>",
-	    commentContainer : "<div class='<%=style%>has-annotation' <%=style%>locatorhash='<%=hash%>' />",
-	    commentList : "<div class='<%=style%>commentList'></div>",
-	         
-	    seeAlsoDisplay: "",
-	    questionDisplay: "",
-	    explanationDisplay: "",
-	    exampleDisplay: "",
-	    changeDisplay: "",
-	    adviceDisplay: "",
-	    tagDisplay: "<span class='<%=style%>tag'><%=content%><% if(tagCount > 1){ %> (<%=tagCount%>)<% } %></span>",
-	    highlightDisplay: "",
-	
-	    orphanHolder: "<p id='<%=style%>orphans'>Below are annotations that we can no longer attach to this document reliably because the data has changed.</p>"
-	}
+    // =======================================
+    // Default Templates
+    // =======================================
+    var templates = {
+        commandText: "<span class='<%=style%>command'><%=label%></span>",
+    
+        annotateForm:
+             "<div class='<%=style%>annotate-form'>" +
+               "<div class='<%=style%>annotate-form-elements'>" +
+                 "<textarea class='<%=style%>annotate-text'></textarea><br/>" +
+                 "<button class='<%=style%>cancel'>Cancel</button>&#160;" +
+                 "<button class='<%=style%>submit'>Submit</button> " +
+               "</div>" +
+               "<span class='<%=style%>info'></span>" +
+             "</div>",
+        annotateTitle: "<div class='<%=style%>app-label'><%=label%></div>",
+        annotateWrap: "<div class='<%=style%>inline-annotation-form'/>",
+        annotateQuote: "<blockquote class='<%=style%>inline-annotation-quote'/>",
+    
+        replyButton: "<button class='<%=style%>reply'>Reply</button>",
+    
+        commentDisplay:
+             "<div class='<%=style%>inline-annotation <%=toggle%>' id='<%=id%>'>" +
+                 "<input name='rootUri' value='<%=root%>' type='hidden'/>" +
+                 "<div class='<%=style%>orig-content' style='display:none;'><%=original%></div>" +
+                 "<div class='<%=style%>anno-info'>" +
+                     "Comment by: <span class='<%=style%>anno-creator'><%=creator%></span>" +
+                     " &nbsp; <span class='<%=style%>anno-date timeago' title='<%=date%>'><%=date%></span>" +
+                 "</div>" +
+                 "<div class='<%=style%>anno-content'><%=content%></div>" +
+                 "<div class='<%=style%>anno-children'><%=children%></div>" +
+             "</div>",
+        
+        showHideButton :"<a href='' class='<%=style%>showHideComments'>[<span class='<%=style%>showHideText' /> " +
+                    "<span class='<%=style%>annotationCount'><%=count%></span> comments...]</a>",
+        commentContainer : "<div class='<%=style%>has-annotation' <%=style%>locatorhash='<%=hash%>' />",
+        commentList : "<div class='<%=style%>commentList'></div>",
+             
+        seeAlsoDisplay: "",
+        questionDisplay: "",
+        explanationDisplay: "",
+        exampleDisplay: "",
+        changeDisplay: "",
+        adviceDisplay: "",
+        tagDisplay: "<span class='<%=style%>tag'><%=content%><% if(tagCount > 1){ %> (<%=tagCount%>)<% } %></span>",
+        highlightDisplay: "",
+    
+        orphanHolder: "<p id='<%=style%>orphans'>Below are annotations that we can no longer attach to this document reliably because the data has changed.</p>"
+    }
     // Core logic
     targetList = findAnnotatables();
     anotarForm = anotarFormFactory(config);
@@ -220,7 +218,7 @@ function anotarFactory(jQ, config) {
     // Private functions
     function findAnnotatables() {
         // Get all child-nodes with valid selectors of docRoot
-    	var list = [];
+        var list = [];
         docRoot.find(config.tagList).each(function(count, item) {
             if (item.innerHTML != "") list.push(item);
         });
@@ -229,81 +227,83 @@ function anotarFactory(jQ, config) {
     
     
     function addId(node){
-    	if (!addId.crcs) addId.crcs = {};
-    	var  crc, c;
+        if (!addId.crcs) addId.crcs = {};
+        var  crc, c;
         if(!node.attr(config.hashAttr)){
            // Get the contents
             c = node.text();
-            // Hash the contents
+            c = c.replace(/\s+/g," "); // replace multiple white spaces with
+                                        // single space.
+           // Hash the contents
             crc = Crc32(c).toLowerCase();
             // Just in case there are identical paragraphs
             if(addId.crcs[crc]){
-            	addId.crcs[crc].push(true); 
-            	c = addId.crcs[crc].length;
+                addId.crcs[crc].push(true); 
+                c = addId.crcs[crc].length;
             }else{
-            	addId.crcs[crc] = [true];
-            	c = 1;
+                addId.crcs[crc] = [true];
+                c = 1;
             }
             // Attach it to the DOM
             node.attr(config.hashAttr, "h" + crc + "p" + c);
-        }	
+        }    
     }
     function addIds(targetList) {
-        // For every target, add an id 
+        // For every target, add an id
         jQ.each(targetList, function(c, i){
-        	addId(jQ(i));
+            addId(jQ(i));
         });
     }
    
     function addCommand(node){
-    	if(!addCommand.interfaceSpan){ //set up the spans if not there.
-    		//reply interface span only if defined
-    		if (config.replyLabel && !config.disableReply) {
-			var replyInterfaceLabel = renderTemplate(config.replyLabel,{style: config.stylePrefix});
-			var opt = {style: config.stylePrefix, label: replyInterfaceLabel};
-				addCommand.replySpan = jQ(renderTemplate(templates.commandText, opt));
-    	    }
-    	    //general interface span
-    	    opt = {style: config.stylePrefix, label: config.interfaceLabel};
-    	    addCommand.interfaceSpan = jQ(renderTemplate(templates.commandText, opt));
-    	}
-    	var prepend = config.interfacePrepend;
-    	var iNode = addCommand.interfaceSpan;
-    	var visible = config.interfaceVisible; 
-    	if(node.hasClass(getClassName("inline-annotation"))){
-    		prepend = true;
-    		iNode = addCommand.replySpan;
-    		visible = true;
-    	}
+        if(!addCommand.interfaceSpan){ // set up the spans if not there.
+            // reply interface span only if defined
+            if (config.replyLabel && !config.disableReply) {
+                var replyInterfaceLabel = renderTemplate(config.replyLabel,{style: config.stylePrefix});
+                var opt = {style: config.stylePrefix, label: replyInterfaceLabel};
+                addCommand.replySpan = jQ(renderTemplate(templates.commandText, opt));
+            }
+            // general interface span
+            opt = {style: config.stylePrefix, label: config.interfaceLabel};
+            addCommand.interfaceSpan = jQ(renderTemplate(templates.commandText, opt));
+        }
+        var prepend = config.interfacePrepend;
+        var iNode = addCommand.interfaceSpan;
+        var visible = config.interfaceVisible;
+        if(node.hasClass(getClassName("inline-annotation"))){
+            prepend = true;
+            iNode = addCommand.replySpan;
+            visible = true;
+        }
         var addInterface = function(jqe) {
             if(prepend){
-        	jqe.prepend(iNode);
+            jqe.prepend(iNode);
             }else{
-            	if(jqe.children(getClassSelector("has-annotation")).size()!=0){ //in case of list elements
-            		jqe.children(getClassSelector("has-annotation")).before(iNode);
-            	}else{
-            		jqe.append(iNode);
-            	}
+                if(jqe.children(getClassSelector("has-annotation")).size()!=0){ // in case of list elements
+                    jqe.children(getClassSelector("has-annotation")).before(iNode);
+                }else{
+                    jqe.append(iNode);
+                }
             }
             iNode.unbind();
             iNode.mousedown(function(e) {return false;});
             iNode.mouseup(interfaceClick);
         }
         var interfaceClick = function(e) {
-        	// Find the parent that is tagged
-        	var me = jQ(e.target).closest('[' + config.hashAttr + ']');
-        	if(me.size()>0) {
-        	    anotarForm.annotate(me);
-        	}
-        	// Now Remove the interface (if dynamic)
-        	if(!config.interfaceVisible) removeInterface();
+            // Find the parent that is tagged
+            var me = jQ(e.target).closest('[' + config.hashAttr + ']');
+            if(me.size()>0) {
+                anotarForm.annotate(me);
+            }
+            // Now Remove the interface (if dynamic)
+            if(!config.interfaceVisible) removeInterface();
             return false;
         }
         var removeInterface = function() {
-        	iNode.remove();
+            iNode.remove();
         }
-        if(visible){		// Commands always visible
-    	    var newSpan = iNode.clone();
+        if(visible){        // Commands always visible
+            var newSpan = iNode.clone();
             newSpan.mousedown(function(e) {return false;});
             newSpan.mouseup(interfaceClick); // for I.E.
             if(prepend){ 
@@ -311,7 +311,7 @@ function anotarFactory(jQ, config) {
             } else {
                 node.append(newSpan);
             }
-        } else {	//if hover
+        } else {    // if hover
             node.hover(function(e) {addInterface(node);},function(e) {removeInterface();})
             node.mousedown(function(e) {removeInterface();});
         }
@@ -319,159 +319,145 @@ function anotarFactory(jQ, config) {
     
     function addCommands(targetList) {
         jQ.each(targetList, function(c,i){
-        	var node=jQ(i);
-        	// if does not already have a command, then add a new one
-        	if(node.find(".anno-command").size()===0){
-        		addCommand(node);
-        	}
+            var node=jQ(i);
+            // if does not already have a command, then add a new one
+            if(node.find(".anno-command").size()===0){
+                addCommand(node);
+            }
         });
     }
 
     // Annotation retrieval
     function loadAnnotations() {
-    	function callback(data, status){
-    		var json;
-    		try{
-    			json = JSON.parse(data);
-    			//load each annotations
-        		jQ.each(json, function(c, i){
-        			try{
-        				config.loadAnnotation(i);
-        			}catch(e){
-        				alert("ERROR: " + e);
-        			}
-        		});
-    		}catch(e){ 
-    			alert("JSON ERROR: " + e);
-    		}
-    	}
+        function callback(data, status){
+            var json;
+            try{
+                json = JSON.parse(data);
+                // load each annotations
+                jQ.each(json, function(c, i){
+                    try {
+                        config.loadAnnotation(i);
+                    } catch (e) { debug.die(e); }
+                });
+            }catch(e){ 
+                //alert("JSON ERROR: " + e);
+            }
+        }
         if (config.pageUri) {
-    	    getAnnotations(config.pageUri, callback);
+            getAnnotations(config.pageUri, callback);
         } else {
             jQ.each(targetList, function(count, item) {
-    		var uri = $(item).attr(config.uriAttr);
-    		getAnnotations(uri, callback);
-    	    });
+            var uri = $(item).attr(config.uriAttr);
+            getAnnotations(uri, callback);
+            });
         }
     }
     
     function loadAnnotation(annoObj) {
-    	var annoUri = annoObj.annotates.uri;
+        var annoUri = annoObj.annotates.uri;
         var locators = annoObj.annotates.locators || [];
         var annoHash = null;
         var node, isReply;
-        function collapseButton(commentContainer){ //add or update the show/hide button
-        	if(config.collapseComments){
-    	    	var commentCount, aNode;
-    	    	commentCount = commentContainer.find(getClassSelector("inline-annotation")).size();
-    	    	aNode =commentContainer.find(getClassSelector("showHideComments")); 
-    	    	if(aNode.size()===0){ //add new
-    		    	aNode = jQ(renderTemplate(templates.showHideButton,{style:config.stylePrefix,count:commentCount}));
-    		    	commentContainer.prepend(aNode);
-    				function showHideNode(e){
-    		    		var node,target;
-    		    		target = jQ(e.target);
-    		    		node = target.parent().find(getClassSelector("commentList"));
-    		    		if(node.is(":visible")){
-    		    			node.hide();
-    		    			target.find(getClassSelector("showHideText")).html("View");
-    		    		}else{
-    		    			node.show();
-    		    			target.find(getClassSelector("showHideText")).html("Collapse");
-    		    		}
-    		    		return false;
-    		    	}
-    		    	aNode.click(showHideNode);
-    		    	aNode.click(); //hide the node
-    	    	}else{//update the count
-    	    		aNode.find(getClassSelector("annotationCount")).html(commentCount);
-    	    	}
-        	}
+        function collapseButton(commentContainer){ // add or update the
+                                                    // show/hide button
+            if(config.collapseComments){
+                var commentCount, aNode;
+                commentCount = commentContainer.find(getClassSelector("inline-annotation")).size();
+                aNode =commentContainer.find(getClassSelector("showHideComments")); 
+                if(aNode.size()===0){ // add new
+                    aNode = jQ(renderTemplate(templates.showHideButton,{style:config.stylePrefix,count:commentCount}));
+                    commentContainer.prepend(aNode);
+                    function showHideNode(e){
+                        var node,target;
+                        target = jQ(e.target);
+                        node = target.parent().find(getClassSelector("commentList"));
+                        if(node.is(":visible")){
+                            node.hide();
+                            target.find(getClassSelector("showHideText")).html("View");
+                        }else{
+                            node.show();
+                            target.find(getClassSelector("showHideText")).html("Collapse");
+                        }
+                        return false;
+                    }
+                    config.showHideFunction = config.showHideFunction || showHideNode;
+                    aNode.click(config.showHideFunction);
+                    aNode.click(); // hide the node
+                }else{// update the count
+                    aNode.find(getClassSelector("annotationCount")).html(commentCount);
+                }
+            }
         }
         var attachAnnotation = function(node, annotation, isReply) {
             var wrapClass, hash,tagName, commentContainer;
-            if (config.outputInChild){ //Mainly for tags
+            if (config.outputInChild){ // Mainly for tags
                 node.find(config.outputInChild).append(annotation);
             } else {
                 if (isReply) { 
-                	if(!node.hasClass(getClassName("anno-children"))){  //just in case wrong parent
-                		node = node.children(getClassSelector("anno-children"));
-                	}
+                    if(!node.hasClass(getClassName("anno-children"))){  // just in case wrong parent
+                        node = node.children(getClassSelector("anno-children"));
+                    }
                     node.append(annotation);
                     
-                } else { //adding new annotation 
+                } else { // adding new annotation
                     wrapClass = getClassName("has-annotation");
                     hash = node.attr(config.hashAttr);
                     commentContainer = docRoot.find("["+config.stylePrefix +"locatorhash='"+hash+"']");
-                    if(commentContainer.size() === 0) {  //Make a container for the comments
-                    	tagName = node[0].tagName.toLowerCase();
-                    	commentContainer = jQ(renderTemplate(templates.commentContainer,{style: config.stylePrefix, hash:hash}));
-                    	commentContainer.append(renderTemplate(templates.commentList,{style:config.stylePrefix}));
-                    	if(config.listElementTagNames.search(tagName) === -1){ // if not list,then add as a sibling
-                    		 node.after(commentContainer);
-                    	}else{//otherwise, add as a child
-                    		node.append(commentContainer);
-                    	}
+                    if(commentContainer.size() === 0) {  // Make a container for the comments
+                        tagName = node[0].tagName.toLowerCase();
+                        commentContainer = jQ(renderTemplate(templates.commentContainer,{style: config.stylePrefix, hash:hash}));
+                        commentContainer.append(renderTemplate(templates.commentList,{style:config.stylePrefix}));
+                        if(config.listElementTagNames.search(tagName) === -1){ // if not list,then add as a sibling
+                             node.after(commentContainer);
+                        }else{// otherwise, add as a child
+                            node.append(commentContainer);
+                        }
                     } 
                     commentContainer.children(getClassSelector("commentList")).append(annotation);
                 }
             }
             if(!commentContainer){
-            	commentContainer = annotation.closest(getClassSelector("has-annotation"));
+                commentContainer = annotation.closest(getClassSelector("has-annotation"));
             }
-            collapseButton(commentContainer); //modify show/hide button
+            collapseButton(commentContainer); // modify show/hide button
         }
         
         // Find where to attach it
         if (config.pageUri) {
-	   	isReply = annoObj.annotates.uri!=annoObj.annotates.rootUri;
-	       	if ((isReply || locators.length == 0 || locators[0].type != "http://www.purl.org/anotar/locator/0.1") && (
-	       		annoObj.type!="http://www.purl.org/anotar/ns/type/0.1#Tag")) {
-	       	    // Load by URI
-	       	    // Currently hardcoded only for comment
-	       	    node = jQ("*["+config.uriAttr+"='"+annoUri+"']");
-	       	} else {
-	       		// Load by hash and differentiated by locator type
-	       		if (locators[0].type == config.hashType) {
-		       		annoHash = locators[0].value;
-		       		node = jQ("*["+config.hashAttr+"='"+annoHash+"']");
-	       		} else {
-	       			return;
-	       		}
-	       	}
+           isReply = annoObj.annotates.uri!=annoObj.annotates.rootUri;
+               if ((isReply || locators.length == 0 || locators[0].type != "http://www.purl.org/anotar/locator/0.1") && (
+                   annoObj.type!="http://www.purl.org/anotar/ns/type/0.1#Tag")) {
+                   // Load by URI
+                   // Currently hardcoded only for comment
+                   node = jQ("*["+config.uriAttr+"='"+annoUri+"']");
+               } else {
+                   // Load by hash and differentiated by locator type
+                   if (locators[0].type == config.hashType) {
+                       annoHash = locators[0].value;
+                       node = jQ("*["+config.hashAttr+"='"+annoHash+"']");
+                   } else {
+                       return;
+                   }
+               }
         } else {
-       	    node = jQ("*["+config.uriAttr+"='"+annoUri+"']");
+               node = jQ("*["+config.uriAttr+"='"+annoUri+"']");
         }        
-
-        /* Find where to attach it *** previously
-        isReply = false;
-       	if(locators.length) {//TODO: Make this more robust
-       	    // Load by hash
-       	    annoHash = locators[0].value;
-            node = docRoot.find("*["+config.hashAttr+"='"+annoHash+"']");
-       	} else {
-       	    // Load by URI
-   	    node = docRoot.find("*["+config.uriAttr+"='"+annoUri+"']");
-   	    if (config.annotationType != "tag")  isReply = true;
-       	}
-        */
-
-        //Get the object as it should be displayed
-    	var cssToggle = "odd";
+        // Get the object as it should be displayed
+        var cssToggle = "odd";
         if(node.hasClass("odd"))  cssToggle = "even";
-		
+        
         var outputDiv = getAnnontationNode(annoObj, cssToggle);
         if (!config.disableReply)  addCommand(outputDiv, true);
-    	addId(outputDiv);
+        addId(outputDiv);
         
-    	if(node.size()!==0){
-       		attachAnnotation(node, outputDiv, isReply);
-       		if(annoObj.replies){
-       			//if there is replies, load them as well.
-       			jQ.each(annoObj.replies,function(c,i){config.loadAnnotation(i);});
-       		}
-       		
-       	}else{ // Orphan handling
+        if(node.size()!==0){
+               attachAnnotation(node, outputDiv, isReply);
+               if(annoObj.replies){
+                   // if there is replies, load them as well.
+                   jQ.each(annoObj.replies,function(c,i){config.loadAnnotation(i);});
+               }
+               
+           }else{ // Orphan handling
             var orphanId = config.stylePrefix + "orphans";
             var orphanTemplate = templates.orphanHolder;
             if (config.orphanHolder != null &&
@@ -487,13 +473,13 @@ function anotarFactory(jQ, config) {
             }
             holder.append(outputDiv);
         }
-    	return outputDiv;
+        return outputDiv;
     }
 
-    //connection 
+    // connection
     function getAnnotation(key, callback){
-    	//get single annotation with this key as id
-    	var baseQuery = "";
+        // get single annotation with this key as id
+        var baseQuery = "";
         var searchValue = "";
         switch (config.serverMode) {
             case "fascinator":
@@ -504,12 +490,13 @@ function anotarFactory(jQ, config) {
                 searchValue = escape('"' + key + '"');
                 break;
         }
+        request = config.serverAddress + baseQuery + searchValue;
         getHttpData2(request, "GET", null, callback);
     }
 
     function getAnnotations(key, callback) {
-    	//get all annotation for a document
-    	var baseQuery = "";
+        // get all annotation for a document
+        var baseQuery = "";
         var searchValue = "";
         switch (config.serverMode) {
             case "fascinator":
@@ -532,13 +519,13 @@ function anotarFactory(jQ, config) {
     }
 
     function getHttpData2(requestUrl, method, payload, callback) {
-    	var success = function(data, status) {
-        	errorMsg = "";
-            try{     // to avoid infinite loop, if error in callback.  
-            	callback(data, status);
+        var success = function(data, status) {
+            errorMsg = "";
+            try{     // to avoid infinite loop, if error in callback.
+                callback(data, status);
             }catch(e){
-            	//alert("Error in callback: " + e +", requestURL: " + requestUrl +", method :"+method);
-            	return;
+                //alert("Error in callback: " + e +", requestURL: " + requestUrl +", method :"+method);
+                return;
             }
         }
         var error = function(req, status, e) {
@@ -572,53 +559,53 @@ function anotarFactory(jQ, config) {
     
     // Submission processing
     function postNewAnnotation(data){
-    	var thisUri = data.annotates.uri;
+        var thisUri = data.annotates.uri;
         var submitCallback = function (data, status) {
-        	if(!data) return;
-        	var response = JSON.parse(data);
-		if(response.ok == true) {
-			// if the response is post success result only, 
-			// then request the annotation from server again
-			var loadCallback = function (data, status) {
-				var anno = JSON.parse(data).rows[0].value;
-				var container = config.loadAnnotation(anno);
-				container = container.closest(getClassSelector("has-annotation")); 
-				if(!container.find(getClassSelector("commentList")).is(":visible")){
-					container.find(getClassSelector("showHideComments")).click();//show the comments
-				}
-			}
-			getAnnotation(response.id, loadCallback);
-		} else if(response.annotates){	
-			//if server return annotation json back
-			var container = config.loadAnnotation(response);
-			container = container.closest(getClassSelector("has-annotation")); 
-			if(!container.find(getClassSelector("commentList")).is(":visible")){
-				container.find(getClassSelector("showHideComments")).click();//show the comments
-			}
-		} else {
-			//alert("Sorry! An error occurred saving that data!");
-		}
+            if(!data) return;
+            var response = JSON.parse(data);
+            if(response.ok == true) {
+                // if the response is post success result only,
+                // then request the annotation from server again
+                var loadCallback = function (data, status) {
+                    var anno = JSON.parse(data).rows[0].value;
+                    var container = config.loadAnnotation(anno);
+                    container = container.closest(getClassSelector("has-annotation"));
+                    if(!container.find(getClassSelector("commentList")).is(":visible")){
+                        container.find(getClassSelector("showHideComments")).click();// show the comments
+                    }
+                }
+                getAnnotation(response.id, loadCallback);
+            } else if(response.annotates){    
+                // if server return annotation json back
+                var container = config.loadAnnotation(response);
+                container = container.closest(getClassSelector("has-annotation"));
+                if(!container.find(getClassSelector("commentList")).is(":visible")){
+                    container.find(getClassSelector("showHideComments")).click();// show the comments
+                }
+            } else {
+                //alert("Sorry! An error occurred saving that data!");
+            }
         }
         var payload = null;
-	switch (config.serverMode) {
-		case "fascinator":
-			payload = {
-				action: "put",
-				rootUri: data.annotates.rootUri,
-				json: JSON.stringify(data)
-			};
-			break;
-		default:
-			payload = JSON.stringify(data);
-			break;
-	}
+        switch (config.serverMode) {
+            case "fascinator":
+                payload = {
+                    action: "put",
+                    rootUri: data.annotates.rootUri,
+                    json: JSON.stringify(data)
+                };
+                break;
+            default:
+                payload = JSON.stringify(data);
+                break;
+        }
         
         postAnnotation(config.serverAddress, payload, submitCallback);
     }
     
-    //render functions
-    var getAnnontationNode = function(annoObj, cssToggle){
-    	var node = jQ(renderAnnotation(annoObj, cssToggle));
+    // render functions
+    function getAnnontationNode(annoObj, cssToggle){
+        var node = jQ(renderAnnotation(annoObj, cssToggle));
         if(jQ.timeago) node.find(".timeago").timeago();
         return node;
     }
@@ -664,16 +651,16 @@ function anotarFactory(jQ, config) {
         var replyString = "";
         
         function strToHtml(str){
-        	str = str.replace(/\&/g,"&amp;");
-        	str = str.replace(/\</g,"&lt;");
-        	str = str.replace(/\>/g,"&gt;");
-        	str = str.replace(/\'/g,"&apos;");
-        	str = str.replace(/\\&apos;/g,"&apos;");  //remove the extra backslash
-        	str = str.replace(/\"/g,"&quot;");
-        	str = str.replace(/\n/g,"<br />");
-        	str = str.replace(/\r/g,"<br />");
-        	str = unescape(str); //for unicode char
-        	return str;
+            str = str.replace(/\&/g,"&amp;");
+            str = str.replace(/\</g,"&lt;");
+            str = str.replace(/\>/g,"&gt;");
+            str = str.replace(/\'/g,"&apos;");
+            str = str.replace(/\\&apos;/g,"&apos;");  // remove the extra backslash
+            str = str.replace(/\"/g,"&quot;");
+            str = str.replace(/\n/g,"<br />");
+            str = str.replace(/\r/g,"<br />");
+            str = unescape(str); // for unicode char
+            return str;
         }
         
         var opt = {
@@ -694,7 +681,7 @@ function anotarFactory(jQ, config) {
         if (annoObj.annotates.locators && annoObj.annotates.locators.length > 0) {
             opt.locator = annoObj.annotates.locators[0].value;
         }
-		
+        
         var template = null;
         if (config.displayCustom != null) {
             template = config.displayCustom;
@@ -765,105 +752,105 @@ function anotarFactory(jQ, config) {
          return data ? fn( data ) : fn;
     };
 
-    // AnotarForm 
+    // AnotarForm
     function anotarFormFactory(config){
-    	var annotateDiv, commentOnThis, textArea;
-    	var annotationComments={};
-	    var last=null;
+        var annotateDiv, commentOnThis, textArea;
+        var annotationComments={};
+        var last=null;
         var sp = config.stylePrefix;
         var anotarForm = {};
         var uri, hash;
-	    
-	    function prepForm() {
-	        var opt = {style: sp, label: config.label};
-	        if (config.formCustom == null) {
-	            annotateDiv = renderTemplate(templates.annotateForm, opt);
-	        } else {
-	            annotateDiv = renderTemplate(config.formCustom, opt);
-	        }
-	        annotateDiv = jQ(annotateDiv);
-	        commentOnThis = jQ(renderTemplate(templates.annotateTitle, opt));
-	    	textArea = annotateDiv.find(config.contentInput);
-	    	//setup form button names
-	    	config.formCancel = config.formCancel || "button." + sp + "cancel";
-	    	config.formSubmit = config.formSubmit || "button." + sp + "submit";
-	        config.formClear  = config.formClear  || "button." + sp + "clear";
-	        config.formClose  = config.formClose  || "button." + sp + "close";
-	        //set up form event functions
-	        config.formCancelFunction = config.formCancelFunction || cancelClick;
-	        config.formClearFunction = config.formClearFunction || clearClick;
-	        config.formCloseFunction = config.formCloseFunction || closeClick;
-	        config.formSubmitFunction = config.formSubmitFunction || submitClick;
-	    }
-	    
-	    function createPayload(data) {
-	        var schemaObject = {};
-	        // Version and profile
-	        schemaObject.clientVersionUri = config.clientUri;
-	        schemaObject.type = config.annoType;
-	        schemaObject.title = {
-	            "literal": data.title,
-	            "uri": null
-	        };
-	        // Annotation target
-	        schemaObject.annotates = {
-	            "literal": config.objectLiteral,
-	            "uri": data.uri,
-	            "rootUri": data.root
-	        };
-	        // Annotation locator(s)
+        
+        function prepForm() {
+            var opt = {style: sp, label: config.label};
+            if (config.formCustom == null) {
+                annotateDiv = renderTemplate(templates.annotateForm, opt);
+            } else {
+                annotateDiv = renderTemplate(config.formCustom, opt);
+            }
+            annotateDiv = jQ(annotateDiv);
+            commentOnThis = jQ(renderTemplate(templates.annotateTitle, opt));
+            textArea = annotateDiv.find(config.contentInput);
+            // setup form button names
+            config.formCancel = config.formCancel || "button." + sp + "cancel";
+            config.formSubmit = config.formSubmit || "button." + sp + "submit";
+            config.formClear  = config.formClear  || "button." + sp + "clear";
+            config.formClose  = config.formClose  || "button." + sp + "close";
+            // set up form event functions
+            config.formCancelFunction = config.formCancelFunction || cancelClick;
+            config.formClearFunction = config.formClearFunction || clearClick;
+            config.formCloseFunction = config.formCloseFunction || closeClick;
+            config.formSubmitFunction = config.formSubmitFunction || submitClick;
+        }
+        
+        function createPayload(data) {
+            var schemaObject = {};
+            // Version and profile
+            schemaObject.clientVersionUri = config.clientUri;
+            schemaObject.type = config.annoType;
+            schemaObject.title = {
+                "literal": data.title,
+                "uri": null
+            };
+            // Annotation target
+            schemaObject.annotates = {
+                "literal": config.objectLiteral,
+                "uri": data.uri,
+                "rootUri": data.root
+            };
+            // Annotation locator(s)
                 schemaObject.annotates.locators = [];
-	        if (data.hash) {
-	            var thisHash = {
-	                "originalContent": data.originalContent,
-	                "type": config.hashType,
-	                "value": data.hash
-	            };
-	            schemaObject.annotates.locators.push(thisHash);
-	        }
-	        // Creator
-	        schemaObject.creator = {
-	            "literal": config.creator,
-	            "uri": config.creatorUri,
-	            "website":config.creatorWebsite,
-	            "email": {
-	                "literal": config.creatorEmail
-	            }
-	        };
-	        // Date handling
-	        schemaObject.dateCreated = {
-	            "literal": getW3cDateTimeString(),
-	            "uri": null
-	        };
-	        schemaObject.dateModified = {
-	            "literal": null,
-	            "uri": null
-	        };
-	        // Content
-	        schemaObject.content = {
-			"mimeType": "text/plain",
-			"literal": data.content,
-			"formData": {}
-		};
-			
-		// Content Uri
-	        if (data.contentUri) {
-	        	schemaObject.contentUri = data.contentUri;
-	        } 
-	        
-	        // Privacy
-	        schemaObject.isPrivate = false;
-	        // Language
-	        schemaObject.lang = config.lang;
-	        return schemaObject;
-	    }	    
+            if (data.hash) {
+                var thisHash = {
+                    "originalContent": data.originalContent,
+                    "type": config.hashType,
+                    "value": data.hash
+                };
+                schemaObject.annotates.locators.push(thisHash);
+            }
+            // Creator
+            schemaObject.creator = {
+                "literal": config.creator,
+                "uri": config.creatorUri,
+                "website":config.creatorWebsite,
+                "email": {
+                    "literal": config.creatorEmail
+                }
+            };
+            // Date handling
+            schemaObject.dateCreated = {
+                "literal": getW3cDateTimeString(),
+                "uri": null
+            };
+            schemaObject.dateModified = {
+                "literal": null,
+                "uri": null
+            };
+            // Content
+            schemaObject.content = {
+            "mimeType": "text/plain",
+            "literal": data.content,
+            "formData": {}
+        };
+            // Content Uri
+            if (data.contentUri) {
+                schemaObject.contentUri = data.contentUri;
+            } 
+            
+            // Privacy
+            schemaObject.isPrivate = false;
+            if(data.isPrivate) schemaObject.isPrivate = data.isPrivate;
+            // Language
+            schemaObject.lang = config.lang;
+            return schemaObject;
+        }        
         // Hides the form
         function unWrapLast() {
             if (last != null) {
                 annotateDiv.remove();
                 commentOnThis.remove();
                 if(last.parent().hasClass(getClassName("inline-annotation-quote"))){
-                	last.parent().parent().replaceWith(last);
+                    last.parent().parent().replaceWith(last);
                 }
                 last = null;
             }
@@ -873,18 +860,18 @@ function anotarFactory(jQ, config) {
             unWrapLast();
             annotationComments[hash] = jQ.trim(textArea.val());
         }
-        //cancel callback
+        // cancel callback
         function cancelClick(){
-        	textArea.val(annotationComments[hash]);
-        	config.formCloseFunction();
+            textArea.val(annotationComments[hash]);
+            config.formCloseFunction();
         }
         function clearClick(){
-        	textArea.val("");
+            textArea.val("");
         }
         // Submit callback
         function submitClick(e) {
             var text, html, d, selfUrl,originalContent;
-            var linkNode, me,originalContentNode,annoNode;
+            var linkNode, me,originalContentNode,annoNode,isPrivate, formNode;
             me = jQ(e.target);
             
             // Wipe any saved text we have
@@ -893,15 +880,21 @@ function anotarFactory(jQ, config) {
             text = jQ.trim(textArea.val());
             if (text == "") return;
             
-            //get the original content
-            originalContentNode = me.closest(getClassSelector("inline-annotation-form")).find(getClassSelector("inline-annotation-quote>*"));
-            if(originalContentNode.children(getClassSelector("has-annotation")).size()!==0){//in case there is other comments
-            	annoNode = originalContentNode.children(getClassSelector("has-annotation"));
-            	originalContentNode.parent().append(annoNode);
+            // get the original content
+            formNode = me.closest(getClassSelector("inline-annotation-form"));
+            originalContentNode = formNode.find(getClassSelector("inline-annotation-quote>*"));
+            if(originalContentNode.children(getClassSelector("has-annotation")).size()!==0){// in case there is other comments
+                annoNode = originalContentNode.children(getClassSelector("has-annotation"));
+                originalContentNode.parent().append(annoNode);
             }
             originalContent = originalContentNode.text();
             if(linkNode) originalContentNode.append(linkNode);
             if(annoNode) originalContentNode.append(annoNode);
+            
+            isPrivate = false;
+            if(config.usePrivacy){
+                isPrivate = formNode.find(getClassSelector(config.privacyClassName)+":checked").val() == "true";
+            }
             
             // If this is a reply or not
             html = me.wrap("<div/>").parent().html();
@@ -910,34 +903,35 @@ function anotarFactory(jQ, config) {
             
             hashValue = hash;
             if (!config.pageUri) {
-                // HACK - for multiple objects on single page (e.g. search results)
-                //        use first target hash so it won't get orphaned when
-                //        loaded on single object page
+                // HACK - for multiple objects on single page (e.g. search
+                // results)
+                // use first target hash so it won't get orphaned when
+                // loaded on single object page
                 hashValue = $(targetList[0]).attr(config.hashAttr);
             } else if (config.hashFunction) {
-                hashValue = config.hashFunction($(config.docRoot));
+                hashValue = config.hashFunction(docRoot);
             }
-            
             data = {
                 uri: uri,
                 root: config.pageUri || uri,
                 hash: hashValue,
-            	originalContent: originalContent,
-            	content: text
+                originalContent: originalContent,
+                content: text,
+                isPrivate:isPrivate,
             };
             
             if (config.getContentUri) {
-            	json = config.getContentUri($(config.docRoot));
-            	if (json.isUri) {
-            		data.contentUri = json.contentUri;
-            	}
+                json = config.getContentUri($(config.docRoot));
+                if (json.isUri) {
+                    data.contentUri = json.contentUri;
+                }
             }
             
-            //got all the data so hide the form now
+            // got all the data so hide the form now
             unWrapLast();
             
             data = createPayload(data);
-            config.submitAnnotation(data, annotateDiv); //Added second parameter so plugins can process custom forms
+            config.submitAnnotation(data, annotateDiv); // Added second parameter so plugins can process custom forms
         }
         // Retrieve comments if we have them
         var restore = function() {
@@ -947,85 +941,85 @@ function anotarFactory(jQ, config) {
                 textArea.val("");
             }
         }
-	
-	    function annotate(me) {
-	        var opt = {style: sp};
-	        // Click logic starts.
-	        // Hide any other annotation forms that were visible
-	        if (last != null) {
-	            unWrapLast();
-	            config.formCancelFunction();
-	        }
-	        // What are we annotating?
-	        hash = me.attr(config.hashAttr);
-	        if(config.uriAttr) {
+    
+        function annotate(me) {
+            var opt = {style: sp};
+            // Click logic starts.
+            // Hide any other annotation forms that were visible
+            if (last != null) {
+                unWrapLast();
+                config.formCancelFunction();
+            }
+            // What are we annotating?
+            hash = me.attr(config.hashAttr);
+            if(config.uriAttr) {
                 uri = me.attr(config.uriAttr);
                 if (config.pageUri) {
-                        if(uri){
-                            pageUriPos = uri.search(config.pageUri);
-                            if (pageUriPos == -1) pageUriPos = 0;
-                            if(uri.substring(pageUriPos, config.pageUri.length + pageUriPos)===config.pageUri){
-                                    hash = null;
-                            } else {
-                                    uri = config.pageUri;
-                            }
+                    if(uri){
+                        pageUriPos = uri.search(config.pageUri);
+                        if (pageUriPos == -1) pageUriPos = 0;
+                        if(uri.substring(pageUriPos, config.pageUri.length + pageUriPos)===config.pageUri){
+                            hash = null;
                         } else {
                             uri = config.pageUri;
                         }
+                    } else {
+                        uri = config.pageUri;
+                    }
                 }
-            } 
-	        // Do we have any text saved?
-	        restore();
-	        function defaultDisplayForm(){
-	        	me.wrap(renderTemplate(templates.annotateWrap, opt));
-		        if (config.formPrepend) {
-		        	me.parent().prepend(annotateDiv);
-		        } else {
-		           me.parent().append(annotateDiv);
-		        }
-		        me.parent().prepend(commentOnThis);
-		        me.wrap(renderTemplate(templates.annotateQuote, opt));
-	        }
-	        // Render our form
-	        if(config.formPopup){
-	        	if(!config.formPopupSettings)
-	        		config.formPopupSettings = {
-		        			closeText:"x",
-		        			resizable:false,
-		        			title:"Anotar"
-		        	};
-	        	try{
-	        		annotateDiv.dialog(config.formPopupSettings);
-	        	}catch(e){
-	        		//if can't find the dialog then use the default form
-	        		defaultDisplayForm();
-	        	}
-	        }else{
-	        	defaultDisplayForm();
-	        }
-	        
-	        // call custom form display function
-	        if (config.onFormDisplay) {
-	        	config.onFormDisplay(textArea);
-	        }
-	        
-	        //setup the event click function 
-	        annotateDiv.find(config.formClear).click(config.formClearFunction);
-	        annotateDiv.find(config.formCancel).click(config.formCancelFunction);
-	        annotateDiv.find(config.formClose).click(config.formCloseFunction);
-	        annotateDiv.find(config.formSubmit).click(config.formSubmitFunction);
-	        last = me;
-	        textArea.focus();
-	    }
-	    
+            }
+
+            // Do we have any text saved?
+            restore();
+            function defaultDisplayForm(){
+                me.wrap(renderTemplate(templates.annotateWrap, opt));
+                if (config.formPrepend) {
+                    me.parent().prepend(annotateDiv);
+                } else {
+                   me.parent().append(annotateDiv);
+                }
+                me.parent().prepend(commentOnThis);
+                me.wrap(renderTemplate(templates.annotateQuote, opt));
+            }
+            // Render our form
+            if(config.formPopup){
+                if(!config.formPopupSettings)
+                    config.formPopupSettings = {
+                            closeText:"x",
+                            resizable:false,
+                            title:"Anotar"
+                    };
+                try{
+                    annotateDiv.dialog(config.formPopupSettings);
+                }catch(e){
+                    // if can't find the dialog then use the default form
+                    defaultDisplayForm();
+                }
+            }else{
+                defaultDisplayForm();
+            }
+
+        // call custom form display function
+            if (config.onFormDisplay) {
+                config.onFormDisplay(textArea);
+            }
+
+            // setup the event click function
+            annotateDiv.find(config.formClear).click(config.formClearFunction);
+            annotateDiv.find(config.formCancel).click(config.formCancelFunction);
+            annotateDiv.find(config.formClose).click(config.formCloseFunction);
+            annotateDiv.find(config.formSubmit).click(config.formSubmitFunction);
+            last = me;
+            textArea.focus();
+        }
+        
         prepForm();
         anotarForm.annotate = annotate;
         return anotarForm;
     }
-    // end of AnotarForm 
+    // end of AnotarForm
     return anotar;
 }
-
 
 // =======================================
 // Crc32
