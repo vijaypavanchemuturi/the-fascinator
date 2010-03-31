@@ -20,5 +20,5 @@ fi
 export JAVA_HOME
 export FASCINATOR_HOME=$HOME/.fascinator
 if [ "$MAVEN_OPTS" == "" ] ; then
-	export MAVEN_OPTS="-XX:MaxPermSize=128m -Xmx512m -Dhttp.proxyHost=$HOST -Dhttp.proxyPort=$PORT -Dhttp.nonProxyHosts=localhost -Dfascinator.home=$FASCINATOR_HOME"
+	export MAVEN_OPTS="-XX:MaxPermSize=256m -Xmx512m -Dhttp.proxyHost=$HOST -Dhttp.proxyPort=$PORT -Dhttp.nonProxyHosts=localhost -Dfascinator.home=$FASCINATOR_HOME"
 fi
