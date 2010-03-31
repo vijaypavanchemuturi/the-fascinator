@@ -22,7 +22,6 @@
               <li class="selected">Home</li>
               <li><a href="$portalPath/browse">Browse</a></li>
               <li><a href="$portalPath/search">Search</a></li>
-              <li><a href="$portalPath/help">Help</a></li>
             </ul>
           </div>
           ##displayFacetTree("policy_type", "Policy type")

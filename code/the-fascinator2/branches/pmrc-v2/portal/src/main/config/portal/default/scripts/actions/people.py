@@ -21,9 +21,11 @@ class PeopleNames:
         if func == "searchName":
             firstName = formData.get("firstName")
             surname = formData.get("surname")
-            
+            htmlStr = ""
             viewStateValue = self.__getViewStateValue()
-            if viewStateValue:
+            if viewStateValue == 404:
+                htmlStr = "<p><strong>Could not connect to <a href='http://www.vietnamroll.gov.au' target='_blank'>http://www.vietnamroll.gov.au</a> to retrieve the data</strong></p>"
+            else:
                 #Process the search
                 client = BasicHttpClient(self.url)
                 post = PostMethod(self.url)
@@ -58,9 +60,9 @@ class PeopleNames:
                     else:
                         #process the veteran
                         htmlStr = self.__processPeople(searchResultDoc, numOfRecord)
-                    writer = response.getPrintWriter(responseType)
-                    writer.println(htmlStr)
-                    writer.close()
+            writer = response.getPrintWriter(responseType)
+            writer.println(htmlStr)
+            writer.close()
     
     def __processPeople(self, document, numOfRecord):
         colRows = ''
@@ -107,10 +109,13 @@ class PeopleNames:
                             (veteranName, veteranLink, rowStr)
                 colRows += rowStr
             
-        tableStr = "<table><thead><tr><th></th><th>Service No</th><th>Name</th><th>Service Name</th></thead><tbody></tbody>%s</table>" \
+        tableStr = "<table><thead><tr><th></th><th>Service No</th><th>Name</th><th>Service Name</th></tr></thead><tbody>%s</tbody></table>" \
                    % colRows
+        moreResult="<p></p>"
         if int(numOfRecord) > 20:
-            tableStr = "<p><strong>There are more results available (total: %s records), please refine your search</strong></p>%s" % (numOfRecord, tableStr)
+            moreResult = "<p><strong>There are more results available (total: %s records), please refine your search</strong></p>" % (numOfRecord)
+        
+        tableStr = "%s%s" % (moreResult, tableStr)
         return tableStr
     
     def __getViewStateValue(self):
@@ -127,6 +132,8 @@ class PeopleNames:
             viewStateValue = ""
             if viewStateNode:
                 viewStateValue = viewStateNode.valueOf("./@value")
+        else:
+            viewStateValue = 404
         return viewStateValue
     
     def __recordFound(self, document):
