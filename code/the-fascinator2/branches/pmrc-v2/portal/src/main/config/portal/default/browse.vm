@@ -68,9 +68,8 @@
             <div class="mainmenu-heading">Public Memory Research Centre</div>
             <ul class="menu-list">
               <li><a href="$portalPath/home">Home</a></li>
-              <li><a href="$portalPath/browse">Browse</a></li>
+              <li class="selected">Browse</li>
               <li><a href="$portalPath/search">Search</a></li>
-              <li><a href="$portalPath/help">Help</a></li>
             </ul>
           </div>
           

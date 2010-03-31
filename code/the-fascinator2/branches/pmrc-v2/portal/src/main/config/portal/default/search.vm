@@ -70,7 +70,6 @@
               <li><a href="$portalPath/home">Home</a></li>
               <li><a href="$portalPath/browse">Browse</a></li>
               <li class="selected">Search</li>
-              <li><a href="$portalPath/help">Help</a></li>
             </ul>
           </div>
           

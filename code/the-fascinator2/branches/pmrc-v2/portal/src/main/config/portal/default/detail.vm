@@ -1,9 +1,5 @@
 <script type="text/javascript" src="$portalPath/js/tree/jquery.tree.min.js"></script>
 #set($pageTitle = 'Detail')
-##if($self.solrResponse.get("response/numFound") == 0)
-##<h2 id="page-heading">Page not found</h2>
-##<div class="login-error">You do not have permission to view this page. Please login to proceed<!--<a id="login-now" href="#">Login</a> -->.</div>
-##else
 <script type="text/javascript" src="$portalPath/js/geohash/geohash.js"></script>
 
 <table class="layout" width="10px">
@@ -18,7 +14,6 @@
               <li><a href="$portalPath/home">Home</a></li>
               <li><a href="$portalPath/browse">Browse</a></li>
               <li><a href="$portalPath/search">Search</a></li>
-              <li><a href="$portalPath/help">Help</a></li>
             </ul>
           </div>
           #if($page.authentication.is_logged_in())
@@ -50,11 +45,12 @@
             </ul>
           </div>
           #end
+          #set($pageHeader="#parse($page.getTemplate('detail-header.vm'))")
         </div>
       </td>
       <td class="middlecol">
-        #if($page.authentication.is_logged_in())
         <div class="detail">
+        #if($page.authentication.is_logged_in())
         #if($self.solrResponse.get("response/numFound") == 0)
           #set($pageTitle = "Not found")
           #set($breadcrumb = "Not found")
@@ -110,13 +106,11 @@
             #end
             </div>
           </div>
-          
         #end
-        </div>
         #else
-              <h2 class="content-title">Detail</h2>
               <div class="login-error">You do not have permission to view this page. Please login to proceed<!--<a id="login-now" href="#">Login</a>-->.</div>
         #end
+        </div>
       </td>
     </tr>
   </tbody>
@@ -339,14 +333,16 @@ $(function() {
             firstName: $("#txtFirstName").attr("value"),
             surname: $("#txtSurname").attr("value")
         }, function(data) {
-            if (data.indexOf("No veteran") < 0) {
+            if (data.indexOf("No veteran") < 0 && data.indexOf("Could not connect") < 0) {
+                $(".people_search_detail").hide();
                 $(".cancel_submit").show();
             } else {
+                $(".people_search_detail").show();
                 $(".cancel_submit").hide();
             }
             $(".search_results").show();
             $(".search_results").html(data);
-        }, "html");
+        });
     });
     
     $("#selected_people").live("click", function() {
@@ -487,6 +483,7 @@ $(function() {
             onFormDisplay: function(node){
                 $("#txtFirstName").attr("value", "");
                 $("#txtSurname").attr("value", "");
+                $(".people_search_detail").show();
                 $(".cancel_submit").hide();
                 $(".search_results").hide();
                 $(".search_results").html("");
@@ -635,66 +632,41 @@ $(function() {
 </script>
 
 <script type="text/html" id="location_display">
-    <% if (contentUri != null) { %>
-        <% if (contentUri.indexOf("http://www.geonames.org") == 0 || contentUri.indexOf("http://www.geohash.org") == 0) { %>
-            <span class='<%=style%>tag'>
-                <a href="<%=contentUri%>" target="_blank"><%=content%><% if(tagCount > 1){ %> (<%=tagCount%>)<% } %></a>
-            </span>
-        <% }%>
+    <% if (contentUri) { %>
+        <span class='<%=style%>tag'>
+		    <a href='<%=contentUri%>' target='_blank'><%=content%><% if(tagCount > 1){ %> (<%=tagCount%>)<% } %></a>
+        </span>
     <% } else { %>
-        <span></span>
-      <a href="http://www.geonames.org/search.html?q=<%=content%>"><%=content%></a>
-    <% }%>
+        <span class='<%=style%>tag'><%=content%></span>
+    <% } %>
 </script>
 
 <script type="text/html" id="people_form">
   <div id="people_div">
-    <table>
-      <tr>
-        <td class="people_scope">
-          <label for="txtFirstName">First Name</label>
-        </td>
-        <td>
-          <input type="text" id="txtFirstName" size="35"/><br/>
-        </td>
-      </tr>
-      <tr>
-        <td>
-          <label for="txtSurname">Surname</label>
-        </td>
-        <td>
-          <input type="text" id="txtSurname" size="35"/><br/>
-        </td>
-      </tr>
-      <tr>
-        <td colspan="2" align="right">
-          <button class="peopleTag-search">Search</button>
-        </td>
-      </tr>
-      <tr>
-        <td class="hidden search_results" colspan="2">
-        </td>
-      </tr>
-      <tr>
-        <td colspan="2" class="hidden cancel_submit">
-            <input type="hidden" id="txtPeople"/>
-            <button class="peopleTag-cancel">Cancel</button>&#160;
-            <button class="peopleTag-submit">Submit</button></td>
-      </tr>
-    </table>
+    <label for="txtFirstName" style="width: 6em; float: left; text-align: right; margin-right: 0.5em; display: block">First Name</label>
+        <input type="text" id="txtFirstName" size="35"/><br/>
+    <label for="txtSurname" style="width: 6em; float: left; text-align: right; margin-right: 0.5em; display: block">Surname</label>
+        <input type="text" id="txtSurname" size="35"/><br/>
+    <button class="peopleTag-search" style="margin-left: 6.5em;">Search</button>
+    <div class="search_results" colspan="2"></div>
+    <div class="hidden people_search_detail"><strong>This system searches for Australians 
+        listed in the Nominal Roll of Vietnam Veterans from The Australian Department of Veterans' Affairs (<a href='http://www.vietnamroll.gov.au' target='_blank'>http://www.vietnamroll.gov.au</a>)</strong></div>
+    <div class="hidden cancel_submit">
+        <input type="hidden" id="txtPeople"/>
+        <button class="peopleTag-cancel">Cancel</button>&#160;
+        <button class="peopleTag-submit">Submit</button></td>
+    </div>
   </div>
 </script>
 
 <script type="text/html" id="people_display">
-    <% if (contentUri != null) { %>
-        <% if (contentUri.indexOf("http://www.vietnamroll.gov.au/") == 0 ) { %>
-            <span class='<%=style%>tag'>
-                <a href="<%=contentUri%>" target="_blank"><%=content%><% if(tagCount > 1){ %> (<%=tagCount%>)<% } %></a>
-            </span>
-        <% }%>
+    <% if (contentUri) { %>
+        <span class='<%=style%>tag'>
+            <a href='<%=contentUri%>' target='_blank'><%=content%><% if(tagCount > 1){ %> (<%=tagCount%>)<% } %></a>
+        </span>
     <% } else { %>
-        <span></span>
-    <% }%>
+        <span class='<%=style%>tag'><%=content%></span>
+    <% } %>
 </script>
 
 #if($self.mimeType.startsWith("audio/") || $self.mimeType.startsWith("video/"))
