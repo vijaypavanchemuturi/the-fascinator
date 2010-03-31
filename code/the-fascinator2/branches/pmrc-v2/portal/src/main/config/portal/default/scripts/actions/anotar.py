@@ -173,15 +173,15 @@ class AnotarData:
             doc = JsonConfigHelper(doc.get("jsonString"))
             tag = doc.get("content/literal")
             locs = doc.getJsonList("annotates/locators").size()
-            if locs == 0:
-                if tag in tagsDict:
-                    d = tagsDict[tag]
-                    d.set("tagCount", str(int(d.get("tagCount")) + 1))
-                else:
-                    doc.set("tagCount", str(1))
-                    tagsDict[tag] = doc
+            #if locs == 0:
+            if tag in tagsDict:
+                d = tagsDict[tag]
+                d.set("tagCount", str(int(d.get("tagCount")) + 1))
             else:
-                tags.append(doc.toString())
+                doc.set("tagCount", str(1))
+                tagsDict[tag] = doc
+            #else:
+            #    tags.append(doc.toString())
 
         for tag in tagsDict:
             tags.append(tagsDict[tag].toString())

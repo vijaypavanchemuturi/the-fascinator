@@ -110,8 +110,8 @@ class SearchData:
         anotarOut = ByteArrayOutputStream()
         Services.indexer.annotateSearch(annoReq, anotarOut)
         resultForAnotar = JsonConfigHelper(ByteArrayInputStream(anotarOut.toByteArray()))
-        print " **** anotar search.py: ", resultForAnotar
         resultForAnotar = resultForAnotar.getJsonList("response/docs")
+        print " **** anotar search.py: ", resultForAnotar
         
         if self.__result is not None:
             self.__paging = Pagination(self.__pageNum,

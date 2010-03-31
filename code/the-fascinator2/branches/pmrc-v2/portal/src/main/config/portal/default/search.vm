@@ -179,10 +179,9 @@
             #end
         </div>
         #end
-		#else
-              <!--<p class="search-error">No results have been found for the entered search. Please try again.</p>-->
-              <p>You do not have permission to view this page. Please login to proceed<!--<a id="login-now" href="#">Login</a>-->.</p>
-		#end
+        #else
+              <div class="login-error">You do not have permission to view this page. Please login to proceed<!--<a id="login-now" href="#">Login</a>-->.</div>
+        #end
       </td>
     </tr>
   </tbody>
@@ -382,7 +381,7 @@ $(function() {
 		    <a href='<%=contentUri%>' target='_blank'><%=content%><% if(tagCount > 1){ %> (<%=tagCount%>)<% } %></a>
         </span>
     <% } else { %>
-        <span class='<%=style%>tag'><%=content%></span>
+        <span class='<%=style%>tag'><%=content%><% if(tagCount > 1){ %> (<%=tagCount%>)<% } %></span>
     <% } %>
 </script>
 

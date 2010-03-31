@@ -1,21 +1,9 @@
 <script type="text/javascript" src="$portalPath/js/tree/jquery.tree.min.js"></script>
 #set($pageTitle = 'Detail')
-#if($self.solrResponse.get("response/numFound") == 0)
-<h2 id="page-heading">Page not found</h2>
-<p>&nbsp;&nbsp;&nbsp;You do not have permission to view this page. Please login to proceed<!--<a id="login-now" href="#">Login</a>-->.</p>
-#else
-#set($meta = $self.metadata)
-#set($oid = $self.object.id)
-#set($filenameNoExt = $self.getFilePathWithoutExt($oid))
-#set($hasPreview = $self.getPreview($oid))
-#set($title = $meta.getField("dc_title"))
-#set($description = $meta.getField("dc_description"))
-#set($error = $self.getErrorPayload())
-#if($title == "")
-  #set($title = $self.getFileName($oid))
-#end
-##<h2 id="page-heading">$title</h2>
-
+##if($self.solrResponse.get("response/numFound") == 0)
+##<h2 id="page-heading">Page not found</h2>
+##<div class="login-error">You do not have permission to view this page. Please login to proceed<!--<a id="login-now" href="#">Login</a> -->.</div>
+##else
 <script type="text/javascript" src="$portalPath/js/geohash/geohash.js"></script>
 
 <table class="layout" width="10px">
@@ -33,6 +21,17 @@
               <li><a href="$portalPath/help">Help</a></li>
             </ul>
           </div>
+          #if($page.authentication.is_logged_in())
+          #set($meta = $self.metadata)
+          #set($oid = $self.object.id)
+          #set($filenameNoExt = $self.getFilePathWithoutExt($oid))
+          #set($hasPreview = $self.getPreview($oid))
+          #set($title = $meta.getField("dc_title"))
+          #set($description = $meta.getField("dc_description"))
+          #set($error = $self.getErrorPayload())
+          #if($title == "")
+            #set($title = $self.getFileName($oid))
+          #end
           <div class="mainmenu">
             <div class="mainmenu-top"></div>
             <div class="mainmenu-heading">Actions</div>
@@ -50,43 +49,11 @@
               <li><a href="$portalPath/download/$self.getPayLoadUrl($self.getFileName($oid))">$self.getFileName($oid)</a> <span style="font-weight:normal">($self.getFileSize($oid))</span></li>
             </ul>
           </div>
-          <!--<div class="mainmenu">
-            <div class="mainmenu-top"></div>
-            <div class="mainmenu-heading">Metadata</div>
-            #set($pageHeader="#parse($page.getTemplate('detail-header.vm'))")
-            <div class="block">
-              <dl class="meta">
-              #foreach($key in $dc.keySet())
-                <dt>$self.formatName($key)</dt>
-                #set($valueList = $dc.get($key))
-                <dd>
-                  <ul>
-                  #foreach($value in $valueList)
-                    <li>$value</li>
-                  #end
-                  </ul>
-                </dd>
-              #end
-              </dl>
-            </div>
-          </div>
-          <div class="mainmenu">
-            <div class="mainmenu-top"></div>
-            <div class="mainmenu-heading">Attachments</div>
-            <ul class="menu hidden">
-            #foreach($payload in $self.object.payloadList)
-              #set($pid = $payload.id)
-              #set($payloadType = $payload.type.toString())
-              <li class="payload" rel="$payload.contentType">
-                <a href='$portalPath/download/$self.encode($oid)/$self.encode($pid)' rel="$payloadType" target="blank" title="$payload.contentType">$payload.id</a>
-              </li>
-            #end
-            </ul>
-          </div>
-          -->
+          #end
         </div>
       </td>
       <td class="middlecol">
+        #if($page.authentication.is_logged_in())
         <div class="detail">
         #if($self.solrResponse.get("response/numFound") == 0)
           #set($pageTitle = "Not found")
@@ -121,7 +88,7 @@
               <div class="first article clearfix">
             #if($self.mimeType.startsWith("audio/") || $self.mimeType.startsWith("video/"))
                 <!-- <input class='player_clear_fragment' type='button' value='Reset' /> -->
-                <table border=1>
+                <table>
                   <tbody>
                     <tr>
                       <td id="player-container"></td>
@@ -146,6 +113,10 @@
           
         #end
         </div>
+        #else
+              <h2 class="content-title">Detail</h2>
+              <div class="login-error">You do not have permission to view this page. Please login to proceed<!--<a id="login-now" href="#">Login</a>-->.</div>
+        #end
       </td>
     </tr>
   </tbody>
@@ -514,6 +485,9 @@ $(function() {
                 title: "People Tag"
             },
             onFormDisplay: function(node){
+                $("#txtFirstName").attr("value", "");
+                $("#txtSurname").attr("value", "");
+                $(".cancel_submit").hide();
                 $(".search_results").hide();
                 $(".search_results").html("");
             },
@@ -638,16 +612,16 @@ $(function() {
         </td>
       </tr>
       <tr>
-      	<td>
-      	  <span class="hidden annotate_ll">
-      	  	Latitude: <input type="text" id="txtLatitude" size="10"/>
-	        Longitude: <input type="text" id="txtLongitude" size="10"/>
-      	  </span>
-      	  <span class="annotate_name">
-      	  	Search: 
-      	  </span>
-      	  <input type="text" id="txtName" size="45"/>
-      	</td>
+        <td>
+          <span class="hidden annotate_ll">
+            Latitude: <input type="text" id="txtLatitude" size="10"/>
+            Longitude: <input type="text" id="txtLongitude" size="10"/>
+          </span>
+          <span class="annotate_name">
+            Search: 
+          </span>
+          <input type="text" id="txtName" size="45"/>
+        </td>
       </tr>
       <tr class="hidden annotate_range">
         <td>Range: Range</td>
@@ -661,13 +635,16 @@ $(function() {
 </script>
 
 <script type="text/html" id="location_display">
-    <% if (contentUri) { %>
-        <span class='<%=style%>tag'>
-		    <a href='<%=contentUri%>' target='_blank'><%=content%><% if(tagCount > 1){ %> (<%=tagCount%>)<% } %></a>
-        </span>
+    <% if (contentUri != null) { %>
+        <% if (contentUri.indexOf("http://www.geonames.org") == 0 || contentUri.indexOf("http://www.geohash.org") == 0) { %>
+            <span class='<%=style%>tag'>
+                <a href="<%=contentUri%>" target="_blank"><%=content%><% if(tagCount > 1){ %> (<%=tagCount%>)<% } %></a>
+            </span>
+        <% }%>
     <% } else { %>
-        <span class='<%=style%>tag'><%=content%></span>
-    <% } %>
+        <span></span>
+      <a href="http://www.geonames.org/search.html?q=<%=content%>"><%=content%></a>
+    <% }%>
 </script>
 
 <script type="text/html" id="people_form">
@@ -709,13 +686,15 @@ $(function() {
 </script>
 
 <script type="text/html" id="people_display">
-    <% if (contentUri) { %>
-        <span class='<%=style%>tag'>
-		    <a href='<%=contentUri%>' target='_blank'><%=content%><% if(tagCount > 1){ %> (<%=tagCount%>)<% } %></a>
-        </span>
+    <% if (contentUri != null) { %>
+        <% if (contentUri.indexOf("http://www.vietnamroll.gov.au/") == 0 ) { %>
+            <span class='<%=style%>tag'>
+                <a href="<%=contentUri%>" target="_blank"><%=content%><% if(tagCount > 1){ %> (<%=tagCount%>)<% } %></a>
+            </span>
+        <% }%>
     <% } else { %>
-        <span class='<%=style%>tag'><%=content%></span>
-    <% } %>
+        <span></span>
+    <% }%>
 </script>
 
 #if($self.mimeType.startsWith("audio/") || $self.mimeType.startsWith("video/"))
@@ -835,5 +814,5 @@ $(function() {
       <div class="<%=style%>anno-children"><%=children%></div>
   </div>
 </script>
-#end
+##end
 #end

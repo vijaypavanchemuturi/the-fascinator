@@ -52,7 +52,7 @@
                   <p>There are currently <strong>$self.itemCount</strong> media files available.</p>
                 </div>
              #else
-                <p>You do not have permission to perform searching in this page. Please login to proceed<!--<a id="login-now" href="#">Login</a>-->.</p>
+                <div class="login-error">You do not have permission to perform searching in this page. Please login to proceed<!--<a id="login-now" href="#">Login</a>-->.</div>
              #end
           </div>
           <div id="newest">
@@ -60,15 +60,15 @@
             #if($page.authentication.is_logged_in())
                 <table>
                 #foreach($item in $self.latest)
-    		        #set($itemId = $item.get('id'))
-    		        #set($itemTitle = $item.get("dc_title").get(0))
-    		        <tr>
-    		          <td><a href="$portalPath/detail/$itemId">$itemTitle</a></td>
-    		        </tr>
+                    #set($itemId = $item.get('id'))
+                #set($itemTitle = $item.get("dc_title").get(0))
+                    <tr>
+                      <td><a href="$portalPath/detail/$itemId">$itemTitle</a></td>
+                    </tr>
                 #end
                 </table>
             #else
-                <p>You do not have permission to view recently added media. Please login to proceed<!--<a id="login-now" href="#">Login</a>-->.</p>
+                <div class="login-error">You do not have permission to view recently added media. Please login to proceed<!--<a id="login-now" href="#">Login</a>-->.</div>
              #end
           </div>
           <!--<div id="popular">
