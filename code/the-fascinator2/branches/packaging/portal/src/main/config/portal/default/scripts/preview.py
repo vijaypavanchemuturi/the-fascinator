@@ -34,7 +34,7 @@ class PreviewData:
             else:
                 return content
         elif mimeType.startswith("image/"):
-            return template % ('<img src="%s/download/%s/%s" />' % (portalPath, oid, pid))
+            return template % ('<img src="%s" />' % pid)
         else:
             return '<a href="%s" rel="%s">%s</a>' % (oid, mimeType, pid)
         payload.close()
