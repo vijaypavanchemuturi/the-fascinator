@@ -59,6 +59,7 @@ import au.edu.usq.fascinator.portal.guitoolkit.GUIToolkit;
 import au.edu.usq.fascinator.portal.services.DynamicPageService;
 import au.edu.usq.fascinator.portal.services.PortalManager;
 import au.edu.usq.fascinator.portal.services.ScriptingServices;
+import au.edu.usq.fascinator.portal.velocity.JythonLogger;
 import au.edu.usq.fascinator.portal.velocity.JythonUberspect;
 import au.edu.usq.fascinator.portal.velocity.Slf4jLogChute;
 
@@ -205,6 +206,7 @@ public class DynamicPageServiceImpl implements DynamicPageService {
         bindings.put("serverPort", requestGlobals.getHTTPServletRequest()
                 .getServerPort());
         bindings.put("toolkit", toolkit);
+        bindings.put("log", log);
         bindings.put("bindings", bindings);
 
         // run page and template scripts
@@ -314,14 +316,10 @@ public class DynamicPageServiceImpl implements DynamicPageService {
                 for (String key : bindings.keySet()) {
                     python.set(key, bindings.get(key));
                 }
-                /*
-                // FIXME not working yet
-                String loggerName = portalId + "." + scriptName;
-                JythonLogger jythonLogger = new JythonLogger(LoggerFactory
-                        .getLogger(loggerName.replace("/", ".")));
+                JythonLogger jythonLogger = new JythonLogger((Logger) bindings
+                        .get("log"), scriptName);
                 python.setOut(jythonLogger);
                 python.setErr(jythonLogger);
-                */
                 python.execfile(in);
                 scriptObject = python.get("scriptObject");
                 python.cleanup();
