@@ -1,3 +1,21 @@
+/* 
+ * The Fascinator - Portal
+ * Copyright (C) 2008-2009 University of Southern Queensland
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
 package au.edu.usq.fascinator.portal.velocity;
 
 import java.io.IOException;
@@ -5,15 +23,26 @@ import java.io.OutputStream;
 
 import org.slf4j.Logger;
 
+/**
+ * Used to redirect standard out/err for PythonInterpreter.
+ * 
+ * @author Oliver Lucido
+ */
 public class JythonLogger extends OutputStream {
 
     private Logger log;
 
-    private StringBuilder buf;
+    private String name;
 
-    public JythonLogger(Logger log) {
+    private boolean dirty;
+
+    private StringBuilder buffer;
+
+    public JythonLogger(Logger log, String name) {
         this.log = log;
-        buf = new StringBuilder();
+        this.name = name;
+        dirty = false;
+        buffer = new StringBuilder();
     }
 
     @Override
@@ -23,12 +52,20 @@ public class JythonLogger extends OutputStream {
 
     @Override
     public void flush() throws IOException {
-        log.debug(buf.toString());
-        buf = new StringBuilder();
+        if (dirty) {
+            log.debug("{}: {}", name, buffer.toString());
+            dirty = false;
+            buffer = new StringBuilder();
+        }
     }
 
     @Override
     public void write(int b) throws IOException {
-        buf.append((char) b);
+        if (b == '\r' || b == '\n') {
+            dirty = true;
+            flush();
+        } else {
+            buffer.append((char) b);
+        }
     }
 }
