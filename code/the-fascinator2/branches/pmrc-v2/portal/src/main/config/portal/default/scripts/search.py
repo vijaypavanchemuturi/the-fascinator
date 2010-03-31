@@ -9,7 +9,7 @@ from au.edu.usq.fascinator.portal import Pagination, Portal
 
 from java.io import ByteArrayInputStream, ByteArrayOutputStream
 from java.net import URLDecoder, URLEncoder
-from java.util import LinkedHashMap
+from java.util import LinkedHashMap, HashSet
 from java.lang import Exception
 
 class SearchData:
@@ -42,7 +42,27 @@ class SearchData:
         else:
             self.__query = query
         sessionState.set("query", self.__query)
-
+        
+        # find objects with annotations matching the query
+        if query != "*:*":
+			anotarQuery = self.__query
+			annoReq = SearchRequest(anotarQuery)
+			annoReq.setParam("facet", "false")
+			annoReq.setParam("rows", str(99999))
+			annoReq.setParam("sort", "dateCreated asc")
+			annoReq.setParam("start", str(0))        
+			anotarOut = ByteArrayOutputStream()
+			Services.indexer.annotateSearch(annoReq, anotarOut)
+			resultForAnotar = JsonConfigHelper(ByteArrayInputStream(anotarOut.toByteArray()))
+			resultForAnotar = resultForAnotar.getJsonList("response/docs")
+			ids = HashSet()
+			for annoDoc in resultForAnotar:
+				annotatesUri = annoDoc.get("annotatesUri")
+				ids.add(annotatesUri)
+				print "Found annotation for %s" % annotatesUri
+			# add annotation ids to query
+			query += ' OR id:("' + '" OR "'.join(ids) + '")'
+        
         req = SearchRequest(query)
         req.setParam("facet", "true")
         req.setParam("rows", str(recordsPerPage))
@@ -50,14 +70,6 @@ class SearchData:
         req.setParam("facet.sort", "true")
         req.setParam("facet.limit", str(self.__portal.facetCount))
         req.setParam("sort", "f_dc_title asc")
-        
-        anotarQuery = "*:*"
-
-        annoReq = SearchRequest(anotarQuery)
-        annoReq.setParam("facet", "false")
-        annoReq.setParam("rows", str(99999))
-        annoReq.setParam("sort", "dateCreated asc")
-        annoReq.setParam("start", str(0))
         
         # setup facets
         action = formData.get("verb")
@@ -106,12 +118,6 @@ class SearchData:
         out = ByteArrayOutputStream()
         Services.indexer.search(req, out)
         self.__result = JsonConfigHelper(ByteArrayInputStream(out.toByteArray()))
-        
-        anotarOut = ByteArrayOutputStream()
-        Services.indexer.annotateSearch(annoReq, anotarOut)
-        resultForAnotar = JsonConfigHelper(ByteArrayInputStream(anotarOut.toByteArray()))
-        resultForAnotar = resultForAnotar.getJsonList("response/docs")
-        print resultForAnotar
         if self.__result is not None:
             self.__paging = Pagination(self.__pageNum,
                                        int(self.__result.get("response/numFound")),

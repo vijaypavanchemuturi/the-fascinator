@@ -3,7 +3,7 @@ from au.edu.usq.fascinator.api.indexer import SearchRequest
 from au.edu.usq.fascinator.common import JsonConfigHelper
 from java.io import ByteArrayInputStream, ByteArrayOutputStream
 from java.net import URLEncoder
-from java.util import ArrayList, HashMap
+from java.util import ArrayList, HashMap, HashSet
 from authentication import Authentication
 
 class Facet:
@@ -69,6 +69,26 @@ class SearchTreeData:
         if query is None or query == "":
             query = "*:*"
         facetField = formData.get("facet.field")
+        
+        # find objects with annotations matching the query
+        if query != "*:*":
+			anotarQuery = query
+			annoReq = SearchRequest(anotarQuery)
+			annoReq.setParam("facet", "false")
+			annoReq.setParam("rows", str(99999))
+			annoReq.setParam("sort", "dateCreated asc")
+			annoReq.setParam("start", str(0))        
+			anotarOut = ByteArrayOutputStream()
+			Services.indexer.annotateSearch(annoReq, anotarOut)
+			resultForAnotar = JsonConfigHelper(ByteArrayInputStream(anotarOut.toByteArray()))
+			resultForAnotar = resultForAnotar.getJsonList("response/docs")
+			ids = HashSet()
+			for annoDoc in resultForAnotar:
+				annotatesUri = annoDoc.get("annotatesUri")
+				ids.add(annotatesUri)
+				print "Found annotation for %s" % annotatesUri
+			# add annotation ids to query
+			query += ' OR id:("' + '" OR "'.join(ids) + '")'
         
         req = SearchRequest(query)
         req.setParam("facet", "true")
