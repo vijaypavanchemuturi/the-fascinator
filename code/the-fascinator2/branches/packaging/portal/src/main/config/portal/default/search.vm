@@ -21,7 +21,7 @@
       #set($selected = $self.isSelected($facetQuery))
       <li#if($selected) class="selected"#end>
       #if($self.isPortalQueryFacet($facetQuery))
-        <a class="portal-facet">$facetCountKey&nbsp;<span class="facet-count">($facetCount)</a></span>
+        <a class="portal-facet">$facetCountKey&nbsp;<span class="facet-count">($facetCount)</span></a>
       #else
         #if($selected)
           #set($facetClass = "remove-facet selected")
@@ -50,12 +50,13 @@
 #set($paging = $self.paging)
 #if($self.result and $paging.totalFound > 0)
 #end
-<h2 id="page-heading">Search<span class="paging right">#parse($page.getTemplate("search-paging.vm"))
-</span><a class="feed" title="ATOM FEED" href="$atomLink">
-<img alt="ATOM Feed" src="$portalPath/images/icons/rss.png"/>
-</a></h2>
+<h2 id="page-heading">
+  <span>Search</span>
+  <span><a class="feed" title="Atom feed" href="$atomLink"><img alt="Atom feed" src="$portalPath/images/icons/feed.png"/></a></span>
+  <span class="paging right">#parse($page.getTemplate("search-paging.vm"))</span>
+</h2>
 <div id="action-list" class="grid_4">
-  #if($self.hasSelectedFacets() || $query != "")
+  #if($query != "" || $self.hasSelectedFacets())
   <div class="box menu">
     <h2>Actions</h2>
     <ul class="menu">
@@ -66,6 +67,33 @@
         <li><a href="#" id="create-view">Create view...</a></li>
         <li><a href="#" id="clear-facets">Clear selection</a></li>
       #end
+    </ul>
+  </div>
+  #end
+  #set($packagingEnabled = $page.authentication.is_logged_in())
+  #if($packagingEnabled)
+  <div class="box menu">
+    <h2>Packaging</h2>
+    <ul class="menu">
+      ##<li><a href="#" id="package-create-view">Package this view...</a></li>
+      <li>
+        <a href="#" id="package-create-selected">Package selected items
+          <img src="$portalPath/images/icons/loading.gif" class="hidden" id="package-selected-loading" />
+        </a>
+      </li>
+      <li>
+        <div class="article first" id="package-selected-items">
+        #set($selectedItems = $self.getSelectedItems())
+        #set($selectedItemsCount = $self.getSelectedItemsCount())
+        #if($selectedItems && $selectedItems.size() > 0)$selectedItems.size()#{else}No#end items
+        #if($selectedItemsCount > 0) on this page out of $selectedItemsCount in total#{else} selected#end
+        </div>
+      </li>
+      <ul>
+        <li><a href="#" id="package-select-page">Select all on this page</a></li>
+        <li><a href="#" id="package-deselect-page">Deselect all items on this page</a></li>
+        <li><a href="#" id="package-clear-all">Clear all selected items</a></li>
+      </ul>
     </ul>
   </div>
   #end
@@ -184,8 +212,11 @@
         </div>
         #end
         <h3>
+            #if($packagingEnabled)
+            <input type="checkbox" name="package-select" class="package-select" value="$id" rel="$title"#if($selectedItems.contains($id))checked="checked"#end />
+            #end
             #set($wfStep = $item.get("workflow_step").get(0))
-            #if ($wfStep != "" && $wfStep != "live")
+            #if ($wfStep && $wfStep != "" && $wfStep != "live")
             <img class="workflow" src="$portalPath/images/icons/wf_${wfStep}.png" />
             #end
             #if($self.canManage($item.get("workflow_security")))
@@ -274,7 +305,6 @@
 <script type="text/javascript" src="$portalPath/js/tree/jquery.tree.min.js"></script>
 <script type="text/javascript" src="$portalPath/js/jquery.truncate.js"></script>
 <script type="text/javascript">
-<!--
 $(function() {
     addActionParam("query", "$!query");
 
@@ -325,57 +355,141 @@ $(function() {
             "json"
         );
     });
-
+    
+    // packaging
+    function getSelectedItems() {
+        var ids = [];
+        var titles = [];
+        $(".package-select:checked").each(function(count, item) {
+            ids.push($(item).attr("value"));
+            titles.push($(item).attr("rel"));
+        });
+        return { size: ids.length, ids: ids, titles: titles };
+    }
+    
+    function updatePackage() {
+        var selected = getSelectedItems();
+        jQuery.ajax({
+            type: "POST",
+            url: "$portalPath/actions/packaging.ajax",
+            data: {
+              func: "update",
+              page: $currentPage,
+              ids: selected.ids,
+              titles: selected.titles
+            },
+            error: function(xhr, status, e) {
+                console.log(status, e);
+            },
+            success: function(data, status) {
+                var len = selected.size;
+                var total = data.count;
+                var msg = (len > 0 ? len : "No") + " items";
+                msg += (total > 0 ? " on this page out of " + total + " in total" : " selected");
+                $("#package-selected-items").html(msg);
+            },
+            dataType: "json"
+        });
+    }
+    
+    function clearPackage() {
+        jQuery.post("$portalPath/actions/packaging.ajax",
+            { func: "clear" },
+            function(data, status) {
+                $("#package-selected-items").html("No items selected");
+            },
+            "json");
+    }
+    
+    $("#package-create-selected").click(function() {
+        var selected = getSelectedItems();
+        $("#package-selected-loading").show();
+        jQuery.post("$portalPath/actions/packaging.ajax",
+            {
+                func: "create-from-selected",
+                ids: selected.ids,
+                titles: selected.titles
+            },
+            function(data, status) {
+                if (data.status == "ok") {
+                    window.location.href = data.url;
+                } else {
+                    alert("Failed to create package!");
+                }
+            },
+            "json"
+        );
+        return false;
+    });
+    
+    $("#package-select-page").click(function() {
+        $(".package-select").attr("checked", "checked");
+        updatePackage();
+        return false;
+    });
+    
+    $("#package-deselect-page").click(function() {
+        $(".package-select").removeAttr("checked");
+        //updatePackage();
+        return false;
+    });
+    
+    $("#package-clear-all").click(function() {
+        $(".package-select").removeAttr("checked");
+        clearPackage();
+        return false;
+    });
+    
+    $(".package-select").click(function() {
+        updatePackage();
+    });
 });
--->
 </script>
-
 
 <script type="text/javascript" src="$portalPath/js/anotar/json2.js"></script>
 <script type="text/javascript" src="$portalPath/js/anotar/anotar-0.2.js"></script>
 <script type="text/javascript">
-    $(function(){
-        jQ = jQuery;
-        // Tags annotation
-        tagConfig = {
-            //debug: true,
-            docRoot: ".articles",
-            tagList: ".tags",
-            contentInput: "#object-tag-input",
-            uriAttr: "rel",
-            outputInChild: ".tags-here",
-            annotationType: "tag",
-            stylePrefix: "tags-",
-            displayCustom: "tag_display",
-            #if($page.authentication.is_logged_in()) 
-            creator: "$page.authentication.get_name()",
-            creatorUri: null,
-            #end
-            interfaceLabel: " <img src='$portalPath/images/icons/add.png'/>",
-            interfaceVisible: true,
-            formCustom: "object_tag_form",
-            formCancel: ".myTag-cancel",
-            formSubmit: ".myTag-submit",
-            serverAddress: "$portalPath/actions/anotar.ajax",
-            disableReply: true,
-            serverMode: "fascinator"
-        }
-        tag = anotarFactory(jQ, tagConfig);
-        
-    });
+$(function(){
+    jQ = jQuery;
+    // Tags annotation
+    tagConfig = {
+        //debug: true,
+        docRoot: ".articles",
+        tagList: ".tags",
+        contentInput: "#object-tag-input",
+        uriAttr: "rel",
+        outputInChild: ".tags-here",
+        annotationType: "tag",
+        stylePrefix: "tags-",
+        displayCustom: "tag_display",
+        #if($page.authentication.is_logged_in()) 
+        creator: "$page.authentication.get_name()",
+        creatorUri: null,
+        #end
+        interfaceLabel: " <img src='$portalPath/images/icons/add.png'/>",
+        interfaceVisible: true,
+        formCustom: "object_tag_form",
+        formCancel: ".myTag-cancel",
+        formSubmit: ".myTag-submit",
+        serverAddress: "$portalPath/actions/anotar.ajax",
+        disableReply: true,
+        serverMode: "fascinator"
+    }
+    //tag = anotarFactory(jQ, tagConfig);
+});
 </script>
 
 <script type="text/html" id="tag_display">
-	<% if (contentUri != null) { %>
-		<% if (contentUri.indexOf("http://www.geonames.org") == 0 || contentUri.indexOf("http://www.geohash.org") == 0) { %>
-			<span class='<%=style%>tag'>
-				<a href="<%=contentUri%>" target="_blank"><%=content%><% if(tagCount > 1){ %> (<%=tagCount%>)<% } %></a>
-			</span>
-		<% }%>
-	<% } else { %>
-		<span class='<%=style%>tag'><%=content%></span>
+    <% if (contentUri != null) { %>
+        <% if (contentUri.indexOf("http://www.geonames.org") == 0 || contentUri.indexOf("http://www.geohash.org") == 0) { %>
+            <span class='<%=style%>tag'>
+                <a href="<%=contentUri%>" target="_blank"><%=content%><% if(tagCount > 1){ %> (<%=tagCount%>)<% } %></a>
+            </span>
+        <% }%>
+    <% } else { %>
+        <span class='<%=style%>tag'><%=content%></span>
       ##<a href="http://www.geonames.org/search.html?q=<%=content%>"><%=content%></a>
-	<% }%>
+    <% }%>
 </script>
 
 <script type="text/html" id="object_tag_form">
@@ -386,10 +500,8 @@ $(function() {
     </div>
 </script>
 
-
 #if($is_admin)
 <script type="text/javascript">
-<!--
 $(function() {
     var dialogOpts = {
         autoOpen: false,
@@ -581,6 +693,5 @@ $(function() {
     });
 
 });
--->
 </script>
 #end

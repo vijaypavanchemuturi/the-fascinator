@@ -1,3 +1,21 @@
+#macro(createNavTree $root $class)
+<ul class="$class">
+  #foreach($key in $root.keySet())
+    #set($item = $root.get($key))
+    #set($id = $item.get("id"))
+    #set($children = $item.getJsonMap("children"))
+    #set($numChildren = $children.keySet().size())
+    #set($hidden = "false")
+    #set($hidden = $item.get("hidden"))
+    <li #if($numChildren > 0)class="open"#end id="$key" rel="$id">
+      <a class="#if($id == $oid)clicked#end #if($hidden && $hidden == 'true')item-hidden#end" href="#">$item.get("title")</a>
+      #if($numChildren > 0)
+        #createNavTree($children "children")
+      #end
+    </li>
+  #end
+</ul>
+#end
 #if($self.solrResponse.get("response/numFound") == 0)
 <h2 id="page-heading">Page not found</h2>
 <p>Please try a different <a href="$portalPath/search">search</a>.</p>
@@ -7,12 +25,14 @@
 #set($filenameNoExt = $self.getFilePathWithoutExt($oid))
 #set($title = $meta.getField("dc_title"))
 #set($description = $meta.getField("dc_description"))
+#set($mimeType = $meta.getField("dc_format"))
 #if(!$title)
   #set($title = $self.getFileName($oid))
 #end
-#set($pageTitle = "Detail | $title")
+#set($isPackage = $mimeType == "application/x-fascinator-package")
+#set($pageTitle = "Detail - $title")
 <script type="text/javascript" src="$portalPath/js/geohash/geohash.js"></script>
-<h2 id="page-heading">Detail</h2>
+<h2 id="page-heading">#if($isPackage)$title#{else}Detail#end</h2>
 <div class="grid_4">
   #if(!$self.isMetadataOnly())
   <div class="box menu">
@@ -21,13 +41,25 @@
       #if($self.canOpenFile())
       <li><a id="open-this" href="$portalPath/detail/$oid">Open file</a></li>
       #end
-      <li><a id="reharvest" href="$portalPath/detail/$oid">Reharvest...</a></li>
-      #if($self.hasHtml())
-      <li><a id="blog-this" href="#">Blog...</a><li>
+      #if($isPackage)
+      <li><a href="$portalPath/workflow/$oid">Organise this package...</a></li>
       #end
+      #if($self.hasHtml() || $isPackage)
+      <li><a id="blog-this" href="#">Blog #if($isPackage)this package#end...</a></li>
+      #end
+      <li><a id="reharvest" href="$portalPath/detail/$oid">Reharvest...</a></li>
     </ul>
   </div>
   #end
+  #if($isPackage)
+  <div class="box menu">
+    <h2>Navigation</h2>
+    ## standard menu navigation
+    ##createNavTree($self.getPackageManifest() "menu")
+    ## RVT
+    <div id="package-toc"></div>
+  </div>
+  #else
   <div id="metadata" class="box">
     <h2>Metadata</h2>
     #set($pageHeader="#parse($page.getTemplate('detail-header.vm'))")
@@ -61,9 +93,10 @@
     #end
     </ul>
   </div>
+  #end
 </div>
 <div class="grid_12">
-  #if($self.hasHtml())
+  #if($self.hasHtml() || $isPackage)
   <div class="box hidden" id="blog-form">
     <h2>Blog</h2>
     <form id="blog" method="post">
@@ -109,6 +142,7 @@
     <div id="anno-root" class="content-preview">
       <div class="first article">
         <div class="article-heading">$title</div>
+        #if(!$isPackage)
         <div id="object-tag-list">
           <div rel="$page.md5Hash($oid)_object">Tags: <span class="object-tags"></span></div>
         </div>
@@ -117,6 +151,7 @@
           <div rel="$page.md5Hash($oid)_location">Location: <span class="location-tags"></span></div>
         </div>
         <br/>
+        #end
         <div id="content">
         #if($self.mimeType.startsWith("audio/") || $self.mimeType.startsWith("video/"))
           <table>
@@ -133,10 +168,16 @@
 	          </tbody>
 	        </table>
         #else
+          #if($isPackage)
+          <div id="package-content">
+              <img class="hidden" id="content-loading" src="$portalPath/images/icons/loading.gif" />
+          </div>
+          #else
           <div class="content-preview-inline">$!self.payloadContent</div>
           <script type="text/javascript" src="$portalPath/js/tree/jquery.tree.min.js"></script>
           <script type="text/javascript" src="$portalPath/js/viewer.js"></script>
           <div class="annotatable">Comments:</div>
+          #end
         #end
         </div>
       </div>
@@ -313,7 +354,7 @@ $(function() {
         });
     #end
 
-    #if($self.hasHtml())
+    #if($self.hasHtml() || $isPackage)
     $("#blog-this, #blog-cancel").click(function() {
         $("#blog-this").toggleClass("selected");
         $("#blog-message").empty();
@@ -374,6 +415,7 @@ $(function() {
     </div>
 </script>
 
+#if(!$isPackage)
 <script type="text/javascript">
     $(function() {
     	var jQ = jQuery;
@@ -553,7 +595,7 @@ $(function() {
         }
     }
 </script>
-
+#end
 <script type="text/html" id="location_form">
   <div id="location_div">
     <table>
@@ -737,6 +779,68 @@ $(function() {
     });
 </script>
 #end
+#end
+
+#if($isPackage)
+<script type="text/javascript" src="$portalPath/js/tree/jquery.tree.min.js"></script>
+<script type="text/javascript" src="$portalPath/js/rvt.js"></script>
+<script type="text/javascript">
+$(function() {
+    /* // standard menu navigation
+    $("#package-toc li a").click(function() {
+        var item = $(this);
+        var node = item.parent("li:first");
+        var id = node.attr("rel");
+        $("#package-toc li a.selected").removeClass("selected");
+        $("#content-loading").show();
+        $("#package-content").load(
+            "$portalPath/preview?oid=" + escape(id) + " div.body > div",
+            function() {
+                item.addClass("selected");
+                $(".article-heading").html(item.text());
+                $("#content-loading").hide();
+            }
+        );
+    });
+    */
+    
+    // RVT
+    var rvt = rvtFactory(jQuery);
+    rvt.tocSelector = "#package-toc";
+    rvt.contentSelector = "#package-content";
+    rvt.contentBaseUrl = "$portalPath/preview?oid=";
+    rvt.getManifestJson("$portalPath/workflows/organiser.ajax?func=get-rvt-manifest&oid=$oid");
+    rvt.displayTOC = function(nodes) {
+        function fixIds(nodes) {
+            jQuery.each(nodes, function(count, node) {
+                node.attributes.rel = "#" + node.attributes.id;
+                if (node.children) {
+                    fixIds(node.children);
+                }
+            });
+        }
+        fixIds(nodes);
+        var opts = {
+            data: {
+                type: "json",
+                opts: { static: nodes }
+            },
+            ui: { dots: false },
+            types: {
+                "default": { draggable: false }
+            },
+            callback: {
+                onselect: function(node, tree) {
+                    window.location.hash = $(node).attr("rel");
+                    $(".article-heading").text($(node).children("a").text());
+                    return false;
+                }
+            }
+        }
+        $(rvt.tocSelector).tree(opts);
+    }
+});
+</script>
 #end
 
 #set ($_=$self.closeObject())
