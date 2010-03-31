@@ -204,10 +204,10 @@ ul.nav li.label {
 }
 
 #toc li a {
-    font-size: 1.1em;
+    font-size: 1.25em;
     font-weight: normal;
-    margin-top: 2px;
-    margin-bottom: 2px;
+    margin-bottom: 5px;
+    margin-top: 0;
 }
 
 #toc li a.clicked {
@@ -236,10 +236,6 @@ input.checkbox {
     overflow: auto;
     text-wrap: normal;
     word-wrap: break-word;
-}
-
-.tree a.item-hidden {
-    font-style: italic;
 }
 
 #content h2 {
@@ -473,4 +469,23 @@ ul.nobgtabs li a.ui-state-active {
 
 img.workflow {
     vertical-align: text-bottom;
+}
+
+.package-select {
+    vertical-align: top;
+}
+
+.menu .article {
+    padding: 5px 10px 5px 10px;
+}
+
+#package-toc a {
+    font-weight: normal;
+}
+
+#package-toc a.clicked {
+    background: none;
+    border: none;
+    color: black;
+    font-weight: bold;
 }

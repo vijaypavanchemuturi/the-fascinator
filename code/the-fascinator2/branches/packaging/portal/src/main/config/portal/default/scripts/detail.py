@@ -71,6 +71,17 @@ class DetailData:
             self.__metadata = JsonConfigHelper()
             print " * detail.py: URI='%s' OID='%s' PID='%s' MIME='%s'" % (uri, self.__oid, self.__pid, self.__mimeType)
             self.__search()
+            
+            # get the package manifest
+            self.__manifest = JsonConfigHelper()
+            if self.__metadata.getField("dc_format") == "application/x-fascinator-tfpackage":
+                try:
+                    sourceId = self.__object.getSourceId()
+                    payload = self.__object.getPayload(sourceId)
+                    self.__manifest = JsonConfigHelper(payload.open())
+                    payload.close()
+                except StorageException, e:
+                    pass
 
     def __openFile(self):
         file = formData.get("file")
@@ -138,6 +149,9 @@ class DetailData:
 
     def getObject(self):
         return self.__object
+
+    def getPackageManifest(self):
+        return self.__manifest.getJsonMap("manifest")
 
     def getPayloadContent(self):
         mimeType = self.__mimeType
