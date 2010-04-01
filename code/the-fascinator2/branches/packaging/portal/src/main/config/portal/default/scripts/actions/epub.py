@@ -1,7 +1,10 @@
 from au.edu.usq.fascinator.api.storage import Payload
-from java.lang import String, Boolean, System
-from java.io import ByteArrayInputStream, File, FileInputStream, FileOutputStream, ByteArrayOutputStream, OutputStream
+from au.edu.usq.fascinator.common import JsonConfigHelper
+
+from java.io import ByteArrayOutputStream
+from java.lang import Exception, String
 from java.util.zip import ZipOutputStream, ZipEntry
+
 from org.apache.commons.io import IOUtils
 
 from org.dom4j import DocumentHelper, QName
@@ -9,44 +12,52 @@ from org.dom4j.io import XMLWriter, OutputFormat, SAXReader
 
 from xml.etree import ElementTree as ElementTree
 
-import traceback, os, hashlib
+import traceback, os, hashlib, urllib
 
 class Epub:
     def __init__(self):
-        print "--- Creating ePub for: %s ---" % portalId
-        self.__portal = Services.getPortalManager().get(portalId)
-        self.__portalManifest = self.__portal.getJsonMap("manifest")
-        
-        self.__epubMimetypeStream = None
-        self.__epubContainerStream = None
-        self.__epubcss = None
-        self.__orderedItem = []
-        self.__itemRefDict = {}
-        
-        if self.__portalManifest:
-            try:
-                self.__getEpubMimeTypeFiles()
-                self.__getDigitalItems(self.__portalManifest)
-                self.__createEpub()
-            except:
-                traceback.print_exc()
-        
+        oid = formData.get("oid")
+        print "--- Creating ePub for: %s ---" % oid
+        try:
+            self.__epubMimetypeStream = None
+            self.__epubContainerStream = None
+            self.__epubcss = None
+            self.__orderedItem = []
+            self.__itemRefDict = {}
+            # get the package manifest
+            object = Services.getStorage().getObject(oid)
+            sourceId = object.getSourceId()
+            payload = object.getPayload(sourceId)
+            self.__manifest = JsonConfigHelper(payload.open())
+            payload.close()
+            object.close()
+            # create the epub
+            self.__getDigitalItems(self.__manifest.getJsonMap("manifest"))
+            self.__createEpub()
+        except Exception, e:
+            log.error("Failed to create epub", e)
+    
     def __createEpub(self):
-        response.setHeader("Content-Disposition", "attachment; filename=%s.epub" % self.__portal.getName())
-        out = response.getOutputStream("application/zip")
+        title = self.__manifest.get("title")
+        
+        response.setHeader("Content-Disposition", "attachment; filename=%s.epub" %  urllib.quote(title))
+        out = response.getOutputStream("application/epub+zip")
         zipOutputStream = ZipOutputStream(out)
         
         #save mimetype... and the rest of standard files in epub
         zipOutputStream.putNextEntry(ZipEntry("mimetype"))
-        IOUtils.copy(self.__epubMimetypeStream, zipOutputStream)
+        epubMimetypeStream = self.__getResourceAsStream("/epub/mimetype")
+        IOUtils.copy(epubMimetypeStream, zipOutputStream)
         zipOutputStream.closeEntry()
         
         zipOutputStream.putNextEntry(ZipEntry("META-INF/container.xml"))
-        IOUtils.copy(self.__epubContainerStream, zipOutputStream)
+        epubContainerStream = self.__getResourceAsStream("/epub/container.xml")
+        IOUtils.copy(epubContainerStream, zipOutputStream)
         zipOutputStream.closeEntry()
 
         zipOutputStream.putNextEntry(ZipEntry("OEBPS/epub.css"))
-        IOUtils.copy(self.__epubcss, zipOutputStream)
+        epubcss = self.__getResourceAsStream("/epub/epub.css")
+        IOUtils.copy(epubcss, zipOutputStream)
         zipOutputStream.closeEntry()
         
         #### Creating toc.ncx ####
@@ -63,7 +74,7 @@ class Epub:
         #docTitle
         docTitle = ElementTree.Element("docTitle")
         textNode = ElementTree.Element("text")
-        textNode.text = self.__getPortal().name
+        textNode.text = title
         docTitle.append(textNode)
         tocXml.append(docTitle)
         
@@ -88,7 +99,7 @@ class Epub:
         
         #metadata information
         metadata = ElementTree.Element("dc:title")
-        metadata.text = self.__getPortal().name
+        metadata.text = title
         metadataNode.append(metadata)
         
         metadata = ElementTree.Element("dc:language")
@@ -104,7 +115,7 @@ class Epub:
         metadataNode.append(metadata)
         
         metadata = ElementTree.Element("dc:identifier", {"id":"BookId"})
-        metadata.text = self.__getPortal().name
+        metadata.text = title
         metadataNode.append(metadata)
         
         #manifest
@@ -130,9 +141,10 @@ class Epub:
                     if payloadType == "application/xhtml+xml":
                         zipOutputStream.putNextEntry(ZipEntry("OEBPS/%s" % payloadId.replace(" ", "_")))
                         ##process the html....
-                        saxReader = SAXReader(Boolean.parseBoolean("false"))
+                        saxReader = SAXReader(False)
                         try:
-                            saxDoc = saxReader.read(payload.getInputStream())
+                            saxDoc = saxReader.read(payload.open())
+                            payload.close()
 #                            ## remove class or style nodes
 #                            classOrStyleNodes = saxDoc.selectNodes("//@class | //@style ")
 #                            for classOrStyleNode in classOrStyleNodes:
@@ -183,14 +195,15 @@ class Epub:
                                             <link rel="stylesheet" href="epub.css"/>
                                             </head><body>%s</body></html>"""
                             htmlString = htmlString % (title, contentStr)
-                            IOUtils.copy(ByteArrayInputStream(String(htmlString).getBytes("UTF-8")), zipOutputStream)
+                            self.__copyString(htmlString, zipOutputStream)
                             includeFile = False
                         except:
                             traceback.print_exc()
                     else:
                         #images....
                         zipOutputStream.putNextEntry(ZipEntry("OEBPS/%s" % payloadId))
-                        IOUtils.copy(payload.getInputStream(), zipOutputStream)
+                        IOUtils.copy(payload.open(), zipOutputStream)
+                        payload.close()
                         zipOutputStream.closeEntry()
                 else:
                     zipOutputStream.putNextEntry(ZipEntry("OEBPS/%s" % payloadId.replace(" ", "_")))
@@ -227,17 +240,16 @@ class Epub:
                 
         #saving content.opf...
         zipOutputStream.putNextEntry(ZipEntry("OEBPS/content.opf"))
-        IOUtils.copy(ByteArrayInputStream(String(ElementTree.tostring(contentXml)).getBytes("UTF-8")), zipOutputStream)
+        self.__copyString(ElementTree.tostring(contentXml), zipOutputStream)
         zipOutputStream.closeEntry()
         
         #saving toc.ncx
         zipOutputStream.putNextEntry(ZipEntry("OEBPS/toc.ncx"))
-        IOUtils.copy(ByteArrayInputStream(String(ElementTree.tostring(tocXml)).getBytes("UTF-8")), zipOutputStream)
+        self.__copyString(ElementTree.tostring(tocXml), zipOutputStream)
         zipOutputStream.closeEntry()
         
         zipOutputStream.close()
-        
-        
+    
     def __getDigitalItems(self, manifest):
         for itemHash in manifest.keySet():
             payloadDict = {}
@@ -251,17 +263,18 @@ class Epub:
             nodeHtm = "%s.htm" % itemHash #.replace("-", "_")
             
             isImage=False
-            sourcePayload = Services.storage.getPayload(id, pid)
+            object = Services.storage.getObject(id)
+            sourcePayload = object.getPayload(object.getSourceId())
             if sourcePayload and hidden != 'true':
                 payloadType = sourcePayload.contentType
-                htmlPayload = Services.storage.getPayload(id, htmlFileName)
+                htmlPayload = object.getPayload(htmlFileName)
                 process = True
                 if htmlPayload:
                     #gather all the related payload
                     payloadDict[nodeHtm] = htmlPayload, "application/xhtml+xml"
-                    payloadList = Services.storage.getObject(id).getPayloadList()
-                    for payload in payloadList:
-                        payloadid = payload.id
+                    payloadList = object.getPayloadIdList()
+                    for payloadid in payloadList:
+                        payload = object.getPayload(payloadid)
                         if payloadid.find("_files") > -1:
                             if payload.contentType.startswith("image"):
                                 #hash the name here....
@@ -279,17 +292,17 @@ class Epub:
                         ext = os.path.splitext(id)[1]
                         filename = id[id.rfind("/")+1:-len(ext)] #+ ".thumb.jpg"
                         hashedFileName = hashlib.md5(filename).hexdigest()
-                        thumbNailPayload = Services.storage.getPayload(id, "%s.thumb.jpg" % filename)
+                        thumbNailPayload = object.getPayload("%s_thumbnail.jpg" % filename)
                         htmlString = """<html xmlns="http://www.w3.org/1999/xhtml"><head><title>%s</title>
                                         <link rel="stylesheet" href="epub.css"/>
                                         </head><body><div><span style="display: block"><img src="%s" alt="%s"/></span></div></body></html>"""
                         if thumbNailPayload:
-                            htmlString = htmlString % (pid, "node-%s.thumb.jpg" % hashedFileName, pid)
-                            payloadDict["node-%s.thumb.jpg" % hashedFileName] = thumbNailPayload, "image/jpeg"
+                            htmlString = htmlString % (pid, "node-%s_thumbnail.jpg" % hashedFileName, pid)
+                            payloadDict["node-%s_thumbnail.jpg" % hashedFileName] = thumbNailPayload, "image/jpeg"
                         else:
                             htmlString = htmlString % (pid, pid.lower().replace(" ", "_"), pid)
                             payloadDict[pid] = sourcePayload, payloadType
-                        payloadDict[nodeHtm] = ByteArrayInputStream(String(htmlString).getBytes("UTF-8")), "application/xhtml+xml"
+                        payloadDict[nodeHtm] = IOUtils.toInputStream(htmlString, "UTF-8"), "application/xhtml+xml"
                 else:
                     process = False
             
@@ -298,21 +311,13 @@ class Epub:
                     self.__orderedItem.append(itemHash)
                     if children:
                         self.__getDigitalItems(children)
-        
-    def __getPortal(self):
-        return Services.portalManager.get(portalId)
+            
+            object.close()
     
-    def __getEpubMimeTypeFiles(self):
-        try:
-            mimeTypeFile = File(self.__getPortal().getClass().getResource("/epub/mimetype").toURI())
-            self.__epubMimetypeStream = FileInputStream(mimeTypeFile)
-            
-            containerFile = File(self.__getPortal().getClass().getResource("/epub/container.xml").toURI())
-            self.__epubContainerStream = FileInputStream(containerFile)
-            
-            cssFile = File(self.__getPortal().getClass().getResource("/epub/epub.css").toURI())
-            self.__epubcss = FileInputStream(cssFile)
-        except:
-            print "Mimetype file/container.xml file for epub are not found or in wrong format"
-        
+    def __getResourceAsStream(self, name):
+        return Services.getClass().getResourceAsStream(name)
+    
+    def __copyString(self, s, out):
+        IOUtils.copy(IOUtils.toInputStream(String(s), "UTF-8"), out)
+    
 scriptObject = Epub()
