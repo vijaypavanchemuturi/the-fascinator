@@ -9,7 +9,7 @@ from au.edu.usq.fascinator.portal import Pagination, Portal
 
 from java.io import ByteArrayInputStream, ByteArrayOutputStream
 from java.net import URLDecoder, URLEncoder
-from java.util import LinkedHashMap
+from java.util import ArrayList, LinkedHashMap
 from java.lang import Exception
 
 class SearchData:
@@ -102,6 +102,7 @@ class SearchData:
             self.__paging = Pagination(self.__pageNum,
                                        int(self.__result.get("response/numFound")),
                                        self.__portal.recordsPerPage)
+            sessionState.set("totalPages", self.__paging.getPages().size())
 
     def canManage(self, wfSecurity):
         user_roles = page.authentication.get_roles_list()
@@ -177,6 +178,23 @@ class SearchData:
                 return None
         except Exception, e:
             return None
+    
+    def getSelectedItems(self):
+        selected = ArrayList()
+        items = sessionState.get("package/selected/%s" % self.__pageNum)
+        if items:
+            for item in items:
+                selected.addAll(item.keys())
+        return selected
+    
+    def getSelectedItemsCount(self):
+        count = 0
+        for key in self.__getSelectedItemsKeys():
+            count += len(sessionState.get(key))
+        return count
+    
+    def __getSelectedItemsKeys(self):
+        return [k for k in sessionState.keySet() if k.startswith("package/selected/")]
 
 if __name__ == "__main__":
     scriptObject = SearchData()

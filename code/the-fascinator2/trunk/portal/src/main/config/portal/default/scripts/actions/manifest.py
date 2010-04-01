@@ -1,48 +1,52 @@
-from au.edu.usq.fascinator.portal import Portal
+from au.edu.usq.fascinator.common import JsonConfigHelper
+
+from java.io import ByteArrayInputStream
+from java.lang import String
 
 class ManifestActions:
     def __init__(self):
-        print " * manifest.py: formData=%s" % formData
+        print "formData=%s" % formData
+        
         result = "{}"
         func = formData.get("func")
-        id = formData.get("id")
+        oid = formData.get("oid")
         nodeId = formData.get("nodeId")
         nodePath = self.__getNodePath(formData.get("parents"), nodeId)
         originalPath = "manifest//%s" % nodeId
-        print "nodePath: %s" % nodePath
-        portalManager = Services.getPortalManager()
-        portal = portalManager.get(id)
+        
+        self.__object = Services.getStorage().getObject(oid)
+        sourceId = self.__object.getSourceId()
+        payload = self.__object.getPayload(sourceId)
+        self.__manifest = JsonConfigHelper(payload.open())
+        payload.close()
+        
         if func == "rename":
             title = formData.get("title")
-            portal.set("%s/title" % nodePath, title)
-            portalManager.save(portal)
+            self.__manifest.set("%s/title" % nodePath, title)
+            self.__saveManifest()
         elif func == "move":
             refNodeId = formData.get("refNodeId")
             refNodePath = self.__getNodePath(formData.get("refParents"),
                                              formData.get("refNodeId"));
-            print "refNodePath: %s" % refNodePath
             moveType = formData.get("type")
             if moveType == "before":
-                portal.moveBefore(originalPath, refNodePath)
+                self.__manifest.moveBefore(originalPath, refNodePath)
             elif moveType == "after":
-                portal.moveAfter(originalPath, refNodePath)
+                self.__manifest.moveAfter(originalPath, refNodePath)
             elif moveType == "inside":
-                print "originalPath: %s" % originalPath
-                portal.move(originalPath, nodePath)
-            portalManager.save(portal)
-        elif func == "set-hidden":
-            portal.set("%s/hidden" % originalPath, formData.get("hidden"))
-            portalManager.save(portal)
-        elif func == "set-blog":
-            portal.set("%s/blog" % originalPath, formData.get("blog"))
-            portalManager.save(portal)
-        elif func == "update-all":
+                self.__manifest.move(originalPath, nodePath)
+            self.__saveManifest()
+        elif func == "update":
+            print nodePath
             title = formData.get("title")
-            portal.set("%s/title" % nodePath, title)
-            portal.set("%s/hidden" % originalPath, formData.get("hidden"))
-            portal.set("%s/blog" % originalPath, formData.get("blog"))
-            portalManager.save(portal)
-            
+            hidden = formData.get("hidden")
+            print "hidden =", hidden
+            self.__manifest.set("%s/title" % nodePath, title)
+            self.__manifest.set("%s/hidden" % nodePath, str(hidden))
+            self.__saveManifest()
+            result = '{ title: "%s", hidden: "%s" }' % (title, hidden)
+        
+        self.__object.close()
         writer = response.getPrintWriter("text/plain")
         writer.println(result)
         writer.close()
@@ -59,5 +63,10 @@ class ManifestActions:
                     nodePath += "/children/%s" % parent
             nodePath += "/children/%s" % nodeId
         return nodePath
+    
+    def __saveManifest(self):
+        manifestStr = String(self.__manifest.toString())
+        self.__object.updatePayload(self.__object.getSourceId(),
+                                    ByteArrayInputStream(manifestStr.getBytes("UTF-8")))
 
 scriptObject = ManifestActions()

@@ -1,8 +1,8 @@
 #if($noLayout)$!pageContent#else
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml">
+<!DOCTYPE html>
+<html>
   <head>
-    <title>The Fascinator#if($pageTitle) | $!pageTitle#end</title>
+    <title>$page.portalName#if($pageTitle) - $!pageTitle#end - The Fascinator</title>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <link rel="icon" type="image/vnd.microsoft.com" href="$portalPath/favicon.ico" />
     <link rel="stylesheet" type="text/css" href="$portalPath/css/fluid960gs/screen.css" media="screen" />
@@ -80,13 +80,6 @@
             #end
             </ul>
           </li>
-          <li>
-            <a href="#">Organise</a>
-            <ul>
-              <li><a href="$portalPath/organise/single">Single view</a></li>
-              <li><a href="$portalPath/organise/combined">Combined view</a></li>
-            </ul>
-          </li>
           <li><a href="$portalPath/settings">Settings</a></li>
           #if ($page.authentication.is_admin())
           <li id="admin-link"><a href="$portalPath/admin">Admin</a></li>
@@ -99,7 +92,7 @@
             <a class="search" href="#"><img src="$portalPath/images/icons/magnifier.png" /></a>
           </li>
           <li class="secondary">
-            <form action="$portalPath/search" class="search" method="post">
+            <form action="$portalPath/search" class="search" method="get">
               <input class="text" type="text" id="query" name="query" size="25" value="$!sessionState.get('query')" />
             </form>
           </li>
@@ -108,7 +101,7 @@
           </li>
           <li class="secondary">
             #if($page.authentication.is_logged_in())
-            <span id="user-info" class="status">Welcome $page.authentication.get_name(), <a href="?verb=logout">logout</a></span>
+            <span id="user-info" class="status">Welcome $page.authentication.get_name(), <a href="#" id="logout-now">Logout</a></span>
             #else
             <span id="user-info" class="status"><a id="login-now" href="#">Login</a></span>
             #end
@@ -138,7 +131,21 @@
             </fieldset>
           </form>
         </div>
-        $!pageContent
+        #if($pageContent)
+          $pageContent
+        #else
+        <div class="grid_16">
+          <div id="config-notices" class="box articles notice">
+            <h2>Template error</h2>
+            <div class="warning">
+              <b>ERROR</b>
+              There was an error rendering the page. See details below.
+              <hr />
+              <pre>$renderMessages</pre>
+            </div>
+          </div>
+        </div>
+        #end
       </div>
       <div class="clear"></div>
       #end
@@ -176,6 +183,14 @@
         $("#login-form").dialog('open');
         return false;
     });
+    $("#logout-now").click(function() {
+        jQuery.post("$portalPath/authentication.ajax",
+            { verb: "logout" },
+            function(data, status) {
+                window.location.reload();
+            });
+        return false;
+    });
     $("#login-cancel").click(function() {
         $("#login-message").empty();
         $("#login-error").hide();
@@ -190,15 +205,7 @@
             url : "$portalPath/actions/login.ajax",
             success:
                 function(data, status) {
-                    $("#login-loading").hide();
-                    var response = data.split(":");
-                    username = jQuery.trim(response[0]);
-                    is_admin = jQuery.trim(response[1]);
-                    $("#user-info").html("Welcome " + username + ", <a href='?verb=logout'>logout</a>");
-                    if (is_admin == "admin") {
-                        $("#admin-link").show();
-                    }
-                    $("#login-form").dialog('close');
+                    window.location.reload();
                 },
             error:
                 function (req, status, e) {
