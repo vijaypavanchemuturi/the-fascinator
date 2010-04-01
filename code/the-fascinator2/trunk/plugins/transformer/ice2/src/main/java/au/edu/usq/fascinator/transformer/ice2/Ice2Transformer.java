@@ -26,6 +26,7 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.apache.commons.lang.StringUtils;
+import org.dom4j.DocumentException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,7 +41,10 @@ import au.edu.usq.fascinator.common.BasicHttpClient;
 import au.edu.usq.fascinator.common.JsonConfig;
 import au.edu.usq.fascinator.common.JsonConfigHelper;
 import au.edu.usq.fascinator.common.MimeTypeUtil;
+import au.edu.usq.fascinator.common.sax.SafeSAXReader;
 import au.edu.usq.fascinator.common.storage.StorageUtils;
+import org.dom4j.Document;
+import org.dom4j.Node;
 
 /**
  * Transformer Class will send a file to ice-service to get the renditions of
@@ -87,6 +91,9 @@ public class Ice2Transformer implements Transformer {
     /** ICE service url **/
     private String convertUrl;
 
+    /** For html parsing **/
+    private SafeSAXReader reader;
+
     /** Default zip mime type **/
     private static final String ZIP_MIME_TYPE = "application/zip";
 
@@ -98,7 +105,7 @@ public class Ice2Transformer implements Transformer {
      * ICE transformer constructor
      */
     public Ice2Transformer() {
-
+        reader = new SafeSAXReader();
     }
 
     /**
@@ -229,6 +236,32 @@ public class Ice2Transformer implements Transformer {
                     String mimeType = MimeTypeUtil.getMimeType(name);
                     //log.debug("(ZIP) Name : '" + name + "', MimeType : '" + mimeType + "'");
                     InputStream in = zipFile.getInputStream(entry);
+
+                    // If this is a HTML document we need to strip it down
+                    //   to the 'body' tag and replace with a 'div'
+                    if (mimeType.equals(HTML_MIME_TYPE)) {
+                        try {
+                            log.debug("Stripping unnecessary HTML");
+                            // Parse the document
+                            Document doc = reader.loadDocumentFromStream(in);
+                            // Alter the body node
+                            Node node = doc.selectSingleNode("//*[local-name()='body']");
+                            node.setName("div");
+                            // Write out the new 'document'
+                            ByteArrayOutputStream out =
+                                    new ByteArrayOutputStream();
+                            reader.docToStream(node, out);
+                            // Prep our inputstream again
+                            in = new ByteArrayInputStream(out.toByteArray());
+                        } catch (DocumentException ex) {
+                            createErrorPayload(object, name, ex.getMessage());
+                            continue;
+                        } catch (Exception ex) {
+                            log.error("Error : ", ex);
+                            continue;
+                        }
+                    }
+
                     Payload icePayload = StorageUtils.createOrUpdatePayload(
                             object, name, in);
                     icePayload.setLabel(name);

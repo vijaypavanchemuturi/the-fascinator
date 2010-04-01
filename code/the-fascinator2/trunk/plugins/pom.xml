@@ -17,6 +17,7 @@
     <module>authentication/internal</module>
     <module>authentication/filesystem</module>
     <module>harvester/filesystem</module>
+    <module>harvester/ice2</module>
     <module>harvester/oai-pmh</module>
     <module>harvester/workflow</module>
     <module>indexer/solr</module>

@@ -187,16 +187,22 @@ public class HarvestQueueConsumer implements MessageListener {
                 log.info("Removing object {}...", oid);
                 indexer.remove(oid);
             } else {
+                // Exctraction
                 if (source != null) {
                     log.info("Adding new object {} from {}...", oid, source);
                     File rulesFile = new File(config.get("configDir"), config
                             .get("indexer/script/rules"));
                     processObject(rulesFile, text, oid, path);
                 }
-                sendNotification(oid, "indexStart", "Indexing '" + oid + "' started");
-                log.info("Indexing object {}...", oid);
-                indexer.index(oid);
-                sendNotification(oid, "indexComplete", "Index of '" + oid + "' completed");
+                // Indexing
+                boolean doIndex = Boolean.parseBoolean(
+                        config.get("transformer/indexOnHarvest", "true"));
+                if (doIndex) {
+                    sendNotification(oid, "indexStart", "Indexing '" + oid + "' started");
+                    log.info("Indexing object {}...", oid);
+                    indexer.index(oid);
+                    sendNotification(oid, "indexComplete", "Index of '" + oid + "' completed");
+                }
                 log.info("Queuing render job...");
                 queueRenderJob(oid, text);
             }
