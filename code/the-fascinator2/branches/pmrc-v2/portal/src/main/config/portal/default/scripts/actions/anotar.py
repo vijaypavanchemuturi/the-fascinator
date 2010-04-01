@@ -57,10 +57,14 @@ class AnotarData:
                             imageAno.set("id", imageTag.get("id"))
                             #tagCount = imageTag.get("tagCount")
                             imageAno.set("text", imageTag.get("content/literal"))
+                            imageAno.set("contentUri", imageTag.get("contentUri"))
                             #imageAno.set("editable", Boolean(False).toString());
                             imageTagList.append(imageAno.toString())
                 result = "[" + ",".join(imageTagList) + "]"
         elif self.action == "save-image":
+            contentUri = ""
+            if formData.get("contentUri"):
+                contentUri = formData.get("contentUri")
             jsonTemplate = """
 {
   "clientVersion" : {
@@ -101,6 +105,7 @@ class AnotarData:
     "formData" : {
     }
   },
+  "contentUri": "%s",
   "isPrivate" : false,
   "lang" : "en"
 }
@@ -108,7 +113,7 @@ class AnotarData:
             mediaDimension = "xywh=%s,%s,%s,%s" % (formData.get("left"), formData.get("top"), formData.get("width"), formData.get("height"))
             locatorValue = "%s#%s" % (self.rootUri, mediaDimension)
             dateCreated = time.strftime("%Y-%m-%dT%H:%M:%SZ")
-            self.json = jsonTemplate % (self.rootUri, self.rootUri, locatorValue, dateCreated, formData.get("text"))
+            self.json = jsonTemplate % (self.rootUri, self.rootUri, locatorValue, dateCreated, formData.get("text"), contentUri)
             result = self.put()
         writer = response.getPrintWriter("text/plain")
         writer.println(result)
@@ -173,18 +178,39 @@ class AnotarData:
             doc = JsonConfigHelper(doc.get("jsonString"))
             tag = doc.get("content/literal")
             locs = doc.getJsonList("annotates/locators").size()
-            #if locs == 0:
-            if tag in tagsDict:
-                d = tagsDict[tag]
-                d.set("tagCount", str(int(d.get("tagCount")) + 1))
+            
+            #need to check if locator.type or contentUri is the same type
+            locators = doc.getJsonList("annotates/locators")
+            locatorType = locators[0].get("type")
+            contentUri = doc.get("contentUri")
+            tagType = "normalTag"
+            if contentUri and locatorType.find("WD-media-frags") > -1:
+                #this is for image-people tagging
+                tagType = "imagePeopleTag"
+            elif contentUri:
+                #this is for location and normal people tagging
+                if contentUri.find("geonames") > -1 or contentUri.find("geohash") > -1:
+                    tagType = "locatorTag"
+                if contentUri.find("vietnamroll") > -1:
+                    tagType = "peopleTag"
+            elif locatorType.find("WD-media-frags") > -1:
+                    #this is for normal image tagging
+                    tagType = "imageTag"
+            
+            #only when if contentLiteral_tagType is the same then count
+            key = "%s_%s" % (tag, tagType)
+            if key in tagsDict:
+                d, dTagType = tagsDict[key]
+                if dTagType == tagType:
+                    d.set("tagCount", str(int(d.get("tagCount")) + 1))
+                else:
+                    d.set("tagCount", str(1))
             else:
                 doc.set("tagCount", str(1))
-                tagsDict[tag] = doc
-            #else:
-            #    tags.append(doc.toString())
+                tagsDict[key] = doc, tagType
 
         for tag in tagsDict:
-            tags.append(tagsDict[tag].toString())
+            tags.append(tagsDict[tag][0].toString())
 
         return "[" + ",".join(tags) + "]"
 
@@ -225,7 +251,7 @@ class AnotarData:
         Services.indexer.annotateSearch(req, out)
         result = JsonConfigHelper(ByteArrayInputStream(out.toByteArray()))
         result = result.getJsonList("response/docs")
-
+        
         # Every annotation for this URI
         if self.type == "http://www.purl.org/anotar/ns/type/0.1#Tag":
             return self.process_tags(result)

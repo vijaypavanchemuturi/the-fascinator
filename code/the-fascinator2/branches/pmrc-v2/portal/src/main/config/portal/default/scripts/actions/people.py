@@ -18,6 +18,7 @@ class PeopleNames:
         responseType = "text/html"
         responseMsg = ""
         func = formData.get("func")
+        
         if func == "searchName":
             firstName = formData.get("firstName")
             surname = formData.get("surname")

@@ -6,9 +6,9 @@
     display: block;
     float: left;
     font-family: Verdana, Sans-Serif;
-    font-size: 0.9em;    
+    font-size: 0.9em;
     height: 18px;
-    line-height: 18px;    
+    line-height: 18px;
     padding: 2px 0 2px 24px;
     margin: 5px 0;
     width: 64px;
@@ -67,10 +67,10 @@
 #image-annotate-edit-form {
     background: #FFFEE3 none repeat scroll 0 0;
     border: 1px solid #000000;
-    height: 78px;
+    //height: 78px;
     padding: 7px;
     position: absolute;
-    width: 250px;
+    //width: 250px;
 }
 #image-annotate-edit-form form {
     clear: right;
@@ -99,7 +99,7 @@
 #image-annotate-edit-form .form-button, #image-annotate-edit-form .form-submit {
     margin: 0;
 }
-#image-annotate-edit-form a {
+#image-annotate-edit-form .image-annotate-edit-ok, #image-annotate-edit-form .image-annotate-edit-close {
     background-color: #fff;
     background-repeat: no-repeat;
     background-position: 3px 3px;
@@ -210,4 +210,8 @@
     height: 9px;
     right: -5px;
     top: -5px;
+}
+
+blockquote {
+    font-size: 1em;
 }

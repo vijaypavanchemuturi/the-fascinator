@@ -145,6 +145,7 @@ p {
 
 .float-right {
     float: right;
+    padding: 0px 0px;
 }
 
 .anno-inline-annotation {
