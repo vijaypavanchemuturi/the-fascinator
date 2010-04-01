@@ -117,129 +117,58 @@
 </table>
 <div class="clear"><!--clear--></div>
 #if($self.mimeType.startsWith("audio/") || $self.mimeType.startsWith("video/"))
+### Displaying audio/video media with flowplayer and providing video/audio annotation
 <script type="text/javascript" src="$portalPath/flowplayer/flowplayer-3.1.4.min.js"></script>
 <script type="text/javascript" src="$portalPath/flowplayer/flowplayer.controls-3.0.2.js"></script>
 <script type="text/javascript" src="$portalPath/js/anotar/video.annotate.js"></script>
-#end
-#if($self.mimeType.startsWith("image/"))
-<script type="text/javascript" src="$portalPath/js/anotar/image.annotate.js"></script>
 <script language="javascript">
-    $(window).load(function() {
-        $("#toAnnotate").annotateImage({
-            editable: true,
-            saveUrl: "$portalPath/actions/anotar.ajax?action=save-image&rootUri=$oid",
-            getUrl: "$portalPath/actions/anotar.ajax?action=get-image&rootUri=$oid"
-        });
-    });
-</script>
-#end
-<script type="text/javascript" src="$portalPath/js/tree/jquery.tree.min.js"></script>
-<script type="text/javascript" src="$portalPath/js/autocomplete/lib/jquery.ajaxQueue.js"></script>
-<script type="text/javascript" src="$portalPath/js/autocomplete/lib/jquery.bgiframe.js"></script>
-<script type="text/javascript" src="$portalPath/js/autocomplete/jquery.autocomplete.pack.js"></script>
-<!--<script type="text/javascript" src="$portalPath/js/autocomplete/jquery.autocomplete.js"></script>-->
-<script type="text/javascript">
-var display_help = false;
-function toggleHelp(help_link) {
-    if (!display_help) {
-        $(".help_p").css("display", "block");
-        help_link.text("Hide help");
-        display_help = true;
-    } else {
-        $(".help_p").css("display", "none");
-        help_link.html("Show help");
-        display_help = false;
-    }
-}
-
-$(function() {
+    #if($self.solrResponse.get("response/numFound") != 0)
     var oid = "$oid";
-    var filenameNoExt = "$filenameNoExt";
-    function fixLinks(baseUrl, selector, attrName) {
-        $(selector).each(function() {
-            var attr = $(this).attr(attrName);
-            if (attr != null) {
-                if (attr.indexOf("#") != 0 && attr.indexOf("://") == -1) {
-                    var relUrl = "$portalPath/download/$self.object.id/";
-                    var tmpUrl = baseUrl.substring(baseUrl.indexOf("/", 8));
-                    tmpUrl = tmpUrl.replace(relUrl, "");
-                    tmpUrl = tmpUrl.substring(0, tmpUrl.lastIndexOf("/")+1);
-                    $(this).attr(attrName, escape(relUrl + tmpUrl + attr));
-                }
-            }
-        });
-    }
-    gFixLinks = fixLinks;
-    fixLinks("", "div.content-preview-inline a", "href");
-    fixLinks("", "div.content-preview-inline img", "src");
-
-    $("#open-this").click(function() {
-        jQuery.post("$portalPath/open.ajax", { func: "open-file", file: "$oid" } );
-        return false;
-    });
-
-    $("#reharvest").click(function() {
-        jQuery.post("$portalPath/reharvest.ajax", { func: "reharvest", file: "$oid" } );
-        return false;
-    });
-
-    function addRendition(href, label) {
-        $("#actions").append('<li><a href="' + href + '" target="blank">' + label + '</a></li>');
-    }
-    $('li.payload[rel="application/pdf"] a:first').each(function() {
-        addRendition($(this).attr("href"), "PDF version");
-    });
-    $("span.slide-link > a").each(function() {
-        addRendition($(this).attr("href"), "View slide show");
-    });
-    $("div.rendition-links").remove();
-
     var player;
-    var mimeType = "$self.mimeType";
-    //<a class="image" href="' + src + '" ">
-    if (mimeType.indexOf("image/") == 0) {
-        var src = "$hasPreview";
-        if (src == "")
-            src = "$portalPath/download/$oid";
-        else
-            src = "$portalPath/download/$self.encode($oid)/" + src
-        $("div.content-preview div.article").html(
-            '<div id="$oid" class="annotatable"><div class="image">' +
-                '<img class="image" id="toAnnotate" src="' + src + '" style="max-width: 900px;" />' +
-            '</div><div class="clear"></div></div>');
-    } else if (mimeType.indexOf("audio/") == 0 || mimeType.indexOf("video/") == 0) {
-        var height = 300;
-        if (mimeType.indexOf("audio/") == 0) {
-            height = 24;
-        }
+    var height = 300;
+    if ($self.mimeType.indexOf("audio/") == 0) {
+        height = 24;
+    }
 
-        var style = "display: block; width: 425px; height: " + height + "px";
-        //var style = "display: block; width: 500px; height: 300px";
-        var filename = oid.substring(oid.lastIndexOf("/") + 1);
-        var ext = filename.substring(filename.lastIndexOf(".") + 1).toLowerCase();
+    var style = "display: block; width: 425px; height: " + height + "px";
+    //var style = "display: block; width: 500px; height: 300px";
+    var filename = oid.substring(oid.lastIndexOf("/") + 1);
+    var ext = filename.substring(filename.lastIndexOf(".") + 1).toLowerCase();
 
-        var hasFlv = "$self.hasFlv()";
-        if (hasFlv!='') {
-            filename = hasFlv;
+    var hasFlv = "$self.hasFlv()";
+    if (hasFlv!='') {
+        filename = hasFlv;
+    }
+    
+    if (hasFlv!='' || ext=="mp3" || ext=="m4a") {
+        var href = "$portalPath/download/$oid/" + filename;
+        var player1 = '<div href="' + href + '" id="player" style="' + style + '"></div>'; 
+        $("#player-container").attr("style", style).html(player1);
+        player = flowplayer("player", "$portalPath/flowplayer/flowplayer-3.1.5.swf",
+            { clip: { autoPlay: false, autoBuffering: true },
+              play: {
+                label: "Play",
+                replayLabel: "Click to play again"
+                }
+              //plugins: {controls: null} 
+            }); //.controls("hulu", {duration: 25});
+    } else {
+        var error = "$self.hasError()";
+        if (hasFlv=="false") {
+            $("div.content-preview div.article").empty().append("No preview available");
         }
-        
-        if (hasFlv!='' || ext=="mp3" || ext=="m4a") {
-            var href = "$portalPath/download/$oid/" + filename;
-            var player1 = '<div href="' + href + '" id="player" style="' + style + '"></div>'; 
-            $("#player-container").attr("style", style).html(player1);
-            player = flowplayer("player", "$portalPath/flowplayer/flowplayer-3.1.5.swf",
-                { clip: { autoPlay: false, autoBuffering: true },
-                  play: {
-                    label: "Play",
-                    replayLabel: "Click to play again"
-                    }
-                  //plugins: {controls: null} 
-                }); //.controls("hulu", {duration: 25});
+    }
+
+    var display_help = false;
+    function toggleHelp(help_link) {
+        if (!display_help) {
+            $(".help_p").css("display", "block");
+            help_link.text("Hide help");
+            display_help = true;
         } else {
-            var error = "$self.hasError()";
-            if (hasFlv=="false") {
-                $("div.content-preview div.article").empty().append("No preview available");
-            }
+            $(".help_p").css("display", "none");
+            help_link.html("Show help");
+            display_help = false;
         }
     }
 
@@ -314,18 +243,104 @@ $(function() {
         player.getClip().update({duration:endTime});
         player.play();
     });
+    #end
+</script>
+#end
+
+#if($self.mimeType.startsWith("image/"))
+### Providing image annotation
+<script type="text/javascript" src="$portalPath/js/anotar/image.annotate.js"></script>
+<script language="javascript">
+    var src = "$hasPreview";
+    if (src == "")
+        src = "$portalPath/download/$oid";
+    else
+        src = "$portalPath/download/$self.encode($oid)/" + src
+    $("div.content-preview div.article").html(
+        '<div id="$oid" class="annotatable"><div class="image">' +
+            '<img class="image" id="toAnnotate" src="' + src + '" style="max-width: 900px;" />' +
+        '</div><div class="clear"></div></div>');
     
-    $("#txtLatitude, #txtLongitude").live("keyup", function() {
-    	var latitude = $("#txtLatitude").attr("value");
-    	var longitude = $("#txtLongitude").attr("value");
-    	if (latitude == undefined) latitude = 0;
-    	if (longitude == undefined) longitude = 0;
-    	
-    	geoHash = "http://www.geohash.org/" + encodeGeoHash(latitude, longitude);
-    	$("#location-tag-list").attr("rel", geoHash);
-    	$("#txtName").attr("value", "Lat: " + latitude + ", Long: " + longitude);
+    $(window).load(function() {
+        $("#toAnnotate").annotateImage({
+            portalPath: "$portalPath",
+            editable: true,
+            saveUrl: "$portalPath/actions/anotar.ajax?action=save-image&rootUri=$oid",
+            getUrl: "$portalPath/actions/anotar.ajax?action=get-image&rootUri=$oid"
+        });
     });
-    
+</script>
+#end
+
+<script type="text/javascript" src="$portalPath/js/tree/jquery.tree.min.js"></script>
+<script type="text/javascript" src="$portalPath/js/autocomplete/lib/jquery.ajaxQueue.js"></script>
+<script type="text/javascript" src="$portalPath/js/autocomplete/lib/jquery.bgiframe.js"></script>
+<script type="text/javascript" src="$portalPath/js/autocomplete/jquery.autocomplete.pack.js"></script>
+<script type="text/javascript" src="$portalPath/js/anotar/lib/json2.js"></script>
+<script type="text/javascript" src="$portalPath/js/anotar/anotar-0.2.js"></script>
+
+<script language="javascript">
+$(function() {
+    var oid = "$oid";
+    var filenameNoExt = "$filenameNoExt";
+    function fixLinks(baseUrl, selector, attrName) {
+        $(selector).each(function() {
+            var attr = $(this).attr(attrName);
+            if (attr != null) {
+                if (attr.indexOf("#") != 0 && attr.indexOf("://") == -1) {
+                    var relUrl = "$portalPath/download/$self.object.id/";
+                    var tmpUrl = baseUrl.substring(baseUrl.indexOf("/", 8));
+                    tmpUrl = tmpUrl.replace(relUrl, "");
+                    tmpUrl = tmpUrl.substring(0, tmpUrl.lastIndexOf("/")+1);
+                    $(this).attr(attrName, escape(relUrl + tmpUrl + attr));
+                }
+            }
+        });
+    }
+    gFixLinks = fixLinks;
+    fixLinks("", "div.content-preview-inline a", "href");
+    fixLinks("", "div.content-preview-inline img", "src");
+
+    $("#open-this").click(function() {
+        jQuery.post("$portalPath/open.ajax", { func: "open-file", file: "$oid" } );
+        return false;
+    });
+
+    $("#reharvest").click(function() {
+        jQuery.post("$portalPath/reharvest.ajax", { func: "reharvest", file: "$oid" } );
+        return false;
+    });
+
+    function addRendition(href, label) {
+        $("#actions").append('<li><a href="' + href + '" target="blank">' + label + '</a></li>');
+    }
+    $('li.payload[rel="application/pdf"] a:first').each(function() {
+        addRendition($(this).attr("href"), "PDF version");
+    });
+    $("span.slide-link > a").each(function() {
+        addRendition($(this).attr("href"), "View slide show");
+    });
+    $("div.rendition-links").remove();
+
+});
+</script>
+
+<script language="javascript">
+### Location tagging by using latitude and longitude
+    $("#txtLatitude, #txtLongitude").live("keyup", function() {
+        var latitude = $("#txtLatitude").attr("value");
+        var longitude = $("#txtLongitude").attr("value");
+        if (latitude == undefined) latitude = 0;
+        if (longitude == undefined) longitude = 0;
+        
+        geoHash = "http://www.geohash.org/" + encodeGeoHash(latitude, longitude);
+        $("#location-tag-list").attr("rel", geoHash);
+        $("#txtName").attr("value", "Lat: " + latitude + ", Long: " + longitude);
+    });
+</script>
+
+<script language="javascript">
+### People tagging
     $(".peopleTag-search").live("click", function() {
         jQuery.post("$portalPath/actions/people.ajax", { 
             func: "searchName", 
@@ -335,10 +350,10 @@ $(function() {
         }, function(data) {
             if (data.indexOf("No veteran") < 0 && data.indexOf("Could not connect") < 0) {
                 $(".people_search_detail").hide();
-                $(".cancel_submit").show();
+                $(".peopleTag-submit").show();
             } else {
                 $(".people_search_detail").show();
-                $(".cancel_submit").hide();
+                $(".peopleTag-submit").hide();
             }
             $(".search_results").show();
             $(".search_results").html(data);
@@ -349,21 +364,11 @@ $(function() {
         $("#txtPeople").attr("value", $(this).attr("value"));
         $("#people-tag-list").attr("rel", $(this).attr("rel"));
     });
-});
-</script>
-<script type="text/javascript" src="$portalPath/js/anotar/json2.js"></script>
-<!--<script type="text/javascript" src="$portalPath/js/anotar/anotar-0.1.js"></script>-->
-<script type="text/javascript" src="$portalPath/js/anotar/anotar-0.2.js"></script>
-
-<script type="text/html" id="object_tag_form">
-    <div class='myTags float-right'>Tag this:
-      <input id="object-tag-input" type="text" />
-      <img src='$portalPath/images/icons/tick.png' class='myTag-submit' />&#160;
-      <img src='$portalPath/images/icons/cross.png' class='myTag-cancel' />
-    </div>
 </script>
 
-<script type="text/javascript">
+##To prevent annotation retrieval when not logged in
+#if($self.solrResponse.get("response/numFound") != 0)
+<script language="javascript">
     $(function(){
         var jQ = jQuery;
         
@@ -394,7 +399,6 @@ $(function() {
             serverMode: "fascinator"
         }
         tag = anotarFactory(jQ, tagConfig);
-        
         
         // Location Tags annotation
         locationConfig={
@@ -484,7 +488,7 @@ $(function() {
                 $("#txtFirstName").attr("value", "");
                 $("#txtSurname").attr("value", "");
                 $(".people_search_detail").show();
-                $(".cancel_submit").hide();
+                $(".peopleTag-submit").hide();
                 $(".search_results").hide();
                 $(".search_results").html("");
             },
@@ -569,12 +573,19 @@ $(function() {
         }
         noteTag = anotarFactory(jQ, noteConfig);
         #end
-        
     });
-    
+</script>
+#end
+
+<script type="text/html" id="object_tag_form">
+    <div class='myTags float-right'>Tag this:
+      <input id="object-tag-input" type="text" />
+      <img src='$portalPath/images/icons/tick.png' class='myTag-submit' />&#160;
+      <img src='$portalPath/images/icons/cross.png' class='myTag-cancel' />
+    </div>
 </script>
 
-<script type="text/javascript">
+<script language="languagejavascript">
     function attach(node) {
         if (!$(node).attr("attach")) {
             $(node).attr("attach", "true");
@@ -648,10 +659,10 @@ $(function() {
     <label for="txtSurname" style="width: 6em; float: left; text-align: right; margin-right: 0.5em; display: block">Surname</label>
         <input type="text" id="txtSurname" size="35"/><br/>
     <button class="peopleTag-search" style="margin-left: 6.5em;">Search</button>
-    <div class="search_results" colspan="2"></div>
+    <div class="search_results"></div>
     <div class="hidden people_search_detail"><strong>This system searches for Australians 
         listed in the Nominal Roll of Vietnam Veterans from The Australian Department of Veterans' Affairs (<a href='http://www.vietnamroll.gov.au' target='_blank'>http://www.vietnamroll.gov.au</a>)</strong></div>
-    <div class="hidden cancel_submit">
+    <div class="cancel_submit">
         <input type="hidden" id="txtPeople"/>
         <button class="peopleTag-cancel">Cancel</button>&#160;
         <button class="peopleTag-submit">Submit</button></td>
@@ -669,7 +680,6 @@ $(function() {
     <% } %>
 </script>
 
-#if($self.mimeType.startsWith("audio/") || $self.mimeType.startsWith("video/"))
 <script type="text/html" id="media_clip_form">
   <div id="media_clip">
     <table>
@@ -751,6 +761,7 @@ $(function() {
     </table>
   </div>
 </script>
+
 <script type="text/html" id="media_clip_comment">
   <%
   var startTime = "";
@@ -786,5 +797,3 @@ $(function() {
       <div class="<%=style%>anno-children"><%=children%></div>
   </div>
 </script>
-##end
-#end

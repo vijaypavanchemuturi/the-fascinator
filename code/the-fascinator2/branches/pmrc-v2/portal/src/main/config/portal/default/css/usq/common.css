@@ -37,7 +37,7 @@ tbody th, tbody td{border-top:none; border-bottom:none;}
 .header_search{position:absolute; float:right; right:0; text-align:center; padding:7px 10px 0 0; text-align:right; font-size:75%; width:50%;}
 .header_search fieldset{border:none;white-space:nowrap; background:none; padding: 0px;}
 .header_right{float:right}
-.header_links{text-align:center; padding-bottom:0px; padding-left:0px;}
+.header_links{text-align:center; padding-bottom:0px; padding-left:0px; font-size: 1.2em;}
 
 .searchbox_t{background:url(../../images/usq/search_line.gif) 0 0 repeat-x; width:15em; float:right}
 .searchbox_b{background:url(../../images/usq/search_line.gif) 0 100% repeat-x}
