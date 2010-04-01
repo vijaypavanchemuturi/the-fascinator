@@ -12,6 +12,7 @@ var rvtFactory = function(jQ){
     var homePage;
     var nodes;
     
+    rvt.fixRelativeLinks = true;
     rvt.contentBaseUrl = "";
     rvt.contentSelector = "#content";
     rvt.titleSelector = "#contents-title";
@@ -154,7 +155,7 @@ var rvtFactory = function(jQ){
             var pageToc = jQ(data).find("div.page-toc");
             var body = jQ(data).find("div.body");
             body.find("div.title").show().after(pageToc);
-            body.find("a").each(function(c, a) { 
+            body.find("a").each(function(c, a) {
                 a=jQ(a); h = a.attr("href"); 
                 if(h){
                     if(h.substring(0,1)==="#"){
@@ -178,11 +179,14 @@ var rvtFactory = function(jQ){
                 }
             });
             
-            var a = window.location.hash.split("#",2).slice(1)[0];
-            var baseUri = rvt.contentBaseUrl;
-            if(baseUri[baseUri.length-1]!=="/") baseUri +="/";
-            baseUri += a.split("/").slice(0,-1).join("/");
-            if(baseUri[baseUri.length-1]!=="/") baseUri +="/";
+            var baseUri = "";
+            if (rvt.fixRelativeLinks) {
+                var a = window.location.hash.split("#",2).slice(1)[0];
+                baseUr = rvt.contentBaseUrl;
+                if(baseUri[baseUri.length-1]!=="/") baseUri +="/";
+                baseUri += a.split("/").slice(0,-1).join("/");
+                if(baseUri[baseUri.length-1]!=="/") baseUri +="/";
+            }
             
             function updateUri(node,attrName){
                 var a = node.attr(attrName);
