@@ -74,6 +74,10 @@
         </dependency>
         <dependency>
           <groupId>au.edu.usq.fascinator.plugins</groupId>
+          <artifactId>plugin-harvester-ice2</artifactId>
+        </dependency>
+        <dependency>
+          <groupId>au.edu.usq.fascinator.plugins</groupId>
           <artifactId>plugin-harvester-jsonq</artifactId>
         </dependency>
         <dependency>
