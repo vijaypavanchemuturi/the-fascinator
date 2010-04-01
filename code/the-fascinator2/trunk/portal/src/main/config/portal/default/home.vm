@@ -5,21 +5,18 @@
 #else
   #set($atomLink = "$portalPath/feed/atom")
 #end
-#set($pageHeader = "<link rel=alternate type=application/atom+xml href=$atomLink title='$page.portalName'>")
-<h2 id="page-heading">$page.portalName<a class="feed" title="ATOM FEED" href="$atomLink">
-<img alt="ATOM Feed" src="$portalPath/images/icons/rss.png"/>
-</a></h2>
+#set($pageHeader = "<link rel='alternate' type='application/atom+xml' href='$atomLink' title='$page.portalName'>")
+<h2 id="page-heading">
+  <span>$page.portalName</span>
+  <a class="feed" title="Atom feed" href="$atomLink"><img alt="Atom feed" src="$portalPath/images/icons/feed.png"/></a>
+</h2>
 <div class="grid_4">
   <div class="box menu">
     <h2>Actions</h2>
     <ul class="menu">
       <li><a href="$portalPath/search">Browse all</a></li>
-      ##<li><a id="epub" href="#" rel="$portalId">Export as ePub...</a></li>
-      <li><a id="epub" href="$portalPath/actions/epub" rel="$portalId">Export as ePub...</a></li>
-      <li><a id="ims" href="$portalPath/actions/imscp" rel="$portalId">Export as IMS Package...</a></li>
-      <li><a id="sword-view" href="#" rel="$portalId">SWORD Deposit...</a></li>
-      <li><a id="reharvest-view" href="#" rel="$portalId">Reharvest view...</a></li>
       ## FIXME
+      <li><a id="reharvest-view" href="#" rel="$portalId">Reharvest view...</a></li>
       <li><a id="backup-view" href="#" rel="$portalId">Backup view...</a></li>
       #if($portalId != "default")  ## FIXME use proper default
       <li><a id="delete-view" href="#" rel="$portalId">Delete view...</a></li>
@@ -73,44 +70,13 @@
       <div id="reharvest-log"></div>
     </div>
   </div>
-  <div class="box hidden" id="sword-form">
-    <h2>SWORD Deposit</h2>
-    <form id="sword" method="post">
-      <fieldset class="login">
-        <legend>Service information</legend>
-        <p>
-          <label for="sword_url">Service URL</label>
-          <input type="text" id="sword_url" name="sword_url" />
-        </p>
-        <p>
-          <label for="sword_username">Username</label>
-          <input type="text" id="sword_username" name="sword_username" />
-        </p>
-        <p>
-          <label for="sword_password">Password</label>
-          <input type="password" id="sword_password" name="sword_password" />
-        </p>
-        <p id="sword-collections" class="hidden">
-          <label for="sword_collections">Collections</label>
-          <select id="sword_collections"></select>
-        </p>
-        <p class="message">
-          <img class="hidden" id="sword-loading" src="$portalPath/images/icons/loading.gif" />
-          <span id="sword-message"></span>
-        </p>
-        <input class="button" id="sword-start" type="button" value="Get collections" />
-        <input disabled="disabled" id="sword-accept" type="button" value="Deposit" />
-        <input id="sword-cancel" type="button" value="Close" />
-      </fieldset>
-    </form>
-  </div>
   <div class="box">
     <h2>Search</h2>
     <div class="block">
       <p>Search all items by entering one or more keywords</p>
-      <form action="search" id="search-form" method="post">
-        <input type="text" name="query" size="50" />
-        <input type="submit" name="search" value="Search" />
+      <form action="search" id="search-form" method="get">
+        <input type="text" name="query" size="50" id="search-query" />
+        <button id="search-button">Search</button>
       </form>
     </div>
     <div class="block">
@@ -188,6 +154,16 @@
 <div class="clear"></div>
 <script type="text/javascript">
 $(function() {
+    $("#search-button").click(function() {
+        var query = $("#search-query").val();
+        if (query != "") {
+            $("#search-form").submit();
+        } else {
+            window.location.href = "$portalPath/search";
+        }
+        return false;
+    });
+
     $("#delete-view, #delete-cancel").click(function() {
         $("#delete-view").toggleClass("selected");
         $("#delete-form").toggle("blind");
@@ -312,60 +288,6 @@ $(function() {
                 }
             },
             "json");
-    });
-    
-    $("#sword-view, #sword-cancel").click(function() {
-        $("#sword-view").toggleClass("selected");
-        $("#sword-collections").hide();
-        $("#sword_collections").empty();
-        $("#sword-accept").attr("disabled", "disabled");
-        $("#sword-message").empty();
-        $("#sword-form").toggle("blind");
-        return false;
-    });
-    $("#sword-start").click(function() {
-        $("#sword-message").empty();
-        $("#sword-loading").show();
-        jQuery.post("$portalPath/actions/sword.ajax?func=collections",
-            {
-                url: $("#sword_url").val(),
-                username: $("#sword_username").val(),
-                password: $("#sword_password").val()
-            },
-            function(data, status) {
-                $("#sword-loading").hide();
-                $("#sword_collections").empty();
-                if (data.error) {
-                    $("#sword-message").html(data.error);
-                } else {
-                    jQuery.each(data.collections, function(i, val) {
-                        $("#sword_collections")
-                            .append('<option value="' + val.location + '">' + val.title + '</option>');
-                        $("#sword-collections").show();
-                        $("#sword-accept").removeAttr("disabled");
-                    });
-                }
-                $("#sword-collections-form").show();
-            },
-            "json"
-        );
-    });
-    $("#sword-accept").click(function() {
-        $("#sword-message").empty();
-        $("#sword-loading").show();
-        $("#sword-start, #sword-accept").attr("disabled", "disabled");
-        jQuery.post("$portalPath/actions/sword.ajax?func=post",
-            {
-                url: $("#sword_collections").val(),
-                username: $("#sword_username").val(),
-                password: $("#sword_password").val()
-            },
-            function(data, status) {
-                $("#sword-loading").hide();
-                $("#sword-message").html("<p>Successful</p>");
-                $("#sword-start, #sword-accept").removeAttr("disabled");
-            }
-        );
     });
 });
 </script>

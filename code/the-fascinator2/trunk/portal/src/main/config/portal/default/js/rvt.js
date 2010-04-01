@@ -1,27 +1,47 @@
 var jQ=jQuery;
 
-
+/*
 jQ(function(){
     var rvt = rvtFactory(jQ);
     rvt.getManifestJson();
 });
-
+*/
 var rvtFactory = function(jQ){
     var rvt = {};
     var pages = {};     // cache
     var homePage;
     var nodes;
     
+    rvt.fixRelativeLinks = true;
+    rvt.contentBaseUrl = "";
     rvt.contentSelector = "#content";
     rvt.titleSelector = "#contents-title";
     rvt.tocSelector = "#toc .toc";
+    rvt.contentScrollToTop = function(){};
+    rvt.contentLoadedCallback = null;
     rvt.updateContent = function(content) {
-        jQ(rvt.contentSelector).html(content);
+        var contentDiv=jQ(rvt.contentSelector);
+        contentDiv.find(">div:visible").hide();
+        contentDiv.append(content);
+        if(content.is(":visible")){
+            try{
+                contentDiv.find("#loadingMessage").remove();
+                if(rvt.contentLoadedCallback) rvt.contentLoadedCallback(rvt);
+            }catch(e){
+                alert("Error calling loadedContentCallback: " + e)
+            }
+        }else{
+            try{
+                content.show();
+            }catch(e){ alert("Error in loading content: "+e); }
+        }
+        // Refresh hash so that the browser will go any anchor locations.
         if(window.location.hash) setTimeout(function(){window.location.hash=window.location.hash;}, 500);
     };
     rvt.setTitle = function(title) {
-        jQ(rvt.titleSelector).text(title);
+        jQ(rvt.titleSelector).html(title);
     };
+    
     rvt.getManifestJson = function(jsonFilename) {
         if(!jsonFilename) jsonFilename="manifest.json";
         jQ.get(jsonFilename, {}, processManifestJson, "json");       // "imsmanifest.json"
@@ -59,8 +79,13 @@ var rvtFactory = function(jQ){
         rvt.setTitle(data.title);
         // Note: homePage & nodes are package level variables
         homePage = data.homePage;
-        nodes = data.toc || data.nodes;
-        nodes.forEach(function(i){
+        ns = data.toc || data.nodes;
+        nodes = [];
+        jQ.each(ns, function(c, i){
+            var visible=(i.visible!==false);
+            if(visible) nodes.push(i);
+        });
+        function multiFormat(c, i){
             var visible=(i.visible!==false);
             var id=(i.relPath || i.attributes.id);
             var title=(i.title || i.data);
@@ -69,11 +94,13 @@ var rvtFactory = function(jQ){
             if(!i.attributes) i.attributes={};
             i.attributes.id=id;
             i.title=title; i.data=title;
-        });
+            jQ.each(i.children, multiFormat);
+        }
+        jQ.each(nodes, multiFormat);
         if(!homePage || homePage=="toc.htm") {
             if(nodes.length>0){
                 homePage=nodes[0].relPath;
-                window.location.hash = homePage;
+                if(!window.location.hash)  window.location.hash = homePage;
             }else{
                 homePage=""; 
                 rvt.updateContent("[No content]");
@@ -107,10 +134,11 @@ var rvtFactory = function(jQ){
         if(hash==="") hash=homePage;
         if(pages[hash]) {
             rvt.updateContent(pages[hash]);
+            rvt.contentScrollToTop();
             return;
         }
         function getHPath(p) {
-            // returns hPath or nUll (make a relative path an absolute hash path)
+            // returns hPath or null (make a relative path an absolute hash path)
             var ourParts, ourDepth, upCount=0, depth, hPath;
             if(p.slice(0,1)==="/" || p.search("://")>0) return null;
             ourParts = hash.split("/");
@@ -127,7 +155,7 @@ var rvtFactory = function(jQ){
             var pageToc = jQ(data).find("div.page-toc");
             var body = jQ(data).find("div.body");
             body.find("div.title").show().after(pageToc);
-            body.find("a").each(function(c, a) { 
+            body.find("a").each(function(c, a) {
                 a=jQ(a); h = a.attr("href"); 
                 if(h){
                     if(h.substring(0,1)==="#"){
@@ -150,21 +178,51 @@ var rvtFactory = function(jQ){
                     a.attr("name", anchors[name]);
                 }
             });
-            var html = body.html();
+            
+            var baseUri = "";
+            if (rvt.fixRelativeLinks) {
+                var a = window.location.hash.split("#",2).slice(1)[0];
+                baseUr = rvt.contentBaseUrl;
+                if(baseUri[baseUri.length-1]!=="/") baseUri +="/";
+                baseUri += a.split("/").slice(0,-1).join("/");
+                if(baseUri[baseUri.length-1]!=="/") baseUri +="/";
+            }
+            
+            function updateUri(node,attrName){
+                var a = node.attr(attrName);
+                function testIfLocalUri(uri){
+                    if (!uri){return false;}
+                    return uri.search(/^\/|\:\/\//g)===-1;
+                }
+                if(testIfLocalUri(a)){
+                    node.attr(attrName,baseUri+a);
+                }
+            }
+            body.find("*[src]").each(function(c,node){
+                node = jQ(node);
+                updateUri(node,"src");
+            });
+            body.find("object").each(function(c,node){
+                node = jQ(node);
+                updateUri(node,"data");
+                updateUri(node,"codebase");
+                node.find("param[name='movie'],param[name='url'],param[name='media']").each(function(c,node){
+                    node = jQ(node);
+                    updateUri(node,"value");
+                });
+            });
+            
+            var html = body.find(">div");
             pages[hash]=html;
             rvt.updateContent(pages[hash]);
         }
-        rvt.updateContent(rvt.loadingMessage);
-        jQ.get(hash, {}, callback, "html");
+        rvt.updateContent(jQ("<div style='display:none;' id='loadingMessage'>"+rvt.loadingMessage+"<div>"));
+        jQ.get(rvt.contentBaseUrl+hash, {}, callback, "html");
     }
 
     jQ(window.location).change(onLocationChange);
-
+    
+    rvt.processManifestJson = processManifestJson;
     return rvt;
 };
-
-
-
-
-
 
