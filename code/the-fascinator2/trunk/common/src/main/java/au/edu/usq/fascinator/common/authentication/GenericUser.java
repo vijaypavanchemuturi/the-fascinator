@@ -84,7 +84,9 @@ public class GenericUser implements User {
             for (int i = 0; i < field_list.length; i++) {
                 if (property.equals(field_list[i].getName())) {
                     try {
-                        return field_list[i].get(this).toString();
+                        if (field_list[i].get(this) != null)
+                            return field_list[i].get(this).toString();
+                        return null;
                     } catch (IllegalArgumentException ex) {
                         log.error("User Object, Illegal argument : {}", ex);
                         return null;
