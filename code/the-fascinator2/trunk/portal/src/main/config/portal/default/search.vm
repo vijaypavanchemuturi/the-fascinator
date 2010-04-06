@@ -430,7 +430,7 @@ $(function() {
     
     $("#package-deselect-page").click(function() {
         $(".package-select").removeAttr("checked");
-        //updatePackage();
+        updatePackage();
         return false;
     });
     

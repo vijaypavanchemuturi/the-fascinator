@@ -27,8 +27,7 @@ class PreviewData:
             IOUtils.copy(payload.open(), out)
             content = out.toString("UTF-8")
             if isHtml:
-                # TODO just get body
-                return content
+                return template % content
             elif mimeType == "text/plain":
                 return template % ('<pre>%s</pre>' % content)
             else:

@@ -155,19 +155,21 @@ var rvtFactory = function(jQ){
             var pageToc = jQ(data).find("div.page-toc");
             var body = jQ(data).find("div.body");
             body.find("div.title").show().after(pageToc);
-            body.find("a").each(function(c, a) {
-                a=jQ(a); h = a.attr("href"); 
-                if(h){
-                    if(h.substring(0,1)==="#"){
-                        a.attr("href", "#"+hash+h);
-                        anchors[h.substring(1)]=hash+h;
-                    }else{
-                        if(h=getHPath(h)){
-                            a.attr("href", "#"+h);
+            if (rvt.fixRelativeLinks) {
+                body.find("a").each(function(c, a) {
+                    a=jQ(a); h = a.attr("href");
+                    if(h){
+                        if(h.substring(0,1)==="#"){
+                            a.attr("href", "#"+hash+h);
+                            anchors[h.substring(1)]=hash+h;
+                        }else{
+                            if(h=getHPath(h)){
+                                a.attr("href", "#"+h);
+                            }
                         }
                     }
-                }
-            });
+                });
+            }
             body.find("a").each(function(c, a) { 
                 var id, name;
                 a=jQ(a); h = a.attr("href");
