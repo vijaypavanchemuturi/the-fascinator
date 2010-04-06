@@ -247,12 +247,20 @@ function fixLinks(baseUrl, selector, attrName, oid) {
     $(selector).each(function() {
         var attr = $(this).attr(attrName);
         if (attr != null) {
-            if (attr.indexOf("#") != 0 && attr.indexOf("://") == -1) {
-                var relUrl = "$portalPath/download/" + oid + "/";
-                var tmpUrl = baseUrl.substring(baseUrl.indexOf("/", 8));
-                tmpUrl = tmpUrl.replace(relUrl, "");
-                tmpUrl = tmpUrl.substring(0, tmpUrl.lastIndexOf("/")+1);
-                $(this).attr(attrName, escape(relUrl + tmpUrl + attr));
+            if (attr.indexOf("tfObject:") == 0) {
+                // First class objects (links only, not images)
+                var relUrl = "$portalPath/detail/";
+                var tmpUrl = attr.substring(9);
+                $(this).attr(attrName, escape(relUrl + tmpUrl));
+            } else {
+                // Payloads, images and links
+                if (attr.indexOf("#") != 0 && attr.indexOf("://") == -1) {
+                    var relUrl = "$portalPath/download/" + oid + "/";
+                    var tmpUrl = baseUrl.substring(baseUrl.indexOf("/", 8));
+                    tmpUrl = tmpUrl.replace(relUrl, "");
+                    tmpUrl = tmpUrl.substring(0, tmpUrl.lastIndexOf("/")+1);
+                    $(this).attr(attrName, escape(relUrl + tmpUrl + attr));
+                }
             }
         }
     });

@@ -489,3 +489,19 @@ img.workflow {
     color: black;
     font-weight: bold;
 }
+
+#package-select-page {
+    background-image: url('../images/icons/select_all.png');
+    background-repeat: no-repeat;
+    background-position: 7px 50%;
+}
+#package-deselect-page {
+    background-image: url('../images/icons/remove_all.png');
+    background-repeat: no-repeat;
+    background-position: 7px 50%;
+}
+#package-clear-all {
+    background-image: url('../images/icons/clear_package.png');
+    background-repeat: no-repeat;
+    background-position: 7px 50%;
+}
