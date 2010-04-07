@@ -345,6 +345,7 @@
               <goal>xjc</goal>
             </goals>
             <configuration>
+              <catalog>src/main/resources/xsd/catalog.cat</catalog>
               <packageName>au.edu.usq.fascinator.ims</packageName>
               <schemaDirectory>src/main/resources/xsd</schemaDirectory>
               <schemaFiles>imscp_v1p1.xsd</schemaFiles>
