@@ -125,7 +125,7 @@ function anotarFactory(jQ, config) {
 
     var debug;
     if(config.debug){
-        debug = {die:function(message){ }} //alert("DEBUG: " + message); }}
+        debug = {die:function(message){}} //alert("DEBUG: " + message); }}
     }else{
         debug = {die:function(message){}}
     }
@@ -332,6 +332,7 @@ function anotarFactory(jQ, config) {
         function callback(data, status){
             var json;
             try{
+				console.log(data);
                 json = JSON.parse(data);
                 // load each annotations
                 jQ.each(json, function(c, i){
@@ -500,9 +501,11 @@ function anotarFactory(jQ, config) {
         var searchValue = "";
         switch (config.serverMode) {
             case "fascinator":
+				var d = new Date();
                 baseQuery = "?action=getList";
                 baseQuery += "&rootUri=" + escape(key);
                 baseQuery += "&type=" + escape(config.annoType);
+				baseQuery += "&ticks=" + d.getTime(); //for reload bugs in IE
                 break;
             default:
                 baseQuery = "_design/anotar/_list/nested/all?key=";
@@ -917,7 +920,7 @@ function anotarFactory(jQ, config) {
                 hash: hashValue,
                 originalContent: originalContent,
                 content: text,
-                isPrivate:isPrivate,
+                isPrivate:isPrivate
             };
             
             if (config.getContentUri) {

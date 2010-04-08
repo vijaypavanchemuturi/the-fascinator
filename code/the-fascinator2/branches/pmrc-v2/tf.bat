@@ -16,6 +16,7 @@ call "%TF_HOME%tf_env.bat"
 if "%1" == "status" goto status
 if "%1" == "start" goto start
 if "%1" == "stop" goto stop
+if "%1" == "rebuild" goto rebuild
 
 :status
 set Cmd=tasklist /fi "WINDOWTITLE eq The Fascinator - mvn*" /fo csv /nh
@@ -37,8 +38,13 @@ goto end
 echo Usage: %0 start^|stop^|status
 goto end
 
+:rebuild
+mvn clean install
+goto end
+
 :running
 echo The Fascinator is RUNNING.
+goto end
 
 :end
 endlocal

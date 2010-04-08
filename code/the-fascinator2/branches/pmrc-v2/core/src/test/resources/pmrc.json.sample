@@ -6,7 +6,8 @@
             "ignoreFilter": ".svn|.ice|.*|~*|Thumbs.db|.DS_Store",
             "cacheDir": "${user.home}/.fascinator/cache",
             "force": true,
-            "recursive": true
+            "recursive": true,
+            "link": true
         }
     },
     
@@ -40,7 +41,7 @@
             "outputPath": "${java.io.tmpdir}/ffmpeg-output",
             "outputExt": "flv",
             "thumbnailSize": "160x120",
-            "excludeExt": "flv,m4a,mp3",
+            "excludeExt": "flv,m4a,mp3,jpg,gif,jpeg,png",
             "params": {
                 "default": "-f flv -b 192k -ab 64k -ar 44100 -ac 1 -s 400x224 -padtop 30 -padbottom 30"
             }

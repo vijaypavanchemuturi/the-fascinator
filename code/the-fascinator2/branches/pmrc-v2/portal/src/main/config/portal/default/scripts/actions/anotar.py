@@ -15,7 +15,7 @@ class AnotarData:
         self.rootUri = formData.get("rootUri")
         self.json = formData.get("json")
         self.type = formData.get("type")
-        #print " * anotar.py : '" + self.action + "' : ", formData
+        # print " * anotar.py : '" + self.action + "' : ", formData
 
         # ?? media fragment stuff?
         if self.rootUri.find("?ticks") > -1:
@@ -31,6 +31,7 @@ class AnotarData:
             # Repsonse is a list of object (nested)
             #print "**** anotar.py : GET_SOLR : " + self.rootUri
             result = self.search_solr()
+	    # print " * anotar.py: ", result
         elif self.action == "put":
             # Response is an ID
             #print "**** anotar.py : PUT : " + self.rootUri
