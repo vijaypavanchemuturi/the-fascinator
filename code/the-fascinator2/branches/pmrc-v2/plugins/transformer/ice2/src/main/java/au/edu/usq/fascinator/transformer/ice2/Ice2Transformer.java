@@ -26,6 +26,7 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.apache.commons.lang.StringUtils;
+import org.dom4j.DocumentException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,7 +41,10 @@ import au.edu.usq.fascinator.common.BasicHttpClient;
 import au.edu.usq.fascinator.common.JsonConfig;
 import au.edu.usq.fascinator.common.JsonConfigHelper;
 import au.edu.usq.fascinator.common.MimeTypeUtil;
+import au.edu.usq.fascinator.common.sax.SafeSAXReader;
 import au.edu.usq.fascinator.common.storage.StorageUtils;
+import org.dom4j.Document;
+import org.dom4j.Node;
 
 /**
  * Transformer Class will send a file to ice-service to get the renditions of
@@ -87,6 +91,9 @@ public class Ice2Transformer implements Transformer {
     /** ICE service url **/
     private String convertUrl;
 
+    /** For html parsing **/
+    private SafeSAXReader reader;
+
     /** Default zip mime type **/
     private static final String ZIP_MIME_TYPE = "application/zip";
 
@@ -98,7 +105,7 @@ public class Ice2Transformer implements Transformer {
      * ICE transformer constructor
      */
     public Ice2Transformer() {
-
+        reader = new SafeSAXReader();
     }
 
     /**
@@ -115,25 +122,50 @@ public class Ice2Transformer implements Transformer {
     @Override
     public DigitalObject transform(DigitalObject object)
             throws TransformerException {
-        // TODO use MIME types instead of assuming object ID == file path
-        File file = new File(object.getId());
-        String ext = FilenameUtils.getExtension(file.getName());
+
+        outputPath = get("outputPath");
+        File outputDir = new File(outputPath);
+        outputDir.mkdirs();
+
+        String sourceId = object.getSourceId();
+        String ext = FilenameUtils.getExtension(sourceId);
+        String fileName = FilenameUtils.getBaseName(sourceId);
+
+        File file;
+        try {
+            file = new File(outputDir, sourceId);
+            FileOutputStream out = new FileOutputStream(file);
+            // Payload from storage
+            Payload payload = object.getPayload(sourceId);
+            // Copy and close
+            IOUtils.copy(payload.open(), out);
+            payload.close();
+            out.close();
+        } catch (IOException ex) {
+            log.error("Error writing temp file : ", ex);
+            return object;
+            //throw new TransformerException(ex);
+        } catch (StorageException ex) {
+            log.error("Error accessing storage data : ", ex);
+            return object;
+            //throw new TransformerException(ex);
+        }
+
         List<String> excludeList = Arrays.asList(StringUtils.split(
                 get("excludeRenditionExt"), ','));
         if (file.exists() && !excludeList.contains(ext.toLowerCase())) {
-            outputPath = get("outputPath");
-            File outputDir = new File(outputPath);
-            outputDir.mkdirs();
             convertUrl = get("url");
             try {
                 if (isSupported(file)) {
                     File outputFile = render(file);
+                    outputFile.deleteOnExit();
                     object = createIcePayload(object, outputFile);
+                    outputFile.delete();
                 }
             } catch (TransformerException te) {
                 log.debug("Adding error payload to {}", object.getId());
                 try {
-                    object = createErrorPayload(object, file, te.getMessage());
+                    object = createErrorPayload(object, fileName, te.getMessage());
                 } catch (StorageException e) {
                     e.printStackTrace();
                 } catch (UnsupportedEncodingException e) {
@@ -149,6 +181,9 @@ public class Ice2Transformer implements Transformer {
             object.close();
         } catch (StorageException ex) {
             log.error("Failed writing object metadata", ex);
+        }
+        if (file.exists()) {
+            file.delete();
         }
         return object;
     }
@@ -166,11 +201,10 @@ public class Ice2Transformer implements Transformer {
      * @throws StorageException
      * @throws UnsupportedEncodingException
      */
-    public DigitalObject createErrorPayload(DigitalObject object, File file,
+    public DigitalObject createErrorPayload(DigitalObject object, String file,
             String message) throws StorageException,
             UnsupportedEncodingException {
-        String name = FilenameUtils.getBaseName(file.getName())
-                + "_ice_error.htm";
+        String name = file + "_ice_error.htm";
         Payload errorPayload = StorageUtils.createOrUpdatePayload(object, name,
                 new ByteArrayInputStream(message.getBytes("UTF-8")));
         errorPayload.setType(PayloadType.Error);
@@ -201,8 +235,35 @@ public class Ice2Transformer implements Transformer {
                     String name = entry.getName();
                     String mimeType = MimeTypeUtil.getMimeType(name);
                     //log.debug("(ZIP) Name : '" + name + "', MimeType : '" + mimeType + "'");
+                    InputStream in = zipFile.getInputStream(entry);
+
+                    // If this is a HTML document we need to strip it down
+                    //   to the 'body' tag and replace with a 'div'
+                    if (mimeType.equals(HTML_MIME_TYPE)) {
+                        try {
+                            log.debug("Stripping unnecessary HTML");
+                            // Parse the document
+                            Document doc = reader.loadDocumentFromStream(in);
+                            // Alter the body node
+                            Node node = doc.selectSingleNode("//*[local-name()='body']");
+                            node.setName("div");
+                            // Write out the new 'document'
+                            ByteArrayOutputStream out =
+                                    new ByteArrayOutputStream();
+                            reader.docToStream(node, out);
+                            // Prep our inputstream again
+                            in = new ByteArrayInputStream(out.toByteArray());
+                        } catch (DocumentException ex) {
+                            createErrorPayload(object, name, ex.getMessage());
+                            continue;
+                        } catch (Exception ex) {
+                            log.error("Error : ", ex);
+                            continue;
+                        }
+                    }
+
                     Payload icePayload = StorageUtils.createOrUpdatePayload(
-                            object, name, zipFile.getInputStream(entry));
+                            object, name, in);
                     icePayload.setLabel(name);
                     icePayload.setContentType(mimeType);
                     if (mimeType.equals(HTML_MIME_TYPE) ||
@@ -213,6 +274,7 @@ public class Ice2Transformer implements Transformer {
                     icePayload.close();
                 }
             }
+            zipFile.close();
         } else {
             String name = file.getName();
             String mimeType = MimeTypeUtil.getMimeType(name);

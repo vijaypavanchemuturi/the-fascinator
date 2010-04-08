@@ -170,9 +170,19 @@ public class StorageUtils {
      */
     public static Payload createOrUpdatePayload(DigitalObject object,
             String pid, InputStream in) throws StorageException {
+        return createOrUpdatePayload(object, pid, in, null);
+    }
+
+    public static Payload createOrUpdatePayload(DigitalObject object,
+            String pid, InputStream in, String filePath)
+            throws StorageException {
         Payload payload = null;
         try {
-            payload = object.createStoredPayload(pid, in);
+            if (filePath == null) {
+                payload = object.createStoredPayload(pid, in);
+            } else {
+                payload = object.createLinkedPayload(pid, filePath);
+            }
         } catch (StorageException ex) {
             try {
                 payload = object.updatePayload(pid, in);

@@ -56,7 +56,7 @@ public class FileSystemDigitalObject extends GenericDigitalObject {
         lockManifest();
         buildManifest();
         unlockManifest();
-        log.debug("Object instantiation complete : " + oid);
+        //log.debug("Object instantiation complete : " + oid);
     }
 
     // Unit testing
@@ -176,7 +176,7 @@ public class FileSystemDigitalObject extends GenericDigitalObject {
 
     private Payload createPayload(String pid, InputStream in, boolean linked)
             throws StorageException {
-        log.debug("createPayload(" + pid + ")");
+        //log.debug("createPayload(" + pid + ")");
         // Manifest check
         lockManifest();
         Map<String, Payload> manifest = getManifest();
@@ -236,7 +236,7 @@ public class FileSystemDigitalObject extends GenericDigitalObject {
 
     @Override
     public Payload getPayload(String pid) throws StorageException {
-        log.debug("getPayload(" + pid + ")");
+        //log.debug("getPayload(" + pid + ")");
         lockManifest();
         unlockManifest();
 
@@ -250,7 +250,7 @@ public class FileSystemDigitalObject extends GenericDigitalObject {
 
     @Override
     public void removePayload(String pid) throws StorageException {
-        log.debug("removePayload(" + pid + ")");
+        //log.debug("removePayload(" + pid + ")");
         lockManifest();
         Map<String, Payload> manifest = getManifest();
         if (!manifest.containsKey(pid)) {
@@ -287,7 +287,7 @@ public class FileSystemDigitalObject extends GenericDigitalObject {
     @Override
     public Payload updatePayload(String pid, InputStream in)
             throws StorageException {
-        log.debug("updatePayload(" + pid + ")");
+        //log.debug("updatePayload(" + pid + ")");
         lockManifest();
         File oldFile = new File(homeDir, pid);
         if (!oldFile.exists()) {

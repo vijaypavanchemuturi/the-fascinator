@@ -149,7 +149,7 @@ public class FileSystemStorage implements Storage {
 
     @Override
     public void removeObject(String oid) throws StorageException {
-        log.debug("removeObject(" + oid + ")");
+        //log.debug("removeObject(" + oid + ")");
         File objHome = getPath(oid);
         if (objHome.exists()) {
             DigitalObject object = new FileSystemDigitalObject(objHome, oid);
@@ -176,7 +176,7 @@ public class FileSystemStorage implements Storage {
 
     @Override
     public Set<String> getObjectIdList() {
-        log.debug("getObjectIdList()");
+        //log.debug("getObjectIdList()");
         if (objectList == null) {
             objectList = new HashSet<String>();
 
@@ -208,7 +208,7 @@ public class FileSystemStorage implements Storage {
     }
 
     private void listFileRecur(List<File> files, File path) {
-        log.debug("listFileRecur()");
+        //log.debug("listFileRecur()");
         if (path.isDirectory()) {
             for (File file : path.listFiles()) {
                 if (path.isDirectory()) {

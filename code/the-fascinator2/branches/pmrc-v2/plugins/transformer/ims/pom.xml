@@ -37,6 +37,11 @@
           <groupId>org.slf4j</groupId>
           </exclusion></exclusions>
     </dependency>
+    <dependency>
+      <groupId>au.edu.usq.fascinator.plugins</groupId>
+      <artifactId>plugin-storage-ram</artifactId>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
   <build>
     <plugins>

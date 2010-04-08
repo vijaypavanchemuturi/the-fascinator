@@ -34,6 +34,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import au.edu.usq.fascinator.api.indexer.rule.Rule;
+import java.io.OutputStream;
+import java.util.Collections;
 
 /**
  * Manages and controls the processing of indexing rules
@@ -45,6 +47,8 @@ public class RuleManager {
     private Logger log = LoggerFactory.getLogger(RuleManager.class);
 
     private List<Rule> rules;
+
+    private List<File> tempFiles;
 
     private File workDir;
 
@@ -73,29 +77,26 @@ public class RuleManager {
     }
 
     public void run(Reader in, Writer out) throws IOException {
-        File tmpFile = null;
-        File lastTmpFile = null;
+        File tmpFile;
         Reader tmpIn = in;
+        Writer tmpOut = null;
+        OutputStream tmpOutStream;
         cancelled = false;
         for (Rule rule : rules) {
             try {
-                lastTmpFile = tmpFile;
-                tmpFile = File.createTempFile("rule", ".xml", workDir);
-                Writer tmpOut = new OutputStreamWriter(new FileOutputStream(
-                        tmpFile), "UTF-8");
+                tmpFile = createTempFile("rule", ".xml");
+                tmpOutStream = new FileOutputStream(tmpFile);
+                tmpOut = new OutputStreamWriter(tmpOutStream, "UTF-8");
                 rule.run(tmpIn, tmpOut);
                 tmpOut.close();
+                tmpOutStream.close();
                 tmpIn.close();
-                if (lastTmpFile != null) {
-                    lastTmpFile.delete();
-                }
                 tmpIn = new InputStreamReader(new FileInputStream(tmpFile),
                         "UTF-8");
             } catch (Exception e) {
                 if (rule.isRequired()) {
                     cancelled = true;
-                    log.error("Stopping since " + rule + " failed: "
-                            + e.getMessage());
+                    log.error("Stopping since " + rule + " failed: ", e);
                     break;
                 } else {
                     log.warn("Rule " + rule + " failed: " + e.getMessage());
@@ -105,7 +106,31 @@ public class RuleManager {
         }
         if (!cancelled) {
             IOUtils.copy(tmpIn, out);
-            tmpFile.delete();
+        }
+        tmpIn.close();
+        out.close();
+        cleanupTempFiles();
+    }
+
+    private File createTempFile(String prefix, String postfix)
+            throws IOException {
+        File tempFile = File.createTempFile(prefix, postfix, workDir);
+        tempFile.deleteOnExit();
+        if (tempFiles == null) {
+            tempFiles = Collections.synchronizedList(new ArrayList<File>());
+        }
+        tempFiles.add(tempFile);
+        return tempFile;
+    }
+
+    private void cleanupTempFiles() {
+        if (tempFiles != null) {
+            for (File tempFile : tempFiles) {
+                if (tempFile.exists()) {
+                    tempFile.delete();
+                }
+            }
+            tempFiles = null;
         }
     }
 }

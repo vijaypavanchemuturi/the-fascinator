@@ -18,16 +18,30 @@
  */
 package au.edu.usq.fascinator.transformer.aperture;
 
+import au.edu.usq.fascinator.api.PluginException;
+import au.edu.usq.fascinator.api.storage.DigitalObject;
+import au.edu.usq.fascinator.api.storage.Payload;
+import au.edu.usq.fascinator.api.storage.PayloadType;
+import au.edu.usq.fascinator.api.storage.StorageException;
+import au.edu.usq.fascinator.api.transformer.Transformer;
+import au.edu.usq.fascinator.api.transformer.TransformerException;
+import au.edu.usq.fascinator.common.JsonConfig;
+import au.edu.usq.fascinator.common.JsonConfigHelper;
+import au.edu.usq.fascinator.common.MimeTypeUtil;
+import au.edu.usq.fascinator.common.storage.StorageUtils;
+
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Set;
 
+import org.apache.commons.io.IOUtils;
 import org.ontoware.rdf2go.RDF2Go;
 import org.ontoware.rdf2go.model.Model;
 import org.ontoware.rdf2go.model.Syntax;
@@ -45,19 +59,6 @@ import org.semanticdesktop.aperture.rdf.impl.RDFContainerImpl;
 import org.semanticdesktop.aperture.vocabulary.NIE;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import au.edu.usq.fascinator.api.PluginException;
-import au.edu.usq.fascinator.api.storage.DigitalObject;
-import au.edu.usq.fascinator.api.storage.Payload;
-import au.edu.usq.fascinator.api.storage.PayloadType;
-import au.edu.usq.fascinator.api.storage.StorageException;
-import au.edu.usq.fascinator.api.transformer.Transformer;
-import au.edu.usq.fascinator.api.transformer.TransformerException;
-import au.edu.usq.fascinator.common.FascinatorHome;
-import au.edu.usq.fascinator.common.JsonConfig;
-import au.edu.usq.fascinator.common.JsonConfigHelper;
-import au.edu.usq.fascinator.common.MimeTypeUtil;
-import au.edu.usq.fascinator.common.storage.StorageUtils;
 
 /**
  * Provides static methods for extracting RDF metadata from a given file.
@@ -246,8 +247,8 @@ public class ApertureTransformer implements Transformer {
      */
     private static void determineExtractor(File file, String mimeType,
             RDFContainer container) throws IOException, ExtractorException {
-        FileInputStream stream = new FileInputStream(file);
-        BufferedInputStream buffer = new BufferedInputStream(stream);
+        FileInputStream stream;
+        BufferedInputStream buffer;
         URI uri = new URIImpl(file.toURI().toString());
 
         // create an ExtractorRegistry containing all available
@@ -264,13 +265,14 @@ public class ApertureTransformer implements Transformer {
             Object factory = factories.iterator().next();
             if (factory instanceof ExtractorFactory) {
                 Extractor extractor = ((ExtractorFactory) factory).get();
-                // apply the extractor on the specified file
-                // (just open a new stream rather than buffer the previous
-                // stream)
                 stream = new FileInputStream(file);
                 buffer = new BufferedInputStream(stream, 8192);
                 extractor.extract(uri, buffer, null, mimeType, container);
-                stream.close();
+                try {
+                    buffer.close();
+                    stream.close();
+                } catch (IOException ex) {
+                }
             } else if (factory instanceof FileExtractorFactory) {
                 FileExtractor extractor = ((FileExtractorFactory) factory)
                         .get();
@@ -331,8 +333,8 @@ public class ApertureTransformer implements Transformer {
             log.info("--Initializing Extractor plugin--");
             JsonConfig config = new JsonConfig(jsonFile);
             // Default will be HOME_PATH/tmp folder
-            outputPath = config.get("aperture/extractor/outputPath",
-                    FascinatorHome.getPath("tmp"));
+            outputPath = config.get("aperture/outputPath",
+                    System.getProperty("java.io.tmpdir"));
         } catch (IOException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
@@ -357,12 +359,31 @@ public class ApertureTransformer implements Transformer {
     @Override
     public DigitalObject transform(DigitalObject in)
             throws TransformerException {
-        // Get the Object id
+
+        String sourceId = in.getSourceId();
         File inFile;
         if (filePath != null && !"".equals(filePath)) {
             inFile = new File(filePath);
         } else {
-            inFile = new File(in.getId());
+            try {
+                inFile = new File(outputPath, sourceId);
+                inFile.deleteOnExit();
+                FileOutputStream tempFileOut = new FileOutputStream(inFile);
+                // Payload from storage
+                Payload payload = in.getPayload(sourceId);
+                // Copy and close
+                IOUtils.copy(payload.open(), tempFileOut);
+                payload.close();
+                tempFileOut.close();
+            } catch (IOException ex) {
+                log.error("Error writing temp file : ", ex);
+                return in;
+                //throw new TransformerException(ex);
+            } catch (StorageException ex) {
+                log.error("Error accessing storage data : ", ex);
+                return in;
+                //throw new TransformerException(ex);
+            }
         }
         try {
             if (inFile.exists()) {
@@ -382,14 +403,17 @@ public class ApertureTransformer implements Transformer {
                 log.info("inFile '{}' does not exist!", inFile);
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            log.error("Error accessing metadata stream : ", e);
         } catch (ExtractorException e) {
-            e.printStackTrace();
+            log.error("Error extracting metadata : ", e);
         } catch (StorageException e) {
-            e.printStackTrace();
+            log.error("Error storing payload : ", e);
+        } finally {
+            if (inFile.exists()) {
+                inFile.delete();
+            }
         }
-        return in; // If nothing happen, return the same object e.g. File not
-        // exist
+        return in;
     }
 
     @Override

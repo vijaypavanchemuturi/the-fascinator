@@ -1,7 +1,8 @@
 from __main__ import Services, formData, portalId, response
 
-import os.path
+import os.path, urllib
 
+from au.edu.usq.fascinator.common import JsonConfigHelper
 from au.edu.usq.fascinator.ims import FileType, ItemType, ManifestType, \
     MetadataType, ObjectFactory, OrganizationType, OrganizationsType, \
     ResourceType, ResourcesType
@@ -14,31 +15,42 @@ from org.apache.commons.io import IOUtils
 
 class ImsPackage:
     def __init__(self, outputFile=None):
-        self.__portal = Services.getPortalManager().get(portalId)
-        self.__portalManifest = self.__portal.getJsonMap("manifest")
-        print formData
-        url = formData.get("url")
-        if outputFile is None and url is None:
-            self.__createPackage()
-        elif url is not None and outputFile is not None:
-            self.__createPackage(outputFile)
+        oid = formData.get("oid")
+        print "Creating IMS content package for: %s" % oid
+        try:
+            # get the package manifest
+            object = Services.getStorage().getObject(oid)
+            sourceId = object.getSourceId()
+            payload = object.getPayload(sourceId)
+            self.__manifest = JsonConfigHelper(payload.open())
+            payload.close()
+            object.close()
+            # create the package
+            url = formData.get("url")
+            if outputFile is None and url is None:
+                self.__createPackage()
+            elif url is not None and outputFile is not None:
+                self.__createPackage(outputFile)
+        except Exception, e:
+            log.error("Failed to create IMS content package: %s" % str(e))
     
     def __createPackage(self, outputFile=None):
+        title = self.__manifest.get("title")
         manifest = self.__createManifest()
         context = JAXBContext.newInstance("au.edu.usq.fascinator.ims")
         m = context.createMarshaller()
         m.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, True)
         writer = StringWriter()
         jaxbElem = ObjectFactory.createManifest(ObjectFactory(), manifest)
-        m.marshal(jaxbElem, writer);
+        m.marshal(jaxbElem, writer)
         writer.close()
         
         if outputFile is not None:
-            print " * imscp.py: writing to %s..." % outputFile
+            print "writing to %s..." % outputFile
             out = FileOutputStream(outputFile)
         else:
-            print " * imscp.py: writing to http output stream..."
-            response.setHeader("Content-Disposition", "attachment; filename=%s.zip" % self.__portal.getName())
+            print "writing to http output stream..."
+            response.setHeader("Content-Disposition", "attachment; filename=%s.zip" % urllib.quote(title))
             out = response.getOutputStream("application/zip")
         
         zipOut = ZipOutputStream(out)
@@ -47,17 +59,19 @@ class ImsPackage:
         IOUtils.write(writer.toString(), zipOut)
         zipOut.closeEntry()
         
-        for key in self.__portalManifest.keySet():
-            item = self.__portalManifest.get(key)
+        jsonManifest = self.__manifest.getJsonMap("manifest")
+        for key in jsonManifest.keySet():
+            item = jsonManifest.get(key)
             oid = item.get("id")
             obj = Services.getStorage().getObject(oid)
-            for payload in obj.getPayloadList():
-                pid = payload.getId()
+            for pid in obj.getPayloadIdList():
+                payload = obj.getPayload(pid)
                 if pid != "SOF-META":
                     zipOut.putNextEntry(ZipEntry("%s/%s" % (key[5:], pid)))
-                    IOUtils.copy(payload.getInputStream(), zipOut)
+                    IOUtils.copy(payload.open(), zipOut)
+                    payload.close()
                     zipOut.closeEntry()
-        
+            obj.close()
         zipOut.close()
         out.close()
     
@@ -68,21 +82,20 @@ class ImsPackage:
         meta.setSchemaversion("1.1.4")
         manifest.setMetadata(meta)
         
-        portal = Services.getPortalManager().get(portalId)
-        portalManifest = portal.getJsonMap("manifest")
+        jsonManifest = self.__manifest.getJsonMap("manifest")
         
         orgs = OrganizationsType()
         org = OrganizationType()
         org.setIdentifier("default")
-        org.setTitle(portal.getDescription())
+        org.setTitle(self.__manifest.get("title"))
         orgs.getOrganization().add(org)
         orgs.setDefault(org)
         manifest.setOrganizations(orgs)
         
         resources = ResourcesType()
         manifest.setResources(resources)
-        for key in portalManifest.keySet():
-            jsonRes = portalManifest.get(key)
+        for key in jsonManifest.keySet():
+            jsonRes = jsonManifest.get(key)
             # item
             visible = jsonRes.get("hidden", "false") != "true"
             item = ItemType()
@@ -99,23 +112,16 @@ class ImsPackage:
             baseName = os.path.splitext(filename)[0]
             webRes.setHref("%s/%s.htm" % (key[5:], baseName))
             obj = Services.getStorage().getObject(oid)
-            for payload in obj.getPayloadList():
-                pid = payload.getId()
-                if pid != "SOF-META":
+            for pid in obj.getPayloadIdList():
+                if pid != "TF-OBJ-META":  ## hacky
                     file = FileType()
                     file.setHref(pid)
                     webRes.getFile().add(file)
-            
+            obj.close()
             org.getItem().add(item)
             resources.getResource().add(webRes)
         
         return manifest
     
-    def __getPortalManifest(self):
-        return self.__getPortal().getJsonMap("manifest")
-    
-    def __getPortal(self):
-        return Services.portalManager.get(portalId)
-
 if __name__ == "__main__":
     scriptObject = ImsPackage()

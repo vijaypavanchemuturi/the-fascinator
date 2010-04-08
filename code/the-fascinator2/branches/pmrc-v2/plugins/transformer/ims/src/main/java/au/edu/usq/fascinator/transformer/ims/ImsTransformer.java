@@ -37,6 +37,9 @@ import au.edu.usq.fascinator.api.transformer.TransformerException;
 import au.edu.usq.fascinator.common.JsonConfigHelper;
 import au.edu.usq.fascinator.common.MimeTypeUtil;
 import au.edu.usq.fascinator.common.storage.StorageUtils;
+import java.io.FileOutputStream;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.io.IOUtils;
 
 /**
  * Unzip Ims package and store the files
@@ -75,12 +78,38 @@ public class ImsTransformer implements Transformer {
     @Override
     public DigitalObject transform(DigitalObject in)
             throws TransformerException {
+        String sourceId = in.getSourceId();
+        String ext = FilenameUtils.getExtension(sourceId);
+
+        // We are only interested in ZIP files
+        if (!ext.equalsIgnoreCase("zip")) {
+            return in;
+        }
+
         File inFile;
         String filePath = config.get("sourceFile");
         if (filePath != null) {
             inFile = new File(filePath);
         } else {
-            inFile = new File(in.getId());
+            try {
+                inFile = File.createTempFile("ims", ".zip");
+                inFile.deleteOnExit();
+                FileOutputStream tempFileOut = new FileOutputStream(inFile);
+                // Payload from storage
+                Payload tempPayload = in.getPayload(sourceId);
+                // Copy and close
+                IOUtils.copy(tempPayload.open(), tempFileOut);
+                tempPayload.close();
+                tempFileOut.close();
+            } catch (IOException ex) {
+                log.error("Error writing temp file : ", ex);
+                return in;
+                //throw new TransformerException(ex);
+            } catch (StorageException ex) {
+                log.error("Error accessing storage data : ", ex);
+                return in;
+                //throw new TransformerException(ex);
+            }
         }
 
         if (inFile.exists()) {
@@ -91,6 +120,8 @@ public class ImsTransformer implements Transformer {
                 e.printStackTrace();
             } catch (IOException e) {
                 e.printStackTrace();
+            } finally {
+                inFile.delete();
             }
         } else {
             log.info("not found inFile {}", inFile);
@@ -109,24 +140,22 @@ public class ImsTransformer implements Transformer {
      */
     public DigitalObject createImsPayload(DigitalObject object, File file)
             throws StorageException, IOException {
-        if (file.getAbsolutePath().endsWith(".zip")) {
-            ZipFile zipFile = new ZipFile(file);
-            ZipEntry manifestEntry = zipFile.getEntry(manifestFile);
-            if (manifestEntry != null) {
-                Enumeration<? extends ZipEntry> entries = zipFile.entries();
-                while (entries.hasMoreElements()) {
-                    ZipEntry entry = entries.nextElement();
-                    if (!entry.isDirectory()) {
-                        String name = entry.getName();
-                        Payload imsPayload = StorageUtils
-                                .createOrUpdatePayload(object, name, zipFile
-                                        .getInputStream(entry));
-                        // Set to enrichment
-                        imsPayload.setType(PayloadType.Enrichment);
-                        imsPayload.setLabel(name);
-                        imsPayload.setContentType(MimeTypeUtil
-                                .getMimeType(name));
-                    }
+        ZipFile zipFile = new ZipFile(file);
+        ZipEntry manifestEntry = zipFile.getEntry(manifestFile);
+        if (manifestEntry != null) {
+            Enumeration<? extends ZipEntry> entries = zipFile.entries();
+            while (entries.hasMoreElements()) {
+                ZipEntry entry = entries.nextElement();
+                if (!entry.isDirectory()) {
+                    String name = entry.getName();
+                    Payload imsPayload = StorageUtils
+                            .createOrUpdatePayload(object, name, zipFile
+                                    .getInputStream(entry));
+                    // Set to enrichment
+                    imsPayload.setType(PayloadType.Enrichment);
+                    imsPayload.setLabel(name);
+                    imsPayload.setContentType(MimeTypeUtil
+                            .getMimeType(name));
                 }
             }
         }

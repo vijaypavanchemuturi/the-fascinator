@@ -2,7 +2,7 @@
 setlocal
 
 REM this script controls the fascinator using maven and jetty
-REM only usable when installed in development mode
+REM only useful for development mode (i.e. source code checkout)
 
 REM show usage if no parameters given
 if "%1" == "" goto usage
@@ -16,11 +16,12 @@ call "%TF_HOME%tf_env.bat"
 if "%1" == "status" goto status
 if "%1" == "start" goto start
 if "%1" == "stop" goto stop
+if "%1" == "build" goto build
 if "%1" == "rebuild" goto rebuild
 
 :status
 set Cmd=tasklist /fi "WINDOWTITLE eq The Fascinator - mvn*" /fo csv /nh
-for /f "tokens=1*" %%i in ('%Cmd% ^| find "cmd.exe"') do goto running
+for /f "tokens=1*" %%i in ('%Cmd% ^| findstr "cmd.exe"') do goto running
 echo The Fascinator is STOPPED.
 goto end
 
@@ -35,11 +36,15 @@ popd
 goto end
 
 :usage
-echo Usage: %0 start^|stop^|status
+echo Usage: %0 start^|stop^|status^|build^|rebuild
+goto end
+
+:build
+call mvn install
 goto end
 
 :rebuild
-mvn clean install
+call mvn clean install
 goto end
 
 :running
