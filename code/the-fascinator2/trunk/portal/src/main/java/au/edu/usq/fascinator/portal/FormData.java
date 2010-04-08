@@ -1,7 +1,6 @@
 package au.edu.usq.fascinator.portal;
 
 import java.io.InputStream;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.HashMap;

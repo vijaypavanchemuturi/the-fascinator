@@ -38,11 +38,11 @@ class ProxyBasicAuthStrategy(BasicAuthStrategy):
 
 class AtomEntryPoster:
     def __init__(self):
-        responseType = "text/html"
+        responseType = "text/html; charset=UTF-8"
         responseMsg = ""
         func = formData.get("func")
         if func == "url-history":
-            responseType = "text/plain"
+            responseType = "text/plain; charset=UTF-8"
             responseMsg = "\n".join(self.getUrls())
         else:
             try:

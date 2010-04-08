@@ -13,7 +13,7 @@ class Anotar:
         self.method = formData.get("method")
         self.payload = formData.get("json")
 
-        self.writer = response.getPrintWriter("text/html")
+        self.writer = response.getPrintWriter("text/html; charset=UTF-8")
         self.client = BasicHttpClient(url)
 
         #response = self.process()

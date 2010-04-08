@@ -110,7 +110,7 @@ class AnotarData:
             dateCreated = time.strftime("%Y-%m-%dT%H:%M:%SZ")
             self.json = jsonTemplate % (self.rootUri, self.rootUri, locatorValue, dateCreated, formData.get("text"))
             result = self.put()
-        writer = response.getPrintWriter("text/plain")
+        writer = response.getPrintWriter("text/plain; charset=UTF-8")
         writer.println(result)
         writer.close()
 

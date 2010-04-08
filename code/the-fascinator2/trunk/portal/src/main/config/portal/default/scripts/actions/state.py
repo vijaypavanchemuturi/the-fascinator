@@ -19,7 +19,7 @@ class StateActions:
             value = sessionState.get(name)
             sessionState.remove(name)
             result = '{ value: "%s" }' % value
-        writer = response.getPrintWriter("text/plain")
+        writer = response.getPrintWriter("text/plain; charset=UTF-8")
         writer.println(result)
         writer.close()
 

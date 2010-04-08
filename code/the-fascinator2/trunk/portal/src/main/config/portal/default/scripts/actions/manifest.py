@@ -47,7 +47,7 @@ class ManifestActions:
             result = '{ title: "%s", hidden: "%s" }' % (title, hidden)
         
         self.__object.close()
-        writer = response.getPrintWriter("text/plain")
+        writer = response.getPrintWriter("text/plain; charset=UTF-8")
         writer.println(result)
         writer.close()
     

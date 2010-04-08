@@ -1,7 +1,7 @@
 class UploadData:
 
     def __init__(self):
-        self.writer = response.getPrintWriter("text/html")
+        self.writer = response.getPrintWriter("text/html; charset=UTF-8")
 
         listener = sessionState.get("upload_listener");
 

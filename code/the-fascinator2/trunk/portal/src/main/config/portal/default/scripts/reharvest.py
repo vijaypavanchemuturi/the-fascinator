@@ -11,7 +11,7 @@ class Reharvest:
     def __init__(self):
         func = formData.get("func")
         result = "{}"
-        resultType = "text/plain"
+        resultType = "text/plain; charset=UTF-8"
         if func == "reharvest":
             file = formData.get("file")
             portalId = formData.get("portalId")
@@ -70,7 +70,7 @@ class Reharvest:
                     event = appender.get(i)
                     result += layout.doLayout(event)
             result += "</table>"
-            resultType = "text/html"
+            resultType = "text/html; charset=UTF-8"
         writer = response.getPrintWriter(resultType)
         writer.println(result)
         writer.close()
