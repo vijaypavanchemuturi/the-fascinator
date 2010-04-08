@@ -89,8 +89,8 @@
                     <tr>
                       <td id="player-container"></td>
                       <td align="left">
-                        <div class="video-results-list">
-                          <div class="video-result-list" anotar-uri="$self.object.id">
+                        <div id="video-results-list" class="video-results-list">
+                          <div id="video-result-list" class="video-result-list" anotar-uri="$self.object.id"><span></span>
                           </div>
                         </div>
                       </td>
@@ -120,7 +120,7 @@
 ### Displaying audio/video media with flowplayer and providing video/audio annotation
 <script type="text/javascript" src="$portalPath/flowplayer/flowplayer-3.1.4.min.js"></script>
 <script type="text/javascript" src="$portalPath/flowplayer/flowplayer.controls-3.0.2.js"></script>
-<script type="text/javascript" src="$portalPath/js/anotar/video.annotate.js"></script>
+<!--<script type="text/javascript" src="$portalPath/js/anotar/video.annotate.js"></script>-->
 <script language="javascript">
     #if($self.solrResponse.get("response/numFound") != 0)
     var oid = "$oid";
@@ -144,7 +144,7 @@
         var href = "$portalPath/download/$oid/" + filename;
         var player1 = '<div href="' + href + '" id="player" style="' + style + '"></div>'; 
         $("#player-container").attr("style", style).html(player1);
-        player = flowplayer("player", "$portalPath/flowplayer/flowplayer-3.1.5.swf",
+        player = flowplayer("player", {src:"$portalPath/flowplayer/flowplayer-3.1.5.swf", wmode:'opaque'},
             { clip: { autoPlay: false, autoBuffering: true },
               play: {
                 label: "Play",
@@ -215,7 +215,7 @@
                 }
             }
         }
-        $(".video-results-list").attr("rel", uri);
+        $("#video-results-list").attr("rel", uri);
     });
     
     $(".player_clear_fragment").live("click", function() {
@@ -244,6 +244,19 @@
         player.play();
     });
     #end
+
+    $("#annotate_all").live("click", function () {
+        $('.annotate_clip').hide();
+    });
+
+    $("#annotate_clip").live("click", function() {
+        $('.annotate_clip').show();
+    });
+
+    $("#show_help").live("click", function() {
+        toggleHelp($(this));
+    });
+
 </script>
 #end
 
@@ -425,7 +438,8 @@ $(function() {
             formPopup: true,
             formPopupSettings: {
             	width: 500,
-            	title: "Location Tag"
+            	title: "Location Tag",
+		zIndex: 5000
             },
             onFormDisplay: function(node){
                 $("#byName").click();
@@ -482,7 +496,8 @@ $(function() {
             formPopup: true,
             formPopupSettings: {
                 width: 500,
-                title: "People Tag"
+                title: "People Tag",
+		zIndex: 5000
             },
             onFormDisplay: function(node){
                 $("#txtFirstName").attr("value", "");
@@ -516,8 +531,8 @@ $(function() {
             label: videoAnoLabel,
             //objectLiteral: "$oid",
             pageUri: "$oid",
-            docRoot: ".video-results-list",
-            tagList: ".video-result-list",
+            docRoot: "#video-results-list",
+            tagList: "#video-result-list",
             uriAttr: "anotar-uri",
             replyLabel: "<img src='$portalPath/images/icons/comments_add.png'/>",
             #if($page.authentication.is_logged_in()) 
@@ -585,7 +600,7 @@ $(function() {
     </div>
 </script>
 
-<script language="languagejavascript">
+<script language="javascript">
     function attach(node) {
         if (!$(node).attr("attach")) {
             $(node).attr("attach", "true");
@@ -601,6 +616,9 @@ $(function() {
             });
         }
     }
+
+    $('#byName').live('click', function() { $('.annotate_name, #txtName').show();$('.annotate_ll').hide();$('.annotate_range').hide(); });
+    $('#byLL').live('click', function() {  $('.annotate_name, #txtName').hide();$('.annotate_ll').show();$('.annotate_range').hide(); });
 </script>
 
 <script type="text/html" id="location_form">
@@ -608,11 +626,9 @@ $(function() {
     <table>
       <tr>
         <td colspan="2" class="location_scope">
-          <input type="radio" name="location_scope" id="byName" checked="true"
-                 onclick="$('.annotate_name, #txtName').show();$('.annotate_ll').hide();$('.annotate_range').hide();" />
+          <input type="radio" name="location_scope" id="byName" checked="true"/>
           <label for="byName">By Location Name</label>
-          <input type="radio" name="location_scope" id="byLL"
-                 onclick="$('.annotate_name, #txtName').hide();$('.annotate_ll').show();$('.annotate_range').hide();" />
+          <input type="radio" name="location_scope" id="byLL"/>
           <label for="byLL">By Latitude/Longitude</label>
           <!--<input type="radio" name="location_scope" id="byRange"
                  onclick="$('.annotate_name').hide();$('.annotate_ll').hide();$('.annotate_range').show();" />
@@ -685,13 +701,11 @@ $(function() {
     <table>
       <tr>
         <td colspan="2" class="annotate_scope">
-          <input type="radio" name="annotate_scope" id="annotate_all" checked="true"
-                 onclick="$('.annotate_clip').hide()" />
+          <input type="radio" name="annotate_scope" id="annotate_all" checked="true" />
           <label for="annotate_all">Comment on the whole video</label><br/>
-          <input type="radio" name="annotate_scope" id="annotate_clip"
-                 onclick="$('.annotate_clip').show()" />
+          <input type="radio" name="annotate_scope" id="annotate_clip" />
           <label for="annotate_clip">Select a portion (clip) to annotate</label>
-          <span class="hidden annotate_clip">(<a onclick="toggleHelp($(this))">Show help</a>)</span>
+          <span class="hidden annotate_clip">(<a id="show_help">Show help</a>)</span>
         </td>
       </tr>
       <tr class="hidden annotate_clip">
