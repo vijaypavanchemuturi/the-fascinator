@@ -189,8 +189,14 @@
                                 <argument>
                                     --url=http://blog.duncan.dickinson.name/feeds/posts/default
                                 </argument>
-                                <argument>--html</argument>
+                                <argument>
+                                    --url=http://adfi.usq.edu.au/blog/feed/
+                                </argument>
+                                <argument>
+                                    --url=http://sreushle.wordpress.com/feed/
+                                </argument>
                                 <argument>--rdf</argument>
+                                <argument>--html</argument>
                             </arguments>
                         </configuration>
                     </plugin>
