@@ -93,7 +93,8 @@ public class FeedReader {
             Feed feed = new Feed(url, cacheDir);
             feed.addFeedReaderStateChangeListener(new DemoItemListener(
                     outputHtml, outputRdf, outputDir, url));
-            feed.read();
+
+            new Thread(feed).start();
         }
     }
 
@@ -139,6 +140,14 @@ public class FeedReader {
         }
         if (!argumentMap.containsKey(OPT_OUTPUT_DIR)) {
             argumentMap.put(OPT_OUTPUT_DIR, DEFAULT_OUTPUT_DIR);
+        }
+
+        if (!argumentMap.containsKey(OPT_RDF)) {
+            argumentMap.put(OPT_RDF, false);
+        }
+
+        if (!argumentMap.containsKey(OPT_HTML)) {
+            argumentMap.put(OPT_HTML, false);
         }
     }
 

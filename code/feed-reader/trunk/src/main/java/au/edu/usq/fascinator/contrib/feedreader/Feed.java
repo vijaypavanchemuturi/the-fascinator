@@ -28,7 +28,7 @@ import com.sun.syndication.io.FeedException;
  * @author Duncan Dickinson
  * @see http://wiki.java.net/bin/view/Javawsxml/RomeFetcher
  */
-public class Feed implements FetcherListener {
+public class Feed implements FetcherListener, Runnable {
     /**
      * Generic logging
      */
@@ -178,6 +178,13 @@ public class Feed implements FetcherListener {
     private void setCacheDir(String cacheDir) {
         this.cacheDir = cacheDir;
         new File(cacheDir).mkdirs();
+    }
+
+    @Override
+    public void run() {
+        log.debug("Thread started for : " + this.feedURL.toExternalForm());
+        this.read();
+        log.debug("Read completed for : " + this.feedURL.toExternalForm());
     }
 
 }
