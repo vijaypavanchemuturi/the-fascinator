@@ -94,7 +94,7 @@ $(function() {
             theme_name: "classic"
         },
         plugins: {
-            checkbox: {},
+            checkbox: {}
         },
         callback: {
             onmove: function(node, refNode, type, tree, rollback) {
@@ -116,22 +116,19 @@ $(function() {
                 $("#content").load(
                     "$portalPath/preview?oid=" + escape(id) + " div.body > div",
                     function() {
-                        function fixLinks(baseUrl, selector, attrName) {
+                        function fixLinks(selector, attrName) {
                             $(selector).each(function() {
-                                var attr = $(this).attr(attrName);
+                                var attr = $(this).get(0).getAttribute(attrName, 2); // IE7 fix for $.attr
                                 if (attr != null) {
                                     if (attr.indexOf("#") != 0 && attr.indexOf("://") == -1) {
                                         var relUrl = "$portalPath/download/" + id + "/";
-                                        var tmpUrl = baseUrl.substring(baseUrl.indexOf("/", 8));
-                                        tmpUrl = tmpUrl.replace(relUrl, "");
-                                        tmpUrl = tmpUrl.substring(0, tmpUrl.lastIndexOf("/")+1);
-                                        $(this).attr(attrName, escape(relUrl + tmpUrl + attr));
+                                        $(this).attr(attrName, escape(relUrl + attr));
                                     }
                                 }
                             });
                         }
-                        fixLinks("", "#content a", "href");
-                        fixLinks("", "#content img", "src");
+                        fixLinks("#content a", "href");
+                        fixLinks("#content img", "src");
                     }
                 );
                 var item = node.children("a");

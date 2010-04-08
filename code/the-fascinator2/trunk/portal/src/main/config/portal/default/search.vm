@@ -51,10 +51,11 @@
 #if($self.result and $paging.totalFound > 0)
 #end
 <h2 id="page-heading">
+  <span class="paging right">#parse($page.getTemplate("search-paging.vm"))</span>
   <span>Search</span>
   <span><a class="feed" title="Atom feed" href="$atomLink"><img alt="Atom feed" src="$portalPath/images/icons/feed.png"/></a></span>
-  <span class="paging right">#parse($page.getTemplate("search-paging.vm"))</span>
 </h2>
+<div class="clear"></div>
 <div id="action-list" class="grid_4">
   #if($query != "" || $self.hasSelectedFacets())
   <div class="box menu">
@@ -177,10 +178,11 @@
     </form>
   </div>
   <div class="box articles">
-    <h2>Results
-      <span class="right">Showing ${paging.startNum} to ${paging.endNum} of ${paging.totalFound} items ($self.queryTime seconds)</span>
-    </h2>
     #if($self.result and $paging.totalFound > 0)
+    <h2>
+      <span class="right">Showing ${paging.startNum} to ${paging.endNum} of ${paging.totalFound} items ($self.queryTime seconds)</span>
+      Results
+    </h2>
     #set ($is_admin = $page.authentication.is_admin())
     #foreach($item in $self.result.getList("response/docs"))
       #set($id = $item.get("id"))
@@ -240,6 +242,7 @@
       </div>
     #end
     #else
+      <h2>Results</h2>
       <div class="box no-result">No items found matching your query: '$!query'</div>
     #end
   </div>
@@ -475,7 +478,7 @@ $(function(){
         disableReply: true,
         serverMode: "fascinator"
     }
-    //tag = anotarFactory(jQ, tagConfig);
+    tag = anotarFactory(jQ, tagConfig);
 });
 </script>
 

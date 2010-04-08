@@ -245,7 +245,9 @@ function toggleHelp(help_link) {
 
 function fixLinks(baseUrl, selector, attrName, oid) {
     $(selector).each(function() {
-        var attr = $(this).attr(attrName);
+        // NOTE: $(this).attr(attrName) on IE7 returns an absolute path instead
+        // of relative, so we need to use the DOM attribute directly
+        var attr = $(this).get(0).getAttribute(attrName, 2);
         if (attr != null) {
             if (attr.indexOf("tfObject:") == 0) {
                 // First class objects (links only, not images)
@@ -417,7 +419,7 @@ $(function() {
                 title: $("#blog_title").val(),
                 username: $("#blog_username").val(),
                 password: $("#blog_password").val(),
-                oid: "$oid",
+                oid: "$oid"
             },
             function(data, status) {
                 $("#blog-loading").hide();

@@ -228,19 +228,24 @@ input.checkbox {
     width: auto;
 }
 
-.content-preview-inline h2 a, .content-preview-inline h2 a:hover {
-    background: none;
-}
-
 .tree ul {
     overflow: auto;
     text-wrap: normal;
     word-wrap: break-word;
 }
 
+#content h1 {
+    font-size: 1.7em;
+}
+
 #content h2 {
     border-bottom: 1px solid silver;
+    font-size: 1.5em;
     margin-bottom: 1em;
+}
+
+#content h2 a, #content h2 a:hover {
+    background: none;
 }
 
 .page-toc {
