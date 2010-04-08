@@ -291,10 +291,14 @@ public class HarvestClient {
         // FIXME objectId is redundant now?
         props.setProperty("objectId", object.getId());
         props.setProperty("scriptType", config.get("indexer/script/type"));
-        props.setProperty("rulesOid", rulesObject.getId());
-        props.setProperty("rulesPid", rulesObject.getSourceId());
-        props.setProperty("jsonConfigOid", configObject.getId());
-        props.setProperty("jsonConfigPid", configObject.getSourceId());
+        if (props.getProperty("rulesOid") == null) {
+            props.setProperty("rulesOid", rulesObject.getId());
+            props.setProperty("rulesPid", rulesObject.getSourceId());
+        }
+        if (props.getProperty("jsonConfigOid") == null) {
+            props.setProperty("jsonConfigOid", configObject.getId());
+            props.setProperty("jsonConfigPid", configObject.getSourceId());
+        }
         if (fileOwner != null) {
             props.setProperty("owner", fileOwner);
         }
