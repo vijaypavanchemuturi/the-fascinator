@@ -299,6 +299,7 @@
                 $(".image_search_results").show();
                 $(".image_search_results").html(data); 
             }); 
+            return false;
         });
         
         $("#selected_people").live("click", function() {

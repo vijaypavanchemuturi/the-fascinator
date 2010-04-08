@@ -1,6 +1,5 @@
 import md5, os, time
 from au.edu.usq.fascinator.indexer.rules import AddField, New
-from org.dom4j.io import SAXReader
 
 from au.edu.usq.fascinator.common.nco import Contact
 from au.edu.usq.fascinator.common.nfo import PaginatedTextDocument

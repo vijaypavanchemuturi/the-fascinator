@@ -146,7 +146,7 @@
       <id>solr-webapp</id>
       <activation>
         <file>
-          <missing>target/dependency/solr-webapp-1.4.0.war</missing>
+          <missing>${basedir}/target/dependency/solr-webapp-1.4.0.war</missing>
         </file>
       </activation>
       <build>
@@ -178,6 +178,28 @@
       </build>
     </profile>
     <profile>
+      <id>fascinator-home</id>
+      <activation>
+        <property>
+          <name>!fascinator.home</name>
+        </property>
+      </activation>
+      <properties>
+        <fascinator.home>${user.home}/.fascinator</fascinator.home>
+      </properties>
+    </profile>
+    <profile>
+      <id>solr-base-dir</id>
+      <activation>
+        <property>
+          <name>!solr.base.dir</name>
+        </property>
+      </activation>
+      <properties>
+        <solr.base.dir>${fascinator.home}/solr</solr.base.dir>
+      </properties>
+    </profile>
+    <profile>
       <id>dev</id>
       <dependencies>
         <dependency>
@@ -199,6 +221,10 @@
         <dependency>
           <groupId>au.edu.usq.fascinator.plugins</groupId>
           <artifactId>plugin-harvester-filesystem</artifactId>
+        </dependency>
+        <dependency>
+          <groupId>au.edu.usq.fascinator.plugins</groupId>
+          <artifactId>plugin-harvester-ice2</artifactId>
         </dependency>
         <dependency>
           <groupId>au.edu.usq.fascinator.plugins</groupId>
@@ -265,7 +291,7 @@
                   <artifactId>plugin-indexer-solr</artifactId>
                   <version>0.5.0-SNAPSHOT</version>
                   <type>jar</type>
-                  <outputDirectory>${solr.solr.home}</outputDirectory>
+                  <outputDirectory>${solr.base.dir}</outputDirectory>
                   <includes>solr/**</includes>
                 </artifactItem>
                 <artifactItem>
@@ -273,7 +299,7 @@
                   <artifactId>plugin-harvester-workflow</artifactId>
                   <version>0.5.0-SNAPSHOT</version>
                   <type>jar</type>
-                  <outputDirectory>${user.home}/.fascinator</outputDirectory>
+                  <outputDirectory>${fascinator.home}</outputDirectory>
                   <includes>workflows/**</includes>
                 </artifactItem>
               </artifactItems>
@@ -309,6 +335,10 @@
               <contextPath>/portal</contextPath>
               <systemProperties>
                 <systemProperty>
+                  <name>solr.solr.home</name>
+                  <value>${solr.base.dir}/solr</value>
+                </systemProperty>
+                <systemProperty>
                   <name>java.util.logging.config.file</name>
                   <value>src/main/resources/solr-logging.properties</value>
                 </systemProperty>
@@ -341,9 +371,11 @@
               <goal>xjc</goal>
             </goals>
             <configuration>
+              <catalog>src/main/resources/xsd/catalog.cat</catalog>
               <packageName>au.edu.usq.fascinator.ims</packageName>
               <schemaDirectory>src/main/resources/xsd</schemaDirectory>
               <schemaFiles>imscp_v1p1.xsd</schemaFiles>
+              <catalog>src/main/resources/xsd/catalog.cat</catalog>
             </configuration>
           </execution>
         </executions>

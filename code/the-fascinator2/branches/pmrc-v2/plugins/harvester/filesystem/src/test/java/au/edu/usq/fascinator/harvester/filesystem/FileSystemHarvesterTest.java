@@ -147,19 +147,22 @@ public class FileSystemHarvesterTest {
         Set<String> items = fsh.getObjectIdList();
         Assert.assertEquals(2, items.size());
 
-        FileUtils.deleteQuietly(testFile);
+        boolean success = FileUtils.deleteQuietly(testFile);
+        if (success) {
+            // next harvest will detect the change
+            FileSystemHarvester fsh2 = getHarvester("/fsh-config-caching.json");
+            Set<String> items2 = fsh2.getObjectIdList();
+            Assert.assertEquals(0, items2.size());
 
-        // next harvest will detect the change
-        FileSystemHarvester fsh2 = getHarvester("/fsh-config-caching.json");
-        Set<String> items2 = fsh2.getObjectIdList();
-        Assert.assertEquals(0, items2.size());
-
-        Set<String> items4 = new HashSet<String>();
-        do {
-            Set<String> items3 = fsh2.getDeletedObjectIdList();
-            items4.addAll(items3);
-        } while (fsh2.hasMoreDeletedObjects());
-        Assert.assertEquals(1, items4.size());
+            Set<String> items4 = new HashSet<String>();
+            do {
+                Set<String> items3 = fsh2.getDeletedObjectIdList();
+                items4.addAll(items3);
+            } while (fsh2.hasMoreDeletedObjects());
+            Assert.assertEquals(1, items4.size());
+        } else {
+            Assert.fail("Failed to delete file during test");
+        }
     }
 
     /**

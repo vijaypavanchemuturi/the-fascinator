@@ -318,6 +318,6 @@ class Authentication:
             self.has_error = False
         except RolesException, e:
             self.error_message = self.parse_error(e)
-            
+
 if __name__ == "__main__":
-   Authentication()
+    Authentication()

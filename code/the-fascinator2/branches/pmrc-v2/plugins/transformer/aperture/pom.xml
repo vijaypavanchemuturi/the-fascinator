@@ -39,6 +39,11 @@
       <artifactId>rdf2go.impl.jena24</artifactId>
       <version>4.7.2</version>
     </dependency> -->
+    <dependency>
+      <groupId>au.edu.usq.fascinator.plugins</groupId>
+      <artifactId>plugin-storage-ram</artifactId>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
   <build>
     <plugins>
