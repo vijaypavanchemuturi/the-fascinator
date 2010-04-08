@@ -22,6 +22,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
+import java.net.UnknownHostException;
 
 import org.apache.commons.io.FilenameUtils;
 import org.slf4j.Logger;
@@ -31,6 +32,8 @@ import au.edu.usq.fascinator.api.storage.DigitalObject;
 import au.edu.usq.fascinator.api.storage.Payload;
 import au.edu.usq.fascinator.api.storage.Storage;
 import au.edu.usq.fascinator.api.storage.StorageException;
+import java.net.InetAddress;
+import org.apache.commons.codec.digest.DigestUtils;
 
 /**
  * Storage API utility methods.
@@ -38,6 +41,8 @@ import au.edu.usq.fascinator.api.storage.StorageException;
  * @author Oliver Lucido
  */
 public class StorageUtils {
+
+    public static final String DEFAULT_HOSTNAME = "localhost";
 
     private static final Logger log = LoggerFactory
             .getLogger(StorageUtils.class);
@@ -49,7 +54,17 @@ public class StorageUtils {
      * @return a String object id
      */
     public static String generateOid(File file) {
-        return FilenameUtils.separatorsToUnix(file.getAbsolutePath());
+        // MD5 hash the file path,
+        String path = FilenameUtils.separatorsToUnix(file.getAbsolutePath());
+        String hostname = "localhost";
+        try {
+            hostname = InetAddress.getLocalHost().getCanonicalHostName();
+        } catch (UnknownHostException uhe) {
+        }
+        String username = System.getProperty("user.name", "anonymous");
+        log.debug("Generating OID path:'{}' hostname:'{}' username:'{}'",
+                new String[] { path, hostname, username });
+        return DigestUtils.md5Hex(path + hostname + username);
     }
 
     /**
@@ -211,5 +226,9 @@ public class StorageUtils {
             throw ex;
         }
         return payload;
+    }
+
+    public static void main(String[] args) throws Exception {
+       System.out.println(InetAddress.getLocalHost().getCanonicalHostName());
     }
 }

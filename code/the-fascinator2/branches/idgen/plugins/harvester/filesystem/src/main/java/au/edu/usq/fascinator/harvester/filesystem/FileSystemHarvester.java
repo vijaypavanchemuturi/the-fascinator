@@ -335,6 +335,7 @@ public class FileSystemHarvester extends GenericHarvester {
         // update object metadata
         Properties props = object.getMetadata();
         props.setProperty("render-pending", "true");
+        props.setProperty("file.path", file.getAbsolutePath());
 
         object.close();
         return oid;
