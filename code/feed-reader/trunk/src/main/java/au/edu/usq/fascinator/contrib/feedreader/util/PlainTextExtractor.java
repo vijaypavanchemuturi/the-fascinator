@@ -16,7 +16,7 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-package au.edu.usq.fascinator.contrib.feedreader;
+package au.edu.usq.fascinator.contrib.feedreader.util;
 
 import org.htmlparser.Parser;
 import org.htmlparser.Text;

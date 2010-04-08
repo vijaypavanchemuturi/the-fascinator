@@ -7,7 +7,20 @@ There are a few profiles, please refer to the pom. For example:
 
 mvn -Pslashdot exec:java
 
+You can also run the following if you want to specify your own blog feed:
+
+mvn exec:java -Dexec.args="url=http://myblog/feed/ cache=target"
+
 Notes:
- * By default the Rome Fetcher cache is target/
- * To "reset" a feed, either delete the cache from 
-   target or rerun the commands "mvn clean install" 
+ * For profiles: the Rome Fetcher cache is target/
+  * To "reset" a feed, either delete the cache from 
+    target or rerun the commands "mvn clean generate-sources install"
+    
+ * If cache is not set, ~/.feed-reader contains the cache
+ 
+ * When developing you can use "mvn compile" once you've grabbed the
+   schema via generate-sources. This saves 
+  
+  
+If you need to reload the RDF Class implementations, run:
+    mvn rdf-reactor:rdfs
