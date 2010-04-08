@@ -17,7 +17,7 @@
 #foreach( $item in $subject )
 	<li>$item.getName()</li>
 #end
-<ul>
+</ul>
 #end
 
 <h2>Abstract</h2>
