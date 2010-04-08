@@ -1,0 +1,10 @@
+{
+    "harvester": {
+        "type": "file-system",
+        "file-system": {
+            "baseDir": "${test.dir}",
+            "recursive": true,
+            "ignoreFilter": "*.gif|*.mp3"
+        }
+    }
+}
