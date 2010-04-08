@@ -85,7 +85,9 @@
   </div>
 </div>
 <div class="clear"></div>
-<div class="prefix_4 grid_6">
+<!-- IE7 needs a blank div here, class="prefix_4" doesn't work -->
+<div class="grid_4">&nbsp;</div>
+<div class="grid_6">
   <div class="box">
     <h2>Latest additions</h2>
     <div class="block">
