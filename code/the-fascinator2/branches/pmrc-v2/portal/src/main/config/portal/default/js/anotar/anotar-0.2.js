@@ -917,7 +917,7 @@ function anotarFactory(jQ, config) {
                 hash: hashValue,
                 originalContent: originalContent,
                 content: text,
-                isPrivate:isPrivate,
+                isPrivate:isPrivate
             };
             
             if (config.getContentUri) {
