@@ -194,6 +194,10 @@ public class ApertureTransformer implements Transformer {
     public static RDFContainer extractRDF(File file) throws IOException,
             ExtractorException {
         String mimeType = MimeTypeUtil.getMimeType(file);
+        if (mimeType == null) {
+            log.error("MIME Type = NULL, skipping RDF extraction.");
+            return null;
+        }
         return extractRDF(file, mimeType);
     }
 
@@ -388,13 +392,13 @@ public class ApertureTransformer implements Transformer {
         try {
             if (inFile.exists()) {
                 RDFContainer rdf = extractRDF(inFile); // Never write to file
-                log.info("Done extraction: " + rdf.getClass());
                 if (rdf != null) {
+                    log.info("Done extraction: " + rdf.getClass());
                     Payload rdfPayload = StorageUtils
                             .createOrUpdatePayload(in, "aperture.rdf",
                                     new ByteArrayInputStream(
                                             stripNonValidXMLCharacters(rdf)
-                                                    .getBytes()));
+                                                    .getBytes("UTF-8")));
                     rdfPayload.setLabel("Aperture rdf");
                     rdfPayload.setContentType("application/xml+rdf");
                     rdfPayload.setType(PayloadType.Enrichment);

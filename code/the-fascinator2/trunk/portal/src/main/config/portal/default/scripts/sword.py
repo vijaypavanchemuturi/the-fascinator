@@ -50,7 +50,7 @@ class SwordHelper(object):
             if formData.get("test"):
                 depositUrl += "?test=1"
             sd = sword.doServiceDocument(sdr)  # get a serviceDocument
-            out = response.getPrintWriter("text/xml")
+            out = response.getPrintWriter("text/xml; charset=UTF-8")
             out.println(str(sd))
             out.close()
             bindings["pageName"] = "-noTemplate-"

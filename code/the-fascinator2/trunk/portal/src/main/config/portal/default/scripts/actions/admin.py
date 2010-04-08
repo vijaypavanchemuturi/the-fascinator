@@ -6,7 +6,7 @@ class LoginData:
         self.authentication = Authentication()
         self.authentication.session_init()
 
-        self.writer = response.getPrintWriter("text/html")
+        self.writer = response.getPrintWriter("text/html; charset=UTF-8")
 
         if self.authentication.is_logged_in() and self.authentication.is_admin():
             self.process()

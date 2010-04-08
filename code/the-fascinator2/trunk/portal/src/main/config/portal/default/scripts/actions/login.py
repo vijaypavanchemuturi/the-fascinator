@@ -14,7 +14,7 @@ class LoginData:
         else:
             responseMsg = self.authentication.get_error()
             response.setStatus(500)
-        writer = response.getPrintWriter("text/html")
+        writer = response.getPrintWriter("text/html; charset=UTF-8")
         writer.println(responseMsg)
         writer.close()
 

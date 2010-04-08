@@ -69,7 +69,7 @@ class TagData:
             tags = self.__remove(oid, tag)
         elif func == "tags-load":
             tags = self.__load(oid)
-        writer = response.getPrintWriter("text/plain")
+        writer = response.getPrintWriter("text/plain; charset=UTF-8")
         writer.println("{tags: %s}" % str(["%s" % t for t in tags]))
         writer.close()
     

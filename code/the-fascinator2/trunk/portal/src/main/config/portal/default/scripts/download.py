@@ -27,7 +27,7 @@ class DownloadData:
             object.close()
         else:
             response.setStatus(404)
-            writer = response.getPrintWriter("text/plain")
+            writer = response.getPrintWriter("text/plain; charset=UTF-8")
             writer.println("Not found: uri='%s'" % uri)
             writer.close()
     

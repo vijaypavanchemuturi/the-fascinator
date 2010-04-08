@@ -121,7 +121,7 @@ class SettingsActions:
             JsonConfig.getSystemFile()
             # mark restart
             sessionState.set("need-restart", "true")
-        writer = response.getPrintWriter("text/plain")
+        writer = response.getPrintWriter("text/plain; charset=UTF-8")
         writer.println(result)
         writer.close()
     

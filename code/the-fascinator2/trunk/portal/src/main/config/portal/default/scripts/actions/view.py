@@ -21,7 +21,7 @@ class ViewActions:
         elif func == "delete-view":
             print " * view.py: delete portal %s" % portalId
             Services.getPortalManager().remove(portalId)
-        writer = response.getPrintWriter("text/plain")
+        writer = response.getPrintWriter("text/plain; charset=UTF-8")
         writer.println(result)
         writer.close()
 

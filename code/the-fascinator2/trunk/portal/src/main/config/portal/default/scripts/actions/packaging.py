@@ -3,7 +3,7 @@ import md5, uuid
 from au.edu.usq.fascinator import HarvestClient
 from au.edu.usq.fascinator.common import FascinatorHome, JsonConfigHelper
 
-from java.io import File, FileOutputStream, FileWriter
+from java.io import File, FileOutputStream, OutputStreamWriter
 from java.lang import Exception
 
 from org.apache.commons.io import IOUtils
@@ -14,7 +14,7 @@ class PackagingActions:
     
     def __init__(self):
         print "formData=%s" % formData
-        
+
         result = "{}"
         func = formData.get("func")
         if func == "create-from-selected":
@@ -24,13 +24,13 @@ class PackagingActions:
         elif func == "clear":
             result = self.__clear()
         
-        writer = response.getPrintWriter("application/json")
+        writer = response.getPrintWriter("application/json; charset=UTF-8")
         writer.println(result)
         writer.close()
     
     def __createFromSelected(self):
         print "Creating package from selected..."
-        
+
         # create the manifest
         manifest = JsonConfigHelper()
         manifest.set("title", "New package")
@@ -40,17 +40,18 @@ class PackagingActions:
                 title = item[id]
                 manifest.set("manifest/node-%s/id" % hashId, id)
                 manifest.set("manifest/node-%s/title" % hashId, title)
-        
+
         # store the manifest to the know location
         packageDir = FascinatorHome.getPathFile("packages")
         packageDir.mkdirs()
-        
+
         manifestHash = uuid.uuid4() # random uuid
         manifestFile = File(packageDir, str(manifestHash) + ".tfpackage")
-        writer = FileWriter(manifestFile)
-        manifest.store(writer, True)
-        writer.close()
-        
+        outStream = FileOutputStream(manifestFile)
+        outWriter = OutputStreamWriter(outStream, "UTF-8")
+        manifest.store(outWriter, True)
+        outWriter.close()
+
         username = sessionState.get("username")
         if username is None:
             username = "guest" # necessary?
@@ -71,7 +72,7 @@ class PackagingActions:
             if harvester is not None:
                 harvester.shutdown()
             return '{ status: "failed" }'
-        
+
         # clean up
         manifestFile.delete()
         self.__clear()

@@ -50,7 +50,7 @@ class DetailData:
         self.__object = None
         if formData.get("func") == "open-file":
             self.__openFile()
-            writer = response.getPrintWriter("text/plain")
+            writer = response.getPrintWriter("text/plain; charset=UTF-8")
             writer.println("{}")
             writer.close()
         else:
