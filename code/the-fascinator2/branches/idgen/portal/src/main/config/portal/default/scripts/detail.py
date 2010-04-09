@@ -58,17 +58,18 @@ class DetailData:
             uri = URLDecoder.decode(request.getAttribute("RequestURI"))
             basePath = portalId + "/" + pageName
             self.__oid = uri[len(basePath)+1:]
+            self.__pid = None
             slash = self.__oid.rfind("/")
-            self.__pid = self.__oid[slash+1:]
             try:
                 self.__object = self.__storage.getObject(self.__oid)
+                self.__pid = self.__object.getSourceId()
                 self.__payload = self.__object.getPayload(self.__pid)
                 self.__mimeType = self.__payload.getContentType()
             except StorageException, e:
                 self.__mimeType = "application/octet-stream"
 
-            self.__metadata = JsonConfigHelper()
             print " * detail.py: URI='%s' OID='%s' PID='%s' MIME='%s'" % (uri, self.__oid, self.__pid, self.__mimeType)
+            self.__metadata = JsonConfigHelper()
             self.__search()
             
             # get the package manifest
@@ -95,13 +96,11 @@ class DetailData:
         self.__metadata = SolrDoc(self.__json)
 
     def canOpenFile(self):
-        #HACK check if mimetypes match between index and real file
-        #dcFormat = self.__json.get("response/docs/dc_format", "")
-        #if dcFormat is not None:
-        #    dcFormat = dcFormat[1:-1]
-        #return dcFormat == self.__mimeType
-        f = File(self.getObject().getId())
-        return f.exists();
+        #f = File(self.getObject().getId())
+        #return f.exists();
+        # get original file.path from properties
+        filePath = self.__object.getMetadata().getProperty("file.path")
+        return filePath is not None and File(filePath).exists()
 
     def closeObject(self):
         object = self.getObject()

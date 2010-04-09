@@ -24,6 +24,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashSet;
+import java.util.Properties;
 import java.util.Set;
 import java.util.Stack;
 
@@ -35,13 +36,10 @@ import org.slf4j.LoggerFactory;
 
 import au.edu.usq.fascinator.api.harvester.HarvesterException;
 import au.edu.usq.fascinator.api.storage.DigitalObject;
-import au.edu.usq.fascinator.api.storage.Payload;
-import au.edu.usq.fascinator.api.storage.Storage;
 import au.edu.usq.fascinator.api.storage.StorageException;
 import au.edu.usq.fascinator.common.JsonConfig;
 import au.edu.usq.fascinator.common.harvester.impl.GenericHarvester;
 import au.edu.usq.fascinator.common.storage.StorageUtils;
-import java.util.Properties;
 
 /**
  * Harvests files in a specified directory on the local file system
@@ -335,7 +333,8 @@ public class FileSystemHarvester extends GenericHarvester {
         // update object metadata
         Properties props = object.getMetadata();
         props.setProperty("render-pending", "true");
-        props.setProperty("file.path", file.getAbsolutePath());
+        props.setProperty("file.path", FilenameUtils.separatorsToUnix(file
+                .getAbsolutePath()));
 
         object.close();
         return oid;

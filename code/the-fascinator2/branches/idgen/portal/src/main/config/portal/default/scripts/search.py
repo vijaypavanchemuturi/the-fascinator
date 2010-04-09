@@ -164,10 +164,10 @@ class SearchData:
     def getThumbnail(self, oid):
         # TODO should eventually use 'StorageManager' to get the thumbnail
         # instead of looking at specific payload IDs
-        ext = os.path.splitext(oid)[1]
-        url = oid[oid.rfind("/")+1:-len(ext)] + "_thumbnail.jpg"
         try:
             object = Services.getStorage().getObject(oid)
+            sid = object.getSourceId()
+            url = os.path.splitext(sid)[0] + "_thumbnail.jpg"
             try:
                 payload = object.getPayload(url)
                 payload.close()
