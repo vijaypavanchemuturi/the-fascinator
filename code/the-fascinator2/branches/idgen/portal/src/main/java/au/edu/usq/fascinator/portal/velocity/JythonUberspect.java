@@ -67,7 +67,7 @@ public class JythonUberspect extends UberspectImpl {
                 Class cls = ((PyJavaType) pyType).getProxyType();
                 return super.getIterator(pyObject.__tojava__(cls), i);
             } else {
-                log.debug("Unsupported class:{} type:{}", pyObject.getClass(),
+                log.trace("Unsupported class:{} type:{}", pyObject.getClass(),
                         pyType);
             }
         }
@@ -138,7 +138,7 @@ public class JythonUberspect extends UberspectImpl {
                     || pyObject instanceof PyDictionary) {
                 return (pyObject);
             } else {
-                log.debug("toJava unhandled type:{}", pyObject.getClass()
+                log.trace("toJava unhandled type:{}", pyObject.getClass()
                         .getName());
             }
         }

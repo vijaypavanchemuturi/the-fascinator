@@ -22,8 +22,10 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
+import java.net.InetAddress;
 import java.net.UnknownHostException;
 
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,8 +34,6 @@ import au.edu.usq.fascinator.api.storage.DigitalObject;
 import au.edu.usq.fascinator.api.storage.Payload;
 import au.edu.usq.fascinator.api.storage.Storage;
 import au.edu.usq.fascinator.api.storage.StorageException;
-import java.net.InetAddress;
-import org.apache.commons.codec.digest.DigestUtils;
 
 /**
  * Storage API utility methods.
@@ -49,7 +49,7 @@ public class StorageUtils {
 
     /**
      * Generates a Object identifier for a given file
-     *
+     * 
      * @param file the File to store
      * @return a String object id
      */
@@ -69,7 +69,7 @@ public class StorageUtils {
 
     /**
      * Generates a Payload identifier for a given file
-     *
+     * 
      * @param file the File to store
      * @return a String payload id
      */
@@ -126,7 +126,9 @@ public class StorageUtils {
                 object = getDigitalObject(storage, oid);
                 if (linked) {
                     try {
-                        payload = createLinkedPayload(object, pid, oid);
+                        String path = FilenameUtils.separatorsToUnix(file
+                                .getAbsolutePath());
+                        payload = createLinkedPayload(object, pid, path);
                     } catch (StorageException se) {
                         payload = object.getPayload(pid);
                     }
@@ -226,9 +228,5 @@ public class StorageUtils {
             throw ex;
         }
         return payload;
-    }
-
-    public static void main(String[] args) throws Exception {
-       System.out.println(InetAddress.getLocalHost().getCanonicalHostName());
     }
 }
