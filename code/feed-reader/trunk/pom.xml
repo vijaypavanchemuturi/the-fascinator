@@ -263,7 +263,7 @@
 							</mainClass>
 							<arguments>
 								<argument>
-									url=http://wwmm.ch.cam.ac.uk/crystaleye/feed/all/rss/atom_10/feed.xml
+									--url=http://wwmm.ch.cam.ac.uk/crystaleye/feed/all/rss/atom_10/feed.xml
 								</argument>
 								<argument>--html</argument>
 								<argument>--rdf</argument>
@@ -285,7 +285,7 @@
 							<mainClass>au.edu.usq.fascinator.contrib.feedreader.FeedReader
 							</mainClass>
 							<arguments>
-								<argument>url=http://rss.slashdot.org/Slashdot/slashdot
+								<argument>--url=http://rss.slashdot.org/Slashdot/slashdot
 								</argument>
 								<argument>--html</argument>
 								<argument>--rdf</argument>
@@ -295,6 +295,7 @@
 				</plugins>
 			</build>
 		</profile>
+		
 	</profiles>
 
 	<reporting>

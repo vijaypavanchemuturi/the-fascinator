@@ -19,172 +19,171 @@ import com.sun.syndication.io.FeedException;
 
 /**
  * Provides a basic interface to the ROME Fetcher library. To use this class:
- * 1.Instantiate it with the feed url and cache location
- * 2. Add a state change listener (via addFeedReaderStateChangeListener)
- * 3. Call read() one or more times
- * The NewItemListener class provides a sample listener that dumps out
+ * 1.Instantiate it with the feed url and cache location 2. Add a state change
+ * listener (via addFeedReaderStateChangeListener) 3. Call read() one or more
+ * times The NewItemListener class provides a sample listener that dumps out
  * data as the feed is read.
  * 
  * @author Duncan Dickinson
  * @see http://wiki.java.net/bin/view/Javawsxml/RomeFetcher
  */
 public class Feed implements FetcherListener, Runnable {
-    /**
-     * Generic logging
-     */
-    private static Logger log = LoggerFactory.getLogger(Feed.class);
+	/**
+	 * Generic logging
+	 */
+	private static Logger log = LoggerFactory.getLogger(Feed.class);
 
-    /**
-     * The URLs of the RSS/ATOM feeds
-     */
-    private URL feedURL;
+	/**
+	 * The URLs of the RSS/ATOM feeds
+	 */
+	private URL feedURL;
 
-    /**
-     * The actual feed
-     */
-    private SyndFeed feed;
+	/**
+	 * The actual feed
+	 */
+	private SyndFeed feed;
 
-    /**
-     * Syndication fetcher
-     */
-    private HttpURLFeedFetcher fetcher;
+	/**
+	 * Syndication fetcher
+	 */
+	private HttpURLFeedFetcher fetcher;
 
-    /**
-     * The location of the fetcher cache
-     */
-    private String cacheDir;
+	/**
+	 * The location of the fetcher cache
+	 */
+	private String cacheDir;
 
-    /**
-     * Registered listeners are informed when the feed is read
-     */
-    private HashSet<FeedReaderStateChangeListener> stateChangeListeners = new HashSet<FeedReaderStateChangeListener>();
+	/**
+	 * Registered listeners are informed when the feed is read
+	 */
+	private HashSet<FeedReaderStateChangeListener> stateChangeListeners = new HashSet<FeedReaderStateChangeListener>();
 
-    private FetcherEvent lastFetcherEvent;
+	private FetcherEvent lastFetcherEvent;
 
-    public Feed(URL feedURL) throws MalformedURLException {
-        super();
-        setFeedURL(feedURL);
-        fetcher = new HttpURLFeedFetcher();
-        fetcher.addFetcherEventListener(this);
+	public Feed(URL feedURL) throws MalformedURLException {
+		super();
+		setFeedURL(feedURL);
+		fetcher = new HttpURLFeedFetcher();
+		fetcher.addFetcherEventListener(this);
 
-    }
+	}
 
-    /**
-     * Sets up the basic configuration for a feed read() is called to actually
-     * fetch the feed
-     * 
-     * @param feedURL
-     *            The URL of the feed
-     * @param cacheDir
-     *            The location for storing the feed caches
-     * @throws MalformedURLException
-     */
-    public Feed(URL feedURL, String cacheDir) throws MalformedURLException {
-        this(feedURL);
-        if (cacheDir != null) {
-            setCacheDir(cacheDir);
-            fetcher.setFeedInfoCache(new DiskFeedInfoCache(getCacheDir()));
-        }
+	/**
+	 * Sets up the basic configuration for a feed read() is called to actually
+	 * fetch the feed
+	 * 
+	 * @param feedURL
+	 *            The URL of the feed
+	 * @param cacheDir
+	 *            The location for storing the feed caches
+	 * @throws MalformedURLException
+	 */
+	public Feed(URL feedURL, String cacheDir) throws MalformedURLException {
+		this(feedURL);
+		if (cacheDir != null) {
+			setCacheDir(cacheDir);
+			fetcher.setFeedInfoCache(new DiskFeedInfoCache(getCacheDir()));
+		}
 
-    }
+	}
 
-    /**
-     * Reads the feed.
-     * Note that the whole
-     * 
-     * @return
-     */
-    public SyndFeed read() {
-        try {
-            this.feed = fetcher.retrieveFeed(this.getFeedURL());
-            FeedReaderStateChangeEvent event = new FeedReaderStateChangeEvent(
-                    this, this.lastFetcherEvent);
-            for (FeedReaderStateChangeListener listener : stateChangeListeners) {
-                listener.feedReaderStateChangeEvent(event);
-            }
-        } catch (IllegalArgumentException e1) {
-            log.error(e1.getLocalizedMessage());
-        } catch (IOException e1) {
-            log.error(e1.getLocalizedMessage());
-        } catch (FeedException e1) {
-            log.error(e1.getLocalizedMessage());
-        } catch (FetcherException e1) {
-            log.error(e1.getLocalizedMessage());
-        }
-        return this.feed;
-    }
+	/**
+	 * Reads the feed. Note that the whole
+	 * 
+	 * @return
+	 */
+	public SyndFeed read() {
+		try {
+			this.feed = fetcher.retrieveFeed(this.getFeedURL());
 
-    public void fetcherEvent(FetcherEvent fevent) {
-        this.lastFetcherEvent = fevent;
-    }
+		} catch (IllegalArgumentException e1) {
+			log.error(e1.getLocalizedMessage());
+		} catch (IOException e1) {
+			log.error(e1.getLocalizedMessage());
+		} catch (FeedException e1) {
+			log.error(e1.getLocalizedMessage());
+		} catch (FetcherException e1) {
+			log.error(e1.getLocalizedMessage());
+		}
+		FeedReaderStateChangeEvent event = new FeedReaderStateChangeEvent(this,
+				this.lastFetcherEvent);
+		for (FeedReaderStateChangeListener listener : stateChangeListeners) {
+			listener.feedReaderStateChangeEvent(event);
+		}
+		return this.feed;
+	}
 
-    public void addFeedReaderStateChangeListener(
-            FeedReaderStateChangeListener listener) {
-        stateChangeListeners.add(listener);
-    }
+	public void fetcherEvent(FetcherEvent fevent) {
+		this.lastFetcherEvent = fevent;
+	}
 
-    public void removeFeedReaderStateChangeListener(
-            FeedReaderStateChangeListener listener) {
-        stateChangeListeners.remove(listener);
-    }
+	public void addFeedReaderStateChangeListener(
+			FeedReaderStateChangeListener listener) {
+		stateChangeListeners.add(listener);
+	}
 
-    public SyndFeed getFeed() {
-        return this.feed;
-    }
+	public void removeFeedReaderStateChangeListener(
+			FeedReaderStateChangeListener listener) {
+		stateChangeListeners.remove(listener);
+	}
 
-    /**
-     * @return the URL being read
-     */
-    public URL getFeedURL() {
-        return this.feedURL;
-    }
+	public SyndFeed getFeed() {
+		return this.feed;
+	}
 
-    /**
-     * @return the URL being read
-     */
-    public String getFeedURLString() {
-        return this.feedURL.toString();
-    }
+	/**
+	 * @return the URL being read
+	 */
+	public URL getFeedURL() {
+		return this.feedURL;
+	}
 
-    /**
-     * @param feedURL
-     *            the feedURL to set
-     */
-    protected void setFeedURL(URL feedURL) {
-        this.feedURL = feedURL;
-    }
+	/**
+	 * @return the URL being read
+	 */
+	public String getFeedURLString() {
+		return this.feedURL.toString();
+	}
 
-    /**
-     * Returns all items in the cache
-     * 
-     * @return list of FeedItems
-     */
-    public SyndFeed getAll() {
-        return this.fetcher.getFeedInfoCache().getFeedInfo(this.feedURL)
-                .getSyndFeed();
-    }
+	/**
+	 * @param feedURL
+	 *            the feedURL to set
+	 */
+	protected void setFeedURL(URL feedURL) {
+		this.feedURL = feedURL;
+	}
 
-    /**
-     * @return the cacheDir
-     */
-    public String getCacheDir() {
-        return this.cacheDir;
-    }
+	/**
+	 * Returns all items in the cache
+	 * 
+	 * @return list of FeedItems
+	 */
+	public SyndFeed getAll() {
+		return this.fetcher.getFeedInfoCache().getFeedInfo(this.feedURL)
+				.getSyndFeed();
+	}
 
-    /**
-     * @param cacheDir
-     *            the cacheDir to set
-     */
-    private void setCacheDir(String cacheDir) {
-        this.cacheDir = cacheDir;
-        new File(cacheDir).mkdirs();
-    }
+	/**
+	 * @return the cacheDir
+	 */
+	public String getCacheDir() {
+		return this.cacheDir;
+	}
 
-    @Override
-    public void run() {
-        log.debug("Thread started for : " + this.feedURL.toExternalForm());
-        this.read();
-        log.debug("Read completed for : " + this.feedURL.toExternalForm());
-    }
+	/**
+	 * @param cacheDir
+	 *            the cacheDir to set
+	 */
+	private void setCacheDir(String cacheDir) {
+		this.cacheDir = cacheDir;
+		new File(cacheDir).mkdirs();
+	}
+
+	@Override
+	public void run() {
+		log.debug("Thread started for : " + this.feedURL.toExternalForm());
+		this.read();
+		log.debug("Read completed for : " + this.feedURL.toExternalForm());
+	}
 
 }
