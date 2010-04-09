@@ -37,6 +37,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -46,7 +47,6 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.Stack;
-import java.util.UUID;
 
 import net.htmlparser.jericho.*;
 import org.apache.commons.codec.digest.DigestUtils;
@@ -69,8 +69,11 @@ public class Ice2Harvester extends GenericHarvester {
     /** logging */
     private Logger log = LoggerFactory.getLogger(Ice2Harvester.class);
 
-    /** default ignore list */
+    /** What we do/don't look for */
     private static final String DEFAULT_IGNORE_PATTERNS = ".svn";
+    private static String[] acceptedMedia = {
+        "audio", "flash", "images", "presentations", "readings", "video",
+        "breeze"};
 
     /** directory to house temp data */
     private File tempDir;
@@ -261,7 +264,7 @@ public class Ice2Harvester extends GenericHarvester {
         // Some basic initialisation
         File file = null;
         InputStream iceParser = null;
-        JsonConfigHelper response = null;
+        String responseJson, responseGuid = null;
 
         // Cache our Python libraries for parsing manifests
         if (iceManifestLib == null) {
@@ -305,27 +308,29 @@ public class Ice2Harvester extends GenericHarvester {
             // Prepare the data
             file = iceMetadata.pop();
             iceParser = getClass().getResourceAsStream("/ice_item.py");
-            response = new JsonConfigHelper();
+            responseJson = "";
+            responseGuid = "";
 
             // Run the ICE parser
             python.set("filePath",  file.getAbsoluteFile());
-            python.set("response",  response);
+            python.set("responseJson",  responseJson);
+            python.set("responseGuid",  responseGuid);
             python.set("parsePath", iceManifestPath);
             python.set("parseLib",  iceManifestName);
             python.set("jsonLib",   jsonName);
             python.execfile(iceParser);
 
             // Grab the JSON response and cleanup
-            response = python.get("response", JsonConfigHelper.class);
+            responseGuid = python.get("responseGuid", String.class);
+            responseJson = python.get("responseJson", String.class);
             python.cleanup();
 
             // Check response is valid
             // The parser won't return a GUID unless it found a manifest
-            String guid = response.get("guid");
-            if (guid != null) {
+            if (responseGuid != null) {
                 // We've found our manifest
                 hasMore = false;
-                return processIceManifest(response);
+                return processIceManifest(responseJson);
             }
         }
         return new HashSet<String>();
@@ -334,16 +339,15 @@ public class Ice2Harvester extends GenericHarvester {
     /**
      * Process the data in an ICE manifest, looking for the
      */
-    private Set<String> processIceManifest(JsonConfigHelper response)
+    private Set<String> processIceManifest(String responseJson)
             throws HarvesterException {
         Set<String> fileObjectIdList = new HashSet<String>();
 
         // Get the 'manifest' node of the metadata and
         //   parse it into a useful object.
-        String manifest = response.get("json");
         JsonConfigHelper jsonManifest;
         try {
-            jsonManifest = new JsonConfigHelper(manifest);
+            jsonManifest = new JsonConfigHelper(responseJson);
         } catch (IOException ex) {
             log.error("Error in manifest JSON : ", ex);
             return new HashSet<String>();
@@ -370,7 +374,9 @@ public class Ice2Harvester extends GenericHarvester {
 
         for (String key : responseMap.keySet()) {
             if (responseMap.get(key) != null)  {
+                //if (responseMap.get(key).contains("Isotopes")) {
                 fileObjectIdList.add(responseMap.get(key));
+                //}
             }
         }
         return fileObjectIdList;
@@ -463,12 +469,13 @@ public class Ice2Harvester extends GenericHarvester {
             }
 
             // Create the manifest file
-            String packageId = UUID.randomUUID().toString();
+            String packageId = DigestUtils.md5Hex(title);
             File manifestFile = new File(packageDir, packageId + ".tfpackage");
             try {
-                log.debug(" *** ICE2 : Storing new manifest:\n=======\n"
-                        + packager.toString() + "\n=======\n");
-                FileUtils.writeStringToFile(manifestFile, packager.toString());
+                //log.debug(" *** ICE2 : Storing new manifest:\n=======\n"
+                //        + packager.toString() + "\n=======\n");
+                FileUtils.writeStringToFile(manifestFile, packager.toString(),
+                        "utf-8");
             } catch (IOException ex) {
                 log.error("Error writing manifest file to disk : ", ex);
                 return object;
@@ -571,8 +578,8 @@ public class Ice2Harvester extends GenericHarvester {
 
             params = source.getAllElements(HTMLElementName.PARAM);
             for (Element param : params) {
-                // TODO - Rip out the video 'object' element and replace
-                //   with an oEmbed tag
+                // TODO - Rip out the video 'object' element
+                //        and replace with an oEmbed tag
                 //log.debug(" *** ICE2 : Param : '"
                 //        + param.getAttributeValue("name") + "' => '"
                 //        + param.getAttributeValue("value") + "'");
@@ -619,7 +626,7 @@ public class Ice2Harvester extends GenericHarvester {
 
         // Media, handle separately
         if (index.startsWith("media/")) {
-            String mediaOid = harvestMedia(index, objectIdMap);
+            String mediaOid = harvestMedia(htmlFile, oldLink, objectIdMap);
             if (mediaOid == null) {
                 return oldLink;
             } else {
@@ -628,104 +635,154 @@ public class Ice2Harvester extends GenericHarvester {
 
         // A link to another document
         } else {
-            //log.debug(" *** ICE2 : Link = '" + index + "'");
-            DigitalObject object = null;
-
-            // First, it could be a direct link to a document in the package
-            File file = new File(baseDir, oldLink);
-            if (!file.exists()) {
-                // Secondly, it could be relative link to a document
-                file = new File(htmlFile.getParentFile(), oldLink);
+            String DocOid = harvestDocument(htmlFile, oldLink, objectIdMap);
+            if (DocOid == null) {
+                return oldLink;
+            } else {
+                return "tfObject:" + DocOid;
             }
 
-            // Did we find either?
-            if (file.exists()) {
-                File htmlDir = null;
-                // Can we find a rendition of this document?
-                try {
-                    htmlDir = getHtmlRendition(file);
-                } catch (IOException ex) {
-                    // Nothing, leave it to the test below
-                }
+        }
+    }
 
-                // Can we find a rendition of this document?
-                if (htmlDir != null && htmlDir.exists()) {
-                    object = harvestHtml(file, htmlDir, oldLink, objectIdMap);
-                    return "tfObject:" + object.getId();
+    private String harvestDocument(File htmlFile, String oldLink,
+            Map<String, String> objectIdMap) throws HarvesterException {
+        // Normalise relative links
+        String index = oldLink;
+        if (oldLink.startsWith("../")) {
+            index = index.substring(3);
+        }
+        if (index.contains("#")) {
+            index = index.substring(0, index.indexOf("#"));
+        }
+        if (index.contains("?")) {
+            index = index.substring(0, index.indexOf("?"));
+        }
+        // TODO - Suffixes like anchors and parameters need to be retained and
+        //        andled on the detail screen when the object link is resolved.
 
-                // No, time to harvest the original
-                } else {
-                    // TODO - Determine whether we're really harvesting html
-                    //  or need to render a document.
-                    object = harvestHtml(file, file.getParentFile(), index,
-                            objectIdMap);
-                    return "tfObject:" + object.getId();
-                }
+        //log.debug(" *** ICE2 : Link = '" + index + "'");
+        DigitalObject object = null;
+
+        // First, it could be a direct link to a document in the package
+        File file = new File(baseDir, oldLink);
+        if (!file.exists()) {
+            // Secondly, it could be relative link to a document
+            file = new File(htmlFile.getParentFile(), oldLink);
+        }
+
+        // Did we find either?
+        if (file.exists()) {
+            File htmlDir = null;
+            // Can we find a rendition of this document?
+            try {
+                htmlDir = getHtmlRendition(file);
+            } catch (IOException ex) {
+                // Nothing, leave it to the test below
+            }
+
+            // Can we find a rendition of this document?
+            if (htmlDir != null && htmlDir.exists()) {
+                object = harvestHtml(file, htmlDir, oldLink, objectIdMap);
+                return "tfObject:" + object.getId();
+
+            // No, time to harvest the original
+            } else {
+                // TODO - Determine whether we're really harvesting html
+                //  or need to render a document.
+                object = harvestHtml(file, file.getParentFile(), index,
+                        objectIdMap);
+                return "tfObject:" + object.getId();
             }
         }
 
-        // If all else fails, don't touch the link.
-        return oldLink;
+        if (object == null) {
+            return null;
+        } else {
+            return object.getId();
+        }
     }
 
-    private String harvestMedia(String filePath,
-            Map<String, String> objectIdMap) {
+    private String harvestMedia(File htmlFile, String oldLink,
+            Map<String, String> objectIdMap) throws HarvesterException {
+        // Normalise relative links
+        String filePath = oldLink;
+        if (oldLink.startsWith("../")) {
+            filePath = filePath.substring(3);
+        }
+        if (filePath.contains("#")) {
+            filePath = filePath.substring(0, filePath.indexOf("#"));
+        }
+        if (filePath.contains("?")) {
+            filePath = filePath.substring(0, filePath.indexOf("?"));
+        }
+        // TODO - Suffixes like anchors and parameters need to be retained and
+        //        andled on the detail screen when the object link is resolved.
+
         File media = new File(baseDir, filePath);
         DigitalObject object = null;
         if (media.exists()) {
             String fileType = FilenameUtils.getExtension(media.getName());
             String subFilePath = filePath.substring(6);
             int firstSlash = subFilePath.indexOf("/");
+
             String mediaType = subFilePath.substring(0, firstSlash);
             subFilePath = subFilePath.substring(firstSlash + 1);
-            try {
-                if (mediaType.equals("audio")) {
-                    //log.debug(" *** ICE2 : Audio => '"+ subFilePath + "'");
-                    object = createObject(media);
-                }
-                if (mediaType.equals("flash")) {
-                    // TODO - Need test data
-                }
-                if (mediaType.equals("images")) {
-                    //log.debug(" *** ICE2 : Image => '"+ subFilePath + "'");
-                    object = createObject(media);
-                }
-                if (mediaType.equals("presentations")) {
-                    // Likely a package - simple (v1) answer is to 'gulch'
-                    //  everything in the same directory and all sub-dirs
-                    // TODO - Prepare in such a way as to be handled
-                    //        by the IMS transformer.
-                    if (fileType.contains("htm")) {
-                        //log.debug(" *** ICE2 : HTML Presentation => '"
-                        //        + subFilePath + "'");
-                        object = createObject(media);
-                        File mediaRoot = media.getParentFile();
-                        File[] files = mediaRoot.listFiles(ignoreFilter);
-                        for (File f : files) {
-                            if (!f.getName().equals(".ice")) {
-                                addPayload(object, f, "");
-                            }
-                        }
 
-                    // Single Files
-                    } else {
-                        // TODO = Renditions required on PPT files (at least)
-                        //log.debug(" *** ICE2 : Presentation => '"
-                        //        + subFilePath + "'");
+            // Treat as a document if we don't support it
+            if (!Arrays.asList(acceptedMedia).contains(mediaType)) {
+                return harvestDocument(htmlFile, oldLink, objectIdMap);
+            } else {
+                try {
+                    if (mediaType.equals("audio")) {
+                        //log.debug(" *** ICE2 : Audio => '"+ subFilePath + "'");
                         object = createObject(media);
                     }
+                    if (mediaType.equals("flash")) {
+                        // TODO - Need test data
+                    }
+                    if (mediaType.equals("images")) {
+                        //log.debug(" *** ICE2 : Image => '"+ subFilePath + "'");
+                        object = createObject(media);
+                    }
+                    if (mediaType.equals("presentations") ||
+                        mediaType.equals("breeze")) {
+                        // Likely a package - simple (v1) answer is to 'gulch'
+                        //  everything in the same directory and all sub-dirs
+                        // TODO - Prepare in such a way as to be handled
+                        //        by the IMS transformer.
+                        if (fileType.contains("htm")) {
+                            //log.debug(" *** ICE2 : HTML Presentation => '"
+                            //        + subFilePath + "'");
+                            object = createObject(media);
+                            File mediaRoot = media.getParentFile();
+                            File[] files = mediaRoot.listFiles(ignoreFilter);
+                            for (File f : files) {
+                                if (!f.getName().equals(".ice")) {
+                                    addPayload(object, f, "");
+                                }
+                            }
+
+                        // Single Files
+                        } else {
+                            // TODO = Renditions required on PPT files (at least)
+                            //log.debug(" *** ICE2 : Presentation => '"
+                            //        + subFilePath + "'");
+                            object = createObject(media);
+                        }
+                    }
+                    if (mediaType.equals("readings")) {
+                        // TODO - Need data, and what to do with documents? render?
+                    }
+                    if (mediaType.equals("video")) {
+                        log.debug(" *** ICE2 : Video => '"+ subFilePath + "'");
+                        object = createObject(media);
+                    }
+                } catch (HarvesterException ex) {
+                    log.error("Error storing file : ", ex);
+                } catch (StorageException ex) {
+                    log.error("Error storing file : ", ex);
                 }
-                if (mediaType.equals("readings")) {
-                    // TODO - Need data, and what to do with documents? render?
-                }
-                if (mediaType.equals("video")) {
-                    log.debug(" *** ICE2 : Video => '"+ subFilePath + "'");
-                    object = createObject(media);
-                }
-            } catch (HarvesterException ex) {
-                log.error("Error storing file : ", ex);
-            } catch (StorageException ex) {
-                log.error("Error storing file : ", ex);
             }
         }
 
