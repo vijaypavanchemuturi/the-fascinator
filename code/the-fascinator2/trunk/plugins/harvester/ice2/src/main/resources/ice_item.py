@@ -1,5 +1,6 @@
 import sys
 import cPickle
+from java.lang import String
 try:
     sys.path.append(parsePath)
     plugin_manifest = __import__(parseLib)
@@ -13,8 +14,7 @@ pyString = unicode(filePath).encode("utf-8")
 # Read the data into memory and unpickle
 try:
     FILE = open(pyString, 'rb')
-    data = FILE.read()
-    iceData = cPickle.loads(data)
+    iceData = cPickle.loads(FILE.read())
     FILE.close()
 
 # Something went awry...
@@ -24,13 +24,15 @@ except Exception, e:
     print repr(e)
 
 # Valid ICE data
-response.set("guid", None)
+responseGuid = None
 if iceData is not None:
     # We only want the top-level manifest
     if iceData.has_key("manifest") and iceData["manifest"] is not None:
         try:
-            response.set("guid", iceData["_guid"])
+            responseGuid = iceData["_guid"]
             jsonManifest = iceData["manifest"].asJSON()
-            response.set("json", json.write(jsonManifest))
+            escapedJson = json.write(jsonManifest).replace('"', '\\"')
+            evalJson = eval("u\"" + escapedJson + "\"")
+            responseJson = String(evalJson, "utf-8")
         except Exception, e:
             print repr(e)
