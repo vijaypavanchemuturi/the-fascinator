@@ -30,6 +30,8 @@ import org.junit.Test;
 
 import au.edu.usq.fascinator.api.PluginManager;
 import au.edu.usq.fascinator.api.harvester.Harvester;
+import au.edu.usq.fascinator.api.storage.DigitalObject;
+import au.edu.usq.fascinator.api.storage.Payload;
 import au.edu.usq.fascinator.api.storage.Storage;
 
 /**
@@ -174,21 +176,11 @@ public class FileSystemHarvesterTest {
     @Test
     public void getObjectIdListRecursive() throws Exception {
         FileSystemHarvester fsh = getHarvester("/fsh-config-recursive.json");
-        Set<String> items = fsh.getObjectIdList();
-        Assert.assertTrue(fsh.hasMoreObjects());
-        while (fsh.hasMoreObjects()) {
-            items = fsh.getObjectIdList();
-            String id = items.iterator().next();
-            int expectedSize = 0;
-            if (id.contains("/books/")) {
-                expectedSize = 3;
-            } else if (id.contains("/music/")) {
-                expectedSize = 2;
-            } else if (id.contains("/pictures/")) {
-                expectedSize = 4;
-            }
-            Assert.assertEquals(expectedSize, items.size());
-        }
+        int count = 0;
+        do {
+            count += fsh.getObjectIdList().size();
+        } while (fsh.hasMoreObjects());
+        Assert.assertEquals(11, count);
     }
 
     /**
@@ -206,14 +198,10 @@ public class FileSystemHarvesterTest {
             items = fsh.getObjectIdList();
             if (!items.isEmpty()) {
                 String id = items.iterator().next();
-                int expectedSize = 0;
-                if (id.contains("/books/")) {
-                    expectedSize = 3;
-                } else if (id.contains("/pictures/")) {
-                    // 1 gif file should be ignored
-                    expectedSize = 3;
-                }
-                Assert.assertEquals(expectedSize, items.size());
+                DigitalObject o = ram.getObject(id);
+                String sid = o.getSourceId();
+                Assert.assertFalse(sid.endsWith(".gif"));
+                Assert.assertFalse(sid.endsWith(".mp3"));
             }
         }
     }

@@ -1,17 +1,12 @@
 import md5, os, time
-from au.edu.usq.fascinator.indexer.rules import AddField, New
-
-from au.edu.usq.fascinator.common.nco import Contact
-from au.edu.usq.fascinator.common.nfo import PaginatedTextDocument
-from au.edu.usq.fascinator.common.nid3 import ID3Audio
-from au.edu.usq.fascinator.common.nie import InformationElement
-
-from au.edu.usq.fascinator.common.ctag import Tag, TaggedContent
 
 from au.edu.usq.fascinator.api.storage import StorageException
+from au.edu.usq.fascinator.indexer.rules import AddField, New
+
 #
 # Available objects:
 #    indexer    : Indexer instance
+#    log        : Logger instance
 #    jsonConfig : JsonConfigHelper of our harvest config file
 #    rules      : RuleManager instance
 #    object     : DigitalObject to index
@@ -19,6 +14,9 @@ from au.edu.usq.fascinator.api.storage import StorageException
 #    params     : Metadata Properties object
 #
 
+#
+# Index a path separated value as multiple field values
+#
 def indexPath(name, path, includeLastPart=True):
     parts = path.split("/")
     length = len(parts)
@@ -120,9 +118,15 @@ if pid == metaPid:
                 else:
                     relationDict[key] = [value]
     except StorageException, e:
-        print " storage exception", str(e)
+        print "Failed to index ICE dublin core data (%s)" % str(e)
     
+    # Extract from aperture.rdf if exist
     try:
+        from au.edu.usq.fascinator.common.nco import Contact
+        from au.edu.usq.fascinator.common.nfo import PaginatedTextDocument
+        from au.edu.usq.fascinator.common.nid3 import ID3Audio
+        from au.edu.usq.fascinator.common.nie import InformationElement
+        
         rdfPayload = object.getPayload("aperture.rdf")
         rdfModel = indexer.getRdfModel(rdfPayload)
         
@@ -151,11 +155,6 @@ if pid == metaPid:
                 title = allTitles.next().strip()
                 if title != "":
                     titleList.append(title)
-        
-        #use id/filename if no title
-        if titleList == []:
-           title = os.path.split(oid)[1]
-           titleList.append(title)
         
         #2. get creator only if no creator returned by ICE
         if creatorList == []:
@@ -197,7 +196,16 @@ if pid == metaPid:
             if informationElement.hasContentCreated():
                 creationDate.append(informationElement.getContentCreated().getTime().toString())
     except StorageException, e:
-        print " storage exception", str(e)
+        print "Failed to index aperture data (%s)" % str(e)
+    
+    # some defaults if the above failed
+    if titleList == []:
+       #use object's source id (i.e. most likely a filename)
+       titleList.append(object.getSourceId())
+    
+    if formatList == []:
+        payload = object.getPayload(object.getSourceId())
+        formatList.append(payload.getContentType())
     
     indexList("dc_title", titleList)
     indexList("dc_creator", creatorList)  #no dc_author in schema.xml, need to check
@@ -211,11 +219,10 @@ if pid == metaPid:
     
     indexList("full_text", fulltext)
     baseFilePath = params["base.file.path"]
-    filePath = oid
+    filePath = object.getMetadata().getProperty("file.path")
     if baseFilePath:
         #NOTE: need to change again if the json file accept forward slash in window
         #get the base folder
-        baseFilePath = baseFilePath.replace("\\", "/")
         baseDir = baseFilePath.rstrip("/")
         baseDir = "/%s/" % baseDir[baseDir.rfind("/")+1:]
         filePath = filePath.replace("\\", "/").replace(baseFilePath, baseDir)
