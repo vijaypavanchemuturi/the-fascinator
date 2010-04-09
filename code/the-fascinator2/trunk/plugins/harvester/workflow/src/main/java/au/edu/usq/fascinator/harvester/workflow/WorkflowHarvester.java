@@ -18,12 +18,6 @@
  */
 package au.edu.usq.fascinator.harvester.workflow;
 
-import au.edu.usq.fascinator.api.harvester.HarvesterException;
-import au.edu.usq.fascinator.api.storage.DigitalObject;
-import au.edu.usq.fascinator.api.storage.StorageException;
-import au.edu.usq.fascinator.common.harvester.impl.GenericHarvester;
-import au.edu.usq.fascinator.common.storage.StorageUtils;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -32,14 +26,21 @@ import java.util.HashSet;
 import java.util.Properties;
 import java.util.Set;
 
+import org.apache.commons.io.FilenameUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import au.edu.usq.fascinator.api.harvester.HarvesterException;
+import au.edu.usq.fascinator.api.storage.DigitalObject;
+import au.edu.usq.fascinator.api.storage.StorageException;
+import au.edu.usq.fascinator.common.harvester.impl.GenericHarvester;
+import au.edu.usq.fascinator.common.storage.StorageUtils;
 
 /**
  * A trimmed down version of the file-system harvester.
  * 
  * Doesn't need recursion or caching.
- *
+ * 
  * @author Greg Pendlebury
  */
 public class WorkflowHarvester extends GenericHarvester {
@@ -56,8 +57,8 @@ public class WorkflowHarvester extends GenericHarvester {
 
     @Override
     public void init() throws HarvesterException {
-        forceLocalStorage = Boolean.parseBoolean(getJsonConfig()
-                .get("harvester/workflow-harvester/force-storage", "true"));
+        forceLocalStorage = Boolean.parseBoolean(getJsonConfig().get(
+                "harvester/workflow-harvester/force-storage", "true"));
     }
 
     @Override
@@ -66,9 +67,8 @@ public class WorkflowHarvester extends GenericHarvester {
     }
 
     @Override
-    public Set<String> getObjectId(File uploadedFile)
-            throws HarvesterException {
-            Set<String> objectIds = new HashSet<String>();
+    public Set<String> getObjectId(File uploadedFile) throws HarvesterException {
+        Set<String> objectIds = new HashSet<String>();
         try {
             objectIds.add(createDigitalObject(uploadedFile));
         } catch (StorageException se) {
@@ -101,6 +101,8 @@ public class WorkflowHarvester extends GenericHarvester {
         // update object metadata
         Properties props = object.getMetadata();
         props.setProperty("render-pending", "true");
+        props.setProperty("file.path", FilenameUtils.separatorsToUnix(file
+                .getAbsolutePath()));
 
         object.close();
         return oid;

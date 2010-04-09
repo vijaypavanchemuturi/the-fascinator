@@ -31,7 +31,7 @@
 #end
 #set($isPackage = $mimeType == "application/x-fascinator-package")
 #set($isBloggable = $self.hasHtml() || $isPackage)
-#set($pageTitle = "Detail - $title")
+#set($pageTitle = "$title - Detail")
 <script type="text/javascript" src="$portalPath/js/geohash/geohash.js"></script>
 <h2 id="page-heading">#if($isPackage)$title#{else}Detail#end</h2>
 <div class="grid_4">

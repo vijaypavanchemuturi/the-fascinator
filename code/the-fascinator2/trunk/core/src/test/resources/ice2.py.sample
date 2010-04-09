@@ -93,6 +93,7 @@ if pid == metaPid:
     fulltext = []
     relationDict = {}
     
+    
     ### Check if dc.xml returned from ice is exist or not. if not... process the dc-rdf
     try:
         dcPayload = object.getPayload("dc.xml")
@@ -120,9 +121,15 @@ if pid == metaPid:
                 else:
                     relationDict[key] = [value]
     except StorageException, e:
-        print " storage exception", str(e)
+        print "Failed to index ICE dublin core data (%s)" % str(e)
     
+    # Extract from aperture.rdf if exist
     try:
+        from au.edu.usq.fascinator.common.nco import Contact
+        from au.edu.usq.fascinator.common.nfo import PaginatedTextDocument
+        from au.edu.usq.fascinator.common.nid3 import ID3Audio
+        from au.edu.usq.fascinator.common.nie import InformationElement
+        
         rdfPayload = object.getPayload("aperture.rdf")
         rdfModel = indexer.getRdfModel(rdfPayload)
         
@@ -151,11 +158,6 @@ if pid == metaPid:
                 title = allTitles.next().strip()
                 if title != "":
                     titleList.append(title)
-        
-        #use id/filename if no title
-        if titleList == []:
-           title = os.path.split(oid)[1]
-           titleList.append(title)
         
         #2. get creator only if no creator returned by ICE
         if creatorList == []:
@@ -197,7 +199,16 @@ if pid == metaPid:
             if informationElement.hasContentCreated():
                 creationDate.append(informationElement.getContentCreated().getTime().toString())
     except StorageException, e:
-        print " storage exception", str(e)
+        print "Failed to index aperture data (%s)" % str(e)
+    
+    # some defaults if the above failed
+    if titleList == []:
+       #use object's source id (i.e. most likely a filename)
+       titleList.append(object.getSourceId())
+    
+    if formatList == []:
+        payload = object.getPayload(object.getSourceId())
+        formatList.append(payload.getContentType())
     
     indexList("dc_title", titleList)
     indexList("dc_creator", creatorList)  #no dc_author in schema.xml, need to check
@@ -211,7 +222,7 @@ if pid == metaPid:
     
     indexList("full_text", fulltext)
     baseFilePath = params["base.file.path"]
-    filePath = oid
+    filePath = object.getMetadata().getProperty("file.path")
     if baseFilePath:
         #NOTE: need to change again if the json file accept forward slash in window
         #get the base folder

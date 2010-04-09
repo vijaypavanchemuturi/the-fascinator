@@ -2,7 +2,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>$page.portalName#if($pageTitle) - $!pageTitle#end - The Fascinator</title>
+    <title>#if($pageTitle)$pageTitle#end - $page.portalName - The Fascinator</title>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <link rel="icon" type="image/vnd.microsoft.com" href="$portalPath/favicon.ico" />
     <link rel="stylesheet" type="text/css" href="$portalPath/css/fluid960gs/screen.css" media="screen" />
@@ -56,7 +56,7 @@
             The Fascinator may not work as expected as the system configuration
             was changed and needs a restart to take effect.
             #elseif($notConfigured)
-            The Fascinator has not yet been configured. Please set your email   
+            The Fascinator has not yet been configured. Please set your email
             address on the <a href="$portalPath/settings">settings</a> page.
             #else
             An unexpected error has occurred. Try restarting The Fascinator.
