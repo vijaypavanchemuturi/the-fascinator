@@ -69,6 +69,10 @@
       "repository_type" : {
         "label" : "Source type",
         "display" : "list"
+      },
+      "workflow_step" : {
+        "label" : "Workflow Step",
+        "display" : "list"
       }
     }
   }
