@@ -75,6 +75,9 @@ public class Ice2Harvester extends GenericHarvester {
         "audio", "flash", "images", "presentations", "readings", "video",
         "breeze"};
 
+    /** Flag for test runs */
+    private boolean testRun;
+
     /** directory to house temp data */
     private File tempDir;
 
@@ -162,6 +165,9 @@ public class Ice2Harvester extends GenericHarvester {
         // Harvest completely into storage or harvest a link back to disk?
         link = Boolean.parseBoolean(config.get("harvester/ice2-harvester/link",
                 "false"));
+        // If the testRun flag is on, we're not really harvesting
+        testRun = Boolean.parseBoolean(config.get(
+                "harvester/ice2-harvester/testRun", "false"));
 
         // Directory traversal variables
         currentDir = baseDir;
@@ -372,11 +378,11 @@ public class Ice2Harvester extends GenericHarvester {
         Map<String, String> responseMap = new HashMap<String, String>();
         prepareObject(title, home, children, responseMap);
 
-        for (String key : responseMap.keySet()) {
-            if (responseMap.get(key) != null)  {
-                //if (responseMap.get(key).contains("Isotopes")) {
-                fileObjectIdList.add(responseMap.get(key));
-                //}
+        if (!testRun) {
+            for (String key : responseMap.keySet()) {
+                if (responseMap.get(key) != null)  {
+                    fileObjectIdList.add(responseMap.get(key));
+                }
             }
         }
         return fileObjectIdList;
@@ -418,8 +424,12 @@ public class Ice2Harvester extends GenericHarvester {
             //        + childHome + "'");
             object = prepareObject(childTitle, childHome, grandChildren,
                     objectIdMap);
-            if (object != null) {
-                childObjects.put(childTitle, object.getId());
+            if (object != null || testRun) {
+                if (testRun) {
+                    childObjects.put(childTitle, "testRunObject:" + childTitle);
+                } else {
+                    childObjects.put(childTitle, object.getId());
+                }
             }
         }
 
@@ -483,7 +493,9 @@ public class Ice2Harvester extends GenericHarvester {
 
             // Harvest the manifest file
             try {
-                object = StorageUtils.storeFile(getStorage(), manifestFile);
+                if (!testRun) {
+                    object = StorageUtils.storeFile(getStorage(), manifestFile);
+                }
                 manifestFile.delete();
             } catch (Exception ex) {
                 log.error("Error storing manifest : ", ex);
@@ -491,18 +503,20 @@ public class Ice2Harvester extends GenericHarvester {
             }
 
             // Set package metadata for harvesting
-            try {
-                Properties props = object.getMetadata();
-                props.setProperty("rulesOid", pkgRules.getId());
-                props.setProperty("rulesPid", pkgRules.getSourceId());
-                props.setProperty("jsonConfigOid", pkgConfig.getId());
-                props.setProperty("jsonConfigPid", pkgConfig.getSourceId());
-                props.setProperty("owner", username);
-                // Force the metadata to write to disk
-                object.close();
-            } catch (StorageException ex) {
-                log.error("Error accessing manifest metadata : ", ex);
-                return object;
+            if (!testRun) {
+                try {
+                    Properties props = object.getMetadata();
+                    props.setProperty("rulesOid", pkgRules.getId());
+                    props.setProperty("rulesPid", pkgRules.getSourceId());
+                    props.setProperty("jsonConfigOid", pkgConfig.getId());
+                    props.setProperty("jsonConfigPid", pkgConfig.getSourceId());
+                    props.setProperty("owner", username);
+                    // Force the metadata to write to disk
+                    object.close();
+                } catch (StorageException ex) {
+                    log.error("Error accessing manifest metadata : ", ex);
+                    return object;
+                }
             }
 
             // If the root doc is already in our list move it
@@ -515,7 +529,11 @@ public class Ice2Harvester extends GenericHarvester {
                 objectIdMap.put(title + " (object)", rootOid);
             }
             // Now add the package object to our list
-            objectIdMap.put(title, object.getId());
+            if (testRun) {
+                objectIdMap.put(title, "testRunObject:" + title);
+            } else {
+                objectIdMap.put(title, object.getId());
+            }
         }
 
         return object;
@@ -593,14 +611,20 @@ public class Ice2Harvester extends GenericHarvester {
                 FileUtils.writeStringToFile(htmlFile, htmlOut.toString());
                 // Add the html render of the file
                 Payload payload = addPayload(object, htmlFile, "");
-                payload.setType(PayloadType.Preview);
-                payload.close();
+                if (!testRun) {
+                    payload.setType(PayloadType.Preview);
+                    payload.close();
+                }
                 File imgDir = new File(htmlDir, htmlDir.getName() + "_files");
                 if (imgDir.exists()) {
                     addPayload(object, imgDir, "");
                 }
                 // Log the object creation
-                objectIdMap.put(title, object.getId());
+                if (testRun) {
+                    objectIdMap.put(title, "testRunObject:" + title);
+                } else {
+                    objectIdMap.put(title, object.getId());
+                }
             } catch (StorageException ex) {
                 log.error("Error storing html : '" + title + "' : ", ex);
             }
@@ -684,7 +708,11 @@ public class Ice2Harvester extends GenericHarvester {
             // Can we find a rendition of this document?
             if (htmlDir != null && htmlDir.exists()) {
                 object = harvestHtml(file, htmlDir, oldLink, objectIdMap);
-                return "tfObject:" + object.getId();
+                if (testRun) {
+                    return "tfObject:testRunObject";
+                } else {
+                    return "tfObject:" + object.getId();
+                }
 
             // No, time to harvest the original
             } else {
@@ -692,14 +720,22 @@ public class Ice2Harvester extends GenericHarvester {
                 //  or need to render a document.
                 object = harvestHtml(file, file.getParentFile(), index,
                         objectIdMap);
-                return "tfObject:" + object.getId();
+                if (testRun) {
+                    return "tfObject:" + oldLink;
+                } else {
+                    return "tfObject:" + object.getId();
+                }
             }
         }
 
-        if (object == null) {
+        if (object == null && !testRun) {
             return null;
         } else {
-            return object.getId();
+            if (testRun) {
+                return "tfObject:" + oldLink;
+            } else {
+                return "tfObject:" + object.getId();
+            }
         }
     }
 
@@ -786,13 +822,18 @@ public class Ice2Harvester extends GenericHarvester {
             }
         }
 
-        if (object == null) {
+        if (object == null && !testRun) {
             log.error("Media object not found : '"
                     + media.getAbsolutePath() + "'");
             return null;
         } else {
-            objectIdMap.put(filePath, object.getId());
-            return object.getId();
+            if (testRun) {
+                objectIdMap.put(filePath, filePath);
+                return filePath;
+            } else {
+                objectIdMap.put(filePath, object.getId());
+                return object.getId();
+            }
         }
     }
 
@@ -884,26 +925,19 @@ public class Ice2Harvester extends GenericHarvester {
         return hasMore;
     }
 
-    private DigitalObject createObject(String data) throws HarvesterException,
-            StorageException {
-        DigitalObject object = StorageUtils.storeFile(getStorage(),
-                new File(data), link);
-
-        // update object metadata
-        Properties props = object.getMetadata();
-        props.setProperty("render-pending", "true");
-
-        object.close();
-        return object;
-    }
-
     private DigitalObject createObject(File file) throws HarvesterException,
             StorageException {
+        if (testRun) {
+            return null;
+        }
+
         DigitalObject object = StorageUtils.storeFile(getStorage(), file, link);
 
         // update object metadata
         Properties props = object.getMetadata();
         props.setProperty("render-pending", "true");
+        props.setProperty("file.path", FilenameUtils.separatorsToUnix(file
+                .getAbsolutePath()));
 
         object.close();
         return object;
@@ -911,6 +945,10 @@ public class Ice2Harvester extends GenericHarvester {
 
     private Payload addPayload(DigitalObject object, File file, String prefix)
             throws HarvesterException, StorageException {
+        if (testRun) {
+            return null;
+        }
+
         String pid = StorageUtils.generatePid(file);
         // Make sure we don't add the source again
         if (pid.equals(object.getSourceId())) {

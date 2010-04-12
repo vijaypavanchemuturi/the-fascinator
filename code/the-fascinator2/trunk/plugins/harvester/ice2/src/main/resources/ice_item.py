@@ -1,6 +1,5 @@
 import sys
 import cPickle
-from java.lang import String
 try:
     sys.path.append(parsePath)
     plugin_manifest = __import__(parseLib)
@@ -31,8 +30,6 @@ if iceData is not None:
         try:
             responseGuid = iceData["_guid"]
             jsonManifest = iceData["manifest"].asJSON()
-            escapedJson = json.write(jsonManifest).replace('"', '\\"')
-            evalJson = eval("u\"" + escapedJson + "\"")
-            responseJson = String(evalJson, "utf-8")
+            responseJson = json.write(jsonManifest).decode("utf-8")
         except Exception, e:
             print repr(e)

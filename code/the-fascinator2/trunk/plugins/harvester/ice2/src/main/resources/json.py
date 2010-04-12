@@ -258,6 +258,8 @@ class JsonWriter(object):
     def __init__(self):
         self.unicodeRE = re.compile(u"([\u0080-\uffff])")
         self.unicodeREfunction = lambda(x): r"\u%04x" % ord(x.group(1))
+        self.stringUnicodeRE = re.compile("([\x80-\xff])")
+        self.stringUnicodeREfunction = lambda(x): r"\x%02x" % ord(x.group(1))
 
     def _append(self, s):
         self._results.append(s)
@@ -292,16 +294,20 @@ class JsonWriter(object):
             self._append("]")
         elif ty is types.StringType or ty is types.UnicodeType:
             self._append('"')
-	    obj = obj.replace('\\', r'\\')
+    	    obj = obj.replace('\\', r'\\')
             if self._escaped_forward_slash:
                 obj = obj.replace('/', r'\/')
-	    obj = obj.replace('"', r'\"')
-	    obj = obj.replace('\b', r'\b')
-	    obj = obj.replace('\f', r'\f')
-	    obj = obj.replace('\n', r'\n')
-	    obj = obj.replace('\r', r'\r')
-	    obj = obj.replace('\t', r'\t')
-	    obj = self.unicodeRE.sub(self.unicodeREfunction, obj)
+            obj = obj.replace('"', r'\"')
+            obj = obj.replace('\b', r'\b')
+            obj = obj.replace('\f', r'\f')
+            obj = obj.replace('\n', r'\n')
+            obj = obj.replace('\r', r'\r')
+            obj = obj.replace('\t', r'\t')
+            if ty is types.StringType:
+                #obj = self.stringUnicodeRE.sub(self.stringUnicodeREfunction, obj)
+                pass
+            elif ty is types.UnicodeType:
+                obj = self.unicodeRE.sub(self.unicodeREfunction, obj)
             self._append(obj)
             self._append('"')
         elif ty is types.IntType:
