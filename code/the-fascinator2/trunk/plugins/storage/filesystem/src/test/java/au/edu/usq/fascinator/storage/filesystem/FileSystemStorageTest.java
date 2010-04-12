@@ -14,6 +14,7 @@ import org.junit.Test;
 
 import au.edu.usq.fascinator.api.storage.Payload;
 import au.edu.usq.fascinator.api.storage.StorageException;
+import org.apache.commons.codec.digest.DigestUtils;
 
 public class FileSystemStorageTest {
     private FileSystemStorage fs;
@@ -44,12 +45,15 @@ public class FileSystemStorageTest {
     @Test
     public void testObject1() throws Exception {
         // Create an object
-        newObject = (FileSystemDigitalObject) fs
-                .createObject("oai:eprints.usq.edu.au:318");
+        String oid = DigestUtils.md5Hex("oai:eprints.usq.edu.au:318");
+        newObject = (FileSystemDigitalObject) fs.createObject(oid);
+
         // Give it a payload
         Payload p = newObject.createStoredPayload("DC", getClass()
                 .getResourceAsStream("/dc.xml"));
         p.setLabel("Dublin Core Metadata");
+
+        System.out.println(newObject.getPath());
 
         // Make sure our object is in the correct location
         Assert.assertEquals(FilenameUtils.normalize(tmpDir
@@ -85,8 +89,9 @@ public class FileSystemStorageTest {
     @Test
     public void testObject2() throws Exception {
         // Create an object
-        fileObject = (FileSystemDigitalObject) fs
-                .createObject("/Users/fascinator/Documents/sample.odt");
+        String oid = DigestUtils.md5Hex("/Users/fascinator/Documents/sample.odt");
+        fileObject = (FileSystemDigitalObject) fs.createObject(oid);
+
         // Give it a payload
         Payload p1 = fileObject.createStoredPayload("sample.odt", getClass()
                 .getResourceAsStream("/sample.odt"));
