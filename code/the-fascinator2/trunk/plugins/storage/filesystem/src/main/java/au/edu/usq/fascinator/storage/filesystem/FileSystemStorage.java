@@ -113,16 +113,11 @@ public class FileSystemStorage implements Storage {
         // Don't need to do anything
     }
 
-    private String getHashId(String oid) {
-        return DigestUtils.md5Hex(oid);
-    }
-
     private File getPath(String oid) {
-        String hash = getHashId(oid);
-        String dir = hash.substring(0, 2) + File.separator
-                + hash.substring(2, 4) + File.separator + hash.substring(4, 6)
+        String dir = oid.substring(0, 2) + File.separator
+                + oid.substring(2, 4) + File.separator + oid.substring(4, 6)
                 + File.separator;
-        return new File(homeDir, dir + hash);
+        return new File(homeDir, dir + oid);
     }
 
     @Override

@@ -5,6 +5,7 @@ import au.edu.usq.fascinator.api.storage.StorageException;
 import java.io.File;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.commons.codec.digest.DigestUtils;
 
 import org.apache.commons.io.FilenameUtils;
 import org.junit.Assert;
@@ -25,8 +26,9 @@ public class FileSystemDigitalObjectTest {
     @Test
     public void getPath1() {
         try {
-            newObject = (FileSystemDigitalObject)
-                    fs.createObject("file:///Users/lucido/Documents/test1.doc");
+            String oid = DigestUtils.md5Hex(
+                    "file:///Users/lucido/Documents/test1.doc");
+            newObject = (FileSystemDigitalObject) fs.createObject(oid);
         } catch (StorageException ex) {
             System.err.println("Error creating object");
         }
@@ -46,8 +48,8 @@ public class FileSystemDigitalObjectTest {
     @Test
     public void getPath2() {
         try {
-            newObject = (FileSystemDigitalObject)
-                    fs.createObject("oai:eprints.usq.edu.au:318");
+            String oid = DigestUtils.md5Hex("oai:eprints.usq.edu.au:318");
+            newObject = (FileSystemDigitalObject) fs.createObject(oid);
         } catch (StorageException ex) {
             System.err.println("Error creating object");
         }
