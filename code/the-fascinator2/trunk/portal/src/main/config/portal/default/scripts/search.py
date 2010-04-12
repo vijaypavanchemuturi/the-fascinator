@@ -167,17 +167,18 @@ class SearchData:
         try:
             object = Services.getStorage().getObject(oid)
             sid = object.getSourceId()
-            url = os.path.splitext(sid)[0] + "_thumbnail.jpg"
-            try:
-                payload = object.getPayload(url)
-                payload.close()
-                object.close()
-                return url
-            except Exception, e:
-                object.close()
-                return None
-        except Exception, e:
-            return None
+            if sid:
+                url = os.path.splitext(sid)[0] + "_thumbnail.jpg"
+                try:
+                    payload = object.getPayload(url)
+                    payload.close()
+                    object.close()
+                    return url
+                except Exception:
+                    object.close()
+        except Exception:
+            pass
+        return None
     
     def getSelectedItems(self):
         selected = ArrayList()

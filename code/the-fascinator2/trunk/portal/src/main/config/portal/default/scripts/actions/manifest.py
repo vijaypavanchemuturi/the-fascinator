@@ -40,7 +40,7 @@ class ManifestActions:
             print nodePath
             title = formData.get("title")
             hidden = formData.get("hidden")
-            hidden = hidden == "on"
+            hidden = hidden == "true"
             self.__manifest.set("%s/title" % nodePath, title)
             self.__manifest.set("%s/hidden" % nodePath, str(hidden))
             self.__saveManifest()

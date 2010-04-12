@@ -156,7 +156,7 @@ $(function() {
                 id: "$portalId",
                 nodeId: $(node).attr("id"),
                 title: $("#item-title").val(),
-                hidden: $("#item-hidden").val(),
+                hidden: $("#item-hidden").is(":checked"),
                 parents: getParentIds(node)
             },
             function(data, status) {
