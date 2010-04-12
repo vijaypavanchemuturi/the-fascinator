@@ -216,8 +216,12 @@
         </div>
         #end
         <h3>
-            #if($packagingEnabled && "$!format" != "application/x-fascinator-package")
+            #set($isPackage = "$!format" == "application/x-fascinator-package")
+            #if($packagingEnabled && !$isPackage)
               <input type="checkbox" name="package-select" class="package-select" value="$id" rel="$title"#if($selectedItems.contains($id))checked="checked"#end />
+            #end
+            #if($isPackage)
+            <img src="$portalPath/images/icons/package.png" />
             #end
             #set($wfStep = $item.get("workflow_step").get(0))
             #if ($wfStep && $wfStep != "" && $wfStep != "live")

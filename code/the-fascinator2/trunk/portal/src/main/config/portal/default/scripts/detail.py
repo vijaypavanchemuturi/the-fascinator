@@ -102,6 +102,14 @@ class DetailData:
         filePath = self.__object.getMetadata().getProperty("file.path")
         return filePath is not None and File(filePath).exists()
 
+    def canOrganise(self):
+        userRoles = page.authentication.get_roles_list()
+        workflowSecurity = self.__metadata.getFieldList("workflow_security")
+        for userRole in userRoles:
+            if userRole in workflowSecurity:
+                return True
+        return False
+
     def closeObject(self):
         object = self.getObject()
         if object is not None:

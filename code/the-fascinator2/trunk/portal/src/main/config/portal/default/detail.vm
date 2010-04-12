@@ -43,7 +43,9 @@
       <li><a class="open-this" href="$portalPath/detail/$oid">Open file</a></li>
       #end
       #if($isPackage)
-      <li><a href="$portalPath/workflow/$oid">Organise this package...</a></li>
+        #if($self.canOrganise())
+        <li><a href="$portalPath/workflow/$oid">Organise this package...</a></li>
+        #end
       <li><a href="$portalPath/actions/epub?oid=$oid">Save as EPUB...</a></li>
       <li><a href="$portalPath/actions/imscp?oid=$oid">Save as IMS Package...</a></li>
       <li><a id="sword-view" href="#">Deposit to repository...</a></li>
