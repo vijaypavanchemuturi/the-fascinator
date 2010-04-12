@@ -78,8 +78,9 @@
     <ul class="menu">
       ##<li><a href="#" id="package-create-view">Package this view...</a></li>
       <li>
-        <a href="#" id="package-create-selected">Package selected items
-          <img src="$portalPath/images/icons/loading.gif" class="hidden" id="package-selected-loading" />
+        <a href="#" id="package-create-selected">
+          <img src="$portalPath/images/icons/loading.gif" class="hidden right" id="package-selected-loading" />
+          <span>Package selected items...</span>
         </a>
       </li>
       <li>
@@ -194,6 +195,7 @@
       #else
         #set($title = $self.getFileName($id))
       #end
+      #set($format = $item.get("dc_format").get(0))
       #set($description = "")
       #set($description = $item.get("dc_description").get(0))
       #set ($resultClass = "article")
@@ -214,8 +216,8 @@
         </div>
         #end
         <h3>
-            #if($packagingEnabled)
-            <input type="checkbox" name="package-select" class="package-select" value="$id" rel="$title"#if($selectedItems.contains($id))checked="checked"#end />
+            #if($packagingEnabled && "$!format" != "application/x-fascinator-package")
+              <input type="checkbox" name="package-select" class="package-select" value="$id" rel="$title"#if($selectedItems.contains($id))checked="checked"#end />
             #end
             #set($wfStep = $item.get("workflow_step").get(0))
             #if ($wfStep && $wfStep != "" && $wfStep != "live")

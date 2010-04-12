@@ -8,7 +8,7 @@
     #set($hidden = "false")
     #set($hidden = $item.get("hidden"))
     <li #if($numChildren > 0)class="open"#end id="$key" rel="$id">
-      <a class="#if($id == $oid)clicked#end #if($hidden && $hidden == 'true')item-hidden#end" href="#">$item.get("title")</a>
+      <a class="#if($id == $oid)clicked#end #if("$!hidden" == "True")item-hidden#end" href="#">$item.get("title")</a>
       #if($numChildren > 0)
         #createNavTree($children "children")
       #end
@@ -161,7 +161,7 @@ $(function() {
             },
             function(data, status) {
                 item.text(data.title);
-                if (data.hidden) {
+                if (data.hidden == "True") {
                     item.addClass("item-hidden");
                 } else {
                     item.removeClass("item-hidden");

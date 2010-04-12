@@ -79,7 +79,7 @@ form.search {
     overflow: hidden;
 }
 
-span.right {
+.right {
     float: right;
 }
 
@@ -215,6 +215,11 @@ ul.nav li.label {
     border: none;
     color: black;
     font-weight: bold;
+}
+
+#toc li a.item-hidden {
+    color: gray;
+    font-style: italic;
 }
 
 label.checkbox {

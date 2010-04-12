@@ -1,7 +1,7 @@
 from au.edu.usq.fascinator.common import JsonConfigHelper
 
 from java.io import ByteArrayInputStream
-from java.lang import String
+from java.lang import Boolean, String
 
 class ManifestActions:
     def __init__(self):
@@ -40,7 +40,7 @@ class ManifestActions:
             print nodePath
             title = formData.get("title")
             hidden = formData.get("hidden")
-            print "hidden =", hidden
+            hidden = hidden == "on"
             self.__manifest.set("%s/title" % nodePath, title)
             self.__manifest.set("%s/hidden" % nodePath, str(hidden))
             self.__saveManifest()
