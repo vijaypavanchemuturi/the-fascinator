@@ -7,7 +7,7 @@
     #set($numChildren = $children.keySet().size())
     #set($hidden = "false")
     #set($hidden = $item.get("hidden"))
-    <li #if($numChildren > 0)class="open"#end id="$key" rel="$id">
+    <li id="$key" rel="$id">
       <a class="#if($id == $oid)clicked#end #if("$!hidden" == "True")item-hidden#end" href="#">$item.get("title")</a>
       #if($numChildren > 0)
         #createNavTree($children "children")
@@ -118,8 +118,15 @@ $(function() {
                     function() {
                         function fixLinks(selector, attrName) {
                             $(selector).each(function() {
-                                var attr = $(this).get(0).getAttribute(attrName, 2); // IE7 fix for $.attr
+                                var attr = $(this).attr(attrName);
                                 if (attr != null) {
+                                    // fix for IE7 attr() returning resolved URLs - strip base URL
+                                    var href = window.location.href;
+                                    hrefBase = href.substring(0, href.lastIndexOf("/"));
+                                    attrBase = attr.substring(0, hrefBase.length);
+                                    if (hrefBase == attrBase) {
+                                        attr = attr.substring(hrefBase.length + 1);
+                                    }
                                     if (attr.indexOf("#") != 0 && attr.indexOf("://") == -1) {
                                         var relUrl = "$portalPath/download/" + id + "/";
                                         $(this).attr(attrName, escape(relUrl + attr));
