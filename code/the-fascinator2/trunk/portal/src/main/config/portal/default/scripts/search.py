@@ -1,3 +1,4 @@
+import os.path
 import array, md5, os
 
 from au.edu.usq.fascinator.api import PluginManager
@@ -7,7 +8,7 @@ from au.edu.usq.fascinator.common import JsonConfig, JsonConfigHelper
 from au.edu.usq.fascinator.common.storage.impl import GenericPayload
 from au.edu.usq.fascinator.portal import Pagination, Portal
 
-from java.io import ByteArrayInputStream, ByteArrayOutputStream
+from java.io import ByteArrayInputStream, ByteArrayOutputStream, File
 from java.net import URLDecoder, URLEncoder
 from java.util import ArrayList, LinkedHashMap
 from java.lang import Exception
@@ -160,7 +161,18 @@ class SearchData:
     
     def isImage(self, format):
         return format.startswith("image/")
-    
+
+    def getMimeTypeIcon(self, format):
+        # check for specific icon
+        iconPath = "images/icons/mimetype/%s/icon.png" % format
+        if os.path.exists("%s/%s" % (portalDir, iconPath)):
+            return iconPath
+        elif format.find("/") != -1:
+            # check for major type
+            return self.getMimeTypeIcon(format[:format.find("/")])
+        # use default icon
+        return "images/icons/mimetype/icon.png"
+
     def getThumbnail(self, oid):
         # TODO should eventually use 'StorageManager' to get the thumbnail
         # instead of looking at specific payload IDs
