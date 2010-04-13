@@ -1,0 +1,18 @@
+#set($pageHeader = "#parse($page.getTemplate('detail-header.vm'))")
+<a href="$portalPath/home">&lt; Back</a>
+#if($self.solrResponse.get("response/numFound") == 0)
+  #set($pageTitle = "Not found")
+  <h1 class="content-title">Page not found</h1>
+  <h2>There is no USQ policy or procedure matching your request.</h2>
+  <p>You have been redirected to this page because one of the following occurred:</p>
+  <ul type="disc">
+    <li>It is possible the URL was misspelled or typed incorrectly.</li>
+    <li>You have requested an item that no longer exists.</li>
+  </ul>
+  <p>Return to the <a href="$portalPath/home">USQ Policies Home Page</a>.</p>
+#else
+  #set($title = $self.metadata.getField("dc_title"))
+  #set($pageTitle = $title)
+  <h1 class="content-title">$title</h1>
+  <div class="content">$!self.payloadContent</div>
+#end

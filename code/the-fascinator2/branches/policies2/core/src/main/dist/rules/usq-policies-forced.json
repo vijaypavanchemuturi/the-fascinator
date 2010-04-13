@@ -6,7 +6,7 @@
             "ignoreFilter": ".svn|.ice|.*|~*",
             "cacheDir": "${user.home}/.fascinator/cache",
             "force": true,
-            "recursive": true
+            "recursive": false
         }
     },
     

@@ -130,6 +130,8 @@ if isMetadata:
                     relationDict[key].append(value)
                 else:
                     relationDict[key] = [value]
+                if key == "usq_document_policy_type" and value == "Operational/Human Resources":
+                    titleList = [basename]
     
     rdfPayload = object.getMetadata()
     if rdfPayload is not None:

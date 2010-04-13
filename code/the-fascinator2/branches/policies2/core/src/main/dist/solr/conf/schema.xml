@@ -150,9 +150,9 @@
     <field name="usq_document_type" type="text" indexed="true" stored="true" multiValued="true" />
     <field name="usq_document_div_dept_office" type="text" indexed="true" stored="true" multiValued="true" />
     <field name="usq_document_policy_type" type="text" indexed="true" stored="true" multiValued="true" />
-    <field name="usq_document_committee_owner" type="text" indexed="true" stored="false" multiValued="true" />
-    <field name="usq_document_responsible_position" type="text" indexed="true" stored="false" multiValued="true" />
-    <field name="usq_document_strategic_plan" type="text" indexed="true" stored="false" multiValued="true" />
+    <field name="usq_document_committee_owner" type="text" indexed="true" stored="true" multiValued="true" />
+    <field name="usq_document_responsible_position" type="text" indexed="true" stored="true" multiValued="true" />
+    <field name="usq_document_strategic_plan" type="text" indexed="true" stored="true" multiValued="true" />
     <field name="title_group" type="text" indexed="true" stored="true" multiValued="true" />
     <field name="title_sort" type="alphaOnlySort" indexed="true" stored="true" multiValued="true" />
     <field name="d_usq_document_effective_date" type="date" indexed="true" stored="true" multiValued="true" />
