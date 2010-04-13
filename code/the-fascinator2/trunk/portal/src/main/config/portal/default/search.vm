@@ -220,7 +220,7 @@
             #if($packagingEnabled && !$isPackage)
               <input type="checkbox" name="package-select" class="package-select" value="$id" rel="$title"#if($selectedItems.contains($id))checked="checked"#end />
             #end
-            <img src="$portalPath/$self.getMimeTypeIcon($format)" />
+            <img src="$portalPath/$self.getMimeTypeIcon($format)" title="$!format" />
             #set($wfStep = $item.get("workflow_step").get(0))
             #if ($wfStep && $wfStep != "" && $wfStep != "live")
             <img class="workflow" src="$portalPath/images/icons/wf_${wfStep}.png" />

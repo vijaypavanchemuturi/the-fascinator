@@ -247,10 +247,15 @@ function toggleHelp(help_link) {
 
 function fixLinks(baseUrl, selector, attrName, oid) {
     $(selector).each(function() {
-        // NOTE: $(this).attr(attrName) on IE7 returns an absolute path instead
-        // of relative, so we need to use the DOM attribute directly
-        var attr = $(this).get(0).getAttribute(attrName, 2);
+        var attr = $(this).attr(attrName);
         if (attr != null) {
+            // fix for IE7 attr() returning resolved URLs - strip base URL
+            var href = window.location.href;
+            hrefBase = href.substring(0, href.lastIndexOf("/"));
+            attrBase = attr.substring(0, hrefBase.length);
+            if (hrefBase == attrBase) {
+                attr = attr.substring(hrefBase.length + 1);
+            }
             if (attr.indexOf("tfObject:") == 0) {
                 // First class objects (links only, not images)
                 var relUrl = "$portalPath/detail/";
@@ -300,6 +305,7 @@ $(function() {
     $("div.rendition-links").remove();
 
     var mimeType = "$self.mimeType";
+    var player = {};
 
     #if($self.mimeType.startsWith("image/"))
         var src = "$portalPath/download/$oid/$self.getPreview('$portalPath/download/$oid')";
