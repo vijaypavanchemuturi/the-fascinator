@@ -615,6 +615,10 @@ public class Ice2Harvester extends GenericHarvester {
                     payload.setType(PayloadType.Preview);
                     payload.close();
                 }
+                File dcXml = new File(htmlDir, "dc.xml");
+                if (dcXml.exists()) {
+                    addPayload(object, dcXml, "");
+                }
                 File imgDir = new File(htmlDir, htmlDir.getName() + "_files");
                 if (imgDir.exists()) {
                     addPayload(object, imgDir, "");
@@ -896,6 +900,20 @@ public class Ice2Harvester extends GenericHarvester {
                     IOUtils.copy(htmlFileIn, htmlFileOut);
                     htmlFileIn.close();
                     htmlFileOut.close();
+                }
+                // Dublin Core metadata
+                if (f.getName().endsWith(".dc")) {
+                    File dcFile = new File(htmlDir, "dc.xml");
+                    if (!dcFile.exists()) {
+                        dcFile.createNewFile();
+                    }
+                    dcFile.deleteOnExit();
+                    FileOutputStream dcFileOut =
+                            new FileOutputStream(dcFile);
+                    FileInputStream dcFileIn = new FileInputStream(f);
+                    IOUtils.copy(dcFileIn, dcFileOut);
+                    dcFileIn.close();
+                    dcFileOut.close();
                 }
                 // Images
                 if (f.getName().startsWith("image-")) {
