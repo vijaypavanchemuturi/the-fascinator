@@ -1,3 +1,4 @@
+#set($pageHeader = '<meta name="description" content="' + $self.metadata.getField("usq_document_purpose") + '" />')
 <table class="layout">
   <tbody>
     <tr>

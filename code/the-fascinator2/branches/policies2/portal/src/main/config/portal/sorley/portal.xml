@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<portal name="sorley">
+    <description>USQ Policy Library (Basic)</description>
+    <query></query>
+    <records-per-page>5000</records-per-page>
+    <facet-count>5000</facet-count>
+    <facet-sort-by-count>false</facet-sort-by-count>
+    <backup-paths/>
+    <facet-fields>
+        <field name="f_title_group">Title</field>
+        <field name="f_usq_document_type">Category</field>
+        <field name="f_usq_document_div_dept_office">Division/Department</field>
+        <field name="f_usq_document_committee_owner">Committee</field>
+        <field name="f_usq_document_responsible_position">Responsible officer</field>
+    </facet-fields>
+</portal>
