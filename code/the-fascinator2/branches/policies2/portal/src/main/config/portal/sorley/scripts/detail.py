@@ -89,7 +89,8 @@ class DetailData:
         nodes = root.selectNodes("//*[local-name()='%s']" % elemName)
         for node in nodes:
            attrValue = node.attributeValue(attrName)
-           newAttrValue = "%s/download/%s/%s" % (portalPath, self.__oid, attrValue)
-           node.addAttribute(attrName, newAttrValue)
+           if attrValue and not (attrValue.startswith("#") or attrValue.find("://") != -1):
+               newAttrValue = "%s/download/%s/%s" % (portalPath, self.__oid, attrValue)
+               node.addAttribute(attrName, newAttrValue)
 
 scriptObject = DetailData()
