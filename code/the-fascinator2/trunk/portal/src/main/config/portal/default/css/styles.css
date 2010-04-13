@@ -477,8 +477,8 @@ ul.nobgtabs li a.ui-state-active {
     padding-left: 20px;
 }
 
-img.workflow {
-    vertical-align: text-bottom;
+.article a img.workflow {
+    vertical-align: baseline;
 }
 
 .package-select {
