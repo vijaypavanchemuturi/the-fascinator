@@ -1,5 +1,5 @@
 #set($pageHeader = "#parse($page.getTemplate('detail-header.vm'))")
-<a href="$portalPath/home">&lt; Back</a>
+<a href="$portalPath/home">Home</a>
 #if($self.solrResponse.get("response/numFound") == 0)
   #set($pageTitle = "Not found")
   <h1 class="content-title">Page not found</h1>
