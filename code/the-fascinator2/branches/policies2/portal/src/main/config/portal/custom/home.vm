@@ -1,0 +1,113 @@
+#*
+#macro(createFacetNode $facet $state $isLast)
+{
+    attributes: {
+        id: "$facet.id",
+        fq: "$facet.facetQuery"
+    },
+    data: "$facet.name ($facet.count)"
+    #set($size = $facet.subFacets.size())
+    #if($size > 0)
+        ,
+        state: "$state",
+        children: [
+        #foreach($subFacet in $facet.subFacets)
+            #set($isSubLast = $velocityCount == $size)
+            #createFacetNode($subFacet "closed" $isSubLast)
+        #end
+        ]
+    #end
+}
+#if(!$isLast),#end
+#end
+[
+#foreach($facet in $self.facetList.facets)
+    #set($size = $self.facetList.facets.size())
+    #set($isLast = $velocityCount == $size)
+    #createFacetNode($facet "closed" $isLast)
+#end
+]
+*#
+
+#macro(createFacetTree $facetList)
+test
+#end
+
+#set($pageTitle = 'Home')
+<table class="layout">
+  <tbody>
+    <tr>
+      <td class="leftcol">
+        <div class="columnbox">
+          <div class="mainmenu">
+            <div class="mainmenu-top"></div>
+            <div class="mainmenu-heading">USQ Policy Library</div>
+            <ul class="menu-list">
+              <li class="selected">Home</li>
+              <li><a href="$portalPath/browse">Browse</a></li>
+              <li><a href="$portalPath/help">Help</a></li>
+            </ul>
+          </div>
+          #displayFacetTree("policy_type", "Policy type")
+          ##displayFacet("f_usq_document_policy_type")
+          #displayFacet("f_title_group")
+        </div>
+      </td>
+      <td class="middlecol">
+        <div class="home">
+          <div class="home-welcome">
+            <h2 class="content-title">University Policy Library</h2>
+            <p>The University Policy Library is the definitive source of current policy and procedural documentation relating to the governance and management of the academic affairs of the University.</p>
+          </div>
+          <div class="home-search">
+            <h2>Search</h2>
+            <p><em>Insert custom search code here</em></p>
+          </div>
+        </div>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<script type="text/javascript">
+$(function() {
+    setActionUri("$portalPath/search");
+    $(".add-facet").click(function() {
+        doAction("add_fq", $(this).attr("rel"));
+    });
+    
+    var cookieOpts = { path: "/", expires: 10 };
+    createTree("#policy_type", "f_usq_document_policy_type", "", "");
+    
+    //autocomplete
+    $("input#query").autocomplete("$portalPath/autocomplete.ajax");
+    
+    // toggle facets
+    $(".mainmenu:has(.facet-list) > .mainmenu-heading")
+        .each(function() {
+            var next = $(this).next();
+            var icon = $(this).find("span");
+            var id = next.attr("id");
+            var state = jQuery.cookie("tf_" + id);
+            if (state == "true") {
+                icon.removeClass("ui-icon-triangle-1-e");
+                icon.addClass("ui-icon-triangle-1-s");
+                next.show();
+            } else {
+                icon.addClass("ui-icon-triangle-1-e");
+                icon.removeClass("ui-icon-triangle-1-s");
+                next.hide();
+            }
+        })
+        .click(function() {
+            var next = $(this).next();
+            var icon = $(this).find("span");
+            var id = next.attr("id");
+            icon.toggleClass("ui-icon-triangle-1-e");
+            icon.toggleClass("ui-icon-triangle-1-s");
+            next.toggle();
+            var state = next.is(":visible");
+            jQuery.cookie("tf_" + id, state, cookieOpts);
+            return false;
+        });
+});
+</script>
