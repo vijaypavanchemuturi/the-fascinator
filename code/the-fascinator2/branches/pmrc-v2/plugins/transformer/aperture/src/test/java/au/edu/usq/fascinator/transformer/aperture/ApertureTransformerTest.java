@@ -76,7 +76,6 @@ public class ApertureTransformerTest {
         testObject = StorageUtils.storeFile(ram, fileNamepdf);
         testObjectOutput = ex.transform(testObject);
         Payload rdfPayload = testObjectOutput.getPayload("aperture.rdf");
-        System.out.println(rdfPayload);
         Assert.assertEquals("aperture.rdf", rdfPayload.getId());
         Assert.assertEquals("Aperture rdf", rdfPayload.getLabel());
         Assert.assertEquals("application/xml+rdf", rdfPayload.getContentType());
