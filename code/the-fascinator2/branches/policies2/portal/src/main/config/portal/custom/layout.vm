@@ -8,12 +8,9 @@ $!pageContent
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <link rel="icon" type="image/vnd.microsoft.com" href="$portalPath/favicon.ico" />
     <link rel="stylesheet" type="text/css" href="$portalPath/css/ui-lightness/jquery-ui-1.7.2.custom.css" />
-    <link rel="stylesheet" type="text/css" href="$portalPath/js/jquery-autocomplete/jquery.autocomplete.css" />
     <script type="text/javascript" src="$portalPath/js/jquery-1.3.2.min.js"></script>
     <script type="text/javascript" src="$portalPath/js/jquery-ui-1.7.2.custom.min.js"></script>
     <script type="text/javascript" src="$portalPath/js/jquery.cookie.js"></script>
-    <script type="text/javascript" src="$portalPath/js/jquery.tree.min.js"></script>
-    <script type="text/javascript" src="$portalPath/js/jquery-autocomplete/jquery.autocomplete.pack.js"></script>
     <link rel="stylesheet" type="text/css" href="$portalPath/css/common.css" />
     <!--[if IE]>
     <link rel="stylesheet" type="text/css" href="$portalPath/css/common-ie.css" />
@@ -23,71 +20,6 @@ $!pageContent
     <![endif]-->
     <link rel="stylesheet" type="text/css" href="$portalPath/css/styles.css" />
     <link rel="stylesheet" type="text/css" href="$portalPath/css/print.css" media="print" />
-    <script type="text/javascript">
-    function setActionUri(uri) {
-        $("#action-form").attr("action", uri);
-    }
-    function addActionParam(name, value) {
-        $("#action-form").append('<input id="' + name + '" name="' + name + '" type="hidden" value="' + value + '" />');
-    }
-    function doAction(action) {
-        doAction(action, "");
-    }
-    function doAction(action, value) {
-        $("#verb").val(action);
-        $("#value").val(value);
-        $("#action-form").submit();
-    }
-    
-    // hierarchical facet trees
-    function createTree(selector, facetField, selected, query) {
-        var tree = jQuery.tree.create();
-        tree.init($(selector), {
-            data: {
-                type: "json",
-                opts: {
-                    url: "$portalPath/search-tree.ajax?facet.field=" + facetField
-                }
-            },
-            selected: selected,
-            ui: {
-                animation: 250,
-                dots: false,
-                theme_name: "checkbox"
-            },
-            opened: [],
-            plugins: {
-                checkbox: {},
-                cookie: {
-                    prefix: "tf_tree_" + facetField
-                }
-            },
-            callback: {
-                beforedata: function(node, tree) {
-                    return {
-                        id: $(node).attr("id") || 0,
-                        query: query
-                    };
-                },
-                onchange: function(node, tree) {
-                    $(node).children("a").removeClass("clicked");
-                    $(node).children("a").toggleClass("checked");
-                },
-                onload: function(tree) {
-                    tree.container.find("a").bind("click", function() {
-                        var checked = $(this).hasClass("checked") == false;
-                        doAction(checked ? "add_fq" : "remove_fq", $(this).parent().attr("fq"));
-                    });
-                    var nodeCount = $(selector).find("li").length;
-                    if (nodeCount > 0) {
-                        $(selector).parent("div").show();
-                    }
-                }
-            }
-        });
-        return tree;
-    }
-    </script>
     $!pageHeader
   </head>
   <body>

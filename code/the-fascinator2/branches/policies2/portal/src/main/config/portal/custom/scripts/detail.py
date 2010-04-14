@@ -32,15 +32,8 @@ class SolrDoc:
     def getFieldList(self, name):
         return self.json.getList("response/docs/%s" % name)
     
-    def getDublinCore(self):
-        dc = self.json.getList("response/docs").get(0)
-        remove = ["dc_title", "dc_description"]
-        for entry in dc:
-            if not entry.startswith("dc_"):
-                remove.append(entry)
-        for key in remove:
-            dc.remove(key)
-        return JsonConfigHelper(dc).getMap("/")
+    def getFieldValues(self, name):
+        return ", ".join(self.getFieldList(name))
     
     def toString(self):
         return self.json.toString()
@@ -93,6 +86,8 @@ class DetailData:
         saxReader = SAXReader(False)
         document = saxReader.read(payload.getInputStream())
         bodyNode = document.selectSingleNode("//*[local-name()='body']")
+        self.__fixLinks(bodyNode, "img", "src")
+        self.__fixLinks(bodyNode, "a", "href")
         format = OutputFormat.createPrettyPrint()
         format.setSuppressDeclaration(True)
         out = ByteArrayOutputStream()
@@ -100,10 +95,13 @@ class DetailData:
         writer.write(bodyNode)
         writer.close()
         return out.toString("UTF-8")
-    
-    def __openFile(self):
-        value = formData.get("value")
-        print " * detail.py: opening file %s..." % value
-        Desktop.getDesktop().open(File(value))
+
+    def __fixLinks(self, root, elemName, attrName):
+        nodes = root.selectNodes("//*[local-name()='%s']" % elemName)
+        for node in nodes:
+           attrValue = node.attributeValue(attrName)
+           if attrValue and not (attrValue.startswith("#") or attrValue.find("://") != -1):
+               newAttrValue = "%s/download/%s/%s" % (portalPath, self.__oid, attrValue)
+               node.addAttribute(attrName, newAttrValue)
 
 scriptObject = DetailData()
