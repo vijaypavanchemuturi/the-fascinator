@@ -195,6 +195,10 @@ public class ApertureTransformer implements Transformer {
     public static RDFContainer extractRDF(File file, String sourceId)
             throws IOException, ExtractorException {
         String mimeType = MimeTypeUtil.getMimeType(file);
+        if (mimeType == null) {
+            log.error("MIME Type = NULL, skipping RDF extraction.");
+            return null;
+        }
         return extractRDF(file, mimeType, sourceId);
     }
 
