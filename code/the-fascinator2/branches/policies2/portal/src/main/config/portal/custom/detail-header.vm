@@ -1,0 +1,13 @@
+#macro(meta $name $field)
+<meta name="$name" content="$!self.metadata.getFieldValues($field)" />
+#end
+#meta("title" "dc_title")
+#meta("keywords" "usq_document_keywords")
+#meta("usq.document.category" "usq_document_type")
+#meta("usq.responsible.officer" "usq_document_responsible_position")
+#meta("usq.committee.owner" "usq_document_committee_owner")
+#meta("usq.division.department" "usq_document_div_dept_office")
+#meta("usq.strategic.plan" "usq_document_strategic_plan")
+#meta("usq.policy.category" "usq_document_policy_type")
+#meta("usq.next.review.date" "date_usq_document_next_reviewdate")
+#meta("usq.document.status" "usq_document_disposition")

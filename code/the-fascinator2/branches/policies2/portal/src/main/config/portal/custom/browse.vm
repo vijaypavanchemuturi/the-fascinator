@@ -127,9 +127,6 @@
 </table>
 <script type="text/javascript">
 $(function() {
-    //autocomplete
-    $("input#query").autocomplete("$portalPath/autocomplete.ajax");
-    
     var cookieOpts = { path: "/", expires: 10 };
     
     // toggle facets
