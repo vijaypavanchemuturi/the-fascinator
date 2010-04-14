@@ -18,6 +18,18 @@
  */
 package au.edu.usq.fascinator.transformer.aperture;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.URISyntaxException;
+
+import junit.framework.Assert;
+
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+
 import au.edu.usq.fascinator.api.PluginManager;
 import au.edu.usq.fascinator.api.storage.DigitalObject;
 import au.edu.usq.fascinator.api.storage.Payload;
@@ -27,25 +39,14 @@ import au.edu.usq.fascinator.api.storage.StorageException;
 import au.edu.usq.fascinator.api.transformer.TransformerException;
 import au.edu.usq.fascinator.common.storage.StorageUtils;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.InputStreamReader;
-import java.io.IOException;
-import java.net.URISyntaxException;
-
-import junit.framework.Assert;
-
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-
 /**
  * @author Linda Octalina
  * 
  */
 
 public class ApertureTransformerTest {
-    private ApertureTransformer ex = new ApertureTransformer(System.getProperty("java.io.tmpdir"));
+    private ApertureTransformer ex = new ApertureTransformer(System
+            .getProperty("java.io.tmpdir"));
 
     private Storage ram;
     private DigitalObject testObject, testObjectOutput;
@@ -75,6 +76,7 @@ public class ApertureTransformerTest {
         testObject = StorageUtils.storeFile(ram, fileNamepdf);
         testObjectOutput = ex.transform(testObject);
         Payload rdfPayload = testObjectOutput.getPayload("aperture.rdf");
+        System.out.println(rdfPayload);
         Assert.assertEquals("aperture.rdf", rdfPayload.getId());
         Assert.assertEquals("Aperture rdf", rdfPayload.getLabel());
         Assert.assertEquals("application/xml+rdf", rdfPayload.getContentType());
@@ -98,8 +100,8 @@ public class ApertureTransformerTest {
 
     // Image file?
     @Test
-    public void testImageFile() throws URISyntaxException, TransformerException,
-            StorageException {
+    public void testImageFile() throws URISyntaxException,
+            TransformerException, StorageException {
         File imageFile = new File(getClass().getResource("/presentation01.jpg")
                 .toURI());
 
@@ -123,7 +125,6 @@ public class ApertureTransformerTest {
             } finally {
                 rdfPayload.close();
             }
-            System.out.println("String: " + sb.toString());
         } catch (StorageException e) {
             e.printStackTrace();
         }
@@ -154,7 +155,6 @@ public class ApertureTransformerTest {
             } finally {
                 rdfPayload.close();
             }
-            System.out.println("String: " + sb.toString());
         } catch (StorageException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
