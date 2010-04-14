@@ -18,18 +18,6 @@
  */
 package au.edu.usq.fascinator.transformer.aperture;
 
-import au.edu.usq.fascinator.api.PluginException;
-import au.edu.usq.fascinator.api.storage.DigitalObject;
-import au.edu.usq.fascinator.api.storage.Payload;
-import au.edu.usq.fascinator.api.storage.PayloadType;
-import au.edu.usq.fascinator.api.storage.StorageException;
-import au.edu.usq.fascinator.api.transformer.Transformer;
-import au.edu.usq.fascinator.api.transformer.TransformerException;
-import au.edu.usq.fascinator.common.JsonConfig;
-import au.edu.usq.fascinator.common.JsonConfigHelper;
-import au.edu.usq.fascinator.common.MimeTypeUtil;
-import au.edu.usq.fascinator.common.storage.StorageUtils;
-
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -59,6 +47,18 @@ import org.semanticdesktop.aperture.rdf.impl.RDFContainerImpl;
 import org.semanticdesktop.aperture.vocabulary.NIE;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import au.edu.usq.fascinator.api.PluginException;
+import au.edu.usq.fascinator.api.storage.DigitalObject;
+import au.edu.usq.fascinator.api.storage.Payload;
+import au.edu.usq.fascinator.api.storage.PayloadType;
+import au.edu.usq.fascinator.api.storage.StorageException;
+import au.edu.usq.fascinator.api.transformer.Transformer;
+import au.edu.usq.fascinator.api.transformer.TransformerException;
+import au.edu.usq.fascinator.common.JsonConfig;
+import au.edu.usq.fascinator.common.JsonConfigHelper;
+import au.edu.usq.fascinator.common.MimeTypeUtil;
+import au.edu.usq.fascinator.common.storage.StorageUtils;
 
 /**
  * Provides static methods for extracting RDF metadata from a given file.
@@ -96,7 +96,8 @@ public class ApertureTransformer implements Transformer {
             System.exit(-1);
         }
         try {
-            RDFContainer rdf = extractRDF(args[0]);
+            String sourceId = "/tmp/test.jpg";
+            RDFContainer rdf = extractRDF(args[0], sourceId);
             if (rdf != null) {
                 System.out.println(rdf.getModel().serialize(Syntax.RdfXml));
             } else {
@@ -134,11 +135,11 @@ public class ApertureTransformer implements Transformer {
      * @throws ExtractorException
      * @throws URISyntaxException
      */
-    public static RDFContainer extractRDF(String file) throws IOException,
-            ExtractorException, URISyntaxException {
+    public static RDFContainer extractRDF(String file, String sourceId)
+            throws IOException, ExtractorException, URISyntaxException {
         File f = getFile(file);
         if (f != null) {
-            return extractRDF(f);
+            return extractRDF(f, sourceId);
         }
         return null;
     }
@@ -191,10 +192,10 @@ public class ApertureTransformer implements Transformer {
      * @throws IOException
      * @throws ExtractorException
      */
-    public static RDFContainer extractRDF(File file) throws IOException,
-            ExtractorException {
+    public static RDFContainer extractRDF(File file, String sourceId)
+            throws IOException, ExtractorException {
         String mimeType = MimeTypeUtil.getMimeType(file);
-        return extractRDF(file, mimeType);
+        return extractRDF(file, mimeType, sourceId);
     }
 
     /**
@@ -207,9 +208,9 @@ public class ApertureTransformer implements Transformer {
      * @throws IOException
      * @throws ExtractorException
      */
-    public static RDFContainer extractRDF(File file, String mimeType)
-            throws IOException, ExtractorException {
-        RDFContainer container = createRDFContainer(file);
+    public static RDFContainer extractRDF(File file, String mimeType,
+            String sourceId) throws IOException, ExtractorException {
+        RDFContainer container = createRDFContainer(sourceId);
         determineExtractor(file, mimeType, container);
         return container;
     }
@@ -220,8 +221,8 @@ public class ApertureTransformer implements Transformer {
      * @param file The file to be analysed
      * @return
      */
-    private static RDFContainer createRDFContainer(File file) {
-        URI uri = new URIImpl(file.toURI().toString());
+    private static RDFContainer createRDFContainer(String sourceId) {
+        URI uri = new URIImpl(sourceId);
         Model model = RDF2Go.getModelFactory().createModel();
         model.open();
         return new RDFContainerImpl(model, uri);
@@ -333,8 +334,8 @@ public class ApertureTransformer implements Transformer {
             log.info("--Initializing Extractor plugin--");
             JsonConfig config = new JsonConfig(jsonFile);
             // Default will be HOME_PATH/tmp folder
-            outputPath = config.get("aperture/outputPath",
-                    System.getProperty("java.io.tmpdir"));
+            outputPath = config.get("aperture/outputPath", System
+                    .getProperty("java.io.tmpdir"));
         } catch (IOException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
@@ -378,16 +379,19 @@ public class ApertureTransformer implements Transformer {
             } catch (IOException ex) {
                 log.error("Error writing temp file : ", ex);
                 return in;
-                //throw new TransformerException(ex);
+                // throw new TransformerException(ex);
             } catch (StorageException ex) {
                 log.error("Error accessing storage data : ", ex);
                 return in;
-                //throw new TransformerException(ex);
+                // throw new TransformerException(ex);
             }
         }
         try {
+            File oid = new File(in.getId());
             if (inFile.exists()) {
-                RDFContainer rdf = extractRDF(inFile); // Never write to file
+                RDFContainer rdf = extractRDF(inFile, oid.toURI().toString()); // Never
+                // write
+                // to file
                 log.info("Done extraction: " + rdf.getClass());
                 if (rdf != null) {
                     Payload rdfPayload = StorageUtils
