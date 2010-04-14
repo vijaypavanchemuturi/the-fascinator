@@ -9,7 +9,7 @@
             <div class="mainmenu-heading">USQ Policies</div>
             <ul class="menu-list">
               <li><a href="$portalPath/home">Home</a></li>
-              <li><a href="$portalPath/search">Search</a></li>
+              <li><a href="$portalPath/browse">Browse</a></li>
               <li><a href="$portalPath/help">Help</a></li>
             </ul>
           </div>
@@ -39,7 +39,7 @@
           #set($oid = $self.object.id)
           #set($title = $self.metadata.getField("dc_title"))
           #set($pageTitle = $title)
-          #set($breadcrumb = '<a href="' + $portalPath  + '/search">Search</a> &gt; ' + $title)
+          #set($breadcrumb = '<a href="' + $portalPath  + '/browse">Browse</a> &gt; ' + $title)
           <h1 class="content-title">$title</h1>
           <div class="content">$!self.payloadContent</div>
         #end

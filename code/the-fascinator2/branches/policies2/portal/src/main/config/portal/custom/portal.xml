@@ -9,9 +9,11 @@
     <facet-fields>
         <field name="f_title_group">Title</field>
         <field name="f_usq_document_type">Category</field>
+        <field name="f_usq_document_policy_type">Policy type</field>
         <field name="f_usq_document_div_dept_office">Division/Department</field>
+        <field name="usq_document_next_reviewdate">Next review date</field>
         <field name="f_usq_document_committee_owner">Committee</field>
         <field name="f_usq_document_responsible_position">Responsible officer</field>
-        <field name="f_usq_document_policy_type">Policy type</field>
+        <field name="f_usq_document_strategic_plan">Strategic plan</field>
     </facet-fields>
 </portal>
