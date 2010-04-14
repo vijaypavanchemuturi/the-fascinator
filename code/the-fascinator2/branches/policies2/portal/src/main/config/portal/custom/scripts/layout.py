@@ -1,5 +1,6 @@
 import md5
 
+from java.net import URLEncoder
 from org.apache.commons.lang import StringEscapeUtils
 
 class LayoutData:
@@ -15,6 +16,9 @@ class LayoutData:
     
     def escapeText(self, text):
         return StringEscapeUtils.escapeXml(text)
+    
+    def urlencode(self, url):
+        return URLEncoder.encode(url, "UTF-8")
     
     def md5Hash(self, data):
         return md5.new(data).hexdigest()

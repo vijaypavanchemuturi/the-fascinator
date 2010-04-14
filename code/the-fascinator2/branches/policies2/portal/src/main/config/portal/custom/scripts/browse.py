@@ -8,15 +8,18 @@ from au.edu.usq.fascinator.portal import Pagination, Portal
 
 from java.io import ByteArrayInputStream, ByteArrayOutputStream
 from java.net import URLDecoder, URLEncoder
-from java.util import LinkedHashMap
-
+from java.util import ArrayList, LinkedHashMap
 
 class SearchData:
     def __init__(self):
         self.__portal = Services.portalManager.get(portalId)
         self.__result = JsonConfigHelper()
-        self.__pageNum = sessionState.get("pageNum", 1)
-        self.__selected = []
+        self.__pageNum = formData.get("page")
+        if self.__pageNum is None:
+            self.__pageNum = 1
+        else:
+            self.__pageNum = int(self.__pageNum)
+        self.__selected = ArrayList()
         self.__query = ""
         self.__searchType = "full_text"
         self.__search()
@@ -33,11 +36,13 @@ class SearchData:
         
         if uri != portalPath:
             query = uri[len(portalPath):]
+        
         if query is None or query == "":
             query = formData.get("query")
+        
         if query is None or query == "":
             query = "*:*"
-             
+        
         if query == "*:*":
             self.__query = ""
         else:
@@ -52,38 +57,25 @@ class SearchData:
         req.setParam("facet.limit", str(self.__portal.facetCount))
         req.setParam("sort", "title_sort asc")
         
-        # setup facets
-        action = formData.get("verb")
-        value = formData.get("value")
-        fq = sessionState.get("fq")
-        if fq is not None:
-            self.__pageNum = 1
-            req.setParam("fq", fq)
-        if action == "add_fq":
-            self.__pageNum = 1
-            name = formData.get("name")
-            print " * add_fq: %s" % value
-            req.addParam("fq", URLDecoder.decode(value, "UTF-8"))
-        elif action == "remove_fq":
-            self.__pageNum = 1
-            req.removeParam("fq", URLDecoder.decode(value, "UTF-8"))
-        elif action == "clear_fq":
-            self.__pageNum = 1
-            req.removeParam("fq")
-        elif action == "select-page":
-            self.__pageNum = int(value)
-        req.addParam("fq", 'item_type:"object"')
+        fq = formData.getValues("fq")
+        savedfq = sessionState.get("fq")
+        limits = []
+        if savedfq:
+            limits.extend(savedfq)
+        if fq:
+            limits.extend(fq)
+            sessionState.set("fq", limits)
+            for q in fq:
+                req.addParam("fq", URLDecoder.decode(q, "UTF-8"))
         
         portalQuery = self.__portal.query
-        print " * portalQuery=%s" % portalQuery
         if portalQuery:
             req.addParam("fq", portalQuery)
         
-        self.__selected = req.getParams("fq")
+        if req.getParams("fq"):
+            self.__selected = ArrayList(req.getParams("fq"))
         
-        sessionState.set("fq", self.__selected)
-        sessionState.set("pageNum", self.__pageNum)
-        
+        req.addParam("fq", 'item_type:"object"')
         req.setParam("start", str((self.__pageNum - 1) * recordsPerPage))
         
         print " * search.py:", req.toString(), self.__pageNum
@@ -97,6 +89,7 @@ class SearchData:
                                        self.__portal.recordsPerPage)
     def getSearchType(self):
         return self.__searchType
+    
     def getQuery(self):
         return self.__query
     
@@ -150,5 +143,29 @@ class SearchData:
         ext = os.path.splitext(oid)[1]
         url = oid[oid.rfind("/")+1:-len(ext)] + ".thumb.jpg"
         return url
+    
+    def getPageQuery(self, page):
+        fq = "&".join(["fq=" + URLEncoder.encode(l, "UTF-8") for l in self.__selected])
+        if fq:
+            return "%s&page=%s" % (fq, page)
+        return "page=%s" % page
+    
+    def getLimitQueryWith(self, fq):
+        limits = ArrayList(self.__selected)
+        limits.add(fq)
+        return "&".join(["fq=" + URLEncoder.encode(l, "UTF-8") for l in limits])
+    
+    def getLimitQueryWithout(self, fq):
+        limits = ArrayList(self.__selected)
+        limits.remove(fq)
+        if limits.isEmpty():
+            return ""
+        return "&".join(["fq=" + URLEncoder.encode(l, "UTF-8") for l in limits])
+    
+    def getFacetValue(self, facetValue):
+        return facetValue.split("/")[-1]
+    
+    def getFacetIndent(self, facetValue):
+        return (len(facetValue.split("/")) - 1) * 15;
 
 scriptObject = SearchData()

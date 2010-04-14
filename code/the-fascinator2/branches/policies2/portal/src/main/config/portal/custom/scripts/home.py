@@ -1,59 +1,8 @@
 from au.edu.usq.fascinator.api.indexer import SearchRequest
 from au.edu.usq.fascinator.common import JsonConfigHelper
 from java.io import ByteArrayInputStream, ByteArrayOutputStream
+from java.net import URLEncoder
 from java.util import LinkedHashMap
-
-class Facet:
-    def __init__(self, key, value, count):
-        self.__name = value[value.rfind("/") + 1:]
-        fq = '%s:"%s"' % (key, value)
-        self.__facetQuery = URLEncoder.encode(fq, "UTF-8")
-        self.__id = md5.new(fq).hexdigest()
-        self.__count = count
-        self.__subFacets = ArrayList()
-
-    def getId(self):
-        return self.__id
-
-    def getName(self):
-        return self.__name
-
-    def getCount(self):
-        return self.__count
-
-    def getFacetQuery(self):
-        return self.__facetQuery
-
-    def addSubFacet(self, facet):
-        self.__subFacets.add(facet)
-
-    def getSubFacets(self):
-        return self.__subFacets
-
-class FacetList:
-    def __init__(self, name, json):
-        self.__facetMap = LinkedHashMap()
-        self.__facetList = ArrayList()
-        entries = json.getList("facet_counts/facet_fields/" + name)
-        for i in range(0, len(entries), 2):
-            value = entries[i]
-            count = entries[i+1]
-            if count > 0:
-                facet = Facet(name, value, count)
-                self.__facetMap.put(value, facet)
-                slash = value.rfind("/")
-                if slash == -1:
-                    self.__facetList.add(facet)
-                else:
-                    parent = self.getFacet(value[:slash])
-                    if parent is not None:
-                        parent.addSubFacet(facet)
-
-    def getFacets(self):
-        return self.__facetList
-
-    def getFacet(self, name):
-        return self.__facetMap.get(name)
 
 class HomeData:
     def __init__(self):
@@ -96,7 +45,13 @@ class HomeData:
                 values[name] = count
         return values
     
-    def getFacetList(self, key):
-        return FacetList(name, self.__result)
+    def getFacetQuery(self, key, value):
+        return '%s:"%s"' % (key, URLEncoder.encode(value, "UTF-8"))
+    
+    def getFacetValue(self, facetValue):
+        return facetValue.split("/")[-1]
+    
+    def getFacetIndent(self, facetValue):
+        return (len(facetValue.split("/")) - 1) * 15;
 
 scriptObject = HomeData()

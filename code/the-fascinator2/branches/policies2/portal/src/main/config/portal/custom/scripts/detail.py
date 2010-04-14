@@ -56,14 +56,16 @@ class DetailData:
             self.__oid = uri[len(basePath)+1:]
             self.__metadata = JsonConfigHelper()
             self.__search()
-            self.__sid = self.__json.getList("response/docs").get(0).get("storage_id")
-            slash = self.__sid.rfind("/")
-            self.__pid = self.__sid[slash+1:]
-            print """ * detail.py: uri='%s'
+            docList = self.__json.getList("response/docs")
+            if not docList.isEmpty():
+                self.__sid = docList.get(0).get("storage_id")
+                slash = self.__sid.rfind("/")
+                self.__pid = self.__sid[slash+1:]
+                print """ * detail.py: uri='%s'
               oid='%s'
               sid='%s'
               pid='%s'""" % (uri, self.__oid, self.__sid, self.__pid)
-            payload = self.__storage.getPayload(self.__sid, self.__pid)
+                payload = self.__storage.getPayload(self.__sid, self.__pid)
     
     def __search(self):
         req = SearchRequest('id:"%s"' % self.__oid)

@@ -1,38 +1,23 @@
-#*
-#macro(createFacetNode $facet $state $isLast)
-{
-    attributes: {
-        id: "$facet.id",
-        fq: "$facet.facetQuery"
-    },
-    data: "$facet.name ($facet.count)"
-    #set($size = $facet.subFacets.size())
-    #if($size > 0)
-        ,
-        state: "$state",
-        children: [
-        #foreach($subFacet in $facet.subFacets)
-            #set($isSubLast = $velocityCount == $size)
-            #createFacetNode($subFacet "closed" $isSubLast)
-        #end
-        ]
+#macro(createFacetMenu $facetFieldKey)
+  #set($facetCounts = $self.getFacetCounts($facetFieldKey))
+  #if($facetCounts.size() > 0)
+  <div class="facet-group mainmenu ui-helper-clearfix">
+    <div class="mainmenu-top"></div>
+    <div class="mainmenu-heading"><span class="ui-icon ui-icon-triangle-1-e icon"></span>$self.getFacetName($facetFieldKey)</div>
+    <ul class="facet-list ui-helper-hidden" id="$facetFieldKey">
+    #foreach($facetCountKey in $facetCounts.keySet())
+      #set($facetCount = $facetCounts.get($facetCountKey))
+      #set($facetQuery = $self.getFacetQuery($facetFieldKey, $facetCountKey))
+      <li>
+        #set($key = $page.escapeText($self.getFacetValue($facetCountKey)))
+        <a style="padding-left:$self.getFacetIndent($facetCountKey)px" href="$portalPath/browse?fq=$page.urlencode($facetQuery)">$key</a> ($facetCount)
+      </li>
     #end
-}
-#if(!$isLast),#end
+    </ul>
+  </div>
+  <span><!-- empty span to prevent IE from collapsing whitespace --></span>
+  #end
 #end
-[
-#foreach($facet in $self.facetList.facets)
-    #set($size = $self.facetList.facets.size())
-    #set($isLast = $velocityCount == $size)
-    #createFacetNode($facet "closed" $isLast)
-#end
-]
-*#
-
-#macro(createFacetTree $facetList)
-test
-#end
-
 #set($pageTitle = 'Home')
 <table class="layout">
   <tbody>
@@ -48,9 +33,8 @@ test
               <li><a href="$portalPath/help">Help</a></li>
             </ul>
           </div>
-          #displayFacetTree("policy_type", "Policy type")
-          ##displayFacet("f_usq_document_policy_type")
-          #displayFacet("f_title_group")
+          #createFacetMenu("f_usq_document_policy_type")
+          #createFacetMenu("f_title_group")
         </div>
       </td>
       <td class="middlecol">
@@ -70,11 +54,6 @@ test
 </table>
 <script type="text/javascript">
 $(function() {
-    setActionUri("$portalPath/search");
-    $(".add-facet").click(function() {
-        doAction("add_fq", $(this).attr("rel"));
-    });
-    
     var cookieOpts = { path: "/", expires: 10 };
     createTree("#policy_type", "f_usq_document_policy_type", "", "");
     
