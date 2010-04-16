@@ -83,9 +83,9 @@ tbody th, tbody td{border-top:none; border-bottom:none;}
 
 .breadcrumbs{font-size:90%}
 
-.footer{text-align:center; position:relative; margin-top:5px; padding:3px 0 0 0; bottom:0px; border-top:1px dotted #959ca1; font-size:75%}
+.footer{text-align:center; position:relative; margin-top:5px; padding:3px 0 0 0; bottom:0px; font-size:75%}
 
-.maincontent{margin-top:2px; padding-top:2px}
+.maincontent{margin-top:2px; padding-top:2px; border-bottom:1px dotted #959ca1; }
 .middlecol{ padding:10px 10px 0px 15px; margin-right:10px; background-color:white; width:100%}
 .layout td{vertical-align:top; background:none}
 .content-title{margin-top:0px; margin-bottom:10px; padding-bottom:0px; font-size:145%; font-style:normal; font-weight:bold; color:black; border-bottom:1px dotted #959ca1; width:100%}

@@ -22,7 +22,7 @@ class GeoNames:
             except Exception, e:
                 print "exception: ", str(e)
                 r = str(e), None
-            responseType = "text/plain"
+            responseType = "text/plain; charset='UTF-8'"
             #responseMsg = "\nToowoomba, Australia\nToowoomba, Africa";
         writer = response.getPrintWriter(responseType)
         writer.println(responseMsg)

@@ -122,7 +122,7 @@ if pid == metaPid:
                 else:
                     relationDict[key] = [value]
     except StorageException, e:
-        print " storage exception", str(e)
+        print " storage exception dc.xml", str(e)
     
     try:
     	rdfPayload = object.getPayload("aperture.rdf")
@@ -135,7 +135,7 @@ if pid == metaPid:
         if not safeOid.startswith("/"):
             safeOid = "/" + safeOid
         rdfId = "file:%s" % safeOid
-        
+
         #Set write to False so it won't write to the model
         paginationTextDocument = PaginatedTextDocument(rdfModel, rdfId, False)
         informationElement = InformationElement(rdfModel, rdfId, False)
@@ -209,7 +209,7 @@ if pid == metaPid:
             if informationElement.hasContentCreated():
                 creationDate.append(informationElement.getContentCreated().getTime().toString())
     except StorageException, e:
-        print " storage exception", str(e)
+        print " storage exception aperture.rdf", str(e)
         
     indexList("dc_title", titleList)
     indexList("dc_creator", creatorList)  #no dc_author in schema.xml, need to check

@@ -396,13 +396,12 @@ public class ApertureTransformer implements Transformer {
                 RDFContainer rdf = extractRDF(inFile, oid.toURI().toString()); // Never
                 // write
                 // to file
-                log.info("Done extraction: " + rdf.getClass());
                 if (rdf != null) {
                     Payload rdfPayload = StorageUtils
                             .createOrUpdatePayload(in, "aperture.rdf",
                                     new ByteArrayInputStream(
                                             stripNonValidXMLCharacters(rdf)
-                                                    .getBytes()));
+                                                    .getBytes("UTF-8")));
                     rdfPayload.setLabel("Aperture rdf");
                     rdfPayload.setContentType("application/xml+rdf");
                     rdfPayload.setType(PayloadType.Enrichment);
