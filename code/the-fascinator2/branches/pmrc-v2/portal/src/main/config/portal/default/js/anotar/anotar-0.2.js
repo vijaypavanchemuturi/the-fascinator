@@ -644,7 +644,7 @@ function anotarFactory(jQ, config) {
             // Can we add a URI to make a link?
             uri = annoObj.creator.uri;
             if (uri != null && uri.indexOf("http://") == 0) {
-                creator = "<a href='" + annoObj.creator.uri +"'>" + creator + "</a>";
+                creator = "<a href='" + annoObj.creator.uri +"' target='_blank'>" + creator + "</a>";
             }
         }
         //Removed stuff which links to URI or exposes email address PS
