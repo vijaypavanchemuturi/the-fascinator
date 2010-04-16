@@ -6,14 +6,18 @@ from au.edu.usq.fascinator.api.storage import StorageException
 class DownloadData:
     def __init__(self):
         basePath = portalId + "/" + pageName
-        uri = URLDecoder.decode(request.getAttribute("RequestURI"))
-        uri = uri[len(basePath)+1:]
+        fullUri = URLDecoder.decode(request.getAttribute("RequestURI"))
+        uri = fullUri[len(basePath)+1:]
         try:
             object, payload = self.__resolve(uri)
+            if object == None:
+                response.sendRedirect(contextPath + "/" + fullUri + "/")
+                return
             print "URI='%s' OID='%s' PID='%s'" % (uri, object.getId(), payload.getId())
         except StorageException, e:
             payload = None
             print "Failed to get object: %s" % (str(e))
+
         if payload is not None:
             filename = os.path.split(payload.getId())[1]
             mimeType = payload.getContentType()
@@ -32,9 +36,17 @@ class DownloadData:
     
     def __resolve(self, uri):
         slash = uri.find("/")
+
+        if slash == -1:
+            return None, None
+
         oid = uri[:slash]
-        pid = uri[slash+1:]
         object = Services.storage.getObject(oid)
+
+        pid = uri[slash+1:]
+        if pid == "":
+            pid = object.getSourceId()
+
         payload = object.getPayload(pid)
         return object, payload
 
