@@ -1,0 +1,21 @@
+<div id="metadata" class="box">
+  <h2>Metadata</h2>
+  #set($pageHeader="#parse($page.getTemplate('detail-screen/header.vm'))")
+  <div class="block">
+    <table class="meta">
+      #foreach($key in $dc.keySet())
+      <tr>
+        <th>$self.formatName($key)</th>
+        #set($valueList = $dc.get($key))
+      </tr>
+      <tr>
+        <td>
+          #foreach($value in $valueList)
+          <span class="meta-value">$value</span><br/>
+          #end
+        </td>
+      </tr>
+      #end
+    </table>
+  </div>
+</div>

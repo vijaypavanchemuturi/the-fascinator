@@ -48,6 +48,7 @@ class SolrDoc:
 class DetailData:
     def __init__(self):
         self.__object = None
+        self.__render = True
         if formData.get("func") == "open-file":
             self.__openFile()
             writer = response.getPrintWriter("text/plain; charset=UTF-8")
@@ -57,9 +58,26 @@ class DetailData:
             self.__storage = Services.storage
             uri = URLDecoder.decode(request.getAttribute("RequestURI"))
             basePath = portalId + "/" + pageName
-            self.__oid = uri[len(basePath)+1:]
-            self.__pid = None
-            slash = self.__oid.rfind("/")
+            baseOid = uri[len(basePath)+1:]
+            slash = baseOid.find("/")
+            if slash != -1:
+                self.__oid = baseOid[:slash]
+                self.__pid = baseOid[slash+1:]
+
+                if self.__pid != "":
+                    # Retrieving payloads (like images) without branding
+                    url = contextPath + "/" + portalId + "/download/" \
+                        + self.__oid + "/" + self.__pid
+                    print url
+                    response.sendRedirect(url)
+                    self.__render = False
+                    return
+            else:
+                # Fix missing trailing slashes
+                response.sendRedirect(contextPath + "/" + uri + "/")
+                self.__render = False
+                return
+
             try:
                 self.__object = self.__storage.getObject(self.__oid)
                 self.__pid = self.__object.getSourceId()
@@ -118,6 +136,9 @@ class DetailData:
     def containsPid(self, pid):
         return self.getObject().getPayloadIdList().contains(pid);
 
+    def doRender():
+        return self.__render
+
     def encode(self, url):
         return URLEncoder.encode(url, "UTF-8")
 
@@ -174,8 +195,12 @@ class DetailData:
                 return "<div><em>(Binary file)</em></div>"
         elif mimeType.startswith("text/"):
             if mimeType == "text/html":
-                contentStr = '<iframe class="iframe-preview" src="%s/%s/download/%s"></iframe>' % \
-                    (contextPath, portalId, self.__oid)
+                objectPath = "http://%s:%s%s/%s/download/%s/" % \
+                (request.serverName, serverPort, contextPath, portalId, self.__oid)
+                objectLink = '<a class="iframe-link-alt" href="%s">View outside the frame</a>' % objectPath
+                objectFrame = '<iframe class="iframe-preview" src="%s"></iframe>' % objectPath
+                contentStr = objectLink + "<br/>" + objectFrame
+                    
             else:
                 #print " * detail.py: pid=%s payload=%s" % (pid, payload)
                 if self.__payload is not None:

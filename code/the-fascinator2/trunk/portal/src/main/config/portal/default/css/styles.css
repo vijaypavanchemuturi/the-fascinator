@@ -515,3 +515,13 @@ ul.nobgtabs li a.ui-state-active {
     background-repeat: no-repeat;
     background-position: 7px 50%;
 }
+.content-preview-inline iframe {
+    width: 99%;
+    height: 600px;
+}
+.iframe-link-alt {
+    background-image: url('../images/icons/application_go.png');
+    background-position: 0 50%;
+    background-repeat: no-repeat;
+    padding-left: 20px;
+}
