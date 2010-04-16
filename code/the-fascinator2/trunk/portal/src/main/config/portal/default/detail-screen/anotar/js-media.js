@@ -48,7 +48,7 @@
             return false;
         });
         
-        videoTag = anotarFactory(jQ, videoConfig);
+        videoTag = anotarFactory(jQuery, videoConfig);
     });
 </script>
 #end
