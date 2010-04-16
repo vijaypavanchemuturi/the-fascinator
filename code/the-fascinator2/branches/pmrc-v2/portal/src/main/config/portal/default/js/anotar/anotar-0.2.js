@@ -642,8 +642,8 @@ function anotarFactory(jQ, config) {
         if (annoObj.creator.literal != null) {
             creator = annoObj.creator.literal;
             // Can we add a URI to make a link?
-            console.log(annoObj.creator);
-            if (annoObj.creator.uri != null && annoObj.creator.uri.startsWith("http")) {
+            uri = annoObj.creator.uri;
+            if (uri != null && uri.indexOf("http://") == 0) {
                 creator = "<a href='" + annoObj.creator.uri +"'>" + creator + "</a>";
             }
         }
