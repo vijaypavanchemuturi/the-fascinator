@@ -46,7 +46,7 @@
     </div>
   #end
 #end
-#set($pageTitle = 'Search')
+#set($pageTitle = 'Browse')
 #set($query = $sessionState.get("query"))
 #if($query!="")
   #set($atomLink = "$portalPath/feed/atom?query=$query") 
@@ -334,7 +334,7 @@ $(function() {
 -->
 </script>
 
-<script type="text/javascript" src="$portalPath/js/anotar/json2.js"></script>
+<script type="text/javascript" src="$portalPath/js/anotar/lib/json2.js"></script>
 <script type="text/javascript" src="$portalPath/js/anotar/anotar-0.2.js"></script>
 <script type="text/javascript">
     $(function(){

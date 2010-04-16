@@ -340,7 +340,7 @@ function anotarFactory(jQ, config) {
                     } catch (e) { debug.die(e); }
                 });
             }catch(e){ 
-                //alert("JSON ERROR: " + e);
+                //alert("JSON ERROR: " + e.toSource());
             }
         }
         if (config.pageUri) {
@@ -500,9 +500,11 @@ function anotarFactory(jQ, config) {
         var searchValue = "";
         switch (config.serverMode) {
             case "fascinator":
+				var d=new Date();
                 baseQuery = "?action=getList";
                 baseQuery += "&rootUri=" + escape(key);
                 baseQuery += "&type=" + escape(config.annoType);
+                //baseQuery += "&tick=" + d.getTime();
                 break;
             default:
                 baseQuery = "_design/anotar/_list/nested/all?key=";
@@ -640,8 +642,11 @@ function anotarFactory(jQ, config) {
         if (annoObj.creator.literal != null) {
             creator = annoObj.creator.literal;
             // Can we add a URI to make a link?
-           
-        } 
+            console.log(annoObj.creator);
+            if (annoObj.creator.uri != null && annoObj.creator.uri.startsWith("http")) {
+                creator = "<a href='" + annoObj.creator.uri +"'>" + creator + "</a>";
+            }
+        }
         //Removed stuff which links to URI or exposes email address PS
         
         if (annoObj.annotates.locators && annoObj.annotates.locators.length > 0)

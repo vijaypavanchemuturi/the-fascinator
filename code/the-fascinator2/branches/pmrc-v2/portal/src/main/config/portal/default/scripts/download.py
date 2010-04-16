@@ -1,10 +1,11 @@
-import os
+import os, time
 from org.apache.commons.io import IOUtils
 from java.net import URLDecoder
 from au.edu.usq.fascinator.api.storage import StorageException
 
 class DownloadData:
     def __init__(self):
+        startTime = time.time()
         basePath = portalId + "/" + pageName
         uri = URLDecoder.decode(request.getAttribute("RequestURI"))
         uri = uri[len(basePath)+1:]
@@ -30,6 +31,7 @@ class DownloadData:
             writer = response.getPrintWriter("text/plain")
             writer.println("Not found: uri='%s'" % uri)
             writer.close()
+        print "page load finished in %s" % (time.time() - startTime)
     
     def __resolve(self, uri):
         slash = uri.rfind("/")

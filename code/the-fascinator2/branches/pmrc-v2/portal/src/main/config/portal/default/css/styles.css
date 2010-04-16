@@ -66,8 +66,6 @@ form.search {
 }
 
 .menu .selected, .menu-list .selected, .facet-list .selected {
-    //background: black;
-    //color: white;
     font-weight: bold;
 }
 
