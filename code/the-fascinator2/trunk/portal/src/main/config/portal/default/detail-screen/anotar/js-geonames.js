@@ -54,7 +54,7 @@
             serverMode: "fascinator"
         }
         /// Use formCloseFunction to overwrite close function
-        locationTag = anotarFactory(jQ, locationConfig);
+        locationTag = anotarFactory(jQuery, locationConfig);
     });
 
     function attach(node) {

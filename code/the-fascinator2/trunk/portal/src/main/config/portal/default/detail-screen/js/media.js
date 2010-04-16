@@ -16,6 +16,7 @@ $(function() {
 </script>
 
 #elseif($self.mimeType.startsWith("audio/") || $self.mimeType.startsWith("video/"))
+<script type="text/javascript">
 $(function() {
     var oid = "$oid";
     var filenameNoExt = "$filenameNoExt";

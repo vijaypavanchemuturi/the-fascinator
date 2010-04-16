@@ -18,7 +18,7 @@
                 interfaceVisible: false
             #end
         }
-        noteTag = anotarFactory(jQ, noteConfig);
+        noteTag = anotarFactory(jQuery, noteConfig);
     });
 </script>
 #end
