@@ -57,6 +57,11 @@ public class IndexerServiceImpl implements IndexerService {
     }
 
     @Override
+    public void commit() {
+        indexer.commit();
+    }
+
+    @Override
     public void annotate(String oid, String pid) throws IndexerException {
         indexer.annotate(oid, pid);
     }

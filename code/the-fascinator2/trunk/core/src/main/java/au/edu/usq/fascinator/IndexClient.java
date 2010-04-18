@@ -152,7 +152,7 @@ public class IndexClient {
         for (String objectId : objectIdList) {
             try {
                 DigitalObject object = realStorage.getObject(objectId);
-                processObject(object, rulesOid, config.getMap("indexer/params"));
+                processObject(object, rulesOid, config.getMap("indexer/params"), false);
             } catch (StorageException ex) {
                 log.error("Error getting rules file", ex);
             } catch (IOException ex) {
@@ -187,7 +187,7 @@ public class IndexClient {
                 updateRules(rulesOid);
                 rulesList.add(rulesOid);
             }
-            processObject(object, rulesOid, null);
+            processObject(object, rulesOid, null, true);
         } catch (StorageException e) {
             e.printStackTrace();
         } catch (IOException e) {
@@ -241,7 +241,7 @@ public class IndexClient {
                             updateRules(rulesOid);
                             rulesList.add(rulesOid);
                         }
-                        processObject(object, rulesOid, null);
+                        processObject(object, rulesOid, null, false);
                     } catch (StorageException ex) {
                         log.error("Error indexing object", ex);
                     }
@@ -272,8 +272,8 @@ public class IndexClient {
      * @throws IOException
      */
     private String processObject(DigitalObject object, String rulesOid,
-            Map<String, Object> indexerParams) throws StorageException,
-            IOException {
+            Map<String, Object> indexerParams, boolean commit)
+        throws StorageException, IOException {
         String oid = object.getId();
         String sid = null;
 
@@ -281,6 +281,9 @@ public class IndexClient {
 
         try {
             indexer.index(oid);
+            if (commit) {
+                indexer.commit();
+            }
         } catch (IndexerException e) {
             e.printStackTrace();
         }

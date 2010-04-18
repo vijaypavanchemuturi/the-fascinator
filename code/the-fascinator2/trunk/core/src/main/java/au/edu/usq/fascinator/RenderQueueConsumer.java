@@ -178,6 +178,8 @@ public class RenderQueueConsumer implements MessageListener {
             String text = ((TextMessage) message).getText();
             JsonConfig config = new JsonConfig(text);
             String oid = config.get("oid");
+            boolean commit = Boolean.parseBoolean(config.get("commit", "false"));
+
             sendNotification(oid, "renderStart", "Renderer starting : '" + oid + "'");
             log.info("Received job, object id={}", oid);
             log.info("Updating object...");
@@ -187,6 +189,7 @@ public class RenderQueueConsumer implements MessageListener {
             object = conveyerBelt.transform(object);
             log.info("Indexing object...");
             indexer.index(object.getId());
+            indexer.commit();
 
             sendNotification(oid, "renderComplete", "Renderer complete : '" + oid + "'");
             // update object metadata

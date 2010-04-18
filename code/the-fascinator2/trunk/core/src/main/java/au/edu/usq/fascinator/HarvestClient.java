@@ -238,7 +238,7 @@ public class HarvestClient {
         object.close();
 
         // queue for rendering
-        queueHarvest(oid, configFile);
+        queueHarvest(oid, configFile, true);
         log.info("Object '{}' now queued for reindexing...", oid);
 
         // cleanup
@@ -315,9 +315,16 @@ public class HarvestClient {
     }
 
     private void queueHarvest(String oid, File jsonFile) {
+        queueHarvest(oid, jsonFile, false);
+    }
+
+    private void queueHarvest(String oid, File jsonFile, boolean commit) {
         try {
             JsonConfigHelper json = new JsonConfigHelper(jsonFile);
             json.set("oid", oid);
+            if (commit) {
+                json.set("commit", "true");
+            }
             TextMessage message = session.createTextMessage(json.toString());
             producer.send(message);
         } catch (IOException ioe) {

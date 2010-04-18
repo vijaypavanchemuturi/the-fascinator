@@ -59,6 +59,11 @@ public interface Indexer extends Plugin {
     public void index(String oid, String pid) throws IndexerException;
 
     /**
+     * Forces a commit call on the index if the plugin supports such
+     */
+    public void commit();
+
+    /**
      * Adds a payload entry to annotations index
      *
      * @param oid an object identifier

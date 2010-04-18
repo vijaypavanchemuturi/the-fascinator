@@ -97,8 +97,25 @@ if pid == metaPid:
     ### Check if dc.xml returned from ice is exist or not. if not... process the dc-rdf
     try:
         dcPayload = object.getPayload("dc.xml")
+        # Stream the Payload into a string
+        sb = StringBuilder()
+        reader = BufferedReader(InputStreamReader(dcPayload.open(), "UTF-8"))
+        line = reader.readLine()
+        while line is not None:
+            sb.append(line).append("\n")
+            line = reader.readLine()
+        dcPayload.close()
+        # Convert the Java String to Python
+        pyString = str(sb.toString())
+        # Find the escaped characters and replace with bytes
+        pattern = "(?:&#(\d{3,3});)"
+        replaceFunc = lambda(x): r"%s" % chr(int(x.group(1)))
+        pyString = re.sub(pattern, replaceFunc, pyString)
+        # Now decode to UTF-8
+        utf8String = pyString.decode("utf-8")
+        # And parse the string through java
         indexer.registerNamespace("dc", "http://purl.org/dc/elements/1.1/")
-        dcXml = indexer.getXmlDocument(dcPayload)
+        dcXml = indexer.getXmlDocument(utf8String)
         if dcXml is not None:
             #get Title
             titleList = getNodeValues(dcXml, "//dc:title")
