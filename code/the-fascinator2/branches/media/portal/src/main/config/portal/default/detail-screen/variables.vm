@@ -1,0 +1,11 @@
+#set($meta = $self.metadata)
+#set($oid = $self.object.getId())
+#set($filenameNoExt = $self.getFilePathWithoutExt($oid))
+#set($title = $meta.getField("dc_title"))
+#set($description = $meta.getField("dc_description"))
+#set($mimeType = $meta.getField("dc_format"))
+#if(!$title)
+  #set($title = $self.getFileName($oid))
+#end
+#set($isPackage = $mimeType == "application/x-fascinator-package")
+#set($pageTitle = "$title - Detail")
