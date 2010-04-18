@@ -447,6 +447,7 @@ public class SolrIndexer implements Indexer {
                 SolrRequest update = new DirectXmlRequest("/update", xml);
                 solr.request(update);
                 if (autoCommit) {
+                    log.debug("Running forced commit!");
                     solr.commit();
                 }
             }
@@ -455,6 +456,15 @@ public class SolrIndexer implements Indexer {
             log.error("Indexing failed!\n-----\n{}\n-----\n", e.getMessage());
         } finally {
             cleanupTempFiles();
+        }
+    }
+
+    @Override
+    public void commit() {
+        try {
+            solr.commit();
+        } catch (Exception e) {
+            // TODO - what to do?
         }
     }
 
@@ -649,6 +659,26 @@ public class SolrIndexer implements Indexer {
             return doc;
         } catch (StorageException ex) {
             log.error("Failed to access payload", ex);
+        }
+        return null;
+    }
+
+    public Document getXmlDocument(String xmlData) {
+        Reader reader = null;
+        try {
+            ByteArrayInputStream in = new ByteArrayInputStream(
+                    xmlData.getBytes("utf-8"));
+            return saxReader.read(in);
+        } catch (UnsupportedEncodingException uee) {
+        } catch (DocumentException de) {
+            log.error("Failed to parse XML", de);
+        } finally {
+            if (reader != null) {
+                try {
+                    reader.close();
+                } catch (IOException ioe) {
+                }
+            }
         }
         return null;
     }
