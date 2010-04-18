@@ -19,9 +19,15 @@
 </div>
 
 <div class="grid_12">
+  #************************
+  * Hidden dialogs for ajax
+  ************************#
   #parse($page.getTemplate('detail-screen/sword-dialog.vm'))
   #parse($page.getTemplate('detail-screen/blog-dialog.vm'))
 
+  #************************
+  * Pending a render?
+  ************************#
   #if ($self.isPending())
   <div id="pending" class="box articles notice">
     <h2>Pending</h2>
@@ -31,23 +37,34 @@
   </div>
   #end
 
+  #************************
+  * Main document display
+  ************************#
   <div id="preview" class="box articles">
     <h2>Preview</h2>
     <div id="anno-root" class="content-preview">
       <div class="first article">
         <div class="article-heading">$title</div>
-        #if(!$isPackage)
+
+      #************************
+      * Anotar GUIs
+      ************************#
+      #if(!$isPackage)
         <div id="object-tag-list">
           <div rel="$page.md5Hash($oid)_object">Tags: <span class="object-tags"></span></div>
         </div>
-####        <br/>
-####        <div id="location-tag-list">
-####          <div rel="$page.md5Hash($oid)_location">Location: <span class="location-tags"></span></div>
-####        </div>
         <br/>
-        #end
+        <div id="location-tag-list">
+          <div rel="$page.md5Hash($oid)_location">Location: <span class="location-tags"></span></div>
+        </div>
+        <br/>
+      #end
+
         <div id="content">
-        #if($self.mimeType.startsWith("audio/") || $self.mimeType.startsWith("video/"))
+      #************************
+      * Audio/Video players
+      ************************#
+      #if($self.mimeType.startsWith("audio/") || $self.mimeType.startsWith("video/"))
           <table>
 	          <tbody>
 	            <tr>
@@ -61,18 +78,26 @@
 	            </tr>
 	          </tbody>
 	        </table>
-        #else
-          #if($isPackage)
+
+      #else
+        #************************
+        * Package viewer
+        ************************#
+        #if($isPackage)
           <img class="hidden" id="content-loading" src="$portalPath/images/icons/loading.gif" />
           <div id="package-content">
           </div>
-          #else
+
+        #************************
+        * 'Normal' object display
+        ************************#
+        #else
           <div class="content-preview-inline">$!self.payloadContent</div>
           <script type="text/javascript" src="$portalPath/js/tree/jquery.tree.min.js"></script>
           <script type="text/javascript" src="$portalPath/js/viewer.js"></script>
           <div class="annotatable">Comments:</div>
-          #end
         #end
+      #end
         </div>
       </div>
     </div>
@@ -81,30 +106,27 @@
 
 <div class="clear"><!-- clear --></div>
 
-#************************
-* Annotations
-************************#
+  #if(!$isPackage)
+    #************************
+    * Annotations - JS
+    ************************#
+    #parse($page.getTemplate('detail-screen/anotar/form-tags.html'))
+    #parse($page.getTemplate('detail-screen/anotar/form-geonames.html'))
+    #parse($page.getTemplate('detail-screen/anotar/form-media.html'))
 
-#if(!$isPackage)
-  #parse($page.getTemplate('detail-screen/anotar/form-tags.html'))
-####  #parse($page.getTemplate('detail-screen/anotar/form-geonames.html'))
-  #parse($page.getTemplate('detail-screen/anotar/form-media.html'))
+    #parse($page.getTemplate('detail-screen/anotar/js-tags.js'))
+    #parse($page.getTemplate('detail-screen/anotar/js-geonames.js'))
+    #parse($page.getTemplate('detail-screen/anotar/js-media.js'))
+    #parse($page.getTemplate('detail-screen/anotar/js-comments.js'))
+    #parse($page.getTemplate('detail-screen/anotar/js-images.js'))
 
-  #parse($page.getTemplate('detail-screen/anotar/js-tags.js'))
-####  #parse($page.getTemplate('detail-screen/anotar/js-geonames.js'))
-  #parse($page.getTemplate('detail-screen/anotar/js-media.js'))
-  #parse($page.getTemplate('detail-screen/anotar/js-comments.js'))
-  #parse($page.getTemplate('detail-screen/anotar/js-images.js'))
+  #else
+    #************************
+    * Packaging - JS
+    ************************#
+    #parse($page.getTemplate('detail-screen/js/rvt.js'))
+  #end
+
 #end
-
-#************************
-* End page render logic
-************************#
-#end
-
-#************************
-* Packaging
-************************#
-#parse($page.getTemplate('detail-screen/js/rvt.js'))
 
 #set ($_=$self.closeObject())
