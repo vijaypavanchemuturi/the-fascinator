@@ -18,6 +18,21 @@
  */
 package au.edu.usq.fascinator.indexer;
 
+import au.edu.usq.fascinator.api.PluginException;
+import au.edu.usq.fascinator.api.PluginManager;
+import au.edu.usq.fascinator.api.indexer.Indexer;
+import au.edu.usq.fascinator.api.indexer.IndexerException;
+import au.edu.usq.fascinator.api.indexer.SearchRequest;
+import au.edu.usq.fascinator.api.indexer.rule.RuleException;
+import au.edu.usq.fascinator.api.storage.DigitalObject;
+import au.edu.usq.fascinator.api.storage.Payload;
+import au.edu.usq.fascinator.api.storage.Storage;
+import au.edu.usq.fascinator.api.storage.StorageException;
+import au.edu.usq.fascinator.common.FascinatorHome;
+import au.edu.usq.fascinator.common.JsonConfig;
+import au.edu.usq.fascinator.common.JsonConfigHelper;
+import au.edu.usq.fascinator.common.PythonUtils;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -25,7 +40,6 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Reader;
@@ -43,6 +57,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+import java.util.logging.Level;
 
 import javax.xml.parsers.ParserConfigurationException;
 
@@ -65,34 +80,10 @@ import org.apache.solr.request.JSONResponseWriter;
 import org.apache.solr.request.LocalSolrQueryRequest;
 import org.apache.solr.request.SolrQueryRequest;
 import org.apache.solr.request.SolrQueryResponse;
-import org.dom4j.Document;
-import org.dom4j.DocumentException;
-import org.dom4j.DocumentFactory;
-import org.dom4j.io.SAXReader;
-import org.ontoware.rdf2go.RDF2Go;
-import org.ontoware.rdf2go.exception.ModelRuntimeException;
-import org.ontoware.rdf2go.model.Model;
 import org.python.util.PythonInterpreter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xml.sax.SAXException;
-
-import au.edu.usq.fascinator.api.PluginException;
-import au.edu.usq.fascinator.api.PluginManager;
-import au.edu.usq.fascinator.api.access.AccessControlException;
-import au.edu.usq.fascinator.api.access.AccessControlManager;
-import au.edu.usq.fascinator.api.access.AccessControlSchema;
-import au.edu.usq.fascinator.api.indexer.Indexer;
-import au.edu.usq.fascinator.api.indexer.IndexerException;
-import au.edu.usq.fascinator.api.indexer.SearchRequest;
-import au.edu.usq.fascinator.api.indexer.rule.RuleException;
-import au.edu.usq.fascinator.api.storage.DigitalObject;
-import au.edu.usq.fascinator.api.storage.Payload;
-import au.edu.usq.fascinator.api.storage.Storage;
-import au.edu.usq.fascinator.api.storage.StorageException;
-import au.edu.usq.fascinator.common.FascinatorHome;
-import au.edu.usq.fascinator.common.JsonConfig;
-import au.edu.usq.fascinator.common.JsonConfigHelper;
 
 public class SolrIndexer implements Indexer {
 
@@ -104,7 +95,6 @@ public class SolrIndexer implements Indexer {
     private Logger log = LoggerFactory.getLogger(SolrIndexer.class);
     private JsonConfig config;
 
-    private AccessControlManager access;
     private Storage storage;
 
     private SolrServer solr;
@@ -117,10 +107,6 @@ public class SolrIndexer implements Indexer {
 
     private List<File> tempFiles;
 
-    private SAXReader saxReader;
-
-    private Map<String, String> namespaces;
-
     private String username;
     private String password;
 
@@ -129,6 +115,7 @@ public class SolrIndexer implements Indexer {
     private Map<String, String> customParams;
 
     private PythonInterpreter python;
+    private PythonUtils pyUtils;
 
     @Override
     public String getId() {
@@ -171,14 +158,6 @@ public class SolrIndexer implements Indexer {
         if (!loaded) {
             loaded = true;
 
-            String accessControlType = "accessmanager";
-            try {
-                access = PluginManager.getAccessManager(accessControlType);
-                access.init(config.toString());
-            } catch (PluginException pe) {
-                throw new IndexerException(pe);
-            }
-
             String storageType = config.get("storage/type");
             try {
                 storage = PluginManager.getStorage(storageType);
@@ -197,15 +176,14 @@ public class SolrIndexer implements Indexer {
             propertiesId = config.get("indexer/propertiesId",
                     DEFAULT_METADATA_PAYLOAD);
 
-            namespaces = new HashMap<String, String>();
-            DocumentFactory docFactory = new DocumentFactory();
-            docFactory.setXPathNamespaceURIs(namespaces);
-
-            saxReader = new SAXReader(docFactory);
-
             customParams = new HashMap<String, String>();
 
             python = new PythonInterpreter();
+            try {
+                pyUtils = new PythonUtils(config);
+            } catch (PluginException ex) {
+                throw new IndexerException(ex);
+            }
         }
         loaded = true;
     }
@@ -607,6 +585,7 @@ public class SolrIndexer implements Indexer {
             python.set("payload", payload);
             python.set("params", props);
             python.set("inputReader", in);
+            python.set("pyUtils", pyUtils);
             python.execfile(inRules);
             rules.run(in, out);
             if (rules.cancelled()) {
@@ -644,177 +623,5 @@ public class SolrIndexer implements Indexer {
             }
             tempFiles = null;
         }
-    }
-
-    // Helper methods
-
-    public InputStream getResource(String path) {
-        return getClass().getResourceAsStream(path);
-    }
-
-    public Document getXmlDocument(Payload payload) {
-        try {
-            Document doc = getXmlDocument(payload.open());
-            payload.close();
-            return doc;
-        } catch (StorageException ex) {
-            log.error("Failed to access payload", ex);
-        }
-        return null;
-    }
-
-    public Document getXmlDocument(String xmlData) {
-        Reader reader = null;
-        try {
-            ByteArrayInputStream in = new ByteArrayInputStream(
-                    xmlData.getBytes("utf-8"));
-            return saxReader.read(in);
-        } catch (UnsupportedEncodingException uee) {
-        } catch (DocumentException de) {
-            log.error("Failed to parse XML", de);
-        } finally {
-            if (reader != null) {
-                try {
-                    reader.close();
-                } catch (IOException ioe) {
-                }
-            }
-        }
-        return null;
-    }
-
-    public Document getXmlDocument(InputStream xmlIn) {
-        Reader reader = null;
-        try {
-            reader = new InputStreamReader(xmlIn, "UTF-8");
-            return saxReader.read(reader);
-        } catch (UnsupportedEncodingException uee) {
-        } catch (DocumentException de) {
-            log.error("Failed to parse XML", de);
-        } finally {
-            if (reader != null) {
-                try {
-                    reader.close();
-                } catch (IOException ioe) {
-                }
-            }
-        }
-        return null;
-    }
-
-    public JsonConfigHelper getJsonObject(InputStream in) {
-        try {
-            return new JsonConfigHelper(in);
-        } catch (IOException ex) {
-            log.error("Failure during stream access", ex);
-            return null;
-        }
-    }
-
-    public Model getRdfModel(Payload payload) {
-        try {
-            Model model = getRdfModel(payload.open());
-            payload.close();
-            return model;
-        } catch (StorageException ioe) {
-            log.info("Failed to read payload stream", ioe);
-        }
-        return null;
-    }
-
-    public Model getRdfModel(InputStream rdfIn) {
-        Model model = null;
-        Reader reader = null;
-        try {
-            reader = new InputStreamReader(rdfIn, "UTF-8");
-            model = RDF2Go.getModelFactory().createModel();
-            model.open();
-            model.readFrom(reader);
-        } catch (ModelRuntimeException mre) {
-            log.error("Failed to create RDF model", mre);
-        } catch (IOException ioe) {
-            log.error("Failed to read RDF input", ioe);
-        } finally {
-            if (reader != null) {
-                try {
-                    reader.close();
-                } catch (IOException ioe) {
-                }
-            }
-        }
-        return model;
-    }
-
-    public AccessControlSchema getAccessSchema(String plugin) {
-        if (access == null) {
-            return null;
-        }
-        access.setActivePlugin(plugin);
-        return access.getEmptySchema();
-    }
-
-    public void setAccessSchema(AccessControlSchema schema, String plugin) {
-        if (access == null) {
-            return;
-        }
-
-        try {
-            access.setActivePlugin(plugin);
-            access.applySchema(schema);
-        } catch (AccessControlException ex) {
-            log.error("Failed to add new access schema", ex);
-        }
-    }
-
-    public void removeAccessSchema(AccessControlSchema schema, String plugin) {
-        if (access == null) {
-            return;
-        }
-
-        try {
-            access.setActivePlugin(plugin);
-            access.removeSchema(schema);
-        } catch (AccessControlException ex) {
-            log.error("Failed to revoke existing access schema", ex);
-        }
-    }
-
-    public List<String> getRolesWithAccess(String recordId) {
-        if (access == null) {
-            return null;
-        }
-        try {
-            return access.getRoles(recordId);
-        } catch (AccessControlException ex) {
-            log.error("Failed to query security plugin for roles", ex);
-            return null;
-        }
-    }
-
-    public void registerNamespace(String prefix, String uri) {
-        namespaces.put(prefix, uri);
-    }
-
-    public void unregisterNamespace(String prefix) {
-        namespaces.remove(prefix);
-    }
-
-    private File copyObjectToFile(String oid) throws IOException,
-            StorageException {
-        // Temp file
-        File tempFile = createTempFile("objectOutput", ".temp");
-        FileOutputStream tempFileOut = new FileOutputStream(tempFile);
-        // Payload from storage
-        DigitalObject tempObj = storage.getObject(oid);
-        String tempPid = tempObj.getSourceId();
-        Payload tempPayload = tempObj.getPayload(tempPid);
-        // Copy and close
-        IOUtils.copy(tempPayload.open(), tempFileOut);
-        tempPayload.close();
-        tempFileOut.close();
-
-        // log.debug("tempFile size: {}, {}", oid, tempFile.length());
-
-        return tempFile;
     }
 }

@@ -17,6 +17,7 @@ from au.edu.usq.fascinator.api.storage import StorageException
 #    object     : DigitalObject to index
 #    payload    : Payload to index
 #    params     : Metadata Properties object
+#    pyUtils    : Utility object for accessing app logic
 #
 
 def indexPath(name, path, includeLastPart=True):
@@ -66,16 +67,16 @@ rules.add(AddField("item_type", itemType))
 rules.add(AddField("last_modified", time.strftime("%Y-%m-%dT%H:%M:%SZ")))
 
 # Security
-roles = indexer.getRolesWithAccess(oid)
+roles = pyUtils.getRolesWithAccess(oid)
 if roles is not None:
     for role in roles:
         rules.add(AddField("security_filter", role))
 else:
     # Default to guest access if Null object returned
-    schema = indexer.getAccessSchema("simple");
+    schema = pyUtils.getAccessSchema("simple");
     schema.setRecordId(oid)
     schema.set("role", "guest")
-    indexer.setAccessSchema(schema, "simple")
+    pyUtils.setAccessSchema(schema, "simple")
     rules.add(AddField("security_filter", "guest"))
 
 if pid == metaPid:
@@ -114,8 +115,8 @@ if pid == metaPid:
         # Now decode to UTF-8
         utf8String = pyString.decode("utf-8")
         # And parse the string through java
-        indexer.registerNamespace("dc", "http://purl.org/dc/elements/1.1/")
-        dcXml = indexer.getXmlDocument(utf8String)
+        pyUtils.registerNamespace("dc", "http://purl.org/dc/elements/1.1/")
+        dcXml = pyUtils.getXmlDocument(utf8String)
         if dcXml is not None:
             #get Title
             titleList = getNodeValues(dcXml, "//dc:title")
@@ -148,7 +149,7 @@ if pid == metaPid:
         from au.edu.usq.fascinator.common.nie import InformationElement
         
         rdfPayload = object.getPayload("aperture.rdf")
-        rdfModel = indexer.getRdfModel(rdfPayload)
+        rdfModel = pyUtils.getRdfModel(rdfPayload)
         
         #Seems like aperture only encode the spaces. Tested against special characters file name
         #and it's working 
