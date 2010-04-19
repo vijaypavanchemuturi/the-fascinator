@@ -8,11 +8,12 @@ from au.edu.usq.fascinator.indexer.rules import AddField, New
 #    object     : DigitalObject to index
 #    payload    : Payload to index
 #    params     : Metadata Properties object
+#    pyUtils    : Utility object for accessing app logic
 #
 
 # Read the payload json string into
 # a JsonConfigHelper object.
-json = indexer.getJsonObject(payload.open())
+json = pyUtils.getJsonObject(payload.open())
 payload.close()
 
 #start with blank solr document

@@ -14,6 +14,7 @@ from au.edu.usq.fascinator.indexer.rules import AddField, New
 #    object     : DigitalObject to index
 #    payload    : Payload to index
 #    params     : Metadata Properties object
+#    pyUtils    : Utility object for accessing app logic
 #
 
 def indexPath(name, path, includeLastPart=True):
@@ -43,17 +44,17 @@ def getNodeValues (doc, xPath):
                 valueList.append(node.getText())
     return valueList
 
-def grantAccess(indexer, newRole):
-    schema = indexer.getAccessSchema("simple");
+def grantAccess(object, newRole):
+    schema = object.getAccessSchema("simple");
     schema.setRecordId(oid)
     schema.set("role", newRole)
-    indexer.setAccessSchema(schema, "simple")
+    object.setAccessSchema(schema, "simple")
 
-def revokeAccess(indexer, oldRole):
-    schema = indexer.getAccessSchema("simple");
+def revokeAccess(inobjectdexer, oldRole):
+    schema = object.getAccessSchema("simple");
     schema.setRecordId(oid)
     schema.set("role", oldRole)
-    indexer.removeAccessSchema(schema, "simple")
+    object.removeAccessSchema(schema, "simple")
     pass
 
 #start with blank solr document
@@ -96,8 +97,8 @@ if pid == metaPid:
     ### Check if dc.xml returned from ice is exist or not. if not... process the dc-rdf
     try:
         dcPayload = object.getPayload("dc.xml")
-        indexer.registerNamespace("dc", "http://purl.org/dc/elements/1.1/")
-        dcXml = indexer.getXmlDocument(dcPayload)
+        pyUtils.registerNamespace("dc", "http://purl.org/dc/elements/1.1/")
+        dcXml = pyUtils.getXmlDocument(dcPayload)
         if dcXml is not None:
             #get Title
             titleList = getNodeValues(dcXml, "//dc:title")
@@ -130,7 +131,7 @@ if pid == metaPid:
         from au.edu.usq.fascinator.common.nie import InformationElement
         
         rdfPayload = object.getPayload("aperture.rdf")
-        rdfModel = indexer.getRdfModel(rdfPayload)
+        rdfModel = pyUtils.getRdfModel(rdfPayload)
         
         #Seems like aperture only encode the spaces. Tested against special characters file name
         #and it's working 
@@ -321,7 +322,7 @@ if pid == metaPid:
     indexPath("file_path", filePath, includeLastPart=False)
 
 # Security
-roles = indexer.getRolesWithAccess(oid)
+roles = pyUtils.getRolesWithAccess(oid)
 if roles is not None:
     # For every role currently with access
     for role in roles:
@@ -332,24 +333,24 @@ if roles is not None:
                 rules.add(AddField("security_filter", role))
             else:
                 # Their access has been revoked
-                revokeAccess(indexer, role)
+                revokeAccess(pyUtils, role)
     # Now for every role that the new step allows access
     for role in item_security:
         if role not in roles:
             # Grant access if new
-            grantAccess(indexer, role)
+            grantAccess(pyUtils, role)
             rules.add(AddField("security_filter", role))
 # No existing security
 else:
     if item_security is None:
         # Guest access if none provided so far
-        grantAccess(indexer, "guest")
+        grantAccess(pyUtils, "guest")
         rules.add(AddField("security_filter", role))
     else:
         # Otherwise use workflow security
         for role in item_security:
             # Grant access if new
-            grantAccess(indexer, role)
+            grantAccess(pyUtils, role)
             rules.add(AddField("security_filter", role))
 # Ownership
 owner = params.getProperty("owner", None)
