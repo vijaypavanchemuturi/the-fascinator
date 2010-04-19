@@ -13,6 +13,7 @@ import java.io as io
 #    object     : DigitalObject to index
 #    payload    : Payload to index
 #    params     : Metadata Properties object
+#    pyUtils    : Utility object for accessing app logic
 #
 
 def indexList(name, values):
@@ -116,16 +117,16 @@ rules.add(AddField("repository_name", params["repository.name"]))
 rules.add(AddField("repository_type", params["repository.type"]))
 
 # Security
-roles = indexer.getRolesWithAccess(oid)
+roles = pyUtils.getRolesWithAccess(oid)
 if roles is not None:
     for role in roles:
         rules.add(AddField("security_filter", role))
 else:
     # Default to guest access if Null object returned
-    schema = indexer.getAccessSchema("simple");
+    schema = pyUtils.getAccessSchema("simple");
     schema.setRecordId(oid)
     schema.set("role", "guest")
-    indexer.setAccessSchema(schema, "simple")
+    pyUtils.setAccessSchema(schema, "simple")
     rules.add(AddField("security_filter", "guest"))
 
 model = rdf2go.RDF2Go.getModelFactory().createModel()
