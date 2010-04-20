@@ -1,14 +1,14 @@
 import md5, uuid
 
 from au.edu.usq.fascinator import HarvestClient
+from au.edu.usq.fascinator.api.storage import StorageException
 from au.edu.usq.fascinator.common import FascinatorHome, JsonConfigHelper
+from au.edu.usq.fascinator.common.storage import StorageUtils
 
 from java.io import File, FileOutputStream, OutputStreamWriter
 from java.lang import Exception
 
 from org.apache.commons.io import IOUtils
-
-PACKAGE_NS = "package/selected/"
 
 class PackagingActions:
     
@@ -23,6 +23,8 @@ class PackagingActions:
             result = self.__update()
         elif func == "clear":
             result = self.__clear()
+        elif func == "modify":
+            result = self.__modify()
         
         writer = response.getPrintWriter("application/json; charset=UTF-8")
         writer.println(result)
@@ -30,85 +32,125 @@ class PackagingActions:
     
     def __createFromSelected(self):
         print "Creating package from selected..."
-
-        # create the manifest
-        manifest = JsonConfigHelper()
-        manifest.set("title", "New package")
-        for item in self.__getSelected():
-            for id in item.keys():
-                hashId = md5.new(id).hexdigest()
-                title = item[id]
-                manifest.set("manifest/node-%s/id" % hashId, id)
-                manifest.set("manifest/node-%s/title" % hashId, title)
-
-        # store the manifest to the know location
+        
+        # if modifying existing manifest, we already have an identifier,
+        # otherwise create a new one
+        manifestId = self.__getActiveManifestId()
+        if manifestId is None:
+            manifestHash = "%s.tfpackage" % uuid.uuid4()
+        else:
+            manifestHash = self.__getActiveManifestPid()
+        
+        # store the manifest file for harvesting
         packageDir = FascinatorHome.getPathFile("packages")
         packageDir.mkdirs()
-
-        manifestHash = uuid.uuid4() # random uuid
-        manifestFile = File(packageDir, str(manifestHash) + ".tfpackage")
+        manifestFile = File(packageDir, manifestHash)
         outStream = FileOutputStream(manifestFile)
         outWriter = OutputStreamWriter(outStream, "UTF-8")
+        manifest = self.__getActiveManifest()
         manifest.store(outWriter, True)
         outWriter.close()
-
-        username = sessionState.get("username")
-        if username is None:
-            username = "guest" # necessary?
-        harvester = None
+        
         try:
-            # set up config files if necessary
-            workflowsDir = FascinatorHome.getPathFile("workflows")
-            configFile = self.__getFile(workflowsDir, "packaging-config.json")
-            rulesFile = self.__getFile(workflowsDir, "packaging-rules.py")
-            # run the harvest client with our packaging workflow config
-            harvester = HarvestClient(configFile, manifestFile, username)
-            harvester.start()
-            oid = harvester.getUploadOid()
-            harvester.shutdown()
+            if manifestId is None:
+                # harvest the package as an object
+                username = sessionState.get("username")
+                if username is None:
+                    username = "guest" # necessary?
+                harvester = None
+                # set up config files if necessary
+                workflowsDir = FascinatorHome.getPathFile("workflows")
+                configFile = self.__getFile(workflowsDir, "packaging-config.json")
+                rulesFile = self.__getFile(workflowsDir, "packaging-rules.py")
+                # run the harvest client with our packaging workflow config
+                harvester = HarvestClient(configFile, manifestFile, username)
+                harvester.start()
+                manifestId = harvester.getUploadOid()
+                harvester.shutdown()
+            else:
+                # update existing object
+                object = StorageUtils.storeFile(Services.getStorage(), manifestFile)
+                object.close()
         except Exception, ex:
             error = "Packager workflow failed: %s" % str(ex)
             log.error(error, ex)
             if harvester is not None:
                 harvester.shutdown()
             return '{ status: "failed" }'
-
         # clean up
-        manifestFile.delete()
+        ##manifestFile.delete()
         self.__clear()
-        
-        return '{ status: "ok", url: "%s/workflow/%s" }' % (portalPath, oid)
+        # return url to workflow screen
+        return '{ status: "ok", url: "%s/workflow/%s" }' % (portalPath, manifestId)
     
     def __update(self):
         print "Updating package selection..."
-        ids = formData.getValues("ids")
-        key = PACKAGE_NS + formData.get("page")
-        if ids:
+        activeManifest = self.__getActiveManifest()
+        added = formData.getValues("added")
+        if added:
             titles = formData.getValues("titles")
-            selected = []
-            for i in range(len(ids)):
-                selected.append({ ids[i]: titles[i] })
-            sessionState.set(key, selected)
-        else:
-            sessionState.remove(key)
+            for i in range(len(added)):
+                id = added[i]
+                title = titles[i]
+                node = activeManifest.get("manifest//node-%s" % id)
+                if node is None:
+                    print "adding:", id, title
+                    activeManifest.set("manifest/node-%s/id" % id, id)
+                    activeManifest.set("manifest/node-%s/title" % id, title)
+                else:
+                    print "%s already exists" % id
+        removed = formData.getValues("removed")
+        if removed:
+            for id in removed:
+                node = activeManifest.get("manifest//node-%s" % id)
+                if node is not None:
+                    print "removing:", id
+                    activeManifest.removePath("manifest//node-%s" % id)
+        #print "activeManifest: %s" % activeManifest
         return '{ count: %s }' % self.__getCount()
     
     def __clear(self):
         print "Clearing package selection..."
-        for key in self.__getKeys():
-            sessionState.remove(key)
+        sessionState.remove("package/active")
+        sessionState.remove("package/active/id")
+        sessionState.remove("package/active/pid")
         return "{}"
     
-    def __getSelected(self):
-        selected = []
-        for key in self.__getKeys():
-            selected.extend(sessionState.get(key))
-        return selected
+    def __modify(self):
+        print "Set active package..."
+        oid = formData.get("oid")
+        try:
+            object = Services.getStorage().getObject(oid)
+            sourceId = object.getSourceId()
+            payload = object.getPayload(sourceId)
+            manifest = JsonConfigHelper(payload.open())
+            payload.close()
+            object.close()
+            sessionState.set("package/active", manifest)
+            sessionState.set("package/active/id", oid)
+            sessionState.set("package/active/pid", sourceId)
+        except StorageException, e:
+            response.setStatus(500)
+            return '{ error: %s }' % str(e)
+        return '{ count: %s }' % self.__getCount()
+    
+    def __getActiveManifestId(self):
+        return sessionState.get("package/active/id")
+    
+    def __getActiveManifestPid(self):
+        return sessionState.get("package/active/pid")
+    
+    def __getActiveManifest(self):
+        activeManifest = sessionState.get("package/active")
+        if not activeManifest:
+            activeManifest = JsonConfigHelper()
+            activeManifest.set("title", "New package")
+            sessionState.set("package/active", activeManifest)
+        return activeManifest
     
     def __getCount(self):
-        count = 0
-        for key in self.__getKeys():
-            count += len(sessionState.get(key))
+        count = self.__getActiveManifest().getList("manifest//id").size()
+        print "count:", count
         return count
     
     def __getFile(self, packageDir, filename):
@@ -118,8 +160,5 @@ class PackagingActions:
             IOUtils.copy(Services.getClass().getResourceAsStream("/workflows/" + filename), out)
             out.close()
         return file
-    
-    def __getKeys(self):
-        return  [k for k in sessionState.keySet() if k.startswith(PACKAGE_NS)]
 
 scriptObject = PackagingActions()

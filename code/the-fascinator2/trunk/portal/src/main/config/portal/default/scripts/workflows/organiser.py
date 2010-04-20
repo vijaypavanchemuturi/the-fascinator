@@ -40,6 +40,9 @@ class OrganiserData:
     def getFormData(self, field):
         return formData.get(field, "")
     
+    def getPackageTitle(self):
+        return formData.get("title", self.getManifest().get("title"))
+    
     def __getItemProps(self, itemId):
         itemId = formData.get("itemId")
         props = JsonConfigHelper()
