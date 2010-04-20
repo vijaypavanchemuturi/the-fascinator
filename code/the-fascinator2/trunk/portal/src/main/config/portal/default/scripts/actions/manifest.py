@@ -10,9 +10,11 @@ class ManifestActions:
         result = "{}"
         func = formData.get("func")
         oid = formData.get("oid")
-        nodeId = formData.get("nodeId")
-        nodePath = self.__getNodePath(formData.get("parents"), nodeId)
-        originalPath = "manifest//%s" % nodeId
+        
+        if func != "set-package-title":
+            nodeId = formData.get("nodeId")
+            nodePath = self.__getNodePath(formData.get("parents"), nodeId)
+            originalPath = "manifest//%s" % nodeId
         
         self.__object = Services.getStorage().getObject(oid)
         sourceId = self.__object.getSourceId()
@@ -20,6 +22,10 @@ class ManifestActions:
         self.__manifest = JsonConfigHelper(payload.open())
         payload.close()
         
+        if func == "set-package-title":
+            title = formData.get("title")
+            self.__manifest.set("title", title)
+            self.__saveManifest()
         if func == "rename":
             title = formData.get("title")
             self.__manifest.set("%s/title" % nodePath, title)
