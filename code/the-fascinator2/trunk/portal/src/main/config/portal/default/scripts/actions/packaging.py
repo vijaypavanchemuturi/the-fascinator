@@ -5,7 +5,7 @@ from au.edu.usq.fascinator.api.storage import StorageException
 from au.edu.usq.fascinator.common import FascinatorHome, JsonConfigHelper
 from au.edu.usq.fascinator.common.storage import StorageUtils
 
-from java.io import File, FileOutputStream, OutputStreamWriter
+from java.io import File, FileOutputStream, InputStreamReader, OutputStreamWriter
 from java.lang import Exception
 
 from org.apache.commons.io import IOUtils
@@ -94,7 +94,7 @@ class PackagingActions:
                 title = titles[i]
                 node = activeManifest.get("manifest//node-%s" % id)
                 if node is None:
-                    print "adding:", id, title
+                    print "adding:", id, title.encode("UTF-8")
                     activeManifest.set("manifest/node-%s/id" % id, id)
                     activeManifest.set("manifest/node-%s/title" % id, title)
                 else:
@@ -106,7 +106,7 @@ class PackagingActions:
                 if node is not None:
                     print "removing:", id
                     activeManifest.removePath("manifest//node-%s" % id)
-        #print "activeManifest: %s" % activeManifest
+        print "activeManifest: %s" % activeManifest
         return '{ count: %s }' % self.__getCount()
     
     def __clear(self):
@@ -123,7 +123,9 @@ class PackagingActions:
             object = Services.getStorage().getObject(oid)
             sourceId = object.getSourceId()
             payload = object.getPayload(sourceId)
-            manifest = JsonConfigHelper(payload.open())
+            payloadReader = InputStreamReader(payload.open(), "UTF-8")
+            manifest = JsonConfigHelper(payloadReader)
+            payloadReader.close()
             payload.close()
             object.close()
             sessionState.set("package/active", manifest)
@@ -145,6 +147,7 @@ class PackagingActions:
         if not activeManifest:
             activeManifest = JsonConfigHelper()
             activeManifest.set("title", "New package")
+            activeManifest.set("viewId", portalId)
             sessionState.set("package/active", activeManifest)
         return activeManifest
     

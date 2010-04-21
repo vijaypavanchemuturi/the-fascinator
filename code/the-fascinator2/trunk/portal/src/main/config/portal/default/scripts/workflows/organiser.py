@@ -3,9 +3,13 @@ from __main__ import Services, formData
 import md5
 
 from au.edu.usq.fascinator.common import JsonConfigHelper
+from au.edu.usq.fascinator.portal.services import PortalManager
 
+from java.io import InputStreamReader
 from java.lang import Exception
 from java.util import ArrayList, HashMap
+
+from org.apache.commons.lang import StringEscapeUtils
 
 class OrganiserData:
     def __init__(self):
@@ -17,14 +21,14 @@ class OrganiserData:
             object = Services.getStorage().getObject(self.__oid)
             sourceId = object.getSourceId()
             payload = object.getPayload(sourceId)
-            self.__manifest = JsonConfigHelper(payload.open())
+            payloadReader = InputStreamReader(payload.open(), "UTF-8")
+            self.__manifest = JsonConfigHelper(payloadReader)
+            payloadReader.close()
             payload.close()
             object.close()
             # check if we need to do processing
             func = formData.get("func")
-            if func == "get-item-props":
-                result = self.__getItemProps()
-            elif func == "get-rvt-manifest":
+            if func == "get-rvt-manifest":
                 result = self.__getRvtManifest(self.getManifest())
         except Exception, e:
             log.error("Failed to load manifest", e);
@@ -38,16 +42,13 @@ class OrganiserData:
         return self.__manifest.getJsonMap("manifest")
     
     def getFormData(self, field):
-        return formData.get(field, "")
+        return StringEscapeUtils.escapeHtml(formData.get(field, ""))
     
     def getPackageTitle(self):
-        return formData.get("title", self.getManifest().get("title"))
+        return StringEscapeUtils.escapeHtml(formData.get("title", self.__manifest.get("title")))
     
-    def __getItemProps(self, itemId):
-        itemId = formData.get("itemId")
-        props = JsonConfigHelper()
-        props.set("title", "")
-        return props.toString()
+    def getManifestViewId(self):
+        return self.__manifest.get("viewId", PortalManager.DEFAULT_PORTAL_NAME)
     
     def __getRvtManifest(self, manifest):
         rvtMap = HashMap()
@@ -61,11 +62,12 @@ class OrganiserData:
         for key in manifest.keySet():
             node = manifest.get(key)
             rvtNode = HashMap()
-            rvtNode.put("visible", node.get("hidden") != "True")
-            rvtNode.put("relPath", node.get("id"))
-            rvtNode.put("title", node.get("title"))
-            rvtNode.put("children", self.__getRvtNodes(node.getJsonMap("children")))
-            rvtNodes.add(rvtNode)
+            if node.get("hidden") != "True":
+                rvtNode.put("visible", True)
+                rvtNode.put("relPath", node.get("id"))
+                rvtNode.put("title", StringEscapeUtils.escapeHtml(node.get("title")))
+                rvtNode.put("children", self.__getRvtNodes(node.getJsonMap("children")))
+                rvtNodes.add(rvtNode)
         return rvtNodes
 
 if __name__ == "__main__":

@@ -28,7 +28,7 @@
         #else
           #set($facetClass = "add-facet")
         #end
-        #set($facetLabel = "$page.escapeText($facetCountKey)")
+        #set($facetLabel = "$page.escapeHtml($facetCountKey)")
         <a class="facet $facetClass" href="#" rel='$facetFieldKey:"$facetCountKey"' title="$facetLabel ($facetCount)">
           $facetLabel&nbsp;<span class="facet-count">($facetCount)</span>
         </a>
@@ -196,6 +196,7 @@
       #else
         #set($title = $self.getFileName($id))
       #end
+      #set($title = $page.escapeHtml($title))
       #set($format = $item.get("dc_format").get(0))
       #set($description = "")
       #set($description = $item.get("dc_description").get(0))
@@ -392,6 +393,7 @@ $(function() {
         jQuery.ajax({
             type: "POST",
             url: "$portalPath/actions/packaging.ajax",
+            contentType: "application/x-www-form-urlencoded; charset=UTF-8",
             data: selected,
             error: function(xhr, status, e) {
                 $("#package-selected-items").html("Error updating selection!");

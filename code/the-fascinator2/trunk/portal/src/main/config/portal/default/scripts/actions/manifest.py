@@ -3,6 +3,8 @@ from au.edu.usq.fascinator.common import JsonConfigHelper
 from java.io import ByteArrayInputStream
 from java.lang import Boolean, String
 
+from org.apache.commons.lang import StringEscapeUtils
+
 class ManifestActions:
     def __init__(self):
         print "formData=%s" % formData
@@ -24,7 +26,7 @@ class ManifestActions:
         
         if func == "set-package-title":
             title = formData.get("title")
-            self.__manifest.set("title", title)
+            self.__manifest.set("title", StringEscapeUtils.escapeHtml(title))
             self.__saveManifest()
         if func == "rename":
             title = formData.get("title")
@@ -43,8 +45,7 @@ class ManifestActions:
                 self.__manifest.move(originalPath, nodePath)
             self.__saveManifest()
         elif func == "update":
-            print nodePath
-            title = formData.get("title")
+            title = StringEscapeUtils.escapeHtml(formData.get("title"))
             hidden = formData.get("hidden")
             hidden = hidden == "true"
             self.__manifest.set("%s/title" % nodePath, title)

@@ -7,8 +7,9 @@
     #set($numChildren = $children.keySet().size())
     #set($hidden = "false")
     #set($hidden = $item.get("hidden"))
+    #set($itemTitle = $item.get("title"))
     <li id="$key" rel="$id">
-      <a class="#if($id == $oid)clicked#end #if("$!hidden" == "True")item-hidden#end" href="#">$item.get("title")</a>
+      <a class="#if($id == $oid)clicked#end #if("$!hidden" == "True")item-hidden#end" href="#">$itemTitle</a>
       #if($numChildren > 0)
         #createNavTree($children "children")
       #end
@@ -181,7 +182,7 @@ $(function() {
                 parents: getParentIds(node)
             },
             function(data, status) {
-                item.text(data.title);
+                item.html(data.title);
                 if (data.hidden == "True") {
                     item.addClass("item-hidden");
                 } else {
@@ -198,8 +199,7 @@ $(function() {
         jQuery.post("$portalPath/actions/packaging.ajax",
             { func: "modify", oid: "$oid" },
             function(data, status) {
-                // TODO default portal id is hard coded
-                window.location.href = "$contextPath/default/search";
+                window.location.href = "$contextPath/$self.getManifestViewId()/search";
             });
         return false;
     });
