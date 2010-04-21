@@ -57,7 +57,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
-import java.util.logging.Level;
 
 import javax.xml.parsers.ParserConfigurationException;
 
@@ -262,6 +261,7 @@ public class SolrIndexer implements Indexer {
         if (coreContainer != null) {
             coreContainer.shutdown();
         }
+        pyUtils.shutdown();
         cleanupTempFiles();
     }
 
