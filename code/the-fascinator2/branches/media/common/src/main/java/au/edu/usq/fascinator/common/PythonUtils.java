@@ -36,6 +36,16 @@ import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import javax.jms.Connection;
+import javax.jms.DeliveryMode;
+import javax.jms.Destination;
+import javax.jms.JMSException;
+import javax.jms.MessageProducer;
+import javax.jms.Session;
+import javax.jms.TextMessage;
+
+import org.apache.activemq.ActiveMQConnectionFactory;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.DocumentFactory;
@@ -65,6 +75,12 @@ public class PythonUtils {
     private Map<String, String> namespaces;
     private SAXReader saxReader;
 
+    // Message Queues
+    private Map<String, MessageProducer> producers;
+    private ActiveMQConnectionFactory connectionFactory;
+    private Connection connection;
+    private Session session;
+
     public PythonUtils(JsonConfig config) throws PluginException {
         // Security
         String accessControlType = "accessmanager";
@@ -76,6 +92,120 @@ public class PythonUtils {
         DocumentFactory docFactory = new DocumentFactory();
         docFactory.setXPathNamespaceURIs(namespaces);
         saxReader = new SAXReader(docFactory);
+
+        // Message Queues
+        String brokerUrl = config.get("messaging/url",
+                ActiveMQConnectionFactory.DEFAULT_BROKER_BIND_URL);
+        connectionFactory = new ActiveMQConnectionFactory(brokerUrl);
+        producers = new HashMap();
+    }
+
+    /*****
+     * Try to closing any objects that require closure
+     *
+     */
+    public void shutdown() {
+        if (connection != null) {
+            try {
+                connection.close();
+            } catch (JMSException jmse) {
+                log.warn("Failed to close connection: {}", jmse.getMessage());
+            }
+        }
+        if (session != null) {
+            try {
+                session.close();
+            } catch (JMSException jmse) {
+                log.warn("Failed to close session: {}", jmse.getMessage());
+            }
+        }
+        if (producers != null) {
+            for (MessageProducer p : producers.values()) {
+                try {
+                    p.close();
+                } catch (JMSException jmse) {
+                    log.warn("Failed to close producer: {}", jmse.getMessage());
+                }
+            }
+        }
+    }
+
+    /*****
+     * Try to connect to the message broker if we haven't already
+     *
+     * @return boolean flag for success
+     */
+    private boolean initMessageConnection() {
+        // If we haven't already connected to the broker
+        if (connection == null) {
+            try {
+                // Establish a connection now
+                connection = connectionFactory.createConnection();
+                connection.start();
+                session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
+                return true;
+            } catch (JMSException ex) {
+                log.error("Error connecting to message queue {}", ex);
+                return false;
+            }
+        }
+        // Old connection
+        return true;
+    }
+
+    /*****
+     * Establish a connection to a broker and a particular message queue
+     *
+     * @param messageQueue to connect to
+     * @return boolean flag for success
+     */
+    private boolean initMessageQueue(String messageQueue) {
+        // Establish a connection first
+        if (initMessageConnection()) {
+            // Return straight away if we've already
+            //   used this message queue before.
+            if (producers.containsKey(messageQueue)) {
+                return true;
+            }
+            // Otherise create a reference to the actual queue
+            try {
+                Destination messageDest = session.createQueue(messageQueue);
+                MessageProducer producer = session.createProducer(messageDest);
+                producer.setDeliveryMode(DeliveryMode.PERSISTENT);
+                producers.put(messageQueue, producer);
+                return true;
+            } catch (JMSException ex) {
+                log.error("Error connecting to message queue {}", ex);
+                return false;
+            }
+        }
+        // Connection failed
+        return false;
+    }
+
+    /*****
+     * Send a message to the given message queue
+     *
+     * @param messageQueue to connect to
+     * @param message to send
+     * @return boolean flag for success
+     */
+    public boolean sendMessage(String messageQueue, String message) {
+        // Connect to the message queue
+        if (initMessageQueue(messageQueue)) {
+            try {
+                // Craft our message
+                TextMessage msg = session.createTextMessage(message);
+                //   and send it
+                producers.get(messageQueue).send(msg);
+                return true;
+            } catch (JMSException ex) {
+                log.error("Error connecting to message queue {}", ex);
+                return false;
+            }
+        }
+        // Connection failed
+        return false;
     }
 
     /*****

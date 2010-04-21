@@ -18,6 +18,10 @@ import org.python.core.PySystemState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import au.edu.usq.fascinator.DirectIncomingApi;
+import au.edu.usq.fascinator.DirectMessageService;
+import au.edu.usq.fascinator.DirectOutgoingApi;
+import au.edu.usq.fascinator.DirectTesting;
 import au.edu.usq.fascinator.HarvestQueueConsumer;
 import au.edu.usq.fascinator.RenderQueueConsumer;
 import au.edu.usq.fascinator.common.FascinatorHome;
@@ -37,6 +41,11 @@ public class IndexerServlet extends HttpServlet {
     private Logger log = LoggerFactory.getLogger(IndexerServlet.class);
 
     private Timer timer;
+
+    private DirectMessageService directLogic;
+    private DirectIncomingApi directIn;
+    private DirectOutgoingApi directOut;
+    private DirectTesting directTest;
 
     private HarvestQueueConsumer harvester;
 
@@ -103,6 +112,23 @@ public class IndexerServlet extends HttpServlet {
     private void startIndexer() {
         log.info("Starting The Fascinator indexer...");
         try {
+            if (directLogic == null) {
+                directLogic = new DirectMessageService();
+            }
+            directLogic.start();
+            if (directIn == null) {
+                directIn = new DirectIncomingApi();
+            }
+            directIn.start();
+            if (directOut == null) {
+                directOut = new DirectOutgoingApi();
+            }
+            directOut.start();
+            if (directTest == null) {
+                directTest = new DirectTesting();
+            }
+            directTest.start();
+
             if (harvester == null) {
                 harvester = new HarvestQueueConsumer();
             }
@@ -144,6 +170,34 @@ public class IndexerServlet extends HttpServlet {
             broker.stop();
         } catch (Exception e) {
             log.error("Failed to stop message broker: {}", e.getMessage());
+        }
+        if (directLogic != null) {
+            try {
+                directLogic.stop();
+            } catch (Exception e) {
+                log.error("Failed to stop the DiReCt message service: {}", e.getMessage());
+            }
+        }
+        if (directIn != null) {
+            try {
+                directIn.stop();
+            } catch (Exception e) {
+                log.error("Failed to stop the DiReCt incoming API: {}", e.getMessage());
+            }
+        }
+        if (directOut != null) {
+            try {
+                directOut.stop();
+            } catch (Exception e) {
+                log.error("Failed to stop the DiReCt outgoing API: {}", e.getMessage());
+            }
+        }
+        if (directTest != null) {
+            try {
+                directTest.stop();
+            } catch (Exception e) {
+                log.error("Failed to stop the DiReCt outgoing API: {}", e.getMessage());
+            }
         }
         if (harvester != null) {
             try {
