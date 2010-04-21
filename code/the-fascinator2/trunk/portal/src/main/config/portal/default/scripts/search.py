@@ -211,6 +211,7 @@ class SearchData:
         if not activeManifest:
             activeManifest = JsonConfigHelper()
             activeManifest.set("title", "New package")
+            activeManifest.set("viewId", portalId)
             sessionState.set("package/active", activeManifest)
         return activeManifest
 

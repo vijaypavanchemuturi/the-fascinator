@@ -22,8 +22,14 @@ class LayoutData:
     def getPortalName(self):
         return self.getPortal().getDescription()
 
-    def escapeText(self, text):
+    def escapeXml(self, text):
         return StringEscapeUtils.escapeXml(text)
+
+    def escapeHtml(self, text):
+        return StringEscapeUtils.escapeHtml(text)
+
+    def unescapeHtml(self, text):
+        return StringEscapeUtils.unescapeHtml(text)
 
     def md5Hash(self, data):
         return md5.new(data).hexdigest()

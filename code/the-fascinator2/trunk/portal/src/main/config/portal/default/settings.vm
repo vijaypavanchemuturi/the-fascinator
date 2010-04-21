@@ -101,11 +101,11 @@
         </p>
         <p>
           <label for="view-description">Description</label>
-          <input id="view-description" name="view-description" type="text" value="$page.escapeText($self.portal.description)" />
+          <input id="view-description" name="view-description" type="text" value="$page.escapeXml($self.portal.description)" />
         </p>
         <p>
           <label for="view-query">Query</label>
-          <input id="view-query" name="view-query" type="text" value="$page.escapeText($self.portal.query)" />
+          <input id="view-query" name="view-query" type="text" value="$page.escapeXml($self.portal.query)" />
         </p>
         <p>
           <label for="view-records-per-page">Records per page</label>
