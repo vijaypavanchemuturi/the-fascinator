@@ -12,111 +12,99 @@
   #parse($page.getTemplate('detail-screen/variables.vm'))
   #parse($page.getTemplate('detail-screen/scripts.vm'))
 
-## PMRC does not use navigation.vm as it consists of table for the detail page
-#set($pageHeader="#parse($page.getTemplate('detail-screen/header.vm'))")
+<h2 id="page-heading">#if($isPackage)$title#{else}Detail#end</h2>
 
-<table class="layout" width="10px">
-  <tbody>
-    <tr>
-      <td class="leftcol">
-        <div class="columnbox">
-          <div class="mainmenu">
-            <div class="mainmenu-top"></div>
-            <div class="mainmenu-heading">Public Memory Research Centre</div>
-            <ul class="menu-list">
-              <li><a href="$portalPath/home">Home</a></li>
-              <li><a href="$portalPath/browse">Browse</a></li>
-              <li><a href="$portalPath/search">Search</a></li>
-            </ul>
-          </div>
-          #if($page.authentication.is_logged_in())
-              #if($page.authentication.is_admin())
-                  <div class="mainmenu">
-                    <div class="mainmenu-top"></div>
-                    <div class="mainmenu-heading">Actions</div>
-                    <ul class="menu-list">
-                        <li><a class="admin-delete-link" rel="$oid" href="#">Delete...</a></li>
-                        <li><a id="reharvest" href="$portalPath/detail/$oid">Re-Harvest...</a></li>
-                    </ul>
-                  </div>
-              #end
-              <div class="mainmenu">
-                <div class="mainmenu-top"></div>
-                <div class="mainmenu-heading">Downloads</div>
-                <ul class="menu-list">
-                  <li><a href="$portalPath/download/$oid/$self.getFileName($sourceId)">$self.getFileName($sourceId)</a> <span style="font-weight:normal">($self.getFileSize($sourceId))</span></li>
-                </ul>
-              </div>
-          #end
+<div class="grid_4">
+  #parse($page.getTemplate('detail-screen/navigation.vm'))
+</div>
+
+<div class="grid_12">
+  #************************
+  * Hidden dialogs for ajax
+  ************************#
+  #parse($page.getTemplate('detail-screen/sword-dialog.vm'))
+  #parse($page.getTemplate('detail-screen/blog-dialog.vm'))
+
+  #************************
+  * Pending a render?
+  ************************#
+  #if ($self.isPending())
+  <div id="pending" class="box articles notice">
+    <h2>Pending</h2>
+    <div class="warning">
+      <b>IMPORTANT</b>Please note that this object is currently in the render queue. There may be pending data/metadata changes not visible below.
+    </div>
+  </div>
+  #end
+
+  #************************
+  * Main document display
+  ************************#
+  <div id="preview" class="box articles">
+    <h2>Preview</h2>
+    <div id="anno-root" class="content-preview">
+      <div class="first article">
+      #if(!$isPackage)
+        <div class="article-heading">$title</div>
+      #end
+
+      #************************
+      * Anotar GUIs
+      ************************#
+      #if(!$isPackage)
+        <div id="object-tag-list">
+          <div rel="$page.md5Hash($oid)_object">Tags: <span class="object-tags"></span></div>
         </div>
-      </td>
-      
-      <td class="middlecol">
-        <div class="detail">
-        #if($page.authentication.is_logged_in())
-            #if($self.solrResponse.get("response/numFound") == 0)
-              #set($pageTitle = "Not found")
-              #set($breadcrumb = "Not found")
-              <h1 class="content-title">Page not found</h1>
-              <h2>There is no media matching your request.</h2>
-              <p>You have been redirected to this page because one of the following occurred:</p>
-              <ul type="disc">
-                <li>It is possible the URL was misspelled or typed incorrectly.</li>
-                <li>You have requested an item that no longer exists.</li>
-              </ul>
-              <p>Return to the <a href="$portalPath/home">Public Memory Research Centre</a>.</p>
-            #else
-              #set($breadcrumb = '<a href="' + $portalPath  + '/search">Search</a> &gt; ' + $title)
-              <h1 class="content-title">$title</h1>
-              <div id="preview" class="box articles">
-                <h2>Preview</h2>
-                <div id="object-tag-list">
-                  <p rel="$page.md5Hash($oid)_object">Tags: <span class="object-tags"></span></p>
-                </div>
-                <div id="location-tag-list">
-                  <p rel="$page.md5Hash($oid)_location">Location: <span class="location-tags"></span></p>
-                </div>
-                <div id="people-tag-list">
-                  <p rel="$page.md5Hash($oid)_people">People: <span class="people-tags"></span></p>
-                </div>
-                <div id="anno-root" class="content-preview">
-                  <span class="mimetype" rel="$self.mimeType"></span>
-                  <div class="first article clearfix">
-                     <div id="content">
-                    #if($self.mimeType.startsWith("audio/") || $self.mimeType.startsWith("video/"))
-                        <!-- <input class='player_clear_fragment' type='button' value='Reset' /> -->
-                        <table>
-                          <tbody>
-                            <tr>
-                              <td id="player-container"></td>
-                              <td align="left">
-                                <div id="video-results-list" class="video-results-list">
-                                  <div id="video-result-list" class="video-result-list" anotar-uri="$oid"><span></span>
-                                  </div>
-                                </div>
-                              </td>
-                            </tr>
-                          </tbody>
-                        </table>
-                    #else
-                        ##<h3 class="title-heading">$title</h3>
-                        <div class="content-preview-inline">$!self.payloadContent</div>
-                        <script type="text/javascript" src="$portalPath/js/tree/jquery.tree.min.js"></script>
-                        <script type="text/javascript" src="$portalPath/js/viewer.js"></script>
-                        <div class="annotatable">&nbsp;</div>
-                    #end
-                   </div>
-                </div>
-              </div>
-            #end
+        <br/>
+        <div id="location-tag-list">
+          <div rel="$page.md5Hash($oid)_location">Location: <span class="location-tags"></span></div>
+        </div>
+        <br/>
+      #end
+
+        <div id="content">
+      #************************
+      * Audio/Video players
+      ************************#
+      #if($self.mimeType.startsWith("audio/") || $self.mimeType.startsWith("video/"))
+          <table>
+	          <tbody>
+	            <tr>
+	              <td id="player-container"></td>
+	              <td style="vertical-align: top">
+	                <div class="video-results-list">
+	                  <div class="video-result-list" anotar-uri="$oid">
+	                  </div>
+	                </div>
+	              </td>
+	            </tr>
+	          </tbody>
+	        </table>
+
+      #else
+        #************************
+        * Package viewer
+        ************************#
+        #if($isPackage)
+          <img class="hidden" id="content-loading" src="$portalPath/images/icons/loading.gif" />
+          <div class="article-heading"></div>
+          <div id="package-content"></div>
+
+        #************************
+        * 'Normal' object display
+        ************************#
         #else
-              <div class="login-error">You do not have permission to view this page. Please login to proceed<!--<a id="login-now" href="#">Login</a>-->.</div>
+          <div class="content-preview-inline">$!self.payloadContent</div>
+          <script type="text/javascript" src="$portalPath/js/tree/jquery.tree.min.js"></script>
+          <script type="text/javascript" src="$portalPath/js/viewer.js"></script>
+          <div class="annotatable">Comments:</div>
         #end
+      #end
         </div>
-      </td>
-    </tr>
-  </tbody>
-</table>
+      </div>
+    </div>
+  </div>
+</div>
 
 <div class="clear"><!-- clear --></div>
 
@@ -127,12 +115,9 @@
     #parse($page.getTemplate('detail-screen/anotar/form-tags.html'))
     #parse($page.getTemplate('detail-screen/anotar/form-geonames.html'))
     #parse($page.getTemplate('detail-screen/anotar/form-media.html'))
-    #parse($page.getTemplate('detail-screen/anotar/form-people.html'))
-    #parse($page.getTemplate('detail-screen/anotar/dialog-delete.html'))
 
     #parse($page.getTemplate('detail-screen/anotar/js-tags.js'))
     #parse($page.getTemplate('detail-screen/anotar/js-geonames.js'))
-    #parse($page.getTemplate('detail-screen/anotar/js-people.js'))
     #parse($page.getTemplate('detail-screen/anotar/js-media.js'))
     #parse($page.getTemplate('detail-screen/anotar/js-comments.js'))
     #parse($page.getTemplate('detail-screen/anotar/js-images.js'))
