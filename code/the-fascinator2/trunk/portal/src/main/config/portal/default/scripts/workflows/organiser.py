@@ -52,6 +52,7 @@ class OrganiserData:
     
     def __getRvtManifest(self, manifest):
         rvtMap = HashMap()
+        rvtMap.put("title", self.__manifest.get("title"))
         rvtMap.put("toc", self.__getRvtNodes(manifest))
         rvtManifest = JsonConfigHelper(rvtMap)
         return rvtManifest.toString()

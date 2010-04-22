@@ -44,7 +44,9 @@
     <h2>Preview</h2>
     <div id="anno-root" class="content-preview">
       <div class="first article">
+      #if(!$isPackage)
         <div class="article-heading">$title</div>
+      #end
 
       #************************
       * Anotar GUIs
@@ -65,19 +67,18 @@
       * Audio/Video players
       ************************#
       #if($self.mimeType.startsWith("audio/") || $self.mimeType.startsWith("video/"))
-          <table>
-	          <tbody>
-	            <tr>
-	              <td id="player-container"></td>
-	              <td>
-	                <div class="video-results-list">
-	                  <div class="video-result-list" anotar-uri="$oid">
-	                  </div>
-	                </div>
-	              </td>
-	            </tr>
-	          </tbody>
-	        </table>
+        <table>
+          <tbody>
+            <tr>
+              <td id="player-container"></td>
+              <td>
+                <div class="video-results-list">
+                  <div class="video-result-list" anotar-uri="$oid"></div>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
 
       #else
         #************************
@@ -85,8 +86,8 @@
         ************************#
         #if($isPackage)
           <img class="hidden" id="content-loading" src="$portalPath/images/icons/loading.gif" />
-          <div id="package-content">
-          </div>
+          <div class="article-heading"></div>
+          <div id="package-content"></div>
 
         #************************
         * 'Normal' object display
