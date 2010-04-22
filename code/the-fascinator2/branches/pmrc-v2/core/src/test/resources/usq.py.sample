@@ -9,10 +9,11 @@ from au.edu.usq.fascinator.indexer.rules import AddField, CopyField, XslTransfor
 #    object     : DigitalObject to index
 #    payload    : Payload to index
 #    params     : Metadata Properties object
+#    pyUtils    : Utility object for accessing app logic
 #
 
 # dc to solr transform
-rules.add(XslTransform(indexer.getResource("/xsl/DublinCoreToSolr.xsl")))
+rules.add(XslTransform(pyUtils.getResource("/xsl/DublinCoreToSolr.xsl")))
 
 oid = object.getId()
 pid = payload.getId()
@@ -31,16 +32,16 @@ rules.add(AddField("item_type", itemType))
 rules.add(AddField("item_class", "document"))
 
 # Security
-roles = indexer.getRolesWithAccess(oid)
+roles = pyUtils.getRolesWithAccess(oid)
 if roles is not None:
     for role in roles:
         rules.add(AddField("security_filter", role))
 else:
     # Default to guest access if Null object returned
-    schema = indexer.getAccessSchema("simple");
+    schema = pyUtils.getAccessSchema("simple");
     schema.setRecordId(oid)
     schema.set("role", "guest")
-    indexer.setAccessSchema(schema, "simple")
+    pyUtils.setAccessSchema(schema, "simple")
     rules.add(AddField("security_filter", "guest"))
 
 rules.add(AddField("repository_name", params["repository.name"]))
@@ -49,10 +50,11 @@ rules.add(AddField("repository_type", params["repository.type"]))
 rules.add(CopyField("title", "dc.title"))
 rules.add(CopyField("description", "dc.description"))
 
-indexer.registerNamespace("oai_dc", "http://www.openarchives.org/OAI/2.0/oai_dc/")
-indexer.registerNamespace("dc", "http://purl.org/dc/elements/1.1/")
+#pyUtils.registerNamespace("oai_dc", "http://www.openarchives.org/OAI/2.0/oai_dc/")
+#pyUtils.registerNamespace("dc", "http://purl.org/dc/elements/1.1/")
 
-dc = indexer.getXmlDocument(object.getMetadata())
-titles = dc.selectNodes("//dc:title")
-for title in titles:
-    print " ***", title.getText()
+#dc = pyUtils.getXmlDocument(object.getMetadata())
+#titles = dc.selectNodes("//dc:title")
+#for title in titles:
+#    print " ***", title.getText()
+

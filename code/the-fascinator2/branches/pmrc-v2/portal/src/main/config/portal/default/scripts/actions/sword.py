@@ -14,7 +14,7 @@ class SwordHelper(object):
         client = Client()
         client.setCredentials(formData.get("username"), formData.get("password"))
         if func == "collections":
-            responseType = "application/json"
+            responseType = "application/json; charset=UTF-8"
             try:
                 serviceDoc = client.getServiceDocument(url)
                 data = '{"collections":['
@@ -36,10 +36,10 @@ class SwordHelper(object):
             postMsg.setDestination(url)
             depositResponse = client.postFile(postMsg)
             FileUtils.deleteQuietly(tmpFile)
-            responseType = "text/xml"
+            responseType = "text/xml; charset=UTF-8"
             responseData = str(depositResponse)
         else:
-            responseType = "text/html"
+            responseType = "text/html; charset=UTF-8"
             responseData = ""
         out = response.getPrintWriter(responseType)
         out.println(responseData)

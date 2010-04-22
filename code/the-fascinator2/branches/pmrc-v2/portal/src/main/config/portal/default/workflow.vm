@@ -10,14 +10,14 @@
   <script type="text/javascript" src="$portalPath/js/amq/amq.js"></script>
   <script type="text/javascript">
       function waitRender(message) {
-          var json = JSON.parse(message.textContent);
+          var json = this.JSON.parse(message.nodeValue);
           $("#render-list").append("<li>" + json.message + "</li>");
           if (json.status == "renderComplete" && json.id == "$oid") {
               window.location = "$portalPath/workflow/$oid";
           }
       }
       var amq = org.activemq.Amq;
-      amq.init({ uri: "$contextPath/amq/", timeout: 10 });
+      amq.init({ uri: "$contextPath/amq/", timeout: 25 });
       amq.addListener("tf_messages", "topic://message", waitRender);
   </script>
 #end

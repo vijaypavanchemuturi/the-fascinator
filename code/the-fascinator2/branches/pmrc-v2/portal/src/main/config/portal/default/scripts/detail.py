@@ -48,27 +48,46 @@ class SolrDoc:
 class DetailData:
     def __init__(self):
         self.__object = None
+        self.__render = True
         if formData.get("func") == "open-file":
             self.__openFile()
-            writer = response.getPrintWriter("text/plain")
+            writer = response.getPrintWriter("text/plain; charset=UTF-8")
             writer.println("{}")
             writer.close()
         else:
             self.__storage = Services.storage
             uri = URLDecoder.decode(request.getAttribute("RequestURI"))
             basePath = portalId + "/" + pageName
-            self.__oid = uri[len(basePath)+1:]
-            slash = self.__oid.rfind("/")
-            self.__pid = self.__oid[slash+1:]
+            baseOid = uri[len(basePath)+1:]
+            slash = baseOid.find("/")
+            if slash != -1:
+                self.__oid = baseOid[:slash]
+                self.__pid = baseOid[slash+1:]
+
+                if self.__pid != "":
+                    # Retrieving payloads (like images) without branding
+                    url = contextPath + "/" + portalId + "/download/" \
+                        + self.__oid + "/" + self.__pid
+                    print url
+                    response.sendRedirect(url)
+                    self.__render = False
+                    return
+            else:
+                # Fix missing trailing slashes
+                response.sendRedirect(contextPath + "/" + uri + "/")
+                self.__render = False
+                return
+
             try:
                 self.__object = self.__storage.getObject(self.__oid)
+                self.__pid = self.__object.getSourceId()
                 self.__payload = self.__object.getPayload(self.__pid)
                 self.__mimeType = self.__payload.getContentType()
             except StorageException, e:
                 self.__mimeType = "application/octet-stream"
 
-            self.__metadata = JsonConfigHelper()
             print " * detail.py: URI='%s' OID='%s' PID='%s' MIME='%s'" % (uri, self.__oid, self.__pid, self.__mimeType)
+            self.__metadata = JsonConfigHelper()
             self.__search()
             
             # get the package manifest
@@ -103,13 +122,19 @@ class DetailData:
         self.__metadata = SolrDoc(self.__json)
 
     def canOpenFile(self):
-        #HACK check if mimetypes match between index and real file
-        #dcFormat = self.__json.get("response/docs/dc_format", "")
-        #if dcFormat is not None:
-        #    dcFormat = dcFormat[1:-1]
-        #return dcFormat == self.__mimeType
-        f = File(self.getObject().getId())
-        return f.exists();
+        #f = File(self.getObject().getId())
+        #return f.exists();
+        # get original file.path from properties
+        filePath = self.__object.getMetadata().getProperty("file.path")
+        return filePath is not None and File(filePath).exists()
+
+    def canOrganise(self):
+        userRoles = page.authentication.get_roles_list()
+        workflowSecurity = self.__metadata.getFieldList("workflow_security")
+        for userRole in userRoles:
+            if userRole in workflowSecurity:
+                return True
+        return False
 
     def closeObject(self):
         object = self.getObject()
@@ -118,6 +143,9 @@ class DetailData:
 
     def containsPid(self, pid):
         return self.getObject().getPayloadIdList().contains(pid);
+
+    def doRender():
+        return self.__render
 
     def encode(self, url):
         return URLEncoder.encode(url, "UTF-8")
@@ -175,8 +203,12 @@ class DetailData:
                 return "<div><em>(Binary file)</em></div>"
         elif mimeType.startswith("text/"):
             if mimeType == "text/html":
-                contentStr = '<iframe class="iframe-preview" src="%s/%s/download/%s"></iframe>' % \
-                    (contextPath, portalId, self.__oid)
+                objectPath = "http://%s:%s%s/%s/download/%s/" % \
+                (request.serverName, serverPort, contextPath, portalId, self.__oid)
+                objectLink = '<a class="iframe-link-alt" href="%s">View outside the frame</a>' % objectPath
+                objectFrame = '<iframe class="iframe-preview" src="%s"></iframe>' % objectPath
+                contentStr = objectLink + "<br/>" + objectFrame
+                    
             else:
                 #print " * detail.py: pid=%s payload=%s" % (pid, payload)
                 if self.__payload is not None:
@@ -256,6 +288,7 @@ class DetailData:
 
     def hasFlv(self):
         pid = self.__pid
+        print "********************* pid: ", pid
         pid = pid[:pid.find(".")] + ".flv"
         if self.containsPid(pid):
             return pid

@@ -6,7 +6,7 @@ class BackupActions:
     def __init__(self):
         print " * backup.py: formData=%s" % formData
         result = "{}"
-        resultType = "text/plain"
+        resultType = "text/plain; charset=UTF-8"
         portalManager = Services.getPortalManager()
         func = formData.get("func")
         if func == "backup-view":
@@ -44,7 +44,7 @@ class BackupActions:
                     event = appender.get(i)
                     result += layout.doLayout(event)
             result += "</table>"
-            resultType = "text/html"
+            resultType = "text/html; charset=UTF-8"
         writer = response.getPrintWriter(resultType)
         writer.println(result)
         writer.close()

@@ -4,10 +4,6 @@ import md5, os, time
 
 from au.edu.usq.fascinator.api.storage import StorageException
 from au.edu.usq.fascinator.common import JsonConfigHelper
-from au.edu.usq.fascinator.common.nco import Contact
-from au.edu.usq.fascinator.common.nfo import PaginatedTextDocument
-from au.edu.usq.fascinator.common.nid3 import ID3Audio
-from au.edu.usq.fascinator.common.nie import InformationElement
 from au.edu.usq.fascinator.common.storage import StorageUtils
 from au.edu.usq.fascinator.indexer.rules import AddField, New
 #
@@ -18,6 +14,7 @@ from au.edu.usq.fascinator.indexer.rules import AddField, New
 #    object     : DigitalObject to index
 #    payload    : Payload to index
 #    params     : Metadata Properties object
+#    pyUtils    : Utility object for accessing app logic
 #
 
 def indexPath(name, path, includeLastPart=True):
@@ -47,17 +44,17 @@ def getNodeValues (doc, xPath):
                 valueList.append(node.getText())
     return valueList
 
-def grantAccess(indexer, newRole):
-    schema = indexer.getAccessSchema("simple");
+def grantAccess(object, newRole):
+    schema = object.getAccessSchema("simple");
     schema.setRecordId(oid)
     schema.set("role", newRole)
-    indexer.setAccessSchema(schema, "simple")
+    object.setAccessSchema(schema, "simple")
 
-def revokeAccess(indexer, oldRole):
-    schema = indexer.getAccessSchema("simple");
+def revokeAccess(inobjectdexer, oldRole):
+    schema = object.getAccessSchema("simple");
     schema.setRecordId(oid)
     schema.set("role", oldRole)
-    indexer.removeAccessSchema(schema, "simple")
+    object.removeAccessSchema(schema, "simple")
     pass
 
 #start with blank solr document
@@ -100,12 +97,12 @@ if pid == metaPid:
     ### Check if dc.xml returned from ice is exist or not. if not... process the dc-rdf
     try:
         dcPayload = object.getPayload("dc.xml")
-        indexer.registerNamespace("dc", "http://purl.org/dc/elements/1.1/")
-        dcXml = indexer.getXmlDocument(dcPayload)
+        pyUtils.registerNamespace("dc", "http://purl.org/dc/elements/1.1/")
+        dcXml = pyUtils.getXmlDocument(dcPayload)
         if dcXml is not None:
             #get Title
             titleList = getNodeValues(dcXml, "//dc:title")
-            #get abstract/description
+            #get abstract/description 
             descriptionList = getNodeValues(dcXml, "//dc:description")
             #get creator
             creatorList = getNodeValues(dcXml, "//dc:creator")
@@ -124,25 +121,31 @@ if pid == metaPid:
                 else:
                     relationDict[key] = [value]
     except StorageException, e:
-        print " storage exception", str(e)
-
+        print "Failed to index ICE dublin core data (%s)" % str(e)
+    
+    # Extract from aperture.rdf if exist
     try:
+        from au.edu.usq.fascinator.common.nco import Contact
+        from au.edu.usq.fascinator.common.nfo import PaginatedTextDocument
+        from au.edu.usq.fascinator.common.nid3 import ID3Audio
+        from au.edu.usq.fascinator.common.nie import InformationElement
+        
         rdfPayload = object.getPayload("aperture.rdf")
-        rdfModel = indexer.getRdfModel(rdfPayload)
-
+        rdfModel = pyUtils.getRdfModel(rdfPayload)
+        
         #Seems like aperture only encode the spaces. Tested against special characters file name
-        #and it's working
+        #and it's working 
         safeOid = oid.replace(" ", "%20")
         #under windows we need to add a slash
         if not safeOid.startswith("/"):
             safeOid = "/" + safeOid
         rdfId = "file:%s" % safeOid
-
+        
         #Set write to False so it won't write to the model
         paginationTextDocument = PaginatedTextDocument(rdfModel, rdfId, False)
         informationElement = InformationElement(rdfModel, rdfId, False)
         id3Audio = ID3Audio(rdfModel, rdfId, False)
-
+        
         #1. get title only if no title returned by ICE
         if titleList == []:
             allTitles = informationElement.getAllTitle();
@@ -155,12 +158,7 @@ if pid == metaPid:
                 title = allTitles.next().strip()
                 if title != "":
                     titleList.append(title)
-
-        #use id/filename if no title
-        if titleList == []:
-           title = os.path.split(oid)[1]
-           titleList.append(title)
-
+        
         #2. get creator only if no creator returned by ICE
         if creatorList == []:
             allCreators = paginationTextDocument.getAllCreator();
@@ -170,14 +168,14 @@ if pid == metaPid:
                 allFullnames = contacts.getAllFullname()
                 while (allFullnames.hasNext()):
                      creatorList.append(allFullnames.next())
-
+        
         #3. getFullText: only aperture has this information
         if informationElement.hasPlainTextContent():
             allPlainTextContents = informationElement.getAllPlainTextContent()
             while(allPlainTextContents.hasNext()):
                 fulltextString = allPlainTextContents.next()
                 fulltext.append(fulltextString)
-
+                
                 #4. description/abstract will not be returned by aperture, so if no description found
                 # in dc.xml returned by ICE, put first 100 characters
                 if descriptionList == []:
@@ -185,24 +183,24 @@ if pid == metaPid:
                     if len(fulltextString)>100:
                         descriptionString = fulltextString[:100] + "..."
                     descriptionList.append(descriptionString)
-
+        
         if id3Audio.hasAlbumTitle():
             albumTitle = id3Audio.getAllAlbumTitle().next().strip()
             descriptionList.append("Album: " + albumTitle)
-
+        
         #5. mimeType: only aperture has this information
         if informationElement.hasMimeType():
             allMimeTypes = informationElement.getAllMimeType()
             while(allMimeTypes.hasNext()):
                 formatList.append(allMimeTypes.next())
-
+    
         #6. contentCreated
         if creationDate == []:
             if informationElement.hasContentCreated():
                 creationDate.append(informationElement.getContentCreated().getTime().toString())
     except StorageException, e:
-        print " storage exception", str(e)
-
+        print "Failed to index aperture data (%s)" % str(e)
+    
     # Workflow data
     WORKFLOW_ID = "workflow1"
     wfChanged = False
@@ -289,6 +287,15 @@ if pid == metaPid:
     for group in workflow_security:
         rules.add(AddField("workflow_security", group))
 
+    # some defaults if the above failed
+    if titleList == []:
+       #use object's source id (i.e. most likely a filename)
+       titleList.append(object.getSourceId())
+    
+    if formatList == []:
+        payload = object.getPayload(object.getSourceId())
+        formatList.append(payload.getContentType())
+
     # Index our metadata finally
     indexList("dc_title", titleList)
     indexList("dc_creator", creatorList)  #no dc_author in schema.xml, need to check
@@ -305,7 +312,7 @@ if pid == metaPid:
 
     indexList("full_text", fulltext)
     baseFilePath = params["base.file.path"]
-    filePath = oid
+    filePath = object.getMetadata().getProperty("file.path")
     if baseFilePath:
         #NOTE: need to change again if the json file accept forward slash in window
         #get the base folder
@@ -315,7 +322,7 @@ if pid == metaPid:
     indexPath("file_path", filePath, includeLastPart=False)
 
 # Security
-roles = indexer.getRolesWithAccess(oid)
+roles = pyUtils.getRolesWithAccess(oid)
 if roles is not None:
     # For every role currently with access
     for role in roles:
@@ -326,24 +333,24 @@ if roles is not None:
                 rules.add(AddField("security_filter", role))
             else:
                 # Their access has been revoked
-                revokeAccess(indexer, role)
+                revokeAccess(pyUtils, role)
     # Now for every role that the new step allows access
     for role in item_security:
         if role not in roles:
             # Grant access if new
-            grantAccess(indexer, role)
+            grantAccess(pyUtils, role)
             rules.add(AddField("security_filter", role))
 # No existing security
 else:
     if item_security is None:
         # Guest access if none provided so far
-        grantAccess(indexer, "guest")
+        grantAccess(pyUtils, "guest")
         rules.add(AddField("security_filter", role))
     else:
         # Otherwise use workflow security
         for role in item_security:
             # Grant access if new
-            grantAccess(indexer, role)
+            grantAccess(pyUtils, role)
             rules.add(AddField("security_filter", role))
 # Ownership
 owner = params.getProperty("owner", None)

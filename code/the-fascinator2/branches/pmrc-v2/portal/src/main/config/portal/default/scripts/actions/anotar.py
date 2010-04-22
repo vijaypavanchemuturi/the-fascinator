@@ -136,7 +136,7 @@ class AnotarData:
         jsonObj.set("id", self.pid)
         rootUri = jsonObj.get("annotates/rootUri")
         if rootUri is not None:
-            baseUrl = "http://%s:%s" % (request.serverName, serverPort)
+            baseUrl = "http://%s:%s/" % (request.serverName, serverPort)
             myUri = baseUrl + rootUri + "#" + self.pid
             jsonObj.set("uri", myUri)
 

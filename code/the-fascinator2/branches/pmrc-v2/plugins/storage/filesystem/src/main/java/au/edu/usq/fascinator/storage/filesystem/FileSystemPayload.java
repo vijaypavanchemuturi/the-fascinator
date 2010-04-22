@@ -118,7 +118,10 @@ public class FileSystemPayload extends GenericPayload {
             props.setProperty("payloadType", getType().toString());
             props.setProperty("label", getLabel());
             props.setProperty("linked", String.valueOf(isLinked()));
-            props.setProperty("contentType", getContentType());
+            // Sometimes we just can't get it
+            if (getContentType() != null) {
+                props.setProperty("contentType", getContentType());
+            }
             props.store(metaOut, "Payload metadata for "
                     + dataFile.getAbsolutePath());
             metaOut.close();

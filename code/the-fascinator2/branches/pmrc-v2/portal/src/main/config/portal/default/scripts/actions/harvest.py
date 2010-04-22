@@ -7,11 +7,11 @@ class HarvestData:
         func = formData.get("func")
         if func == "get-harvester-config":
             result = self.getHarvester(formData.get("type")).getConfig()
-            writer = response.getPrintWriter("text/html")
+            writer = response.getPrintWriter("text/html; charset=UTF-8")
             writer.println(result)
             writer.close()
         else:
-            writer = response.getPrintWriter("text/plain")
+            writer = response.getPrintWriter("text/plain; charset=UTF-8")
             writer.println(result)
             writer.close()
     

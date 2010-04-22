@@ -1,3 +1,4 @@
+import os.path
 import array, md5, os
 
 from au.edu.usq.fascinator.api import PluginManager
@@ -7,9 +8,9 @@ from au.edu.usq.fascinator.common import JsonConfig, JsonConfigHelper
 from au.edu.usq.fascinator.common.storage.impl import GenericPayload
 from au.edu.usq.fascinator.portal import Pagination, Portal
 
-from java.io import ByteArrayInputStream, ByteArrayOutputStream
+from java.io import ByteArrayInputStream, ByteArrayOutputStream, File
 from java.net import URLDecoder, URLEncoder
-from java.util import ArrayList, LinkedHashMap, HashSet
+from java.util import ArrayList, HashMap, LinkedHashMap, HashSet
 from java.lang import Exception
 
 class SearchData:
@@ -45,23 +46,23 @@ class SearchData:
         
         # find objects with annotations matching the query
         if query != "*:*":
-			anotarQuery = self.__query
-			annoReq = SearchRequest(anotarQuery)
-			annoReq.setParam("facet", "false")
-			annoReq.setParam("rows", str(99999))
-			annoReq.setParam("sort", "dateCreated asc")
-			annoReq.setParam("start", str(0))        
-			anotarOut = ByteArrayOutputStream()
-			Services.indexer.annotateSearch(annoReq, anotarOut)
-			resultForAnotar = JsonConfigHelper(ByteArrayInputStream(anotarOut.toByteArray()))
-			resultForAnotar = resultForAnotar.getJsonList("response/docs")
-			ids = HashSet()
-			for annoDoc in resultForAnotar:
-				annotatesUri = annoDoc.get("annotatesUri")
-				ids.add(annotatesUri)
-				print "Found annotation for %s" % annotatesUri
-			# add annotation ids to query
-			query += ' OR id:("' + '" OR "'.join(ids) + '")'
+            anotarQuery = self.__query
+            annoReq = SearchRequest(anotarQuery)
+            annoReq.setParam("facet", "false")
+            annoReq.setParam("rows", str(99999))
+            annoReq.setParam("sort", "dateCreated asc")
+            annoReq.setParam("start", str(0))        
+            anotarOut = ByteArrayOutputStream()
+            Services.indexer.annotateSearch(annoReq, anotarOut)
+            resultForAnotar = JsonConfigHelper(ByteArrayInputStream(anotarOut.toByteArray()))
+            resultForAnotar = resultForAnotar.getJsonList("response/docs")
+            ids = HashSet()
+            for annoDoc in resultForAnotar:
+                annotatesUri = annoDoc.get("annotatesUri")
+                ids.add(annotatesUri)
+                print "Found annotation for %s" % annotatesUri
+            # add annotation ids to query
+            query += ' OR id:("' + '" OR "'.join(ids) + '")'
         
         req = SearchRequest(query)
         req.setParam("facet", "true")
@@ -118,11 +119,11 @@ class SearchData:
         out = ByteArrayOutputStream()
         Services.indexer.search(req, out)
         self.__result = JsonConfigHelper(ByteArrayInputStream(out.toByteArray()))
+        
         if self.__result is not None:
             self.__paging = Pagination(self.__pageNum,
                                        int(self.__result.get("response/numFound")),
                                        self.__portal.recordsPerPage)
-            sessionState.set("totalPages", self.__paging.getPages().size())
 
     def canManage(self, wfSecurity):
         user_roles = page.authentication.get_roles_list()
@@ -180,41 +181,59 @@ class SearchData:
     
     def isImage(self, format):
         return format.startswith("image/")
-    
+
+    def getMimeTypeIcon(self, format):
+        # check for specific icon
+        iconPath = "images/icons/mimetype/%s/icon.png" % format
+        if Services.getPageService().resourceExists(portalId, iconPath):
+            return iconPath
+        elif format.find("/") != -1:
+            # check for major type
+            return self.getMimeTypeIcon(format[:format.find("/")])
+        # use default icon
+        return "images/icons/mimetype/icon.png"
+
     def getThumbnail(self, oid):
         # TODO should eventually use 'StorageManager' to get the thumbnail
         # instead of looking at specific payload IDs
-        ext = os.path.splitext(oid)[1]
-        url = oid[oid.rfind("/")+1:-len(ext)] + "_thumbnail.jpg"
         try:
             object = Services.getStorage().getObject(oid)
-            try:
-                payload = object.getPayload(url)
-                payload.close()
-                object.close()
-                return url
-            except Exception, e:
-                object.close()
-                return None
-        except Exception, e:
-            return None
+            sid = object.getSourceId()
+            if sid:
+                url = os.path.splitext(sid)[0] + "_thumbnail.jpg"
+                try:
+                    payload = object.getPayload(url)
+                    payload.close()
+                    object.close()
+                    return url
+                except Exception:
+                    object.close()
+        except Exception:
+            pass
+        return None
     
-    def getSelectedItems(self):
-        selected = ArrayList()
-        items = sessionState.get("package/selected/%s" % self.__pageNum)
-        if items:
-            for item in items:
-                selected.addAll(item.keys())
-        return selected
+    def getActiveManifestTitle(self):
+        return self.__getActiveManifest().get("title")
+    
+    def getActiveManifestId(self):
+        return sessionState.get("package/active/id")
     
     def getSelectedItemsCount(self):
-        count = 0
-        for key in self.__getSelectedItemsKeys():
-            count += len(sessionState.get(key))
-        return count
+        return self.__getActiveManifest().getList("manifest//id").size()
     
-    def __getSelectedItemsKeys(self):
-        return [k for k in sessionState.keySet() if k.startswith("package/selected/")]
+    def isSelectedForPackage(self, oid):
+        return self.__getActiveManifest().get("manifest//node-%s" % oid) is not None
+    
+    def getManifestItemTitle(self, oid, defaultValue):
+        return self.__getActiveManifest().get("manifest//node-%s/title" % oid, defaultValue)
+    
+    def __getActiveManifest(self):
+        activeManifest = sessionState.get("package/active")
+        if not activeManifest:
+            activeManifest = JsonConfigHelper()
+            activeManifest.set("title", "New package")
+            sessionState.set("package/active", activeManifest)
+        return activeManifest
 
 if __name__ == "__main__":
     scriptObject = SearchData()

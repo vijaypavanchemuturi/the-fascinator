@@ -238,7 +238,7 @@ public class HarvestClient {
         object.close();
 
         // queue for rendering
-        queueHarvest(oid, configFile);
+        queueHarvest(oid, configFile, true);
         log.info("Object '{}' now queued for reindexing...", oid);
 
         // cleanup
@@ -291,10 +291,14 @@ public class HarvestClient {
         // FIXME objectId is redundant now?
         props.setProperty("objectId", object.getId());
         props.setProperty("scriptType", config.get("indexer/script/type"));
-        props.setProperty("rulesOid", rulesObject.getId());
-        props.setProperty("rulesPid", rulesObject.getSourceId());
-        props.setProperty("jsonConfigOid", configObject.getId());
-        props.setProperty("jsonConfigPid", configObject.getSourceId());
+        if (props.getProperty("rulesOid") == null) {
+            props.setProperty("rulesOid", rulesObject.getId());
+            props.setProperty("rulesPid", rulesObject.getSourceId());
+        }
+        if (props.getProperty("jsonConfigOid") == null) {
+            props.setProperty("jsonConfigOid", configObject.getId());
+            props.setProperty("jsonConfigPid", configObject.getSourceId());
+        }
         if (fileOwner != null) {
             props.setProperty("owner", fileOwner);
         }
@@ -311,9 +315,16 @@ public class HarvestClient {
     }
 
     private void queueHarvest(String oid, File jsonFile) {
+        queueHarvest(oid, jsonFile, false);
+    }
+
+    private void queueHarvest(String oid, File jsonFile, boolean commit) {
         try {
             JsonConfigHelper json = new JsonConfigHelper(jsonFile);
             json.set("oid", oid);
+            if (commit) {
+                json.set("commit", "true");
+            }
             TextMessage message = session.createTextMessage(json.toString());
             producer.send(message);
         } catch (IOException ioe) {

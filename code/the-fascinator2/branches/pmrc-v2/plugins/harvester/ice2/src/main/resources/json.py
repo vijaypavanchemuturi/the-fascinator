@@ -1,5 +1,6 @@
 import string
 import types
+import re
 
 ##    json.py implements a JSON (http://json.org) reader and writer.
 ##    Copyright (C) 2005  Patrick D. Logan
@@ -19,6 +20,16 @@ import types
 ##    License along with this library; if not, write to the Free Software
 ##    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
+
+## Patch applied RE utf-8/unicode usage:
+## http://sourceforge.net/tracker/?func=detail&aid=1253697&group_id=137891&atid=739575
+
+## __readArray() patched by Ron
+## =======
+## assert self._next() == '['
+## + self._eatWhitespace()
+## done = self._peek() == ']'
+## =======
 
 class _StringGenerator(object):
 	def __init__(self, string):
@@ -203,7 +214,8 @@ class JsonReader(object):
                 ch = self._next()
                 if ch != ",":
                     raise ReadException, "Not a valid JSON array: '%s' due to: '%s'" % (self._generator.all(), ch)
-        assert ']' == self._next()
+            else:
+                assert ']' == self._next()
         return result
 
     def _readObject(self):
@@ -212,7 +224,7 @@ class JsonReader(object):
         done = self._peek() == '}'
         while not done:
             key = self._read()
-            if type(key) is not types.StringType:
+            if type(key) is not types.StringType and type(key) is not types.UnicodeType:
                 raise ReadException, "Not a valid JSON object key (should be a string): %s" % key
             self._eatWhitespace()
             ch = self._next()
@@ -226,17 +238,14 @@ class JsonReader(object):
             if not done:
                 ch = self._next()
                 if ch != ",":
-                    raise ReadException, "Not a valid JSON array: '%s' due to: '%s'" % (self._generator.all(), ch)
+                    raise ReadException, "Not a valid JSON object: '%s' due to: '%s'" % (self._generator.all(), ch)
 	assert self._next() == "}"
         return result
 
     def _eatWhitespace(self):
         p = self._peek()
-        while p is not None and p in string.whitespace or p == '/':
-            if p == '/':
-                self._readComment()
-            else:
-                self._next()
+        while p is not None and p in string.whitespace:
+            self._next()
             p = self._peek()
 
     def _peek(self):
@@ -246,6 +255,11 @@ class JsonReader(object):
         return self._generator.next()
 
 class JsonWriter(object):
+    def __init__(self):
+        self.unicodeRE = re.compile(u"([\u0080-\uffff])")
+        self.unicodeREfunction = lambda(x): r"\u%04x" % ord(x.group(1))
+        self.stringUnicodeRE = re.compile("([\x80-\xff])")
+        self.stringUnicodeREfunction = lambda(x): r"\x%02x" % ord(x.group(1))
 
     def _append(self, s):
         self._results.append(s)
@@ -269,7 +283,7 @@ class JsonWriter(object):
                 if n > 0:
                     self._append(",")
             self._append("}")
-        elif ty is types.ListType or ty is types.TupleType:
+        elif ty is types.ListType:
             n = len(obj)
             self._append("[")
             for item in obj:
@@ -280,18 +294,23 @@ class JsonWriter(object):
             self._append("]")
         elif ty is types.StringType or ty is types.UnicodeType:
             self._append('"')
-	    obj = obj.replace('\\', r'\\')
+    	    obj = obj.replace('\\', r'\\')
             if self._escaped_forward_slash:
                 obj = obj.replace('/', r'\/')
-	    obj = obj.replace('"', r'\"')
-	    obj = obj.replace('\b', r'\b')
-	    obj = obj.replace('\f', r'\f')
-	    obj = obj.replace('\n', r'\n')
-	    obj = obj.replace('\r', r'\r')
-	    obj = obj.replace('\t', r'\t')
+            obj = obj.replace('"', r'\"')
+            obj = obj.replace('\b', r'\b')
+            obj = obj.replace('\f', r'\f')
+            obj = obj.replace('\n', r'\n')
+            obj = obj.replace('\r', r'\r')
+            obj = obj.replace('\t', r'\t')
+            if ty is types.StringType:
+                #obj = self.stringUnicodeRE.sub(self.stringUnicodeREfunction, obj)
+                pass
+            elif ty is types.UnicodeType:
+                obj = self.unicodeRE.sub(self.unicodeREfunction, obj)
             self._append(obj)
             self._append('"')
-        elif ty is types.IntType or ty is types.LongType:
+        elif ty is types.IntType:
             self._append(str(obj))
         elif ty is types.FloatType:
             self._append("%f" % obj)
@@ -302,7 +321,7 @@ class JsonWriter(object):
         elif obj is None:
             self._append("null")
         else:
-            raise WriteException, "Cannot write in JSON: %s" % repr(obj)
+            raise WriteException, "Cannot write in JSON: %s" % obj
 
 def write(obj, escaped_forward_slash=False):
     return JsonWriter().write(obj, escaped_forward_slash)

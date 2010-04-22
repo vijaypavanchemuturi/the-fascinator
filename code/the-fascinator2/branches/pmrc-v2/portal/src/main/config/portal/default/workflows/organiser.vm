@@ -7,8 +7,8 @@
     #set($numChildren = $children.keySet().size())
     #set($hidden = "false")
     #set($hidden = $item.get("hidden"))
-    <li #if($numChildren > 0)class="open"#end id="$key" rel="$id">
-      <a class="#if($id == $oid)clicked#end #if($hidden && $hidden == 'true')item-hidden#end" href="#">$item.get("title")</a>
+    <li id="$key" rel="$id">
+      <a class="#if($id == $oid)clicked#end #if("$!hidden" == "True")item-hidden#end" href="#">$item.get("title")</a>
       #if($numChildren > 0)
         #createNavTree($children "children")
       #end
@@ -24,6 +24,7 @@
   <div class="box menu">
     <h2>Actions</h2>
     <ul class="menu" id="actions">
+      <li><a href="#" id="package-modify">Select package items...</a></li>
       <li><a href="$portalPath/detail/$oid">View package...</a></li>
     </ul>
   </div>
@@ -33,7 +34,11 @@
       <fieldset>
         <p>
           <label for="title">Package title</label>
-          <input type="text" id="package-title" name="title" value="$!self.getFormData('title')" />
+          <input type="text" id="package-title" name="title" value="$!self.getPackageTitle()" />
+        </p>
+        <p>
+          <label for="package-description">Description</label>
+          <input type="text" id="package-description" name="description" value="$!self.getFormData('description')" />
         </p>
         <input type="hidden" name="targetStep" value="$self.getFormData('nextStep')" />
         <input type="hidden" name="oid" value="$oid" />
@@ -94,7 +99,7 @@ $(function() {
             theme_name: "classic"
         },
         plugins: {
-            checkbox: {},
+            checkbox: {}
         },
         callback: {
             onmove: function(node, refNode, type, tree, rollback) {
@@ -116,22 +121,26 @@ $(function() {
                 $("#content").load(
                     "$portalPath/preview?oid=" + escape(id) + " div.body > div",
                     function() {
-                        function fixLinks(baseUrl, selector, attrName) {
+                        function fixLinks(selector, attrName) {
                             $(selector).each(function() {
                                 var attr = $(this).attr(attrName);
                                 if (attr != null) {
+                                    // fix for IE7 attr() returning resolved URLs - strip base URL
+                                    var href = window.location.href;
+                                    hrefBase = href.substring(0, href.lastIndexOf("/"));
+                                    attrBase = attr.substring(0, hrefBase.length);
+                                    if (hrefBase == attrBase) {
+                                        attr = attr.substring(hrefBase.length + 1);
+                                    }
                                     if (attr.indexOf("#") != 0 && attr.indexOf("://") == -1) {
                                         var relUrl = "$portalPath/download/" + id + "/";
-                                        var tmpUrl = baseUrl.substring(baseUrl.indexOf("/", 8));
-                                        tmpUrl = tmpUrl.replace(relUrl, "");
-                                        tmpUrl = tmpUrl.substring(0, tmpUrl.lastIndexOf("/")+1);
-                                        $(this).attr(attrName, escape(relUrl + tmpUrl + attr));
+                                        $(this).attr(attrName, escape(relUrl + attr));
                                     }
                                 }
                             });
                         }
-                        fixLinks("", "#content a", "href");
-                        fixLinks("", "#content img", "src");
+                        fixLinks("#content a", "href");
+                        fixLinks("#content img", "src");
                     }
                 );
                 var item = node.children("a");
@@ -145,7 +154,16 @@ $(function() {
     $(".toc.hidden").removeClass("hidden");
     
     $("#update-package").click(function() {
-        $("#package-form").submit();
+        jQuery.post("$portalPath/actions/manifest.ajax",
+            {
+                func: "set-package-title",
+                oid: "$oid",
+                title: $("#package-title").val()
+            },
+            function(data, status) {
+                $("#package-form").submit();
+            });
+        return false;
     });
     
     $("#update-item").click(function() {
@@ -159,12 +177,12 @@ $(function() {
                 id: "$portalId",
                 nodeId: $(node).attr("id"),
                 title: $("#item-title").val(),
-                hidden: $("#item-hidden").val(),
+                hidden: $("#item-hidden").is(":checked"),
                 parents: getParentIds(node)
             },
             function(data, status) {
                 item.text(data.title);
-                if (data.hidden) {
+                if (data.hidden == "True") {
                     item.addClass("item-hidden");
                 } else {
                     item.removeClass("item-hidden");
@@ -174,6 +192,16 @@ $(function() {
                 setTimeout(function() { $("#item-message").empty(); }, 3000);
             },
             "json");
+    });
+    
+    $("#package-modify").click(function() {
+        jQuery.post("$portalPath/actions/packaging.ajax",
+            { func: "modify", oid: "$oid" },
+            function(data, status) {
+                // TODO default portal id is hard coded
+                window.location.href = "$contextPath/default/search";
+            });
+        return false;
     });
     
     $("#package-title").focus();

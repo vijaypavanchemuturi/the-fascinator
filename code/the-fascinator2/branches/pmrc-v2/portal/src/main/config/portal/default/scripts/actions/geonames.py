@@ -5,7 +5,7 @@ from au.edu.usq.fascinator.common import JsonConfigHelper
 
 class GeoNames:
     def __init__(self):
-        responseType = "text/html"
+        responseType = "text/html; charset=UTF-8"
         responseMsg = ""
         func = formData.get("func")
         if func == "placeName":
@@ -22,7 +22,7 @@ class GeoNames:
             except Exception, e:
                 print "exception: ", str(e)
                 r = str(e), None
-            responseType = "text/plain; charset='UTF-8'"
+            responseType = "text/plain; charset=UTF-8"
             #responseMsg = "\nToowoomba, Australia\nToowoomba, Africa";
         writer = response.getPrintWriter(responseType)
         writer.println(responseMsg)

@@ -804,7 +804,7 @@ function anotarFactory(jQ, config) {
                 "rootUri": data.root
             };
             // Annotation locator(s)
-                schemaObject.annotates.locators = [];
+            schemaObject.annotates.locators = [];
             if (data.hash) {
                 var thisHash = {
                     "originalContent": data.originalContent,
