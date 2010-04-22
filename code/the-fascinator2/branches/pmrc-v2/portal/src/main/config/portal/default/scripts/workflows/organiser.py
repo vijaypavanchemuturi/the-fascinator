@@ -30,7 +30,7 @@ class OrganiserData:
             log.error("Failed to load manifest", e);
             result = '{ status: "error", message: "%s" }' % str(e)
         if result is not None:
-            writer = response.getPrintWriter("application/json")
+            writer = response.getPrintWriter("application/json; charset=UTF-8")
             writer.println(result)
             writer.close()
     
@@ -39,6 +39,9 @@ class OrganiserData:
     
     def getFormData(self, field):
         return formData.get(field, "")
+    
+    def getPackageTitle(self):
+        return formData.get("title", self.getManifest().get("title"))
     
     def __getItemProps(self, itemId):
         itemId = formData.get("itemId")
@@ -54,11 +57,11 @@ class OrganiserData:
     
     def __getRvtNodes(self, manifest):
         rvtNodes = ArrayList()
-        print "manifest=%s" % manifest
+        #print "manifest=%s" % manifest
         for key in manifest.keySet():
             node = manifest.get(key)
             rvtNode = HashMap()
-            rvtNode.put("visible", "true")
+            rvtNode.put("visible", node.get("hidden") != "True")
             rvtNode.put("relPath", node.get("id"))
             rvtNode.put("title", node.get("title"))
             rvtNode.put("children", self.__getRvtNodes(node.getJsonMap("children")))

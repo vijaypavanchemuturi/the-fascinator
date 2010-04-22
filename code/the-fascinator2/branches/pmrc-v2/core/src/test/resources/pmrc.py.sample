@@ -1,25 +1,24 @@
 import md5, os, time
+
+from au.edu.usq.fascinator.api.storage import StorageException
 from au.edu.usq.fascinator.indexer.rules import AddField, New
 from org.dom4j.io import SAXReader
 
-from au.edu.usq.fascinator.common.nco import Contact
-from au.edu.usq.fascinator.common.nfo import PaginatedTextDocument
-from au.edu.usq.fascinator.common.nid3 import ID3Audio
-from au.edu.usq.fascinator.common.nie import InformationElement
-
-from au.edu.usq.fascinator.common.ctag import Tag, TaggedContent
-
-from au.edu.usq.fascinator.api.storage import StorageException
 #
 # Available objects:
 #    indexer    : Indexer instance
+#    log        : Logger instance
 #    jsonConfig : JsonConfigHelper of our harvest config file
 #    rules      : RuleManager instance
 #    object     : DigitalObject to index
 #    payload    : Payload to index
 #    params     : Metadata Properties object
+#    pyUtils    : Utility object for accessing app logic
 #
 
+# 
+# Index a path separated value as multiple field values 
+# 
 def indexPath(name, path, includeLastPart=True):
     parts = path.split("/")
     length = len(parts)
@@ -67,16 +66,16 @@ rules.add(AddField("item_type", itemType))
 rules.add(AddField("last_modified", time.strftime("%Y-%m-%dT%H:%M:%SZ")))
 
 # Security
-roles = indexer.getRolesWithAccess(oid)
+roles = pyUtils.getRolesWithAccess(oid)
 if roles is not None:
     for role in roles:
         rules.add(AddField("security_filter", role))
 else:
     # Default to guest access if Null object returned
-    schema = indexer.getAccessSchema("simple");
+    schema = pyUtils.getAccessSchema("simple");
     schema.setRecordId(oid)
     schema.set("role", "registered")
-    indexer.setAccessSchema(schema, "simple")
+    pyUtils.setAccessSchema(schema, "simple")
     rules.add(AddField("security_filter", "registered"))
 
 if pid == metaPid:
@@ -97,9 +96,9 @@ if pid == metaPid:
     
     ### Check if dc.xml returned from ice is exist or not. if not... process the dc-rdf
     try:
-    	dcPayload = object.getPayload("dc.xml")
-        indexer.registerNamespace("dc", "http://purl.org/dc/elements/1.1/")
-        dcXml = indexer.getXmlDocument(dcPayload)
+        dcPayload = object.getPayload("dc.xml")
+        pyUtils.registerNamespace("dc", "http://purl.org/dc/elements/1.1/")
+        dcXml = pyUtils.getXmlDocument(dcPayload)
         if dcXml is not None:
             #get Title
             titleList = getNodeValues(dcXml, "//dc:title")
@@ -122,11 +121,17 @@ if pid == metaPid:
                 else:
                     relationDict[key] = [value]
     except StorageException, e:
-        print " storage exception dc.xml", str(e)
+        print "Failed to index ICE dublin core data (%s)" % str(e)
     
+    # Extract from aperture.rdf if exist 
     try:
-    	rdfPayload = object.getPayload("aperture.rdf")
-        rdfModel = indexer.getRdfModel(rdfPayload)
+        from au.edu.usq.fascinator.common.nco import Contact 
+        from au.edu.usq.fascinator.common.nfo import PaginatedTextDocument 
+        from au.edu.usq.fascinator.common.nid3 import ID3Audio 
+        from au.edu.usq.fascinator.common.nie import InformationElement 
+     
+        rdfPayload = object.getPayload("aperture.rdf")
+        rdfModel = pyUtils.getRdfModel(rdfPayload)
         
         #Seems like aperture only encode the spaces. Tested against special characters file name
         #and it's working 
@@ -153,12 +158,7 @@ if pid == metaPid:
                 title = allTitles.next().strip()
                 if title != "":
                     titleList.append(title)
-        
-        #use id/filename if no title
-        if titleList == []:
-           title = os.path.splitext(os.path.basename(oid))[0]
-           titleList.append(title)
-        
+                
         #2. get creator only if no creator returned by ICE
         if creatorList == []:
             allCreators = paginationTextDocument.getAllCreator();
@@ -209,8 +209,17 @@ if pid == metaPid:
             if informationElement.hasContentCreated():
                 creationDate.append(informationElement.getContentCreated().getTime().toString())
     except StorageException, e:
-        print " storage exception aperture.rdf", str(e)
+        print "Failed to index aperture data (%s)" % str(e) 
+    
+    # some defaults if the above failed 
+    if titleList == []: 
+        #use object's source id (i.e. most likely a filename) 
+        titleList.append(object.getSourceId()) 
         
+    if formatList == []: 
+        payload = object.getPayload(object.getSourceId()) 
+        formatList.append(payload.getContentType()) 
+    
     indexList("dc_title", titleList)
     indexList("dc_creator", creatorList)  #no dc_author in schema.xml, need to check
     indexList("dc_contributor", contributorList)
@@ -224,15 +233,13 @@ if pid == metaPid:
     
     indexList("full_text", fulltext)
     baseFilePath = params["base.file.path"]
-    filePath = oid
+    filePath = object.getMetadata().getProperty("file.path")
     if baseFilePath:
         #NOTE: need to change again if the json file accept forward slash in window
         #get the base folder
-        baseFilePath = baseFilePath.replace("\\", "/")
         baseDir = baseFilePath.rstrip("/")
         baseDir = "/%s/" % baseDir[baseDir.rfind("/")+1:]
         filePath = filePath.replace("\\", "/").replace(baseFilePath, baseDir)
-    #indexPath("file_path", object.getId().replace("\\", "/"), includeLastPart=False)
     indexPath("file_path", filePath, includeLastPart=False)
 
 

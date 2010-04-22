@@ -28,6 +28,7 @@ import junit.framework.Assert;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import au.edu.usq.fascinator.api.PluginManager;
@@ -87,6 +88,23 @@ public class ApertureTransformerTest {
             StorageException {
         File fileNameodt = new File(getClass().getResource("/test Image.odt")
                 .toURI());
+
+        testObject = StorageUtils.storeFile(ram, fileNameodt);
+        testObjectOutput = ex.transform(testObject);
+        Payload rdfPayload = testObjectOutput.getPayload("aperture.rdf");
+        Assert.assertEquals("aperture.rdf", rdfPayload.getId());
+        Assert.assertEquals("Aperture rdf", rdfPayload.getLabel());
+        Assert.assertEquals("application/xml+rdf", rdfPayload.getContentType());
+        Assert.assertEquals(PayloadType.Enrichment, rdfPayload.getType());
+    }
+
+    // Test sfk
+    @Ignore
+    @Test
+    public void testSfkFile() throws URISyntaxException, TransformerException,
+            StorageException {
+        File fileNameodt = new File(getClass()
+                .getResource("/Geoff Bowcock.sfk").toURI());
 
         testObject = StorageUtils.storeFile(ram, fileNameodt);
         testObjectOutput = ex.transform(testObject);

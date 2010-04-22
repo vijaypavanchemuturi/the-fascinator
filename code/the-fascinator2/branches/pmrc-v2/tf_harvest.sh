@@ -58,8 +58,12 @@ if [ $NUM_PROCS == 1 ]; then
 		BASE_FILE=$SAMPLE_DIR/$1
 	fi
 	pushd $TF_HOME/core
-	copy_sample $BASE_FILE
-	mvn -P dev -DjsonFile=$BASE_FILE.json exec:java
+        if [ -f $BASE_FILE.json ]; then
+		copy_sample $BASE_FILE
+		mvn -P dev -DjsonFile=$BASE_FILE.json exec:java
+	else
+		echo "$BASE_FILE.json not found!"
+	fi
 	popd
 else
 	echo "Please start The Fascinator before harvesting."

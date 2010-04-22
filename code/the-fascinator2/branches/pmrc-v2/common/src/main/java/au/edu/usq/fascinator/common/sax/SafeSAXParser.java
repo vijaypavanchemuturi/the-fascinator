@@ -35,15 +35,15 @@ import org.apache.xerces.xni.XNIException;
  */
 
 public class SafeSAXParser extends SAXParser {
-    private String entityNane;
+    private String entityName;
 
     @Override
     public void characters(XMLString text, Augmentations augs)
             throws XNIException {
-        if (this.entityNane != null) {
-            char[] charArray = this.entityNane.toCharArray();
+        if (this.entityName != null) {
+            char[] charArray = this.entityName.toCharArray();
             text.setValues(charArray, 0, charArray.length);
-            this.entityNane = null;
+            this.entityName = null;
         }
         super.characters(text, augs);
     }
@@ -53,6 +53,6 @@ public class SafeSAXParser extends SAXParser {
             XMLResourceIdentifier identifier, String encoding,
             Augmentations augs) throws XNIException {
         super.startGeneralEntity(name, identifier, encoding, augs);
-        this.entityNane = "&" + name + ";";
+        this.entityName = "&" + name + ";";
     }
 }

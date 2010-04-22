@@ -55,7 +55,6 @@ import au.edu.usq.fascinator.api.storage.PayloadType;
 import au.edu.usq.fascinator.api.storage.StorageException;
 import au.edu.usq.fascinator.api.transformer.Transformer;
 import au.edu.usq.fascinator.api.transformer.TransformerException;
-import au.edu.usq.fascinator.common.JsonConfig;
 import au.edu.usq.fascinator.common.JsonConfigHelper;
 import au.edu.usq.fascinator.common.MimeTypeUtil;
 import au.edu.usq.fascinator.common.storage.StorageUtils;
@@ -75,6 +74,7 @@ import au.edu.usq.fascinator.common.storage.StorageUtils;
 public class ApertureTransformer implements Transformer {
     private String filePath = "";
     private String outputPath = "";
+    private JsonConfigHelper config;
 
     private static Logger log = LoggerFactory
             .getLogger(ApertureTransformer.class);
@@ -329,21 +329,48 @@ public class ApertureTransformer implements Transformer {
      * "http://ice-service.usq.edu.au/api/convert/", "outputPath":
      * "${user.home}/ice2-output" } }
      * 
+     * @param jsonString of configuration for Extractor
+     * @throws PluginException if fail to parse the config
+     */
+    @Override
+    public void init(String jsonString) throws PluginException {
+        try {
+            config = new JsonConfigHelper(jsonString);
+            init();
+        } catch (IOException e) {
+            throw new PluginException(e);
+        }
+    }
+
+    /**
+     * Overridden method init to initialize
+     * 
+     * Configuration sample: "transformer": { "conveyer":
+     * "aperture-extractor, ice-transformer", "extractor": { "outputPath" :
+     * "${user.home}/ice2-output" }, "ice-transformer": { "url":
+     * "http://ice-service.usq.edu.au/api/convert/", "outputPath":
+     * "${user.home}/ice2-output" } }
+     * 
      * @param jsonFile to retrieve the configuration for Extractor
      * @throws PluginException if fail to read the config file
      */
     @Override
     public void init(File jsonFile) throws PluginException {
         try {
-            log.info("--Initializing Extractor plugin--");
-            JsonConfig config = new JsonConfig(jsonFile);
-            // Default will be HOME_PATH/tmp folder
-            outputPath = config.get("aperture/outputPath", System
-                    .getProperty("java.io.tmpdir"));
+            config = new JsonConfigHelper(jsonFile);
+            init();
         } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            throw new PluginException(e);
         }
+    }
+
+    private void init() {
+        log.info("--Initializing Extractor plugin--");
+        // Watcher files
+        filePath = config.get("sourceFile");
+        // Other files need a cache directory
+        outputPath = config.get("aperture/outputPath", System
+                .getProperty("java.io.tmpdir"));
     }
 
     /**
@@ -393,15 +420,14 @@ public class ApertureTransformer implements Transformer {
         try {
             File oid = new File(in.getId());
             if (inFile.exists()) {
-                RDFContainer rdf = extractRDF(inFile, oid.toURI().toString()); // Never
-                // write
-                // to file
+                // Never write to file
+                RDFContainer rdf = extractRDF(inFile, oid.toURI().toString());
                 if (rdf != null) {
-                    Payload rdfPayload = StorageUtils
-                            .createOrUpdatePayload(in, "aperture.rdf",
-                                    new ByteArrayInputStream(
-                                            stripNonValidXMLCharacters(rdf)
-                                                    .getBytes("UTF-8")));
+                    log.info("Done extraction: " + rdf.getClass());
+                    Payload rdfPayload = StorageUtils.createOrUpdatePayload(in,
+                            "aperture.rdf", new ByteArrayInputStream(
+                                    stripNonValidXMLCharacters(rdf).getBytes(
+                                            "UTF-8")));
                     rdfPayload.setLabel("Aperture rdf");
                     rdfPayload.setContentType("application/xml+rdf");
                     rdfPayload.setType(PayloadType.Enrichment);
@@ -421,18 +447,6 @@ public class ApertureTransformer implements Transformer {
             }
         }
         return in;
-    }
-
-    @Override
-    public void init(String jsonString) throws PluginException {
-        // TODO Auto-generated method stub
-        JsonConfigHelper jch;
-        try {
-            jch = new JsonConfigHelper(jsonString);
-            filePath = jch.get("sourceFile");
-        } catch (Exception e) {
-
-        }
     }
 
     public String stripNonValidXMLCharacters(RDFContainer rdf) {

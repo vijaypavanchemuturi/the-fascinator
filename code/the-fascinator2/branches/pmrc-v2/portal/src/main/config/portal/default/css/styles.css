@@ -83,7 +83,7 @@ form.search {
     overflow: hidden;
 }
 
-span.right {
+.right {
     float: right;
 }
 
@@ -220,6 +220,11 @@ ul.nav li.label {
     font-weight: bold;
 }
 
+#toc li a.item-hidden {
+    color: gray;
+    font-style: italic;
+}
+
 label.checkbox {
     padding-top: 10px;
 }
@@ -231,19 +236,24 @@ input.checkbox {
     width: auto;
 }
 
-.content-preview-inline h2 a, .content-preview-inline h2 a:hover {
-    background: none;
-}
-
 .tree ul {
     overflow: auto;
     text-wrap: normal;
     word-wrap: break-word;
 }
 
+#content h1 {
+    font-size: 1.7em;
+}
+
 #content h2 {
     border-bottom: 1px solid silver;
+    font-size: 1.5em;
     margin-bottom: 1em;
+}
+
+#content h2 a, #content h2 a:hover {
+    background: none;
 }
 
 .page-toc {
@@ -465,8 +475,8 @@ ul.nobgtabs li a.ui-state-active {
     padding-left: 20px;
 }
 
-img.workflow {
-    vertical-align: text-bottom;
+.article a img.workflow {
+    vertical-align: baseline;
 }
 
 .package-select {
@@ -487,7 +497,16 @@ img.workflow {
     color: black;
     font-weight: bold;
 }
-
+#package-create-selected {
+    background-image: url('../images/icons/package_go.png');
+    background-repeat: no-repeat;
+    background-position: 7px 50%;
+}
+#package-create-new {
+    background-image: url('../images/icons/package_add.png');
+    background-repeat: no-repeat;
+    background-position: 7px 50%;
+}
 #package-select-page {
     background-image: url('../images/icons/select_all.png');
     background-repeat: no-repeat;
@@ -499,7 +518,20 @@ img.workflow {
     background-position: 7px 50%;
 }
 #package-clear-all {
-    background-image: url('../images/icons/clear_package.png');
+    background-image: url('../images/icons/package_delete.png');
     background-repeat: no-repeat;
     background-position: 7px 50%;
+}
+#package-selected-items {
+    font-size: 1.2em;
+}
+.content-preview-inline iframe {
+    width: 99%;
+    height: 600px;
+}
+.iframe-link-alt {
+    background-image: url('../images/icons/application_go.png');
+    background-position: 0 50%;
+    background-repeat: no-repeat;
+    padding-left: 20px;
 }

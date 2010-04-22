@@ -113,16 +113,11 @@ public class FileSystemStorage implements Storage {
         // Don't need to do anything
     }
 
-    private String getHashId(String oid) {
-        return DigestUtils.md5Hex(oid);
-    }
-
     private File getPath(String oid) {
-        String hash = getHashId(oid);
-        String dir = hash.substring(0, 2) + File.separator
-                + hash.substring(2, 4) + File.separator + hash.substring(4, 6)
+        String dir = oid.substring(0, 2) + File.separator
+                + oid.substring(2, 4) + File.separator + oid.substring(4, 6)
                 + File.separator;
-        return new File(homeDir, dir + hash);
+        return new File(homeDir, dir + oid);
     }
 
     @Override
@@ -138,10 +133,12 @@ public class FileSystemStorage implements Storage {
 
     @Override
     public DigitalObject getObject(String oid) throws StorageException {
-        log.debug("getObject(" + oid + ")");
         File objHome = getPath(oid);
         if (objHome.exists()) {
-            return new FileSystemDigitalObject(objHome, oid);
+            FileSystemDigitalObject obj = new FileSystemDigitalObject(objHome,
+                    oid);
+            log.debug("getObject(" + oid + "), sourceId: " + obj.getSourceId());
+            return obj;
         }
         throw new StorageException("oID '" + oid
                 + "' doesn't exist in storage.");
@@ -149,7 +146,7 @@ public class FileSystemStorage implements Storage {
 
     @Override
     public void removeObject(String oid) throws StorageException {
-        //log.debug("removeObject(" + oid + ")");
+        // log.debug("removeObject(" + oid + ")");
         File objHome = getPath(oid);
         if (objHome.exists()) {
             DigitalObject object = new FileSystemDigitalObject(objHome, oid);
@@ -176,7 +173,7 @@ public class FileSystemStorage implements Storage {
 
     @Override
     public Set<String> getObjectIdList() {
-        //log.debug("getObjectIdList()");
+        // log.debug("getObjectIdList()");
         if (objectList == null) {
             objectList = new HashSet<String>();
 
@@ -208,7 +205,7 @@ public class FileSystemStorage implements Storage {
     }
 
     private void listFileRecur(List<File> files, File path) {
-        //log.debug("listFileRecur()");
+        // log.debug("listFileRecur()");
         if (path.isDirectory()) {
             for (File file : path.listFiles()) {
                 if (path.isDirectory()) {

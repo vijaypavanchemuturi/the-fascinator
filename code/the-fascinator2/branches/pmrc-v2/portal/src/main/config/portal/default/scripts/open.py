@@ -7,7 +7,7 @@ class OpenData:
             file = formData.get("file")
             print " * open.py: Opening file %s..." % file
             Desktop.getDesktop().open(File(file))
-        writer = response.getPrintWriter("text/plain")
+        writer = response.getPrintWriter("text/plain; charset=UTF-8")
         writer.println("{}")
         writer.close()
 

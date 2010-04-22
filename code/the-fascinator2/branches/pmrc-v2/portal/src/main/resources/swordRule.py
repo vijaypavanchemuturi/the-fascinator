@@ -16,6 +16,7 @@ from au.edu.usq.fascinator.common.ctag import Tag, TaggedContent
 #    object    : DigitalObject to index
 #    payloadId : Payload identifier
 #    storageId : Storage layer identifier
+#    pyUtils    : Utility object for accessing app logic
 #
 
 def indexPath(name, path, includeLastPart=True):
@@ -85,8 +86,8 @@ if isMetadata:
     ### Check if dc.xml returned from ice is exist or not. if not... process the dc-rdf
     dcPayload = object.getPayload("dc.xml")
     if dcPayload is not None:
-        indexer.registerNamespace("dc", "http://purl.org/dc/elements/1.1/")
-        dcXml = indexer.getXmlDocument(dcPayload)
+        pyUtils.registerNamespace("dc", "http://purl.org/dc/elements/1.1/")
+        dcXml = pyUtils.getXmlDocument(dcPayload)
         if dcXml is not None:
             #get Title
             titleList = getNodeValues(dcXml, "//dc:title")
@@ -111,8 +112,8 @@ if isMetadata:
 
     metaPayload = object.getMetadata()
     if metaPayload.getId()=="imsmanifest.xml":
-        #indexer.registerNamespace("ims", "http://www.imsglobal.org/xsd/imscp_v1p1")
-        imsXml = indexer.getXmlDocument(metaPayload)
+        #pyUtils.registerNamespace("ims", "http://www.imsglobal.org/xsd/imscp_v1p1")
+        imsXml = pyUtils.getXmlDocument(metaPayload)
         if imsXml is not None:
             #get Title
             titleList = getNodeValues(imsXml, "//*[local-name()='title']")
@@ -121,7 +122,7 @@ if isMetadata:
     else:
         rdfPayload = object.getMetadata()
         if rdfPayload is not None:
-            rdfModel = indexer.getRdfModel(rdfPayload)
+            rdfModel = pyUtils.getRdfModel(rdfPayload)
 
             #Seems like aperture only encode the spaces. Tested against special characters file name
             #and it's working
@@ -209,7 +210,7 @@ if isMetadata:
     
     tagsRdf = object.getPayload("tags.rdf")
     if tagsRdf is not None:
-        tagsModel = indexer.getRdfModel(tagsRdf)
+        tagsModel = pyUtils.getRdfModel(tagsRdf)
         hashId = md5.new(object.getId()).hexdigest()
         content = TaggedContent(tagsModel, "urn:" + hashId, False);
         tags = content.getAllTagged_as().asArray()

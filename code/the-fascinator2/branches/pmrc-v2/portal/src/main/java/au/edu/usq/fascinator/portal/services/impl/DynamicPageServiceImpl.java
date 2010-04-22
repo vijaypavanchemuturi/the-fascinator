@@ -199,6 +199,7 @@ public class DynamicPageServiceImpl implements DynamicPageService {
         bindings.put("sessionState", sessionState);
         bindings.put("contextPath", contextPath);
         bindings.put("scriptsPath", scriptsPath + "/" + portalId + "/scripts");
+        bindings.put("portalDir", scriptsPath + "/" + portalId);
         bindings.put("portalId", portalId);
         bindings.put("portalPath", contextPath + "/" + portalId);
         bindings.put("pageName", pageName);

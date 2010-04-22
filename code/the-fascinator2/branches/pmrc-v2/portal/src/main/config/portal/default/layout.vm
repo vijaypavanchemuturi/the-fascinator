@@ -133,77 +133,77 @@
     <div class="body">
         <div class="header">
             <div class="linetop">
-        		<div class="linetopright"></div>
-        	</div>
+                <div class="linetopright"></div>
+            </div>
         </div>
         <div class="header_logo">
-        	<a href="http://www.usq.edu.au/">
-        		<img src="$portalPath/images/usq/usqlogo_line.gif" alt="USQ Logo"/>
-        	</a>
-        	<span class="header_text">Public Memory Research Centre</span>
+            <a href="http://www.usq.edu.au/">
+                <img src="$portalPath/images/usq/usqlogo_line.gif" alt="USQ Logo"/>
+            </a>
+            <span class="header_text">Public Memory Research Centre</span>
         </div>
         <div class="navbar">
-	        <span class="breadcrumbs">
-	          <a href="http://www.usq.edu.au/">USQ Home</a> &gt;
-	          <a href="$portalPath/home">Public Memory Research Centre</a> &gt;
-	          #if($breadcrumb)$breadcrumb#{else}$pageTitle#end
-	        </span>
-	    </div>
-	    <div class="nobanner"></div>
+            <span class="breadcrumbs">
+              <a href="http://www.usq.edu.au/">USQ Home</a> &gt;
+              <a href="$portalPath/home">Public Memory Research Centre</a> &gt;
+              #if($breadcrumb)$breadcrumb#{else}$pageTitle#end
+            </span>
+        </div>
+        <div class="nobanner"></div>
         <div class="mainbanner mainbannerimage">
-        	<div class="mainbannerleft mainbannerimageleft">
-        		<div class="mainbannerright mainbannerimageright"> 
-        	</div>
+            <div class="mainbannerleft mainbannerimageleft">
+                <div class="mainbannerright mainbannerimageright"> 
+            </div>
         </div>
         
         <div class="nobanner"></div>
         <div class="maincontent">
-	        $!pageContent
-	    </div>
-	    <div class="footer">
-	        ABN: 40 234 732 081 | CRICOS:
-	        <a title="USQ Queensland CRICOS Provider Code" href="http://cricos.deewr.gov.au/Institution/InstitutionDetails.aspx?ProviderID=244">QLD 00244B</a> |
-	        <a title="USQ New South Wales CRICOS Provider Code" href="http://cricos.deewr.gov.au/Institution/InstitutionDetails.aspx?ProviderID=2225">NSW 02225M</a> |
-	        <a title="Copyright statement" href="http://www.usq.edu.au/aboutsite/copyright.htm">&copy; University of Southern Queensland</a> |
-	        <a title="Right to Information" href="http://www.usq.edu.au/records/rtiandlegaldiscovery"> Right to Information</a> |
-	        <span class="noprint">
-	          <a title="Disclaimer statement" href="http://www.usq.edu.au/aboutsite/disclaimer">Disclaimer</a> |
-	          <a title="Privacy statement" href="http://www.usq.edu.au/aboutsite/privacy">Privacy</a> |
-	          <a title="Provide feedback on the USQ website" href="http://www.usq.edu.au/aboutsite/feedback">Feedback</a> |
-	          <a title="Provide feedback on the USQ website" href="http://www.usq.edu.au/sitemap">Sitemap</a> | 
-	          <a title="Contact USQ" href="http://www.usq.edu.au/contact">Contact us</a>
-	        </span>
-	        <p>Developed using: <a title="The Fascinator" href="http://fascinator.usq.edu.au">The Fascinator</a></p> 
-	        <div class="linefooter">
-	          <div class="linefooterright" />
-	        </div>
-	    </div>
+            $!pageContent
+        </div>
+        <div class="footer">
+            ABN: 40 234 732 081 | CRICOS:
+            <a title="USQ Queensland CRICOS Provider Code" href="http://cricos.deewr.gov.au/Institution/InstitutionDetails.aspx?ProviderID=244">QLD 00244B</a> |
+            <a title="USQ New South Wales CRICOS Provider Code" href="http://cricos.deewr.gov.au/Institution/InstitutionDetails.aspx?ProviderID=2225">NSW 02225M</a> |
+            <a title="Copyright statement" href="http://www.usq.edu.au/aboutsite/copyright.htm">&copy; University of Southern Queensland</a> |
+            <a title="Right to Information" href="http://www.usq.edu.au/records/rtiandlegaldiscovery"> Right to Information</a> |
+            <span class="noprint">
+              <a title="Disclaimer statement" href="http://www.usq.edu.au/aboutsite/disclaimer">Disclaimer</a> |
+              <a title="Privacy statement" href="http://www.usq.edu.au/aboutsite/privacy">Privacy</a> |
+              <a title="Provide feedback on the USQ website" href="http://www.usq.edu.au/aboutsite/feedback">Feedback</a> |
+              <a title="Provide feedback on the USQ website" href="http://www.usq.edu.au/sitemap">Sitemap</a> | 
+              <a title="Contact USQ" href="http://www.usq.edu.au/contact">Contact us</a>
+            </span>
+            <p>Developed using: <a title="The Fascinator" href="http://fascinator.usq.edu.au">The Fascinator</a></p> 
+            <div class="linefooter">
+              <div class="linefooterright" />
+            </div>
+        </div>
         <form action="$portalPath/$pageName" id="action-form" method="post">
-	      <input id="verb" name="verb" type="hidden" />
-	      <input id="value" name="value" type="hidden" />
-	    </form>
-	    <script type="text/javascript">
-	    $(function() {
-	        $("a.search").click(function() {
-	            $("form.search").submit();
-	            return false;
-	        });
-	        var dialogOpts = {
-		        title: "Login",
-		        autoOpen: false,
-		        hide: "blind",
-		        modal: true
-		    }
-		    $("#login-form").dialog(dialogOpts);
-		
-		    $("#login-now").click(function() {
-		        $("#login-message").empty();
-		        $("#login-error").hide();
-		        $("#login-form").dialog('open');
-		        return false;
-		    });
-			
-			$("#logout-now").click(function() {
+          <input id="verb" name="verb" type="hidden" />
+          <input id="value" name="value" type="hidden" />
+        </form>
+        <script type="text/javascript">
+        $(function() {
+            $("a.search").click(function() {
+                $("form.search").submit();
+                return false;
+            });
+            var dialogOpts = {
+                title: "Login",
+                autoOpen: false,
+                hide: "blind",
+                modal: true
+            }
+            $("#login-form").dialog(dialogOpts);
+        
+            $("#login-now").click(function() {
+                $("#login-message").empty();
+                $("#login-error").hide();
+                $("#login-form").dialog('open');
+                return false;
+            });
+            
+            $("#logout-now").click(function() {
                jQuery.post("$portalPath/authentication.ajax",
                    { verb: "logout" },
                    function(data, status) {
@@ -211,39 +211,39 @@
                    });
                return false;
             });
-			
-		    $("#login-cancel").click(function() {
-		        $("#login-message").empty();
-		        $("#login-error").hide();
-		        $("#login-form").dialog('close');
-		        return false;
-		    });
-		    $("#login-submit").click(function() {
-		        $("#login-message").empty();
-		        $("#login-loading").show();
-		        jQuery.ajax({
-		            type : "POST",
-		            url : "$portalPath/actions/login.ajax",
-		            success:
-		                function(data, status) {
-		                    window.location.reload();						
-		                },
-		            error:
-		                function (req, status, e) {
-		                    $("#login-loading").hide();
-		                    $("#login-error").show();
-		                    $("#login-message").html(req.responseText);
-		                },
-		            data: {
-		                username: $("#username").val(),
-		                password: $("#password").val(),
-		                verb: "login"
-		            }
-		        });
-		    });
-	    });
-	    </script>
-	 </div>
+            
+            $("#login-cancel").click(function() {
+                $("#login-message").empty();
+                $("#login-error").hide();
+                $("#login-form").dialog('close');
+                return false;
+            });
+            $("#login-submit").click(function() {
+                $("#login-message").empty();
+                $("#login-loading").show();
+                jQuery.ajax({
+                    type : "POST",
+                    url : "$portalPath/actions/login.ajax",
+                    success:
+                        function(data, status) {
+                            window.location.reload();						
+                        },
+                    error:
+                        function (req, status, e) {
+                            $("#login-loading").hide();
+                            $("#login-error").show();
+                            $("#login-message").html(req.responseText);
+                        },
+                    data: {
+                        username: $("#username").val(),
+                        password: $("#password").val(),
+                        verb: "login"
+                    }
+                });
+            });
+        });
+        </script>
+    </div>
   </body>
 </html>
 #end

@@ -7,14 +7,17 @@ class DownloadData:
     def __init__(self):
         startTime = time.time()
         basePath = portalId + "/" + pageName
-        uri = URLDecoder.decode(request.getAttribute("RequestURI"))
-        uri = uri[len(basePath)+1:]
+        fullUri = URLDecoder.decode(request.getAttribute("RequestURI"))
+        uri = fullUri[len(basePath)+1:]
         try:
             object, payload = self.__resolve(uri)
-            print " * download.py: URI='%s' OID='%s' PID='%s'" % (uri, object.getId(), payload.getId())
+            if object == None:
+                response.sendRedirect(contextPath + "/" + fullUri + "/")
+                return
+            print "URI='%s' OID='%s' PID='%s'" % (uri, object.getId(), payload.getId())
         except StorageException, e:
             payload = None
-            print " * download.py : Error {}", e
+            print "Failed to get object: %s" % (str(e))
 
         if payload is not None:
             filename = os.path.split(payload.getId())[1]
@@ -24,35 +27,29 @@ class DownloadData:
             out = response.getOutputStream(payload.getContentType())
             IOUtils.copy(payload.open(), out)
             payload.close()
-            out.close()
             object.close()
+            out.close()
         else:
             response.setStatus(404)
-            writer = response.getPrintWriter("text/plain")
+            writer = response.getPrintWriter("text/plain; charset=UTF-8")
             writer.println("Not found: uri='%s'" % uri)
             writer.close()
         print "page load finished in %s" % (time.time() - startTime)
     
     def __resolve(self, uri):
-        slash = uri.rfind("/")
-        oid = uri
-        pid = uri[slash+1:]
-        return self.__get_payload(oid, pid, uri);
+        slash = uri.find("/")
 
-    def __get_payload(self, oid, pid, uri):
-        try:
-            #print " ******* oid=%s\n ******* pid=%s\n" % (oid, pid)
-            object = Services.storage.getObject(oid)
-            payload = object.getPayload(pid)
-        except StorageException, e:
-            #oid = uri
-            if oid.find("/") > -1:
-                slash = oid.rfind("/")
-                oid = uri[:slash]
-                pid = uri[slash+1:]
-                return self.__get_payload(oid, pid, uri)
-            else:
-                return None, None, None
+        if slash == -1:
+            return None, None
+
+        oid = uri[:slash]
+        object = Services.storage.getObject(oid)
+
+        pid = uri[slash+1:]
+        if pid == "":
+            pid = object.getSourceId()
+
+        payload = object.getPayload(pid)
         return object, payload
 
 scriptObject = DownloadData()

@@ -128,11 +128,13 @@
                     #else
                       #set($title = $self.getFileName($id))
                     #end
+                    #set($format = $item.get("dc_format").get(0))
                     #set($description = "")
                     #set($description = $item.get("dc_description").get(0))
                     <td width="33%">
                     <div id="$hashId" class="article#if($velocityCount==1) first#end">
-                      <p><a href="$portalPath/detail/$self.encode($id)">$title</a></p>
+                      <p><img src="$portalPath/$self.getMimeTypeIcon($format)" title="$!format" style="margin-bottom: -3px;"/>
+                      <a href="$portalPath/detail/$self.encode($id)">$title</a></p>
                       <div rel="$id" class="tags">Tags: <span class="tags-here"></span></div>
                       #set($thumbnail = $self.getThumbnail($id))
                       #if($thumbnail)
