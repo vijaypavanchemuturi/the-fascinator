@@ -38,8 +38,8 @@ $(function() {
         if (hasFlv!='' || ext=="mp3" || ext=="m4a") {
             var href = "$portalPath/download/$oid/" + filename;
             var player1 = '<div href="' + href + '" id="player" style="' + style + '"></div>'; 
-            $("#player-container").attr("style", style).html(player1);
-            player = flowplayer("player", "$portalPath/flowplayer/flowplayer-3.1.5.swf",
+            $("#player-container").attr("style", "width: 300px; height: " + height + "px").html(player1);
+            player = flowplayer("player", {src:"$portalPath/flowplayer/flowplayer-3.1.5.swf", wmode:'opaque'},
                 { clip: { autoPlay: false, autoBuffering: true },
                   play: {
                     label: "Play",

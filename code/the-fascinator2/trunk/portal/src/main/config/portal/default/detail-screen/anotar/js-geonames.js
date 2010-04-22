@@ -5,10 +5,8 @@
             //debug: true,
             docRoot: "#location-tag-list",
             tagList: "div",
-            #if($page.authentication.is_logged_in()) 
-            creator: "$page.authentication.get_name()",
-            creatorUri: null,
-            #end
+            creator: "$creator",
+            creatorUri: "$creatorUri",
             contentInput: "#txtName",
             pageUri: "$oid",
             uriAttr: "rel",

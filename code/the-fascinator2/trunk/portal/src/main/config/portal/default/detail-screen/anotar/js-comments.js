@@ -3,10 +3,8 @@
     $(function() {
         noteConfig={
             pageUri: "$oid",
-            #if($page.authentication.is_logged_in()) 
-            creator: "$page.authentication.get_name()",
-            creatorUri: null,
-            #end
+            creator: "$creator",
+            creatorUri: "$creatorUri",
             tagList: "p, h1, h2, h3, h4, h5, h6, .annotatable",
             interfaceLabel: " <img src='$portalPath/images/icons/comment_add.png'/> Comments:",
             replyLabel: " <img src='$portalPath/images/icons/comments_add.png'/>",
