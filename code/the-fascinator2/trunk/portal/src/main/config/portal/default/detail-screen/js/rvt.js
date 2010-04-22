@@ -29,6 +29,7 @@ $(function() {
         var oid = window.location.hash.substring(1);
         fixLinks("", "#package-content a", "href", oid);
         fixLinks("", "#package-content img", "src", oid);
+        $(".article-heading").html($(window.location.hash).children("a").text());
     };
     rvt.displayTOC = function(nodes) {
         function fixIds(nodes) {
@@ -52,7 +53,7 @@ $(function() {
             callback: {
                 onselect: function(node, tree) {
                     window.location.hash = $(node).attr("rel");
-                    $(".article-heading").text($(node).children("a").text());
+                    $(".article-heading").html($(node).children("a").text());
                     return false;
                 }
             }
