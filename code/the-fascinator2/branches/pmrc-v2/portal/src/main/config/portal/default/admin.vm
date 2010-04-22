@@ -418,7 +418,8 @@ $(function() {
     $(".change-user-detail-button").click(function() {
         var plugin = $(this).attr("rel");
         var username = $("#users-" + plugin + "-list option:selected").text();
-        var userDetail = $("#users-pmrc-list").val();
+        var userDetail = $("#users-" + plugin + "-list").val();
+        console.log(userDetail);
         var userDisplayName = "";
         var userUri = "";
         if (userDetail != '') {
