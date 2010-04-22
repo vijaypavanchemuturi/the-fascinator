@@ -430,10 +430,8 @@ $(function() {
             annotationType: "tag",
             stylePrefix: "tags-",
             displayCustom: "tag_display",
-            #if($page.authentication.is_logged_in()) 
-            creator: "$page.authentication.get_name()",
-            creatorUri: "$page.authentication.get_uri()",
-            #end
+            creator: "$creator",
+            creatorUri: "$creatorUri",
             interfaceLabel: " <img src='$portalPath/images/icons/add.png'/>",
             interfaceVisible: true,
             formCustom: "object_tag_form",

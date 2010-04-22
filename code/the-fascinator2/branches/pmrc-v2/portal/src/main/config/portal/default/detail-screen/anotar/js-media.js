@@ -14,10 +14,8 @@
             replyLabel: "<img src='$portalPath/images/icons/comments_add.png'/>",
             //formPrepend: true,
             //stylePrefix: "anno-",
-            #if($page.authentication.is_logged_in()) 
-            creator: "$page.authentication.get_name()",
-            creatorUri: "$page.authentication.get_uri()",
-            #end
+            creator: "$creator",
+            creatorUri: "$creatorUri",
             interfaceLabel: videoAnoLabel,
             interfaceVisible: true,
             formCustom: "media_clip_form",
