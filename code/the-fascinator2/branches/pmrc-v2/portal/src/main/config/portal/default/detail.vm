@@ -1,6 +1,19 @@
-<script type="text/javascript" src="$portalPath/js/tree/jquery.tree.min.js"></script>
-#set($pageTitle = 'Detail')
-<script type="text/javascript" src="$portalPath/js/geohash/geohash.js"></script>
+#************************
+* Zero hits
+************************#
+#if($self.solrResponse.get("response/numFound") == 0)
+  <h2 id="page-heading">Page not found</h2>
+  <p>Please try a different <a href="$portalPath/search">search</a>.</p>
+
+#************************
+* Normal page render
+************************#
+#else
+  #parse($page.getTemplate('detail-screen/variables.vm'))
+  #parse($page.getTemplate('detail-screen/scripts.vm'))
+
+## PMRC does not use navigation.vm as it consists of table for the detail page
+#set($pageHeader="#parse($page.getTemplate('detail-screen/header.vm'))")
 
 <table class="layout" width="10px">
   <tbody>
@@ -17,99 +30,85 @@
             </ul>
           </div>
           #if($page.authentication.is_logged_in())
-          #set($meta = $self.metadata)
-          #set($oid = $self.object.id)
-          #set($filenameNoExt = $self.getFilePathWithoutExt($oid))
-          #set($hasPreview = $self.getPreview($oid))
-          #set($title = $meta.getField("dc_title"))
-          #set($description = $meta.getField("dc_description"))
-          #set($error = $self.getErrorPayload())
-          #if($title == "")
-            #set($title = $self.getFileName($oid))
+              #if($page.authentication.is_admin())
+                  <div class="mainmenu">
+                    <div class="mainmenu-top"></div>
+                    <div class="mainmenu-heading">Actions</div>
+                    <ul class="menu-list">
+                        <li><a class="admin-delete-link" rel="$oid" href="#">Delete...</a></li>
+                        <li><a id="reharvest" href="$portalPath/detail/$oid">Re-Harvest...</a></li>
+                    </ul>
+                  </div>
+              #end
+              <div class="mainmenu">
+                <div class="mainmenu-top"></div>
+                <div class="mainmenu-heading">Downloads</div>
+                <ul class="menu-list">
+                  <li><a href="$portalPath/download/$oid/$self.getFileName($sourceId)">$self.getFileName($sourceId)</a> <span style="font-weight:normal">($self.getFileSize($sourceId))</span></li>
+                </ul>
+              </div>
           #end
-	  #if($page.authentication.is_admin())
-          <div class="mainmenu">
-            <div class="mainmenu-top"></div>
-            <div class="mainmenu-heading">Actions</div>
-            <ul class="menu-list">
-                <li><a class="admin-delete-link" rel="$oid" href="#">Delete...</a></li>
-		##if(!$self.isMetadataOnly())
-                ##  <li><a id="open-this" href="$portalPath/detail/$oid">Open file</a></li>
-                ###end
-                <li><a id="reharvest" href="$portalPath/detail/$oid">Re-Harvest...</a></li>
-            </ul>
-          </div>
-	  #end
-          <div class="mainmenu">
-            <div class="mainmenu-top"></div>
-            <div class="mainmenu-heading">Downloads</div>
-            <ul class="menu-list">
-              <li><a href="$portalPath/download/$self.getPayLoadUrl($self.getFileName($oid))">$self.getFileName($oid)</a> <span style="font-weight:normal">($self.getFileSize($oid))</span></li>
-            </ul>
-          </div>
-          #end
-          #set($pageHeader="#parse($page.getTemplate('detail-header.vm'))")
         </div>
       </td>
+      
       <td class="middlecol">
         <div class="detail">
         #if($page.authentication.is_logged_in())
-        #if($self.solrResponse.get("response/numFound") == 0)
-          #set($pageTitle = "Not found")
-          #set($breadcrumb = "Not found")
-          <h1 class="content-title">Page not found</h1>
-          <h2>There is no media matching your request.</h2>
-          <p>You have been redirected to this page because one of the following occurred:</p>
-          <ul type="disc">
-            <li>It is possible the URL was misspelled or typed incorrectly.</li>
-            <li>You have requested an item that no longer exists.</li>
-          </ul>
-          <p>Return to the <a href="$portalPath/home">Public Memory Research Centre</a>.</p>
-        #else
-          #set($oid = $self.object.id)
-          #set($title = $self.metadata.getField("dc_title"))
-          #set($pageTitle = $title)
-          #set($breadcrumb = '<a href="' + $portalPath  + '/search">Search</a> &gt; ' + $title)
-          <h1 class="content-title">$title</h1>
-          <div id="preview" class="box articles">
-            <h2>Preview</h2>
-            <div id="object-tag-list">
-              <p rel="$page.md5Hash($oid)_object">Tags: <span class="object-tags"></span></p>
-            </div>
-            <div id="location-tag-list">
-              <p rel="$page.md5Hash($oid)_location">Location: <span class="location-tags"></span></p>
-            </div>
-            <div id="people-tag-list">
-              <p rel="$page.md5Hash($oid)_people">People: <span class="people-tags"></span></p>
-            </div>
-            <div id="anno-root" class="content-preview">
-              <span class="mimetype" rel="$self.mimeType"></span>
-              <div class="first article clearfix">
-            #if($self.mimeType.startsWith("audio/") || $self.mimeType.startsWith("video/"))
-                <!-- <input class='player_clear_fragment' type='button' value='Reset' /> -->
-                <table>
-                  <tbody>
-                    <tr>
-                      <td id="player-container"></td>
-                      <td align="left">
-                        <div id="video-results-list" class="video-results-list">
-                          <div id="video-result-list" class="video-result-list" anotar-uri="$self.object.id"><span></span>
-                          </div>
-                        </div>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
+            #if($self.solrResponse.get("response/numFound") == 0)
+              #set($pageTitle = "Not found")
+              #set($breadcrumb = "Not found")
+              <h1 class="content-title">Page not found</h1>
+              <h2>There is no media matching your request.</h2>
+              <p>You have been redirected to this page because one of the following occurred:</p>
+              <ul type="disc">
+                <li>It is possible the URL was misspelled or typed incorrectly.</li>
+                <li>You have requested an item that no longer exists.</li>
+              </ul>
+              <p>Return to the <a href="$portalPath/home">Public Memory Research Centre</a>.</p>
             #else
-                <h3 class="title-heading">$title</h3>
-                <div class="content-preview-inline" width="100px">$!self.payloadContent</div>
-                <div class="annotatable">&nbsp;</div>
-                <script type="text/javascript" src="$portalPath/js/viewer.js"></script>
+              #set($breadcrumb = '<a href="' + $portalPath  + '/search">Search</a> &gt; ' + $title)
+              <h1 class="content-title">$title</h1>
+              <div id="preview" class="box articles">
+                <h2>Preview</h2>
+                <div id="object-tag-list">
+                  <p rel="$page.md5Hash($oid)_object">Tags: <span class="object-tags"></span></p>
+                </div>
+                <div id="location-tag-list">
+                  <p rel="$page.md5Hash($oid)_location">Location: <span class="location-tags"></span></p>
+                </div>
+                <div id="people-tag-list">
+                  <p rel="$page.md5Hash($oid)_people">People: <span class="people-tags"></span></p>
+                </div>
+                <div id="anno-root" class="content-preview">
+                  <span class="mimetype" rel="$self.mimeType"></span>
+                  <div class="first article clearfix">
+                     <div id="content">
+                    #if($self.mimeType.startsWith("audio/") || $self.mimeType.startsWith("video/"))
+                        <!-- <input class='player_clear_fragment' type='button' value='Reset' /> -->
+                        <table>
+                          <tbody>
+                            <tr>
+                              <td id="player-container"></td>
+                              <td align="left">
+                                <div id="video-results-list" class="video-results-list">
+                                  <div id="video-result-list" class="video-result-list" anotar-uri="$oid"><span></span>
+                                  </div>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                    #else
+                        ##<h3 class="title-heading">$title</h3>
+                        <div class="content-preview-inline">$!self.payloadContent</div>
+                        <script type="text/javascript" src="$portalPath/js/tree/jquery.tree.min.js"></script>
+                        <script type="text/javascript" src="$portalPath/js/viewer.js"></script>
+                        <div class="annotatable">&nbsp;</div>
+                    #end
+                   </div>
+                </div>
               </div>
             #end
-            </div>
-          </div>
-        #end
         #else
               <div class="login-error">You do not have permission to view this page. Please login to proceed<!--<a id="login-now" href="#">Login</a>-->.</div>
         #end
@@ -118,768 +117,33 @@
     </tr>
   </tbody>
 </table>
-<div class="clear"><!--clear--></div>
 
-<div class="box hidden" id="delete-dialog">
-  <form id="delete" method="post">
-    <fieldset class="search">
-      <legend>Delete : '<span id="delete-legend"></span>'</legend>
-      <div class="stop-error hidden" id="delete-error">
-        <span id="delete-message"></span>
-      </div>
-      <p>Are you really certain you want to delete this object?</p>
-      <p><strong>This operation cannot be undone</strong></p>
-      <input id="delete-submit" type="button" value="Yes, Delete" />
-      <input id="delete-cancel" type="button" value="Cancel" />
-    </fieldset>
-  </form>
-</div>
+<div class="clear"><!-- clear --></div>
 
-##To prevent annotation retrieval when not logged in
-#if($self.solrResponse.get("response/numFound") != 0 && $page.authentication.is_logged_in())
-#if($self.mimeType.startsWith("audio/") || $self.mimeType.startsWith("video/"))
-### Displaying audio/video media with flowplayer and providing video/audio annotation
-<script type="text/javascript" src="$portalPath/flowplayer/flowplayer-3.1.4.min.js"></script>
-<script type="text/javascript" src="$portalPath/flowplayer/flowplayer.controls-3.0.2.js"></script>
-<!--<script type="text/javascript" src="$portalPath/js/anotar/video.annotate.js"></script>-->
-<script language="javascript">
-    #if($self.solrResponse.get("response/numFound") != 0)
-    var oid = "$oid";
-    var player;
-    var height = 300;
-    if ($self.mimeType.indexOf("audio/") == 0) {
-        height = 24;
-    }
+  #if(!$isPackage)
+    #************************
+    * Annotations - JS
+    ************************#
+    #parse($page.getTemplate('detail-screen/anotar/form-tags.html'))
+    #parse($page.getTemplate('detail-screen/anotar/form-geonames.html'))
+    #parse($page.getTemplate('detail-screen/anotar/form-media.html'))
+    #parse($page.getTemplate('detail-screen/anotar/form-people.html'))
+    #parse($page.getTemplate('detail-screen/anotar/dialog-delete.html'))
 
-    var style = "display: block; width: 425px; height: " + height + "px";
-    //var style = "display: block; width: 500px; height: 300px";
-    var filename = oid.substring(oid.lastIndexOf("/") + 1);
-    var ext = filename.substring(filename.lastIndexOf(".") + 1).toLowerCase();
+    #parse($page.getTemplate('detail-screen/anotar/js-tags.js'))
+    #parse($page.getTemplate('detail-screen/anotar/js-geonames.js'))
+    #parse($page.getTemplate('detail-screen/anotar/js-people.js'))
+    #parse($page.getTemplate('detail-screen/anotar/js-media.js'))
+    #parse($page.getTemplate('detail-screen/anotar/js-comments.js'))
+    #parse($page.getTemplate('detail-screen/anotar/js-images.js'))
 
-    var hasFlv = "$self.hasFlv()";
-    if (hasFlv!='') {
-        filename = hasFlv;
-    }
-    
-    if (hasFlv!='' || ext=="mp3" || ext=="m4a") {
-        var href = "$portalPath/download/$oid/" + filename;
-        var player1 = '<div href="' + href + '" id="player" style="' + style + '"></div>'; 
-        $("#player-container").attr("style", style).html(player1);
-        player = flowplayer("player", {src:"$portalPath/flowplayer/flowplayer-3.1.5.swf", wmode:'opaque'},
-            { clip: { autoPlay: false, autoBuffering: true },
-              play: {
-                label: "Play",
-                replayLabel: "Click to play again"
-                }
-              //plugins: {controls: null} 
-            }); //.controls("hulu", {duration: 25});
-    } else {
-        var error = "$self.hasError()";
-        if (hasFlv=="false") {
-            $("div.content-preview div.article").empty().append("No preview available");
-        }
-    }
-
-    var display_help = false;
-    function toggleHelp(help_link) {
-        if (!display_help) {
-            $(".help_p").css("display", "block");
-            help_link.text("Hide help");
-            display_help = true;
-        } else {
-            $(".help_p").css("display", "none");
-            help_link.html("Show help");
-            display_help = false;
-        }
-    }
-
-    $("#player_seek_start").live("click", function() {
-        player.seek(0);
-    });
-    $("#player_rewind").live("click", function() {
-        player.seek(player.getTime() - 1);
-    });
-    $("#player_play").live("click", function() {
-        player.toggle();
-    });
-    $("#player_forward").live("click", function() {
-        player.seek(player.getTime()+1);
-    });
-    $("#player_seek_end").live("click", function() {
-        player.seek(player.getClip().fullDuration-1);
-        player.pause();
-    });
-    
-    $("#player_mark_start_time").live("click", function() {
-        $("#txtStartMark").attr("value", player.getTime());
-        $("#player_mark_end_time").attr("disabled", false);
-        $("#txtEndMark").attr("disabled", false);
-    });
-    $("#player_mark_end_time").live("click", function() {
-        $("#txtEndMark").attr("value", player.getTime());
-        uri = player.getClip().url + "#";
-        start = $('#txtStartMark').val();
-        end = $('#txtEndMark').val()
-        if (start != "" && end != "") {
-            //Use Normal Play Time as described in http://www.ietf.org/rfc/rfc2326.txt
-            uri += "t=npt:";
-            if (start != "" && start > 0) {
-                uri += start + "s"
-                if (player.getClip().duration < start) {
-                    //warning += "<li>The requested start-point is greater than the video's duration.</li>";
-                }
-            }
-            if (end != "") {
-                uri += "," + end + "s";
-                if (player.getClip().duration < end) {
-                    //warning += "<li>The requested end-point is greater than the video's duration.</li>";
-                }
-            }
-        }
-        $("#video-results-list").attr("rel", uri);
-    });
-    
-    $(".player_clear_fragment").live("click", function() {
-        $("#txtStartMark").attr("value", "");
-        $("#txtEndMark").attr("value", "");
-        $("#media_clip").attr("rel", "");
-        if (player.getClip()) {
-            player.pause();
-            player.getClip().update({duration:player.getClip().fullDuration});
-        }
-    });
-    
-    $("#player_play_fragment").live("click", function() {
-        player.pause();
-        player.seek($('#txtStartMark').val());
-        player.getClip().update({duration:$('#txtEndMark').val()});
-        player.play();
-    });
-    
-    $(".player_play_clip").live("click", function() {
-        player.pause();
-        var startTime = $(this).siblings(".startTime").text().replace("s", "");
-        var endTime = $(this).siblings(".endTime").text().replace("s", "");
-        player.seek(startTime);
-        player.getClip().update({duration:endTime});
-        player.play();
-    });
-    #end
-
-    $("#annotate_all").live("click", function () {
-        $('.annotate_clip').hide();
-    });
-
-    $("#annotate_clip").live("click", function() {
-        $('.annotate_clip').show();
-    });
-
-    $("#show_help").live("click", function() {
-        toggleHelp($(this));
-    });
-
-</script>
-#end
-
-#if($self.mimeType.startsWith("image/"))
-### Providing image annotation
-<script type="text/javascript" src="$portalPath/js/anotar/image.annotate.js"></script>
-<script language="javascript">
-    var src = "$hasPreview";
-    if (src == "")
-        src = "$portalPath/download/$oid";
-    else
-        src = "$portalPath/download/$self.encode($oid)/" + src
-    $("div.content-preview div.article").html(
-        '<div id="$self.encode($oid)" class="annotatable"><div class="image">' +
-            '<img class="image" id="toAnnotate" src="' + src + '" style="max-width: 900px;" />' +
-        '</div><div class="clear"></div></div>');
-    
-    $(window).load(function() {
-        $("#toAnnotate").annotateImage({
-            portalPath: "$portalPath",
-            editable: true,
-            saveUrl: "$portalPath/actions/anotar.ajax?action=save-image&rootUri=$oid",
-            getUrl: "$portalPath/actions/anotar.ajax?action=get-image&rootUri=$oid"
-        });
-    });
-</script>
-#end
-
-<script type="text/javascript" src="$portalPath/js/tree/jquery.tree.min.js"></script>
-<script type="text/javascript" src="$portalPath/js/autocomplete/lib/jquery.ajaxQueue.js"></script>
-<script type="text/javascript" src="$portalPath/js/autocomplete/lib/jquery.bgiframe.js"></script>
-<script type="text/javascript" src="$portalPath/js/autocomplete/jquery.autocomplete.pack.js"></script>
-<script type="text/javascript" src="$portalPath/js/anotar/lib/json2.js"></script>
-<script type="text/javascript" src="$portalPath/js/anotar/anotar-0.2.js"></script>
-
-<script language="javascript">
-$(function() {
-    var oid = "$oid";
-    var filenameNoExt = "$filenameNoExt";
-    function fixLinks(baseUrl, selector, attrName) {
-        $(selector).each(function() {
-            var attr = $(this).attr(attrName);
-            if (attr != null) {
-                if (attr.indexOf("#") != 0 && attr.indexOf("://") == -1) {
-                    var relUrl = "$portalPath/download/$self.object.id/";
-                    var tmpUrl = baseUrl.substring(baseUrl.indexOf("/", 8));
-                    tmpUrl = tmpUrl.replace(relUrl, "");
-                    tmpUrl = tmpUrl.substring(0, tmpUrl.lastIndexOf("/")+1);
-                    $(this).attr(attrName, escape(relUrl + tmpUrl + attr));
-                }
-            }
-        });
-    }
-    gFixLinks = fixLinks;
-    fixLinks("", "div.content-preview-inline a", "href");
-    fixLinks("", "div.content-preview-inline img", "src");
-
-    $("#open-this").click(function() {
-        jQuery.post("$portalPath/open.ajax", { func: "open-file", file: "$oid" } );
-        return false;
-    });
-
-    $("#reharvest").click(function() {
-        jQuery.post("$portalPath/reharvest.ajax", { func: "reharvest", file: "$oid" } );
-        return false;
-    });
-
-    function addRendition(href, label) {
-        $("#actions").append('<li><a href="' + href + '" target="blank">' + label + '</a></li>');
-    }
-    $('li.payload[rel="application/pdf"] a:first').each(function() {
-        addRendition($(this).attr("href"), "PDF version");
-    });
-    $("span.slide-link > a").each(function() {
-        addRendition($(this).attr("href"), "View slide show");
-    });
-    $("div.rendition-links").remove();
-
-    var dialogOpts = {
-        autoOpen: false,
-        hide: "blind",
-        width: 330,
-        modal: true
-    };
-
-    $("#delete-dialog").dialog(dialogOpts);
-    $("#delete-dialog").dialog('option', 'title', 'Delete Object');
-
-    $(".admin-delete-link").click(function() {
-        recordId = $(this).attr("rel");
-        $("#delete-message").empty();
-        $("#delete-error").hide();
-        $("#delete-dialog").dialog('open');
-        $("#delete-legend").html(recordId);
-        return false;
-    });
-
-    $("#delete-cancel").click(function() {
-        $("#delete-message").empty();
-        $("#delete-error").hide();
-        $("#delete-dialog").dialog('close');
-        return false;
-    });
-
-    $("#delete-submit").click(function() {
-        $("#delete-message").empty();
-        $("#delete-error").hide();
-        $("#delete-dialog").dialog('open');
-
-        jQuery.ajax({
-            type : "POST",
-            url : "$portalPath/actions/delete.ajax",
-            success:
-                function (data, status) {
-                    $("#delete-dialog").dialog('close');
-		    window.location.href = "$portalPath/search"
-                },
-            error:
-                function (req, status, e) {
-                    $("#delete-error").show();
-                    $("#delete-message").html(req.responseText);
-                },
-            data: {
-                record: recordId
-            }
-        });
-
-        return false;
-    });
-
-});
-</script>
-
-<script language="javascript">
-### Location tagging by using latitude and longitude
-    $("#txtLatitude, #txtLongitude").live("keyup", function() {
-        var latitude = $("#txtLatitude").attr("value");
-        var longitude = $("#txtLongitude").attr("value");
-        if (latitude == undefined) latitude = 0;
-        if (longitude == undefined) longitude = 0;
-        
-        geoHash = "http://www.geohash.org/" + encodeGeoHash(latitude, longitude);
-        $("#location-tag-list").attr("rel", geoHash);
-        $("#txtName").attr("value", "Lat: " + latitude + ", Long: " + longitude);
-    });
-</script>
-
-<script language="javascript">
-### People tagging
-    $(".peopleTag-search").live("click", function() {
-        jQuery.post("$portalPath/actions/people.ajax", { 
-            func: "searchName", 
-            file: "$oid",
-            firstName: $("#txtFirstName").attr("value"),
-            surname: $("#txtSurname").attr("value")
-        }, function(data) {
-            if (data.indexOf("No veteran") < 0 && data.indexOf("Could not connect") < 0) {
-                $(".people_search_detail").hide();
-                $(".peopleTag-submit").show();
-            } else {
-                $(".people_search_detail").show();
-                $(".peopleTag-submit").hide();
-            }
-            $(".search_results").show();
-            $(".search_results").html(data);
-        });
-    });
-    
-    $("#selected_people").live("click", function() {
-        $("#txtPeople").attr("value", $(this).attr("value"));
-        $("#people-tag-list").attr("rel", $(this).attr("rel"));
-    });
-</script>
-
-<script language="javascript">
-    $(function(){
-        var jQ = jQuery;
-        
-        // Tags annotation
-        tagConfig = {
-            //debug: true,
-            docRoot: "#object-tag-list",
-            tagList: "p",
-            contentInput: "#object-tag-input",
-            pageUri: "$oid",
-            uriAttr: "rel",
-            outputInChild: ".object-tags",
-            annotationType: "tag",
-            stylePrefix: "tags-",
-            interfaceLabel: " <img src='$portalPath/images/icons/add.png'/>",
-            #if($page.authentication.is_logged_in()) 
-            creator: "$page.authentication.get_name()",
-            creatorUri: "$page.authentication.get_uri()",
-            #end
-            formPrepend: true,
-            interfaceVisible: true,
-            formCustom: "object_tag_form",
-            formCancel: ".myTag-cancel",
-            formSubmit: ".myTag-submit",
-            serverAddress: "$portalPath/actions/anotar.ajax",
-            getAnnotation: null,
-            disableReply: true,
-            serverMode: "fascinator"
-        }
-        tag = anotarFactory(jQ, tagConfig);
-        
-        // Location Tags annotation
-        locationConfig={
-            //debug: true,
-            docRoot: "#location-tag-list",
-            tagList: "p",
-            contentInput: "#txtName",
-            pageUri: "$oid",
-            uriAttr: "rel",
-            outputInChild: ".location-tags",
-            annotationType: "tag",
-            stylePrefix: "tags-",
-            interfaceLabel: " <img src='$portalPath/images/icons/add.png'/>",
-            #if($page.authentication.is_logged_in()) 
-            creator: "$page.authentication.get_name()",
-            creatorUri: "$page.authentication.get_uri()",
-            #end
-            //formPrepend: true,
-            interfaceVisible: true,
-            formCustom: "location_form",
-            formCancel: ".locTag-cancel",
-            formSubmit: ".locTag-submit",
-            displayCustom: "location_display", 
-            formPopup: true,
-            formPopupSettings: {
-            	width: 500,
-            	title: "Location Tag",
-		zIndex: 5000
-            },
-            onFormDisplay: function(node){
-                $("#byName").click();
-                $(node).autocomplete('$portalPath/actions/geonames.ajax', {
-                    extraParams: {"func":"placeName"}, 
-                    formatItem: function(row) {
-                        return row[0];
-                    }
-                }).result(function(event, item) {
-                    if (item) {
-                        $("#location-tag-list").attr("rel", "http://www.geonames.org/" + item[1]);
-                    }
-                });
-            },
-            
-            getContentUri: function(node) {
-                var rel = node.attr("rel");
-                if (rel == null) {
-                    // content is not a URI
-                    return { isUri: false };
-                }
-                
-                return { isUri: true, contentUri: rel };
-            },
-            serverAddress: "$portalPath/actions/anotar.ajax",
-            disableReply: true,
-            serverMode: "fascinator"
-        }
-        /// Use formCloseFunction to overwrite close function
-        locationTag = anotarFactory(jQ, locationConfig);
-        
-        // People Tags annotation
-        peopleConfig={
-            //debug: true,
-            docRoot: "#people-tag-list",
-            tagList: "p",
-            contentInput: "#txtPeople",
-            pageUri: "$oid",
-            uriAttr: "rel",
-            outputInChild: ".people-tags",
-            annotationType: "tag",
-            stylePrefix: "tags-",
-            interfaceLabel: " <img src='$portalPath/images/icons/add.png'/>",
-            #if($page.authentication.is_logged_in()) 
-            creator: "$page.authentication.get_name()",
-            creatorUri: "$page.authentication.get_uri()",
-            #end
-            //formPrepend: true,
-            interfaceVisible: true,
-            formCustom: "people_form",
-            formCancel: ".peopleTag-cancel",
-            formSubmit: ".peopleTag-submit",
-            displayCustom: "people_display", 
-            formPopup: true,
-            formPopupSettings: {
-                width: 500,
-                title: "People Tag",
-		zIndex: 5000
-            },
-            onFormDisplay: function(node){
-                $("#txtFirstName").attr("value", "");
-                $("#txtSurname").attr("value", "");
-                $(".people_search_detail").show();
-                $(".peopleTag-submit").hide();
-                $(".search_results").hide();
-                $(".search_results").html("");
-            },
-            getContentUri: function(node) {
-                var rel = node.attr("rel");
-                if (rel == null) {
-                    // content is not a URI
-                    return { isUri: false };
-                }
-                
-                return { isUri: true, contentUri: rel };
-            },
-            serverAddress: "$portalPath/actions/anotar.ajax",
-            disableReply: true,
-            serverMode: "fascinator"
-        }
-        // Use formCloseFunction to overwrite close function
-        peopleTag = anotarFactory(jQ, peopleConfig);
-        
-        #if($self.mimeType.startsWith("audio/") || $self.mimeType.startsWith("video/"))
-        // Audio/Video Tags annotation
-        var videoAnoLabel = "<img src='$portalPath/images/icons/comment_add.png'/>&#160;Comment on this media:";
-        videoConfig={
-            //debug: true,
-            label: videoAnoLabel,
-            //objectLiteral: "$oid",
-            pageUri: "$oid",
-            docRoot: "#video-results-list",
-            tagList: "#video-result-list",
-            uriAttr: "anotar-uri",
-            replyLabel: "<img src='$portalPath/images/icons/comments_add.png'/>",
-            #if($page.authentication.is_logged_in()) 
-            creator: "$page.authentication.get_name()",
-            creatorUri: "$page.authentication.get_uri()",
-            #end
-            //formPrepend: true,
-            //stylePrefix: "anno-",
-            interfaceLabel: videoAnoLabel,
-            interfaceVisible: true,
-            formCustom: "media_clip_form",
-            formCancel: ".myTag-cancel",
-            formSubmit: ".myTag-submit",
-            displayCustom: "media_clip_comment", 
-            hashType: "http://www.w3.org/TR/2009/WD-media-frags-20091217",
-            hashFunction: function(node) {
-                var rel = node.attr("rel");
-                if (rel == null) { rel = "$oid"; }
-                return rel;
-            },
-            onFormDisplay: function(node){
-                $("#annotate_all").click();
-            },
-            serverAddress: "$portalPath/actions/anotar.ajax",
-            disableReply: false,
-            serverMode: "fascinator"
-        }
-        $("#media_clip textArea").live("focus", function() {
-            var replies = $("#media_clip").prev("blockquote.anno-inline-annotation-quote")
-                                          .find(".anno-anno-children");
-            if (replies.length > 0) {
-                $(".annotate_scope").hide();
-            } else {
-                $(".annotate_scope").show();
-            }
-            return false;
-        });
-        
-        videoTag = anotarFactory(jQ, videoConfig);
-        #else
-        noteConfig={
-            pageUri: "$oid",
-            #if($page.authentication.is_logged_in()) 
-            creator: "$page.authentication.get_name()",
-            creatorUri: "$page.authentication.get_uri()",
-            #end
-            tagList: "p, h1, h2, h3, h4, h5, h6, .annotatable",
-            interfaceLabel: " <img src='$portalPath/images/icons/comment_add.png'/> Comments:",
-            replyLabel: " <img src='$portalPath/images/icons/comments_add.png'/>",
-            serverAddress: "$portalPath/actions/anotar.ajax",
-            serverMode: "fascinator",
-            interfaceVisible: true
-        }
-        noteTag = anotarFactory(jQ, noteConfig);
-        #end
-    });
-</script>
-
-<script type="text/html" id="object_tag_form">
-    <div class='myTags float-right'>Tag this:
-      <input id="object-tag-input" type="text" />
-      <img src='$portalPath/images/icons/tick.png' class='myTag-submit' />&#160;
-      <img src='$portalPath/images/icons/cross.png' class='myTag-cancel' />
-    </div>
-</script>
-
-<script language="javascript">
-    function attach(node) {
-        if (!$(node).attr("attach")) {
-            $(node).attr("attach", "true");
-            $(node).autocomplete('$portalPath/actions/geonames.ajax', {
-                extraParams: {"func":"placeName"}, 
-                formatItem: function(row) {
-                    return row[0];
-                }
-            }).result(function(event, item) {
-                if (item) {
-                    $("#location-tag-list").attr("rel", item[1]);
-                }
-            });
-        }
-    }
-
-    $('#byName').live('click', function() { $('.annotate_name, #txtName').show();$('.annotate_ll').hide();$('.annotate_range').hide(); });
-    $('#byLL').live('click', function() {  $('.annotate_name, #txtName').hide();$('.annotate_ll').show();$('.annotate_range').hide(); });
-</script>
-
-<script type="text/html" id="location_form">
-  <div id="location_div">
-    <table>
-      <tr>
-        <td colspan="2" class="location_scope">
-          <input type="radio" name="location_scope" id="byName" checked="true"/>
-          <label for="byName">By Location Name</label>
-          <input type="radio" name="location_scope" id="byLL"/>
-          <label for="byLL">By Latitude/Longitude</label>
-          <!--<input type="radio" name="location_scope" id="byRange"
-                 onclick="$('.annotate_name').hide();$('.annotate_ll').hide();$('.annotate_range').show();" />
-          <label for="byRange">By Range</label>-->
-        </td>
-      </tr>
-      <tr>
-        <td>
-          <span class="hidden annotate_ll">
-            Latitude: <input type="text" id="txtLatitude" size="10"/>
-            Longitude: <input type="text" id="txtLongitude" size="10"/>
-          </span>
-          <span class="annotate_name">
-            Search: 
-          </span>
-          <input type="text" id="txtName" size="45"/>
-        </td>
-      </tr>
-      <tr class="hidden annotate_range">
-        <td>Range: Range</td>
-      </tr>
-      <tr>
-        <td><button class="locTag-cancel">Cancel</button>&#160;
-            <button class="locTag-submit">Submit</button></td>
-      </tr>
-    </table>
-  </div>
-</script>
-
-<script type="text/html" id="location_display">
-    <% if (contentUri) { %>
-        <span class='<%=style%>tag'>
-		    <a href='<%=contentUri%>' target='_blank'><%=content%><% if(tagCount > 1){ %> (<%=tagCount%>)<% } %></a>
-        </span>
-    <% } else { %>
-        <span class='<%=style%>tag'><%=content%></span>
-    <% } %>
-</script>
-
-<script type="text/html" id="people_form">
-  <div id="people_div">
-    <label for="txtFirstName" style="width: 6em; float: left; text-align: right; margin-right: 0.5em; display: block">First Name</label>
-        <input type="text" id="txtFirstName" size="35"/><br/>
-    <label for="txtSurname" style="width: 6em; float: left; text-align: right; margin-right: 0.5em; display: block">Surname</label>
-        <input type="text" id="txtSurname" size="35"/><br/>
-    <button class="peopleTag-search" style="margin-left: 6.5em;">Search</button>
-    <div class="search_results"></div>
-    <div class="hidden people_search_detail"><strong>This system searches for Australians 
-        listed in the Nominal Roll of Vietnam Veterans from The Australian Department of Veterans' Affairs (<a href='http://www.vietnamroll.gov.au' target='_blank'>http://www.vietnamroll.gov.au</a>)</strong></div>
-    <div class="cancel_submit">
-        <input type="hidden" id="txtPeople"/>
-        <button class="peopleTag-cancel">Cancel</button>&#160;
-        <button class="peopleTag-submit">Submit</button></td>
-    </div>
-  </div>
-</script>
-
-<script type="text/html" id="people_display">
-    <% if (contentUri) { %>
-        <span class='<%=style%>tag'>
-            <a href='<%=contentUri%>' target='_blank'><%=content%><% if(tagCount > 1){ %> (<%=tagCount%>)<% } %></a>
-        </span>
-    <% } else { %>
-        <span class='<%=style%>tag'><%=content%></span>
-    <% } %>
-</script>
-
-<script type="text/html" id="media_clip_form">
-  <div id="media_clip">
-    <table>
-      <tr>
-        <td colspan="2" class="annotate_scope">
-          <input type="radio" name="annotate_scope" id="annotate_all" checked="true" />
-          <label for="annotate_all">Comment on the whole video</label><br/>
-          <input type="radio" name="annotate_scope" id="annotate_clip" />
-          <label for="annotate_clip">Select a portion (clip) to annotate</label>
-          <span class="hidden annotate_clip">(<a id="show_help">Show help</a>)</span>
-        </td>
-      </tr>
-      <tr class="hidden annotate_clip">
-        <td colspan="2">
-          <p class="help_p">The tools below will help you select a specific
-          section of video that you want to comment on. We call this section a
-          "clip". This top row of buttons is similar to those on your home DVD
-          player:</p>
-          <ul class="help_p">
-          <li>To go to the beginning of the video, click the "&lt;&lt; button</li>
-          <li>To move the video forward by 1 second click on the "&lt;" button</li>
-          <li>To play and pause the video click on the "Play/Pause" button</li>
-          <li>To move the video back by 1 second click on the "&gt;" button</li>
-          <li>To go to the end of the video, click the "&gt;&gt; button</li>
-          </ul>
-        </td>
-      </tr>
-      <tr class="hidden annotate_clip">
-        <td colspan="2">
-          <input id="player_seek_start" type="button" value="&lt;&lt;" />
-          <input id="player_rewind" type="button" value="&lt;" />
-          <input id="player_play" type="button" value="Play/Pause" />
-          <input id="player_forward" type="button" value="&gt;" />
-          <input id="player_seek_end" type="button" value="&gt;&gt;" />
-        </td>
-      </tr>
-      <tr class="hidden annotate_clip">
-        <td colspan="2">
-          <p class="help_p">To create a clip, you need to set a beginning and
-          end time. We use seconds to set the time.
-          <br/>
-          You can start the video playing and press the "Mark start time" and
-          "Mark end time" buttons and the system will set the timing for you.
-          <br/>
-          Alternatively, you can enter the start and end times as seconds in
-          the corresponding text boxes.
-          </p>
-        </td>
-      </tr>
-      <tr class="hidden annotate_clip">
-        <td><input id="player_mark_start_time" type="button" value="Mark start time" value=""/></td>
-        <td><input type="text" id="txtStartMark" value="" size="5"/></td>
-      </tr>
-      <tr class="hidden annotate_clip">
-        <td><input id="player_mark_end_time" type="button" value="Mark end time" value="" disabled="true"/></td>
-        <td><input type="text" id="txtEndMark" value="" disabled="true" size="5"/></td>
-      </tr>
-      <tr class="hidden annotate_clip">
-        <td colspan="2">
-          <p class="help_p">Once you have set the start and end times for your
-          clip you can preview the clip by pressing "Play clip".
-          <br/>You can also scrap the clip by pressing "Clear clip".</p>
-        </td>
-      </tr>
-      <tr class="hidden annotate_clip">
-        <td colspan="2">
-          <input class="player_clear_fragment" type="button" value="Clear clip" />
-          <input id="player_play_fragment" type="button" value="Play clip" />
-        </td>
-      </tr>
-      <tr><td colspan="2">Comment:</td></tr>
-      <tr><td colspan="2"><textArea cols="30"></textArea></td></tr>
-      <tr><td colspan="2">
-        <button class="myTag-cancel">Cancel</button>&#160;
-        <button class="myTag-submit">Submit</button>
-      </tr>
-    </table>
-  </div>
-</script>
-
-<script type="text/html" id="media_clip_comment">
-  <%
-  var startTime = "";
-  var endTime = "";
-  if (locator != null) {
-    var npt = locator.split("#t=npt:");
-    if (npt.length > 1) {
-        npt = npt[1].split(",");
-        startTime = npt[0];
-        if (startTime.length == 0) { startTime = "0s"; }
-        endTime = npt[1];
-        if (endTime.length == 0) { endTime = "0s"; }
-    }
-  }
-  %>
-  <div class="<%=style%>inline-annotation <%=toggle%>" anotar-uri="<%=id%>">
-      <input name="rootUri" value="<%=root%>" type="hidden"/>
-      <div class="<%=style%>orig-content" style="display:none;"><%=original%></div>
-      <div class="<%=style%>anno-info">
-        Comment by: <span class="<%=style%>anno-creator"><%=creator%></span>
-         &nbsp; <span class="<%=style%>anno-date"><%=date%></span>
-      </div>
-      <% if (startTime != "" && endTime != "") { %>
-      <div class="<%=style%>anno-info">
-        <input class="player_play_clip" type="button" value="Play" />
-        Clip duration: <span class="startTime"><%=startTime%></span> to
-        <span class="endTime"><%=endTime%></span>
-      </div>
-      <% } %>
-      <div>
-        <span class="<%=style%>anno-content"><%=content%></span>
-      </div>
-      <div class="<%=style%>anno-children"><%=children%></div>
-  </div>
-</script>
+  #else
+    #************************
+    * Packaging - JS
+    ************************#
+    #parse($page.getTemplate('detail-screen/js/rvt.js'))
+  #end
 
 #end
+
+#set ($_=$self.closeObject())
