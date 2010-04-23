@@ -74,7 +74,7 @@ public class FfmpegTransformerTest {
         DigitalObject outputObject = t.transform(sourceObject);
 
         // should have 2 payloads
-        Assert.assertEquals("There should be 2 Payloads", 2, outputObject
+        Assert.assertEquals("There should be 3 Payloads", 3, outputObject
                 .getPayloadIdList().size());
 
         String preview = null;

@@ -40,16 +40,18 @@ public class FfmpegInfo {
 
     private long duration = 0;
 
+    private String rawMediaData;
+
     public FfmpegInfo(Ffmpeg ffmpeg, File inputFile) throws IOException {
         List<String> params = new ArrayList<String>();
         params.add("-i");
         params.add(inputFile.getAbsolutePath());
-        String stderr = ffmpeg.executeAndWait(params);
+        rawMediaData = ffmpeg.executeAndWait(params);
         // check if supported
-        if (supported = (stderr.indexOf(": Unknown format") == -1)) {
+        if (supported = (rawMediaData.indexOf(": Unknown format") == -1)) {
             // get duration
             Pattern p = Pattern.compile("Duration: ((\\d+):(\\d+):(\\d+))");
-            Matcher m = p.matcher(stderr);
+            Matcher m = p.matcher(rawMediaData);
             if (m.find()) {
                 long hrs = Long.parseLong(m.group(2)) * 3600;
                 long min = Long.parseLong(m.group(3)) * 60;
@@ -57,12 +59,18 @@ public class FfmpegInfo {
                 duration = hrs + min + sec;
             }
             // check for video
-            video = Pattern.compile("Stream #.*Video:.*").matcher(stderr)
+            video = Pattern.compile("Stream #.*Video:.*").matcher(rawMediaData)
                     .find();
             // check for audio
-            audio = Pattern.compile("Stream #.*Audio:.*").matcher(stderr)
+            audio = Pattern.compile("Stream #.*Audio:.*").matcher(rawMediaData)
                     .find();
+        } else {
+            rawMediaData = "Unknown format!";
         }
+    }
+
+    public String getRaw() {
+        return rawMediaData;
     }
 
     public boolean isSupported() {

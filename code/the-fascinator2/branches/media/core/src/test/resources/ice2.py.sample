@@ -1,14 +1,16 @@
-import md5, os, time
-from au.edu.usq.fascinator.indexer.rules import AddField, New
+import time
+import re
 
+from au.edu.usq.fascinator.indexer.rules import AddField, New
 from au.edu.usq.fascinator.common.nco import Contact
 from au.edu.usq.fascinator.common.nfo import PaginatedTextDocument
 from au.edu.usq.fascinator.common.nid3 import ID3Audio
 from au.edu.usq.fascinator.common.nie import InformationElement
-
-from au.edu.usq.fascinator.common.ctag import Tag, TaggedContent
-
 from au.edu.usq.fascinator.api.storage import StorageException
+
+from java.io import BufferedReader,InputStreamReader
+from java.lang import StringBuilder
+
 #
 # Available objects:
 #    indexer    : Indexer instance
