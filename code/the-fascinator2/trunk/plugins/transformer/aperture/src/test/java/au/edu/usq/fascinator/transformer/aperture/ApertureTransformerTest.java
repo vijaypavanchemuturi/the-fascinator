@@ -97,6 +97,28 @@ public class ApertureTransformerTest {
         Assert.assertEquals(PayloadType.Enrichment, rdfPayload.getType());
     }
 
+    // Test unknown file type
+    @Test
+    public void testUnknownFileType() throws URISyntaxException,
+            TransformerException, StorageException {
+        File fileName = new File(getClass().getResource("/Desktop.7z").toURI());
+
+        testObject = StorageUtils.storeFile(ram, fileName);
+        testObjectOutput = ex.transform(testObject);
+        Assert.assertEquals(1, testObject.getPayloadIdList().size());
+    }
+
+    // Test unknown file type
+    @Test
+    public void testSfkFileType() throws URISyntaxException,
+            TransformerException, StorageException {
+        File fileName = new File(getClass().getResource("/sample.sfk").toURI());
+
+        testObject = StorageUtils.storeFile(ram, fileName);
+        testObjectOutput = ex.transform(testObject);
+        Assert.assertEquals(1, testObject.getPayloadIdList().size());
+    }
+
     // Image file?
     @Test
     public void testImageFile() throws URISyntaxException,

@@ -184,6 +184,8 @@ class DetailData:
         mimeType = self.__mimeType
         print " * detail.py: payload content mimeType=%s" % mimeType
         contentStr = ""
+        if mimeType == None:  #e.g. 7z file
+            return '<h4 class="error">No preview available</h4><p>Please download the file instead...</p></pre>'
         if mimeType == "application/octet-stream":
             dcFormat = self.__json.get("response/docs/dc_format")
             if dcFormat is not None:
