@@ -36,6 +36,10 @@ class Epub:
             self.__createEpub()
         except Exception, e:
             log.error("Failed to create epub", e)
+            response.setStatus(500)
+            writer = response.getPrintWriter("text/plain")
+            writer.println(str(e))
+            writer.close()
     
     def __createEpub(self):
         title = self.__manifest.get("title")
@@ -256,15 +260,18 @@ class Epub:
             item = manifest[itemHash]
             id = item.get("id")
             title = item.get("title")
-            hidden = item.get("hidden")
+            hidden = item.get("hidden", "False")
+            if hidden == "True":
+                print "Skipping hidden item: %s (%s)" % (title, id)
+                continue
             children = item.getJsonMap("children")
-            pid = id[id.rfind("/")+1:]
-            htmlFileName = pid[:pid.rfind(".")] + ".htm"
-            nodeHtm = "%s.htm" % itemHash #.replace("-", "_")
             
             isImage=False
             object = Services.storage.getObject(id)
-            sourcePayload = object.getPayload(object.getSourceId())
+            pid = object.getSourceId()
+            htmlFileName = pid[:pid.rfind(".")] + ".htm"
+            nodeHtm = "%s.htm" % itemHash #.replace("-", "_")
+            sourcePayload = object.getPayload(pid)
             if sourcePayload and hidden != 'true':
                 payloadType = sourcePayload.contentType
                 htmlPayload = object.getPayload(htmlFileName)
