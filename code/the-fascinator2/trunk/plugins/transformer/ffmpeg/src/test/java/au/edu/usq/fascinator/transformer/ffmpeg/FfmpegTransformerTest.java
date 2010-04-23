@@ -22,7 +22,6 @@ import java.io.File;
 
 import junit.framework.Assert;
 
-import org.apache.commons.io.FilenameUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
