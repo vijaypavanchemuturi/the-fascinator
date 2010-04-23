@@ -2,7 +2,7 @@
 <project name="The Fascinator">
 	<bannerLeft>
 		<name>The Fascinator</name>
-		<src>images/logo.png</src>
+		<src>http://fascinator.usq.edu.au/skin/logo_small.png</src>
 		<href>http://fascinator.usq.edu.au</href>
 		<alt>Link to The Fascinator home page</alt>
 	</bannerLeft>
@@ -10,7 +10,7 @@
 		<logo name="Maven" href="http://maven.apache.org/" alt="Built by Maven"
 			img="http://maven.apache.org/images/logos/maven-feather.png" />
 	</poweredBy>
-
+	<version position="left" />
 	<body>
 		<links>
 			<item name="Public Site" href="http://fascinator.usq.edu.au" />
@@ -19,19 +19,24 @@
 		</links>
 
 		<menu name="Development Code">
-			<item name="The Fascinator" href="/maven-site/au.edu.usq.fascinator/the-fascinator/" />
-			<item name="Contributed Plugins" href="/maven-site/au.edu.usq.fascinator.contrib/fascinator/" />
-			<item name="Maven Plugins" href="/maven-site/au.edu.usq.fascinator.contrib/maven/" />
+			<item name="The Fascinator" href="the-fascinator/" />
+			<!--
+				<item name="Contributed Plugins"
+				href="/maven-site/au.edu.usq.fascinator.contrib/fascinator/" />
+			-->
+			<!--
+				<item name="Maven Plugins"
+				href="/maven-site/au.edu.usq.fascinator.contrib/maven/" />
+			-->
 		</menu>
 
 		<menu name="Other Applications">
 			<item name="Watcher" href="http://fascinator.usq.edu.au/trac/wiki/Watcher" />
-			<item name="Feed Reader" href="" />
+			<!-- <item name="Feed Reader" href="" />  -->
 		</menu>
 
 		<menu ref="parent" />
 		<menu ref="modules" />
 		<menu ref="reports" />
-
 	</body>
 </project>
