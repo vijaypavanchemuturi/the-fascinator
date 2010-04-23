@@ -21,8 +21,8 @@ package au.edu.usq.fascinator.common;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStreamWriter;
 import java.io.Reader;
-import java.io.StringWriter;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -30,6 +30,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.apache.commons.jxpath.AbstractFactory;
 import org.apache.commons.jxpath.JXPathContext;
 import org.apache.commons.jxpath.Pointer;
@@ -121,7 +122,7 @@ public class JsonConfigHelper {
 
     /**
      * Creates a JSON configuration from the specified reader
-     *
+     * 
      * @param jsonReader a reader for a JSON file
      * @throws IOException if there was an error parsing or reading the reader
      */
@@ -461,12 +462,15 @@ public class JsonConfigHelper {
     public String toString() {
         return toString(true);
     }
+
     public String toString(boolean pretty) {
-        StringWriter sw = new StringWriter();
+        String json = "{}";
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
         try {
-            store(sw, pretty);
+            store(new OutputStreamWriter(out, "UTF-8"), pretty);
+            json = out.toString("UTF-8");
         } catch (IOException e) {
         }
-        return sw.toString();
+        return json;
     }
 }

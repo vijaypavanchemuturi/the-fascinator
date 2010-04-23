@@ -499,7 +499,16 @@ ul.nobgtabs li a.ui-state-active {
     color: black;
     font-weight: bold;
 }
-
+#package-create-selected {
+    background-image: url('../images/icons/package_go.png');
+    background-repeat: no-repeat;
+    background-position: 7px 50%;
+}
+#package-create-new {
+    background-image: url('../images/icons/package_add.png');
+    background-repeat: no-repeat;
+    background-position: 7px 50%;
+}
 #package-select-page {
     background-image: url('../images/icons/select_all.png');
     background-repeat: no-repeat;
@@ -511,9 +520,12 @@ ul.nobgtabs li a.ui-state-active {
     background-position: 7px 50%;
 }
 #package-clear-all {
-    background-image: url('../images/icons/clear_package.png');
+    background-image: url('../images/icons/package_delete.png');
     background-repeat: no-repeat;
     background-position: 7px 50%;
+}
+#package-selected-items {
+    font-size: 1.2em;
 }
 .content-preview-inline iframe {
     width: 99%;

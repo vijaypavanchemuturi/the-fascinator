@@ -266,7 +266,7 @@ class UploadedData:
         return self.formProcess
 
     def renderTemplate(self):
-        return self.renderer.renderTemplate(self.template, self.localFormData, sessionState)
+        return self.renderer.renderTemplate(portalId, self.template, self.localFormData, sessionState)
 
     def setWorkflowMetadata(self, oldMetadata):
         try:
