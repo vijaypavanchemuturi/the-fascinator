@@ -16,31 +16,24 @@
   #end
 </ul>
 #end
-
-#if(!$self.isMetadataOnly())
+#if($isPackage)
+  #if($self.canOrganise())
+  <div class="box menu">
+    <h2>Packaging</h2>
+    <ul class="menu" id="packaging">
+      <li><a href="$portalPath/workflow/$oid">Organise...</a></li>
+    </ul>
+  </div>
+  #end
 <div class="box menu">
-  <h2>Actions</h2>
+  <h2>Publish</h2>
   <ul class="menu" id="actions">
-    #if($self.canOpenFile())
-    <li><a class="open-this" href="$portalPath/detail/$oid">Open file</a></li>
-    #end
-    #if($isPackage)
-      #if($self.canOrganise())
-      <li><a href="$portalPath/workflow/$oid">Organise this package...</a></li>
-      #end
-      <li><a href="$portalPath/actions/epub?oid=$oid">Save as EPUB...</a></li>
-      <li><a href="$portalPath/actions/imscp?oid=$oid">Save as IMS Package...</a></li>
-      <li><a id='sword-view' href='#'>Deposit to repository...</a></li>
-    #end
-    #if($self.hasHtml() || $isPackage)
-      <li><a id='blog-this' href='#'>Blog #if($isPackage)this package#end...</a></li>
-    #end
-    <li><a id="reharvest" href="$portalPath/detail/$oid">Reharvest...</a></li>
+    <li><a href="$portalPath/actions/epub?oid=$oid">Save as EPUB...</a></li>
+    <li><a href="$portalPath/actions/imscp?oid=$oid">Save as IMS Package...</a></li>
+    <li><a id='sword-view' href='#'>Deposit to repository...</a></li>
+    <li><a id='blog-this' href='#'>Publish to blog...</a></li>
   </ul>
 </div>
-#end
-
-#if($isPackage)
 <div class="box menu">
   <h2>Navigation</h2>
   ## standard menu navigation
@@ -49,6 +42,20 @@
   <div id="package-toc"></div>
 </div>
 #else
+  #if(!$self.isMetadataOnly())
+  <div class="box menu">
+    <h2>Actions</h2>
+    <ul class="menu" id="actions">
+      #if($self.canOpenFile())
+        <li><a class="open-this" href="$portalPath/detail/$oid">Open file</a></li>
+      #end
+      #if($self.hasHtml())
+        <li><a id='blog-this' href='#'>Publish to blog...</a></li>
+      #end
+      <li><a id="reharvest" href="$portalPath/detail/$oid">Reharvest...</a></li>
+    </ul>
+  </div>
+  #end
   #parse($page.getTemplate('detail-screen/metadata.vm'))
   #parse($page.getTemplate('detail-screen/attachments.vm'))
 #end

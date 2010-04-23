@@ -1,8 +1,9 @@
-from __main__ import Services, formData, portalId, response
+from __main__ import Services, formData, response
 
 import os.path, urllib
 
 from au.edu.usq.fascinator.common import JsonConfigHelper
+from au.edu.usq.fascinator.api.storage import PayloadType
 from au.edu.usq.fascinator.ims import FileType, ItemType, ManifestType, \
     MetadataType, ObjectFactory, OrganizationType, OrganizationsType, \
     ResourceType, ResourcesType
@@ -50,7 +51,8 @@ class ImsPackage:
             out = FileOutputStream(outputFile)
         else:
             print "writing to http output stream..."
-            response.setHeader("Content-Disposition", "attachment; filename=%s.zip" % urllib.quote(title))
+            filename = urllib.quote(title.replace(" ", "_"))
+            response.setHeader("Content-Disposition", "attachment; filename=%s.zip" % filename)
             out = response.getOutputStream("application/zip")
         
         zipOut = ZipOutputStream(out)
@@ -59,15 +61,13 @@ class ImsPackage:
         IOUtils.write(writer.toString(), zipOut)
         zipOut.closeEntry()
         
-        jsonManifest = self.__manifest.getJsonMap("manifest")
-        for key in jsonManifest.keySet():
-            item = jsonManifest.get(key)
-            oid = item.get("id")
+        oidList = self.__manifest.getList("manifest//id")
+        for oid in oidList:
             obj = Services.getStorage().getObject(oid)
             for pid in obj.getPayloadIdList():
                 payload = obj.getPayload(pid)
-                if pid != "SOF-META":
-                    zipOut.putNextEntry(ZipEntry("%s/%s" % (key[5:], pid)))
+                if not PayloadType.Annotation.equals(payload.getType()):
+                    zipOut.putNextEntry(ZipEntry("resources/%s/%s" % (oid, pid)))
                     IOUtils.copy(payload.open(), zipOut)
                     payload.close()
                     zipOut.closeEntry()
@@ -94,34 +94,47 @@ class ImsPackage:
         
         resources = ResourcesType()
         manifest.setResources(resources)
-        for key in jsonManifest.keySet():
-            jsonRes = jsonManifest.get(key)
-            # item
-            visible = jsonRes.get("hidden", "false") != "true"
-            item = ItemType()
-            item.setIdentifier("default-" + key)
-            item.setIdentifierref(key)
-            item.setIsvisible(visible)
-            item.setTitle(jsonRes.get("title"))
-            # webcontent
-            webRes = ResourceType()
-            webRes.setIdentifier(key)
-            webRes.setType("webcontent")
-            oid = jsonRes.get("id")
-            _, filename = os.path.split(oid)
-            baseName = os.path.splitext(filename)[0]
-            webRes.setHref("%s/%s.htm" % (key[5:], baseName))
-            obj = Services.getStorage().getObject(oid)
-            for pid in obj.getPayloadIdList():
-                if pid != "TF-OBJ-META":  ## hacky
-                    file = FileType()
-                    file.setHref(pid)
-                    webRes.getFile().add(file)
-            obj.close()
-            org.getItem().add(item)
-            resources.getResource().add(webRes)
+        self.__createItems(org, resources, jsonManifest)
         
         return manifest
+    
+    def __createItems(self, parent, resources, jsonManifest):
+        for key in jsonManifest.keySet():
+            jsonRes = jsonManifest.get(key)
+            try:
+                item, webRes = self.__createItemAndResource(key, jsonRes)
+                children = jsonRes.getJsonMap("children")
+                if not children.isEmpty():
+                    self.__createItems(item, resources, children)
+                parent.getItem().add(item)
+                resources.getResource().add(webRes)
+            except Exception, e:
+                print "Failed to create item for '%s': %s" % (key, str(e))
+    
+    def __createItemAndResource(self, key, jsonRes):
+        hidden = jsonRes.get("hidden", "False")
+        # organization item
+        item = ItemType()
+        item.setIdentifier("default-%s" % key)
+        item.setIdentifierref(key)
+        item.setIsvisible(hidden == "False")
+        item.setTitle(jsonRes.get("title"))
+        # resource
+        webRes = ResourceType()
+        webRes.setIdentifier(key)
+        webRes.setType("webcontent")
+        oid = jsonRes.get("id")
+        obj = Services.getStorage().getObject(oid)
+        baseName = os.path.splitext(obj.getSourceId())[0]
+        webRes.setHref("resources/%s/%s.htm" % (oid, baseName))
+        for pid in obj.getPayloadIdList():
+            payload = obj.getPayload(pid)
+            if not PayloadType.Annotation.equals(payload.getType()):
+                file = FileType()
+                file.setHref(pid)
+                webRes.getFile().add(file)
+        obj.close()
+        return item, webRes
     
 if __name__ == "__main__":
     scriptObject = ImsPackage()

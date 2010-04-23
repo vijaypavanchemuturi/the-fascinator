@@ -18,4 +18,13 @@
       #end
     </table>
   </div>
+  <script type="text/javascript" src="$portalPath/js/jquery.truncate.js"></script>
+  <script type="text/javascript">
+  $(function() {
+    $("span.meta-value").truncate(250, {
+        trail: [ '... <a href="#" class="truncate_show">more</a>',
+                 ' <a href="#" class="truncate_hide">less</a>' ]
+    });
+  });
+  </script>
 </div>

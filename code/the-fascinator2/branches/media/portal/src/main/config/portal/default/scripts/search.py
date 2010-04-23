@@ -10,7 +10,7 @@ from au.edu.usq.fascinator.portal import Pagination, Portal
 
 from java.io import ByteArrayInputStream, ByteArrayOutputStream, File
 from java.net import URLDecoder, URLEncoder
-from java.util import ArrayList, LinkedHashMap
+from java.util import ArrayList, HashMap, LinkedHashMap, HashSet
 from java.lang import Exception
 
 class SearchData:
@@ -43,6 +43,26 @@ class SearchData:
         else:
             self.__query = query
         sessionState.set("query", self.__query)
+
+        # find objects with annotations matching the query
+        if query != "*:*":
+            anotarQuery = self.__query
+            annoReq = SearchRequest(anotarQuery)
+            annoReq.setParam("facet", "false")
+            annoReq.setParam("rows", str(99999))
+            annoReq.setParam("sort", "dateCreated asc")
+            annoReq.setParam("start", str(0))        
+            anotarOut = ByteArrayOutputStream()
+            Services.indexer.annotateSearch(annoReq, anotarOut)
+            resultForAnotar = JsonConfigHelper(ByteArrayInputStream(anotarOut.toByteArray()))
+            resultForAnotar = resultForAnotar.getJsonList("response/docs")
+            ids = HashSet()
+            for annoDoc in resultForAnotar:
+                annotatesUri = annoDoc.get("annotatesUri")
+                ids.add(annotatesUri)
+                print "Found annotation for %s" % annotatesUri
+            # add annotation ids to query
+            query += ' OR id:("' + '" OR "'.join(ids) + '")'
 
         req = SearchRequest(query)
         req.setParam("facet", "true")
@@ -103,7 +123,6 @@ class SearchData:
             self.__paging = Pagination(self.__pageNum,
                                        int(self.__result.get("response/numFound")),
                                        self.__portal.recordsPerPage)
-            sessionState.set("totalPages", self.__paging.getPages().size())
 
     def canManage(self, wfSecurity):
         user_roles = page.authentication.get_roles_list()
@@ -165,7 +184,7 @@ class SearchData:
     def getMimeTypeIcon(self, format):
         # check for specific icon
         iconPath = "images/icons/mimetype/%s/icon.png" % format
-        if os.path.exists("%s/%s" % (portalDir, iconPath)):
+        if Services.getPageService().resourceExists(portalId, iconPath):
             return iconPath
         elif format.find("/") != -1:
             # check for major type
@@ -192,22 +211,29 @@ class SearchData:
             pass
         return None
     
-    def getSelectedItems(self):
-        selected = ArrayList()
-        items = sessionState.get("package/selected/%s" % self.__pageNum)
-        if items:
-            for item in items:
-                selected.addAll(item.keys())
-        return selected
+    def getActiveManifestTitle(self):
+        return self.__getActiveManifest().get("title")
+    
+    def getActiveManifestId(self):
+        return sessionState.get("package/active/id")
     
     def getSelectedItemsCount(self):
-        count = 0
-        for key in self.__getSelectedItemsKeys():
-            count += len(sessionState.get(key))
-        return count
+        return self.__getActiveManifest().getList("manifest//id").size()
     
-    def __getSelectedItemsKeys(self):
-        return [k for k in sessionState.keySet() if k.startswith("package/selected/")]
+    def isSelectedForPackage(self, oid):
+        return self.__getActiveManifest().get("manifest//node-%s" % oid) is not None
+    
+    def getManifestItemTitle(self, oid, defaultValue):
+        return self.__getActiveManifest().get("manifest//node-%s/title" % oid, defaultValue)
+    
+    def __getActiveManifest(self):
+        activeManifest = sessionState.get("package/active")
+        if not activeManifest:
+            activeManifest = JsonConfigHelper()
+            activeManifest.set("title", "New package")
+            activeManifest.set("viewId", portalId)
+            sessionState.set("package/active", activeManifest)
+        return activeManifest
 
 if __name__ == "__main__":
     scriptObject = SearchData()

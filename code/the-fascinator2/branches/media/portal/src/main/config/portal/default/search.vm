@@ -28,7 +28,7 @@
         #else
           #set($facetClass = "add-facet")
         #end
-        #set($facetLabel = "$page.escapeText($facetCountKey)")
+        #set($facetLabel = "$page.escapeHtml($facetCountKey)")
         <a class="facet $facetClass" href="#" rel='$facetFieldKey:"$facetCountKey"' title="$facetLabel ($facetCount)">
           $facetLabel&nbsp;<span class="facet-count">($facetCount)</span>
         </a>
@@ -76,25 +76,27 @@
   <div class="box menu">
     <h2>Packaging</h2>
     <ul class="menu">
-      ##<li><a href="#" id="package-create-view">Package this view...</a></li>
       <li>
-        <a href="#" id="package-create-selected">
-          <img src="$portalPath/images/icons/loading.gif" class="hidden right" id="package-selected-loading" />
-          <span>Package selected items...</span>
-        </a>
-      </li>
-      <li>
-        <div class="article first" id="package-selected-items">
-        #set($selectedItems = $self.getSelectedItems())
         #set($selectedItemsCount = $self.getSelectedItemsCount())
-        #if($selectedItems && $selectedItems.size() > 0)$selectedItems.size()#{else}No#end items
-        #if($selectedItemsCount > 0) on this page out of $selectedItemsCount in total#{else} selected#end
+        <div class="article first" id="package-selected-items" rel="$selectedItemsCount">
+        #if($selectedItemsCount > 0)$selectedItemsCount#{else}No#end items selected
         </div>
       </li>
       <ul>
+        <li>
+          <a href="#" id="package-create-selected">
+            <img src="$portalPath/images/icons/loading.gif" class="hidden right" id="package-selected-loading" />
+            <span id="package-action">
+            #if($self.getActiveManifestId())Update '$self.getActiveManifestTitle()'#{else}Package selected items#{end}...
+            </span>
+          </a>
+        </li>
+        #if($self.getActiveManifestId())
+        <li><a href="#" id="package-create-new">Create new package...</a></li>
+        #end
+        <li><a href="#" id="package-clear-all">Clear all items in package</a></li>
         <li><a href="#" id="package-select-page">Select all on this page</a></li>
         <li><a href="#" id="package-deselect-page">Deselect all items on this page</a></li>
-        <li><a href="#" id="package-clear-all">Clear all selected items</a></li>
       </ul>
     </ul>
   </div>
@@ -187,7 +189,6 @@
     #set ($is_admin = $page.authentication.is_admin())
     #foreach($item in $self.result.getList("response/docs"))
       #set($id = $item.get("id"))
-      #set($hashId = $page.md5Hash($id))
       #set($dcTitle = "")
       #set($dcTitle = $item.get("dc_title").get(0))
       #if($dcTitle.trim() != "")
@@ -195,6 +196,7 @@
       #else
         #set($title = $self.getFileName($id))
       #end
+      #set($title = $page.escapeHtml($title))
       #set($format = $item.get("dc_format").get(0))
       #set($description = "")
       #set($description = $item.get("dc_description").get(0))
@@ -203,7 +205,7 @@
         #set ($resultClass = "$resultClass first")
       #end
 
-      <div id="$hashId" class="$resultClass">
+      <div id="$id" class="$resultClass">
         #if($is_admin)
         <div class="admin-link-holder float-right">
           <a class="admin-security-link" rel="$id" href="#">Manage Access</a>
@@ -217,8 +219,14 @@
         #end
         <h3>
             #set($isPackage = "$!format" == "application/x-fascinator-package")
+            #set($manifestItemTitle = $self.getManifestItemTitle($id, $title))
             #if($packagingEnabled && !$isPackage)
-              <input type="checkbox" name="package-select" class="package-select" value="$id" rel="$title"#if($selectedItems.contains($id))checked="checked"#end />
+              <input type="checkbox"
+                     name="package-select"
+                     class="package-select"
+                     value="$id"
+                     rel="$manifestItemTitle"
+                     #if($self.isSelectedForPackage($id))checked="checked"#end />
             #end
             <img src="$portalPath/$self.getMimeTypeIcon($format)" title="$!format" />
             #set($wfStep = $item.get("workflow_step").get(0))
@@ -232,8 +240,9 @@
               </a>
             </span>
             #end
-            <a href="$portalPath/detail/$self.encode($id)">$title</a>
+            <a href="$portalPath/detail/$id">$title</a>
         </h3>
+        #if($manifestItemTitle && $manifestItemTitle != $title)<span>Packaged as: <h5 class="package-item-title">$manifestItemTitle</h5></span>#end
         <div rel="$id" class="tags">Tags: <span class="tags-here"></span></div>
         #set($thumbnail = $self.getThumbnail($id))
         #if($thumbnail)
@@ -365,34 +374,34 @@ $(function() {
     
     // packaging
     function getSelectedItems() {
-        var ids = [];
         var titles = [];
+        var added = [];
+        var removed = [];
         $(".package-select:checked").each(function(count, item) {
-            ids.push($(item).attr("value"));
             titles.push($(item).attr("rel"));
+            added.push($(item).attr("value"));
         });
-        return { size: ids.length, ids: ids, titles: titles };
+        $(".package-select:not(:checked)").each(function(count, item) {
+            removed.push($(item).attr("value"));
+        });
+        return { titles: titles, added: added, removed: removed };
     }
     
     function updatePackage() {
         var selected = getSelectedItems();
+        jQuery.extend(selected, { func: "update" });
         jQuery.ajax({
             type: "POST",
             url: "$portalPath/actions/packaging.ajax",
-            data: {
-              func: "update",
-              page: $currentPage,
-              ids: selected.ids,
-              titles: selected.titles
-            },
+            contentType: "application/x-www-form-urlencoded; charset=UTF-8",
+            data: selected,
             error: function(xhr, status, e) {
-                console.log(status, e);
+                $("#package-selected-items").html("Error updating selection!");
             },
             success: function(data, status) {
-                var len = selected.size;
-                var total = data.count;
-                var msg = (len > 0 ? len : "No") + " items";
-                msg += (total > 0 ? " on this page out of " + total + " in total" : " selected");
+                var count = data.count;
+                var msg = (count > 0 ? count : "No") + " items selected";
+                $("#package-selected-items").attr("rel", count);
                 $("#package-selected-items").html(msg);
             },
             dataType: "json"
@@ -400,32 +409,62 @@ $(function() {
     }
     
     function clearPackage() {
-        jQuery.post("$portalPath/actions/packaging.ajax",
-            { func: "clear" },
-            function(data, status) {
-                $("#package-selected-items").html("No items selected");
-            },
-            "json");
+        $(".package-select").removeAttr("checked");
+        var selectedItems = $("#package-selected-items");
+        if (selectedItems.attr("rel") > 0) {
+            jQuery.post("$portalPath/actions/packaging.ajax",
+                { func: "clear" },
+                function(data, status) {
+                    selectedItems.attr("rel", 0).html("Package cleared!");
+                    setTimeout(function() {
+                        selectedItems.html("No items selected");
+                    }, 3000);
+                },
+                "json");
+        } else {
+            selectedItems.html("Package is already empty!");
+            setTimeout(function() {
+                selectedItems.html("No items selected");
+            }, 3000);
+        }
     }
     
+    $("#package-create-new").click(function() {
+        clearPackage();
+        $("#package-create-new").hide();
+        $("#package-create-selected").html("Package selected items...");
+        return false;
+    });
+    
     $("#package-create-selected").click(function() {
-        var selected = getSelectedItems();
-        $("#package-selected-loading").show();
-        jQuery.post("$portalPath/actions/packaging.ajax",
-            {
-                func: "create-from-selected",
-                ids: selected.ids,
-                titles: selected.titles
-            },
-            function(data, status) {
-                if (data.status == "ok") {
-                    window.location.href = data.url;
-                } else {
+        var selectedItems = $("#package-selected-items");
+        if (selectedItems.attr("rel") == 0) {
+            var lastMsg = selectedItems.html();
+            selectedItems.html("Package is empty!");
+            setTimeout(function() {
+                selectedItems.html(lastMsg);
+            }, 3000);
+        } else {
+            $("#package-selected-loading").show();
+            var selected = getSelectedItems();
+            jQuery.extend(selected, { func: "create-from-selected" });
+            jQuery.ajax({
+                type: "POST",
+                url: "$portalPath/actions/packaging.ajax",
+                data: selected,
+                error: function(xhr, status, e) {
                     alert("Failed to create package!");
-                }
-            },
-            "json"
-        );
+                },
+                success: function(data, status) {
+                    if (data.status == "ok") {
+                        window.location.href = data.url;
+                    } else {
+                        alert("Failed to create package!");
+                    }
+                },
+                dataType: "json"
+            });
+        }
         return false;
     });
     
@@ -442,7 +481,6 @@ $(function() {
     });
     
     $("#package-clear-all").click(function() {
-        $(".package-select").removeAttr("checked");
         clearPackage();
         return false;
     });
@@ -469,10 +507,8 @@ $(function(){
         annotationType: "tag",
         stylePrefix: "tags-",
         displayCustom: "tag_display",
-        #if($page.authentication.is_logged_in()) 
-        creator: "$page.authentication.get_name()",
-        creatorUri: null,
-        #end
+        creator: "$creator",
+        creatorUri: "$creatorUri",
         interfaceLabel: " <img src='$portalPath/images/icons/add.png'/>",
         interfaceVisible: true,
         formCustom: "object_tag_form",

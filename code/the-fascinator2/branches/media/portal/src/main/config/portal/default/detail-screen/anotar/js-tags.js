@@ -6,10 +6,8 @@
             //debug: true,
             docRoot: "#object-tag-list",
             tagList: "div",
-            #if($page.authentication.is_logged_in()) 
-            creator: "$page.authentication.get_name()",
-            creatorUri: null,
-            #end
+            creator: "$creator",
+            creatorUri: "$creatorUri",
             contentInput: "#object-tag-input",
             pageUri: "$oid",
             uriAttr: "rel",

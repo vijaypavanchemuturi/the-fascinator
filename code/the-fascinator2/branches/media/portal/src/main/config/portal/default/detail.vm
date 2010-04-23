@@ -44,7 +44,9 @@
     <h2>Preview</h2>
     <div id="anno-root" class="content-preview">
       <div class="first article">
+      #if(!$isPackage)
         <div class="article-heading">$title</div>
+      #end
 
       #************************
       * Anotar GUIs
@@ -69,7 +71,7 @@
 	          <tbody>
 	            <tr>
 	              <td id="player-container"></td>
-	              <td>
+	              <td style="vertical-align: top">
 	                <div class="video-results-list">
 	                  <div class="video-result-list" anotar-uri="$oid">
 	                  </div>
@@ -85,8 +87,8 @@
         ************************#
         #if($isPackage)
           <img class="hidden" id="content-loading" src="$portalPath/images/icons/loading.gif" />
-          <div id="package-content">
-          </div>
+          <div class="article-heading"></div>
+          <div id="package-content"></div>
 
         #************************
         * 'Normal' object display
@@ -95,7 +97,7 @@
           <div class="content-preview-inline">$!self.payloadContent</div>
           <script type="text/javascript" src="$portalPath/js/tree/jquery.tree.min.js"></script>
           <script type="text/javascript" src="$portalPath/js/viewer.js"></script>
-          <div class="annotatable">Comments:</div>
+          <div class="annotatable">&nbsp;</div>
         #end
       #end
         </div>

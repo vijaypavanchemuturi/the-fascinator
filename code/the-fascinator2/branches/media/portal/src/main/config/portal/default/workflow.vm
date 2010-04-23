@@ -17,7 +17,7 @@
           }
       }
       var amq = org.activemq.Amq;
-      amq.init({ uri: "$contextPath/amq/", timeout: 10 });
+      amq.init({ uri: "$contextPath/amq/", timeout: 25 });
       amq.addListener("tf_messages", "topic://message", waitRender);
   </script>
 #end
