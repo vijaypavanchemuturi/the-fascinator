@@ -25,7 +25,6 @@ import au.edu.usq.fascinator.api.storage.PayloadType;
 import au.edu.usq.fascinator.api.storage.StorageException;
 import au.edu.usq.fascinator.api.transformer.Transformer;
 import au.edu.usq.fascinator.api.transformer.TransformerException;
-import au.edu.usq.fascinator.common.JsonConfig;
 import au.edu.usq.fascinator.common.JsonConfigHelper;
 import au.edu.usq.fascinator.common.MimeTypeUtil;
 import au.edu.usq.fascinator.common.storage.StorageUtils;

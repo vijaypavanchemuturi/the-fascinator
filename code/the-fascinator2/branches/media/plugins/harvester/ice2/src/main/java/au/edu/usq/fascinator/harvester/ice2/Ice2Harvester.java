@@ -601,6 +601,10 @@ public class Ice2Harvester extends GenericHarvester {
                 //log.debug(" *** ICE2 : Param : '"
                 //        + param.getAttributeValue("name") + "' => '"
                 //        + param.getAttributeValue("value") + "'");
+                if (param.getAttributeValue("name").equals("movie")) {
+                    String newMovie = harvestVideo(htmlFile,
+                            param.getAttributeValue("value"), objectIdMap);
+                }
             }
 
             // Create digital object
@@ -638,6 +642,28 @@ public class Ice2Harvester extends GenericHarvester {
         }
 
         return object;
+    }
+
+    private String harvestVideo(File htmlFile, String oldLink,
+            Map<String, String> objectIdMap) throws HarvesterException {
+        // Sometimes we need to separate the video from the player
+        if (oldLink.contains("/player_")) {
+            // Find the base of the video path
+            int i = oldLink.lastIndexOf("/");
+            String baseLink = oldLink.substring(0, i);
+            // Then the actual video file
+            String ending = oldLink.substring(i + 1);
+            int j = ending.lastIndexOf("=");
+            String video = baseLink + "/" + ending.substring(j + 1);
+            // Now go harvest the video
+            String returnValue = harvestLink(htmlFile, video, objectIdMap);
+            if (returnValue.equals(video)) {
+                return oldLink;
+            } else {
+                return returnValue;
+            }
+        }
+        return oldLink;
     }
 
     private String harvestLink(File htmlFile, String oldLink,
@@ -687,7 +713,7 @@ public class Ice2Harvester extends GenericHarvester {
             index = index.substring(0, index.indexOf("?"));
         }
         // TODO - Suffixes like anchors and parameters need to be retained and
-        //        andled on the detail screen when the object link is resolved.
+        //       handled on the detail screen when the object link is resolved.
 
         //log.debug(" *** ICE2 : Link = '" + index + "'");
         DigitalObject object = null;
@@ -815,7 +841,7 @@ public class Ice2Harvester extends GenericHarvester {
                         // TODO - Need data, and what to do with documents? render?
                     }
                     if (mediaType.equals("video")) {
-                        log.debug(" *** ICE2 : Video => '"+ subFilePath + "'");
+                        //log.debug(" *** ICE2 : Video => '"+ subFilePath + "'");
                         object = createObject(media);
                     }
                 } catch (HarvesterException ex) {

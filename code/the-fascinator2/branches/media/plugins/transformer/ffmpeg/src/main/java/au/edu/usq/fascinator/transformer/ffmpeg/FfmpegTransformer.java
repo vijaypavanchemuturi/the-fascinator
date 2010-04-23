@@ -27,6 +27,7 @@ import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.logging.Level;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
@@ -97,6 +98,13 @@ public class FfmpegTransformer implements Transformer {
         String sourceId = object.getSourceId();
         String ext = FilenameUtils.getExtension(sourceId);
 
+        // Check our first level exclusion list
+        List<String> excludeList = getList("metadata/excludeExt");
+        if (excludeList.contains(ext.toLowerCase())) {
+            return object;
+        }
+
+        // Cache the file from storage
         File file;
         try {
             file = new File(outputDir, sourceId);
@@ -118,50 +126,99 @@ public class FfmpegTransformer implements Transformer {
             //throw new TransformerException(ex);
         }
 
+        // Make sure we can start
         if (ffmpeg == null) {
             ffmpeg = new FfmpegImpl(get("executable"));
         }
-        if (file.exists() && ffmpeg.isAvailable()) {
+        if (!file.exists() || !ffmpeg.isAvailable()) {
+            return object;
+        }
+
+        // Gather metadata
+        FfmpegInfo info;
+        try {
+            info = ffmpeg.getInfo(file);
+        } catch (IOException ex) {
+            errorAndClose(object, file, ex);
+            return object;
+        }
+        File metaFile = writeMetadata(info);
+        try {
+            Payload payload = createFfmpegPayload(object, metaFile);
+            payload.setType(PayloadType.Enrichment);
+            payload.close();
+        } catch (Exception ex) {
+            errorAndClose(object, metaFile, ex);
+            return object;
+        } finally {
+            metaFile.delete();
+        }
+        log.debug("\n=====================\n{}\n=====================\n", info.getRaw());
+        log.debug("{}: {}", file.getName(), info);
+
+        // Can we even process this file?
+        if (!info.isSupported()) {
+            return object;
+        }
+
+        // Thumbnails
+        excludeList = getList("thumbnail/excludeExt");
+        if (!excludeList.contains(ext.toLowerCase()) && info.hasVideo()) {
+            File thumbnail = getThumbnail(file, info.getDuration());
             try {
-                FfmpegInfo info = ffmpeg.getInfo(file);
-                log.debug("{}: {}", file.getName(), info);
-                if (info.isSupported()) {
-                    if (info.hasVideo()) {
-                        File thumbnail = getThumbnail(file, info.getDuration());
-                        Payload payload = createFfmpegPayload(object, thumbnail);
-                        payload.setType(PayloadType.Enrichment);
-                        payload.close();
-                        thumbnail.delete();
-                    }
-                    List<String> excludeList = Arrays.asList(StringUtils.split(
-                            get("excludeExt"), ','));
-                    if (!excludeList.contains(ext.toLowerCase())
-                            && (info.hasVideo() || info.hasAudio())) {
-                        File converted = convert(file);
-                        Payload payload = createFfmpegPayload(object, converted);
-                        payload.setType(PayloadType.Preview);
-                        payload.close();
-                        converted.delete();
-                    }
-                }
-            } catch (Exception e) {
-                log.error("Conversion failed for '" + file + "'", e);
-                try {
-                    createFfmpegErrorPayload(object, file, e.getMessage());
-                } catch (Exception e2) {
-                    log.error("Failed to add Error payload", e2);
-                }
+                Payload payload = createFfmpegPayload(object, thumbnail);
+                payload.setType(PayloadType.Enrichment);
+                payload.close();
+            } catch (Exception ex) {
+                errorAndClose(object, thumbnail, ex);
+                return object;
+            } finally {
+                thumbnail.delete();
             }
         }
+
+        // Preview
+        excludeList = getList("preview/excludeExt");
+        if (!excludeList.contains(ext.toLowerCase()) &&
+                (info.hasVideo() || info.hasAudio())) {
+            File converted = convert(file);
+            try {
+                Payload payload = createFfmpegPayload(object, converted);
+                payload.setType(PayloadType.Preview);
+                payload.close();
+            } catch (Exception ex) {
+                errorAndClose(object, converted, ex);
+                return object;
+            } finally {
+                converted.delete();
+            }
+        }
+
+        // Cleanup
+        closeObject(object);
+        if (file.exists()) {
+            file.delete();
+        }
+        return object;
+    }
+
+    private void errorAndClose(DigitalObject object, File file, Exception ex) {
+        try {
+            log.error("FFMpeg Error: {}", ex);
+            createFfmpegErrorPayload(object, file, ex.getMessage());
+        } catch (Exception ex1) {
+            log.error("Unable to write error payload, {}", ex1);
+        } finally {
+            closeObject(object);
+        }
+    }
+
+    private void closeObject(DigitalObject object) {
         try {
             object.close();
         } catch (StorageException ex) {
             log.error("Failed writing object metadata", ex);
         }
-        if (file.exists()) {
-            file.delete();
-        }
-        return object;
     }
 
     /**
@@ -239,7 +296,7 @@ public class FfmpegTransformer implements Transformer {
             params.add("-r");
             params.add("1"); // frame rate
             params.add("-s");
-            params.add(get("thumbnailSize")); // size
+            params.add(get("thumbnail/size")); // size
             params.add("-vcodec");
             params.add("mjpeg");
             params.add("-f");
@@ -256,14 +313,35 @@ public class FfmpegTransformer implements Transformer {
     }
 
     /**
+     * Write FFMPEG metadata to disk
+     *
+     * @param info extracted metadata
+     * @return metadata file
+     * @throws TransformerException
+     */
+    private File writeMetadata(FfmpegInfo info) throws TransformerException {
+        File outputFile = new File(outputPath, "ffmpeg.info");
+        if (outputFile.exists()) {
+            FileUtils.deleteQuietly(outputFile);
+        }
+        try {
+            outputFile.createNewFile();
+            FileUtils.writeStringToFile(outputFile, info.getRaw(), "utf-8");
+        } catch (IOException ioe) {
+            throw new TransformerException(ioe);
+        }
+        return outputFile;
+    }
+
+    /**
      * Convert audio/video to flv format
-     * 
+     *
      * @param sourceFile to be converted
      * @return converted file
      * @throws TransformerException
      */
     private File convert(File sourceFile) throws TransformerException {
-        String outputExt = get("outputExt");
+        String outputExt = get("preview/outputExt");
         log.info("Converting to {}: {}", outputExt, sourceFile);
         String filename = sourceFile.getName();
         String basename = FilenameUtils.getBaseName(filename);
@@ -277,12 +355,12 @@ public class FfmpegTransformer implements Transformer {
             params.add(sourceFile.getAbsolutePath()); // input file
             params.add("-y"); // overwrite output file
             // load extension specific parameters or use defaults if not found
-            String configParams = get("params/default");
+            String configParams = get("preview/params/default");
             log.debug("configParams: ", configParams);
             String ext = FilenameUtils.getExtension(filename);
             if (!"".equals(ext)) {
                 log.debug("Loading params for {}...", ext);
-                configParams = get("params/" + ext, configParams);
+                configParams = get("preview/params/" + ext, configParams);
             }
             params.addAll(Arrays.asList(StringUtils.split(configParams, ' ')));
             params.add(outputFile.getAbsolutePath()); // output file
@@ -346,6 +424,12 @@ public class FfmpegTransformer implements Transformer {
         } catch (IOException ioe) {
             throw new PluginException(ioe);
         }
+    }
+
+    private List<String> getList(String key) {
+        String configEntry = get(key);
+        log.debug("List : '{}'", configEntry);
+        return Arrays.asList(StringUtils.split(configEntry, ','));
     }
 
     private String get(String key) {
