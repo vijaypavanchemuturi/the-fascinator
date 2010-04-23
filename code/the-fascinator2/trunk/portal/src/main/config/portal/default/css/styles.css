@@ -314,7 +314,7 @@ span.view-type a.selected {
     background: #666666;
 }
 
-div.article-heading {
+div.article-heading, #package-content div.title {
     border-bottom: 1px solid #CCCCCC;
     font-weight: bold;
     font-size: 1.5em;

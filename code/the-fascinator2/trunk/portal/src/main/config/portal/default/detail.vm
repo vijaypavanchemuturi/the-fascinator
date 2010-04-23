@@ -44,14 +44,12 @@
     <h2>Preview</h2>
     <div id="anno-root" class="content-preview">
       <div class="first article">
-      #if(!$isPackage)
-        <div class="article-heading">$title</div>
-      #end
 
       #************************
       * Anotar GUIs
       ************************#
-      #if(!$isPackage)
+      #if(!($isPackage || $isImsPackage))
+        <div class="article-heading">$title</div>
         <div id="object-tag-list">
           <div rel="$page.md5Hash($oid)_object">Tags: <span class="object-tags"></span></div>
         </div>
@@ -67,36 +65,34 @@
       * Audio/Video players
       ************************#
       #if($self.mimeType.startsWith("audio/") || $self.mimeType.startsWith("video/"))
-          <table>
-	          <tbody>
-	            <tr>
-	              <td id="player-container"></td>
-	              <td style="vertical-align: top">
-	                <div class="video-results-list">
-	                  <div class="video-result-list" anotar-uri="$oid">
-	                  </div>
-	                </div>
-	              </td>
-	            </tr>
-	          </tbody>
-	        </table>
-
+        <table>
+          <tbody>
+            <tr>
+              <td id="player-container"></td>
+              <td style="vertical-align: top">
+                <div class="video-results-list">
+                  <div class="video-result-list" anotar-uri="$oid">
+                  </div>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
       #else
         #************************
         * Package viewer
         ************************#
-        #if($isPackage)
+        #if($isPackage || $isImsPackage)
           <img class="hidden" id="content-loading" src="$portalPath/images/icons/loading.gif" />
+          #if(!$isImsPackage)
           <div class="article-heading"></div>
+          #end
           <div id="package-content"></div>
-
+        #else
         #************************
         * 'Normal' object display
         ************************#
-        #else
           <div class="content-preview-inline">$!self.payloadContent</div>
-          <script type="text/javascript" src="$portalPath/js/tree/jquery.tree.min.js"></script>
-          <script type="text/javascript" src="$portalPath/js/viewer.js"></script>
           <div class="annotatable">&nbsp;</div>
         #end
       #end
@@ -107,8 +103,12 @@
 </div>
 
 <div class="clear"><!-- clear --></div>
-
-  #if(!$isPackage)
+  #if($isPackage || $isImsPackage)
+    #************************
+    * Packaging - JS
+    ************************#
+    #parse($page.getTemplate('detail-screen/js/rvt.js'))
+  #else
     #************************
     * Annotations - JS
     ************************#
@@ -121,14 +121,7 @@
     #parse($page.getTemplate('detail-screen/anotar/js-media.js'))
     #parse($page.getTemplate('detail-screen/anotar/js-comments.js'))
     #parse($page.getTemplate('detail-screen/anotar/js-images.js'))
-
-  #else
-    #************************
-    * Packaging - JS
-    ************************#
-    #parse($page.getTemplate('detail-screen/js/rvt.js'))
   #end
-
 #end
 
 #set ($_=$self.closeObject())
