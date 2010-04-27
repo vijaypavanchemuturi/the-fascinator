@@ -142,8 +142,9 @@ class Epub:
                 payload, payloadType = payloadDict[payloadId]
                 if isinstance(payload, Payload):
                     payloadId = payloadId.lower()
+                    zipEntryId = payloadId.replace(" ", "_").replace("\\", "/")
                     if payloadType == "application/xhtml+xml":
-                        zipOutputStream.putNextEntry(ZipEntry("OEBPS/%s" % payloadId.replace(" ", "_")))
+                        zipOutputStream.putNextEntry(ZipEntry("OEBPS/%s" % zipEntryId))
                         ##process the html....
                         saxReader = SAXReader(False)
                         try:
@@ -156,6 +157,7 @@ class Epub:
 #                                if classOrStyleNode.getParent():
 #                                    node = classOrStyleNode.getParent()
 #                                if node.getQualifiedName() == "img":
+#                                    attr = node.attribute(QName("class"))
 #                                    attr = node.attribute(QName("class"))
 #                                    if attr:
 #                                        node.remove(attr)
@@ -205,16 +207,16 @@ class Epub:
                             traceback.print_exc()
                     else:
                         #images....
-                        zipOutputStream.putNextEntry(ZipEntry("OEBPS/%s" % payloadId))
+                        zipOutputStream.putNextEntry(ZipEntry("OEBPS/%s" % zipEntryId))
                         IOUtils.copy(payload.open(), zipOutputStream)
                         payload.close()
                         zipOutputStream.closeEntry()
                 else:
-                    zipOutputStream.putNextEntry(ZipEntry("OEBPS/%s" % payloadId.replace(" ", "_")))
+                    zipOutputStream.putNextEntry(ZipEntry("OEBPS/%s" % zipEntryId))
                     IOUtils.copy(payload, zipOutputStream)
                     zipOutputStream.closeEntry()
                 
-                itemNode = ElementTree.Element("item", {"media-type":payloadType, "href": payloadId.replace(" ", "_")})  
+                itemNode = ElementTree.Element("item", {"media-type":payloadType, "href": zipEntryId})  
                 if payloadId == htmlFileName.lower():
                     itemNode.set("id", itemHash)
                 else:
