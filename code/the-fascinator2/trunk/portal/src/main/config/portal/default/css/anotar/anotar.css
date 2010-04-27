@@ -83,6 +83,14 @@
 
 .anno-command {
     cursor: pointer;
+    font-size: 11px;
+    font-style: normal;
+    font-weight: normal;
+    text-transform: none;
+    vertical-align: middle;
+}
+.anno-command img {
+    vertical-align: middle;
 }
 .anno-inline-annotation .anno-command {
     float: right;
