@@ -56,11 +56,11 @@ if [ "$1" == "start" -o "$1" == "restart" ]; then
 	else
 		echo "Starting The Fascinator..."
 		pushd $TF_HOME/portal
-		nohup mvn -P dev jetty:run &> $TF_HOME/portal.out &
+		nohup mvn -P dev jetty:run &> $TF_HOME/stdout.out &
 		popd
 	fi
 	echo "Application logs: $FASCINATOR_HOME/logs"
-	echo "Standard out log: $TF_HOME/portal.out"
+	echo "Standard out log: $TF_HOME/stdout.out"
 fi
 
 if [ "$1" == "build" -o "$1" == "rebuild" ]; then

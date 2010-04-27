@@ -299,6 +299,14 @@ class DetailData:
                 pass
         return False
 
+    def hasImsManifest(self):
+        try:
+            payload = self.getObject().getPayload("imsmanifest.xml")
+            return True
+        except StorageException, e:
+            pass
+        return False
+
     def hasSlideShow(self):
         pid = self.__pid
         pid = pid[:pid.find(".")] + ".slide.htm"

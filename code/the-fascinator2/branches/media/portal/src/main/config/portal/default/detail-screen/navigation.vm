@@ -34,14 +34,8 @@
     <li><a id='blog-this' href='#'>Publish to blog...</a></li>
   </ul>
 </div>
-<div class="box menu">
-  <h2>Navigation</h2>
-  ## standard menu navigation
-  ##createNavTree($self.getPackageManifest() "menu")
-  ## RVT
-  <div id="package-toc"></div>
-</div>
-#else
+#end
+#if(!$isPackage)
   #if(!$self.isMetadataOnly())
   <div class="box menu">
     <h2>Actions</h2>
@@ -56,6 +50,16 @@
     </ul>
   </div>
   #end
+#end
+#if($isPackage || $isImsPackage)
+<div class="box menu">
+  <h2>Navigation</h2>
+  ## standard menu navigation
+  ##createNavTree($self.getPackageManifest() "menu")
+  ## RVT
+  <div id="package-toc"></div>
+</div>
+#else
   #parse($page.getTemplate('detail-screen/metadata.vm'))
   #parse($page.getTemplate('detail-screen/attachments.vm'))
 #end

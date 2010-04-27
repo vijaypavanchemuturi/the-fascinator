@@ -7,6 +7,7 @@
   #set($title = $self.getFileName($oid))
 #end
 #set($isPackage = $mimeType == "application/x-fascinator-package")
+#set($isImsPackage = $self.hasImsManifest())
 #set($pageTitle = "$title - Detail")
 
 #set($sourceId = $self.getObject().getMetadata().getProperty("file.path"))

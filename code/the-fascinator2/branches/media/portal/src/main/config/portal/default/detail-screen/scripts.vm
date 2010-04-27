@@ -20,7 +20,7 @@
 #parse($page.getTemplate('detail-screen/js/media.js'))
 #parse($page.getTemplate('detail-screen/js/geonames.js'))
 
-#if($isPackage)
+#if($isPackage || $isImsPackage)
 <script type="text/javascript" src="$portalPath/js/tree/jquery.tree.min.js"></script>
 <script type="text/javascript" src="$portalPath/js/rvt.js"></script>
 #end
