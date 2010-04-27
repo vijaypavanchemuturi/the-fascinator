@@ -1,4 +1,3 @@
-#if($isPackage)
 <script type="text/javascript">
 $(function() {
     /* // standard menu navigation
@@ -24,7 +23,11 @@ $(function() {
     rvt.tocSelector = "#package-toc";
     rvt.contentSelector = "#package-content";
     rvt.fixRelativeLinks = false;
-    rvt.contentBaseUrl = "$portalPath/preview?oid=";
+    #if($isPackage)
+      rvt.contentBaseUrl = "$portalPath/preview?oid=";
+    #elseif($isImsPackage)
+      rvt.contentBaseUrl = "$portalPath/download/$oid/";
+    #end
     rvt.contentLoadedCallback = function() {
         var oid = window.location.hash.substring(1);
         fixLinks("", "#package-content a", "href", oid);
@@ -60,7 +63,10 @@ $(function() {
         }
         $(rvt.tocSelector).tree(opts);
     }
-    rvt.getManifestJson("$portalPath/workflows/organiser.ajax?func=get-rvt-manifest&oid=$oid");
+    #if($isPackage)
+      rvt.getManifestJson("$portalPath/workflows/organiser.ajax?func=get-rvt-manifest&oid=$oid");
+    #elseif($isImsPackage)
+      rvt.getManifestJson("$portalPath/actions/json_ims.ajax?oid=$oid");
+    #end
 });
 </script>
-#end
