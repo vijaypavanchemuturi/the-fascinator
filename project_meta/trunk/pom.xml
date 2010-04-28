@@ -165,7 +165,7 @@
 		<profile>
 			<id>rapid-report</id>
 			<activation>
-				<activeByDefault>true</activeByDefault>
+				<activeByDefault>false</activeByDefault>
 			</activation>
 			<reporting>
 				<plugins>
@@ -219,6 +219,9 @@
 		</profile>
 		<profile>
 			<id>full-report</id>
+			<activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
 			<reporting>
 				<plugins>
 					<plugin>
