@@ -1,3 +1,4 @@
+#set($pageTitle = "File upload")
 <h2 id="page-heading">File Upload</h2>
 <div id="form-section" class="grid_12">
   <div class="box" id="upload-file-form">
