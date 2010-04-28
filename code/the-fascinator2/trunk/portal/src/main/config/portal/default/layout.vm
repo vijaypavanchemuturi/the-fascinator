@@ -181,6 +181,7 @@
         $("#login-message").empty();
         $("#login-error").hide();
         $("#login-form").dialog('open');
+        $("#username").focus();
         return false;
     });
     $("#logout-now").click(function() {
@@ -219,6 +220,16 @@
                 verb: "login"
             }
         });
+    });
+    $("#username").keypress(function(e) {
+        if (e.keyCode == 13) {
+            $("#password").focus();
+        }
+    });
+    $("#password").keypress(function(e) {
+        if (e.keyCode == 13) {
+            $("#login-submit").click();
+        }
     });
     </script>
   </body>
