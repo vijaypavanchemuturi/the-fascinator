@@ -477,6 +477,10 @@ ul.nobgtabs li a.ui-state-active {
     padding-left: 20px;
 }
 
+li img.workflow {
+    vertical-align: middle;
+}
+
 .article a img.workflow {
     vertical-align: baseline;
 }
