@@ -2,7 +2,7 @@
 <project name="The Fascinator">
 	<bannerLeft>
 		<name>The Fascinator</name>
-		<src>images/logo_small.png</src>
+		<src>http://fascinator.usq.edu.au/skin/logo_small.png</src>
 		<href>http://fascinator.usq.edu.au</href>
 		<alt>Link to The Fascinator home page</alt>
 	</bannerLeft>
