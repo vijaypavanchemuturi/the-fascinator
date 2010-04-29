@@ -17,10 +17,11 @@ Notes:
     target or rerun the commands "mvn clean generate-sources install"
     
  * If cache is not set, ~/.feed-reader contains the cache
- 
- * When developing you can use "mvn compile" once you've grabbed the
-   schema via generate-sources. 
   
   
-If you need to reload the RDF Class implementations, run:
-    mvn rdf-reactor:rdfs
+Loading the DC and NIE vocabs: 
+ * If you need to reload the RDF Class implementations, run:
+     mvn rdf-reactor:rdfs
+ * Note that au.edu.usq.fascinator.contrib.feedreader.vocabulary.dc.URI will break
+    You need to resolve the clach between the class and org.ontoware.rdf2go.model.node.URI
+    I take out the import and see where I need to supply the absolute class
