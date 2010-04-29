@@ -70,11 +70,33 @@ $(function() {
             $("#player_mark_end_time").attr("disabled", false);
             $("#txtEndMark").attr("disabled", false);
         });
+        
+        $("#txtStartMark").live("keyup", function() {
+            txtStartMarkVal = $('#txtStartMark').val();
+            if (txtStartMarkVal != "") {
+                $("#player_mark_end_time").attr("disabled", false);
+                $("#txtEndMark").attr("disabled", false);
+            } else {
+                $("#player_mark_end_time").attr("disabled", true);
+                $("#txtEndMark").attr("disabled", true);
+            }
+        });
+        
         $("#player_mark_end_time").live("click", function() {
             $("#txtEndMark").attr("value", player.getTime());
-            uri = player.getClip().url + "#";
             start = $('#txtStartMark').val();
-            end = $('#txtEndMark').val()
+            end = $('#txtEndMark').val();
+            processClip(start, end);
+        });
+        
+        $("#txtEndMark").live("keyup", function() {
+            start = $('#txtStartMark').val();
+            end = $('#txtEndMark').val();
+            processClip(start, end);
+        });
+        
+        function processClip(start, end) {
+            uri = player.getClip().url + "#";
             if (start != "" && end != "") {
                 //Use Normal Play Time as described in http://www.ietf.org/rfc/rfc2326.txt
                 uri += "t=npt:";
@@ -92,7 +114,7 @@ $(function() {
                 }
             }
             $(".video-results-list").attr("rel", uri);
-        });
+        }
         
         $(".player_clear_fragment").live("click", function() {
             $("#txtStartMark").attr("value", "");
