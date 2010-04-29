@@ -18,23 +18,6 @@
  */
 package au.edu.usq.fascinator.transformer.ffmpeg;
 
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.logging.Level;
-
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.lang.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import au.edu.usq.fascinator.api.PluginException;
 import au.edu.usq.fascinator.api.storage.DigitalObject;
 import au.edu.usq.fascinator.api.storage.Payload;
@@ -45,8 +28,25 @@ import au.edu.usq.fascinator.api.transformer.TransformerException;
 import au.edu.usq.fascinator.common.JsonConfig;
 import au.edu.usq.fascinator.common.MimeTypeUtil;
 import au.edu.usq.fascinator.common.storage.StorageUtils;
+
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.logging.Level;
+
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Converts audio and video media to web friendly versions using the FFMPEG
@@ -108,7 +108,6 @@ public class FfmpegTransformer implements Transformer {
         File file;
         try {
             file = new File(outputDir, sourceId);
-            file.deleteOnExit();
             FileOutputStream tempFileOut = new FileOutputStream(file);
             // Payload from storage
             Payload payload = object.getPayload(sourceId);
@@ -128,7 +127,7 @@ public class FfmpegTransformer implements Transformer {
 
         // Make sure we can start
         if (ffmpeg == null) {
-            ffmpeg = new FfmpegImpl(get("executable"));
+            ffmpeg = new FfmpegImpl(get("transformer"), get("extractor"));
         }
         if (!file.exists() || !ffmpeg.isAvailable()) {
             return object;
@@ -143,6 +142,9 @@ public class FfmpegTransformer implements Transformer {
             return object;
         }
         File metaFile = writeMetadata(info);
+        // FFmpeg doesn't support this file
+        if (metaFile == null) return object;
+
         try {
             Payload payload = createFfmpegPayload(object, metaFile);
             payload.setType(PayloadType.Enrichment);
@@ -153,8 +155,6 @@ public class FfmpegTransformer implements Transformer {
         } finally {
             metaFile.delete();
         }
-        log.debug("\n=====================\n{}\n=====================\n", info.getRaw());
-        log.debug("{}: {}", file.getName(), info);
 
         // Can we even process this file?
         if (!info.isSupported()) {
@@ -272,7 +272,7 @@ public class FfmpegTransformer implements Transformer {
      * @return generated thumbnail file
      * @throws TransformerException
      */
-    private File getThumbnail(File sourceFile, long duration)
+    private File getThumbnail(File sourceFile, int duration)
             throws TransformerException {
         log.info("Creating thumbnail...");
         String basename = FilenameUtils.getBaseName(sourceFile.getName());
@@ -302,8 +302,8 @@ public class FfmpegTransformer implements Transformer {
             params.add("-f");
             params.add("mjpeg"); // mjpeg output format
             params.add(outputFile.getAbsolutePath()); // output file
-            String stderr = ffmpeg.executeAndWait(params);
-            log.debug(stderr);
+            String stderr = ffmpeg.transform(params);
+            //log.debug(stderr);
             log.info("Thumbnail created: outputFile={}", outputFile);
         } catch (IOException ioe) {
             log.error("Failed to create thumbnail!", ioe);
@@ -320,13 +320,17 @@ public class FfmpegTransformer implements Transformer {
      * @throws TransformerException
      */
     private File writeMetadata(FfmpegInfo info) throws TransformerException {
+        if (!info.isSupported()) {
+            return null;
+        }
+
         File outputFile = new File(outputPath, "ffmpeg.info");
         if (outputFile.exists()) {
             FileUtils.deleteQuietly(outputFile);
         }
         try {
             outputFile.createNewFile();
-            FileUtils.writeStringToFile(outputFile, info.getRaw(), "utf-8");
+            FileUtils.writeStringToFile(outputFile, info.toString(), "utf-8");
         } catch (IOException ioe) {
             throw new TransformerException(ioe);
         }
@@ -364,7 +368,7 @@ public class FfmpegTransformer implements Transformer {
             }
             params.addAll(Arrays.asList(StringUtils.split(configParams, ' ')));
             params.add(outputFile.getAbsolutePath()); // output file
-            String stderr = ffmpeg.executeAndWait(params);
+            String stderr = ffmpeg.transform(params);
             log.debug(stderr);
             log.info("Conversion successful: outputFile={}", outputFile);
         } catch (IOException ioe) {
