@@ -1,3 +1,6 @@
+<script type="text/javascript" src="$portalPath/js/anotar/json2.js"></script>
+<script type="text/javascript" src="$portalPath/js/amq/amq_jquery_adapter.js"></script>
+<script type="text/javascript" src="$portalPath/js/amq/amq.js"></script>
 <script type="text/javascript">
 
 function fixLinks(baseUrl, selector, attrName, oid) {
@@ -49,7 +52,24 @@ $(function() {
     });
 
     $("#reharvest").click(function() {
-        jQuery.post("$portalPath/reharvest.ajax", { func: "reharvest", file: "$oid" } );
+        var amq = org.activemq.Amq;
+        var clientId = "reharvest_$oid";
+        var clientTopic = "topic://message";
+        function waitRender(message) {
+            var json = this.JSON.parse(message.nodeValue);
+            $("#reharvest-progress").append("<li>" + json.message + "</li>");
+            if (json.status == "renderComplete" && json.id == "$oid") {
+                amq.removeListener(clientId, clientTopic);
+                $("#reharvest-loading").hide();
+                $("#reharvest-complete").show();
+            }
+        }
+        $("#reharvest-form").show();
+        jQuery.post("$portalPath/reharvest.ajax", { oid: "$oid" },
+            function(data, status) {
+                amq.init({ uri: "$contextPath/amq/", timeout: 10 });
+                amq.addListener(clientId, clientTopic, waitRender);
+            }, "json");
         return false;
     });
 
