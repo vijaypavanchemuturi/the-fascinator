@@ -17,6 +17,8 @@ class SettingsActions:
         if func == "view-update":
             portal.setDescription(formData.get("view-description"))
             portal.setQuery(formData.get("view-query"))
+            portal.setSearchQuery(formData.get("view-search-query"))
+            print " *** ", formData.get("view-records-per-page")
             portal.setRecordsPerPage(int(formData.get("view-records-per-page")))
             portal.setFacetCount(int(formData.get("view-facet-count")))
             portal.setFacetSort(formData.get("view-facet-sort") is not None)

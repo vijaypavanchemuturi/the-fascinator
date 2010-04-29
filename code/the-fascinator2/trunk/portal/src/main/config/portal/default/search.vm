@@ -64,8 +64,10 @@
       #if($query != "")
         <li><a href="$portalPath/search">Clear search query</a></li>
       #end
-      #if($self.hasSelectedFacets())
+      #if($paging.totalFound > 0 && ($query != "" || $self.hasSelectedFacets()))
         <li><a href="#" id="create-view">Create view...</a></li>
+      #end
+      #if ($self.hasSelectedFacets())
         <li><a href="#" id="clear-facets">Clear selection</a></li>
       #end
     </ul>
