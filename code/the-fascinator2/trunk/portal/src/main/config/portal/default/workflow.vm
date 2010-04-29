@@ -13,11 +13,12 @@
           var json = this.JSON.parse(message.nodeValue);
           $("#render-list").append("<li>" + json.message + "</li>");
           if (json.status == "renderComplete" && json.id == "$oid") {
+              amq.removeListener("tf_messages");
               window.location = "$portalPath/workflow/$oid";
           }
       }
       var amq = org.activemq.Amq;
-      amq.init({ uri: "$contextPath/amq/", timeout: 25 });
+      amq.init({ uri: "$contextPath/amq/", timeout: 10 });
       amq.addListener("tf_messages", "topic://message", waitRender);
   </script>
 #end
@@ -36,8 +37,9 @@
   </div>
 #end
 
+#set($pageTitle = "Workflow")
 #set($pageTitle = $self.getWorkflowMetadata().get("pageTitle"))
-<h2 id="page-heading">#if($pageTitle)$pageTitle#{else}Workflow Management#end</h2>
+<h2 id="page-heading">$pageTitle</h2>
 <div id="form-section">
 
   ### *********************
