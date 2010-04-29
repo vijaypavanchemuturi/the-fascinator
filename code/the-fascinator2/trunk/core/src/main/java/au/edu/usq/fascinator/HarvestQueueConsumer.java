@@ -23,19 +23,14 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.Properties;
 
-import javax.jms.Connection;
-import javax.jms.DeliveryMode;
-import javax.jms.Destination;
 import javax.jms.JMSException;
 import javax.jms.Message;
 import javax.jms.MessageConsumer;
 import javax.jms.MessageListener;
-import javax.jms.MessageProducer;
 import javax.jms.Session;
 import javax.jms.TextMessage;
 import javax.xml.bind.JAXBException;
 
-import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.log4j.MDC;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -72,18 +67,12 @@ public class HarvestQueueConsumer implements MessageListener {
 
     private Storage storage;
 
-    private Connection connection;
-
-    private Session session;
+    private MessagingServices services;
 
     private MessageConsumer consumer;
 
-    private MessageProducer producer;
-
-    private MessageSender sender;
-
-    public HarvestQueueConsumer()
-            throws IOException, JAXBException, PluginException {
+    public HarvestQueueConsumer() throws IOException, JAXBException,
+            PluginException {
         try {
             config = new JsonConfig();
             File sysFile = JsonConfig.getSystemFile();
@@ -103,27 +92,15 @@ public class HarvestQueueConsumer implements MessageListener {
     }
 
     public void start() throws JMSException {
-        log.info("Starting harvest consumer...");
-        String brokerUrl = config.get("messaging/url",
-                ActiveMQConnectionFactory.DEFAULT_BROKER_BIND_URL);
-        ActiveMQConnectionFactory connectionFactory = new ActiveMQConnectionFactory(
-                brokerUrl);
-        connection = connectionFactory.createConnection();
-        connection.start();
-        session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
-        Destination harvestDest = session.createQueue(HARVEST_QUEUE);
-        consumer = session.createConsumer(harvestDest);
+        log.info("Starting harvest queue consumer...");
+        services = MessagingServices.getInstance();
+        Session session = services.getSession();
+        consumer = session.createConsumer(session.createQueue(HARVEST_QUEUE));
         consumer.setMessageListener(this);
-        Destination renderDest = session
-                .createQueue(RenderQueueConsumer.RENDER_QUEUE);
-        producer = session.createProducer(renderDest);
-        producer.setDeliveryMode(DeliveryMode.PERSISTENT);
-
-        sender = new MessageSender(MessageSender.MESSAGE_QUEUE);
     }
 
     public void stop() {
-        log.info("Stopping harvest consumer...");
+        log.info("Stopping harvest queue consumer...");
         if (indexer != null) {
             try {
                 indexer.shutdown();
@@ -145,30 +122,7 @@ public class HarvestQueueConsumer implements MessageListener {
                 log.warn("Failed to close consumer: {}", jmse.getMessage());
             }
         }
-        if (producer != null) {
-            try {
-                producer.close();
-            } catch (JMSException jmse) {
-                log.warn("Failed to close producer: {}", jmse.getMessage());
-            }
-        }
-        if (session != null) {
-            try {
-                session.close();
-            } catch (JMSException jmse) {
-                log.warn("Failed to close session: {}", jmse.getMessage());
-            }
-        }
-        if (connection != null) {
-            try {
-                connection.close();
-            } catch (JMSException jmse) {
-                log.warn("Failed to close connection: {}", jmse.getMessage());
-            }
-        }
-        if (sender != null) {
-            sender.close();
-        }
+        services.release();
     }
 
     @Override
@@ -187,7 +141,7 @@ public class HarvestQueueConsumer implements MessageListener {
                 log.info("Removing object {}...", oid);
                 indexer.remove(oid);
             } else {
-                // Exctraction
+                // Extraction
                 if (source != null) {
                     log.info("Adding new object {} from {}...", oid, source);
                     File rulesFile = new File(config.get("configDir"), config
@@ -195,13 +149,15 @@ public class HarvestQueueConsumer implements MessageListener {
                     processObject(rulesFile, text, oid, path);
                 }
                 // Indexing
-                boolean doIndex = Boolean.parseBoolean(
-                        config.get("transformer/indexOnHarvest", "true"));
+                boolean doIndex = Boolean.parseBoolean(config.get(
+                        "transformer/indexOnHarvest", "true"));
                 if (doIndex) {
-                    sendNotification(oid, "indexStart", "Indexing '" + oid + "' started");
+                    sendNotification(oid, "indexStart", "Indexing '" + oid
+                            + "' started");
                     log.info("Indexing object {}...", oid);
                     indexer.index(oid);
-                    sendNotification(oid, "indexComplete", "Index of '" + oid + "' completed");
+                    sendNotification(oid, "indexComplete", "Index of '" + oid
+                            + "' completed");
                 }
                 log.info("Queuing render job...");
                 queueRenderJob(oid, text);
@@ -223,16 +179,12 @@ public class HarvestQueueConsumer implements MessageListener {
         jsonMessage.set("idType", "object");
         jsonMessage.set("status", status);
         jsonMessage.set("message", message);
-        sender.sendMessage(jsonMessage.toString());
+        services.publishMessage(MessagingServices.MESSAGE_TOPIC, jsonMessage
+                .toString());
     }
 
     private void queueRenderJob(String oid, String json) {
-        try {
-            TextMessage message = session.createTextMessage(json);
-            producer.send(message);
-        } catch (JMSException jmse) {
-            log.error("Failed to send message: {}", jmse.getMessage());
-        }
+        services.queueMessage(RenderQueueConsumer.RENDER_QUEUE, json);
     }
 
     private void processObject(File rulesFile, String jsonStr, String oid,

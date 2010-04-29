@@ -20,20 +20,16 @@ package au.edu.usq.fascinator;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.logging.Level;
+import java.util.Properties;
 
-import javax.jms.Connection;
-import javax.jms.DeliveryMode;
 import javax.jms.Destination;
 import javax.jms.JMSException;
 import javax.jms.Message;
 import javax.jms.MessageConsumer;
 import javax.jms.MessageListener;
-import javax.jms.MessageProducer;
 import javax.jms.Session;
 import javax.jms.TextMessage;
 
-import org.apache.activemq.ActiveMQConnectionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
@@ -48,7 +44,6 @@ import au.edu.usq.fascinator.api.storage.StorageException;
 import au.edu.usq.fascinator.api.transformer.TransformerException;
 import au.edu.usq.fascinator.common.JsonConfig;
 import au.edu.usq.fascinator.common.JsonConfigHelper;
-import java.util.Properties;
 
 /**
  * Consumer for rendering transformers. Jobs in this queue are generally longer
@@ -61,8 +56,6 @@ public class RenderQueueConsumer implements MessageListener {
 
     public static final String RENDER_QUEUE = "render";
 
-    public static final String MESSAGE_QUEUE = "message";
-
     /** Logging */
     private Logger log = LoggerFactory.getLogger(RenderQueueConsumer.class);
 
@@ -72,15 +65,9 @@ public class RenderQueueConsumer implements MessageListener {
 
     private Storage storage;
 
-    private Connection connection;
-
-    private Session session;
-
     private MessageConsumer consumer;
 
-    private MessageProducer producer;
-
-    private MessageSender sender;
+    private MessagingServices services;
 
     private String name;
 
@@ -88,38 +75,27 @@ public class RenderQueueConsumer implements MessageListener {
         this.name = name;
         try {
             config = new JsonConfig();
-            File sysFile = config.getSystemFile();
+            File sysFile = JsonConfig.getSystemFile();
             indexer = PluginManager.getIndexer(config.get("indexer/type",
                     "solr"));
             indexer.init(sysFile);
             storage = PluginManager.getStorage(config.get("storage/type",
                     "file-system"));
             storage.init(sysFile);
-            sender = new MessageSender(MessageSender.MESSAGE_QUEUE);
         } catch (IOException ioe) {
             log.error("Failed to read configuration: {}", ioe.getMessage());
         } catch (PluginException pe) {
             log.error("Failed to initialise plugin: {}", pe.getMessage());
-        } catch (JMSException je) {
-            log.error("Failed to initialise messaging system: {}", je.getMessage());
         }
     }
 
     public void start() throws JMSException {
         log.info("Starting {}...", name);
-        String brokerUrl = config.get("messaging/url",
-                ActiveMQConnectionFactory.DEFAULT_BROKER_BIND_URL);
-        ActiveMQConnectionFactory connectionFactory = new ActiveMQConnectionFactory(
-                brokerUrl);
-        connection = connectionFactory.createConnection();
-        connection.start();
-        session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
+        services = MessagingServices.getInstance();
+        Session session = services.getSession();
         Destination destination = session.createQueue(RENDER_QUEUE);
         consumer = session.createConsumer(destination);
         consumer.setMessageListener(this);
-        Destination messageDest = session.createQueue(MESSAGE_QUEUE);
-        producer = session.createProducer(messageDest);
-        producer.setDeliveryMode(DeliveryMode.PERSISTENT);
     }
 
     public void stop() {
@@ -145,30 +121,7 @@ public class RenderQueueConsumer implements MessageListener {
                 log.warn("Failed to close consumer: {}", jmse.getMessage());
             }
         }
-        if (session != null) {
-            try {
-                session.close();
-            } catch (JMSException jmse) {
-                log.warn("Failed to close session: {}", jmse.getMessage());
-            }
-        }
-        if (producer != null) {
-            try {
-                producer.close();
-            } catch (JMSException jmse) {
-                log.warn("Failed to close producer: {}", jmse.getMessage());
-            }
-        }
-        if (connection != null) {
-            try {
-                connection.close();
-            } catch (JMSException jmse) {
-                log.warn("Failed to close connection: {}", jmse.getMessage());
-            }
-        }
-        if (sender != null) {
-            sender.close();
-        }
+        services.release();
     }
 
     @Override
@@ -178,9 +131,11 @@ public class RenderQueueConsumer implements MessageListener {
             String text = ((TextMessage) message).getText();
             JsonConfig config = new JsonConfig(text);
             String oid = config.get("oid");
-            boolean commit = Boolean.parseBoolean(config.get("commit", "false"));
+            boolean commit = Boolean
+                    .parseBoolean(config.get("commit", "false"));
 
-            sendNotification(oid, "renderStart", "Renderer starting : '" + oid + "'");
+            sendNotification(oid, "renderStart", "Renderer starting : '" + oid
+                    + "'");
             log.info("Received job, object id={}", oid);
             log.info("Updating object...");
             DigitalObject object = storage.getObject(oid);
@@ -189,9 +144,11 @@ public class RenderQueueConsumer implements MessageListener {
             object = conveyerBelt.transform(object);
             log.info("Indexing object...");
             indexer.index(object.getId());
-            indexer.commit();
-
-            sendNotification(oid, "renderComplete", "Renderer complete : '" + oid + "'");
+            if (commit) {
+                indexer.commit();
+            }
+            sendNotification(oid, "renderComplete", "Renderer complete : '"
+                    + oid + "'");
             // update object metadata
             Properties props = object.getMetadata();
             props.setProperty("render-pending", "false");
@@ -216,15 +173,7 @@ public class RenderQueueConsumer implements MessageListener {
         jsonMessage.set("idType", "object");
         jsonMessage.set("status", status);
         jsonMessage.set("message", message);
-        sender.sendMessage(jsonMessage.toString());
-    }
-
-    private void sendMessage(String json) {
-        try {
-            TextMessage message = session.createTextMessage(json);
-            producer.send(message);
-        } catch (JMSException jmse) {
-            log.error("Failed to send message: {}", jmse.getMessage());
-        }
+        services.publishMessage(MessagingServices.MESSAGE_TOPIC, jsonMessage
+                .toString());
     }
 }
