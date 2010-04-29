@@ -1,6 +1,6 @@
 To run feed-reader:
 
-mvn clean install
+mvn clean rdf-reactor:rdfs install
 mvn -P<profile> exec:java
 
 There are a few profiles, please refer to the pom. For example:
@@ -19,7 +19,7 @@ Notes:
  * If cache is not set, ~/.feed-reader contains the cache
  
  * When developing you can use "mvn compile" once you've grabbed the
-   schema via generate-sources. This saves 
+   schema via generate-sources. 
   
   
 If you need to reload the RDF Class implementations, run:

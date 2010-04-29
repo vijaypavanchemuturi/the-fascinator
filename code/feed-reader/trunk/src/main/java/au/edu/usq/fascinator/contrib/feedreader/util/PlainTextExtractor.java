@@ -26,38 +26,41 @@ import org.htmlparser.util.ParserException;
 import org.htmlparser.visitors.NodeVisitor;
 
 /**
- * @author dickinso
+ * Provides a very basic text extractor for html
+ * 
+ * @author Duncan Dickinson
  * 
  */
 public class PlainTextExtractor {
-	public static String getPlainText(String type, String value) {
-		if (type.equals("text") || type.equals("text/plain")) {
-			return value;
-		} else if (type.equals("html") || type.equals("text/html")) {
-			Page page = new Page(value);
-			Lexer lexer = new Lexer(page);
-			Parser parser = new Parser(lexer);
-			PlainTextExtractorNodeVisitor extractor = new PlainTextExtractorNodeVisitor();
-			try {
-				parser.visitAllNodesWith(extractor);
-			} catch (ParserException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-			return extractor.getPlainText();
-		}
-		return null;
-	}
+    public static String getPlainText(String type, String value)
+            throws ParserException {
 
-	static class PlainTextExtractorNodeVisitor extends NodeVisitor {
-		StringBuilder plainText = new StringBuilder();
+        if (type == null) return null;
 
-		public void visitStringNode(Text string) {
-			plainText.append(string.getText());
-		}
+        if (type.equals("text") || type.equals("text/plain")) {
+            return value;
+        } else if (type.equals("html") || type.equals("text/html")) {
+            Page page = new Page(value);
+            Lexer lexer = new Lexer(page);
+            Parser parser = new Parser(lexer);
+            PlainTextExtractorNodeVisitor extractor = new PlainTextExtractorNodeVisitor();
 
-		public String getPlainText() {
-			return plainText.toString();
-		}
-	}
+            parser.visitAllNodesWith(extractor);
+
+            return extractor.getPlainText();
+        }
+        return null;
+    }
+
+    static class PlainTextExtractorNodeVisitor extends NodeVisitor {
+        StringBuilder plainText = new StringBuilder();
+
+        public void visitStringNode(Text string) {
+            plainText.append(string.getText());
+        }
+
+        public String getPlainText() {
+            return plainText.toString();
+        }
+    }
 }
