@@ -21,7 +21,7 @@
 	</licenses>
 	<issueManagement>
 		<system>Trac</system>
-		<url>http://fascinator.usq.edu.au/trac/</url>
+		<url>http://fascinator.usq.edu.au/trac</url>
 	</issueManagement>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

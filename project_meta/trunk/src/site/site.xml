@@ -2,7 +2,7 @@
 <project name="The Fascinator">
 	<bannerLeft>
 		<name>The Fascinator</name>
-		<src>http://fascinator.usq.edu.au/skin/logo_small.png</src>
+		<src>images/logo_small.png</src>
 		<href>http://fascinator.usq.edu.au</href>
 		<alt>Link to The Fascinator home page</alt>
 	</bannerLeft>
@@ -17,18 +17,6 @@
 			<item name="Wiki" href="http://fascinator.usq.edu.au/trac/wiki" />
 			<item name="Trac" href="http://fascinator.usq.edu.au/trac" />
 		</links>
-
-		<menu name="Development Code">
-			<item name="The Fascinator" href="the-fascinator/" />
-			<!--
-				<item name="Contributed Plugins"
-				href="/maven-site/au.edu.usq.fascinator.contrib/fascinator/" />
-			-->
-			<!--
-				<item name="Maven Plugins"
-				href="/maven-site/au.edu.usq.fascinator.contrib/maven/" />
-			-->
-		</menu>
 
 		<menu name="Other Applications">
 			<item name="Watcher" href="http://fascinator.usq.edu.au/trac/wiki/Watcher" />
