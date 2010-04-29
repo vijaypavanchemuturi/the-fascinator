@@ -206,7 +206,10 @@ if pid == metaPid:
     
     if formatList == []:
         payload = object.getPayload(object.getSourceId())
-        formatList.append(payload.getContentType())
+        if payload.getContentType():
+            formatList.append(payload.getContentType())
+        else:
+            formatList.append("Unknown")
     
     indexList("dc_title", titleList)
     indexList("dc_creator", creatorList)  #no dc_author in schema.xml, need to check

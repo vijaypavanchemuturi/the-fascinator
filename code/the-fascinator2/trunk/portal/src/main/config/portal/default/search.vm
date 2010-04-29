@@ -214,7 +214,7 @@
               <div class="locked">$role</div>
               #end
           </div>
-          <a class="admin-delete-link" rel="$id" href="#">Delete Object</a>
+          <a class="admin-delete-link" rel="$id" title="$title" href="#">Delete Object</a>
         </div>
         #end
         <h3>
@@ -694,11 +694,12 @@ $(function() {
     var me = null;
     $(".admin-delete-link").click(function() {
         recordId = $(this).attr("rel");
+        title = $(this).attr("title");
         me = $(this);
         $("#delete-message").empty();
         $("#delete-error").hide();
         $("#delete-dialog").dialog('open');
-        $("#delete-legend").html(recordId);
+        $("#delete-legend").html(title);
         return false;
     });
 

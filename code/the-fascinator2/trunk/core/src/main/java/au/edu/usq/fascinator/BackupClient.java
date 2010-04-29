@@ -31,6 +31,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.FilenameUtils;
@@ -44,9 +45,11 @@ import au.edu.usq.fascinator.api.indexer.Indexer;
 import au.edu.usq.fascinator.api.indexer.IndexerException;
 import au.edu.usq.fascinator.api.indexer.SearchRequest;
 import au.edu.usq.fascinator.api.storage.DigitalObject;
+import au.edu.usq.fascinator.api.storage.Payload;
 import au.edu.usq.fascinator.api.storage.Storage;
 import au.edu.usq.fascinator.common.JsonConfig;
 import au.edu.usq.fascinator.common.JsonConfigHelper;
+import au.edu.usq.fascinator.common.storage.StorageUtils;
 
 /**
  * To backup the DigitalObject indexed in Solr
@@ -324,8 +327,6 @@ public class BackupClient {
 
             IgnoreFilter ignoreFilter = new IgnoreFilter(filterString
                     .split("\\|"));
-            // boolean includeMeta = Boolean.parseBoolean(backupProps.get(
-            // "include-rendition-meta").toString());
             boolean active = Boolean.parseBoolean(backupProps.get("active")
                     .toString());
             boolean includePortal = Boolean.parseBoolean(backupProps
@@ -353,31 +354,31 @@ public class BackupClient {
 
                     // List all the files to be backup-ed
                     // TODO: should the rules be backuped as well?
+                    log.info("" + js);
                     for (Object oid : js.getList("response/docs/id")) {
                         String objectId = oid.toString();
                         DigitalObject digitalObject = realStorage
                                 .getObject(objectId);
-                        log
-                                .info("Backing up object: {}", digitalObject
-                                        .getId());
-                        // Original File
-                        // FIXME update to API
-                        // destinationStorage.addObject(digitalObject);
+                        String originalFilePath = digitalObject.getMetadata()
+                                .getProperty("file.path");
+                        File originalFile = new File(originalFilePath);
+                        // Backup Original File
+                        DigitalObject newObject = StorageUtils.storeFile(
+                                destinationStorage, originalFile, false);
 
-                        // List all the payloads
-                        // NOTE: currently if the above object added, the
-                        // payload will be added automatically
-                        // List<Payload> payloadList = digitalObject
-                        // .getPayloadList();
-                        // if (includeMeta && payloadList.isEmpty() == false) {
-                        // for (Payload payload : payloadList) {
-                        // log.info("Backing up payload: {}", payload
-                        // .getId());
-                        // destinationStorage
-                        // .addPayload(objectId, payload);
-                        // }
-                        // }
-
+                        // Backup all the payloads
+                        Set<String> payloadIdList = digitalObject
+                                .getPayloadIdList();
+                        for (String payloadId : payloadIdList) {
+                            Payload payload = digitalObject
+                                    .getPayload(payloadId);
+                            // Check if payload already exist
+                            if (!newObject.getPayloadIdList().contains(
+                                    payloadId)) {
+                                newObject.createStoredPayload(payloadId,
+                                        payload.open());
+                            }
+                        }
                     }
 
                 } catch (PluginException e) {
@@ -446,22 +447,6 @@ public class BackupClient {
             out.close();
         }
     }
-
-    /**
-     * Change the name if it's a window file
-     * 
-     * @param fileName
-     * @return
-     */
-    // private String isWindowFile(String fileName) {
-    // // For window C: will cause error. so fix it as C_
-    // // NOTE: remember to change it back when doing restore
-    // if (System.getProperty("os.name").toLowerCase().indexOf("windows") > -1)
-    // {
-    // fileName = fileName.replace("C:", File.separator + "C_");
-    // }
-    // return fileName;
-    // }
 
     /**
      * File filter used to ignore specified files

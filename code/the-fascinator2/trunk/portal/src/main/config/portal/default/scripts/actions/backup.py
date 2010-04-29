@@ -34,7 +34,7 @@ class BackupActions:
             layout.setTitle("Backup log")
             layout.start()
             result = "<table>"
-            count = appender.getLength()
+            count = 0 #appender.getLength()
             if count == -1:
                 result += "<tr><td>Failed</td></tr>"
             elif count == 0:
