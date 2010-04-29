@@ -66,8 +66,13 @@ class SearchTreeData:
     
     def __search(self):
         query = formData.get("query")
+        searchQuery = sessionState.get("searchQuery")
         if query is None or query == "":
             query = "*:*"
+        if searchQuery and query == "*:*":
+            query = searchQuery
+        elif searchQuery:
+            query += " AND " + searchQuery
         facetField = formData.get("facet.field")
         
         req = SearchRequest(query)

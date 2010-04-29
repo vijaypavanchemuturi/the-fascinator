@@ -108,6 +108,10 @@
           <input id="view-query" name="view-query" type="text" value="$page.escapeXml($self.portal.query)" />
         </p>
         <p>
+          <label for="view-search-query">Search Query</label>
+          <input id="view-search-query" name="view-search-query" type="text" value="$page.escapeXml($self.portal.searchQuery)" />
+        </p>
+        <p>
           <label for="view-records-per-page">Records per page</label>
           <input id="view-records-per-page" name="view-records-per-page"  type="text" value="$self.portal.recordsPerPage" />
         </p>
