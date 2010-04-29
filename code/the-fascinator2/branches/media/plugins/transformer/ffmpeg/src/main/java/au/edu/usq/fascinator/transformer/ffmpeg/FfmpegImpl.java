@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,17 +38,22 @@ import org.slf4j.LoggerFactory;
 public class FfmpegImpl implements Ffmpeg {
 
     public static final String DEFAULT_EXECUTABLE = "ffmpeg";
+    public static final String DEFAULT_EXTRACTOR  = "ffprobe";
 
     private Logger log = LoggerFactory.getLogger(FfmpegImpl.class);
 
+    private boolean extraction;
     private String executable;
+    private String metadata;
 
     public FfmpegImpl() {
-        this(DEFAULT_EXECUTABLE);
+        this(DEFAULT_EXECUTABLE, DEFAULT_EXTRACTOR);
     }
 
-    public FfmpegImpl(String executable) {
+    public FfmpegImpl(String executable, String metadata) {
+        this.extraction = false;
         this.executable = executable;
+        this.metadata   = metadata;
     }
 
     @Override
@@ -80,16 +86,25 @@ public class FfmpegImpl implements Ffmpeg {
 
     private Process execute(List<String> params) throws IOException {
         List<String> cmd = new ArrayList<String>();
-        cmd.add(executable);
+        if (extraction) {
+            cmd.add(metadata);
+        } else {
+            cmd.add(executable);
+        }
         cmd.addAll(params);
         log.debug("Executing: {}", cmd);
-        return new ProcessBuilder(cmd).redirectErrorStream(true).start();
+        return new ProcessBuilder(cmd).start();
     }
 
     private Process waitFor(Process proc, OutputStream out) {
         new InputHandler("stdout", proc.getInputStream(), out).start();
+        new InputGobbler("stderr", proc.getErrorStream()).start();
         try {
+            // Wait for execution to finish
             proc.waitFor();
+            // We need a tiny pause on Solaris
+            //  or consecutive calls will fail
+            Thread.sleep(100);
         } catch (InterruptedException ie) {
             log.error("ffmpeg was interrupted!", ie);
             proc.destroy();
@@ -103,7 +118,16 @@ public class FfmpegImpl implements Ffmpeg {
     }
 
     @Override
-    public String executeAndWait(List<String> params) throws IOException {
+    public String extract(List<String> params) throws IOException {
+        this.extraction = true;
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        executeAndWait(params, out);
+        this.extraction = false;
+        return out.toString("UTF-8");
+    }
+
+    @Override
+    public String transform(List<String> params) throws IOException {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         executeAndWait(params, out);
         return out.toString("UTF-8");

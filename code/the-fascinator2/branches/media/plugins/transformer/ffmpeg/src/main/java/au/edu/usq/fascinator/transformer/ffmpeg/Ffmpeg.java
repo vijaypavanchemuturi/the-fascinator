@@ -33,7 +33,9 @@ public interface Ffmpeg {
 
     public boolean isAvailable();
 
-    public String executeAndWait(List<String> params) throws IOException;
+    public String extract(List<String> params) throws IOException;
+
+    public String transform(List<String> params) throws IOException;
 
     public FfmpegInfo getInfo(File inputFile) throws IOException;
 
