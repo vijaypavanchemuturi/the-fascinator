@@ -9,17 +9,19 @@
   <script type="text/javascript" src="$portalPath/js/amq/amq_jquery_adapter.js"></script>
   <script type="text/javascript" src="$portalPath/js/amq/amq.js"></script>
   <script type="text/javascript">
+      var amq = org.activemq.Amq;
+      var clientId = "workflow_$oid";
+      var clientTopic = "topic://message";
       function waitRender(message) {
           var json = this.JSON.parse(message.nodeValue);
           $("#render-list").append("<li>" + json.message + "</li>");
           if (json.status == "renderComplete" && json.id == "$oid") {
-              amq.removeListener("tf_messages");
+              amq.removeListener(clientId, clientTopic);
               window.location = "$portalPath/workflow/$oid";
           }
       }
-      var amq = org.activemq.Amq;
       amq.init({ uri: "$contextPath/amq/", timeout: 10 });
-      amq.addListener("tf_messages", "topic://message", waitRender);
+      amq.addListener(clientId, clientTopic, waitRender);
   </script>
 #end
 
