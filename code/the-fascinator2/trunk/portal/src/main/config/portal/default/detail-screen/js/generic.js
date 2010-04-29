@@ -39,7 +39,12 @@ $(function() {
     fixLinks("", "div.content-preview-inline img", "src", "$oid");
 
     $(".open-this").click(function() {
-        jQuery.post("$portalPath/open.ajax", { func: "open-file", file: "$oid" } );
+        jQuery.post("$portalPath/open.ajax", { oid: "$oid" },
+            function(data, status) {
+                if (data.message) {
+                    alert("Failed to open file: " + data.message);
+                }
+            }, "json");
         return false;
     });
 
