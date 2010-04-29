@@ -10,7 +10,7 @@
   <parent>
     <groupId>au.edu.usq.fascinator</groupId>
     <artifactId>organisation</artifactId>
-    <version>0.1.1</version>
+    <version>0.3.0-SNAPSHOT</version>
   </parent>
   <description>The Desktop Fascinator is an experimental software package based on The Fascinator, which is inspired by the ongoing problem of getting eResearch data/metadata and publications into repositories where they can be backed up, preserved and shared with a network of other researchers.</description>
   <url>http://fascinator.usq.edu.au</url>
