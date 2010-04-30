@@ -29,8 +29,11 @@ $(function() {
             height = 24;
         }
         var style = "display: block; width: 425px; height: " + height + "px";
-        var filename = oid.substring(oid.lastIndexOf("/") + 1);
+        //var filename = oid.substring(oid.lastIndexOf("/") + 1);
+        var filename = "$sourceId";
+        filename = filename.substring(filename.lastIndexOf("/") + 1);
         var ext = filename.substring(filename.lastIndexOf(".") + 1).toLowerCase();
+        
         var hasFlv = "$self.hasFlv()";
         if (hasFlv!='') {
             filename = hasFlv;
@@ -40,7 +43,7 @@ $(function() {
             var player1 = '<div href="' + href + '" id="player" style="' + style + '"></div>'; 
             $("#player-container").attr("style", "width: 300px; height: " + height + "px").html(player1);
             player = flowplayer("player", {src:"$portalPath/flowplayer/flowplayer-3.1.5.swf", wmode:'opaque'},
-                { clip: { autoPlay: false, autoBuffering: true },
+                { clip: { autoPlay: true, autoBuffering: true },
                   play: {
                     label: "Play",
                     replayLabel: "Click to play again"
