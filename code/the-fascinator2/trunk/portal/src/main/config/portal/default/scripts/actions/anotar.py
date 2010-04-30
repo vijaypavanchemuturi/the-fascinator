@@ -15,16 +15,17 @@ class AnotarData:
         self.rootUri = formData.get("rootUri")
         self.json = formData.get("json")
         self.type = formData.get("type")
+        self.rootUriList = formData.getValues("rootUriList")
         print " * anotar.py : '" + self.action + "' : ", formData
 
         # ?? media fragment stuff?
-        if self.rootUri.find("?ticks") > -1:
+        if self.rootUri and self.rootUri.find("?ticks") > -1:
             self.rootUri = self.rootUri[:self.rootUri.find("?ticks")]
 
         # Portal path info
         portalPath = contextPath + "/" + portalId + "/"
         self.oid = self.rootUri
-        if self.oid.startswith(portalPath):
+        if self.oid and self.oid.startswith(portalPath):
             self.oid = self.oid[len(portalPath):]
 
         if self.action == "getList":
@@ -211,8 +212,13 @@ class AnotarData:
         return self.json
 
     def search_solr(self):
-        query = "(rootUri:\"" + self.rootUri + "\""
+        query = "(rootUri:"
+        if self.rootUriList:
+            query += "(" + " OR ".join(self.rootUriList) + ")"
+        else:
+            query += "\"" + self.rootUri + "\""
         query += " AND type:\"" + self.type + "\")"
+        print "**********", query
 
         req = SearchRequest(query)
         req.setParam("facet", "false")
