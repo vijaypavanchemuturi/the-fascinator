@@ -142,11 +142,13 @@ class DetailData:
     def encode(self, url):
         return URLEncoder.encode(url, "UTF-8")
 
-    def formatName(self, name):
-        return name[3:4].upper() + name[4:]
+    def formatMetaName(self, name):
+        return name.replace("dc_", "DC.")
 
-    def formatValue(self, value):
-        return value
+    def formatName(self, name):
+        if name.startswith("dc_"):
+            name = name[3:]
+        return name.capitalize()
 
     def getError(self):
         payloadIdList = self.getObject().getPayloadIdList()
