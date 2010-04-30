@@ -518,7 +518,28 @@ $(function(){
         formSubmit: ".myTag-submit",
         serverAddress: "$portalPath/actions/anotar.ajax",
         disableReply: true,
-        serverMode: "fascinator"
+        serverMode: "fascinator",
+        loadAnnotations: function() {
+            var config = this;
+            var rootUriList = [];
+            jQ.each(jQ(config.tagList), function(count, item) {
+                rootUriList.push(jQ(item).attr("rel"));
+            });
+            jQ.post("$portalPath/actions/anotar.ajax",
+                { "action": "getList",
+                  "rootUriList": rootUriList,
+                  "type": config.annoType
+                },
+                function(data, status) {
+                    try{
+                        jQ.each(data, function(count, item) {
+                            config.loadAnnotation(item);
+                        });
+                    } catch(e) {
+                    }
+                },
+                "json");
+        }
     }
     tag = anotarFactory(jQ, tagConfig);
 });
