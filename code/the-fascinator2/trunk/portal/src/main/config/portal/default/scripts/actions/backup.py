@@ -4,13 +4,13 @@ from org.slf4j import Logger, LoggerFactory
 
 class BackupActions:
     def __init__(self):
-        print " * backup.py: formData=%s" % formData
+        print "formData=%s" % formData
         result = "{}"
         resultType = "text/plain; charset=UTF-8"
         portalManager = Services.getPortalManager()
         func = formData.get("func")
         if func == "backup-view":
-            print " * backup.py: backup portal %s" % portalId
+            print "Backup view %s" % portalId
             portal = portalManager.get(portalId)
             if portal:
                 portalManager.backup(portal)
@@ -26,15 +26,14 @@ class BackupActions:
         elif func == "get-log":
             context = LoggerFactory.getILoggerFactory()
             logger = context.getLogger("au.edu.usq.fascinator.BackupClient")
-            it = logger.iteratorForAppenders()
-            appender = logger.getAppender("backup")
+            appender = logger.getAppender("CYCLIC")
             layout = HTMLLayout()
             layout.setContext(context)
-            layout.setPattern("%d%level%msg")
+            layout.setPattern("%d%msg")
             layout.setTitle("Backup log")
             layout.start()
             result = "<table>"
-            count = 0 #appender.getLength()
+            count = appender.getLength()
             if count == -1:
                 result += "<tr><td>Failed</td></tr>"
             elif count == 0:

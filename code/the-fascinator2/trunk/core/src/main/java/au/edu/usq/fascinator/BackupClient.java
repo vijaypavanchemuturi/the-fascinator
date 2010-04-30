@@ -257,10 +257,11 @@ public class BackupClient {
 
         Indexer indexer;
         try {
+            File configFile = JsonConfig.getSystemFile();
             realStorage = PluginManager.getStorage(realStorageType);
             indexer = PluginManager.getIndexer(indexerType);
-            realStorage.init(config.getSystemFile());
-            indexer.init(config.getSystemFile());
+            realStorage.init(configFile);
+            indexer.init(configFile);
             log.info("Loaded {} and {}", realStorage.getName(), indexer
                     .getName());
         } catch (Exception e) {
@@ -342,7 +343,7 @@ public class BackupClient {
             Storage destinationStorage = PluginManager
                     .getStorage(destinationStorageType);
             try {
-                log.info("backupProps: " + backupProps.toString());
+                log.debug("backupProps: " + backupProps.toString());
                 destinationStorage.init(storageConfig);
             } catch (PluginException e1) {
                 // TODO Auto-generated catch block
@@ -354,13 +355,14 @@ public class BackupClient {
 
                     // List all the files to be backup-ed
                     // TODO: should the rules be backuped as well?
-                    log.info("" + js);
+                    log.debug(js.toString());
                     for (Object oid : js.getList("response/docs/id")) {
                         String objectId = oid.toString();
                         DigitalObject digitalObject = realStorage
                                 .getObject(objectId);
                         String originalFilePath = digitalObject.getMetadata()
                                 .getProperty("file.path");
+                        log.info("Backing up '{}'", originalFilePath);
                         File originalFile = new File(originalFilePath);
                         // Backup Original File
                         DigitalObject newObject = StorageUtils.storeFile(

@@ -65,7 +65,8 @@ $(function() {
             }
         }
         $("#reharvest-form").show();
-        jQuery.post("$portalPath/reharvest.ajax", { oid: "$oid" },
+        jQuery.post("$portalPath/reharvest.ajax",
+            { func: "reharvest", oid: "$oid" },
             function(data, status) {
                 amq.init({ uri: "$contextPath/amq/", timeout: 10 });
                 amq.addListener(clientId, clientTopic, waitRender);
