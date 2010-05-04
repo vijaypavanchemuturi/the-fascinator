@@ -1,6 +1,7 @@
 import md5, os
 
-from au.edu.usq.fascinator.common import FascinatorHome
+from au.edu.usq.fascinator.api.storage import PayloadType
+from au.edu.usq.fascinator.common import FascinatorHome, JsonConfigHelper
 
 from com.sun.syndication.feed.atom import Content
 from com.sun.syndication.propono.atom.client import AtomClientFactory, BasicAuthStrategy
@@ -34,7 +35,7 @@ class ProxyBasicAuthStrategy(BasicAuthStrategy):
             proxyHost = address.getHostName()
             proxyPort = address.getPort()
             httpClient.getHostConfiguration().setProxy(proxyHost, proxyPort)
-            print " * blog.py: Using proxy '%s:%s'" % (proxyHost, proxyPort)
+            print "Using proxy '%s:%s'" % (proxyHost, proxyPort)
 
 class AtomEntryPoster:
     def __init__(self):
@@ -56,9 +57,20 @@ class AtomEntryPoster:
                     oid = formData.get("oid")
                     if oid is not None:
                         self.__object = Services.getStorage().getObject(oid)
-                        content = self.__getContent(oid)
+                        sourceId = self.__object.getSourceId()
+                        payload = self.__object.getPayload(sourceId)
+                        print "payload=%s,%s" % (payload, payload.getContentType())
+                        # FIXME see https://fascinator.usq.edu.au/trac/ticket/647
+                        if payload and sourceId.endswith(".tfpackage"): #payload.getContentType() == "application/x-fascinator-package":
+                            jsonManifest = JsonConfigHelper(payload.open())
+                            print jsonManifest.toString()
+                            content = self.__getManifestContent(jsonManifest)
+                            payload.close()
+                        else:
+                            content = self.__getContent(oid)
+                        self.__object.close()
                     else:
-                        content = self.__getManifestContent(formData.get("portalId"))
+                        content = "<div>Object not found!</div>"
                     success, value = self.__post(title, content)
                 except Exception, e:
                     e.printStackTrace()
@@ -74,7 +86,7 @@ class AtomEntryPoster:
                 else:
                     responseMsg = "<p class='error'>%s</p>" % value
             except Exception, e:
-                print " * blog.py: Failed to post: %s" % e.getMessage()
+                print "Failed to post: %s" % e.getMessage()
                 responseMsg = "<p class='error'>%s</p>"  % e.getMessage()
         writer = response.getPrintWriter(responseType)
         writer.println(responseMsg)
@@ -97,28 +109,27 @@ class AtomEntryPoster:
             f.createNewFile()
         return f
     
-    def __getManifestContent(self, portalId):
-        portal = Services.getPortalManager().get(portalId)
-        manifest = portal.getJsonMap("manifest")
+    def __getManifestContent(self, jsonManifest):
+        manifest = jsonManifest.getJsonMap("manifest")
         contentStr = "<div>"
         for key in manifest.keySet():
             item = manifest.get(key)
-            if item.get("hidden", "false") == "false":
+            if item.get("hidden", "False") == "False":
                 contentStr += "<div><h2>%s</h2>" % item.get("title")
                 contentStr += self.__getContent(item.get("id"))
                 contentStr += "</div>"
         contentStr += "</div>"
-        print "[\n%s\n]" % contentStr
         return contentStr
     
     def __getContent(self, oid):
-        content = "<div>content not found!</div>"
+        print "getting content for '%s'" % oid
+        content = "<div>Content not found!</div>"
         slash = oid.rfind("/")
-        payload = self.__getPreviewPayload()
+        payload = self.__getPreviewPayload(oid)
         pid = payload.getId()
-        print " * blog.py: preview payload: %s" % payload
+        print "preview payload: %s" % payload
         if payload is None:
-            print " * blog.py: Failed to get content: %s" % oid
+            print "Failed to get content: %s" % oid
             return ""
         else:
             mimeType = payload.getContentType()
@@ -132,26 +143,26 @@ class AtomEntryPoster:
             else:
                 content = "<div>unsupported content type: %s</div>" % mimeType
         content, doc = self.__tidy(content)
-        content = self.__processMedia(doc, content)
+        content = self.__processMedia(oid, doc, content)
         return content
     
-    def __getPreviewPayload(self):
-        payloadIdList = self.__object.getPayloadIdList()
+    def __getPreviewPayload(self, oid):
+        object = self.__getObject(oid)
+        payloadIdList = object.getPayloadIdList()
         for payloadId in payloadIdList:
             try:
-                payload = self.__object.getPayload(payloadId)
-                if str(payload.getType()) == "Preview":
+                payload = object.getPayload(payloadId)
+                print "%s: %s" % (payloadId, payload.getType())
+                if PayloadType.Preview == payload.getType():
                     return payload
             except Exception, e:
                 pass
         return None
     
     def __getPayloadAsString(self, payload):
-        sw = StringWriter()
-        IOUtils.copy(payload.open(), sw)
-        sw.flush()
-        payload.close()
-        return sw.toString()
+        payloadStr = IOUtils.toString(payload.open(), "UTF-8")
+        payload.close();
+        return payloadStr
     
     def __tidy(self, content):
         tidy = Tidy()
@@ -163,35 +174,37 @@ class AtomEntryPoster:
         tidy.setXHTML(False)
         tidy.setNumEntities(True)
         out = ByteArrayOutputStream()
-        doc = tidy.parseDOM(ByteArrayInputStream(String(content).getBytes()), out)
+        doc = tidy.parseDOM(IOUtils.toInputStream(content, "UTF-8"), out)
         content = out.toString("UTF-8")
         return content, doc
     
-    def __processMedia(self, doc, content):
-        content = self.__uploadMedia(doc, content, "a", "href")
-        content = self.__uploadMedia(doc, content, "img", "src")
+    def __processMedia(self, oid, doc, content):
+        content = self.__uploadMedia(oid, doc, content, "a", "href")
+        content = self.__uploadMedia(oid, doc, content, "img", "src")
         return content
     
-    def __uploadMedia(self, doc, content, elem, attr):
+    def __uploadMedia(self, oid, doc, content, elem, attr):
         links = doc.getElementsByTagName(elem)
         for i in range(0, links.getLength()):
             elem = links.item(i)
             attrValue = elem.getAttribute(attr)
-            if attrValue == '':
+            if attrValue == '' or attrValue.startswith("#") \
+                or attrValue.startswith("mailto:") \
+                or attrValue.find("://") != -1:
                 continue
             pid = attrValue
-            print " * blog.py: uploading '%s' (%s, %s)" % (pid, elem.tagName, attr)
+            print "uploading '%s' (%s, %s)" % (pid, elem.tagName, attr)
             found = False
             try:
-                payload = self.__object.getPayload(pid)
+                payload = self.__getObject(oid).getPayload(pid)
                 found = True
             except Exception, e:
                 pid = URLDecoder.decode(pid, "UTF-8")
                 try:
-                    payload = self.__object.getPayload(pid)
+                    payload = self.__getObject(oid).getPayload(pid)
                     found = True
                 except Exception, e:
-                    print " * blog.py: payload not found '%s'" % pid
+                    print "payload not found '%s'" % pid
             if found:
                 #HACK to upload PDFs
                 contentType = payload.getContentType().replace("application/", "image/")
@@ -199,13 +212,13 @@ class AtomEntryPoster:
                 payload.close()
                 if entry is not None:
                     id = entry.getId()
-                    print " * blog.py: replacing %s with %s" % (attrValue, id)
+                    print "replacing %s with %s" % (attrValue, id)
                     content = content.replace('%s="%s"' % (attr, attrValue),
                                               '%s="%s"' % (attr, id))
                     content = content.replace("%s='%s'" % (attr, attrValue),
                                               "%s='%s'" % (attr, id))
                 else:
-                    print " * blog.py: failed to upload %s" % pid
+                    print "failed to upload %s" % pid
         return content
     
     def __getCollection(self, type):
@@ -215,7 +228,7 @@ class AtomEntryPoster:
         return None
     
     def __postMedia(self, slug, type, media):
-        print " * blog.py: uploading media %s, %s" % (slug, type)
+        print "uploading media %s, %s" % (slug, type)
         collection = self.__getCollection(type)
         if collection is not None:
             entry = collection.createMediaEntry(slug, slug, type, media)
@@ -234,6 +247,11 @@ class AtomEntryPoster:
         else:
             return False, "No valid collection found"
         return False, "An unknown error occured"
+    
+    def __getObject(self, oid):
+        if self.__object and self.__object.getId() == oid:
+            return self.__object
+        return Services.getStorage().getObject(oid)
     
 
 scriptObject = AtomEntryPoster()
