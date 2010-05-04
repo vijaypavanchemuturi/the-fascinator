@@ -244,8 +244,10 @@ if pid == metaPid:
     if baseFilePath:
         #NOTE: need to change again if the json file accept forward slash in window
         #get the base folder
-        baseDir = baseFilePath.rstrip("/")
-        baseDir = "/%s/" % baseDir[baseDir.rfind("/")+1:]
+        baseFilePath = baseFilePath.replace("\\", "/")
+        if not baseFilePath.endswith("/"):
+           baseFilePath = "%s/" % baseFilePath
+        baseDir = baseFilePath[baseFilePath.rstrip("/").rfind("/")+1:]
         filePath = filePath.replace("\\", "/").replace(baseFilePath, baseDir)
     indexPath("file_path", filePath, includeLastPart=False)
     
