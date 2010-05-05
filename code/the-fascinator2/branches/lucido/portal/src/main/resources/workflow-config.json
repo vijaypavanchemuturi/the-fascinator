@@ -1,7 +1,0 @@
-{
-    "workflow-harvester": {
-        "screen-label": "Workflow Harvester",
-        "upload-path": "${user.home}/.fascinator/uploads/workflow-harvester",
-        "json-config": "${user.home}/.fascinator/workflows/workflow-harvester.json"
-    }
-}
