@@ -18,18 +18,6 @@
  */
 package au.edu.usq.fascinator.transformer.aperture;
 
-import au.edu.usq.fascinator.api.PluginException;
-import au.edu.usq.fascinator.api.storage.DigitalObject;
-import au.edu.usq.fascinator.api.storage.Payload;
-import au.edu.usq.fascinator.api.storage.PayloadType;
-import au.edu.usq.fascinator.api.storage.StorageException;
-import au.edu.usq.fascinator.api.transformer.Transformer;
-import au.edu.usq.fascinator.api.transformer.TransformerException;
-import au.edu.usq.fascinator.common.JsonConfig;
-import au.edu.usq.fascinator.common.JsonConfigHelper;
-import au.edu.usq.fascinator.common.MimeTypeUtil;
-import au.edu.usq.fascinator.common.storage.StorageUtils;
-
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -59,6 +47,17 @@ import org.semanticdesktop.aperture.rdf.impl.RDFContainerImpl;
 import org.semanticdesktop.aperture.vocabulary.NIE;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import au.edu.usq.fascinator.api.PluginException;
+import au.edu.usq.fascinator.api.storage.DigitalObject;
+import au.edu.usq.fascinator.api.storage.Payload;
+import au.edu.usq.fascinator.api.storage.PayloadType;
+import au.edu.usq.fascinator.api.storage.StorageException;
+import au.edu.usq.fascinator.api.transformer.Transformer;
+import au.edu.usq.fascinator.api.transformer.TransformerException;
+import au.edu.usq.fascinator.common.JsonConfigHelper;
+import au.edu.usq.fascinator.common.MimeTypeUtil;
+import au.edu.usq.fascinator.common.storage.StorageUtils;
 
 /**
  * Provides static methods for extracting RDF metadata from a given file.
@@ -370,8 +369,8 @@ public class ApertureTransformer implements Transformer {
         // Watcher files
         filePath = config.get("sourceFile");
         // Other files need a cache directory
-        outputPath = config.get("aperture/outputPath",
-                System.getProperty("java.io.tmpdir"));
+        outputPath = config.get("aperture/outputPath", System
+                .getProperty("java.io.tmpdir"));
     }
 
     /**
@@ -425,11 +424,10 @@ public class ApertureTransformer implements Transformer {
                 RDFContainer rdf = extractRDF(inFile, oid.toURI().toString());
                 if (rdf != null) {
                     log.info("Done extraction: " + rdf.getClass());
-                    Payload rdfPayload = StorageUtils
-                            .createOrUpdatePayload(in, "aperture.rdf",
-                                    new ByteArrayInputStream(
-                                            stripNonValidXMLCharacters(rdf)
-                                                    .getBytes("UTF-8")));
+                    Payload rdfPayload = StorageUtils.createOrUpdatePayload(in,
+                            "aperture.rdf", new ByteArrayInputStream(
+                                    stripNonValidXMLCharacters(rdf).getBytes(
+                                            "UTF-8")));
                     rdfPayload.setLabel("Aperture rdf");
                     rdfPayload.setContentType("application/xml+rdf");
                     rdfPayload.setType(PayloadType.Enrichment);

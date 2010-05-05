@@ -21,7 +21,6 @@ package au.edu.usq.fascinator.common;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
-
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
 import java.nio.channels.OverlappingFileLockException;
@@ -29,13 +28,12 @@ import java.nio.channels.OverlappingFileLockException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
 /**
- * A basic file lock against a local file. For practical purposes it's
- * often best to do logic checking against a seperate '.lock' file so
- * that other code (such as a properties parser) doesn't get mixed up
- * with a lock on your 'real' file.
- *
+ * A basic file lock against a local file. For practical purposes it's often
+ * best to do logic checking against a seperate '.lock' file so that other code
+ * (such as a properties parser) doesn't get mixed up with a lock on your 'real'
+ * file.
+ * 
  * @author Greg Pendlebury
  */
 public class DummyFileLock {
@@ -47,14 +45,19 @@ public class DummyFileLock {
 
     /**
      * Creates a new lock against the file provided.
-     *
+     * 
      */
     public DummyFileLock(String new_file) throws IOException {
         file_name = new_file;
     }
 
+    /**
+     * Get Lock status of a file
+     * 
+     * @throws IOException
+     */
     public void getLock() throws IOException {
-        file  = new FileOutputStream(file_name);
+        file = new FileOutputStream(file_name);
         fileChannel = file.getChannel();
         int lockTimeout = 0;
         int lockSleepTime = 500;
@@ -63,13 +66,15 @@ public class DummyFileLock {
             // Try to get the lock
             lock = fileChannel.lock();
 
-        // If it's already locked
+            // If it's already locked
         } catch (OverlappingFileLockException e) {
             try {
                 // Check for timeout
                 lockTimeout += lockSleepTime;
                 if (lockTimeout > 60000) {
-                    log.error("File Lock Timeout error : Waited more then 60s for access to : " + file_name);
+                    log
+                            .error("File Lock Timeout error : Waited more then 60s for access to : "
+                                    + file_name);
                     fileChannel.close();
                     file.close();
                 } else {
@@ -80,16 +85,22 @@ public class DummyFileLock {
                 }
             } catch (InterruptedException ex) {
                 // We've been woken up early
-                throw new IOException("Interrupted waiting for lock! Terminating.");
+                throw new IOException(
+                        "Interrupted waiting for lock! Terminating.");
             }
         }
     }
 
+    /**
+     * Release lock of the file
+     * 
+     * @throws IOException if File not found
+     */
     public void release() throws IOException {
         if (lock.isValid()) {
             lock.release();
         }
-        if (fileChannel.isOpen()){
+        if (fileChannel.isOpen()) {
             fileChannel.close();
             file.close();
         }

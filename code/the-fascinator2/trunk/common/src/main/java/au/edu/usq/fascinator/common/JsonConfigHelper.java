@@ -50,6 +50,7 @@ import org.slf4j.LoggerFactory;
 @SuppressWarnings("unchecked")
 public class JsonConfigHelper {
 
+    /** Logging */
     private Logger log = LoggerFactory.getLogger(JsonConfigHelper.class);
 
     /** JXPath factory for creating JSON nodes */
@@ -234,10 +235,10 @@ public class JsonConfigHelper {
     }
 
     /**
-     * Get JsonConfigHelper list
+     * Get list of JsonConfigHelper of the specified node
      * 
-     * @param path
-     * @return
+     * @param path XPath to node
+     * @return node list, possibly empty
      */
     public List<JsonConfigHelper> getJsonList(String path) {
         List<Object> list = getList(path);
@@ -250,6 +251,12 @@ public class JsonConfigHelper {
         return newList;
     }
 
+    /**
+     * Get the JSON Map of the specified node
+     * 
+     * @param path XPath to node
+     * @return node map, possibly empty
+     */
     public Map<String, JsonConfigHelper> getJsonMap(String path) {
         Map<String, JsonConfigHelper> jsonMap = new LinkedHashMap<String, JsonConfigHelper>();
 
@@ -273,7 +280,7 @@ public class JsonConfigHelper {
      * Set map with its child
      * 
      * @param path XPath to node
-     * @param map
+     * @param map node Map
      */
     public void setMap(String path, Map<String, Object> map) {
         try {
@@ -286,8 +293,8 @@ public class JsonConfigHelper {
     /**
      * Set Multiple nested map on the specified path
      * 
-     * @param path
-     * @param json
+     * @param path XPath to node
+     * @param json node Map
      */
     public void setMultiMap(String path, Map<String, Object> json) {
         for (String key : json.keySet()) {
@@ -302,10 +309,10 @@ public class JsonConfigHelper {
     }
 
     /**
-     * Set Map on the specfied path
+     * Set Map on the specified path
      * 
-     * @param path
-     * @param map
+     * @param path XPath to node
+     * @param map node Map
      */
     public void setJsonMap(String path, Map<String, JsonConfigHelper> map) {
         for (String key : map.keySet()) {
@@ -364,6 +371,12 @@ public class JsonConfigHelper {
         }
     }
 
+    /**
+     * Move node from one path to another path in the JSON
+     * 
+     * @param source XPath to node
+     * @param dest XPath to node
+     */
     public void move(String source, String dest) {
         Object copyValue = getJXPath().getValue(source);
         getJXPath().removePath(source);
@@ -374,6 +387,12 @@ public class JsonConfigHelper {
         }
     }
 
+    /**
+     * Move node to a node before the specified node
+     * 
+     * @param path XPath to node
+     * @param refPath XPath to node
+     */
     public void moveBefore(String path, String refPath) {
         Map<String, Object> newMap = new LinkedHashMap<String, Object>();
         Object node = getJXPath().getValue(path);
@@ -401,6 +420,12 @@ public class JsonConfigHelper {
         setMap(refPath.substring(0, refPath.lastIndexOf('/')), newMap);
     }
 
+    /**
+     * Move node to a node after the specified node
+     * 
+     * @param path XPath to node
+     * @param refPath XPath to node
+     */
     public void moveAfter(String path, String refPath) {
         Map<String, Object> newMap = new LinkedHashMap<String, Object>();
         Object node = getJXPath().getValue(path);
@@ -456,13 +481,21 @@ public class JsonConfigHelper {
     }
 
     /**
-     * To String function
+     * Convert Json to String
+     * 
+     * @return Json configuration in String
      */
     @Override
     public String toString() {
         return toString(true);
     }
 
+    /**
+     * Convert Json to String
+     * 
+     * @param pretty state to format the layout of the Json configuration file
+     * @return Json configuration in String
+     */
     public String toString(boolean pretty) {
         String json = "{}";
         ByteArrayOutputStream out = new ByteArrayOutputStream();

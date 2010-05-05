@@ -92,6 +92,12 @@ public class JsonConfig {
         systemConfig = new JsonConfigHelper(getSystemFile());
     }
 
+    /**
+     * Create a JSON configuration from the specified input string
+     * 
+     * @param jsonString
+     * @throws IOException
+     */
     public JsonConfig(String jsonString) throws IOException {
         this(new ByteArrayInputStream(jsonString.getBytes("UTF-8")));
     }
@@ -229,6 +235,12 @@ public class JsonConfig {
         return configFile;
     }
 
+    /**
+     * Gets the JSON Map of the specified node
+     * 
+     * @param path XPath to node
+     * @return node map, possibly empty
+     */
     public Map<String, JsonConfigHelper> getJsonMap(String path) {
         Map<String, JsonConfigHelper> value = userConfig.getJsonMap(path);
         if (value == null) {
@@ -255,6 +267,11 @@ public class JsonConfig {
         return Boolean.parseBoolean(systemConfig.get("configured"));
     }
 
+    /**
+     * To check if configuration file is outdated
+     * 
+     * @return true if outdated, otherwise, return false
+     */
     public boolean isOutdated() {
         boolean outdated = false;
         String systemVersion = systemConfig.get("version");
