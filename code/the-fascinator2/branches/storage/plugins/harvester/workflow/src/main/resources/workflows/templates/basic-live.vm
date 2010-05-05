@@ -1,8 +1,0 @@
-<form method="post" action="$portalPath/workflow">
-  <fieldset class="search">
-    <p>
-      <label for="title">Title</label>
-      <input type="text" name="title" />
-    </p>
-  </fieldset>
-</form>
