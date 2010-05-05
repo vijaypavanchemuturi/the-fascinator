@@ -44,58 +44,99 @@ import au.edu.usq.fascinator.api.storage.StorageException;
  */
 public class GenericDigitalObject implements DigitalObject {
 
+    /** Logging */
     private static Logger log = LoggerFactory
             .getLogger(GenericDigitalObject.class);
 
+    /** Default metadata label */
     private static String METADATA_LABEL = "The Fascinator Indexer Metadata";
+
+    /** Default metadata payload name */
     private static String METADATA_PAYLOAD = "TF-OBJ-META";
+
+    /** Manifest Map */
     private Map<String, Payload> manifest;
+
+    /** Metadata of the DigitalObject */
     private Properties metadata;
+
+    /** Id of the DigitalObject */
     private String id;
+
+    /** Source id of the DigitalObject */
     private String sourceId;
 
     /**
      * Creates a DigitalObject with the specified identifier and no metadata
      * 
-     * @param id
-     *            unique identifier
+     * @param id unique identifier
      */
     public GenericDigitalObject(String id) {
         setId(id);
         manifest = new HashMap<String, Payload>();
     }
 
+    /**
+     * Get the manifest of the DigitalObject
+     * 
+     * @return Manifest Map
+     */
     public Map<String, Payload> getManifest() {
         return manifest;
     }
 
+    /**
+     * Gets the unique identifier for this object
+     * 
+     * @return an identifier
+     */
     @Override
     public String getId() {
         return id;
     }
 
+    /**
+     * Sets the unique identifier for this object
+     * 
+     * @param a String identifier
+     */
     @Override
     public void setId(String oid) {
-        // TODO : #554 Unique ID generation.
         // Stop assuming IDs are file paths
+        // Should be able to remove replace, as each object now has Unique ID
         id = oid.replace("\\", "/");
     }
 
+    /**
+     * Gets the Source related to this object
+     * 
+     * @return a payload id
+     */
     @Override
     public String getSourceId() {
         return sourceId;
     }
 
+    /**
+     * Sets the Source related to this object
+     * 
+     * @param a payload id
+     */
     @Override
     public void setSourceId(String pid) {
         sourceId = pid;
     }
 
+    /**
+     * Instantiates a properties object from the object's metadata payload.
+     * 
+     * @return A properties object
+     */
     @Override
     public Properties getMetadata() throws StorageException {
         if (metadata == null) {
             Map<String, Payload> man = getManifest();
-            //log.debug("Generic Manifest : " + man);
+            // log.debug("Generic Manifest : " + man);
             if (!man.containsKey(METADATA_PAYLOAD)) {
                 Payload payload = createStoredPayload(METADATA_PAYLOAD, IOUtils
                         .toInputStream(""));
@@ -119,11 +160,25 @@ public class GenericDigitalObject implements DigitalObject {
         return metadata;
     }
 
+    /**
+     * Gets the payloads related to this object
+     * 
+     * @return list of payload ids
+     */
     @Override
     public Set<String> getPayloadIdList() {
         return getManifest().keySet();
     }
 
+    /**
+     * Creates a new stored payload on the object
+     * 
+     * @param pid A string identifier
+     * @param in An inputStream to the new payload's contents
+     * @return a payload
+     * @throws StorageException if there was an error creating the payload or
+     *             the ID already exists.
+     */
     @Override
     public Payload createStoredPayload(String pid, InputStream in)
             throws StorageException {
@@ -132,6 +187,15 @@ public class GenericDigitalObject implements DigitalObject {
         return payload;
     }
 
+    /**
+     * Creates a new linked payload on the object
+     * 
+     * @param pid A string identifier
+     * @param linkPath A string showing the path to the linked file
+     * @return a payload
+     * @throws StorageException if there was an error creating the payload or
+     *             the ID already exists.
+     */
     @Override
     public Payload createLinkedPayload(String pid, String linkPath)
             throws StorageException {
@@ -145,6 +209,15 @@ public class GenericDigitalObject implements DigitalObject {
         return payload;
     }
 
+    /**
+     * Create payload for the object
+     * 
+     * @param pid a String identifier
+     * @param linked A state showing if the payload is linked or stored
+     * @return a payload
+     * @throws StorageException if there was an error creating the payload or
+     *             the ID already exists
+     */
     private GenericPayload createPayload(String pid, boolean linked)
             throws StorageException {
         Map<String, Payload> man = getManifest();
@@ -165,6 +238,14 @@ public class GenericDigitalObject implements DigitalObject {
         return payload;
     }
 
+    /**
+     * Gets the payload with the specified identifier
+     * 
+     * @param pid payload identifier
+     * @return a payload
+     * @throws StorageException if there was an error instantiating the payload
+     *             or the ID does not exist.
+     */
     @Override
     public Payload getPayload(String pid) throws StorageException {
         Map<String, Payload> man = getManifest();
@@ -175,6 +256,12 @@ public class GenericDigitalObject implements DigitalObject {
         }
     }
 
+    /**
+     * Remove a payload from the object
+     * 
+     * @param a payload identifier
+     * @throws StorageException if there was an error removing the payload
+     */
     @Override
     public void removePayload(String pid) throws StorageException {
         Map<String, Payload> man = getManifest();
@@ -188,6 +275,15 @@ public class GenericDigitalObject implements DigitalObject {
         }
     }
 
+    /**
+     * Updates a payload's contents
+     * 
+     * @param pid A string identifier
+     * @param in An InputStream to the new contetnts
+     * @return the updated payload
+     * @throws StorageException if there was an error updating the payload or
+     *             the ID doesn't exist.
+     */
     @Override
     public Payload updatePayload(String pid, InputStream in)
             throws StorageException {
@@ -196,6 +292,11 @@ public class GenericDigitalObject implements DigitalObject {
         return payload;
     }
 
+    /**
+     * Close the object
+     * 
+     * @throws StorageException if there was an error closing the object
+     */
     @Override
     public void close() throws StorageException {
         Map<String, Payload> man = getManifest();
@@ -218,6 +319,11 @@ public class GenericDigitalObject implements DigitalObject {
         }
     }
 
+    /**
+     * Get the id of the DigitalObject
+     * 
+     * @return id of the DigitalObject
+     */
     @Override
     public String toString() {
         return getId();

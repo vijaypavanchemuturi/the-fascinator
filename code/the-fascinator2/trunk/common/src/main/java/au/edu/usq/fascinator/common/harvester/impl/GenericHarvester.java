@@ -37,17 +37,33 @@ import au.edu.usq.fascinator.common.JsonConfig;
  */
 public abstract class GenericHarvester implements Harvester {
 
+    /** Harvester id and harvester name */
     private String id, name;
 
+    /** Config file */
     private JsonConfig config;
 
+    /** Storage instance that the Harvester will use to manage objects */
     private Storage storage;
 
+    /**
+     * Constructor
+     * 
+     * @param id Harvester Id
+     * @param name Harvester Name
+     */
     public GenericHarvester(String id, String name) {
         this.id = id;
         this.name = name;
     }
 
+    /**
+     * Get an individual uploaded file as a digital object. For consistency this
+     * should be in a list.
+     * 
+     * @return a list of one object ID
+     * @throws HarvesterException if there was an error retrieving the objects
+     */
     @Override
     public Set<String> getObjectId(File uploadedFile) throws HarvesterException {
         // By default don't support uploaded files
@@ -55,18 +71,37 @@ public abstract class GenericHarvester implements Harvester {
                 "This plugin does not support uploaded files");
     }
 
+    /**
+     * Gets a list of deleted digital object IDs. If there are no deleted
+     * objects, this method should return an empty list, not null.
+     * 
+     * @return a list of objects IDs, possibly empty
+     * @throws HarvesterException if there was an error retrieving the objects
+     */
     @Override
     public Set<String> getDeletedObjectIdList() throws HarvesterException {
         // By default, don't support deleted objects
         return Collections.emptySet();
     }
 
+    /**
+     * Tests whether there are more objects to retrieve. This method should
+     * return true if called before getObjects.
+     * 
+     * @return true if there are more objects to retrieve, false otherwise
+     */
     @Override
     public boolean hasMoreDeletedObjects() {
         // By default, don't support deleted objects
         return false;
     }
 
+    /**
+     * Get storage instance that the Harvester will use to manage objects.
+     * 
+     * @return storage instance
+     * @throws HarvesterException if storage plugin is not set
+     */
     public Storage getStorage() throws HarvesterException {
         if (storage == null) {
             throw new HarvesterException("Storage plugin has not been set!");
@@ -74,21 +109,42 @@ public abstract class GenericHarvester implements Harvester {
         return storage;
     }
 
+    /**
+     * Sets the Storage instance that the Harvester will use to manage objects.
+     * 
+     * @param storage a storage instance
+     */
     @Override
     public void setStorage(Storage storage) {
         this.storage = storage;
     }
 
+    /**
+     * Gets an identifier for Harvester plugin
+     * 
+     * @return the plugin type id
+     */
     @Override
     public String getId() {
         return id;
     }
 
+    /**
+     * Get a name for Harvester plugin
+     * 
+     * @return the plugin name
+     */
     @Override
     public String getName() {
         return name;
     }
 
+    /**
+     * Initialises the plugin using the specified JSON configuration
+     * 
+     * @param jsonFile JSON configuration file
+     * @throws PluginException if there was an error during initialisation
+     */
     @Override
     public void init(File jsonFile) throws PluginException {
         try {
@@ -99,6 +155,12 @@ public abstract class GenericHarvester implements Harvester {
         }
     }
 
+    /**
+     * Initialises the plugin using the specified JSON String
+     * 
+     * @param jsonFile JSON configuration file
+     * @throws PluginException if there was an error during initialisation
+     */
     @Override
     public void init(String jsonString) throws PluginException {
         try {
@@ -109,13 +171,29 @@ public abstract class GenericHarvester implements Harvester {
         }
     }
 
+    /**
+     * Abstract method for Harvester plugin
+     * 
+     * @throws HarvesterException if there was an error during initialisation
+     */
     public abstract void init() throws HarvesterException;
 
+    /**
+     * Shuts down the plugin
+     * 
+     * @throws PluginException if there was an error during shutdown
+     */
     @Override
     public void shutdown() throws PluginException {
         // By default do nothing
     }
 
+    /**
+     * Get config file
+     * 
+     * @return config file
+     * @throws HarvesterException if there was an error during retrieval
+     */
     public JsonConfig getJsonConfig() throws HarvesterException {
         if (config == null) {
             try {

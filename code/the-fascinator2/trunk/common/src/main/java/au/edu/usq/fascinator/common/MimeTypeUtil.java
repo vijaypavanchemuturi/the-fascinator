@@ -37,10 +37,13 @@ import org.slf4j.LoggerFactory;
  */
 public class MimeTypeUtil {
 
+    /** Default Mime Type */
     public static final String DEFAULT_MIME_TYPE = "application/octet-stream";
 
+    /** Logging */
     private static Logger log = LoggerFactory.getLogger(MimeTypeUtil.class);
 
+    /** Identifier */
     private static MimeTypeIdentifier identifier = new MagicMimeTypeIdentifier();
 
     /**
@@ -107,6 +110,12 @@ public class MimeTypeUtil {
         return DEFAULT_MIME_TYPE;
     }
 
+    /**
+     * Print Exception in readable format
+     * 
+     * @param e Exception
+     * @return Readable version of Exception
+     */
     private static String toPrintable(Exception e) {
         String msg = e.getMessage();
         if (StringUtils.isAsciiPrintable(msg)) {
