@@ -1,0 +1,33 @@
+#if($isPackage)
+  <div class="box hidden" id="sword-form">
+    <h2>SWORD Deposit</h2>
+    <form id="sword" method="post">
+      <fieldset class="login">
+        <legend>Service information</legend>
+        <p>
+          <label for="sword_url">Service URL</label>
+          <input type="text" id="sword_url" name="sword_url" />
+        </p>
+        <p>
+          <label for="sword_username">Username</label>
+          <input type="text" id="sword_username" name="sword_username" />
+        </p>
+        <p>
+          <label for="sword_password">Password</label>
+          <input type="password" id="sword_password" name="sword_password" />
+        </p>
+        <p id="sword-collections" class="hidden">
+          <label for="sword_collections">Collections</label>
+          <select id="sword_collections"></select>
+        </p>
+        <p class="message">
+          <img class="hidden" id="sword-loading" src="$portalPath/images/icons/loading.gif" />
+          <span id="sword-message"></span>
+        </p>
+        <input class="button" id="sword-start" type="button" value="Get collections" />
+        <input disabled="disabled" id="sword-accept" type="button" value="Deposit" />
+        <input id="sword-cancel" type="button" value="Close" />
+      </fieldset>
+    </form>
+  </div>
+#end
