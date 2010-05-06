@@ -56,21 +56,34 @@ import au.edu.usq.fascinator.common.storage.StorageUtils;
  */
 public class HarvestQueueConsumer implements MessageListener {
 
+    /** Harvest Queue name */
     public static final String HARVEST_QUEUE = "harvest";
 
     /** Logging */
     private Logger log = LoggerFactory.getLogger(HarvestQueueConsumer.class);
 
+    /** JSON configuration */
     private JsonConfig config;
 
+    /** Indexer object */
     private Indexer indexer;
 
+    /** Storage */
     private Storage storage;
 
+    /** Messaging Services */
     private MessagingServices services;
 
+    /** Messaging Consumer */
     private MessageConsumer consumer;
 
+    /**
+     * Harvest Queue Consumer Constructor
+     * 
+     * @throws IOException if Configuration File not found
+     * @throws JAXBException if XMl binding error
+     * @throws PluginException if plugins fail to initialise
+     */
     public HarvestQueueConsumer() throws IOException, JAXBException,
             PluginException {
         try {
@@ -91,6 +104,11 @@ public class HarvestQueueConsumer implements MessageListener {
         }
     }
 
+    /**
+     * Start the harvest queue consumer
+     * 
+     * @throws JMSException if an error occurred starting the JMS connections
+     */
     public void start() throws JMSException {
         log.info("Starting harvest queue consumer...");
         services = MessagingServices.getInstance();
@@ -99,6 +117,9 @@ public class HarvestQueueConsumer implements MessageListener {
         consumer.setMessageListener(this);
     }
 
+    /**
+     * Stop the Harvest Queue consumer. Including: indexer and storage
+     */
     public void stop() {
         log.info("Stopping harvest queue consumer...");
         if (indexer != null) {
@@ -173,6 +194,13 @@ public class HarvestQueueConsumer implements MessageListener {
         }
     }
 
+    /**
+     * Send the notification to Messaging service
+     * 
+     * @param oid Object Id
+     * @param status Status of the object
+     * @param message Message to be sent
+     */
     private void sendNotification(String oid, String status, String message) {
         JsonConfigHelper jsonMessage = new JsonConfigHelper();
         jsonMessage.set("id", oid);
@@ -183,10 +211,26 @@ public class HarvestQueueConsumer implements MessageListener {
                 .toString());
     }
 
+    /**
+     * Queue the render job
+     * 
+     * @param oid Object id
+     * @param json Configuration string
+     */
     private void queueRenderJob(String oid, String json) {
         services.queueMessage(RenderQueueConsumer.RENDER_QUEUE, json);
     }
 
+    /**
+     * Process the object through Extractor transformer
+     * 
+     * @param rulesFile Rule file used for indexing
+     * @param jsonStr JSON Configuration string
+     * @param oid object id
+     * @param path path of the object
+     * @throws StorageException If fail to retrieve the object from the storage
+     * @throws IOException If the object is not found
+     */
     private void processObject(File rulesFile, String jsonStr, String oid,
             String path) throws StorageException, IOException {
         try {

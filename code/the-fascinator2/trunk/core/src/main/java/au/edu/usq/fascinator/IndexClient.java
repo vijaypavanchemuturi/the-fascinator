@@ -70,7 +70,7 @@ public class IndexClient {
     /** Logging **/
     private static Logger log = LoggerFactory.getLogger(IndexClient.class);
 
-    /** configuration file **/
+    /** Configuration file **/
     private File configFile;
 
     /** JsonConfiguration for the configuration file **/
@@ -89,7 +89,7 @@ public class IndexClient {
     /**
      * IndexClient Constructor
      * 
-     * @throws IOException
+     * @throws IOException If initialisation fail
      */
     public IndexClient() throws IOException {
         config = new JsonConfig();
@@ -100,8 +100,8 @@ public class IndexClient {
     /**
      * IndexClient Constructor
      * 
-     * @param jsonFile
-     * @throws IOException
+     * @param jsonFile Configuration file
+     * @throws IOException If initialisation fail
      */
     public IndexClient(File jsonFile) throws IOException {
         configFile = jsonFile;
@@ -152,7 +152,8 @@ public class IndexClient {
         for (String objectId : objectIdList) {
             try {
                 DigitalObject object = realStorage.getObject(objectId);
-                processObject(object, rulesOid, config.getMap("indexer/params"), false);
+                processObject(object, rulesOid,
+                        config.getMap("indexer/params"), false);
             } catch (StorageException ex) {
                 log.error("Error getting rules file", ex);
             } catch (IOException ex) {
@@ -170,7 +171,7 @@ public class IndexClient {
      * TODO: Might let the user to fill in form in the portal regards to which
      * rules to be used
      * 
-     * @param objectId
+     * @param objectId Object Id to be indexed
      */
     public void indexObject(String objectId) {
         DigitalObject object = null;
@@ -198,7 +199,7 @@ public class IndexClient {
     /**
      * Index objects found in the portal
      * 
-     * @param portalName
+     * @param portalQuery Portal query to retrieve the objects to be indexed
      */
     public void indexPortal(String portalQuery) {
         DateFormat df = new SimpleDateFormat(DATETIME_FORMAT);
@@ -264,16 +265,16 @@ public class IndexClient {
     /**
      * Start to process indexing
      * 
-     * @param object
-     * @param rulesOid
-     * @param indexerParams
-     * @return
-     * @throws StorageException
-     * @throws IOException
+     * @param object Object to be processed
+     * @param rulesOid Rule used for indexing the object
+     * @param indexerParams Additional parameter for indexing purpose
+     * @return Processed object id
+     * @throws StorageException If error when retrieveing the object
+     * @throws IOException If object file not found
      */
     private String processObject(DigitalObject object, String rulesOid,
             Map<String, Object> indexerParams, boolean commit)
-        throws StorageException, IOException {
+            throws StorageException, IOException {
         String oid = object.getId();
         String sid = null;
 
@@ -294,7 +295,7 @@ public class IndexClient {
     /**
      * Main function of IndexClient
      * 
-     * @param args
+     * @param args Argument list
      */
     public static void main(String[] args) {
         if (args.length < 1) {
