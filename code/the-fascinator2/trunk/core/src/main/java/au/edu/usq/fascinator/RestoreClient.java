@@ -64,7 +64,8 @@ import au.edu.usq.fascinator.common.JsonConfigHelper;
  * directory path</li>
  * </ul>
  * </li>
- * <ul></li>
+ * </ul>
+ * </li>
  * </ul>
  * 
  * 
@@ -92,6 +93,7 @@ public class RestoreClient {
     /** Default ignore filter if none defined **/
     private static final String DEFAULT_IGNORE_FILTER = ".svn|.ice|.*|~*|*~";
 
+    /** Logging */
     private static Logger log = LoggerFactory.getLogger(RestoreClient.class);
 
     /** Json configuration file **/
@@ -124,10 +126,8 @@ public class RestoreClient {
     /**
      * Backup Client Constructor
      * 
-     * @throws IOException
-     * 
-     * @throws IOException
-     * @throws PluginException
+     * @throws IOException if configuration file not found
+     * @throws PluginException if the plugin initialisation fail
      */
     public RestoreClient() throws IOException, PluginException {
         setDefaultSetting(null);
@@ -136,15 +136,21 @@ public class RestoreClient {
     /**
      * Backup Client Constructor
      * 
-     * @param jsonFile
-     * @throws IOException
-     * @throws IOException
-     * @throws PluginException
+     * @param jsonFile configuration file
+     * @throws IOException if configuration file not found
+     * @throws PluginException if the plugin initialisation fail
      */
     public RestoreClient(File jsonFile) throws IOException, PluginException {
         setDefaultSetting(jsonFile);
     }
 
+    /**
+     * Set the default setting
+     * 
+     * @param jsonFile configuration file
+     * @throws IOException if configuration file not found
+     * @throws PluginException if the plugin initialisation fail
+     */
     public void setDefaultSetting(File jsonFile) throws IOException,
             PluginException {
 
@@ -171,7 +177,9 @@ public class RestoreClient {
     /**
      * Create the md5 of the email for the user space
      * 
-     * @param email
+     * TODO: Should be removed, can get the email from system-config.json
+     * 
+     * @param email of the user
      */
     public void setEmail(String email) {
         if (email != null && email != "") {
@@ -182,7 +190,9 @@ public class RestoreClient {
     /**
      * Get the email
      * 
-     * @return email
+     * TODO: Should be removed, can get the email from system-config.json
+     * 
+     * @return email of the user
      */
     public String getEmail() {
         return email;
@@ -191,7 +201,7 @@ public class RestoreClient {
     /**
      * Set Backup location being used
      * 
-     * @param backupDir
+     * @param backupDir Backup Directory list
      */
     public void setBackupDir(Map<String, JsonConfigHelper> backupDirList) {
         this.backupDirList = backupDirList;
@@ -200,7 +210,7 @@ public class RestoreClient {
     /**
      * Return backup location
      * 
-     * @return backupDir
+     * @return backupDir Backup Directory list
      */
     public Map<String, JsonConfigHelper> getBackupDir() {
         return backupDirList;
@@ -233,6 +243,11 @@ public class RestoreClient {
                 + ((System.currentTimeMillis() - start) / 1000.0) + " seconds");
     }
 
+    /**
+     * Start restore the objects from backup directory to the storage
+     * 
+     * TODO: fix the restore
+     */
     public void startRestore() {
         for (String backupName : backupDirList.keySet()) {
             // Map<String, Object> backupProps = backupDirList.get(backupPath);
@@ -310,10 +325,10 @@ public class RestoreClient {
     /**
      * Copy portal config directory
      * 
-     * @param portalSrc
-     * @param portalDest
+     * @param portalSrc Portal config source directory
+     * @param portalDest Portal config destination directory
      * @param ignoreFilter to filter out .svn directory
-     * @throws IOException
+     * @throws IOException If portal source/destination directory not exist
      */
     private void includePortalDir(File portalSrc, File portalDest,
             IgnoreFilter ignoreFilter) throws IOException {
@@ -356,6 +371,11 @@ public class RestoreClient {
         }
     }
 
+    /**
+     * Main class for Backup Client
+     * 
+     * @param args Argument list
+     */
     public static void main(String[] args) {
         if (args.length < 1) {
             log.info("Usage: restore <json-config>");

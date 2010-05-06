@@ -43,8 +43,10 @@ import au.edu.usq.fascinator.common.JsonConfig;
  */
 public class MessagingServices {
 
+    /** Error topic string */
     public static final String ERROR_TOPIC = "error";
 
+    /** Message topic string */
     public static final String MESSAGE_TOPIC = "message";
 
     /** Logging */
@@ -54,8 +56,15 @@ public class MessagingServices {
     /** Reference counter */
     private static int refCount = 0;
 
+    /** Messaging Services instance */
     private static MessagingServices instance;
 
+    /**
+     * Get messaging service instance
+     * 
+     * @return Messaging service instance
+     * @throws JMSException if an error occurred starting the JMS connections
+     */
     public static MessagingServices getInstance() throws JMSException {
         if (instance == null) {
             instance = new MessagingServices();

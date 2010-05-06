@@ -30,26 +30,30 @@ import org.dom4j.Node;
 import org.dom4j.io.OutputFormat;
 import org.dom4j.io.SAXReader;
 import org.dom4j.io.XMLWriter;
-
 import org.xml.sax.SAXException;
 
 /**
- * A basic util class to instantiate a SAX Reader and parse documents
- *  whilst retaining original escaped characters.
- *
+ * A basic util class to instantiate a SAX Reader and parse documents whilst
+ * retaining original escaped characters.
+ * 
+ * <p>
  * Credit due :
  * http://asfak.wordpress.com/2009/08/29/escaping-or-unescaping-special-
- *       characters-while-writing-xml-files-using-dom4j/
- *
+ * characters-while-writing-xml-files-using-dom4j/
+ * </p>
+ * 
  * @author Greg Pendlebury
  */
 
 public class SafeSAXReader {
 
-    private String feature =
-            "http://apache.org/xml/features/nonvalidating/load-external-dtd";
+    /** Feature url */
+    private String feature = "http://apache.org/xml/features/nonvalidating/load-external-dtd";
+
+    /** SAX Reader */
     private SAXReader reader;
 
+    /** Constructor */
     public SafeSAXReader() {
         reader = new SAXReader(new SafeSAXParser());
         reader.setValidation(false);
@@ -60,14 +64,36 @@ public class SafeSAXReader {
         }
     }
 
+    /**
+     * Load Document from specified String
+     * 
+     * @param inDoc document to be read
+     * @return Document
+     * @throws DocumentException if fail to read the document
+     */
     public Document loadDocument(String inDoc) throws DocumentException {
         return reader.read(inDoc);
     }
 
-    public Document loadDocumentFromStream(InputStream inStream) throws DocumentException {
+    /**
+     * Load Document from specified Input Stream
+     * 
+     * @param inStream input stream to be read
+     * @return Document
+     * @throws DocumentException if fail to read the document
+     */
+    public Document loadDocumentFromStream(InputStream inStream)
+            throws DocumentException {
         return reader.read(inStream);
     }
 
+    /**
+     * Convert node to string
+     * 
+     * @param outDoc Node to be converted
+     * @return String of the converted node
+     * @throws IOException if the conversion fail
+     */
     public String docToString(Node outDoc) throws IOException {
         Writer osw = new StringWriter();
         OutputFormat opf = new OutputFormat("", false, "UTF-8");
@@ -81,7 +107,15 @@ public class SafeSAXReader {
         return osw.toString();
     }
 
-    public void docToStream(Node outDoc, OutputStream outStream) throws IOException {
+    /**
+     * Convert node to stream
+     * 
+     * @param outDoc Node to be converted
+     * @param outStream output stream of the converted node
+     * @throws IOException if the conversion fail
+     */
+    public void docToStream(Node outDoc, OutputStream outStream)
+            throws IOException {
         OutputFormat opf = new OutputFormat("", false, "UTF-8");
         opf.setSuppressDeclaration(true);
         opf.setExpandEmptyElements(true);

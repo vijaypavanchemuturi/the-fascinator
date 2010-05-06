@@ -26,33 +26,53 @@ import org.apache.xerces.xni.XNIException;
 
 /**
  * A custom SAX parser to preserve escaped entities
- *
+ * 
  * Credit due :
  * http://asfak.wordpress.com/2009/08/29/escaping-or-unescaping-special-
- *       characters-while-writing-xml-files-using-dom4j/
- *
+ * characters-while-writing-xml-files-using-dom4j/
+ * 
  * @author Greg Pendlebury
  */
 
 public class SafeSAXParser extends SAXParser {
+
+    /** Name of the entity */
     private String entityName;
 
+    /**
+     * Character content
+     * 
+     * @param text The content
+     * @param augs Additional information that may include infoset augmentations
+     * @throws XNIException Thrown by handler to signal an error
+     */
     @Override
     public void characters(XMLString text, Augmentations augs)
             throws XNIException {
-        if (this.entityName != null) {
-            char[] charArray = this.entityName.toCharArray();
+        if (entityName != null) {
+            char[] charArray = entityName.toCharArray();
             text.setValues(charArray, 0, charArray.length);
-            this.entityName = null;
+            entityName = null;
         }
         super.characters(text, augs);
     }
 
+    /**
+     * This method notifies of the start of an entity.
+     * 
+     * @param name - The name of the entity.
+     * @param identifier - The resource identifier.
+     * @param encoding - The auto-detected IANA encoding name of the entity
+     *            stream.
+     * @param augs - Additional information that may include infoset
+     *            augmentations
+     * @throws XNIException Thrown by handler to signal an error
+     */
     @Override
     public void startGeneralEntity(String name,
             XMLResourceIdentifier identifier, String encoding,
             Augmentations augs) throws XNIException {
         super.startGeneralEntity(name, identifier, encoding, augs);
-        this.entityName = "&" + name + ";";
+        entityName = "&" + name + ";";
     }
 }

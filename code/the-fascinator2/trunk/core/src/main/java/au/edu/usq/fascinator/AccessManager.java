@@ -18,16 +18,6 @@
  */
 package au.edu.usq.fascinator;
 
-import au.edu.usq.fascinator.api.PluginDescription;
-import au.edu.usq.fascinator.api.PluginException;
-import au.edu.usq.fascinator.api.PluginManager;
-import au.edu.usq.fascinator.api.access.AccessControl;
-import au.edu.usq.fascinator.api.access.AccessControlException;
-import au.edu.usq.fascinator.api.access.AccessControlManager;
-import au.edu.usq.fascinator.api.access.AccessControlSchema;
-import au.edu.usq.fascinator.common.access.GenericSchema;
-
-
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
@@ -41,23 +31,39 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import au.edu.usq.fascinator.api.PluginDescription;
+import au.edu.usq.fascinator.api.PluginException;
+import au.edu.usq.fascinator.api.PluginManager;
+import au.edu.usq.fascinator.api.access.AccessControl;
+import au.edu.usq.fascinator.api.access.AccessControlException;
+import au.edu.usq.fascinator.api.access.AccessControlManager;
+import au.edu.usq.fascinator.api.access.AccessControlSchema;
 import au.edu.usq.fascinator.common.JsonConfig;
 
 /**
  * Management of security.
- *
- * This object manages one or more access control plugins
- * based on configuration. The portal doesn't need to know
- * the details of talking to each data source.
- *
+ * 
+ * This object manages one or more access control plugins based on
+ * configuration. The portal doesn't need to know the details of talking to each
+ * data source.
+ * 
  * @author Greg Pendlebury
  */
 public class AccessManager implements AccessControlManager {
 
+    /** Default aceess plugin */
     private static final String DEFAULT_ACCESS_PLUGIN = "simple";
+
+    /** Logging */
     private final Logger log = LoggerFactory.getLogger(AccessManager.class);
+
+    /** Map of plugins */
     private Map<String, AccessControl> plugins;
+
+    /** Access control */
     private AccessControl p;
+
+    /** Current Active plugin */
     private String active = null;
 
     @Override
@@ -97,23 +103,31 @@ public class AccessManager implements AccessControlManager {
         }
     }
 
+    /**
+     * Read the config file and retrieve the plugin list
+     * 
+     * @param config JSON Configuration
+     * @throws AccessControlException
+     */
     public void setConfig(JsonConfig config) throws AccessControlException {
         plugins = new LinkedHashMap<String, AccessControl>();
         // Get and parse the config
-        String plugin_string = config.get("accesscontrol/type", DEFAULT_ACCESS_PLUGIN);
+        String plugin_string = config.get("accesscontrol/type",
+                DEFAULT_ACCESS_PLUGIN);
         String[] plugin_list = plugin_string.split(",");
         // Now start each required plugin
-        for (int i = 0; i < plugin_list.length; i++) {
+        for (String element : plugin_list) {
             // Get the plugin from the service loader
-            AccessControl access = PluginManager.getAccessControl(plugin_list[i]);
+            AccessControl access = PluginManager.getAccessControl(element);
             // Pass it our config file
             try {
                 access.init(config.toString());
             } catch (PluginException e) {
-                log.error("Failed to initialise access plugin '" + plugin_list[i] + "'", e);
+                log.error("Failed to initialise access plugin '" + element
+                        + "'", e);
                 throw new AccessControlException(e);
             }
-            plugins.put(plugin_list[i], access);
+            plugins.put(element, access);
         }
     }
 
@@ -133,7 +147,7 @@ public class AccessManager implements AccessControlManager {
     /**
      * Return an empty security schema for the portal to investigate and/or
      * populate.
-     *
+     * 
      * @return An empty security schema
      */
     @Override
@@ -147,7 +161,7 @@ public class AccessManager implements AccessControlManager {
 
     /**
      * Get a list of schemas that have been applied to a record.
-     *
+     * 
      * @param recordId The record to retrieve information about.
      * @return A list of access control schemas, possibly zero length.
      * @throws AccessControlException if there was an error during retrieval.
@@ -163,9 +177,9 @@ public class AccessManager implements AccessControlManager {
     }
 
     /**
-     * Apply/store a new security implementation. The schema will already have
-     * a recordId as a property.
-     *
+     * Apply/store a new security implementation. The schema will already have a
+     * recordId as a property.
+     * 
      * @param newSecurity The new schema to apply.
      * @throws AccessControlException if storage of the schema fails.
      */
@@ -180,9 +194,9 @@ public class AccessManager implements AccessControlManager {
     }
 
     /**
-     * Remove a security implementation. The schema will already have
-     * a recordId as a property.
-     *
+     * Remove a security implementation. The schema will already have a recordId
+     * as a property.
+     * 
      * @param oldSecurity The schema to remove.
      * @throws AccessControlException if removal of the schema fails.
      */
@@ -199,16 +213,15 @@ public class AccessManager implements AccessControlManager {
     /**
      * Different from getSchemas() in that is returns just the roles of the
      * schemas, and it queries all plugins, not just the active plugin.
-     *
+     * 
      * Useful during index and/or audit when this is the only data required.
-     *
+     * 
      * @param recordId The record to retrieve roles for.
      * @return A list fo Strings containing role names.
      * @throws AccessControlException if there was an error during retrieval.
      */
     @Override
-    public List<String> getRoles(String recordId)
-            throws AccessControlException {
+    public List<String> getRoles(String recordId) throws AccessControlException {
         // Test for actual return values found
         Boolean valid = false;
         List<String> found = new ArrayList();
@@ -241,11 +254,11 @@ public class AccessManager implements AccessControlManager {
     /**
      * Retrieve a list of possible field values for a given field if the plugin
      * supports this feature.
-     *
+     * 
      * @param field The field name.
      * @return A list of String containing possible values
-     * @throws AccessControlException if the field doesn't exist or there
-     *          was an error during retrieval
+     * @throws AccessControlException if the field doesn't exist or there was an
+     *             error during retrieval
      */
     @Override
     public List<String> getPossibilities(String field)
@@ -258,10 +271,9 @@ public class AccessManager implements AccessControlManager {
     }
 
     /**
-     * Specifies which plugin the AccessControl manager should use
-     * when managing users. This won't effect reading of data, just
-     * writing.
-     *
+     * Specifies which plugin the AccessControl manager should use when managing
+     * users. This won't effect reading of data, just writing.
+     * 
      * @param pluginId The id of the plugin.
      */
     @Override
@@ -283,7 +295,7 @@ public class AccessManager implements AccessControlManager {
 
     /**
      * Return the current active plugin.
-     *
+     * 
      * @return The currently active plugin.
      */
     @Override
@@ -293,7 +305,7 @@ public class AccessManager implements AccessControlManager {
 
     /**
      * Return the list of plugins being managed.
-     *
+     * 
      * @return A list of plugins.
      */
     @Override

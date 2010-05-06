@@ -18,16 +18,6 @@
  */
 package au.edu.usq.fascinator;
 
-import au.edu.usq.fascinator.api.PluginDescription;
-import au.edu.usq.fascinator.api.PluginException;
-import au.edu.usq.fascinator.api.PluginManager;
-import au.edu.usq.fascinator.api.authentication.Authentication;
-import au.edu.usq.fascinator.api.authentication.AuthenticationException;
-import au.edu.usq.fascinator.api.authentication.AuthManager;
-import au.edu.usq.fascinator.api.authentication.User;
-import au.edu.usq.fascinator.common.authentication.GenericUser;
-
-
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
@@ -41,26 +31,45 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import au.edu.usq.fascinator.api.PluginDescription;
+import au.edu.usq.fascinator.api.PluginException;
+import au.edu.usq.fascinator.api.PluginManager;
+import au.edu.usq.fascinator.api.access.AccessControlException;
+import au.edu.usq.fascinator.api.authentication.AuthManager;
+import au.edu.usq.fascinator.api.authentication.Authentication;
+import au.edu.usq.fascinator.api.authentication.AuthenticationException;
+import au.edu.usq.fascinator.api.authentication.User;
 import au.edu.usq.fascinator.common.JsonConfig;
+import au.edu.usq.fascinator.common.authentication.GenericUser;
 
 /**
  * Authentication and management of users.
- *
- * This object manages one or more authentication plugins
- * based on configuration. The portal doesn't need to know
- * the details of talking to each data source.
- *
+ * 
+ * This object manages one or more authentication plugins based on
+ * configuration. The portal doesn't need to know the details of talking to each
+ * data source.
+ * 
  * @author Greg Pendlebury
  */
 public class AuthenticationManager implements AuthManager {
 
-    // The internal plugin is the default if none are specified
+    /** The internal plugin is the default if none are specified */
     private static final String INTERNAL_AUTH_PLUGIN = "internal";
 
-    private final Logger log = LoggerFactory.getLogger(AuthenticationManager.class);
+    /** Logging */
+    private final Logger log = LoggerFactory
+            .getLogger(AuthenticationManager.class);
+
+    /** User */
     private GenericUser user_object;
+
+    /** List of plugins */
     private Map<String, Authentication> plugins;
+
+    /** Authentication object */
     private Authentication p;
+
+    /** Current Active plugin */
     private String active = null;
 
     @Override
@@ -100,24 +109,31 @@ public class AuthenticationManager implements AuthManager {
         }
     }
 
+    /**
+     * Read the config file and retrieve the plugin list
+     * 
+     * @param config JSON Configuration
+     * @throws AccessControlException if plugin fail to initialise
+     */
     public void setConfig(JsonConfig config) throws AuthenticationException {
         // Initialise our local properties
         user_object = new GenericUser();
         plugins = new LinkedHashMap<String, Authentication>();
         // Get and parse the config
-        String plugin_string = config.get("authentication/type", INTERNAL_AUTH_PLUGIN);
+        String plugin_string = config.get("authentication/type",
+                INTERNAL_AUTH_PLUGIN);
         String[] plugin_list = plugin_string.split(",");
         // Now start each required plugin
-        for (int i = 0; i < plugin_list.length; i++) {
+        for (String element : plugin_list) {
             // Get the plugin from the service loader
-            Authentication auth = PluginManager.getAuthentication(plugin_list[i]);
+            Authentication auth = PluginManager.getAuthentication(element);
             // Pass it our config file
             try {
                 auth.init(config.toString());
             } catch (PluginException e) {
                 throw new AuthenticationException(e);
             }
-            plugins.put(plugin_list[i], auth);
+            plugins.put(element, auth);
         }
         // Finally, we need to pick the plugin for admins
         // to create/modify users. The first non-internal
@@ -133,7 +149,9 @@ public class AuthenticationManager implements AuthManager {
             }
         }
         // Fall back to internal if there were no other plugins
-        if (active == null) active = INTERNAL_AUTH_PLUGIN;
+        if (active == null) {
+            active = INTERNAL_AUTH_PLUGIN;
+        }
     }
 
     @Override
@@ -151,7 +169,7 @@ public class AuthenticationManager implements AuthManager {
 
     /**
      * Tests the user's username/password validity.
-     *
+     * 
      * @param username The username of the user logging in.
      * @param password The password of the user logging in.
      * @return A user object for the newly logged in user.
@@ -179,9 +197,9 @@ public class AuthenticationManager implements AuthManager {
     }
 
     /**
-     * Optional logout method if the implementing class wants
-     * to do any post-processing.
-     *
+     * Optional logout method if the implementing class wants to do any
+     * post-processing.
+     * 
      * @param username The username of the logging out user.
      * @throws AuthenticationException if there was an error logging out.
      */
@@ -192,9 +210,9 @@ public class AuthenticationManager implements AuthManager {
     }
 
     /**
-     * Method for testing if the implementing plugin allows
-     * the creation, deletion and modification of users.
-     *
+     * Method for testing if the implementing plugin allows the creation,
+     * deletion and modification of users.
+     * 
      * @return true/false reponse.
      */
     @Override
@@ -213,11 +231,10 @@ public class AuthenticationManager implements AuthManager {
     }
 
     /**
-     * Describe the metadata the implementing class
-     * needs/allows for a user.
-     *
+     * Describe the metadata the implementing class needs/allows for a user.
+     * 
      * TODO: This is a placeholder of possible later SQUIRE integration.
-     *
+     * 
      * @return TODO: possibly a JSON string.
      */
     @Override
@@ -227,10 +244,12 @@ public class AuthenticationManager implements AuthManager {
         while (i.hasNext()) {
             p = (Authentication) i.next();
             response += "\"" + p.getId() + "\" : {";
-            response += "\"name\": \""  + p.getName() + "\", ";
+            response += "\"name\": \"" + p.getName() + "\", ";
             response += "\"metadata\": " + p.describeUser();
             response += "}";
-            if (i.hasNext()) {response += ", ";}
+            if (i.hasNext()) {
+                response += ", ";
+            }
         }
         response += "}";
         return response;
@@ -238,7 +257,7 @@ public class AuthenticationManager implements AuthManager {
 
     /**
      * Create a user.
-     *
+     * 
      * @param username The username of the new user.
      * @param password The password of the new user.
      * @return A user object for the newly created in user.
@@ -258,7 +277,7 @@ public class AuthenticationManager implements AuthManager {
 
     /**
      * Delete a user.
-     *
+     * 
      * @param username The username of the user to delete.
      * @throws AuthenticationException if there was an error during deletion.
      */
@@ -272,12 +291,13 @@ public class AuthenticationManager implements AuthManager {
     }
 
     /**
-     * A simplified method alternative to modifyUser() if the implementing
-     * class wants to just allow password changes.
-     *
+     * A simplified method alternative to modifyUser() if the implementing class
+     * wants to just allow password changes.
+     * 
      * @param username The user changing their password.
      * @param password The new password for the user.
-     * @throws AuthenticationException if there was an error changing the password.
+     * @throws AuthenticationException if there was an error changing the
+     *             password.
      */
     @Override
     public void changePassword(String username, String password)
@@ -290,38 +310,45 @@ public class AuthenticationManager implements AuthManager {
     }
 
     /**
-     * Modify one of the user's properties. Available properties should match
-     * up with the return value of describeUser().
-     *
+     * Modify one of the user's properties. Available properties should match up
+     * with the return value of describeUser().
+     * 
      * @param username The user being modified.
      * @param property The user property being modified.
      * @param newValue The new value to be assigned to the property.
      * @return An updated user object for the modifed user.
-     * @throws AuthenticationException if there was an error during modification.
+     * @throws AuthenticationException if there was an error during
+     *             modification.
      */
     @Override
     public User modifyUser(String username, String property, String newValue)
             throws AuthenticationException {
-        throw new AuthenticationException("This class does not support user modification.");
+        throw new AuthenticationException(
+                "This class does not support user modification.");
     }
+
     @Override
     public User modifyUser(String username, String property, int newValue)
             throws AuthenticationException {
-        throw new AuthenticationException("This class does not support user modification.");
+        throw new AuthenticationException(
+                "This class does not support user modification.");
     }
+
     @Override
     public User modifyUser(String username, String property, boolean newValue)
             throws AuthenticationException {
-        throw new AuthenticationException("This class does not support user modification.");
+        throw new AuthenticationException(
+                "This class does not support user modification.");
     }
 
     /**
-     * Returns a User object if the implementing class supports
-     * user queries without authentication.
-     *
+     * Returns a User object if the implementing class supports user queries
+     * without authentication.
+     * 
      * @param username The username of the user required.
      * @return An user object of the requested user.
-     * @throws AuthenticationException if there was an error retrieving the object.
+     * @throws AuthenticationException if there was an error retrieving the
+     *             object.
      */
     @Override
     public User getUser(String username) throws AuthenticationException {
@@ -357,14 +384,13 @@ public class AuthenticationManager implements AuthManager {
 
     /**
      * Returns a list of users matching the search.
-     *
+     * 
      * @param search The search string to execute.
      * @return A list of usernames (String) that match the search.
      * @throws AuthenticationException if there was an error searching.
      */
     @Override
-    public List<User> searchUsers(String search)
-            throws AuthenticationException {
+    public List<User> searchUsers(String search) throws AuthenticationException {
         List<User> found = new ArrayList();
         User user;
 
@@ -411,10 +437,9 @@ public class AuthenticationManager implements AuthManager {
     }
 
     /**
-     * Specifies which plugin the authentication manager should use
-     * when managing users. This won't effect reading of data, just
-     * writing.
-     *
+     * Specifies which plugin the authentication manager should use when
+     * managing users. This won't effect reading of data, just writing.
+     * 
      * @param pluginId The id of the plugin.
      */
     @Override
@@ -436,7 +461,7 @@ public class AuthenticationManager implements AuthManager {
 
     /**
      * Return the current active plugin.
-     *
+     * 
      * @return The currently active plugin.
      */
     @Override
@@ -446,7 +471,7 @@ public class AuthenticationManager implements AuthManager {
 
     /**
      * Return the list of plugins being managed.
-     *
+     * 
      * @return A list of plugins.
      */
     @Override

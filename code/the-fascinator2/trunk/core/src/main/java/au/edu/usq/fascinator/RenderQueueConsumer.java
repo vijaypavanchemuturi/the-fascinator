@@ -54,23 +54,36 @@ import au.edu.usq.fascinator.common.JsonConfigHelper;
  */
 public class RenderQueueConsumer implements MessageListener {
 
+    /** Render queue string */
     public static final String RENDER_QUEUE = "render";
 
     /** Logging */
     private Logger log = LoggerFactory.getLogger(RenderQueueConsumer.class);
 
+    /** JSON configuration */
     private JsonConfig config;
 
+    /** Indexer object */
     private Indexer indexer;
 
+    /** Storage */
     private Storage storage;
 
+    /** Message Consumer instance */
     private MessageConsumer consumer;
 
+    /** Messaging service instance */
     private MessagingServices services;
 
+    /** Name identifier to be put in the queue */
     private String name;
 
+    /**
+     * Render Queue Consumer constructor
+     * 
+     * @param name name identifier
+     * @throws IOException if the configuration file not found
+     */
     public RenderQueueConsumer(String name) throws IOException {
         this.name = name;
         try {
@@ -89,6 +102,11 @@ public class RenderQueueConsumer implements MessageListener {
         }
     }
 
+    /**
+     * Start the queue based on the name identifier
+     * 
+     * @throws JMSException if an error occurred starting the JMS connections
+     */
     public void start() throws JMSException {
         log.info("Starting {}...", name);
         services = MessagingServices.getInstance();
@@ -98,6 +116,10 @@ public class RenderQueueConsumer implements MessageListener {
         consumer.setMessageListener(this);
     }
 
+    /**
+     * Stop the Render Queue Consumer. Including stopping the storage and
+     * indexer
+     */
     public void stop() {
         log.info("Stopping {}...", name);
         if (indexer != null) {
@@ -167,6 +189,13 @@ public class RenderQueueConsumer implements MessageListener {
         }
     }
 
+    /**
+     * Send the notification to the queue
+     * 
+     * @param oid Object id
+     * @param status Status of the object
+     * @param message Message to be sent
+     */
     private void sendNotification(String oid, String status, String message) {
         JsonConfigHelper jsonMessage = new JsonConfigHelper();
         jsonMessage.set("id", oid);

@@ -56,53 +56,100 @@ import au.edu.usq.fascinator.common.JsonConfig;
 import au.edu.usq.fascinator.common.JsonConfigHelper;
 import au.edu.usq.fascinator.common.storage.StorageUtils;
 
+/**
+ * 
+ * HarvestClient class to handle harvesting of objects to the storage
+ * 
+ * @author Oliver Lucido
+ * 
+ */
 public class HarvestClient {
 
+    /** Date format */
     public static final String DATE_FORMAT = "yyyy-MM-dd";
 
+    /** DateTime format */
     public static final String DATETIME_FORMAT = DATE_FORMAT + "'T'hh:mm:ss'Z'";
 
+    /** Default storage type */
     private static final String DEFAULT_STORAGE_TYPE = "file-system";
 
+    /** Logging */
     private static Logger log = LoggerFactory.getLogger(HarvestClient.class);
 
+    /** Configuration file */
     private File configFile;
+
+    /** Configuration Digital Object */
     private DigitalObject configObject;
 
+    /** Rule file */
     private File rulesFile;
+
+    /** Rule Digital object */
     private DigitalObject rulesObject;
 
+    /** Uploaded file */
     private File uploadedFile;
+
+    /** Uploaded file object id */
     private String uploadedOid;
+
+    /** File owner for the uploaded file */
     private String fileOwner;
 
+    /** Json configuration */
     private JsonConfig config;
 
+    /** Conveyer belt used for digital object transformation */
     private ConveyerBelt conveyerBelt;
 
+    /** Storage to store the digital object */
     private Storage storage;
 
+    /** Connection to Queue */
     private Connection connection;
 
+    /** Session of the connection */
     private Session session;
 
+    /** Message producer */
     private MessageProducer producer;
 
+    /**
+     * Harvest Client Constructor
+     * 
+     * @throws HarvesterException if fail to initialise
+     */
     public HarvestClient() throws HarvesterException {
         this(null, null, null);
     }
 
+    /**
+     * Harvest Client Constructor
+     * 
+     * @param configFile configuration file
+     * @throws HarvesterException if fail to initialise
+     */
     public HarvestClient(File configFile) throws HarvesterException {
         this(configFile, null, null);
     }
 
+    /**
+     * Harvest Client Constructor
+     * 
+     * @param configFile Configuration file
+     * @param uploadedFile Uploaded file
+     * @param owner Owner of the file
+     * @throws HarvesterException if fail to initialise
+     */
     public HarvestClient(File configFile, File uploadedFile, String owner)
             throws HarvesterException {
         MDC.put("name", "client");
 
         this.configFile = configFile;
         this.uploadedFile = uploadedFile;
-        this.fileOwner = owner;
+        fileOwner = owner;
 
         try {
             if (configFile == null) {
@@ -134,6 +181,9 @@ public class HarvestClient {
         initConnection();
     }
 
+    /**
+     * Initialising connection
+     */
     private void initConnection() {
         try {
             String brokerUrl = config.get("messaging/url",
@@ -152,6 +202,11 @@ public class HarvestClient {
         }
     }
 
+    /**
+     * Start Harvesting Digital objects
+     * 
+     * @throws PluginException If harvest plugin not found
+     */
     public void start() throws PluginException {
         DateFormat df = new SimpleDateFormat(DATETIME_FORMAT);
         String now = df.format(new Date());
@@ -207,6 +262,14 @@ public class HarvestClient {
                 + ((System.currentTimeMillis() - start) / 1000.0) + " seconds");
     }
 
+    /**
+     * Reharvest Digital Object when there's request to reharvest from the
+     * portal
+     * 
+     * @param oid Object Id
+     * @throws IOException If necessary files not found
+     * @throws PluginException If the harvester plugin not found
+     */
     public void reharvest(String oid) throws IOException, PluginException {
         log.info("Reharvest '{}'...", oid);
 
@@ -247,6 +310,10 @@ public class HarvestClient {
         }
     }
 
+    /**
+     * Shutdown Harvester Client. Including: Storage, Message Producer, Session
+     * and Connection
+     */
     public void shutdown() {
         if (storage != null) {
             try {
@@ -278,8 +345,15 @@ public class HarvestClient {
         }
     }
 
-    private void processObject(String oid) throws StorageException,
-            TransformerException {
+    /**
+     * Process/transform each objects
+     * 
+     * @param oid Object Id
+     * @throws StorageException If storage is not found
+     * @throws TransformerException If transformer fail to transform the object
+     */
+    private void processObject(String oid) throws TransformerException,
+            StorageException {
         // get the object
         DigitalObject object = storage.getObject(oid);
 
@@ -314,10 +388,23 @@ public class HarvestClient {
         queueHarvest(oid, configFile);
     }
 
+    /**
+     * To queue object to be processed
+     * 
+     * @param oid Object id
+     * @param jsonFile Configuration file
+     */
     private void queueHarvest(String oid, File jsonFile) {
         queueHarvest(oid, jsonFile, false);
     }
 
+    /**
+     * To queue object to be processed
+     * 
+     * @param oid Object id
+     * @param jsonFile Configuration file
+     * @param commit To commit each request to Queue (true) or not (false)
+     */
     private void queueHarvest(String oid, File jsonFile, boolean commit) {
         try {
             JsonConfigHelper json = new JsonConfigHelper(jsonFile);
@@ -334,6 +421,12 @@ public class HarvestClient {
         }
     }
 
+    /**
+     * To delete object processing from queue
+     * 
+     * @param oid Object id
+     * @param jsonFile Configuration file
+     */
     private void queueDelete(String oid, File jsonFile) {
         try {
             JsonConfigHelper json = new JsonConfigHelper(jsonFile);
@@ -361,6 +454,11 @@ public class HarvestClient {
         }
     }
 
+    /**
+     * Main method for Harvest Client
+     * 
+     * @param args Argument list
+     */
     public static void main(String[] args) {
         if (args.length < 1) {
             log.info("Usage: harvest <json-config>");

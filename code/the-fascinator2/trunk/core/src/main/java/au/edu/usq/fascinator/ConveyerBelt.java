@@ -42,20 +42,33 @@ import au.edu.usq.fascinator.common.JsonConfig;
  */
 public class ConveyerBelt {
 
+    /** Extractor Type transformer */
     public static final String EXTRACTOR = "extractor";
 
+    /** Render Type transformer */
     public static final String RENDER = "render";
 
+    /** Json configuration */
     private JsonConfig config;
 
+    /** Configuration file */
     private File jsonFile;
 
+    /** Type of the transformer to be process e.g: extractor or render */
     private String type;
 
+    /** Configuration string */
     private String jsonString;
 
+    /** Logging */
     private static Logger log = LoggerFactory.getLogger(ConveyerBelt.class);
 
+    /**
+     * Conveyer Belt Constructor
+     * 
+     * @param jsonFile configuration file
+     * @param type of transformer
+     */
     public ConveyerBelt(File jsonFile, String type) {
         this.jsonFile = jsonFile;
         this.type = type;
@@ -66,6 +79,12 @@ public class ConveyerBelt {
         }
     }
 
+    /**
+     * Conveyer Belt Constructor
+     * 
+     * @param jsonString configuration string
+     * @param type of transformer
+     */
     public ConveyerBelt(String jsonString, String type) {
         this.jsonString = jsonString;
         this.type = type;
@@ -78,6 +97,13 @@ public class ConveyerBelt {
         }
     }
 
+    /**
+     * Transform digital object based on transformer type
+     * 
+     * @param object to be transformed
+     * @return transformed obect
+     * @throws TransformerException if transformation fail
+     */
     public DigitalObject transform(DigitalObject object)
             throws TransformerException {
         List<Object> pluginList = config.getList("transformer/" + type);
