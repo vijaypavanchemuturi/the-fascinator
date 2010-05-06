@@ -178,6 +178,7 @@ public class RenderQueueConsumer implements MessageListener {
             String text = ((TextMessage) message).getText();
             JsonConfig config = new JsonConfig(text);
             String oid = config.get("oid");
+            String renderList = config.get("renderList");
             boolean commit = Boolean.parseBoolean(config.get("commit", "false"));
 
             sendNotification(oid, "renderStart", "Renderer starting : '" + oid + "'");
@@ -186,7 +187,11 @@ public class RenderQueueConsumer implements MessageListener {
             DigitalObject object = storage.getObject(oid);
             ConveyerBelt conveyerBelt = new ConveyerBelt(text,
                     ConveyerBelt.RENDER);
-            object = conveyerBelt.transform(object);
+            if (renderList != null) {
+                object = conveyerBelt.transform(object, renderList);
+            } else {
+                object = conveyerBelt.transform(object);
+            }
             log.info("Indexing object...");
             indexer.index(object.getId());
             indexer.commit();

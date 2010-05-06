@@ -1,0 +1,25 @@
+body {
+	background: none;
+	font-size: 80%;
+	border-top: 0px;
+}
+.header_search fieldset {
+	background: none;
+	padding: 2px;
+}
+.menubar form {
+	display: inline;
+}
+.menubar li {
+	margin-left: 0px;
+}
+.menubar li.hidden {
+    display: none;
+}
+.menubar li.secondary {
+	float: right;
+}
+.container_16 {
+	font-size: 11px;
+}
+

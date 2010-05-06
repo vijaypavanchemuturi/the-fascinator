@@ -7,7 +7,7 @@
   </context-param>
   <context-param>
     <param-name>org.apache.activemq.brokerURL</param-name>
-    <param-value>tcp://localhost:61616</param-value>
+    <param-value>tcp://139.86.55.229:61616</param-value>
   </context-param>
   <!-- URL Rewrite -->
   <filter>

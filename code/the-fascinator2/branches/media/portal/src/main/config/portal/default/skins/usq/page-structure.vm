@@ -1,0 +1,12 @@
+<div class="container_16">
+  <div class="grid_16">
+    #parse($page.getTemplate("skins/${skin}/login.vm"))
+
+    #if($pageContent)
+      $pageContent
+    #else
+      #parse($page.getTemplate("skins/${skin}/errors.vm"))
+    #end
+  </div>
+  <div class="clear"></div>
+</div>

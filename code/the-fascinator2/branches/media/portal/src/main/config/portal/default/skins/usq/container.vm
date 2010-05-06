@@ -1,0 +1,39 @@
+#parse($page.getTemplate("skins/${skin}/header-search.vm"))
+
+<div class="body">
+  #parse($page.getTemplate("skins/${skin}/header.vm"))
+
+  #if($notConfigured || $outdated || $needRestart)
+    <div class="grid_16">
+      <div id="config-notices" class="box articles notice">
+        <h2>Configuration</h2>
+        <div class="warning">
+          <b>IMPORTANT</b>
+        #if($outdated)
+          The Fascinator may not work as expected as the current system
+          configuration is outdated. Please update your configuration or
+          <a href="#" id="restore-default-config">restore</a> the default
+          configuration and restart.
+        #elseif($needRestart)
+          The Fascinator may not work as expected as the system configuration
+          was changed and needs a restart to take effect.
+        #elseif($notConfigured)
+          The Fascinator has not yet been configured. Please set your email
+          address on the <a href="$portalPath/settings">settings</a> page.
+        #else
+          An unexpected error has occurred. Try restarting The Fascinator.
+        #end
+        </div>
+      </div>
+    </div>
+    #if($pageName=="settings" && !$needRestart)
+    <div class="grid_16">$!pageContent</div>
+    #end
+  #else
+
+  #parse($page.getTemplate("skins/${skin}/page-structure.vm"))
+
+  #end
+
+  #parse($page.getTemplate("skins/${skin}/footer.vm"))
+</div>

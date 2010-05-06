@@ -45,25 +45,16 @@ function copy_sample {
 . $TF_HOME/tf_env.sh
 
 # get platform
-OS=`uname`
-if [ "$OS" == "Darwin" ]; then
-	NUM_PROCS=`ps a | grep [j]etty | wc -l`
-else
-	NUM_PROCS=`pgrep -l -f jetty | wc -l`
-fi
-if [ $NUM_PROCS == 1 ]; then
+NUM_PROCS=`pgrep -l -f fascinator | wc -l`
+if [ $NUM_PROCS > 1 ]; then
 	if [ -f $1.json ]; then
 		BASE_FILE=$1
 	else
 		BASE_FILE=$SAMPLE_DIR/$1
 	fi
 	pushd $TF_HOME/core
-        if [ -f $BASE_FILE.json ]; then
-		copy_sample $BASE_FILE
-		mvn -P dev -DjsonFile=$BASE_FILE.json exec:java
-	else
-		echo "$BASE_FILE.json not found!"
-	fi
+	copy_sample $BASE_FILE
+	mvn -P dev -DjsonFile=$BASE_FILE.json exec:java > harvest.out
 	popd
 else
 	echo "Please start The Fascinator before harvesting."

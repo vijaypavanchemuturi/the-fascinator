@@ -238,7 +238,7 @@ public class HarvestClient {
         object.close();
 
         // queue for rendering
-        queueHarvest(oid, configFile, true);
+        queueHarvest(oid, configFile, "true", null, null, true);
         log.info("Object '{}' now queued for reindexing...", oid);
 
         // cleanup
@@ -306,22 +306,36 @@ public class HarvestClient {
         for (String key : params.keySet()) {
             props.setProperty(key, params.get(key).toString());
         }
+        String indexFlag = props.getProperty("indexOnHarvest");
+        String extractorPlugins = props.getProperty("extractor");
+        String renderList = props.getProperty("render");
 
         // done with the object
         object.close();
 
         // queue the object for indexing
-        queueHarvest(oid, configFile);
+        queueHarvest(oid, configFile, indexFlag, extractorPlugins, renderList);
     }
 
-    private void queueHarvest(String oid, File jsonFile) {
-        queueHarvest(oid, jsonFile, false);
+    private void queueHarvest(String oid, File jsonFile, String indexFlag
+            , String pluginList, String renderList) {
+        queueHarvest(oid, jsonFile, indexFlag, pluginList, renderList, false);
     }
 
-    private void queueHarvest(String oid, File jsonFile, boolean commit) {
+    private void queueHarvest(String oid, File jsonFile, String indexFlag,
+            String pluginList, String renderList, boolean commit) {
         try {
             JsonConfigHelper json = new JsonConfigHelper(jsonFile);
             json.set("oid", oid);
+            if (indexFlag != null) {
+                json.set("indexFlag", indexFlag);
+            }
+            if (pluginList != null) {
+                json.set("extractor", pluginList);
+            }
+            if (pluginList != null) {
+                json.set("renderList", renderList);
+            }
             if (commit) {
                 json.set("commit", "true");
             }
