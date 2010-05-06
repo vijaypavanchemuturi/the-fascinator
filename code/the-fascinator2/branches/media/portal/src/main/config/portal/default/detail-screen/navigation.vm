@@ -52,6 +52,7 @@
   #end
 #end
 #if($isPackage || $isImsPackage)
+#set($pageHeader="#parse($page.getTemplate('detail-screen/header.vm'))")
 <div class="box menu">
   <h2>Navigation</h2>
   ## standard menu navigation

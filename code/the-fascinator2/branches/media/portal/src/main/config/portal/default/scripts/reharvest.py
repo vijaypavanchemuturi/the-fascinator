@@ -4,26 +4,23 @@ from au.edu.usq.fascinator.common import JsonConfigHelper
 from java.io import ByteArrayInputStream, ByteArrayOutputStream
 from java.util import HashSet
 
-from ch.qos.logback.classic.html import  HTMLLayout
-from org.slf4j import Logger, LoggerFactory
-
 class Reharvest:
     def __init__(self):
+        print "formData=%s" % formData
         func = formData.get("func")
         result = "{}"
         resultType = "text/plain; charset=UTF-8"
+        oid = formData.get("oid")
+        portalId = formData.get("portalId")
+        portalManager = Services.getPortalManager()
         if func == "reharvest":
-            file = formData.get("file")
-            portalId = formData.get("portalId")
-            portalManager = Services.getPortalManager()
-            if file:
-                print " * Re-harvesting: formData=%s" % file
-                portalManager.reharvest(file)
-                sessionState.set("reharvest/lastResult", "success")
+            if oid:
+                print "Reharvesting single object: %s" % oid
+                portalManager.reharvest(oid)
                 result = '{ status: "ok" }'
             elif portalId:
                 portal = portalManager.get(portalId)
-                print " * Re-harvesting: Portal=%s" % portal.getName()
+                print " Reharvesting portal: %s" % portal.getName()
                 indexer = Services.getIndexer()
                 # TODO security filter
                 # TODO this should loop through the whole portal,
@@ -40,10 +37,8 @@ class Reharvest:
                     objectIds.add(doc.get("id"))
                 if not objectIds.isEmpty():
                     portalManager.reharvest(objectIds)
-                sessionState.set("reharvest/lastResult", "success")
                 result = '{ status: "ok" }'
             else:
-                sessionState.set("reharvest/lastResult", "failed")
                 result = '{ status: "failed" }'
         elif func == "get-state":
             result = '{ running: "%s", lastResult: "%s" }' % \
@@ -52,11 +47,10 @@ class Reharvest:
         elif func == "get-log":
             context = LoggerFactory.getILoggerFactory()
             logger = context.getLogger("au.edu.usq.fascinator.HarvestClient")
-            it = logger.iteratorForAppenders()
-            appender = logger.getAppender("reharvest")
+            appender = logger.getAppender("CYCLIC")
             layout = HTMLLayout()
             layout.setContext(context)
-            layout.setPattern("%d%level%msg")
+            layout.setPattern("%d%msg")
             layout.setTitle("Reharvest log")
             layout.start()
             result = "<table>"
@@ -74,5 +68,5 @@ class Reharvest:
         writer = response.getPrintWriter(resultType)
         writer.println(result)
         writer.close()
-                
+
 scriptObject = Reharvest()

@@ -66,7 +66,7 @@ class OrganiserData:
             if node.get("hidden") != "True":
                 rvtNode.put("visible", True)
                 rvtNode.put("relPath", node.get("id"))
-                rvtNode.put("title", StringEscapeUtils.escapeHtml(node.get("title")))
+                rvtNode.put("title", node.get("title"))
                 rvtNode.put("children", self.__getRvtNodes(node.getJsonMap("children")))
                 rvtNodes.add(rvtNode)
         return rvtNodes

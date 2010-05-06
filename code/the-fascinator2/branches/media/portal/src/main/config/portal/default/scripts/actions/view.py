@@ -11,9 +11,11 @@ class ViewActions:
             description = formData.get("description")
             fq = [q for q in sessionState.get("fq") if q != 'item_type:"object"']
             query = str(" OR ".join(fq))
+            searchQuery = sessionState.get("searchQuery")
             portal = Portal(id)
             portal.setDescription(description)
             portal.setQuery(query)
+            portal.setSearchQuery(searchQuery)
             portal.setFacetFields(portalManager.getDefault().getFacetFields())
             portalManager.add(portal)
             portalManager.save(portal)

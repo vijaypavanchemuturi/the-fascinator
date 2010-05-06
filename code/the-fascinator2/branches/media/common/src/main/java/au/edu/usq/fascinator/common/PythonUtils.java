@@ -19,14 +19,6 @@
 
 package au.edu.usq.fascinator.common;
 
-import au.edu.usq.fascinator.api.PluginException;
-import au.edu.usq.fascinator.api.PluginManager;
-import au.edu.usq.fascinator.api.access.AccessControlException;
-import au.edu.usq.fascinator.api.access.AccessControlManager;
-import au.edu.usq.fascinator.api.access.AccessControlSchema;
-import au.edu.usq.fascinator.api.storage.Payload;
-import au.edu.usq.fascinator.api.storage.StorageException;
-
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -37,15 +29,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.jms.Connection;
-import javax.jms.DeliveryMode;
-import javax.jms.Destination;
-import javax.jms.JMSException;
-import javax.jms.MessageProducer;
-import javax.jms.Session;
-import javax.jms.TextMessage;
-
-import org.apache.activemq.ActiveMQConnectionFactory;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.DocumentFactory;
@@ -56,22 +39,30 @@ import org.ontoware.rdf2go.model.Model;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import au.edu.usq.fascinator.api.PluginException;
+import au.edu.usq.fascinator.api.PluginManager;
+import au.edu.usq.fascinator.api.access.AccessControlException;
+import au.edu.usq.fascinator.api.access.AccessControlManager;
+import au.edu.usq.fascinator.api.access.AccessControlSchema;
+import au.edu.usq.fascinator.api.storage.Payload;
+import au.edu.usq.fascinator.api.storage.StorageException;
+
 /**
- * The purpose of this class is to expose common Java classes and methods we
- * use to Python scripts.
- *
- * Previously these were collecting in inappropriate places like the
- * SolrIndexer where the Python scripts were being initiated from.
- *
+ * The purpose of this class is to expose common Java classes and methods we use
+ * to Python scripts.
+ * 
+ * Previously these were collecting in inappropriate places like the SolrIndexer
+ * where the Python scripts were being initiated from.
+ * 
  * @author Greg Pendlebury
  */
 public class PythonUtils {
     private static Logger log = LoggerFactory.getLogger(PythonUtils.class);
 
-    // Security
+    /** Security */
     private AccessControlManager access;
 
-    // XML Parsing
+    /** XML Parsing */
     private Map<String, String> namespaces;
     private SAXReader saxReader;
 
@@ -210,7 +201,7 @@ public class PythonUtils {
 
     /*****
      * Get a resource from one of the compiled classes on the classpath
-     *
+     * 
      * @param path To the requested resource
      * @return InputStream to the resource
      */
@@ -220,7 +211,7 @@ public class PythonUtils {
 
     /*****
      * Parse an XML document stored in a payload
-     *
+     * 
      * @param payload holding the document
      * @return Document object after parsing
      */
@@ -237,15 +228,15 @@ public class PythonUtils {
 
     /*****
      * Parse an XML document from a string
-     *
+     * 
      * @param xmlData to parse
      * @return Document object after parsing
      */
     public Document getXmlDocument(String xmlData) {
         Reader reader = null;
         try {
-            ByteArrayInputStream in = new ByteArrayInputStream(
-                    xmlData.getBytes("utf-8"));
+            ByteArrayInputStream in = new ByteArrayInputStream(xmlData
+                    .getBytes("utf-8"));
             return saxReader.read(in);
         } catch (UnsupportedEncodingException uee) {
         } catch (DocumentException de) {
@@ -263,7 +254,7 @@ public class PythonUtils {
 
     /*****
      * Parse an XML document from an inputstream
-     *
+     * 
      * @param xmlIn, the inputstream to read and parse
      * @return Document object after parsing
      */
@@ -288,7 +279,7 @@ public class PythonUtils {
 
     /*****
      * Register a namespace for our XML parser
-     *
+     * 
      * @param prefix of the namespace
      * @param uri of the namespace
      */
@@ -298,7 +289,7 @@ public class PythonUtils {
 
     /*****
      * UN-register a namespace for our XML parser
-     *
+     * 
      * @param prefix of the namespace
      */
     public void unregisterNamespace(String prefix) {
@@ -307,7 +298,7 @@ public class PythonUtils {
 
     /*****
      * Parse a JSON object from an inputstream
-     *
+     * 
      * @param in, the inputstream to read and parse
      * @return JsonConfigHelper object after parsing
      */
@@ -322,7 +313,7 @@ public class PythonUtils {
 
     /*****
      * Parse RDF data stored in a payload
-     *
+     * 
      * @param payload containing the data
      * @return Model object after parsing
      */
@@ -339,7 +330,7 @@ public class PythonUtils {
 
     /*****
      * Parse RDF data from an inputstream
-     *
+     * 
      * @param rdfIn, the inputstream to read and parse
      * @return Model object after parsing
      */
@@ -368,7 +359,7 @@ public class PythonUtils {
 
     /*****
      * Return an empty access control schema from the given plugin
-     *
+     * 
      * @param plugin to request the schema from
      * @return AccessControlSchema returned by the plugin
      */
@@ -382,7 +373,7 @@ public class PythonUtils {
 
     /*****
      * Submit a new access control schema to a security plugin
-     *
+     * 
      * @param schema to submit
      * @param plugin to submit to
      */
@@ -401,7 +392,7 @@ public class PythonUtils {
 
     /*****
      * Remove an access control schema from a security plugin
-     *
+     * 
      * @param schema to remove
      * @param plugin to remove to
      */
@@ -420,7 +411,7 @@ public class PythonUtils {
 
     /*****
      * Find the list of roles with access to the given object
-     *
+     * 
      * @param recordId the object to query
      * @return List<String> of roles with access to the object
      */

@@ -43,7 +43,7 @@ class SearchData:
         else:
             self.__query = query
         sessionState.set("query", self.__query)
-
+        
         # find objects with annotations matching the query
         if query != "*:*":
             anotarQuery = self.__query
@@ -63,6 +63,15 @@ class SearchData:
                 print "Found annotation for %s" % annotatesUri
             # add annotation ids to query
             query += ' OR id:("' + '" OR "'.join(ids) + '")'
+
+        portalSearchQuery = self.__portal.searchQuery
+        if portalSearchQuery == "":
+            portalSearchQuery = query
+        else:
+            if query != "*:*":
+                query += " AND " + portalSearchQuery
+            else:
+                query = portalSearchQuery
 
         req = SearchRequest(query)
         req.setParam("facet", "true")
@@ -102,6 +111,7 @@ class SearchData:
         self.__selected = list(req.getParams("fq"))
 
         sessionState.set("fq", self.__selected)
+        sessionState.set("searchQuery", portalSearchQuery)
         sessionState.set("pageNum", self.__pageNum)
         
         # Make sure 'fq' has already been set in the session
