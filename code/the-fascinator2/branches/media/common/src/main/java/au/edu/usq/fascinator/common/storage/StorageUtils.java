@@ -42,8 +42,10 @@ import au.edu.usq.fascinator.api.storage.StorageException;
  */
 public class StorageUtils {
 
+    /** Default host name */
     public static final String DEFAULT_HOSTNAME = "localhost";
 
+    /** Logging */
     private static final Logger log = LoggerFactory
             .getLogger(StorageUtils.class);
 

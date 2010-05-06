@@ -20,13 +20,13 @@
 package au.edu.usq.fascinator.common;
 
 import java.io.UnsupportedEncodingException;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
 /**
  * A class purely for debugging UTF-8 Strings.
- *
+ * 
  * @author Greg Pendlebury
  */
 public class Utf8StringDebug {
@@ -34,6 +34,8 @@ public class Utf8StringDebug {
 
     /**
      * Simple entry point, Looks for only multi-byte characters
+     * 
+     * @param newString String to be debugged
      */
     public static void debugString(String newString) {
         debugString(newString, 1);
@@ -41,17 +43,20 @@ public class Utf8StringDebug {
 
     /**
      * Optional 'limit' can be set to 0 to show all characters
+     * 
+     * @param newString String to be debugged
+     * @param limit number of characters to be printed
      */
     public static void debugString(String newString, int limit) {
-        log.debug(
-                "Decoding String\n=============\n" +
-                newString +
-                "\n=============\n" +
-                displayString(newString, limit));
+        log.debug("Decoding String\n=============\n" + newString
+                + "\n=============\n" + displayString(newString, limit));
     }
 
     /**
      * Used recursively to pull the string apart
+     * 
+     * @param newString String to be debugged
+     * @param limit number of characters to be printed
      */
     public static String displayString(String newString, int limit) {
         // Test to end recursion
@@ -74,25 +79,37 @@ public class Utf8StringDebug {
         return output;
     }
 
+    /**
+     * Print the bytes
+     * 
+     * @param array byte
+     * @param name
+     * @param limit number of characters to be printed
+     * @return
+     */
     public static String printBytes(byte[] array, String name, int limit) {
         String output = "";
         // Only display multi-byte characters
         if (array.length > limit) {
             output += "'" + name + "' =>";
-            for (int k = 0; k < array.length; k++) {
-                output += " 0x" + byteToHex(array[k]);
+            for (byte element : array) {
+                output += " 0x" + byteToHex(element);
             }
             output += "\n";
         }
         return output;
     }
 
+    /**
+     * Convert byte to hex
+     * 
+     * @param b in byte
+     * @return converted String
+     */
     public static String byteToHex(byte b) {
-        char hexDigit[] = {
-            '0', '1', '2', '3', '4', '5', '6', '7',
-            '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'
-        };
-        char[] array = {hexDigit[(b >> 4) & 0x0f], hexDigit[b & 0x0f]};
+        char hexDigit[] = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+                'A', 'B', 'C', 'D', 'E', 'F' };
+        char[] array = { hexDigit[(b >> 4) & 0x0f], hexDigit[b & 0x0f] };
         return new String(array);
     }
 }

@@ -29,8 +29,11 @@ $(function() {
             height = 24;
         }
         var style = "display: block; width: 425px; height: " + height + "px";
-        var filename = oid.substring(oid.lastIndexOf("/") + 1);
+        //var filename = oid.substring(oid.lastIndexOf("/") + 1);
+        var filename = "$sourceId";
+        filename = filename.substring(filename.lastIndexOf("/") + 1);
         var ext = filename.substring(filename.lastIndexOf(".") + 1).toLowerCase();
+        
         var hasFlv = "$self.hasFlv()";
         if (hasFlv!='') {
             filename = hasFlv;
@@ -40,7 +43,7 @@ $(function() {
             var player1 = '<div href="' + href + '" id="player" style="' + style + '"></div>'; 
             $("#player-container").attr("style", "width: 300px; height: " + height + "px").html(player1);
             player = flowplayer("player", {src:"$portalPath/flowplayer/flowplayer-3.1.5.swf", wmode:'opaque'},
-                { clip: { autoPlay: false, autoBuffering: true },
+                { clip: { autoPlay: true, autoBuffering: true },
                   play: {
                     label: "Play",
                     replayLabel: "Click to play again"
@@ -70,11 +73,33 @@ $(function() {
             $("#player_mark_end_time").attr("disabled", false);
             $("#txtEndMark").attr("disabled", false);
         });
+        
+        $("#txtStartMark").live("keyup", function() {
+            txtStartMarkVal = $('#txtStartMark').val();
+            if (txtStartMarkVal != "") {
+                $("#player_mark_end_time").attr("disabled", false);
+                $("#txtEndMark").attr("disabled", false);
+            } else {
+                $("#player_mark_end_time").attr("disabled", true);
+                $("#txtEndMark").attr("disabled", true);
+            }
+        });
+        
         $("#player_mark_end_time").live("click", function() {
             $("#txtEndMark").attr("value", player.getTime());
-            uri = player.getClip().url + "#";
             start = $('#txtStartMark').val();
-            end = $('#txtEndMark').val()
+            end = $('#txtEndMark').val();
+            processClip(start, end);
+        });
+        
+        $("#txtEndMark").live("keyup", function() {
+            start = $('#txtStartMark').val();
+            end = $('#txtEndMark').val();
+            processClip(start, end);
+        });
+        
+        function processClip(start, end) {
+            uri = player.getClip().url + "#";
             if (start != "" && end != "") {
                 //Use Normal Play Time as described in http://www.ietf.org/rfc/rfc2326.txt
                 uri += "t=npt:";
@@ -92,7 +117,7 @@ $(function() {
                 }
             }
             $(".video-results-list").attr("rel", uri);
-        });
+        }
         
         $(".player_clear_fragment").live("click", function() {
             $("#txtStartMark").attr("value", "");

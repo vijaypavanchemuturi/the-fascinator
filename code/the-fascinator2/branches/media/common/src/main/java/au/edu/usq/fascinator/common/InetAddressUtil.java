@@ -31,11 +31,12 @@ import org.slf4j.LoggerFactory;
  */
 public class InetAddressUtil {
 
+    /** Logging */
     private static final Logger log = LoggerFactory
             .getLogger(InetAddressUtil.class);
 
     /**
-     * Ctor.
+     * Constructor
      */
     private InetAddressUtil() {
         // do nothing

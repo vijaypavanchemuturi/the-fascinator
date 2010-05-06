@@ -49,7 +49,7 @@
       <button id="backup-cancel">Close</button>
     </div>
     <div class="block hidden" id="backup-result">
-      <p>Last backup log</p>
+      <h5>Last backup log (please see the log files for more detail)</h5>
       <div id="backup-log"></div>
     </div>
   </div>
@@ -66,7 +66,7 @@
       <button id="reharvest-cancel">Close</button>
     </div>
     <div class="block hidden" id="reharvest-result">
-      <p>Last reharvest log</p>
+      <h5>Last reharvest log (please see the log files for more detail)</h5>
       <div id="reharvest-log"></div>
     </div>
   </div>

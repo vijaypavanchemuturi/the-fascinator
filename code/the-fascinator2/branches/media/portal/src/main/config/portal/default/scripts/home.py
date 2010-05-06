@@ -39,6 +39,7 @@ class HomeData:
     def __search(self):
         indexer = Services.getIndexer()
         portalQuery = Services.getPortalManager().get(portalId).getQuery()
+        portalSearchQuery = Services.getPortalManager().get(portalId).getSearchQuery()
         
         # Security prep work
         current_user = page.authentication.get_username()
@@ -50,6 +51,8 @@ class HomeData:
         req.setParam("fq", 'item_type:"object"')
         if portalQuery:
             req.addParam("fq", portalQuery)
+        if portalSearchQuery:
+            req.addParam("fq", portalSearchQuery)
         req.setParam("rows", "10")
         req.setParam("sort", "last_modified desc, f_dc_title asc");
         if not page.authentication.is_admin():
@@ -62,6 +65,8 @@ class HomeData:
         req.setParam("fq", 'item_type:"object"')
         if portalQuery:
             req.addParam("fq", portalQuery)
+        if portalSearchQuery:
+            req.addParam("fq", portalSearchQuery)
         req.setParam("rows", "10")
         req.setParam("sort", "last_modified desc, f_dc_title asc");
         if not page.authentication.is_admin():
@@ -74,6 +79,8 @@ class HomeData:
         req.setParam("fq", 'item_type:"object"')
         if portalQuery:
             req.addParam("fq", portalQuery)
+        if portalSearchQuery:
+            req.addParam("fq", portalSearchQuery)
         req.setParam("rows", "10")
         req.setParam("sort", "last_modified desc, f_dc_title asc");
         if not page.authentication.is_admin():
@@ -86,6 +93,8 @@ class HomeData:
         req.setParam("fq", 'item_type:"object"')
         if portalQuery:
             req.addParam("fq", portalQuery)
+        if portalSearchQuery:
+            req.addParam("fq", portalSearchQuery)
         req.addParam("fq", "")
         req.setParam("rows", "0")
         if not page.authentication.is_admin():

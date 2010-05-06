@@ -48,7 +48,7 @@
       },
       "f_dc_format" : {
         "label" : "Format",
-        "display" : "tree"
+        "display" : "list"
       },
       "f_dc_creator" : {
         "label" : "Author",

@@ -19,18 +19,18 @@
 
 package au.edu.usq.fascinator.common.authentication;
 
-import au.edu.usq.fascinator.common.JsonConfigHelper;
-import au.edu.usq.fascinator.api.authentication.User;
-
 import java.lang.reflect.Field;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import au.edu.usq.fascinator.api.authentication.User;
+import au.edu.usq.fascinator.common.JsonConfigHelper;
+
 /**
- * A basic user object, does not define its metadata schema, that is left
- * to extending classes, but creates access methods against an unknown
- * schema.
- *
+ * A basic user object, does not define its metadata schema, that is left to
+ * extending classes, but creates access methods against an unknown schema.
+ * 
  * @author Greg Pendlebury
  */
 public class GenericUser implements User {
@@ -40,9 +40,8 @@ public class GenericUser implements User {
     private String authenticationSource;
 
     /**
-     * Will return a JSON string description of an extending classes'
-     * fields.
-     *
+     * Will return a JSON string description of an extending classes' fields.
+     * 
      * @param property The class field to retrieve
      * @return The value of the property
      */
@@ -59,8 +58,9 @@ public class GenericUser implements User {
             // of GenericUser inheriting classes can't access it.
             response.set("username", "String");
 
-            for (int i = 0; i < field_list.length; i++) {
-                response.set(field_list[i].getName(), field_list[i].getType().getSimpleName());
+            for (Field element : field_list) {
+                response.set(element.getName(), element.getType()
+                        .getSimpleName());
             }
             return response.toString();
         } catch (ClassNotFoundException ex) {
@@ -71,7 +71,7 @@ public class GenericUser implements User {
 
     /**
      * Retrieves a given property for this user object.
-     *
+     * 
      * @param property The class field to retrieve
      * @return The value of the property
      */
@@ -81,11 +81,12 @@ public class GenericUser implements User {
         try {
             Class ref_class = Class.forName(class_name);
             Field field_list[] = ref_class.getDeclaredFields();
-            for (int i = 0; i < field_list.length; i++) {
-                if (property.equals(field_list[i].getName())) {
+            for (Field element : field_list) {
+                if (property.equals(element.getName())) {
                     try {
-                        if (field_list[i].get(this) != null)
-                            return field_list[i].get(this).toString();
+                        if (element.get(this) != null) {
+                            return element.get(this).toString();
+                        }
                         return null;
                     } catch (IllegalArgumentException ex) {
                         log.error("User Object, Illegal argument : {}", ex);
@@ -106,7 +107,7 @@ public class GenericUser implements User {
 
     /**
      * Sets a given property for this user object.
-     *
+     * 
      * @param property The class field to retrieve
      * @return The value of the property
      */
@@ -116,10 +117,10 @@ public class GenericUser implements User {
         try {
             Class ref_class = Class.forName(class_name);
             Field field_list[] = ref_class.getDeclaredFields();
-            for (int i = 0; i < field_list.length; i++) {
-                if (property.equals(field_list[i].getName())) {
+            for (Field element : field_list) {
+                if (property.equals(element.getName())) {
                     try {
-                        field_list[i].set(this, value);
+                        element.set(this, value);
                     } catch (IllegalArgumentException ex) {
                         log.error("Security Object, Illegal argument : {}", ex);
                     } catch (IllegalAccessException ex) {
@@ -133,24 +134,49 @@ public class GenericUser implements User {
         }
     }
 
+    /**
+     * Retrieves how the user should be shown on-screen.
+     * 
+     * @return The value of the property
+     */
     @Override
     public String realName() {
         return username;
     }
 
+    /**
+     * Set user's name
+     * 
+     * @param newName
+     */
     public void setUsername(String newName) {
         username = newName;
     }
 
+    /**
+     * Retrieve the user's name
+     * 
+     * @return The value of user's name
+     */
     public String getUsername() {
         return username;
     }
 
+    /**
+     * Used by the authentication manager to track the user's origin
+     * 
+     * @param plugin The id of the authentication plugin
+     */
     @Override
     public void setSource(String plugin) {
         authenticationSource = plugin;
     }
 
+    /**
+     * Used by the authentication manager to track the user's origin
+     * 
+     * @return The id of the authentication plugin
+     */
     @Override
     public String getSource() {
         return authenticationSource;

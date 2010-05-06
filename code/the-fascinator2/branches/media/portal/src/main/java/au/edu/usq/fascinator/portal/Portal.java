@@ -50,8 +50,7 @@ public class Portal extends JsonConfigHelper {
     /**
      * Construct a portal instance for the specified JSON file
      * 
-     * @throws IOException
-     *             if there was an error reading the JSON file
+     * @throws IOException if there was an error reading the JSON file
      */
     public Portal(File portalConfig) throws IOException {
         super(portalConfig);
@@ -79,6 +78,14 @@ public class Portal extends JsonConfigHelper {
 
     public void setQuery(String query) {
         set("portal/query", query);
+    }
+
+    public String getSearchQuery() {
+        return get("portal/searchQuery", "");
+    }
+
+    public void setSearchQuery(String query) {
+        set("portal/searchQuery", query);
     }
 
     public int getRecordsPerPage() {
