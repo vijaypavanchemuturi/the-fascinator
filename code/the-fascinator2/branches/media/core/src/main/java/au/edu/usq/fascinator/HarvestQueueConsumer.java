@@ -180,6 +180,9 @@ public class HarvestQueueConsumer implements MessageListener {
             String oid = config.get("oid");
             String source = config.get("source");
             String path = config.get("sourceFile", oid);
+            String indexFlag = config.get("indexFlag");
+            String extractor = config.get("extractor");
+
             log.info("Received job, object id={}", oid, text);
             boolean deleted = Boolean.parseBoolean(config.get("deleted",
                     "false"));
@@ -192,11 +195,16 @@ public class HarvestQueueConsumer implements MessageListener {
                     log.info("Adding new object {} from {}...", oid, source);
                     File rulesFile = new File(config.get("configDir"), config
                             .get("indexer/script/rules"));
-                    processObject(rulesFile, text, oid, path);
+                    processObject(rulesFile, text, oid, path, extractor);
                 }
                 // Indexing
-                boolean doIndex = Boolean.parseBoolean(
-                        config.get("transformer/indexOnHarvest", "true"));
+                boolean doIndex = true;
+                if (indexFlag != null) {
+                    doIndex = Boolean.parseBoolean(indexFlag);
+                } else {
+                    doIndex = Boolean.parseBoolean(
+                            config.get("transformer/indexOnHarvest", "true"));
+                }
                 if (doIndex) {
                     sendNotification(oid, "indexStart", "Indexing '" + oid + "' started");
                     log.info("Indexing object {}...", oid);
@@ -236,7 +244,7 @@ public class HarvestQueueConsumer implements MessageListener {
     }
 
     private void processObject(File rulesFile, String jsonStr, String oid,
-            String path) throws StorageException, IOException {
+            String path, String extractor) throws StorageException, IOException {
         try {
             log.info("Processing " + oid + "...");
 
@@ -249,7 +257,11 @@ public class HarvestQueueConsumer implements MessageListener {
             // transform it with just the extractor transformers
             ConveyerBelt conveyerBelt = new ConveyerBelt(jsonStr,
                     ConveyerBelt.EXTRACTOR);
-            object = conveyerBelt.transform(object);
+            if (extractor != null) {
+                object = conveyerBelt.transform(object, extractor);
+            } else {
+                object = conveyerBelt.transform(object);
+            }
 
             // update object metadata
             Properties props = object.getMetadata();

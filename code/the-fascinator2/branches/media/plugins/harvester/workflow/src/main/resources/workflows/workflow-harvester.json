@@ -32,7 +32,8 @@
             }
         },
         "ffmpeg": {
-            "executable": "ffmpeg",
+            "transformer": "/opt/ffmpeg/bin/ffmpeg",
+            "extractor": "/opt/ffmpeg/bin/ffprobe",
             "outputPath": "${java.io.tmpdir}/${user.name}/ffmpeg-output",
             "metadata": {
                 "excludeExt": "odt,doc,docx,pdf,ppt,html,htm,tfpackage"

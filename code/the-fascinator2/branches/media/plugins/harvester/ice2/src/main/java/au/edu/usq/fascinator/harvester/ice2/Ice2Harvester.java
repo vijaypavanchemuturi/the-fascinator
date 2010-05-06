@@ -53,6 +53,7 @@ import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringUtils;
 import org.python.util.PythonInterpreter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -75,35 +76,34 @@ public class Ice2Harvester extends GenericHarvester {
         "audio", "flash", "images", "presentations", "readings", "video",
         "breeze"};
 
-    /** Flag for test runs */
-    private boolean testRun;
-
-    /** directory to house temp data */
+    /** directories */
     private File tempDir;
-
-    /** directory to harvest */
     private File baseDir;
-
-    /** current directory while harvesting */
     private File currentDir;
-
-    /** stack of sub-directories while harvesting */
+    private File courseRoot;
     private Stack<File> subDirs;
-
-    /** stack of sub-directories found with ICE manifests */
     private Stack<File> iceDirs;
+
+    /** stats */
+    private int objectsCreated;
+    private int filesProcessed;
 
     /** stack of ICE manifest files found */
     private Stack<File> iceMetadata;
 
-    /** whether or not there are more files to harvest */
+    /** Flags */
+    private boolean testRun;
     private boolean hasMore;
-
-    /** use links instead of copying */
     private boolean link;
 
     /** filter used to ignore files matching specified patterns */
     private IgnoreFilter ignoreFilter;
+
+    /** Course Data */
+    private String semester;
+    private String course;
+    private List<String> targetCourses = null;
+    private List<String> ignoreCourses = null;
 
     /** our python rendering engine */
     private PythonInterpreter python;
@@ -149,6 +149,10 @@ public class Ice2Harvester extends GenericHarvester {
         // Harvest config
         JsonConfig config = getJsonConfig();
 
+        // Init stats
+        objectsCreated = 0;
+        filesProcessed = 0;
+
         // Caching area for html marshalling
         String tempPath = System.getProperty("java.io.tmpdir");
         tempDir = new File(tempPath, "ice2Harvest");
@@ -162,6 +166,19 @@ public class Ice2Harvester extends GenericHarvester {
         ignoreFilter = new IgnoreFilter(config.get(
                 "harvester/ice2-harvester/ignoreFilter",
                 DEFAULT_IGNORE_PATTERNS).split("\\|"));
+
+        // Course to specifically look for
+        String courseList = config.get("harvester/ice2-harvester/targetCourses");
+        if (courseList != null && !courseList.isEmpty()) {
+            targetCourses = Arrays.asList(StringUtils.split(courseList, ','));
+        }
+
+        // Courses we are ignoring
+        courseList = config.get("harvester/ice2-harvester/ignoreCourses");
+        if (courseList != null && !courseList.isEmpty()) {
+            ignoreCourses = Arrays.asList(StringUtils.split(courseList, ','));
+        }
+
         // Harvest completely into storage or harvest a link back to disk?
         link = Boolean.parseBoolean(config.get("harvester/ice2-harvester/link",
                 "false"));
@@ -206,14 +223,17 @@ public class Ice2Harvester extends GenericHarvester {
     @Override
     public Set<String> getObjectIdList() throws HarvesterException {
         if (currentDir.isDirectory()) {
-            // Traverse our directory
-            for (File file : currentDir.listFiles(ignoreFilter)) {
-                if (file.isDirectory()) {
-                    // Store it for further traversal
-                    subDirs.push(file);
-                    // Have we found an ICE directory?
-                    if (file.getName().equals(".ice")) {
-                        iceDirs.push(file);
+            // Don't try traversing through media directories
+            if (!currentDir.getName().equals("media")) {
+                // Traverse our directory
+                for (File file : currentDir.listFiles(ignoreFilter)) {
+                    if (file.isDirectory()) {
+                        // Store it for further traversal
+                        subDirs.push(file);
+                        // Have we found an ICE directory?
+                        if (file.getName().equals(".ice")) {
+                            iceDirs.push(file);
+                        }
                     }
                 }
             }
@@ -222,7 +242,6 @@ public class Ice2Harvester extends GenericHarvester {
             if (hasMore) {
                 currentDir = subDirs.pop();
             }
-        // We're finally done
         } else {
             hasMore = false;
         }
@@ -334,9 +353,21 @@ public class Ice2Harvester extends GenericHarvester {
             // Check response is valid
             // The parser won't return a GUID unless it found a manifest
             if (responseGuid != null) {
-                // We've found our manifest
-                hasMore = false;
-                return processIceManifest(responseJson);
+                // Step back up through '/.ice/__dir__/'
+                courseRoot = file.getParentFile().getParentFile().getParentFile();
+                // Some course metadata
+                semester = courseRoot.getName().toUpperCase();
+                course = courseRoot.getParentFile().getParentFile().getName();
+                course = (course + courseRoot.getParentFile().getName()).toUpperCase();
+                // Process if we are looking for this one
+                if (ignoreCourses == null || !ignoreCourses.contains(course)) {
+                    if (targetCourses == null || targetCourses.contains(course)) {
+                        log.debug("PROCESS : " + course + " : " + semester);
+                        return processIceManifest(responseJson);
+                    } else {
+                        log.debug("IGNORE : " + course + " : " + semester);
+                    }
+                }
             }
         }
         return new HashSet<String>();
@@ -374,10 +405,55 @@ public class Ice2Harvester extends GenericHarvester {
             }
         }
 
+        // *** Harvesting
         // Convert responses from the functions below into a simple list of IDs
         Map<String, String> responseMap = new HashMap<String, String>();
-        prepareObject(title, home, children, responseMap);
+        JsonConfigHelper icePackage = prepareObject(title, home, children, responseMap);
+        //log.debug("\n *** ICE2 : Package -\n{}", icePackage.toString());
 
+        // *** Packaging
+        // Make sure it's not empty
+        if (!icePackage.toString(false).equals("{}")) {
+            if (title == null) {
+                title = "Untitled";
+            }
+            // Create the manifest file
+            String packageId = DigestUtils.md5Hex(title);
+            File manifestFile = new File(packageDir, packageId + ".tfpackage");
+            try {
+                FileUtils.writeStringToFile(manifestFile, icePackage.toString(), "utf-8");
+                // Harvest the manifest file
+                try {
+                    if (!testRun) {
+                        DigitalObject object = StorageUtils.storeFile(
+                                getStorage(), manifestFile);
+                        manifestFile.delete();
+                        try {
+                            Properties props = object.getMetadata();
+                            props.setProperty("rulesOid", pkgRules.getId());
+                            props.setProperty("rulesPid", pkgRules.getSourceId());
+                            props.setProperty("jsonConfigOid", pkgConfig.getId());
+                            props.setProperty("jsonConfigPid", pkgConfig.getSourceId());
+                            props.setProperty("usq-course", course);
+                            props.setProperty("usq-semester", semester);
+                            props.setProperty("owner", username);
+                            props.setProperty("item-type", "Course Manifest");
+                        } catch (StorageException stEx) {
+                            log.error("Error accessing manifest metadata : ", stEx);
+                        }
+
+                        responseMap.put(title, object.getId());
+                        object.close();
+                    }
+                } catch (Exception ex) {
+                    log.error("Error storing manifest : ", ex);
+                }
+            } catch (IOException ioEx) {
+                log.error("Error writing manifest file to disk : ", ioEx);
+            }
+        }
+
+        // *** Returning
         if (!testRun) {
             for (String key : responseMap.keySet()) {
                 if (responseMap.get(key) != null)  {
@@ -386,6 +462,12 @@ public class Ice2Harvester extends GenericHarvester {
             }
         }
         return fileObjectIdList;
+    }
+
+    private JsonConfigHelper prepareObject(String title, String rootDoc,
+            List<JsonConfigHelper> children, Map<String, String> objectIdMap)
+            throws HarvesterException {
+        return prepareObject(title, rootDoc, children, objectIdMap, 0);
     }
 
     /**
@@ -398,43 +480,50 @@ public class Ice2Harvester extends GenericHarvester {
      *              presence triggers the creation of a package.
      * @param objectIdMap A global Map of all objects harvested so far, used to
      *              construct internal links and avoid duplication
+     * @param level The depth in the manifest of the current object
      * @return a DigitalObject, the object that was just harvested, useful
      *              during recursion of children
      * @throws HarvesterException for any errors
      */
-    private DigitalObject prepareObject(String title, String rootDoc,
-            List<JsonConfigHelper> children, Map<String, String> objectIdMap)
-            throws HarvesterException {
-        // Child variables
+    private JsonConfigHelper prepareObject(String title, String rootDoc,
+            List<JsonConfigHelper> children, Map<String, String> objectIdMap,
+            int level) throws HarvesterException {
+        // This object
+        DigitalObject object = null;
+        JsonConfigHelper objectData = new JsonConfigHelper();
+        Map<String, JsonConfigHelper> allChildren = new LinkedHashMap();
+        if (title == null) {
+            title = "Untitled";
+        }
+        //log.debug(" *** ICE2 : Title (" + level + ") '" + title + "' => '" + rootDoc + "'");
+
+        // Child variables - Harvesting
         String childTitle, childHome = null;
         List<JsonConfigHelper> grandChildren = null;
-        Map<String, String> childObjects = new LinkedHashMap();
 
-        // This document
-        DigitalObject object = null;
-        log.debug(" *** ICE2 : Title '" + title + "' => '" + rootDoc + "'");
+        // Child variables - Packaging
+        JsonConfigHelper childData;
+        Map<String, JsonConfigHelper> childManifest;
 
         // Process the manifest children first
         for (JsonConfigHelper child : children) {
+            // Prepare metadata
             childTitle = child.get("title");
             childHome  = child.get("relPath");
             grandChildren = child.getJsonList("children");
 
-            //log.debug(" *** ICE2 : Child : '" + childTitle + "' => '"
-            //        + childHome + "'");
-            object = prepareObject(childTitle, childHome, grandChildren,
-                    objectIdMap);
-            if (object != null || testRun) {
-                if (testRun) {
-                    childObjects.put(childTitle, "testRunObject:" + childTitle);
-                } else {
-                    childObjects.put(childTitle, object.getId());
-                }
+            // Process the childen
+            childData = prepareObject(childTitle, childHome, grandChildren, objectIdMap, level + 1);
+            childManifest = childData.getJsonMap("manifest");
+
+            // Remember them for later
+            for (String key : childManifest.keySet()) {
+                allChildren.put(key, childManifest.get(key));
             }
         }
 
         // Now find the html rendition of this file
-        File rootFile = getOriginalDoc(baseDir, rootDoc);
+        File rootFile = getOriginalDoc(courseRoot, rootDoc);
         File htmlDir = null;
         try {
             htmlDir = getHtmlRendition(rootFile);
@@ -442,7 +531,7 @@ public class Ice2Harvester extends GenericHarvester {
             // Nothing, leave it to the test below
         }
         if (htmlDir == null || !htmlDir.exists()) {
-            log.warn(" *** ICE2 : Root document not found, skipping");
+            //log.warn(" *** ICE2 : Root document not found, skipping");
 
         } else {
             // Is this an object we've previsouly harvested?
@@ -453,94 +542,41 @@ public class Ice2Harvester extends GenericHarvester {
             }
         }
 
-        // Provided we managed to harvest at least one child,
-        //   we now need to create and store a package.
-        if (childObjects.size() > 0) {
-            String md5, oid = null;
-
-            // Create the empty package
-            JsonConfigHelper packager = new JsonConfigHelper();
-            packager.set("title", title);
-
-            // IF it exists, the top level document is this document
-            if (objectIdMap.containsKey(title)) {
-                oid = objectIdMap.get(title);
-                md5 = DigestUtils.md5Hex(oid);
-                packager.set("manifest/node-" + md5 + "/id", oid);
-                packager.set("manifest/node-" + md5 + "/title", title);
+        // Top level package
+        if (level == 0) {
+            // Pointless if we didn't harvest anything
+            if (allChildren.size() > 0) {
+                objectData.set("title", title);
+                objectData.setJsonMap("manifest", allChildren);
             }
+            //log.debug(objectData.toString());
 
-            // Followed by all the children
-            for (String key : childObjects.keySet()) {
-                oid = childObjects.get(key);
-                md5 = DigestUtils.md5Hex(oid);
-                packager.set("manifest/node-" + md5 + "/id", oid);
-                packager.set("manifest/node-" + md5 + "/title", key);
-            }
-
-            // Create the manifest file
-            String packageId = DigestUtils.md5Hex(title);
-            File manifestFile = new File(packageDir, packageId + ".tfpackage");
-            try {
-                //log.debug(" *** ICE2 : Storing new manifest:\n=======\n"
-                //        + packager.toString() + "\n=======\n");
-                FileUtils.writeStringToFile(manifestFile, packager.toString(),
-                        "utf-8");
-            } catch (IOException ex) {
-                log.error("Error writing manifest file to disk : ", ex);
-                return object;
-            }
-
-            // Harvest the manifest file
-            try {
-                if (!testRun) {
-                    object = StorageUtils.storeFile(getStorage(), manifestFile);
+        // We are only building 'part' packages
+        //    to be collected recursively.
+        } else {
+            if (object != null || testRun) {
+                String md5, oid = null;
+                objectData.set("title", title);
+                if (testRun) {
+                    oid = "testRunObject:" + title;
+                } else {
+                    oid = object.getId();
                 }
-                manifestFile.delete();
-            } catch (Exception ex) {
-                log.error("Error storing manifest : ", ex);
-                return object;
-            }
+                md5 = DigestUtils.md5Hex(oid);
+                objectData.set("manifest/node-" + md5 + "/id", oid);
+                objectData.set("manifest/node-" + md5 + "/title", title);
 
-            // Set package metadata for harvesting
-            if (!testRun) {
-                try {
-                    Properties props = object.getMetadata();
-                    props.setProperty("rulesOid", pkgRules.getId());
-                    props.setProperty("rulesPid", pkgRules.getSourceId());
-                    props.setProperty("jsonConfigOid", pkgConfig.getId());
-                    props.setProperty("jsonConfigPid", pkgConfig.getSourceId());
-                    props.setProperty("owner", username);
-                    // Force the metadata to write to disk
-                    object.close();
-                } catch (StorageException ex) {
-                    log.error("Error accessing manifest metadata : ", ex);
-                    return object;
+                if (allChildren.size() > 0) {
+                    objectData.setJsonMap("manifest/node-" + md5 + "/children", allChildren);
                 }
-            }
-
-            // If the root doc is already in our list move it
-            if (objectIdMap.keySet().contains(title)) {
-                // Remember the INDEX used here only effects internal package
-                //   linking, and we want to link to packages where possible.
-                // As long as the root doc object is still in the list
-                //   somewhere it will get indexed later as normal.
-                String rootOid = objectIdMap.get(title);
-                objectIdMap.put(title + " (object)", rootOid);
-            }
-            // Now add the package object to our list
-            if (testRun) {
-                objectIdMap.put(title, "testRunObject:" + title);
-            } else {
-                objectIdMap.put(title, object.getId());
             }
         }
-
-        return object;
+        return objectData;
     }
 
     private DigitalObject harvestHtml(File rootFile, File htmlDir, String title,
             Map<String, String> objectIdMap) throws HarvesterException {
+        //log.debug("harvestHtml() start : {}", title);
         File htmlFile = new File(htmlDir, htmlDir.getName()
                 + ".html");
         List<Element> images, links, params = null;
@@ -572,7 +608,8 @@ public class Ice2Harvester extends GenericHarvester {
                     if (a.getName().equals("href")) {
                         // Ignore legitimate web links
                         if (!a.getValue().startsWith("http") &&
-                                !a.getValue().startsWith("mailto")) {
+                            !a.getValue().startsWith("mailto") &&
+                            !a.getValue().isEmpty()) {
                             String href = a.getValue().replace("%20", " ");
                             String newLink = harvestLink(htmlFile, href,
                                     objectIdMap);
@@ -610,7 +647,7 @@ public class Ice2Harvester extends GenericHarvester {
             // Create digital object
             try {
                 // Create the object of the original
-                object = createObject(rootFile);
+                object = createObject(rootFile, "Document");
                 // Stream our custom html back to disk
                 FileUtils.writeStringToFile(htmlFile, htmlOut.toString());
                 // Add the html render of the file
@@ -646,6 +683,7 @@ public class Ice2Harvester extends GenericHarvester {
 
     private String harvestVideo(File htmlFile, String oldLink,
             Map<String, String> objectIdMap) throws HarvesterException {
+        //log.debug("harvestVideo() start : {}", oldLink);
         // Sometimes we need to separate the video from the player
         if (oldLink.contains("/player_")) {
             // Find the base of the video path
@@ -668,6 +706,7 @@ public class Ice2Harvester extends GenericHarvester {
 
     private String harvestLink(File htmlFile, String oldLink,
             Map<String, String> objectIdMap) throws HarvesterException {
+        //log.debug("harvestLink() start : {}", oldLink);
         // Normalise relative links
         String index = oldLink;
         if (oldLink.startsWith("../")) {
@@ -701,6 +740,7 @@ public class Ice2Harvester extends GenericHarvester {
 
     private String harvestDocument(File htmlFile, String oldLink,
             Map<String, String> objectIdMap) throws HarvesterException {
+        //log.debug("harvestDocument() start : {}", oldLink);
         // Normalise relative links
         String index = oldLink;
         if (oldLink.startsWith("../")) {
@@ -719,7 +759,7 @@ public class Ice2Harvester extends GenericHarvester {
         DigitalObject object = null;
 
         // First, it could be a direct link to a document in the package
-        File file = new File(baseDir, oldLink);
+        File file = new File(courseRoot, oldLink);
         if (!file.exists()) {
             // Secondly, it could be relative link to a document
             file = new File(htmlFile.getParentFile(), oldLink);
@@ -771,6 +811,7 @@ public class Ice2Harvester extends GenericHarvester {
 
     private String harvestMedia(File htmlFile, String oldLink,
             Map<String, String> objectIdMap) throws HarvesterException {
+        //log.debug("harvestMedia() start : {}", oldLink);
         // Normalise relative links
         String filePath = oldLink;
         if (oldLink.startsWith("../")) {
@@ -785,69 +826,81 @@ public class Ice2Harvester extends GenericHarvester {
         // TODO - Suffixes like anchors and parameters need to be retained and
         //        andled on the detail screen when the object link is resolved.
 
-        File media = new File(baseDir, filePath);
+        File media = new File(courseRoot, filePath);
         DigitalObject object = null;
         if (media.exists()) {
             String fileType = FilenameUtils.getExtension(media.getName());
             String subFilePath = filePath.substring(6);
             int firstSlash = subFilePath.indexOf("/");
 
-            String mediaType = subFilePath.substring(0, firstSlash);
-            subFilePath = subFilePath.substring(firstSlash + 1);
-
-            // Treat as a document if we don't support it
-            if (!Arrays.asList(acceptedMedia).contains(mediaType)) {
-                return harvestDocument(htmlFile, oldLink, objectIdMap);
-            } else {
+            // Unfiled media
+            if (firstSlash == -1) {
                 try {
-                    if (mediaType.equals("audio")) {
-                        //log.debug(" *** ICE2 : Audio => '"+ subFilePath + "'");
-                        object = createObject(media);
-                    }
-                    if (mediaType.equals("flash")) {
-                        // TODO - Need test data
-                    }
-                    if (mediaType.equals("images")) {
-                        //log.debug(" *** ICE2 : Image => '"+ subFilePath + "'");
-                        object = createObject(media);
-                    }
-                    if (mediaType.equals("presentations") ||
-                        mediaType.equals("breeze")) {
-                        // Likely a package - simple (v1) answer is to 'gulch'
-                        //  everything in the same directory and all sub-dirs
-                        // TODO - Prepare in such a way as to be handled
-                        //        by the IMS transformer.
-                        if (fileType.contains("htm")) {
-                            //log.debug(" *** ICE2 : HTML Presentation => '"
-                            //        + subFilePath + "'");
-                            object = createObject(media);
-                            File mediaRoot = media.getParentFile();
-                            File[] files = mediaRoot.listFiles(ignoreFilter);
-                            for (File f : files) {
-                                if (!f.getName().equals(".ice")) {
-                                    addPayload(object, f, "");
-                                }
-                            }
-
-                        // Single Files
-                        } else {
-                            // TODO = Renditions required on PPT files (at least)
-                            //log.debug(" *** ICE2 : Presentation => '"
-                            //        + subFilePath + "'");
-                            object = createObject(media);
-                        }
-                    }
-                    if (mediaType.equals("readings")) {
-                        // TODO - Need data, and what to do with documents? render?
-                    }
-                    if (mediaType.equals("video")) {
-                        //log.debug(" *** ICE2 : Video => '"+ subFilePath + "'");
-                        object = createObject(media);
-                    }
+                    log.warn("Harvesting unfiled media object: '{}'", media.getAbsolutePath());
+                    object = createObject(media, "Unknown Media");
                 } catch (HarvesterException ex) {
                     log.error("Error storing file : ", ex);
                 } catch (StorageException ex) {
                     log.error("Error storing file : ", ex);
+                }
+            } else {
+                String mediaType = subFilePath.substring(0, firstSlash);
+                subFilePath = subFilePath.substring(firstSlash + 1);
+
+                // Treat as a document if we don't support it
+                if (!Arrays.asList(acceptedMedia).contains(mediaType)) {
+                    return harvestDocument(htmlFile, oldLink, objectIdMap);
+                } else {
+                    try {
+                        if (mediaType.equals("audio")) {
+                            //log.debug(" *** ICE2 : Audio => '"+ subFilePath + "'");
+                            object = createObject(media, "Audio", true);
+                        }
+                        if (mediaType.equals("flash")) {
+                            // TODO - Need test data
+                        }
+                        if (mediaType.equals("images")) {
+                            //log.debug(" *** ICE2 : Image => '"+ subFilePath + "'");
+                            object = createObject(media, "Image", true);
+                        }
+                        if (mediaType.equals("presentations") ||
+                            mediaType.equals("breeze")) {
+                            // Likely a package - simple (v1) answer is to 'gulch'
+                            //  everything in the same directory and all sub-dirs
+                            // TODO - Prepare in such a way as to be handled
+                            //        by the IMS transformer.
+                            if (fileType.contains("htm")) {
+                                //log.debug(" *** ICE2 : HTML Presentation => '"
+                                //        + subFilePath + "'");
+                                object = createObject(media, "Presentation");
+                                File mediaRoot = media.getParentFile();
+                                File[] files = mediaRoot.listFiles(ignoreFilter);
+                                for (File f : files) {
+                                    if (!f.getName().equals(".ice")) {
+                                        addPayload(object, f, "");
+                                    }
+                                }
+
+                            // Single Files
+                            } else {
+                                // TODO = Renditions required on PPT files (at least)
+                                //log.debug(" *** ICE2 : Presentation => '"
+                                //        + subFilePath + "'");
+                                object = createObject(media, "Presentation", true);
+                            }
+                        }
+                        if (mediaType.equals("readings")) {
+                            // TODO - Need data, and what to do with documents? render?
+                        }
+                        if (mediaType.equals("video")) {
+                            //log.debug(" *** ICE2 : Video => '"+ subFilePath + "'");
+                            object = createObject(media, "Video", true);
+                        }
+                    } catch (HarvesterException ex) {
+                        log.error("Error storing file : ", ex);
+                    } catch (StorageException ex) {
+                        log.error("Error storing file : ", ex);
+                    }
                 }
             }
         }
@@ -856,6 +909,7 @@ public class Ice2Harvester extends GenericHarvester {
             log.error("Media object not found : '"
                     + media.getAbsolutePath() + "'");
             return null;
+
         } else {
             if (testRun) {
                 objectIdMap.put(filePath, filePath);
@@ -869,6 +923,7 @@ public class Ice2Harvester extends GenericHarvester {
 
     private File getOriginalDoc(File origDir, String manifestFileName) {
         File file = new File(origDir, manifestFileName);
+        //log.debug("getOriginalDoc() start : {}", manifestFileName);
         String fileName = file.getName();
 
         String simpleName = FilenameUtils.getBaseName(fileName);
@@ -888,6 +943,7 @@ public class Ice2Harvester extends GenericHarvester {
     }
 
     private File getHtmlRendition(File srcFile) throws IOException {
+        //log.debug("getHtmlRendition() start : {}", srcFile);
         if (srcFile == null) {
             return null;
         }
@@ -901,6 +957,10 @@ public class Ice2Harvester extends GenericHarvester {
         File imgDir = new File(htmlDir, simpleName + "_files");
         if (!imgDir.exists()) {
             imgDir.mkdir();
+        } else {
+            // !! important - so many files use the same basename
+            //  eg. 'module2.doc' and we don't want to mix them
+            purgeDirectory(imgDir);
         }
         imgDir.deleteOnExit();
 
@@ -964,13 +1024,33 @@ public class Ice2Harvester extends GenericHarvester {
         }
     }
 
+    private void purgeDirectory(File dir) {
+        if (!dir.isDirectory()) return;
+
+        File[] files = dir.listFiles();
+        for (File f : files) {
+            f.delete();
+        }
+    }
+
     @Override
     public boolean hasMoreObjects() {
+        if (!hasMore) {
+            log.info("COMPLETE: {} Files => {} Objects.", filesProcessed, objectsCreated);
+        }
         return hasMore;
     }
 
-    private DigitalObject createObject(File file) throws HarvesterException,
-            StorageException {
+    private DigitalObject createObject(File file, String itemType)
+        throws HarvesterException, StorageException {
+        return createObject(file, itemType, false);
+    }
+
+    private DigitalObject createObject(File file, String itemType, boolean render)
+        throws HarvesterException, StorageException {
+        objectsCreated++;
+        filesProcessed++;
+
         if (testRun) {
             return null;
         }
@@ -979,9 +1059,22 @@ public class Ice2Harvester extends GenericHarvester {
 
         // update object metadata
         Properties props = object.getMetadata();
+        props.setProperty("usq-course", course);
+        props.setProperty("usq-semester", semester);
         props.setProperty("render-pending", "true");
-        props.setProperty("file.path", FilenameUtils.separatorsToUnix(file
-                .getAbsolutePath()));
+        props.setProperty("file.path",
+                FilenameUtils.separatorsToUnix(file.getAbsolutePath()));
+        props.setProperty("item-type", itemType);
+
+        if (render) {
+            props.setProperty("extractor", "aperture");
+            props.setProperty("indexOnHarvest", "true");
+            props.setProperty("render", "ffmpeg,ice2");
+        } else {
+            props.setProperty("extractor", "");
+            props.setProperty("indexOnHarvest", "false");
+            props.setProperty("render", "aperture");
+        }
 
         object.close();
         return object;
@@ -989,6 +1082,8 @@ public class Ice2Harvester extends GenericHarvester {
 
     private Payload addPayload(DigitalObject object, File file, String prefix)
             throws HarvesterException, StorageException {
+        filesProcessed++;
+
         if (testRun) {
             return null;
         }

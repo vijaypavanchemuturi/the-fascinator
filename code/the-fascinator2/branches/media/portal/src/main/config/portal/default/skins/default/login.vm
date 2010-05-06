@@ -1,0 +1,21 @@
+<div class="box hidden" id="login-form">
+  <form id="login" method="post">
+    <fieldset class="search">
+      <legend>Login details</legend>
+      <div class="login-error hidden" id="login-error">
+        <img class="hidden" id="login-loading" src="$portalPath/images/icons/loading.gif" />
+        <span id="login-message"></span>
+      </div>
+      <p>
+        <label for="username">Username</label>
+        <input type="text" id="username" name="username" />
+      </p>
+      <p>
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" />
+      </p>
+      <input id="login-submit" type="button" value="Login" />
+      <input id="login-cancel" type="button" value="Close" />
+    </fieldset>
+  </form>
+</div>

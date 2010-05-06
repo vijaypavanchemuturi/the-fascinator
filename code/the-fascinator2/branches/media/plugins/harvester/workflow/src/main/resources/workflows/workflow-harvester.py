@@ -50,7 +50,7 @@ def grantAccess(object, newRole):
     schema.set("role", newRole)
     object.setAccessSchema(schema, "simple")
 
-def revokeAccess(inobjectdexer, oldRole):
+def revokeAccess(object, oldRole):
     schema = object.getAccessSchema("simple");
     schema.setRecordId(oid)
     schema.set("role", oldRole)
@@ -121,7 +121,8 @@ if pid == metaPid:
                 else:
                     relationDict[key] = [value]
     except StorageException, e:
-        print "Failed to index ICE dublin core data (%s)" % str(e)
+        #print "Failed to index ICE dublin core data (%s)" % str(e)
+        pass
     
     # Extract from aperture.rdf if exist
     try:
@@ -199,7 +200,8 @@ if pid == metaPid:
             if informationElement.hasContentCreated():
                 creationDate.append(informationElement.getContentCreated().getTime().toString())
     except StorageException, e:
-        print "Failed to index aperture data (%s)" % str(e)
+        #print "Failed to index aperture data (%s)" % str(e)
+        pass
     
     # Workflow data
     WORKFLOW_ID = "workflow1"

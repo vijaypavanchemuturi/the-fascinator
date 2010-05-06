@@ -73,6 +73,22 @@
       "workflow_step" : {
         "label" : "Workflow Step",
         "display" : "list"
+      },
+      "course_code" : {
+        "label" : "Course Code",
+        "display" : "list"
+      },
+      "course_year" : {
+        "label" : "Year",
+        "display" : "list"
+      },
+      "course_sem" : {
+        "label" : "Semester",
+        "display" : "list"
+      },
+      "item_type" : {
+        "label" : "Object Type",
+        "display" : "list"
       }
     }
   }

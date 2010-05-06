@@ -21,6 +21,7 @@ package au.edu.usq.fascinator;
 import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.util.Arrays;
 import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
@@ -54,6 +55,8 @@ public class ConveyerBelt {
 
     private String jsonString;
 
+    private List<Object> plugins;
+
     private static Logger log = LoggerFactory.getLogger(ConveyerBelt.class);
 
     public ConveyerBelt(File jsonFile, String type) {
@@ -78,9 +81,22 @@ public class ConveyerBelt {
         }
     }
 
+    public DigitalObject transform(DigitalObject object, String overrideList)
+        throws TransformerException {
+        plugins = Arrays.asList((Object[])StringUtils.split(overrideList, ","));
+        DigitalObject returnObject = transform(object);
+        plugins = null;
+        return returnObject;
+    }
+
     public DigitalObject transform(DigitalObject object)
             throws TransformerException {
-        List<Object> pluginList = config.getList("transformer/" + type);
+        List<Object> pluginList;
+        if (plugins == null) {
+            pluginList = config.getList("transformer/" + type);
+        } else {
+            pluginList = plugins;
+        }
         DigitalObject result = object;
         if (pluginList != null) {
             for (Object pluginId : pluginList) {
