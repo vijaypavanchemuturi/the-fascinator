@@ -1,0 +1,297 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>au.edu.usq.fascinator</groupId>
+	<artifactId>organisation</artifactId>
+	<packaging>pom</packaging>
+	<name>Fascinator Project</name>
+	<version>0.3.1</version>
+	<description>
+		This Maven project provides a central point for
+		information regarding The
+		Fascinator and its many works. </description>
+	<organization>
+		<name>University of Southern Queensland</name>
+		<url>http://www.usq.edu.au</url>
+	</organization>
+	<licenses>
+		<license>
+			<name>GNU GENERAL PUBLIC LICENSE V2</name>
+			<url>http://www.gnu.org/licenses/gpl-2.0.txt</url>
+		</license>
+	</licenses>
+	<issueManagement>
+		<system>Trac</system>
+		<url>http://fascinator.usq.edu.au/trac</url>
+	</issueManagement>
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<jdk-version>1.6</jdk-version>
+		<svn-repository>http://fascinator.usq.edu.au/svn-auth/
+		</svn-repository>
+		<svn-parent-dir>project_meta/trunk</svn-parent-dir>
+		<svn-path>${svn-repository}${svn-parent-dir}</svn-path>
+	</properties>
+	<scm>
+		<url>http://fascinator.usq.edu.au/svn-auth/project_meta/tags/organisation-0.3.1</url>
+		<connection>scm:svn:http://fascinator.usq.edu.au/svn-auth/project_meta/tags/organisation-0.3.1
+		</connection>
+		<developerConnection>scm:svn:http://fascinator.usq.edu.au/svn-auth/project_meta/tags/organisation-0.3.1
+		</developerConnection>
+	</scm>
+	<developers>
+		<developer>
+			<id>dickinso</id>
+			<name>Duncan Dickinson</name>
+			<url>http://duncan.dickinson.name</url>
+			<roles>
+				<role>Project Manager</role>
+				<role>Developer</role>
+			</roles>
+		</developer>
+		<developer>
+			<id>dye</id>
+			<name>Bronwyn Chandler</name>
+			<roles>
+				<role>Project Manager</role>
+			</roles>
+		</developer>
+		<developer>
+			<id>octalina</id>
+			<name>Linda Octalina</name>
+			<roles>
+				<role>Developer</role>
+			</roles>
+		</developer>
+		<developer>
+			<id>lucido</id>
+			<name>Oliver Lucido</name>
+			<roles>
+				<role>Developer</role>
+			</roles>
+		</developer>
+		<developer>
+			<id>sefton</id>
+			<name>Peter Sefton</name>
+			<url>http://ptsefton.com/</url>
+			<roles>
+				<role>Manager</role>
+				<role>Consultant</role>
+				<role>Tester</role>
+			</roles>
+		</developer>
+		<developer>
+			<id>ward</id>
+			<name>Ron Ward</name>
+			<roles>
+				<role>Developer</role>
+			</roles>
+		</developer>
+		<developer>
+			<id>pendlebu</id>
+			<name>Greg Pendlebury</name>
+			<roles>
+				<role>Developer</role>
+			</roles>
+		</developer>
+	</developers>
+	<url>http://fascinator.usq.edu.au/</url>
+	<inceptionYear>2009</inceptionYear>
+	<ciManagement>
+		<system>Hudson</system>
+		<url>http://build.adfi.usq.edu.au/ci</url>
+	</ciManagement>
+	<mailingLists>
+		<mailingList>
+			<name>Desktop Edition Users' List</name>
+			<post>the-fascinator-desktop-user@googlegroups.com</post>
+			<archive>http://groups.google.com/group/the-fascinator-desktop-user
+			</archive>
+		</mailingList>
+		<mailingList>
+			<name>Developer List</name>
+			<post>the-fascinator-dev@googlegroups.com</post>
+			<archive>http://groups.google.com/group/the-fascinator-dev</archive>
+		</mailingList>
+	</mailingLists>
+	<repositories>
+		<repository>
+			<id>adfi-usq-releases</id>
+			<url>http://fascinator.usq.edu.au/nexus/content/groups/public</url>
+		</repository>
+	</repositories>
+	<distributionManagement>
+		<repository>
+			<id>releases</id>
+			<name>The Fascinator Releases</name>
+			<url>http://fascinator.usq.edu.au/nexus/content/repositories/releases
+			</url>
+		</repository>
+		<snapshotRepository>
+			<id>snapshots</id>
+			<name>The Fascinator Snapshots</name>
+			<url>http://fascinator.usq.edu.au/nexus/content/repositories/snapshots
+			</url>
+		</snapshotRepository>
+		<site>
+			<id>build.adfi.usq.edu.au</id>
+			<url>file:///var/www/hudson/fascinator</url>
+		</site>
+	</distributionManagement>
+	<build>
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-scm-plugin</artifactId>
+					<version>1.2</version>
+					<configuration>
+						<connectionType>developerConnection</connectionType>
+					</configuration>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-compiler-plugin</artifactId>
+					<configuration>
+						<source>${jdk-version}</source>
+						<target>${jdk-version}</target>
+					</configuration>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+	</build>
+
+	<profiles>
+		<profile>
+			<id>rapid-report</id>
+			<activation>
+				<activeByDefault>false</activeByDefault>
+			</activation>
+			<reporting>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-project-info-reports-plugin</artifactId>
+						<version>RELEASE</version>
+						<reportSets>
+							<reportSet>
+								<reports>
+									<report>index</report>
+								</reports>
+							</reportSet>
+						</reportSets>
+					</plugin>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-surefire-report-plugin</artifactId>
+						<version>2.5</version>
+						<configuration>
+							<aggregate>true</aggregate>
+						</configuration>
+					</plugin>
+					<!--
+						<plugin> <groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-javadoc-plugin</artifactId>
+						<version>2.6.1</version> <configuration> <links>
+						<link>http://java.sun.com/javase/6/docs/api</link> </links>
+						</configuration> <reportSets> <reportSet> <id>default</id>
+						<reports> <report>javadoc</report> <report>test-javadoc</report>
+						</reports> </reportSet> </reportSets> </plugin>
+					-->
+				</plugins>
+			</reporting>
+		</profile>
+		<profile>
+			<id>full-report</id>
+			<activation>
+				<activeByDefault>true</activeByDefault>
+			</activation>
+			<reporting>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-project-info-reports-plugin</artifactId>
+						<version>RELEASE</version>
+						<configuration>
+							<aggregate>true</aggregate>
+						</configuration>
+					</plugin>
+					<!--
+						<plugin> <groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-changes-plugin</artifactId>
+						<version>2.3</version> </plugin>
+					-->
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-javadoc-plugin</artifactId>
+						<version>2.6.1</version>
+						<configuration>
+							<links>
+								<link>http://java.sun.com/javase/6/docs/api</link>
+							</links>
+						</configuration>
+						<reportSets>
+							<reportSet>
+								<id>default</id>
+								<reports>
+									<report>javadoc</report>
+									<report>test-javadoc</report>
+								</reports>
+							</reportSet>
+							<reportSet>
+								<reports>
+									<report>aggregate</report>
+								</reports>
+							</reportSet>
+						</reportSets>
+					</plugin>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-jxr-plugin</artifactId>
+						<version>2.1</version>
+						<configuration>
+							<aggregate>true</aggregate>
+						</configuration>
+					</plugin>
+
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-pmd-plugin</artifactId>
+						<version>2.4</version>
+						<configuration>
+							<aggregate>true</aggregate>
+							<targetJdk>${jdk-version}</targetJdk>
+							<linkXref>true</linkXref>
+						</configuration>
+					</plugin>
+
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-checkstyle-plugin</artifactId>
+						<version>2.2</version>
+						<configuration>
+							<aggregate>true</aggregate>
+						</configuration>
+					</plugin>
+					<plugin>
+						<groupId>org.codehaus.mojo</groupId>
+						<artifactId>taglist-maven-plugin</artifactId>
+						<version>2.3</version>
+						<configuration>
+							<aggregate>true</aggregate>
+						</configuration>
+					</plugin>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-surefire-report-plugin</artifactId>
+						<version>2.5</version>
+						<configuration>
+							<aggregate>true</aggregate>
+						</configuration>
+					</plugin>
+				</plugins>
+			</reporting>
+		</profile>
+	</profiles>
+
+
+</project>
