@@ -4,7 +4,7 @@
 	<artifactId>organisation</artifactId>
 	<packaging>pom</packaging>
 	<name>Fascinator Project</name>
-	<version>0.3.2</version>
+	<version>0.3.3-SNAPSHOT</version>
 	<description>
 		This Maven project provides a central point for
 		information regarding The
@@ -32,10 +32,10 @@
 		<svn-path>${svn-repository}${svn-parent-dir}</svn-path>
 	</properties>
 	<scm>
-		<url>http://fascinator.usq.edu.au/svn-auth/project_meta/tags/organisation-0.3.2</url>
-		<connection>scm:svn:http://fascinator.usq.edu.au/svn-auth/project_meta/tags/organisation-0.3.2
+		<url>http://fascinator.usq.edu.au/svn-auth/project_meta/trunk</url>
+		<connection>scm:svn:http://fascinator.usq.edu.au/svn-auth/project_meta/trunk
 		</connection>
-		<developerConnection>scm:svn:http://fascinator.usq.edu.au/svn-auth/project_meta/tags/organisation-0.3.2
+		<developerConnection>scm:svn:http://fascinator.usq.edu.au/svn-auth/project_meta/trunk
 		</developerConnection>
 	</scm>
 	<developers>
