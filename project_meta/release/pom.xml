@@ -1,11 +1,10 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>au.edu.usq.fascinator</groupId>
 	<artifactId>organisation</artifactId>
 	<packaging>pom</packaging>
 	<name>Fascinator Project</name>
-	<version>0.3.1-SNAPSHOT</version>
+	<version>0.3.1</version>
 	<description>
 		This Maven project provides a central point for
 		information regarding The
@@ -33,10 +32,10 @@
 		<svn-path>${svn-repository}${svn-parent-dir}</svn-path>
 	</properties>
 	<scm>
-		<url>http://fascinator.usq.edu.au/svn-auth/project_meta/trunk</url>
-		<connection>scm:svn:http://fascinator.usq.edu.au/svn-auth/project_meta/trunk
+		<url>http://fascinator.usq.edu.au/svn-auth/project_meta/tags/organisation-0.3.1</url>
+		<connection>scm:svn:http://fascinator.usq.edu.au/svn-auth/project_meta/tags/organisation-0.3.1
 		</connection>
-		<developerConnection>scm:svn:http://fascinator.usq.edu.au/svn-auth/project_meta/trunk
+		<developerConnection>scm:svn:http://fascinator.usq.edu.au/svn-auth/project_meta/tags/organisation-0.3.1
 		</developerConnection>
 	</scm>
 	<developers>
