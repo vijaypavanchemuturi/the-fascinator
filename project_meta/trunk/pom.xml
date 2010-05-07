@@ -1,4 +1,5 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>au.edu.usq.fascinator</groupId>
 	<artifactId>organisation</artifactId>
@@ -132,6 +133,10 @@
 			<url>http://fascinator.usq.edu.au/nexus/content/repositories/snapshots
 			</url>
 		</snapshotRepository>
+		<site>
+			<id>build.adfi.usq.edu.au</id>
+			<url>file:///var/www/hudson/fascinator</url>
+		</site>
 	</distributionManagement>
 	<build>
 		<pluginManagement>
@@ -184,35 +189,23 @@
 							<aggregate>true</aggregate>
 						</configuration>
 					</plugin>
-					<!-- 
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-javadoc-plugin</artifactId>
-                        <version>2.6.1</version>
-                        <configuration>
-                            <links>
-                                <link>http://java.sun.com/javase/6/docs/api</link>
-                            </links>
-                        </configuration>
-                        <reportSets>
-                            <reportSet>
-                                <id>default</id>
-                                <reports>
-                                    <report>javadoc</report>
-                                    <report>test-javadoc</report>
-                                </reports>
-                            </reportSet>
-                        </reportSets>
-                    </plugin>
-                     -->
+					<!--
+						<plugin> <groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-javadoc-plugin</artifactId>
+						<version>2.6.1</version> <configuration> <links>
+						<link>http://java.sun.com/javase/6/docs/api</link> </links>
+						</configuration> <reportSets> <reportSet> <id>default</id>
+						<reports> <report>javadoc</report> <report>test-javadoc</report>
+						</reports> </reportSet> </reportSets> </plugin>
+					-->
 				</plugins>
 			</reporting>
 		</profile>
 		<profile>
 			<id>full-report</id>
 			<activation>
-                <activeByDefault>true</activeByDefault>
-            </activation>
+				<activeByDefault>true</activeByDefault>
+			</activation>
 			<reporting>
 				<plugins>
 					<plugin>
@@ -223,13 +216,11 @@
 							<aggregate>true</aggregate>
 						</configuration>
 					</plugin>
-					<!-- 
-					<plugin>
-						<groupId>org.apache.maven.plugins</groupId>
+					<!--
+						<plugin> <groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-changes-plugin</artifactId>
-						<version>2.3</version>
-					</plugin>
-					 -->
+						<version>2.3</version> </plugin>
+					-->
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-javadoc-plugin</artifactId>
