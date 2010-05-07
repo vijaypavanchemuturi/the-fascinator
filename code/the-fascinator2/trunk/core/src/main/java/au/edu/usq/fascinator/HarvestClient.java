@@ -29,15 +29,8 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
-import javax.jms.Connection;
-import javax.jms.DeliveryMode;
-import javax.jms.Destination;
 import javax.jms.JMSException;
-import javax.jms.MessageProducer;
-import javax.jms.Session;
-import javax.jms.TextMessage;
 
-import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.commons.io.IOUtils;
 import org.apache.log4j.MDC;
 import org.slf4j.Logger;
@@ -61,7 +54,6 @@ import au.edu.usq.fascinator.common.storage.StorageUtils;
  * HarvestClient class to handle harvesting of objects to the storage
  * 
  * @author Oliver Lucido
- * 
  */
 public class HarvestClient {
 
@@ -107,14 +99,8 @@ public class HarvestClient {
     /** Storage to store the digital object */
     private Storage storage;
 
-    /** Connection to Queue */
-    private Connection connection;
-
-    /** Session of the connection */
-    private Session session;
-
-    /** Message producer */
-    private MessageProducer producer;
+    /** Messaging services */
+    private MessagingServices messaging;
 
     /**
      * Harvest Client Constructor
@@ -178,25 +164,8 @@ public class HarvestClient {
             throw new HarvesterException("Failed to initialise storage", pe);
         }
 
-        initConnection();
-    }
-
-    /**
-     * Initialising connection
-     */
-    private void initConnection() {
         try {
-            String brokerUrl = config.get("messaging/url",
-                    ActiveMQConnectionFactory.DEFAULT_BROKER_BIND_URL);
-            ActiveMQConnectionFactory connectionFactory = new ActiveMQConnectionFactory(
-                    brokerUrl);
-            connection = connectionFactory.createConnection();
-            connection.start();
-            session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
-            Destination destination = session
-                    .createQueue(HarvestQueueConsumer.HARVEST_QUEUE);
-            producer = session.createProducer(destination);
-            producer.setDeliveryMode(DeliveryMode.PERSISTENT);
+            messaging = MessagingServices.getInstance();
         } catch (JMSException jmse) {
             log.error("Failed to start connection: {}", jmse.getMessage());
         }
@@ -322,26 +291,8 @@ public class HarvestClient {
                 log.error("Failed to shutdown storage", pe);
             }
         }
-        if (producer != null) {
-            try {
-                producer.close();
-            } catch (JMSException jmse) {
-                log.warn("Failed to close producer", jmse);
-            }
-        }
-        if (session != null) {
-            try {
-                session.close();
-            } catch (JMSException jmse) {
-                log.warn("Failed to close session", jmse);
-            }
-        }
-        if (connection != null) {
-            try {
-                connection.close();
-            } catch (JMSException jmse) {
-                log.warn("Failed to close connection", jmse);
-            }
+        if (messaging != null) {
+            messaging.release();
         }
     }
 
@@ -412,12 +363,10 @@ public class HarvestClient {
             if (commit) {
                 json.set("commit", "true");
             }
-            TextMessage message = session.createTextMessage(json.toString());
-            producer.send(message);
+            messaging.queueMessage(HarvestQueueConsumer.HARVEST_QUEUE, json
+                    .toString());
         } catch (IOException ioe) {
             log.error("Failed to parse message: {}", ioe.getMessage());
-        } catch (JMSException jmse) {
-            log.error("Failed to send message: {}", jmse.getMessage());
         }
     }
 
@@ -432,12 +381,10 @@ public class HarvestClient {
             JsonConfigHelper json = new JsonConfigHelper(jsonFile);
             json.set("oid", oid);
             json.set("deleted", "true");
-            TextMessage message = session.createTextMessage(json.toString());
-            producer.send(message);
+            messaging.queueMessage(HarvestQueueConsumer.HARVEST_QUEUE, json
+                    .toString());
         } catch (IOException ioe) {
             log.error("Failed to parse message: {}", ioe.getMessage());
-        } catch (JMSException jmse) {
-            log.error("Failed to send message: {}", jmse.getMessage());
         }
     }
 
