@@ -1,0 +1,23 @@
+#set($meta = $self.metadata)
+#set($oid = $self.object.getId())
+#set($title = $meta.getField("dc_title"))
+#set($description = $meta.getField("dc_description"))
+#set($mimeType = $meta.getField("dc_format"))
+#if(!$title)
+  #set($title = $self.getFileName($oid))
+#end
+#set($isPackage = $mimeType == "application/x-fascinator-package")
+#set($isImsPackage = $self.hasImsManifest())
+#set($pageTitle = "$title - Detail")
+
+#set($sourceId = $self.getObject().getMetadata().getProperty("file.path"))
+#set($filenameNoExt = $self.getFilePathWithoutExt($oid))
+
+#set($creator = "")
+#set($creatorUri = "")
+#if($page.authentication.is_logged_in()) 
+    #set($creator = $page.authentication.get_name())
+    #if($page.authentication.get_uri())
+        #set($creatorUri = $page.authentication.get_uri())
+    #end
+#end
