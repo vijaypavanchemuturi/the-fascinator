@@ -202,7 +202,83 @@ if pid == metaPid:
     except StorageException, e:
         #print "Failed to index aperture data (%s)" % str(e)
         pass
-    
+
+    ### Check if ffmpeg.info exists or not
+    try:
+        ffmpegPayload = object.getPayload("ffmpeg.info")
+        ffmpeg = pyUtils.getJsonObject(ffmpegPayload.open())
+        ffmpegPayload.close()
+        if ffmpeg is not None:
+            # Dimensions
+            width = ffmpeg.get("video/width")
+            height = ffmpeg.get("video/height")
+            if width is not None and height is not None:
+                rules.add(AddField("dc_size", width + " x " + height))
+
+            # Duration
+            duration = ffmpeg.get("duration")
+            if duration is not None and int(duration) > 0:
+                if int(duration) > 59:
+                    secs = int(duration) % 60
+                    mins = (int(duration) - secs) / 60
+                    rules.add(AddField("dc_duration", "%dm %ds" % (mins, secs)))
+                else:
+                    rules.add(AddField("dc_duration", duration + " second(s)"))
+
+            # Format
+            media = ffmpeg.get("format/label")
+            if media is not None:
+                rules.add(AddField("dc_media_format", media))
+
+            # Video
+            codec = ffmpeg.get("video/codec/simple")
+            label = ffmpeg.get("video/codec/label")
+            if codec is not None and label is not None:
+                rules.add(AddField("video_codec_simple", codec))
+                rules.add(AddField("video_codec_label", label))
+                rules.add(AddField("meta_video_codec", label + " (" + codec + ")"))
+            else:
+                if codec is not None:
+                    rules.add(AddField("video_codec_simple", codec))
+                    rules.add(AddField("meta_video_codec", codec))
+                if label is not None:
+                    rules.add(AddField("video_codec_label", label))
+                    rules.add(AddField("meta_video_codec", label))
+            pixel_format = ffmpeg.get("video/pixel_format")
+            if pixel_format is not None:
+                rules.add(AddField("meta_video_pixel_format", pixel_format))
+
+            # Audio
+            codec = ffmpeg.get("audio/codec/simple")
+            label = ffmpeg.get("audio/codec/label")
+            if codec is not None and label is not None:
+                rules.add(AddField("audio_codec_simple", codec))
+                rules.add(AddField("audio_codec_label", label))
+                rules.add(AddField("meta_audio_codec", label + " (" + codec + ")"))
+            else:
+                if codec is not None:
+                    rules.add(AddField("audio_codec_simple", codec))
+                    rules.add(AddField("meta_audio_codec", codec))
+                if label is not None:
+                    rules.add(AddField("audio_codec_label", label))
+                    rules.add(AddField("meta_audio_codec", label))
+            sample_rate = ffmpeg.get("audio/sample_rate")
+            if sample_rate is not None:
+                sample_rate = "%.1f KHz" % (int(sample_rate) / 1000)
+            channels = ffmpeg.get("audio/channels")
+            if channels is not None:
+                channels += " Channel(s)"
+            if sample_rate is not None and channels is not None:
+                rules.add(AddField("meta_audio_details", sample_rate + ", " + channels))
+            else:
+                if sample_rate is not None:
+                    rules.add(AddField("meta_audio_details", sample_rate))
+                if channels is not None:
+                    rules.add(AddField("meta_audio_details", channels))
+    except StorageException, e:
+        #print "Failed to index FFmpeg metadata (%s)" % str(e)
+        pass
+
     # Workflow data
     WORKFLOW_ID = "workflow1"
     wfChanged = False
@@ -240,22 +316,22 @@ if pid == metaPid:
         if formData is not None:
             # Core fields
             title = formData.getList("title")
-            if title is not None:
+            if title is not None and title.size() > 0:
                 titleList = title
             creator = formData.getList("creator")
-            if creator is not None:
+            if creator is not None and creator.size() > 0:
                 creatorList = creator
             contributor = formData.getList("contributor")
-            if contributor is not None:
+            if contributor is not None and contributor.size() > 0:
                 contributorList = contributor
             description = formData.getList("description")
-            if description is not None:
+            if description is not None and description.size() > 0:
                 descriptionList = description
             format = formData.getList("format")
-            if format is not None:
+            if format is not None and format.size() > 0:
                 formatList = format
             creation = formData.getList("creationDate")
-            if creation is not None:
+            if creation is not None and creation.size() > 0:
                 creationDate = creation
             # Non-core fields
             data = formData.getMap("/")

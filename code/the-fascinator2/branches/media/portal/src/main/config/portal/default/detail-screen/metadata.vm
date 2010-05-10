@@ -3,10 +3,12 @@
   #set($pageHeader="#parse($page.getTemplate('detail-screen/header.vm'))")
   <div class="block">
     <table class="meta">
-      #foreach($key in $dc.keySet())
+      #set($metaList = ['dc_title', 'dc_description', 'dc_duration', 'dc_size'])
+      #foreach($key in $metaList)
+        #set($valueList = $dc.get($key))
+        #if ("$!valueList" != "" && $valueList.size() > 0)
       <tr>
         <th>$self.formatName($key)</th>
-        #set($valueList = $dc.get($key))
       </tr>
       <tr>
         <td>
@@ -15,6 +17,25 @@
           #end
         </td>
       </tr>
+        #end
+      #end
+    </table>
+
+    <table class="meta">
+      #foreach($key in $dc.keySet())
+        #set($valueList = $dc.get($key))
+        #if (!$metaList.contains($key) && $valueList.size() > 0)
+      <tr>
+        <th>$self.formatName($key)</th>
+      </tr>
+      <tr>
+        <td>
+          #foreach($value in $valueList)
+          <span class="meta-value">$value</span><br/>
+          #end
+        </td>
+      </tr>
+        #end
       #end
     </table>
   </div>
