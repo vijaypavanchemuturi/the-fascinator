@@ -1,27 +1,26 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
- xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
  <modelVersion>4.0.0</modelVersion>
  <groupId>au.edu.usq.fascinator</groupId>
  <artifactId>the-fascinator</artifactId>
  <packaging>pom</packaging>
  <name>The Fascinator</name>
- <version>0.5.0-SNAPSHOT</version>
+ <version>0.6.0-SNAPSHOT</version>
  <parent>
   <groupId>au.edu.usq.fascinator</groupId>
   <artifactId>organisation</artifactId>
-  <version>0.3.0-SNAPSHOT</version>
+  <version>0.3.2</version>
  </parent>
  <description>The Desktop Fascinator is an experimental software package based on The Fascinator, which is inspired by the ongoing problem of getting eResearch data/metadata and publications into repositories where they can be backed up, preserved and shared with a network of other researchers.</description>
  <url>http://fascinator.usq.edu.au</url>
  <scm>
-  <url>http://fascinator.usq.edu.au/svn/code/the-fascinator2/releases</url>
-  <connection>scm:svn:http://fascinator.usq.edu.au/svn/code/the-fascinator2/releases</connection>
-  <developerConnection>scm:svn:http://fascinator.usq.edu.au/svn-auth/code/the-fascinator2/releases</developerConnection>
+  <url>http://fascinator.usq.edu.au/svn/code/the-fascinator2</url>
+  <connection>scm:svn:http://fascinator.usq.edu.au/svn/code/the-fascinator2</connection>
+  <developerConnection>scm:svn:http://fascinator.usq.edu.au/svn-auth/code/the-fascinator2</developerConnection>
  </scm>
  <properties>
   <svn-repository>http://fascinator.usq.edu.au/svn-auth/</svn-repository>
-  <svn-parent-dir>code/the-fascinator2/releases</svn-parent-dir>
+  <svn-parent-dir>code/the-fascinator2</svn-parent-dir>
  </properties>
  <modules>
   <module>common</module>
@@ -35,42 +34,42 @@
    <dependency>
     <groupId>au.edu.usq.fascinator</groupId>
     <artifactId>fascinator-core</artifactId>
-    <version>0.5.0-SNAPSHOT</version>
+    <version>0.6.0-SNAPSHOT</version>
    </dependency>
    <dependency>
     <groupId>au.edu.usq.fascinator</groupId>
     <artifactId>fascinator-common</artifactId>
-    <version>0.5.0-SNAPSHOT</version>
+    <version>0.6.0-SNAPSHOT</version>
    </dependency>
    <dependency>
     <groupId>au.edu.usq.fascinator</groupId>
     <artifactId>fascinator-plugin-api</artifactId>
-    <version>0.5.0-SNAPSHOT</version>
+    <version>0.6.0-SNAPSHOT</version>
    </dependency>
    <dependency>
     <groupId>au.edu.usq.fascinator.plugins</groupId>
     <artifactId>plugin-access-simple</artifactId>
-    <version>0.5.0-SNAPSHOT</version>
+    <version>0.6.0-SNAPSHOT</version>
    </dependency>
    <dependency>
     <groupId>au.edu.usq.fascinator.plugins</groupId>
     <artifactId>plugin-authentication-filesystem</artifactId>
-    <version>0.5.0-SNAPSHOT</version>
+    <version>0.6.0-SNAPSHOT</version>
    </dependency>
    <dependency>
     <groupId>au.edu.usq.fascinator.plugins</groupId>
     <artifactId>plugin-authentication-internal</artifactId>
-    <version>0.5.0-SNAPSHOT</version>
+    <version>0.6.0-SNAPSHOT</version>
    </dependency>
    <dependency>
     <groupId>au.edu.usq.fascinator.plugins</groupId>
     <artifactId>plugin-roles-internal</artifactId>
-    <version>0.5.0-SNAPSHOT</version>
+    <version>0.6.0-SNAPSHOT</version>
    </dependency>
    <dependency>
     <groupId>au.edu.usq.fascinator.plugins</groupId>
     <artifactId>plugin-storage-filesystem</artifactId>
-    <version>0.5.0-SNAPSHOT</version>
+    <version>0.6.0-SNAPSHOT</version>
    </dependency>
    <dependency>
     <groupId>au.edu.usq.fascinator.plugins</groupId>
@@ -80,17 +79,17 @@
    <dependency>
     <groupId>au.edu.usq.fascinator.plugins</groupId>
     <artifactId>plugin-harvester-filesystem</artifactId>
-    <version>0.5.0-SNAPSHOT</version>
+    <version>0.6.0-SNAPSHOT</version>
    </dependency>
    <dependency>
     <groupId>au.edu.usq.fascinator.plugins</groupId>
     <artifactId>plugin-harvester-ice2</artifactId>
-    <version>0.5.0-SNAPSHOT</version>
+    <version>0.6.0-SNAPSHOT</version>
    </dependency>
    <dependency>
     <groupId>au.edu.usq.fascinator.plugins</groupId>
     <artifactId>plugin-harvester-workflow</artifactId>
-    <version>0.5.0-SNAPSHOT</version>
+    <version>0.6.0-SNAPSHOT</version>
    </dependency>
    <dependency>
     <groupId>au.edu.usq.fascinator.plugins</groupId>
@@ -100,37 +99,37 @@
    <dependency>
     <groupId>au.edu.usq.fascinator.plugins</groupId>
     <artifactId>plugin-storage-ram</artifactId>
-    <version>0.5.0-SNAPSHOT</version>
+    <version>0.6.0-SNAPSHOT</version>
    </dependency>
    <dependency>
     <groupId>au.edu.usq.fascinator.plugins</groupId>
     <artifactId>plugin-indexer-solr</artifactId>
-    <version>0.5.0-SNAPSHOT</version>
+    <version>0.6.0-SNAPSHOT</version>
    </dependency>
    <dependency>
     <groupId>au.edu.usq.fascinator.plugins</groupId>
     <artifactId>plugin-transformer-aperture</artifactId>
-    <version>0.5.0-SNAPSHOT</version>
+    <version>0.6.0-SNAPSHOT</version>
    </dependency>
    <dependency>
     <groupId>au.edu.usq.fascinator.plugins</groupId>
     <artifactId>plugin-transformer-ffmpeg</artifactId>
-    <version>0.5.0-SNAPSHOT</version>
+    <version>0.6.0-SNAPSHOT</version>
    </dependency>
    <dependency>
     <groupId>au.edu.usq.fascinator.plugins</groupId>
     <artifactId>plugin-transformer-ice2</artifactId>
-    <version>0.5.0-SNAPSHOT</version>
+    <version>0.6.0-SNAPSHOT</version>
    </dependency>
    <dependency>
     <groupId>au.edu.usq.fascinator.plugins</groupId>
     <artifactId>plugin-transformer-ims</artifactId>
-    <version>0.5.0-SNAPSHOT</version>
+    <version>0.6.0-SNAPSHOT</version>
    </dependency>
    <dependency>
     <groupId>au.edu.usq.fascinator.plugins</groupId>
     <artifactId>plugin-harvester-oai-pmh</artifactId>
-    <version>0.5.0-SNAPSHOT</version>
+    <version>0.6.0-SNAPSHOT</version>
    </dependency>
    <dependency>
     <groupId>commons-httpclient</groupId>

@@ -29,15 +29,8 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
-import javax.jms.Connection;
-import javax.jms.DeliveryMode;
-import javax.jms.Destination;
 import javax.jms.JMSException;
-import javax.jms.MessageProducer;
-import javax.jms.Session;
-import javax.jms.TextMessage;
 
-import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.commons.io.IOUtils;
 import org.apache.log4j.MDC;
 import org.slf4j.Logger;
@@ -56,53 +49,93 @@ import au.edu.usq.fascinator.common.JsonConfig;
 import au.edu.usq.fascinator.common.JsonConfigHelper;
 import au.edu.usq.fascinator.common.storage.StorageUtils;
 
+/**
+ * 
+ * HarvestClient class to handle harvesting of objects to the storage
+ * 
+ * @author Oliver Lucido
+ */
 public class HarvestClient {
 
+    /** Date format */
     public static final String DATE_FORMAT = "yyyy-MM-dd";
 
+    /** DateTime format */
     public static final String DATETIME_FORMAT = DATE_FORMAT + "'T'hh:mm:ss'Z'";
 
+    /** Default storage type */
     private static final String DEFAULT_STORAGE_TYPE = "file-system";
 
+    /** Logging */
     private static Logger log = LoggerFactory.getLogger(HarvestClient.class);
 
+    /** Configuration file */
     private File configFile;
+
+    /** Configuration Digital Object */
     private DigitalObject configObject;
 
+    /** Rule file */
     private File rulesFile;
+
+    /** Rule Digital object */
     private DigitalObject rulesObject;
 
+    /** Uploaded file */
     private File uploadedFile;
+
+    /** Uploaded file object id */
     private String uploadedOid;
+
+    /** File owner for the uploaded file */
     private String fileOwner;
 
+    /** Json configuration */
     private JsonConfig config;
 
+    /** Conveyer belt used for digital object transformation */
     private ConveyerBelt conveyerBelt;
 
+    /** Storage to store the digital object */
     private Storage storage;
 
-    private Connection connection;
+    /** Messaging services */
+    private MessagingServices messaging;
 
-    private Session session;
-
-    private MessageProducer producer;
-
+    /**
+     * Harvest Client Constructor
+     * 
+     * @throws HarvesterException if fail to initialise
+     */
     public HarvestClient() throws HarvesterException {
         this(null, null, null);
     }
 
+    /**
+     * Harvest Client Constructor
+     * 
+     * @param configFile configuration file
+     * @throws HarvesterException if fail to initialise
+     */
     public HarvestClient(File configFile) throws HarvesterException {
         this(configFile, null, null);
     }
 
+    /**
+     * Harvest Client Constructor
+     * 
+     * @param configFile Configuration file
+     * @param uploadedFile Uploaded file
+     * @param owner Owner of the file
+     * @throws HarvesterException if fail to initialise
+     */
     public HarvestClient(File configFile, File uploadedFile, String owner)
             throws HarvesterException {
         MDC.put("name", "client");
 
         this.configFile = configFile;
         this.uploadedFile = uploadedFile;
-        this.fileOwner = owner;
+        fileOwner = owner;
 
         try {
             if (configFile == null) {
@@ -131,27 +164,18 @@ public class HarvestClient {
             throw new HarvesterException("Failed to initialise storage", pe);
         }
 
-        initConnection();
-    }
-
-    private void initConnection() {
         try {
-            String brokerUrl = config.get("messaging/url",
-                    ActiveMQConnectionFactory.DEFAULT_BROKER_BIND_URL);
-            ActiveMQConnectionFactory connectionFactory = new ActiveMQConnectionFactory(
-                    brokerUrl);
-            connection = connectionFactory.createConnection();
-            connection.start();
-            session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
-            Destination destination = session
-                    .createQueue(HarvestQueueConsumer.HARVEST_QUEUE);
-            producer = session.createProducer(destination);
-            producer.setDeliveryMode(DeliveryMode.PERSISTENT);
+            messaging = MessagingServices.getInstance();
         } catch (JMSException jmse) {
             log.error("Failed to start connection: {}", jmse.getMessage());
         }
     }
 
+    /**
+     * Start Harvesting Digital objects
+     * 
+     * @throws PluginException If harvest plugin not found
+     */
     public void start() throws PluginException {
         DateFormat df = new SimpleDateFormat(DATETIME_FORMAT);
         String now = df.format(new Date());
@@ -207,6 +231,14 @@ public class HarvestClient {
                 + ((System.currentTimeMillis() - start) / 1000.0) + " seconds");
     }
 
+    /**
+     * Reharvest Digital Object when there's request to reharvest from the
+     * portal
+     * 
+     * @param oid Object Id
+     * @throws IOException If necessary files not found
+     * @throws PluginException If the harvester plugin not found
+     */
     public void reharvest(String oid) throws IOException, PluginException {
         log.info("Reharvest '{}'...", oid);
 
@@ -247,6 +279,10 @@ public class HarvestClient {
         }
     }
 
+    /**
+     * Shutdown Harvester Client. Including: Storage, Message Producer, Session
+     * and Connection
+     */
     public void shutdown() {
         if (storage != null) {
             try {
@@ -255,31 +291,20 @@ public class HarvestClient {
                 log.error("Failed to shutdown storage", pe);
             }
         }
-        if (producer != null) {
-            try {
-                producer.close();
-            } catch (JMSException jmse) {
-                log.warn("Failed to close producer", jmse);
-            }
-        }
-        if (session != null) {
-            try {
-                session.close();
-            } catch (JMSException jmse) {
-                log.warn("Failed to close session", jmse);
-            }
-        }
-        if (connection != null) {
-            try {
-                connection.close();
-            } catch (JMSException jmse) {
-                log.warn("Failed to close connection", jmse);
-            }
+        if (messaging != null) {
+            messaging.release();
         }
     }
 
-    private void processObject(String oid) throws StorageException,
-            TransformerException {
+    /**
+     * Process/transform each objects
+     * 
+     * @param oid Object Id
+     * @throws StorageException If storage is not found
+     * @throws TransformerException If transformer fail to transform the object
+     */
+    private void processObject(String oid) throws TransformerException,
+            StorageException {
         // get the object
         DigitalObject object = storage.getObject(oid);
 
@@ -317,11 +342,30 @@ public class HarvestClient {
         queueHarvest(oid, configFile, indexFlag, extractorPlugins, renderList);
     }
 
-    private void queueHarvest(String oid, File jsonFile, String indexFlag
+    /**
+     * To queue object to be processed
+     * 
+     * @param oid Object id
+     * @param jsonFile Configuration file
+     * @param indexFlag Flag for indexing at harvest time
+     * @param pluginList List of plugins to use during transformation
+     * @param renderList List of plugins to pass to the renderer
+     */
+     private void queueHarvest(String oid, File jsonFile, String indexFlag
             , String pluginList, String renderList) {
         queueHarvest(oid, jsonFile, indexFlag, pluginList, renderList, false);
     }
 
+    /**
+     * To queue object to be processed
+     * 
+     * @param oid Object id
+     * @param jsonFile Configuration file
+     * @param indexFlag Flag for indexing at harvest time
+     * @param pluginList List of plugins to use during transformation
+     * @param renderList List of plugins to pass to the renderer
+     * @param commit Flag to force a Solr commit action
+     */
     private void queueHarvest(String oid, File jsonFile, String indexFlag,
             String pluginList, String renderList, boolean commit) {
         try {
@@ -339,26 +383,28 @@ public class HarvestClient {
             if (commit) {
                 json.set("commit", "true");
             }
-            TextMessage message = session.createTextMessage(json.toString());
-            producer.send(message);
+            messaging.queueMessage(HarvestQueueConsumer.HARVEST_QUEUE, json
+                    .toString());
         } catch (IOException ioe) {
             log.error("Failed to parse message: {}", ioe.getMessage());
-        } catch (JMSException jmse) {
-            log.error("Failed to send message: {}", jmse.getMessage());
         }
     }
 
+    /**
+     * To delete object processing from queue
+     * 
+     * @param oid Object id
+     * @param jsonFile Configuration file
+     */
     private void queueDelete(String oid, File jsonFile) {
         try {
             JsonConfigHelper json = new JsonConfigHelper(jsonFile);
             json.set("oid", oid);
             json.set("deleted", "true");
-            TextMessage message = session.createTextMessage(json.toString());
-            producer.send(message);
+            messaging.queueMessage(HarvestQueueConsumer.HARVEST_QUEUE, json
+                    .toString());
         } catch (IOException ioe) {
             log.error("Failed to parse message: {}", ioe.getMessage());
-        } catch (JMSException jmse) {
-            log.error("Failed to send message: {}", jmse.getMessage());
         }
     }
 
@@ -375,6 +421,11 @@ public class HarvestClient {
         }
     }
 
+    /**
+     * Main method for Harvest Client
+     * 
+     * @param args Argument list
+     */
     public static void main(String[] args) {
         if (args.length < 1) {
             log.info("Usage: harvest <json-config>");

@@ -31,7 +31,11 @@
       <tr>
         <td>
           #foreach($value in $valueList)
-          <span class="meta-value">$value</span><br/>
+          #if($value.indexOf("://")==-1)
+              <span class="meta-value">$value</span><br/>
+          #else
+              <a class="meta-value" href="$value">$value</a><br/>
+          #end
           #end
         </td>
       </tr>

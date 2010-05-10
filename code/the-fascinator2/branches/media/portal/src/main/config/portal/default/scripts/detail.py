@@ -12,6 +12,7 @@ from java.lang import Boolean, String
 from java.util import TreeMap
 
 from org.apache.commons.io import FileUtils, IOUtils
+from org.apache.commons.lang import StringEscapeUtils
 
 import traceback
 
@@ -66,11 +67,8 @@ class DetailData:
                 self.__pid = baseOid[slash+1:]
 
                 if self.__pid != "":
-                    # Retrieving payloads (like images) without branding
-                    url = contextPath + "/" + portalId + "/download/" \
-                        + self.__oid + "/" + self.__pid
-                    print url
-                    response.sendRedirect(url)
+                    from download import DownloadData
+                    DownloadData()
                     self.__render = False
                     return
             else:
@@ -79,6 +77,7 @@ class DetailData:
                 self.__render = False
                 return
 
+            self.__render = True
             try:
                 self.__object = self.__storage.getObject(self.__oid)
                 self.__pid = self.__object.getSourceId()
@@ -101,6 +100,9 @@ class DetailData:
                     payload.close()
                 except StorageException, e:
                     pass
+
+    def isRendered(self):
+        return self.__render
 
     def __openFile(self):
         file = formData.get("file")
@@ -212,12 +214,10 @@ class DetailData:
                 #print " * detail.py: pid=%s payload=%s" % (pid, payload)
                 if self.__payload is not None:
                     sw = StringWriter()
-                    sw.write("<pre>")
                     IOUtils.copy(self.__payload.open(), sw)
                     self.__payload.close()
-                    sw.write("</pre>")
                     sw.flush()
-                    contentStr = sw.toString()
+                    contentStr = "<pre>" + StringEscapeUtils.escapeHtml(sw.toString()) + "</pre>"
         elif mimeType == "application/pdf" or mimeType.find("vnd.ms")>-1 or mimeType.find("vnd.oasis.opendocument.")>-1:
             # get the html version if exist...
             pid = self.getPreview(self.__oid)

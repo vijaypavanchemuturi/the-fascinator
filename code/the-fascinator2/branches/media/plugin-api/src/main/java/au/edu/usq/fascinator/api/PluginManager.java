@@ -56,6 +56,11 @@ public class PluginManager {
         return null;
     }
 
+    /**
+     * Get a list of access control plugins
+     * 
+     * @return map of access control plugin, or empty map if not found
+     */
     public static Map<String, AccessControl> getAccessControlPlugins() {
         Map<String, AccessControl> access_plugins = new HashMap<String, AccessControl>();
         ServiceLoader<AccessControl> plugins = ServiceLoader
@@ -100,6 +105,11 @@ public class PluginManager {
         return null;
     }
 
+    /**
+     * Get a list of authentication plugins
+     * 
+     * @return map of authentication plugins, or empty map if not found
+     */
     public static Map<String, Authentication> getAuthenticationPlugins() {
         Map<String, Authentication> authenticators = new HashMap<String, Authentication>();
         ServiceLoader<Authentication> plugins = ServiceLoader
@@ -128,6 +138,11 @@ public class PluginManager {
         return null;
     }
 
+    /**
+     * Get a list of harvester plugins
+     * 
+     * @return map of harvester plugins, or empty map if not found
+     */
     public static Map<String, Harvester> getHarvesterPlugins() {
         Map<String, Harvester> harvesters = new HashMap<String, Harvester>();
         ServiceLoader<Harvester> plugins = ServiceLoader.load(Harvester.class);
@@ -153,6 +168,11 @@ public class PluginManager {
         return null;
     }
 
+    /**
+     * Get a list of indexer plugins
+     * 
+     * @return map of indexer plugins, or empty map if not found
+     */
     public static Map<String, Indexer> getIndexerPlugins() {
         Map<String, Indexer> indexers = new HashMap<String, Indexer>();
         ServiceLoader<Indexer> plugins = ServiceLoader.load(Indexer.class);
@@ -178,6 +198,11 @@ public class PluginManager {
         return null;
     }
 
+    /**
+     * Get a list of roles plugins
+     * 
+     * @return map of roles plugins, or empty map if not found
+     */
     public static Map<String, Roles> getRolesPlugins() {
         Map<String, Roles> roles = new HashMap<String, Roles>();
         ServiceLoader<Roles> plugins = ServiceLoader.load(Roles.class);
@@ -203,6 +228,11 @@ public class PluginManager {
         return null;
     }
 
+    /**
+     * Get a list of storage plugins
+     * 
+     * @return map of storage plugins, or empty map if not found
+     */
     public static Map<String, Storage> getStoragePlugins() {
         Map<String, Storage> storageMap = new HashMap<String, Storage>();
         ServiceLoader<Storage> plugins = ServiceLoader.load(Storage.class);
@@ -230,6 +260,11 @@ public class PluginManager {
         return null;
     }
 
+    /**
+     * Get a list of transformer plugins
+     * 
+     * @return map of transformer plugins, or empty map if not found
+     */
     public static Map<String, Transformer> getTransformerPlugins() {
         Map<String, Transformer> transformers = new HashMap<String, Transformer>();
         ServiceLoader<Transformer> plugins = ServiceLoader
