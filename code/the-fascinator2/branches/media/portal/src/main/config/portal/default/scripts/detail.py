@@ -9,6 +9,7 @@ from java.awt import Desktop
 from java.io import ByteArrayInputStream, ByteArrayOutputStream, File, StringWriter
 from java.net import URLDecoder, URLEncoder
 from java.lang import Boolean, String
+from java.util import TreeMap
 
 from org.apache.commons.io import FileUtils, IOUtils
 
@@ -36,11 +37,11 @@ class SolrDoc:
         dc = self.json.getList("response/docs").get(0)
         remove = []
         for entry in dc:
-            if not entry.startswith("dc_"):
+            if not entry.startswith("dc_") and not entry.startswith("meta_"):
                 remove.append(entry)
         for key in remove:
             dc.remove(key)
-        return JsonConfigHelper(dc).getMap("/")
+        return TreeMap(JsonConfigHelper(dc).getMap("/"))
 
     def toString(self):
         return self.json.toString()
@@ -148,7 +149,9 @@ class DetailData:
     def formatName(self, name):
         if name.startswith("dc_"):
             name = name[3:]
-        return name.capitalize()
+        if name.startswith("meta_"):
+            name = name[5:]
+        return name.replace("_", " ").capitalize()
 
     def getError(self):
         payloadIdList = self.getObject().getPayloadIdList()
@@ -271,6 +274,9 @@ class DetailData:
         obj = self.getObject()
         return obj.getId()
 
+    def getWorkflow(self):
+        return self.__workflowStep
+
     def hasError(self):
         payloadIdList = self.getObject().getPayloadIdList()
         for payloadId in payloadIdList:
@@ -316,6 +322,14 @@ class DetailData:
             return pid
         else:
             return False
+
+    def hasWorkflow(self):
+        self.__workflowStep = self.__metadata.getFieldList("workflow_step_label")
+        if self.__workflowStep.size() == 0:
+            return False
+        else:
+            self.__workflowStep = self.__workflowStep.get(0)
+            return True
 
     def isHidden(self, pid):
         if pid.find("_files%2F")>-1:

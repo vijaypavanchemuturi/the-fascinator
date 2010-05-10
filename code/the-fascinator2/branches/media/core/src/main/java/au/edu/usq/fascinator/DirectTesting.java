@@ -19,6 +19,7 @@
 package au.edu.usq.fascinator;
 
 import au.edu.usq.fascinator.common.JsonConfig;
+import au.edu.usq.fascinator.common.JsonConfigHelper;
 
 import java.io.File;
 import java.io.IOException;
@@ -101,17 +102,58 @@ public class DirectTesting implements MessageListener {
     public void onMessage(Message message) {
         MDC.put("name", INC_QUEUE);
         try {
+            String newText;
+            TextMessage newMessage;
+
             String text = ((TextMessage) message).getText();
             // Verify the json is valid
             JsonConfig msgJson = new JsonConfig(text);
             log.debug("DiReCt Testing : '{}'", text);
-            // Send it to DiReCt
-            TextMessage newMessage = session.createTextMessage(text);
-            producer.send(newMessage);
+
+            // Sleep 10s and send confirmation to DiReCt 
+            try {Thread.sleep(10000);} catch (Exception e) {}
+            newText = prepareConfirmation(msgJson);
+            if (newText != null) {
+                newMessage = session.createTextMessage(newText);
+                producer.send(newMessage);
+            }
+            // Sleep 30s and send completion to DiReCt 
+            try {Thread.sleep(30000);} catch (Exception e) {}
+            newText = prepareCompletion(msgJson);
+            if (newText != null) {
+                newMessage = session.createTextMessage(newText);
+                producer.send(newMessage);
+            }
         } catch (JMSException jmse) {
             log.error("Failed to receive message: {}", jmse.getMessage());
         } catch (IOException ioe) {
             log.error("Failed to parse message: {}", ioe.getMessage());
         }
+    }
+
+    private String prepareConfirmation(JsonConfig incoming) {
+        String oid = incoming.get("ma.identifier");
+
+        JsonConfigHelper outgoing = new JsonConfigHelper();
+        outgoing.set("ma.identifier",   oid);
+        outgoing.set("usq.direct_item_key", "ADIRECTITEMKEY");
+
+        return outgoing.toString();
+    }
+
+    private String prepareCompletion(JsonConfig incoming) {
+        String oid = incoming.get("ma.identifier");
+
+        JsonConfigHelper outgoing = new JsonConfigHelper();
+        outgoing.set("ma.identifier",   oid);
+        outgoing.set("usq.direct_item_key", "ADIRECTITEMKEY");
+
+        outgoing.set("usq.security",   "class_id1,class_id2,class_id3");
+        outgoing.set("usq.exceptions", "tom,dick,harry");
+        outgoing.set("usq.copyright",  "true");
+        outgoing.set("usq.notice",     "Some sort of copyright notice");
+        outgoing.set("usq.expiry",     "2010-12-31T23:59:59.00Z");
+
+        return outgoing.toString();
     }
 }

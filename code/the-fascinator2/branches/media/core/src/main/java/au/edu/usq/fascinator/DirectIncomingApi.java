@@ -116,10 +116,9 @@ public class DirectIncomingApi implements MessageListener {
         try {
             String text = ((TextMessage) message).getText();
             // Verify the json is valid
-            JsonConfig msgJson = new JsonConfig(text);
+            JsonConfigHelper jsonMessage = new JsonConfigHelper(text);
             log.debug("Incoming API : '{}'", text);
             // Send it to the internal system
-            JsonConfigHelper jsonMessage = new JsonConfigHelper();
             jsonMessage.set("messageType", EXTERNAL_QUEUE);
             TextMessage newMessage = session.createTextMessage(jsonMessage.toString());
             producer.send(newMessage);

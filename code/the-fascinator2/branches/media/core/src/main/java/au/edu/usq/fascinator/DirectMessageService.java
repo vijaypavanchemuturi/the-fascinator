@@ -18,10 +18,23 @@
  */
 package au.edu.usq.fascinator;
 
+import au.edu.usq.fascinator.api.PluginException;
+import au.edu.usq.fascinator.api.PluginManager;
+import au.edu.usq.fascinator.api.indexer.Indexer;
+import au.edu.usq.fascinator.api.indexer.IndexerException;
+import au.edu.usq.fascinator.api.storage.DigitalObject;
+import au.edu.usq.fascinator.api.storage.Payload;
+import au.edu.usq.fascinator.api.storage.Storage;
+import au.edu.usq.fascinator.api.storage.StorageException;
 import au.edu.usq.fascinator.common.JsonConfig;
+import au.edu.usq.fascinator.common.JsonConfigHelper;
+import au.edu.usq.fascinator.common.storage.StorageUtils;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 
 import javax.jms.Connection;
 import javax.jms.DeliveryMode;
@@ -59,11 +72,19 @@ public class DirectMessageService implements MessageListener {
     private Session session;
     private MessageConsumer consumer;
     private MessageProducer producer;
+    private Indexer indexer;
+    private Storage storage;
 
     public DirectMessageService() throws IOException {
         try {
             File sysFile = JsonConfig.getSystemFile();
             config = new JsonConfig(sysFile);
+            storage = PluginManager.getStorage(config.get("storage/type", "file-system"));
+            storage.init(sysFile);
+            indexer = PluginManager.getIndexer(config.get("indexer/type", "solr"));
+            indexer.init(sysFile);
+        } catch (PluginException pe) {
+            log.error("Failed to initialise plugin: {}", pe.getMessage());
         } catch (IOException ioe) {
             log.error("Failed to read configuration: {}", ioe.getMessage());
         }
@@ -113,6 +134,20 @@ public class DirectMessageService implements MessageListener {
                 log.warn("Failed to close connection: {}", jmse.getMessage());
             }
         }
+        if (storage != null) {
+            try {
+                storage.shutdown();
+            } catch (PluginException pe) {
+                log.error("Failed to shutdown storage: {}", pe.getMessage());
+            }
+        }
+        if (indexer != null) {
+            try {
+                indexer.shutdown();
+            } catch (PluginException pe) {
+                log.error("Failed to shutdown indexer: {}", pe.getMessage());
+            }
+        }
     }
 
     @Override
@@ -127,17 +162,136 @@ public class DirectMessageService implements MessageListener {
                     DirectIncomingApi.EXTERNAL_QUEUE)) {
                 // Messages coming back from DiReCt
                 log.debug("Incoming message from DiReCt : '{}'", text);
+                if(!processDiReCtMessage(msgJson)) {
+                    log.error("Failed processing DiReCt Message: {}", text);
+                }
             } else {
                 // Messages coming from the workflow system
                 log.debug("Sending message to DiReCt : '{}'", text);
                 // Send it to DiReCt
-                TextMessage newMessage = session.createTextMessage(text);
-                producer.send(newMessage);
+                String newText = prepareNewDiReCtSubmission(msgJson);
+                if (newText != null) {
+                    TextMessage newMessage = session.createTextMessage(newText);
+                    producer.send(newMessage);
+                }
             }
         } catch (JMSException jmse) {
             log.error("Failed to receive message: {}", jmse.getMessage());
         } catch (IOException ioe) {
             log.error("Failed to parse message: {}", ioe.getMessage());
+        }
+    }
+
+    private String prepareNewDiReCtSubmission(JsonConfig incoming) {
+        String oid = incoming.get("oid");
+        JsonConfigHelper indexData;
+        try {
+            DigitalObject object = storage.getObject(oid);
+            Payload directMetadata = object.getPayload("direct.index");
+            indexData = new JsonConfigHelper(directMetadata.open());
+            directMetadata.close();
+        } catch (Exception ex) {
+            log.error("Error retrieving object metadata: {}", ex.getMessage());
+            return null;
+        }
+
+        JsonConfigHelper outgoing = new JsonConfigHelper();
+        outgoing.set("ma.identifier",   oid);
+        outgoing.set("ma.locator",      config.get("url_base") + "default/detail/" + oid);
+        outgoing.set("ma.title",        indexData.get("dc_title"));
+        outgoing.set("ma.description",  indexData.get("dc_description"));
+        outgoing.set("ma.format",       indexData.get("dc_format"));
+        outgoing.set("ma.creator",      indexData.get("dc_creator"));
+        outgoing.set("ma.contributor",  indexData.get("dc_contributor"));
+        outgoing.set("ma.location",     indexData.get("dc_location"));
+        outgoing.set("ma.language",     null);
+        outgoing.set("ma.duration",     indexData.get("dc_duration"));
+        outgoing.set("ma.frameSize",    indexData.get("dc_size"));
+        outgoing.set("usq.credits",     indexData.get("usq_credits"));
+        outgoing.set("dc.available",    indexData.get("dc_available"));
+        outgoing.set("usq.data_source", null);
+        outgoing.set("usq.notes",       indexData.get("notes"));
+        outgoing.set("usq.course",      indexData.get("course_code"));
+        outgoing.set("usq.year",        indexData.get("course_year"));
+        outgoing.set("usq.semester",    indexData.get("course_semester"));
+
+        return outgoing.toString();
+    }
+
+    private boolean processDiReCtMessage(JsonConfig incoming) {
+        String oid = incoming.get("ma.identifier");
+        String key = incoming.get("usq.direct_item_key");
+        String copyright = incoming.get("usq.copyright");
+        JsonConfigHelper workflow;
+        DigitalObject object;
+
+        // Invalid message data
+        if (oid == null || key == null) {
+            return false;
+        }
+
+        try {
+            object = storage.getObject(oid);
+            Payload wfMeta = object.getPayload("workflow.metadata");
+            workflow = new JsonConfigHelper(wfMeta.open());
+            wfMeta.close();
+        } catch (Exception ex) {
+            log.error("Error retrieving workflow metadata: {}", ex.getMessage());
+            return false;
+        }
+
+        // Confirmation messages
+        if (copyright == null) {
+            workflow.set("directItemKey", key);
+            workflow.set("targetStep", "direct");
+
+        // Completion messages
+        } else {
+            workflow.set("directItemKey", key);
+            workflow.set("targetStep", "live");
+
+            // Security Data
+            String security = incoming.get("usq.security");
+            if (security != null) {
+                workflow.set("directSecurity", security);
+            }
+            String exceptions = incoming.get("usq.exceptions");
+            if (exceptions != null) {
+                workflow.set("directSecurityExceptions", exceptions);
+            }
+            // Copyright Data
+            workflow.set("copyright", copyright);
+            String notice = incoming.get("usq.notice");
+            if (copyright != null) {
+                workflow.set("copyrightNotice", notice);
+            } else {
+                log.error("Copyright flag set, but no notice supplied: ({})", oid);
+            }
+            // Expiry date
+            String expiry = incoming.get("usq.expiry");
+            if (expiry != null) {
+                workflow.set("expiryDate", expiry);
+            }
+        }
+
+        // Save updated workflow metadata
+        try {
+            ByteArrayInputStream inStream =
+                new ByteArrayInputStream(workflow.toString().getBytes("UTF-8"));
+            StorageUtils.createOrUpdatePayload(object, "workflow.metadata", inStream);
+        } catch(StorageException ex) {
+            log.error("Error saving workflow data: {}", ex.getMessage());
+        } catch(UnsupportedEncodingException ex) {
+            log.error("Error decoding workflow data: {}", ex.getMessage());
+        }
+
+        try {
+            indexer.index(oid);
+            return true;
+
+        } catch(IndexerException ex) {
+            log.error("Error during index: {}", ex.getMessage());
+            return false;
         }
     }
 }

@@ -1,6 +1,7 @@
 {
     "version": "0.5.1",
     "configured": false,
+    "url_base" : "http://localhost:9997/portal/",
     "email" : "fascinator@usq.edu.au",
     "accesscontrol": {
         "type": "simple",

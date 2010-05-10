@@ -10,6 +10,12 @@
 #set($isImsPackage = $self.hasImsManifest())
 #set($pageTitle = "$title - Detail")
 
+#set($hasWorkflow = $self.hasWorkflow())
+#if ($hasWorkflow)
+  #set($workflowStep = $self.getWorkflow())
+  #set($canOrganise = $self.canOrganise())
+#end
+
 #set($sourceId = $self.getObject().getMetadata().getProperty("file.path"))
 #set($filenameNoExt = $self.getFilePathWithoutExt($oid))
 

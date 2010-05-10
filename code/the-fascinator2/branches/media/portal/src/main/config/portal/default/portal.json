@@ -70,7 +70,7 @@
         "label" : "Source type",
         "display" : "list"
       },
-      "workflow_step" : {
+      "workflow_step_label" : {
         "label" : "Workflow Step",
         "display" : "list"
       },
