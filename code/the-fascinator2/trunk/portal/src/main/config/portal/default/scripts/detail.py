@@ -65,11 +65,8 @@ class DetailData:
                 self.__pid = baseOid[slash+1:]
 
                 if self.__pid != "":
-                    # Retrieving payloads (like images) without branding
-                    url = contextPath + "/" + portalId + "/download/" \
-                        + self.__oid + "/" + self.__pid
-                    print url
-                    response.sendRedirect(url)
+                    from download import DownloadData
+                    DownloadData()
                     self.__render = False
                     return
             else:
@@ -78,6 +75,7 @@ class DetailData:
                 self.__render = False
                 return
 
+            self.__render = True
             try:
                 self.__object = self.__storage.getObject(self.__oid)
                 self.__pid = self.__object.getSourceId()
@@ -100,6 +98,9 @@ class DetailData:
                     payload.close()
                 except StorageException, e:
                     pass
+
+    def isRendered(self):
+        return self.__render
 
     def __openFile(self):
         file = formData.get("file")
