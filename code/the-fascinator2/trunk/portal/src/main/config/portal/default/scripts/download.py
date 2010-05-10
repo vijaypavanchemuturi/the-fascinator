@@ -1,7 +1,12 @@
+from __main__ import Services, contextPath, pageName, portalId, request, response
+
 import os
-from org.apache.commons.io import IOUtils
-from java.net import URLDecoder
+
 from au.edu.usq.fascinator.api.storage import StorageException
+
+from org.apache.commons.io import IOUtils
+
+from java.net import URLDecoder
 
 class DownloadData:
     def __init__(self):
@@ -50,4 +55,5 @@ class DownloadData:
         payload = object.getPayload(pid)
         return object, payload
 
-scriptObject = DownloadData()
+if __name__ == "__main__":
+    scriptObject = DownloadData()
