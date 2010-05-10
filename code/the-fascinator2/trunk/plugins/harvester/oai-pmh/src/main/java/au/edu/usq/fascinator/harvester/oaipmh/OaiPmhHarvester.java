@@ -24,8 +24,10 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.Properties;
 import java.util.Set;
 
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,7 +46,6 @@ import au.edu.usq.fascinator.api.storage.StorageException;
 import au.edu.usq.fascinator.common.JsonConfig;
 import au.edu.usq.fascinator.common.harvester.impl.GenericHarvester;
 import au.edu.usq.fascinator.common.storage.StorageUtils;
-import java.util.Properties;
 
 /**
  * Harvests metadata records from an OAI-PMH server
@@ -218,10 +219,11 @@ public class OaiPmhHarvester extends GenericHarvester {
             StorageException {
         Storage storage = getStorage();
         String oid = record.getHeader().getIdentifier();
+        oid = DigestUtils.md5Hex(oid);
         DigitalObject object = StorageUtils.getDigitalObject(storage, oid);
-        Payload payload = StorageUtils.createOrUpdatePayload(object,
-                metadataPrefix, IOUtils.toInputStream(record
-                        .getMetadataAsString(), "UTF-8"));
+        String pid = metadataPrefix + ".xml";
+        Payload payload = StorageUtils.createOrUpdatePayload(object, pid,
+                IOUtils.toInputStream(record.getMetadataAsString(), "UTF-8"));
         payload.setContentType("text/xml");
         payload.close();
 

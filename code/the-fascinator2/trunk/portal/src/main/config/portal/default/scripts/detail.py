@@ -11,6 +11,7 @@ from java.net import URLDecoder, URLEncoder
 from java.lang import Boolean, String
 
 from org.apache.commons.io import FileUtils, IOUtils
+from org.apache.commons.lang import StringEscapeUtils
 
 import traceback
 
@@ -210,12 +211,10 @@ class DetailData:
                 #print " * detail.py: pid=%s payload=%s" % (pid, payload)
                 if self.__payload is not None:
                     sw = StringWriter()
-                    sw.write("<pre>")
                     IOUtils.copy(self.__payload.open(), sw)
                     self.__payload.close()
-                    sw.write("</pre>")
                     sw.flush()
-                    contentStr = sw.toString()
+                    contentStr = "<pre>" + StringEscapeUtils.escapeHtml(sw.toString()) + "</pre>"
         elif mimeType == "application/pdf" or mimeType.find("vnd.ms")>-1 or mimeType.find("vnd.oasis.opendocument.")>-1:
             # get the html version if exist...
             pid = self.getPreview(self.__oid)
