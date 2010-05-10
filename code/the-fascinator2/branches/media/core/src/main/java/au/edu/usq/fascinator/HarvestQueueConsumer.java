@@ -23,19 +23,14 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.Properties;
 
-import javax.jms.Connection;
-import javax.jms.DeliveryMode;
-import javax.jms.Destination;
 import javax.jms.JMSException;
 import javax.jms.Message;
 import javax.jms.MessageConsumer;
 import javax.jms.MessageListener;
-import javax.jms.MessageProducer;
 import javax.jms.Session;
 import javax.jms.TextMessage;
 import javax.xml.bind.JAXBException;
 
-import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.log4j.MDC;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -61,29 +56,36 @@ import au.edu.usq.fascinator.common.storage.StorageUtils;
  */
 public class HarvestQueueConsumer implements MessageListener {
 
+    /** Harvest Queue name */
     public static final String HARVEST_QUEUE = "harvest";
 
     /** Logging */
     private Logger log = LoggerFactory.getLogger(HarvestQueueConsumer.class);
 
+    /** JSON configuration */
     private JsonConfig config;
 
+    /** Indexer object */
     private Indexer indexer;
 
+    /** Storage */
     private Storage storage;
 
-    private Connection connection;
+    /** Messaging Services */
+    private MessagingServices services;
 
-    private Session session;
-
+    /** Messaging Consumer */
     private MessageConsumer consumer;
 
-    private MessageProducer producer;
-
-    private MessageSender sender;
-
-    public HarvestQueueConsumer()
-            throws IOException, JAXBException, PluginException {
+    /**
+     * Harvest Queue Consumer Constructor
+     * 
+     * @throws IOException if Configuration File not found
+     * @throws JAXBException if XMl binding error
+     * @throws PluginException if plugins fail to initialise
+     */
+    public HarvestQueueConsumer() throws IOException, JAXBException,
+            PluginException {
         try {
             config = new JsonConfig();
             File sysFile = JsonConfig.getSystemFile();
@@ -102,28 +104,24 @@ public class HarvestQueueConsumer implements MessageListener {
         }
     }
 
+    /**
+     * Start the harvest queue consumer
+     * 
+     * @throws JMSException if an error occurred starting the JMS connections
+     */
     public void start() throws JMSException {
-        log.info("Starting harvest consumer...");
-        String brokerUrl = config.get("messaging/url",
-                ActiveMQConnectionFactory.DEFAULT_BROKER_BIND_URL);
-        ActiveMQConnectionFactory connectionFactory = new ActiveMQConnectionFactory(
-                brokerUrl);
-        connection = connectionFactory.createConnection();
-        connection.start();
-        session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
-        Destination harvestDest = session.createQueue(HARVEST_QUEUE);
-        consumer = session.createConsumer(harvestDest);
+        log.info("Starting harvest queue consumer...");
+        services = MessagingServices.getInstance();
+        Session session = services.getSession();
+        consumer = session.createConsumer(session.createQueue(HARVEST_QUEUE));
         consumer.setMessageListener(this);
-        Destination renderDest = session
-                .createQueue(RenderQueueConsumer.RENDER_QUEUE);
-        producer = session.createProducer(renderDest);
-        producer.setDeliveryMode(DeliveryMode.PERSISTENT);
-
-        sender = new MessageSender(MessageSender.MESSAGE_QUEUE);
     }
 
+    /**
+     * Stop the Harvest Queue consumer. Including: indexer and storage
+     */
     public void stop() {
-        log.info("Stopping harvest consumer...");
+        log.info("Stopping harvest queue consumer...");
         if (indexer != null) {
             try {
                 indexer.shutdown();
@@ -145,30 +143,7 @@ public class HarvestQueueConsumer implements MessageListener {
                 log.warn("Failed to close consumer: {}", jmse.getMessage());
             }
         }
-        if (producer != null) {
-            try {
-                producer.close();
-            } catch (JMSException jmse) {
-                log.warn("Failed to close producer: {}", jmse.getMessage());
-            }
-        }
-        if (session != null) {
-            try {
-                session.close();
-            } catch (JMSException jmse) {
-                log.warn("Failed to close session: {}", jmse.getMessage());
-            }
-        }
-        if (connection != null) {
-            try {
-                connection.close();
-            } catch (JMSException jmse) {
-                log.warn("Failed to close connection: {}", jmse.getMessage());
-            }
-        }
-        if (sender != null) {
-            sender.close();
-        }
+        services.release();
     }
 
     @Override
@@ -190,7 +165,7 @@ public class HarvestQueueConsumer implements MessageListener {
                 log.info("Removing object {}...", oid);
                 indexer.remove(oid);
             } else {
-                // Exctraction
+                // Extraction
                 if (source != null) {
                     log.info("Adding new object {} from {}...", oid, source);
                     File rulesFile = new File(config.get("configDir"), config
@@ -206,10 +181,12 @@ public class HarvestQueueConsumer implements MessageListener {
                             config.get("transformer/indexOnHarvest", "true"));
                 }
                 if (doIndex) {
-                    sendNotification(oid, "indexStart", "Indexing '" + oid + "' started");
+                    sendNotification(oid, "indexStart", "Indexing '" + oid
+                            + "' started");
                     log.info("Indexing object {}...", oid);
                     indexer.index(oid);
-                    sendNotification(oid, "indexComplete", "Index of '" + oid + "' completed");
+                    sendNotification(oid, "indexComplete", "Index of '" + oid
+                            + "' completed");
                 }
                 log.info("Queuing render job...");
                 queueRenderJob(oid, text);
@@ -225,24 +202,43 @@ public class HarvestQueueConsumer implements MessageListener {
         }
     }
 
+    /**
+     * Send the notification to Messaging service
+     * 
+     * @param oid Object Id
+     * @param status Status of the object
+     * @param message Message to be sent
+     */
     private void sendNotification(String oid, String status, String message) {
         JsonConfigHelper jsonMessage = new JsonConfigHelper();
         jsonMessage.set("id", oid);
         jsonMessage.set("idType", "object");
         jsonMessage.set("status", status);
         jsonMessage.set("message", message);
-        sender.sendMessage(jsonMessage.toString());
+        services.publishMessage(MessagingServices.MESSAGE_TOPIC, jsonMessage
+                .toString());
     }
 
+    /**
+     * Queue the render job
+     * 
+     * @param oid Object id
+     * @param json Configuration string
+     */
     private void queueRenderJob(String oid, String json) {
-        try {
-            TextMessage message = session.createTextMessage(json);
-            producer.send(message);
-        } catch (JMSException jmse) {
-            log.error("Failed to send message: {}", jmse.getMessage());
-        }
+        services.queueMessage(RenderQueueConsumer.RENDER_QUEUE, json);
     }
 
+    /**
+     * Process the object through Extractor transformer
+     * 
+     * @param rulesFile Rule file used for indexing
+     * @param jsonStr JSON Configuration string
+     * @param oid object id
+     * @param path path of the object
+     * @throws StorageException If fail to retrieve the object from the storage
+     * @throws IOException If the object is not found
+     */
     private void processObject(File rulesFile, String jsonStr, String oid,
             String path, String extractor) throws StorageException, IOException {
         try {

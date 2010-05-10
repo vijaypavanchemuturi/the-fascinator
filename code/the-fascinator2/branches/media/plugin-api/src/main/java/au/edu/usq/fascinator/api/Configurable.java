@@ -25,6 +25,7 @@ package au.edu.usq.fascinator.api;
  */
 public interface Configurable {
 
+    /** Get configuration method */
     public String getConfig();
 
 }

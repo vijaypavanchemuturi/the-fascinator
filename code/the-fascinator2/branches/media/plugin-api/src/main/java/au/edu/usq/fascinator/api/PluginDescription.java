@@ -19,28 +19,66 @@
 package au.edu.usq.fascinator.api;
 
 /**
- * Plugins wishing to describe themselves to the
- * fascinator should do so using this class.
- *
+ * Plugins wishing to describe themselves to the fascinator should do so using
+ * this class.
+ * 
  * @author Greg Pendlebury
  */
 @SuppressWarnings("serial")
 public class PluginDescription {
+    /** Plugin id */
     private String plugin_id;
+
+    /** Plugin name */
     private String plugin_name;
+
+    /** Plugin metadata */
     private String plugin_metadata;
 
-    public PluginDescription (Plugin p) {
-        this.plugin_id       = p.getId();
-        this.plugin_name     = p.getName();
-        this.plugin_metadata = null;
+    /**
+     * Plugin Description Constructor
+     * 
+     * @param p Plugin object
+     */
+    public PluginDescription(Plugin p) {
+        plugin_id = p.getId();
+        plugin_name = p.getName();
+        plugin_metadata = null;
     }
 
-    public String getId() {return this.plugin_id;}
-    public String getName() {return this.plugin_name;}
-    public String getMetadata() {return this.plugin_metadata;}
+    /**
+     * Get Plugin Id
+     * 
+     * @return plugin id String
+     */
+    public String getId() {
+        return plugin_id;
+    }
 
+    /**
+     * Get Plugin name
+     * 
+     * @return plugin name String
+     */
+    public String getName() {
+        return plugin_name;
+    }
+
+    /**
+     * Get plugin metadata
+     * 
+     * @return plugin metadata String
+     */
+    public String getMetadata() {
+        return plugin_metadata;
+    }
+
+    /**
+     * Set plugin metadata
+     * 
+     * @param newMetadata metadata String
+     */
     public void setMetadata(String newMetadata) {
-        this.plugin_metadata = newMetadata;
+        plugin_metadata = newMetadata;
     }
 }

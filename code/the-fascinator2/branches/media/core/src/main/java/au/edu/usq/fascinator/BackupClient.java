@@ -71,10 +71,11 @@ import au.edu.usq.fascinator.common.storage.StorageUtils;
  * directory path</li>
  * </ul>
  * </li>
- * <ul></li>
+ * </ul>
+ * </li>
  * </ul>
  * 
- * @author Linda octalina
+ * @author Linda Octalina
  * 
  */
 
@@ -112,6 +113,7 @@ public class BackupClient {
     /** Storage **/
     private String realStorageType;
 
+    /** Storage **/
     private Storage realStorage;
 
     /** Indexer **/
@@ -129,9 +131,7 @@ public class BackupClient {
     /**
      * Backup Client Constructor
      * 
-     * @throws IOException
-     * 
-     * @throws IOException
+     * @throws IOException If initialisation fail
      */
     public BackupClient() throws IOException {
         setDefaultSetting(null);
@@ -140,15 +140,20 @@ public class BackupClient {
     /**
      * Backup Client Constructor
      * 
-     * @param jsonFile
-     * @throws IOException
-     * @throws IOException
+     * @param jsonFile Configuration file
+     * @throws IOException If initialisation fail
      */
     public BackupClient(File jsonFile) throws IOException {
         setDefaultSetting(jsonFile);
         backupAll = true;
     }
 
+    /**
+     * Initialising default setting from specified configuration file
+     * 
+     * @param jsonFile Configuration file
+     * @throws IOException If initialisation fail
+     */
     public void setDefaultSetting(File jsonFile) throws IOException {
         Boolean fromPortal = true;
         if (jsonFile != null) {
@@ -173,10 +178,10 @@ public class BackupClient {
     /**
      * Backup Client Constructor
      * 
-     * @param email
-     * @param backupDir
-     * @param portalQuery
-     * @throws IOException
+     * @param email Email address of the user
+     * @param backupDir Backup Directory List
+     * @param portalQuery Query of the portal
+     * @throws IOException If initialisation fail
      */
     public BackupClient(File portalDir,
             Map<String, JsonConfigHelper> backupDirs, String portalQuery)
@@ -190,7 +195,9 @@ public class BackupClient {
     /**
      * Create the md5 of the email for the user space
      * 
-     * @param email
+     * TODO: Should be removed, can get the email from system-config.json
+     * 
+     * @param email Email address of the user
      */
     public void setEmail(String email) {
         if (email != null && email != "") {
@@ -201,7 +208,9 @@ public class BackupClient {
     /**
      * Get the email
      * 
-     * @return email
+     * TODO: Should be removed, can get the email from system-config.json
+     * 
+     * @return email Email address of the user
      */
     public String getEmail() {
         return email;
@@ -210,7 +219,7 @@ public class BackupClient {
     /**
      * Set Backup location being used
      * 
-     * @param backupDir
+     * @param backupDir Backup Directory list
      */
     public void setBackupDir(Map<String, JsonConfigHelper> backupDirList) {
         this.backupDirList = backupDirList;
@@ -219,7 +228,7 @@ public class BackupClient {
     /**
      * Return backup location
      * 
-     * @return backupDir
+     * @return backupDir Backup Directory list
      */
     public Map<String, JsonConfigHelper> getBackupDir() {
         return backupDirList;
@@ -228,7 +237,7 @@ public class BackupClient {
     /**
      * Set the portal Query
      * 
-     * @param portalQuery
+     * @param portalQuery Query for the portal
      */
     public void setPortalQuery(String portalQuery) {
         if (portalQuery != null && portalQuery != "") {
@@ -239,7 +248,7 @@ public class BackupClient {
     /**
      * Get the portal Query
      * 
-     * @return portalQuery
+     * @return portalQuery Query of the portal
      */
     public String getPortalQuery() {
         return portalQuery;
@@ -308,8 +317,8 @@ public class BackupClient {
     /**
      * Start backup files from from the result returned by solr
      * 
-     * @param js
-     * @throws IOException
+     * @param js JSON Configuration
+     * @throws IOException If backup source/destination directory not exist
      */
     public void startBackup(JsonConfigHelper js) throws IOException {
         // Backup to active backup Directory
@@ -426,10 +435,10 @@ public class BackupClient {
     /**
      * Copy portal config directory
      * 
-     * @param portalSrc
-     * @param portalDest
+     * @param portalSrc Portal config source directory
+     * @param portalDest Portal config destination directory
      * @param ignoreFilter to filter out .svn directory
-     * @throws IOException
+     * @throws IOException If portal source/destination directory not exist
      */
     private void includePortalDir(File portalSrc, File portalDest,
             IgnoreFilter ignoreFilter) throws IOException {
@@ -458,10 +467,12 @@ public class BackupClient {
         /** wildcard patterns of files to ignore */
         private String[] patterns;
 
+        /** Ignore Filter Constructor */
         public IgnoreFilter(String[] patterns) {
             this.patterns = patterns;
         }
 
+        /** Accept file path to be processed */
         public boolean accept(File path) {
             for (String pattern : patterns) {
                 if (FilenameUtils.wildcardMatch(path.getName(), pattern)) {
@@ -472,6 +483,11 @@ public class BackupClient {
         }
     }
 
+    /**
+     * Main method for Backup client
+     * 
+     * @param args list of arguments
+     */
     public static void main(String[] args) {
         if (args.length < 1) {
             log.info("Usage: backup <json-config>");

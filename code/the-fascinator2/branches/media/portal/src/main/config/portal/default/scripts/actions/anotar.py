@@ -55,6 +55,8 @@ class AnotarData:
                             imageAno.set("left", left)
                             imageAno.set("width", width)
                             imageAno.set("height", height)
+                            imageAno.set("creator", imageTag.get("creator/literal"))
+                            imageAno.set("creatorUri", imageTag.get("creator/uri"))
                             imageAno.set("id", imageTag.get("id"))
                             #tagCount = imageTag.get("tagCount")
                             imageAno.set("text", imageTag.get("content/literal"))
@@ -64,26 +66,24 @@ class AnotarData:
         elif self.action == "save-image":
             jsonTemplate = """
 {
-  "clientVersion" : {
-    "literal" : "Annotate Client (0.1)",
-    "uri" : "http://fascinator.usq.edu.au/annotate/client/version#0.1"
-  },
+  "clientVersionUri": "http://www.purl.org/anotar/client/0.1",
   "type" : "http://www.purl.org/anotar/ns/type/0.1#Tag",
   "title" : {
     "literal" : null,
     "uri" : null
-  },
+  },  
   "annotates" : {
     "uri" : "%s",
     "rootUri" : "%s",
     "locators" : [ {
+      "originalContent": null,
       "type" : "http://www.w3.org/TR/2009/WD-media-frags-20091217",
       "value" : "%s"
     } ]
   },
   "creator" : {
-    "literal" : null,
-    "uri" : "http://fascinator.usq.edu.au/trac/wiki/Annotate/schema/0.1/anotar-user-ns#Anonymous",
+    "literal" : "%s",
+    "uri" : "%s",
     "email" : {
       "literal" : null
     }
@@ -102,6 +102,7 @@ class AnotarData:
     "formData" : {
     }
   },
+  "contentUri": "",
   "isPrivate" : false,
   "lang" : "en"
 }
@@ -109,7 +110,8 @@ class AnotarData:
             mediaDimension = "xywh=%s,%s,%s,%s" % (formData.get("left"), formData.get("top"), formData.get("width"), formData.get("height"))
             locatorValue = "%s#%s" % (self.rootUri, mediaDimension)
             dateCreated = time.strftime("%Y-%m-%dT%H:%M:%SZ")
-            self.json = jsonTemplate % (self.rootUri, self.rootUri, locatorValue, dateCreated, formData.get("text"))
+            self.json = jsonTemplate % (self.rootUri, self.rootUri, locatorValue, formData.get("creator"), formData.get("creatorUri"), \
+                                        dateCreated, formData.get("text"))
             result = self.put()
         writer = response.getPrintWriter("text/plain; charset=UTF-8")
         writer.println(result)
@@ -131,7 +133,7 @@ class AnotarData:
         jsonObj.set("id", self.pid)
         rootUri = jsonObj.get("annotates/rootUri")
         if rootUri is not None:
-            baseUrl = "http://%s:%s" % (request.serverName, serverPort)
+            baseUrl = "http://%s:%s/" % (request.serverName, serverPort)
             myUri = baseUrl + rootUri + "#" + self.pid
             jsonObj.set("uri", myUri)
 
@@ -145,7 +147,8 @@ class AnotarData:
         docsDict = {}
         # Build a dictionary of the annotations
         for doc in result:
-            jsonStr = unicode(doc.get("jsonString")).encode("utf-8")
+            #hack is done here to replace [] with null as json.py does not properly parse 
+            jsonStr = unicode(doc.get("jsonString").replace("[]", "null")).encode("utf-8")
             doc = json.read(jsonStr)
             doc["replies"] = []
             docs.append(doc)

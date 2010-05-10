@@ -1,3 +1,4 @@
+#if($self.isRendered())
 #************************
 * Zero hits
 ************************#
@@ -133,3 +134,7 @@
 #end
 
 #set ($_=$self.closeObject())
+#else
+    ## content is written directly to the response, generally relative paths (ie. payloads) are handled here
+    #set($noLayout=true)
+#end

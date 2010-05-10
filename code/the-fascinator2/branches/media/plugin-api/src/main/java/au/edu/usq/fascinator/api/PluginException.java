@@ -26,14 +26,30 @@ package au.edu.usq.fascinator.api;
 @SuppressWarnings("serial")
 public class PluginException extends Exception {
 
+    /**
+     * Plugin Exception Constructor
+     * 
+     * @param message Exception message
+     */
     public PluginException(String message) {
         super(message);
     }
 
+    /**
+     * Plugin Exception Constructor
+     * 
+     * @param cause Throwable cause
+     */
     public PluginException(Throwable cause) {
         super(cause);
     }
 
+    /**
+     * Plugin Exception Constructor
+     * 
+     * @param message Exception message
+     * @param cause Throwable cause
+     */
     public PluginException(String message, Throwable cause) {
         super(message, cause);
     }

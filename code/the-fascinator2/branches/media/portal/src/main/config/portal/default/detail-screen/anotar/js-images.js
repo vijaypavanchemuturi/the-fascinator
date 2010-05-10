@@ -4,7 +4,7 @@
     $(window).load(function() {
         $("#image-content").annotateImage({
             editable: true,
-            saveUrl: "$portalPath/actions/anotar.ajax?action=save-image&rootUri=$oid",
+            saveUrl: "$portalPath/actions/anotar.ajax?action=save-image&rootUri=$oid&creator=$creator&creatorUri=$creatorUri",
             getUrl: "$portalPath/actions/anotar.ajax?action=get-image&rootUri=$oid"
         });
     });

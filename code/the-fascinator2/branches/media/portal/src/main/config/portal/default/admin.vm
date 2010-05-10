@@ -116,6 +116,7 @@
   </div>
 #end
 
+#set($pageTitle = "Administration")
 <h2 id="page-heading">Administration</h2>
 <div class="grid_4">
   <div class="box menu">
