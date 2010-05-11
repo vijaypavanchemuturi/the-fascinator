@@ -27,6 +27,11 @@ import au.edu.usq.fascinator.common.authentication.GenericUser;
  * @author Greg Pendlebury
  */
 public class FileSystemUser extends GenericUser {
+	/**
+	 * Plugin initialisation
+	 * 
+	 * @param user User name
+	 */
     public void init(String user) {
         setUsername(user);
     }

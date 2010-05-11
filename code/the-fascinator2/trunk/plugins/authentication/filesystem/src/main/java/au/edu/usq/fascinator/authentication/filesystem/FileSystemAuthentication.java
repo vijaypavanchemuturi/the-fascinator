@@ -46,10 +46,19 @@ import org.slf4j.LoggerFactory;
  */
 public class FileSystemAuthentication implements Authentication {
 
+	/** Default file name for storing user properties*/
     private static String DEFAULT_FILE_NAME = "users.properties";
+    
+    /** Logging **/
     private final Logger log = LoggerFactory.getLogger(FileSystemAuthentication.class);
+    
+    /** User object */
     private FileSystemUser user_object;
+    
+    /** File path where user properties is stored*/
     private String file_path;
+    
+    /** Property file for user properties */
     private Properties file_store;
 
     @Override
@@ -62,6 +71,11 @@ public class FileSystemAuthentication implements Authentication {
         return "Filesystem Authentication";
     }
 
+    /**
+     * Initialisation of Filesystem Authentication plugin
+     * 
+     * @throws AuthenticationException if fails to initialise
+     */
     @Override
     public void init(String jsonString) throws AuthenticationException {
         try {
@@ -85,12 +99,23 @@ public class FileSystemAuthentication implements Authentication {
         }
     }
 
+    /**
+     * Set default configuration
+     * 
+     * @param config JSON configuration
+     * @throws IOException if fails to initialise
+     */
     private void setConfig(JsonConfig config) throws IOException {
         user_object = new FileSystemUser();
         file_path = config.get("authentication/file-system/path", null);
         loadUsers();
     }
 
+    /**
+     * Load users from the file
+     * 
+     * @throws IOException if fail to load from file
+     */
     private void loadUsers() throws IOException {
         file_store  = new Properties();
 
@@ -102,6 +127,11 @@ public class FileSystemAuthentication implements Authentication {
         }
     }
 
+    /**
+     * Save user lists to the file on the disk
+     * 
+     * @throws IOException if fail to save to file
+     */
     private void saveUsers() throws IOException {
         if (file_store != null) {
             try {
@@ -112,6 +142,13 @@ public class FileSystemAuthentication implements Authentication {
         }
     }
 
+    /**
+     * Password encryption method
+     * 
+     * @param password Password to be encrypted
+     * @return encrypted password
+     * @throws AuthenticationException if fail to encrypt
+     */
     private String encryptPassword(String password) throws AuthenticationException {
         byte[] passwordBytes = password.getBytes();
 

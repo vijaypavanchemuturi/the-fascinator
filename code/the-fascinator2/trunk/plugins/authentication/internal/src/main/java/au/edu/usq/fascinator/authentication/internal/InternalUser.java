@@ -27,8 +27,14 @@ import au.edu.usq.fascinator.common.authentication.GenericUser;
  * @author Greg Pendlebury
  */
 public class InternalUser extends GenericUser {
+	/** User password */
     public String password;
 
+    /** 
+     * Plugin Initialisation
+     * 
+     * @param user User name
+     */
     public void init(String user) {
         setUsername(user);
     }

@@ -213,7 +213,8 @@ public class AuthenticationManager implements AuthManager {
      * Method for testing if the implementing plugin allows the creation,
      * deletion and modification of users.
      * 
-     * @return true/false reponse.
+     * @return <code>true</code> if user management is supported,
+     *         <code>false</code> otherwise
      */
     @Override
     public boolean supportsUserManagement() {

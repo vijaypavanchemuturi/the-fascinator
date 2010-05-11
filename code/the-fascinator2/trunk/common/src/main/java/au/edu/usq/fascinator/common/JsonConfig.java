@@ -261,7 +261,8 @@ public class JsonConfig {
     /**
      * Tests whether or not the system-config has been properly configured.
      * 
-     * @return true if configured, false if still using defaults
+     * @return <code>true</code> if configured, <code>false</code> if still
+     *         using defaults
      */
     public boolean isConfigured() {
         return Boolean.parseBoolean(systemConfig.get("configured"));
@@ -270,7 +271,7 @@ public class JsonConfig {
     /**
      * To check if configuration file is outdated
      * 
-     * @return true if outdated, otherwise, return false
+     * @return <code>true</code> if outdated, <code>false</code> otherwise
      */
     public boolean isOutdated() {
         boolean outdated = false;

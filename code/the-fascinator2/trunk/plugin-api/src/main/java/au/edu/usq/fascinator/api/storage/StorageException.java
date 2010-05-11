@@ -28,14 +28,30 @@ import au.edu.usq.fascinator.api.PluginException;
 @SuppressWarnings("serial")
 public class StorageException extends PluginException {
 
+    /**
+     * Storage Exception Constructor
+     * 
+     * @param message Error message
+     */
     public StorageException(String message) {
         super(message);
     }
 
+    /**
+     * Storage Exception Constructor
+     * 
+     * @param cause Throwable cause
+     */
     public StorageException(Throwable cause) {
         super(cause);
     }
 
+    /**
+     * Storage Exception Constructor
+     * 
+     * @param message Error message
+     * @param cause Throwable cause
+     */
     public StorageException(String message, Throwable cause) {
         super(message, cause);
     }

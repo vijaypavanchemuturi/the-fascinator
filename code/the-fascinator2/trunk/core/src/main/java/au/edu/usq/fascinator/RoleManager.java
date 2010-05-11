@@ -204,7 +204,8 @@ public class RoleManager implements RolesManager {
      * Method for testing if the implementing plugin allows the creation,
      * deletion and modification of roles.
      * 
-     * @return true/false reponse.
+     * @return <code>true</code> if support role management, <code>false</code>
+     *         otherwise
      */
     @Override
     public boolean supportsRoleManagement() {

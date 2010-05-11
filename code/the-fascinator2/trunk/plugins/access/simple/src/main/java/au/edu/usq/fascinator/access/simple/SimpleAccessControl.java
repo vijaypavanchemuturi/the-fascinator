@@ -21,6 +21,7 @@ package au.edu.usq.fascinator.access.simple;
 import au.edu.usq.fascinator.api.access.AccessControl;
 import au.edu.usq.fascinator.api.access.AccessControlException;
 import au.edu.usq.fascinator.api.access.AccessControlSchema;
+import au.edu.usq.fascinator.api.authentication.AuthenticationException;
 import au.edu.usq.fascinator.common.JsonConfig;
 import au.edu.usq.fascinator.common.DummyFileLock;
 
@@ -66,6 +67,11 @@ public class SimpleAccessControl implements AccessControl {
         return "Simple Access Control";
     }
 
+    /**
+     * Initialisation of Simple Access Control plugin
+     * 
+     * @throws AuthenticationException if fails to initialise
+     */
     @Override
     public void init(String jsonString) throws AccessControlException {
         try {
@@ -89,6 +95,12 @@ public class SimpleAccessControl implements AccessControl {
         }
     }
 
+    /**
+     * Set default configuration method
+     * 
+     * @param config JSON configuration
+     * @throws IOException if fail to initialise
+     */
     private void setConfig(JsonConfig config) throws IOException {
         // Get the basics
         schema_object = new SimpleSchema();
@@ -101,7 +113,11 @@ public class SimpleAccessControl implements AccessControl {
         file_lock.release();
     }
 
-    // Simple wrappers
+    /** 
+     * Simple load wrappers
+     * 
+     * @throws AccessControlException if fail to load roles
+     */
     private void load() throws AccessControlException {
         try {
             loadRoles();
@@ -110,7 +126,11 @@ public class SimpleAccessControl implements AccessControl {
         }
     }
 
-    // Simple wrapper
+    /**
+     * Simple release wrapper
+     * 
+     * @throws AccessControlException if fail to release file lock
+     */
     private void release() throws AccessControlException {
         try {
             file_lock.release();
@@ -119,6 +139,11 @@ public class SimpleAccessControl implements AccessControl {
         }
     }
 
+    /**
+     * Load roles from disk
+     * 
+     * @throws IOException if fail to load roles from disk
+     */
     private void loadRoles() throws IOException {
         // Load our userbase from disk
         try {
@@ -155,6 +180,11 @@ public class SimpleAccessControl implements AccessControl {
         }
     }
 
+    /**
+     * Save roles to disk
+     * 
+     * @throws IOException If fail to save roles
+     */
     private void saveRoles() throws IOException {
         if (file_store != null) {
             try {

@@ -28,14 +28,30 @@ import au.edu.usq.fascinator.api.PluginException;
 @SuppressWarnings("serial")
 public class HarvesterException extends PluginException {
 
+    /**
+     * Harvester Exception Constructor
+     * 
+     * @param message Error message
+     */
     public HarvesterException(String message) {
         super(message);
     }
 
+    /**
+     * Harvester Exception Constructor
+     * 
+     * @param cause Throwable cause
+     */
     public HarvesterException(Throwable cause) {
         super(cause);
     }
 
+    /**
+     * Harvester Exception Constructor
+     * 
+     * @param cause Throwable cause
+     * @param message Error message
+     */
     public HarvesterException(String message, Throwable cause) {
         super(message, cause);
     }

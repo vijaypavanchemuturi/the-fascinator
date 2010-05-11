@@ -28,14 +28,30 @@ import au.edu.usq.fascinator.api.PluginException;
 @SuppressWarnings("serial")
 public class IndexerException extends PluginException {
 
+    /**
+     * Indexer Exception Constructor
+     * 
+     * @param message Error message
+     */
     public IndexerException(String message) {
         super(message);
     }
 
+    /**
+     * Indexer Exception Constructor
+     * 
+     * @param cause Throwable cause
+     */
     public IndexerException(Throwable cause) {
         super(cause);
     }
 
+    /**
+     * Indexer Exception Constructor
+     * 
+     * @param message Error message
+     * @param cause Throwable cause
+     */
     public IndexerException(String message, Throwable cause) {
         super(message, cause);
     }

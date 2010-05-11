@@ -28,14 +28,30 @@ import au.edu.usq.fascinator.api.PluginException;
 @SuppressWarnings("serial")
 public class TransformerException extends PluginException {
 
+    /**
+     * Transformer Exception Constructor
+     * 
+     * @param message Error message
+     */
     public TransformerException(String message) {
         super(message);
     }
 
+    /**
+     * Transformer Exception Constructor
+     * 
+     * @param cause Throwable cause
+     */
     public TransformerException(Throwable cause) {
         super(cause);
     }
 
+    /**
+     * Transformer Exception Constructor
+     * 
+     * @param message Error message
+     * @param cause Throwable cause
+     */
     public TransformerException(String message, Throwable cause) {
         super(message, cause);
     }

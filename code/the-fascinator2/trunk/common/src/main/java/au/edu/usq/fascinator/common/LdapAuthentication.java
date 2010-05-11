@@ -81,7 +81,8 @@ public class LdapAuthentication {
      * 
      * @param username a username
      * @param password a password
-     * @return true if authentication was successful, false otherwise
+     * @return <code>true</code> if authentication was successful,
+     *         <code>false</code> otherwise
      */
     public boolean authenticate(String username, String password) {
         try {

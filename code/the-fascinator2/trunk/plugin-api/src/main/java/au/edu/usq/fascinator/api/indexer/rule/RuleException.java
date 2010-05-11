@@ -26,14 +26,30 @@ package au.edu.usq.fascinator.api.indexer.rule;
 @SuppressWarnings("serial")
 public class RuleException extends Exception {
 
+    /**
+     * Rule Exception Constructor
+     * 
+     * @param message Error message
+     */
     public RuleException(String message) {
         super(message);
     }
 
+    /**
+     * Rule Exception Constructor
+     * 
+     * @param cause Throwable cause
+     */
     public RuleException(Throwable cause) {
         super(cause);
     }
 
+    /**
+     * Rule Exception Constructor
+     * 
+     * @param message Error message
+     * @param cause Throwable cause
+     */
     public RuleException(String message, Throwable cause) {
         super(message, cause);
     }

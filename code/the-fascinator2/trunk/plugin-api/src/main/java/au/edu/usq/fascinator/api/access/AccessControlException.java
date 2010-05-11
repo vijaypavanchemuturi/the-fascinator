@@ -22,20 +22,36 @@ import au.edu.usq.fascinator.api.PluginException;
 
 /**
  * Generic exception for access control plugins
- *
+ * 
  * @author Greg Pendlebury
  */
 @SuppressWarnings("serial")
 public class AccessControlException extends PluginException {
 
+    /**
+     * Access Control Exception Constructor
+     * 
+     * @param message Error Message
+     */
     public AccessControlException(String message) {
         super(message);
     }
 
+    /**
+     * Access Control Exception Constructor
+     * 
+     * @param cause Throwable cause
+     */
     public AccessControlException(Throwable cause) {
         super(cause);
     }
 
+    /**
+     * Access Control Exception Constructor
+     * 
+     * @param message Error Message
+     * @param cause Throwable cause
+     */
     public AccessControlException(String message, Throwable cause) {
         super(message, cause);
     }

@@ -33,6 +33,7 @@ import au.edu.usq.fascinator.api.storage.PayloadType;
 import au.edu.usq.fascinator.common.storage.impl.GenericPayload;
 
 /**
+ * JsonQ Metadata payload
  * 
  * @author Oliver Lucido
  */

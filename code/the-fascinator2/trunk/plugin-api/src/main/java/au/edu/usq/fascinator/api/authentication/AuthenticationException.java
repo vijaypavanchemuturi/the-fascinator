@@ -28,14 +28,30 @@ import au.edu.usq.fascinator.api.PluginException;
 @SuppressWarnings("serial")
 public class AuthenticationException extends PluginException {
 
+    /**
+     * Authentication Exception Constructor
+     * 
+     * @param message Error Message
+     */
     public AuthenticationException(String message) {
         super(message);
     }
 
+    /**
+     * Authentication Exception Constructor
+     * 
+     * @param cause Throwable cause
+     */
     public AuthenticationException(Throwable cause) {
         super(cause);
     }
 
+    /**
+     * Authentication Exception Constructor
+     * 
+     * @param message Error Message
+     * @param cause Throwable cause
+     */
     public AuthenticationException(String message, Throwable cause) {
         super(message, cause);
     }
