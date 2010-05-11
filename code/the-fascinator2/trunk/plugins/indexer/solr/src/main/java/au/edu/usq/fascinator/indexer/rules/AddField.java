@@ -75,7 +75,7 @@ public class AddField extends Rule {
      */
     @Override
     public void run(Reader in, Writer out) throws RuleException {
-        log("Adding field [" + field + "]");
+        //log("Adding field [" + field + "]");
         try {
             AddDoc addDoc = AddDoc.read(in);
             addDoc.getFields().add(field);
