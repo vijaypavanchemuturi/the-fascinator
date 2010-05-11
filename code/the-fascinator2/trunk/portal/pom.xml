@@ -77,6 +77,12 @@
       <groupId>org.apache.activemq</groupId>
       <artifactId>activemq-web</artifactId>
       <version>5.3.0</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.codehaus.jackson</groupId>
+          <artifactId>jackson-asl</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.apache.tapestry</groupId>
