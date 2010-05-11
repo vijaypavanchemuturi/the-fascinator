@@ -122,7 +122,7 @@ public class FileSystemStorage implements Storage {
 
     @Override
     public DigitalObject createObject(String oid) throws StorageException {
-        log.debug("createObject(" + oid + ")");
+        //log.debug("createObject(" + oid + ")");
         File objHome = getPath(oid);
         if (objHome.exists()) {
             throw new StorageException("oID '" + oid
@@ -137,7 +137,7 @@ public class FileSystemStorage implements Storage {
         if (objHome.exists()) {
             FileSystemDigitalObject obj = new FileSystemDigitalObject(objHome,
                     oid);
-            log.debug("getObject(" + oid + "), sourceId: " + obj.getSourceId());
+            //log.debug("getObject(" + oid + "), sourceId: " + obj.getSourceId());
             return obj;
         }
         throw new StorageException("oID '" + oid

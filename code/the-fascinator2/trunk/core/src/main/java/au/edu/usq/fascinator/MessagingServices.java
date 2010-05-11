@@ -185,7 +185,7 @@ public class MessagingServices {
      */
     public void publishMessage(String name, String msg) {
         try {
-            log.debug("Publishing '{}' to '{}'", msg, name);
+            //log.debug("Publishing '{}' to '{}'", msg, name);
             sendMessage(getDestination(name, false), msg);
         } catch (JMSException jmse) {
             log.error("Failed to publish message", jmse);
@@ -200,7 +200,7 @@ public class MessagingServices {
      */
     public void queueMessage(String name, String msg) {
         try {
-            log.debug("Queuing '{}' to '{}'", msg, name);
+            //log.debug("Queuing '{}' to '{}'", msg, name);
             sendMessage(getDestination(name, true), msg);
         } catch (JMSException jmse) {
             log.error("Failed to queue message", jmse);
