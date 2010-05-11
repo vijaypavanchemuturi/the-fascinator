@@ -135,7 +135,8 @@ public class GenericPayload implements Payload {
     /**
      * Status of the metadata if it has changed
      * 
-     * @return value of true (changed) or false (not changed)
+     * @return <code>true</code> if metadata has changed, <code>false</code>
+     *         otherwise
      */
     public boolean hasMetaChanged() {
         return metaChanged;
@@ -175,7 +176,7 @@ public class GenericPayload implements Payload {
     /**
      * Returns whether the file is linked or stored
      * 
-     * @return boolean value of true (linked) or false (stored)
+     * @return <code>true</code> if linked, <code>false</code> if stored
      */
     @Override
     public boolean isLinked() {

@@ -88,11 +88,15 @@ public class JsonQHarvester implements Harvester, Configurable {
     /** JSON config file */
     private File jsonFile;
 
+    /** List of modification state */
     private static final List<String> MODS_STATE = Arrays
             .asList("mod", "start");
+
+    /** List of deletion state */
     private static final List<String> DELETE_STATE = Arrays.asList("del",
             "stopmod", "stopdel", "stop");
 
+    /** Map */
     private Map<String, Map<String, String>> map;
 
     @Override
@@ -105,6 +109,11 @@ public class JsonQHarvester implements Harvester, Configurable {
         return "JSON Queue Harvester";
     }
 
+    /**
+     * Initialisation of JsonQ Harvester Plugin
+     * 
+     * @throws HarvesterException if fails to initialise
+     */
     @Override
     public void init(File jsonFile) throws HarvesterException {
         this.jsonFile = jsonFile;
@@ -173,9 +182,18 @@ public class JsonQHarvester implements Harvester, Configurable {
     @Override
     public List<DigitalObject> getObject(File uploadedFile)
             throws HarvesterException {
-        throw new HarvesterException("This plugin does not harvest uploaded files");
+        throw new HarvesterException(
+                "This plugin does not harvest uploaded files");
     }
 
+    /**
+     * Get object list from the state list
+     * 
+     * @param objectList Object lists
+     * @param map
+     * @param state State lists
+     * @return list of Digital objects
+     */
     public List<DigitalObject> getObjectListFromState(
             List<DigitalObject> objectList,
             Map<String, Map<String, String>> map, List<String> state) {
@@ -188,6 +206,11 @@ public class JsonQHarvester implements Harvester, Configurable {
         return objectList;
     }
 
+    /**
+     * Get current date
+     * 
+     * @return string of current date
+     */
     private String now() {
         return df.format(new Date());
     }

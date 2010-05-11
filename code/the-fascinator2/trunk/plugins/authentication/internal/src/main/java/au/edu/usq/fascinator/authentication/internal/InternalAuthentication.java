@@ -51,10 +51,19 @@ import au.edu.usq.fascinator.common.JsonConfig;
  */
 public class InternalAuthentication implements Authentication {
 
+	/** Default file name for storing user properties*/
     private static String DEFAULT_FILE_NAME = "users.properties";
+    
+    /** Loggin */
     private final Logger log = LoggerFactory.getLogger(InternalAuthentication.class);
+    
+    /** User object */
     private InternalUser user_object;
+    
+    /** File path where user properties is stored*/
     private String file_path;
+    
+    /** Property file for user properties */
     private Properties file_store;
 
     @Override
@@ -67,6 +76,11 @@ public class InternalAuthentication implements Authentication {
         return "Internal Authentication";
     }
 
+    /**
+     * Initialisation of Internal Authentication plugin
+     * 
+     * @throws AuthenticationException if fails to initialise
+     */
     @Override
     public void init(String jsonString) throws AuthenticationException {
         try {
@@ -90,13 +104,24 @@ public class InternalAuthentication implements Authentication {
         }
     }
 
+    /**
+     * Set default configuration
+     * 
+     * @param config JSON configuration
+     * @throws IOException if fails to initialise
+     */
     private void setConfig(JsonConfig config) throws IOException {
         // Get the basics
         user_object = new InternalUser();
         file_path   = config.get("authentication/internal/path", null);
         loadUsers();
     }
-
+    
+    /**
+     * Load users from the file
+     * 
+     * @throws IOException if fail to load from file
+     */
     private void loadUsers() throws IOException {
         file_store  = new Properties();
 
@@ -116,6 +141,11 @@ public class InternalAuthentication implements Authentication {
         }
     }
 
+    /**
+     * Save user lists to the file on the disk
+     * 
+     * @throws IOException if fail to save to file
+     */
     private void saveUsers() throws IOException {
         if (file_store != null) {
             try {
@@ -125,7 +155,14 @@ public class InternalAuthentication implements Authentication {
             }
         }
     }
-
+    
+    /**
+     * Password encryption method
+     * 
+     * @param password Password to be encrypted
+     * @return encrypted password
+     * @throws AuthenticationException if fail to encrypt
+     */
     private String encryptPassword(String password) throws AuthenticationException {
         byte[] passwordBytes = password.getBytes();
 

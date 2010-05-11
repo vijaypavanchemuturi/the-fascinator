@@ -114,7 +114,11 @@ public class Ice2Harvester extends GenericHarvester {
 
     /** Packager variables */
     private String username = "ICE";
+    
+    /** Package and workflow directory */
     private File packageDir, workflowsDir;
+    
+    /** Package configuration and rule objects */
     private DigitalObject pkgConfig, pkgRules;
 
     /**
@@ -140,10 +144,18 @@ public class Ice2Harvester extends GenericHarvester {
         }
     }
 
+    /**
+     * ICE 2 Harvester Constructor
+     */
     public Ice2Harvester() {
         super("ice2-harvester", "ICE2 Harvester");
     }
 
+    /**
+     * Initialisation method for ICE2 Harvester
+     * 
+     * @throws HarvesterException if fails to initialise 
+     */
     @Override
     public void init() throws HarvesterException {
         // Harvest config
@@ -202,6 +214,9 @@ public class Ice2Harvester extends GenericHarvester {
     /**
      * Interface method the HarvestClient uses to iteratively retrieve
      * harvested objects.
+     * 
+     * @throws HarvesterException if fails to retrieve harvested objects
+     * @return list of harvested objects
      */
     @Override
     public Set<String> getObjectIdList() throws HarvesterException {
@@ -237,6 +252,8 @@ public class Ice2Harvester extends GenericHarvester {
 
     /**
      * Traverse an '.ice' directory and find an ICE 'meta' file.
+     * 
+     * @return ice metadata
      */
     private Set<String> findIceMetadata()
             throws HarvesterException {
@@ -264,6 +281,8 @@ public class Ice2Harvester extends GenericHarvester {
 
     /**
      * Unserialize and parse the ICE 'meta' file looking for a manifest.
+     * 
+     * @return File object id list or empty list otherwise
      */
     private Set<String> parseIceMetadata()
             throws HarvesterException {
@@ -343,7 +362,10 @@ public class Ice2Harvester extends GenericHarvester {
     }
 
     /**
-     * Process the data in an ICE manifest, looking for the
+     * Process the data in an ICE manifest
+     * 
+     * @param responseJson manifest string
+     * @return File object id list or empty list otherwise
      */
     private Set<String> processIceManifest(String responseJson)
             throws HarvesterException {
@@ -539,6 +561,16 @@ public class Ice2Harvester extends GenericHarvester {
         return object;
     }
 
+    /**
+     * Harvest html file
+     * 
+     * @param rootFile Root file
+     * @param htmlDir Html directory
+     * @param title Title of the file
+     * @param objectIdMap list of object id
+     * @return digital object of the harvested html
+     * @throws HarvesterException if harvest fail
+     */
     private DigitalObject harvestHtml(File rootFile, File htmlDir, String title,
             Map<String, String> objectIdMap) throws HarvesterException {
         File htmlFile = new File(htmlDir, htmlDir.getName()
@@ -640,6 +672,14 @@ public class Ice2Harvester extends GenericHarvester {
         return object;
     }
 
+    /**
+     * Harvest links
+     * @param htmlFile Html file
+     * @param oldLink Old links
+     * @param objectIdMap list of links
+     * @return string of the harvested link
+     * @throws HarvesterException if fails to harvest the link
+     */
     private String harvestLink(File htmlFile, String oldLink,
             Map<String, String> objectIdMap) throws HarvesterException {
         // Normalise relative links
@@ -673,6 +713,14 @@ public class Ice2Harvester extends GenericHarvester {
         }
     }
 
+    /**
+     * Harvest document
+     * @param htmlFile Html file
+     * @param oldLink old link
+     * @param objectIdMap list of object id
+     * @return string of the harvested document
+     * @throws HarvesterException if fails to harvest document
+     */
     private String harvestDocument(File htmlFile, String oldLink,
             Map<String, String> objectIdMap) throws HarvesterException {
         // Normalise relative links
@@ -743,6 +791,14 @@ public class Ice2Harvester extends GenericHarvester {
         }
     }
 
+    /**
+     * Harvest media
+     * @param htmlFile Html file
+     * @param oldLink old link
+     * @param objectIdMap list of object id
+     * @return string of the harvested media
+     * @throws HarvesterException if fails to harvest document
+     */
     private String harvestMedia(File htmlFile, String oldLink,
             Map<String, String> objectIdMap) throws HarvesterException {
         // Normalise relative links
@@ -841,6 +897,13 @@ public class Ice2Harvester extends GenericHarvester {
         }
     }
 
+    /**
+     * Get the original document
+     * 
+     * @param origDir the directory of the original file
+     * @param manifestFileName the manifest name
+     * @return the original name of the file, <code>null</code> if not found
+     */
     private File getOriginalDoc(File origDir, String manifestFileName) {
         File file = new File(origDir, manifestFileName);
         String fileName = file.getName();
@@ -861,6 +924,12 @@ public class Ice2Harvester extends GenericHarvester {
         return null;
     }
 
+    /**
+     * Get html rendition
+     * @param srcFile Source file
+     * @return html file of the specified source file
+     * @throws IOException if html file not found
+     */
     private File getHtmlRendition(File srcFile) throws IOException {
         if (srcFile == null) {
             return null;
@@ -943,6 +1012,14 @@ public class Ice2Harvester extends GenericHarvester {
         return hasMore;
     }
 
+    /**
+     * Create digital object of the specified file
+     * 
+     * @param file file to be stored 
+     * @return created digital object
+     * @throws HarvesterException if harvest fail
+     * @throws StorageException if storing to storage fail
+     */
     private DigitalObject createObject(File file) throws HarvesterException,
             StorageException {
         if (testRun) {
@@ -961,6 +1038,16 @@ public class Ice2Harvester extends GenericHarvester {
         return object;
     }
 
+    /**
+     * Add payload to the specified digital object
+     * 
+     * @param object Object where the payload will be attached to
+     * @param file File of the payload
+     * @param prefix prefix for the payload id 
+     * @return create payload
+     * @throws HarvesterException if fails to add the payload to the object
+     * @throws StorageException if fails to add the payload to storage
+     */
     private Payload addPayload(DigitalObject object, File file, String prefix)
             throws HarvesterException, StorageException {
         if (testRun) {
@@ -1001,6 +1088,15 @@ public class Ice2Harvester extends GenericHarvester {
         return null;
     }
 
+    /**
+     * Get the file
+     * 
+     * @param location Directory of the file
+     * @param fileName File name
+     * @return file based on specified directory and file name
+     * @throws FileNotFoundException If file not found
+     * @throws IOException If file failed to be opened
+     */
     private File getFile(File location, String fileName)
             throws FileNotFoundException, IOException {
         File file = new File(location, fileName);

@@ -28,14 +28,30 @@ import au.edu.usq.fascinator.api.PluginException;
 @SuppressWarnings("serial")
 public class RolesException extends PluginException {
 
+    /**
+     * Roles Exception Constructor
+     * 
+     * @param message Error message
+     */
     public RolesException(String message) {
         super(message);
     }
 
+    /**
+     * Roles Exception Constructor
+     * 
+     * @param cause Throwable cause
+     */
     public RolesException(Throwable cause) {
         super(cause);
     }
 
+    /**
+     * Roles Exception Constructor
+     * 
+     * @param message Error message
+     * @param cause Throwable cause
+     */
     public RolesException(String message, Throwable cause) {
         super(message, cause);
     }

@@ -26,19 +26,21 @@ import java.net.URLDecoder;
 import java.util.Map;
 
 import au.edu.usq.fascinator.api.storage.Payload;
-import au.edu.usq.fascinator.common.storage.impl.FilePayload;
 import au.edu.usq.fascinator.common.storage.impl.GenericDigitalObject;
 
 /**
  * Represents a file event in the JSON queue. The object contains two payloads:
- * 1) the state metadata and 2) the file content.
+ * <ol>
+ * <li>the state metadata</li>
+ * <li>the file content</li>
+ * </ol>
  * 
  * @author Oliver Lucido
  */
 public class JsonQDigitalObject extends GenericDigitalObject {
 
     /**
-     * Creates an objectfor the file located at the specified URI
+     * Creates an object for the file located at the specified URI
      * 
      * @param uri URI to a local file
      * @param info file state information

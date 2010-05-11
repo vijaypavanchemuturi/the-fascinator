@@ -27,8 +27,14 @@ import au.edu.usq.fascinator.common.access.GenericSchema;
  * @author Greg Pendlebury
  */
 public class SimpleSchema extends GenericSchema {
+	/** Role name */
     public String role;
 
+    /**
+     * Initialisation method
+     * 
+     * @param recordId record id
+     */
     public void init(String recordId) {
         setRecordId(recordId);
     }

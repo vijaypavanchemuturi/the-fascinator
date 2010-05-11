@@ -124,7 +124,7 @@ public class AddDoc {
      * 
      * @param out The writer to serialize to
      * @throws JAXBException If an error occurred while writing this Solr
-     *         document
+     *             document
      */
     public void write(Writer out) throws JAXBException {
         getMarshaller().marshal(this, out);
@@ -135,38 +135,38 @@ public class AddDoc {
      * 
      * @param out The output stream to serialize to
      * @throws JAXBException If an error occurred while writing this Solr
-     *         document
+     *             document
      */
     public void write(OutputStream out) throws JAXBException {
         getMarshaller().marshal(this, out);
     }
 
-    /* Internal helper methods */
-    // private static JAXBContext context;
-    // private static Marshaller marshaller;
-    // private static Unmarshaller unmarshaller;
-
+    /**
+     * Get context
+     * 
+     * @return JAXB Context
+     */
     private static JAXBContext getContext() throws JAXBException {
-        // if (context == null) {
-        // context = JAXBContext.newInstance(AddDoc.class);
-        // }
-        // return context;
         return JAXBContext.newInstance(AddDoc.class);
     }
 
+    /**
+     * Get the marshaller
+     * 
+     * @return Marshaller
+     * @throws JAXBException if error in retrieving marshaller
+     */
     private static Marshaller getMarshaller() throws JAXBException {
-        // if (marshaller == null) {
-        // marshaller = getContext().createMarshaller();
-        // }
-        // return marshaller;
         return getContext().createMarshaller();
     }
 
+    /**
+     * Get the Unmarshaller
+     * 
+     * @return UnMarshaller
+     * @throws JAXBException if error in retrieving unmarshaller
+     */
     private static Unmarshaller getUnmarshaller() throws JAXBException {
-        // if (unmarshaller == null) {
-        // unmarshaller = getContext().createUnmarshaller();
-        // }
-        // return unmarshaller;
         return getContext().createUnmarshaller();
 
     }

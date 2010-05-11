@@ -48,7 +48,8 @@ public class InetAddressUtil {
      * @param network The network address.
      * @param netmask The subnet mask.
      * @param ip The IP address to check.
-     * @return A boolean value.
+     * @return <code>true</code> if the masked network and ip addresses match,
+     *         <code>false</code> otherwise
      */
     public static boolean contains(InetAddress network, InetAddress netmask,
             InetAddress ip) {

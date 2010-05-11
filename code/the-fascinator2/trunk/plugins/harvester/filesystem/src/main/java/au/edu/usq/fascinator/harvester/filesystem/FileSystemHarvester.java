@@ -129,10 +129,18 @@ public class FileSystemHarvester extends GenericHarvester {
         }
     }
 
+    /**
+     * File System Harvester Constructor
+     */
     public FileSystemHarvester() {
         super("file-system", "File System Harvester");
     }
 
+    /**
+     * Initialisation of File system harvester plugin
+     * 
+     * @throws HarvesterException if fails to initialise
+     */
     @Override
     public void init() throws HarvesterException {
         JsonConfig config = getJsonConfig();
@@ -216,6 +224,12 @@ public class FileSystemHarvester extends GenericHarvester {
         return fileObjectIdList;
     }
 
+    /**
+     * Check if file has changed
+     * 
+     * @param file File to be checked
+     * @return <code>true</code> if changed, <code>false</code> otherwise
+     */
     private boolean hasFileChanged(File file) {
         boolean changed = true;
         if (cacheDir != null) {
@@ -255,6 +269,12 @@ public class FileSystemHarvester extends GenericHarvester {
         return changed;
     }
 
+    /**
+     * Get the cache directory for the file
+     * 
+     * @param file File to be checked
+     * @return the cache directory if found, <code>null</code> otherwise
+     */
     private File getCacheDirForFile(File file) {
         if (cacheDir != null) {
             String hash = DigestUtils.shaHex(file.getAbsolutePath());
@@ -304,6 +324,14 @@ public class FileSystemHarvester extends GenericHarvester {
         return fileObjects;
     }
 
+    /**
+     * Add the deleted object to the file object list and delete the file
+     * quietly
+     * 
+     * @param fileObjectIdList list of files to be deleted
+     * @param idFile file to be deleted
+     * @throws HarvesterException if fail to read the file
+     */
     private void addDeletedObject(Set<String> fileObjectIdList, File idFile)
             throws HarvesterException {
         if (ID_FILE.equals(idFile.getName())) {
@@ -325,6 +353,14 @@ public class FileSystemHarvester extends GenericHarvester {
         return hasMoreDeleted;
     }
 
+    /**
+     * Create digital object
+     * 
+     * @param file File to be transformed to be ditigal object
+     * @return object id of created digital object
+     * @throws HarvesterException if fail to create the object
+     * @throws StorageException if fail to save the file to the storage
+     */
     private String createDigitalObject(File file) throws HarvesterException,
             StorageException {
         DigitalObject object = StorageUtils.storeFile(getStorage(), file, link);

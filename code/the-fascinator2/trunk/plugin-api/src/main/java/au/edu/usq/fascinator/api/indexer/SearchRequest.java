@@ -165,6 +165,11 @@ public class SearchRequest {
         return params;
     }
 
+    /**
+     * Convert search request to string
+     * 
+     * @return converted string
+     */
     @Override
     public String toString() {
         StringBuilder str = new StringBuilder();

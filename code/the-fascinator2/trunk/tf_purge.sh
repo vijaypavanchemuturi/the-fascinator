@@ -33,29 +33,29 @@ fi
 
 if [ "$1" == "all" ]; then
     echo Deleting all data
-    echo Deleting: $FASCINATOR_HOME/test/storage
-    rm -rf $FASCINATOR_HOME/test/storage
+    echo Deleting: $FASCINATOR_HOME/storage
+    rm -rf $FASCINATOR_HOME/storage
 
-    echo Deleting: $FASCINATOR_HOME/test/activemq-data
-    rm -rf $FASCINATOR_HOME/test/activemq-data
+    echo Deleting: $FASCINATOR_HOME/activemq-data
+    rm -rf $FASCINATOR_HOME/activemq-data
 
-    echo Deleting: $FASCINATOR_HOME/test/logs
-    rm -rf $FASCINATOR_HOME/test/logs
+    echo Deleting: $FASCINATOR_HOME/logs
+    rm -rf $FASCINATOR_HOME/logs
 
-    echo Deleting: $FASCINATOR_HOME/test/cache
-    rm -rf $FASCINATOR_HOME/test/cache
+    echo Deleting: $FASCINATOR_HOME/cache
+    rm -rf $FASCINATOR_HOME/cache
 fi
 
 if [ "$1" == "all" -o "$1" == "solr" ]; then
     echo Deleting solr data
     
-    echo Deleting: $SOLR_BASE_DIR/test/solr/indexes/anotar/index
-    rm -rf $SOLR_BASE_DIR/test/solr/indexes/anotar/index
+    echo Deleting: $SOLR_BASE_DIR/solr/indexes/anotar/index
+    rm -rf $SOLR_BASE_DIR/solr/indexes/anotar/index
 
-    echo Deleting: $SOLR_BASE_DIR/test/solr/indexes/fascinator/index
-    rm -rf $SOLR_BASE_DIR/test/solr/indexes/fascinator/index
+    echo Deleting: $SOLR_BASE_DIR/solr/indexes/fascinator/index
+    rm -rf $SOLR_BASE_DIR/solr/indexes/fascinator/index
 
-    echo Deleting: $SOLR_BASE_DIR/test/solr/indexes/security/index
-    rm -rf $SOLR_BASE_DIR/test/solr/indexes/security/index
+    echo Deleting: $SOLR_BASE_DIR/solr/indexes/security/index
+    rm -rf $SOLR_BASE_DIR/solr/indexes/security/index
 fi
 
