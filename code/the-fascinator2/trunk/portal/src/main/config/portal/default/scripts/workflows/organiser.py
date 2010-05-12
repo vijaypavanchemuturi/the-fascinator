@@ -48,7 +48,11 @@ class OrganiserData:
         return StringEscapeUtils.escapeHtml(formData.get("title", self.__manifest.get("title")))
     
     def getManifestViewId(self):
-        return self.__manifest.get("viewId", PortalManager.DEFAULT_PORTAL_NAME)
+        searchPortal = self.__manifest.get("viewId", defaultPortal)
+        if Services.portalManager.exists(searchPortal):
+            return searchPortal
+        else:
+            return defaultPortal
     
     def __getRvtManifest(self, manifest):
         rvtMap = HashMap()

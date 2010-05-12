@@ -83,6 +83,8 @@ public class DynamicPageServiceImpl implements DynamicPageService {
     @Inject
     private ScriptingServices scriptingServices;
 
+    private String defaultPortal;
+
     private String layoutName;
 
     private boolean nativeJython;
@@ -103,16 +105,20 @@ public class DynamicPageServiceImpl implements DynamicPageService {
                     DEFAULT_SCRIPT_ENGINE);
             toolkit = new GUIToolkit(config);
 
-            // setup velocity engine
+            defaultPortal = config.get("portal/default",
+                    PortalManager.DEFAULT_PORTAL_NAME);
             String home = config.get("portal/home",
                     PortalManager.DEFAULT_PORTAL_HOME_DIR);
-            File homeDir = new File(home);
-            if (!homeDir.exists()) {
-                home = PortalManager.DEFAULT_PORTAL_HOME_DIR_DEV;
-            }
             File homePath = new File(home);
+            if (!homePath.exists()) {
+                home = PortalManager.DEFAULT_PORTAL_HOME_DIR_DEV;
+                homePath = new File(home);
+            }
+
+            // setup velocity engine
             scriptsPath = homePath.getAbsolutePath();
-            Velocity.setProperty(Velocity.FILE_RESOURCE_LOADER_PATH, home);
+            Velocity.setProperty(Velocity.FILE_RESOURCE_LOADER_PATH,
+                    homePath.getAbsolutePath());
             Velocity.setProperty(Velocity.RUNTIME_LOG_LOGSYSTEM_CLASS,
                     Slf4jLogChute.class.getName());
             Velocity.setProperty(Velocity.VM_LIBRARY, "portal-library.vm");
@@ -154,10 +160,8 @@ public class DynamicPageServiceImpl implements DynamicPageService {
                     + resourceName + ".py");
         }
         // check if we can fall back to default portal
-        if (fallback && !exists
-                && !PortalManager.DEFAULT_PORTAL_NAME.equals(portalId)) {
-            return resourceExists(PortalManager.DEFAULT_PORTAL_NAME,
-                    resourceName);
+        if (fallback && !exists && !defaultPortal.equals(portalId)) {
+            return resourceExists(defaultPortal, resourceName);
         }
         return exists;
     }
@@ -167,7 +171,7 @@ public class DynamicPageServiceImpl implements DynamicPageService {
         String path = portalId + "/" + resourceName;
         try {
             if (!Velocity.resourceExists(path)) {
-                path = PortalManager.DEFAULT_PORTAL_NAME + "/" + resourceName;
+                path = defaultPortal + "/" + resourceName;
             }
             return RuntimeSingleton.getContent(path).getResourceLoader()
                     .getResourceStream(path);
@@ -202,6 +206,7 @@ public class DynamicPageServiceImpl implements DynamicPageService {
         bindings.put("portalDir", scriptsPath + "/" + portalId);
         bindings.put("portalId", portalId);
         bindings.put("portalPath", contextPath + "/" + portalId);
+        bindings.put("defaultPortal", defaultPortal);
         bindings.put("pageName", pageName);
         bindings.put("responseOutput", out);
         bindings.put("serverPort", requestGlobals.getHTTPServletRequest()
@@ -305,7 +310,7 @@ public class DynamicPageServiceImpl implements DynamicPageService {
                 sys.path.append(Py.newString(scriptsPath + "/" + portalId
                         + "/scripts"));
                 sys.path.append(Py.newString(scriptsPath + "/"
-                        + PortalManager.DEFAULT_PORTAL_NAME + "/scripts"));
+                        + defaultPortal + "/scripts"));
                 Py.setSystemState(sys);
                 PythonInterpreter python = new PythonInterpreter();
                 // add virtual portal namespace - support context passing
@@ -345,7 +350,7 @@ public class DynamicPageServiceImpl implements DynamicPageService {
         templateName = templateName + ".vm";
         String path = portalId + "/" + templateName;
         if (!Velocity.resourceExists(path)) {
-            path = PortalManager.DEFAULT_PORTAL_NAME + "/" + templateName;
+            path = defaultPortal + "/" + templateName;
         }
         return Velocity.getTemplate(path);
     }

@@ -13,10 +13,4 @@
     <from>^(/amq/.*)$</from>
     <to last="true">$1</to>
   </rule>
-  <rule>
-    <name>Dispatcher</name>
-    <note>Redirects all requests to the main dispatcher</note>
-    <from>^/(dispatch/?)?$</from>
-    <to type="redirect">%{context-path}/default/home</to>
-  </rule>
 </urlrewrite>

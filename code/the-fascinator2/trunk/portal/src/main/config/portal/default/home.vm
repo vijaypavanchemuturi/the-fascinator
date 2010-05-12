@@ -18,7 +18,7 @@
       ## FIXME
       <li><a id="reharvest-view" href="#" rel="$portalId">Reharvest view...</a></li>
       <li><a id="backup-view" href="#" rel="$portalId">Backup view...</a></li>
-      #if($portalId != "default")  ## FIXME use proper default
+      #if($portalId != $defaultPortal)
       <li><a id="delete-view" href="#" rel="$portalId">Delete view...</a></li>
       #end
       <li><a href="$portalPath/upload">Upload a file</a></li>
@@ -30,7 +30,7 @@
     <h2>Delete view</h2>
     <div class="block">
       <p>Are you sure you want to delete this view ($page.portalName)?</p>
-      <a id="delete-accept" href="$contextPath/default/home">
+      <a id="delete-accept" href="$contextPath/$defaultPortal/home">
         <img src="$portalPath/images/icons/tick.png" />
       </a>
       <a id="delete-cancel" href="#"><img src="$portalPath/images/icons/cross.png" /></a>
