@@ -40,7 +40,7 @@ class LayoutData:
     def getTemplate(self, templateName):
         portalName = portalId
         if not Services.pageService.resourceExists(portalId, templateName, False):
-            portalName = Services.portalManager.DEFAULT_PORTAL_NAME
+            portalName = defaultPortal
         return "%s/%s" % (portalName, templateName)
 
     def isConfigured(self):

@@ -29,6 +29,7 @@ import au.edu.usq.fascinator.portal.JsonSessionState;
 import au.edu.usq.fascinator.portal.services.DynamicPageService;
 import au.edu.usq.fascinator.portal.services.GenericStreamResponse;
 import au.edu.usq.fascinator.portal.services.HttpStatusCodeResponse;
+import au.edu.usq.fascinator.portal.services.PortalManager;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -66,8 +67,6 @@ public class Dispatch {
 
     private static final String POST_EXT = ".post";
 
-    private static final String DEFAULT_PORTAL_ID = "default";
-
     private static final String DEFAULT_RESOURCE = "home";
 
     @Inject
@@ -81,6 +80,9 @@ public class Dispatch {
 
     @Inject
     private DynamicPageService pageService;
+
+    @Inject
+    private PortalManager portalManager;
 
     @Inject
     private Request request;
@@ -100,6 +102,7 @@ public class Dispatch {
     // Resource Processing variable
     private String resourceName;
     private String portalId;
+    private String defaultPortal;
     private String requestUri;
     private String requestId;
     private String[] path;
@@ -116,13 +119,22 @@ public class Dispatch {
         log.debug("Dispatch starting : {} {}",
                 request.getMethod(), request.getPath());
 
+        try {
+            JsonConfig config = new JsonConfig();
+            defaultPortal = config.get("portal/default",
+                    PortalManager.DEFAULT_PORTAL_NAME);
+        } catch (IOException ex) {
+            log.error("Error accessing system config", ex);
+            return new HttpStatusCodeResponse(500, "Sorry, an internal server error has occured");
+        }
+
         // Do all our parsing
         resourceName = resourceProcessing();
 
         // Make sure it's valid
         if (resourceName == null) {
-            return new HttpStatusCodeResponse(404, "Page not found: "
-                    + resourceName);
+            return new HttpStatusCodeResponse(404,
+                    "Page not found: " + requestUri);
         }
 
         // Initialise storage for our form data
@@ -341,7 +353,7 @@ public class Dispatch {
     }
 
     private String resourceProcessing() {
-        portalId = (String) sessionState.get("portalId", DEFAULT_PORTAL_ID);
+        portalId = (String) sessionState.get("portalId", defaultPortal);
         requestUri = request.getAttribute("RequestURI").toString();
         path = requestUri.split("/");
         resourceName = DEFAULT_RESOURCE;
@@ -350,6 +362,11 @@ public class Dispatch {
             portalId = path[0].toString();
             resourceName = StringUtils.join(path, "/", 1, path.length);
         }
+
+        if (!portalManager.exists(portalId)) {
+            return null;
+        }
+
         String match = getBestMatchResource(resourceName);
         log.trace("resourceName = {}, match = {}", resourceName, match);
 

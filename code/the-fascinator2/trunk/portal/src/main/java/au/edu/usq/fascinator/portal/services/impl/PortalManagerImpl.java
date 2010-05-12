@@ -26,7 +26,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.tapestry5.ioc.annotations.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,7 +34,6 @@ import au.edu.usq.fascinator.HarvestClient;
 import au.edu.usq.fascinator.common.JsonConfig;
 import au.edu.usq.fascinator.portal.Portal;
 import au.edu.usq.fascinator.portal.services.PortalManager;
-import au.edu.usq.fascinator.portal.services.ScriptingServices;
 
 public class PortalManagerImpl implements PortalManager {
 
@@ -51,12 +49,17 @@ public class PortalManagerImpl implements PortalManager {
 
     private File portalsDir;
 
-    @Inject
-    private ScriptingServices services;
+    private String defaultPortal;
 
     public PortalManagerImpl() {
         try {
             JsonConfig config = new JsonConfig();
+
+            // The name of the default view
+            defaultPortal = config.get("portal/default",
+                    PortalManager.DEFAULT_PORTAL_NAME);
+
+            // Path to the files on disk
             String home = config.get("portal/home", DEFAULT_PORTAL_HOME_DIR);
             File homeDir = new File(home);
             if (!homeDir.exists()) {
@@ -78,6 +81,7 @@ public class PortalManagerImpl implements PortalManager {
         }
     }
 
+    @Override
     public Map<String, Portal> getPortals() {
         if (portals == null) {
             portals = new HashMap<String, Portal>();
@@ -86,10 +90,17 @@ public class PortalManagerImpl implements PortalManager {
         return portals;
     }
 
+    @Override
     public Portal getDefault() {
-        return get("default");
+        return get(defaultPortal);
     }
 
+    @Override
+    public File getHomeDir() {
+        return portalsDir;
+    }
+
+    @Override
     public Portal get(String name) {
         Portal portal = null;
         if (getPortals().containsKey(name)) {
@@ -105,12 +116,19 @@ public class PortalManagerImpl implements PortalManager {
         return portal;
     }
 
+    @Override
+    public boolean exists(String name) {
+        return getPortals().containsKey(name);
+    }
+
+    @Override
     public void add(Portal portal) {
         String portalName = portal.getName();
         // log.info("PORTAL name: " + portalName);
         getPortals().put(portalName, portal);
     }
 
+    @Override
     public void remove(String name) {
         File portalDir = new File(portalsDir, name);
         File portalFile = new File(portalDir, PORTAL_JSON);
@@ -118,6 +136,7 @@ public class PortalManagerImpl implements PortalManager {
         getPortals().remove(name);
     }
 
+    @Override
     public void save(Portal portal) {
         String portalName = portal.getName();
         File portalFile = new File(new File(portalsDir, portalName),
@@ -134,6 +153,7 @@ public class PortalManagerImpl implements PortalManager {
 
     private void loadPortals() {
         File[] portalDirs = portalsDir.listFiles(new FileFilter() {
+            @Override
             public boolean accept(File file) {
                 String name = file.getName();
                 return file.isDirectory() && !name.equals(".svn");

@@ -19,7 +19,6 @@
 package au.edu.usq.fascinator.portal.services.impl;
 
 import org.apache.tapestry5.ioc.annotations.Inject;
-import org.apache.tapestry5.annotations.Service;
 
 import au.edu.usq.fascinator.api.access.AccessControlManager;
 import au.edu.usq.fascinator.api.authentication.AuthManager;
