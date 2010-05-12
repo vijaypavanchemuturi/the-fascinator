@@ -18,6 +18,17 @@
  */
 package au.edu.usq.fascinator.portal.services.impl;
 
+import au.edu.usq.fascinator.common.JsonConfig;
+import au.edu.usq.fascinator.portal.FormData;
+import au.edu.usq.fascinator.portal.JsonSessionState;
+import au.edu.usq.fascinator.portal.guitoolkit.GUIToolkit;
+import au.edu.usq.fascinator.portal.services.DynamicPageService;
+import au.edu.usq.fascinator.portal.services.PortalManager;
+import au.edu.usq.fascinator.portal.services.ScriptingServices;
+import au.edu.usq.fascinator.portal.velocity.JythonLogger;
+import au.edu.usq.fascinator.portal.velocity.JythonUberspect;
+import au.edu.usq.fascinator.portal.velocity.Slf4jLogChute;
+
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.InputStream;
@@ -27,7 +38,9 @@ import java.io.OutputStreamWriter;
 import java.io.PrintStream;
 import java.io.StringWriter;
 import java.io.Writer;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.script.Bindings;
@@ -52,22 +65,13 @@ import org.python.util.PythonInterpreter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import au.edu.usq.fascinator.common.JsonConfig;
-import au.edu.usq.fascinator.portal.FormData;
-import au.edu.usq.fascinator.portal.JsonSessionState;
-import au.edu.usq.fascinator.portal.guitoolkit.GUIToolkit;
-import au.edu.usq.fascinator.portal.services.DynamicPageService;
-import au.edu.usq.fascinator.portal.services.PortalManager;
-import au.edu.usq.fascinator.portal.services.ScriptingServices;
-import au.edu.usq.fascinator.portal.velocity.JythonLogger;
-import au.edu.usq.fascinator.portal.velocity.JythonUberspect;
-import au.edu.usq.fascinator.portal.velocity.Slf4jLogChute;
-
 public class DynamicPageServiceImpl implements DynamicPageService {
 
     private static final String DEFAULT_LAYOUT_TEMPLATE = "layout";
 
     private static final String DEFAULT_SCRIPT_ENGINE = "python";
+
+    private static final String DEFAULT_SKIN = "default";
 
     private Logger log = LoggerFactory.getLogger(DynamicPageServiceImpl.class);
 
@@ -84,6 +88,8 @@ public class DynamicPageServiceImpl implements DynamicPageService {
     private ScriptingServices scriptingServices;
 
     private String defaultPortal;
+    private String defaultSkin;
+    private List<String> skinPriority;
 
     private String layoutName;
 
@@ -105,8 +111,22 @@ public class DynamicPageServiceImpl implements DynamicPageService {
                     DEFAULT_SCRIPT_ENGINE);
             toolkit = new GUIToolkit(config);
 
-            defaultPortal = config.get("portal/default",
+            // Default templates
+            defaultPortal = config.get("portal/defaultView",
                     PortalManager.DEFAULT_PORTAL_NAME);
+            defaultSkin = config.get("portal/skins/default", DEFAULT_SKIN);
+
+            // Skin customisations
+            skinPriority = new ArrayList();
+            List<Object> skins = config.getList("portal/skins/order");
+            for (Object object : skins) {
+                skinPriority.add(object.toString());
+            }
+            if (!skinPriority.contains(defaultSkin)) {
+                skinPriority.add(defaultSkin);
+            }
+
+            // Template directory
             String home = config.get("portal/home",
                     PortalManager.DEFAULT_PORTAL_HOME_DIR);
             File homePath = new File(home);
@@ -139,42 +159,58 @@ public class DynamicPageServiceImpl implements DynamicPageService {
     }
 
     @Override
-    public boolean resourceExists(String portalId, String resourceName) {
+    public String resourceExists(String portalId, String resourceName) {
         return resourceExists(portalId, resourceName, true);
     }
 
     @Override
-    public boolean resourceExists(String portalId, String resourceName,
+    public String resourceExists(String portalId, String resourceName,
             boolean fallback) {
-        String path = portalId + "/" + resourceName;
+        // Look through the skins of the specificied portal
+        String path = testSkins(portalId, resourceName);
+        if (path != null) {
+            return path;
+        }
+        // Check if we can fall back to default portal
+        if (fallback && !defaultPortal.equals(portalId)) {
+            return testSkins(defaultPortal, resourceName);
+        }
+        return null;
+    }
+
+    private String testSkins(String portalId, String resourceName) {
+        String path = null;
         boolean noExt = resourceName.indexOf('.') == -1;
-        // check raw resource
-        boolean exists = Velocity.resourceExists(path);
-        if (noExt && !exists) {
-            // check for velocity template
-            exists = Velocity.resourceExists(path + ".vm");
+        // Loop through our skins
+        for (String skin : skinPriority) {
+            path = portalId+"/"+skin+"/"+resourceName;
+            // Check raw resource
+            if (Velocity.resourceExists(path)) {return path;}
+            // Look for templates and scripts if it had no extension
+            if (noExt) {
+                path = path+".vm";
+                if (Velocity.resourceExists(path)) {return path;}
+                path = portalId+"/"+skin+"/scripts/"+resourceName+".py";
+                if (Velocity.resourceExists(path)) {return path;}
+            }
         }
-        if (noExt && !exists) {
-            // check for jython script
-            exists = Velocity.resourceExists(portalId + "/scripts/"
-                    + resourceName + ".py");
-        }
-        // check if we can fall back to default portal
-        if (fallback && !exists && !defaultPortal.equals(portalId)) {
-            return resourceExists(defaultPortal, resourceName);
-        }
-        return exists;
+        // We didn't find it
+        return null;
     }
 
     @Override
     public InputStream getResource(String portalId, String resourceName) {
-        String path = portalId + "/" + resourceName;
+        return getResource(resourceExists(portalId, resourceName));
+    }
+
+    @Override
+    public InputStream getResource(String resourcePath) {
+        if (!Velocity.resourceExists(resourcePath)) {
+            return null;
+        }
         try {
-            if (!Velocity.resourceExists(path)) {
-                path = defaultPortal + "/" + resourceName;
-            }
-            return RuntimeSingleton.getContent(path).getResourceLoader()
-                    .getResourceStream(path);
+            return RuntimeSingleton.getContent(resourcePath)
+                    .getResourceLoader().getResourceStream(resourcePath);
         } catch (Exception e) {
             log.error("Failed to get resource: {}", e.getMessage());
         }
@@ -248,8 +284,7 @@ public class DynamicPageServiceImpl implements DynamicPageService {
             mimeType = mimeTypeAttr.toString();
         }
 
-        if (resourceExists(portalId, bindings.get("pageName").toString()
-                + ".vm")) {
+        if (resourceExists(portalId, pageName + ".vm") != null) {
             // set up the velocity context
             VelocityContext vc = new VelocityContext();
             for (String key : bindings.keySet()) {
@@ -302,15 +337,13 @@ public class DynamicPageServiceImpl implements DynamicPageService {
         Object scriptObject = new Object();
         scriptName = "scripts/" + scriptName + ".py";
         log.debug("Running page script {}/{}...", portalId, scriptName);
-        InputStream in = getResource(portalId, scriptName);
+        String path = resourceExists(portalId, scriptName);
+        InputStream in = getResource(path);
         if (in != null) {
             if (nativeJython) {
                 // add current and default portal directories to python sys.path
                 PySystemState sys = new PySystemState();
-                sys.path.append(Py.newString(scriptsPath + "/" + portalId
-                        + "/scripts"));
-                sys.path.append(Py.newString(scriptsPath + "/"
-                        + defaultPortal + "/scripts"));
+                addClassPaths(portalId, sys);
                 Py.setSystemState(sys);
                 PythonInterpreter python = new PythonInterpreter();
                 // add virtual portal namespace - support context passing
@@ -345,13 +378,19 @@ public class DynamicPageServiceImpl implements DynamicPageService {
         return scriptObject;
     }
 
+    private void addClassPaths(String portalId, PySystemState sys) {
+        for (String skin : skinPriority) {
+            sys.path.append(Py.newString(
+                    scriptsPath + "/" + portalId + "/" + skin + "/scripts"));
+        }
+        if (!defaultPortal.equals(portalId)) {
+            addClassPaths(defaultPortal, sys);
+        }
+    }
+
     private Template getTemplate(String portalId, String templateName)
             throws Exception {
-        templateName = templateName + ".vm";
-        String path = portalId + "/" + templateName;
-        if (!Velocity.resourceExists(path)) {
-            path = defaultPortal + "/" + templateName;
-        }
+        String path = resourceExists(portalId, templateName + ".vm");
         return Velocity.getTemplate(path);
     }
 }

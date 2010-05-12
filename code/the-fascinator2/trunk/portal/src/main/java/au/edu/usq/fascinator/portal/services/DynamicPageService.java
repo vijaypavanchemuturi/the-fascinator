@@ -26,12 +26,14 @@ import au.edu.usq.fascinator.portal.JsonSessionState;
 
 public interface DynamicPageService {
 
-    public boolean resourceExists(String portalId, String resourceName);
+    public String resourceExists(String portalId, String resourceName);
 
-    public boolean resourceExists(String portalId, String resourceName,
+    public String resourceExists(String portalId, String resourceName,
             boolean fallback);
 
     public InputStream getResource(String portalId, String resourceName);
+
+    public InputStream getResource(String resourcePath);
 
     public String render(String portalId, String pageName, OutputStream out,
             FormData formData, JsonSessionState sessionState);

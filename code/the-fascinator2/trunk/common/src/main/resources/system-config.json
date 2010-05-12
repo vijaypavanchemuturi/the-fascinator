@@ -58,7 +58,11 @@
     "portal": {
         "home": "src/main/config/portal",
         "contentDir": "${fascinator.home}/content",
-        "default": "default",
+        "defaultView": "default",
+        "skins": {
+            "default": "default",
+            "order": []
+        },
         "layout": "layout",
         "nativeJython": true,
         "uploader": "${fascinator.home}/workflow-config.json"
