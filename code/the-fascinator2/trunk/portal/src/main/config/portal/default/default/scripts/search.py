@@ -194,7 +194,8 @@ class SearchData:
     def getMimeTypeIcon(self, format):
         # check for specific icon
         iconPath = "images/icons/mimetype/%s/icon.png" % format
-        if Services.getPageService().resourceExists(portalId, iconPath):
+        resource = Services.getPageService().resourceExists(portalId, iconPath)
+        if resource is not None:
             return iconPath
         elif format.find("/") != -1:
             # check for major type

@@ -38,10 +38,7 @@ class LayoutData:
         return text[0].upper() + text[1:]
 
     def getTemplate(self, templateName):
-        portalName = portalId
-        if not Services.pageService.resourceExists(portalId, templateName, False):
-            portalName = defaultPortal
-        return "%s/%s" % (portalName, templateName)
+        return Services.pageService.resourceExists(portalId, templateName)
 
     def isConfigured(self):
         return self.config.isConfigured()
