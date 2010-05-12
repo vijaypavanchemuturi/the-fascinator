@@ -2,7 +2,7 @@
     "harvester": {
         "type": "ice2-harvester",
         "ice2-harvester": {
-            "baseDir": "c:/watcher_test/Course/",
+            "baseDir": "${user.home}/Documents/ICE/Course",
             "ignoreFilter": ".svn|.DS_Store",
             "link": false
         }
@@ -25,7 +25,7 @@
         "params": {
             "repository.name": "ICE Content",
             "repository.type": "ICE Harvest",
-            "base.file.path": "c:/watcher_test/Course/"
+            "base.file.path": "${user.home}/Documents/"
         }
     }
 }
