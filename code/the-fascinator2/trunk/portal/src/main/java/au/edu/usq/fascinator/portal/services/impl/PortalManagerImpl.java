@@ -56,7 +56,7 @@ public class PortalManagerImpl implements PortalManager {
             JsonConfig config = new JsonConfig();
 
             // The name of the default view
-            defaultPortal = config.get("portal/default",
+            defaultPortal = config.get("portal/defaultView",
                     PortalManager.DEFAULT_PORTAL_NAME);
 
             // Path to the files on disk

@@ -121,7 +121,7 @@ public class Dispatch {
 
         try {
             JsonConfig config = new JsonConfig();
-            defaultPortal = config.get("portal/default",
+            defaultPortal = config.get("portal/defaultView",
                     PortalManager.DEFAULT_PORTAL_NAME);
         } catch (IOException ex) {
             log.error("Error accessing system config", ex);
@@ -380,7 +380,7 @@ public class Dispatch {
             thisResourceName = thisResourceName.substring(0, thisResourceName
                     .lastIndexOf(AJAX_EXT));
         }
-        if (pageService.resourceExists(portalId, thisResourceName)) {
+        if (pageService.resourceExists(portalId, thisResourceName) != null) {
             return thisResourceName + (isAjax ? AJAX_EXT : "");
         }
         int slash = thisResourceName.lastIndexOf('/');
