@@ -14,10 +14,12 @@
       var clientTopic = "topic://message";
       function waitRender(message) {
           var json = this.JSON.parse(message.nodeValue);
-          $("#render-list").append("<li>" + json.message + "</li>");
-          if (json.status == "renderComplete" && json.id == "$oid") {
-              amq.removeListener(clientId, clientTopic);
-              window.location = "$portalPath/workflow/$oid";
+          if (json.id == "$oid") {
+              $("#render-list").append("<li>" + json.message + "</li>");
+              if (json.status == "renderComplete") {
+                  amq.removeListener(clientId, clientTopic);
+                  window.location = "$portalPath/workflow/$oid";
+              }
           }
       }
       amq.init({ uri: "$contextPath/amq/", timeout: 10 });
