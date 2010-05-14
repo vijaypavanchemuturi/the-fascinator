@@ -49,6 +49,8 @@ public class OaiPmhHarvesterTest {
         // init mock oai-pmh server
         httpTester = new HttpTester();
         Handler handler = new AbstractHandler() {
+            private int retries = 0;
+
             @Override
             public void handle(String target, HttpServletRequest request,
                     HttpServletResponse response, int dispatch)
@@ -60,6 +62,14 @@ public class OaiPmhHarvesterTest {
                     if (request.getParameter("metadataPrefix") != null) {
                         resource = "/ListRecordsStart.xml";
                     } else {
+                        retries++;
+                        if (retries < 2) {
+                            response
+                                    .setStatus(HttpServletResponse.SC_SERVICE_UNAVAILABLE);
+                            response.setIntHeader("Retry-After", 1);
+                            ((Request) request).setHandled(true);
+                            return;
+                        }
                         resource = "/ListRecordsResume.xml";
                     }
                 } else if ("GetRecord".equals(verb)) {
@@ -72,7 +82,6 @@ public class OaiPmhHarvesterTest {
                 IOUtils.copy(in, out);
                 out.close();
                 in.close();
-
                 ((Request) request).setHandled(true);
             }
         };

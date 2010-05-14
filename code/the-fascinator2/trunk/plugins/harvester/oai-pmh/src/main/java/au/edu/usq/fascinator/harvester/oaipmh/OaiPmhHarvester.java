@@ -64,6 +64,8 @@ import au.edu.usq.fascinator.common.storage.StorageUtils;
  */
 public class OaiPmhHarvester extends GenericHarvester {
 
+    private static final String PROTOCOL_HANDLER_KEY = "java.protocol.handler.pkgs";
+
     /** Date format */
     public static final String DATE_FORMAT = "yyyy-MM-dd";
 
@@ -98,6 +100,9 @@ public class OaiPmhHarvester extends GenericHarvester {
     /** Request for a specific document */
     private String recordID;
 
+    /** Existing protocol handlers */
+    private String protocolHandlerPkgs;
+
     public OaiPmhHarvester() {
         super("oai-pmh", "OAI-PMH Harvester");
     }
@@ -129,6 +134,10 @@ public class OaiPmhHarvester extends GenericHarvester {
 
     @Override
     public Set<String> getObjectIdList() throws HarvesterException {
+        // set to use our custom http url handler
+        System.setProperty(PROTOCOL_HANDLER_KEY, getClass().getPackage()
+                .getName());
+
         JsonConfig config = getJsonConfig();
         DateFormat df = new SimpleDateFormat(DATETIME_FORMAT);
         String from = config.get("harvester/oai-pmh/from");
@@ -211,6 +220,14 @@ public class OaiPmhHarvester extends GenericHarvester {
         } catch (OAIException oe) {
             throw new HarvesterException(oe);
         }
+
+        // reset url handler
+        if (protocolHandlerPkgs == null) {
+            System.getProperties().remove(PROTOCOL_HANDLER_KEY);
+        } else {
+            System.setProperty(PROTOCOL_HANDLER_KEY, protocolHandlerPkgs);
+        }
+
         return items;
     }
 
