@@ -28,6 +28,16 @@ import org.slf4j.LoggerFactory;
 /**
  * Manages the Fascinator home directory.
  * 
+ * Default Fascinator home directory: ${user.home}/.fascinator
+ * 
+ * NOTE: ${user.home} in:
+ * <ul>
+ * <li>Window: %USERPROFILE%</li>
+ * <li>Linux/Mac OS X: ~ or $HOME</li>
+ * </ul>
+ * 
+ * To change Fascinator home directory add FASCINATOR_HOME environment variable
+ * 
  * @author Oliver Lucido
  */
 public class FascinatorHome {

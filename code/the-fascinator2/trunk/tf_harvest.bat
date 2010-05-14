@@ -13,8 +13,8 @@ set JSON_FILE=%1
 REM set environment
 call "%TF_HOME%tf_env.bat"
 
-set Cmd=tasklist /fi "windowtitle eq The Fascinator - mvn*" /fo csv /nh
-for /f "tokens=1*" %%i in ('%Cmd% ^| find "cmd.exe"') do goto harvest
+set Cmd=tasklist /fi "windowtitle eq The Fascinator*" /fo csv /nh
+for /f "tokens=1*" %%i in ('%Cmd% ^| find "java.exe"') do goto harvest
 echo Please start The Fascinator before harvesting.
 goto end
 
