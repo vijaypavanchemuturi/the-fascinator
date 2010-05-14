@@ -48,17 +48,80 @@ import au.edu.usq.fascinator.common.harvester.impl.GenericHarvester;
 import au.edu.usq.fascinator.common.storage.StorageUtils;
 
 /**
- * Harvests metadata records from an OAI-PMH server
+ * Harvests metadata records from an OAI-PMH compatible repository. If the
+ * repository returns a 503, the HTTP headers are checked for Retry-After value,
+ * in an effort not to hammer the server.
  * <p>
- * Configuration options:
- * <ul>
- * <li>url: OAI-PMH server</li>
- * <li>maxRequests: number of requests to do (default: no limit)</li>
- * <li>metadataPrefix: type of metadata to get (default: oai_dc)</li>
- * <li>setSpec: set to limit records to (optional)</li>
- * <li>from: lower bound of date range (optional)</li>
- * <li>until: upper bound of date range (optional)</li>
- * </ul>
+ * <h3>Configuration</h3>
+ * </p>
+ * <dl>
+ * <dt><b>url</b></dt>
+ * <dd>The base URL of the OAI-PMH repository to harvest. <b>Required.</b></dd>
+ * <dt><b>maxRequests</b></dt>
+ * <dd>Limit number of HTTP requests to make. By default the requests will
+ * continue while the repository returns a resumptionToken. <i>Optional.</i></dd>
+ * <dt><b>maxObjects</b></dt>
+ * <dd>Limit number of records to harvest. If not specified all, records will be
+ * retrieved. <i>Optional.</i></dd>
+ * <dt><b>metadataPrefix</b></dt>
+ * <dd>Set the type of metadata record to harvest. The default value is
+ * <code>oai_dc</code>. <i>Optional.</i></dd>
+ * <dt><b>setSpec</b></dt>
+ * <dd>Harvest records from this OAI-PMH set only. <i>Optional.</i></dd>
+ * <dt><b>from</b></dt>
+ * <dd>Harvest records from this date. If not specified, all records are
+ * retrieved. <i>Optional.</i></dd>
+ * <dt><b>until</b></dt>
+ * <dd>Harvest records up to this date. If not specified, all records are
+ * retrieved. <i>Optional.</i></dd>
+ * </dl>
+ * <h3>
+ * Examples</h3>
+ * <ol>
+ * <li>
+ * Get the first page of records from USQ EPrints
+ * 
+ * <pre>
+ * "harvester": {
+ *     "type": "oai-pmh",
+ *     "oai-pmh": {
+ *         "url": "http://eprints.usq.edu.au/cgi/oai2",
+ *         "maxRequests": 1
+ *     }
+ * }
+ * </pre>
+ * 
+ * </li>
+ * <li>
+ * Get a specific record from USQ EPrints
+ * 
+ * <pre>
+ * "harvester": {
+ *     "type": "oai-pmh",
+ *     "oai-pmh": {
+ *         "url": "http://eprints.usq.edu.au/cgi/oai2",
+ *         "recordID": "oai:eprints.usq.edu.au:5"
+ *     }
+ * }
+ * </pre>
+ * 
+ * </li>
+ * <li>
+ * Get only records from January 2009 from USQ EPrints
+ * 
+ * <pre>
+ * "harvester": {
+ *     "type": "oai-pmh",
+ *     "oai-pmh": {
+ *         "url": "http://eprints.usq.edu.au/cgi/oai2",
+ *         "from": "2009-01-01T00:00:00Z",
+ *         "until": "2009-01-31T00:00:00Z"
+ *     }
+ * }
+ * </pre>
+ * 
+ * </li>
+ * </ol>
  * 
  * @author Oliver Lucido
  */
