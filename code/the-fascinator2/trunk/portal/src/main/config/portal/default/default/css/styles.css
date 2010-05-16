@@ -541,3 +541,9 @@ li img.workflow {
     background-repeat: no-repeat;
     padding-left: 20px;
 }
+.box h2 a {
+    background-image: url("../images/icons/switch_plus.gif");
+}
+.box h2 a.open {
+    background-image: url("../images/icons/switch_minus.gif");
+}

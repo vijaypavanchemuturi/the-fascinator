@@ -1,5 +1,7 @@
-<div id="metadata" class="box">
-  <h2>Metadata</h2>
+#set($menuTitle = "Metadata")
+#parse($page.getTemplate('wrapping/info-box-open.vm'))
+#set($menuTitle = $nullValue)
+<div id="metadata">
   #set($pageHeader="#parse($page.getTemplate('detail-screen/header.vm'))")
   <div class="block">
     <table class="meta">
@@ -32,3 +34,4 @@
   });
   </script>
 </div>
+#parse($page.getTemplate('wrapping/info-box-close.vm'))

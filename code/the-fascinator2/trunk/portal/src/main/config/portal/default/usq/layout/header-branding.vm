@@ -1,0 +1,21 @@
+#parse($page.getTemplate('layout/header-right.vm'))
+
+<div class="header">
+  <div class="linetop">
+    <div class="linetopright">
+    </div>
+  </div>
+  <div class="header_logo">
+    <a href="/">
+      <img alt="USQ Logo" src="http://www.usq.edu.au/Migration.Standard.Website/images/usqlogo_line.gif" />
+    </a>
+    <span class="header_text">The Fascinator</span>
+  </div>
+</div>
+
+<div class="navbar">
+  <span class="breadcrumbs">
+    <a href="http://www.usq.edu.au">USQ Home</a> &gt;
+    The Fascinator
+  </span>
+</div>

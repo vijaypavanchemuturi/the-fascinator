@@ -1,0 +1,60 @@
+<div class="menubar">
+  <ul>
+    <li><a href="$portalPath/home">Home</a></li>
+    <li><a href="$portalPath/search">Browse</a></li>
+    <li>
+      <a href="#">Views</a>
+      <ul class="dropdown">
+      #foreach($portal in $page.portals)
+        <li><a href="$contextPath/$portal.name/home">$portal.description</a></li>
+      #end
+      </ul>
+    </li>
+    #if ($page.authentication.is_admin())
+    <li><a href="$portalPath/settings">Settings</a></li>
+    <li><a href="$portalPath/admin">Admin</a></li>
+    #end
+    #### not yet finished
+    ##<li><a href="$portalPath/harvest">Harvest</a></li>
+    <li class="secondary">
+      <form action="$portalPath/search" class="search" method="get">
+        <input class="text" type="text" id="query" name="query" size="25" value="$!sessionState.get('query')" />
+        <a class="search" href="#"><img src="$portalPath/images/icons/magnifier.png" /></a>
+      </form>
+    </li>
+    <li class="secondary">
+      <span class="status">View: $page.portalName</span>
+    </li>
+    <li class="secondary">
+      #if($page.authentication.is_logged_in())
+      <span id="user-info" class="status">Welcome $page.authentication.get_name(), <a href="#" id="logout-now">Logout</a></span>
+      #else
+      <span id="user-info" class="status"><a id="login-now" href="#">Login</a></span>
+      #end
+    </li>
+    $!navContent
+  </ul>
+  <div class="clear"></div>
+</div>
+<script type="text/javascript">
+    $(function() {
+        $("a.search").click(function() {
+            $("form.search").submit();
+            return false;
+        });
+    });
+</script>
+
+#if($pageName=="home")
+<style type="text/css" media="all" xmlns:usq="http://www.usq.edu.au/XSLExtensionFunctions">
+    .mainbannerimage {background-image: url("http://www.usq.edu.au/~/media/USQ/SiteBanners/20081290decbansljpg.ashx");}
+    .mainbannerimageleft {background-image: url("http://www.usq.edu.au/~/media/USQ/SiteBanners/20081290decbanjpg.ashx");}
+</style>
+
+<div class="mainbanner mainbannerimage">
+  <div class="mainbannerleft mainbannerimageleft">
+    <div class="mainbannerright mainbannerimageright">
+    </div>
+  </div>
+</div>
+#end
