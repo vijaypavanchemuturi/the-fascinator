@@ -85,11 +85,6 @@ $(function() {
     });
     $("div.rendition-links").remove();
 
-    $("#attachments h2 a").click(function() {
-        $("#attachments ul").toggle("blind").toggleClass('visible').toggleClass('hidden');
-        return false;
-    });
-
     #if($self.isMetadataOnly())
     $("#preview").after($("#metadata")).remove();
     #end
