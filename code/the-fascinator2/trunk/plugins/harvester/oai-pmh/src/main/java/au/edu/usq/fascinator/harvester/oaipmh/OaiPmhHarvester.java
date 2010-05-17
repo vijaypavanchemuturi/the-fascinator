@@ -54,29 +54,53 @@ import au.edu.usq.fascinator.common.storage.StorageUtils;
  * <p>
  * <h3>Configuration</h3>
  * </p>
- * <dl>
- * <dt><b>url</b></dt>
- * <dd>The base URL of the OAI-PMH repository to harvest. <b>Required.</b></dd>
- * <dt><b>maxRequests</b></dt>
- * <dd>Limit number of HTTP requests to make. By default the requests will
- * continue while the repository returns a resumptionToken. <i>Optional.</i></dd>
- * <dt><b>maxObjects</b></dt>
- * <dd>Limit number of records to harvest. If not specified all, records will be
- * retrieved. <i>Optional.</i></dd>
- * <dt><b>metadataPrefix</b></dt>
- * <dd>Set the type of metadata record to harvest. The default value is
- * <code>oai_dc</code>. <i>Optional.</i></dd>
- * <dt><b>setSpec</b></dt>
- * <dd>Harvest records from this OAI-PMH set only. <i>Optional.</i></dd>
- * <dt><b>from</b></dt>
- * <dd>Harvest records from this date. If not specified, all records are
- * retrieved. <i>Optional.</i></dd>
- * <dt><b>until</b></dt>
- * <dd>Harvest records up to this date. If not specified, all records are
- * retrieved. <i>Optional.</i></dd>
- * </dl>
- * <h3>
- * Examples</h3>
+ * <table border="1">
+ * <tr>
+ * <th>Option</th>
+ * <th>Description</th>
+ * <th>Required</th>
+ * <th>Default</th>
+ * </tr>
+ * <tr>
+ * <td>url</td>
+ * <td>The base URL of the OAI-PMH repository to harvest</td>
+ * <td><b>Yes</b></td>
+ * <td><i>None</i></td>
+ * </tr>
+ * <tr>
+ * <td>maxRequests</td>
+ * <td>Limit number of HTTP requests to make. Set this to -1 to configure the
+ * harvester to retrieve all records.</td>
+ * <td>No</td>
+ * <td>-1</td>
+ * </tr>
+ * <tr>
+ * <td>metadataPrefix</td>
+ * <td>Set the type of metadata records to harvest</td>
+ * <td>No</td>
+ * <td>oai_dc</td>
+ * </tr>
+ * <tr>
+ * <td>setSpec</td>
+ * <td>Set the OAI-PMH set to harvest</td>
+ * <td>No</td>
+ * <td><i>None</i></td>
+ * </tr>
+ * <tr>
+ * <td>from</td>
+ * <td>Harvest records from this date</td>
+ * <td>No</td>
+ * <td><i>None</i></td>
+ * </tr>
+ * <tr>
+ * <td>until</td>
+ * <td>Harvest records up to this date</td>
+ * <td>No</td>
+ * <td><i>None</i></td>
+ * </tr>
+ * </table>
+ * 
+ * <h3>Examples</h3>
  * <ol>
  * <li>
  * Get the first page of records from USQ EPrints
