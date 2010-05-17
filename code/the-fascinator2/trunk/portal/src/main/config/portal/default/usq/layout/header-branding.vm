@@ -9,13 +9,10 @@
     <a href="/">
       <img alt="USQ Logo" src="http://www.usq.edu.au/Migration.Standard.Website/images/usqlogo_line.gif" />
     </a>
-    <span class="header_text">The Fascinator</span>
+#parse($page.getTemplate('layout/page-title.vm'))
   </div>
 </div>
 
 <div class="navbar">
-  <span class="breadcrumbs">
-    <a href="http://www.usq.edu.au">USQ Home</a> &gt;
-    The Fascinator
-  </span>
+#parse($page.getTemplate('layout/breadcrumbs.vm'))
 </div>
