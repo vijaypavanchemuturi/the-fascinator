@@ -50,7 +50,7 @@ def grantAccess(object, newRole):
     schema.set("role", newRole)
     object.setAccessSchema(schema, "simple")
 
-def revokeAccess(inobjectdexer, oldRole):
+def revokeAccess(object, oldRole):
     schema = object.getAccessSchema("simple");
     schema.setRecordId(oid)
     schema.set("role", oldRole)
