@@ -206,7 +206,7 @@ public class HarvestClient {
                 Set<String> objectIds = harvester.getObjectId(uploadedFile);
                 if (!objectIds.isEmpty()) {
                     uploadedOid = objectIds.iterator().next();
-                    processObject(uploadedOid);
+                    processObject(uploadedOid, true);
                 }
             } catch (HarvesterException e) {
                 throw new PluginException(e);
@@ -298,13 +298,26 @@ public class HarvestClient {
 
     /**
      * Process/transform each objects
-     * 
+     *
      * @param oid Object Id
      * @throws StorageException If storage is not found
      * @throws TransformerException If transformer fail to transform the object
      */
     private void processObject(String oid) throws TransformerException,
             StorageException {
+            processObject(oid, false);
+    }
+
+    /**
+     * Process/transform each objects
+     * 
+     * @param oid Object Id
+     * @param commit Flag to commit after indexing
+     * @throws StorageException If storage is not found
+     * @throws TransformerException If transformer fail to transform the object
+     */
+    private void processObject(String oid, boolean commit)
+            throws TransformerException, StorageException {
         // get the object
         DigitalObject object = storage.getObject(oid);
 
@@ -336,7 +349,7 @@ public class HarvestClient {
         object.close();
 
         // queue the object for indexing
-        queueHarvest(oid, configFile);
+        queueHarvest(oid, configFile, commit);
     }
 
     /**
