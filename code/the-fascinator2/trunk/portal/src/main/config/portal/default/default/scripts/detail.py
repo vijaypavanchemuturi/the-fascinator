@@ -271,6 +271,9 @@ class DetailData:
         obj = self.getObject()
         return obj.getId()
 
+    def getWorkflow(self):
+        return self.__workflowStep
+
     def hasError(self):
         payloadIdList = self.getObject().getPayloadIdList()
         for payloadId in payloadIdList:
@@ -316,6 +319,14 @@ class DetailData:
             return pid
         else:
             return False
+
+    def hasWorkflow(self):
+        self.__workflowStep = self.__metadata.getFieldList("workflow_step_label")
+        if self.__workflowStep.size() == 0:
+            return False
+        else:
+            self.__workflowStep = self.__workflowStep.get(0)
+            return True
 
     def isHidden(self, pid):
         if pid.find("_files%2F")>-1:
