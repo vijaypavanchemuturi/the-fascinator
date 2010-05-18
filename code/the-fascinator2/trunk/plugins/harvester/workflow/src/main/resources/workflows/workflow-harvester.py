@@ -241,22 +241,22 @@ if pid == metaPid:
         if formData is not None:
             # Core fields
             title = formData.getList("title")
-            if title is not None:
+            if title:
                 titleList = title
             creator = formData.getList("creator")
-            if creator is not None:
+            if creator:
                 creatorList = creator
             contributor = formData.getList("contributor")
-            if contributor is not None:
+            if contributor:
                 contributorList = contributor
             description = formData.getList("description")
-            if description is not None:
+            if description:
                 descriptionList = description
             format = formData.getList("format")
-            if format is not None:
+            if format:
                 formatList = format
             creation = formData.getList("creationDate")
-            if creation is not None:
+            if creation:
                 creationDate = creation
             # Non-core fields
             data = formData.getMap("/")
