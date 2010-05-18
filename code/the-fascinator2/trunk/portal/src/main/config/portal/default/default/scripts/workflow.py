@@ -261,6 +261,7 @@ class UploadedData:
 
         # Re-index the object
         Services.indexer.index(self.getOid())
+        Services.indexer.commit()
 
     def redirectNeeded(self):
         return self.formProcess

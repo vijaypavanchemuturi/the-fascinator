@@ -19,6 +19,14 @@
 
 package au.edu.usq.fascinator.common;
 
+import au.edu.usq.fascinator.api.PluginException;
+import au.edu.usq.fascinator.api.PluginManager;
+import au.edu.usq.fascinator.api.access.AccessControlException;
+import au.edu.usq.fascinator.api.access.AccessControlManager;
+import au.edu.usq.fascinator.api.access.AccessControlSchema;
+import au.edu.usq.fascinator.api.storage.Payload;
+import au.edu.usq.fascinator.api.storage.StorageException;
+
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -29,6 +37,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.jms.Connection;
+import javax.jms.DeliveryMode;
+import javax.jms.Destination;
+import javax.jms.JMSException;
+import javax.jms.MessageProducer;
+import javax.jms.Session;
+import javax.jms.TextMessage;
+
+import org.apache.activemq.ActiveMQConnectionFactory;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.DocumentFactory;
@@ -39,20 +56,12 @@ import org.ontoware.rdf2go.model.Model;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import au.edu.usq.fascinator.api.PluginException;
-import au.edu.usq.fascinator.api.PluginManager;
-import au.edu.usq.fascinator.api.access.AccessControlException;
-import au.edu.usq.fascinator.api.access.AccessControlManager;
-import au.edu.usq.fascinator.api.access.AccessControlSchema;
-import au.edu.usq.fascinator.api.storage.Payload;
-import au.edu.usq.fascinator.api.storage.StorageException;
-
 /**
  * The purpose of this class is to expose common Java classes and methods we use
  * to Python scripts.
  * 
- * Previously these were collecting in inappropriate places like the SolrIndexer
- * where the Python scripts were being initiated from.
+ * Messaging is a duplicate of au.edu.usq.fascinator.MessagingServices
+ *  since Common library cannot acces it.
  * 
  * @author Greg Pendlebury
  */
@@ -66,6 +75,13 @@ public class PythonUtils {
     private Map<String, String> namespaces;
     private SAXReader saxReader;
 
+    /** Message Queues */
+    private ActiveMQConnectionFactory connectionFactory;
+    private Connection connection;
+    private Session session;
+    private MessageProducer producer;
+    private Map<String, Destination> destinations;
+
     public PythonUtils(JsonConfig config) throws PluginException {
         // Security
         String accessControlType = "accessmanager";
@@ -77,6 +93,104 @@ public class PythonUtils {
         DocumentFactory docFactory = new DocumentFactory();
         docFactory.setXPathNamespaceURIs(namespaces);
         saxReader = new SAXReader(docFactory);
+
+        // Message Queues
+        String brokerUrl = config.get("messaging/url",
+                ActiveMQConnectionFactory.DEFAULT_BROKER_BIND_URL);
+        connectionFactory = new ActiveMQConnectionFactory(brokerUrl);
+        try {
+            connection = connectionFactory.createConnection();
+            connection.start();
+            session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
+
+            // create single producer for multiple destinations
+            producer = session.createProducer(null);
+            producer.setDeliveryMode(DeliveryMode.PERSISTENT);
+
+            // cache destinations
+            destinations = new HashMap<String, Destination>();
+        } catch (JMSException ex) {
+            throw new PluginException(ex);
+        }
+    }
+
+
+    /*****
+     * Try to closing any objects that require closure
+     *
+     */
+    public void shutdown() {
+        if (connection != null) {
+            try {
+                connection.close();
+            } catch (JMSException jmse) {
+                log.warn("Failed to close connection: {}", jmse.getMessage());
+            }
+        }
+        if (session != null) {
+            try {
+                session.close();
+            } catch (JMSException jmse) {
+                log.warn("Failed to close session: {}", jmse.getMessage());
+            }
+        }
+        if (producer != null) {
+            try {
+                producer.close();
+            } catch (JMSException jmse) {
+                log.warn("Failed to close producer: {}", jmse.getMessage());
+            }
+        }
+    }
+
+    /*****
+     * Send a message to the given message queue
+     *
+     * @param messageQueue to connect to
+     * @param message to send
+     * @return boolean flag for success
+     */
+    public boolean sendMessage(String messageQueue, String message) {
+        try {
+            //log.debug("Queuing '{}' to '{}'", msg, name);
+            sendMessage(getDestination(messageQueue, true), message);
+            return true;
+        } catch (JMSException jmse) {
+            log.error("Failed to queue message", jmse);
+            return false;
+        }
+    }
+
+    /**
+     * Sends a message to a JMS destination.
+     *
+     * @param name destination name
+     * @param msg message to send
+     */
+    private void sendMessage(Destination destination, String msg)
+            throws JMSException {
+        TextMessage message = session.createTextMessage(msg);
+        producer.send(destination, message);
+    }
+
+    /**
+     * Gets a JMS destination with the given name. If the destination doesn't
+     * exist it is created and cached for reuse.
+     *
+     * @param name name of the destination
+     * @param queue true if the destination is a queue, false for topic
+     * @return a JMS destination
+     * @throws JMSException if an error occurred creating the destination
+     */
+    private Destination getDestination(String name, boolean queue)
+            throws JMSException {
+        Destination destination = destinations.get(name);
+        if (destination == null) {
+            destination = queue ? session.createQueue(name) : session
+                    .createTopic(name);
+            destinations.put(name, destination);
+        }
+        return destination;
     }
 
     /*****
