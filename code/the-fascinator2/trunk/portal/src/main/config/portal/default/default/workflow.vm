@@ -41,8 +41,10 @@
   </div>
 #end
 
-#set($pageTitle = "Workflow")
-#set($pageTitle = $self.getWorkflowMetadata().get("pageTitle"))
+#set ($pageTitle = $self.getWorkflowMetadata().get("pageTitle"))
+#if(!$pageTitle)
+  #set($pageTitle = "Workflow")
+#end
 <h2 id="page-heading">$pageTitle</h2>
 <div id="form-section">
 
