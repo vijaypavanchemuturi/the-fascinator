@@ -13,8 +13,8 @@ set JSON_FILE=%1
 REM set environment
 call "%TF_HOME%tf_env.bat"
 
-set Cmd=tasklist /fi "windowtitle eq The Fascinator*" /fo csv /nh
-for /f "tokens=1*" %%i in ('%Cmd% ^| find "java.exe"') do goto harvest
+set Cmd=tasklist /fi "windowtitle eq The Fascinator - mvn*" /fo csv /nh
+for /f "tokens=1*" %%i in ('%Cmd% ^| find "cmd.exe"') do goto harvest
 echo Please start The Fascinator before harvesting.
 goto end
 
@@ -23,7 +23,7 @@ if exist "%JSON_FILE%" (set BASE_FILE=%JSON_FILE%) else (set BASE_FILE=%SAMPLE_D
 if not exist "%BASE_FILE%.json" copy "%BASE_FILE%.json.sample" "%BASE_FILE%.json"
 if not exist "%BASE_FILE%.py" copy "%BASE_FILE%.py.sample" "%BASE_FILE%.py"
 pushd "%TF_HOME%\core"
-call mvn -P dev -DjsonFile="%BASE_FILE%.json" exec:java
+call mvn -P dev -DjsonFile="%BASE_FILE%.json" exec:java >"%FASCINATOR_HOME%\logs\harvest.out"
 popd
 goto end
 
