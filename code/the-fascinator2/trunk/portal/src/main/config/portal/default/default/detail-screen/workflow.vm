@@ -1,0 +1,10 @@
+#if ($hasWorkflow && $canOrganise)
+<div class="box menu">
+  <h2>Workflow Step</h2>
+  <ul class="menu">
+    <li>
+      <a href='$portalPath/workflow/$self.encode($oid)' title="$workflowStep">$workflowStep</a>
+    </li>
+  </ul>
+</div>
+#end
