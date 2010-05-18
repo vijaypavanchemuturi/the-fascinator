@@ -207,6 +207,7 @@ if pid == metaPid:
     WORKFLOW_ID = "workflow1"
     wfChanged = False
     customFields = {}
+    message_list = None
     try:
         wfPayload = object.getPayload("workflow.metadata")
         wfMeta = JsonConfigHelper(wfPayload.open())
@@ -231,6 +232,9 @@ if pid == metaPid:
                 wfMeta.set("label", stage.get("label"))
                 item_security = stage.getList("visibility")
                 workflow_security = stage.getList("security")
+                if wfChanged == True:
+                    message_list = stage.getList("message")
+
         # Form processing
         formData = wfMeta.getJsonList("formData")
         if formData.size() > 0:
@@ -270,12 +274,14 @@ if pid == metaPid:
         wfMeta = JsonConfigHelper()
         wfMeta.set("id", WORKFLOW_ID)
         wfMeta.set("step", "pending")
+        wfMeta.set("pageTitle", "Uploaded Files - Management")
         stages = jsonConfig.getJsonList("stages")
         for stage in stages:
             if stage.get("name") == "pending":
                 wfMeta.set("label", stage.get("label"))
                 item_security = stage.getList("visibility")
                 workflow_security = stage.getList("security")
+                message_list = stage.getList("message")
 
     # Has the workflow metadata changed?
     if wfChanged == True:
@@ -325,6 +331,15 @@ if pid == metaPid:
         baseDir = "/%s/" % baseDir[baseDir.rfind("/")+1:]
         filePath = filePath.replace("\\", "/").replace(baseFilePath, baseDir)
     indexPath("file_path", filePath, includeLastPart=False)
+
+    # AFTER saving the data, send messages for workflows
+    # Any messages for the new step?
+    if message_list is not None and len(message_list) > 0:
+        msg = JsonConfigHelper()
+        msg.set("oid", oid)
+        message = msg.toString()
+        for target in message_list:
+            pyUtils.sendMessage(target, message)
 
 # Security
 roles = pyUtils.getRolesWithAccess(oid)
