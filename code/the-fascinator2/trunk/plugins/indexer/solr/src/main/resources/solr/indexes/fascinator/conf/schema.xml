@@ -132,6 +132,7 @@
     <field name="owner" type="string" indexed="true" stored="true" />
     <field name="workflow_id" type="string" indexed="true" stored="true" />
     <field name="workflow_step" type="string" indexed="true" stored="true" multiValued="true" />
+    <field name="workflow_step_label" type="string" indexed="true" stored="true" multiValued="true" />
     <field name="workflow_security" type="string" indexed="true" stored="true" multiValued="true" />
 
     <!-- dublin core fields -->

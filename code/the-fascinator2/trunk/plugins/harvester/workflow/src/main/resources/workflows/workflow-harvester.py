@@ -228,6 +228,7 @@ if pid == metaPid:
         stages = jsonConfig.getJsonList("stages")
         for stage in stages:
             if stage.get("name") == targetStep:
+                wfMeta.set("label", stage.get("label"))
                 item_security = stage.getList("visibility")
                 workflow_security = stage.getList("security")
         # Form processing
@@ -272,6 +273,7 @@ if pid == metaPid:
         stages = jsonConfig.getJsonList("stages")
         for stage in stages:
             if stage.get("name") == "pending":
+                wfMeta.set("label", stage.get("label"))
                 item_security = stage.getList("visibility")
                 workflow_security = stage.getList("security")
 
@@ -286,6 +288,7 @@ if pid == metaPid:
 
     rules.add(AddField("workflow_id", wfMeta.get("id")))
     rules.add(AddField("workflow_step", wfMeta.get("step")))
+    rules.add(AddField("workflow_step_label", wfMeta.get("label")))
     for group in workflow_security:
         rules.add(AddField("workflow_security", group))
 
