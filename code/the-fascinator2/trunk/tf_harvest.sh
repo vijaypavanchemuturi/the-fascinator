@@ -32,6 +32,7 @@ function copy_sample {
         cp $1.sample $1
         # get the associated rules file
         RULES_FILE=`cat $1 | grep rules | cut -d \" -f 4`
+	echo $RULES_FILE
         if [ ! -f $RULES_FILE ]; then
             cp $RULES_FILE.sample $RULES_FILE
         fi
@@ -43,7 +44,7 @@ pushd `dirname $0`
 TF_HOME=`pwd`
 popd
 
-SAMPLE_DIR=$TF_HOME/core/src/test/resources
+SAMPLE_DIR=$TF_HOME/core/src/main/resources/harvest
 if [ "$1" == "" ]; then
     usage
     exit 0
