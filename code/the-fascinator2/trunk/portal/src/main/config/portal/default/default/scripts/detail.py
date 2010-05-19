@@ -1,21 +1,16 @@
 import os
 
 from au.edu.usq.fascinator.api.indexer import SearchRequest
-from au.edu.usq.fascinator.api.storage import PayloadType
 from au.edu.usq.fascinator.api.storage import StorageException
 from au.edu.usq.fascinator.common import JsonConfigHelper
 
 from java.awt import Desktop
 from java.io import ByteArrayInputStream, ByteArrayOutputStream, File, StringWriter
 from java.net import URLDecoder, URLEncoder
-from java.lang import Boolean, String
+from java.util import TreeMap
 
 from org.apache.commons.io import FileUtils, IOUtils
 from org.apache.commons.lang import StringEscapeUtils
-
-import traceback
-
-from org.w3c.tidy import Tidy
 
 class SolrDoc:
     def __init__(self, json):
@@ -37,11 +32,11 @@ class SolrDoc:
         dc = self.json.getList("response/docs").get(0)
         remove = []
         for entry in dc:
-            if not entry.startswith("dc_"):
+            if not entry.startswith("dc_") and not entry.startswith("meta_"):
                 remove.append(entry)
         for key in remove:
             dc.remove(key)
-        return JsonConfigHelper(dc).getMap("/")
+        return TreeMap(JsonConfigHelper(dc).getMap("/"))
 
     def toString(self):
         return self.json.toString()
@@ -150,7 +145,9 @@ class DetailData:
     def formatName(self, name):
         if name.startswith("dc_"):
             name = name[3:]
-        return name.capitalize()
+        if name.startswith("meta_"):
+            name = name[5:]
+        return name.replace("_", " ").capitalize()
 
     def getError(self):
         payloadIdList = self.getObject().getPayloadIdList()
