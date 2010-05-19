@@ -6,7 +6,7 @@ REM only usable when installed in development mode
 REM get fascinator home dir
 for %%F in ("%0") do set TF_HOME=%%~dpF
 
-set SAMPLE_DIR=%TF_HOME%core\src\test\resources
+set SAMPLE_DIR=%TF_HOME%core\src\main\resources\harvest
 if "%1" == "" goto usage
 set JSON_FILE=%1
 
