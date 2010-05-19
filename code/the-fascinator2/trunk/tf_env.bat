@@ -13,7 +13,7 @@ if not defined JAVA_HOME (
 REM find proxy server
 set KeyName=HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Internet Settings
 set Cmd=reg query "%KeyName%" /s
-for /f "tokens=2*" %%i in ('%Cmd% ^| findstr "ProxyServer"') do set http_proxy=%%j
+for /f "tokens=2*" %%i in ('%Cmd% ^| findstr "ProxyServer" 2^> NUL') do set http_proxy=%%j
 for /f "tokens=1,2 delims=:" %%i in ("%http_proxy%") do (
   set PROXY_HOST=%%i
   set PROXY_PORT=%%j

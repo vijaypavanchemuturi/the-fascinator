@@ -13,6 +13,11 @@ for %%F in ("%0") do set TF_HOME=%%~dpF
 REM set environment
 call "%TF_HOME%tf_env.bat"
 
+REM create logging directory
+IF EXIST "%FASCINATOR_HOME%\logs" GOTO LOGDIRDONE
+mkdir "%FASCINATOR_HOME%\logs"
+:LOGDIRDONE
+
 if "%1" == "status" goto status
 if "%1" == "start" goto start
 if "%1" == "stop" goto stop
