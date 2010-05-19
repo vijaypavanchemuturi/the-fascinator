@@ -19,8 +19,9 @@
 
 #if($isPackage)
   #if($self.canOrganise())
+  #set($menuTitle = "Packaging")
   #parse($page.getTemplate('wrapping/menu-open.vm'))
-    <h2>Packaging</h2>
+  #set($menuTitle = $nullValue)
     <ul class="menu" id="packaging">
       <li><a href="$portalPath/workflow/$oid">Organise...</a></li>
     </ul>
@@ -60,8 +61,9 @@
 
 #if($isPackage || $isImsPackage)
 #set($pageHeader="#parse($page.getTemplate('detail-screen/header.vm'))")
+  #set($menuTitle = "Navigation")
   #parse($page.getTemplate('wrapping/menu-open.vm'))
-  <h2>Navigation</h2>
+  #set($menuTitle = $nullValue)
   ## standard menu navigation
   ##createNavTree($self.getPackageManifest() "menu")
   ## RVT
