@@ -1,11 +1,16 @@
 <div class="body">
 
 #parse($page.getTemplate('layout/header-branding.vm'))
-#parse($page.getTemplate('layout/configuration.vm'))
+#parse($page.getTemplate('layout/config-wrapper.vm'))
 
 #if (!$configScreen)
   #parse($page.getTemplate('layout/header-application.vm'))
   #parse($page.getTemplate('layout/page-content.vm'))
+#else
+  #if (!$page.authentication.is_admin())
+    #parse($page.getTemplate('dialogs/login.vm'))
+    <script type="text/javascript">$(function() {loginNow();});</script>
+  #end
 #end
 
 #parse($page.getTemplate("layout/footer-branding.vm"))

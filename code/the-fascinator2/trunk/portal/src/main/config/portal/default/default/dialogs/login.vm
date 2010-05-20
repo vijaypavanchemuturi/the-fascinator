@@ -1,4 +1,10 @@
 <script type="text/javascript">
+    function loginNow() {
+        $("#login-message").empty();
+        $("#login-error").hide();
+        $("#login-form").dialog('open');
+        $("#username").focus();
+    }
     $(function() {
         var dialogOpts = {
             title: "Login",
@@ -8,10 +14,7 @@
         }
         $("#login-form").dialog(dialogOpts);
         $("#login-now").click(function() {
-            $("#login-message").empty();
-            $("#login-error").hide();
-            $("#login-form").dialog('open');
-            $("#username").focus();
+            loginNow();
             return false;
         });
         $("#logout-now").click(function() {
