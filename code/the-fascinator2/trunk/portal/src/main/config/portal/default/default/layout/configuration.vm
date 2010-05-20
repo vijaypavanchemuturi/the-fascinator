@@ -37,6 +37,7 @@
           });
       });
   </script>
+  <div class="clear"></div>
   #if($pageName=="settings" && !$needRestart)
   <div class="grid_16">$!pageContent</div>
   #end
