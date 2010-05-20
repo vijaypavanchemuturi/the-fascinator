@@ -18,9 +18,7 @@
             "outputPath": "${java.io.tmpdir}/${user.name}/ice2-output"
         },
         "ice2": {
-            "url-ice": "http://ice-service.usq.edu.au/api/convert/",
-            "url-ip": "http://139.86.55.228:8888/api/convert",
-            "url": "http://localhost:8000/api/convert",
+            "url": "http://ice-service.usq.edu.au/api/convert/",
             "outputPath": "${java.io.tmpdir}/${user.name}/ice2-output",
             "excludeRenditionExt": "txt,mp3,m4a,mov,mp4,wav,wma,wmv,mpg,flv",
             "resize": {
