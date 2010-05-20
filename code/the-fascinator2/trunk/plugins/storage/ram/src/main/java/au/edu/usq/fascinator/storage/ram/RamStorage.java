@@ -18,6 +18,12 @@
  */
 package au.edu.usq.fascinator.storage.ram;
 
+import au.edu.usq.fascinator.api.PluginDescription;
+import au.edu.usq.fascinator.api.storage.DigitalObject;
+import au.edu.usq.fascinator.api.storage.Storage;
+import au.edu.usq.fascinator.api.storage.StorageException;
+import au.edu.usq.fascinator.common.storage.impl.GenericDigitalObject;
+
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
@@ -25,11 +31,6 @@ import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import au.edu.usq.fascinator.api.storage.DigitalObject;
-import au.edu.usq.fascinator.api.storage.Storage;
-import au.edu.usq.fascinator.api.storage.StorageException;
-import au.edu.usq.fascinator.common.storage.impl.GenericDigitalObject;
 
 /**
  * RAM based storage. This is not a persistent store, it's primary use is for
@@ -51,6 +52,16 @@ public class RamStorage implements Storage {
     @Override
     public String getName() {
         return "RAM Storage";
+    }
+
+    /**
+     * Gets a PluginDescription object relating to this plugin.
+     *
+     * @return a PluginDescription
+     */
+    @Override
+    public PluginDescription getPluginDetails() {
+        return new PluginDescription(this);
     }
 
     @Override

@@ -18,6 +18,7 @@
  */
 package au.edu.usq.fascinator.access.simple;
 
+import au.edu.usq.fascinator.api.PluginDescription;
 import au.edu.usq.fascinator.api.access.AccessControl;
 import au.edu.usq.fascinator.api.access.AccessControlException;
 import au.edu.usq.fascinator.api.access.AccessControlSchema;
@@ -65,6 +66,16 @@ public class SimpleAccessControl implements AccessControl {
     @Override
     public String getName() {
         return "Simple Access Control";
+    }
+
+    /**
+     * Gets a PluginDescription object relating to this plugin.
+     *
+     * @return a PluginDescription
+     */
+    @Override
+    public PluginDescription getPluginDetails() {
+        return new PluginDescription(this);
     }
 
     /**

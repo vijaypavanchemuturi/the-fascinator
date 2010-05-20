@@ -18,15 +18,7 @@
  */
 package au.edu.usq.fascinator.transformer.ims;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.Enumeration;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import au.edu.usq.fascinator.api.PluginDescription;
 import au.edu.usq.fascinator.api.PluginException;
 import au.edu.usq.fascinator.api.storage.DigitalObject;
 import au.edu.usq.fascinator.api.storage.Payload;
@@ -37,9 +29,18 @@ import au.edu.usq.fascinator.api.transformer.TransformerException;
 import au.edu.usq.fascinator.common.JsonConfigHelper;
 import au.edu.usq.fascinator.common.MimeTypeUtil;
 import au.edu.usq.fascinator.common.storage.StorageUtils;
+
+import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.Enumeration;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
+
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Unzip Ims package and store the files
@@ -180,6 +181,16 @@ public class ImsTransformer implements Transformer {
     @Override
     public String getName() {
         return "IMS Transformer";
+    }
+
+    /**
+     * Gets a PluginDescription object relating to this plugin.
+     *
+     * @return a PluginDescription
+     */
+    @Override
+    public PluginDescription getPluginDetails() {
+        return new PluginDescription(this);
     }
 
     /**

@@ -18,6 +18,7 @@
  */
 package au.edu.usq.fascinator.indexer;
 
+import au.edu.usq.fascinator.api.PluginDescription;
 import au.edu.usq.fascinator.api.PluginException;
 import au.edu.usq.fascinator.api.PluginManager;
 import au.edu.usq.fascinator.api.indexer.Indexer;
@@ -124,6 +125,16 @@ public class SolrIndexer implements Indexer {
     @Override
     public String getName() {
         return "Apache Solr Indexer";
+    }
+
+    /**
+     * Gets a PluginDescription object relating to this plugin.
+     *
+     * @return a PluginDescription
+     */
+    @Override
+    public PluginDescription getPluginDetails() {
+        return new PluginDescription(this);
     }
 
     public SolrIndexer() {

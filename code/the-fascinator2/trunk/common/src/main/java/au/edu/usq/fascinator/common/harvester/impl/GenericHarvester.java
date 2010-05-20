@@ -18,16 +18,17 @@
  */
 package au.edu.usq.fascinator.common.harvester.impl;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.Collections;
-import java.util.Set;
-
+import au.edu.usq.fascinator.api.PluginDescription;
 import au.edu.usq.fascinator.api.PluginException;
 import au.edu.usq.fascinator.api.harvester.Harvester;
 import au.edu.usq.fascinator.api.harvester.HarvesterException;
 import au.edu.usq.fascinator.api.storage.Storage;
 import au.edu.usq.fascinator.common.JsonConfig;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.Collections;
+import java.util.Set;
 
 /**
  * Generic Harvester implementation that provides common functionality for
@@ -137,6 +138,16 @@ public abstract class GenericHarvester implements Harvester {
     @Override
     public String getName() {
         return name;
+    }
+
+    /**
+     * Gets a PluginDescription object relating to this plugin.
+     *
+     * @return a PluginDescription
+     */
+    @Override
+    public PluginDescription getPluginDetails() {
+        return new PluginDescription(this);
     }
 
     /**

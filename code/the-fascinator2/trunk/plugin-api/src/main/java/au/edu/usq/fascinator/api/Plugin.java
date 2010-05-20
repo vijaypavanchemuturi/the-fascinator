@@ -43,6 +43,13 @@ public interface Plugin {
     public String getName();
 
     /**
+     * Gets a PluginDescription object relating to this plugin.
+     *
+     * @return a PluginDescription
+     */
+    public PluginDescription getPluginDetails();
+
+    /**
      * Initialises the plugin using the specified JSON configuration
      * 
      * @param jsonFile JSON configuration file

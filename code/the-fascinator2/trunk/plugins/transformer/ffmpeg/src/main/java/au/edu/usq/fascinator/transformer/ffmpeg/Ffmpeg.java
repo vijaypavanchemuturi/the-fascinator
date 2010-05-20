@@ -29,12 +29,44 @@ import java.util.List;
  */
 public interface Ffmpeg {
 
+    /** Default transcoder binary name */
     public static final String DEFAULT_EXECUTABLE = "ffmpeg";
 
-    public boolean isAvailable();
+    /** Default extractor binary name */
+    public static final String DEFAULT_EXTRACTER = "ffprobe";
 
-    public String executeAndWait(List<String> params) throws IOException;
+    /**
+     * Test what level of functionality is available for ffmpeg
+     *  on the current system.
+     *
+     * @return String showing binary name or null
+     */
+    public String testAvailability();
 
+    /**
+     * Extract metadata from the given file
+     *
+     * @param file to extract metadata from
+     * @return String containing the raw output
+     * @throws IOException if execution failed
+     */
+    public String extract(File file) throws IOException;
+
+    /**
+     * Transform a file using given parameters
+     *
+     * @param params List of parameters to pass to the command line executable
+     * @return String containing the raw output
+     * @throws IOException if execution failed
+     */
+    public String transform(List<String> params) throws IOException;
+
+    /**
+     * Extract and process metadata from the given file
+     *
+     * @param file to extract metadata from
+     * @return FfmpegInfo containing the processed output
+     * @throws IOException if execution failed
+     */
     public FfmpegInfo getInfo(File inputFile) throws IOException;
-
 }
