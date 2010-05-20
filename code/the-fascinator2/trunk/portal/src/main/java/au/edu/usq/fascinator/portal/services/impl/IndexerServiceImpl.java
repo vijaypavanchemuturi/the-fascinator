@@ -18,9 +18,7 @@
  */
 package au.edu.usq.fascinator.portal.services.impl;
 
-import java.io.File;
-import java.io.OutputStream;
-
+import au.edu.usq.fascinator.api.PluginDescription;
 import au.edu.usq.fascinator.api.PluginException;
 import au.edu.usq.fascinator.api.PluginManager;
 import au.edu.usq.fascinator.api.indexer.Indexer;
@@ -28,6 +26,9 @@ import au.edu.usq.fascinator.api.indexer.IndexerException;
 import au.edu.usq.fascinator.api.indexer.SearchRequest;
 import au.edu.usq.fascinator.common.JsonConfig;
 import au.edu.usq.fascinator.portal.services.IndexerService;
+
+import java.io.File;
+import java.io.OutputStream;
 
 public class IndexerServiceImpl implements IndexerService {
 
@@ -96,6 +97,16 @@ public class IndexerServiceImpl implements IndexerService {
     @Override
     public String getName() {
         return indexer.getName();
+    }
+
+    /**
+     * Gets a PluginDescription object relating to this plugin.
+     *
+     * @return a PluginDescription
+     */
+    @Override
+    public PluginDescription getPluginDetails() {
+        return new PluginDescription(this);
     }
 
     @Override

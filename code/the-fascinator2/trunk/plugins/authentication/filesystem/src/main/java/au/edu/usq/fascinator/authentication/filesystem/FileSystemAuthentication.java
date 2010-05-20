@@ -18,6 +18,7 @@
  */
 package au.edu.usq.fascinator.authentication.filesystem;
 
+import au.edu.usq.fascinator.api.PluginDescription;
 import au.edu.usq.fascinator.api.authentication.Authentication;
 import au.edu.usq.fascinator.api.authentication.AuthenticationException;
 import au.edu.usq.fascinator.api.authentication.User;
@@ -69,6 +70,16 @@ public class FileSystemAuthentication implements Authentication {
     @Override
     public String getName() {
         return "Filesystem Authentication";
+    }
+
+    /**
+     * Gets a PluginDescription object relating to this plugin.
+     *
+     * @return a PluginDescription
+     */
+    @Override
+    public PluginDescription getPluginDetails() {
+        return new PluginDescription(this);
     }
 
     /**

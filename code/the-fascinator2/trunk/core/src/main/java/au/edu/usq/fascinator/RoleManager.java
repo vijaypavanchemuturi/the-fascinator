@@ -75,6 +75,16 @@ public class RoleManager implements RolesManager {
         return "Role Manager";
     }
 
+    /**
+     * Gets a PluginDescription object relating to this plugin.
+     *
+     * @return a PluginDescription
+     */
+    @Override
+    public PluginDescription getPluginDetails() {
+        return new PluginDescription(this);
+    }
+
     @Override
     public void init(String jsonString) throws RolesException {
         try {

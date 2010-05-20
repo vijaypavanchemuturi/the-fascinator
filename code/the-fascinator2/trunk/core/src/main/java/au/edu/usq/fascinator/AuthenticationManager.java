@@ -82,6 +82,16 @@ public class AuthenticationManager implements AuthManager {
         return "Authentication Manager";
     }
 
+    /**
+     * Gets a PluginDescription object relating to this plugin.
+     *
+     * @return a PluginDescription
+     */
+    @Override
+    public PluginDescription getPluginDetails() {
+        return new PluginDescription(this);
+    }
+
     @Override
     public void init(String jsonString) throws AuthenticationException {
         try {

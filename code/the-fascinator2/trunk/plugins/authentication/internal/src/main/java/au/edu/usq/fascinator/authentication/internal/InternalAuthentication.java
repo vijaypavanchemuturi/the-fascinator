@@ -18,9 +18,11 @@
  */
 package au.edu.usq.fascinator.authentication.internal;
 
+import au.edu.usq.fascinator.api.PluginDescription;
 import au.edu.usq.fascinator.api.authentication.Authentication;
 import au.edu.usq.fascinator.api.authentication.AuthenticationException;
 import au.edu.usq.fascinator.api.authentication.User;
+import au.edu.usq.fascinator.common.JsonConfig;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -38,8 +40,6 @@ import java.util.Properties;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import au.edu.usq.fascinator.common.JsonConfig;
 
 /**
  * A plugin to implement the Fascinators default
@@ -74,6 +74,16 @@ public class InternalAuthentication implements Authentication {
     @Override
     public String getName() {
         return "Internal Authentication";
+    }
+
+    /**
+     * Gets a PluginDescription object relating to this plugin.
+     *
+     * @return a PluginDescription
+     */
+    @Override
+    public PluginDescription getPluginDetails() {
+        return new PluginDescription(this);
     }
 
     /**

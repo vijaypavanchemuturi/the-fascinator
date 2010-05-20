@@ -18,6 +18,7 @@
  */
 package au.edu.usq.fascinator.roles.internal;
 
+import au.edu.usq.fascinator.api.PluginDescription;
 import au.edu.usq.fascinator.api.roles.Roles;
 import au.edu.usq.fascinator.api.roles.RolesException;
 import au.edu.usq.fascinator.common.JsonConfig;
@@ -63,6 +64,16 @@ public class InternalRoles implements Roles {
     @Override
     public String getName() {
         return "Internal Roles";
+    }
+
+    /**
+     * Gets a PluginDescription object relating to this plugin.
+     *
+     * @return a PluginDescription
+     */
+    @Override
+    public PluginDescription getPluginDetails() {
+        return new PluginDescription(this);
     }
 
     @Override
