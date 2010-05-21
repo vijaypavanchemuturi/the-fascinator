@@ -227,13 +227,6 @@
             <id>fascinator</id>
             <url>http://fascinator.usq.edu.au/nexus/content/groups/public</url>
             <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-        </repository>
-        <repository>
-            <id>fascinator</id>
-            <url>http://fascinator.usq.edu.au/nexus/content/groups/public-snapshots</url>
-            <snapshots>
                 <enabled>true</enabled>
             </snapshots>
         </repository>
