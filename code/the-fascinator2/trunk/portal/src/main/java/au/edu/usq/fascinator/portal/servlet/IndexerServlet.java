@@ -18,10 +18,16 @@
  */
 package au.edu.usq.fascinator.portal.servlet;
 
+import au.edu.usq.fascinator.GenericMessageListener;
+import au.edu.usq.fascinator.common.FascinatorHome;
+import au.edu.usq.fascinator.common.JsonConfig;
+import au.edu.usq.fascinator.common.JsonConfigHelper;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
+import java.util.ServiceLoader;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -35,11 +41,6 @@ import org.apache.activemq.broker.BrokerService;
 import org.python.core.PySystemState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import au.edu.usq.fascinator.HarvestQueueConsumer;
-import au.edu.usq.fascinator.RenderQueueConsumer;
-import au.edu.usq.fascinator.common.FascinatorHome;
-import au.edu.usq.fascinator.common.JsonConfig;
 
 /**
  * Starts an embedded ActiveMQ message broker, harvest and render queue
@@ -57,11 +58,9 @@ public class IndexerServlet extends HttpServlet {
 
     private Timer timer;
 
-    private HarvestQueueConsumer harvester;
+    private List<GenericMessageListener> messageQueues;
 
-    private List<RenderQueueConsumer> renderers;
-
-    private JsonConfig config;
+    private JsonConfigHelper config;
 
     /**
      * activemq broker NOTE: Will use Fedora's broker if fedora is running,
@@ -73,7 +72,8 @@ public class IndexerServlet extends HttpServlet {
     public void init() throws ServletException {
         // configure the broker
         try {
-            config = new JsonConfig();
+            config = new JsonConfigHelper(JsonConfig.getSystemFile());
+
             String dataDir = config.get("messaging/home",
                     DEFAULT_MESSAGING_HOME);
             broker = new BrokerService();
@@ -121,21 +121,33 @@ public class IndexerServlet extends HttpServlet {
 
     private void startIndexer() {
         log.info("Starting The Fascinator indexer...");
+        if (messageQueues == null) {
+            messageQueues = new ArrayList();
+        }
+        List<JsonConfigHelper> threadConfig =
+                config.getJsonList("messaging/threads");
+
         try {
-            if (harvester == null) {
-                harvester = new HarvestQueueConsumer();
-            }
-            harvester.start();
-            // start the render consumers
-            if (renderers == null) {
-                renderers = new ArrayList<RenderQueueConsumer>();
-                for (int i = 0; i < Integer.parseInt(config.get(
-                        "messaging/render-threads", "3")); i++) {
-                    renderers.add(new RenderQueueConsumer("render" + i));
+            // TODO - This loop and timer should be more intelligent
+            //  It should track what instantiations succeeded and not
+            //  try those again on the next pass through.
+            for (JsonConfigHelper thread : threadConfig) {
+                String classId = thread.get("id");
+                if (classId != null) {
+                    GenericMessageListener queue = getListener(classId);
+                    if (queue != null) {
+                        queue.init(thread);
+                        queue.start();
+                        messageQueues.add(queue);
+                    } else {
+                        log.error("Failed to find Listener: '{}'", classId);
+                        throw new Exception();
+                    }
+                } else {
+                    log.error("No message classId provided: '{}'",
+                            thread.toString());
+                    throw new Exception();
                 }
-            }
-            for (RenderQueueConsumer rqc : renderers) {
-                rqc.start();
             }
             log.info("The Fascinator indexer was started successfully");
             timer.cancel();
@@ -143,6 +155,23 @@ public class IndexerServlet extends HttpServlet {
         } catch (Exception e) {
             log.warn("Will retry in 15 seconds.", e);
         }
+    }
+
+    /**
+     * Get the access manager. Used in The indexer if the portal isn't running
+     *
+     * @param id plugin identifier
+     * @return an access manager plugin, or null if not found
+     */
+    public GenericMessageListener getListener(String id) {
+        ServiceLoader<GenericMessageListener> listeners =
+                ServiceLoader.load(GenericMessageListener.class);
+        for (GenericMessageListener listener : listeners) {
+            if (id.equals(listener.getId())) {
+                return listener;
+            }
+        }
+        return null;
     }
 
     @Override
@@ -164,20 +193,13 @@ public class IndexerServlet extends HttpServlet {
         } catch (Exception e) {
             log.error("Failed to stop message broker: {}", e.getMessage());
         }
-        if (harvester != null) {
-            try {
-                harvester.stop();
-                log.info("The Fascinator indexer stopped");
-            } catch (Exception e) {
-                log.error("Failed to stop the harvester: {}", e.getMessage());
-            }
-        }
-        if (renderers != null) {
-            for (RenderQueueConsumer rqc : renderers) {
+        if (messageQueues != null) {
+            for (GenericMessageListener queue : messageQueues) {
                 try {
-                    rqc.stop();
+                    queue.stop();
                 } catch (Exception e) {
-                    log.error("Failed to stop renderer: {}", e.getMessage());
+                    log.error("Failed to stop listener '{}': {}",
+                            queue.getId(), e.getMessage());
                 }
             }
         }

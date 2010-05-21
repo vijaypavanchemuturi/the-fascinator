@@ -1,5 +1,5 @@
 {
-    "version": "0.6.0",
+    "version": "0.6.1",
     "configured": false,
     "urlBase" : "http://localhost:9997/portal/",
     "email" : "fascinator@usq.edu.au",
@@ -36,11 +36,36 @@
         },
         "ignoreFilter": ".svn|.ice|.*|~*"
     },
-    "messaging": {
-        "url": "tcp://localhost:61616",
-        "stompUrl": "stomp://localhost:61613",
-        "home": "${fascinator.home}/activemq-data",
-        "render-thread": 3
+    "messaging" : {
+        "url" : "tcp://localhost:61616",
+        "stompUrl" : "stomp://localhost:61613",
+        "home" : "${fascinator.home}/activemq-data",
+        "threads" : [
+            {
+                "id" : "harvest",
+                "config" : {
+                    "name" : "harvester"
+                }
+            },
+            {
+                "id" : "render",
+                "config" : {
+                    "name" : "render0"
+                }
+            },
+            {
+                "id" : "render",
+                "config" : {
+                    "name" : "render1"
+                }
+            },
+            {
+                "id" : "render",
+                "config" : {
+                    "name" : "render2"
+                }
+            }
+        ]
     },
     "indexer": {
         "type": "solr",

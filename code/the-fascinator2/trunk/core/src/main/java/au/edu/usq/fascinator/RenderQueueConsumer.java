@@ -26,7 +26,6 @@ import javax.jms.Destination;
 import javax.jms.JMSException;
 import javax.jms.Message;
 import javax.jms.MessageConsumer;
-import javax.jms.MessageListener;
 import javax.jms.Session;
 import javax.jms.TextMessage;
 
@@ -52,16 +51,13 @@ import au.edu.usq.fascinator.common.JsonConfigHelper;
  * @author Oliver Lucido
  * @author Linda Octalina
  */
-public class RenderQueueConsumer implements MessageListener {
+public class RenderQueueConsumer implements GenericMessageListener {
 
     /** Render queue string */
     public static final String RENDER_QUEUE = "render";
 
     /** Logging */
     private Logger log = LoggerFactory.getLogger(RenderQueueConsumer.class);
-
-    /** JSON configuration */
-    private JsonConfig config;
 
     /** Indexer object */
     private Indexer indexer;
@@ -79,27 +75,38 @@ public class RenderQueueConsumer implements MessageListener {
     private String name;
 
     /**
-     * Render Queue Consumer constructor
-     * 
-     * @param name name identifier
+     * Initialization method
+     *
+     * @param config Configuration to use
      * @throws IOException if the configuration file not found
      */
-    public RenderQueueConsumer(String name) throws IOException {
-        this.name = name;
+    @Override
+    public void init(JsonConfigHelper config) throws Exception {
+        this.name = config.get("config/name");
         try {
-            config = new JsonConfig();
             File sysFile = JsonConfig.getSystemFile();
-            indexer = PluginManager.getIndexer(config.get("indexer/type",
-                    "solr"));
+            indexer = PluginManager.getIndexer(config.get(
+                    "indexer/type", "solr"));
             indexer.init(sysFile);
-            storage = PluginManager.getStorage(config.get("storage/type",
-                    "file-system"));
+            storage = PluginManager.getStorage(config.get(
+                    "storage/type", "file-system"));
             storage.init(sysFile);
         } catch (IOException ioe) {
             log.error("Failed to read configuration: {}", ioe.getMessage());
+            throw ioe;
         } catch (PluginException pe) {
             log.error("Failed to initialise plugin: {}", pe.getMessage());
+            throw pe;
         }
+    }
+
+    /**
+     * Return the ID string for this listener
+     *
+     */
+    @Override
+    public String getId() {
+        return RENDER_QUEUE;
     }
 
     /**
@@ -107,7 +114,8 @@ public class RenderQueueConsumer implements MessageListener {
      * 
      * @throws JMSException if an error occurred starting the JMS connections
      */
-    public void start() throws JMSException {
+    @Override
+    public void start() throws Exception {
         log.info("Starting {}...", name);
         services = MessagingServices.getInstance();
         Session session = services.getSession();
@@ -120,13 +128,15 @@ public class RenderQueueConsumer implements MessageListener {
      * Stop the Render Queue Consumer. Including stopping the storage and
      * indexer
      */
-    public void stop() {
+    @Override
+    public void stop() throws Exception {
         log.info("Stopping {}...", name);
         if (indexer != null) {
             try {
                 indexer.shutdown();
             } catch (PluginException pe) {
                 log.error("Failed to shutdown indexer: {}", pe.getMessage());
+                throw pe;
             }
         }
         if (storage != null) {
@@ -134,6 +144,7 @@ public class RenderQueueConsumer implements MessageListener {
                 storage.shutdown();
             } catch (PluginException pe) {
                 log.error("Failed to shutdown storage: {}", pe.getMessage());
+                throw pe;
             }
         }
         if (consumer != null) {
@@ -141,6 +152,7 @@ public class RenderQueueConsumer implements MessageListener {
                 consumer.close();
             } catch (JMSException jmse) {
                 log.warn("Failed to close consumer: {}", jmse.getMessage());
+                throw jmse;
             }
         }
         services.release();
