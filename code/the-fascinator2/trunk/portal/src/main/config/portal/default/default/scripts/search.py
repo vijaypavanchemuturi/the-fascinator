@@ -31,8 +31,10 @@ class SearchData:
         recordsPerPage = self.__portal.recordsPerPage
         
         uri = URLDecoder.decode(request.getAttribute("RequestURI"))
-        if uri != portalPath:
-            query = uri[len(portalPath):]
+        query = None
+        pagePath = portalId + "/" + pageName
+        if uri != pagePath:
+            query = uri[len(pagePath)+1:]
         if query is None or query == "":
             query = formData.get("query")
         if query is None or query == "":
