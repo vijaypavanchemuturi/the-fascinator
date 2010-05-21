@@ -26,7 +26,6 @@ import java.util.Properties;
 import javax.jms.JMSException;
 import javax.jms.Message;
 import javax.jms.MessageConsumer;
-import javax.jms.MessageListener;
 import javax.jms.Session;
 import javax.jms.TextMessage;
 import javax.xml.bind.JAXBException;
@@ -48,13 +47,13 @@ import au.edu.usq.fascinator.common.JsonConfigHelper;
 import au.edu.usq.fascinator.common.storage.StorageUtils;
 
 /**
- * Consumer for harvest transformers. Jobs in this queue should be short running
- * processes as they are run at harvest time.
+ * Consumer for harvest transformers. Jobs in this queue should
+ * be short running processes as they are run at harvest time.
  * 
  * @author Oliver Lucido
  * @author Linda Octalina
  */
-public class HarvestQueueConsumer implements MessageListener {
+public class HarvestQueueConsumer implements GenericMessageListener {
 
     /** Harvest Queue name */
     public static final String HARVEST_QUEUE = "harvest";
@@ -63,7 +62,7 @@ public class HarvestQueueConsumer implements MessageListener {
     private Logger log = LoggerFactory.getLogger(HarvestQueueConsumer.class);
 
     /** JSON configuration */
-    private JsonConfig config;
+    private JsonConfig globalConfig;
 
     /** Indexer object */
     private Indexer indexer;
@@ -86,8 +85,18 @@ public class HarvestQueueConsumer implements MessageListener {
      */
     public HarvestQueueConsumer() throws IOException, JAXBException,
             PluginException {
+    }
+
+    /**
+     * Initialization method
+     *
+     * @param config Configuration to use
+     * @throws IOException if the configuration file not found
+     */
+    @Override
+    public void init(JsonConfigHelper config) throws Exception {
         try {
-            config = new JsonConfig();
+            globalConfig = new JsonConfig();
             File sysFile = JsonConfig.getSystemFile();
             indexer = PluginManager.getIndexer(config.get("indexer/type",
                     "solr"));
@@ -105,11 +114,21 @@ public class HarvestQueueConsumer implements MessageListener {
     }
 
     /**
+     * Return the ID string for this listener
+     *
+     */
+    @Override
+    public String getId() {
+        return HARVEST_QUEUE;
+    }
+
+    /**
      * Start the harvest queue consumer
      * 
      * @throws JMSException if an error occurred starting the JMS connections
      */
-    public void start() throws JMSException {
+    @Override
+    public void start() throws Exception {
         log.info("Starting harvest queue consumer...");
         services = MessagingServices.getInstance();
         Session session = services.getSession();
@@ -120,13 +139,15 @@ public class HarvestQueueConsumer implements MessageListener {
     /**
      * Stop the Harvest Queue consumer. Including: indexer and storage
      */
-    public void stop() {
+    @Override
+    public void stop() throws Exception {
         log.info("Stopping harvest queue consumer...");
         if (indexer != null) {
             try {
                 indexer.shutdown();
             } catch (PluginException pe) {
                 log.error("Failed to shutdown indexer: {}", pe.getMessage());
+                throw pe;
             }
         }
         if (storage != null) {
@@ -134,6 +155,7 @@ public class HarvestQueueConsumer implements MessageListener {
                 storage.shutdown();
             } catch (PluginException pe) {
                 log.error("Failed to shutdown storage: {}", pe.getMessage());
+                throw pe;
             }
         }
         if (consumer != null) {
@@ -141,6 +163,7 @@ public class HarvestQueueConsumer implements MessageListener {
                 consumer.close();
             } catch (JMSException jmse) {
                 log.warn("Failed to close consumer: {}", jmse.getMessage());
+                throw jmse;
             }
         }
         services.release();
@@ -251,12 +274,13 @@ public class HarvestQueueConsumer implements MessageListener {
             Properties props = object.getMetadata();
             // FIXME objectId is redundant now?
             props.setProperty("objectId", object.getId());
-            props.setProperty("scriptType", config.get("indexer/script/type"));
+            props.setProperty("scriptType",
+                    globalConfig.get("indexer/script/type"));
             props.setProperty("rulesOid", rulesFile.getAbsolutePath());
             props.setProperty("rulesPid", rulesFile.getName());
             props.setProperty("render-pending", "true");
             props.setProperty("owner", "system");
-            Map<String, Object> params = config.getMap("indexer/params");
+            Map<String, Object> params = globalConfig.getMap("indexer/params");
             for (String key : params.keySet()) {
                 props.setProperty(key, params.get(key).toString());
             }
