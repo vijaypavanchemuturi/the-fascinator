@@ -2,7 +2,7 @@
     "harvester": {
         "type": "file-system",
         "file-system": {
-            "baseDir": "${user.home}/Documents/public/theme08.odt",
+            "baseDir": "${user.home}/My Documents",
             "ignoreFilter": ".svn|.ice|.*|~*|Thumbs.db|.DS_Store",
             "cacheDir": "${fascinator.home}/cache",
             "force": true,
