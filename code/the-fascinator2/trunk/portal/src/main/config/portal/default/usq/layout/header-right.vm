@@ -16,7 +16,7 @@
       <fieldset>
         <div class="searchbox_go" id="ctl8">
           <label for="usqsearch">
-            <input type="image" alt="Go" src="/Migration.Standard.Website/Images/button_go.jpg" name="sa" />
+            <input type="image" alt="Go" src="http://www.usq.edu.au/Migration.Standard.Website/Images/button_go.jpg" name="sa" />
           </label>
         </div>
         <div class="searchbox_t" id="ctl9">
