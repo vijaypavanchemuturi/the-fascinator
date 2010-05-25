@@ -215,6 +215,7 @@ public class MessagingServices {
      */
     public void sendMessage(Destination destination, String msg)
             throws JMSException {
+        //log.debug("Sending message to '{}': '{}'", destination.toString(), msg);
         TextMessage message = session.createTextMessage(msg);
         producer.send(destination, message);
     }

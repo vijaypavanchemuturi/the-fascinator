@@ -11,6 +11,7 @@ $!pageContent
     <script type="text/javascript" src="/Migration.Standard.Website/Scripts/swfobject.js"></script>
 #parse($page.getTemplate('layout/html-head.vm'))
     <link rel="stylesheet" type="text/css" href="$portalPath/css/usq-skin.css" />
+    <link rel="stylesheet" type="text/css" href="$portalPath/css/local-style.css" />
   </head>
   <body>
 #parse($page.getTemplate('layout/page-structure.vm'))
