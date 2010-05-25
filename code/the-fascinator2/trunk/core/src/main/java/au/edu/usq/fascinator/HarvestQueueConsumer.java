@@ -77,15 +77,10 @@ public class HarvestQueueConsumer implements GenericMessageListener {
     private MessageConsumer consumer;
 
     /**
-     * Harvest Queue Consumer Constructor
-     * 
-     * @throws IOException if Configuration File not found
-     * @throws JAXBException if XMl binding error
-     * @throws PluginException if plugins fail to initialise
+     * Constructor required by ServiceLoader. Be sure to use init()
+     *
      */
-    public HarvestQueueConsumer() throws IOException, JAXBException,
-            PluginException {
-    }
+    public HarvestQueueConsumer() {}
 
     /**
      * Initialization method
@@ -98,11 +93,11 @@ public class HarvestQueueConsumer implements GenericMessageListener {
         try {
             globalConfig = new JsonConfig();
             File sysFile = JsonConfig.getSystemFile();
-            indexer = PluginManager.getIndexer(config.get("indexer/type",
-                    "solr"));
+            indexer = PluginManager.getIndexer(
+                    globalConfig.get("indexer/type", "solr"));
             indexer.init(sysFile);
-            storage = PluginManager.getStorage(config.get("storage/type",
-                    "file-system"));
+            storage = PluginManager.getStorage(
+                    globalConfig.get("storage/type", "file-system"));
             storage.init(sysFile);
         } catch (IOException ioe) {
             log.error("Failed to read configuration: {}", ioe.getMessage());
@@ -169,6 +164,11 @@ public class HarvestQueueConsumer implements GenericMessageListener {
         services.release();
     }
 
+    /**
+     * Callback function for incoming messages.
+     *
+     * @param message The incoming message
+     */
     @Override
     public void onMessage(Message message) {
         MDC.put("name", "harvest");

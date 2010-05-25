@@ -59,6 +59,9 @@ public class RenderQueueConsumer implements GenericMessageListener {
     /** Logging */
     private Logger log = LoggerFactory.getLogger(RenderQueueConsumer.class);
 
+    /** JSON configuration */
+    private JsonConfig globalConfig;
+
     /** Indexer object */
     private Indexer indexer;
 
@@ -75,6 +78,12 @@ public class RenderQueueConsumer implements GenericMessageListener {
     private String name;
 
     /**
+     * Constructor required by ServiceLoader. Be sure to use init()
+     *
+     */
+    public RenderQueueConsumer() {}
+
+    /**
      * Initialization method
      *
      * @param config Configuration to use
@@ -84,12 +93,13 @@ public class RenderQueueConsumer implements GenericMessageListener {
     public void init(JsonConfigHelper config) throws Exception {
         this.name = config.get("config/name");
         try {
+            globalConfig = new JsonConfig();
             File sysFile = JsonConfig.getSystemFile();
-            indexer = PluginManager.getIndexer(config.get(
-                    "indexer/type", "solr"));
+            indexer = PluginManager.getIndexer(
+                    globalConfig.get("indexer/type", "solr"));
             indexer.init(sysFile);
-            storage = PluginManager.getStorage(config.get(
-                    "storage/type", "file-system"));
+            storage = PluginManager.getStorage(
+                    globalConfig.get("storage/type", "file-system"));
             storage.init(sysFile);
         } catch (IOException ioe) {
             log.error("Failed to read configuration: {}", ioe.getMessage());
@@ -158,6 +168,11 @@ public class RenderQueueConsumer implements GenericMessageListener {
         services.release();
     }
 
+    /**
+     * Callback function for incoming messages.
+     *
+     * @param message The incoming message
+     */
     @Override
     public void onMessage(Message message) {
         MDC.put("name", name);
