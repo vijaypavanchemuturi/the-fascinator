@@ -31,8 +31,7 @@ function copy_sample {
     if [ ! -f $1 ]; then
         cp $1.sample $1
         # get the associated rules file
-        RULES_FILE=`cat $1 | grep rules | cut -d \" -f 4`
-	echo $RULES_FILE
+        RULES_FILE=$SAMPLE_DIR/`cat $1 | grep rules | cut -d \" -f 4`
         if [ ! -f $RULES_FILE ]; then
             cp $RULES_FILE.sample $RULES_FILE
         fi
