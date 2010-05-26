@@ -56,7 +56,7 @@ import au.edu.usq.fascinator.common.JsonConfigHelper;
  * <li>path: backup full path where need to be restored</li>
  * <li>active: to specify if the backup path is active</li>
  * <li>ignoreFilter: to specify directory/files to be ignored</li>
- * <li>include-portal-view: to backup the current portal view</li>
+ * <li>include-portal-query: to backup the current portal view</li>
  * <li>storage:
  * <ul>
  * <li>type: storage type in which the backup directory rely on</li>

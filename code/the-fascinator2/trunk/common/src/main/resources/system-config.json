@@ -1,5 +1,5 @@
 {
-    "version": "0.6.1",
+    "version": "0.6.2",
     "configured": false,
     "urlBase" : "http://localhost:9997/portal/",
     "email" : "fascinator@usq.edu.au",
@@ -82,7 +82,7 @@
         }
     },
     "portal": {
-        "home": "src/main/config/portal",
+        "home": "${portal.home}",
         "contentDir": "${fascinator.home}/content",
         "defaultView": "default",
         "skins": {

@@ -21,7 +21,6 @@ package au.edu.usq.fascinator;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileFilter;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -30,12 +29,14 @@ import java.io.OutputStream;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.text.StrSubstitutor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -63,7 +64,7 @@ import au.edu.usq.fascinator.common.storage.StorageUtils;
  * <li>path: backup destination full path</li>
  * <li>active: to specify if the backup path is active</li>
  * <li>ignoreFilter: to specify directory/files to be ignored</li>
- * <li>include-portal-view: to backup the current portal view</li>
+ * <li>include-portal-query: to backup the current portal view</li>
  * <li>storage:
  * <ul>
  * <li>type: storage type to backup to</li>
@@ -262,7 +263,7 @@ public class BackupClient {
         DateFormat df = new SimpleDateFormat(DATETIME_FORMAT);
         String now = df.format(new Date());
         long start = System.currentTimeMillis();
-        log.info("Started at " + now);
+        log.info("Backup Started at " + now);
 
         Indexer indexer;
         try {
@@ -310,7 +311,7 @@ public class BackupClient {
             }
         } while (startRow < numFound);
 
-        log.info("Completed in "
+        log.info("Backup Completed in "
                 + ((System.currentTimeMillis() - start) / 1000.0) + " seconds");
     }
 
@@ -318,6 +319,7 @@ public class BackupClient {
      * Start backup files from from the result returned by solr
      * 
      * @param js JSON Configuration
+     * @throws IOException
      * @throws IOException If backup source/destination directory not exist
      */
     public void startBackup(JsonConfigHelper js) throws IOException {
@@ -335,12 +337,10 @@ public class BackupClient {
                 filterString = DEFAULT_IGNORE_FILTER;
             }
 
-            IgnoreFilter ignoreFilter = new IgnoreFilter(filterString
-                    .split("\\|"));
             boolean active = Boolean.parseBoolean(backupProps.get("active")
                     .toString());
-            boolean includePortal = Boolean.parseBoolean(backupProps
-                    .get("include-portal-view"));
+            boolean includeQuery = Boolean.parseBoolean(backupProps
+                    .get("include-portal-query"));
 
             String destinationStorageType = String.valueOf(backupProps
                     .get("storage/type"));
@@ -358,12 +358,14 @@ public class BackupClient {
                 // TODO Auto-generated catch block
                 e1.printStackTrace();
             }
+
             // Only using active backup path
             if (active && destinationStorage != null) {
                 try {
-
+                    log.info("Backup destionation folder: '{}'", backupPath);
+                    Set<String> jsonConfigOidList = new HashSet<String>();
+                    Set<String> ruleOidList = new HashSet<String>();
                     // List all the files to be backup-ed
-                    // TODO: should the rules be backuped as well?
                     log.debug(js.toString());
                     for (Object oid : js.getList("response/docs/id")) {
                         String objectId = oid.toString();
@@ -390,6 +392,42 @@ public class BackupClient {
                                         payload.open());
                             }
                         }
+
+                        // Backup config file
+                        String jsonConfigOid = digitalObject.getMetadata()
+                                .getProperty("jsonConfigOid");
+                        if (!jsonConfigOidList.contains(jsonConfigOid)) {
+
+                            DigitalObject jsonConfigObject = realStorage
+                                    .getObject(jsonConfigOid);
+                            Payload jsonConfigPayload = jsonConfigObject
+                                    .getPayload(jsonConfigObject.getSourceId());
+
+                            DigitalObject newJsonConfigObject = StorageUtils
+                                    .getDigitalObject(destinationStorage,
+                                            jsonConfigOid);
+                            StorageUtils.createOrUpdatePayload(
+                                    newJsonConfigObject, jsonConfigPayload
+                                            .getId(), jsonConfigPayload.open());
+                            jsonConfigOidList.add(jsonConfigOid);
+                        }
+
+                        // Backup rule files
+                        String ruleFileOid = digitalObject.getMetadata()
+                                .getProperty("rulesOid");
+                        if (!ruleOidList.contains(ruleFileOid)) {
+                            DigitalObject ruleObject = realStorage
+                                    .getObject(ruleFileOid);
+                            Payload rulePayload = ruleObject
+                                    .getPayload(ruleObject.getSourceId());
+
+                            DigitalObject newRuleObject = StorageUtils
+                                    .getDigitalObject(destinationStorage,
+                                            ruleFileOid);
+                            StorageUtils.createOrUpdatePayload(newRuleObject,
+                                    rulePayload.getId(), rulePayload.open());
+                            ruleOidList.add(ruleFileOid);
+                        }
                     }
 
                 } catch (PluginException e) {
@@ -397,90 +435,63 @@ public class BackupClient {
                     e.printStackTrace();
                 }
 
-                // backup all the portal
-                if (backupAll == true && includePortal) {
-                    File portalFolder;
-                    portalDir = new File(systemConfig.get("fascinator-home")
-                            + "/portal/" + systemConfig.get("portal/home"));
-                    portalFolder = new File(backupPath.toString()
-                            + File.separator + email + File.separator
-                            + "config");
-                    portalFolder.getParentFile().mkdirs();
-                    includePortalDir(portalDir, portalFolder, ignoreFilter);
+                // backup all the portal if in "default" portal
+                if (portalDir.getName().equals("default")) {
+                    backupAll = true;
                 }
 
-                // backup only current portal
-                if (includePortal && backupAll == false) {
-                    File portalFolder;
-                    if (portalDir == null) {
-                        portalDir = new File(systemConfig
-                                .get("fascinator-home")
-                                + "/portal/" + systemConfig.get("portal/home"));
-                        portalFolder = new File(backupPath.toString()
-                                + File.separator + email + File.separator
-                                + "config");
-                    } else {
-                        portalFolder = new File(backupPath.toString()
-                                + File.separator + email + File.separator
-                                + "config" + File.separator
-                                + portalDir.getName());
+                if (includeQuery) {
+                    String portalPath = systemConfig.get("portal/home",
+                            "/opt/the-fascinator/config/portal");
+                    portalPath = FilenameUtils.separatorsToSystem(portalPath);
+                    File localPortalDir = new File(portalPath);
+                    if (!localPortalDir.exists()) {
+                        portalPath = StrSubstitutor
+                                .replaceSystemProperties(FilenameUtils
+                                        .separatorsToSystem("${fascinator.home}/portal/src/main/config/portal"));
                     }
-                    portalFolder.getParentFile().mkdirs();
-                    includePortalDir(portalDir, portalFolder, ignoreFilter);
+
+                    if (backupAll == true) {
+                        for (File file : localPortalDir.listFiles()) {
+                            File portalJsonFile = new File(file
+                                    .getAbsolutePath(), "portal.json");
+                            if (portalJsonFile.exists()) {
+                                File destinationFile = new File(FilenameUtils
+                                        .separatorsToSystem(backupPath
+                                                .toString()
+                                                + File.separator
+                                                + email
+                                                + "/config/portal/"
+                                                + file.getName()
+                                                + "/portal.json"));
+                                copyFile(portalJsonFile, destinationFile);
+                            }
+                        }
+                    } else {
+                        // Just copy portal.json of current view
+                        File sourceFile = new File(portalPath, portalDir
+                                .getName()
+                                + "/portal.json");
+                        File destinationFile = new File(FilenameUtils
+                                .separatorsToSystem(backupPath.toString()
+                                        + File.separator + email
+                                        + "/config/portal/"
+                                        + portalDir.getName() + "/portal.json"));
+                        copyFile(sourceFile, destinationFile);
+                    }
+
                 }
+
             }
         }
     }
 
-    /**
-     * Copy portal config directory
-     * 
-     * @param portalSrc Portal config source directory
-     * @param portalDest Portal config destination directory
-     * @param ignoreFilter to filter out .svn directory
-     * @throws IOException If portal source/destination directory not exist
-     */
-    private void includePortalDir(File portalSrc, File portalDest,
-            IgnoreFilter ignoreFilter) throws IOException {
-        if (portalSrc.isDirectory()) {
-            if (!portalDest.exists()) {
-                portalDest.mkdir();
-            }
-            for (File file : portalSrc.listFiles(ignoreFilter)) {
-                includePortalDir(new File(portalSrc, file.getName()), new File(
-                        portalDest, file.getName()), ignoreFilter);
-            }
-        } else {
-            InputStream in = new FileInputStream(portalSrc);
-            OutputStream out = new FileOutputStream(portalDest);
-            IOUtils.copy(in, out);
-            in.close();
-            out.close();
-        }
-    }
-
-    /**
-     * File filter used to ignore specified files
-     */
-    private class IgnoreFilter implements FileFilter {
-
-        /** wildcard patterns of files to ignore */
-        private String[] patterns;
-
-        /** Ignore Filter Constructor */
-        public IgnoreFilter(String[] patterns) {
-            this.patterns = patterns;
-        }
-
-        /** Accept file path to be processed */
-        public boolean accept(File path) {
-            for (String pattern : patterns) {
-                if (FilenameUtils.wildcardMatch(path.getName(), pattern)) {
-                    return false;
-                }
-            }
-            return true;
-        }
+    private void copyFile(File sourceFile, File destinationFile)
+            throws IOException {
+        destinationFile.getParentFile().mkdirs();
+        InputStream in = new FileInputStream(sourceFile);
+        OutputStream out = new FileOutputStream(destinationFile);
+        IOUtils.copy(in, out);
     }
 
     /**

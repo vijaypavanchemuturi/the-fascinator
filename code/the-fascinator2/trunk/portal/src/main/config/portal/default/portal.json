@@ -10,10 +10,10 @@
     "backup" : {
       "paths" : {
         "_media_external" : {
+          "include-portal-query" : "false",
           "path" : "/media/external",
           "active" : "false",
           "ignoreFilter" : ".svn|.ice|.*|~*",
-          "include-portal-view" : "false",
           "storage" : {
             "file-system" : {
               "home" : "/media/external",
@@ -23,10 +23,10 @@
           }
         },
         "_.fascinator_backup" : {
+          "include-portal-query" : "true",
           "path" : "${user.home}/.fascinator/backup",
           "active" : "true",
           "ignoreFilter" : ".svn|.ice|.*|~*",
-          "include-portal-view" : "true",
           "storage" : {
             "file-system" : {
               "home" : "${user.home}/.fascinator/backup",
