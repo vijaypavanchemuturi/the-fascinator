@@ -18,6 +18,7 @@ for /f "tokens=1,2 delims=:" %%i in ("%http_proxy%") do (
 )
 
 REM set environment
-set FASCINATOR_HOME=%PROGRAM_DIR%\home
+set FASCINATOR_HOME=%PROGRAM_DIR%home
 set SOLR_HOME=%FASCINATOR_HOME%\solr
+set CLASSPATH=plugins/*;lib/*
 set JAVA_OPTS=-XX:MaxPermSize=128m -Xmx512m -Dhttp.proxyHost=%PROXY_HOST% -Dhttp.proxyPort=%PROXY_PORT% -Dhttp.nonProxyHosts=localhost -Dfascinator.home="%FASCINATOR_HOME%" -Dsolr.solr.home="%SOLR_HOME%"
