@@ -143,15 +143,15 @@ class JsonReader(object):
                     if ch in 'brnft':
                         ch = self.escapes[ch]
                     elif ch == "u":
-                ch4096 = self._next()
-            ch256  = self._next()
-            ch16   = self._next()
-            ch1    = self._next()
-            n = 4096 * self._hexDigitToInt(ch4096)
-            n += 256 * self._hexDigitToInt(ch256)
-            n += 16  * self._hexDigitToInt(ch16)
-            n += self._hexDigitToInt(ch1)
-            ch = unichr(n)
+                        ch4096 = self._next()
+                        ch256  = self._next()
+                        ch16   = self._next()
+                        ch1    = self._next()
+                        n = 4096 * self._hexDigitToInt(ch4096)
+                        n += 256 * self._hexDigitToInt(ch256)
+                        n += 16  * self._hexDigitToInt(ch16)
+                        n += self._hexDigitToInt(ch1)
+                        ch = unichr(n)
                     elif ch not in '"/\\':
                         raise ReadException, "Not a valid escaped JSON character: '%s' in %s" % (ch, self._generator.all())
                 result = result + ch
@@ -166,8 +166,8 @@ class JsonReader(object):
         except KeyError:
             try:
                 result = int(ch)
-        except ValueError:
-             raise ReadException, "The character %s is not a hex digit." % ch
+            except ValueError:
+                raise ReadException, "The character %s is not a hex digit." % ch
         return result
 
     def _readComment(self):
@@ -239,7 +239,7 @@ class JsonReader(object):
                 ch = self._next()
                 if ch != ",":
                     raise ReadException, "Not a valid JSON object: '%s' due to: '%s'" % (self._generator.all(), ch)
-    assert self._next() == "}"
+        assert self._next() == "}"
         return result
 
     def _eatWhitespace(self):
