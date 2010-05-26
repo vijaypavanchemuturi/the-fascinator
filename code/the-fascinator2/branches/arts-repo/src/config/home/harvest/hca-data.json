@@ -1,0 +1,49 @@
+{
+    "harvester": {
+        "type": "hca-data",
+        "hca-data": {
+            "baseDir": "${hca.data.dir}",
+            "ignoreFilter": ".*|~*|Thumbs.db",
+            "recursive": true
+        }
+    },
+    
+    "transformer": {
+        "extractor": ["aperture"],
+        "render": ["ice2"],
+        "aperture": {
+            "outputPath": "${java.io.tmpdir}/${user.name}/ice2-output"
+        },
+        "ice2": {
+            "url": "http://ice-service.usq.edu.au/api/convert/",
+            "outputPath": "${java.io.tmpdir}/${user.name}/ice2-output",
+            "excludeRenditionExt": "txt,mp3,m4a,mov,mp4,wav,wma,wmv,mpg,flv",
+            "resize": {
+                "thumbnail": {
+                    "option": "fixedWidth",
+                    "ratio": "-90",
+                    "fixedWidth": "160",
+                    "enlarge": "false"
+                }, 
+                "preview": {
+                    "option": "fixedWidth",
+                    "ratio": "-90",
+                    "fixedWidth": "600",
+                    "enlarge": "false"
+                }
+            }
+        }
+    },
+    
+    "indexer": {
+        "script": {
+            "type": "python",
+            "rules": "hca-data.py"
+        },
+        "params": {
+            "repository.name": "HCA Data",
+            "repository.type": "File System",
+            "base.file.path": "${hca.data.dir}"
+        }
+    }
+}
