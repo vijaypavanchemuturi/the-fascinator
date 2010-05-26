@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?mso-infoPathSolution solutionVersion="1.0.0.98" productVersion="12.0.0" PIVersion="1.0.0.0" href="http://adfi.usq.edu.au/hca_era/USQ_HCA_form.xsn" name="urn:schemas-microsoft-com:office:infopath:USQ-HCA-form:http---usq-edu-au-research-" language="en-au" ?>
+<?mso-application progid="InfoPath.Document" versionProgid="InfoPath.Document.2"?>
+<usq:hcaOutput xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:seer="http://seer.arc.gov.au/2009/seer/1" xmlns:usq="http://usq.edu.au/research/" xmlns:my="http://schemas.microsoft.com/office/infopath/2003/myXSD/2009-05-07T06:29:28" xmlns:xd="http://schemas.microsoft.com/office/infopath/2003">
+    <usq:title nativeScript="HCA Test Data" language="1201" romanScript="na" translated="na"></usq:title>
+    <usq:electronicLocations>
+        <usq:electronicLocation usq:repositoryLink="sample.odt" usq:repositoryLinkDescription="Sample document" usq:nonRepositoryJustification="na" usq:linkType="2"></usq:electronicLocation>
+        <usq:electronicLocation usq:repositoryLink="sample.txt" usq:repositoryLinkDescription="Sample text file" usq:nonRepositoryJustification="na" usq:linkType="2"></usq:electronicLocation>
+        <usq:electronicLocation usq:repositoryLink="sample.png" usq:repositoryLinkDescription="Sample image" usq:nonRepositoryJustification="na" usq:linkType="2"></usq:electronicLocation>
+    </usq:electronicLocations>
+    <usq:otherLocation xsi:nil="true"></usq:otherLocation>
+    <usq:placeOfPublication>Toowoomba</usq:placeOfPublication>
+    <usq:extent xsi:nil="true"></usq:extent>
+    <usq:availableForPeerReview>false</usq:availableForPeerReview>
+    <usq:yearAvailable xsi:nil="true"></usq:yearAvailable>
+    <usq:yearPresented xsi:nil="true"></usq:yearPresented>
+    <usq:yearPublished>2010</usq:yearPublished>
+    <usq:translation usq:isTranslated="false" usq:referenceToOriginal="na"></usq:translation>
+    <usq:sensitivity usq:isSensitive="false" usq:typeOfSensitivity="0" usq:sensitiveNote="na"></usq:sensitivity>
+    <usq:creators>
+        <creator staffID="" firstName="Oliver" lastName="Lucido" division="adfi"></creator>
+    </usq:creators>
+    <seer:disciplineOutput>
+        <seer:discipline forGroupCode="1905"></seer:discipline>
+    </seer:disciplineOutput>
+    <usq:seoCodes>
+        <usq:seoCode></usq:seoCode>
+    </usq:seoCodes>
+    <usq:category usq:category="V2"></usq:category>
+    <usq:eraCategory>
+        <curatedOrExhibitionWork workType="2"></curatedOrExhibitionWork>
+    </usq:eraCategory>
+    <usq:availableForPeerReview>false</usq:availableForPeerReview>
+    <usq:researchThemes>
+        <seer:researchTheme code=""></seer:researchTheme>
+    </usq:researchThemes>
+    <usq:research_statement>This is for sample purposes only.</usq:research_statement>
+</usq:hcaOutput>
