@@ -57,9 +57,9 @@ class SettingsActions:
             #renditions = formData.getValues("backup-rendition")
             #if renditions is None:
             #    renditions = []
-            views = formData.getValues("backup-view")
-            if views is None:
-                views = []
+            queries = formData.getValues("backup-queries")
+            if queries is None:
+                queries = []
             paths = HashMap()
             for pathId in pathIds:
                 if deletes is None or pathId not in deletes:
@@ -67,13 +67,13 @@ class SettingsActions:
                     pathName = path.replace("/", "_").replace("${user.home}", "")
                     active = str(pathId in actives).lower()
                     #rendition = str(pathId in renditions).lower()
-                    view = str(pathId in views).lower()
+                    query = str(pathId in queries).lower()
                     ignoreFilter = formData.get("%s-ignore" % pathId)
                     
                     json = HashMap()
                     json.put("path", path)
                     json.put("active", active)
-                    json.put("include-portal-view", view)
+                    json.put("include-portal-query", query)
                     json.put("ignoreFilter", ignoreFilter)
                     
                     storage = HashMap()

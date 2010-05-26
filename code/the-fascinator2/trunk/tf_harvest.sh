@@ -20,7 +20,7 @@ function usage {
     echo "    $SAMPLE_DIR"
     echo "Available sample files:"
     for SAMPLE_FILE in `ls $SAMPLE_DIR/*.json.sample`; do
-        TMP=${SAMPLE_FILE##*/resources/}
+        TMP=${SAMPLE_FILE##*/resources/harvest/}
         echo -n "    "
         echo $TMP | cut -d . -f 1-2
     done

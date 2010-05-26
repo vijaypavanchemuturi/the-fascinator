@@ -36,7 +36,7 @@
           "path" : "${user.home}/.fascinator/backup",
           "active" : "true",
           "ignoreFilter" : ".svn|.ice|.*|~*",
-          "include-portal-view" : "true",
+          "include-portal-query" : "true",
           "storage" : {
             "file-system" : {
               "home" : "${user.home}/.fascinator/backup",
@@ -54,7 +54,7 @@
 	          "path" : "${user.home}/.fascinator/backup",
 	          "active" : "true",
 	          "ignoreFilter" : ".svn|.ice|.*|~*",
-	          "include-portal-view" : "true",
+	          "include-portal-query" : "true",
 	          "storage" : {
 	            "file-system" : {
 	              "home" : "${user.home}/.fascinator/backup",

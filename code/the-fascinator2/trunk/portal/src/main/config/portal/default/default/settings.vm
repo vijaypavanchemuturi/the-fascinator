@@ -29,7 +29,7 @@
     </td>
   </tr>
 #end
-#macro(backupRow $id $active $path $ignoreFilter $includeViews $extraClass)
+#macro(backupRow $id $active $path $ignoreFilter $includeQueries $extraClass)
   <tr id="$id" class="backup-row $extraClass">
     <td>
       <input class="backup-active" name="backup-active" type="checkbox" value="$id" #if($active=="true")checked="checked"#end />
@@ -37,7 +37,7 @@
     <td>#editableText($id "path" $path)</td>
     <td>#editableText($id "ignore" $ignoreFilter)</td>
     <td>
-      <input class="backup-views" name="backup-view" type="checkbox" value="$id" #if($includeViews=="true")checked="checked"#end />
+      <input class="backup-queries" name="backup-queries" type="checkbox" value="$id" #if($includeQueries=="true")checked="checked"#end />
     </td>
     <td>
       <input class="backup-delete" name="backup-delete" type="checkbox" value="$id" />
@@ -185,7 +185,7 @@
               <th width="5%">Active</th>
               <th width="50%">Path</th>
               <th width="30%">Ignore filter</th>
-              <th>Views</th>
+              <th>Queries</th>
               <th>Delete</th>
             </tr>
             #backupRow("backup-blank" "true" '${user.home}/backup' ".svn|.ice|.*|~*" "true" "hidden")
@@ -198,8 +198,8 @@
             #set($fullPath = $options.getPlainText("path", $path))
             #set($active = $options.get("active"))
             #set($ignoreFilter = $options.get("ignoreFilter"))
-            #set($includeViews = $options.get("include-portal-view"))
-            #backupRow($id $active $fullPath $ignoreFilter $includeViews "")
+            #set($includeQueries = $options.get("include-portal-query"))
+            #backupRow($id $active $fullPath $ignoreFilter $includeQueries "")
           #end
           </tbody>
         </table>
