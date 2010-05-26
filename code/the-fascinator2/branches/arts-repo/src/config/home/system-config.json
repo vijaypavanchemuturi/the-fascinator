@@ -1,0 +1,71 @@
+{
+    "version": "0.6.0",
+    "configured": false,
+    "urlBase" : "http://localhost:8080/portal/",
+    "email" : "fascinator@usq.edu.au",
+    "accesscontrol": {
+        "type": "simple",
+        "simple": {
+            "path": "${fascinator.home}/security/access.properties"
+        }
+    },
+    "authentication": {
+        "type": "internal",
+        "internal": {
+            "path": "${fascinator.home}/security/users.properties"
+        }
+    },
+    "roles": {
+        "type": "internal",
+        "internal": {
+            "path": "${fascinator.home}/security/roles.properties"
+        }
+    },
+    "storage": {
+        "type": "file-system",
+        "file-system": {
+            "home": "${fascinator.home}/storage"
+        },
+        "fedora3": {
+            "url": "http://localhost:8080/fedora",
+            "username": "fedoraAdmin",
+            "password": "fedoraAdmin"
+        },
+        "couchdb": {
+            "url": "http://localhost:8080/couch"
+        },
+        "ignoreFilter": ".svn|.ice|.*|~*"
+    },
+    "messaging": {
+        "url": "tcp://localhost:61616",
+        "stompUrl": "stomp://localhost:61613",
+        "home": "${fascinator.home}/activemq-data",
+        "render-thread": 3
+    },
+    "indexer": {
+        "type": "solr",
+        "properties": "SOF-META",
+        "solr": {
+            "uri": "http://localhost:8080/solr/fascinator",
+            "autocommit": false,
+            "embedded": false
+        },
+        "anotar": {
+            "uri": "http://localhost:8080/solr/anotar",
+            "autocommit": true,
+            "embedded": false
+        }
+    },
+    "portal": {
+        "home": "${fascinator.home}/portal",
+        "contentDir": "${fascinator.home}/content",
+        "defaultView": "default",
+        "skins": {
+            "default": "default",
+            "order": ["arts", "usq"]
+        },
+        "layout": "layout",
+        "nativeJython": true,
+        "uploader": "${fascinator.home}/workflow-config.json"
+    }
+}

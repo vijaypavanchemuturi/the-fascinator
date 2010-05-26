@@ -1,18 +1,34 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <groupId>au.edu.usq.fascinator</groupId>
+    <groupId>au.edu.usq.fascinator.arts</groupId>
     <artifactId>fascinator-arts-repository</artifactId>
     <version>0.1.0-SNAPSHOT</version>
-    <packaging>jar</packaging>
+    <packaging>pom</packaging>
     <name>Faculty of Arts Repository</name>
+    <properties>
+        <staging.dir>${project.build.directory}/${project.artifactId}</staging.dir>
+        <jetty.version>6.1.24</jetty.version>
+        <fascinator.version>0.6.0-SNAPSHOT</fascinator.version>
+    </properties>
+    <modules>
+        <module>harvester</module>
+    </modules>
     <dependencies>
         <!-- Fascinator Portal Web App -->
         <dependency>
             <groupId>au.edu.usq.fascinator</groupId>
             <artifactId>fascinator-portal</artifactId>
             <type>war</type>
-            <version>0.6.0-SNAPSHOT</version>
+            <classifier>skinny</classifier>
+            <version>${fascinator.version}</version>
+        </dependency>
+        <!-- Fascinator Portal Dependencies -->
+        <dependency>
+            <groupId>au.edu.usq.fascinator</groupId>
+            <artifactId>fascinator-portal</artifactId>
+            <type>warpath</type>
+            <version>${fascinator.version}</version>
         </dependency>
         <!-- Solr Web App -->
         <dependency>
@@ -25,76 +41,99 @@
         <dependency>
             <groupId>org.mortbay.jetty</groupId>
             <artifactId>jetty</artifactId>
-            <version>6.1.24</version>
+            <version>${jetty.version}</version>
         </dependency>
         <dependency>
             <groupId>org.mortbay.jetty</groupId>
             <artifactId>jsp-2.1-jetty</artifactId>
-            <version>6.1.24</version>
+            <version>${jetty.version}</version>
         </dependency>
         <dependency>
             <groupId>org.mortbay.jetty</groupId>
             <artifactId>jetty-spring</artifactId>
-            <version>6.1.24</version>
+            <version>${jetty.version}</version>
         </dependency>
         <dependency>
             <groupId>org.mortbay.jetty</groupId>
             <artifactId>start</artifactId>
-            <version>6.1.24</version>
+            <version>${jetty.version}</version>
+        </dependency>
+        <!-- Arts Repository Plugins -->
+        <dependency>
+            <groupId>au.edu.usq.fascinator.plugins.arts</groupId>
+            <artifactId>plugin-harvester-hca-data</artifactId>
+            <version>0.1.0-SNAPSHOT</version>
         </dependency>
         <!-- Fascinator Plugins -->
         <dependency>
             <groupId>au.edu.usq.fascinator.plugins</groupId>
             <artifactId>plugin-access-simple</artifactId>
-            <version>0.6.0-SNAPSHOT</version>
+            <version>${fascinator.version}</version>
         </dependency>
         <dependency>
             <groupId>au.edu.usq.fascinator.plugins</groupId>
             <artifactId>plugin-authentication-internal</artifactId>
-            <version>0.6.0-SNAPSHOT</version>
+            <version>${fascinator.version}</version>
         </dependency>
         <dependency>
             <groupId>au.edu.usq.fascinator.plugins</groupId>
             <artifactId>plugin-harvester-filesystem</artifactId>
-            <version>0.6.0-SNAPSHOT</version>
+            <version>${fascinator.version}</version>
         </dependency>
         <dependency>
             <groupId>au.edu.usq.fascinator.plugins</groupId>
             <artifactId>plugin-indexer-solr</artifactId>
-            <version>0.6.0-SNAPSHOT</version>
+            <version>${fascinator.version}</version>
         </dependency>
         <dependency>
             <groupId>au.edu.usq.fascinator.plugins</groupId>
             <artifactId>plugin-roles-internal</artifactId>
-            <version>0.6.0-SNAPSHOT</version>
+            <version>${fascinator.version}</version>
         </dependency>
         <dependency>
             <groupId>au.edu.usq.fascinator.plugins</groupId>
             <artifactId>plugin-storage-filesystem</artifactId>
-            <version>0.6.0-SNAPSHOT</version>
+            <version>${fascinator.version}</version>
         </dependency>
         <dependency>
             <groupId>au.edu.usq.fascinator.plugins</groupId>
             <artifactId>plugin-transformer-aperture</artifactId>
-            <version>0.6.0-SNAPSHOT</version>
+            <version>${fascinator.version}</version>
         </dependency>
         <dependency>
             <groupId>au.edu.usq.fascinator.plugins</groupId>
             <artifactId>plugin-transformer-ice2</artifactId>
-            <version>0.6.0-SNAPSHOT</version>
+            <version>${fascinator.version}</version>
+        </dependency>
+        <!-- Unit testing -->
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.8.1</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
     <build>
-        <finalName>${project.artifactId}</finalName>
-        <resources>
-            <resource>
-                <directory>src/config</directory>
-            </resource>
-        </resources>
         <plugins>
+            <!-- Support retrieving dependencies from WAR artifacts -->
+            <plugin>
+                <groupId>org.appfuse</groupId>
+                <artifactId>maven-warpath-plugin</artifactId>
+                <version>2.0.2</version>
+                <extensions>true</extensions>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>add-classes</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <!-- Copy dependencies and configuration resources -->
             <plugin>
                 <artifactId>maven-dependency-plugin</artifactId>
                 <executions>
+                    <!-- Fascinator and Solr web applications -->
                     <execution>
                         <id>copy-webapps</id>
                         <phase>generate-resources</phase>
@@ -108,6 +147,7 @@
                                     <groupId>au.edu.usq.fascinator</groupId>
                                     <artifactId>fascinator-portal</artifactId>
                                     <type>war</type>
+                                    <classifier>skinny</classifier>
                                     <destFileName>portal.war</destFileName>
                                 </artifactItem>
                                 <artifactItem>
@@ -119,6 +159,7 @@
                             </artifactItems>
                         </configuration>
                     </execution>
+                    <!-- Unpack default Fascinator and Solr configuration -->
                     <execution>
                         <id>unpack-config</id>
                         <phase>generate-resources</phase>
@@ -127,12 +168,13 @@
                         </goals>
                         <configuration>
                             <includes>portal/**,solr/**</includes>
-                            <outputDirectory>${staging.dir}</outputDirectory>
+                            <outputDirectory>${staging.dir}/home</outputDirectory>
                             <artifactItems>
                                 <artifactItem>
                                     <groupId>au.edu.usq.fascinator</groupId>
                                     <artifactId>fascinator-portal</artifactId>
                                     <type>war</type>
+                                    <classifier>skinny</classifier>
                                 </artifactItem>
                                 <artifactItem>
                                     <groupId>au.edu.usq.fascinator.plugins</groupId>
@@ -141,6 +183,7 @@
                             </artifactItems>
                         </configuration>
                     </execution>
+                    <!-- Fascinator plugins (without dependencies) -->
                     <execution>
                         <id>copy-plugins</id>
                         <phase>generate-resources</phase>
@@ -153,6 +196,7 @@
                             <excludeTransitive>true</excludeTransitive>
                         </configuration>
                     </execution>
+                    <!-- Plugin dependencies -->
                     <execution>
                         <id>copy-plugin-dependencies</id>
                         <phase>generate-resources</phase>
@@ -160,11 +204,12 @@
                             <goal>copy-dependencies</goal>
                         </goals>
                         <configuration>
-                            <excludeTypes>war</excludeTypes>
+                            <excludeTypes>war,warpath</excludeTypes>
                             <excludeGroupIds>au.edu.usq.fascinator.plugins,org.mortbay.jetty</excludeGroupIds>
                             <outputDirectory>${staging.dir}/lib</outputDirectory>
                         </configuration>
                     </execution>
+                    <!-- Jetty launcher -->
                     <execution>
                         <id>copy-jetty-start</id>
                         <phase>generate-resources</phase>
@@ -182,6 +227,7 @@
                             <stripVersion>true</stripVersion>
                         </configuration>
                     </execution>
+                    <!-- Jetty dependencies -->
                     <execution>
                         <id>copy-jetty-dependencies</id>
                         <phase>generate-resources</phase>
@@ -217,11 +263,34 @@
                     </execution>
                 </executions>
             </plugin>
+            <!-- Compile for Java 1.6 -->
+            <plugin>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>1.6</source>
+                    <target>1.6</target>
+                </configuration>
+            </plugin>
+            <!-- Assemble distribution package -->
+            <plugin>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>package-dist-jar</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                        <configuration>
+                            <descriptors>
+                                <descriptor>src/assembly/dist.xml</descriptor>
+                            </descriptors>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
-    <properties>
-        <staging.dir>${project.build.directory}/${project.artifactId}</staging.dir>
-    </properties>
     <repositories>
         <repository>
             <id>fascinator</id>
