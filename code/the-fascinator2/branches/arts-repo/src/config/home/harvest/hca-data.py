@@ -199,6 +199,22 @@ if pid == metaPid:
     except StorageException, e:
         print "Failed to index aperture data (%s)" % str(e)
     
+    # create our package
+    sourceId = object.getSourceId()
+    if sourceId.endswith(".tfpackage"):
+        rules.add(AddField("owner", "system"))
+        formatList = ["application/x-fascinator-package"]
+        pyUtils.registerNamespace("usq", "http://usq.edu.au/research/");
+        pyUtils.registerNamespace("seer", "http://seer.arc.gov.au/2009/seer/1");
+        try:
+            piXml = object.getPayload("PI.xml")
+            piDoc = pyUtils.getXmlDocument(piXml)
+            titleList = [piDoc.selectSingleNode("//usq:title").attributeValue("nativeScript")]
+        except StorageException, e:
+            manifest = JsonConfigHelper(payload.open())
+            payload.close()
+            titleList = [manifest.get("title")]
+    
     # some defaults if the above failed
     if titleList == []:
        #use object's source id (i.e. most likely a filename)
