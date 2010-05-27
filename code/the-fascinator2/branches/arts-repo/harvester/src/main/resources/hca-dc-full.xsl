@@ -25,12 +25,14 @@
         </dc:extent>
     </xsl:template>
 
-    <xsl:template match="creator">
-        <dc:creator>
-            <xsl:value-of select="@lastName" />
-            <xsl:text>, </xsl:text>
-            <xsl:value-of select="@firstName" />
-        </dc:creator>
+    <xsl:template match="usq:creators">
+        <xsl:for-each select="creator">
+            <dc:creator>
+                <xsl:value-of select="@lastName" />
+                <xsl:text>, </xsl:text>
+                <xsl:value-of select="@firstName" />
+            </dc:creator>
+        </xsl:for-each>
     </xsl:template>
 
     <xsl:template match="usq:seoCode">
