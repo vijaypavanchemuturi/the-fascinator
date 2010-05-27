@@ -1,14 +1,9 @@
 from java.io import ByteArrayInputStream
 from java.lang import String
-import md5, os, time
-from org.dom4j.io import SAXReader
+import time
 
 from au.edu.usq.fascinator.api.storage import StorageException
 from au.edu.usq.fascinator.common import JsonConfigHelper
-from au.edu.usq.fascinator.common.nco import Contact
-from au.edu.usq.fascinator.common.nfo import PaginatedTextDocument
-from au.edu.usq.fascinator.common.nid3 import ID3Audio
-from au.edu.usq.fascinator.common.nie import InformationElement
 from au.edu.usq.fascinator.common.storage import StorageUtils
 from au.edu.usq.fascinator.indexer.rules import AddField, New
 #
@@ -22,9 +17,42 @@ from au.edu.usq.fascinator.indexer.rules import AddField, New
 #    pyUtils    : Utility object for accessing app logic
 #
 
+# Because the workflow messaging system wants access to this data
+#  BEFORE it actual hits the index we are going to cache it into an
+#  object payload too.
+directIndex = JsonConfigHelper()
+
+def storeAndIndex(field, value):
+    if value is not None and value != "":
+        rules.add(AddField(field, value))
+        directIndex.set(field, value)
+
+def indexPath(name, path, includeLastPart=True):
+    parts = path.split("/")
+    length = len(parts)
+    if includeLastPart:
+        length +=1
+    for i in range(1, length):
+        part = "/".join(parts[:i])
+        if part != "":
+            if part.startswith("/"):
+                part = part[1:]
+            storeAndIndex(name, part)
+
 def indexList(name, values):
     for value in values:
-        rules.add(AddField(name, value))
+        storeAndIndex(name, value)
+
+def getNodeValues (doc, xPath):
+    nodes = doc.selectNodes(xPath)
+    valueList = []
+    if nodes:
+        for node in nodes:
+            #remove duplicates:
+            nodeValue = node.getText()
+            if nodeValue not in valueList:
+                valueList.append(node.getText())
+    return valueList
 
 def grantAccess(object, newRole):
     schema = object.getAccessSchema("simple");
@@ -37,6 +65,7 @@ def revokeAccess(object, oldRole):
     schema.setRecordId(oid)
     schema.set("role", oldRole)
     object.removeAccessSchema(schema, "simple")
+    pass
 
 #start with blank solr document
 rules.add(New())
@@ -44,7 +73,7 @@ rules.add(New())
 #common fields
 oid = object.getId()
 pid = payload.getId()
-metaPid = params.getProperty("metaPid", "TF-OBJ-META")
+metaPid = params.getProperty("metaPid", "DC")
 if pid == metaPid:
     itemType = "object"
 else:
@@ -65,16 +94,194 @@ if pid == metaPid:
     rules.add(AddField("repository_name", params["repository.name"]))
     rules.add(AddField("repository_type", params["repository.type"]))
 
-    # Index our metadata finally
     titleList = []
-    creatorList = []
-    contributorList = []
     descriptionList = []
-    formatList = []
+    creatorList = []
     creationDate = []
+    contributorList = []
+    approverList = []
+    formatList = []
+    fulltext = []
+    relationDict = {}
+
+    ### Check if dc.xml returned from ice is exist or not. if not... process the dc-rdf
+    try:
+        dcPayload = object.getPayload("dc.xml")
+        pyUtils.registerNamespace("dc", "http://purl.org/dc/elements/1.1/")
+        dcXml = pyUtils.getXmlDocument(dcPayload)
+        if dcXml is not None:
+            #get Title
+            titleList = getNodeValues(dcXml, "//dc:title")
+            #get abstract/description 
+            descriptionList = getNodeValues(dcXml, "//dc:description")
+            #get creator
+            creatorList = getNodeValues(dcXml, "//dc:creator")
+            #get contributor list
+            contributorList = getNodeValues(dcXml, "//dc:contributor")
+            #get creation date
+            creationDate = getNodeValues(dcXml, "//dc:issued")
+            #ice metadata stored in dc:relation as key::value
+            relationList = getNodeValues(dcXml, "//dc:relation")
+            for relation in relationList:
+                key, value = relation.split("::")
+                value = value.strip()
+                key = key.replace("_5f","") #ICE encoding _ as _5f?
+                if relationDict.has_key(key):
+                    relationDict[key].append(value)
+                else:
+                    relationDict[key] = [value]
+    except StorageException, e:
+        #print "Failed to index ICE dublin core data (%s)" % str(e)
+        pass
+    
+    # Extract from aperture.rdf if exist
+    try:
+        from au.edu.usq.fascinator.common.nco import Contact
+        from au.edu.usq.fascinator.common.nfo import PaginatedTextDocument
+        from au.edu.usq.fascinator.common.nid3 import ID3Audio
+        from au.edu.usq.fascinator.common.nie import InformationElement
+        
+        rdfPayload = object.getPayload("aperture.rdf")
+        rdfModel = pyUtils.getRdfModel(rdfPayload)
+        
+        #Seems like aperture only encode the spaces. Tested against special characters file name
+        #and it's working 
+        safeOid = oid.replace(" ", "%20")
+        #under windows we need to add a slash
+        if not safeOid.startswith("/"):
+            safeOid = "/" + safeOid
+        rdfId = "file:%s" % safeOid
+        
+        #Set write to False so it won't write to the model
+        paginationTextDocument = PaginatedTextDocument(rdfModel, rdfId, False)
+        informationElement = InformationElement(rdfModel, rdfId, False)
+        id3Audio = ID3Audio(rdfModel, rdfId, False)
+        
+        #1. get title only if no title returned by ICE
+        if titleList == []:
+            allTitles = informationElement.getAllTitle();
+            while (allTitles.hasNext()):
+                title = allTitles.next().strip()
+                if title != "":
+                    titleList.append(title)
+            allTitles = id3Audio.getAllTitle()
+            while (allTitles.hasNext()):
+                title = allTitles.next().strip()
+                if title != "":
+                    titleList.append(title)
+        
+        #2. get creator only if no creator returned by ICE
+        if creatorList == []:
+            allCreators = paginationTextDocument.getAllCreator();
+            while (allCreators.hasNext()):
+                thing = allCreators.next()
+                contacts = Contact(rdfModel, thing.getResource(), False)
+                allFullnames = contacts.getAllFullname()
+                while (allFullnames.hasNext()):
+                     creatorList.append(allFullnames.next())
+        
+        #3. getFullText: only aperture has this information
+        if informationElement.hasPlainTextContent():
+            allPlainTextContents = informationElement.getAllPlainTextContent()
+            while(allPlainTextContents.hasNext()):
+                fulltextString = allPlainTextContents.next()
+                fulltext.append(fulltextString)
+                
+                #4. description/abstract will not be returned by aperture, so if no description found
+                # in dc.xml returned by ICE, put first 100 characters
+                if descriptionList == []:
+                    descriptionString = fulltextString
+                    if len(fulltextString)>100:
+                        descriptionString = fulltextString[:100] + "..."
+                    descriptionList.append(descriptionString)
+        
+        if id3Audio.hasAlbumTitle():
+            albumTitle = id3Audio.getAllAlbumTitle().next().strip()
+            descriptionList.append("Album: " + albumTitle)
+        
+        #5. mimeType: only aperture has this information
+        if informationElement.hasMimeType():
+            allMimeTypes = informationElement.getAllMimeType()
+            while(allMimeTypes.hasNext()):
+                formatList.append(allMimeTypes.next())
+    
+        #6. contentCreated
+        if creationDate == []:
+            if informationElement.hasContentCreated():
+                creationDate.append(informationElement.getContentCreated().getTime().toString())
+    except StorageException, e:
+        #print "Failed to index aperture data (%s)" % str(e)
+        pass
+
+    ### Check if ffmpeg.info exists or not
+    try:
+        ffmpegPayload = object.getPayload("ffmpeg.info")
+        ffmpeg = pyUtils.getJsonObject(ffmpegPayload.open())
+        ffmpegPayload.close()
+        if ffmpeg is not None:
+            # Dimensions
+            width = ffmpeg.get("video/width")
+            height = ffmpeg.get("video/height")
+            if width is not None and height is not None:
+                storeAndIndex("dc_size", width + " x " + height)
+
+            # Duration
+            duration = ffmpeg.get("duration")
+            if duration is not None and int(duration) > 0:
+                if int(duration) > 59:
+                    secs = int(duration) % 60
+                    mins = (int(duration) - secs) / 60
+                    storeAndIndex("dc_duration", "%dm %ds" % (mins, secs))
+                else:
+                    storeAndIndex("dc_duration", duration + " second(s)")
+
+            # Format
+            storeAndIndex("dc_media_format", ffmpeg.get("format/label"))
+
+            # Video
+            codec = ffmpeg.get("video/codec/simple")
+            label = ffmpeg.get("video/codec/label")
+            if codec is not None and label is not None:
+                storeAndIndex("video_codec_simple", codec)
+                storeAndIndex("video_codec_label", label)
+                storeAndIndex("meta_video_codec", label + " (" + codec + ")")
+            else:
+                storeAndIndex("video_codec_simple", codec)
+                storeAndIndex("meta_video_codec", codec)
+                storeAndIndex("video_codec_simple", label)
+                storeAndIndex("meta_video_codec", label)
+            storeAndIndex("meta_video_pixel_format", ffmpeg.get("video/pixel_format"))
+
+            # Audio
+            codec = ffmpeg.get("audio/codec/simple")
+            label = ffmpeg.get("audio/codec/label")
+            if codec is not None and label is not None:
+                storeAndIndex("audio_codec_simple", codec)
+                storeAndIndex("audio_codec_label", label)
+                storeAndIndex("meta_audio_codec", label + " (" + codec + ")")
+            else:
+                storeAndIndex("audio_codec_simple", codec)
+                storeAndIndex("meta_audio_codec", codec)
+                storeAndIndex("audio_codec_label", label)
+                storeAndIndex("meta_audio_codec", label)
+            sample_rate = ffmpeg.get("audio/sample_rate")
+            if sample_rate is not None:
+                sample_rate = "%.1f KHz" % (int(sample_rate) / 1000)
+            channels = ffmpeg.get("audio/channels")
+            if channels is not None:
+                channels += " Channel(s)"
+            if sample_rate is not None and channels is not None:
+                storeAndIndex("meta_audio_details", sample_rate + ", " + channels)
+            else:
+                storeAndIndex("meta_audio_details", sample_rate)
+                storeAndIndex("meta_audio_details", channels)
+
+    except StorageException, e:
+        #print "Failed to index FFmpeg metadata (%s)" % str(e)
+        pass
 
     # Workflow data
-    WORKFLOW_ID = "arts"
+    WORKFLOW_ID = "arts-basic"
     wfChanged = False
     customFields = {}
     message_list = None
@@ -115,22 +322,22 @@ if pid == metaPid:
         if formData is not None:
             # Core fields
             title = formData.getList("title")
-            if title:
+            if title and title.get(0) != "":
                 titleList = title
             creator = formData.getList("creator")
-            if creator:
+            if creator and creator.get(0) != "":
                 creatorList = creator
             contributor = formData.getList("contributor")
-            if contributor:
+            if contributor and contributor.get(0) != "":
                 contributorList = contributor
             description = formData.getList("description")
-            if description:
+            if description and description.get(0) != "":
                 descriptionList = description
             format = formData.getList("format")
-            if format:
+            if format and format.get(0) != "":
                 formatList = format
             creation = formData.getList("creationDate")
-            if creation:
+            if creation and creation.get(0) != "":
                 creationDate = creation
             # Non-core fields
             data = formData.getMap("/")
@@ -144,7 +351,7 @@ if pid == metaPid:
         wfMeta = JsonConfigHelper()
         wfMeta.set("id", WORKFLOW_ID)
         wfMeta.set("step", "pending")
-        wfMeta.set("pageTitle", "Arts submission")
+        wfMeta.set("pageTitle", "Uploaded Files - Management")
         stages = jsonConfig.getJsonList("stages")
         for stage in stages:
             if stage.get("name") == "pending":
@@ -155,18 +362,34 @@ if pid == metaPid:
 
     # Has the workflow metadata changed?
     if wfChanged == True:
+        # Update the payload
         jsonString = String(wfMeta.toString())
         inStream = ByteArrayInputStream(jsonString.getBytes("UTF-8"))
         try:
             StorageUtils.createOrUpdatePayload(object, "workflow.metadata", inStream)
         except StorageException, e:
-            print " * packaging-rules.py : Error updating workflow payload"
+            print " * arts-basic.py : Error updating workflow payload"
+
+    # If DiReCt supplied security, remember to overwrite
+    directSecurity = wfMeta.get("directSecurity")
+    if directSecurity is not None and directSecurity != "":
+        directList = directSecurity.split(",")
+        for classId in directList:
+            item_security.add(classId)
 
     rules.add(AddField("workflow_id", wfMeta.get("id")))
     rules.add(AddField("workflow_step", wfMeta.get("step")))
     rules.add(AddField("workflow_step_label", wfMeta.get("label")))
     for group in workflow_security:
         rules.add(AddField("workflow_security", group))
+
+    # some defaults if the above failed
+    if titleList == []:
+       #use object's source id (i.e. most likely a filename)
+       titleList.append(object.getSourceId())
+    if formatList == []:
+        payload = object.getPayload(object.getSourceId())
+        formatList.append(payload.getContentType())
 
     # Index our metadata finally
     indexList("dc_title", titleList)
@@ -178,6 +401,28 @@ if pid == metaPid:
 
     for key in customFields:
         indexList(key, customFields[key])
+
+    for key in relationDict:
+        indexList(key, relationDict[key])
+
+    indexList("full_text", fulltext)
+    baseFilePath = params["base.file.path"]
+    filePath = object.getMetadata().getProperty("file.path")
+    if baseFilePath:
+        #NOTE: need to change again if the json file accept forward slash in window
+        #get the base folder
+        baseDir = baseFilePath.rstrip("/")
+        baseDir = "/%s/" % baseDir[baseDir.rfind("/")+1:]
+        filePath = filePath.replace("\\", "/").replace(baseFilePath, baseDir)
+    indexPath("file_path", filePath, includeLastPart=False)
+
+    # Update the 'direct.index' payload
+    directString = String(directIndex.toString())
+    inStream = ByteArrayInputStream(directString.getBytes("UTF-8"))
+    try:
+        StorageUtils.createOrUpdatePayload(object, "direct.index", inStream)
+    except StorageException, e:
+        print " * arts-basic.py : Error updating direct payload"
 
     # AFTER saving the data, send messages for workflows
     # Any messages for the new step?
@@ -220,11 +465,8 @@ else:
             grantAccess(pyUtils, role)
             rules.add(AddField("security_filter", role))
 # Ownership
-owner = params.getProperty("owner", "system")
+owner = params.getProperty("owner", None)
 if owner is None:
     rules.add(AddField("owner", "system"))
 else:
     rules.add(AddField("owner", owner))
-
-# add owner to workflow security
-AddField("workflow_security", owner)
