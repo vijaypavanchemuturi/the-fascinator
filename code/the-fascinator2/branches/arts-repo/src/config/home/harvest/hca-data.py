@@ -79,9 +79,6 @@ else:
 
 if pid == metaPid:
     #only need to index metadata for the main object
-    rules.add(AddField("repository_name", params["repository.name"]))
-    rules.add(AddField("repository_type", params["repository.type"]))
-    
     titleList = []
     descriptionList = []
     creatorList = []
@@ -91,6 +88,7 @@ if pid == metaPid:
     formatList = []
     fulltext = []
     relationDict = {}
+    subjectList = []
     
     ### Check if dc.xml returned from ice is exist or not. if not... process the dc-rdf
     try:
@@ -118,6 +116,7 @@ if pid == metaPid:
                     relationDict[key].append(value)
                 else:
                     relationDict[key] = [value]
+            subjectList = getNodeValues(dcXml, "//dc:subject")
     except StorageException, e:
         print "Failed to index ICE dublin core data (%s)" % str(e)
     
@@ -199,21 +198,16 @@ if pid == metaPid:
     except StorageException, e:
         print "Failed to index aperture data (%s)" % str(e)
     
+    rules.add(AddField("repository_name", params["repository.name"]))
+    
     # create our package
     sourceId = object.getSourceId()
     if sourceId.endswith(".tfpackage"):
         rules.add(AddField("owner", "system"))
+        rules.add(AddField("repository_type", "Packages"))
         formatList = ["application/x-fascinator-package"]
-        pyUtils.registerNamespace("usq", "http://usq.edu.au/research/");
-        pyUtils.registerNamespace("seer", "http://seer.arc.gov.au/2009/seer/1");
-        try:
-            piXml = object.getPayload("PI.xml")
-            piDoc = pyUtils.getXmlDocument(piXml)
-            titleList = [piDoc.selectSingleNode("//usq:title").attributeValue("nativeScript")]
-        except StorageException, e:
-            manifest = JsonConfigHelper(payload.open())
-            payload.close()
-            titleList = [manifest.get("title")]
+    else:
+        rules.add(AddField("repository_type", params["repository.type"]))
     
     # some defaults if the above failed
     if titleList == []:
@@ -230,6 +224,7 @@ if pid == metaPid:
     indexList("dc_description", descriptionList)
     indexList("dc_format", formatList)
     indexList("dc_date", creationDate)
+    indexList("dc_subject", subjectList)
     
     for key in relationDict:
         indexList(key, relationDict[key])
