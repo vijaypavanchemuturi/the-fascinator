@@ -1,41 +1,48 @@
 #!/bin/bash
+#
+# this script starts a fascinator harvest using maven
+# only usable when installed in development mode
+#
 
-. tf_env.sh
-
-HARVEST_HOME=$FASCINATOR_HOME/code/core
-
-function copy_sample {
-	if [ ! -f $HARVEST_HOME/src/test/resources/$1 ]; then
-		cp $HARVEST_HOME/src/test/resources/$1.sample $HARVEST_HOME/src/test/resources/$1
-	fi
+# suppress console output from pushd/popd
+pushd() {
+    builtin pushd "$@" > /dev/null
+}
+popd() {
+    builtin popd "$@" > /dev/null
 }
 
-function copy_samples {
-	copy_sample json-queue.json
-	copy_sample local-files.json
-	copy_sample local-files.py
-	copy_sample index.json
-	copy_sample backup.json
-	copy_sample usq.json
-	copy_sample usq.py
+# show usage
+function usage {
+    echo "Usage: `basename $0` [path-to-be-restored]"
+    echo "Where [path-to-be-restored] is wbere the directory will be restored."
+    echo "If [path-to-be-restored] is an absolute path"
 }
 
-if [ "$1" == "" ]; then
-	echo "Usage: ./tf_restore.sh <profile>"
-	echo " Profiles: restorebackup-test"
+# get fascinator home dir
+pushd `dirname $0`
+TF_HOME=`pwd`
+popd
+
+# setup environment
+. $TF_HOME/tf_env.sh
+
+# get platform
+OS=`uname`
+if [ "$OS" == "Darwin" ]; then
+    NUM_PROCS=`ps a | grep [j]etty | wc -l`
 else
-	OS=`uname`
-	if [ "$OS" == "Darwin" ]; then
-		TEST=`ps a | grep "java -jar start.jar"`
-	else
-		TEST=`pgrep -l -f "java -jar start.jar"` 
-	fi
-	if [ $? ]; then
-		copy_samples
-		cd $FASCINATOR_HOME/code/core
-		mvn -P $1 exec:java
-		cd $OLDPWD
-	else
-		echo "[ERROR] SOLR does not appear to be running"
-	fi
+    NUM_PROCS=`pgrep -l -f jetty | wc -l`
+fi
+
+# only harvest if TF is running
+if [ $NUM_PROCS == 1 ]; then
+    if [ -f $2 ]; then
+        RESTORE_PATH=$1
+        mvn -f $TF_HOME/core/pom.xml -P dev -Dexec.args=$RESTORE_PATH -Dexec.mainClass="au.edu.usq.fascinator.RestoreClient" exec:java &> $FASCINATOR_HOME/logs/restore.out
+    else
+        usage
+    fi
+else
+    echo "Please start The Fascinator before harvesting."
 fi

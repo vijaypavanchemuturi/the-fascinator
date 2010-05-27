@@ -23,6 +23,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -36,7 +37,6 @@ import java.util.Set;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.text.StrSubstitutor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -93,9 +93,6 @@ public class BackupClient {
 
     /** Default indexer type if none defined **/
     private static final String DEFAULT_INDEXER_TYPE = "solr";
-
-    /** Default ignore filter if none defined **/
-    private static final String DEFAULT_IGNORE_FILTER = ".svn|.ice|.*|~*|*~";
 
     private static Logger log = LoggerFactory.getLogger(BackupClient.class);
 
@@ -196,8 +193,6 @@ public class BackupClient {
     /**
      * Create the md5 of the email for the user space
      * 
-     * TODO: Should be removed, can get the email from system-config.json
-     * 
      * @param email Email address of the user
      */
     public void setEmail(String email) {
@@ -208,8 +203,6 @@ public class BackupClient {
 
     /**
      * Get the email
-     * 
-     * TODO: Should be removed, can get the email from system-config.json
      * 
      * @return email Email address of the user
      */
@@ -320,7 +313,7 @@ public class BackupClient {
      * 
      * @param js JSON Configuration
      * @throws IOException
-     * @throws IOException If backup source/destination directory not exist
+     * @throws IOException
      */
     public void startBackup(JsonConfigHelper js) throws IOException {
         // Backup to active backup Directory
@@ -330,12 +323,6 @@ public class BackupClient {
             JsonConfigHelper backupProps = backupDirList.get(backupName);
 
             String backupPath = String.valueOf(backupProps.get("path"));
-            String filterString = String.valueOf(backupProps
-                    .get("ignoreFilter"));
-
-            if (filterString == null) {
-                filterString = DEFAULT_IGNORE_FILTER;
-            }
 
             boolean active = Boolean.parseBoolean(backupProps.get("active")
                     .toString());
@@ -355,7 +342,7 @@ public class BackupClient {
                 log.debug("backupProps: " + backupProps.toString());
                 destinationStorage.init(storageConfig);
             } catch (PluginException e1) {
-                // TODO Auto-generated catch block
+                log.error("Fail to initalise plugin");
                 e1.printStackTrace();
             }
 
@@ -369,13 +356,16 @@ public class BackupClient {
                     log.debug(js.toString());
                     for (Object oid : js.getList("response/docs/id")) {
                         String objectId = oid.toString();
+
+                        // Retrieve object from source
                         DigitalObject digitalObject = realStorage
                                 .getObject(objectId);
+
                         String originalFilePath = digitalObject.getMetadata()
                                 .getProperty("file.path");
                         log.info("Backing up '{}'", originalFilePath);
                         File originalFile = new File(originalFilePath);
-                        // Backup Original File
+                        // Backup Original File instead of using link
                         DigitalObject newObject = StorageUtils.storeFile(
                                 destinationStorage, originalFile, false);
 
@@ -385,11 +375,16 @@ public class BackupClient {
                         for (String payloadId : payloadIdList) {
                             Payload payload = digitalObject
                                     .getPayload(payloadId);
+
                             // Check if payload already exist
                             if (!newObject.getPayloadIdList().contains(
                                     payloadId)) {
-                                newObject.createStoredPayload(payloadId,
-                                        payload.open());
+                                Payload newPayload = newObject
+                                        .createStoredPayload(payloadId, payload
+                                                .open());
+                                // Set the appropriate Payload Type
+                                newPayload.setType(payload.getType());
+                                newPayload.close();
                             }
                         }
 
@@ -428,10 +423,12 @@ public class BackupClient {
                                     rulePayload.getId(), rulePayload.open());
                             ruleOidList.add(ruleFileOid);
                         }
+                        newObject.close();
                     }
-
+                    createRestoreConfig(backupProps.getMap("storage"),
+                            backupPath, includeQuery);
                 } catch (PluginException e) {
-                    // TODO Auto-generated catch block
+                    log.error("Fail to load plugin");
                     e.printStackTrace();
                 }
 
@@ -439,53 +436,86 @@ public class BackupClient {
                 if (portalDir.getName().equals("default")) {
                     backupAll = true;
                 }
-
                 if (includeQuery) {
-                    String portalPath = systemConfig.get("portal/home",
-                            "/opt/the-fascinator/config/portal");
-                    portalPath = FilenameUtils.separatorsToSystem(portalPath);
-                    File localPortalDir = new File(portalPath);
-                    if (!localPortalDir.exists()) {
-                        portalPath = StrSubstitutor
-                                .replaceSystemProperties(FilenameUtils
-                                        .separatorsToSystem("${fascinator.home}/portal/src/main/config/portal"));
-                    }
-
-                    if (backupAll == true) {
-                        for (File file : localPortalDir.listFiles()) {
-                            File portalJsonFile = new File(file
-                                    .getAbsolutePath(), "portal.json");
-                            if (portalJsonFile.exists()) {
-                                File destinationFile = new File(FilenameUtils
-                                        .separatorsToSystem(backupPath
-                                                .toString()
-                                                + File.separator
-                                                + email
-                                                + "/config/portal/"
-                                                + file.getName()
-                                                + "/portal.json"));
-                                copyFile(portalJsonFile, destinationFile);
-                            }
-                        }
-                    } else {
-                        // Just copy portal.json of current view
-                        File sourceFile = new File(portalPath, portalDir
-                                .getName()
-                                + "/portal.json");
-                        File destinationFile = new File(FilenameUtils
-                                .separatorsToSystem(backupPath.toString()
-                                        + File.separator + email
-                                        + "/config/portal/"
-                                        + portalDir.getName() + "/portal.json"));
-                        copyFile(sourceFile, destinationFile);
-                    }
-
+                    backupQuery(backupPath);
                 }
-
             }
         }
     }
 
+    /**
+     * Create restore configuration file
+     * 
+     * @param storage storage configuration
+     * @param backupPath full backup path
+     * @param includeQuery status to include query
+     * @throws IOException if can't be created
+     */
+    private void createRestoreConfig(Map<String, Object> storage,
+            String backupPath, Boolean includeQuery) throws IOException {
+        // Creating restore config
+        JsonConfigHelper restoreConfig = new JsonConfigHelper();
+        restoreConfig.set("email", config.get("email"));
+        restoreConfig.setMap("storage", storage);
+        restoreConfig.set("include-portal-query", Boolean
+                .toString(includeQuery));
+        FileWriter restoreConfigFile = new FileWriter(backupPath
+                + "/restore.json");
+        restoreConfig.store(restoreConfigFile, true);
+        restoreConfigFile.close();
+    }
+
+    /**
+     * Copy backup query
+     * 
+     * @param backupPath Full backup path
+     * @throws IOException if file not exist
+     */
+    private void backupQuery(String backupPath) throws IOException {
+        String home = config.get("portal/home",
+                "/opt/the-fascinator/config/portal");
+        File localPortalDir = new File(home);
+        if (!localPortalDir.exists()) {
+            home = "portal/src/main/config/portal";
+            localPortalDir = new File("../", home);
+        }
+
+        if (backupAll == true) {
+            log.info("Backing up all the portal view");
+            log.info("file: {}", localPortalDir.listFiles().length);
+            for (File file : localPortalDir.listFiles()) {
+                log.info("file: {}", file.getAbsolutePath());
+                File portalJsonFile = new File(file.getAbsolutePath(),
+                        "portal.json");
+                if (portalJsonFile.exists()) {
+                    File destinationFile = new File(FilenameUtils
+                            .separatorsToSystem(backupPath.toString()
+                                    + File.separator + email
+                                    + "/config/portal/" + file.getName()
+                                    + "/portal.json"));
+                    copyFile(portalJsonFile, destinationFile);
+                }
+            }
+        } else {
+            // Just copy portal.json of current view
+            log.info("Backing up {} view", portalDir.getName());
+            File sourceFile = new File(localPortalDir.getAbsolutePath(),
+                    portalDir.getName() + "/portal.json");
+            File destinationFile = new File(FilenameUtils
+                    .separatorsToSystem(backupPath.toString() + File.separator
+                            + email + "/config/portal/" + portalDir.getName()
+                            + "/portal.json"));
+            copyFile(sourceFile, destinationFile);
+        }
+    }
+
+    /**
+     * Copying file
+     * 
+     * @param sourceFile Source file to be copied
+     * @param destinationFile destination file
+     * @throws IOException
+     */
     private void copyFile(File sourceFile, File destinationFile)
             throws IOException {
         destinationFile.getParentFile().mkdirs();

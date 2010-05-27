@@ -69,7 +69,7 @@ if [ $NUM_PROCS == 1 ]; then
         copy_sample $JSON_FILE
     fi
     if [ -f $JSON_FILE ]; then
-        mvn -f $TF_HOME/core/pom.xml -P dev -DjsonFile=$JSON_FILE exec:java &> $FASCINATOR_HOME/logs/harvest.out
+        mvn -f $TF_HOME/core/pom.xml -P dev -Dexec.args=$JSON_FILE -Dexec.mainClass=au.edu.usq.fascinator.HarvestClient exec:java &> $FASCINATOR_HOME/logs/harvest.out
     else
         echo "ERROR: '$JSON_FILE' not found!"
         usage

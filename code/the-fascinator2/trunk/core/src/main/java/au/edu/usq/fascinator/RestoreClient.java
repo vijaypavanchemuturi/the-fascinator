@@ -29,7 +29,9 @@ import java.io.OutputStream;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.FilenameUtils;
@@ -39,38 +41,22 @@ import org.slf4j.LoggerFactory;
 
 import au.edu.usq.fascinator.api.PluginException;
 import au.edu.usq.fascinator.api.PluginManager;
+import au.edu.usq.fascinator.api.harvester.HarvesterException;
 import au.edu.usq.fascinator.api.indexer.Indexer;
+import au.edu.usq.fascinator.api.indexer.IndexerException;
+import au.edu.usq.fascinator.api.storage.DigitalObject;
+import au.edu.usq.fascinator.api.storage.Payload;
 import au.edu.usq.fascinator.api.storage.Storage;
+import au.edu.usq.fascinator.api.storage.StorageException;
 import au.edu.usq.fascinator.common.JsonConfig;
 import au.edu.usq.fascinator.common.JsonConfigHelper;
+import au.edu.usq.fascinator.common.storage.StorageUtils;
 
 /**
- * To restore backup directories to the current storage and index it
- * <p>
- * Rely on configuration either set in:
- * </p>
- * <ul>
- * <li>system-config.json (Default) "email": "fascinator@usq.edu.au"</li>
- * <li>backup paths list consists of:
- * <ul>
- * <li>path: backup full path where need to be restored</li>
- * <li>active: to specify if the backup path is active</li>
- * <li>ignoreFilter: to specify directory/files to be ignored</li>
- * <li>include-portal-query: to backup the current portal view</li>
- * <li>storage:
- * <ul>
- * <li>type: storage type in which the backup directory rely on</li>
- * <li>and the storage information e.g. filesystem storage require home
- * directory path</li>
- * </ul>
- * </li>
- * </ul>
- * </li>
- * </ul>
+ * To restore backup directories to the current storage from backup directory
+ * and index it
  * 
- * 
- * TODO: In the future when there's option to restore only the original files,
- * conveyerbelt need to be included to run the rendition of the files
+ * NOTE: for now only work for restoring from filesystem storage
  * 
  * @author Linda octalina
  * 
@@ -99,29 +85,29 @@ public class RestoreClient {
     /** Json configuration file **/
     private JsonConfig config;
 
-    /** Json system configuration file **/
-    private JsonConfig systemConfig;
-
     /** Email used to define user space **/
     private String email = null;
 
-    /** Backup location list from where the restore need to be performed **/
-    private Map<String, JsonConfigHelper> backupDirList;
+    /** Restore configuration file **/
+    private File restoreJson;
 
-    /** Real storage Type **/
-    private String realStorageType;
-
-    /** Real Storage **/
-    private Storage realStorage;
-
-    /** configuration file **/
-    private File jsonFile;
+    /** Restore Config Helper file **/
+    private JsonConfigHelper restoreJsonConfig;
 
     /** Indexed storage **/
     private Storage storage;
 
     /** Indexer **/
     private Indexer indexer;
+
+    /** Storage type where the file will be restored are stored **/
+    String sourceStorageType;
+
+    /** Storage where the files will be restored are stored **/
+    Storage sourceStorage;
+
+    /** Path where the files will be restored **/
+    private String pathToBeRestored;
 
     /**
      * Backup Client Constructor
@@ -130,18 +116,20 @@ public class RestoreClient {
      * @throws PluginException if the plugin initialisation fail
      */
     public RestoreClient() throws IOException, PluginException {
-        setDefaultSetting(null);
+        setDefaultSetting();
     }
 
     /**
      * Backup Client Constructor
      * 
-     * @param jsonFile configuration file
-     * @throws IOException if configuration file not found
-     * @throws PluginException if the plugin initialisation fail
+     * @param pathToBeRestored
+     * @throws PluginException
+     * @throws IOException
      */
-    public RestoreClient(File jsonFile) throws IOException, PluginException {
-        setDefaultSetting(jsonFile);
+    public RestoreClient(String pathToBeRestored) throws IOException,
+            PluginException {
+        this.pathToBeRestored = pathToBeRestored;
+        setDefaultSetting();
     }
 
     /**
@@ -151,51 +139,74 @@ public class RestoreClient {
      * @throws IOException if configuration file not found
      * @throws PluginException if the plugin initialisation fail
      */
-    public void setDefaultSetting(File jsonFile) throws IOException,
-            PluginException {
+    public void setDefaultSetting() throws IOException, PluginException {
+        File configFile = JsonConfig.getSystemFile();
+        config = new JsonConfig(configFile);
 
-        if (jsonFile != null) {
-            config = new JsonConfig(jsonFile);
-            this.jsonFile = jsonFile;
-        } else {
-            config = new JsonConfig();
-            this.jsonFile = config.getSystemFile();
+        restoreJson = new File(pathToBeRestored, "restore.json");
+        if (!restoreJson.exists()) {
+            log
+                    .info("Could not locate the restore configuration file, could not perform restore");
+            return;
         }
 
-        systemConfig = new JsonConfig(config.getSystemFile());
+        // If email address in restore configuration is not the same as current
+        // storage email address change the email address of current storage
+        restoreJsonConfig = new JsonConfigHelper(restoreJson);
+        email = restoreJsonConfig.get("email");
+        String systemEmail = config.get("email");
+
+        String configStr = config.toString();
+        JsonConfigHelper newConfig = new JsonConfigHelper();
+        if (email != systemEmail) {
+            newConfig.set("email", email);
+            newConfig.setMap("storage", config.getMap("storage"));
+            configStr = newConfig.toString();
+        }
+
         indexer = PluginManager.getIndexer(config.get("indexer/type",
                 DEFAULT_INDEXER_TYPE));
-        realStorageType = systemConfig
-                .get("storage/type", DEFAULT_STORAGE_TYPE);
+        String realStorageType = config.get("storage/type",
+                DEFAULT_STORAGE_TYPE);
 
-        setEmail(config.get("email"));
-
-        // Set backupDirList to be restored
-        backupDirList = config.getJsonMap("restore/paths");
-    }
-
-    /**
-     * Create the md5 of the email for the user space
-     * 
-     * TODO: Should be removed, can get the email from system-config.json
-     * 
-     * @param email of the user
-     */
-    public void setEmail(String email) {
-        if (email != null && email != "") {
-            this.email = DigestUtils.md5Hex(email);
+        // For now assume the source to be restored is a filesystem storage type
+        if (sourceStorageType == null) {
+            sourceStorageType = DEFAULT_STORAGE_TYPE;
         }
-    }
+        // Set up restored-from storage
+        sourceStorage = PluginManager.getStorage(sourceStorageType);
+        try {
+            sourceStorage.init(restoreJson);
+        } catch (PluginException e1) {
+            e1.printStackTrace();
+        }
 
-    /**
-     * Get the email
-     * 
-     * TODO: Should be removed, can get the email from system-config.json
-     * 
-     * @return email of the user
-     */
-    public String getEmail() {
-        return email;
+        if (sourceStorage.getObjectIdList().size() > 0) {
+            // Set up the current system storage
+            storage = PluginManager.getStorage(realStorageType);
+            if (storage == null) {
+                log.info("Fail to load storage plugin");
+                return;
+            }
+            try {
+                storage.init(configStr);
+                log.info("Loaded {}", storage.getName());
+            } catch (PluginException pe) {
+                log.info("Failed to initialise storage");
+                return;
+            }
+
+            try {
+                indexer.init(configStr);
+            } catch (PluginException e) {
+                log.error("Failed to initialise indexer {}", e.getMessage());
+                return;
+            }
+        } else {
+            log
+                    .info("No objects have been restored. Check if the email in restore.json "
+                            + "(from the restore path) is the same as the email used during backup");
+        }
     }
 
     /**
@@ -204,38 +215,21 @@ public class RestoreClient {
      * @param backupDir Backup Directory list
      */
     public void setBackupDir(Map<String, JsonConfigHelper> backupDirList) {
-        this.backupDirList = backupDirList;
-    }
-
-    /**
-     * Return backup location
-     * 
-     * @return backupDir Backup Directory list
-     */
-    public Map<String, JsonConfigHelper> getBackupDir() {
-        return backupDirList;
+        // this.backupDirList = backupDirList;
     }
 
     /**
      * Run the restore code
      * 
+     * @throws HarvesterException
+     * @throws IOException if the config file not found
+     * 
      */
-    public void run() {
+    public void run() throws HarvesterException, IOException {
         DateFormat df = new SimpleDateFormat(DATETIME_FORMAT);
         String now = df.format(new Date());
         long start = System.currentTimeMillis();
         log.info("Started at " + now);
-
-        try {
-            storage = PluginManager.getStorage(realStorageType);
-            storage.init(config.getSystemFile());
-            log.info("Loaded {} and {}", realStorage.getName(), indexer
-                    .getName());
-            indexer.init(jsonFile);
-        } catch (Exception e) {
-            log.error("Failed to initialise storage {}", e.getMessage());
-            return;
-        }
 
         startRestore();
 
@@ -249,77 +243,116 @@ public class RestoreClient {
      * TODO: fix the restore
      */
     public void startRestore() {
-        for (String backupName : backupDirList.keySet()) {
-            // Map<String, Object> backupProps = backupDirList.get(backupPath);
-            JsonConfigHelper backupProps = backupDirList.get(backupName);
-
-            String backupPath = String.valueOf(backupProps.get("path"));
-            String filterString = String.valueOf(backupProps
-                    .get("ignoreFilter"));
-
-            if (filterString == null) {
-                filterString = DEFAULT_IGNORE_FILTER;
-            }
-
-            IgnoreFilter ignoreFilter = new IgnoreFilter(filterString
-                    .split("\\|"));
-            // boolean includeMeta = Boolean.parseBoolean(backupProps.get(
-            // "include-rendition-meta").toString());
-            boolean active = Boolean.parseBoolean(backupProps.get("active")
-                    .toString());
-            boolean includePortal = Boolean.parseBoolean(backupProps
-                    .get("include-portal-view"));
-
-            String sourceStorageType = String.valueOf(backupProps
-                    .get("storage/type"));
-            if (sourceStorageType == null) {
-                sourceStorageType = DEFAULT_STORAGE_TYPE;
-            }
-
-            String storageConfig = backupProps.toString();
-            Storage sourceStorage = PluginManager.getStorage(sourceStorageType);
+        for (String id : sourceStorage.getObjectIdList()) {
+            Set<String> jsonConfigOidList = new HashSet<String>();
+            Set<String> ruleOidList = new HashSet<String>();
+            log.info("Restoring: {}", id);
             try {
-                sourceStorage.init(storageConfig);
-            } catch (PluginException e1) {
-                e1.printStackTrace();
-            }
-            // Only using active backup path
-            // FIXME update to API
-            /*
-             * if (active && sourceStorage != null) { for (DigitalObject object
-             * : sourceStorage.getObjectList()) { try { // Add the rules first:
-             * Properties sofMetaProps = new Properties(); Payload
-             * sofMetaPayload = object.getPayload("SOF-META");
-             * sofMetaProps.load(sofMetaPayload.getInputStream());
-             * 
-             * String sofMetaRulesOid = sofMetaProps .getProperty("rulesOid");
-             * File rulesFile = new File(sofMetaRulesOid);
-             * 
-             * try { log.debug("Caching rules file " + rulesFile); DigitalObject
-             * rulesObject = new RulesDigitalObject( rulesFile);
-             * realStorage.addObject(rulesObject); } catch (StorageException se)
-             * { log.error( "Failed to cache indexing rules, stopping", se);
-             * return; } storage.addObject(object);
-             * 
-             * } catch (StorageException e) { e.printStackTrace(); } catch
-             * (IOException e) { e.printStackTrace(); } } }
-             */
-            if (includePortal) {
-                File portalDir = new File(systemConfig.get("fascinator-home")
-                        + "/portal/" + systemConfig.get("portal/home"));
-                File restorePortalFolder = new File(backupPath + File.separator
-                        + email, "config");
-                if (restorePortalFolder.exists()) {
-                    try {
-                        includePortalDir(restorePortalFolder, portalDir,
-                                ignoreFilter);
-                    } catch (IOException e) {
-                        // TODO Auto-generated catch block
-                        e.printStackTrace();
-                    }
+                // Retrieving object from source
+                DigitalObject sourceObject = sourceStorage.getObject(id);
+
+                // Creating new object in the destination
+                DigitalObject destinationObject = StorageUtils
+                        .getDigitalObject(storage, id);
+
+                // Creating payloads in the destination
+                for (String payloadId : sourceObject.getPayloadIdList()) {
+                    Payload payload = sourceObject.getPayload(payloadId);
+                    Payload newPayload = StorageUtils.createOrUpdatePayload(
+                            destinationObject, payload.getId(), payload.open());
+                    newPayload.setType(payload.getType());
                 }
+
+                // Restore config file
+                String jsonConfigOid = sourceObject.getMetadata().getProperty(
+                        "jsonConfigOid");
+                if (!jsonConfigOidList.contains(jsonConfigOid)) {
+                    DigitalObject jsonConfigObject = sourceStorage
+                            .getObject(jsonConfigOid);
+                    if (jsonConfigObject != null) {
+                        Payload jsonConfigPayload = jsonConfigObject
+                                .getPayload(jsonConfigObject.getSourceId());
+
+                        // Creating new Object and payload in the destination
+                        DigitalObject newJsonConfigObject = StorageUtils
+                                .getDigitalObject(storage, jsonConfigOid);
+                        StorageUtils.createOrUpdatePayload(newJsonConfigObject,
+                                jsonConfigPayload.getId(), jsonConfigPayload
+                                        .open());
+                    }
+                    jsonConfigOidList.add(jsonConfigOid);
+                }
+
+                // Restore rules file
+                String ruleFileOid = sourceObject.getMetadata().getProperty(
+                        "rulesOid");
+                if (!ruleOidList.contains(ruleFileOid)) {
+                    DigitalObject ruleObject = sourceStorage
+                            .getObject(ruleFileOid);
+                    if (ruleObject != null) {
+                        Payload rulePayload = ruleObject.getPayload(ruleObject
+                                .getSourceId());
+
+                        // Creating new Object and payload in the destination
+                        DigitalObject newRuleObject = StorageUtils
+                                .getDigitalObject(storage, ruleFileOid);
+                        StorageUtils.createOrUpdatePayload(newRuleObject,
+                                rulePayload.getId(), rulePayload.open());
+                    }
+                    ruleOidList.add(jsonConfigOid);
+                }
+
+                // Indexing...
+                try {
+                    log.info("indexing: {}", id);
+                    indexer.index(id);
+                } catch (IndexerException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
+
+                destinationObject.close();
+            } catch (StorageException e) {
+                log.info("Object {} not found", id);
+                e.printStackTrace();
             }
         }
+
+        Boolean includeQuery = Boolean.parseBoolean(restoreJsonConfig
+                .get("include-portal-query"));
+        if (includeQuery) {
+            restorePortalDir();
+        }
+    }
+
+    private void restorePortalDir() {
+        // Restore portal directory
+        String emailMd5 = DigestUtils.md5Hex(config.get("email"));
+        File portalDir = new File(pathToBeRestored, emailMd5 + "/config/portal");
+
+        // If use installer, the portal/home value will be set
+        if (portalDir.exists()) {
+            String home = config.get("portal/home",
+                    "/opt/the-fascinator/config");
+            File homePath = new File(home);
+            if (!homePath.exists()) {
+                home = "portal/src/main/config";
+                homePath = new File("../", home);
+            }
+            /** Default ignore filter if none defined **/
+
+            IgnoreFilter ignore = new IgnoreFilter(".svn|.ice|.*|~*|*~"
+                    .split("\\|"));
+            try {
+                log.info("Restoring portal view: {} to {}", portalDir
+                        .getAbsolutePath(), homePath.getAbsolutePath());
+                includePortalDir(portalDir, homePath, ignore);
+            } catch (IOException e) {
+                log.info("Error Restore file, file not found");
+                e.printStackTrace();
+            }
+        }
+
     }
 
     /**
@@ -378,22 +411,19 @@ public class RestoreClient {
      */
     public static void main(String[] args) {
         if (args.length < 1) {
-            log.info("Usage: restore <json-config>");
+            log.info("Usage: restore <path-to-be-restored>");
         } else {
-            File jsonFile = new File(args[0]);
+            RestoreClient restore;
             try {
-                log.info("jsonFile: " + jsonFile.getAbsolutePath());
-                RestoreClient restore;
-                try {
-                    restore = new RestoreClient(jsonFile);
-                    restore.run();
-                } catch (PluginException e) {
-                    log.error("Failed to run Restore client: {}", e
-                            .getMessage());
-                }
+                restore = new RestoreClient(args[0]);
+                restore.run();
             } catch (IOException ioe) {
                 log.error("Failed to initialise client: {}", ioe.getMessage());
+            } catch (PluginException e) {
+                log.error("Failed to run Restore client: {}", e.getMessage());
             }
+
         }
+
     }
 }

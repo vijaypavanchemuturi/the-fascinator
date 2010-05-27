@@ -18,13 +18,6 @@
  */
 package au.edu.usq.fascinator.storage.filesystem;
 
-import au.edu.usq.fascinator.api.PluginDescription;
-import au.edu.usq.fascinator.api.storage.DigitalObject;
-import au.edu.usq.fascinator.api.storage.Storage;
-import au.edu.usq.fascinator.api.storage.StorageException;
-import au.edu.usq.fascinator.common.FascinatorHome;
-import au.edu.usq.fascinator.common.JsonConfig;
-
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -42,6 +35,13 @@ import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import au.edu.usq.fascinator.api.PluginDescription;
+import au.edu.usq.fascinator.api.storage.DigitalObject;
+import au.edu.usq.fascinator.api.storage.Storage;
+import au.edu.usq.fascinator.api.storage.StorageException;
+import au.edu.usq.fascinator.common.FascinatorHome;
+import au.edu.usq.fascinator.common.JsonConfig;
 
 /**
  * File system storage plugin based on Dflat/Pairtree
@@ -63,6 +63,8 @@ public class FileSystemStorage implements Storage {
 
     private Set<String> objectList;
 
+    private static String DEFAULT_METADATA_PAYLOAD = "TF-OBJ-META";
+
     @Override
     public String getId() {
         return "file-system";
@@ -75,7 +77,7 @@ public class FileSystemStorage implements Storage {
 
     /**
      * Gets a PluginDescription object relating to this plugin.
-     *
+     * 
      * @return a PluginDescription
      */
     @Override
@@ -125,15 +127,14 @@ public class FileSystemStorage implements Storage {
     }
 
     private File getPath(String oid) {
-        String dir = oid.substring(0, 2) + File.separator
-                + oid.substring(2, 4) + File.separator + oid.substring(4, 6)
-                + File.separator;
+        String dir = oid.substring(0, 2) + File.separator + oid.substring(2, 4)
+                + File.separator + oid.substring(4, 6) + File.separator;
         return new File(homeDir, dir + oid);
     }
 
     @Override
     public DigitalObject createObject(String oid) throws StorageException {
-        //log.debug("createObject(" + oid + ")");
+        // log.debug("createObject(" + oid + ")");
         File objHome = getPath(oid);
         if (objHome.exists()) {
             throw new StorageException("oID '" + oid
@@ -148,7 +149,8 @@ public class FileSystemStorage implements Storage {
         if (objHome.exists()) {
             FileSystemDigitalObject obj = new FileSystemDigitalObject(objHome,
                     oid);
-            //log.debug("getObject(" + oid + "), sourceId: " + obj.getSourceId());
+            // log.debug("getObject(" + oid + "), sourceId: " +
+            // obj.getSourceId());
             return obj;
         }
         throw new StorageException("oID '" + oid
@@ -222,13 +224,13 @@ public class FileSystemStorage implements Storage {
                 if (path.isDirectory()) {
                     listFileRecur(files, file);
                 } else {
-                    if (file.getName().equals("SOF-META")) {
+                    if (file.getName().equals(DEFAULT_METADATA_PAYLOAD)) {
                         files.add(file);
                     }
                 }
             }
         } else {
-            if (path.getName().equals("SOF-META")) {
+            if (path.getName().equals(DEFAULT_METADATA_PAYLOAD)) {
                 files.add(path);
             }
         }
