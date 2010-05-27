@@ -19,9 +19,14 @@
 package au.edu.usq.fascinator.harvester.arts;
 
 import java.io.File;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
+import org.dom4j.Document;
+import org.dom4j.DocumentFactory;
+import org.dom4j.io.SAXReader;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -29,6 +34,8 @@ import org.junit.Test;
 
 import au.edu.usq.fascinator.api.PluginManager;
 import au.edu.usq.fascinator.api.harvester.Harvester;
+import au.edu.usq.fascinator.api.storage.DigitalObject;
+import au.edu.usq.fascinator.api.storage.Payload;
 import au.edu.usq.fascinator.api.storage.Storage;
 
 /**
@@ -120,6 +127,31 @@ public class HcaDataHarvesterTest {
             idList.addAll(harvester.getObjectIdList());
         } while (harvester.hasMoreObjects());
         Assert.assertEquals(6, idList.size());
+    }
+
+    /**
+     * Tests that there is a dc.xml payload with the correct values
+     */
+    @Test
+    public void harvestDcXml() throws Exception {
+        setTestDir("hca-data/valid");
+        harvester.init(new File(baseDir, "hca-std.json"));
+        Set<String> idList = harvester.getObjectIdList();
+        DigitalObject object = ram.getObject(idList.iterator().next());
+        Payload payload = object.getPayload("dc.xml");
+
+        Map<String, String> namespaceURIs = new HashMap<String, String>();
+        namespaceURIs.put("oai_dc", HcaDataHarvester.SEER_NS_URI);
+        namespaceURIs.put("dc", HcaDataHarvester.DC_NS_URI);
+        DocumentFactory.getInstance().setXPathNamespaceURIs(namespaceURIs);
+        SAXReader reader = new SAXReader();
+        Document dc = reader.read(payload.open());
+        System.out.println(dc.asXML());
+        Assert.assertEquals("Sample document", dc
+                .selectSingleNode("//dc:title").getText());
+        Assert.assertEquals("Lucido, Oliver", dc
+                .selectSingleNode("//dc:creator").getText());
+        payload.close();
     }
 
     private void setTestDir(String relPath) {

@@ -18,6 +18,8 @@
  */
 package au.edu.usq.fascinator.harvester.arts;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.FileInputStream;
@@ -25,14 +27,21 @@ import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
+import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.Stack;
+
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.stream.StreamResult;
+import javax.xml.transform.stream.StreamSource;
 
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.FilenameUtils;
@@ -116,6 +125,7 @@ import au.edu.usq.fascinator.common.storage.StorageUtils;
  *     }
  * }
  * </pre>
+ * 
  * </li>
  * <li>
  * Recursively get all files from the <code>/home/hca/data</code> directory
@@ -153,11 +163,15 @@ import au.edu.usq.fascinator.common.storage.StorageUtils;
  */
 public class HcaDataHarvester extends GenericHarvester {
 
+    public static final String USQ_NS_URI = "http://usq.edu.au/research/";
+
+    public static final String SEER_NS_URI = "http://seer.arc.gov.au/2009/seer/1";
+
+    public static final String OAI_DC_NS_URI = "http://www.openarchives.org/OAI/2.0/oai_dc/";
+
+    public static final String DC_NS_URI = "http://purl.org/dc/elements/1.1/";
+
     private static final String PI_XML = "PI.xml";
-
-    private static final String USQ_NS_URI = "http://usq.edu.au/research/";
-
-    private static final String SEER_NS_URI = "http://seer.arc.gov.au/2009/seer/1";
 
     /** logging */
     private Logger log = LoggerFactory.getLogger(HcaDataHarvester.class);
@@ -186,7 +200,13 @@ public class HcaDataHarvester extends GenericHarvester {
     /** use links instead of copying */
     private boolean link;
 
+    private DocumentFactory docFactory;
+
     private SAXReader saxReader;
+
+    private Transformer hcaDcFull;
+
+    private Transformer hcaDcAttachment;
 
     private File packageDir;
 
@@ -235,8 +255,14 @@ public class HcaDataHarvester extends GenericHarvester {
         Map<String, String> namespaceURIs = new HashMap<String, String>();
         namespaceURIs.put("seer", SEER_NS_URI);
         namespaceURIs.put("usq", USQ_NS_URI);
-        DocumentFactory.getInstance().setXPathNamespaceURIs(namespaceURIs);
-        saxReader = new SAXReader();
+        namespaceURIs.put("oai_dc", OAI_DC_NS_URI);
+        namespaceURIs.put("dc", DC_NS_URI);
+        docFactory = new DocumentFactory();
+        docFactory.setXPathNamespaceURIs(namespaceURIs);
+        saxReader = new SAXReader(docFactory);
+
+        hcaDcFull = createTransformer("/hca-dc-full.xsl");
+        hcaDcAttachment = createTransformer("/hca-dc-attachment.xsl");
 
         packageDir = FascinatorHome.getPathFile("packages/hca-data");
         if (!packageDir.exists()) {
@@ -244,8 +270,18 @@ public class HcaDataHarvester extends GenericHarvester {
         }
     }
 
+    private Transformer createTransformer(String xslPath)
+            throws HarvesterException {
+        try {
+            return TransformerFactory.newInstance().newTransformer(
+                    new StreamSource(getClass().getResourceAsStream(xslPath)));
+        } catch (Exception e) {
+            throw new HarvesterException(e);
+        }
+    }
+
     public Set<String> getObjectIdList() throws HarvesterException {
-        Set<String> fileObjectIdList = new HashSet<String>();
+        Set<String> fileObjectIdList = new LinkedHashSet<String>();
         if (currentDir.isDirectory()) {
             File[] files = currentDir.listFiles(ignoreFilter);
             for (File file : files) {
@@ -286,15 +322,23 @@ public class HcaDataHarvester extends GenericHarvester {
 
     private Set<String> processPiXml(File file) throws HarvesterException,
             StorageException {
-        Set<String> idList = new HashSet<String>();
+        Set<String> idList = new LinkedHashSet<String>();
         try {
-            DigitalObject object;
             Document piDoc = saxReader.read(file);
             Element usqTitle = (Element) piDoc.selectSingleNode("//usq:title");
 
             // create manifest
             JsonConfigHelper json = new JsonConfigHelper();
             json.set("title", usqTitle.attributeValue("nativeScript"));
+
+            List<String> creators = new ArrayList<String>();
+            List creatorNodes = piDoc.selectNodes("//creator");
+            Iterator itc = creatorNodes.iterator();
+            while (itc.hasNext()) {
+                Element elem = (Element) itc.next();
+                creators.add(elem.attributeValue("lastName") + ", "
+                        + elem.attributeValue("firstName"));
+            }
 
             List nodes = piDoc.selectNodes("//usq:electronicLocation");
             Iterator it = nodes.iterator();
@@ -309,13 +353,16 @@ public class HcaDataHarvester extends GenericHarvester {
                 File subFile = new File(file.getParentFile(), repositoryLink);
                 if (subFile.exists()) {
                     log.debug("Creating object for {}", subFile);
-                    object = createDigitalObject(subFile);
+                    DigitalObject object = createDigitalObject(subFile);
                     String oid = object.getId();
 
                     // add manifest entry
                     json.set("manifest/node-" + oid + "/id", oid);
                     json.set("manifest/node-" + oid + "/title",
                             repositoryLinkDescription);
+
+                    // add basic DC metadata
+                    createDcXmlPayload(file, object, repositoryLink);
 
                     idList.add(oid);
                     object.close();
@@ -331,15 +378,18 @@ public class HcaDataHarvester extends GenericHarvester {
             // create a package object for this PI.xml
             String hash = DigestUtils.md5Hex(file.getAbsolutePath());
             File packageFile = new File(packageDir, hash + ".tfpackage");
-            log.debug("package = {}", json);
             Writer fw = new FileWriter(packageFile);
             json.store(fw);
             fw.close();
 
             log.debug("Created object for {}", file);
-            object = createDigitalObject(packageFile);
+            DigitalObject object = createDigitalObject(packageFile);
             StorageUtils.createOrUpdatePayload(object, PI_XML,
                     new FileInputStream(file));
+
+            // add full DC metadata
+            createDcXmlPayload(file, object);
+
             idList.add(object.getId());
             object.close();
 
@@ -351,6 +401,9 @@ public class HcaDataHarvester extends GenericHarvester {
         } catch (FileNotFoundException fnfe) {
             log.error("Failed to add payload: {}", fnfe.getMessage());
             throw new StorageException(fnfe);
+        } catch (TransformerException te) {
+            log.error("Failed to create dc.xml: {}", te.getMessage());
+            throw new StorageException(te);
         } catch (IOException ioe) {
             log.error("Failed to create manifest: {}", ioe.getMessage());
             throw new StorageException(ioe);
@@ -378,5 +431,30 @@ public class HcaDataHarvester extends GenericHarvester {
             return QName.get(qName, SEER_NS_URI);
         }
         return QName.get(qName);
+    }
+
+    private void createDcXmlPayload(File piXmlFile, DigitalObject object)
+            throws TransformerException {
+        createDcXmlPayload(piXmlFile, object, null);
+    }
+
+    private void createDcXmlPayload(File piXmlFile, DigitalObject object,
+            String repositoryLink) throws TransformerException {
+        try {
+            Transformer t = null;
+            if (repositoryLink == null) {
+                t = hcaDcFull;
+            } else {
+                t = hcaDcAttachment;
+                t.setParameter("repositoryLink", repositoryLink);
+            }
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            t.transform(new StreamSource(new FileInputStream(piXmlFile)),
+                    new StreamResult(out));
+            StorageUtils.createOrUpdatePayload(object, "dc.xml",
+                    new ByteArrayInputStream(out.toByteArray()));
+        } catch (Exception e) {
+            throw new TransformerException(e);
+        }
     }
 }
