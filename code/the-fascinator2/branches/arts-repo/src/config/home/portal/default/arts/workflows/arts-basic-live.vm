@@ -1,0 +1,7 @@
+<form method="post" action="$portalPath/workflow">
+  <fieldset class="search">
+    <legend>Awaiting response...</legend>
+    <p><b>Current workflow step</b>: '$self.getFormData('currentStepLabel')'
+    <br/><b>Next workflow step</b>: '$self.getFormData('nextStepLabel')'</p>
+  </fieldset>
+</form>

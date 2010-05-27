@@ -1,0 +1,8 @@
+{
+    "arts": {
+        "screen-label": "Arts submission",
+        "security": ["submitter", "reviewer", "admin"],
+        "upload-path": "${fascinator.home}/uploads/arts-files",
+        "json-config": "${fascinator.home}/workflows/arts-basic.json"
+    }
+}
