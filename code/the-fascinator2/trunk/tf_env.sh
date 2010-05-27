@@ -22,4 +22,7 @@ fi
 if [ "$SOLR_BASE_DIR" == "" ]; then
 	export SOLR_BASE_DIR=$FASCINATOR_HOME
 fi
-export MAVEN_OPTS="-XX:MaxPermSize=256m -Xmx512m -Dhttp.proxyHost=$HOST -Dhttp.proxyPort=$PORT -Dhttp.nonProxyHosts=localhost -Dfascinator.home=$FASCINATOR_HOME -Dsolr.base.dir=$SOLR_BASE_DIR $MAVEN_OPTS"
+if [ "$PORTAL_HOME" == "" ]; then
+    export PORTAL_HOME=$FASCINATOR_HOME/portal
+fi
+export MAVEN_OPTS="-XX:MaxPermSize=256m -Xmx512m -Dhttp.proxyHost=$HOST -Dhttp.proxyPort=$PORT -Dhttp.nonProxyHosts=localhost -Dfascinator.home=$FASCINATOR_HOME -Dsolr.base.dir=$SOLR_BASE_DIR -Dportal.home=$PORTAL_HOME $MAVEN_OPTS"
