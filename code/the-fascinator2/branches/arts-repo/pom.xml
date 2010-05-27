@@ -82,6 +82,11 @@
         </dependency>
         <dependency>
             <groupId>au.edu.usq.fascinator.plugins</groupId>
+            <artifactId>plugin-harvester-workflow</artifactId>
+            <version>${fascinator.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>au.edu.usq.fascinator.plugins</groupId>
             <artifactId>plugin-indexer-solr</artifactId>
             <version>${fascinator.version}</version>
         </dependency>
@@ -136,7 +141,7 @@
                     <!-- Fascinator and Solr web applications -->
                     <execution>
                         <id>copy-webapps</id>
-                        <phase>generate-resources</phase>
+                        <phase>package</phase>
                         <goals>
                             <goal>copy</goal>
                         </goals>
@@ -162,7 +167,7 @@
                     <!-- Unpack default Fascinator and Solr configuration -->
                     <execution>
                         <id>unpack-config</id>
-                        <phase>generate-resources</phase>
+                        <phase>package</phase>
                         <goals>
                             <goal>unpack</goal>
                         </goals>
@@ -186,7 +191,7 @@
                     <!-- Fascinator plugins (without dependencies) -->
                     <execution>
                         <id>copy-plugins</id>
-                        <phase>generate-resources</phase>
+                        <phase>package</phase>
                         <goals>
                             <goal>copy-dependencies</goal>
                         </goals>
@@ -199,7 +204,7 @@
                     <!-- Plugin dependencies -->
                     <execution>
                         <id>copy-plugin-dependencies</id>
-                        <phase>generate-resources</phase>
+                        <phase>package</phase>
                         <goals>
                             <goal>copy-dependencies</goal>
                         </goals>
@@ -212,7 +217,7 @@
                     <!-- Jetty launcher -->
                     <execution>
                         <id>copy-jetty-start</id>
-                        <phase>generate-resources</phase>
+                        <phase>package</phase>
                         <goals>
                             <goal>copy</goal>
                         </goals>
@@ -230,7 +235,7 @@
                     <!-- Jetty dependencies -->
                     <execution>
                         <id>copy-jetty-dependencies</id>
-                        <phase>generate-resources</phase>
+                        <phase>package</phase>
                         <goals>
                             <goal>copy-dependencies</goal>
                         </goals>
@@ -247,7 +252,7 @@
                 <executions>
                     <execution>
                         <id>copy-config</id>
-                        <phase>generate-resources</phase>
+                        <phase>process-resources</phase>
                         <goals>
                             <goal>copy-resources</goal>
                         </goals>

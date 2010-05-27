@@ -1,6 +1,6 @@
 {
     "version": "0.6.2",
-    "configured": false,
+    "configured": true,
     "urlBase" : "http://localhost:8080/portal/",
     "email" : "fascinator@usq.edu.au",
     "accesscontrol": {
