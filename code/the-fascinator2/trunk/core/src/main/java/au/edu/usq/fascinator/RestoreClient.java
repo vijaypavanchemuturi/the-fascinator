@@ -251,9 +251,12 @@ public class RestoreClient {
                 // Retrieving object from source
                 DigitalObject sourceObject = sourceStorage.getObject(id);
 
-                // Creating new object in the destination
-                DigitalObject destinationObject = StorageUtils
-                        .getDigitalObject(storage, id);
+                String originalFilePath = sourceObject.getMetadata()
+                        .getProperty("file.path");
+                File originalFile = new File(originalFilePath);
+                // Backup Original File instead of using link
+                DigitalObject destinationObject = StorageUtils.storeFile(
+                        storage, originalFile, false);
 
                 // Creating payloads in the destination
                 for (String payloadId : sourceObject.getPayloadIdList()) {
