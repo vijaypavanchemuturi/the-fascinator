@@ -50,22 +50,15 @@
         {
             "name": "pending",
             "label": "Pending",
-            "security": ["submitter","reviewer","admin"],
-            "visibility": ["submitter","reviewer","admin"]
+            "security": ["submitter","admin"],
+            "visibility": ["submitter","admin"]
         },
         {
-            "name": "submitted",
-            "label": "Arts Submission",
-            "security": ["metadata","reviewer","admin"],
-            "visibility": ["metadata","reviewer","admin"],
-            "template": "workflows/arts-basic-submitted"
-        },
-        {
-            "name": "reviewing",
-            "label": "Reviewing",
+            "name": "review",
+            "label": "Review",
             "security": ["reviewer","admin"],
-            "visibility": ["reviewer","admin"],
-            "template": "workflows/arts-basic-reviewing"
+            "visibility": ["submitter","reviewer","admin"],
+            "template": "workflows/arts-basic-review"
         },
         {
             "name": "live",

@@ -1,6 +1,6 @@
 <form method="post" action="$portalPath/workflow">
   <fieldset class="login">
-    <legend>Basic Metadata Input</legend>
+    <legend>Review metadata</legend>
     <p><b>Current workflow step</b>: '$self.getFormData('currentStepLabel')'
     <br/><b>Next workflow step</b>: '$self.getFormData('nextStepLabel')'</p>
     <p>Please supply some basic information about the item you just submitted.</p>
@@ -12,7 +12,7 @@
     <legend>Required Fields</legend>
     <p>
       <label for="title">Title:</label>
-      <input type="text" name="title" value="$self.getFormData('title')" />
+      <input type="text" name="dc_title" value="$self.getFormData('dc_title')" />
     </p>
     <p>
       <label for="dc_creator">Creator:</label>
@@ -27,7 +27,7 @@
     <legend>Optional Fields</legend>
     <p>
       <label for="description">Decription:</label>
-      <input type="text" name="description" value="$self.getFormData('description')" />
+      <input type="text" name="dc_description" value="$self.getFormData('dc_description')" />
     </p>
     <p>
       <label for="dc_type">Type:</label>
@@ -38,4 +38,5 @@
       <textarea name="notes" cols="50">$self.getFormData('notes')</textarea>
     </p>
   </fieldset>
+  <pre>$formData</pre>
 </form>
