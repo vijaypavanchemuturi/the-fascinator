@@ -40,6 +40,8 @@ public interface ScriptingServices {
 
     public HarvestManager getHarvestManager();
 
+    public HouseKeepingManager getHouseKeepingManager();
+
     public PortalManager getPortalManager();
 
 }

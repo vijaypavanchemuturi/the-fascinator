@@ -23,6 +23,7 @@ import au.edu.usq.fascinator.portal.FormData;
 import au.edu.usq.fascinator.portal.JsonSessionState;
 import au.edu.usq.fascinator.portal.guitoolkit.GUIToolkit;
 import au.edu.usq.fascinator.portal.services.DynamicPageService;
+import au.edu.usq.fascinator.portal.services.HouseKeepingManager;
 import au.edu.usq.fascinator.portal.services.PortalManager;
 import au.edu.usq.fascinator.portal.services.ScriptingServices;
 import au.edu.usq.fascinator.portal.velocity.JythonLogger;
@@ -86,6 +87,9 @@ public class DynamicPageServiceImpl implements DynamicPageService {
 
     @Inject
     private ScriptingServices scriptingServices;
+
+    @Inject
+    private HouseKeepingManager houseKeeping;
 
     private String defaultPortal;
     private String defaultSkin;
@@ -249,6 +253,12 @@ public class DynamicPageServiceImpl implements DynamicPageService {
                 .getServerPort());
         bindings.put("toolkit", toolkit);
         bindings.put("log", log);
+
+        if (houseKeeping.requiresAction()) {
+            bindings.put("hkMessage", houseKeeping.getMessage());
+            houseKeeping.confirmMessage();
+        }
+
         bindings.put("bindings", bindings);
 
         // run page and template scripts

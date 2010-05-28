@@ -27,6 +27,7 @@ import au.edu.usq.fascinator.api.roles.RolesManager;
 import au.edu.usq.fascinator.api.storage.Storage;
 import au.edu.usq.fascinator.portal.services.DynamicPageService;
 import au.edu.usq.fascinator.portal.services.HarvestManager;
+import au.edu.usq.fascinator.portal.services.HouseKeepingManager;
 import au.edu.usq.fascinator.portal.services.PortalManager;
 import au.edu.usq.fascinator.portal.services.ScriptingServices;
 
@@ -52,6 +53,9 @@ public class ScriptingServicesImpl implements ScriptingServices {
 
     @Inject
     private HarvestManager harvestManager;
+
+    @Inject
+    private HouseKeepingManager houseKeeping;
 
     @Inject
     private PortalManager portalManager;
@@ -89,6 +93,11 @@ public class ScriptingServicesImpl implements ScriptingServices {
     @Override
     public HarvestManager getHarvestManager() {
         return harvestManager;
+    }
+
+    @Override
+    public HouseKeepingManager getHouseKeepingManager() {
+        return houseKeeping;
     }
 
     @Override

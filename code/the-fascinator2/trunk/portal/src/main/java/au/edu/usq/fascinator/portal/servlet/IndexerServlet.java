@@ -158,10 +158,10 @@ public class IndexerServlet extends HttpServlet {
     }
 
     /**
-     * Get the access manager. Used in The indexer if the portal isn't running
+     * Get a message listener from the ServiceLoader
      *
-     * @param id plugin identifier
-     * @return an access manager plugin, or null if not found
+     * @param id Listener identifier
+     * @return GenericMessageListener implementation matching the ID, if found
      */
     public GenericMessageListener getListener(String id) {
         ServiceLoader<GenericMessageListener> listeners =

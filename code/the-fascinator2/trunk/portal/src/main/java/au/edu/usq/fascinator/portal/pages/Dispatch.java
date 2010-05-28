@@ -28,6 +28,7 @@ import au.edu.usq.fascinator.portal.FormData;
 import au.edu.usq.fascinator.portal.JsonSessionState;
 import au.edu.usq.fascinator.portal.services.DynamicPageService;
 import au.edu.usq.fascinator.portal.services.GenericStreamResponse;
+import au.edu.usq.fascinator.portal.services.HouseKeepingManager;
 import au.edu.usq.fascinator.portal.services.HttpStatusCodeResponse;
 import au.edu.usq.fascinator.portal.services.PortalManager;
 
@@ -69,6 +70,8 @@ public class Dispatch {
 
     private static final String DEFAULT_RESOURCE = "home";
 
+    private static final String ERROR_RESOURCE = "error";
+
     @Inject
     private Logger log;
 
@@ -80,6 +83,9 @@ public class Dispatch {
 
     @Inject
     private DynamicPageService pageService;
+
+    @Inject
+    private HouseKeepingManager houseKeeping;
 
     @Inject
     private PortalManager portalManager;
@@ -135,6 +141,23 @@ public class Dispatch {
         if (resourceName == null) {
             return new HttpStatusCodeResponse(404,
                     "Page not found: " + requestUri);
+        }
+
+        /* TODO: refactor this by moving all static resources into
+         * 'includes/css/*' and similar. Reduce to one test. */
+        if (!(resourceName.startsWith("css/") ||
+              resourceName.startsWith("images/") ||
+              resourceName.startsWith("js/") ||
+              resourceName.startsWith("flowplayer/"))
+            && !isAjax) {
+            log.debug("Resource: '{}'", resourceName);
+            if (houseKeeping.requiresAction()) {
+                resourceName = houseKeeping.getTemplate();
+                if (resourceName == null) {
+                    resourceName = ERROR_RESOURCE;
+                }
+                log.debug("House Keeping resource override: '{}'", resourceName);
+            }
         }
 
         // Initialise storage for our form data

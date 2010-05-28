@@ -1,7 +1,8 @@
 from au.edu.usq.fascinator.common import JsonConfig, JsonConfigHelper
-from au.edu.usq.fascinator.portal import Portal
 
-from java.io import File, FileWriter
+from authentication import Authentication
+
+from java.io import FileWriter
 from java.util import HashMap
 
 from org.apache.commons.io.output import NullWriter
@@ -9,11 +10,31 @@ from org.apache.commons.lang import StringUtils
 
 class SettingsActions:
     def __init__(self):
+        self.authentication = Authentication()
+        self.authentication.session_init()
+
+        self.writer = response.getPrintWriter("text/html; charset=UTF-8")
+
+        if self.authentication.is_logged_in() and self.authentication.is_admin():
+            self.process()
+        else:
+            print " * settings.py : AJAX : Unauthorised access"
+            self.throw_error("Only administrative users can access this feature")
+
+    def getWatcherFile(self):
+        configFile = FascinatorHome.getPathFile("watcher/config.json")
+        if configFile.exists():
+            return JsonConfigHelper(configFile)
+        return None
+
+    def process(self):
         print " * settings.py: formData=%s" % formData
+
         result = "{}"
         portalManager = Services.getPortalManager()
         portal = portalManager.get(portalId)
         func = formData.get("func")
+
         if func == "view-update":
             portal.setDescription(formData.get("view-description"))
             portal.setQuery(formData.get("view-query"))
@@ -23,6 +44,7 @@ class SettingsActions:
             portal.setFacetCount(int(formData.get("view-facet-count")))
             portal.setFacetSort(formData.get("view-facet-sort") is not None)
             portalManager.save(portal)
+
         elif func == "general-update":
             config = JsonConfig()
             email = StringUtils.trimToEmpty(formData.get("general-email"))
@@ -33,9 +55,11 @@ class SettingsActions:
                 config.set("configured", "true", True)
                 config.store(NullWriter(), True)
                 # mark restart
-                sessionState.set("need-restart", "true")
+                Services.getHouseKeepingManager().requestUrgentRestart()
             else:
                 print " * settings.py: email not updated: did not change"
+                self.throw_error("Email address is the same! No change saved.")
+
         elif func == "facets-update":
             portal.removePath("portal/facet-fields")
             fields = formData.getValues("field")
@@ -48,6 +72,7 @@ class SettingsActions:
                     portal.set("portal/facet-fields/%s/label" % field, labels[i])
                     portal.set("portal/facet-fields/%s/display" % field, displays[i])
             portalManager.save(portal)
+
         elif func == "backup-update":
             pathIds = formData.get("pathIds").split(",")
             actives = formData.getValues("backup-active")
@@ -69,27 +94,28 @@ class SettingsActions:
                     #rendition = str(pathId in renditions).lower()
                     query = str(pathId in queries).lower()
                     ignoreFilter = formData.get("%s-ignore" % pathId)
-                    
+
                     json = HashMap()
                     json.put("path", path)
                     json.put("active", active)
                     json.put("include-portal-query", query)
                     json.put("ignoreFilter", ignoreFilter)
-                    
+
                     storage = HashMap()
                     storage.put("type", "file-system")
-                    
+
                     filesystem = HashMap()
                     filesystem.put("home", path)
                     filesystem.put("use-link", "false")
                     storage.put("file-system", filesystem)
-                    
+
                     json.put("storage", storage)
                     paths.put(pathName, json)
             # reset the path first
             portal.setMap("portal/backup/paths", HashMap())
             portal.setMultiMap("portal/backup/paths", paths)
             portalManager.save(portal)
+
         elif func == "watcher-update":
             configFile = self.getWatcherFile()
             if configFile is not None:
@@ -116,21 +142,21 @@ class SettingsActions:
                 json.store(FileWriter(configFile), True)
             else:
                 result = "The Watcher is not installed properly."
+
         elif func == "restore-default-config":
             # delete the file
             JsonConfig.getSystemFile().delete()
             # restore default
             JsonConfig.getSystemFile()
             # mark restart
-            sessionState.set("need-restart", "true")
-        writer = response.getPrintWriter("text/plain; charset=UTF-8")
-        writer.println(result)
-        writer.close()
-    
-    def getWatcherFile(self):
-        configFile = FascinatorHome.getPathFile("watcher/config.json")
-        if configFile.exists():
-            return JsonConfigHelper(configFile)
-        return None
+            Services.getHouseKeepingManager().requestUrgentRestart()
+
+        self.writer.println(result)
+        self.writer.close()
+
+    def throw_error(self, message):
+        response.setStatus(500)
+        self.writer.println("Error: " + message)
+        self.writer.close()
 
 scriptObject = SettingsActions()

@@ -1,3 +1,0 @@
-<div class="container_16">
-  #parse($page.getTemplate('layout/configuration.vm'))
-</div>

@@ -40,16 +40,4 @@ class LayoutData:
     def getTemplate(self, templateName):
         return Services.pageService.resourceExists(portalId, templateName)
 
-    def isConfigured(self):
-        return self.config.isConfigured()
-
-    def isNotConfigured(self):
-        return not self.config.isConfigured()
-
-    def isOutdated(self):
-        return self.config.isOutdated()
-
-    def needRestart(self):
-        return "true" == sessionState.get("need-restart", "false")
-
 scriptObject = LayoutData()

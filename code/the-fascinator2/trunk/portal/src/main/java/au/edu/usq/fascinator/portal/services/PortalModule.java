@@ -18,28 +18,6 @@
  */
 package au.edu.usq.fascinator.portal.services;
 
-import javax.servlet.http.HttpServletRequest;
-
-import org.apache.commons.codec.digest.DigestUtils;
-import org.apache.tapestry5.ioc.Configuration;
-import org.apache.tapestry5.ioc.MappedConfiguration;
-import org.apache.tapestry5.ioc.OrderedConfiguration;
-import org.apache.tapestry5.ioc.ServiceBinder;
-import org.apache.tapestry5.ioc.annotations.Inject;
-import org.apache.tapestry5.services.AliasContribution;
-import org.apache.tapestry5.services.ApplicationStateContribution;
-import org.apache.tapestry5.services.ApplicationStateCreator;
-import org.apache.tapestry5.services.Request;
-import org.apache.tapestry5.services.RequestGlobals;
-import org.apache.tapestry5.services.URLEncoder;
-import org.apache.tapestry5.urlrewriter.RewriteRuleApplicability;
-import org.apache.tapestry5.urlrewriter.SimpleRequestWrapper;
-import org.apache.tapestry5.urlrewriter.URLRewriteContext;
-import org.apache.tapestry5.urlrewriter.URLRewriterRule;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.slf4j.MDC;
-
 import au.edu.usq.fascinator.AccessManager;
 import au.edu.usq.fascinator.AuthenticationManager;
 import au.edu.usq.fascinator.RoleManager;
@@ -53,8 +31,32 @@ import au.edu.usq.fascinator.common.JsonConfig;
 import au.edu.usq.fascinator.portal.JsonSessionState;
 import au.edu.usq.fascinator.portal.services.impl.DynamicPageServiceImpl;
 import au.edu.usq.fascinator.portal.services.impl.HarvestManagerImpl;
+import au.edu.usq.fascinator.portal.services.impl.HouseKeepingManagerImpl;
 import au.edu.usq.fascinator.portal.services.impl.PortalManagerImpl;
 import au.edu.usq.fascinator.portal.services.impl.ScriptingServicesImpl;
+
+import javax.servlet.http.HttpServletRequest;
+
+import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.tapestry5.ioc.Configuration;
+import org.apache.tapestry5.ioc.MappedConfiguration;
+import org.apache.tapestry5.ioc.OrderedConfiguration;
+import org.apache.tapestry5.ioc.ServiceBinder;
+import org.apache.tapestry5.ioc.annotations.Inject;
+import org.apache.tapestry5.ioc.services.RegistryShutdownHub;
+import org.apache.tapestry5.services.AliasContribution;
+import org.apache.tapestry5.services.ApplicationStateContribution;
+import org.apache.tapestry5.services.ApplicationStateCreator;
+import org.apache.tapestry5.services.Request;
+import org.apache.tapestry5.services.RequestGlobals;
+import org.apache.tapestry5.services.URLEncoder;
+import org.apache.tapestry5.urlrewriter.RewriteRuleApplicability;
+import org.apache.tapestry5.urlrewriter.SimpleRequestWrapper;
+import org.apache.tapestry5.urlrewriter.URLRewriteContext;
+import org.apache.tapestry5.urlrewriter.URLRewriterRule;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 
 public class PortalModule {
 
@@ -74,6 +76,13 @@ public class PortalModule {
         binder.bind(DynamicPageService.class, DynamicPageServiceImpl.class);
         binder.bind(PortalManager.class, PortalManagerImpl.class);
         binder.bind(ScriptingServices.class, ScriptingServicesImpl.class);
+    }
+
+    public static HouseKeepingManager buildHouseKeepingManager(
+            RegistryShutdownHub hub) {
+        HouseKeepingManager houseKeeping= new HouseKeepingManagerImpl();
+        hub.addRegistryShutdownListener(houseKeeping);
+        return houseKeeping;
     }
 
     public static AccessControlManager buildAccessManager() {
@@ -133,6 +142,7 @@ public class PortalModule {
     public static void contributeApplicationStateManager(
             MappedConfiguration<Class<?>, ApplicationStateContribution> configuration) {
         ApplicationStateCreator<JsonSessionState> creator = new ApplicationStateCreator<JsonSessionState>() {
+            @Override
             public JsonSessionState create() {
                 return new JsonSessionState();
             }
@@ -153,6 +163,7 @@ public class PortalModule {
             @Inject final RequestGlobals requestGlobals,
             @Inject final URLEncoder urlEncoder) {
         URLRewriterRule rule = new URLRewriterRule() {
+            @Override
             public Request process(Request request, URLRewriteContext context) {
                 // set the original request uri - without context
                 HttpServletRequest req = requestGlobals.getHTTPServletRequest();
@@ -177,6 +188,7 @@ public class PortalModule {
                 return new SimpleRequestWrapper(request, path);
             }
 
+            @Override
             public RewriteRuleApplicability applicability() {
                 return RewriteRuleApplicability.INBOUND;
             }
