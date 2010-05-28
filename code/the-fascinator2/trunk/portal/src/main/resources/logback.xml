@@ -45,4 +45,7 @@
   <logger name="au.edu.usq.fascinator.RenderQueueConsumer" level="INFO">
     <appender-ref ref="CYCLIC" />
   </logger>
+  <logger name="au.edu.usq.fascinator.portal.HouseKeeper" level="DEBUG">
+    <appender-ref ref="CYCLIC" />
+  </logger>
 </configuration>
