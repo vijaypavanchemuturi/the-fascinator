@@ -289,6 +289,7 @@ if pid == metaPid:
         wfPayload = object.getPayload("workflow.metadata")
         wfMeta = JsonConfigHelper(wfPayload.open())
         wfPayload.close()
+        wfMeta.set("pageTitle", "Arts submission")
 
         # Are we indexing because of a workflow progression?
         targetStep = wfMeta.get("targetStep")
@@ -306,6 +307,7 @@ if pid == metaPid:
         stages = jsonConfig.getJsonList("stages")
         for stage in stages:
             if stage.get("name") == targetStep:
+                wfMeta.set("pageTitle", "Arts submission - " + stage.get("label"))
                 wfMeta.set("label", stage.get("label"))
                 item_security = stage.getList("visibility")
                 workflow_security = stage.getList("security")
@@ -351,10 +353,11 @@ if pid == metaPid:
         wfMeta = JsonConfigHelper()
         wfMeta.set("id", WORKFLOW_ID)
         wfMeta.set("step", "pending")
-        wfMeta.set("pageTitle", "Uploaded Files - Management")
+        wfMeta.set("pageTitle", "Arts submission")
         stages = jsonConfig.getJsonList("stages")
         for stage in stages:
             if stage.get("name") == "pending":
+                wfMeta.set("pageTitle", "Arts submission - " + stage.get("label"))
                 wfMeta.set("label", stage.get("label"))
                 item_security = stage.getList("visibility")
                 workflow_security = stage.getList("security")
