@@ -251,20 +251,29 @@ public class RestoreClient {
                 // Retrieving object from source
                 DigitalObject sourceObject = sourceStorage.getObject(id);
 
-                String originalFilePath = sourceObject.getMetadata()
-                        .getProperty("file.path");
-                File originalFile = new File(originalFilePath);
-                // Backup Original File instead of using link
-                DigitalObject destinationObject = StorageUtils.storeFile(
-                        storage, originalFile, false);
+                DigitalObject destinationObject = StorageUtils
+                        .getDigitalObject(storage, id);
+
+                // Create the source paylaod first
+                String sourceId = sourceObject.getSourceId();
+                Payload sourcePayload = sourceObject.getPayload(sourceId);
+                StorageUtils.createOrUpdatePayload(destinationObject,
+                        sourcePayload.getId(), sourcePayload.open());
 
                 // Creating payloads in the destination
                 for (String payloadId : sourceObject.getPayloadIdList()) {
-                    Payload payload = sourceObject.getPayload(payloadId);
-                    Payload newPayload = StorageUtils.createOrUpdatePayload(
-                            destinationObject, payload.getId(), payload.open());
-                    newPayload.setType(payload.getType());
+                    if (!payloadId.equals(sourceId)) {
+                        Payload payload = sourceObject.getPayload(payloadId);
+                        Payload newPayload = StorageUtils
+                                .createOrUpdatePayload(destinationObject,
+                                        payload.getId(), payload.open());
+                        newPayload.setType(payload.getType());
+                    }
                 }
+
+                // Set the file.path to nothing
+                destinationObject.getMetadata().setProperty("file.path",
+                        sourceId);
 
                 // Restore config file
                 String jsonConfigOid = sourceObject.getMetadata().getProperty(
