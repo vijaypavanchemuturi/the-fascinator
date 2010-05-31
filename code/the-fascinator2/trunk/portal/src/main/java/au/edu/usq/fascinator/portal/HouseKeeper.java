@@ -23,12 +23,17 @@ import au.edu.usq.fascinator.MessagingServices;
 import au.edu.usq.fascinator.api.PluginException;
 import au.edu.usq.fascinator.api.PluginManager;
 import au.edu.usq.fascinator.api.indexer.Indexer;
+import au.edu.usq.fascinator.api.storage.DigitalObject;
 import au.edu.usq.fascinator.api.storage.Storage;
+import au.edu.usq.fascinator.api.storage.StorageException;
 import au.edu.usq.fascinator.common.JsonConfig;
 import au.edu.usq.fascinator.common.JsonConfigHelper;
+import au.edu.usq.fascinator.common.storage.StorageUtils;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Stack;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -54,6 +59,9 @@ public class HouseKeeper implements GenericMessageListener {
 
     /** House Keeping queue */
     public static final String QUEUE_ID = "houseKeeping";
+
+    /** Default timeout = 5 mins */
+    public static final long DEFAULT_TIMEOUT = 300;
 
     /** Logging */
     private Logger log = LoggerFactory.getLogger(HouseKeeper.class);
@@ -85,12 +93,11 @@ public class HouseKeeper implements GenericMessageListener {
     /** Timer for callbacl events */
     private Timer timer;
 
-    /** Callback timeout for house keeping (in microseconds) */
-    // Currently 5 mins
-    private long timeout = 300000;
+    /** Callback timeout for house keeping (in seconds) */
+    private long timeout;
 
     /**
-     * Cache the current log in use and switch to ours
+     * Switch log file
      *
      */
     private void openLog() {
@@ -98,7 +105,7 @@ public class HouseKeeper implements GenericMessageListener {
     }
 
     /**
-     * Switch back to cached log file
+     * Revert log file
      *
      */
     private void closeLog() {
@@ -156,15 +163,16 @@ public class HouseKeeper implements GenericMessageListener {
             storage.init(sysFile);
 
             // Start our callback timer
-            log.info("Starting callback timer. Timeout = {}s",
-                    (timeout / 1000));
+            timeout = Long.valueOf(config.get("config/frequency",
+                    String.valueOf(DEFAULT_TIMEOUT)));
+            log.info("Starting callback timer. Timeout = {}s", timeout);
             timer = new Timer("HouseKeeping", true);
             timer.scheduleAtFixedRate(new TimerTask() {
                 @Override
                 public void run() {
                     onTimeout();
                 }
-            }, 0, timeout);
+            }, 0, timeout * 1000);
 
         } catch (IOException ioe) {
             log.error("Failed to read configuration: {}", ioe.getMessage());
@@ -300,6 +308,60 @@ public class HouseKeeper implements GenericMessageListener {
                 progressQueue();
             }
 
+            // Harvest file update
+            if (msgType.equals("harvest-update")) {
+                String oid = msgJson.get("oid");
+                if (oid != null) {
+                    UserAction ua = new UserAction();
+                    ua.block = false;
+                    ua.message = ("A harvest file has been updated: '"
+                            + oid + "'");
+                    processAction(ua);
+                    progressQueue();
+                } else {
+                    log.error("Invalid message, no harvest file OID provided!");
+                }
+            }
+
+            // User notications
+            if (msgType.equals("user-notice")) {
+                String messageText = msgJson.get("message");
+                if (messageText != null) {
+                    UserAction ua = new UserAction();
+                    ua.block = false;
+                    ua.message = messageText;
+                    processAction(ua);
+                    progressQueue();
+                } else {
+                    this.log.error("Invalid notice, no message text provided!");
+                }
+            }
+
+            // 'Refresh' received, check config and rest timer
+            if (msgType.equals("refresh")) {
+                log.info("Refreshing House Keeping");
+                globalConfig = new JsonConfig();
+                timeout = Long.valueOf(globalConfig.get(
+                        "portal/houseKeeping/config/frequency",
+                        String.valueOf(DEFAULT_TIMEOUT)));
+                log.info("Starting callback timer. Timeout = {}s", timeout);
+                timer.cancel();
+                timer = new Timer("HouseKeeping", true);
+                timer.scheduleAtFixedRate(new TimerTask() {
+                    @Override
+                    public void run() {
+                        onTimeout();
+                    }
+                }, 0, timeout * 1000);
+
+                // Show a message for the user
+                UserAction ua = new UserAction();
+                ua.block = false;
+                ua.message = ("House Keeping is restarting. Frequency = " +
+                        timeout + "s");
+                processAction(ua);
+                progressQueue();
+            }
         } catch (JMSException jmse) {
             log.error("Failed to receive message: {}", jmse.getMessage());
         } catch (IOException ioe) {
@@ -419,6 +481,56 @@ public class HouseKeeper implements GenericMessageListener {
      *
      */
     private void syncHarvestFiles() {
+        // Get the harvest files directory
+        String harvestPath = globalConfig.get("portal/harvestFiles");
+        if (harvestPath == null) {
+            return;
+        }
+
+        // Make sure the directory exists
+        File harvestDir = new File(harvestPath);
+        if (!harvestDir.exists() || !harvestDir.isDirectory()) {
+            return;
+        }
+
+        // Loop through the files from the directory
+        for (File file : getFiles(harvestDir)) {
+            DigitalObject object = null;
+            try {
+                // Check for the file in storage
+                object = StorageUtils.checkHarvestFile(storage, file);
+            } catch (StorageException ex) {
+                log.error("Error during harvest file check: ", ex);
+            }
+
+            if (object != null) {
+                // Generate a message to ourself. This merges with other places
+                //   where the update occurs (like the HarvestClient).
+                log.debug("Harvest file updated: '{}'", file.getAbsolutePath());
+                JsonConfigHelper message = new JsonConfigHelper();
+                message.set("type", "harvest-update");
+                message.set("oid", object.getId());
+                services.queueMessage(QUEUE_ID, message.toString());
+            }
+        }
+    }
+
+    /**
+     * Recursively generate a list of file in directory and sub-directories.
+     *
+     * @param dir The directory to list
+     * @return List<File> The list of files
+     */
+    private List<File> getFiles(File dir) {
+        List files = new ArrayList();
+        for (File file : dir.listFiles()) {
+            if (file.isDirectory()) {
+                files.addAll(getFiles(file));
+            } else {
+                files.add(file);
+            }
+        }
+        return files;
     }
 
     /**

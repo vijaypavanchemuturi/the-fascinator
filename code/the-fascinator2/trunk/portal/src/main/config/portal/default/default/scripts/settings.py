@@ -114,4 +114,7 @@ class SettingsData:
     def getEmail(self):
         return JsonConfig().get("email")
 
+    def getTimeout(self):
+        return JsonConfig().get("portal/houseKeeping/config/frequency")
+
 scriptObject = SettingsData()

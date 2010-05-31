@@ -1,5 +1,5 @@
 {
-    "version": "0.6.3",
+    "version": "0.6.4",
     "configured": false,
     "urlBase" : "http://localhost:9997/portal/",
     "email" : "fascinator@usq.edu.au",
@@ -96,7 +96,7 @@
         "houseKeeping": {
             "config": {
                 "desktop": true,
-                "defaultTemplate": "error"
+                "frequency": "300"
             }
         }
     }

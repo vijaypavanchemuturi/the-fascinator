@@ -36,8 +36,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author Greg Pendlebury
  */
-public class HouseKeepingManagerImpl
-        implements HouseKeepingManager {
+public class HouseKeepingManagerImpl implements HouseKeepingManager {
 
     /** Logging */
     private Logger log = LoggerFactory.getLogger(HouseKeepingManagerImpl.class);

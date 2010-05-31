@@ -22,4 +22,4 @@ for /f "tokens=1,2 delims=:" %%i in ("%http_proxy%") do (
 REM set environment
 if not defined FASCINATOR_HOME set FASCINATOR_HOME=%USERPROFILE%\.fascinator
 if not defined SOLR_BASE_DIR set SOLR_BASE_DIR=%FASCINATOR_HOME%
-set MAVEN_OPTS=-XX:MaxPermSize=128m -Xmx512m -Dhttp.proxyHost=%PROXY_HOST% -Dhttp.proxyPort=%PROXY_PORT% -Dhttp.nonProxyHosts=localhost -Dfascinator.home="%FASCINATOR_HOME%" -Dsolr.base.dir="%SOLR_BASE_DIR%" %MAVEN_OPTS%
+set MAVEN_OPTS=-XX:MaxPermSize=128m -Xmx512m -Dhttp.proxyHost=%PROXY_HOST% -Dhttp.proxyPort=%PROXY_PORT% -Dhttp.nonProxyHosts=localhost -Dfascinator.home="%FASCINATOR_HOME%" -Dsolr.base.dir="%SOLR_BASE_DIR%"

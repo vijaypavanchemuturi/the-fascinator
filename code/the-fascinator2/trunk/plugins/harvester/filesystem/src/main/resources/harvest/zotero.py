@@ -112,6 +112,8 @@ rules.add(AddField("id", oid))
 rules.add(AddField("storage_id", oid))
 rules.add(AddField("item_type", "object"))
 rules.add(AddField("last_modified", time.strftime("%Y-%m-%dT%H:%M:%SZ")))
+rules.add(AddField("harvest_config", params.getProperty("jsonConfigOid")))
+rules.add(AddField("harvest_rules",  params.getProperty("rulesOid")))
 
 rules.add(AddField("repository_name", params["repository.name"]))
 rules.add(AddField("repository_type", params["repository.type"]))

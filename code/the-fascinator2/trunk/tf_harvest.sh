@@ -17,25 +17,13 @@ function usage {
     echo "Usage: `basename $0` [jsonFile]"
     echo "Where [jsonFile] is a JSON configuration file."
     echo "If [jsonFile] is not an absolute path, the file is assumed to be in:"
-    echo "    $SAMPLE_DIR"
+    echo "    $HARVEST_DIR"
     echo "Available sample files:"
-    for SAMPLE_FILE in `ls $SAMPLE_DIR/*.json.sample`; do
-        TMP=${SAMPLE_FILE##*/resources/harvest/}
+    for HARVEST_FILE in `ls $HARVEST_DIR/*.json`; do
+        TMP=${HARVEST_FILE##*/harvest/}
         echo -n "    "
         echo $TMP | cut -d . -f 1-2
     done
-}
-
-# copy the sample files to be used
-function copy_sample {
-    if [ ! -f $1 ]; then
-        cp $1.sample $1
-        # get the associated rules file
-        RULES_FILE=$SAMPLE_DIR/`cat $1 | grep rules | cut -d \" -f 4`
-        if [ ! -f $RULES_FILE ]; then
-            cp $RULES_FILE.sample $RULES_FILE
-        fi
-    fi
 }
 
 # get fascinator home dir
@@ -43,14 +31,14 @@ pushd `dirname $0`
 TF_HOME=`pwd`
 popd
 
-SAMPLE_DIR=$TF_HOME/core/src/main/resources/harvest
+# setup environment
+. $TF_HOME/tf_env.sh
+
+HARVEST_DIR=$FASCINATOR_HOME/harvest
 if [ "$1" == "" ]; then
     usage
     exit 0
 fi
-
-# setup environment
-. $TF_HOME/tf_env.sh
 
 # get platform
 OS=`uname`
@@ -65,8 +53,7 @@ if [ $NUM_PROCS == 1 ]; then
     if [ -f $1 ]; then
         JSON_FILE=$1
     else
-        JSON_FILE=$SAMPLE_DIR/$1
-        copy_sample $JSON_FILE
+        JSON_FILE=$HARVEST_DIR/$1.json
     fi
     if [ -f $JSON_FILE ]; then
         mvn -f $TF_HOME/core/pom.xml -P dev -Dexec.args=$JSON_FILE -Dexec.mainClass=au.edu.usq.fascinator.HarvestClient exec:java &> $FASCINATOR_HOME/logs/harvest.out

@@ -6,7 +6,7 @@ REM only usable when installed in development mode
 REM get fascinator home dir
 for %%F in ("%0") do set TF_HOME=%%~dpF
 
-set SAMPLE_DIR=%TF_HOME%core\src\main\resources\harvest
+set HARVEST_DIR=%FASCINATOR_HOME%\harvest
 if "%1" == "" goto usage
 set JSON_FILE=%1
 
@@ -19,20 +19,25 @@ echo Please start The Fascinator before harvesting.
 goto end
 
 :harvest
-if exist "%JSON_FILE%" (set BASE_FILE=%JSON_FILE%) else (set BASE_FILE=%SAMPLE_DIR%\%JSON_FILE%)
-if not exist "%BASE_FILE%.json" copy "%BASE_FILE%.json.sample" "%BASE_FILE%.json"
-if not exist "%BASE_FILE%.py" copy "%BASE_FILE%.py.sample" "%BASE_FILE%.py"
+if exist "%JSON_FILE%" (set BASE_FILE=%JSON_FILE%) else (set BASE_FILE=%HARVEST_DIR%\%JSON_FILE%.json)
+if not exist "%BASE_FILE%" goto notfound
+REM escape slashes for exec.args
+set BASE_FILE=%BASE_FILE:\=\\%
 pushd "%TF_HOME%\core"
-call mvn -P dev -DjsonFile="%BASE_FILE%.json" exec:java >"%FASCINATOR_HOME%\logs\harvest.out"
+mvn -P dev -Dexec.args="%BASE_FILE%" -Dexec.mainClass=au.edu.usq.fascinator.HarvestClient exec:java > "%FASCINATOR_HOME%/logs/harvest.out"
 popd
 goto end
+
+:notfound
+echo Configuration file not found:
+echo '%BASE_FILE%'
 
 :usage
 echo Usage: %0 jsonFile
 echo Where jsonFile is a JSON configuration file
 echo If jsonFile is not an absolute path, the file is assumed to be in:
-echo     %SAMPLE_DIR%
+echo     %HARVEST_DIR%
 echo Available files:
-for /f "tokens=1,2* delims=." %%i in ('dir /b "%SAMPLE_DIR%\*.json.sample"') do @echo     %%~ni
+for /f "tokens=1,2* delims=." %%i in ('dir /b "%HARVEST_DIR%\*.json"') do @echo     %%~ni
 
 :end

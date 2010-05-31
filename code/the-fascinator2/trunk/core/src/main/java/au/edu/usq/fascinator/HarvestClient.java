@@ -18,6 +18,19 @@
  */
 package au.edu.usq.fascinator;
 
+import au.edu.usq.fascinator.api.PluginException;
+import au.edu.usq.fascinator.api.PluginManager;
+import au.edu.usq.fascinator.api.harvester.Harvester;
+import au.edu.usq.fascinator.api.harvester.HarvesterException;
+import au.edu.usq.fascinator.api.storage.DigitalObject;
+import au.edu.usq.fascinator.api.storage.Payload;
+import au.edu.usq.fascinator.api.storage.Storage;
+import au.edu.usq.fascinator.api.storage.StorageException;
+import au.edu.usq.fascinator.api.transformer.TransformerException;
+import au.edu.usq.fascinator.common.JsonConfig;
+import au.edu.usq.fascinator.common.JsonConfigHelper;
+import au.edu.usq.fascinator.common.storage.StorageUtils;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -32,22 +45,10 @@ import java.util.Set;
 import javax.jms.JMSException;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.MDC;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import au.edu.usq.fascinator.api.PluginException;
-import au.edu.usq.fascinator.api.PluginManager;
-import au.edu.usq.fascinator.api.harvester.Harvester;
-import au.edu.usq.fascinator.api.harvester.HarvesterException;
-import au.edu.usq.fascinator.api.storage.DigitalObject;
-import au.edu.usq.fascinator.api.storage.Payload;
-import au.edu.usq.fascinator.api.storage.Storage;
-import au.edu.usq.fascinator.api.storage.StorageException;
-import au.edu.usq.fascinator.api.transformer.TransformerException;
-import au.edu.usq.fascinator.common.JsonConfig;
-import au.edu.usq.fascinator.common.JsonConfigHelper;
-import au.edu.usq.fascinator.common.storage.StorageUtils;
 
 /**
  * 
@@ -147,7 +148,7 @@ public class HarvestClient {
             }
         } catch (IOException ioe) {
             throw new HarvesterException("Failed to read configuration file: '"
-                    + configFile + "'");
+                    + configFile + "'", ioe);
         }
 
         // initialise storage system
@@ -172,6 +173,30 @@ public class HarvestClient {
     }
 
     /**
+     * Update the harvest file in storage if required
+     * 
+     * @param file The harvest file to store
+     * @return DigitalObject The storage object with the file
+     * @throws StorageException If storage failed
+     */
+    private DigitalObject updateHarvestFile(File file) throws StorageException {
+        // Check the file in storage
+        DigitalObject object = StorageUtils.checkHarvestFile(storage, file);
+        if (object != null) {
+            // If we got an object back its new or updated
+            JsonConfigHelper message = new JsonConfigHelper();
+            message.set("type", "harvest-update");
+            message.set("oid", object.getId());
+            messaging.queueMessage("houseKeeping", message.toString());
+        } else {
+            // Otherwise grab the existing object
+            String oid = StorageUtils.generateOid(file);
+            object = StorageUtils.getDigitalObject(storage, oid);
+        }
+        return object;
+    }
+
+    /**
      * Start Harvesting Digital objects
      * 
      * @throws PluginException If harvest plugin not found
@@ -183,8 +208,8 @@ public class HarvestClient {
         log.info("Started at " + now);
 
         // cache harvester config and indexer rules
-        configObject = StorageUtils.storeFile(storage, configFile);
-        rulesObject = StorageUtils.storeFile(storage, rulesFile);
+        configObject = updateHarvestFile(configFile);
+        rulesObject = updateHarvestFile(rulesFile);
 
         // initialise the harvester
         Harvester harvester = null;
@@ -423,7 +448,17 @@ public class HarvestClient {
         if (args.length < 1) {
             log.info("Usage: harvest <json-config>");
         } else {
-            File jsonFile = new File(args[0]);
+            // TODO - http://jira.codehaus.org/browse/MEXEC-37
+            // Because of the bug in maven exec spaces in the
+            // path will result in incorrect arguements.
+            String filePath;
+            if (args.length > 1) {
+                filePath = StringUtils.join(args, " ");
+            } else {
+                filePath = args[0];
+            }
+
+            File jsonFile = new File(filePath);
             try {
                 HarvestClient harvest = new HarvestClient(jsonFile);
                 harvest.start();

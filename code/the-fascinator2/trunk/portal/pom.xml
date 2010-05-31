@@ -282,29 +282,42 @@
                                 <goals>
                                     <goal>unpack</goal>
                                 </goals>
+                                <configuration>
+                                    <markersDirectory>${fascinator.home}/markers</markersDirectory>
+                                    <artifactItems>
+                                        <artifactItem>
+                                            <groupId>au.edu.usq.fascinator.plugins</groupId>
+                                            <artifactId>plugin-indexer-solr</artifactId>
+                                            <version>0.6.0-SNAPSHOT</version>
+                                            <type>jar</type>
+                                            <outputDirectory>${solr.base.dir}</outputDirectory>
+                                            <includes>solr/**</includes>
+                                        </artifactItem>
+                                        <artifactItem>
+                                            <groupId>au.edu.usq.fascinator.plugins</groupId>
+                                            <artifactId>plugin-harvester-workflow</artifactId>
+                                            <version>0.6.0-SNAPSHOT</version>
+                                            <type>jar</type>
+                                            <outputDirectory>${fascinator.home}</outputDirectory>
+                                            <includes>workflows/**</includes>
+                                        </artifactItem>
+                                    </artifactItems>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>unpack-harvest-files</id>
+                                <phase>generate-sources</phase>
+                                <goals>
+                                    <goal>unpack-dependencies</goal>
+                                </goals>
+                                <configuration>
+                                    <includeGroupIds>au.edu.usq.fascinator.plugins</includeGroupIds>
+                                    <includeArtifactIds>plugin-harvester-filesystem,plugin-harvester-ice2,plugin-harvester-oai-pmh,plugin-harvester-workflow</includeArtifactIds>
+                                    <includes>harvest/**</includes>
+                                    <outputDirectory>${fascinator.home}</outputDirectory>
+                                </configuration>
                             </execution>
                         </executions>
-                        <configuration>
-                            <markersDirectory>${fascinator.home}/markers</markersDirectory>
-                            <artifactItems>
-                                <artifactItem>
-                                    <groupId>au.edu.usq.fascinator.plugins</groupId>
-                                    <artifactId>plugin-indexer-solr</artifactId>
-                                    <version>0.6.0-SNAPSHOT</version>
-                                    <type>jar</type>
-                                    <outputDirectory>${solr.base.dir}</outputDirectory>
-                                    <includes>solr/**</includes>
-                                </artifactItem>
-                                <artifactItem>
-                                    <groupId>au.edu.usq.fascinator.plugins</groupId>
-                                    <artifactId>plugin-harvester-workflow</artifactId>
-                                    <version>0.6.0-SNAPSHOT</version>
-                                    <type>jar</type>
-                                    <outputDirectory>${fascinator.home}</outputDirectory>
-                                    <includes>workflows/**</includes>
-                                </artifactItem>
-                            </artifactItems>
-                        </configuration>
                     </plugin>
                     <plugin>
                         <groupId>org.mortbay.jetty</groupId>
