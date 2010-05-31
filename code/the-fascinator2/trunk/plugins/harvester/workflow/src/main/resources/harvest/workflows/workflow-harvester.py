@@ -1,12 +1,16 @@
-import md5, os, time
+import time
 
 from au.edu.usq.fascinator.api.storage import StorageException
+from au.edu.usq.fascinator.common import JsonConfigHelper
+from au.edu.usq.fascinator.common.storage import StorageUtils
 from au.edu.usq.fascinator.indexer.rules import AddField, New
+
+from java.io import ByteArrayInputStream
+from java.lang import String
 
 #
 # Available objects:
 #    indexer    : Indexer instance
-#    log        : Logger instance
 #    jsonConfig : JsonConfigHelper of our harvest config file
 #    rules      : RuleManager instance
 #    object     : DigitalObject to index
@@ -15,9 +19,6 @@ from au.edu.usq.fascinator.indexer.rules import AddField, New
 #    pyUtils    : Utility object for accessing app logic
 #
 
-#
-# Index a path separated value as multiple field values
-#
 def indexPath(name, path, includeLastPart=True):
     parts = path.split("/")
     length = len(parts)
@@ -43,7 +44,20 @@ def getNodeValues (doc, xPath):
             nodeValue = node.getText()
             if nodeValue not in valueList:
                 valueList.append(node.getText())
-    return valueList 
+    return valueList
+
+def grantAccess(object, newRole):
+    schema = object.getAccessSchema("simple");
+    schema.setRecordId(oid)
+    schema.set("role", newRole)
+    object.setAccessSchema(schema, "simple")
+
+def revokeAccess(object, oldRole):
+    schema = object.getAccessSchema("simple");
+    schema.setRecordId(oid)
+    schema.set("role", oldRole)
+    object.removeAccessSchema(schema, "simple")
+    pass
 
 #start with blank solr document
 rules.add(New())
@@ -63,35 +77,27 @@ rules.add(AddField("id", oid))
 rules.add(AddField("storage_id", oid))
 rules.add(AddField("item_type", itemType))
 rules.add(AddField("last_modified", time.strftime("%Y-%m-%dT%H:%M:%SZ")))
+rules.add(AddField("harvest_config", params.getProperty("jsonConfigOid")))
+rules.add(AddField("harvest_rules",  params.getProperty("rulesOid")))
 
-# Security
-roles = pyUtils.getRolesWithAccess(oid)
-if roles is not None:
-    for role in roles:
-        rules.add(AddField("security_filter", role))
-else:
-    # Default to guest access if Null object returned
-    schema = pyUtils.getAccessSchema("simple");
-    schema.setRecordId(oid)
-    schema.set("role", "guest")
-    pyUtils.setAccessSchema(schema, "simple")
-    rules.add(AddField("security_filter", "guest"))
+item_security = []
+workflow_security = []
 
 if pid == metaPid:
     #only need to index metadata for the main object
     rules.add(AddField("repository_name", params["repository.name"]))
     rules.add(AddField("repository_type", params["repository.type"]))
-    
+
     titleList = []
     descriptionList = []
     creatorList = []
     creationDate = []
-    contributorList = [] 
-    approverList = []  
+    contributorList = []
+    approverList = []
     formatList = []
     fulltext = []
     relationDict = {}
-    
+
     ### Check if dc.xml returned from ice is exist or not. if not... process the dc-rdf
     try:
         dcPayload = object.getPayload("dc.xml")
@@ -277,6 +283,101 @@ if pid == metaPid:
         #print "Failed to index FFmpeg metadata (%s)" % str(e)
         pass
 
+    # Workflow data
+    WORKFLOW_ID = "workflow1"
+    wfChanged = False
+    customFields = {}
+    message_list = None
+    try:
+        wfPayload = object.getPayload("workflow.metadata")
+        wfMeta = JsonConfigHelper(wfPayload.open())
+        wfPayload.close()
+
+        # Are we indexing because of a workflow progression?
+        targetStep = wfMeta.get("targetStep")
+        if targetStep is not None and targetStep != wfMeta.get("step"):
+            wfChanged = True
+            # Step change
+            wfMeta.set("step", targetStep)
+            wfMeta.removePath("targetStep")
+
+        # This must be a re-index then
+        else:
+            targetStep = wfMeta.get("step")
+
+        # Security change
+        stages = jsonConfig.getJsonList("stages")
+        for stage in stages:
+            if stage.get("name") == targetStep:
+                wfMeta.set("label", stage.get("label"))
+                item_security = stage.getList("visibility")
+                workflow_security = stage.getList("security")
+                if wfChanged == True:
+                    message_list = stage.getList("message")
+
+        # Form processing
+        formData = wfMeta.getJsonList("formData")
+        if formData.size() > 0:
+            formData = formData[0]
+        else:
+            formData = None
+        coreFields = ["title", "creator", "contributor", "description", "format", "creationDate"]
+        if formData is not None:
+            # Core fields
+            title = formData.getList("title")
+            if title:
+                titleList = title
+            creator = formData.getList("creator")
+            if creator:
+                creatorList = creator
+            contributor = formData.getList("contributor")
+            if contributor:
+                contributorList = contributor
+            description = formData.getList("description")
+            if description:
+                descriptionList = description
+            format = formData.getList("format")
+            if format:
+                formatList = format
+            creation = formData.getList("creationDate")
+            if creation:
+                creationDate = creation
+            # Non-core fields
+            data = formData.getMap("/")
+            for field in data.keySet():
+                if field not in coreFields:
+                    customFields[field] = formData.getList(field)
+
+    except StorageException, e:
+        # No workflow payload, time to create
+        wfChanged = True
+        wfMeta = JsonConfigHelper()
+        wfMeta.set("id", WORKFLOW_ID)
+        wfMeta.set("step", "pending")
+        wfMeta.set("pageTitle", "Uploaded Files - Management")
+        stages = jsonConfig.getJsonList("stages")
+        for stage in stages:
+            if stage.get("name") == "pending":
+                wfMeta.set("label", stage.get("label"))
+                item_security = stage.getList("visibility")
+                workflow_security = stage.getList("security")
+                message_list = stage.getList("message")
+
+    # Has the workflow metadata changed?
+    if wfChanged == True:
+        jsonString = String(wfMeta.toString())
+        inStream = ByteArrayInputStream(jsonString.getBytes("UTF-8"))
+        try:
+            StorageUtils.createOrUpdatePayload(object, "workflow.metadata", inStream)
+        except StorageException, e:
+            print " * workflow-harvester.py : Error updating workflow payload"
+
+    rules.add(AddField("workflow_id", wfMeta.get("id")))
+    rules.add(AddField("workflow_step", wfMeta.get("step")))
+    rules.add(AddField("workflow_step_label", wfMeta.get("label")))
+    for group in workflow_security:
+        rules.add(AddField("workflow_security", group))
+
     # some defaults if the above failed
     if titleList == []:
        #use object's source id (i.e. most likely a filename)
@@ -284,32 +385,76 @@ if pid == metaPid:
     
     if formatList == []:
         payload = object.getPayload(object.getSourceId())
-        if payload.getContentType():
-            formatList.append(payload.getContentType())
-        else:
-            formatList.append("Unknown")
-    
+        formatList.append(payload.getContentType())
+
+    # Index our metadata finally
     indexList("dc_title", titleList)
     indexList("dc_creator", creatorList)  #no dc_author in schema.xml, need to check
     indexList("dc_contributor", contributorList)
     indexList("dc_description", descriptionList)
     indexList("dc_format", formatList)
     indexList("dc_date", creationDate)
-    
+
+    for key in customFields:
+        indexList(key, customFields[key])
+
     for key in relationDict:
         indexList(key, relationDict[key])
-    
+
     indexList("full_text", fulltext)
     baseFilePath = params["base.file.path"]
     filePath = object.getMetadata().getProperty("file.path")
     if baseFilePath:
         #NOTE: need to change again if the json file accept forward slash in window
         #get the base folder
-        baseFilePath = baseFilePath.replace("\\", "/")
-        if not baseFilePath.endswith("/"):
-           baseFilePath = "%s/" % baseFilePath
-        baseDir = baseFilePath[baseFilePath.rstrip("/").rfind("/")+1:]
+        baseDir = baseFilePath.rstrip("/")
+        baseDir = "/%s/" % baseDir[baseDir.rfind("/")+1:]
         filePath = filePath.replace("\\", "/").replace(baseFilePath, baseDir)
     indexPath("file_path", filePath, includeLastPart=False)
-    
-    
+
+    # AFTER saving the data, send messages for workflows
+    # Any messages for the new step?
+    if message_list is not None and len(message_list) > 0:
+        msg = JsonConfigHelper()
+        msg.set("oid", oid)
+        message = msg.toString()
+        for target in message_list:
+            pyUtils.sendMessage(target, message)
+
+# Security
+roles = pyUtils.getRolesWithAccess(oid)
+if roles is not None:
+    # For every role currently with access
+    for role in roles:
+        # Should show up, but during debugging we got a few
+        if role != "":
+            if role in item_security:
+                # They still have access
+                rules.add(AddField("security_filter", role))
+            else:
+                # Their access has been revoked
+                revokeAccess(pyUtils, role)
+    # Now for every role that the new step allows access
+    for role in item_security:
+        if role not in roles:
+            # Grant access if new
+            grantAccess(pyUtils, role)
+            rules.add(AddField("security_filter", role))
+# No existing security
+else:
+    if item_security is None:
+        # Guest access if none provided so far
+        grantAccess(pyUtils, "guest")
+        rules.add(AddField("security_filter", role))
+    else:
+        # Otherwise use workflow security
+        for role in item_security:
+            # Grant access if new
+            grantAccess(pyUtils, role)
+            rules.add(AddField("security_filter", role))
+# Ownership
+owner = params.getProperty("owner", None)
+if owner is None:
+    rules.add(AddField("owner", "system"))
+else:
+    rules.add(AddField("owner", owner))

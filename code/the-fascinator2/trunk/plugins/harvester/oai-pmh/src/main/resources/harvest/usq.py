@@ -43,6 +43,8 @@ else:
 rules.add(AddField("id", oid))
 rules.add(AddField("last_modified", time.strftime("%Y-%m-%dT%H:%M:%SZ")))
 rules.add(AddField("item_type", itemType))
+rules.add(AddField("harvest_config", params.getProperty("jsonConfigOid")))
+rules.add(AddField("harvest_rules",  params.getProperty("rulesOid")))
 
 # Security
 roles = pyUtils.getRolesWithAccess(oid)

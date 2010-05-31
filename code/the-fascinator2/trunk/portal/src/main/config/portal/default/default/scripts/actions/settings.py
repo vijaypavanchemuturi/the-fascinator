@@ -151,6 +151,20 @@ class SettingsActions:
             # mark restart
             Services.getHouseKeepingManager().requestUrgentRestart()
 
+        elif func == "housekeeping-update":
+            config = JsonConfig()
+            freq = StringUtils.trimToEmpty(formData.get("housekeeping-timeout"))
+            systemFreq = StringUtils.trimToEmpty(config.get("portal/houseKeeping/config/frequency"))
+            result = "House Keeper refreshed"
+            if systemFreq != freq:
+                config.set("portal/houseKeeping/config/frequency", freq, True)
+                config.store(NullWriter(), True)
+                result = "Frequency updated, refreshing House Keeper"
+            # Refresh the HouseKeeper
+            message = JsonConfigHelper()
+            message.set("type", "refresh")
+            Services.getHouseKeepingManager().sendMessage(message.toString())
+
         self.writer.println(result)
         self.writer.close()
 

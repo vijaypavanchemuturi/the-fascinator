@@ -18,22 +18,25 @@
  */
 package au.edu.usq.fascinator.common.storage;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.InputStream;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-
-import org.apache.commons.codec.digest.DigestUtils;
-import org.apache.commons.io.FilenameUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import au.edu.usq.fascinator.api.storage.DigitalObject;
 import au.edu.usq.fascinator.api.storage.Payload;
 import au.edu.usq.fascinator.api.storage.Storage;
 import au.edu.usq.fascinator.api.storage.StorageException;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.InputStream;
+import java.io.IOException;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.util.Properties;
+
+import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.io.FileUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Storage API utility methods.
@@ -64,9 +67,20 @@ public class StorageUtils {
         } catch (UnknownHostException uhe) {
         }
         String username = System.getProperty("user.name", "anonymous");
-        log.debug("Generating OID path:'{}' hostname:'{}' username:'{}'",
-                new String[] { path, hostname, username });
+        //log.debug("Generating OID path:'{}' hostname:'{}' username:'{}'",
+        //        new String[] { path, hostname, username });
         return DigestUtils.md5Hex(path + hostname + username);
+    }
+
+    /**
+     * Hash the internal contents of a file.
+     *
+     * @param file The File to hash
+     * @return String Hash of the file's contents
+     * @throws IOException If there was an error accessing the file
+     */
+    private static String hashFile(File file) throws IOException {
+        return DigestUtils.md5Hex(FileUtils.readFileToString(file));
     }
 
     /**
@@ -176,6 +190,76 @@ public class StorageUtils {
             }
         }
         return object;
+    }
+
+    /**
+     * Ensure the provided harvest file is up-to-date in storage.
+     *
+     * @param storage a Storage instance
+     * @param file to check in storage
+     * @return a DigitalObject
+     * @throws StorageException if the object could not be retrieved or created
+     */
+    public static DigitalObject checkHarvestFile(Storage storage, File file)
+            throws StorageException {
+        String oid = generateOid(file);
+        String lastMod = String.valueOf(file.lastModified());
+        DigitalObject object;
+        Properties metadata;
+
+        try {
+            // Get the object from storage
+            object = storage.getObject(oid);
+            try {
+                // Check when it was last saved
+                metadata = object.getMetadata();
+                String oldMod = metadata.getProperty("lastModified");
+
+                // Quick test - has it been changed?
+                if (!oldMod.equals(lastMod)) {
+                    // Hash the file contents
+                    String oldHash = metadata.getProperty("fileHash");
+                    String fileHash = hashFile(file);
+                    // Thorough test - have the contents changed?
+                    if (oldHash == null || !oldHash.equals(fileHash)) {
+                        // Update the file
+                        FileInputStream in = new FileInputStream(file);
+                        object.updatePayload(object.getSourceId(), in);
+                        // Update the metadata
+                        metadata.setProperty("lastModified", lastMod);
+                        metadata.setProperty("fileHash", fileHash);
+                        // Close and return
+                        object.close();
+                        return object;
+                    }
+                }
+            } catch (FileNotFoundException ex1) {
+                throw new StorageException("Harvest file not found: ", ex1);
+            } catch (IOException ex1) {
+                throw new StorageException("Error reading harvest file: ", ex1);
+            } catch (StorageException ex1) {
+                throw new StorageException("Error storing harvest file: ", ex1);
+            }
+
+        } catch (StorageException ex) {
+            // It wasn't found in storage
+            try {
+                // Store it
+                object = storeFile(storage, file);
+                // Update its metadata
+                metadata = object.getMetadata();
+                metadata.setProperty("lastModified", lastMod);
+                metadata.setProperty("fileHash", hashFile(file));
+                // Close and return
+                object.close();
+                return object;
+            } catch (IOException ex1) {
+                throw new StorageException("Error reading harvest file: ", ex1);
+            } catch (StorageException ex1) {
+                throw new StorageException("Error storing harvest file: ", ex1);
+            }
+        }
+        return null;
     }
 
     /**

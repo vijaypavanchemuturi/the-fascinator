@@ -152,11 +152,12 @@ public class Dispatch {
             && !isAjax) {
             log.debug("Resource: '{}'", resourceName);
             if (houseKeeping.requiresAction()) {
-                resourceName = houseKeeping.getTemplate();
-                if (resourceName == null) {
-                    resourceName = ERROR_RESOURCE;
+                String template = houseKeeping.getTemplate();
+                if (template != null) {
+                    resourceName = template;
+                    log.debug("House Keeping resource override: '{}'",
+                            resourceName);
                 }
-                log.debug("House Keeping resource override: '{}'", resourceName);
             }
         }
 

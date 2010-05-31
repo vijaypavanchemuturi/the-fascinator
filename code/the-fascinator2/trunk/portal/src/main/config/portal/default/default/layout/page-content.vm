@@ -1,4 +1,5 @@
 <div class="grid_16">
+  #parse($page.getTemplate('dialogs/notice.vm'))
   #parse($page.getTemplate('dialogs/login.vm'))
   #if($pageContent)
     $pageContent

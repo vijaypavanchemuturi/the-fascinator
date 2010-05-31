@@ -170,6 +170,7 @@
       #category("facets" "Facets")
       #category("backup" "Backup")
       #category("watcher" "Watcher")
+      #category("housekeeping" "House Keeping")
     </ul>
   </div>
 </div>
@@ -336,6 +337,24 @@
     #end
     </div>
   </div>
+  <div id="housekeeping-section" class="box hidden">
+    <h2>House Keeping</h2>
+    <form class="block category-form" id="housekeeping-form" method="post">
+      <fieldset class="login">
+        <p>
+          <label for="housekeeping-timeout">Frequency (in seconds)</label>
+          <input id="housekeeping-timeout" name="housekeeping-timeout" type="text" value="$self.getTimeout()" />
+        </p>
+      </fieldset>
+    </form>
+    <button class="update">Update</button>
+    <button class="cancel">Cancel</button>
+    <img class="hidden" id="housekeeping-loading" src="$portalPath/images/icons/loading.gif" />
+    <span id="housekeeping-message"></span>
+    <hr/>
+    <p><b>NOTE:</b> You can use 'Update' to cause the House Keeping process to fire now, even without any changes.</p>
+    <p/>
+  </div>
 </div>
 <script type="text/javascript" src="$portalPath/js/jquery-ui-1.7.2.custom.min.js"></script>
 <script type="text/javascript" src="$portalPath/js/jquery.cookie.js"></script>
@@ -354,27 +373,27 @@ $(function() {
         }
         return false;
     });
-    
+
     var selected = "general";
     #if($page.isConfigured())
         // restore selected category
         selected = jQuery.cookie("category") || selected;
     #end
     $("#" + selected + "-category").click();
-    
+
     // make text fields editable
     $(".field-text").live("click", function() {
         $(this).toggleClass("hidden").toggleClass("visible")
             .next().toggleClass("hidden").toggleClass("inline");
         return false;
     });
-    
+
     // submit editable fields
     $(".field-form").submit(function() {
         $(this).find(".accept").click();
         return false;
     });
-    
+
     // accept editable fields
     $(".field-form .accept").live("click", function() {
         var parentEl = $(this).parent(".field-form");
@@ -389,7 +408,7 @@ $(function() {
         }
         return false;
     });
-    
+
     // cancel editable fields
     $(".field-form .cancel").live("click", function() {
         $(this)
@@ -397,7 +416,7 @@ $(function() {
                 .prev().toggleClass("hidden").toggleClass("visible");
         return false;
     });
-    
+
     // add new table row
     $("button.add").click(function() {
         var rel = $(this).attr("rel");
@@ -421,13 +440,13 @@ $(function() {
         newRow.find(".field-input:first").focus();
         return false;
     });
-    
+
     // cancel form changes
     $("button.cancel").click(function() {
         window.location.reload();
         return false;
     });
-    
+
     // update general category
     $("#general-section button.update").removeAttr("disabled").click(function() {
         $(this).attr("disabled", "disabled");
@@ -455,7 +474,7 @@ $(function() {
             }
         });
     });
-    
+
     // update view category
     $("#view-section button.update").removeAttr("disabled").click(function() {
         $(this).attr("disabled", "disabled");
@@ -466,10 +485,10 @@ $(function() {
             function(data, status) { window.location.reload(); },
             "json");
     });
-    
+
     // drag n drop sorting of facets
     $("#facets-table").sortable({ axis: 'y' });
-    
+
     // save facet settings
     $("#facets-section button.update").removeAttr("disabled").click(function() {
         $(this).attr("disabled", "disabled");
@@ -499,7 +518,7 @@ $(function() {
             },
             "json");
     });
-    
+
     // save backup settings
     $("#backup-section button.update").removeAttr("disabled").click(function() {
         $(this).attr("disabled", "disabled");
@@ -523,7 +542,7 @@ $(function() {
             },
             "json");
     });
-    
+
     // save watcher settings
     $("#watcher-section button.update").removeAttr("disabled").click(function() {
         $(this).attr("disabled", "disabled");
@@ -547,6 +566,35 @@ $(function() {
             },
             "json");
     });
+
+    // update housekeeping category
+    $("#housekeeping-section button.update").removeAttr("disabled").click(function() {
+        $(this).attr("disabled", "disabled");
+        $("#housekeeping-loading").show();
+        var data = $("#housekeeping-form").serialize();
+        jQuery.ajax({
+            type : "POST",
+            url : "$portalPath/actions/settings.ajax?" + data,
+            success:
+                function(data, status) {
+                    $("#housekeeping-loading").hide();
+                    $("#housekeeping-message").text("Updated successfully");
+                    setTimeout(function() { $("#housekeeping-message").empty(); }, 3000);
+                    $("#housekeeping-section button.update").removeAttr("disabled");
+                },
+            error:
+                function (req, status, e) {
+                    $("#housekeeping-loading").hide();
+                    $("#housekeeping-message").text(req.responseText);
+                    setTimeout(function() { $("#housekeeping-message").empty(); }, 3000);
+                    $("#housekeeping-section button.update").removeAttr("disabled");
+                },
+            data: {
+                func: "housekeeping-update"
+            }
+        });
+    });
+
 });
 </script>
 
