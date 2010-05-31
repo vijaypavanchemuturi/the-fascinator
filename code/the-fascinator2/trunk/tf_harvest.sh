@@ -22,7 +22,7 @@ function usage {
     for HARVEST_FILE in `ls $HARVEST_DIR/*.json`; do
         TMP=${HARVEST_FILE##*/harvest/}
         echo -n "    "
-        echo $TMP | cut -d . -f 1-2
+        echo $TMP | cut -d . -f 1-1
     done
 }
 
