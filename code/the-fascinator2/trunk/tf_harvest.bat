@@ -6,12 +6,12 @@ REM only usable when installed in development mode
 REM get fascinator home dir
 for %%F in ("%0") do set TF_HOME=%%~dpF
 
+REM set environment
+call "%TF_HOME%tf_env.bat"
+
 set HARVEST_DIR=%FASCINATOR_HOME%\harvest
 if "%1" == "" goto usage
 set JSON_FILE=%1
-
-REM set environment
-call "%TF_HOME%tf_env.bat"
 
 set Cmd=tasklist /fi "windowtitle eq The Fascinator - mvn*" /fo csv /nh
 for /f "tokens=1*" %%i in ('%Cmd% ^| find "cmd.exe"') do goto harvest
