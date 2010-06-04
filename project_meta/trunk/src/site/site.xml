@@ -20,7 +20,6 @@
 
 		<menu name="Other Applications">
 			<item name="Watcher" href="http://fascinator.usq.edu.au/trac/wiki/Watcher" />
-			<!-- <item name="Feed Reader" href="" />  -->
 		</menu>
 
 		<menu ref="parent" />
