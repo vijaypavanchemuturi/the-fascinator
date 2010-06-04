@@ -207,6 +207,7 @@
 			</activation>
 			<reporting>
 				<plugins>
+                    <!-- 
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-project-info-reports-plugin</artifactId>
@@ -215,6 +216,7 @@
 							<aggregate>true</aggregate>
 						</configuration>
 					</plugin>
+      -->
 					<!--
 						<plugin> <groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-changes-plugin</artifactId>
