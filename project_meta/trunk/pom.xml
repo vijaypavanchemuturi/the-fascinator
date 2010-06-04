@@ -171,7 +171,7 @@
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-project-info-reports-plugin</artifactId>
-						<version>RELEASE</version>
+						<version>2.2</version>
 						<reportSets>
 							<reportSet>
 								<reports>
@@ -188,15 +188,6 @@
 							<aggregate>true</aggregate>
 						</configuration>
 					</plugin>
-					<!--
-						<plugin> <groupId>org.apache.maven.plugins</groupId>
-						<artifactId>maven-javadoc-plugin</artifactId>
-						<version>2.6.1</version> <configuration> <links>
-						<link>http://java.sun.com/javase/6/docs/api</link> </links>
-						</configuration> <reportSets> <reportSet> <id>default</id>
-						<reports> <report>javadoc</report> <report>test-javadoc</report>
-						</reports> </reportSet> </reportSets> </plugin>
-					-->
 				</plugins>
 			</reporting>
 		</profile>
@@ -207,21 +198,6 @@
 			</activation>
 			<reporting>
 				<plugins>
-                    <!-- 
-					<plugin>
-						<groupId>org.apache.maven.plugins</groupId>
-						<artifactId>maven-project-info-reports-plugin</artifactId>
-						<version>RELEASE</version>
-						<configuration>
-							<aggregate>true</aggregate>
-						</configuration>
-					</plugin>
-      -->
-					<!--
-						<plugin> <groupId>org.apache.maven.plugins</groupId>
-						<artifactId>maven-changes-plugin</artifactId>
-						<version>2.3</version> </plugin>
-					-->
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-javadoc-plugin</artifactId>
