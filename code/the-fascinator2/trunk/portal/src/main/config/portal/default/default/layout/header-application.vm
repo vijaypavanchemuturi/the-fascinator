@@ -14,6 +14,7 @@
     <li><a href="$portalPath/settings">Settings</a></li>
     <li><a href="$portalPath/admin">Admin</a></li>
     #end
+    #parse($page.getTemplate('elements/queues.vm'))
     #### not yet finished
     ##<li><a href="$portalPath/harvest">Harvest</a></li>
     <li class="secondary">

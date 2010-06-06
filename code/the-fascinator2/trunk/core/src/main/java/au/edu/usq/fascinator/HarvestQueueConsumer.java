@@ -18,22 +18,6 @@
  */
 package au.edu.usq.fascinator;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.Map;
-import java.util.Properties;
-
-import javax.jms.JMSException;
-import javax.jms.Message;
-import javax.jms.MessageConsumer;
-import javax.jms.Session;
-import javax.jms.TextMessage;
-import javax.xml.bind.JAXBException;
-
-import org.apache.log4j.MDC;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import au.edu.usq.fascinator.api.PluginException;
 import au.edu.usq.fascinator.api.PluginManager;
 import au.edu.usq.fascinator.api.indexer.Indexer;
@@ -44,7 +28,30 @@ import au.edu.usq.fascinator.api.storage.StorageException;
 import au.edu.usq.fascinator.api.transformer.TransformerException;
 import au.edu.usq.fascinator.common.JsonConfig;
 import au.edu.usq.fascinator.common.JsonConfigHelper;
-import au.edu.usq.fascinator.common.storage.StorageUtils;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.TreeMap;
+
+import javax.jms.Connection;
+import javax.jms.DeliveryMode;
+import javax.jms.JMSException;
+import javax.jms.Message;
+import javax.jms.MessageConsumer;
+import javax.jms.MessageProducer;
+import javax.jms.Queue;
+import javax.jms.Session;
+import javax.jms.TextMessage;
+import javax.jms.Topic;
+
+import org.apache.activemq.ActiveMQConnectionFactory;
+import org.apache.log4j.MDC;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Consumer for harvest transformers. Jobs in this queue should
@@ -53,10 +60,13 @@ import au.edu.usq.fascinator.common.storage.StorageUtils;
  * @author Oliver Lucido
  * @author Linda Octalina
  */
-public class HarvestQueueConsumer implements GenericMessageListener {
+public class HarvestQueueConsumer implements GenericListener {
 
     /** Harvest Queue name */
     public static final String HARVEST_QUEUE = "harvest";
+
+    /** Queue selector for critical user interface jobs */
+    public static final String CRITICAL_USER_SELECTOR = "userInterface";
 
     /** Logging */
     private Logger log = LoggerFactory.getLogger(HarvestQueueConsumer.class);
@@ -64,23 +74,83 @@ public class HarvestQueueConsumer implements GenericMessageListener {
     /** JSON configuration */
     private JsonConfig globalConfig;
 
+    /** JMS connection */
+    private Connection connection;
+
+    /** JMS Session */
+    private Session session;
+
+    /** Broadcast Topic */
+    private Topic broadcast;
+
+    /** Render Queues */
+    private Map<String,Queue> renderers;
+
+    /** Render Queue Names */
+    private Map<String,String> rendererNames;
+
     /** Indexer object */
     private Indexer indexer;
 
     /** Storage */
     private Storage storage;
 
-    /** Messaging Services */
-    private MessagingServices services;
-
     /** Messaging Consumer */
     private MessageConsumer consumer;
+
+    /** Message Producer instance */
+    private MessageProducer producer;
+
+    /** Thread reference */
+    private Thread thread;
+
+    /** Object being processed */
+    private DigitalObject object;
 
     /**
      * Constructor required by ServiceLoader. Be sure to use init()
      *
      */
-    public HarvestQueueConsumer() {}
+    public HarvestQueueConsumer() {
+        thread = new Thread(this, HARVEST_QUEUE);
+    }
+
+    /**
+     * Start thread running
+     *
+     */
+    @Override
+    public void run() {
+        try {
+            log.info("Starting harvest queue consumer...");
+            // Get a connection to the broker
+            String brokerUrl = globalConfig.get("messaging/url",
+                    ActiveMQConnectionFactory.DEFAULT_BROKER_BIND_URL);
+            ActiveMQConnectionFactory connectionFactory =
+                    new ActiveMQConnectionFactory(brokerUrl);
+            connection = connectionFactory.createConnection();
+
+            session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
+
+            consumer = session.createConsumer(
+                    session.createQueue(HARVEST_QUEUE));
+            consumer.setMessageListener(this);
+
+            broadcast = session.createTopic(MessagingServices.MESSAGE_TOPIC);
+            renderers = new TreeMap();
+            for (String selector : rendererNames.keySet()) {
+                renderers.put(selector,
+                        session.createQueue(rendererNames.get(selector)));
+            }
+            producer = session.createProducer(null);
+            producer.setDeliveryMode(DeliveryMode.PERSISTENT);
+
+            log.debug("Starting connection");
+            connection.start();
+        } catch (JMSException ex) {
+            log.error("Error starting message thread!", ex);
+        }
+    }
 
     /**
      * Initialization method
@@ -99,6 +169,16 @@ public class HarvestQueueConsumer implements GenericMessageListener {
             storage = PluginManager.getStorage(
                     globalConfig.get("storage/type", "file-system"));
             storage.init(sysFile);
+
+            // Setup render queue logic
+            rendererNames = new HashMap();
+            Map<String, Object> map = config.getMap("config/normal-renderers");
+            for (String selector : map.keySet()) {
+                rendererNames.put(selector, (String)map.get(selector));
+            }
+            String userQueue = config.get("config/user-renderer");
+            rendererNames.put(CRITICAL_USER_SELECTOR, userQueue);
+
         } catch (IOException ioe) {
             log.error("Failed to read configuration: {}", ioe.getMessage());
             throw ioe;
@@ -124,11 +204,7 @@ public class HarvestQueueConsumer implements GenericMessageListener {
      */
     @Override
     public void start() throws Exception {
-        log.info("Starting harvest queue consumer...");
-        services = MessagingServices.getInstance();
-        Session session = services.getSession();
-        consumer = session.createConsumer(session.createQueue(HARVEST_QUEUE));
-        consumer.setMessageListener(this);
+        thread.start();
     }
 
     /**
@@ -153,6 +229,13 @@ public class HarvestQueueConsumer implements GenericMessageListener {
                 throw pe;
             }
         }
+        if (producer != null) {
+            try {
+                producer.close();
+            } catch (JMSException jmse) {
+                log.warn("Failed to close producer: {}", jmse);
+            }
+        }
         if (consumer != null) {
             try {
                 consumer.close();
@@ -161,7 +244,20 @@ public class HarvestQueueConsumer implements GenericMessageListener {
                 throw jmse;
             }
         }
-        services.release();
+        if (session != null) {
+            try {
+                session.close();
+            } catch (JMSException jmse) {
+                log.warn("Failed to close consumer session: {}", jmse);
+            }
+        }
+        if (connection != null) {
+            try {
+                connection.close();
+            } catch (JMSException jmse) {
+                log.warn("Failed to close connection: {}", jmse);
+            }
+        }
     }
 
     /**
@@ -173,41 +269,37 @@ public class HarvestQueueConsumer implements GenericMessageListener {
     public void onMessage(Message message) {
         MDC.put("name", "harvest");
         try {
+            // Make sure thread priority is correct
+            if (!Thread.currentThread().getName().equals(thread.getName())) {
+                Thread.currentThread().setName(thread.getName());
+                Thread.currentThread().setPriority(thread.getPriority());
+            }
+
+            // Incoming message
             String text = ((TextMessage) message).getText();
             JsonConfig config = new JsonConfig(text);
             String oid = config.get("oid");
-            String source = config.get("source");
-            String path = config.get("sourceFile", oid);
             log.info("Received job, object id={}", oid, text);
-            boolean deleted = Boolean.parseBoolean(config.get("deleted",
-                    "false"));
+
+            // Simple scenario, delete object
+            boolean deleted = Boolean.parseBoolean(
+                    config.get("deleted", "false"));
             if (deleted) {
                 log.info("Removing object {}...", oid);
                 indexer.remove(oid);
-            } else {
-                // Extraction
-                if (source != null) {
-                    log.info("Adding new object {} from {}...", oid, source);
-                    File rulesFile = new File(config.get("configDir"), config
-                            .get("indexer/script/rules"));
-                    processObject(rulesFile, text, oid, path);
-                }
-                // Indexing
-                boolean doIndex = Boolean.parseBoolean(config.get(
-                        "transformer/indexOnHarvest", "true"));
-                if (doIndex) {
-                    sendNotification(oid, "indexStart", "Indexing '" + oid
-                            + "' started");
-                    log.info("Indexing object {}...", oid);
-                    indexer.index(oid);
-                    sendNotification(oid, "indexComplete", "Index of '" + oid
-                            + "' completed");
-                }
-                log.info("Queuing render job...");
-                queueRenderJob(oid, text);
+                return;
             }
+
+            // Retrieve and process the object
+            object = storage.getObject(oid);
+            transformObject(config);
+            indexObject(config);
+            queueRenderJob(config);
+
+        } catch (TransformerException tex) {
+            log.error("Error during transformation: {}", tex);
         } catch (JMSException jmse) {
-            log.error("Failed to receive message: {}", jmse.getMessage());
+            log.error("Failed to send/receive message: {}", jmse.getMessage());
         } catch (IOException ioe) {
             log.error("Failed to parse message: {}", ioe.getMessage());
         } catch (StorageException se) {
@@ -218,79 +310,118 @@ public class HarvestQueueConsumer implements GenericMessageListener {
     }
 
     /**
-     * Send the notification to Messaging service
-     * 
+     * Arrange for the item specified by the message to be transformed
+     *
+     * @param message The message received by the queue
+     * @throws StorageException if there was an error accessing the object
+     * @throws TransformerException if a transformer failed
+     */
+    private void transformObject(JsonConfig message)
+            throws StorageException, TransformerException {
+        // What transformations are required at the harvest step
+        List<String> plugins = ConveyerBelt.getTransformList(
+                object, message, ConveyerBelt.EXTRACTOR);
+
+        // No harvesting required
+        if (plugins.size() == 0) {
+            return;
+        }
+
+        // Perform the transformation
+        ConveyerBelt conveyerBelt =
+                new ConveyerBelt(message.toString(), ConveyerBelt.EXTRACTOR);
+        object = conveyerBelt.transform(object, plugins);
+    }
+
+    /**
+     * Arrange for the item specified by the message to be indexed
+     *
+     * @param message The message received by the queue
+     * @throws JMSException if there was an error sending messages
+     * @throws IndexerException if the solr indexer failed
+     * @throws StorageException if the object's metadata was inaccessible
+     */
+    private void indexObject(JsonConfig message)
+            throws JMSException, IndexerException, StorageException {
+        // Are we indexing?
+        boolean doIndex = true;
+        Properties props = object.getMetadata();
+        String indexFlag = props.getProperty("indexOnHarvest");
+        if (indexFlag != null) {
+            // The harvest process changed the default
+            doIndex = Boolean.parseBoolean(indexFlag);
+        } else {
+            // Nothing specified, use the default
+            doIndex = Boolean.parseBoolean(
+                    message.get("transformer/indexOnHarvest", "true"));
+        }
+
+        if (doIndex) {
+            String oid = object.getId();
+            sendNotification(oid, "indexStart",
+                    "Indexing '" + oid + "' started");
+            log.info("Indexing object {}...", oid);
+            indexer.index(oid);
+            sendNotification(oid, "indexComplete",
+                    "Index of '" + oid + "' completed");
+        }
+    }
+
+    /**
+     * Queue the render job
+     *
+     * @param message The message received by the queue
+     * @throws JMSException if there was an error posting to the queue
+     * @throws StorageException if the object's metadata was inaccessible
+     */
+    private void queueRenderJob(JsonConfig message)
+            throws JMSException, StorageException {
+        // What transformations are required at the render step
+        List<String> plugins = ConveyerBelt.getTransformList(
+                object, message, ConveyerBelt.RENDER);
+
+        TextMessage msg = session.createTextMessage(message.toString());
+        // 'renderers' is a TreeMap because the key order is significant
+        for (String selector : renderers.keySet()) {
+            if (plugins.contains(selector)) {
+                producer.send(renderers.get(selector), msg);
+                return;
+            }
+        }
+
+        // Default is the fallback
+        producer.send(renderers.get("default"), msg);
+    }
+
+    /**
+     * Send the notification out on the broadcast topic
+     *
      * @param oid Object Id
      * @param status Status of the object
      * @param message Message to be sent
      */
-    private void sendNotification(String oid, String status, String message) {
+    private void sendNotification(String oid, String status, String message)
+            throws JMSException {
         JsonConfigHelper jsonMessage = new JsonConfigHelper();
         jsonMessage.set("id", oid);
         jsonMessage.set("idType", "object");
         jsonMessage.set("status", status);
         jsonMessage.set("message", message);
-        services.publishMessage(MessagingServices.MESSAGE_TOPIC, jsonMessage
-                .toString());
+
+        TextMessage msg = session.createTextMessage(jsonMessage.toString());
+        producer.send(broadcast, msg);
     }
 
     /**
-     * Queue the render job
-     * 
-     * @param oid Object id
-     * @param json Configuration string
+     * Sets the priority level for the thread. Used by the OS.
+     *
+     * @param newPriority The priority level to set the thread at
      */
-    private void queueRenderJob(String oid, String json) {
-        services.queueMessage(RenderQueueConsumer.RENDER_QUEUE, json);
-    }
-
-    /**
-     * Process the object through Extractor transformer
-     * 
-     * @param rulesFile Rule file used for indexing
-     * @param jsonStr JSON Configuration string
-     * @param oid object id
-     * @param path path of the object
-     * @throws StorageException If fail to retrieve the object from the storage
-     * @throws IOException If the object is not found
-     */
-    private void processObject(File rulesFile, String jsonStr, String oid,
-            String path) throws StorageException, IOException {
-        try {
-            log.info("Processing " + oid + "...");
-
-            // cache the rules file
-            StorageUtils.storeFile(storage, rulesFile);
-
-            // get the object
-            DigitalObject object = storage.getObject(oid);
-
-            // transform it with just the extractor transformers
-            ConveyerBelt conveyerBelt = new ConveyerBelt(jsonStr,
-                    ConveyerBelt.EXTRACTOR);
-            object = conveyerBelt.transform(object);
-
-            // update object metadata
-            Properties props = object.getMetadata();
-            // FIXME objectId is redundant now?
-            props.setProperty("objectId", object.getId());
-            props.setProperty("scriptType",
-                    globalConfig.get("indexer/script/type"));
-            props.setProperty("rulesOid", rulesFile.getAbsolutePath());
-            props.setProperty("rulesPid", rulesFile.getName());
-            props.setProperty("render-pending", "true");
-            props.setProperty("owner", "system");
-            Map<String, Object> params = globalConfig.getMap("indexer/params");
-            for (String key : params.keySet()) {
-                props.setProperty(key, params.get(key).toString());
-            }
-
-            // done with the object
-            object.close();
-        } catch (StorageException re) {
-            throw new IOException(re);
-        } catch (TransformerException te) {
-            throw new IOException(te);
+    @Override
+    public void setPriority(int newPriority) {
+        if (newPriority >= Thread.MIN_PRIORITY &&
+            newPriority <= Thread.MAX_PRIORITY) {
+            thread.setPriority(newPriority);
         }
     }
 }

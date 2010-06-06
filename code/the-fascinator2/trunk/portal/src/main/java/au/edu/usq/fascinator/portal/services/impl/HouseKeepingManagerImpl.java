@@ -26,6 +26,7 @@ import au.edu.usq.fascinator.portal.services.HouseKeepingManager;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -65,6 +66,7 @@ public class HouseKeepingManagerImpl implements HouseKeepingManager {
             } else {
                 // Create
                 houseKeeper = new HouseKeeper();
+                houseKeeper.setPriority(Thread.MAX_PRIORITY);
                 // Initialise
                 houseKeeper.init(configList.get(0));
                 houseKeeper.start();
@@ -180,5 +182,15 @@ public class HouseKeepingManagerImpl implements HouseKeepingManager {
         JsonConfigHelper msg = new JsonConfigHelper();
         msg.set("type", "blocking-restart");
         sendMessage(msg.toString());
+    }
+
+    /**
+     * Get the latest statistics on message queues.
+     *
+     * @return Map<String, Map<String, String>> of all queues and their statistics
+     */
+    @Override
+    public Map<String, Map<String, String>> getQueueStats() {
+        return houseKeeper.getQueueStats();
     }
 }

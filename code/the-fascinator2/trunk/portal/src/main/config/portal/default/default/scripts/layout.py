@@ -40,4 +40,7 @@ class LayoutData:
     def getTemplate(self, templateName):
         return Services.pageService.resourceExists(portalId, templateName)
 
+    def getQueueStats(self):
+        return Services.getHouseKeepingManager().getQueueStats()
+
 scriptObject = LayoutData()

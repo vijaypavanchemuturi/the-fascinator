@@ -547,3 +547,23 @@ li img.workflow {
 .box h2 a.open {
     background-image: url("../images/icons/switch_minus.gif");
 }
+.queue-stats td, .queue-stats th {
+    text-align: center;
+    border: 1px solid #999999;
+}
+.queue-stats tr td:first-child,
+.queue-stats tr th:first-child {
+    text-align: left;
+    font-size: 120%;
+}
+.queue-stats tr.group th {
+    background-color: #CCCCCC;
+}
+.queue-stats td {
+    width: 12em;
+}
+ul.global-topic {
+    font-family: monospace;
+    border: 1px dashed #999999;
+    padding: 5px;
+}

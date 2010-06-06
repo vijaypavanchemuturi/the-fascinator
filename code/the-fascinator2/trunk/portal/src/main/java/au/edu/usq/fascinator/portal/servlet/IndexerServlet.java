@@ -18,13 +18,15 @@
  */
 package au.edu.usq.fascinator.portal.servlet;
 
-import au.edu.usq.fascinator.GenericMessageListener;
+import au.edu.usq.fascinator.GenericListener;
 import au.edu.usq.fascinator.common.FascinatorHome;
 import au.edu.usq.fascinator.common.JsonConfig;
 import au.edu.usq.fascinator.common.JsonConfigHelper;
+import au.edu.usq.fascinator.portal.BrokerMonitor;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
 import java.util.ServiceLoader;
@@ -37,7 +39,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.activemq.ActiveMQConnectionFactory;
+import org.apache.activemq.broker.BrokerPlugin;
 import org.apache.activemq.broker.BrokerService;
+import org.apache.activemq.plugin.StatisticsBrokerPlugin;
 import org.python.core.PySystemState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,16 +55,24 @@ import org.slf4j.LoggerFactory;
 @SuppressWarnings("serial")
 public class IndexerServlet extends HttpServlet {
 
+    /** Directory to store operational AMQ data */
     public static final String DEFAULT_MESSAGING_HOME = FascinatorHome
             .getPath("activemq-data");
 
+    /** Logger */
     private Logger log = LoggerFactory.getLogger(IndexerServlet.class);
 
+    /** Timer to support startup */
     private Timer timer;
 
-    private List<GenericMessageListener> messageQueues;
+    /** Configurable list of message queues */
+    private List<GenericListener> messageQueues;
 
+    /** Config */
     private JsonConfigHelper config;
+
+    /** AMQ Broker Monitor */
+    private BrokerMonitor monitor;
 
     /**
      * activemq broker NOTE: Will use Fedora's broker if fedora is running,
@@ -68,6 +80,11 @@ public class IndexerServlet extends HttpServlet {
      */
     private BrokerService broker;
 
+    /**
+     * Initialise the Servlet
+     *
+     * @throws ServletException If it found errors during startup
+     */
     @Override
     public void init() throws ServletException {
         // configure the broker
@@ -84,9 +101,10 @@ public class IndexerServlet extends HttpServlet {
             if (stompUrl != null) {
                 broker.addConnector(stompUrl);
             }
+            enableAMQStatistics(broker);
             broker.start();
         } catch (Exception e) {
-            log.error("Failed to start broker: {}", e.getMessage());
+            log.error("Failed to start broker: {}", e);
         }
 
         // add jars for jython to scan for packages
@@ -119,6 +137,30 @@ public class IndexerServlet extends HttpServlet {
         }, 0, 15000);
     }
 
+    /**
+     * Setup the broker so it will respond to statistics queries.
+     *
+     * @param broker to enable statistics for
+     */
+    private void enableAMQStatistics(BrokerService brokerService) {
+        // Start our stats plugin
+        StatisticsBrokerPlugin statsPlugin = new StatisticsBrokerPlugin();
+        // Find what plugins are already present
+        BrokerPlugin[] aPlugins = brokerService.getPlugins();
+        if (aPlugins == null) aPlugins = new BrokerPlugin[] {};
+        // Add stats to the list
+        List<BrokerPlugin> lPlugins = new ArrayList();
+        lPlugins.addAll(Arrays.asList(aPlugins));
+        lPlugins.add(statsPlugin);
+        // Setup the broker
+        broker.setPlugins(lPlugins.toArray(aPlugins));
+        broker.setEnableStatistics(true);
+    }
+
+    /**
+     * Startup our message queues.
+     *
+     */
     private void startIndexer() {
         log.info("Starting The Fascinator indexer...");
         if (messageQueues == null) {
@@ -128,14 +170,24 @@ public class IndexerServlet extends HttpServlet {
                 config.getJsonList("messaging/threads");
 
         try {
-            // TODO - This loop and timer should be more intelligent
-            //  It should track what instantiations succeeded and not
-            //  try those again on the next pass through.
+            // Start the AMQ monitor
+            if (monitor == null) {
+                monitor = new BrokerMonitor(broker);
+                // One behind house keeping
+                monitor.setPriority(Thread.MAX_PRIORITY - 1);
+                monitor.start();
+            }
+
+            // Start our configurable queues
             for (JsonConfigHelper thread : threadConfig) {
                 String classId = thread.get("id");
+                String priority = thread.get("priority");
                 if (classId != null) {
-                    GenericMessageListener queue = getListener(classId);
+                    GenericListener queue = getListener(classId);
                     if (queue != null) {
+                        if (priority != null) {
+                            queue.setPriority(Integer.valueOf(priority));
+                        }
                         queue.init(thread);
                         queue.start();
                         messageQueues.add(queue);
@@ -150,9 +202,21 @@ public class IndexerServlet extends HttpServlet {
                 }
             }
             log.info("The Fascinator indexer was started successfully");
+            // All is good, stop our callback
             timer.cancel();
             timer = null;
+
         } catch (Exception e) {
+            log.warn("Message queues startup failed. Shutting them down...");
+            for (GenericListener queue : messageQueues) {
+                try {
+                    queue.stop();
+                } catch (Exception ex) {
+                    log.error("Failed to stop listener '{}': {}",
+                            queue.getId(), ex.getMessage());
+                }
+            }
+            messageQueues = null;
             log.warn("Will retry in 15 seconds.", e);
         }
     }
@@ -163,10 +227,10 @@ public class IndexerServlet extends HttpServlet {
      * @param id Listener identifier
      * @return GenericMessageListener implementation matching the ID, if found
      */
-    public GenericMessageListener getListener(String id) {
-        ServiceLoader<GenericMessageListener> listeners =
-                ServiceLoader.load(GenericMessageListener.class);
-        for (GenericMessageListener listener : listeners) {
+    public GenericListener getListener(String id) {
+        ServiceLoader<GenericListener> listeners =
+                ServiceLoader.load(GenericListener.class);
+        for (GenericListener listener : listeners) {
             if (id.equals(listener.getId())) {
                 return listener;
             }
@@ -174,18 +238,38 @@ public class IndexerServlet extends HttpServlet {
         return null;
     }
 
+    /**
+     * Process an incoming GET request. We don't need to do anything.
+     *
+     * @param request The incoming request
+     * @param response The response object
+     * @throws ServletException If errors found
+     * @throws IOException If errors found
+     */
     @Override
     protected void doGet(HttpServletRequest request,
             HttpServletResponse response) throws ServletException, IOException {
         // do nothing
     }
 
+    /**
+     * Process an incoming POST request. We don't need to do anything.
+     *
+     * @param request The incoming request
+     * @param response The response object
+     * @throws ServletException If errors found
+     * @throws IOException If errors found
+     */
     @Override
     protected void doPost(HttpServletRequest request,
             HttpServletResponse response) throws ServletException, IOException {
         // do nothing
     }
 
+    /**
+     * Shuts down any objects requiring such.
+     *
+     */
     @Override
     public void destroy() {
         try {
@@ -193,8 +277,11 @@ public class IndexerServlet extends HttpServlet {
         } catch (Exception e) {
             log.error("Failed to stop message broker: {}", e.getMessage());
         }
+        if (monitor != null) {
+            monitor.stop();
+        }
         if (messageQueues != null) {
-            for (GenericMessageListener queue : messageQueues) {
+            for (GenericListener queue : messageQueues) {
                 try {
                     queue.stop();
                 } catch (Exception e) {

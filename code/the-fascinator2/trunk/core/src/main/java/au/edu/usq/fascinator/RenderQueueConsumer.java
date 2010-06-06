@@ -18,21 +18,6 @@
  */
 package au.edu.usq.fascinator;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.Properties;
-
-import javax.jms.Destination;
-import javax.jms.JMSException;
-import javax.jms.Message;
-import javax.jms.MessageConsumer;
-import javax.jms.Session;
-import javax.jms.TextMessage;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.slf4j.MDC;
-
 import au.edu.usq.fascinator.api.PluginException;
 import au.edu.usq.fascinator.api.PluginManager;
 import au.edu.usq.fascinator.api.indexer.Indexer;
@@ -44,6 +29,26 @@ import au.edu.usq.fascinator.api.transformer.TransformerException;
 import au.edu.usq.fascinator.common.JsonConfig;
 import au.edu.usq.fascinator.common.JsonConfigHelper;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.List;
+import java.util.Properties;
+
+import javax.jms.Connection;
+import javax.jms.DeliveryMode;
+import javax.jms.JMSException;
+import javax.jms.Message;
+import javax.jms.MessageConsumer;
+import javax.jms.MessageProducer;
+import javax.jms.Session;
+import javax.jms.TextMessage;
+import javax.jms.Topic;
+
+import org.apache.activemq.ActiveMQConnectionFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
+
 /**
  * Consumer for rendering transformers. Jobs in this queue are generally longer
  * running running processes and are started after the initial harvest.
@@ -51,16 +56,28 @@ import au.edu.usq.fascinator.common.JsonConfigHelper;
  * @author Oliver Lucido
  * @author Linda Octalina
  */
-public class RenderQueueConsumer implements GenericMessageListener {
+public class RenderQueueConsumer implements GenericListener {
+
+    /** Service Loader will look for this */
+    public static final String LISTENER_ID = "render";
 
     /** Render queue string */
-    public static final String RENDER_QUEUE = "render";
+    private String QUEUE_ID;
 
     /** Logging */
     private Logger log = LoggerFactory.getLogger(RenderQueueConsumer.class);
 
     /** JSON configuration */
     private JsonConfig globalConfig;
+
+    /** JMS connection */
+    private Connection connection;
+
+    /** JMS Session */
+    private Session session;
+
+    /** JMS Topic */
+    private Topic broadcast;
 
     /** Indexer object */
     private Indexer indexer;
@@ -71,17 +88,57 @@ public class RenderQueueConsumer implements GenericMessageListener {
     /** Message Consumer instance */
     private MessageConsumer consumer;
 
-    /** Messaging service instance */
-    private MessagingServices services;
+    /** Message Producer instance */
+    private MessageProducer producer;
 
     /** Name identifier to be put in the queue */
     private String name;
+
+    /** Thread reference */
+    private Thread thread;
+
+    /** Object being processed */
+    private DigitalObject object;
 
     /**
      * Constructor required by ServiceLoader. Be sure to use init()
      *
      */
-    public RenderQueueConsumer() {}
+    public RenderQueueConsumer() {
+        thread = new Thread(this, LISTENER_ID);
+    }
+
+    /**
+     * Start thread running
+     *
+     */
+    @Override
+    public void run() {
+        try {
+            log.info("Starting {}...", name);
+
+            // Get a connection to the broker
+            String brokerUrl = globalConfig.get("messaging/url",
+                    ActiveMQConnectionFactory.DEFAULT_BROKER_BIND_URL);
+            ActiveMQConnectionFactory connectionFactory =
+                    new ActiveMQConnectionFactory(brokerUrl);
+            connection = connectionFactory.createConnection();
+
+            session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
+
+            consumer = session.createConsumer(
+                    session.createQueue(QUEUE_ID));
+            consumer.setMessageListener(this);
+
+            broadcast = session.createTopic(MessagingServices.MESSAGE_TOPIC);
+            producer = session.createProducer(null);
+            producer.setDeliveryMode(DeliveryMode.PERSISTENT);
+
+            connection.start();
+        } catch (JMSException ex) {
+            log.error("Error starting message thread!", ex);
+        }
+    }
 
     /**
      * Initialization method
@@ -92,6 +149,9 @@ public class RenderQueueConsumer implements GenericMessageListener {
     @Override
     public void init(JsonConfigHelper config) throws Exception {
         this.name = config.get("config/name");
+        QUEUE_ID = name;
+        thread.setName(name);
+
         try {
             globalConfig = new JsonConfig();
             File sysFile = JsonConfig.getSystemFile();
@@ -116,7 +176,7 @@ public class RenderQueueConsumer implements GenericMessageListener {
      */
     @Override
     public String getId() {
-        return RENDER_QUEUE;
+        return LISTENER_ID;
     }
 
     /**
@@ -126,12 +186,7 @@ public class RenderQueueConsumer implements GenericMessageListener {
      */
     @Override
     public void start() throws Exception {
-        log.info("Starting {}...", name);
-        services = MessagingServices.getInstance();
-        Session session = services.getSession();
-        Destination destination = session.createQueue(RENDER_QUEUE);
-        consumer = session.createConsumer(destination);
-        consumer.setMessageListener(this);
+        thread.start();
     }
 
     /**
@@ -157,6 +212,13 @@ public class RenderQueueConsumer implements GenericMessageListener {
                 throw pe;
             }
         }
+        if (producer != null) {
+            try {
+                producer.close();
+            } catch (JMSException jmse) {
+                log.warn("Failed to close producer: {}", jmse);
+            }
+        }
         if (consumer != null) {
             try {
                 consumer.close();
@@ -165,7 +227,20 @@ public class RenderQueueConsumer implements GenericMessageListener {
                 throw jmse;
             }
         }
-        services.release();
+        if (session != null) {
+            try {
+                session.close();
+            } catch (JMSException jmse) {
+                log.warn("Failed to close consumer session: {}", jmse);
+            }
+        }
+        if (connection != null) {
+            try {
+                connection.close();
+            } catch (JMSException jmse) {
+                log.warn("Failed to close connection: {}", jmse);
+            }
+        }
     }
 
     /**
@@ -177,34 +252,43 @@ public class RenderQueueConsumer implements GenericMessageListener {
     public void onMessage(Message message) {
         MDC.put("name", name);
         try {
+            // Make sure thread priority is correct
+            if (!Thread.currentThread().getName().equals(thread.getName())) {
+                Thread.currentThread().setName(thread.getName());
+                Thread.currentThread().setPriority(thread.getPriority());
+            }
+
+            // Get the message deatils
             String text = ((TextMessage) message).getText();
             JsonConfig config = new JsonConfig(text);
             String oid = config.get("oid");
-            boolean commit = Boolean
-                    .parseBoolean(config.get("commit", "false"));
-
-            sendNotification(oid, "renderStart", "Renderer starting : '" + oid
-                    + "'");
             log.info("Received job, object id={}", oid);
+
+            // Get our object from storage
+            object = storage.getObject(oid);
+            sendNotification(oid, "renderStart",
+                    "Renderer starting : '" + oid + "'");
+
+            // Push through the conveyer belt
             log.info("Updating object...");
-            DigitalObject object = storage.getObject(oid);
-            ConveyerBelt conveyerBelt = new ConveyerBelt(text,
-                    ConveyerBelt.RENDER);
-            object = conveyerBelt.transform(object);
+            transformObject(config);
+
+            // Index the object
             log.info("Indexing object...");
             indexer.index(object.getId());
-            if (commit) {
+            if (Boolean.parseBoolean(config.get("commit", "false"))) {
                 indexer.commit();
             }
-            sendNotification(oid, "renderComplete", "Renderer complete : '"
-                    + oid + "'");
-            // update object metadata
+
+            // Finish up
+            sendNotification(oid, "renderComplete",
+                    "Renderer complete : '" + oid + "'");
             Properties props = object.getMetadata();
             props.setProperty("render-pending", "false");
-
             object.close();
+
         } catch (JMSException jmse) {
-            log.error("Failed to receive message: {}", jmse.getMessage());
+            log.error("Failed to send/receive message: {}", jmse.getMessage());
         } catch (IOException ioe) {
             log.error("Failed to parse message: {}", ioe.getMessage());
         } catch (StorageException se) {
@@ -217,19 +301,58 @@ public class RenderQueueConsumer implements GenericMessageListener {
     }
 
     /**
-     * Send the notification to the queue
+     * Arrange for the item specified by the message to be transformed
+     *
+     * @param message The message received by the queue
+     * @throws StorageException if there was an error accessing the object
+     * @throws TransformerException if a transformer failed
+     */
+    private void transformObject(JsonConfig message)
+            throws StorageException, TransformerException {
+        // What transformations are required at the harvest step
+        List<String> plugins = ConveyerBelt.getTransformList(
+                object, message, ConveyerBelt.RENDER);
+
+        // No harvesting required
+        if (plugins.size() == 0) {
+            return;
+        }
+
+        // Perform the transformation
+        ConveyerBelt conveyerBelt =
+                new ConveyerBelt(message.toString(), ConveyerBelt.RENDER);
+        object = conveyerBelt.transform(object, plugins);
+    }
+
+    /**
+     * Send the notification out on the broadcast topic
      * 
      * @param oid Object id
      * @param status Status of the object
      * @param message Message to be sent
      */
-    private void sendNotification(String oid, String status, String message) {
+    private void sendNotification(String oid, String status, String message)
+            throws JMSException {
         JsonConfigHelper jsonMessage = new JsonConfigHelper();
         jsonMessage.set("id", oid);
         jsonMessage.set("idType", "object");
         jsonMessage.set("status", status);
         jsonMessage.set("message", message);
-        services.publishMessage(MessagingServices.MESSAGE_TOPIC, jsonMessage
-                .toString());
+
+        TextMessage msg = session.createTextMessage(jsonMessage.toString());
+        producer.send(broadcast, msg);
+    }
+
+    /**
+     * Sets the priority level for the thread. Used by the OS.
+     *
+     * @param newPriority The priority level to set the thread at
+     */
+    @Override
+    public void setPriority(int newPriority) {
+        if (newPriority >= Thread.MIN_PRIORITY &&
+            newPriority <= Thread.MAX_PRIORITY) {
+            thread.setPriority(newPriority);
+        }
     }
 }
