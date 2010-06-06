@@ -18,8 +18,7 @@
  */
 package au.edu.usq.fascinator.portal;
 
-import au.edu.usq.fascinator.GenericMessageListener;
-import au.edu.usq.fascinator.MessagingServices;
+import au.edu.usq.fascinator.GenericListener;
 import au.edu.usq.fascinator.api.PluginException;
 import au.edu.usq.fascinator.api.PluginManager;
 import au.edu.usq.fascinator.api.indexer.Indexer;
@@ -33,18 +32,25 @@ import au.edu.usq.fascinator.common.storage.StorageUtils;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Stack;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import javax.jms.Connection;
+import javax.jms.DeliveryMode;
 import javax.jms.Destination;
 import javax.jms.JMSException;
 import javax.jms.Message;
 import javax.jms.MessageConsumer;
+import javax.jms.MessageProducer;
+import javax.jms.Queue;
 import javax.jms.Session;
 import javax.jms.TextMessage;
 
+import org.apache.activemq.ActiveMQConnectionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
@@ -55,7 +61,7 @@ import org.slf4j.MDC;
  *
  * @author Greg Pendlebury
  */
-public class HouseKeeper implements GenericMessageListener {
+public class HouseKeeper implements GenericListener {
 
     /** House Keeping queue */
     public static final String QUEUE_ID = "houseKeeping";
@@ -69,6 +75,15 @@ public class HouseKeeper implements GenericMessageListener {
     /** System configuration */
     private JsonConfig globalConfig;
 
+    /** JMS connection */
+    private Connection connection;
+
+    /** JMS Session - Producer */
+    private Session pSession;
+
+    /** JMS Session - Consumer */
+    private Session cSession;
+
     /** Desktop installation */
     private boolean desktop;
 
@@ -81,8 +96,11 @@ public class HouseKeeper implements GenericMessageListener {
     /** Message Consumer instance */
     private MessageConsumer consumer;
 
-    /** Messaging service instance */
-    private MessagingServices services;
+    /** Message Producer instance */
+    private MessageProducer producer;
+
+    /** Message Destination - House Keeping*/
+    private Queue destHouseKeeping;
 
     /** Stack of actions needing attention */
     private Stack<UserAction> actionQueue;
@@ -90,11 +108,17 @@ public class HouseKeeper implements GenericMessageListener {
     /** Current action needing attention */
     private UserAction currentAction;
 
-    /** Timer for callbacl events */
+    /** Timer for callback events */
     private Timer timer;
 
     /** Callback timeout for house keeping (in seconds) */
     private long timeout;
+
+    /** Thread reference */
+    private Thread thread;
+
+    /** Queue data */
+    private Map<String, Map<String, String>> stats;
 
     /**
      * Switch log file
@@ -133,7 +157,47 @@ public class HouseKeeper implements GenericMessageListener {
      * Constructor required by ServiceLoader. Be sure to use init()
      *
      */
-    public HouseKeeper() {}
+    public HouseKeeper() {
+        thread = new Thread(this, QUEUE_ID);
+    }
+
+    /**
+     * Start thread running
+     *
+     */
+    @Override
+    public void run() {
+        try {
+            globalConfig = new JsonConfig();
+            // Get a connection to the broker
+            String brokerUrl = globalConfig.get("messaging/url",
+                    ActiveMQConnectionFactory.DEFAULT_BROKER_BIND_URL);
+            ActiveMQConnectionFactory connectionFactory =
+                    new ActiveMQConnectionFactory(brokerUrl);
+            connection = connectionFactory.createConnection();
+
+            // Sessions are not thread safe, to send a message outside
+            //  of the onMessage() callback you need another session.
+            cSession = connection.createSession(false,Session.AUTO_ACKNOWLEDGE);
+            pSession = connection.createSession(false,Session.AUTO_ACKNOWLEDGE);
+
+            Destination destination = cSession.createQueue(QUEUE_ID);
+            consumer = cSession.createConsumer(destination);
+            consumer.setMessageListener(this);
+
+            // Producer
+            destHouseKeeping = pSession.createQueue(QUEUE_ID);
+            producer = pSession.createProducer(null);
+            producer.setDeliveryMode(DeliveryMode.PERSISTENT);
+
+            connection.start();
+
+        } catch (IOException ex) {
+            log.error("Unable to read config!", ex);
+        } catch (JMSException ex) {
+            log.error("Error starting message thread!", ex);
+        }
+    }
 
     /**
      * Initialization method
@@ -153,6 +217,7 @@ public class HouseKeeper implements GenericMessageListener {
                     config.get("config/desktop", "true"));
             File sysFile = JsonConfig.getSystemFile();
             actionQueue = new Stack();
+            stats = new HashMap();
 
             // Initialise plugins
             indexer = PluginManager.getIndexer(
@@ -201,11 +266,7 @@ public class HouseKeeper implements GenericMessageListener {
      */
     @Override
     public void start() throws Exception {
-        services = MessagingServices.getInstance();
-        Session session = services.getSession();
-        Destination destination = session.createQueue(QUEUE_ID);
-        consumer = session.createConsumer(destination);
-        consumer.setMessageListener(this);
+        thread.start();
     }
 
     /**
@@ -216,6 +277,7 @@ public class HouseKeeper implements GenericMessageListener {
     public void stop() throws Exception {
         openLog();
         log.info("Stopping House Keeping object...");
+        timer.cancel();
         if (indexer != null) {
             try {
                 indexer.shutdown();
@@ -243,7 +305,27 @@ public class HouseKeeper implements GenericMessageListener {
                 throw jmse;
             }
         }
-        services.release();
+        if (cSession != null) {
+            try {
+                cSession.close();
+            } catch (JMSException jmse) {
+                log.warn("Failed to close consumer session: {}", jmse);
+            }
+        }
+        if (pSession != null) {
+            try {
+                pSession.close();
+            } catch (JMSException jmse) {
+                log.warn("Failed to close consumer session: {}", jmse);
+            }
+        }
+        if (connection != null) {
+            try {
+                connection.close();
+            } catch (JMSException jmse) {
+                log.warn("Failed to close connection: {}", jmse);
+            }
+        }
         closeLog();
     }
 
@@ -254,7 +336,11 @@ public class HouseKeeper implements GenericMessageListener {
     private void onTimeout() {
         openLog();
 
-        log.info("House Keeping Timeout event firing...");
+        // Make sure thread priority is correct
+        if (!Thread.currentThread().getName().equals(thread.getName())) {
+            Thread.currentThread().setName(thread.getName());
+            Thread.currentThread().setPriority(thread.getPriority());
+        }
 
         // Perform our 'boot time' house keeping
         syncHarvestFiles();
@@ -272,10 +358,16 @@ public class HouseKeeper implements GenericMessageListener {
     public void onMessage(Message message) {
         openLog();
         try {
+            // Make sure thread priority is correct
+            if (!Thread.currentThread().getName().equals(thread.getName())) {
+                Thread.currentThread().setName(thread.getName());
+                Thread.currentThread().setPriority(thread.getPriority());
+            }
+
             // Doesn't really do anything yet
             String text = ((TextMessage) message).getText();
             JsonConfigHelper msgJson = new JsonConfigHelper(text);
-            log.info("Message\n{}", msgJson.toString());
+            //log.debug("Message\n{}", msgJson.toString());
 
             String msgType = msgJson.get("type");
             if (msgType == null) {
@@ -334,6 +426,29 @@ public class HouseKeeper implements GenericMessageListener {
                     progressQueue();
                 } else {
                     this.log.error("Invalid notice, no message text provided!");
+                }
+            }
+
+            // Statistics update from Broker Monitor
+            if (msgType.equals("broker-update")) {
+                Map<String, JsonConfigHelper> queues =
+                        msgJson.getJsonMap("stats");
+                for (String q : queues.keySet()) {
+                    JsonConfigHelper qData = queues.get(q);
+                    Map<String, String> qStats = new HashMap();
+                    qStats.put("total",   qData.get("total"));
+                    qStats.put("lost",    qData.get("lost"));
+                    qStats.put("memory",  qData.get("memory"));
+                    qStats.put("size",    qData.get("size"));
+                    // Round to an integer value
+                    int spd = Float.valueOf(qData.get("speed")).intValue();
+                    qStats.put("speed",   String.valueOf(spd));
+                    // Change from milliseconds to seconds
+                    float avg = Float.valueOf(qData.get("average")) / 1000;
+                    // Round to two digits
+                    avg = Math.round(avg * 100)/100;
+                    qStats.put("average", String.valueOf(avg));
+                    stats.put(q, qStats);
                 }
             }
 
@@ -510,7 +625,11 @@ public class HouseKeeper implements GenericMessageListener {
                 JsonConfigHelper message = new JsonConfigHelper();
                 message.set("type", "harvest-update");
                 message.set("oid", object.getId());
-                services.queueMessage(QUEUE_ID, message.toString());
+                try {
+                    sendMessage(destHouseKeeping, message.toString());
+                } catch (JMSException ex) {
+                    log.error("Couldn't message House Keeping!", ex);
+                }
             }
         }
     }
@@ -622,5 +741,38 @@ public class HouseKeeper implements GenericMessageListener {
         } else {
             // TODO : Somefink needs doing for server installations
         }
+    }
+
+    /**
+     * Send an update to House Keeping
+     *
+     * @param message Message to be sent
+     */
+    private void sendMessage(Destination destination, String message)
+            throws JMSException {
+        TextMessage msg = pSession.createTextMessage(message);
+        producer.send(destination, msg);
+    }
+
+    /**
+     * Sets the priority level for the thread. Used by the OS.
+     *
+     * @param newPriority The priority level to set the thread at
+     */
+    @Override
+    public void setPriority(int newPriority) {
+        if (newPriority >= Thread.MIN_PRIORITY &&
+            newPriority <= Thread.MAX_PRIORITY) {
+            thread.setPriority(newPriority);
+        }
+    }
+
+    /**
+     * Get the latest statistics on message queues.
+     *
+     * @return Map<String, Map<String, String>> of all queues and their statistics
+     */
+    public Map<String, Map<String, String>> getQueueStats() {
+        return stats;
     }
 }

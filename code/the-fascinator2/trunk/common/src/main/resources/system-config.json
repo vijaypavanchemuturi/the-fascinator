@@ -1,5 +1,5 @@
 {
-    "version": "0.6.4",
+    "version": "0.6.6",
     "configured": false,
     "urlBase" : "http://localhost:9997/portal/",
     "email" : "fascinator@usq.edu.au",
@@ -43,26 +43,43 @@
         "threads" : [
             {
                 "id" : "harvest",
+                "priority" : "7",
                 "config" : {
-                    "name" : "harvester"
+                    "name" : "harvester",
+                    "normal-renderers" : {
+                        "ffmpeg" : "renderLow",
+                        "ice2" : "renderNormal",
+                        "default" : "renderHigh"
+                    },
+                    "user-renderer" : "renderUser"
                 }
             },
             {
                 "id" : "render",
+                "priority" : "8",
                 "config" : {
-                    "name" : "render0"
+                    "name" : "renderUser"
                 }
             },
             {
                 "id" : "render",
+                "priority" : "6",
                 "config" : {
-                    "name" : "render1"
+                    "name" : "renderHigh"
                 }
             },
             {
                 "id" : "render",
+                "priority" : "5",
                 "config" : {
-                    "name" : "render2"
+                    "name" : "renderNormal"
+                }
+            },
+            {
+                "id" : "render",
+                "priority" : "3",
+                "config" : {
+                    "name" : "renderLow"
                 }
             }
         ]

@@ -18,6 +18,7 @@
  */
 package au.edu.usq.fascinator.portal.services;
 
+import java.util.Map;
 import org.apache.tapestry5.ioc.services.RegistryShutdownListener;
 
 /**
@@ -73,4 +74,11 @@ public interface HouseKeepingManager extends RegistryShutdownListener {
      *
      */
     public void requestUrgentRestart();
+
+    /**
+     * Get the latest statistics on message queues.
+     *
+     * @return Map<String, Map<String, String>> of all queues and their statistics
+     */
+    public Map<String, Map<String, String>> getQueueStats();
 }

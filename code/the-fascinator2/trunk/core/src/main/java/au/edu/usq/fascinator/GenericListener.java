@@ -31,7 +31,7 @@ import au.edu.usq.fascinator.common.JsonConfigHelper;
  *
  * @author Greg Pendlebury
  */
-public interface GenericMessageListener extends MessageListener {
+public interface GenericListener extends MessageListener, Runnable {
 
     /**
      * Initialization method
@@ -60,4 +60,11 @@ public interface GenericMessageListener extends MessageListener {
      * @throws Exception if an error occurred stopping
      */
     public void stop() throws Exception;
+
+    /**
+     * Sets the priority level for the thread. Used by the OS.
+     *
+     * @param newPriority The priority level to set the thread at
+     */
+    public void setPriority(int newPriority);
 }

@@ -18,21 +18,24 @@
  */
 package au.edu.usq.fascinator;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.util.List;
-
-import org.apache.commons.lang.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import au.edu.usq.fascinator.api.PluginException;
 import au.edu.usq.fascinator.api.PluginManager;
 import au.edu.usq.fascinator.api.storage.DigitalObject;
+import au.edu.usq.fascinator.api.storage.StorageException;
 import au.edu.usq.fascinator.api.transformer.Transformer;
 import au.edu.usq.fascinator.api.transformer.TransformerException;
 import au.edu.usq.fascinator.common.JsonConfig;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Properties;
+import org.apache.commons.lang.StringUtils;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * ConveyerBelt class to handle transformation of an object
@@ -60,8 +63,37 @@ public class ConveyerBelt {
     /** Configuration string */
     private String jsonString;
 
+    /** List of plugins to use */
+    private List<Object> plugins;
+
     /** Logging */
     private static Logger log = LoggerFactory.getLogger(ConveyerBelt.class);
+
+    /**
+     * Find out what transformers are required to run for a particular step.
+     *
+     * @param props A propeties object containing item specific metadata.
+     * @param config The configuration for the particular harvester.
+     * @param step The transormation step required
+     */
+    public static List<String> getTransformList(DigitalObject object,
+            JsonConfig config, String step) throws StorageException {
+        List<String> plugins = new ArrayList();
+        String pluginList = object.getMetadata().getProperty(step);
+        if (pluginList != null && !pluginList.equals("")) {
+            // Turn the string into a real list
+            for (String plugin : StringUtils.split(pluginList, ",")) {
+                plugins.add(StringUtils.trim(plugin));
+            }
+        } else {
+            // The harvester specified none, fallback to the
+            //  default list for this harvest source.
+            for (Object obj : config.getList("transformer/" + step)) {
+                plugins.add(StringUtils.trim(obj.toString()));
+            }
+        }
+        return plugins;
+    }
 
     /**
      * Conveyer Belt Constructor
@@ -104,13 +136,11 @@ public class ConveyerBelt {
      * @return transformed obect
      * @throws TransformerException if transformation fail
      */
-    public DigitalObject transform(DigitalObject object)
+    public DigitalObject transform(DigitalObject object, List<String> pluginList)
             throws TransformerException {
-        List<Object> pluginList = config.getList("transformer/" + type);
         DigitalObject result = object;
         if (pluginList != null) {
-            for (Object pluginId : pluginList) {
-                String id = StringUtils.trim(pluginId.toString());
+            for (String id : pluginList) {
                 Transformer plugin = PluginManager.getTransformer(id);
                 String name = plugin.getName();
                 log.info("Loading plugin: {} ({})", name, id);

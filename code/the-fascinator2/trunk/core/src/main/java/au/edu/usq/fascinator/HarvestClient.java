@@ -94,9 +94,6 @@ public class HarvestClient {
     /** Json configuration */
     private JsonConfig config;
 
-    /** Conveyer belt used for digital object transformation */
-    private ConveyerBelt conveyerBelt;
-
     /** Storage to store the digital object */
     private Storage storage;
 
@@ -222,9 +219,6 @@ public class HarvestClient {
         harvester.init(configFile);
         log.info("Loaded harvester: " + harvester.getName());
 
-        // initialise the extractor conveyer belt
-        conveyerBelt = new ConveyerBelt(configFile, ConveyerBelt.EXTRACTOR);
-
         if (uploadedFile != null) {
             // process the uploaded file only
             try {
@@ -257,7 +251,7 @@ public class HarvestClient {
     }
 
     /**
-     * Reharvest Digital Object when there's request to reharvest from the
+     * Reharvest Digital Object when there's a request to reharvest from the
      * portal
      * 
      * @param oid Object Id
@@ -289,11 +283,6 @@ public class HarvestClient {
             usingTempFile = true;
         }
 
-        // run extractor transformers
-        conveyerBelt = new ConveyerBelt(configFile, ConveyerBelt.EXTRACTOR);
-        object = conveyerBelt.transform(object);
-        object.close();
-
         // queue for rendering
         queueHarvest(oid, configFile, true);
         log.info("Object '{}' now queued for reindexing...", oid);
@@ -322,7 +311,7 @@ public class HarvestClient {
     }
 
     /**
-     * Process/transform each objects
+     * Process each objects
      *
      * @param oid Object Id
      * @throws StorageException If storage is not found
@@ -334,7 +323,7 @@ public class HarvestClient {
     }
 
     /**
-     * Process/transform each objects
+     * Process each objects
      * 
      * @param oid Object Id
      * @param commit Flag to commit after indexing
@@ -346,12 +335,9 @@ public class HarvestClient {
         // get the object
         DigitalObject object = storage.getObject(oid);
 
-        // transform it with just the extractor transformers
-        object = conveyerBelt.transform(object);
-
         // update object metadata
         Properties props = object.getMetadata();
-        // FIXME objectId is redundant now?
+        // TODO - objectId is redundant now?
         props.setProperty("objectId", object.getId());
         props.setProperty("scriptType", config.get("indexer/script/type"));
         if (props.getProperty("rulesOid") == null) {
@@ -382,16 +368,6 @@ public class HarvestClient {
      * 
      * @param oid Object id
      * @param jsonFile Configuration file
-     */
-    private void queueHarvest(String oid, File jsonFile) {
-        queueHarvest(oid, jsonFile, false);
-    }
-
-    /**
-     * To queue object to be processed
-     * 
-     * @param oid Object id
-     * @param jsonFile Configuration file
      * @param commit To commit each request to Queue (true) or not (false)
      */
     private void queueHarvest(String oid, File jsonFile, boolean commit) {
@@ -401,8 +377,8 @@ public class HarvestClient {
             if (commit) {
                 json.set("commit", "true");
             }
-            messaging.queueMessage(HarvestQueueConsumer.HARVEST_QUEUE, json
-                    .toString());
+            messaging.queueMessage(HarvestQueueConsumer.HARVEST_QUEUE,
+                    json.toString());
         } catch (IOException ioe) {
             log.error("Failed to parse message: {}", ioe.getMessage());
         }
@@ -419,8 +395,8 @@ public class HarvestClient {
             JsonConfigHelper json = new JsonConfigHelper(jsonFile);
             json.set("oid", oid);
             json.set("deleted", "true");
-            messaging.queueMessage(HarvestQueueConsumer.HARVEST_QUEUE, json
-                    .toString());
+            messaging.queueMessage(HarvestQueueConsumer.HARVEST_QUEUE,
+                    json.toString());
         } catch (IOException ioe) {
             log.error("Failed to parse message: {}", ioe.getMessage());
         }
