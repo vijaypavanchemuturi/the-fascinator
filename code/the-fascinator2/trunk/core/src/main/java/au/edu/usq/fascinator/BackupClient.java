@@ -37,6 +37,7 @@ import java.util.Set;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -125,6 +126,9 @@ public class BackupClient {
 
     /** Backup all **/
     private Boolean backupAll = false;
+
+    /** Indexer **/
+    private Indexer indexer;
 
     /**
      * Backup Client Constructor
@@ -258,12 +262,11 @@ public class BackupClient {
         long start = System.currentTimeMillis();
         log.info("Backup Started at " + now);
 
-        Indexer indexer;
         try {
             File configFile = JsonConfig.getSystemFile();
             realStorage = PluginManager.getStorage(realStorageType);
-            indexer = PluginManager.getIndexer(indexerType);
             realStorage.init(configFile);
+            indexer = PluginManager.getIndexer(indexerType);
             indexer.init(configFile);
             log.info("Loaded {} and {}", realStorage.getName(), indexer
                     .getName());
@@ -353,9 +356,9 @@ public class BackupClient {
                     Set<String> jsonConfigOidList = new HashSet<String>();
                     Set<String> ruleOidList = new HashSet<String>();
                     // List all the files to be backup-ed
-                    log.debug(js.toString());
-                    for (Object oid : js.getList("response/docs/id")) {
-                        String objectId = oid.toString();
+                    for (JsonConfigHelper docConfig : js
+                            .getJsonList("response/docs")) {
+                        String objectId = docConfig.get("id");
 
                         // Retrieve object from source
                         DigitalObject digitalObject = realStorage
@@ -389,8 +392,7 @@ public class BackupClient {
                         }
 
                         // Backup config file
-                        String jsonConfigOid = digitalObject.getMetadata()
-                                .getProperty("jsonConfigOid");
+                        String jsonConfigOid = docConfig.get("harvest_config");
                         if (!jsonConfigOidList.contains(jsonConfigOid)) {
 
                             DigitalObject jsonConfigObject = realStorage
@@ -408,8 +410,7 @@ public class BackupClient {
                         }
 
                         // Backup rule files
-                        String ruleFileOid = digitalObject.getMetadata()
-                                .getProperty("rulesOid");
+                        String ruleFileOid = docConfig.get("harvest_rules");
                         if (!ruleOidList.contains(ruleFileOid)) {
                             DigitalObject ruleObject = realStorage
                                     .getObject(ruleFileOid);
@@ -533,7 +534,17 @@ public class BackupClient {
         if (args.length < 1) {
             log.info("Usage: backup <json-config>");
         } else {
-            File jsonFile = new File(args[0]);
+            // TODO - http://jira.codehaus.org/browse/MEXEC-37
+            // Because of the bug in maven exec spaces in the
+            // path will result in incorrect arguements.
+            String filePath;
+            if (args.length > 1) {
+                filePath = StringUtils.join(args, " ");
+            } else {
+                filePath = args[0];
+            }
+
+            File jsonFile = new File(filePath);
             try {
                 log.info("jsonFile: " + jsonFile.getAbsolutePath());
                 BackupClient backup = new BackupClient(jsonFile);
