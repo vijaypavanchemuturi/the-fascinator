@@ -43,8 +43,13 @@
           <div class="home-welcome">
             <h2 class="content-title">University Policy Library</h2>
             <p>The University Policy Library is the definitive source of current policy and procedural documentation relating to the governance and management of the academic affairs of the University.</p>
+            <h2>Financial Services Policies and Procedures</h2>
+            <p><a href="http://www.usq.edu.au/financialservices/b-policies">Financial Services Policies and Procedures</a> include the Financial Management Practice Manual, PeopleSoft Manuals, Purchasing Manual, State Purchasing Policy and Manual of Financial Procedures and Information and will be moved into the Policy Library in the near future.</p>
+            <h2>ICT Standards</h2>
+            <p>There are a range of <a href="http://www.usq.edu.au/ict/standards">ICT Standards</a> that have been delegated underneath the Policy for ICT Information Management and Security and will be moved into the Policy Library in the near future.</p>
           </div>
           <div class="home-search">
+            <h2>Search</h2>
             <form action="http://websearch.usq.edu.au/search" method="get" name="gs">
               <fieldset class="SearchBoxBottom">
                 <div class="SearchBoxTop">
