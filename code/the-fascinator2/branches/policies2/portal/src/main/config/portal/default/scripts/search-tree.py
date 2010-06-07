@@ -7,7 +7,7 @@ from java.util import ArrayList, LinkedHashMap
 
 class Facet:
     def __init__(self, key, value, count):
-        self.__name = value[value.rfind("/") + 1:]
+        self.__name = value[value.rfind("/") + 1:].replace("&", "&amp;")
         fq = '%s:"%s"' % (key, value)
         self.__facetQuery = URLEncoder.encode(fq, "UTF-8")
         self.__id = md5.new(fq).hexdigest()
