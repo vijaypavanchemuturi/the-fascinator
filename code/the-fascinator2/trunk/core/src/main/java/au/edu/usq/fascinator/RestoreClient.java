@@ -36,6 +36,7 @@ import java.util.Set;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -425,9 +426,18 @@ public class RestoreClient {
         if (args.length < 1) {
             log.info("Usage: restore <path-to-be-restored>");
         } else {
+            // TODO - http://jira.codehaus.org/browse/MEXEC-37
+            // Because of the bug in maven exec spaces in the
+            // path will result in incorrect arguements.
+            String filePath;
+            if (args.length > 1) {
+                filePath = StringUtils.join(args, " ");
+            } else {
+                filePath = args[0];
+            }
             RestoreClient restore;
             try {
-                restore = new RestoreClient(args[0]);
+                restore = new RestoreClient(filePath);
                 restore.run();
             } catch (IOException ioe) {
                 log.error("Failed to initialise client: {}", ioe.getMessage());
