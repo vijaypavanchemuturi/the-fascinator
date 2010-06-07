@@ -27,6 +27,7 @@ import au.edu.usq.fascinator.portal.services.HouseKeepingManager;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -145,7 +146,9 @@ public class HouseKeepingManagerImpl implements HouseKeepingManager {
      */
     @Override
     public void confirmMessage() {
-        houseKeeper.confirmMessage();
+        if (houseKeeper != null) {
+            houseKeeper.confirmMessage();
+        }
     }
 
     /**
@@ -155,7 +158,7 @@ public class HouseKeepingManagerImpl implements HouseKeepingManager {
     @Override
     @SuppressWarnings("static-access")
     public void sendMessage(String message) {
-        services.queueMessage(houseKeeper.QUEUE_ID, message);
+        services.queueMessage(HouseKeeper.QUEUE_ID, message);
     }
 
     /**
@@ -191,6 +194,10 @@ public class HouseKeepingManagerImpl implements HouseKeepingManager {
      */
     @Override
     public Map<String, Map<String, String>> getQueueStats() {
-        return houseKeeper.getQueueStats();
+        if (houseKeeper != null) {
+            return houseKeeper.getQueueStats();
+        } else {
+            return new TreeMap();
+        }
     }
 }
