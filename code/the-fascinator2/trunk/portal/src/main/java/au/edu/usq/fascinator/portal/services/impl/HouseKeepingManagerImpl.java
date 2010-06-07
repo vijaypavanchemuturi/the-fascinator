@@ -25,6 +25,7 @@ import au.edu.usq.fascinator.common.JsonConfigHelper;
 import au.edu.usq.fascinator.portal.services.HouseKeepingManager;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -63,15 +64,20 @@ public class HouseKeepingManagerImpl implements HouseKeepingManager {
             List<JsonConfigHelper> configList =
                     sysConfig.getJsonList("portal/houseKeeping");
             if (configList.size() != 1) {
-                log.error("Invalid config for house keeping!");
-            } else {
-                // Create
-                houseKeeper = new HouseKeeper();
-                houseKeeper.setPriority(Thread.MAX_PRIORITY);
-                // Initialise
-                houseKeeper.init(configList.get(0));
-                houseKeeper.start();
+                log.warn("Invalid config for house keeping!");
+                // We really need housekeeper to start, so
+                // fake up some empty config
+                configList = new ArrayList();
+                configList.add(new JsonConfigHelper());
             }
+
+            // Create
+            houseKeeper = new HouseKeeper();
+            houseKeeper.setPriority(Thread.MAX_PRIORITY);
+            // Initialise
+            houseKeeper.init(configList.get(0));
+            houseKeeper.start();
+
         } catch (IOException ex) {
             log.error("Failed to access system config", ex);
         } catch (Exception ex) {
