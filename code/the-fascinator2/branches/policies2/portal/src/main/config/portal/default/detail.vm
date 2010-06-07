@@ -1,4 +1,4 @@
-#set($pageHeader = '<meta name="description" content="' + $self.metadata.getField("usq_document_purpose") + '" />')
+#set($pageHeader = "#parse($page.getTemplate('detail-header.vm'))")
 <table class="layout">
   <tbody>
     <tr>
@@ -51,18 +51,5 @@
 <script type="text/javascript">
 $(function() {
     $(".pdf-rendition-link").empty();
-    
-    function fixLinks(selector, attrName) {
-        $(selector).each(function() {
-            var attr = $(this).attr(attrName);
-            if (attr != null) {
-                if (attr.indexOf("#") != 0 && attr.indexOf("://") == -1) {
-                    $(this).attr(attrName, "$portalPath/download/$self.object.id/" + attr);
-                }
-            }
-        });
-    }
-    fixLinks("div.content a", "href");
-    fixLinks("div.content img", "src");
 });
 </script>
