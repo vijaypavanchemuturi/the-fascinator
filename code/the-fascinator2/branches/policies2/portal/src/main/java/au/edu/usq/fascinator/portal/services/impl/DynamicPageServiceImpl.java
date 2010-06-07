@@ -107,6 +107,7 @@ public class DynamicPageServiceImpl implements DynamicPageService {
             Velocity.setProperty(Velocity.VM_PERM_ALLOW_INLINE_REPLACE_GLOBAL,
                     true);
             Velocity.setProperty(Velocity.VM_PERM_INLINE_LOCAL, true);
+            Velocity.setProperty(Velocity.VM_CONTEXT_LOCALSCOPE, true);
             Velocity.init();
         } catch (Exception e) {
             throw new RuntimeException(e);
