@@ -38,6 +38,7 @@ import java.util.Map;
 import java.util.Stack;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.TreeMap;
 
 import javax.jms.Connection;
 import javax.jms.DeliveryMode;
@@ -217,7 +218,7 @@ public class HouseKeeper implements GenericListener {
                     config.get("config/desktop", "true"));
             File sysFile = JsonConfig.getSystemFile();
             actionQueue = new Stack();
-            stats = new HashMap();
+            stats = new TreeMap();
 
             // Initialise plugins
             indexer = PluginManager.getIndexer(

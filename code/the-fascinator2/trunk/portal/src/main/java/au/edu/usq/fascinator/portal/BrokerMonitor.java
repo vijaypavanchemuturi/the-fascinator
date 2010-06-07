@@ -117,6 +117,9 @@ public class BrokerMonitor implements GenericListener {
     /** Queue display order **/
     private List<String> statsOrder;
 
+    /** Flag when the broker has responded with stats */
+    private boolean statsReceived = false;
+
     /** Stats Queues */
     private Map<String, Queue> targetQueues;
 
@@ -297,8 +300,9 @@ public class BrokerMonitor implements GenericListener {
             updateStats(q);
         }
 
-        // Make sure we don't send until all queues are online in the broker
-        if ((stats.size() != queues.size()) || queues.size() == 0) {
+        // Make sure we don't send until the
+        //  broker has given us some stats
+        if (!statsReceived) {
             startTimer();
             return;
         }
@@ -332,13 +336,16 @@ public class BrokerMonitor implements GenericListener {
 
         // Update housekeeping
         if (send) {
+            // A small sleep to allow Broker time to respond to stats query
             try {
-                // A small sleep to allow Broker time to respond to stats query
-                Thread.sleep(500);
-                msgJson.set("type", "broker-update");
-                sendUpdate(msgJson.toString());
+                Thread.sleep(100);
             } catch (InterruptedException ex) {
                 log.warn("Sleep interrupted!");
+            }
+
+            try {
+                msgJson.set("type", "broker-update");
+                sendUpdate(msgJson.toString());
             } catch (JMSException ex) {
                 log.error("Failed messaging House Keeping!", ex);
             }
@@ -525,9 +532,14 @@ public class BrokerMonitor implements GenericListener {
         lost    = -1 * (target - (total + Integer.valueOf(size)));
 
         if (queue != null) {
+            statsReceived = true;
+
             // Get our old data and determine the change
             oldTotalStr = stats.get(queue).get("total");
             if (oldTotalStr == null) {
+                // Use this to force a send, we just received stats
+                //   for this queue for the first time
+                firstRun = true;
                 oldTotal = 0;
             } else {
                 oldTotal = Integer.valueOf(oldTotalStr);
