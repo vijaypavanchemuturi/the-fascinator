@@ -46,7 +46,8 @@ class HomeData:
         return values
     
     def getFacetQuery(self, key, value):
-        return '%s:"%s"' % (key, URLEncoder.encode(value, "UTF-8"))
+        #return URLEncoder.encode('%s:"%s"' % (key, value), "UTF-8")
+        return "category/%s/%s" % (key, value) #URLEncoder.encode(value, "UTF-8"))
     
     def getFacetValue(self, facetValue):
         return facetValue.split("/")[-1]

@@ -14,11 +14,7 @@ class SearchData:
     def __init__(self):
         self.__portal = Services.portalManager.get(portalId)
         self.__result = JsonConfigHelper()
-        self.__pageNum = formData.get("page")
-        if self.__pageNum is None:
-            self.__pageNum = 1
-        else:
-            self.__pageNum = int(self.__pageNum)
+        self.__pageNum = 1
         self.__selected = ArrayList()
         self.__query = ""
         self.__searchType = "full_text"
@@ -27,22 +23,9 @@ class SearchData:
     def __search(self):
         recordsPerPage = self.__portal.recordsPerPage
         
-        uri = URLDecoder.decode(request.getAttribute("RequestURI"))
-        searchType = formData.get("searchType")
-        if searchType != "" or searchType is not None:
-            self.__searchType = searchType
-        else:
-            self.__searchType = "full_text"
-        
-        if uri != portalPath:
-            query = uri[len(portalPath):]
-        
-        if query is None or query == "":
-            query = formData.get("query")
-        
+        query = formData.get("query")
         if query is None or query == "":
             query = "*:*"
-        
         if query == "*:*":
             self.__query = ""
         else:
@@ -57,7 +40,9 @@ class SearchData:
         req.setParam("facet.limit", str(self.__portal.facetCount))
         req.setParam("sort", "title_sort asc")
         
-        fq = formData.getValues("fq")
+        #fq = formData.getValues("fq")
+        uri = request.getAttribute("RequestURI")
+        self.__pageNum, fq, self.__fqParts = self.__parseUri(uri[len(portalPath):])
         savedfq = sessionState.get("fq")
         limits = []
         if savedfq:
@@ -116,7 +101,7 @@ class SearchData:
         return values
     
     def hasSelectedFacets(self):
-        return self.__selected is not None and self.__selected.size() > 1
+        return self.__selected is not None and self.__selected.size() > 0
     
     def getSelectedFacets(self):
         return self.__selected
@@ -136,6 +121,9 @@ class SearchData:
     def getFacetQuery(self, name, value):
         return '%s:"%s"' % (name, value)
     
+    def getFacetQueryUri(self, name, value):
+        return "%s/%s" % (name, value)
+    
     def isImage(self, format):
         return format.startswith("image/")
     
@@ -145,27 +133,68 @@ class SearchData:
         return url
     
     def getPageQuery(self, page):
-        fq = "&".join(["fq=" + URLEncoder.encode(l, "UTF-8") for l in self.__selected])
-        if fq:
-            return "%s&page=%s" % (fq, page)
-        return "page=%s" % page
+        prefix = ""
+        if self.__fqParts:
+            prefix = "/" + "/".join(self.__fqParts)
+        suffix = ""
+        if page > 1:
+            suffix = "/page/%s" % page
+        return prefix + suffix
     
     def getLimitQueryWith(self, fq):
-        limits = ArrayList(self.__selected)
-        limits.add(fq)
-        return "&".join(["fq=" + URLEncoder.encode(l, "UTF-8") for l in limits])
+        limits = ArrayList(self.__fqParts)
+        limits.add("category/" + fq)
+        return "/".join(limits)
     
     def getLimitQueryWithout(self, fq):
-        limits = ArrayList(self.__selected)
-        limits.remove(fq)
+        limits = ArrayList(self.__fqParts)
+        limits.remove("category/" + fq)
         if limits.isEmpty():
             return ""
-        return "&".join(["fq=" + URLEncoder.encode(l, "UTF-8") for l in limits])
+        return "/".join(limits)
     
     def getFacetValue(self, facetValue):
         return facetValue.split("/")[-1]
     
     def getFacetIndent(self, facetValue):
-        return (len(facetValue.split("/")) - 1) * 15;
+        return (len(facetValue.split("/")) - 1) * 15
+
+    def __parseUri(self, uri):
+        page = 1
+        fq = []
+        fqParts = []
+        if uri != "":
+            parts = uri.split("/")
+            partType = None
+            facetKey = None
+            facetValues = None
+            for part in parts:
+                if partType == "page":
+                    facetKey = None
+                    facetValue = None
+                    page = int(part)
+                elif partType == "category":
+                    partType = "category-value"
+                    facetValues = None
+                    facetKey = part
+                elif partType == "category-value":
+                    if facetValues is None:
+                        facetValues = []
+                    if part in ["page", "category"]:
+                        partType = part
+                        facetQuery = '%s:"%s"' % (facetKey, "/".join(facetValues))
+                        fq.append(facetQuery)
+                        fqParts.append("category/%s/%s" % (facetKey, "/".join(facetValues)))
+                        facetKey = None
+                        facetValues = None
+                    else:
+                        facetValues.append(URLDecoder.decode(part))
+                else:
+                    partType = part
+            if partType == "category-value":
+                facetQuery = '%s:"%s"' % (facetKey, "/".join(facetValues))
+                fq.append(facetQuery)
+                fqParts.append("category/%s/%s" % (facetKey, "/".join(facetValues)))
+        return page, fq, fqParts
 
 scriptObject = SearchData()

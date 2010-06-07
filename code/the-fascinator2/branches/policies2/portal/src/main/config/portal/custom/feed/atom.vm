@@ -21,7 +21,6 @@
         #set($content = $item.get("dc_description").get(0))
       #end
       <entry>
-        
         <author>fascinator</author>
         <title type="text">$page.escapeText($title)</title>
         <id>$oid</id>

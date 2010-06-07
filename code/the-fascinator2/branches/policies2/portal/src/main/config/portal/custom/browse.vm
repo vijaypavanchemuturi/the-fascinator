@@ -8,6 +8,7 @@
     #foreach($facetCountKey in $facetCounts.keySet())
       #set($facetCount = $facetCounts.get($facetCountKey))
       #set($facetQuery = $self.getFacetQuery($facetFieldKey, $facetCountKey))
+      #set($facetQueryUri = $self.getFacetQueryUri($facetFieldKey, $facetCountKey))
       #set($selected = $self.isSelected($facetQuery))
       #set($facetValue = $page.escapeText($self.getFacetValue($facetCountKey)))
       <li#if($selected) class="selected"#end>
@@ -18,14 +19,14 @@
         #set($style = "style='padding-left: $self.getFacetIndent($facetCountKey)px'")
         #if($selected)
           #set($class = 'class="selected"')
-          #set($lq = $self.getLimitQueryWithout($facetQuery))
+          #set($lq = $self.getLimitQueryWithout($facetQueryUri))
           #if($lq == "")
             #set($href = "$portalPath/browse")
           #else
-            #set($href = "$portalPath/browse?$lq")
+            #set($href = "$portalPath/browse/$lq")
           #end
         #else
-          #set($href = "$portalPath/browse?$self.getLimitQueryWith($facetQuery)")
+          #set($href = "$portalPath/browse/$self.getLimitQueryWith($facetQueryUri)")
         #end
         <a $!class $!style href="$href">$facetValue</a> ($facetCount)
       #end
@@ -58,6 +59,7 @@
             <div class="mainmenu-heading">USQ Policy Library</div>
             <ul class="menu-list">
               <li><a href="$portalPath/home">Home</a></li>
+              <li><a href="http://websearch.usq.edu.au/search?site=USQ_PolicyLibrary&client=USQ_PolicyLibrary&output=xml_no_dtd&proxystylesheet=USQ_PolicyLibrary">Search</a></li>
               <li class="selected">Browse</li>
               <li><a href="$portalPath/help">Help</a></li>
             </ul>
@@ -68,7 +70,7 @@
               <div class="mainmenu-heading">Actions</div>
               <ul class="menu-list">
                 #if($query != "")
-                  <li><a href="$portalPath/search">Clear search</a></li>
+                  <li><a href="$portalPath/browse">Clear search</a></li>
                 #end
                 #if($self.hasSelectedFacets())
                   <li><a id="clear-facets" href="$portalPath/browse">Clear selection</a></li>
@@ -78,6 +80,7 @@
           #end
           #createFacetMenu("f_usq_document_policy_type")
           #createFacetMenu("f_title_group")
+          #*
           #if($self.result and $paging.totalFound > 0)
           <div class="advanced">
             <h2><span class="ui-icon ui-icon-triangle-1-s icon"></span>Advanced</h2>
@@ -91,6 +94,7 @@
             </div>
           </div>
           #end
+          *#
         </div>
       </td>
       <td class="middlecol">
@@ -114,7 +118,7 @@
             #set($description = "")
             #set($description = $item.get("usq_document_purpose").get(0))
             <li id="$id">
-              <h3><a href="detail/$id">$page.escapeText($title)</a></h3>
+              <h3><a href="$portalPath/detail/$id">$page.escapeText($title)</a></h3>
               <p class="item-description">$page.escapeText($!description)</p>
             </li>
           #end
