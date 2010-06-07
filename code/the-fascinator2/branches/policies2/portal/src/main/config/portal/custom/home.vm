@@ -10,7 +10,7 @@
       #set($facetQuery = $self.getFacetQuery($facetFieldKey, $facetCountKey))
       <li>
         #set($key = $page.escapeText($self.getFacetValue($facetCountKey)))
-        <a style="padding-left:$self.getFacetIndent($facetCountKey)px" href="$portalPath/browse?fq=$page.urlencode($facetQuery)">$key</a> ($facetCount)
+        <a style="padding-left:$self.getFacetIndent($facetCountKey)px" href="$portalPath/browse/$facetQuery">$key</a> ($facetCount)
       </li>
     #end
     </ul>
@@ -29,6 +29,7 @@
             <div class="mainmenu-heading">USQ Policy Library</div>
             <ul class="menu-list">
               <li class="selected">Home</li>
+              <li><a href="http://websearch.usq.edu.au/search?site=USQ_PolicyLibrary&client=USQ_PolicyLibrary&output=xml_no_dtd&proxystylesheet=USQ_PolicyLibrary">Search</a></li>
               <li><a href="$portalPath/browse">Browse</a></li>
               <li><a href="$portalPath/help">Help</a></li>
             </ul>
@@ -44,8 +45,38 @@
             <p>The University Policy Library is the definitive source of current policy and procedural documentation relating to the governance and management of the academic affairs of the University.</p>
           </div>
           <div class="home-search">
-            <h2>Search</h2>
-            <p><em>Insert custom search code here</em></p>
+            <form action="http://websearch.usq.edu.au/search" method="get" name="gs">
+              <fieldset class="SearchBoxBottom">
+                <div class="SearchBoxTop">
+                  <table cellspacing="0" cellpadding="0" border="0" width="100%">
+                    <tbody>
+                      <tr>
+                        <td>
+                          <table cellspacing="0" cellpadding="0">
+                            <tbody>
+                              <tr>
+                                <td valign="middle"><font size="-1"><input type="text" value="" maxlength="256" size="28" name="q"></font></td>
+                                <td valign="middle"><font size="-1">&nbsp;<input type="submit" value="Go" name="btnG"></font></td>
+                                <td nowrap=""><font size="-2">&nbsp;&nbsp;<a href="http://websearch.usq.edu.au/search?access=p&amp;entqr=0&amp;output=xml_no_dtd&amp;sort=date%3AD%3AL%3Ad1&amp;ud=1&amp;site=USQ_PolicyLibrary&amp;ie=UTF-8&amp;client=USQ_PolicyLibrary&amp;oe=UTF-8&amp;proxystylesheet=USQ_PolicyLibrary&amp;ip=139.86.35.192&amp;proxycustom=&lt;ADVANCED/&gt;">Advanced Search</a><br>&nbsp;&nbsp;<a href="http://websearch.usq.edu.au/user_help.html">Search Tips</a><br></font>
+                                </td>
+                              </tr>
+                            </tbody>
+                          </table>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </fieldset><input type="hidden" value="0" name="entqr" />
+              <input type="hidden" value="" name="proxycustom" />
+              <input type="hidden" value="xml_no_dtd" name="output" />
+              <input type="hidden" value="date:D:L:d1" name="sort" />
+              <input type="hidden" value="1" name="ud" />
+              <input type="hidden" value="USQ_PolicyLibrary" name="client" />
+              <input type="hidden" value="UTF-8" name="oe"><input type="hidden" value="UTF-8" name="ie" />
+              <input type="hidden" value="USQ_PolicyLibrary" name="proxystylesheet" />
+              <input type="hidden" value="USQ_PolicyLibrary" name="site" />
+            </form>
           </div>
         </div>
       </td>
@@ -55,10 +86,6 @@
 <script type="text/javascript">
 $(function() {
     var cookieOpts = { path: "/", expires: 10 };
-    createTree("#policy_type", "f_usq_document_policy_type", "", "");
-    
-    //autocomplete
-    $("input#query").autocomplete("$portalPath/autocomplete.ajax");
     
     // toggle facets
     $(".mainmenu:has(.facet-list) > .mainmenu-heading")

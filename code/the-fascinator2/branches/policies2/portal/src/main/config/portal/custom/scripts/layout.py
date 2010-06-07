@@ -18,6 +18,7 @@ class LayoutData:
         return StringEscapeUtils.escapeXml(text)
     
     def urlencode(self, url):
+        print " ***** %s (%s)" % (url, URLEncoder.encode(url, "UTF-8"))
         return URLEncoder.encode(url, "UTF-8")
     
     def md5Hash(self, data):

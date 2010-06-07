@@ -9,6 +9,7 @@
             <div class="mainmenu-heading">USQ Policies</div>
             <ul class="menu-list">
               <li><a href="$portalPath/home">Home</a></li>
+              <li><a href="http://websearch.usq.edu.au/search?site=USQ_PolicyLibrary&client=USQ_PolicyLibrary&output=xml_no_dtd&proxystylesheet=USQ_PolicyLibrary">Search</a></li>
               <li><a href="$portalPath/browse">Browse</a></li>
               <li class="selected">Help</li>
             </ul>
