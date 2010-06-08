@@ -3,7 +3,7 @@
     <legend>Review metadata</legend>
     <p><b>Current workflow step</b>: '$self.getFormData('currentStepLabel')'
     <br/><b>Next workflow step</b>: '$self.getFormData('nextStepLabel')'</p>
-    <p>Please supply some basic information about the item you just submitted.</p>
+    <p>Please review the information for this item.</p>
     <input type="hidden" name="targetStep" value="$self.getFormData('nextStep')" />
     <input type="hidden" name="oid" value="$self.getFormData('oid')" />
     <input type="submit" name="submit" value="Submit" />
@@ -26,7 +26,7 @@
   <fieldset class="login">
     <legend>Optional Fields</legend>
     <p>
-      <label for="description">Decription:</label>
+      <label for="description">Description:</label>
       <input type="text" name="dc_description" value="$self.getFormData('dc_description')" />
     </p>
     <p>
@@ -38,5 +38,4 @@
       <textarea name="notes" cols="50">$self.getFormData('notes')</textarea>
     </p>
   </fieldset>
-  <pre>$formData</pre>
 </form>
