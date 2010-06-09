@@ -18,10 +18,13 @@ $!pageContent
     <!--[if IE]>
     <link rel="stylesheet" type="text/css" href="$portalPath/css/common-ie.css" />
     <![endif]-->
-    <!--[if IE6]>
+    <!--[if IE 6]>
     <link rel="stylesheet" type="text/css" href="$portalPath/css/common-ie6.css" />
     <![endif]-->
     <link rel="stylesheet" type="text/css" href="$portalPath/css/styles.css" />
+    <!--[if IE 7]>
+    <link rel="stylesheet" type="text/css" href="$portalPath/css/styles-ie.css" />
+    <![endif]-->
     <link rel="stylesheet" type="text/css" href="$portalPath/css/print.css" media="print" />
     <script type="text/javascript">
     function setActionUri(uri) {
