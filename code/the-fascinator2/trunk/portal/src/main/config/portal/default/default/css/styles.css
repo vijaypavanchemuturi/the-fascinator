@@ -562,6 +562,12 @@ li img.workflow {
 .queue-stats td {
     width: 12em;
 }
+.queue-stats td.description {
+    font-size: 1em !important;
+    padding-left: 3em;
+    display: none;
+    width: auto;
+}
 ul.global-topic {
     font-family: monospace;
     border: 1px dashed #999999;

@@ -64,11 +64,17 @@ public class HarvestQueueConsumer implements GenericListener {
     /** Harvest Queue name */
     public static final String HARVEST_QUEUE = "harvest";
 
-    /** Queue selector for critical user interface jobs */
-    public static final String CRITICAL_USER_SELECTOR = "userInterface";
+    /** Harvest Queue name */
+    public static final String USER_QUEUE = "harvestUser";
 
     /** Logging */
     private Logger log = LoggerFactory.getLogger(HarvestQueueConsumer.class);
+
+    /** Render queue string */
+    private String QUEUE_ID;
+
+    /** Name identifier to be put in the queue */
+    private String name;
 
     /** JSON configuration */
     private JsonConfig globalConfig;
@@ -124,7 +130,8 @@ public class HarvestQueueConsumer implements GenericListener {
     @Override
     public void run() {
         try {
-            log.info("Starting harvest queue consumer...");
+            log.info("Starting {}...", name);
+
             // Get a connection to the broker
             String brokerUrl = globalConfig.get("messaging/url",
                     ActiveMQConnectionFactory.DEFAULT_BROKER_BIND_URL);
@@ -135,7 +142,7 @@ public class HarvestQueueConsumer implements GenericListener {
             session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
 
             consumer = session.createConsumer(
-                    session.createQueue(HARVEST_QUEUE));
+                    session.createQueue(QUEUE_ID));
             consumer.setMessageListener(this);
 
             broadcast = session.createTopic(MessagingServices.MESSAGE_TOPIC);
@@ -162,6 +169,10 @@ public class HarvestQueueConsumer implements GenericListener {
     @Override
     public void init(JsonConfigHelper config) throws Exception {
         try {
+            this.name = config.get("config/name");
+            QUEUE_ID = name;
+            thread.setName(name);
+
             globalConfig = new JsonConfig();
             File sysFile = JsonConfig.getSystemFile();
             indexer = PluginManager.getIndexer(
@@ -173,12 +184,12 @@ public class HarvestQueueConsumer implements GenericListener {
 
             // Setup render queue logic
             rendererNames = new LinkedHashMap();
+            String userQueue = config.get("config/user-renderer");
+            rendererNames.put(ConveyerBelt.CRITICAL_USER_SELECTOR, userQueue);
             Map<String, Object> map = config.getMap("config/normal-renderers");
             for (String selector : map.keySet()) {
                 rendererNames.put(selector, (String)map.get(selector));
             }
-            String userQueue = config.get("config/user-renderer");
-            rendererNames.put(CRITICAL_USER_SELECTOR, userQueue);
 
             conveyer = new ConveyerBelt(ConveyerBelt.EXTRACTOR);
 
@@ -215,7 +226,7 @@ public class HarvestQueueConsumer implements GenericListener {
      */
     @Override
     public void stop() throws Exception {
-        log.info("Stopping harvest queue consumer...");
+        log.info("Stopping {}...", name);
         if (indexer != null) {
             try {
                 indexer.shutdown();
@@ -270,7 +281,7 @@ public class HarvestQueueConsumer implements GenericListener {
      */
     @Override
     public void onMessage(Message message) {
-        MDC.put("name", HARVEST_QUEUE);
+        MDC.put("name", name);
         try {
             // Make sure thread priority is correct
             if (!Thread.currentThread().getName().equals(thread.getName())) {
@@ -357,7 +368,7 @@ public class HarvestQueueConsumer implements GenericListener {
             throws JMSException, StorageException {
         // What transformations are required at the render step
         List<String> plugins = ConveyerBelt.getTransformList(
-                object, message, ConveyerBelt.RENDER);
+                object, message, ConveyerBelt.RENDER, true);
 
         TextMessage msg = session.createTextMessage(message.toString());
         // 'renderers' is a LinkedHashMap because the key order is significant

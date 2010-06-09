@@ -251,22 +251,45 @@ public class HarvestClient {
     }
 
     /**
-     * Reharvest Digital Object when there's a request to reharvest from the
-     * portal
-     * 
+     * Reharvest Digital Object when there's a request
+     * to reharvest from the portal.
+     *
      * @param oid Object Id
      * @throws IOException If necessary files not found
      * @throws PluginException If the harvester plugin not found
      */
     public void reharvest(String oid) throws IOException, PluginException {
+        reharvest(oid, false);
+    }
+
+    /**
+     * Reharvest Digital Object when there's a request to reharvest from the
+     * portal. The portal can flag items for priority rendering.
+     * 
+     * @param oid Object Id
+     * @param userPriority Set flag to have high priority render
+     * @throws IOException If necessary files not found
+     * @throws PluginException If the harvester plugin not found
+     */
+    public void reharvest(String oid, boolean userPriority)
+            throws IOException, PluginException {
         log.info("Reharvest '{}'...", oid);
 
         // get the object from storage
         DigitalObject object = storage.getObject(oid);
 
+        // Get/set properties
+        Properties props = object.getMetadata();
+        String configOid = props.getProperty("jsonConfigOid");
+        if (userPriority) {
+            props.setProperty("userPriority", "true");
+        } else {
+            props.remove("userPriority");
+        }
+        object.close();
+
         // get its harvest config
         boolean usingTempFile = false;
-        String configOid = object.getMetadata().getProperty("jsonConfigOid");
         if (configOid == null) {
             log.warn("No harvest config for '{}', using defaults...");
             configFile = JsonConfig.getSystemFile();
@@ -284,7 +307,7 @@ public class HarvestClient {
         }
 
         // queue for rendering
-        queueHarvest(oid, configFile, true);
+        queueHarvest(oid, configFile, true, HarvestQueueConsumer.USER_QUEUE);
         log.info("Object '{}' now queued for reindexing...", oid);
 
         // cleanup
@@ -365,20 +388,32 @@ public class HarvestClient {
 
     /**
      * To queue object to be processed
-     * 
+     *
      * @param oid Object id
      * @param jsonFile Configuration file
      * @param commit To commit each request to Queue (true) or not (false)
      */
     private void queueHarvest(String oid, File jsonFile, boolean commit) {
+        queueHarvest(oid, jsonFile, commit, HarvestQueueConsumer.HARVEST_QUEUE);
+    }
+
+    /**
+     * To queue object to be processed
+     * 
+     * @param oid Object id
+     * @param jsonFile Configuration file
+     * @param commit To commit each request to Queue (true) or not (false)
+     * @param queueName Name of the queue to route to
+     */
+    private void queueHarvest(String oid, File jsonFile, boolean commit,
+            String queueName) {
         try {
             JsonConfigHelper json = new JsonConfigHelper(jsonFile);
             json.set("oid", oid);
             if (commit) {
                 json.set("commit", "true");
             }
-            messaging.queueMessage(HarvestQueueConsumer.HARVEST_QUEUE,
-                    json.toString());
+            messaging.queueMessage(queueName, json.toString());
         } catch (IOException ioe) {
             log.error("Failed to parse message: {}", ioe.getMessage());
         }

@@ -1,5 +1,5 @@
 {
-    "version": "0.6.7",
+    "version": "0.6.8",
     "configured": false,
     "urlBase" : "http://localhost:9997/portal/",
     "email" : "fascinator@usq.edu.au",
@@ -42,10 +42,43 @@
         "home" : "${fascinator.home}/activemq-data",
         "threads" : [
             {
-                "id" : "harvest",
-                "priority" : "7",
+                "id" : "render",
+                "description" : "Render queue for priority objects requested by the user.",
+                "priority" : "8",
                 "config" : {
-                    "name" : "harvester",
+                    "name" : "renderUser"
+                }
+            },
+            {
+                "id" : "render",
+                "description" : "Render queue for objects that are only using high speed transformers.",
+                "priority" : "6",
+                "config" : {
+                    "name" : "renderHigh"
+                }
+            },
+            {
+                "id" : "render",
+                "description" : "Render queue for most standard documents. External calls to ICE Service are performed.",
+                "priority" : "5",
+                "config" : {
+                    "name" : "renderNormal"
+                }
+            },
+            {
+                "id" : "render",
+                "description" : "Render queue for objects requiring FFmpeg transcoding and optionally calls to the ICE Service.",
+                "priority" : "3",
+                "config" : {
+                    "name" : "renderLow"
+                }
+            },
+            {
+                "id" : "harvest",
+                "description" : "Priority queue for user actions, allows access to the render queues faster.",
+                "priority" : "8",
+                "config" : {
+                    "name" : "harvestUser",
                     "normal-renderers" : {
                         "ffmpeg" : "renderLow",
                         "ice2" : "renderNormal",
@@ -55,31 +88,17 @@
                 }
             },
             {
-                "id" : "render",
-                "priority" : "8",
+                "id" : "harvest",
+                "description" : "Standard harvest queue for new object. May optionally run some fast transformers and an index before routing to the render queues.",
+                "priority" : "7",
                 "config" : {
-                    "name" : "renderUser"
-                }
-            },
-            {
-                "id" : "render",
-                "priority" : "6",
-                "config" : {
-                    "name" : "renderHigh"
-                }
-            },
-            {
-                "id" : "render",
-                "priority" : "5",
-                "config" : {
-                    "name" : "renderNormal"
-                }
-            },
-            {
-                "id" : "render",
-                "priority" : "3",
-                "config" : {
-                    "name" : "renderLow"
+                    "name" : "harvest",
+                    "normal-renderers" : {
+                        "ffmpeg" : "renderLow",
+                        "ice2" : "renderNormal",
+                        "default" : "renderHigh"
+                    },
+                    "user-renderer" : "renderUser"
                 }
             }
         ]

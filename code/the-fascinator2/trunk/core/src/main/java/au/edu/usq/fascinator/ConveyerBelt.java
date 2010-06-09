@@ -35,6 +35,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
@@ -61,6 +62,9 @@ public class ConveyerBelt {
     /** Logging */
     private static Logger log = LoggerFactory.getLogger(ConveyerBelt.class);
 
+    /** Queue selector for critical user interface jobs */
+    public static final String CRITICAL_USER_SELECTOR = "userPriority";
+
     /** Json configuration */
     private JsonConfigHelper sysConfig;
 
@@ -71,21 +75,41 @@ public class ConveyerBelt {
     private Map<String, Transformer> transformers;
 
     /**
-     * Find out what transformers are required to run for this step.
+     * Find out what transformers are required to run for
+     *  a particular render step.
      *
      * @param object The digital object to transform.
      * @param config The configuration for the particular harvester.
+     * @param thisType The type of render chain (step).
+     * @param routing Flag if query is for routing. Set this value will force a
+     * check for user priority, and then clear the flag if found.
      * @return List<String> A list of names for instantiated transformers.
      */
     public static List<String> getTransformList(DigitalObject object,
-            JsonConfigHelper config, String thisType) throws StorageException {
+            JsonConfigHelper config, String thisType, boolean routing)
+            throws StorageException {
         List<String> plugins = new ArrayList();
-        String pluginList = object.getMetadata().getProperty(thisType);
+        Properties props = object.getMetadata();
+
+        // User initiated event
+        if (routing) {
+            String user = props.getProperty("userPriority");
+            if (user != null && user.equals("true")) {
+                log.info("User priority flag set: '{}'", object.getId());
+                plugins.add(CRITICAL_USER_SELECTOR);
+                props.remove("userPriority");
+                object.close();
+            }
+        }
+
+        // Property data, highest priority
+        String pluginList = props.getProperty(thisType);
         if (pluginList != null && !pluginList.equals("")) {
             // Turn the string into a real list
             for (String plugin : StringUtils.split(pluginList, ",")) {
                 plugins.add(StringUtils.trim(plugin));
             }
+
         } else {
             // The harvester specified none, fallback to the
             //  default list for this harvest source.
@@ -186,7 +210,7 @@ public class ConveyerBelt {
         // Get the list of transformers to run
         List<String> pluginList;
         try {
-            pluginList = getTransformList(object, config, type);
+            pluginList = getTransformList(object, config, type, false);
         } catch (StorageException ex) {
             throw new TransformerException(ex);
         }
