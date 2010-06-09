@@ -156,6 +156,11 @@ public class FileSystemHarvester extends GenericHarvester {
     public void init() throws HarvesterException {
         JsonConfig config = getJsonConfig();
         baseDir = new File(config.get("harvester/file-system/baseDir", "."));
+        if (!baseDir.exists()) {
+            throw new HarvesterException("Directory does not exist: '"
+                    + baseDir.getAbsolutePath() + "'");
+        }
+
         log.info("Harvesting directory: {}", baseDir);
         recursive = Boolean.parseBoolean(config.get(
                 "harvester/file-system/recursive", "false"));
