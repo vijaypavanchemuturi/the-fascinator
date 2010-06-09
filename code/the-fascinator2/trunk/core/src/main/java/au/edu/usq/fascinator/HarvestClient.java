@@ -470,12 +470,16 @@ public class HarvestClient {
             }
 
             File jsonFile = new File(filePath);
+            HarvestClient harvest = null;
             try {
-                HarvestClient harvest = new HarvestClient(jsonFile);
+                harvest = new HarvestClient(jsonFile);
                 harvest.start();
                 harvest.shutdown();
             } catch (PluginException pe) {
                 log.error("Failed to initialise client: ", pe);
+                if (harvest != null) {
+                    harvest.shutdown();
+                }
             }
         }
     }
