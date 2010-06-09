@@ -2,9 +2,11 @@
     "harvester": {
         "type": "file-system",
         "file-system": {
-            "baseDir": "${test.dir}",
-            "cacheDir": "${test.cache.dir}",
-            "force": true
+            "targets": [ {
+                "baseDir": "${test.dir}",
+                "force": true
+            } ],
+            "cacheDir": "${test.cache.dir}"
         }
     }
 }
