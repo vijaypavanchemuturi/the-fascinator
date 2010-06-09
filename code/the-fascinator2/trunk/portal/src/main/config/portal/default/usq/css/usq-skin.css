@@ -124,6 +124,9 @@ ul.menu li a {
 h2 span {
     font-size: 12px;
 }
+#page-heading span {
+    font-size: 23px;
+}
 #result-list .article {
     border: 0px;
     border-top: 1px dotted #959CA1;
