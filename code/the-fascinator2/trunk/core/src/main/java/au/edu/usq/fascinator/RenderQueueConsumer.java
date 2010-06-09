@@ -31,7 +31,6 @@ import au.edu.usq.fascinator.common.JsonConfigHelper;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
 import java.util.Properties;
 
 import javax.jms.Connection;

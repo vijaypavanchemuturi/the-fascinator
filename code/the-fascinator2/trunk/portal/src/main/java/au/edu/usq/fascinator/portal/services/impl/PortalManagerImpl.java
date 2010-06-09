@@ -200,7 +200,9 @@ public class PortalManagerImpl implements PortalManager {
     public void reharvest(String objectId) {
         try {
             HarvestClient client = new HarvestClient();
-            client.reharvest(objectId);
+            // High priority when user requests
+            //   single object be reharvested
+            client.reharvest(objectId, true);
         } catch (Exception e) {
             log.error("Object reharvest failed", e);
         }

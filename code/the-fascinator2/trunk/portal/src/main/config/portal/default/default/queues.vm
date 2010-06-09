@@ -50,11 +50,38 @@
           <td>$q.get("lost") M</td>
           <td>$q.get("average") seconds</td>
         </tr>
+        #set ($desc = $self.getDescription($queue))
+        #if ($queue == "houseKeeping")
+            #set ($desc = "House keeping queue for system management activities.")
+        #end
+        <tr>
+          <td colspan="7" class="description">
+            <img src="$portalPath/images/icons/sub-arrow.png" />
+            $desc
+          </td>
+        </tr>
       #end
       </tbody>
     </table>
+    <a id="hide-descriptions" class="hidden" href="#">[Hide Descriptions]</a>
+    <a id="show-descriptions" href="#">[Show Descriptions]</a>
   </div>
 #parse($page.getTemplate('wrapping/content-block-close.vm'))
+
+<script type="text/javascript">
+$(function() {
+    $("#hide-descriptions").click(function() {
+        $("#hide-descriptions").hide();
+        $("#show-descriptions").show();
+        $(".queue-stats td.description").hide();
+    });
+    $("#show-descriptions").click(function() {
+        $("#hide-descriptions").show();
+        $("#show-descriptions").hide();
+        $(".queue-stats td.description").show();
+    });
+});
+</script>
 
   #set($contentTitle = "Broadcast topic")
   #parse($page.getTemplate('wrapping/content-block-open.vm'))
