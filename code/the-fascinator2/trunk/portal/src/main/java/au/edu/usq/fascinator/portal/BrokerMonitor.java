@@ -21,16 +21,17 @@ package au.edu.usq.fascinator.portal;
 import au.edu.usq.fascinator.GenericListener;
 import au.edu.usq.fascinator.common.JsonConfig;
 import au.edu.usq.fascinator.common.JsonConfigHelper;
-import java.io.IOException;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.TreeMap;
+
 import javax.jms.Connection;
 import javax.jms.DeliveryMode;
 import javax.jms.JMSException;
@@ -41,8 +42,8 @@ import javax.jms.MessageProducer;
 import javax.jms.Queue;
 import javax.jms.Session;
 import javax.jms.TextMessage;
-import org.apache.activemq.ActiveMQConnectionFactory;
 
+import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.activemq.broker.BrokerService;
 import org.apache.activemq.broker.jmx.BrokerView;
 import org.slf4j.Logger;
@@ -148,7 +149,7 @@ public class BrokerMonitor implements GenericListener {
 
         // Local record keeping
         queues = new ArrayList();
-        stats = new TreeMap();
+        stats = new LinkedHashMap();
         targetQueues = new HashMap();
 
         // Thready stuff
@@ -387,10 +388,10 @@ public class BrokerMonitor implements GenericListener {
         temp.addAll(queues);
         queues = new ArrayList();
         // We need to keep our stats in order too
-        Map<String, Map<String, String>> oldStats = new TreeMap();
+        Map<String, Map<String, String>> oldStats = new LinkedHashMap();
         oldStats.putAll(stats);
         Map<String, String> oldData;
-        stats = new TreeMap();
+        stats = new LinkedHashMap();
 
         // Config queues first
         for (String q : statsOrder) {

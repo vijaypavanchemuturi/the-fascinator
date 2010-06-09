@@ -98,7 +98,7 @@ public class FfmpegTransformerTest {
     private DigitalObject transform(String resource) throws Exception {
         file = new File(getClass().getResource(resource).toURI());
         inputObject = StorageUtils.storeFile(ram, file);
-        return transformer.transform(inputObject);
+        return transformer.transform(inputObject, "{}");
     }
 
     /**

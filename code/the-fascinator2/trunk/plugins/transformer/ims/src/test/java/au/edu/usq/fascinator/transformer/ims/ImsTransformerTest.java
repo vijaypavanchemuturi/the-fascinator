@@ -25,7 +25,6 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import au.edu.usq.fascinator.api.storage.DigitalObject;
@@ -33,7 +32,6 @@ import au.edu.usq.fascinator.api.storage.Storage;
 import au.edu.usq.fascinator.api.storage.StorageException;
 import au.edu.usq.fascinator.api.transformer.TransformerException;
 import au.edu.usq.fascinator.common.storage.StorageUtils;
-import au.edu.usq.fascinator.common.storage.impl.GenericDigitalObject;
 import org.junit.After;
 import org.junit.Before;
 
@@ -93,8 +91,8 @@ public class ImsTransformerTest {
         zipObject = StorageUtils.storeFile(ram, zipFile);
 
 		imsTransformer.init("{}");
-		DigitalObject object = imsTransformer.transform(zipObject);
-		// System.out.println("000 " + object.getPayloadList());
+		DigitalObject object = imsTransformer.transform(zipObject, "{}");
+		//System.out.println("000 " + object.getPayloadIdList());
 	}
 
 }

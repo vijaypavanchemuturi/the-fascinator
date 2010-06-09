@@ -45,14 +45,21 @@ import au.edu.usq.fascinator.common.storage.StorageUtils;
  */
 
 public class ApertureTransformerTest {
-    private ApertureTransformer ex = new ApertureTransformer(System
-            .getProperty("java.io.tmpdir"));
+    private ApertureTransformer aperture;
 
     private Storage ram;
+
     private DigitalObject testObject, testObjectOutput;
+
+    private static String config =
+            "{\"aperture\":{\"outputPath\":\"" +
+            System.getProperty("java.io.tmpdir").replace("\\", "/") +
+            "\"}}";
 
     @Before
     public void setup() throws Exception {
+        aperture = new ApertureTransformer();
+        aperture.init(config);
         ram = PluginManager.getStorage("ram");
         ram.init("{}");
     }
@@ -74,7 +81,7 @@ public class ApertureTransformerTest {
                 .toURI());
 
         testObject = StorageUtils.storeFile(ram, fileNamepdf);
-        testObjectOutput = ex.transform(testObject);
+        testObjectOutput = aperture.transform(testObject, "{}");
         Payload rdfPayload = testObjectOutput.getPayload("aperture.rdf");
         Assert.assertEquals("aperture.rdf", rdfPayload.getId());
         Assert.assertEquals("Aperture rdf", rdfPayload.getLabel());
@@ -89,7 +96,7 @@ public class ApertureTransformerTest {
                 .toURI());
 
         testObject = StorageUtils.storeFile(ram, fileNameodt);
-        testObjectOutput = ex.transform(testObject);
+        testObjectOutput = aperture.transform(testObject, "{}");
         Payload rdfPayload = testObjectOutput.getPayload("aperture.rdf");
         Assert.assertEquals("aperture.rdf", rdfPayload.getId());
         Assert.assertEquals("Aperture rdf", rdfPayload.getLabel());
@@ -104,7 +111,7 @@ public class ApertureTransformerTest {
         File fileName = new File(getClass().getResource("/Desktop.7z").toURI());
 
         testObject = StorageUtils.storeFile(ram, fileName);
-        testObjectOutput = ex.transform(testObject);
+        testObjectOutput = aperture.transform(testObject, "{}");
         Assert.assertEquals(1, testObject.getPayloadIdList().size());
     }
 
@@ -115,7 +122,7 @@ public class ApertureTransformerTest {
         File fileName = new File(getClass().getResource("/sample.sfk").toURI());
 
         testObject = StorageUtils.storeFile(ram, fileName);
-        testObjectOutput = ex.transform(testObject);
+        testObjectOutput = aperture.transform(testObject, "{}");
         Assert.assertEquals(1, testObject.getPayloadIdList().size());
     }
 
@@ -127,7 +134,7 @@ public class ApertureTransformerTest {
                 .toURI());
 
         testObject = StorageUtils.storeFile(ram, imageFile);
-        testObjectOutput = ex.transform(testObject);
+        testObjectOutput = aperture.transform(testObject, "{}");
 
         // Try to print out the rdf content
         try {
@@ -157,7 +164,7 @@ public class ApertureTransformerTest {
         File fileWOExt = new File(getClass().getResource("/somefile").toURI());
 
         testObject = StorageUtils.storeFile(ram, fileWOExt);
-        testObjectOutput = ex.transform(testObject);
+        testObjectOutput = aperture.transform(testObject, "{}");
 
         // Try to print out the rdf content
         try {

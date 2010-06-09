@@ -11,52 +11,30 @@
         }
     },
     
-    "transformer": {
-        "extractor": ["aperture"],
-        "render": ["ice2"],
-        "aperture": {
-            "outputPath": "${java.io.tmpdir}/${user.name}/ice2-output"
+    "renderTypes": {
+        "documents": {
+            "fileTypes": ["mp3","mp4","m4a","wav","wma","wmv","mpg","mpeg",
+                          "mov","wav","aiff","odp","ppt","pptx","pdf","tex",
+                          "svg","ods","xls","xlsx","odt","doc","docx","png",
+                          "jpg","jpeg","gif","bmp","cml"],
+            "extractor": ["aperture"],
+            "indexOnHarvest": ["true"],
+            "render": ["ice2"]
         },
-        "ice2": {
-            "url": "http://ice-service.usq.edu.au/api/convert/",
-            "outputPath": "${java.io.tmpdir}/${user.name}/ice2-output",
-            "excludeRenditionExt": "txt,mp3,m4a,mov,mp4,wav,wma,wmv,mpg,flv",
-            "resize": {
-                "thumbnail": {
-                    "option": "fixedWidth",
-                    "ratio": "-90",
-                    "fixedWidth": "160",
-                    "enlarge": "false"
-                }, 
-                "preview": {
-                    "option": "fixedWidth",
-                    "ratio": "-90",
-                    "fixedWidth": "600",
-                    "enlarge": "false"
-                }
-            }
-        },
-        "ffmpeg": {
-            "transformer": "ffmpeg",
-            "extractor": "ffprobe",
-            "outputPath": "${java.io.tmpdir}/${user.name}/ffmpeg-output",
-            "metadata": {
-                "excludeExt": "odt,doc,docx,pdf,ppt,html,htm,tfpackage"
-            },
-            "thumbnail": {
-                "size": "160x120",
-                "excludeExt": ""
-            },
-            "preview": {
-                "outputExt": "flv",
-                "excludeExt": "flv,m4a,mp3,jpg,png",
-                "params": {
-                    "default": "-f flv -b 192k -ab 64k -ar 44100 -ac 1 -s 400x224 -padtop 30 -padbottom 30"
-                }
-            }
+        "speed": {
+            "fileTypes": [],
+            "extractor": [],
+            "indexOnHarvest": ["false"],
+            "render": ["aperture"]
         }
     },
-    
+
+    "transformer": {
+        "extractor": ["aperture"],
+        "indexOnHarvest": "true",
+        "render": ["ice2"]
+    },
+
     "indexer": {
         "script": {
             "type": "python",

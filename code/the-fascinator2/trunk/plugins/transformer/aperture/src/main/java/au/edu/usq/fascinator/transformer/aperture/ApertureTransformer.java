@@ -73,12 +73,18 @@ import org.slf4j.LoggerFactory;
  * @author Duncan Dickinson, Linda Octalina
  */
 public class ApertureTransformer implements Transformer {
-    private String filePath = "";
-    private String outputPath = "";
-    private JsonConfigHelper config;
-
+    /** Logger */
     private static Logger log = LoggerFactory
             .getLogger(ApertureTransformer.class);
+
+    /** Json config file **/
+    private JsonConfigHelper config;
+
+    /** Caching directory **/
+    private String outputPath = "";
+
+    /** Flag for first execution */
+    private boolean firstRun = true;
 
     /**
      * Testing interface. Takes a file name as either a local file path (e.g.
@@ -114,17 +120,63 @@ public class ApertureTransformer implements Transformer {
     /**
      * Extractor Constructor
      */
-    public ApertureTransformer() {
+    public ApertureTransformer() {}
 
+    /**
+     * Overridden method init to initialize
+     *
+     * Configuration sample: "transformer": { "conveyer":
+     * "aperture-extractor, ice-transformer", "extractor": { "outputPath" :
+     * "${user.home}/ice2-output" }, "ice-transformer": { "url":
+     * "http://ice-service.usq.edu.au/api/convert/", "outputPath":
+     * "${user.home}/ice2-output" } }
+     *
+     * @param jsonString of configuration for Extractor
+     * @throws PluginException if fail to parse the config
+     */
+    @Override
+    public void init(String jsonString) throws PluginException {
+        try {
+            config = new JsonConfigHelper(jsonString);
+            reset();
+        } catch (IOException e) {
+            throw new PluginException(e);
+        }
     }
 
     /**
-     * Extractor Constructor
-     * 
-     * @param outputPath : outputPath stored in json config
+     * Overridden method init to initialize
+     *
+     * Configuration sample: "transformer": { "conveyer":
+     * "aperture-extractor, ice-transformer", "extractor": { "outputPath" :
+     * "${user.home}/ice2-output" }, "ice-transformer": { "url":
+     * "http://ice-service.usq.edu.au/api/convert/", "outputPath":
+     * "${user.home}/ice2-output" } }
+     *
+     * @param jsonFile to retrieve the configuration for Extractor
+     * @throws PluginException if fail to read the config file
      */
-    public ApertureTransformer(String outputPath) {
-        this.outputPath = outputPath;
+    @Override
+    public void init(File jsonFile) throws PluginException {
+        try {
+            config = new JsonConfigHelper(jsonFile);
+            reset();
+        } catch (IOException e) {
+            throw new PluginException(e);
+        }
+    }
+
+    /**
+     * Reset the transformer in preparation for a new object
+     */
+    private void reset() throws TransformerException {
+        if (firstRun) {
+            firstRun = false;
+            log.info("--Initializing Extractor plugin--");
+            // Cache directory
+            outputPath = config.get("aperture/outputPath",
+                    System.getProperty("java.io.tmpdir"));
+        }
     }
 
     /**
@@ -293,15 +345,6 @@ public class ApertureTransformer implements Transformer {
     }
 
     /**
-     * Getting the path of the file
-     * 
-     * @return the file path
-     */
-    public String getFilePath() {
-        return filePath;
-    }
-
-    /**
      * Overridden method getId
      * 
      * @return plugin id
@@ -332,59 +375,6 @@ public class ApertureTransformer implements Transformer {
     }
 
     /**
-     * Overridden method init to initialize
-     * 
-     * Configuration sample: "transformer": { "conveyer":
-     * "aperture-extractor, ice-transformer", "extractor": { "outputPath" :
-     * "${user.home}/ice2-output" }, "ice-transformer": { "url":
-     * "http://ice-service.usq.edu.au/api/convert/", "outputPath":
-     * "${user.home}/ice2-output" } }
-     * 
-     * @param jsonString of configuration for Extractor
-     * @throws PluginException if fail to parse the config
-     */
-    @Override
-    public void init(String jsonString) throws PluginException {
-        try {
-            config = new JsonConfigHelper(jsonString);
-            init();
-        } catch (IOException e) {
-            throw new PluginException(e);
-        }
-    }
-
-    /**
-     * Overridden method init to initialize
-     * 
-     * Configuration sample: "transformer": { "conveyer":
-     * "aperture-extractor, ice-transformer", "extractor": { "outputPath" :
-     * "${user.home}/ice2-output" }, "ice-transformer": { "url":
-     * "http://ice-service.usq.edu.au/api/convert/", "outputPath":
-     * "${user.home}/ice2-output" } }
-     * 
-     * @param jsonFile to retrieve the configuration for Extractor
-     * @throws PluginException if fail to read the config file
-     */
-    @Override
-    public void init(File jsonFile) throws PluginException {
-        try {
-            config = new JsonConfigHelper(jsonFile);
-            init();
-        } catch (IOException e) {
-            throw new PluginException(e);
-        }
-    }
-
-    private void init() {
-        log.info("--Initializing Extractor plugin--");
-        // Watcher files
-        filePath = config.get("sourceFile");
-        // Other files need a cache directory
-        outputPath = config.get("aperture/outputPath", System
-                .getProperty("java.io.tmpdir"));
-    }
-
-    /**
      * Overridden method shutdown method
      * 
      * @throws PluginException
@@ -400,34 +390,33 @@ public class ApertureTransformer implements Transformer {
      * @return processed DigitalObject with the rdf metadata
      */
     @Override
-    public DigitalObject transform(DigitalObject in)
+    public DigitalObject transform(DigitalObject in, String jsonConfig)
             throws TransformerException {
+        // Purge old data
+        reset();
 
         String sourceId = in.getSourceId();
         File inFile;
-        if (filePath != null && !"".equals(filePath)) {
-            inFile = new File(filePath);
-        } else {
-            try {
-                inFile = new File(outputPath, sourceId);
-                inFile.deleteOnExit();
-                FileOutputStream tempFileOut = new FileOutputStream(inFile);
-                // Payload from storage
-                Payload payload = in.getPayload(sourceId);
-                // Copy and close
-                IOUtils.copy(payload.open(), tempFileOut);
-                payload.close();
-                tempFileOut.close();
-            } catch (IOException ex) {
-                log.error("Error writing temp file : ", ex);
-                return in;
-                // throw new TransformerException(ex);
-            } catch (StorageException ex) {
-                log.error("Error accessing storage data : ", ex);
-                return in;
-                // throw new TransformerException(ex);
-            }
+        try {
+            inFile = new File(outputPath, sourceId);
+            inFile.deleteOnExit();
+            FileOutputStream tempFileOut = new FileOutputStream(inFile);
+            // Payload from storage
+            Payload payload = in.getPayload(sourceId);
+            // Copy and close
+            IOUtils.copy(payload.open(), tempFileOut);
+            payload.close();
+            tempFileOut.close();
+        } catch (IOException ex) {
+            log.error("Error writing temp file : ", ex);
+            return in;
+            // throw new TransformerException(ex);
+        } catch (StorageException ex) {
+            log.error("Error accessing storage data : ", ex);
+            return in;
+            // throw new TransformerException(ex);
         }
+
         try {
             File oid = new File(in.getId());
             if (inFile.exists()) {

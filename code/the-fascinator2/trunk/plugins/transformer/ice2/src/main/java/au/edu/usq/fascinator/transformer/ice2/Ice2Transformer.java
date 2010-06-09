@@ -85,8 +85,8 @@ public class Ice2Transformer implements Transformer {
     /** Json config file **/
     private JsonConfig config;
 
-    /** ICE rendition output path **/
-    private String outputPath;
+    /** ICE rendition output directory **/
+    private File outputDir;
 
     /** ICE service url **/
     private String convertUrl;
@@ -101,10 +101,77 @@ public class Ice2Transformer implements Transformer {
 
     private static final String IMG_MIME_TYPE = "image/";
 
+    /** Flag for first execution */
+    private boolean firstRun = true;
+
+    /** Exclude these file from renditions */
+    private List<String> excludeList;
+
     /**
      * ICE transformer constructor
      */
-    public Ice2Transformer() {
+    public Ice2Transformer() {}
+
+    /**
+     * Init method to initialise ICE transformer
+     *
+     * @param jsonFile
+     * @throws IOException
+     * @throws PluginException
+     */
+    @Override
+    public void init(File jsonFile) throws PluginException {
+        try {
+            config = new JsonConfig(jsonFile);
+            reset();
+        } catch (IOException ioe) {
+            throw new PluginException(ioe);
+        }
+    }
+
+    /**
+     * Init method to initialise ICE transformer
+     *
+     * @param jsonString
+     * @throws IOException
+     * @throws PluginException
+     */
+    @Override
+    public void init(String jsonString) throws PluginException {
+        try {
+            config = new JsonConfig(jsonString);
+            reset();
+        } catch (IOException ioe) {
+            throw new PluginException(ioe);
+        }
+    }
+
+    /**
+     * Reset the transformer in preparation for a new object
+     */
+    private void reset() throws TransformerException {
+        if (firstRun) {
+            firstRun = false;
+            // Output directory
+            String outputPath = config.get("outputPath");
+            if (outputPath == null) {
+                throw new TransformerException("Output path not specified!");
+            }
+            outputDir = new File(outputPath);
+            outputDir.mkdirs();
+
+            // Rendition exclusions
+            excludeList = Arrays.asList(StringUtils.split(
+                    config.get("excludeRenditionExt"), ','));
+
+            // Conversion Service URL
+            convertUrl = config.get("url");
+            if (convertUrl == null) {
+                throw new TransformerException("No ICE URL provided!");
+            }
+        }
+
+        // Clear the old SAX reader
         reader = new SafeSAXReader();
     }
 
@@ -120,17 +187,16 @@ public class Ice2Transformer implements Transformer {
      * @throws IOException
      */
     @Override
-    public DigitalObject transform(DigitalObject object)
+    public DigitalObject transform(DigitalObject object, String jsonConfig)
             throws TransformerException {
-
-        outputPath = get("outputPath");
-        File outputDir = new File(outputPath);
-        outputDir.mkdirs();
+        // Purge old data
+        reset();
 
         String sourceId = object.getSourceId();
         String ext = FilenameUtils.getExtension(sourceId);
         String fileName = FilenameUtils.getBaseName(sourceId);
 
+        // Cache the file out of storage
         File file;
         try {
             file = new File(outputDir, sourceId);
@@ -151,10 +217,7 @@ public class Ice2Transformer implements Transformer {
             //throw new TransformerException(ex);
         }
 
-        List<String> excludeList = Arrays.asList(StringUtils.split(
-                get("excludeRenditionExt"), ','));
         if (file.exists() && !excludeList.contains(ext.toLowerCase())) {
-            convertUrl = get("url");
             try {
                 if (isSupported(file)) {
                     File outputFile = render(file);
@@ -355,7 +418,7 @@ public class Ice2Transformer implements Transformer {
             } else if ("audio/mpeg".equals(type)) {
                 filename = basename + ".mp3";
             }
-            File outputFile = new File(outputPath, filename);
+            File outputFile = new File(outputDir, filename);
             if (outputFile.exists()) {
                 outputFile.delete();
             }
@@ -434,38 +497,6 @@ public class Ice2Transformer implements Transformer {
     @Override
     public PluginDescription getPluginDetails() {
         return new PluginDescription(this);
-    }
-
-    /**
-     * Init method to initialise ICE transformer
-     * 
-     * @param jsonFile
-     * @throws IOException
-     * @throws PluginException
-     */
-    @Override
-    public void init(File jsonFile) throws PluginException {
-        try {
-            config = new JsonConfig(jsonFile);
-        } catch (IOException ioe) {
-            throw new PluginException(ioe);
-        }
-    }
-
-    /**
-     * Init method to initialise ICE transformer
-     * 
-     * @param jsonString
-     * @throws IOException
-     * @throws PluginException
-     */
-    @Override
-    public void init(String jsonString) throws PluginException {
-        try {
-            config = new JsonConfig(jsonString);
-        } catch (IOException ioe) {
-            throw new PluginException(ioe);
-        }
     }
 
     /**

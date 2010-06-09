@@ -25,15 +25,19 @@ import au.edu.usq.fascinator.api.storage.StorageException;
 import au.edu.usq.fascinator.api.transformer.Transformer;
 import au.edu.usq.fascinator.api.transformer.TransformerException;
 import au.edu.usq.fascinator.common.JsonConfig;
+import au.edu.usq.fascinator.common.JsonConfigHelper;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
+import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Properties;
-import org.apache.commons.lang.StringUtils;
+import java.util.Map;
 
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,35 +55,32 @@ public class ConveyerBelt {
     /** Render Type transformer */
     public static final String RENDER = "render";
 
-    /** Json configuration */
-    private JsonConfig config;
-
-    /** Configuration file */
-    private File jsonFile;
-
-    /** Type of the transformer to be process e.g: extractor or render */
-    private String type;
-
-    /** Configuration string */
-    private String jsonString;
-
-    /** List of plugins to use */
-    private List<Object> plugins;
+    /** Default transformer config file */
+    private static String DEFAULT_CONFIG_FILE = "render-config.json";
 
     /** Logging */
     private static Logger log = LoggerFactory.getLogger(ConveyerBelt.class);
 
+    /** Json configuration */
+    private JsonConfigHelper sysConfig;
+
+    /** Type of the transformer to be process e.g: extractor or render */
+    private String type;
+
+    /** List of plugins to use */
+    private Map<String, Transformer> transformers;
+
     /**
-     * Find out what transformers are required to run for a particular step.
+     * Find out what transformers are required to run for this step.
      *
-     * @param props A propeties object containing item specific metadata.
+     * @param object The digital object to transform.
      * @param config The configuration for the particular harvester.
-     * @param step The transormation step required
+     * @return List<String> A list of names for instantiated transformers.
      */
     public static List<String> getTransformList(DigitalObject object,
-            JsonConfig config, String step) throws StorageException {
+            JsonConfigHelper config, String thisType) throws StorageException {
         List<String> plugins = new ArrayList();
-        String pluginList = object.getMetadata().getProperty(step);
+        String pluginList = object.getMetadata().getProperty(thisType);
         if (pluginList != null && !pluginList.equals("")) {
             // Turn the string into a real list
             for (String plugin : StringUtils.split(pluginList, ",")) {
@@ -88,7 +89,7 @@ public class ConveyerBelt {
         } else {
             // The harvester specified none, fallback to the
             //  default list for this harvest source.
-            for (Object obj : config.getList("transformer/" + step)) {
+            for (Object obj : config.getList("transformer/" + thisType)) {
                 plugins.add(StringUtils.trim(obj.toString()));
             }
         }
@@ -97,67 +98,123 @@ public class ConveyerBelt {
 
     /**
      * Conveyer Belt Constructor
-     * 
+     *
      * @param jsonFile configuration file
      * @param type of transformer
      */
-    public ConveyerBelt(File jsonFile, String type) {
-        this.jsonFile = jsonFile;
-        this.type = type;
+    public ConveyerBelt(String newType) throws TransformerException {
         try {
-            config = new JsonConfig(jsonFile);
+            sysConfig = getTransformerConfig();
+            type = newType;
+            // More than meets the eye
+            transformers = new LinkedHashMap();
+            // Loop through all the system's transformers
+            Map<String, JsonConfigHelper> map =
+                    sysConfig.getJsonMap("transformers");
+            if (map != null && map.size() > 0) {
+                for (String name : map.keySet()) {
+                    String id = map.get(name).get("id");
+                    if (id != null) {
+                        // Instantiate the transformer
+                        Transformer transformer =
+                                PluginManager.getTransformer(id);
+                        try {
+                            transformer.init(map.get(name).toString());
+                            // Finally, store it for use later
+                            transformers.put(name, transformer);
+                            log.info("Transformer warmed: '{}'", name);
+
+                        } catch (PluginException ex) {
+                            throw new TransformerException(ex);
+                        }
+                    } else {
+                        log.warn("Invalid transformer config, no ID.");
+                    }
+                }
+            } else {
+                log.warn("Conveyer Belt instantiated with no Transformers!");
+            }
         } catch (IOException ioe) {
-            log.warn("Failed to load config from {}", jsonFile);
+            log.warn("Failed to load system configuration", ioe);
         }
     }
 
     /**
-     * Conveyer Belt Constructor
-     * 
-     * @param jsonString configuration string
-     * @param type of transformer
+     * Get the transformer configuration file, or the default
+     *
+     * @return JsonConfigHelper transformer configuration
+     * @throws IOException if unable to read the file(s)
      */
-    public ConveyerBelt(String jsonString, String type) {
-        this.jsonString = jsonString;
-        this.type = type;
-        try {
-            config = new JsonConfig(jsonString);
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            log.warn("Failed to load config from {}", jsonFile);
+    private JsonConfigHelper getTransformerConfig() throws IOException {
+        // Where SHOULD it be
+        JsonConfig config = new JsonConfig();
+        String config_path = config.get("portal/transformers");
+        File config_file = new File(config_path);
+
+        // Is it there?
+        if (config_file.exists()) {
+            return new JsonConfigHelper(config_file);
+
+        } else {
+            // Make sure the path exists
+            config_file.getParentFile().mkdirs();
+            // Get an output stream to the file
+            OutputStream out;
+            out = new FileOutputStream(config_file);
+            // Copy the resource to disk
+            IOUtils.copy(getClass().getResourceAsStream("/" +
+                    DEFAULT_CONFIG_FILE), out);
+            // Close output and return
+            out.close();
+            return new JsonConfigHelper(config_file);
         }
     }
 
     /**
      * Transform digital object based on transformer type
-     * 
-     * @param object to be transformed
-     * @return transformed obect
-     * @throws TransformerException if transformation fail
+     *
+     * @param object The object to be transformed
+     * @param config Configuration for this item transformation
+     * @return DigitalObject Transformed obect
+     * @throws TransformerException if transformation fails
      */
-    public DigitalObject transform(DigitalObject object, List<String> pluginList)
-            throws TransformerException {
-        DigitalObject result = object;
+    public DigitalObject transform(DigitalObject object,
+            JsonConfigHelper config) throws TransformerException {
+        Map<String, JsonConfigHelper> itemConfigs;
+        JsonConfigHelper itemConfig;
+
+        // Get the list of transformers to run
+        List<String> pluginList;
+        try {
+            pluginList = getTransformList(object, config, type);
+        } catch (StorageException ex) {
+            throw new TransformerException(ex);
+        }
+
+        // Loop through the list
         if (pluginList != null) {
-            for (String id : pluginList) {
-                Transformer plugin = PluginManager.getTransformer(id);
-                String name = plugin.getName();
-                log.info("Loading plugin: {} ({})", name, id);
-                try {
-                    log.info("Starting {} on {}...", name, object.getId());
-                    if (jsonFile == null) {
-                        plugin.init(jsonString);
+            for (String name : pluginList) {
+                if (transformers.containsKey(name)) {
+                    log.info("Starting '{}' on '{}'...", name, object.getId());
+
+                    // Grab any overriding transformer config this item has
+                    itemConfigs = config.getJsonMap("transformerConfigs");
+                    if (itemConfigs != null && itemConfigs.containsKey(name)) {
+                        itemConfig = itemConfigs.get(name);
                     } else {
-                        plugin.init(jsonFile);
+                        itemConfig = new JsonConfigHelper();
                     }
-                    result = plugin.transform(result);
-                    log.info("Finished {} on {}", name, object.getId());
-                } catch (PluginException pe) {
-                    log.error("Transform failed: ({}) {}", id, pe.getMessage());
+
+                    // Perform the transformation
+                    object = transformers.get(name).
+                            transform(object, itemConfig.toString());
+                    log.info("Finished '{}' on '{}'", name, object.getId());
+
+                } else {
+                    log.error("Transformer not in conveyer belt! '{}'", name);
                 }
             }
         }
-        return result;
+        return object;
     }
 }
