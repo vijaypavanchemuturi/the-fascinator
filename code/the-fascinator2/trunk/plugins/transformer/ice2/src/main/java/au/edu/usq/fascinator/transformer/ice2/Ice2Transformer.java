@@ -82,8 +82,11 @@ public class Ice2Transformer implements Transformer {
     /** Logging **/
     private Logger log = LoggerFactory.getLogger(Ice2Transformer.class);
 
-    /** Json config file **/
+    /** System config file **/
     private JsonConfig config;
+
+    /** Item config file */
+    private JsonConfigHelper itemConfig;
 
     /** ICE rendition output directory **/
     private File outputDir;
@@ -191,6 +194,12 @@ public class Ice2Transformer implements Transformer {
             throws TransformerException {
         // Purge old data
         reset();
+
+        try {
+            itemConfig = new JsonConfigHelper(jsonConfig);
+        } catch (IOException ex) {
+            throw new TransformerException("Invalid configuration! '{}'", ex);
+        }
 
         String sourceId = object.getSourceId();
         String ext = FilenameUtils.getExtension(sourceId);
@@ -370,8 +379,19 @@ public class Ice2Transformer implements Transformer {
         String basename = FilenameUtils.getBaseName(filename);
         String ext = FilenameUtils.getExtension(filename);
         int status = HttpStatus.SC_OK;
-        Map<String, JsonConfigHelper> resizeConfig = config
-                .getJsonMap("transformer/ice2/resize");
+
+        // Grab our config
+        Map<String, JsonConfigHelper> resizeConfig =
+                itemConfig.getJsonMap("resize");
+        if (resizeConfig == null || resizeConfig.size() == 0) {
+            // Try system config instead
+            resizeConfig = config.getJsonMap("resize");
+            if (resizeConfig == null || resizeConfig.size() == 0) {
+                throw new TransformerException(
+                        "No resizing configuration found.");
+            }
+        }
+
         String resizeJson = "";
         for (String key : resizeConfig.keySet()) {
             JsonConfigHelper j = resizeConfig.get(key);
@@ -514,5 +534,37 @@ public class Ice2Transformer implements Transformer {
      */
     @Override
     public void shutdown() throws PluginException {
+    }
+
+    /**
+     * Get data from item JSON, falling back to system JSON, then to
+     *  provided default value if not found
+     *
+     * @param json Config object containing the json data
+     * @param key path to the data in the config file
+     * @param value default to use if not found
+     * @return String containing the config data
+     */
+    private String get(JsonConfigHelper json, String key, String value) {
+        String configEntry = json.get(key, null);
+        if (configEntry == null) {
+            configEntry = config.get(key, value);
+        }
+        return configEntry;
+    }
+
+    /**
+     * Get data from item JSON, falling back to system JSON if not found
+     *
+     * @param json Config object containing the json data
+     * @param key path to the data in the config file
+     * @return String containing the config data
+     */
+    private String get(JsonConfigHelper json, String key) {
+        String configEntry = json.get(key, null);
+        if (configEntry == null) {
+            configEntry = config.get(key, null);
+        }
+        return configEntry;
     }
 }
