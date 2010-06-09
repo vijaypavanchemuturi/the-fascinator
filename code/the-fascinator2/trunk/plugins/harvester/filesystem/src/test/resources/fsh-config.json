@@ -2,7 +2,9 @@
     "harvester": {
         "type": "file-system",
         "file-system": {
-            "baseDir": "${test.dir}"
+            "targets": [ {
+                "baseDir": "${test.dir}"
+            } ]
         }
     }
 }

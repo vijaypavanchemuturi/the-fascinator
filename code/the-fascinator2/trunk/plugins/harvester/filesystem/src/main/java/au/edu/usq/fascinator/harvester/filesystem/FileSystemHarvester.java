@@ -21,7 +21,6 @@ package au.edu.usq.fascinator.harvester.filesystem;
 import au.edu.usq.fascinator.api.harvester.HarvesterException;
 import au.edu.usq.fascinator.api.storage.DigitalObject;
 import au.edu.usq.fascinator.api.storage.StorageException;
-import au.edu.usq.fascinator.common.JsonConfig;
 import au.edu.usq.fascinator.common.JsonConfigHelper;
 import au.edu.usq.fascinator.common.harvester.impl.GenericHarvester;
 import au.edu.usq.fascinator.common.storage.StorageUtils;
@@ -67,28 +66,34 @@ import org.slf4j.LoggerFactory;
 public class FileSystemHarvester extends GenericHarvester {
 
     /** file containing the full path for caching purposes */
-    private static final String ID_FILE = "id.txt";
-
-    /** logging */
-    private Logger log = LoggerFactory.getLogger(FileSystemHarvester.class);
+    private static final String CACHE_ID_FILE = "id.txt";
 
     /** default ignore list */
     private static final String DEFAULT_IGNORE_PATTERNS = ".svn";
 
-    /** directory to harvest */
-    private File baseDir;
+    /** logging */
+    private Logger log = LoggerFactory.getLogger(FileSystemHarvester.class);
 
-    /** whether or not to recursively harvest */
-    private boolean recursive;
+    /** Harvesting targets */
+    private JsonConfigHelper[] targets;
 
-    /** current directory while harvesting */
-    private File currentDir;
+    /** Target index */
+    private Integer targetIndex;
 
-    /** stack of sub-directories while harvesting */
-    private Stack<File> subDirs;
+    /** Target index */
+    private File nextFile;
+
+    /** Stack of queued files to harvest */
+    private Stack<File> fileStack;
+
+    /** Path data for facet */
+    private String facetBase;
 
     /** whether or not there are more files to harvest */
     private boolean hasMore;
+
+    /** whether or not there are more files to harvest */
+    private boolean hasMoreDeleted;
 
     /** current directory while harvesting */
     private File cacheCurrentDir;
@@ -96,14 +101,14 @@ public class FileSystemHarvester extends GenericHarvester {
     /** stack of sub-directories while harvesting */
     private Stack<File> cacheSubDirs;
 
-    /** whether or not there are more files to harvest */
-    private boolean hasMoreDeleted;
-
     /** filter used to ignore files matching specified patterns */
     private IgnoreFilter ignoreFilter;
 
     /** cache directory */
     private File cacheDir;
+
+    /** whether or not to recursively harvest */
+    private boolean recursive;
 
     /** force harvesting all files */
     private boolean force;
@@ -112,7 +117,7 @@ public class FileSystemHarvester extends GenericHarvester {
     private boolean link;
 
     /** filter used when detecting deleted files */
-    private FileFilter idTxtFilter;
+    private FileFilter cacheIdFilter;
 
     /** Render chains */
     private Map<String, Map<String, List<String>>> renderChains;
@@ -154,36 +159,46 @@ public class FileSystemHarvester extends GenericHarvester {
      */
     @Override
     public void init() throws HarvesterException {
-        JsonConfig config = getJsonConfig();
-        baseDir = new File(config.get("harvester/file-system/baseDir", "."));
-        if (!baseDir.exists()) {
-            throw new HarvesterException("Directory does not exist: '"
-                    + baseDir.getAbsolutePath() + "'");
+        JsonConfigHelper config;
+
+        // Read config
+        try {
+            config = new JsonConfigHelper(getJsonConfig().toString());
+        } catch (IOException ex) {
+            throw new HarvesterException("Failed reading configuration", ex);
+        }
+        // Check for valid targest
+        List<JsonConfigHelper> list =
+                config.getJsonList("harvester/file-system/targets");
+        if (list.size() == 0) {
+            throw new HarvesterException("No targets specified");
         }
 
-        log.info("Harvesting directory: {}", baseDir);
-        recursive = Boolean.parseBoolean(config.get(
-                "harvester/file-system/recursive", "false"));
-        ignoreFilter = new IgnoreFilter(config.get(
-                "harvester/file-system/ignoreFilter", DEFAULT_IGNORE_PATTERNS)
-                .split("\\|"));
-        cacheDir = null;
-        String cacheDirValue = config.get("harvester/file-system/cacheDir");
-        if (cacheDirValue != null) {
-            cacheDir = new File(cacheDirValue);
-            cacheDir.mkdirs();
-            log.info("File system state will be cached in {}", cacheDir);
-        }
-        force = Boolean.parseBoolean(config.get("harvester/file-system/force",
-                "false"));
-        if (force) {
-            log.info("Forcing harvest of all files...");
-        }
-        link = Boolean.parseBoolean(config.get("harvester/file-system/link",
-                "false"));
-        currentDir = baseDir;
-        subDirs = new Stack<File>();
+        // Loop processing variables
+        fileStack = new Stack<File>();
+        targets = list.toArray(new JsonConfigHelper[list.size()]);
+        targetIndex = null;
         hasMore = true;
+        hasMoreDeleted = true;
+
+        // Caching variables
+        cacheDir = null;
+        String cachePath = config.get("harvester/file-system/cacheDir");
+        if (cachePath != null) {
+            cacheDir = new File(cachePath);
+            if (!cacheDir.exists()) {
+                cacheDir.mkdirs();
+            }
+            if (cacheDir.exists() && cacheDir.isDirectory()) {
+                log.info("File system state will be cached in {}", cacheDir);
+            } else {
+                cacheDir = null;
+                log.warn("Cache location '{}' is invalid or not a directory," +
+                        " caching disabled", cacheDir);
+            }
+        }
+        cacheCurrentDir = cacheDir;
+        cacheSubDirs = new Stack<File>();
 
         // Order is significant
         renderChains = new LinkedHashMap();
@@ -199,59 +214,145 @@ public class FileSystemHarvester extends GenericHarvester {
             renderChains.put(name, details);
         }
 
-        cacheCurrentDir = cacheDir;
-        cacheSubDirs = new Stack<File>();
-        hasMoreDeleted = true;
-        idTxtFilter = new FileFilter() {
+        cacheIdFilter = new FileFilter() {
             @Override
             public boolean accept(File file) {
-                return file.isDirectory() || ID_FILE.equals(file.getName());
+                return file.isDirectory() ||
+                        CACHE_ID_FILE.equals(file.getName());
             }
         };
+
+        // Prep the first file
+        nextFile = getNextFile();
     }
 
+    /**
+     * Get the next file due to be harvested
+     *
+     * @return The next file to harvest, null if none
+     */
+    private File getNextFile() {
+        File next = null;
+        if (fileStack.empty()) {
+            next = getNextTarget();
+        } else {
+            next = fileStack.pop();
+        }
+        if (next == null) {
+            hasMore = false;
+        }
+        return next;
+    }
+
+    /**
+     * Retrieve the next file specified as a target in configuration
+     *
+     * @return The next target file, null if none
+     */
+    private File getNextTarget() {
+        // First execution
+        if (targetIndex == null) {
+            targetIndex = new Integer(0);
+        } else {
+            targetIndex++;
+        }
+
+        // We're finished
+        if (targetIndex >= targets.length) {
+            return null;
+        }
+
+        // Get the next target
+        JsonConfigHelper target = targets[targetIndex];
+        String path = target.get("baseDir");
+        if (path == null) {
+            log.warn("No path provided for target, skipping!");
+            return getNextTarget();
+
+        } else {
+            File file = new File(path);
+            if (!file.exists()) {
+                log.warn("Path '{}' does not exist, skipping!", path);
+                return getNextTarget();
+
+            } else {
+                log.info("Target file/directory found: '{}'", path);
+                updateConfig(target, path);
+                return file;
+            }
+        }
+    }
+
+    /**
+     * Update harvest configuration when switching target path
+     *
+     * @param tConfig The target configuration
+     * @param path The path to the target (used as default facet)
+     */
+    private void updateConfig(JsonConfigHelper tConfig, String path) {
+        recursive = Boolean.parseBoolean(tConfig.get("recursive", "false"));
+        ignoreFilter = new IgnoreFilter(tConfig.get("ignoreFilter",
+                DEFAULT_IGNORE_PATTERNS).split("\\|"));
+        force = Boolean.parseBoolean(tConfig.get("force", "false"));
+        link = Boolean.parseBoolean(tConfig.get("link", "false"));
+        facetBase = tConfig.get("facetDir", path);
+    }
+
+    /**
+     * Shutdown the plugin
+     *
+     * @throws HarvesterException is there are errors
+     */
     @Override
     public void shutdown() throws HarvesterException {
     }
 
+    /**
+     * Harvest the next set of files, and return their Object IDs
+     *
+     * @return Set<String> The set of object IDs just harvested
+     * @throws HarvesterException is there are errors
+     */
     @Override
     public Set<String> getObjectIdList() throws HarvesterException {
         Set<String> fileObjectIdList = new HashSet<String>();
-        if (currentDir.isDirectory()) {
-            File[] files = currentDir.listFiles(ignoreFilter);
-            for (File file : files) {
-                if (file.isDirectory()) {
+
+        if (nextFile.isDirectory()) {
+            File[] children = nextFile.listFiles(ignoreFilter);
+            for (File child : children) {
+                if (child.isDirectory()) {
                     if (recursive) {
-                        subDirs.push(file);
+                        fileStack.push(child);
                     }
                 } else {
-                    if (force || hasFileChanged(file)) {
-                        try {
-                            String oid = createDigitalObject(file);
-                            fileObjectIdList.add(oid);
-                        } catch (StorageException se) {
-                            log.warn("File not harvested {}: {}", file, se
-                                    .getMessage());
-                        }
-                    }
+                    harvestFile(fileObjectIdList, child);
                 }
             }
-            hasMore = !subDirs.isEmpty();
-            if (hasMore) {
-                currentDir = subDirs.pop();
-            }
+
         } else {
-            if (force || hasFileChanged(currentDir)) {
-                try {
-                    fileObjectIdList.add(createDigitalObject(currentDir));
-                } catch (StorageException se) {
-                    log.warn("File not harvested {}: {}", currentDir, se
-                            .getMessage());
-                }
-            }
-            hasMore = false;
+            harvestFile(fileObjectIdList, nextFile);
         }
+
+        nextFile = getNextFile();
         return fileObjectIdList;
+    }
+
+    /**
+     * Harvest a file based on configuration
+     *
+     * @param list The set of harvested IDs to add to
+     * @param file The file to harvest
+     * @throws HarvesterException is there are errors
+     */
+    private void harvestFile(Set<String> list, File file)
+            throws HarvesterException {
+        if (force || hasFileChanged(file)) {
+            try {
+                list.add(createDigitalObject(file));
+            } catch (StorageException se) {
+                log.warn("File not harvested {}: {}", file, se.getMessage());
+            }
+        }
     }
 
     /**
@@ -266,7 +367,7 @@ public class FileSystemHarvester extends GenericHarvester {
             try {
                 File parentDir = getCacheDirForFile(file);
                 File cacheFile = new File(parentDir, "checksum.txt");
-                File idFile = new File(parentDir, ID_FILE);
+                File idFile = new File(parentDir, CACHE_ID_FILE);
                 if (cacheFile != null) {
                     InputStream fis = new FileInputStream(file);
                     String sha1 = DigestUtils.shaHex(fis);
@@ -317,11 +418,23 @@ public class FileSystemHarvester extends GenericHarvester {
         return null;
     }
 
+    /**
+     * Check if there are more objects to harvest
+     *
+     * @return <code>true</code> if there are more, <code>false</code> otherwise
+     */
     @Override
     public boolean hasMoreObjects() {
         return hasMore;
     }
 
+    /**
+     * Delete cached references to files which no longer exist
+     * and return the set of IDs to delete from the system.
+     *
+     * @return Set<String> The set of object IDs deleted
+     * @throws HarvesterException is there are errors
+     */
     @Override
     public Set<String> getDeletedObjectIdList() throws HarvesterException {
         Set<String> fileObjects = new HashSet<String>();
@@ -329,7 +442,7 @@ public class FileSystemHarvester extends GenericHarvester {
             hasMoreDeleted = false;
         } else {
             if (cacheCurrentDir.isDirectory()) {
-                File[] files = cacheCurrentDir.listFiles(idTxtFilter);
+                File[] files = cacheCurrentDir.listFiles(cacheIdFilter);
                 if (files.length == 0) {
                     // remove it
                     FileUtils.deleteQuietly(cacheCurrentDir);
@@ -364,7 +477,7 @@ public class FileSystemHarvester extends GenericHarvester {
      */
     private void addDeletedObject(Set<String> fileObjectIdList, File idFile)
             throws HarvesterException {
-        if (ID_FILE.equals(idFile.getName())) {
+        if (CACHE_ID_FILE.equals(idFile.getName())) {
             try {
                 String id = FileUtils.readFileToString(idFile);
                 File realFile = new File(id);
@@ -378,6 +491,11 @@ public class FileSystemHarvester extends GenericHarvester {
         }
     }
 
+    /**
+     * Check if there are more objects to delete
+     *
+     * @return <code>true</code> if there are more, <code>false</code> otherwise
+     */
     @Override
     public boolean hasMoreDeletedObjects() {
         return hasMoreDeleted;
@@ -394,13 +512,14 @@ public class FileSystemHarvester extends GenericHarvester {
     private String createDigitalObject(File file) throws HarvesterException,
             StorageException {
         DigitalObject object = StorageUtils.storeFile(getStorage(), file, link);
-        String oid = object.getId();
 
         // update object metadata
         Properties props = object.getMetadata();
         props.setProperty("render-pending", "true");
-        props.setProperty("file.path", FilenameUtils.separatorsToUnix(file
-                .getAbsolutePath()));
+        props.setProperty("file.path",
+                FilenameUtils.separatorsToUnix(file.getAbsolutePath()));
+        props.setProperty("base.file.path",
+                FilenameUtils.separatorsToUnix(facetBase));
 
         // Store rendition information if we have it
         String ext = FilenameUtils.getExtension(file.getName());
@@ -414,9 +533,16 @@ public class FileSystemHarvester extends GenericHarvester {
         }
 
         object.close();
-        return oid;
+        return object.getId();
     }
 
+    /**
+     * Get a list of strings from configuration
+     *
+     * @param json Configuration object to retrieve from
+     * @param field The path to the list
+     * @return List<String> The resulting list
+     */
     private List<String> getList(JsonConfigHelper json, String field) {
         List<String> result = new ArrayList();
         List<Object> list = json.getList(field);
@@ -426,6 +552,14 @@ public class FileSystemHarvester extends GenericHarvester {
         return result;
     }
 
+    /**
+     * Take a list of strings from a Java Map, concatenate the values together
+     * and store them in a Properties object using the Map's original key.
+     *
+     * @param props Properties object to store into
+     * @param details The full Java Map
+     * @param field The key to use in both objects
+     */
     private void storeList(Properties props, Map<String, List<String>> details,
             String field) {
         String joinedList = StringUtils.join(details.get(field), ",");
