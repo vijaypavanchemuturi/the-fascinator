@@ -49,16 +49,19 @@ import org.slf4j.LoggerFactory;
  */
 public class ImsTransformer implements Transformer {
 
-    /** Json config file **/
-    private JsonConfigHelper config;
-
     /** Logging **/
     private static Logger log = LoggerFactory.getLogger(ImsTransformer.class);
 
-    // private boolean isImsPackage = false;
+    /** Json config file **/
+    private JsonConfigHelper config;
 
     /** ims Manifest file **/
     private String manifestFile = "imsmanifest.xml";
+
+    /** Flag for first execution */
+    private boolean firstRun = true;
+
+    // private boolean isImsPackage = false;
 
     /**
      * ImsTransformer constructor
@@ -68,17 +71,70 @@ public class ImsTransformer implements Transformer {
     }
 
     /**
+     * Init method to initialise Ims transformer
+     *
+     * @param jsonFile
+     * @throws IOException
+     * @throws PluginException
+     */
+    @Override
+    public void init(File jsonFile) throws PluginException {
+        try {
+            config = new JsonConfigHelper(jsonFile);
+            reset();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Init method to initialise Ims transformer
+     *
+     * @param jsonString
+     * @throws IOException
+     * @throws PluginException
+     */
+    @Override
+    public void init(String jsonString) throws PluginException {
+        try {
+            config = new JsonConfigHelper(jsonString);
+            reset();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Reset the transformer in preparation for a new object
+     */
+    private void reset() throws TransformerException {
+        if (firstRun) {
+            firstRun = false;
+            // Does IMS need this?
+        }
+    }
+
+    /**
      * Transform method
      * 
      * @param object : DigitalObject to be transformed
-     * @return transformed DigitalObject
+     * @param jsonConfig : String containing configuration for this item
+     * @return DigitalObject The object after being transformed
      * @throws TransformerException
-     * @throws StorageException
-     * @throws IOException
      */
     @Override
-    public DigitalObject transform(DigitalObject in)
+    public DigitalObject transform(DigitalObject in, String jsonConfig)
             throws TransformerException {
+        // Purge old data
+        reset();
+
+        JsonConfigHelper itemConfig;
+        try {
+            itemConfig = new JsonConfigHelper(jsonConfig);
+        } catch (IOException ex) {
+            throw new TransformerException("Invalid configuration! '{}'", ex);
+        }
+
         String sourceId = in.getSourceId();
         String ext = FilenameUtils.getExtension(sourceId);
 
@@ -88,7 +144,7 @@ public class ImsTransformer implements Transformer {
         }
 
         File inFile;
-        String filePath = config.get("sourceFile");
+        String filePath = itemConfig.get("sourceFile");
         if (filePath != null) {
             inFile = new File(filePath);
         } else {
@@ -105,11 +161,9 @@ public class ImsTransformer implements Transformer {
             } catch (IOException ex) {
                 log.error("Error writing temp file : ", ex);
                 return in;
-                //throw new TransformerException(ex);
             } catch (StorageException ex) {
                 log.error("Error accessing storage data : ", ex);
                 return in;
-                //throw new TransformerException(ex);
             }
         }
 
@@ -191,38 +245,6 @@ public class ImsTransformer implements Transformer {
     @Override
     public PluginDescription getPluginDetails() {
         return new PluginDescription(this);
-    }
-
-    /**
-     * Init method to initialise Ims transformer
-     * 
-     * @param jsonFile
-     * @throws IOException
-     * @throws PluginException
-     */
-    @Override
-    public void init(File jsonFile) throws PluginException {
-        try {
-            config = new JsonConfigHelper(jsonFile);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    /**
-     * Init method to initialise Ims transformer
-     * 
-     * @param jsonString
-     * @throws IOException
-     * @throws PluginException
-     */
-    @Override
-    public void init(String jsonString) throws PluginException {
-        try {
-            config = new JsonConfigHelper(jsonString);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
 
     /**

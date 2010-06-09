@@ -38,7 +38,6 @@ import au.edu.usq.fascinator.api.storage.PayloadType;
 import au.edu.usq.fascinator.api.storage.Storage;
 import au.edu.usq.fascinator.api.transformer.Transformer;
 import au.edu.usq.fascinator.common.storage.StorageUtils;
-import au.edu.usq.fascinator.common.storage.impl.GenericDigitalObject;
 import org.junit.After;
 import org.junit.Before;
 
@@ -52,6 +51,7 @@ public class Ice2TransformerTest {
     private static Server server;
 
     private Storage ram;
+
     private DigitalObject sourceObject, outputObject;
 
     @BeforeClass
@@ -93,7 +93,7 @@ public class Ice2TransformerTest {
         Transformer iceTransformer = PluginManager.getTransformer("ice2");
         iceTransformer.init(new File(getClass().getResource(
                 "/ice-transformer.json").toURI()));
-        outputObject = iceTransformer.transform(sourceObject);
+        outputObject = iceTransformer.transform(sourceObject, "{}");
         Set<String> payloads = outputObject.getPayloadIdList();
 
         Assert.assertEquals(4, payloads.size());
@@ -119,7 +119,7 @@ public class Ice2TransformerTest {
         iceTransformer.init(new File(getClass().getResource(
                 "/ice-transformer.json").toURI()));
 
-        outputObject = iceTransformer.transform(sourceObject);
+        outputObject = iceTransformer.transform(sourceObject, "{}");
         Set<String> payloads = outputObject.getPayloadIdList();
 
         Payload icePayload = outputObject.getPayload("somefile_ice_error.htm");

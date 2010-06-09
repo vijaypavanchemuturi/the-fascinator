@@ -33,12 +33,12 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Stack;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.TreeMap;
 
 import javax.jms.Connection;
 import javax.jms.DeliveryMode;
@@ -218,7 +218,7 @@ public class HouseKeeper implements GenericListener {
                     config.get("config/desktop", "true"));
             File sysFile = JsonConfig.getSystemFile();
             actionQueue = new Stack();
-            stats = new TreeMap();
+            stats = new LinkedHashMap();
 
             // Initialise plugins
             indexer = PluginManager.getIndexer(

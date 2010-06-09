@@ -60,14 +60,20 @@ public class FfmpegTransformer implements Transformer {
     /** Logger */
     private Logger log = LoggerFactory.getLogger(FfmpegTransformer.class);
 
-    /** json config file */
-    private JsonConfig config;
+    /** System config file */
+    private JsonConfigHelper config;
 
-    /** FFMPEG output file path */
-    private String outputPath;
+    /** Item config file */
+    private JsonConfigHelper itemConfig;
+
+    /** FFMPEG output directory */
+    private File outputDir;
 
     /** Ffmpeg class for conversion */
     private Ffmpeg ffmpeg;
+
+    /** Flag for first execution */
+    private boolean firstRun = true;
 
     /**
      * Basic constructor
@@ -88,6 +94,55 @@ public class FfmpegTransformer implements Transformer {
     }
 
     /**
+     * Init method to initialise Ffmpeg transformer
+     *
+     * @param jsonFile
+     * @throws IOException
+     * @throws PluginException
+     */
+    @Override
+    public void init(File jsonFile) throws PluginException {
+        try {
+            config = new JsonConfigHelper(jsonFile);
+            reset();
+        } catch (IOException ioe) {
+            throw new PluginException(ioe);
+        }
+    }
+
+    /**
+     * Init method to initialise Ffmpeg transformer
+     *
+     * @param jsonString
+     * @throws IOException
+     * @throws PluginException
+     */
+    @Override
+    public void init(String jsonString) throws PluginException {
+        try {
+            config = new JsonConfigHelper(jsonString);
+            reset();
+        } catch (IOException ioe) {
+            throw new PluginException(ioe);
+        }
+    }
+
+    /**
+     * Reset the transformer in preparation for a new object
+     */
+    private void reset() throws TransformerException {
+        if (firstRun) {
+            firstRun = false;
+            testExecLevel();
+            String outputPath = config.get("outputPath");
+            outputDir = new File(outputPath);
+            outputDir.mkdirs();
+        }
+
+        itemConfig = null;
+    }
+
+    /**
      * Test the level of functionality available on this system
      *
      * @return String indicating the level of available functionality
@@ -95,7 +150,8 @@ public class FfmpegTransformer implements Transformer {
     private String testExecLevel() {
         // Make sure we can start
         if (ffmpeg == null) {
-            ffmpeg = new FfmpegImpl(get("transformer"), get("extractor"));
+            ffmpeg = new FfmpegImpl(
+                    get(config, "transformer"), get(config, "extractor"));
         }
         return ffmpeg.testAvailability();
     }
@@ -104,25 +160,29 @@ public class FfmpegTransformer implements Transformer {
      * Transforming digital object method
      * 
      * @params object: DigitalObject to be transformed
-     * @return transformed digital object
-     * @throws TransformerException
+     * @return transformed DigitalObject after transformation
+     * @throws TransformerException if the transformation fails
      */
     @Override
-    public DigitalObject transform(DigitalObject object)
+    public DigitalObject transform(DigitalObject object, String jsonConfig)
             throws TransformerException {
         if (testExecLevel() == null) {
             return object;
         }
+        // Purge old data
+        reset();
 
-        outputPath = get("outputPath");
-        File outputDir = new File(outputPath);
-        outputDir.mkdirs();
+        try {
+            itemConfig = new JsonConfigHelper(jsonConfig);
+        } catch (IOException ex) {
+            throw new TransformerException("Invalid configuration! '{}'", ex);
+        }
 
         String sourceId = object.getSourceId();
         String ext = FilenameUtils.getExtension(sourceId);
 
         // Check our first level exclusion list
-        List<String> excludeList = getList("metadata/excludeExt");
+        List<String> excludeList = getList(itemConfig, "metadata/excludeExt");
         if (excludeList.contains(ext.toLowerCase())) {
             return object;
         }
@@ -141,11 +201,9 @@ public class FfmpegTransformer implements Transformer {
         } catch (IOException ex) {
             log.error("Error writing temp file : ", ex);
             return object;
-            //throw new TransformerException(ex);
         } catch (StorageException ex) {
             log.error("Error accessing storage data : ", ex);
             return object;
-            //throw new TransformerException(ex);
         }
         if (!file.exists()) {
             return object;
@@ -180,7 +238,7 @@ public class FfmpegTransformer implements Transformer {
         }
 
         // Thumbnails
-        excludeList = getList("thumbnail/excludeExt");
+        excludeList = getList(itemConfig, "thumbnail/excludeExt");
         if (!excludeList.contains(ext.toLowerCase()) && info.hasVideo()) {
             File thumbnail;
             try {
@@ -196,7 +254,7 @@ public class FfmpegTransformer implements Transformer {
         }
 
         // Preview
-        excludeList = getList("preview/excludeExt");
+        excludeList = getList(itemConfig, "preview/excludeExt");
         if (!excludeList.contains(ext.toLowerCase()) &&
                 (info.hasVideo() || info.hasAudio())) {
             File converted = convert(file);
@@ -305,7 +363,7 @@ public class FfmpegTransformer implements Transformer {
             throws TransformerException {
         log.info("Creating thumbnail...");
         String basename = FilenameUtils.getBaseName(sourceFile.getName());
-        File outputFile = new File(outputPath, basename + "_thumbnail.jpg");
+        File outputFile = new File(outputDir, basename + "_thumbnail.jpg");
         if (outputFile.exists()) {
             FileUtils.deleteQuietly(outputFile);
         }
@@ -325,7 +383,7 @@ public class FfmpegTransformer implements Transformer {
             params.add("-r");
             params.add("1"); // frame rate
             params.add("-s");
-            params.add(get("thumbnail/size")); // size
+            params.add(get(itemConfig, "thumbnail/size")); // size
             params.add("-vcodec");
             params.add("mjpeg");
             params.add("-f");
@@ -362,7 +420,7 @@ public class FfmpegTransformer implements Transformer {
             return null;
         }
 
-        File outputFile = new File(outputPath, "ffmpeg.info");
+        File outputFile = new File(outputDir, "ffmpeg.info");
         if (outputFile.exists()) {
             FileUtils.deleteQuietly(outputFile);
         }
@@ -383,11 +441,11 @@ public class FfmpegTransformer implements Transformer {
      * @throws TransformerException if the conversion failed
      */
     private File convert(File sourceFile) throws TransformerException {
-        String outputExt = get("preview/outputExt");
+        String outputExt = get(itemConfig, "preview/outputExt");
         log.info("Converting to {}: {}", outputExt, sourceFile);
         String filename = sourceFile.getName();
         String basename = FilenameUtils.getBaseName(filename);
-        File outputFile = new File(outputPath, basename + "." + outputExt);
+        File outputFile = new File(outputDir, basename + "." + outputExt);
         if (outputFile.exists()) {
             FileUtils.deleteQuietly(outputFile);
         }
@@ -397,12 +455,13 @@ public class FfmpegTransformer implements Transformer {
             params.add(sourceFile.getAbsolutePath()); // input file
             params.add("-y"); // overwrite output file
             // load extension specific parameters or use defaults if not found
-            String configParams = get("preview/params/default");
+            String configParams = get(itemConfig, "preview/params/default");
             log.debug("configParams: ", configParams);
             String ext = FilenameUtils.getExtension(filename);
             if (!"".equals(ext)) {
                 log.debug("Loading params for {}...", ext);
-                configParams = get("preview/params/" + ext, configParams);
+                configParams = get(itemConfig,
+                        "preview/params/" + ext, configParams);
             }
             params.addAll(Arrays.asList(StringUtils.split(configParams, ' ')));
             params.add(outputFile.getAbsolutePath()); // output file
@@ -461,70 +520,51 @@ public class FfmpegTransformer implements Transformer {
     }
 
     /**
-     * Init method to initialise Ffmpeg transformer
-     * 
-     * @param jsonFile
-     * @throws IOException
-     * @throws PluginException
-     */
-    @Override
-    public void init(File jsonFile) throws PluginException {
-        try {
-            config = new JsonConfig(jsonFile);
-        } catch (IOException ioe) {
-            throw new PluginException(ioe);
-        }
-        this.testExecLevel();
-    }
-
-    /**
-     * Init method to initialise Ffmpeg transformer
-     * 
-     * @param jsonString
-     * @throws IOException
-     * @throws PluginException
-     */
-    @Override
-    public void init(String jsonString) throws PluginException {
-        try {
-            config = new JsonConfig(jsonString);
-        } catch (IOException ioe) {
-            throw new PluginException(ioe);
-        }
-        this.testExecLevel();
-    }
-
-    /**
-     * Get configuration data as a list
+     * Get a list from item JSON, falling back to system JSON if not found
      *
+     * @param json Config object containing the json data
      * @param key path to the data in the config file
      * @return List<String> containing the config data
      */
-    private List<String> getList(String key) {
-        String configEntry = get(key);
-        log.debug("List : '{}'", configEntry);
-        return Arrays.asList(StringUtils.split(configEntry, ','));
+    private List<String> getList(JsonConfigHelper json, String key) {
+        String configEntry = get(json, key);
+        if (configEntry == null) {
+            return new ArrayList();
+        } else {
+            return Arrays.asList(StringUtils.split(configEntry, ','));
+        }
     }
 
     /**
-     * Get configuration data
+     * Get data from item JSON, falling back to system JSON, then to
+     *  provided default value if not found
      *
+     * @param json Config object containing the json data
      * @param key path to the data in the config file
+     * @param value default to use if not found
      * @return String containing the config data
      */
-    private String get(String key) {
-        return get(key, null);
+    private String get(JsonConfigHelper json, String key, String value) {
+        String configEntry = json.get(key, null);
+        if (configEntry == null) {
+            configEntry = config.get(key, value);
+        }
+        return configEntry;
     }
 
     /**
-     * Get configuration data with a default fallback
+     * Get data from item JSON, falling back to system JSON if not found
      *
+     * @param json Config object containing the json data
      * @param key path to the data in the config file
-     * @param defaultValue to return is result is null
      * @return String containing the config data
      */
-    private String get(String key, String defaultValue) {
-        return config.get("transformer/ffmpeg/" + key, defaultValue);
+    private String get(JsonConfigHelper json, String key) {
+        String configEntry = json.get(key, null);
+        if (configEntry == null) {
+            configEntry = config.get(key, null);
+        }
+        return configEntry;
     }
 
     /**

@@ -34,10 +34,11 @@ public interface Transformer extends Plugin {
      * transformation occurred.
      * 
      * @param object the object to transformed
+     * @param config transformation configuration
      * @return the transformed object
      * @throws TransformerException if an error occurred during transformation
      */
-    public DigitalObject transform(DigitalObject object)
+    public DigitalObject transform(DigitalObject object, String config)
             throws TransformerException;
 
 }

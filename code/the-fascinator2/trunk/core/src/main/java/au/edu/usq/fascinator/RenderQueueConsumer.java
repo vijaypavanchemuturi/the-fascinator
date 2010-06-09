@@ -100,6 +100,9 @@ public class RenderQueueConsumer implements GenericListener {
     /** Object being processed */
     private DigitalObject object;
 
+    /** Transformer conveyer belt */
+    private ConveyerBelt conveyer;
+
     /**
      * Constructor required by ServiceLoader. Be sure to use init()
      *
@@ -161,6 +164,9 @@ public class RenderQueueConsumer implements GenericListener {
             storage = PluginManager.getStorage(
                     globalConfig.get("storage/type", "file-system"));
             storage.init(sysFile);
+
+            conveyer = new ConveyerBelt(ConveyerBelt.RENDER);
+
         } catch (IOException ioe) {
             log.error("Failed to read configuration: {}", ioe.getMessage());
             throw ioe;
@@ -260,18 +266,18 @@ public class RenderQueueConsumer implements GenericListener {
 
             // Get the message deatils
             String text = ((TextMessage) message).getText();
-            JsonConfig config = new JsonConfig(text);
+            JsonConfigHelper config = new JsonConfigHelper(text);
             String oid = config.get("oid");
             log.info("Received job, object id={}", oid);
 
             // Get our object from storage
             object = storage.getObject(oid);
             sendNotification(oid, "renderStart",
-                    "Renderer starting : '" + oid + "'");
+                    "(" + name + ") Renderer starting : '" + oid + "'");
 
             // Push through the conveyer belt
             log.info("Updating object...");
-            transformObject(config);
+            object = conveyer.transform(object, config);
 
             // Index the object
             log.info("Indexing object...");
@@ -282,7 +288,7 @@ public class RenderQueueConsumer implements GenericListener {
 
             // Finish up
             sendNotification(oid, "renderComplete",
-                    "Renderer complete : '" + oid + "'");
+                    "(" + name + ") Renderer complete : '" + oid + "'");
             Properties props = object.getMetadata();
             props.setProperty("render-pending", "false");
             object.close();
@@ -298,30 +304,6 @@ public class RenderQueueConsumer implements GenericListener {
         } catch (IndexerException ie) {
             log.error("Failed to index object: {}", ie.getMessage());
         }
-    }
-
-    /**
-     * Arrange for the item specified by the message to be transformed
-     *
-     * @param message The message received by the queue
-     * @throws StorageException if there was an error accessing the object
-     * @throws TransformerException if a transformer failed
-     */
-    private void transformObject(JsonConfig message)
-            throws StorageException, TransformerException {
-        // What transformations are required at the harvest step
-        List<String> plugins = ConveyerBelt.getTransformList(
-                object, message, ConveyerBelt.RENDER);
-
-        // No harvesting required
-        if (plugins.size() == 0) {
-            return;
-        }
-
-        // Perform the transformation
-        ConveyerBelt conveyerBelt =
-                new ConveyerBelt(message.toString(), ConveyerBelt.RENDER);
-        object = conveyerBelt.transform(object, plugins);
     }
 
     /**

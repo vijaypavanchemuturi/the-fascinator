@@ -18,12 +18,25 @@
  */
 package au.edu.usq.fascinator.harvester.filesystem;
 
+import au.edu.usq.fascinator.api.harvester.HarvesterException;
+import au.edu.usq.fascinator.api.storage.DigitalObject;
+import au.edu.usq.fascinator.api.storage.StorageException;
+import au.edu.usq.fascinator.common.JsonConfig;
+import au.edu.usq.fascinator.common.JsonConfigHelper;
+import au.edu.usq.fascinator.common.harvester.impl.GenericHarvester;
+import au.edu.usq.fascinator.common.storage.StorageUtils;
+
 import java.io.File;
 import java.io.FileFilter;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.Stack;
@@ -31,15 +44,9 @@ import java.util.Stack;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import au.edu.usq.fascinator.api.harvester.HarvesterException;
-import au.edu.usq.fascinator.api.storage.DigitalObject;
-import au.edu.usq.fascinator.api.storage.StorageException;
-import au.edu.usq.fascinator.common.JsonConfig;
-import au.edu.usq.fascinator.common.harvester.impl.GenericHarvester;
-import au.edu.usq.fascinator.common.storage.StorageUtils;
 
 /**
  * Harvests files in a specified directory on the local file system
@@ -107,6 +114,9 @@ public class FileSystemHarvester extends GenericHarvester {
     /** filter used when detecting deleted files */
     private FileFilter idTxtFilter;
 
+    /** Render chains */
+    private Map<String, Map<String, List<String>>> renderChains;
+
     /**
      * File filter used to ignore specified files
      */
@@ -119,6 +129,7 @@ public class FileSystemHarvester extends GenericHarvester {
             this.patterns = patterns;
         }
 
+        @Override
         public boolean accept(File path) {
             for (String pattern : patterns) {
                 if (FilenameUtils.wildcardMatch(path.getName(), pattern)) {
@@ -168,6 +179,20 @@ public class FileSystemHarvester extends GenericHarvester {
         currentDir = baseDir;
         subDirs = new Stack<File>();
         hasMore = true;
+
+        // Order is significant
+        renderChains = new LinkedHashMap();
+        Map<String, JsonConfigHelper> renderTypes =
+                config.getJsonMap("renderTypes");
+        for (String name : renderTypes.keySet()) {
+            Map<String, List<String>> details = new HashMap();
+            JsonConfigHelper chain = renderTypes.get(name);
+            details.put("fileTypes",      getList(chain, "fileTypes"));
+            details.put("extractor",      getList(chain, "extractor"));
+            details.put("indexOnHarvest", getList(chain, "indexOnHarvest"));
+            details.put("render",         getList(chain, "render"));
+            renderChains.put(name, details);
+        }
 
         cacheCurrentDir = cacheDir;
         cacheSubDirs = new Stack<File>();
@@ -372,7 +397,33 @@ public class FileSystemHarvester extends GenericHarvester {
         props.setProperty("file.path", FilenameUtils.separatorsToUnix(file
                 .getAbsolutePath()));
 
+        // Store rendition information if we have it
+        String ext = FilenameUtils.getExtension(file.getName());
+        for (String chain : renderChains.keySet()) {
+            Map<String, List<String>> details = renderChains.get(chain);
+            if (details.get("fileTypes").contains(ext)) {
+                storeList(props, details, "extractor");
+                storeList(props, details, "indexOnHarvest");
+                storeList(props, details, "render");
+            }
+        }
+
         object.close();
         return oid;
+    }
+
+    private List<String> getList(JsonConfigHelper json, String field) {
+        List<String> result = new ArrayList();
+        List<Object> list = json.getList(field);
+        for (Object object : list) {
+            result.add((String)object);
+        }
+        return result;
+    }
+
+    private void storeList(Properties props, Map<String, List<String>> details,
+            String field) {
+        String joinedList = StringUtils.join(details.get(field), ",");
+        props.setProperty(field, joinedList);
     }
 }

@@ -31,11 +31,10 @@ import au.edu.usq.fascinator.common.JsonConfigHelper;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-import java.util.TreeMap;
 
 import javax.jms.Connection;
 import javax.jms.DeliveryMode;
@@ -107,6 +106,9 @@ public class HarvestQueueConsumer implements GenericListener {
     /** Object being processed */
     private DigitalObject object;
 
+    /** Transformer conveyer belt */
+    private ConveyerBelt conveyer;
+
     /**
      * Constructor required by ServiceLoader. Be sure to use init()
      *
@@ -137,7 +139,7 @@ public class HarvestQueueConsumer implements GenericListener {
             consumer.setMessageListener(this);
 
             broadcast = session.createTopic(MessagingServices.MESSAGE_TOPIC);
-            renderers = new TreeMap();
+            renderers = new LinkedHashMap();
             for (String selector : rendererNames.keySet()) {
                 renderers.put(selector,
                         session.createQueue(rendererNames.get(selector)));
@@ -145,7 +147,6 @@ public class HarvestQueueConsumer implements GenericListener {
             producer = session.createProducer(null);
             producer.setDeliveryMode(DeliveryMode.PERSISTENT);
 
-            log.debug("Starting connection");
             connection.start();
         } catch (JMSException ex) {
             log.error("Error starting message thread!", ex);
@@ -171,13 +172,15 @@ public class HarvestQueueConsumer implements GenericListener {
             storage.init(sysFile);
 
             // Setup render queue logic
-            rendererNames = new HashMap();
+            rendererNames = new LinkedHashMap();
             Map<String, Object> map = config.getMap("config/normal-renderers");
             for (String selector : map.keySet()) {
                 rendererNames.put(selector, (String)map.get(selector));
             }
             String userQueue = config.get("config/user-renderer");
             rendererNames.put(CRITICAL_USER_SELECTOR, userQueue);
+
+            conveyer = new ConveyerBelt(ConveyerBelt.EXTRACTOR);
 
         } catch (IOException ioe) {
             log.error("Failed to read configuration: {}", ioe.getMessage());
@@ -267,7 +270,7 @@ public class HarvestQueueConsumer implements GenericListener {
      */
     @Override
     public void onMessage(Message message) {
-        MDC.put("name", "harvest");
+        MDC.put("name", HARVEST_QUEUE);
         try {
             // Make sure thread priority is correct
             if (!Thread.currentThread().getName().equals(thread.getName())) {
@@ -277,7 +280,7 @@ public class HarvestQueueConsumer implements GenericListener {
 
             // Incoming message
             String text = ((TextMessage) message).getText();
-            JsonConfig config = new JsonConfig(text);
+            JsonConfigHelper config = new JsonConfigHelper(text);
             String oid = config.get("oid");
             log.info("Received job, object id={}", oid, text);
 
@@ -292,7 +295,7 @@ public class HarvestQueueConsumer implements GenericListener {
 
             // Retrieve and process the object
             object = storage.getObject(oid);
-            transformObject(config);
+            object = conveyer.transform(object, config);
             indexObject(config);
             queueRenderJob(config);
 
@@ -310,30 +313,6 @@ public class HarvestQueueConsumer implements GenericListener {
     }
 
     /**
-     * Arrange for the item specified by the message to be transformed
-     *
-     * @param message The message received by the queue
-     * @throws StorageException if there was an error accessing the object
-     * @throws TransformerException if a transformer failed
-     */
-    private void transformObject(JsonConfig message)
-            throws StorageException, TransformerException {
-        // What transformations are required at the harvest step
-        List<String> plugins = ConveyerBelt.getTransformList(
-                object, message, ConveyerBelt.EXTRACTOR);
-
-        // No harvesting required
-        if (plugins.size() == 0) {
-            return;
-        }
-
-        // Perform the transformation
-        ConveyerBelt conveyerBelt =
-                new ConveyerBelt(message.toString(), ConveyerBelt.EXTRACTOR);
-        object = conveyerBelt.transform(object, plugins);
-    }
-
-    /**
      * Arrange for the item specified by the message to be indexed
      *
      * @param message The message received by the queue
@@ -341,7 +320,7 @@ public class HarvestQueueConsumer implements GenericListener {
      * @throws IndexerException if the solr indexer failed
      * @throws StorageException if the object's metadata was inaccessible
      */
-    private void indexObject(JsonConfig message)
+    private void indexObject(JsonConfigHelper message)
             throws JMSException, IndexerException, StorageException {
         // Are we indexing?
         boolean doIndex = true;
@@ -374,14 +353,14 @@ public class HarvestQueueConsumer implements GenericListener {
      * @throws JMSException if there was an error posting to the queue
      * @throws StorageException if the object's metadata was inaccessible
      */
-    private void queueRenderJob(JsonConfig message)
+    private void queueRenderJob(JsonConfigHelper message)
             throws JMSException, StorageException {
         // What transformations are required at the render step
         List<String> plugins = ConveyerBelt.getTransformList(
                 object, message, ConveyerBelt.RENDER);
 
         TextMessage msg = session.createTextMessage(message.toString());
-        // 'renderers' is a TreeMap because the key order is significant
+        // 'renderers' is a LinkedHashMap because the key order is significant
         for (String selector : renderers.keySet()) {
             if (plugins.contains(selector)) {
                 producer.send(renderers.get(selector), msg);

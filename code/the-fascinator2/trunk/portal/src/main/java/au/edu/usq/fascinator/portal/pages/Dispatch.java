@@ -70,8 +70,6 @@ public class Dispatch {
 
     private static final String DEFAULT_RESOURCE = "home";
 
-    private static final String ERROR_RESOURCE = "error";
-
     @Inject
     private Logger log;
 
