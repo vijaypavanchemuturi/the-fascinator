@@ -1,0 +1,22 @@
+#if($hasResult)
+
+  #set($resultSummary="<span class='right'>Showing ${paging.startNum} to ${paging.endNum} of ${paging.totalFound} items ($self.queryTime seconds)</span>")
+  #set($contentTitle = "${resultSummary} Results")
+  #parse($page.getTemplate('wrapping/content-block-open.vm'))
+  #set($contentTitle = $nullValue)
+
+  #set ($is_admin = $page.authentication.is_admin())
+  #foreach($item in $self.result.getList("response/docs"))
+    #parse($page.getTemplate('results/search-results-item.vm'))
+  #end
+#else
+
+  #set($contentTitle = "Results")
+  #parse($page.getTemplate('wrapping/content-block-open.vm'))
+  #set($contentTitle = $nullValue)
+
+  No items found matching your query: '$!query'
+  #parse($page.getTemplate('wrapping/content-block-close.vm'))
+#end
+
+#parse($page.getTemplate('wrapping/content-block-close.vm'))
