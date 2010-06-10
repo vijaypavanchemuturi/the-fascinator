@@ -102,7 +102,6 @@ class AnotarData:
     "formData" : {
     }
   },
-  "contentUri": "",
   "isPrivate" : false,
   "lang" : "en"
 }
@@ -218,7 +217,7 @@ class AnotarData:
         else:
             query += "\"" + self.rootUri + "\""
         query += " AND type:\"" + self.type + "\")"
-        print "**********", query
+        #print "**********", query
 
         req = SearchRequest(query)
         req.setParam("facet", "false")

@@ -1,14 +1,12 @@
 <script type="text/javascript" src="$portalPath/js/tree/jquery.tree.min.js"></script>
 <script type="text/javascript" src="$portalPath/js/jquery.truncate.js"></script>
-<script type="text/javascript" src="$portalPath/js/anotar/json2.js"></script>
-<script type="text/javascript" src="$portalPath/js/anotar/anotar-0.2.js"></script>
+<script type="text/javascript" src="$portalpath/js/jquery.timeago-0.8.2.js"></script>
+<script type="text/javascript" src="$portalPath/js/anotar/anotar-0.2.min.js"></script>
 
 <script type="text/javascript">
 $(function(){
-    jQ = jQuery;
     // Tags annotation
     tagConfig = {
-        //debug: true,
         docRoot: "#result-list",
         tagList: ".tags",
         contentInput: "#object-tag-input",
@@ -17,39 +15,64 @@ $(function(){
         annotationType: "tag",
         stylePrefix: "tags-",
         displayCustom: "tag_display",
-        creator: "$creator",
-        creatorUri: "$creatorUri",
+        #if("$!creator" != "")creator: "$creator",#end
+        #if("$!creatorUri" != "")creatorUri: "$creatorUri",#end
         interfaceLabel: " <img src='$portalPath/images/icons/add.png'/>",
         interfaceVisible: true,
         formCustom: "object_tag_form",
         formCancel: ".myTag-cancel",
         formSubmit: ".myTag-submit",
-        serverAddress: "$portalPath/actions/anotar.ajax",
         disableReply: true,
-        serverMode: "fascinator",
         loadAnnotations: function() {
             var config = this;
             var rootUriList = [];
-            jQ.each(jQ(config.tagList), function(count, item) {
-                rootUriList.push(jQ(item).attr("rel"));
+            jQuery.each(jQuery(config.tagList), function(count, item) {
+                rootUriList.push(jQuery(item).attr("rel"));
             });
-            jQ.post("$portalPath/actions/anotar.ajax",
-                { "action": "getList",
-                  "rootUriList": rootUriList,
-                  "type": config.annoType
+            jQuery.post("$portalPath/actions/anotar.ajax",
+                {   "action": "getList",
+                    "rootUriList": rootUriList,
+                    "type": config.annoType
                 },
                 function(data, status) {
-                    try{
-                        jQ.each(data, function(count, item) {
+                    jQuery.each(data, function(count, item) {
+                        try {
                             config.loadAnnotation(item);
-                        });
+                        } catch(e) {
+                            if (window.console) {
+                                console.log("error:'" + e +
+                                        "' rootUri:'" + item.annotates.rootUri +
+                                        "' content:'" + item.content.literal + "'");
+                                console.log(item);
+                            }
+                        }
+                    });
+                },
+                "json");
+        },
+        submitAnnotation: function(data, annotateDiv) {
+            var config = this;
+            jQuery.post("$portalPath/actions/anotar.ajax",
+                {   "action": "put",
+                    "rootUri": data.annotates.uri,
+                    "json": JSON.stringify(data)
+                },
+                function(data, status) {
+                    try {
+                        config.loadAnnotation(data);
                     } catch(e) {
+                        if (window.console) {
+                            console.log("error:'" + e +
+                                    "' rootUri:'" + data.annotates.rootUri +
+                                    "' content:'" + data.content.literal + "'");
+                        }
                     }
                 },
                 "json");
         }
     }
-    tag = anotarFactory(jQ, tagConfig);
+    
+    anotarFactory(jQuery, tagConfig);
 });
 </script>
 
