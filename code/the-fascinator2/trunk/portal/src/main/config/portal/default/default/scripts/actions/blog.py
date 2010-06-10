@@ -1,4 +1,4 @@
-import md5, os
+import htmlentitydefs, sys
 
 from au.edu.usq.fascinator.api.storage import PayloadType
 from au.edu.usq.fascinator.common import FascinatorHome, JsonConfigHelper
@@ -6,19 +6,13 @@ from au.edu.usq.fascinator.common import FascinatorHome, JsonConfigHelper
 from com.sun.syndication.feed.atom import Content
 from com.sun.syndication.propono.atom.client import AtomClientFactory, BasicAuthStrategy
 
-from java.io import ByteArrayInputStream, ByteArrayOutputStream, File, StringWriter
+from java.io import ByteArrayOutputStream
 from java.net import Proxy, ProxySelector, URL, URLDecoder
 from java.lang import Exception
-from java.util import HashSet
 
-from org.apache.commons.httpclient.methods import PostMethod
 from org.apache.commons.io import FileUtils, IOUtils
-from org.apache.commons.io.output import NullOutputStream
-from org.dom4j.io import OutputFormat, XMLWriter, SAXReader
-
 from org.w3c.tidy import Tidy
 
-from java.lang import String, System
 
 class ProxyBasicAuthStrategy(BasicAuthStrategy):
     def __init__(self, username, password, baseUrl):
@@ -63,7 +57,7 @@ class AtomEntryPoster:
                         # FIXME see https://fascinator.usq.edu.au/trac/ticket/647
                         if payload and sourceId.endswith(".tfpackage"): #payload.getContentType() == "application/x-fascinator-package":
                             jsonManifest = JsonConfigHelper(payload.open())
-                            print jsonManifest.toString()
+                            #print jsonManifest.toString()
                             content = self.__getManifestContent(jsonManifest)
                             payload.close()
                         else:
@@ -134,7 +128,7 @@ class AtomEntryPoster:
         else:
             mimeType = payload.getContentType()
             if mimeType.startswith("image/"):
-                content = '<img src="%s" />' % pid
+                content = '<img alt="%s" title="%s" src="%s" />' % (pid, pid, pid)
             elif mimeType in ["text/html", "text/xml", "application/xhtml+xml"]:
                 content = self.__getPayloadAsString(payload)
             elif mimeType.startswith("text/"):
@@ -152,7 +146,7 @@ class AtomEntryPoster:
         for payloadId in payloadIdList:
             try:
                 payload = object.getPayload(payloadId)
-                print "%s: %s" % (payloadId, payload.getType())
+                #print "%s: %s" % (payloadId, payload.getType())
                 if PayloadType.Preview == payload.getType():
                     return payload
             except Exception, e:
@@ -160,10 +154,20 @@ class AtomEntryPoster:
         return None
     
     def __getPayloadAsString(self, payload):
-        payloadStr = IOUtils.toString(payload.open(), "UTF-8")
-        payload.close();
-        return payloadStr
-    
+        out = ByteArrayOutputStream()
+        IOUtils.copy(payload.open(), out)
+        payload.close()
+        return self.__escapeUnicode(out.toString("UTF-8"))
+
+    def __escapeUnicode(self, unicode):
+        result = list()
+        for char in unicode:
+            if ord(char) < 128:
+                result.append(char)
+            else:
+                result.append('&%s;' % htmlentitydefs.codepoint2name[ord(char)])
+        return ''.join(result)
+
     def __tidy(self, content):
         tidy = Tidy()
         tidy.setIndentAttributes(False)
@@ -173,6 +177,8 @@ class AtomEntryPoster:
         tidy.setWraplen(0)
         tidy.setXHTML(False)
         tidy.setNumEntities(True)
+        tidy.setShowWarnings(False)
+        tidy.setQuiet(True)
         out = ByteArrayOutputStream()
         doc = tidy.parseDOM(IOUtils.toInputStream(content, "UTF-8"), out)
         content = out.toString("UTF-8")

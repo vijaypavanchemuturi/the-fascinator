@@ -4,9 +4,11 @@ import os
 
 from au.edu.usq.fascinator.api.storage import StorageException
 
-from org.apache.commons.io import IOUtils
-
+from java.io import ByteArrayOutputStream
 from java.net import URLDecoder
+
+from org.apache.commons.io import IOUtils
+from org.apache.commons.lang import StringEscapeUtils
 
 class DownloadData:
     def __init__(self):
@@ -28,11 +30,23 @@ class DownloadData:
             mimeType = payload.getContentType()
             if mimeType == "application/octet-stream":
                 response.setHeader("Content-Disposition", "attachment; filename=%s" % filename)
-            out = response.getOutputStream(payload.getContentType())
-            IOUtils.copy(payload.open(), out)
-            payload.close()
-            object.close()
-            out.close()
+
+            type = payload.getContentType()
+            # Enocode textual responses before sending
+            if type.startswith("text/"):
+                out = ByteArrayOutputStream()
+                IOUtils.copy(payload.open(), out)
+                payload.close()
+                writer = response.getPrintWriter(type + "; charset=UTF-8")
+                writer.println(out.toString("UTF-8"))
+                writer.close()
+            # Other data can just be streamed out
+            else:
+                out = response.getOutputStream(payload.getContentType())
+                IOUtils.copy(payload.open(), out)
+                payload.close()
+                object.close()
+                out.close()
         else:
             response.setStatus(404)
             writer = response.getPrintWriter("text/plain; charset=UTF-8")
