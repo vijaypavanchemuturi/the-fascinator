@@ -5,7 +5,7 @@
       <fieldset class="login">
         <legend>Blog information</legend>
         <p>
-          <label for="blog_url">Blog URL</label>
+          <label for="blog_url">Blog APP URL*</label>
           <input type="text" id="blog_url" name="blog_url" />
         </p>
         <p>
@@ -28,6 +28,7 @@
         <input id="blog-cancel" type="button" value="Close" />
       </fieldset>
     </form>
-    <p>Note: Some platforms may not support images or attachments.</p>
+    <p>* Note: To use this feature the target blog needs to support the <a href="http://en.wikipedia.org/wiki/Atom_%28standard%29">Atom Publishing Protocol (APP)</a>. Usually this feature must be specifically enabled, and some platforms might not support all content, such as images and attachments.</p>
+    <p>For more information on APP support on your blog, consult the documentation (eg. <a href="http://codex.wordpress.org/AtomPub">WordPress</a>).
   </div>
 #end
