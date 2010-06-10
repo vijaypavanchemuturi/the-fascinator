@@ -62,11 +62,9 @@
         <div id="object-tag-list">
           <div rel="$page.md5Hash($oid)_object">Tags: <span class="object-tags"></span></div>
         </div>
-        <br/>
         <div id="location-tag-list">
           <div rel="$page.md5Hash($oid)_location">Location: <span class="location-tags"></span></div>
         </div>
-        <br/>
       #end
 
         <div id="content">
@@ -102,7 +100,7 @@
         * 'Normal' object display
         ************************#
           <div class="content-preview-inline">$!self.payloadContent</div>
-          <div class="annotatable">&nbsp;</div>
+          <div class="annotatable">Comment on this item:</div>
         #end
       #end
         </div>
