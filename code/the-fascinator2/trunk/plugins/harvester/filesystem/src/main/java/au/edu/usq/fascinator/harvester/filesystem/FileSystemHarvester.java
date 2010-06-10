@@ -317,6 +317,13 @@ public class FileSystemHarvester extends GenericHarvester {
     public Set<String> getObjectIdList() throws HarvesterException {
         Set<String> fileObjectIdList = new HashSet<String>();
 
+        // We had no valid targets
+        if (nextFile == null) {
+            hasMore = false;
+            return fileObjectIdList;
+        }
+
+        // Normal logic
         if (nextFile.isDirectory()) {
             File[] children = nextFile.listFiles(ignoreFilter);
             for (File child : children) {
@@ -333,6 +340,7 @@ public class FileSystemHarvester extends GenericHarvester {
             harvestFile(fileObjectIdList, nextFile);
         }
 
+        // Progess the stack and return
         nextFile = getNextFile();
         return fileObjectIdList;
     }
