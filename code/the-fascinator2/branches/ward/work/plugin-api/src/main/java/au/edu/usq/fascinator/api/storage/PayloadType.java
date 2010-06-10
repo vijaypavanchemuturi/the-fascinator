@@ -40,6 +40,9 @@ public enum PayloadType {
     Preview,
 
     /** Original or source content */
-    Source
+    Source,
+
+    /** Thumbnail image version of an object */
+    Thumbnail
 
 }
