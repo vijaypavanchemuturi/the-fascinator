@@ -1,8 +1,0 @@
-{
-    "harvester": {
-        "type": "hca-data",
-        "hca-data": {
-            "baseDir": "${test.dir}"
-        }
-    }
-}
