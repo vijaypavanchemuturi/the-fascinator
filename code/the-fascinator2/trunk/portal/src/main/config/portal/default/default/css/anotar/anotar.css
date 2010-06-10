@@ -20,6 +20,9 @@
 .tags-command {
     cursor: pointer;
 }
+.tags-command img {
+    vertical-align: bottom;
+}
 .tags-here {
     padding: 2px;
 }

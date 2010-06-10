@@ -1,4 +1,3 @@
-<script type="text/javascript" src="$portalPath/js/anotar/json2.js"></script>
 <script type="text/javascript" src="$portalPath/js/amq/amq_jquery_adapter.js"></script>
 <script type="text/javascript" src="$portalPath/js/amq/amq.js"></script>
 <script type="text/javascript">
@@ -31,6 +30,48 @@ function fixLinks(baseUrl, selector, attrName, oid) {
             }
         }
     });
+}
+
+function loadAnnotations(config, rootUri) {
+    jQuery.post("$portalPath/actions/anotar.ajax",
+        {   "action": "getList",
+            "rootUri": rootUri,
+            "type": config.annoType
+        },
+        function(data, status) {
+            jQuery.each(data, function(count, item) {
+                try{
+                    config.loadAnnotation(item);
+                } catch(e) {
+                    if (window.console) {
+                        console.log("error:'" + e +
+                                "' rootUri:'" + item.annotates.rootUri +
+                                "' content:'" + item.content.literal + "'");
+                    }
+                }
+            });
+        },
+        "json");
+}
+
+function submitAnnotation(config, rootUri, data, annotateDiv) {
+    jQuery.post("$portalPath/actions/anotar.ajax",
+        {   "action": "put",
+            "rootUri": rootUri,
+            "json": JSON.stringify(data)
+        },
+        function(data, status) {
+            try {
+                config.loadAnnotation(data);
+            } catch(e) {
+                if (window.console) {
+                    console.log("error:'" + e +
+                            "' rootUri:'" + data.annotates.rootUri +
+                            "' content:'" + data.content.literal + "'");
+                }
+            }
+        },
+        "json");
 }
 
 $(function() {

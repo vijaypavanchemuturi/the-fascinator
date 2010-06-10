@@ -1,5 +1,5 @@
 #if($self.mimeType.startsWith("image/"))
-<script type="text/javascript" src="$portalPath/js/image.annotate.js"></script>
+<script type="text/javascript" src="$portalPath/js/anotar/image.annotate.js"></script>
 <script type="text/javascript">
     $(window).load(function() {
         $("#image-content").annotateImage({

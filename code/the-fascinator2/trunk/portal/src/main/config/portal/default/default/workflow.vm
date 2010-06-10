@@ -5,7 +5,6 @@
       <ul id="render-list"></ul>
   </div>
   ## ActiveMQ ajax based messaging
-  <script type="text/javascript" src="$portalPath/js/anotar/json2.js"></script>
   <script type="text/javascript" src="$portalPath/js/amq/amq_jquery_adapter.js"></script>
   <script type="text/javascript" src="$portalPath/js/amq/amq.js"></script>
   <script type="text/javascript">
