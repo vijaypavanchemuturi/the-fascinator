@@ -405,6 +405,7 @@ public class Ice2Transformer implements Transformer {
                     new StringPart("dc", "on"),
                     new StringPart("toc", "on"),
                     new StringPart("pdflink", "on"),
+                    new StringPart("addThumbnail", "on"),
                     new StringPart("pathext", ext),
                     new StringPart("template", getTemplate()),
                     new StringPart("multipleImageOptions", "{"

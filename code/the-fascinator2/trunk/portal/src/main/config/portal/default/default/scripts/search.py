@@ -219,7 +219,14 @@ class SearchData:
                     object.close()
                     return url
                 except Exception:
-                    object.close()
+                    url = os.path.splitext(sid)[0] + "00_thumbnail.jpg"
+                    try:
+                        payload = object.getPayload(url)
+                        payload.close()
+                        object.close()
+                        return url
+                    except Exception:
+                        object.close()
         except Exception:
             pass
         return None
