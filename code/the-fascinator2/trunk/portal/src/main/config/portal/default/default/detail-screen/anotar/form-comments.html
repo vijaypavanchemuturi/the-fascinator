@@ -4,7 +4,7 @@
         <div class="<%=style%>orig-content" style="display:none;"><%=original%></div>
         #if($page.authentication.is_admin())
         <img class="anno-delete"
-             onclick="deleteComment(this)"
+             onclick="deleteComment(this, 'id')"
              src="$portalPath/images/icons/comments_delete.png"
              title="Delete this comment" />
         #end

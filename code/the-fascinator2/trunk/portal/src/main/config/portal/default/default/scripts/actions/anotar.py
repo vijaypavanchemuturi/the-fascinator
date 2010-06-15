@@ -28,6 +28,7 @@ class AnotarData:
         if self.oid and self.oid.startswith(portalPath):
             self.oid = self.oid[len(portalPath):]
 
+        result = ""
         if self.action == "getList":
             # Response is a list of object (nested)
             #print "**** anotar.py : GET_SOLR : " + self.rootUri
@@ -138,7 +139,7 @@ class AnotarData:
         self.modify_json()
 
         try:
-            p = self.obj.createStoredPayload(self.pid, IOUtils.toInputStream(self.json))
+            p = self.obj.createStoredPayload(self.pid, IOUtils.toInputStream(self.json, "UTF-8"))
         except StorageException, e:
             print " * anotar.py : Error creating payload :", e
             return e.getMessage()

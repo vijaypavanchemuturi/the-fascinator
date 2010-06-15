@@ -74,21 +74,24 @@ function submitAnnotation(config, rootUri, data, annotateDiv) {
         "json");
 }
 
-function deleteComment(node) {
+function deleteComment(node, uriAttr) {
     var commentNode = $(node).parent();
     var pidList = [];
     var rootUri = commentNode.find("input[name='rootUri']").attr("value");
     jQuery.each(commentNode.find(".anno-inline-annotation").andSelf(),
             function(count, item) {
-                var id = $(item).attr("id");
+                var id = $(item).attr(uriAttr);
                 pidList.push(id.substring(id.lastIndexOf("#") + 1));
             });
+    console.log(commentNode,pidList);
     
     $("#delete-annotation .cancel").one("click", function() {
+        $("#delete-annotation .delete").unbind("click");
         $("#delete-annotation").dialog("close");
     });
     
     $("#delete-annotation .delete").one("click", function() {
+        $("#delete-annotation .cancel").unbind("click");
         jQuery.ajax({
             type: "POST",
             url: "$portalPath/actions/anotar.ajax",
