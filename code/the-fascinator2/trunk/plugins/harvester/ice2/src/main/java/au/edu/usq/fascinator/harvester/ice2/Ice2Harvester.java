@@ -198,7 +198,7 @@ public class Ice2Harvester extends GenericHarvester {
         if (!packageDir.exists()) {
             packageDir.mkdirs();
         }
-        workflowsDir = FascinatorHome.getPathFile("workflows");
+        workflowsDir = FascinatorHome.getPathFile("harvest/workflows");
         if (!workflowsDir.exists()) {
             workflowsDir.mkdirs();
         }
