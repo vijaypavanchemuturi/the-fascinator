@@ -83,7 +83,6 @@ function deleteComment(node, uriAttr) {
                 var id = $(item).attr(uriAttr);
                 pidList.push(id.substring(id.lastIndexOf("#") + 1));
             });
-    console.log(commentNode,pidList);
     
     $("#delete-annotation .cancel").one("click", function() {
         $("#delete-annotation .delete").unbind("click");
