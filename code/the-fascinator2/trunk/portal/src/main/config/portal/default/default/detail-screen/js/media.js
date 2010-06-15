@@ -43,7 +43,7 @@ $(function() {
             var player1 = '<div href="' + href + '" id="player" style="' + style + '"></div>'; 
             $("#player-container").attr("style", "width: 300px; height: " + height + "px").html(player1);
             player = flowplayer("player", {src:"$portalPath/flowplayer/flowplayer-3.1.5.swf", wmode:'opaque'},
-                { clip: { autoPlay: true, autoBuffering: true },
+                { clip: { autoPlay: false, autoBuffering: true },
                   play: {
                     label: "Play",
                     replayLabel: "Click to play again"
@@ -143,6 +143,16 @@ $(function() {
             player.seek(startTime);
             player.getClip().update({duration:endTime});
             player.play();
+            $(".player_reset").removeAttr("disabled");
+        });
+        
+        $(".player_reset").click(function() {
+            if (player.getClip()) {
+                player.pause();
+                player.getClip().update({duration:player.getClip().fullDuration});
+                player.seek(0);
+                $(this).attr("disabled", "disabled");
+            }
         });
 });
 </script>
