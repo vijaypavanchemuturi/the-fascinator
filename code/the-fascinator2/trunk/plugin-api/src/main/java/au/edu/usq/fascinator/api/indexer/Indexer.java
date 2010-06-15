@@ -18,9 +18,9 @@
  */
 package au.edu.usq.fascinator.api.indexer;
 
-import java.io.OutputStream;
-
 import au.edu.usq.fascinator.api.Plugin;
+
+import java.io.OutputStream;
 
 /**
  * Provides an indexing service for digital objects and payloads
@@ -65,7 +65,7 @@ public interface Indexer extends Plugin {
 
     /**
      * Adds a payload entry to annotations index
-     *
+     * 
      * @param oid an object identifier
      * @param pid a payload identifier
      * @throws IndexerException if an error occurred while indexing
@@ -76,13 +76,22 @@ public interface Indexer extends Plugin {
      * Searches the index using the specified request. The search results are
      * written into the specified output stream and should generally be in a
      * JSON or XML format
-     *
+     * 
      * @param request search request
      * @param result search results
      * @throws IndexerException if an error occurred performing the search
      */
     public void annotateSearch(SearchRequest request, OutputStream result)
             throws IndexerException;
+
+    /**
+     * Removes an annotation entry from the index
+     * 
+     * @param oid an object identifier
+     * @param pid a payload identifier
+     * @throws IndexerException if an error occurred while indexing
+     */
+    public void annotateRemove(String oid, String pid) throws IndexerException;
 
     /**
      * Removes an objects entry from the index

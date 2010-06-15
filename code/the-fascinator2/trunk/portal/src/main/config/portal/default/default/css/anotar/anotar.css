@@ -199,5 +199,12 @@ div.annotatable {
 }
 #location-tag-list {
     border-bottom: 1px dotted #999999;
+    margin-bottom: 4px;
     padding-bottom: 4px;
+}
+
+.anno-delete {
+    cursor: pointer;
+    float: right;
+    margin-right: 4px;
 }

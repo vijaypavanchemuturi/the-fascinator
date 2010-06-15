@@ -18,6 +18,9 @@
  */
 package au.edu.usq.fascinator.portal.services.impl;
 
+import java.io.File;
+import java.io.OutputStream;
+
 import au.edu.usq.fascinator.api.PluginDescription;
 import au.edu.usq.fascinator.api.PluginException;
 import au.edu.usq.fascinator.api.PluginManager;
@@ -26,9 +29,6 @@ import au.edu.usq.fascinator.api.indexer.IndexerException;
 import au.edu.usq.fascinator.api.indexer.SearchRequest;
 import au.edu.usq.fascinator.common.JsonConfig;
 import au.edu.usq.fascinator.portal.services.IndexerService;
-
-import java.io.File;
-import java.io.OutputStream;
 
 public class IndexerServiceImpl implements IndexerService {
 
@@ -41,7 +41,7 @@ public class IndexerServiceImpl implements IndexerService {
             JsonConfig config = new JsonConfig();
             indexer = PluginManager.getIndexer(config.get("indexer/type",
                     DEFAULT_INDEXER_TYPE));
-            indexer.init(config.getSystemFile());
+            indexer.init(JsonConfig.getSystemFile());
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -74,6 +74,11 @@ public class IndexerServiceImpl implements IndexerService {
     }
 
     @Override
+    public void annotateRemove(String oid, String pid) throws IndexerException {
+        indexer.annotateRemove(oid, pid);
+    }
+
+    @Override
     public void remove(String oid) throws IndexerException {
         indexer.remove(oid);
     }
@@ -101,7 +106,7 @@ public class IndexerServiceImpl implements IndexerService {
 
     /**
      * Gets a PluginDescription object relating to this plugin.
-     *
+     * 
      * @return a PluginDescription
      */
     @Override
