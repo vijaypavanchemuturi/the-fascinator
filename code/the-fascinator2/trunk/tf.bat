@@ -18,6 +18,7 @@ IF EXIST "%FASCINATOR_HOME%\logs" GOTO LOGDIRDONE
 mkdir "%FASCINATOR_HOME%\logs"
 :LOGDIRDONE
 
+if "%1" == "debug" goto debug
 if "%1" == "status" goto status
 if "%1" == "start" goto start
 if "%1" == "stop" goto stop
@@ -29,6 +30,10 @@ set Cmd=tasklist /fi "WINDOWTITLE eq The Fascinator - mvn*" /fo csv /nh
 for /f "tokens=1*" %%i in ('%Cmd% ^| findstr "cmd.exe"') do goto running
 echo The Fascinator is STOPPED.
 goto end
+
+:debug
+set MAVEN_OPTS=%MAVEN_OPTS% -Xdebug -Xrunjdwp:transport=dt_socket,server=y,address=localhost:8787
+goto start
 
 :start
 start "The Fascinator" /d"%TF_HOME%portal" mvn -P dev jetty:run ^> "%FASCINATOR_HOME%\logs\stdout.out"
