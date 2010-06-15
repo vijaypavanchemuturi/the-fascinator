@@ -355,7 +355,7 @@ public class SolrIndexer implements Indexer {
 
     @Override
     public void remove(String oid, String pid) throws IndexerException {
-        log.debug("Deleting {}::{} from Anotar index", oid, pid);
+        log.debug("Deleting {}::{} from index", oid, pid);
         try {
             solr.deleteByQuery("storage_id:\"" + oid + "\" AND identifer:\""
                     + pid + "\"");
@@ -369,7 +369,7 @@ public class SolrIndexer implements Indexer {
 
     @Override
     public void annotateRemove(String oid, String pid) throws IndexerException {
-        log.debug("Deleting {}::{} from index", oid, pid);
+        log.debug("Deleting {}::{} from Anotar index", oid, pid);
         try {
             anotar.deleteByQuery("rootUri:\"" + oid + "\" AND id:\"" + pid
                     + "\"");
