@@ -74,6 +74,11 @@ public class IndexerServiceImpl implements IndexerService {
     }
 
     @Override
+    public void annotateRemove(String oid) throws IndexerException {
+        indexer.annotateRemove(oid);
+    }
+
+    @Override
     public void annotateRemove(String oid, String pid) throws IndexerException {
         indexer.annotateRemove(oid, pid);
     }
@@ -126,7 +131,6 @@ public class IndexerServiceImpl implements IndexerService {
 
     @Override
     public void init(String jsonString) throws PluginException {
-        // TODO Auto-generated method stub
-
+        indexer.init(jsonString);
     }
 }

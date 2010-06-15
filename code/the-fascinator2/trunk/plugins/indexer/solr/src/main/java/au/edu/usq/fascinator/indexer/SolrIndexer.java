@@ -368,6 +368,19 @@ public class SolrIndexer implements Indexer {
     }
 
     @Override
+    public void annotateRemove(String oid) throws IndexerException {
+        log.debug("Deleting " + oid + " from Anotar index");
+        try {
+            anotar.deleteByQuery("rootUri:\"" + oid + "\"");
+            anotar.commit();
+        } catch (SolrServerException sse) {
+            throw new IndexerException(sse);
+        } catch (IOException ioe) {
+            throw new IndexerException(ioe);
+        }
+    }
+
+    @Override
     public void annotateRemove(String oid, String pid) throws IndexerException {
         log.debug("Deleting {}::{} from Anotar index", oid, pid);
         try {
