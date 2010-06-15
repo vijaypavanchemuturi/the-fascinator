@@ -80,7 +80,7 @@ class DetailData:
             except StorageException, e:
                 self.__mimeType = "application/octet-stream"
 
-            print " * detail.py: URI='%s' OID='%s' PID='%s' MIME='%s'" % (uri, self.__oid, self.__pid, self.__mimeType)
+            print "URI='%s' OID='%s' PID='%s' MIME='%s'" % (uri, self.__oid, self.__pid, self.__mimeType)
             self.__metadata = JsonConfigHelper()
             self.__search()
             
@@ -100,7 +100,7 @@ class DetailData:
 
     def __openFile(self):
         file = formData.get("file")
-        print " * detail.py: opening file %s..." % file
+        print "opening file %s..." % file
         Desktop.getDesktop().open(File(file))
 
     def __search(self):
@@ -183,7 +183,7 @@ class DetailData:
 
     def getPayloadContent(self):
         mimeType = self.__mimeType
-        print " * detail.py: payload content mimeType=%s" % mimeType
+        print "payload content mimeType=%s" % mimeType
         contentStr = ""
         if mimeType == None:  #e.g. 7z file
             return '<h4 class="error">No preview available</h4><p>Please download the file instead...</p></pre>'
@@ -205,7 +205,7 @@ class DetailData:
                 contentStr = objectLink + "<br/>" + objectFrame
                     
             else:
-                #print " * detail.py: pid=%s payload=%s" % (pid, payload)
+                #print "pid=%s payload=%s" % (pid, payload)
                 if self.__payload is not None:
                     sw = StringWriter()
                     IOUtils.copy(self.__payload.open(), sw)
@@ -215,7 +215,7 @@ class DetailData:
         elif mimeType == "application/pdf" or mimeType.find("vnd.ms")>-1 or mimeType.find("vnd.oasis.opendocument.")>-1:
             # get the html version if exist...
             pid = self.getPreview(self.__oid)
-            print " * detail.py: pid=%s" % pid
+            #print "pid=%s" % pid
             #contentStr = '<iframe class="iframe-preview" src="%s/%s/download/%s/%s"></iframe>' % \
             #    (contextPath, portalId, self.__oid, pid)
             try:
@@ -254,7 +254,7 @@ class DetailData:
         for payloadId in payloadIdList:
             try:
                 payload = self.getObject().getPayload(payloadId)
-                print " * detail.py : Type = '" + str(payload.getType()) + "'"
+                #print "Type = '" + str(payload.getType()) + "'"
                 if str(payload.getType()) == "Preview":
                     return payload.getId()
             except StorageException, e:

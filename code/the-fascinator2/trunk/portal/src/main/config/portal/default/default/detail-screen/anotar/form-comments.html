@@ -1,0 +1,18 @@
+<script type="text/html" id="object_comment_display">
+    <div class="<%=style%>inline-annotation <%=toggle%>" id="<%=id%>">
+        <input name="rootUri" value="<%=root%>" type="hidden"/>
+        <div class="<%=style%>orig-content" style="display:none;"><%=original%></div>
+        #if($page.authentication.is_admin())
+        <img class="anno-delete"
+             onclick="deleteComment(this)"
+             src="$portalPath/images/icons/comments_delete.png"
+             title="Delete this comment" />
+        #end
+        <div class="<%=style%>anno-info">
+            Comment by: <span class="<%=style%>anno-creator"><%=creator%></span>
+            &nbsp; <span class="<%=style%>anno-date timeago" title="<%=date%>"><%=date%></span>
+        </div>
+        <div class="<%=style%>anno-content"><%=content%></div>
+        <div class="<%=style%>anno-children"><%=children%></div>
+    </div>
+</script>
