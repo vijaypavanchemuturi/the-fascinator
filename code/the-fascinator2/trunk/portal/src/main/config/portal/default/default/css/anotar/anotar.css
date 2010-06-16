@@ -27,7 +27,6 @@
     padding: 2px;
 }
 .tags-tag {
-    font-size: 85%;
     border: 1px solid #9999CC;
     background-color: #CCCCFF;
     padding: 1px 2px;
@@ -207,4 +206,9 @@ div.annotatable {
     cursor: pointer;
     float: right;
     margin-right: 4px;
+}
+
+.anno-delete-tag {
+    cursor: pointer;
+    vertical-align: bottom;
 }

@@ -74,55 +74,6 @@ function submitAnnotation(config, rootUri, data, annotateDiv) {
         "json");
 }
 
-function deleteComment(node, uriAttr) {
-    var commentNode = $(node).parent();
-    var pidList = [];
-    var rootUri = commentNode.find("input[name='rootUri']").attr("value");
-    jQuery.each(commentNode.find(".anno-inline-annotation").andSelf(),
-            function(count, item) {
-                var id = $(item).attr(uriAttr);
-                pidList.push(id.substring(id.lastIndexOf("#") + 1));
-            });
-    
-    $("#delete-annotation .cancel").one("click", function() {
-        $("#delete-annotation .delete").unbind("click");
-        $("#delete-annotation").dialog("close");
-    });
-    
-    $("#delete-annotation .delete").one("click", function() {
-        $("#delete-annotation .cancel").unbind("click");
-        jQuery.ajax({
-            type: "POST",
-            url: "$portalPath/actions/anotar.ajax",
-            data: {
-                "action": "delete",
-                "rootUri": rootUri,
-                "pidList": pidList
-            },
-            success: function(data, status) {
-                $("#delete-annotation").dialog('close');
-                commentNode.fadeOut(function() {
-                    commentNode.remove();
-                });
-            },
-            error: function(xhr, status, e) {
-                $("#delete-annotation .error").show();
-                $("#delete-annotation .message").html(xhr.responseText);
-            }
-        });
-    });
-    
-    var content = commentNode.find(".anno-anno-content").html();
-    var maxlen = 35;
-    if (content.length > maxlen) {
-        content = content.substring(0, maxlen) + "...";
-    }
-    $("#delete-annotation .type").html("comment and its replies");
-    $("#delete-annotation .content").html(content);
-    $("#delete-annotation").dialog("option", "title", "Delete Comment");
-    $("#delete-annotation").dialog("open");
-}
-
 $(function() {
     var oid = "$oid";
     var filenameNoExt = "$filenameNoExt";
