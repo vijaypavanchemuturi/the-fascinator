@@ -1,6 +1,5 @@
 <script type="text/javascript" src="$portalPath/js/tree/jquery.tree.min.js"></script>
 <script type="text/javascript" src="$portalPath/js/jquery.truncate.js"></script>
-<script type="text/javascript" src="$portalpath/js/jquery.timeago-0.8.2.js"></script>
 <script type="text/javascript" src="$portalPath/js/anotar/anotar-0.2.min.js"></script>
 
 <script type="text/javascript">

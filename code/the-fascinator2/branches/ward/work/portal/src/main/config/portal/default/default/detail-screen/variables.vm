@@ -23,7 +23,7 @@
 #set($creatorUri = "")
 #if($page.authentication.is_logged_in()) 
     #set($creator = $page.authentication.get_name())
-    #if($page.authentication.get_uri())
-        #set($creatorUri = $page.authentication.get_uri())
-    #end
+    ##if($page.authentication.get_uri())
+        ##set($creatorUri = $page.authentication.get_uri())
+    ##end
 #end

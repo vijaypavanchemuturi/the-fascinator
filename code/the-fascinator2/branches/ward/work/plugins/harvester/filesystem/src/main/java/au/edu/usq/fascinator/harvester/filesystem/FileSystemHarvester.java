@@ -18,22 +18,17 @@
  */
 package au.edu.usq.fascinator.harvester.filesystem;
 
-import au.edu.usq.fascinator.api.harvester.HarvesterException;
-import au.edu.usq.fascinator.api.storage.DigitalObject;
-import au.edu.usq.fascinator.api.storage.StorageException;
-import au.edu.usq.fascinator.common.JsonConfigHelper;
-import au.edu.usq.fascinator.common.harvester.impl.GenericHarvester;
-import au.edu.usq.fascinator.common.storage.StorageUtils;
-
 import java.io.File;
 import java.io.FileFilter;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -46,6 +41,13 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import au.edu.usq.fascinator.api.harvester.HarvesterException;
+import au.edu.usq.fascinator.api.storage.DigitalObject;
+import au.edu.usq.fascinator.api.storage.StorageException;
+import au.edu.usq.fascinator.common.JsonConfigHelper;
+import au.edu.usq.fascinator.common.harvester.impl.GenericHarvester;
+import au.edu.usq.fascinator.common.storage.StorageUtils;
 
 /**
  * Harvests files in a specified directory on the local file system
@@ -168,8 +170,8 @@ public class FileSystemHarvester extends GenericHarvester {
             throw new HarvesterException("Failed reading configuration", ex);
         }
         // Check for valid targest
-        List<JsonConfigHelper> list =
-                config.getJsonList("harvester/file-system/targets");
+        List<JsonConfigHelper> list = config
+                .getJsonList("harvester/file-system/targets");
         if (list.size() == 0) {
             throw new HarvesterException("No targets specified");
         }
@@ -193,8 +195,8 @@ public class FileSystemHarvester extends GenericHarvester {
                 log.info("File system state will be cached in {}", cacheDir);
             } else {
                 cacheDir = null;
-                log.warn("Cache location '{}' is invalid or not a directory," +
-                        " caching disabled", cacheDir);
+                log.warn("Cache location '{}' is invalid or not a directory,"
+                        + " caching disabled", cacheDir);
             }
         }
         cacheCurrentDir = cacheDir;
@@ -202,23 +204,23 @@ public class FileSystemHarvester extends GenericHarvester {
 
         // Order is significant
         renderChains = new LinkedHashMap();
-        Map<String, JsonConfigHelper> renderTypes =
-                config.getJsonMap("renderTypes");
+        Map<String, JsonConfigHelper> renderTypes = config
+                .getJsonMap("renderTypes");
         for (String name : renderTypes.keySet()) {
             Map<String, List<String>> details = new HashMap();
             JsonConfigHelper chain = renderTypes.get(name);
-            details.put("fileTypes",      getList(chain, "fileTypes"));
-            details.put("extractor",      getList(chain, "extractor"));
+            details.put("fileTypes", getList(chain, "fileTypes"));
+            details.put("extractor", getList(chain, "extractor"));
             details.put("indexOnHarvest", getList(chain, "indexOnHarvest"));
-            details.put("render",         getList(chain, "render"));
+            details.put("render", getList(chain, "render"));
             renderChains.put(name, details);
         }
 
         cacheIdFilter = new FileFilter() {
             @Override
             public boolean accept(File file) {
-                return file.isDirectory() ||
-                        CACHE_ID_FILE.equals(file.getName());
+                return file.isDirectory()
+                        || CACHE_ID_FILE.equals(file.getName());
             }
         };
 
@@ -228,7 +230,7 @@ public class FileSystemHarvester extends GenericHarvester {
 
     /**
      * Get the next file due to be harvested
-     *
+     * 
      * @return The next file to harvest, null if none
      */
     private File getNextFile() {
@@ -246,7 +248,7 @@ public class FileSystemHarvester extends GenericHarvester {
 
     /**
      * Retrieve the next file specified as a target in configuration
-     *
+     * 
      * @return The next target file, null if none
      */
     private File getNextTarget() {
@@ -285,7 +287,7 @@ public class FileSystemHarvester extends GenericHarvester {
 
     /**
      * Update harvest configuration when switching target path
-     *
+     * 
      * @param tConfig The target configuration
      * @param path The path to the target (used as default facet)
      */
@@ -300,7 +302,7 @@ public class FileSystemHarvester extends GenericHarvester {
 
     /**
      * Shutdown the plugin
-     *
+     * 
      * @throws HarvesterException is there are errors
      */
     @Override
@@ -309,7 +311,7 @@ public class FileSystemHarvester extends GenericHarvester {
 
     /**
      * Harvest the next set of files, and return their Object IDs
-     *
+     * 
      * @return Set<String> The set of object IDs just harvested
      * @throws HarvesterException is there are errors
      */
@@ -317,6 +319,13 @@ public class FileSystemHarvester extends GenericHarvester {
     public Set<String> getObjectIdList() throws HarvesterException {
         Set<String> fileObjectIdList = new HashSet<String>();
 
+        // We had no valid targets
+        if (nextFile == null) {
+            hasMore = false;
+            return fileObjectIdList;
+        }
+
+        // Normal logic
         if (nextFile.isDirectory()) {
             File[] children = nextFile.listFiles(ignoreFilter);
             for (File child : children) {
@@ -333,13 +342,14 @@ public class FileSystemHarvester extends GenericHarvester {
             harvestFile(fileObjectIdList, nextFile);
         }
 
+        // Progess the stack and return
         nextFile = getNextFile();
         return fileObjectIdList;
     }
 
     /**
      * Harvest a file based on configuration
-     *
+     * 
      * @param list The set of harvested IDs to add to
      * @param file The file to harvest
      * @throws HarvesterException is there are errors
@@ -420,7 +430,7 @@ public class FileSystemHarvester extends GenericHarvester {
 
     /**
      * Check if there are more objects to harvest
-     *
+     * 
      * @return <code>true</code> if there are more, <code>false</code> otherwise
      */
     @Override
@@ -429,9 +439,9 @@ public class FileSystemHarvester extends GenericHarvester {
     }
 
     /**
-     * Delete cached references to files which no longer exist
-     * and return the set of IDs to delete from the system.
-     *
+     * Delete cached references to files which no longer exist and return the
+     * set of IDs to delete from the system.
+     * 
      * @return Set<String> The set of object IDs deleted
      * @throws HarvesterException is there are errors
      */
@@ -493,7 +503,7 @@ public class FileSystemHarvester extends GenericHarvester {
 
     /**
      * Check if there are more objects to delete
-     *
+     * 
      * @return <code>true</code> if there are more, <code>false</code> otherwise
      */
     @Override
@@ -516,10 +526,10 @@ public class FileSystemHarvester extends GenericHarvester {
         // update object metadata
         Properties props = object.getMetadata();
         props.setProperty("render-pending", "true");
-        props.setProperty("file.path",
-                FilenameUtils.separatorsToUnix(file.getAbsolutePath()));
-        props.setProperty("base.file.path",
-                FilenameUtils.separatorsToUnix(facetBase));
+        props.setProperty("file.path", FilenameUtils.separatorsToUnix(file
+                .getAbsolutePath()));
+        props.setProperty("base.file.path", FilenameUtils
+                .separatorsToUnix(facetBase));
 
         // Store rendition information if we have it
         String ext = FilenameUtils.getExtension(file.getName());
@@ -538,7 +548,7 @@ public class FileSystemHarvester extends GenericHarvester {
 
     /**
      * Get a list of strings from configuration
-     *
+     * 
      * @param json Configuration object to retrieve from
      * @param field The path to the list
      * @return List<String> The resulting list
@@ -547,7 +557,7 @@ public class FileSystemHarvester extends GenericHarvester {
         List<String> result = new ArrayList();
         List<Object> list = json.getList(field);
         for (Object object : list) {
-            result.add((String)object);
+            result.add((String) object);
         }
         return result;
     }
@@ -555,14 +565,22 @@ public class FileSystemHarvester extends GenericHarvester {
     /**
      * Take a list of strings from a Java Map, concatenate the values together
      * and store them in a Properties object using the Map's original key.
-     *
+     * 
      * @param props Properties object to store into
      * @param details The full Java Map
      * @param field The key to use in both objects
      */
     private void storeList(Properties props, Map<String, List<String>> details,
             String field) {
-        String joinedList = StringUtils.join(details.get(field), ",");
+        Set<String> valueSet = new LinkedHashSet<String>();
+        // merge with original property value if exists
+        String currentValue = props.getProperty(field, "");
+        if (!"".equals(currentValue)) {
+            String[] currentList = currentValue.split(",");
+            valueSet.addAll(Arrays.asList(currentList));
+        }
+        valueSet.addAll(details.get(field));
+        String joinedList = StringUtils.join(valueSet, ",");
         props.setProperty(field, joinedList);
     }
 }

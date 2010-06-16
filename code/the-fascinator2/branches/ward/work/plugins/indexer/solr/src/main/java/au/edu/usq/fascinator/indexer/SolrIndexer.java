@@ -18,22 +18,6 @@
  */
 package au.edu.usq.fascinator.indexer;
 
-import au.edu.usq.fascinator.api.PluginDescription;
-import au.edu.usq.fascinator.api.PluginException;
-import au.edu.usq.fascinator.api.PluginManager;
-import au.edu.usq.fascinator.api.indexer.Indexer;
-import au.edu.usq.fascinator.api.indexer.IndexerException;
-import au.edu.usq.fascinator.api.indexer.SearchRequest;
-import au.edu.usq.fascinator.api.indexer.rule.RuleException;
-import au.edu.usq.fascinator.api.storage.DigitalObject;
-import au.edu.usq.fascinator.api.storage.Payload;
-import au.edu.usq.fascinator.api.storage.Storage;
-import au.edu.usq.fascinator.api.storage.StorageException;
-import au.edu.usq.fascinator.common.FascinatorHome;
-import au.edu.usq.fascinator.common.JsonConfig;
-import au.edu.usq.fascinator.common.JsonConfigHelper;
-import au.edu.usq.fascinator.common.PythonUtils;
-
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -85,6 +69,22 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xml.sax.SAXException;
 
+import au.edu.usq.fascinator.api.PluginDescription;
+import au.edu.usq.fascinator.api.PluginException;
+import au.edu.usq.fascinator.api.PluginManager;
+import au.edu.usq.fascinator.api.indexer.Indexer;
+import au.edu.usq.fascinator.api.indexer.IndexerException;
+import au.edu.usq.fascinator.api.indexer.SearchRequest;
+import au.edu.usq.fascinator.api.indexer.rule.RuleException;
+import au.edu.usq.fascinator.api.storage.DigitalObject;
+import au.edu.usq.fascinator.api.storage.Payload;
+import au.edu.usq.fascinator.api.storage.Storage;
+import au.edu.usq.fascinator.api.storage.StorageException;
+import au.edu.usq.fascinator.common.FascinatorHome;
+import au.edu.usq.fascinator.common.JsonConfig;
+import au.edu.usq.fascinator.common.JsonConfigHelper;
+import au.edu.usq.fascinator.common.PythonUtils;
+
 public class SolrIndexer implements Indexer {
 
     private static final String DEFAULT_SOLR_HOME = FascinatorHome
@@ -129,7 +129,7 @@ public class SolrIndexer implements Indexer {
 
     /**
      * Gets a PluginDescription object relating to this plugin.
-     *
+     * 
      * @return a PluginDescription
      */
     @Override
@@ -368,6 +368,33 @@ public class SolrIndexer implements Indexer {
     }
 
     @Override
+    public void annotateRemove(String oid) throws IndexerException {
+        log.debug("Deleting " + oid + " from Anotar index");
+        try {
+            anotar.deleteByQuery("rootUri:\"" + oid + "\"");
+            anotar.commit();
+        } catch (SolrServerException sse) {
+            throw new IndexerException(sse);
+        } catch (IOException ioe) {
+            throw new IndexerException(ioe);
+        }
+    }
+
+    @Override
+    public void annotateRemove(String oid, String pid) throws IndexerException {
+        log.debug("Deleting {}::{} from Anotar index", oid, pid);
+        try {
+            anotar.deleteByQuery("rootUri:\"" + oid + "\" AND id:\"" + pid
+                    + "\"");
+            anotar.commit();
+        } catch (SolrServerException sse) {
+            throw new IndexerException(sse);
+        } catch (IOException ioe) {
+            throw new IndexerException(ioe);
+        }
+    }
+
+    @Override
     public void index(String oid) throws IndexerException {
         try {
             DigitalObject object = storage.getObject(oid);
@@ -453,8 +480,8 @@ public class SolrIndexer implements Indexer {
         try {
             solr.commit();
         } catch (Exception e) {
-            log.warn("Solr forced commit failed. Document will not be visible" +
-                    " until Solr autocommit fires. Error message: {}", e);
+            log.warn("Solr forced commit failed. Document will not be visible"
+                    + " until Solr autocommit fires. Error message: {}", e);
         }
     }
 

@@ -136,6 +136,7 @@ class SearchData:
                                        int(self.__result.get("response/numFound")),
                                        self.__portal.recordsPerPage)
 
+
     def canManage(self, wfSecurity):
         user_roles = page.authentication.get_roles_list()
         for role in user_roles:
@@ -204,25 +205,6 @@ class SearchData:
             return self.getMimeTypeIcon(format[:format.find("/")])
         # use default icon
         return "images/icons/mimetype/icon.png"
-
-    def getThumbnail(self, oid):
-        # TODO should eventually use 'StorageManager' to get the thumbnail
-        # instead of looking at specific payload IDs
-        try:
-            object = Services.getStorage().getObject(oid)
-            sid = object.getSourceId()
-            if sid:
-                url = os.path.splitext(sid)[0] + "_thumbnail.jpg"
-                try:
-                    payload = object.getPayload(url)
-                    payload.close()
-                    object.close()
-                    return url
-                except Exception:
-                    object.close()
-        except Exception:
-            pass
-        return None
     
     def getActiveManifestTitle(self):
         return self.__getActiveManifest().get("title")

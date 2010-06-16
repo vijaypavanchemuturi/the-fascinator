@@ -38,8 +38,21 @@ class SolrDoc:
             dc.remove(key)
         return TreeMap(JsonConfigHelper(dc).getMap("/"))
 
+    def getPreview(self):
+        dc = self.json.getList("response/docs").get(0)
+        try:
+            preview = dc.get("preview").get(0)
+            return preview
+        except Exception, e:
+            return None
+
+    def getAltPreviews(self):
+        dc = self.json.getList("response/docs").get(0)
+        return dc.get("altpreview") or []
+
     def toString(self):
         return self.json.toString()
+
 
 class DetailData:
     def __init__(self):
@@ -80,7 +93,7 @@ class DetailData:
             except StorageException, e:
                 self.__mimeType = "application/octet-stream"
 
-            print " * detail.py: URI='%s' OID='%s' PID='%s' MIME='%s'" % (uri, self.__oid, self.__pid, self.__mimeType)
+            print "URI='%s' OID='%s' PID='%s' MIME='%s'" % (uri, self.__oid, self.__pid, self.__mimeType)
             self.__metadata = JsonConfigHelper()
             self.__search()
             
@@ -100,7 +113,7 @@ class DetailData:
 
     def __openFile(self):
         file = formData.get("file")
-        print " * detail.py: opening file %s..." % file
+        print "opening file %s..." % file
         Desktop.getDesktop().open(File(file))
 
     def __search(self):
@@ -183,7 +196,7 @@ class DetailData:
 
     def getPayloadContent(self):
         mimeType = self.__mimeType
-        print " * detail.py: payload content mimeType=%s" % mimeType
+        print "payload content mimeType=%s" % mimeType
         contentStr = ""
         if mimeType == None:  #e.g. 7z file
             return '<h4 class="error">No preview available</h4><p>Please download the file instead...</p></pre>'
@@ -205,7 +218,7 @@ class DetailData:
                 contentStr = objectLink + "<br/>" + objectFrame
                     
             else:
-                #print " * detail.py: pid=%s payload=%s" % (pid, payload)
+                #print "pid=%s payload=%s" % (pid, payload)
                 if self.__payload is not None:
                     sw = StringWriter()
                     IOUtils.copy(self.__payload.open(), sw)
@@ -214,8 +227,8 @@ class DetailData:
                     contentStr = "<pre>" + StringEscapeUtils.escapeHtml(sw.toString()) + "</pre>"
         elif mimeType == "application/pdf" or mimeType.find("vnd.ms")>-1 or mimeType.find("vnd.oasis.opendocument.")>-1:
             # get the html version if exist...
-            pid = self.getPreview(self.__oid)
-            print " * detail.py: pid=%s" % pid
+            pid = self.getPreview()
+            #print "pid=%s" % pid
             #contentStr = '<iframe class="iframe-preview" src="%s/%s/download/%s/%s"></iframe>' % \
             #    (contextPath, portalId, self.__oid, pid)
             try:
@@ -249,17 +262,11 @@ class DetailData:
         pid = os.path.splitext(self.__pid)[0] + ".pdf"
         return "%s/%s" % (self.__oid, pid)
 
-    def getPreview(self, oid):
-        payloadIdList = self.getObject().getPayloadIdList()
-        for payloadId in payloadIdList:
-            try:
-                payload = self.getObject().getPayload(payloadId)
-                print " * detail.py : Type = '" + str(payload.getType()) + "'"
-                if str(payload.getType()) == "Preview":
-                    return payload.getId()
-            except StorageException, e:
-                pass
-        return None
+    def getPreview(self):
+        return self.__metadata.getPreview()
+
+    def getAltPreviews(self):
+        return self.__metadata.getAltPreviews()
 
     def getSolrResponse(self):
         return self.__json
@@ -331,7 +338,7 @@ class DetailData:
         return False
 
     def isMetadataOnly(self):
-        previewPid = self.getPreview(self.getObject().getId())
+        previewPid = self.getPreview()
         if previewPid == "":
             return True
         else:

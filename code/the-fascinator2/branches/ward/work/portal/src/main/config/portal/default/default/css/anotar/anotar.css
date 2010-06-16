@@ -90,10 +90,10 @@
     font-style: normal;
     font-weight: normal;
     text-transform: none;
-    vertical-align: middle;
+    vertical-align: bottom;
 }
 .anno-command img {
-    vertical-align: middle;
+    vertical-align: bottom;
 }
 .anno-inline-annotation .anno-command {
     float: right;
@@ -189,3 +189,22 @@ p {
 }
 .anno-anno-content:before {content:open-quote;}
 .anno-anno-content:after {content:close-quote;}
+
+div.annotatable {
+    border-top: 1px dotted #999999;
+    padding-top: 4px;
+}
+#object-tag-list {
+    padding-bottom: 4px;
+}
+#location-tag-list {
+    border-bottom: 1px dotted #999999;
+    margin-bottom: 4px;
+    padding-bottom: 4px;
+}
+
+.anno-delete {
+    cursor: pointer;
+    float: right;
+    margin-right: 4px;
+}
