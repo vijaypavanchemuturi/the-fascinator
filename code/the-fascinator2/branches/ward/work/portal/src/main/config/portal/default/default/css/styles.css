@@ -441,6 +441,9 @@ ul.nobgtabs li a.ui-state-active {
     margin-top: 4px;
 }
 
+.player_reset {
+    float: right;
+
 .help_p {
     font-size: smaller;
     font-style: italic;

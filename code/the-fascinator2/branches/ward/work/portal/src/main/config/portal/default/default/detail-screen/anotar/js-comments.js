@@ -9,6 +9,7 @@ $(function() {
         interfaceLabel: " <img src='$portalPath/images/icons/comment_add.png' title='Add new comment' /> Comments:",
         replyLabel: " <img src='$portalPath/images/icons/comments_add.png' title='Reply to this comment' />",
         interfaceVisible: $self.mimeType.startsWith("image/").toString().toLowerCase(),
+        displayCustom: "object_comment_display",
         loadAnnotations: function() { loadAnnotations(this, "$oid") },
         submitAnnotation: function(data, annotateDiv) { submitAnnotation(this, "$oid", data, annotateDiv) }
     }

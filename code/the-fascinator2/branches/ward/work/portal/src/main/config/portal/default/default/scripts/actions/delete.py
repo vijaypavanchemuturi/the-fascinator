@@ -19,6 +19,7 @@ class DeleteData:
         try:
             Services.storage.removeObject(record)
             Services.indexer.remove(record)
+            Services.indexer.annotateRemove(record)
             self.writer.println(record)
             self.writer.close()
         except Exception, e:

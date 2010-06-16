@@ -1,13 +1,13 @@
+import json, time
+
 from au.edu.usq.fascinator.api.indexer import SearchRequest
-from au.edu.usq.fascinator.api.storage import PayloadType
 from au.edu.usq.fascinator.api.storage import StorageException
-from au.edu.usq.fascinator.common.storage.impl import GenericPayload
 from au.edu.usq.fascinator.common import JsonConfigHelper
 
-from java.io import BufferedReader, ByteArrayInputStream, ByteArrayOutputStream, InputStreamReader
+from java.io import ByteArrayInputStream, ByteArrayOutputStream
 from java.lang import String, StringBuilder, Boolean
 
-import json, time
+from org.apache.commons.io import IOUtils
 
 class AnotarData:
     def __init__(self):
@@ -16,9 +16,9 @@ class AnotarData:
         self.json = formData.get("json")
         self.type = formData.get("type")
         self.rootUriList = formData.getValues("rootUriList")
-        print " * anotar.py : '" + self.action + "' : ", formData
+        #print "action:'%s' formData:'%s'" % (self.action, formData)
 
-        # ?? media fragment stuff?
+        # used so that ajax requests don't cache
         if self.rootUri and self.rootUri.find("?ticks") > -1:
             self.rootUri = self.rootUri[:self.rootUri.find("?ticks")]
 
@@ -28,90 +28,26 @@ class AnotarData:
         if self.oid and self.oid.startswith(portalPath):
             self.oid = self.oid[len(portalPath):]
 
+        result = ""
         if self.action == "getList":
-            # Repsonse is a list of object (nested)
+            # Response is a list of object (nested)
             #print "**** anotar.py : GET_SOLR : " + self.rootUri
             result = self.search_solr()
         elif self.action == "put":
             # Response is an ID
             #print "**** anotar.py : PUT : " + self.rootUri
             result = self.put()
+        elif self.action == "delete":
+            # Response is empty
+            result = self.delete()
+            if result != "":
+                response.setStatus(500)
         elif self.action == "get-image":
-            self.type = "http://www.purl.org/anotar/ns/type/0.1#Tag"
-            mediaFragType = "http://www.w3.org/TR/2009/WD-media-frags-20091217"
-            result = '{"result":' + self.search_solr() + '}'
-            if result:
-                imageTagList = []
-                imageTags = JsonConfigHelper(result).getJsonList("result")
-                for imageTag in imageTags:
-                    imageAno = JsonConfigHelper()
-                    if imageTag.getJsonList("annotates/locators"):
-                        locatorValue = imageTag.getJsonList("annotates/locators").get(0).get("value")
-                        locatorType = imageTag.getJsonList("annotates/locators").get(0).get("type")
-                        if locatorValue and locatorValue.find("#xywh=")>-1 and locatorType == mediaFragType:
-                            _, locatorValue = locatorValue.split("#xywh=")
-                            left, top, width, height = locatorValue.split(",")
-                            imageAno.set("top", top)
-                            imageAno.set("left", left)
-                            imageAno.set("width", width)
-                            imageAno.set("height", height)
-                            imageAno.set("creator", imageTag.get("creator/literal"))
-                            imageAno.set("creatorUri", imageTag.get("creator/uri"))
-                            imageAno.set("id", imageTag.get("id"))
-                            #tagCount = imageTag.get("tagCount")
-                            imageAno.set("text", imageTag.get("content/literal"))
-                            #imageAno.set("editable", Boolean(False).toString());
-                            imageTagList.append(imageAno.toString())
-                result = "[" + ",".join(imageTagList) + "]"
+            # Response is the JSON format expected by image annotation plugin
+            result = self.get_image()
         elif self.action == "save-image":
-            jsonTemplate = """
-{
-  "clientVersionUri": "http://www.purl.org/anotar/client/0.1",
-  "type" : "http://www.purl.org/anotar/ns/type/0.1#Tag",
-  "title" : {
-    "literal" : null,
-    "uri" : null
-  },  
-  "annotates" : {
-    "uri" : "%s",
-    "rootUri" : "%s",
-    "locators" : [ {
-      "originalContent": null,
-      "type" : "http://www.w3.org/TR/2009/WD-media-frags-20091217",
-      "value" : "%s"
-    } ]
-  },
-  "creator" : {
-    "literal" : "%s",
-    "uri" : "%s",
-    "email" : {
-      "literal" : null
-    }
-  },
-  "dateCreated" : {
-    "literal" : "%s",
-    "uri" : null
-  },
-  "dateModified" : {
-    "literal" : null,
-    "uri" : null
-  },
-  "content" : {
-    "mimeType" : "text/plain",
-    "literal" : "%s",
-    "formData" : {
-    }
-  },
-  "isPrivate" : false,
-  "lang" : "en"
-}
-"""
-            mediaDimension = "xywh=%s,%s,%s,%s" % (formData.get("left"), formData.get("top"), formData.get("width"), formData.get("height"))
-            locatorValue = "%s#%s" % (self.rootUri, mediaDimension)
-            dateCreated = time.strftime("%Y-%m-%dT%H:%M:%SZ")
-            self.json = jsonTemplate % (self.rootUri, self.rootUri, locatorValue, formData.get("creator"), formData.get("creatorUri"), \
-                                        dateCreated, formData.get("text"))
-            result = self.put()
+            # Response is anotar JSON
+            result = self.save_image()
         writer = response.getPrintWriter("text/plain; charset=UTF-8")
         writer.println(result)
         writer.close()
@@ -124,7 +60,7 @@ class AnotarData:
             counter = counter + 1
             fileName = "anotar." + str(counter)
         self.pid = fileName
-        print " * anotar.py : New ID (" + self.pid + ")"
+        print "New ID (" + self.pid + ")"
 
     def modify_json(self):
         #print "**** anotar.py : add_json() : adding json : " + json
@@ -141,6 +77,7 @@ class AnotarData:
         self.json = jsonObj.toString(False)
 
     def process_response(self, result):
+        #print " ******** result =", result
         docs = []
         rootDocs = []
         docsDict = {}
@@ -202,13 +139,44 @@ class AnotarData:
         self.modify_json()
 
         try:
-            p = self.obj.createStoredPayload(self.pid, self.string_to_input_stream(self.json))
+            p = self.obj.createStoredPayload(self.pid, IOUtils.toInputStream(self.json, "UTF-8"))
         except StorageException, e:
-            print " * anotar.py : Error creating payload : ", e
+            print " * anotar.py : Error creating payload :", e
             return e.getMessage()
 
         Services.indexer.annotate(self.oid, self.pid)
         return self.json
+
+    def delete(self):
+        self.obj = None
+        pidList = formData.getValues("pidList")
+        try:
+            try:
+                self.obj = Services.storage.getObject(self.oid)
+            except StorageException, se:
+                print "Storage error getting object:", self.oid, ":", se
+                if self.obj:
+                    self.obj.close()
+                return se.getMessage()
+            
+            for pid in pidList:
+                self.__delete(self.oid, pid)
+            
+        finally:
+            if self.obj:
+                self.obj.close()
+        return ""
+
+    def __delete(self, rootUri, id):
+        # delete the annotation from the object and anotar index
+        try:
+            self.obj.removePayload(id)
+        except StorageException, se:
+            print "Storage error removing payload:", id, ":", se
+            if self.obj:
+                self.obj.close()
+            return se.getMessage()
+        Services.indexer.annotateRemove(rootUri, id)
 
     def search_solr(self):
         query = "(rootUri:"
@@ -216,7 +184,9 @@ class AnotarData:
             query += "(" + " OR ".join(self.rootUriList) + ")"
         else:
             query += "\"" + self.rootUri + "\""
-        query += " AND type:\"" + self.type + "\")"
+        if self.type:
+            query += " AND type:\"" + self.type + "\""
+        query += ")"
         #print "**********", query
 
         req = SearchRequest(query)
@@ -240,9 +210,83 @@ class AnotarData:
         else:
             return self.process_response(result)
 
-    def string_to_input_stream(self, inString):
-        jString = String(inString)
-        #print " * anotar.py : ", jString
-        return ByteArrayInputStream(jString.getBytes("UTF-8"))
+    def get_image(self):
+        self.type = "http://www.purl.org/anotar/ns/type/0.1#Tag"
+        mediaFragType = "http://www.w3.org/TR/2009/WD-media-frags-20091217"
+        result = '{"result":' + self.search_solr() + '}'
+        if result:
+            imageTagList = []
+            imageTags = JsonConfigHelper(result).getJsonList("result")
+            for imageTag in imageTags:
+                imageAno = JsonConfigHelper()
+                if imageTag.getJsonList("annotates/locators"):
+                    locatorValue = imageTag.getJsonList("annotates/locators").get(0).get("value")
+                    locatorType = imageTag.getJsonList("annotates/locators").get(0).get("type")
+                    if locatorValue and locatorValue.find("#xywh=")>-1 and locatorType == mediaFragType:
+                        _, locatorValue = locatorValue.split("#xywh=")
+                        left, top, width, height = locatorValue.split(",")
+                        imageAno.set("top", top)
+                        imageAno.set("left", left)
+                        imageAno.set("width", width)
+                        imageAno.set("height", height)
+                        imageAno.set("creator", imageTag.get("creator/literal"))
+                        imageAno.set("creatorUri", imageTag.get("creator/uri"))
+                        imageAno.set("id", imageTag.get("id"))
+                        #tagCount = imageTag.get("tagCount")
+                        imageAno.set("text", imageTag.get("content/literal"))
+                        #imageAno.set("editable", Boolean(False).toString());
+                        imageTagList.append(imageAno.toString())
+            result = "[" + ",".join(imageTagList) + "]"
+        return result
+
+    def save_image(self):
+        jsonTemplate = """
+{
+  "clientVersionUri": "http://www.purl.org/anotar/client/0.1",
+  "type" : "http://www.purl.org/anotar/ns/type/0.1#Tag",
+  "title" : {
+    "literal" : null,
+    "uri" : null
+  },  
+  "annotates" : {
+    "uri" : "%s",
+    "rootUri" : "%s",
+    "locators" : [ {
+      "originalContent": null,
+      "type" : "http://www.w3.org/TR/2009/WD-media-frags-20091217",
+      "value" : "%s"
+    } ]
+  },
+  "creator" : {
+    "literal" : "%s",
+    "uri" : "%s",
+    "email" : {
+      "literal" : null
+    }
+  },
+  "dateCreated" : {
+    "literal" : "%s",
+    "uri" : null
+  },
+  "dateModified" : {
+    "literal" : null,
+    "uri" : null
+  },
+  "content" : {
+    "mimeType" : "text/plain",
+    "literal" : "%s",
+    "formData" : {
+    }
+  },
+  "isPrivate" : false,
+  "lang" : "en"
+}
+"""
+        mediaDimension = "xywh=%s,%s,%s,%s" % (formData.get("left"), formData.get("top"), formData.get("width"), formData.get("height"))
+        locatorValue = "%s#%s" % (self.rootUri, mediaDimension)
+        dateCreated = time.strftime("%Y-%m-%dT%H:%M:%SZ")
+        self.json = jsonTemplate % (self.rootUri, self.rootUri, locatorValue, formData.get("creator"), formData.get("creatorUri"), \
+                                    dateCreated, formData.get("text"))
+        result = self.put()
 
 scriptObject = AnotarData()
