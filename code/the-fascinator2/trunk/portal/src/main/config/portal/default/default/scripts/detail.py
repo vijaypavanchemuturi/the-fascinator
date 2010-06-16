@@ -38,8 +38,21 @@ class SolrDoc:
             dc.remove(key)
         return TreeMap(JsonConfigHelper(dc).getMap("/"))
 
+    def getPreview(self):
+        dc = self.json.getList("response/docs").get(0)
+        try:
+            preview = dc.get("preview").get(0)
+            return preview
+        except Exception, e:
+            return None
+
+    def getAltPreviews(self):
+        dc = self.json.getList("response/docs").get(0)
+        return dc.get("altpreview") or []
+
     def toString(self):
         return self.json.toString()
+
 
 class DetailData:
     def __init__(self):
@@ -214,7 +227,7 @@ class DetailData:
                     contentStr = "<pre>" + StringEscapeUtils.escapeHtml(sw.toString()) + "</pre>"
         elif mimeType == "application/pdf" or mimeType.find("vnd.ms")>-1 or mimeType.find("vnd.oasis.opendocument.")>-1:
             # get the html version if exist...
-            pid = self.getPreview(self.__oid)
+            pid = self.getPreview()
             #print "pid=%s" % pid
             #contentStr = '<iframe class="iframe-preview" src="%s/%s/download/%s/%s"></iframe>' % \
             #    (contextPath, portalId, self.__oid, pid)
@@ -249,17 +262,11 @@ class DetailData:
         pid = os.path.splitext(self.__pid)[0] + ".pdf"
         return "%s/%s" % (self.__oid, pid)
 
-    def getPreview(self, oid):
-        payloadIdList = self.getObject().getPayloadIdList()
-        for payloadId in payloadIdList:
-            try:
-                payload = self.getObject().getPayload(payloadId)
-                #print "Type = '" + str(payload.getType()) + "'"
-                if str(payload.getType()) == "Preview":
-                    return payload.getId()
-            except StorageException, e:
-                pass
-        return None
+    def getPreview(self):
+        return self.__metadata.getPreview()
+
+    def getAltPreviews(self):
+        return self.__metadata.getAltPreviews()
 
     def getSolrResponse(self):
         return self.__json
@@ -331,7 +338,7 @@ class DetailData:
         return False
 
     def isMetadataOnly(self):
-        previewPid = self.getPreview(self.getObject().getId())
+        previewPid = self.getPreview()
         if previewPid == "":
             return True
         else:

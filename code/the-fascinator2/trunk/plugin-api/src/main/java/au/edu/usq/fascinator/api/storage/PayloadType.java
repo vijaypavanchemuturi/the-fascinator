@@ -40,6 +40,14 @@ public enum PayloadType {
     Preview,
 
     /** Original or source content */
-    Source
+    Source,
+
+    /** Alternative Preview(s). Similar to Preview, but there
+        can be more than one and they are not the primary
+        preview */
+    AltPreview,
+
+    /** Thumbnail image version of an object */
+    Thumbnail
 
 }
