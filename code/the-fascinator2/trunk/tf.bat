@@ -32,7 +32,7 @@ echo The Fascinator is STOPPED.
 goto end
 
 :debug
-set MAVEN_OPTS=%MAVEN_OPTS% -Xdebug -Xrunjdwp:transport=dt_socket,server=y,address=localhost:8787
+set MAVEN_OPTS=%MAVEN_OPTS% -Xdebug -Xrunjdwp:transport=dt_socket,server=y,address=localhost:5140
 goto start
 
 :start
