@@ -5,3 +5,15 @@
       <img src='$portalPath/images/icons/cross.png' class='myTag-cancel' />
     </div>
 </script>
+
+<script type="text/html" id="object_tag_display">
+<span class="<%=style%>tag" id="<%=id%>">
+    <%=content%><% if(tagCount > 1){ %> (<%=tagCount%>)<% } %>
+    #if($page.authentication.is_admin())
+    <img class="anno-delete-tag"
+         onclick="deleteTag(this)"
+         src="$portalPath/images/icons/delete.png"
+         title="Delete this tag" />
+    #end
+</span>
+</script>

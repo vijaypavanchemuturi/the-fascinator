@@ -76,16 +76,29 @@ $(function(){
 </script>
 
 <script type="text/html" id="tag_display">
-    <% if (contentUri != null) { %>
-        <% if (contentUri.indexOf("http://www.geonames.org") == 0 || contentUri.indexOf("http://www.geohash.org") == 0) { %>
-            <span class='<%=style%>tag'>
-                <a href="<%=contentUri%>" target="_blank"><%=content%><% if(tagCount > 1){ %> (<%=tagCount%>)<% } %></a>
-            </span>
-        <% }%>
-    <% } else { %>
-        <span class='<%=style%>tag'><%=content%></span>
-      ##<a href="http://www.geonames.org/search.html?q=<%=content%>"><%=content%></a>
+<% if (contentUri != null) { %>
+    <% if (contentUri.indexOf("http://") == 0 || contentUri.indexOf("https://") == 0) { %>
+        <span class="<%=style%>tag"id="<%=id%>">
+            <a href="<%=contentUri%>" target="_blank"><%=content%></a>
+            #if($page.authentication.is_admin())
+            <img class="anno-delete-tag"
+                 onclick="deleteTag(this)"
+                 src="$portalPath/images/icons/delete.png"
+                 title="Delete this tag" />
+            #end
+        </span>
     <% }%>
+<% } else { %>
+    <span class="<%=style%>tag" id="<%=id%>">
+        <%=content%><% if(tagCount > 1){ %> (<%=tagCount%>)<% } %>
+        #if($page.authentication.is_admin())
+        <img class="anno-delete-tag"
+             onclick="deleteTag(this)"
+             src="$portalPath/images/icons/delete.png"
+             title="Delete this tag" />
+        #end
+    </span>
+<% }%>
 </script>
 
 <script type="text/html" id="object_tag_form">
@@ -95,3 +108,7 @@ $(function(){
     <img src='$portalPath/images/icons/cross.png' class='myTag-cancel' />
   </div>
 </script>
+
+#if($page.authentication.is_admin())
+  #parse($page.getTemplate('dialogs/delete-annotation.vm'))
+#end

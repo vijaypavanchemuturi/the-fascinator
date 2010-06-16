@@ -13,6 +13,7 @@ $(function() {
         annotationType: "tag",
         stylePrefix: "tags-",
         interfaceLabel: " <img src='$portalPath/images/icons/add.png' title='Add tag' />",
+        displayCustom: "object_tag_display",
         formPrepend: true,
         interfaceVisible: true,
         formCustom: "object_tag_form",

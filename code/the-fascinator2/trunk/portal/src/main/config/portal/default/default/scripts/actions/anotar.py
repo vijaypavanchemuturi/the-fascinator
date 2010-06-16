@@ -3,9 +3,9 @@ import json, time
 from au.edu.usq.fascinator.api.indexer import SearchRequest
 from au.edu.usq.fascinator.api.storage import StorageException
 from au.edu.usq.fascinator.common import JsonConfigHelper
+from au.edu.usq.fascinator.common.storage import StorageUtils
 
 from java.io import ByteArrayInputStream, ByteArrayOutputStream
-from java.lang import String, StringBuilder, Boolean
 
 from org.apache.commons.io import IOUtils
 
@@ -48,6 +48,8 @@ class AnotarData:
         elif self.action == "save-image":
             # Response is anotar JSON
             result = self.save_image()
+        elif self.action == "delete-image":
+            result = self.delete_image()
         writer = response.getPrintWriter("text/plain; charset=UTF-8")
         writer.println(result)
         writer.close()
@@ -128,18 +130,22 @@ class AnotarData:
 
         return "[" + ",".join(tags) + "]"
 
-    def put(self):
+    def put(self, pid=None):
         try:
             self.obj = Services.storage.getObject(self.oid)
         except StorageException, e:
             print " * anotar.py : Error creating object : ", e
             return e.getMessage()
 
-        self.generate_id()
+        if pid:
+            self.pid = pid
+        else:
+            self.generate_id()
         self.modify_json()
 
         try:
-            p = self.obj.createStoredPayload(self.pid, IOUtils.toInputStream(self.json, "UTF-8"))
+            p = StorageUtils.createOrUpdatePayload(self.obj, self.pid,
+                                                   IOUtils.toInputStream(self.json, "UTF-8"))
         except StorageException, e:
             print " * anotar.py : Error creating payload :", e
             return e.getMessage()
@@ -234,7 +240,7 @@ class AnotarData:
                         imageAno.set("id", imageTag.get("id"))
                         #tagCount = imageTag.get("tagCount")
                         imageAno.set("text", imageTag.get("content/literal"))
-                        #imageAno.set("editable", Boolean(False).toString());
+                        imageAno.set("editable", "true");
                         imageTagList.append(imageAno.toString())
             result = "[" + ",".join(imageTagList) + "]"
         return result
@@ -287,6 +293,26 @@ class AnotarData:
         dateCreated = time.strftime("%Y-%m-%dT%H:%M:%SZ")
         self.json = jsonTemplate % (self.rootUri, self.rootUri, locatorValue, formData.get("creator"), formData.get("creatorUri"), \
                                     dateCreated, formData.get("text"))
-        result = self.put()
+        id = formData.get("id")
+        if id == "new":
+            id = None
+        result = self.put(id)
+
+    def delete_image(self):
+        pid = formData.get("id")
+        try:
+            try:
+                self.obj = Services.storage.getObject(self.oid)
+            except StorageException, se:
+                print "Storage error getting object:", self.oid, ":", se
+                if self.obj:
+                    self.obj.close()
+                return se.getMessage()
+            
+            self.__delete(self.oid, pid)
+        finally:
+            if self.obj:
+                self.obj.close()
+        return ""
 
 scriptObject = AnotarData()
