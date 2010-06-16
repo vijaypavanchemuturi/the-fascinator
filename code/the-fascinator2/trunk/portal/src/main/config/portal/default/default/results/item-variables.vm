@@ -20,4 +20,5 @@
 #set ($isPackage = "$!format" == "application/x-fascinator-package")
 #set ($manifestItemTitle = $self.getManifestItemTitle($id, $title))
 #set ($wfStep = $item.get("workflow_step").get(0))
-#set ($thumbnail = $self.getThumbnail($id))
+#set ($thumbnail = $item.get("thumbnail").get(0))
+

@@ -7,7 +7,7 @@ $(function() {
     var mimeType = "$self.mimeType";
     var player = {};
 
-    var src = "$portalPath/download/$oid/$self.getPreview('$portalPath/download/$oid')";
+    var src = "$portalPath/download/$oid/$self.getPreview()";
     $("#content").html(
         '<div id="$oid" class="annotatable"><div class="image">' +
           '<img class="image" id="image-content" src="' + src + '" style="max-width: 100%" />' +

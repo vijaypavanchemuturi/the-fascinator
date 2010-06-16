@@ -306,7 +306,7 @@ public class Ice2Transformer implements Transformer {
                 if (!entry.isDirectory()) {
                     String name = entry.getName();
                     String mimeType = MimeTypeUtil.getMimeType(name);
-                    //log.debug("(ZIP) Name : '" + name + "', MimeType : '" + mimeType + "'");
+                    //log.info("(ZIP) Name : '" + name + "', MimeType : '" + mimeType + "'");
                     InputStream in = zipFile.getInputStream(entry);
 
                     // If this is a HTML document we need to strip it down
@@ -343,6 +343,11 @@ public class Ice2Transformer implements Transformer {
                             name.contains("_preview"))) {
                         icePayload.setType(PayloadType.Preview);
                     }
+                    if (mimeType.contains(IMG_MIME_TYPE) &&
+                            name.contains("_thumbnail.jpg")) {
+                        icePayload.setType(PayloadType.Thumbnail);
+                        //log.info("*** Added Thumbnail payload!");
+                    }
                     icePayload.close();
                 }
             }
@@ -359,6 +364,10 @@ public class Ice2Transformer implements Transformer {
                     (mimeType.contains(IMG_MIME_TYPE) &&
                     name.contains("_preview"))) {
                 icePayload.setType(PayloadType.Preview);
+            }
+            if (mimeType.contains(IMG_MIME_TYPE) &&
+                    name.contains("_thumbnail.jpg")) {
+                icePayload.setType(PayloadType.Thumbnail);
             }
             icePayload.close();
         }
