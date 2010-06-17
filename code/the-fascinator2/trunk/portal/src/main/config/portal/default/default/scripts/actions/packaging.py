@@ -25,6 +25,8 @@ class PackagingActions:
             result = self.__clear()
         elif func == "modify":
             result = self.__modify()
+        elif func == "add-custom":
+            result = self.__addCustom()
         
         writer = response.getPrintWriter("application/json; charset=UTF-8")
         writer.println(result)
@@ -135,6 +137,10 @@ class PackagingActions:
             response.setStatus(500)
             return '{ error: %s }' % str(e)
         return '{ count: %s }' % self.__getCount()
+    
+    def __addCustom(self):
+        id = md5.new(str(uuid.uuid4())).hexdigest()
+        return '{ attributes: { id: "node-%s", rel: "blank" }, data: "Untitled" }' % id
     
     def __getActiveManifestId(self):
         return sessionState.get("package/active/id")

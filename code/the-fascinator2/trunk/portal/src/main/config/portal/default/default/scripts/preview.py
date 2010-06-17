@@ -11,33 +11,36 @@ class PreviewData:
         return self.__content;
     
     def __load(self, oid):
-        print "Loading HTML preview for %s..." % oid
-        object = Services.getStorage().getObject(oid)
-        
-        # get preview payload or source if no preview
-        pid = self.__getPreviewPid(object)
-        payload = object.getPayload(pid)
-        mimeType = payload.getContentType()
-        
-        print "pid=%s mimeType=%s" % (pid, mimeType)
         template = '<div class="title" /><div class="page-toc" /><div class="body"><div>%s</div></div>'
-        isHtml = mimeType in ["text/html", "application/xhtml+xml"]
-        if isHtml or mimeType.startswith("text/"):
-            out = ByteArrayOutputStream()
-            IOUtils.copy(payload.open(), out)
-            content = out.toString("UTF-8")
-            if isHtml:
-                return template % content
-            elif mimeType == "text/plain":
-                return template % ('<pre>%s</pre>' % content)
-            else:
-                return content
-        elif mimeType.startswith("image/"):
-            return template % ('<img src="%s" />' % pid)
+        print "Loading HTML preview for %s..." % oid
+        if oid == "blank":
+            return template % "<p>This page intentionally left blank.</p>"
         else:
-            return '<a href="%s" rel="%s">%s</a>' % (oid, mimeType, pid)
-        payload.close()
-        object.close()
+            object = Services.getStorage().getObject(oid)
+            
+            # get preview payload or source if no preview
+            pid = self.__getPreviewPid(object)
+            payload = object.getPayload(pid)
+            mimeType = payload.getContentType()
+            
+            print "pid=%s mimeType=%s" % (pid, mimeType)
+            isHtml = mimeType in ["text/html", "application/xhtml+xml"]
+            if isHtml or mimeType.startswith("text/"):
+                out = ByteArrayOutputStream()
+                IOUtils.copy(payload.open(), out)
+                content = out.toString("UTF-8")
+                if isHtml:
+                    return template % content
+                elif mimeType == "text/plain":
+                    return template % ('<pre>%s</pre>' % content)
+                else:
+                    return content
+            elif mimeType.startswith("image/"):
+                return template % ('<img src="%s" />' % pid)
+            else:
+                return '<a href="%s" rel="%s">%s</a>' % (oid, mimeType, pid)
+            payload.close()
+            object.close()
     
     def __getPreviewPid(self, object):
         pidList = object.getPayloadIdList()
