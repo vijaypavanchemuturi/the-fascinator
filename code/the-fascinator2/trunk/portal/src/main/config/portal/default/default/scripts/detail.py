@@ -50,6 +50,9 @@ class SolrDoc:
         dc = self.json.getList("response/docs").get(0)
         return dc.get("altpreview") or []
 
+    def isPackage(self):
+        return self.getField("dc_format") == "application/x-fascinator-package"
+
     def toString(self):
         return self.json.toString()
 
@@ -100,7 +103,7 @@ class DetailData:
             
             # get the package manifest
             self.__manifest = JsonConfigHelper()
-            if self.__metadata.getField("dc_format") == "application/x-fascinator-tfpackage":
+            if self.__metadata.isPackage():
                 try:
                     sourceId = self.__object.getSourceId()
                     payload = self.__object.getPayload(sourceId)
@@ -341,7 +344,8 @@ class DetailData:
     def isMetadataOnly(self):
         previewPid = self.getPreview()
         if previewPid is None:
-            return True
+            # packages don't have previews by default
+            return not self.__metadata.isPackage()
         else:
             return False
 

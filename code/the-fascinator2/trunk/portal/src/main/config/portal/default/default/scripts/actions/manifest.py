@@ -50,8 +50,18 @@ class ManifestActions:
             hidden = hidden == "true"
             self.__manifest.set("%s/title" % nodePath, title)
             self.__manifest.set("%s/hidden" % nodePath, str(hidden))
+            #if self.__manifest.get("%s/id" % nodePath) is None:
+            #    print "blank node!"
             self.__saveManifest()
             result = '{ title: "%s", hidden: "%s" }' % (title, hidden)
+        elif func == "delete":
+            title = self.__manifest.get("%s/title" % nodePath)
+            if title:
+                self.__manifest.removePath(nodePath)
+                self.__saveManifest()
+            else:
+                title = "Untitled"
+            result = '{ title: "%s" }' % title
         
         self.__object.close()
         writer = response.getPrintWriter("text/plain; charset=UTF-8")

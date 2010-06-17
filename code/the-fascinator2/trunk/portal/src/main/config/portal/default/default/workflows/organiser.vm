@@ -2,13 +2,13 @@
 <ul class="$class">
   #foreach($key in $root.keySet())
     #set($item = $root.get($key))
-    #set($id = $item.get("id"))
+    #set($id = $item.get("id", "blank"))
     #set($children = $item.getJsonMap("children"))
     #set($numChildren = $children.keySet().size())
     #set($hidden = "false")
     #set($hidden = $item.get("hidden"))
     #set($itemTitle = $item.get("title"))
-    <li id="$key" rel="$id">
+    <li id="$key" rel="$!id">
       <a class="#if($id == $oid)clicked#end #if("$!hidden" == "True")item-hidden#end" href="#">$itemTitle</a>
       #if($numChildren > 0)
         #createNavTree($children "children")
@@ -25,8 +25,14 @@
   <div class="box menu">
     <h2>Actions</h2>
     <ul class="menu" id="actions">
-      <li><a href="#" id="package-modify">Select package items...</a></li>
       <li><a href="$portalPath/detail/$oid">View package...</a></li>
+      <li><a href="#" id="package-modify">Select package items...</a></li>
+      <li>
+        <a href="#" id="package-add-custom">
+          Add custom item
+          <img class="hidden right" id="package-add-custom-loading" src="$portalPath/images/icons/loading.gif" />
+        </a>
+      </li>
     </ul>
   </div>
   <div class="box">
@@ -60,8 +66,8 @@
           <input class="checkbox" type="checkbox" id="item-hidden" name="hidden" />
         </p>
         <input class="button" id="update-item" type="button" value="Update" />
+        <input class="button" id="delete-item" type="button" value="Delete" />
         <img class="hidden" id="item-loading" src="$portalPath/images/icons/loading.gif" />
-        <span id="item-message"></span>
       </fieldset>
     </div>
   </div>
@@ -70,6 +76,7 @@
   <div class="box">
     <h2>Contents</h2>
     <p>Drag and drop the items to organise the package or select an item to change its properties</p>
+    <p id="item-message"></p>
     <div id="toc">
       #createNavTree($self.manifest "toc")
     </div>
@@ -78,6 +85,8 @@
     <h2>Preview</h2>
     <div id="content"></div>
   </div>
+</div>
+<div class="hidden" id="delete-package-item">
 </div>
 <script type="text/javascript" src="$portalPath/js/tree/jquery.tree.min.js"></script>
 <script type="text/javascript">
@@ -119,45 +128,51 @@ $(function() {
             onselect: function(node, tree) {
                 var node = $(node);
                 var id = node.attr("rel");
-                $("#content").load(
-                    "$portalPath/preview?oid=" + escape(id) + " div.body > div",
-                    function() {
-                        function fixLinks(selector, attrName) {
-                            $(selector).each(function() {
-                                var attr = $(this).attr(attrName);
-                                if (attr != null) {
-                                    // fix for IE7 attr() returning resolved URLs - strip base URL
-                                    var href = window.location.href;
-                                    hrefBase = href.substring(0, href.lastIndexOf("/"));
-                                    attrBase = attr.substring(0, hrefBase.length);
-                                    if (hrefBase == attrBase) {
-                                        attr = attr.substring(hrefBase.length + 1);
+                if (id == "blank") {
+                    $("#preview").hide();
+                } else {
+                    $("#content").load(
+                        "$portalPath/preview?oid=" + escape(id) + " div.body > div",
+                        function(data, status, xhr) {
+                            function fixLinks(selector, attrName) {
+                                $(selector).each(function() {
+                                    var attr = $(this).attr(attrName);
+                                    if (attr != null) {
+                                        // fix for IE7 attr() returning resolved URLs - strip base URL
+                                        var href = window.location.href;
+                                        hrefBase = href.substring(0, href.lastIndexOf("/"));
+                                        attrBase = attr.substring(0, hrefBase.length);
+                                        if (hrefBase == attrBase) {
+                                            attr = attr.substring(hrefBase.length + 1);
+                                        }
+                                        if (attr.indexOf("#") != 0 && attr.indexOf("://") == -1) {
+                                            var relUrl = "$portalPath/download/" + id + "/";
+                                            $(this).attr(attrName, escape(relUrl + attr));
+                                        }
                                     }
-                                    if (attr.indexOf("#") != 0 && attr.indexOf("://") == -1) {
-                                        var relUrl = "$portalPath/download/" + id + "/";
-                                        $(this).attr(attrName, escape(relUrl + attr));
-                                    }
-                                }
-                            });
-                        }
-                        fixLinks("#content a", "href");
-                        fixLinks("#content img", "src");
-                    }
-                );
+                                });
+                            }
+                            fixLinks("#content a", "href");
+                            fixLinks("#content img", "src");
+                            $("#preview:hidden").fadeIn();
+                        });
+                }
                 var item = node.children("a");
-                $("#item-title").val(item.text()).focus();
+                $("#item-title").val(item.text());
                 $("#item-hidden").attr("checked", item.hasClass("item-hidden"));
-                $("#item-props:hidden, #preview:hidden").show("blind");
+                $("#item-props:hidden").fadeIn(function() {
+                    $("#item-title").focus();
+                });
             }
         }
     });
-    
+    var manifestTree = jQuery.tree.reference("#toc");
+
     $(".toc.hidden").removeClass("hidden");
     
     $("#update-package").click(function() {
         jQuery.post("$portalPath/actions/manifest.ajax",
-            {
-                func: "set-package-title",
+            {   func: "set-package-title",
                 oid: "$oid",
                 title: $("#package-title").val()
             },
@@ -172,10 +187,8 @@ $(function() {
         var node = item.parent("li");
         $("#item-loading").removeClass("hidden");
         jQuery.post("$portalPath/actions/manifest.ajax",
-            {
-                func: "update",
+            {   func: "update",
                 oid: "$oid",
-                id: "$portalId",
                 nodeId: $(node).attr("id"),
                 title: $("#item-title").val(),
                 hidden: $("#item-hidden").is(":checked"),
@@ -189,10 +202,40 @@ $(function() {
                     item.removeClass("item-hidden");
                 }
                 $("#item-loading").addClass("hidden");
-                $("#item-message").html("Updated OK");
-                setTimeout(function() { $("#item-message").empty(); }, 3000);
+                $("#item-message").html("<strong>Updated '" + data.title + "' OK</strong>").fadeIn();
+                setTimeout(function() {
+                    $("#item-message").fadeOut(function() { $(this).empty(); });
+                    }, 3000);
             },
             "json");
+    });
+    
+    $("#delete-item").click(function() {
+        var item = $("#toc a.clicked");
+        if (confirm("Delete '" + item.text() + "' from this package?\nNote: Any sub-items will also be deleted.")) {
+            var node = item.parent("li");
+            $("#item-loading").removeClass("hidden");
+            jQuery.post("$portalPath/actions/manifest.ajax",
+                {   func: "delete",
+                    oid: "$oid",
+                    nodeId: $(node).attr("id"),
+                    parents: getParentIds(node)
+                },
+                function(data, status) {
+                    item.fadeOut(function() {
+                        item.remove();
+                        $("#item-loading").addClass("hidden");
+                        $("#item-message").html("<strong>Deleted '" + data.title + "' OK</strong>").fadeIn();
+                        $("#item-props").hide();
+                    });
+                    setTimeout(function() {
+                        $("#item-message").fadeOut(function() {
+                            $(this).empty();
+                        });
+                    }, 3000);
+                },
+                "json");
+        }
     });
     
     $("#package-modify").click(function() {
@@ -201,6 +244,20 @@ $(function() {
             function(data, status) {
                 window.location.href = "$contextPath/$self.getManifestViewId()/search";
             });
+        return false;
+    });
+    
+    $("#package-add-custom").click(function() {
+        $("#package-add-custom-loading").show();
+        jQuery.post("$portalPath/actions/packaging.ajax",
+            { func: "add-custom", oid: "$oid" },
+            function(data, status) {
+                var node = manifestTree.create(data, -1, "before");
+                node.find("ins").remove();
+                manifestTree.select_branch(node);
+                $("#package-add-custom-loading").hide();
+            },
+            "json");
         return false;
     });
     

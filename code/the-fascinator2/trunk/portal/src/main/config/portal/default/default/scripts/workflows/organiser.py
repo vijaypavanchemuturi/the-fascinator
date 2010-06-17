@@ -68,8 +68,11 @@ class OrganiserData:
             node = manifest.get(key)
             rvtNode = HashMap()
             if node.get("hidden") != "True":
+                relPath = node.get("id")
+                if not relPath:
+                    relPath = "blank"
                 rvtNode.put("visible", True)
-                rvtNode.put("relPath", node.get("id"))
+                rvtNode.put("relPath", relPath)
                 rvtNode.put("title", node.get("title"))
                 rvtNode.put("children", self.__getRvtNodes(node.getJsonMap("children")))
                 rvtNodes.add(rvtNode)
