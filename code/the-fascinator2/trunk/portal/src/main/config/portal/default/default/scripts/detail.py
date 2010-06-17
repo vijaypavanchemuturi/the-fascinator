@@ -41,7 +41,7 @@ class SolrDoc:
     def getPreview(self):
         dc = self.json.getList("response/docs").get(0)
         try:
-            preview = dc.get("preview").get(0)
+            preview = dc.get("preview")
             return preview
         except Exception, e:
             return None
@@ -96,6 +96,7 @@ class DetailData:
             print "URI='%s' OID='%s' PID='%s' MIME='%s'" % (uri, self.__oid, self.__pid, self.__mimeType)
             self.__metadata = JsonConfigHelper()
             self.__search()
+            self.__previewPayload = self.__metadata.getPreview()
             
             # get the package manifest
             self.__manifest = JsonConfigHelper()
@@ -263,7 +264,7 @@ class DetailData:
         return "%s/%s" % (self.__oid, pid)
 
     def getPreview(self):
-        return self.__metadata.getPreview()
+        return self.__previewPayload
 
     def getAltPreviews(self):
         return self.__metadata.getAltPreviews()
@@ -339,7 +340,7 @@ class DetailData:
 
     def isMetadataOnly(self):
         previewPid = self.getPreview()
-        if previewPid == "":
+        if previewPid is None:
             return True
         else:
             return False
