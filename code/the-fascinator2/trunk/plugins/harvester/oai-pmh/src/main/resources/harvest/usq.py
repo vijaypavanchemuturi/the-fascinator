@@ -21,6 +21,17 @@ pid = payload.getId()
 metaPid = params.getProperty("metaPid")
 
 if pid == metaPid:
+    for payloadId in object.getPayloadIdList():
+        try:
+            payload = object.getPayload(payloadId)
+            if str(payload.getType())=="Thumbnail":
+                rules.add(AddField("thumbnail", payload.getId()))
+            elif str(payload.getType())=="Preview":
+                rules.add(AddField("preview", payload.getId()))
+            elif str(payload.getType())=="AltPreview":
+                rules.add(AddField("altpreview", payload.getId()))
+        except Exception, e:
+            pass
 
     #XslTransform is currently broken - so just process the XML directly
     #rules.add(XslTransform(pyUtils.getResource("/xsl/DublinCoreToSolr.xsl")))

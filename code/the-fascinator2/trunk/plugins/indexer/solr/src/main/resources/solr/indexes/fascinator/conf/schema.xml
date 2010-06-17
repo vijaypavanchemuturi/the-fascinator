@@ -127,6 +127,9 @@
     <field name="full_text" type="text" indexed="true" stored="false" multiValued="true" />
     <field name="harvest_config" type="string" indexed="true" stored="true" />
     <field name="harvest_rules" type="string" indexed="true" stored="true" />
+    <field name="thumbnail" type="string" indexed="true" sorted="true" />
+    <field name="preview" type="string" indexed="true" sorted="true" />
+    <field name="altpreview" type="string" indexed="true" sorted="true" multiValued="true" />
 
     <!-- Workflow/Security fields -->
     <field name="security_filter" type="string" indexed="true" stored="true" multiValued="true" />

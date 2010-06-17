@@ -80,6 +80,17 @@ else:
     rules.add(AddField("security_filter", "guest"))
 
 if pid == metaPid:
+    for payloadId in object.getPayloadIdList():
+        try:
+            payload = object.getPayload(payloadId)
+            if str(payload.getType())=="Thumbnail":
+                rules.add(AddField("thumbnail", payload.getId()))
+            elif str(payload.getType())=="Preview":
+                rules.add(AddField("preview", payload.getId()))
+            elif str(payload.getType())=="AltPreview":
+                rules.add(AddField("altpreview", payload.getId()))
+        except Exception, e:
+            pass
     #only need to index metadata for the main object
     rules.add(AddField("repository_name", params["repository.name"]))
     rules.add(AddField("repository_type", params["repository.type"]))
