@@ -1,0 +1,34 @@
+#if($self.hasHtml() || $isPackage)
+  <div class="box hidden" id="blog-form">
+    <h2>Blog</h2>
+    <form id="blog" method="post">
+      <fieldset class="login">
+        <legend>Blog information</legend>
+        <p>
+          <label for="blog_url">Blog APP URL*</label>
+          <input type="text" id="blog_url" name="blog_url" />
+        </p>
+        <p>
+          <label for="blog_title">Title</label>
+          <input type="text" id="blog_title" name="blog_title" value="$title"/>
+        </p>
+        <p>
+          <label for="blog_username">Username</label>
+          <input type="text" id="blog_username" name="blog_username" />
+        </p>
+        <p>
+          <label for="blog_password">Password</label>
+          <input type="password" id="blog_password" name="blog_password" />
+        </p>
+        <p class="message">
+          <img class="hidden" id="blog-loading" src="$portalPath/images/icons/loading.gif" />
+          <span id="blog-message"></span>
+        </p>
+        <input class="button" id="blog-accept" type="button" value="Blog" />
+        <input id="blog-cancel" type="button" value="Close" />
+      </fieldset>
+    </form>
+    <p>* Note: To use this feature the target blog needs to support the <a href="http://en.wikipedia.org/wiki/Atom_%28standard%29">Atom Publishing Protocol (APP)</a>. Usually this feature must be specifically enabled, and some platforms might not support all content, such as images and attachments.</p>
+    <p>For more information on APP support on your blog, consult the documentation (eg. <a href="http://codex.wordpress.org/AtomPub">WordPress</a>).
+  </div>
+#end

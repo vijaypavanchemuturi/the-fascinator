@@ -1,0 +1,31 @@
+#set($pageTitle = 'Search')
+#set($paging = $self.paging)
+#set ($hasResult = ($self.result and $paging.totalFound > 0))
+
+#parse($page.getTemplate('elements/atom-link.vm'))
+<h2 id="page-heading">
+  <span class="paging right">#parse($page.getTemplate("results/search-paging.vm"))</span>
+  <span>Search</span>
+  <span>$atomHtml</span>
+</h2>
+<div class="clear"></div>
+
+<div id="action-list" class="grid_4">
+  #parse($page.getTemplate('results/facets.vm'))
+</div>
+
+<div class="grid_12" id="result-list">
+  #parse($page.getTemplate('dialogs/search-create-view.vm'))
+  #parse($page.getTemplate('results/search-results.vm'))
+</div>
+
+#if($is_admin and $hasResult)
+  #parse($page.getTemplate('dialogs/security-role-management.vm'))
+  #parse($page.getTemplate('dialogs/delete-item.vm'))
+#end
+
+#if($hasResult)
+  #parse($page.getTemplate('results/search-annotations.vm'))
+#end
+
+#parse($page.getTemplate('results/packaging-script.vm'))

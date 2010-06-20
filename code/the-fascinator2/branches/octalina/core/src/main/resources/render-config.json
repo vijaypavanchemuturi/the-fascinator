@@ -1,0 +1,51 @@
+{
+    "transformers": {
+        "aperture": {
+            "id": "aperture",
+            "outputPath": "${java.io.tmpdir}/${user.name}/ice2-output"
+        },
+        "ffmpeg": {
+            "id": "ffmpeg",
+            "transformer": "ffmpeg",
+            "extractor": "ffprobe",
+            "outputPath": "${java.io.tmpdir}/${user.name}/ffmpeg-output",
+            "metadata": {
+                "excludeExt": "odt,doc,docx,pdf,ppt,html,htm,tfpackage"
+            },
+            "thumbnail": {
+                "size": "160x120",
+                "excludeExt": ""
+            },
+            "preview": {
+                "outputExt": "flv",
+                "excludeExt": "flv,m4a,mp3,jpg,png",
+                "params": {
+                    "default": "-f flv -b 192k -ab 64k -ar 44100 -ac 1 -s 400x224 -padtop 30 -padbottom 30"
+                }
+            }
+        },
+        "ice2": {
+            "id": "ice2",
+            "url": "http://ice-service.usq.edu.au/api/convert/",
+            "outputPath": "${java.io.tmpdir}/${user.name}/ice2-output",
+            "excludeRenditionExt": "txt,mp3,m4a,mov,mp4,wav,wma,wmv,mpg,flv",
+            "resize": {
+                "thumbnail": {
+                    "option": "fixedWidth",
+                    "ratio": "-90",
+                    "fixedWidth": "160",
+                    "enlarge": "false"
+                },
+                "preview": {
+                    "option": "fixedWidth",
+                    "ratio": "-90",
+                    "fixedWidth": "600",
+                    "enlarge": "false"
+                }
+            }
+        },
+        "ims": {
+            "id": "ims"
+        }
+    }
+}
