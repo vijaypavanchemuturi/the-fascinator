@@ -1,14 +1,23 @@
-#if($self.mimeType.startsWith("image/"))
 <script type="text/javascript" src="$portalPath/js/anotar/image.annotate.js"></script>
 <script type="text/javascript">
-    $(window).load(function() {
-        $("#image-content").annotateImage({
+function setupImageTags(selector) {
+    var hash = location.hash.substring(1);
+    #set($dq = '"')
+    #if($isPackage)
+        #set($rootUri = "$dq$oid#$dq+hash")
+    #else
+        #set($rootUri = "$dq$oid$dq")
+    #end
+    if (hash != "blank") {
+        var baseUrl = "$portalPath/actions/anotar.ajax?rootUri=" + $rootUri + "&action=";
+        $(selector).annotateImage({
             editable: true,
-            saveUrl: "$portalPath/actions/anotar.ajax?action=save-image&rootUri=$oid&creator=$creator&creatorUri=$creatorUri",
-            getUrl: "$portalPath/actions/anotar.ajax?action=get-image&rootUri=$oid",
-            deleteUrl: "$portalPath/actions/anotar.ajax?action=delete-image&rootUri=$oid",
+            saveUrl: baseUrl + "save-image&creator=$!creator&creatorUri=$!creatorUri",
+            getUrl: baseUrl + "get-image",
+            deleteUrl: baseUrl + "delete-image",
             deletable: $page.authentication.is_admin().toString().toLowerCase()
         });
-    });
+    }
+}
+#if(!$isPackage)$(window).load(function() { setupImageTags("#image-content"); });#end
 </script>
-#end

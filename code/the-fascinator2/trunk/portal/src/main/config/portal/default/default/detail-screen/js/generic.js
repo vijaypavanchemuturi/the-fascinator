@@ -20,7 +20,7 @@ function fixLinks(baseUrl, selector, attrName, oid) {
                 $(this).attr(attrName, escape(relUrl + tmpUrl));
             } else {
                 // Payloads, images and links
-                if (attr.indexOf("#") != 0 && attr.indexOf("://") == -1) {
+                if (attr.indexOf("#") != 0 && attr.indexOf("://") == -1 && attr.indexOf("/") != 0) {
                     var relUrl = "$portalPath/detail/" + oid + "/";
                     var tmpUrl = baseUrl.substring(baseUrl.indexOf("/", 8));
                     tmpUrl = tmpUrl.replace(relUrl, "");

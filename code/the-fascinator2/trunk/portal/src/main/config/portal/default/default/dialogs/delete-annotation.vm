@@ -86,6 +86,6 @@ function deleteComment(node, uriAttr) {
         content = content.substring(0, maxlen) + "...";
     }
     
-    openDeleteDialog(annoNode, rootUri, pidList, "Delete Comment", "comment and its replies", content);
+    openDeleteDialog(commentNode, rootUri, pidList, "Delete Comment", "comment and its replies", content);
 }
 </script>

@@ -71,6 +71,7 @@
   #parse($page.getTemplate('wrapping/menu-close.vm'))
 #else
   #parse($page.getTemplate('detail-screen/workflow.vm'))
-  #parse($page.getTemplate('detail-screen/metadata.vm'))
-  #parse($page.getTemplate('detail-screen/attachments.vm'))
 #end
+
+#parse($page.getTemplate('detail-screen/metadata.vm'))
+#parse($page.getTemplate('detail-screen/attachments.vm'))

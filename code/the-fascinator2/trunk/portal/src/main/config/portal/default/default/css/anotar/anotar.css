@@ -193,10 +193,10 @@ div.annotatable {
     border-top: 1px dotted #999999;
     padding-top: 4px;
 }
-#object-tag-list {
+.object-tag-list {
     padding-bottom: 4px;
 }
-#location-tag-list {
+.location-tag-list {
     border-bottom: 1px dotted #999999;
     margin-bottom: 4px;
     padding-bottom: 4px;
