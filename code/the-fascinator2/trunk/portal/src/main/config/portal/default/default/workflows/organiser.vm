@@ -132,7 +132,7 @@ $(function() {
                     $("#preview").hide();
                 } else {
                     $("#content").load(
-                        "$portalPath/preview?oid=" + escape(id) + " div.body > div",
+                        "$portalPath/preview?oid=" + escape(id) + " div.body",
                         function(data, status, xhr) {
                             function fixLinks(selector, attrName) {
                                 $(selector).each(function() {

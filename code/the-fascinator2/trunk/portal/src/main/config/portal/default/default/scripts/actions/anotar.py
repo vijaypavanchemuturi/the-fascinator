@@ -28,6 +28,12 @@ class AnotarData:
         if self.oid and self.oid.startswith(portalPath):
             self.oid = self.oid[len(portalPath):]
 
+        # oid for packaged items
+        if self.oid:
+            hashIndex = self.oid.find("#")
+            if hashIndex > -1:
+                self.oid = self.oid[hashIndex + 1:]
+
         result = ""
         if self.action == "getList":
             # Response is a list of object (nested)
@@ -166,7 +172,7 @@ class AnotarData:
                 return se.getMessage()
             
             for pid in pidList:
-                self.__delete(self.oid, pid)
+                self.__delete(self.rootUri, pid)
             
         finally:
             if self.obj:
