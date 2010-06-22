@@ -42,6 +42,9 @@
   <logger name="au.edu.usq.fascinator.HarvestQueueConsumer" level="INFO">
     <appender-ref ref="CYCLIC" />
   </logger>
+  <logger name="au.edu.usq.fascinator.IngestQueueConsumer" level="INFO">
+    <appender-ref ref="CYCLIC" />
+  </logger>
   <logger name="au.edu.usq.fascinator.RenderQueueConsumer" level="INFO">
     <appender-ref ref="CYCLIC" />
   </logger>
