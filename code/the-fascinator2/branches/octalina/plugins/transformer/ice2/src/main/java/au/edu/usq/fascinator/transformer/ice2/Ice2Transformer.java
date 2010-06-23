@@ -1,20 +1,5 @@
 package au.edu.usq.fascinator.transformer.ice2;
 
-import au.edu.usq.fascinator.api.PluginDescription;
-import au.edu.usq.fascinator.api.PluginException;
-import au.edu.usq.fascinator.api.storage.DigitalObject;
-import au.edu.usq.fascinator.api.storage.Payload;
-import au.edu.usq.fascinator.api.storage.PayloadType;
-import au.edu.usq.fascinator.api.storage.StorageException;
-import au.edu.usq.fascinator.api.transformer.Transformer;
-import au.edu.usq.fascinator.api.transformer.TransformerException;
-import au.edu.usq.fascinator.common.BasicHttpClient;
-import au.edu.usq.fascinator.common.JsonConfig;
-import au.edu.usq.fascinator.common.JsonConfigHelper;
-import au.edu.usq.fascinator.common.MimeTypeUtil;
-import au.edu.usq.fascinator.common.sax.SafeSAXReader;
-import au.edu.usq.fascinator.common.storage.StorageUtils;
-
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -26,6 +11,7 @@ import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
@@ -45,6 +31,21 @@ import org.dom4j.DocumentException;
 import org.dom4j.Node;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import au.edu.usq.fascinator.api.PluginDescription;
+import au.edu.usq.fascinator.api.PluginException;
+import au.edu.usq.fascinator.api.storage.DigitalObject;
+import au.edu.usq.fascinator.api.storage.Payload;
+import au.edu.usq.fascinator.api.storage.PayloadType;
+import au.edu.usq.fascinator.api.storage.StorageException;
+import au.edu.usq.fascinator.api.transformer.Transformer;
+import au.edu.usq.fascinator.api.transformer.TransformerException;
+import au.edu.usq.fascinator.common.BasicHttpClient;
+import au.edu.usq.fascinator.common.JsonConfig;
+import au.edu.usq.fascinator.common.JsonConfigHelper;
+import au.edu.usq.fascinator.common.MimeTypeUtil;
+import au.edu.usq.fascinator.common.sax.SafeSAXReader;
+import au.edu.usq.fascinator.common.storage.StorageUtils;
 
 /**
  * Transformer Class will send a file to ice-service to get the renditions of
@@ -97,6 +98,9 @@ public class Ice2Transformer implements Transformer {
     /** For html parsing **/
     private SafeSAXReader reader;
 
+    /** For making sure the ICE thumbnail/preview is used **/
+    private Boolean priority;
+
     /** Default zip mime type **/
     private static final String ZIP_MIME_TYPE = "application/zip";
 
@@ -113,11 +117,12 @@ public class Ice2Transformer implements Transformer {
     /**
      * ICE transformer constructor
      */
-    public Ice2Transformer() {}
+    public Ice2Transformer() {
+    }
 
     /**
      * Init method to initialise ICE transformer
-     *
+     * 
      * @param jsonFile
      * @throws IOException
      * @throws PluginException
@@ -134,7 +139,7 @@ public class Ice2Transformer implements Transformer {
 
     /**
      * Init method to initialise ICE transformer
-     *
+     * 
      * @param jsonString
      * @throws IOException
      * @throws PluginException
@@ -164,8 +169,11 @@ public class Ice2Transformer implements Transformer {
             outputDir.mkdirs();
 
             // Rendition exclusions
-            excludeList = Arrays.asList(StringUtils.split(
-                    config.get("excludeRenditionExt"), ','));
+            excludeList = Arrays.asList(StringUtils.split(config
+                    .get("excludeRenditionExt"), ','));
+
+            // Priority
+            priority = Boolean.parseBoolean(config.get("priority", "true"));
 
             // Conversion Service URL
             convertUrl = config.get("url");
@@ -181,8 +189,7 @@ public class Ice2Transformer implements Transformer {
     /**
      * Transform method
      * 
-     * @param object
-     *            : DigitalObject to be transformed
+     * @param object : DigitalObject to be transformed
      * @return transformed DigitalObject
      * @throws TransformerException
      * @throws StorageException
@@ -219,11 +226,11 @@ public class Ice2Transformer implements Transformer {
         } catch (IOException ex) {
             log.error("Error writing temp file : ", ex);
             return object;
-            //throw new TransformerException(ex);
+            // throw new TransformerException(ex);
         } catch (StorageException ex) {
             log.error("Error accessing storage data : ", ex);
             return object;
-            //throw new TransformerException(ex);
+            // throw new TransformerException(ex);
         }
 
         if (file.exists() && !excludeList.contains(ext.toLowerCase())) {
@@ -237,7 +244,8 @@ public class Ice2Transformer implements Transformer {
             } catch (TransformerException te) {
                 log.debug("Adding error payload to {}", object.getId());
                 try {
-                    object = createErrorPayload(object, fileName, te.getMessage());
+                    object = createErrorPayload(object, fileName, te
+                            .getMessage());
                 } catch (StorageException e) {
                     e.printStackTrace();
                 } catch (UnsupportedEncodingException e) {
@@ -263,12 +271,9 @@ public class Ice2Transformer implements Transformer {
     /**
      * Create Payload method for ICE Error
      * 
-     * @param object
-     *            : DigitalObject that store the payload
-     * @param file
-     *            : File to be stored as payload
-     * @param message
-     *            : Error message
+     * @param object : DigitalObject that store the payload
+     * @param file : File to be stored as payload
+     * @param message : Error message
      * @return transformed DigitalObject
      * @throws StorageException
      * @throws UnsupportedEncodingException
@@ -288,16 +293,15 @@ public class Ice2Transformer implements Transformer {
     /**
      * Create Payload method for ICE rendition files
      * 
-     * @param object
-     *            : DigitalObject that store the payload
-     * @param file
-     *            : File to be stored as payload
+     * @param object : DigitalObject that store the payload
+     * @param file : File to be stored as payload
      * @return transformed DigitalObject
      * @throws StorageException
      * @throws IOException
      */
     public DigitalObject createIcePayload(DigitalObject object, File file)
             throws StorageException, IOException {
+        String previewPayloadId = "";
         if (ZIP_MIME_TYPE.equals(MimeTypeUtil.getMimeType(file))) {
             ZipFile zipFile = new ZipFile(file);
             Enumeration<? extends ZipEntry> entries = zipFile.entries();
@@ -306,22 +310,23 @@ public class Ice2Transformer implements Transformer {
                 if (!entry.isDirectory()) {
                     String name = entry.getName();
                     String mimeType = MimeTypeUtil.getMimeType(name);
-                    //log.info("(ZIP) Name : '" + name + "', MimeType : '" + mimeType + "'");
+                    // log.info("(ZIP) Name : '" + name + "', MimeType : '" +
+                    // mimeType + "'");
                     InputStream in = zipFile.getInputStream(entry);
 
                     // If this is a HTML document we need to strip it down
-                    //   to the 'body' tag and replace with a 'div'
+                    // to the 'body' tag and replace with a 'div'
                     if (mimeType.equals(HTML_MIME_TYPE)) {
                         try {
                             log.debug("Stripping unnecessary HTML");
                             // Parse the document
                             Document doc = reader.loadDocumentFromStream(in);
                             // Alter the body node
-                            Node node = doc.selectSingleNode("//*[local-name()='body']");
+                            Node node = doc
+                                    .selectSingleNode("//*[local-name()='body']");
                             node.setName("div");
                             // Write out the new 'document'
-                            ByteArrayOutputStream out =
-                                    new ByteArrayOutputStream();
+                            ByteArrayOutputStream out = new ByteArrayOutputStream();
                             reader.docToStream(node, out);
                             // Prep our inputstream again
                             in = new ByteArrayInputStream(out.toByteArray());
@@ -338,15 +343,15 @@ public class Ice2Transformer implements Transformer {
                             object, name, in);
                     icePayload.setLabel(name);
                     icePayload.setContentType(mimeType);
-                    if (mimeType.equals(HTML_MIME_TYPE) ||
-                            (mimeType.contains(IMG_MIME_TYPE) &&
-                            name.contains("_preview"))) {
-                        icePayload.setType(PayloadType.Preview);
+                    if (mimeType.equals(HTML_MIME_TYPE)
+                            || (mimeType.contains(IMG_MIME_TYPE) && name
+                                    .contains("_preview"))) {
+                        previewPayloadId = icePayload.getId();
+                        // icePayload.setType(PayloadType.Preview);
                     }
-                    if (mimeType.contains(IMG_MIME_TYPE) &&
-                            name.contains("_thumbnail.jpg")) {
+                    if (mimeType.contains(IMG_MIME_TYPE)
+                            && name.contains("_thumbnail.jpg")) {
                         icePayload.setType(PayloadType.Thumbnail);
-                        //log.info("*** Added Thumbnail payload!");
                     }
                     icePayload.close();
                 }
@@ -355,30 +360,65 @@ public class Ice2Transformer implements Transformer {
         } else {
             String name = file.getName();
             String mimeType = MimeTypeUtil.getMimeType(name);
-            //log.debug("Name : '" + name + "', MimeType : '" + mimeType + "'");
+            // log.debug("Name : '" + name + "', MimeType : '" + mimeType +
+            // "'");
             Payload icePayload = StorageUtils.createOrUpdatePayload(object,
                     name, new FileInputStream(file));
             icePayload.setLabel(name);
             icePayload.setContentType(mimeType);
-            if (mimeType.equals(HTML_MIME_TYPE) ||
-                    (mimeType.contains(IMG_MIME_TYPE) &&
-                    name.contains("_preview"))) {
-                icePayload.setType(PayloadType.Preview);
+            if (mimeType.equals(HTML_MIME_TYPE)
+                    || (mimeType.contains(IMG_MIME_TYPE) && name
+                            .contains("_preview"))) {
+                previewPayloadId = icePayload.getId();
+                // icePayload.setType(PayloadType.Preview);
             }
-            if (mimeType.contains(IMG_MIME_TYPE) &&
-                    name.contains("_thumbnail.jpg")) {
+            if (mimeType.contains(IMG_MIME_TYPE)
+                    && name.contains("_thumbnail.jpg")) {
                 icePayload.setType(PayloadType.Thumbnail);
             }
             icePayload.close();
         }
+
+        // Set preview Payload type to the specified payload
+        // Check if preview Payload is exist
+        Boolean hasPreview = false;
+        String existingPreviewPayloadId = "";
+        Set<String> payloadIds = object.getPayloadIdList();
+        for (String payloadId : payloadIds) {
+            Payload payload = object.getPayload(payloadId);
+            if (payload.getType() == PayloadType.Preview) {
+                hasPreview = true;
+                existingPreviewPayloadId = payloadId;
+            }
+        }
+
+        // If has preview payloads and payloads in ice transformer is
+        // the priority, then set the existing payload to AltPreview
+        Payload previewPayload = object.getPayload(previewPayloadId);
+        if (hasPreview) {
+            if (priority) {
+                Payload existingPreviewPayload = object
+                        .getPayload(existingPreviewPayloadId);
+                existingPreviewPayload.setType(PayloadType.AltPreview);
+                existingPreviewPayload.close();
+
+                previewPayload.setType(PayloadType.Preview);
+            } else {
+                previewPayload.setType(PayloadType.AltPreview);
+            }
+        } else {
+            previewPayload.setType(PayloadType.Preview);
+
+        }
+        previewPayload.close();
+
         return object;
     }
 
     /**
      * Main render method to send the file to ICE service
      * 
-     * @param sourceFile
-     *            : File to be rendered
+     * @param sourceFile : File to be rendered
      * @return file returned by ICE service
      * @throws TransformerException
      */
@@ -390,8 +430,8 @@ public class Ice2Transformer implements Transformer {
         int status = HttpStatus.SC_OK;
 
         // Grab our config
-        Map<String, JsonConfigHelper> resizeConfig =
-                itemConfig.getJsonMap("resize");
+        Map<String, JsonConfigHelper> resizeConfig = itemConfig
+                .getJsonMap("resize");
         if (resizeConfig == null || resizeConfig.size() == 0) {
             // Try system config instead
             resizeConfig = config.getJsonMap("resize");
@@ -467,8 +507,7 @@ public class Ice2Transformer implements Transformer {
     /**
      * Check if the file extension is supported
      * 
-     * @param sourceFile
-     *            : File to be checked
+     * @param sourceFile : File to be checked
      * @return True if it's supported, false otherwise
      * @throws TransformerException
      */
@@ -521,7 +560,7 @@ public class Ice2Transformer implements Transformer {
 
     /**
      * Gets a PluginDescription object relating to this plugin.
-     *
+     * 
      * @return a PluginDescription
      */
     @Override
@@ -547,9 +586,9 @@ public class Ice2Transformer implements Transformer {
     }
 
     /**
-     * Get data from item JSON, falling back to system JSON, then to
-     *  provided default value if not found
-     *
+     * Get data from item JSON, falling back to system JSON, then to provided
+     * default value if not found
+     * 
      * @param json Config object containing the json data
      * @param key path to the data in the config file
      * @param value default to use if not found
@@ -565,7 +604,7 @@ public class Ice2Transformer implements Transformer {
 
     /**
      * Get data from item JSON, falling back to system JSON if not found
-     *
+     * 
      * @param json Config object containing the json data
      * @param key path to the data in the config file
      * @return String containing the config data
