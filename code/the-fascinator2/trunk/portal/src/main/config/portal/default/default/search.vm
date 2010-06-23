@@ -11,6 +11,7 @@
 <div class="clear"></div>
 
 <div id="action-list" class="grid_4">
+  #set($packagingEnabled = $page.authentication.is_logged_in())
   #parse($page.getTemplate('results/facets.vm'))
 </div>
 

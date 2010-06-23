@@ -63,7 +63,6 @@
   #parse($page.getTemplate('wrapping/menu-close.vm'))
 #end
 
-#set($packagingEnabled = $page.authentication.is_logged_in())
 #if($packagingEnabled)
   #set($menuTitle = "Packaging")
   #parse($page.getTemplate('wrapping/menu-open.vm'))
