@@ -1,5 +1,5 @@
 {
-    "version": "0.6.8",
+    "version": "0.6.9",
     "configured": false,
     "urlBase" : "http://localhost:9997/portal/",
     "email" : "fascinator@usq.edu.au",
@@ -98,6 +98,15 @@
                         "ice2" : "renderNormal",
                         "default" : "renderHigh"
                     },
+                    "user-renderer" : "renderUser"
+                }
+            },
+            {
+                "id" : "ingest",
+                "description" : "Ingest queue for objects posted from external source.",
+                "priority" : "3",
+                "config" : {
+                    "name" : "ingest",
                     "user-renderer" : "renderUser"
                 }
             }

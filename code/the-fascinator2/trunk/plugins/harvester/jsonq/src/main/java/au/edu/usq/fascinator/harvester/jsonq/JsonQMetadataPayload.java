@@ -18,18 +18,11 @@
  */
 package au.edu.usq.fascinator.harvester.jsonq;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.Map;
-import java.util.Properties;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import au.edu.usq.fascinator.api.storage.PayloadType;
 import au.edu.usq.fascinator.common.storage.impl.GenericPayload;
 
 /**
@@ -38,6 +31,11 @@ import au.edu.usq.fascinator.common.storage.impl.GenericPayload;
  * @author Oliver Lucido
  */
 public class JsonQMetadataPayload extends GenericPayload {
+    public JsonQMetadataPayload(String id) {
+        super(id);
+        // TODO Auto-generated constructor stub
+    }
+
     private Logger log = LoggerFactory.getLogger(JsonQMetadataPayload.class);
 
     /** File state information */
@@ -50,30 +48,30 @@ public class JsonQMetadataPayload extends GenericPayload {
      * @param file file content
      * @param info state information
      */
-    public JsonQMetadataPayload(File file, Map<String, String> info) {
-        this.info = info;
-        info.put("uri", file.getAbsolutePath());
-        setId(file.getName() + ".properties");
-        setLabel("File State Metadata");
-        setContentType("text/plain");
-        setType(PayloadType.Annotation);
-    }
+    // public JsonQMetadataPayload(File file, Map<String, String> info) {
+    // this.info = info;
+    // info.put("uri", file.getAbsolutePath());
+    // setId(file.getName() + ".properties");
+    // setLabel("File State Metadata");
+    // setContentType("text/plain");
+    // setType(PayloadType.Annotation);
+    // }
 
-    @Override
-    public InputStream getInputStream() throws IOException {
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        Properties props = new Properties();
-        try {
-            // Currently this properties are not used
-            // Maybe we should try to index event time
-            Object t = info.get("time");
-            props.setProperty("uri", info.get("uri"));
-            props.setProperty("state", info.get("state"));
-            props.setProperty("time", t.toString());
-            props.store(out, "File Metadata");
-            return new ByteArrayInputStream(out.toByteArray());
-        } catch (IOException ioe) {
-            throw (ioe);
-        }
-    }
+    // @Override
+    // public InputStream getInputStream() throws IOException {
+    // ByteArrayOutputStream out = new ByteArrayOutputStream();
+    // Properties props = new Properties();
+    // try {
+    // // Currently this properties are not used
+    // // Maybe we should try to index event time
+    // Object t = info.get("time");
+    // props.setProperty("uri", info.get("uri"));
+    // props.setProperty("state", info.get("state"));
+    // props.setProperty("time", t.toString());
+    // props.store(out, "File Metadata");
+    // return new ByteArrayInputStream(out.toByteArray());
+    // } catch (IOException ioe) {
+    // throw (ioe);
+    // }
+    // }
 }

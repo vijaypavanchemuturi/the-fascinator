@@ -28,7 +28,7 @@ public class JsonQDigitalObjectTest {
         info.put("time", "2009-07-07 16:19:46");
         JsonQDigitalObject obj = new JsonQDigitalObject(uri, info);
         Properties props = new Properties();
-        props.load(obj.getMetadata().getInputStream());
+        // props.load(obj.getMetadata().getInputStream());
         Assert.assertEquals("mod", props.getProperty("state"));
         Assert.assertEquals("2009-07-07 16:19:46", props.getProperty("time"));
     }

@@ -25,7 +25,6 @@ import java.net.URL;
 import java.net.URLDecoder;
 import java.util.Map;
 
-import au.edu.usq.fascinator.api.storage.Payload;
 import au.edu.usq.fascinator.common.storage.impl.GenericDigitalObject;
 
 /**
@@ -51,10 +50,10 @@ public class JsonQDigitalObject extends GenericDigitalObject {
             URL url = new URL(URLDecoder.decode(uri, "UTF-8"));
             File file = new File(url.getPath());
             setId(file.getAbsolutePath());
-            Payload metadata = new JsonQMetadataPayload(file, info);
-            setMetadataId(metadata.getId());
-            addPayload(metadata);
-            addPayload(new FilePayload(file));
+            // Payload metadata = new JsonQMetadataPayload(file, info);
+            // setMetadataId(metadata.getId());
+            // addPayload(metadata);
+            // addPayload(new FilePayload(file));
         } catch (UnsupportedEncodingException uee) {
         } catch (MalformedURLException e) {
         }

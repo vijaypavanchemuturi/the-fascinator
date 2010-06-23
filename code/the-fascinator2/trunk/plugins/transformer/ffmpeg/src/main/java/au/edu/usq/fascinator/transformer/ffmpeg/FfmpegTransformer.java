@@ -18,18 +18,6 @@
  */
 package au.edu.usq.fascinator.transformer.ffmpeg;
 
-import au.edu.usq.fascinator.api.PluginDescription;
-import au.edu.usq.fascinator.api.PluginException;
-import au.edu.usq.fascinator.api.storage.DigitalObject;
-import au.edu.usq.fascinator.api.storage.Payload;
-import au.edu.usq.fascinator.api.storage.PayloadType;
-import au.edu.usq.fascinator.api.storage.StorageException;
-import au.edu.usq.fascinator.api.transformer.Transformer;
-import au.edu.usq.fascinator.api.transformer.TransformerException;
-import au.edu.usq.fascinator.common.JsonConfigHelper;
-import au.edu.usq.fascinator.common.MimeTypeUtil;
-import au.edu.usq.fascinator.common.storage.StorageUtils;
-
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -47,6 +35,18 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import au.edu.usq.fascinator.api.PluginDescription;
+import au.edu.usq.fascinator.api.PluginException;
+import au.edu.usq.fascinator.api.storage.DigitalObject;
+import au.edu.usq.fascinator.api.storage.Payload;
+import au.edu.usq.fascinator.api.storage.PayloadType;
+import au.edu.usq.fascinator.api.storage.StorageException;
+import au.edu.usq.fascinator.api.transformer.Transformer;
+import au.edu.usq.fascinator.api.transformer.TransformerException;
+import au.edu.usq.fascinator.common.JsonConfigHelper;
+import au.edu.usq.fascinator.common.MimeTypeUtil;
+import au.edu.usq.fascinator.common.storage.StorageUtils;
 
 /**
  * Converts audio and video media to web friendly versions using the FFMPEG
@@ -76,16 +76,15 @@ public class FfmpegTransformer implements Transformer {
 
     /**
      * Basic constructor
-     *
+     * 
      */
     public FfmpegTransformer() {
         // Need a default constructor for ServiceLoader
     }
 
     /**
-     * Instantiate the transformer with an existing
-     * instantiation of Ffmpeg
-     *
+     * Instantiate the transformer with an existing instantiation of Ffmpeg
+     * 
      * @param ffmpeg already instaniated ffmpeg installation
      */
     public FfmpegTransformer(Ffmpeg ffmpeg) {
@@ -94,7 +93,7 @@ public class FfmpegTransformer implements Transformer {
 
     /**
      * Init method to initialise Ffmpeg transformer
-     *
+     * 
      * @param jsonFile
      * @throws IOException
      * @throws PluginException
@@ -111,7 +110,7 @@ public class FfmpegTransformer implements Transformer {
 
     /**
      * Init method to initialise Ffmpeg transformer
-     *
+     * 
      * @param jsonString
      * @throws IOException
      * @throws PluginException
@@ -143,14 +142,14 @@ public class FfmpegTransformer implements Transformer {
 
     /**
      * Test the level of functionality available on this system
-     *
+     * 
      * @return String indicating the level of available functionality
      */
     private String testExecLevel() {
         // Make sure we can start
         if (ffmpeg == null) {
-            ffmpeg = new FfmpegImpl(
-                    get(config, "transformer"), get(config, "extractor"));
+            ffmpeg = new FfmpegImpl(get(config, "transformer"), get(config,
+                    "extractor"));
         }
         return ffmpeg.testAvailability();
     }
@@ -218,7 +217,9 @@ public class FfmpegTransformer implements Transformer {
         }
         File metaFile = writeMetadata(info);
         // FFmpeg doesn't support this file
-        if (metaFile == null) return object;
+        if (metaFile == null) {
+            return object;
+        }
 
         try {
             Payload payload = createFfmpegPayload(object, metaFile);
@@ -243,7 +244,7 @@ public class FfmpegTransformer implements Transformer {
             try {
                 thumbnail = getThumbnail(file, info.getDuration());
                 Payload payload = createFfmpegPayload(object, thumbnail);
-                payload.setType(PayloadType.Enrichment);
+                payload.setType(PayloadType.Thumbnail);
                 payload.close();
                 thumbnail.delete();
             } catch (Exception ex) {
@@ -254,8 +255,8 @@ public class FfmpegTransformer implements Transformer {
 
         // Preview
         excludeList = getList(itemConfig, "preview/excludeExt");
-        if (!excludeList.contains(ext.toLowerCase()) &&
-                (info.hasVideo() || info.hasAudio())) {
+        if (!excludeList.contains(ext.toLowerCase())
+                && (info.hasVideo() || info.hasAudio())) {
             File converted = convert(file);
             try {
                 Payload payload = createFfmpegPayload(object, converted);
@@ -279,7 +280,7 @@ public class FfmpegTransformer implements Transformer {
 
     /**
      * Try to create an error payload on the object and close it
-     *
+     * 
      * @param object to close
      * @param file that had transformation errors
      * @param ex Exception that caused the error
@@ -297,7 +298,7 @@ public class FfmpegTransformer implements Transformer {
 
     /**
      * Try to close the object
-     *
+     * 
      * @param object to close
      */
     private void closeObject(DigitalObject object) {
@@ -389,7 +390,7 @@ public class FfmpegTransformer implements Transformer {
             params.add("mjpeg"); // mjpeg output format
             params.add(outputFile.getAbsolutePath()); // output file
             String stderr = ffmpeg.transform(params);
-            if (outputFile.exists())  {
+            if (outputFile.exists()) {
                 if (outputFile.length() == 0) {
                     throw new TransformerException(
                             "File conversion failed!\n=====\n" + stderr);
@@ -398,7 +399,7 @@ public class FfmpegTransformer implements Transformer {
                 throw new TransformerException(
                         "File conversion failed!\n=====\n" + stderr);
             }
-            //log.debug(stderr);
+            // log.debug(stderr);
             log.info("Thumbnail created: outputFile={}", outputFile);
         } catch (IOException ioe) {
             log.error("Failed to create thumbnail!", ioe);
@@ -409,7 +410,7 @@ public class FfmpegTransformer implements Transformer {
 
     /**
      * Write FFMPEG metadata to disk
-     *
+     * 
      * @param info extracted metadata
      * @return File containing metadata
      * @throws TransformerException if the write failed
@@ -434,7 +435,7 @@ public class FfmpegTransformer implements Transformer {
 
     /**
      * Convert audio/video to flv format
-     *
+     * 
      * @param sourceFile to be converted
      * @return File containing converted media
      * @throws TransformerException if the conversion failed
@@ -459,13 +460,13 @@ public class FfmpegTransformer implements Transformer {
             String ext = FilenameUtils.getExtension(filename);
             if (!"".equals(ext)) {
                 log.debug("Loading params for {}...", ext);
-                configParams = get(itemConfig,
-                        "preview/params/" + ext, configParams);
+                configParams = get(itemConfig, "preview/params/" + ext,
+                        configParams);
             }
             params.addAll(Arrays.asList(StringUtils.split(configParams, ' ')));
             params.add(outputFile.getAbsolutePath()); // output file
             String stderr = ffmpeg.transform(params);
-            if (outputFile.exists())  {
+            if (outputFile.exists()) {
                 if (outputFile.length() == 0) {
                     throw new TransformerException(
                             "File conversion failed!\n=====\n" + stderr);
@@ -474,7 +475,7 @@ public class FfmpegTransformer implements Transformer {
                 throw new TransformerException(
                         "File conversion failed!\n=====\n" + stderr);
             }
-            //log.debug(stderr);
+            // log.debug(stderr);
             log.info("Conversion successful: outputFile={}", outputFile);
         } catch (IOException ioe) {
             log.error("Failed to convert!", ioe);
@@ -505,7 +506,7 @@ public class FfmpegTransformer implements Transformer {
 
     /**
      * Gets a PluginDescription object relating to this plugin.
-     *
+     * 
      * @return a PluginDescription
      */
     @Override
@@ -520,7 +521,7 @@ public class FfmpegTransformer implements Transformer {
 
     /**
      * Get a list from item JSON, falling back to system JSON if not found
-     *
+     * 
      * @param json Config object containing the json data
      * @param key path to the data in the config file
      * @return List<String> containing the config data
@@ -535,9 +536,9 @@ public class FfmpegTransformer implements Transformer {
     }
 
     /**
-     * Get data from item JSON, falling back to system JSON, then to
-     *  provided default value if not found
-     *
+     * Get data from item JSON, falling back to system JSON, then to provided
+     * default value if not found
+     * 
      * @param json Config object containing the json data
      * @param key path to the data in the config file
      * @param value default to use if not found
@@ -553,7 +554,7 @@ public class FfmpegTransformer implements Transformer {
 
     /**
      * Get data from item JSON, falling back to system JSON if not found
-     *
+     * 
      * @param json Config object containing the json data
      * @param key path to the data in the config file
      * @return String containing the config data

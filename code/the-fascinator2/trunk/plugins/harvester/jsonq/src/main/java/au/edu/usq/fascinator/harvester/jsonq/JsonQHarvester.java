@@ -27,11 +27,11 @@ import java.io.InputStream;
 import java.io.StringWriter;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.httpclient.methods.GetMethod;
@@ -45,6 +45,7 @@ import au.edu.usq.fascinator.api.PluginException;
 import au.edu.usq.fascinator.api.harvester.Harvester;
 import au.edu.usq.fascinator.api.harvester.HarvesterException;
 import au.edu.usq.fascinator.api.storage.DigitalObject;
+import au.edu.usq.fascinator.api.storage.Storage;
 import au.edu.usq.fascinator.common.BasicHttpClient;
 import au.edu.usq.fascinator.common.JsonConfig;
 
@@ -171,21 +172,6 @@ public class JsonQHarvester implements Harvester, Configurable {
         }
     }
 
-    @Override
-    public List<DigitalObject> getObjects() throws HarvesterException {
-        requestJsonQ();
-        List<DigitalObject> objectList = new ArrayList<DigitalObject>();
-        objectList = getObjectListFromState(objectList, map, MODS_STATE);
-        return objectList;
-    }
-
-    @Override
-    public List<DigitalObject> getObject(File uploadedFile)
-            throws HarvesterException {
-        throw new HarvesterException(
-                "This plugin does not harvest uploaded files");
-    }
-
     /**
      * Get object list from the state list
      * 
@@ -221,16 +207,6 @@ public class JsonQHarvester implements Harvester, Configurable {
     }
 
     @Override
-    public List<DigitalObject> getDeletedObjects() throws HarvesterException {
-        if (map == null) {
-            requestJsonQ();
-        }
-        List<DigitalObject> objectList = new ArrayList<DigitalObject>();
-        objectList = getObjectListFromState(objectList, map, DELETE_STATE);
-        return objectList;
-    }
-
-    @Override
     public boolean hasMoreDeletedObjects() {
         return false;
     }
@@ -250,6 +226,30 @@ public class JsonQHarvester implements Harvester, Configurable {
 
     @Override
     public void init(String jsonString) throws PluginException {
+        // TODO Auto-generated method stub
+
+    }
+
+    @Override
+    public Set<String> getDeletedObjectIdList() throws HarvesterException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public Set<String> getObjectId(File arg0) throws HarvesterException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public Set<String> getObjectIdList() throws HarvesterException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public void setStorage(Storage arg0) {
         // TODO Auto-generated method stub
 
     }
