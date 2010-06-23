@@ -1,4 +1,4 @@
-<title>#if($pageTitle)$pageTitle#end - $page.portalName - The Fascinator</title>
+#parse($page.getTemplate('layout/html-head-title.vm'))
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 $!pageHeader
 <link rel="icon" type="image/vnd.microsoft.com" href="$portalPath/favicon.ico" />
