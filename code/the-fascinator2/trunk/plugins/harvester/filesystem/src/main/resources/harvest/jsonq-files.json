@@ -1,18 +1,9 @@
 {
     "harvester": {
-        "type": "file-system",
-        "file-system": {
-            "targets": [
-                {
-                    "baseDir": "${user.home}/Desktop/Seminar.ppt",
-                    "facetDir": "${user.home}/Desktop/Seminar.ppt",
-                    "ignoreFilter": ".svn|.ice|.*|~*|Thumbs.db|.DS_Store",
-                    "recursive": true,
-                    "force": false,
-                    "link": true
-                }
-            ],
-            "cacheDir": "${fascinator.home}/cache"
+        "type": "workflow-harvester",
+        "workflow-harvester": {
+            "force-storage": "false",
+            "force-update": "true"
         }
     },
 
