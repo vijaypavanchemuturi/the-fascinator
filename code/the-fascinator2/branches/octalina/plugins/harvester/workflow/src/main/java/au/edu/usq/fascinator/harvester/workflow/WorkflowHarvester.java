@@ -23,6 +23,8 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
@@ -50,6 +52,9 @@ public class WorkflowHarvester extends GenericHarvester {
 
     /** flag for forcing local storage */
     private boolean forceLocalStorage;
+    
+    /** flag for forcing local update */
+    private boolean forceUpdate;
 
     public WorkflowHarvester() {
         super("workflow-harvester", "Workflow Harvester");
@@ -59,6 +64,7 @@ public class WorkflowHarvester extends GenericHarvester {
     public void init() throws HarvesterException {
         forceLocalStorage = Boolean.parseBoolean(getJsonConfig().get(
                 "harvester/workflow-harvester/force-storage", "true"));
+        forceUpdate = Boolean.parseBoolean(getJsonConfig().get("harvester/workflow-harvester/force-update", "true"));
     }
 
     @Override
@@ -84,20 +90,8 @@ public class WorkflowHarvester extends GenericHarvester {
 
     private String createDigitalObject(File file) throws HarvesterException,
             StorageException {
-        String oid = StorageUtils.generateOid(file);
-        String pid = StorageUtils.generatePid(file);
-
-        DigitalObject object = getStorage().createObject(oid);
-        if (forceLocalStorage) {
-            try {
-                object.createStoredPayload(pid, new FileInputStream(file));
-            } catch (FileNotFoundException ex) {
-                throw new HarvesterException(ex);
-            }
-        } else {
-            object.createLinkedPayload(pid, file.getAbsolutePath());
-        }
-
+        DigitalObject object = StorageUtils.storeFile(getStorage(), file, !forceLocalStorage);
+        
         // update object metadata
         Properties props = object.getMetadata();
         props.setProperty("render-pending", "true");
@@ -105,6 +99,6 @@ public class WorkflowHarvester extends GenericHarvester {
                 .getAbsolutePath()));
 
         object.close();
-        return oid;
+        return object.getId();
     }
 }

@@ -167,11 +167,6 @@ public class HarvestClient {
         } catch (JMSException jmse) {
             log.error("Failed to start connection: {}", jmse.getMessage());
         }
-
-        Boolean deleted = Boolean.parseBoolean(config.get("deleted", "false"));
-        if (deleted) {
-            queueDelete(uploadedFile.getAbsolutePath(), configFile);
-        }
     }
 
     /**
