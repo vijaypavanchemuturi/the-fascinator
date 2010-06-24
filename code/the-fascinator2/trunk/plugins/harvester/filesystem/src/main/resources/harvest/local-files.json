@@ -4,8 +4,8 @@
         "file-system": {
             "targets": [
                 {
-                    "baseDir": "${user.home}/Desktop/Seminar.ppt",
-                    "facetDir": "${user.home}/Desktop/Seminar.ppt",
+                    "baseDir": "${user.home}/Documents/public/",
+                    "facetDir": "${user.home}/Documents/public/",
                     "ignoreFilter": ".svn|.ice|.*|~*|Thumbs.db|.DS_Store",
                     "recursive": true,
                     "force": false,
