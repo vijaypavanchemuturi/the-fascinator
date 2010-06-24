@@ -53,43 +53,12 @@
       #if($query != "")
         <li><a href="$portalPath/search">Clear search query</a></li>
       #end
-      #if($paging.totalFound > 0 && ($query != "" || $self.hasSelectedFacets()))
+      #if($createViewEnabled)
         <li><a href="#" id="create-view">Create view...</a></li>
       #end
       #if ($self.hasSelectedFacets())
         <li><a href="#" id="clear-facets">Clear selection</a></li>
       #end
-    </ul>
-  #parse($page.getTemplate('wrapping/menu-close.vm'))
-#end
-
-#if($packagingEnabled)
-  #set($menuTitle = "Packaging")
-  #parse($page.getTemplate('wrapping/menu-open.vm'))
-  #set($menuTitle = $nullValue)
-    <ul class="menu">
-      <li>
-        #set($selectedItemsCount = $self.getSelectedItemsCount())
-        <div class="article first" id="package-selected-items" rel="$selectedItemsCount">
-        #if($selectedItemsCount > 0)$selectedItemsCount#{else}No#end items selected
-        </div>
-      </li>
-      <ul>
-        <li>
-          <a href="#" id="package-create-selected">
-            <img src="$portalPath/images/icons/loading.gif" class="hidden right" id="package-selected-loading" />
-            <span id="package-action">
-            #if($self.getActiveManifestId())Update '$self.getActiveManifestTitle()'#{else}Package selected items#{end}...
-            </span>
-          </a>
-        </li>
-        #if($self.getActiveManifestId())
-        <li><a href="#" id="package-create-new">Create new package...</a></li>
-        #end
-        <li><a href="#" id="package-clear-all">Clear all items in package</a></li>
-        <li><a href="#" id="package-select-page">Select all on this page</a></li>
-        <li><a href="#" id="package-deselect-page">Deselect all items on this page</a></li>
-      </ul>
     </ul>
   #parse($page.getTemplate('wrapping/menu-close.vm'))
 #end
@@ -144,7 +113,8 @@
       return tree;
   }
 </script>
-#if ($hasResult)
+
+#if($hasResult)
   #set($facetFields = $self.result.getMap("facet_counts/facet_fields"))
   #foreach($facetFieldKey in $facetFields.keySet())
     #set($facetField = $self.getFacetField($facetFieldKey))

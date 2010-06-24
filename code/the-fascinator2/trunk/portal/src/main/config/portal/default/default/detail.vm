@@ -12,8 +12,7 @@
 #else
   #parse($page.getTemplate('detail-screen/variables.vm'))
   #parse($page.getTemplate('detail-screen/scripts.vm'))
-
-<h2 id="page-heading">#if($isPackage)$title#{else}Detail#end</h2>
+  #parse($page.getTemplate('detail-screen/preview-title.vm'))
 
 <div class="grid_4">
   #parse($page.getTemplate('detail-screen/navigation.vm'))
@@ -49,64 +48,9 @@
   #************************
   * Main document display
   ************************#
-  <div id="preview" class="box articles">
-    <h2>Preview</h2>
-    <div id="anno-root" class="content-preview">
-      <div class="first article">
-
-      #************************
-      * Anotar GUIs
-      ************************#
-      <div class="article-heading">$title</div>
-      #if(!($isPackage || $isImsPackage))
-      <div rel="${oid}-tags">
-        <div class="object-tag-list">Tags: <span class="object-tags"></span></div>
-        <div class="location-tag-list">Location: <span class="location-tags"></span></div>
-      </div>
-      #end
-
-        <div id="content">
-      #************************
-      * Audio/Video players
-      ************************#
-      #if($self.mimeType.startsWith("audio/") || $self.mimeType.startsWith("video/"))
-        <table>
-          <tbody>
-            <tr>
-              <td id="player-container"></td>
-              <td style="vertical-align: top">
-                <button class="player_reset" disabled="disabled">Reset player</button>
-                <div class="video-results-list">
-                  <div class="video-result-list" anotar-uri="$oid">
-                    <!-- Don't remove this comment, it fixes display order of annotations -->
-                  </div>
-                </div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      #else
-        #************************
-        * Package viewer
-        ************************#
-        #if($isPackage || $isImsPackage)
-          ##<img class="hidden" id="content-loading" src="$portalPath/images/icons/loading.gif" />
-          ##if(!$isImsPackage)
-          ##<div class="article-heading"></div>
-          ##end
-          <div id="package-content"></div>
-        #else
-        #************************
-        * 'Normal' object display
-        ************************#
-          <div class="content-preview-inline">$!self.payloadContent</div>
-          <div class="annotatable">Comment on this item:</div>
-        #end
-      #end
-        </div>
-      </div>
-    </div>
-  </div>
+  #parse($page.getTemplate('detail-screen/preview-open.vm'))
+  #parse($page.getTemplate('detail-screen/preview-content.vm'))
+  #parse($page.getTemplate('detail-screen/preview-close.vm'))
 </div>
 
 <div class="clear"><!-- clear --></div>
@@ -120,20 +64,7 @@
   #************************
   * Annotations - JS
   ************************#
-  #parse($page.getTemplate('detail-screen/anotar/form-comments.html'))
-  #parse($page.getTemplate('detail-screen/anotar/form-tags.html'))
-  #parse($page.getTemplate('detail-screen/anotar/form-geonames.html'))
-  #parse($page.getTemplate('detail-screen/anotar/form-media.html'))
-
-  #parse($page.getTemplate('detail-screen/anotar/js-tags.js'))
-  #parse($page.getTemplate('detail-screen/anotar/js-geonames.js'))
-  #parse($page.getTemplate('detail-screen/anotar/js-media.js'))
-  #parse($page.getTemplate('detail-screen/anotar/js-comments.js'))
-  #parse($page.getTemplate('detail-screen/anotar/js-images.js'))
-    
-  #if($page.authentication.is_admin())
-    #parse($page.getTemplate('dialogs/delete-annotation.vm'))
-  #end
+  #parse($page.getTemplate('detail-screen/annotation-scripts.vm'))
 #end
 
 #set ($_=$self.closeObject())

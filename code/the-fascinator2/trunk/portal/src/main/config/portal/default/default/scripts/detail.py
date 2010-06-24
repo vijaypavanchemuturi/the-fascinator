@@ -229,7 +229,10 @@ class DetailData:
                     self.__payload.close()
                     sw.flush()
                     contentStr = "<pre>" + StringEscapeUtils.escapeHtml(sw.toString()) + "</pre>"
-        elif mimeType == "application/pdf" or mimeType.find("vnd.ms")>-1 or mimeType.find("vnd.oasis.opendocument.")>-1:
+        elif mimeType == "application/pdf" \
+            or mimeType.find("vnd.ms")>-1 \
+            or mimeType.find("vnd.openxmlformats")>-1 \
+            or mimeType.find("vnd.oasis.opendocument.")>-1:
             # get the html version if exist...
             pid = self.getPreview()
             #print "pid=%s" % pid

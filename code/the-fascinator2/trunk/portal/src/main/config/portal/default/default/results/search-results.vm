@@ -1,7 +1,8 @@
+#parse($page.getTemplate('results/search-results-list-header.vm'))
+
 #if($hasResult)
 
-  #set($resultSummary="<span class='right'>Showing ${paging.startNum} to ${paging.endNum} of ${paging.totalFound} items ($self.queryTime seconds)</span>")
-  #set($contentTitle = "${resultSummary} Results")
+  #set($contentTitle = "#parse($page.getTemplate('results/search-results-heading.vm'))")
   #parse($page.getTemplate('wrapping/content-block-open.vm'))
   #set($contentTitle = $nullValue)
 
@@ -14,8 +15,7 @@
   #set($contentTitle = "Results")
   #parse($page.getTemplate('wrapping/content-block-open.vm'))
   #set($contentTitle = $nullValue)
-
-  No items found matching your query: '$!query'
+  #parse($page.getTemplate('results/search-results-none.vm'))
   #parse($page.getTemplate('wrapping/content-block-close.vm'))
 #end
 
