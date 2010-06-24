@@ -92,21 +92,14 @@ public class WorkflowHarvester extends GenericHarvester {
     private String createDigitalObject(File file) throws HarvesterException,
             StorageException {
         String objectId;
+        DigitalObject object;
         if (forceUpdate) {
-            DigitalObject object = StorageUtils.storeFile(getStorage(), file,
+            object = StorageUtils.storeFile(getStorage(), file,
                     !forceLocalStorage);
-
-            // update object metadata
-            Properties props = object.getMetadata();
-            props.setProperty("render-pending", "true");
-            props.setProperty("file.path", FilenameUtils.separatorsToUnix(file
-                    .getAbsolutePath()));
-            objectId = object.getId();
-            object.close();
         } else {
             String oid = StorageUtils.generateOid(file);
             String pid = StorageUtils.generatePid(file);
-            DigitalObject object = getStorage().createObject(oid);
+            object = getStorage().createObject(oid);
             if (forceLocalStorage) {
                 try {
                     object.createStoredPayload(pid, new FileInputStream(file));
@@ -116,9 +109,15 @@ public class WorkflowHarvester extends GenericHarvester {
             } else {
                 object.createLinkedPayload(pid, file.getAbsolutePath());
             }
-            objectId = oid;
+            
         }
-        log.info("************* objectId: ", objectId);
+        // update object metadata
+        Properties props = object.getMetadata();
+        props.setProperty("render-pending", "true");
+        props.setProperty("file.path", FilenameUtils.separatorsToUnix(file
+                .getAbsolutePath()));
+        objectId = object.getId();
+        object.close();
         return objectId;
     }
 }
