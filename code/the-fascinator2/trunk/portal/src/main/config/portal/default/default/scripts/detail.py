@@ -345,7 +345,12 @@ class DetailData:
         previewPid = self.getPreview()
         if previewPid is None:
             # packages don't have previews by default
-            return not self.__metadata.isPackage()
+            if self.__metadata.isPackage():
+                return False
+            elif self.hasError():
+                #check if have error...
+                return False
+            return True
         else:
             return False
 
