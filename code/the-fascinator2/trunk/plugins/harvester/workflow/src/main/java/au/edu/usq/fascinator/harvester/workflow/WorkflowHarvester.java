@@ -52,7 +52,7 @@ public class WorkflowHarvester extends GenericHarvester {
 
     /** flag for forcing local storage */
     private boolean forceLocalStorage;
-    
+
     /** flag for forcing local update */
     private boolean forceUpdate;
 
@@ -64,7 +64,8 @@ public class WorkflowHarvester extends GenericHarvester {
     public void init() throws HarvesterException {
         forceLocalStorage = Boolean.parseBoolean(getJsonConfig().get(
                 "harvester/workflow-harvester/force-storage", "true"));
-        forceUpdate = Boolean.parseBoolean(getJsonConfig().get("harvester/workflow-harvester/force-update", "true"));
+        forceUpdate = Boolean.parseBoolean(getJsonConfig().get(
+                "harvester/workflow-harvester/force-update", "false"));
     }
 
     @Override
@@ -90,15 +91,34 @@ public class WorkflowHarvester extends GenericHarvester {
 
     private String createDigitalObject(File file) throws HarvesterException,
             StorageException {
-        DigitalObject object = StorageUtils.storeFile(getStorage(), file, !forceLocalStorage);
-        
-        // update object metadata
-        Properties props = object.getMetadata();
-        props.setProperty("render-pending", "true");
-        props.setProperty("file.path", FilenameUtils.separatorsToUnix(file
-                .getAbsolutePath()));
+        String objectId;
+        if (forceUpdate) {
+            DigitalObject object = StorageUtils.storeFile(getStorage(), file,
+                    !forceLocalStorage);
 
-        object.close();
-        return object.getId();
+            // update object metadata
+            Properties props = object.getMetadata();
+            props.setProperty("render-pending", "true");
+            props.setProperty("file.path", FilenameUtils.separatorsToUnix(file
+                    .getAbsolutePath()));
+            objectId = object.getId();
+            object.close();
+        } else {
+            String oid = StorageUtils.generateOid(file);
+            String pid = StorageUtils.generatePid(file);
+            DigitalObject object = getStorage().createObject(oid);
+            if (forceLocalStorage) {
+                try {
+                    object.createStoredPayload(pid, new FileInputStream(file));
+                } catch (FileNotFoundException ex) {
+                    throw new HarvesterException(ex);
+                }
+            } else {
+                object.createLinkedPayload(pid, file.getAbsolutePath());
+            }
+            objectId = oid;
+        }
+        log.info("************* objectId: ", objectId);
+        return objectId;
     }
 }
