@@ -210,9 +210,9 @@ public class FileSystemHarvester extends GenericHarvester {
             Map<String, List<String>> details = new HashMap();
             JsonConfigHelper chain = renderTypes.get(name);
             details.put("fileTypes", getList(chain, "fileTypes"));
-            details.put("extractor", getList(chain, "extractor"));
+            details.put("harvestQueue", getList(chain, "harvestQueue"));
             details.put("indexOnHarvest", getList(chain, "indexOnHarvest"));
-            details.put("render", getList(chain, "render"));
+            details.put("renderQueue", getList(chain, "renderQueue"));
             renderChains.put(name, details);
         }
 
@@ -536,9 +536,9 @@ public class FileSystemHarvester extends GenericHarvester {
         for (String chain : renderChains.keySet()) {
             Map<String, List<String>> details = renderChains.get(chain);
             if (details.get("fileTypes").contains(ext)) {
-                storeList(props, details, "extractor");
+                storeList(props, details, "harvestQueue");
                 storeList(props, details, "indexOnHarvest");
-                storeList(props, details, "render");
+                storeList(props, details, "renderQueue");
             }
         }
 

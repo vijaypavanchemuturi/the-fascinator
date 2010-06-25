@@ -7,9 +7,9 @@
     },
 
     "transformer": {
-        "extractor": ["aperture"],
+        "harvestQueue": ["aperture"],
         "indexOnHarvest": "true",
-        "render": ["ffmpeg", "ice2", "ims"]
+        "renderQueue": ["ffmpeg", "ice2", "ims"]
     },
 
     "indexer": {

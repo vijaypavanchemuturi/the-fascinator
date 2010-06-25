@@ -191,7 +191,7 @@ public class HarvestQueueConsumer implements GenericListener {
                 rendererNames.put(selector, (String)map.get(selector));
             }
 
-            conveyer = new ConveyerBelt(ConveyerBelt.EXTRACTOR);
+            conveyer = new ConveyerBelt(ConveyerBelt.HARVEST);
 
         } catch (IOException ioe) {
             log.error("Failed to read configuration: {}", ioe.getMessage());

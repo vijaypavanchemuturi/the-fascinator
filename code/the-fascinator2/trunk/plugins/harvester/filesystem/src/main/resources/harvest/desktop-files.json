@@ -22,22 +22,22 @@
                           "mov","wav","aiff","odp","ppt","pptx","pdf","tex",
                           "svg","ods","xls","xlsx","odt","doc","docx","png",
                           "jpg","jpeg","gif","bmp","cml"],
-            "extractor": ["aperture"],
+            "harvestQueue": ["aperture"],
             "indexOnHarvest": ["true"],
-            "render": ["ice2"]
+            "renderQueue": ["ice2"]
         },
         "speed": {
             "fileTypes": [],
-            "extractor": [],
+            "harvestQueue": [],
             "indexOnHarvest": ["false"],
-            "render": ["aperture"]
+            "renderQueue": ["aperture"]
         }
     },
 
     "transformer": {
-        "extractor": ["aperture"],
+        "harvestQueue": ["aperture"],
         "indexOnHarvest": "true",
-        "render": ["ice2"]
+        "renderQueue": ["ice2"]
     },
 
     "indexer": {
