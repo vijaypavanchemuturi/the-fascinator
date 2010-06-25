@@ -144,6 +144,8 @@ class SettingsActions:
                 result = "The Watcher is not installed properly."
 
         elif func == "restore-default-config":
+            # backup the file
+            JsonConfig.backupSystemFile()
             # delete the file
             JsonConfig.getSystemFile().delete()
             # restore default

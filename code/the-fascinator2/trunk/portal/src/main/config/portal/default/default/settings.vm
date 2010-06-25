@@ -102,8 +102,8 @@
           <li>
             You can <a href="#" class="restore-default-config">click here</a>
             to have the server automatically update to the latest sample
-            configuration file, <strong>but you will lose any local
-            modifications</strong>.
+            configuration file. <strong>You current configuration file will be
+            backed up to 'system-config.json.old'.</strong>
           </li>
           <li>
             You can manually edit your configuration file on disk and ensure the
