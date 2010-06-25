@@ -1,10 +1,7 @@
 {
     "transformer": {
-        "extractor": ["aperture", "ims"],
-        "render": [],
-        "aperture": {
-            "outputPath": "${java.io.tmpdir}/ice2-output"
-        }
+        "harvestQueue": ["aperture", "ims"],
+        "renderQueue": []
     },
 
     "source": "sword",

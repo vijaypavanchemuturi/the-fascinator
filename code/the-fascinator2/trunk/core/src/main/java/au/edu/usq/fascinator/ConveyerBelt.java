@@ -46,11 +46,11 @@ import org.slf4j.LoggerFactory;
  */
 public class ConveyerBelt {
 
-    /** Extractor Type transformer */
-    public static final String EXTRACTOR = "extractor";
+    /** Harvest Queue transformer */
+    public static final String HARVEST = "harvestQueue";
 
-    /** Render Type transformer */
-    public static final String RENDER = "render";
+    /** Render Queue transformer */
+    public static final String RENDER = "renderQueue";
 
     /** Logging */
     private static Logger log = LoggerFactory.getLogger(ConveyerBelt.class);
@@ -61,7 +61,7 @@ public class ConveyerBelt {
     /** Json configuration */
     private JsonConfigHelper sysConfig;
 
-    /** Type of the transformer to be process e.g: extractor or render */
+    /** Type of the transformer to be process e.g: harvest or render */
     private String type;
 
     /** List of plugins to use */

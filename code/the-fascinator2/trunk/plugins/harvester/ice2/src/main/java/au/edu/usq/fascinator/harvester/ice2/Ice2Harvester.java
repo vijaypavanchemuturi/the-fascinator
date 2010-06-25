@@ -1067,13 +1067,13 @@ public class Ice2Harvester extends GenericHarvester {
         props.setProperty("item-type", itemType);
 
         if (render) {
-            props.setProperty("extractor", "aperture");
+            props.setProperty("harvestQueue", "aperture");
             props.setProperty("indexOnHarvest", "true");
-            props.setProperty("render", "ffmpeg,ice2");
+            props.setProperty("renderQueue", "ffmpeg,ice2");
         } else {
-            props.setProperty("extractor", "");
+            props.setProperty("harvestQueue", "");
             props.setProperty("indexOnHarvest", "false");
-            props.setProperty("render", "aperture");
+            props.setProperty("renderQueue", "aperture");
         }
 
         object.close();
