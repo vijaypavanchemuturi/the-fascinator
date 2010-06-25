@@ -187,12 +187,12 @@ public class FfmpegTransformerTest {
         ffMetadata.close();
 
         // FFmpeg
-        if (execLevel.equals(Ffmpeg.DEFAULT_EXECUTABLE)) {
+        if (execLevel.equals(Ffmpeg.DEFAULT_BIN_TRANSCODE)) {
             Assert.assertEquals(metadata.get("duration"), "0");
         }
 
         // FFprobe
-        if (execLevel.equals(Ffmpeg.DEFAULT_EXTRACTER)) {
+        if (execLevel.equals(Ffmpeg.DEFAULT_BIN_METADATA)) {
             // Verify the metadata we expected came out
             Assert.assertNull(metadata.get("audio/codec/simple"));
             Assert.assertEquals(metadata.get("format/simple"),      "image2");
@@ -228,12 +228,12 @@ public class FfmpegTransformerTest {
         ffMetadata.close();
 
         // FFmpeg
-        if (execLevel.equals(Ffmpeg.DEFAULT_EXECUTABLE)) {
+        if (execLevel.equals(Ffmpeg.DEFAULT_BIN_TRANSCODE)) {
             Assert.assertEquals(metadata.get("duration"), "0");
         }
 
         // FFprobe
-        if (execLevel.equals(Ffmpeg.DEFAULT_EXTRACTER)) {
+        if (execLevel.equals(Ffmpeg.DEFAULT_BIN_METADATA)) {
             Assert.assertNull(metadata.get("audio/codec/simple"));
             Assert.assertEquals(metadata.get("format/simple"),      "image2");
             Assert.assertEquals(metadata.get("video/codec/simple"), "png");
@@ -268,12 +268,12 @@ public class FfmpegTransformerTest {
         ffMetadata.close();
 
         // FFmpeg
-        if (execLevel.equals(Ffmpeg.DEFAULT_EXECUTABLE)) {
+        if (execLevel.equals(Ffmpeg.DEFAULT_BIN_TRANSCODE)) {
             Assert.assertEquals(metadata.get("duration"), "85");
         }
 
         // FFprobe
-        if (execLevel.equals(Ffmpeg.DEFAULT_EXTRACTER)) {
+        if (execLevel.equals(Ffmpeg.DEFAULT_BIN_METADATA)) {
             Assert.assertEquals(metadata.get("format/simple"),      "mov,mp4,m4a,3gp,3g2,mj2");
             Assert.assertEquals(metadata.get("duration"),           "85");
 
@@ -314,12 +314,12 @@ public class FfmpegTransformerTest {
         ffMetadata.close();
 
         // FFmpeg
-        if (execLevel.equals(Ffmpeg.DEFAULT_EXECUTABLE)) {
+        if (execLevel.equals(Ffmpeg.DEFAULT_BIN_TRANSCODE)) {
             Assert.assertEquals(metadata.get("duration"), "4");
         }
 
         // FFprobe
-        if (execLevel.equals(Ffmpeg.DEFAULT_EXTRACTER)) {
+        if (execLevel.equals(Ffmpeg.DEFAULT_BIN_METADATA)) {
             Assert.assertEquals(metadata.get("format/simple"),      "mov,mp4,m4a,3gp,3g2,mj2");
             Assert.assertEquals(metadata.get("duration"),           "4");
 
@@ -360,12 +360,12 @@ public class FfmpegTransformerTest {
         ffMetadata.close();
 
         // FFmpeg
-        if (execLevel.equals(Ffmpeg.DEFAULT_EXECUTABLE)) {
+        if (execLevel.equals(Ffmpeg.DEFAULT_BIN_TRANSCODE)) {
             Assert.assertEquals(metadata.get("duration"), "109");
         }
 
         // FFprobe
-        if (execLevel.equals(Ffmpeg.DEFAULT_EXTRACTER)) {
+        if (execLevel.equals(Ffmpeg.DEFAULT_BIN_METADATA)) {
             Assert.assertEquals(metadata.get("format/simple"),      "mov,mp4,m4a,3gp,3g2,mj2");
             Assert.assertEquals(metadata.get("duration"),           "109");
 
@@ -405,12 +405,12 @@ public class FfmpegTransformerTest {
         ffMetadata.close();
 
         // FFmpeg
-        if (execLevel.equals(Ffmpeg.DEFAULT_EXECUTABLE)) {
+        if (execLevel.equals(Ffmpeg.DEFAULT_BIN_TRANSCODE)) {
             Assert.assertEquals(metadata.get("duration"), "0");
         }
 
         // FFprobe
-        if (execLevel.equals(Ffmpeg.DEFAULT_EXTRACTER)) {
+        if (execLevel.equals(Ffmpeg.DEFAULT_BIN_METADATA)) {
             Assert.assertEquals(metadata.get("format/simple"),      "aiff");
             Assert.assertEquals(metadata.get("duration"),           "0");
 
@@ -447,12 +447,12 @@ public class FfmpegTransformerTest {
         ffMetadata.close();
 
         // FFmpeg
-        if (execLevel.equals(Ffmpeg.DEFAULT_EXECUTABLE)) {
+        if (execLevel.equals(Ffmpeg.DEFAULT_BIN_TRANSCODE)) {
             Assert.assertEquals(metadata.get("duration"), "5");
         }
 
         // FFprobe
-        if (execLevel.equals(Ffmpeg.DEFAULT_EXTRACTER)) {
+        if (execLevel.equals(Ffmpeg.DEFAULT_BIN_METADATA)) {
             Assert.assertEquals(metadata.get("format/simple"),      "mov,mp4,m4a,3gp,3g2,mj2");
             Assert.assertEquals(metadata.get("duration"),           "5");
 

@@ -172,15 +172,15 @@ public class Ice2Transformer implements Transformer {
             excludeList = Arrays.asList(StringUtils.split(config
                     .get("excludeRenditionExt"), ','));
 
-            // Priority
-            priority = Boolean.parseBoolean(config.get("priority", "true"));
-
             // Conversion Service URL
             convertUrl = config.get("url");
             if (convertUrl == null) {
                 throw new TransformerException("No ICE URL provided!");
             }
         }
+
+        // Priority
+        priority = Boolean.parseBoolean(get("priority", "true"));
 
         // Clear the old SAX reader
         reader = new SafeSAXReader();
@@ -199,14 +199,14 @@ public class Ice2Transformer implements Transformer {
     @Override
     public DigitalObject transform(DigitalObject object, String jsonConfig)
             throws TransformerException {
-        // Purge old data
-        reset();
-
         try {
             itemConfig = new JsonConfigHelper(jsonConfig);
         } catch (IOException ex) {
             throw new TransformerException("Invalid configuration! '{}'", ex);
         }
+
+        // Purge old data - after itemConfig is set
+        reset();
 
         String sourceId = object.getSourceId();
         String ext = FilenameUtils.getExtension(sourceId);
@@ -569,20 +569,20 @@ public class Ice2Transformer implements Transformer {
     }
 
     /**
-     * Get configuration value from json file
-     * 
-     * @param key
-     * @return value of the configuration
-     */
-    private String get(String key) {
-        return config.get("transformer/ice2/" + key);
-    }
-
-    /**
      * Shut down the transformer plugin
      */
     @Override
     public void shutdown() throws PluginException {
+    }
+
+    /**
+     * Get data from item JSON, falling back to system JSON if not found
+     *
+     * @param key path to the data in the config file
+     * @return String containing the config data
+     */
+    private String get(String key) {
+        return get(key, null);
     }
 
     /**
@@ -594,25 +594,13 @@ public class Ice2Transformer implements Transformer {
      * @param value default to use if not found
      * @return String containing the config data
      */
-    private String get(JsonConfigHelper json, String key, String value) {
-        String configEntry = json.get(key, null);
+    private String get(String key, String value) {
+        String configEntry = null;
+        if (itemConfig != null) {
+            configEntry = itemConfig.get(key, null);
+        }
         if (configEntry == null) {
             configEntry = config.get(key, value);
-        }
-        return configEntry;
-    }
-
-    /**
-     * Get data from item JSON, falling back to system JSON if not found
-     * 
-     * @param json Config object containing the json data
-     * @param key path to the data in the config file
-     * @return String containing the config data
-     */
-    private String get(JsonConfigHelper json, String key) {
-        String configEntry = json.get(key, null);
-        if (configEntry == null) {
-            configEntry = config.get(key, null);
         }
         return configEntry;
     }

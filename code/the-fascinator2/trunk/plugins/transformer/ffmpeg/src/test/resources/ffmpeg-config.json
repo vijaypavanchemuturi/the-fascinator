@@ -1,7 +1,9 @@
 {
-    "transformer": "ffmpeg",
-    "extractor": "ffprobe",
     "outputPath": "${java.io.tmpdir}/${user.name}/ffmpeg-output",
+    "binaries": {
+        "transcoding": "ffmpeg",
+        "metadata": "ffprobe"
+    },
     "metadata": {
         "excludeExt": "odt,doc,docx,pdf,ppt,html,htm,tfpackage"
     },

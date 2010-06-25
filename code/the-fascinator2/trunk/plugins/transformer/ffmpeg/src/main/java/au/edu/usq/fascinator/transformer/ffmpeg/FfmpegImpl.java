@@ -56,7 +56,7 @@ public class FfmpegImpl implements Ffmpeg {
      *
      */
     public FfmpegImpl() {
-        this(DEFAULT_EXECUTABLE, DEFAULT_EXTRACTER);
+        this(DEFAULT_BIN_TRANSCODE, DEFAULT_BIN_METADATA);
     }
 
     /**
@@ -67,8 +67,8 @@ public class FfmpegImpl implements Ffmpeg {
      */
     public FfmpegImpl(String executable, String metadata) {
         this.extraction = false;
-        this.executable = executable == null ? DEFAULT_EXECUTABLE : executable;
-        this.metadata   = metadata   == null ? DEFAULT_EXTRACTER  : metadata;
+        this.executable = executable == null ? DEFAULT_BIN_TRANSCODE : executable;
+        this.metadata   = metadata   == null ? DEFAULT_BIN_METADATA  : metadata;
     }
 
     /**
@@ -86,11 +86,11 @@ public class FfmpegImpl implements Ffmpeg {
 
             if (ffprobe && ffmpeg) {
                 // A recent FFmpeg build is installed
-                availability = DEFAULT_EXTRACTER;
+                availability = DEFAULT_BIN_METADATA;
             } else {
                 if (ffmpeg) {
                     // An older FFmpeg build is installed
-                    availability = DEFAULT_EXECUTABLE;
+                    availability = DEFAULT_BIN_TRANSCODE;
                     this.metadata = this.executable;
                 } else {
                     // We couldn't find an intall
@@ -111,7 +111,7 @@ public class FfmpegImpl implements Ffmpeg {
     private boolean testExtractor() {
         // Highest level of functionality
         // DEFAULT_EXTRACTER = FFprobe
-        if (this.metadata.contains(DEFAULT_EXTRACTER)) {
+        if (this.metadata.contains(DEFAULT_BIN_METADATA)) {
             extraction = true;
             try {
                 execute();
@@ -120,7 +120,7 @@ public class FfmpegImpl implements Ffmpeg {
 
             // Try searching for it on the path
             } catch (IOException ioe) {
-                File found = searchPathForExecutable(DEFAULT_EXTRACTER);
+                File found = searchPathForExecutable(DEFAULT_BIN_METADATA);
                 if (found != null) {
                     metadata = found.getAbsolutePath();
                     log.info("FFprobe found at {}", metadata);
@@ -146,14 +146,14 @@ public class FfmpegImpl implements Ffmpeg {
      */
     private boolean testConverter() {
         // DEFAULT_EXECUTABLE = FFmpeg
-        if (this.executable.contains(DEFAULT_EXECUTABLE)) {
+        if (this.executable.contains(DEFAULT_BIN_TRANSCODE)) {
             try {
                 execute();
                 return true;
 
             // Try searching for it on the path
             } catch (IOException ioe) {
-                File found = searchPathForExecutable(DEFAULT_EXECUTABLE);
+                File found = searchPathForExecutable(DEFAULT_BIN_TRANSCODE);
                 if (found != null) {
                     executable = found.getAbsolutePath();
                     log.info("FFmpeg found at {}", executable);
@@ -264,7 +264,7 @@ public class FfmpegImpl implements Ffmpeg {
         List<String> params = new ArrayList<String>();
 
         // FFprobe
-        if (testAvailability().equals(DEFAULT_EXTRACTER)) {
+        if (testAvailability().equals(DEFAULT_BIN_METADATA)) {
             params.add("-show_format");
             params.add("-show_streams");
         } else {
