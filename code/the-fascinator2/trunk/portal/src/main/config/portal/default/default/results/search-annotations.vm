@@ -1,6 +1,4 @@
-<script type="text/javascript" src="$portalPath/js/tree/jquery.tree.min.js"></script>
 <script type="text/javascript" src="$portalPath/js/anotar/anotar-0.2.min.js"></script>
-
 <script type="text/javascript">
 $(function(){
     // Tags annotation

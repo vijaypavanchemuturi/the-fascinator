@@ -45,12 +45,12 @@
   #end
 #end
 
-#if($query != "" || $self.hasSelectedFacets())
+#if("$!query" != "" || $self.hasSelectedFacets())
   #set($menuTitle = "Actions")
   #parse($page.getTemplate('wrapping/menu-open.vm'))
   #set($menuTitle = $nullValue)
     <ul class="menu">
-      #if($query != "")
+      #if("$!query" != "")
         <li><a href="$portalPath/search">Clear search query</a></li>
       #end
       #if($createViewEnabled)
@@ -63,6 +63,7 @@
   #parse($page.getTemplate('wrapping/menu-close.vm'))
 #end
 
+<script type="text/javascript" src="$portalPath/js/tree/jquery.tree.min.js"></script>
 <script type="text/javascript">
   // hierarchical facet trees
   function createTree(selector, facetField) {
@@ -115,7 +116,9 @@
 </script>
 
 #if($hasResult)
-  #set($facetFields = $self.result.getMap("facet_counts/facet_fields"))
+  #if(!$facetFields)
+    #set($facetFields = $self.result.getMap("facet_counts/facet_fields"))
+  #end
   #foreach($facetFieldKey in $facetFields.keySet())
     #set($facetField = $self.getFacetField($facetFieldKey))
     #if($facetField.get("display") == "tree")
