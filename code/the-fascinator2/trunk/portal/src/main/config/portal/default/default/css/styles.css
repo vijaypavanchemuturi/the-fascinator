@@ -443,6 +443,7 @@ ul.nobgtabs li a.ui-state-active {
 
 .player_reset {
     float: right;
+}
 
 .help_p {
     font-size: smaller;
@@ -450,22 +451,22 @@ ul.nobgtabs li a.ui-state-active {
     display: none;
 }
 
-.notice h2 {
+#config-notices h2, .notice h2 {
     background-color: #CC3300;
 }
 
-.notice {
+#config-notices, .notice {
     background-color: #FFDDDD;
     margin-bottom: 5px;
     margin-top: 5px;
 }
 
-.notice .warning {
+#config-notices .warning, .notice .warning {
     padding: 5px;
     font-size: 125%;
 }
 
-.notice .warning b {
+#config-notices .warning b, .notice .warning b {
     display: block;
     background-image: url('../images/icons/server_error.png');
     background-position: 0 50%;

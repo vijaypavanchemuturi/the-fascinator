@@ -113,7 +113,7 @@ public class DynamicPageServiceImpl implements DynamicPageService {
             layoutName = config.get("portal/layout", DEFAULT_LAYOUT_TEMPLATE);
             engineName = config.get("portal/scriptEngine",
                     DEFAULT_SCRIPT_ENGINE);
-            toolkit = new GUIToolkit(config);
+            toolkit = new GUIToolkit();
 
             // Default templates
             defaultPortal = config.get("portal/defaultView",

@@ -119,13 +119,15 @@ public class Dispatch {
     private String mimeType;
     private InputStream stream;
 
+    private JsonConfig sysConfig;
+
     public StreamResponse onActivate(Object... params) {
         log.debug("Dispatch starting : {} {}",
                 request.getMethod(), request.getPath());
 
         try {
-            JsonConfig config = new JsonConfig();
-            defaultPortal = config.get("portal/defaultView",
+            sysConfig = new JsonConfig(JsonConfig.getSystemFile());
+            defaultPortal = sysConfig.get("portal/defaultView",
                     PortalManager.DEFAULT_PORTAL_NAME);
         } catch (IOException ex) {
             log.error("Error accessing system config", ex);
@@ -197,7 +199,7 @@ public class Dispatch {
     private void fileProcessing() {
         // What we are looking for
         UploadedFile uploadedFile = null;
-        String workflow = null;
+        String workflowId = null;
 
         // Roles of current user
         String username = (String) sessionState.get("username");
@@ -206,33 +208,20 @@ public class Dispatch {
         // The workflow we're using
         List<String> reqParams = request.getParameterNames();
         if (reqParams.contains("upload-file-workflow")) {
-            workflow = request.getParameter("upload-file-workflow");
+            workflowId = request.getParameter("upload-file-workflow");
         }
-        if (workflow == null) {
+        if (workflowId == null) {
             log.error("No workflow provided with form data.");
             return;
         }
 
-        // Query the system config file
-        JsonConfigHelper workflow_config;
-        Map<String, JsonConfigHelper> available_workflows;
-        try {
-            JsonConfig config = new JsonConfig();
-            config.getSystemFile();
-            String workflow_config_path = config.get("portal/uploader");
-            File workflow_config_file = new File(workflow_config_path);
-            workflow_config = new JsonConfigHelper(workflow_config_file);
-            available_workflows = workflow_config.getJsonMap("/");
-        } catch (IOException e) {
-            log.error("Failed to get the System config file.");
-            return;
-        }
+        Map<String, JsonConfigHelper> workflows =
+                sysConfig.getJsonMap("uploader");
+        JsonConfigHelper workflowConfig = workflows.get(workflowId);
 
         // Roles allowed to upload into this workflow
-        List<Object> allowed_roles =
-                available_workflows.get(workflow).getList("security");
         boolean security_check = false;
-        for (Object role : allowed_roles) {
+        for (Object role : workflowConfig.getList("security")) {
             if (roles.contains(role.toString())) {
                 security_check = true;
             }
@@ -243,7 +232,7 @@ public class Dispatch {
         }
 
         // Get the workflow's file directory
-        String file_path = available_workflows.get(workflow).get("upload-path");
+        String file_path = workflowConfig.get("upload-path");
 
         // Get the uploaded file
         for (String param : reqParams) {
@@ -273,13 +262,12 @@ public class Dispatch {
         uploadedFile.write(file);
 
         // Make sure the new file gets harvested
-        File harvest_config = new File(available_workflows.get(workflow).get(
-                "json-config"));
+        File harvestFile = new File(workflowConfig.get("json-config"));
         // Get the workflow template needed for stage 1
         String template = "";
         try {
-            JsonConfigHelper workflowConfig = new JsonConfigHelper(harvest_config);
-            List<JsonConfigHelper> stages = workflowConfig.getJsonList("stages");
+            JsonConfigHelper harvestConfig = new JsonConfigHelper(harvestFile);
+            List<JsonConfigHelper> stages = harvestConfig.getJsonList("stages");
             if (stages.size() > 0) {
                 JsonConfigHelper stage = stages.get(0);
                 template = stage.get("template");
@@ -292,7 +280,7 @@ public class Dispatch {
         String oid = null;
         String error = null;
         try {
-            harvester = new HarvestClient(harvest_config, file, username);
+            harvester = new HarvestClient(harvestFile, file, username);
             harvester.start();
             oid = harvester.getUploadOid();
             harvester.shutdown();
@@ -318,7 +306,7 @@ public class Dispatch {
             Matcher matcher = pattern.matcher(error);
             file_details.put("error", matcher.replaceAll(""));
         }
-        file_details.put("workflow", workflow);
+        file_details.put("workflow", workflowId);
         file_details.put("template", template);
         file_details.put("location", file_path);
         file_details.put("size",     String.valueOf(uploadedFile.getSize()));

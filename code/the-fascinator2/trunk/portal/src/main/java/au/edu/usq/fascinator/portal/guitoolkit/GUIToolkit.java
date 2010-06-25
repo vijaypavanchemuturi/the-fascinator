@@ -20,6 +20,7 @@ package au.edu.usq.fascinator.portal.guitoolkit;
 
 import au.edu.usq.fascinator.common.JsonConfig;
 import au.edu.usq.fascinator.portal.services.DynamicPageService;
+import java.io.IOException;
 import java.util.List;
 
 /**
@@ -32,8 +33,8 @@ import java.util.List;
 public class GUIToolkit {
     private JsonConfig sysConfig;
 
-    public GUIToolkit(JsonConfig config) {
-        sysConfig = config;
+    public GUIToolkit() throws IOException {
+        sysConfig = new JsonConfig(JsonConfig.getSystemFile());
     }
 
     public GUIDisplay getDisplayComponent(DynamicPageService renderer) {

@@ -215,6 +215,33 @@ public class JsonConfig {
     }
 
     /**
+     * Performs a backup on the system-wide configuration file from the default
+     * config dir if it exists. Returns a reference to the backed up file.
+     *
+     * @return the backed up system JSON file
+     * @throws IOException if there was an error reading or writing either file
+     */
+    public static File backupSystemFile() throws IOException {
+        File configFile = new File(CONFIG_DIR, SYSTEM_CONFIG_FILE);
+        File backupFile = new File(CONFIG_DIR, SYSTEM_CONFIG_FILE + ".old");
+        if (!configFile.exists()) {
+            throw new IOException("System file does not exist! '"
+                    + configFile.getAbsolutePath() + "'");
+        } else {
+            if (backupFile.exists()) {
+                backupFile.delete();
+            }
+            OutputStream out = new FileOutputStream(backupFile);
+            InputStream in = new FileInputStream(configFile);
+            IOUtils.copy(in, out);
+            in.close();
+            out.close();
+            log.info("Configuration copied to '{}'", backupFile);
+        }
+        return backupFile;
+    }
+
+    /**
      * Gets the system-wide configuration file from the default config dir. If
      * the file doesn't exist, a default is copied to the config dir.
      * 
