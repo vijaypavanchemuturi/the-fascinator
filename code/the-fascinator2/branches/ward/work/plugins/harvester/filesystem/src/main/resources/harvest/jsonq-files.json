@@ -1,0 +1,51 @@
+{
+    "harvester": {
+        "type": "workflow-harvester",
+        "workflow-harvester": {
+            "force-storage": "false",
+            "force-update": "true"
+        }
+    },
+
+    "renderTypes": {
+        "media": {
+            "fileTypes": ["mp3","mp4","m4a","wav","wma","wmv","mpg","mpeg",
+                          "mov","wav","aiff","png","jpg","jpeg","gif","bmp"],
+            "extractor": ["aperture"],
+            "indexOnHarvest": ["true"],
+            "render": ["ffmpeg", "ice2"]
+        },
+        "documents": {
+            "fileTypes": ["mp3","mp4","m4a","wav","wma","wmv","mpg","mpeg",
+                          "mov","wav","aiff","odp","ppt","pptx","pdf","tex",
+                          "svg","ods","xls","xlsx","odt","doc","docx","png",
+                          "jpg","jpeg","gif","bmp","cml"],
+            "extractor": ["aperture"],
+            "indexOnHarvest": ["true"],
+            "render": ["ice2"]
+        },
+        "speed": {
+            "fileTypes": [],
+            "extractor": [],
+            "indexOnHarvest": ["false"],
+            "render": ["aperture"]
+        }
+    },
+
+    "transformer": {
+        "extractor": ["aperture"],
+        "indexOnHarvest": "true",
+        "render": ["ffmpeg", "ice2", "ims"]
+    },
+
+    "indexer": {
+        "script": {
+            "type": "python",
+            "rules": "local-files.py"
+        },
+        "params": {
+            "repository.name": "Local Files",
+            "repository.type": "Local File System"
+        }
+    }
+}
