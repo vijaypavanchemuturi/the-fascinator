@@ -148,8 +148,8 @@ public class FfmpegTransformer implements Transformer {
     private String testExecLevel() {
         // Make sure we can start
         if (ffmpeg == null) {
-            ffmpeg = new FfmpegImpl(get(config, "transformer"), get(config,
-                    "extractor"));
+            ffmpeg = new FfmpegImpl(get(config, "binaries/transcoding"),
+                    get(config, "binaries/metadata"));
         }
         return ffmpeg.testAvailability();
     }

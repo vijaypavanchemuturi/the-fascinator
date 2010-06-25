@@ -27,17 +27,13 @@ import au.edu.usq.fascinator.api.transformer.TransformerException;
 import au.edu.usq.fascinator.common.JsonConfig;
 import au.edu.usq.fascinator.common.JsonConfigHelper;
 
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,9 +51,6 @@ public class ConveyerBelt {
 
     /** Render Type transformer */
     public static final String RENDER = "render";
-
-    /** Default transformer config file */
-    private static String DEFAULT_CONFIG_FILE = "render-config.json";
 
     /** Logging */
     private static Logger log = LoggerFactory.getLogger(ConveyerBelt.class);
@@ -128,13 +121,13 @@ public class ConveyerBelt {
      */
     public ConveyerBelt(String newType) throws TransformerException {
         try {
-            sysConfig = getTransformerConfig();
+            sysConfig = new JsonConfigHelper(JsonConfig.getSystemFile());
             type = newType;
             // More than meets the eye
             transformers = new LinkedHashMap();
             // Loop through all the system's transformers
             Map<String, JsonConfigHelper> map =
-                    sysConfig.getJsonMap("transformers");
+                    sysConfig.getJsonMap("transformerDefaults");
             if (map != null && map.size() > 0) {
                 for (String name : map.keySet()) {
                     String id = map.get(name).get("id");
@@ -160,37 +153,6 @@ public class ConveyerBelt {
             }
         } catch (IOException ioe) {
             log.warn("Failed to load system configuration", ioe);
-        }
-    }
-
-    /**
-     * Get the transformer configuration file, or the default
-     *
-     * @return JsonConfigHelper transformer configuration
-     * @throws IOException if unable to read the file(s)
-     */
-    private JsonConfigHelper getTransformerConfig() throws IOException {
-        // Where SHOULD it be
-        JsonConfig config = new JsonConfig();
-        String config_path = config.get("portal/transformers");
-        File config_file = new File(config_path);
-
-        // Is it there?
-        if (config_file.exists()) {
-            return new JsonConfigHelper(config_file);
-
-        } else {
-            // Make sure the path exists
-            config_file.getParentFile().mkdirs();
-            // Get an output stream to the file
-            OutputStream out;
-            out = new FileOutputStream(config_file);
-            // Copy the resource to disk
-            IOUtils.copy(getClass().getResourceAsStream("/" +
-                    DEFAULT_CONFIG_FILE), out);
-            // Close output and return
-            out.close();
-            return new JsonConfigHelper(config_file);
         }
     }
 
@@ -222,7 +184,7 @@ public class ConveyerBelt {
                     log.info("Starting '{}' on '{}'...", name, object.getId());
 
                     // Grab any overriding transformer config this item has
-                    itemConfigs = config.getJsonMap("transformerConfigs");
+                    itemConfigs = config.getJsonMap("transformerOverrides");
                     if (itemConfigs != null && itemConfigs.containsKey(name)) {
                         itemConfig = itemConfigs.get(name);
                     } else {

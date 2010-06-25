@@ -89,7 +89,7 @@ public class FfmpegInfo {
         //log.debug("\n\n=====\n\\/ \\/\n\n{}\n/\\ /\\\n=====\n", rawMediaData);
 
         // FFprobe
-        if (ffmpeg.testAvailability().equals(Ffmpeg.DEFAULT_EXTRACTER)) {
+        if (ffmpeg.testAvailability().equals(Ffmpeg.DEFAULT_BIN_METADATA)) {
             parseFFprobeMetadata(rawMediaData);
             processFFprobeMetadata();
 

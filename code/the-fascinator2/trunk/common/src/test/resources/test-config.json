@@ -1,4 +1,11 @@
-{   
+{
+    "comment1": "========================================================",
+    "comment2": "THIS IS A TEST FILE ONLY. IT IS A COPY OF AN OUT-OF-DATE",
+    "comment3": " VERSION OF THE SYSTEM-CONFIG FILE, BUT IT IS ONLY USED ",
+    "comment4": " AS PART OF THE UNIT TEST IN OUR JSON PARSER. FOR THIS  ",
+    "comment5": " REASON NO UPDATING OF THIS FILE IS REQUIRED UNLESS THE ",
+    "comment6": " UNIT TEST ITSELF IS BEING UPDATED.                     ",
+    "comment7": "========================================================",
     "numbers": ["one", "two", "three"],
     "storage": {
         "type": "fedora3",

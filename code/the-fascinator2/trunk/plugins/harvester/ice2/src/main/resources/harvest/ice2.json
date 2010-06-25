@@ -10,11 +10,12 @@
             "testRun": false
         }
     },
-
     "transformer": {
         "extractor": [],
         "indexOnHarvest": false,
-        "render": ["aperture"],
+        "render": ["aperture"]
+    },
+    "transformerOverrides": {
         "aperture": {
             "outputPath": "${java.io.tmpdir}/ice2-output"
         },
@@ -38,9 +39,11 @@
             }
         },
         "ffmpeg": {
-            "transformer": "ffmpeg",
-            "extractor": "ffprobe",
             "outputPath": "${java.io.tmpdir}/${user.name}/ffmpeg-output",
+            "binaries": {
+                "transcoding": "ffmpeg",
+                "metadata": "ffprobe"
+            },
             "metadata": {
                 "excludeExt": "odt,doc,docx,pdf,ppt,html,htm,tfpackage"
             },
@@ -57,7 +60,6 @@
             }
         }
     },
-
     "indexer": {
         "script": {
             "type": "python",

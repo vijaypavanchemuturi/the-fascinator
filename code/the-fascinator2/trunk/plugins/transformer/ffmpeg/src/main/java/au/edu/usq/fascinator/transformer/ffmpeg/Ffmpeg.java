@@ -30,10 +30,10 @@ import java.util.List;
 public interface Ffmpeg {
 
     /** Default transcoder binary name */
-    public static final String DEFAULT_EXECUTABLE = "ffmpeg";
+    public static final String DEFAULT_BIN_TRANSCODE = "ffmpeg";
 
     /** Default extractor binary name */
-    public static final String DEFAULT_EXTRACTER = "ffprobe";
+    public static final String DEFAULT_BIN_METADATA = "ffprobe";
 
     /**
      * Test what level of functionality is available for ffmpeg
