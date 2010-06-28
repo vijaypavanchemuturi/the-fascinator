@@ -92,29 +92,6 @@ $(function() {
         return false;
     });
 
-    $("#reharvest").click(function() {
-        var amq = org.activemq.Amq;
-        var clientId = "reharvest_$oid";
-        var clientTopic = "topic://message";
-        function waitRender(message) {
-            var json = this.JSON.parse(message.nodeValue);
-            $("#reharvest-progress").append("<li>" + json.message + "</li>");
-            if (json.status == "renderComplete" && json.id == "$oid") {
-                amq.removeListener(clientId, clientTopic);
-                $("#reharvest-loading").hide();
-                $("#reharvest-complete").show();
-            }
-        }
-        $("#reharvest-form").show();
-        jQuery.post("$portalPath/reharvest.ajax",
-            { func: "reharvest", oid: "$oid" },
-            function(data, status) {
-                amq.init({ uri: "$contextPath/amq/", timeout: 10 });
-                amq.addListener(clientId, clientTopic, waitRender);
-            }, "json");
-        return false;
-    });
-
     function addRendition(href, label) {
         $("#actions").append('<li><a href="' + href + '" target="blank">' + label + '</a></li>');
     }
