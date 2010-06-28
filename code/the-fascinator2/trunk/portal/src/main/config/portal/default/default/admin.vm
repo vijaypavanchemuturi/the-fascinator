@@ -119,13 +119,14 @@
 #set($pageTitle = "Administration")
 <h2 id="page-heading">Administration</h2>
 <div class="grid_4">
-  <div class="box menu">
-    <h2>Administer</h2>
+  #set($menuTitle = "Administer")
+  #parse($page.getTemplate('wrapping/menu-open.vm'))
+  #set($menuTitle = $nullValue)
     <ul class="menu">
       <li><a id="users-category" class="category selected" href="#" rel="users">Users</a></li>
       <li><a id="roles-category" class="category" href="#" rel="roles">Roles</a></li>
     </ul>
-  </div>
+  #parse($page.getTemplate('wrapping/menu-close.vm'))
 </div>
 <div id="form-section" class="grid_12">
 

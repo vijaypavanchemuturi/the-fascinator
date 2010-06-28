@@ -162,8 +162,9 @@
 
 #if ($renderSettingsForms)
 <div class="grid_4">
-  <div class="box menu">
-    <h2>Category</h2>
+  #set($menuTitle = "Category")
+  #parse($page.getTemplate('wrapping/menu-open.vm'))
+  #set($menuTitle = $nullValue)
     <ul class="menu">
       #category("general" "General")
       #category("view" "View")
@@ -172,7 +173,7 @@
       #category("watcher" "Watcher")
       #category("housekeeping" "House Keeping")
     </ul>
-  </div>
+  #parse($page.getTemplate('wrapping/menu-close.vm'))
 </div>
 <div id="form-section" class="grid_12">
   <div id="general-section" class="box hidden">
