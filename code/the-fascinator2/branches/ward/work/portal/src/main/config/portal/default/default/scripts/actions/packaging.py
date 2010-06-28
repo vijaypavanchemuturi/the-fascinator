@@ -2,7 +2,7 @@ import md5, uuid
 
 from au.edu.usq.fascinator import HarvestClient
 from au.edu.usq.fascinator.api.storage import StorageException
-from au.edu.usq.fascinator.common import FascinatorHome, JsonConfigHelper
+from au.edu.usq.fascinator.common import FascinatorHome, JsonConfigHelper, JsonConfig
 from au.edu.usq.fascinator.common.storage import StorageUtils
 
 from java.io import File, FileOutputStream, InputStreamReader, OutputStreamWriter
@@ -17,7 +17,9 @@ class PackagingActions:
 
         result = "{}"
         func = formData.get("func")
-        if func == "create-from-selected":
+        if func == "create-new":
+            result = self.__createNew()
+        elif func == "create-from-selected":
             result = self.__createFromSelected()
         elif func == "update":
             result = self.__update()
@@ -31,9 +33,63 @@ class PackagingActions:
         writer = response.getPrintWriter("application/json; charset=UTF-8")
         writer.println(result)
         writer.close()
+
+    def __createNew(self):
+        print "Creating a new package..."
+        packageType, jsonConfigFile = self.__getPackageTypeAndJsonConfigFile()
+        print "packageType='%s'" % packageType
+        print "jsonConfigFile='%s'" % jsonConfigFile
+
+        manifestHash = "%s.tfpackage" % uuid.uuid4()
+        # store the manifest file for harvesting
+        packageDir = FascinatorHome.getPathFile("packages")
+        packageDir.mkdirs()
+        manifestFile = File(packageDir, manifestHash)
+        outStream = FileOutputStream(manifestFile)
+        outWriter = OutputStreamWriter(outStream, "UTF-8")
+
+        sessionState.set("package/active", None)
+        manifest = self.__getActiveManifest()
+        manifest.set("packageType", packageType)
+        #
+        print "------"
+        print manifest
+        print "------"
+        manifest.store(outWriter, True)
+        outWriter.close()
+
+        try:
+            # harvest the package as an object
+            username = sessionState.get("username")
+            if username is None:
+                username = "guest" # necessary?
+            harvester = None
+            # set up config files if necessary
+            workflowsDir = FascinatorHome.getPathFile("harvest/workflows")
+            configFile = self.__getFile(workflowsDir, jsonConfigFile)
+            #rulesFile = self.__getFile(workflowsDir, "packaging-rules.py")
+            # run the harvest client with our packaging workflow config
+            harvester = HarvestClient(configFile, manifestFile, username)
+            harvester.start()
+            manifestId = harvester.getUploadOid()
+            harvester.shutdown()
+        except Exception, ex:
+            error = "Packager workflow failed: %s" % str(ex)
+            log.error(error, ex)
+            if harvester is not None:
+                harvester.shutdown()
+            return '{ status: "failed" }'
+        # clean up
+        self.__clear()
+        # return url to workflow screen
+        return '{"status": "ok", "url": "%s/workflow/%s" }' % (portalPath, manifestId)
+
     
     def __createFromSelected(self):
         print "Creating package from selected..."
+        packageType, jsonConfigFile = self.__getPackageTypeAndJsonConfigFile()
+        print "packageType='%s'" % packageType
+        print "jsonConfigFile='%s'" % jsonConfigFile
         
         # if modifying existing manifest, we already have an identifier,
         # otherwise create a new one
@@ -50,6 +106,9 @@ class PackagingActions:
         outStream = FileOutputStream(manifestFile)
         outWriter = OutputStreamWriter(outStream, "UTF-8")
         manifest = self.__getActiveManifest()
+        manifest.set("packageType", packageType)
+        print manifest
+        print "----"
         manifest.store(outWriter, True)
         outWriter.close()
         
@@ -62,8 +121,8 @@ class PackagingActions:
                 harvester = None
                 # set up config files if necessary
                 workflowsDir = FascinatorHome.getPathFile("harvest/workflows")
-                configFile = self.__getFile(workflowsDir, "packaging-config.json")
-                rulesFile = self.__getFile(workflowsDir, "packaging-rules.py")
+                configFile = self.__getFile(workflowsDir, jsonConfigFile)
+                #rulesFile = self.__getFile(workflowsDir, "packaging-rules.py")
                 # run the harvest client with our packaging workflow config
                 harvester = HarvestClient(configFile, manifestFile, username)
                 harvester.start()
@@ -137,7 +196,23 @@ class PackagingActions:
             response.setStatus(500)
             return '{ error: %s }' % str(e)
         return '{ count: %s }' % self.__getCount()
-    
+
+    def __getPackageTypeAndJsonConfigFile(self):
+        try:
+            packageType = formData.get("packageType", "default")
+            if packageType=="":
+                packageType="default"
+            print "packageType='%s'" % packageType
+            json = JsonConfigHelper(JsonConfig.getSystemFile())
+            pt = json.getMap("portal/packageTypes/" + packageType)
+            jsonConfigFile = pt.get("jsonconfig")
+            if jsonConfigFile is None:
+                jsonConfigFile = "packaging-config.json"
+        except Exception, e:
+            jsonConfigFile = "packaging-config.json"
+        print "jsonConfigFile='%s'" % jsonConfigFile
+        return (packageType, jsonConfigFile)
+
     def __addCustom(self):
         id = md5.new(str(uuid.uuid4())).hexdigest()
         return '{ attributes: { id: "node-%s", rel: "blank" }, data: "Untitled" }' % id

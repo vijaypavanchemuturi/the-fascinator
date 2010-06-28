@@ -13,7 +13,7 @@ class ManifestActions:
         func = formData.get("func")
         oid = formData.get("oid")
         
-        if func != "set-package-title":
+        if func != "update-package-meta":
             nodeId = formData.get("nodeId")
             nodePath = self.__getNodePath(formData.get("parents"), nodeId)
             originalPath = "manifest//%s" % nodeId
@@ -24,9 +24,14 @@ class ManifestActions:
         self.__manifest = JsonConfigHelper(payload.open())
         payload.close()
         
-        if func == "set-package-title":
-            title = formData.get("title")
-            self.__manifest.set("title", StringEscapeUtils.escapeHtml(title))
+        if func == "update-package-meta":
+            print "*********  update-package-meta ***************"
+            metaList = list(formData.getValues("metaList"))
+            for metaName in metaList:
+                value = formData.get(metaName)
+                self.__manifest.set(metaName, value)
+            #title = formData.get("title")
+            #self.__manifest.set("title", StringEscapeUtils.escapeHtml(title))
             self.__saveManifest()
         if func == "rename":
             title = formData.get("title")
