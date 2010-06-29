@@ -230,5 +230,15 @@ class SearchData:
             sessionState.set("package/active", activeManifest)
         return activeManifest
 
+    def test(self, id=""):
+        # cache this answer
+        activeManifest = self.__getActiveManifest()
+        print "activeManifest='%s'" % activeManifest
+        packageType = activeManifest.get("packageType", "default")
+        json = JsonConfigHelper(JsonConfig.getSystemFile())
+        pt = json.getMap("portal/packageTypes/%s" % packageType)
+        pInP = json.get("portal/packageTypes/%s/packages-in-package" % packageType)=="true"
+        return pInP and (id!= self.getActiveManifestId())
+
 if __name__ == "__main__":
     scriptObject = SearchData()

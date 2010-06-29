@@ -166,6 +166,10 @@ class UploadedData:
             self.errorMsg = "Invalid workflow configuration"
             return False
 
+        print "--------------"
+        print "meta='%s'" % meta        # "workflow.metadata"
+        print "currentStep='%s'" % currentStep
+        print "stages='%s'" % stages
         nextFlag = False
         for stage in stages:
             # We've found the next stage
@@ -176,6 +180,9 @@ class UploadedData:
             if stage.get("name") == currentStep:
                 nextFlag = True
                 currentStage = stage
+        
+        print "nextStage='%s'" % nextStage
+        print "--------------"
 
         if nextStage is None:
             if currentStage is None:

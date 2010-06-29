@@ -51,6 +51,10 @@ class PackagingActions:
         sessionState.set("package/active", None)
         manifest = self.__getActiveManifest()
         manifest.set("packageType", packageType)
+        metaList = list(formData.getValues("metaList"))
+        for metaName in metaList:
+            value = formData.get(metaName)
+            manifest.set(metaName, value)
         #
         print "------"
         print manifest
@@ -88,8 +92,8 @@ class PackagingActions:
     def __createFromSelected(self):
         print "Creating package from selected..."
         packageType, jsonConfigFile = self.__getPackageTypeAndJsonConfigFile()
-        print "packageType='%s'" % packageType
-        print "jsonConfigFile='%s'" % jsonConfigFile
+        #print "packageType='%s'" % packageType
+        #print "jsonConfigFile='%s'" % jsonConfigFile
         
         # if modifying existing manifest, we already have an identifier,
         # otherwise create a new one
@@ -106,9 +110,9 @@ class PackagingActions:
         outStream = FileOutputStream(manifestFile)
         outWriter = OutputStreamWriter(outStream, "UTF-8")
         manifest = self.__getActiveManifest()
-        manifest.set("packageType", packageType)
-        print manifest
-        print "----"
+        manifest.set("packageType", manifest.get("packageType", packageType))
+        #print manifest
+        #print "----"
         manifest.store(outWriter, True)
         outWriter.close()
         
@@ -202,7 +206,6 @@ class PackagingActions:
             packageType = formData.get("packageType", "default")
             if packageType=="":
                 packageType="default"
-            print "packageType='%s'" % packageType
             json = JsonConfigHelper(JsonConfig.getSystemFile())
             pt = json.getMap("portal/packageTypes/" + packageType)
             jsonConfigFile = pt.get("jsonconfig")
@@ -210,7 +213,6 @@ class PackagingActions:
                 jsonConfigFile = "packaging-config.json"
         except Exception, e:
             jsonConfigFile = "packaging-config.json"
-        print "jsonConfigFile='%s'" % jsonConfigFile
         return (packageType, jsonConfigFile)
 
     def __addCustom(self):
