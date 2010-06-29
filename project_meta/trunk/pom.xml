@@ -26,16 +26,16 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<jdk-version>1.6</jdk-version>
-		<svn-repository>http://fascinator.usq.edu.au/svn-auth/
+		<svn-repository>http://fascinator.usq.edu.au/svn/
 		</svn-repository>
 		<svn-parent-dir>project_meta/trunk</svn-parent-dir>
 		<svn-path>${svn-repository}${svn-parent-dir}</svn-path>
 	</properties>
 	<scm>
-		<url>http://fascinator.usq.edu.au/svn-auth/project_meta/trunk</url>
-		<connection>scm:svn:http://fascinator.usq.edu.au/svn-auth/project_meta/trunk
+		<url>http://fascinator.usq.edu.au/svn/project_meta/trunk</url>
+		<connection>scm:svn:http://fascinator.usq.edu.au/svn/project_meta/trunk
 		</connection>
-		<developerConnection>scm:svn:http://fascinator.usq.edu.au/svn-auth/project_meta/trunk
+		<developerConnection>scm:svn:http://fascinator.usq.edu.au/svn/project_meta/trunk
 		</developerConnection>
 	</scm>
 	<developers>
@@ -116,7 +116,7 @@
 	<repositories>
 		<repository>
 			<id>adfi-usq-releases</id>
-			<url>http://fascinator.usq.edu.au/nexus/content/groups/public</url>
+			<url>https://fascinator.usq.edu.au/nexus/content/groups/public</url>
 		</repository>
 	</repositories>
 	<distributionManagement>
