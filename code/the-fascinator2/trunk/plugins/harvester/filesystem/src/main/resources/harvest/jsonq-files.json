@@ -11,31 +11,31 @@
         "media": {
             "fileTypes": ["mp3","mp4","m4a","wav","wma","wmv","mpg","mpeg",
                           "mov","wav","aiff","png","jpg","jpeg","gif","bmp"],
-            "extractor": ["aperture"],
+            "harvestQueue": ["aperture"],
             "indexOnHarvest": ["true"],
-            "render": ["ffmpeg", "ice2"]
+            "renderQueue": ["ffmpeg", "ice2"]
         },
         "documents": {
             "fileTypes": ["mp3","mp4","m4a","wav","wma","wmv","mpg","mpeg",
                           "mov","wav","aiff","odp","ppt","pptx","pdf","tex",
                           "svg","ods","xls","xlsx","odt","doc","docx","png",
                           "jpg","jpeg","gif","bmp","cml"],
-            "extractor": ["aperture"],
+            "harvestQueue": ["aperture"],
             "indexOnHarvest": ["true"],
-            "render": ["ice2"]
+            "renderQueue": ["ice2"]
         },
         "speed": {
             "fileTypes": [],
-            "extractor": [],
+            "harvestQueue": [],
             "indexOnHarvest": ["false"],
-            "render": ["aperture"]
+            "renderQueue": ["aperture"]
         }
     },
 
     "transformer": {
-        "extractor": ["aperture"],
+        "harvestQueue": ["aperture"],
         "indexOnHarvest": "true",
-        "render": ["ffmpeg", "ice2", "ims"]
+        "renderQueue": ["ffmpeg", "ice2", "ims"]
     },
 
     "indexer": {
