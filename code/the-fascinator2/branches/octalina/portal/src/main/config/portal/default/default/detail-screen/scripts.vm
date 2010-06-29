@@ -1,0 +1,26 @@
+
+<script type="text/javascript" src="$portalPath/js/geohash/geohash.js"></script>
+
+#if($self.mimeType.startsWith("audio/") || $self.mimeType.startsWith("video/"))
+<script type="text/javascript" src="$portalPath/flowplayer/flowplayer-3.1.4.min.js"></script>
+<script type="text/javascript" src="$portalPath/flowplayer/flowplayer.controls-3.0.2.js"></script>
+#end
+
+<script type="text/javascript" src="$portalPath/js/autocomplete/lib/jquery.ajaxQueue.js"></script>
+<script type="text/javascript" src="$portalPath/js/autocomplete/lib/jquery.bgiframe.min.js"></script>
+<script type="text/javascript" src="$portalPath/js/autocomplete/jquery.autocomplete.pack.js"></script>
+
+<script type="text/javascript" src="$portalPath/js/jquery.timeago-0.8.2.js"></script>
+<script type="text/javascript" src="$portalPath/js/anotar/anotar-0.2.min.js"></script>
+
+#parse($page.getTemplate('detail-screen/js/blog.js'))
+#parse($page.getTemplate('detail-screen/js/sword.js'))
+#parse($page.getTemplate('detail-screen/js/help.js'))
+#parse($page.getTemplate('detail-screen/js/generic.js'))
+#parse($page.getTemplate('detail-screen/js/media.js'))
+#parse($page.getTemplate('detail-screen/js/geonames.js'))
+
+#if($isPackage || $isImsPackage)
+<script type="text/javascript" src="$portalPath/js/tree/jquery.tree.min.js"></script>
+<script type="text/javascript" src="$portalPath/js/rvt.js"></script>
+#end
