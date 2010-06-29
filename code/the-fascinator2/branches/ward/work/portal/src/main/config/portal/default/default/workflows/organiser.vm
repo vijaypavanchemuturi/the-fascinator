@@ -45,7 +45,7 @@
         </p>
         <p>
           <label for="package-description">Description</label>
-          <input type="text" id="package-description" name="description" value="$!self.getFormData('description')" />
+          <input type="text" id="package-description" name="description" value="$!self.getMeta('description')" />
         </p>
         <input type="hidden" name="targetStep" value="$self.getFormData('nextStep')" />
         <input type="hidden" name="oid" value="$oid" />

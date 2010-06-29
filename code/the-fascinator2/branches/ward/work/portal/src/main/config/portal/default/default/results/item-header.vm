@@ -1,5 +1,5 @@
 <h3>
-  #if($packagingEnabled && !$isPackage)
+  #if($packagingEnabled && (!$isPackage || $self.test($id)))
   <input type="checkbox" name="package-select" class="package-select" value="$id"
          rel="$manifestItemTitle" #if($self.isSelectedForPackage($id))checked="checked"#end />
   #end
