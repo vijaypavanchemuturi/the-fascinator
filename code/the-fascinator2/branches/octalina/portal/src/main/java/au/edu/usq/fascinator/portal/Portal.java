@@ -123,22 +123,4 @@ public class Portal extends JsonConfigHelper {
     public List<String> getFacetFieldList() {
         return new ArrayList<String>(getFacetFields().keySet());
     }
-
-    @SuppressWarnings("unchecked")
-    public Map<String, JsonConfigHelper> getBackupPaths() throws IOException {
-        return getJsonMap("portal/backup/paths");
-    }
-
-    public void setBackupPaths(Map<String, Object> backupInfo) {
-        setMap("portal/backup/paths", backupInfo);
-    }
-
-    public void setBackupPaths(String path, String name, String value) {
-        String key = "portal/backup/paths/" + path + "/";
-        set(key, value);
-    }
-
-    public List<String> getBackupPathsList() throws IOException {
-        return new ArrayList<String>(getBackupPaths().keySet());
-    }
 }
