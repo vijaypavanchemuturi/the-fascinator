@@ -1,0 +1,12 @@
+#if (!( (! $hkMessage) || ("$!hkMessage" == "")) && $hkNotice)
+<div class="grid_16">
+  <div id="config-notices" class="box articles notice">
+    <h2>Notice</h2>
+    <div class="warning">
+      <b>System Notification</b>
+      <pre>$hkMessage</pre>
+    </div>
+  </div>
+</div>
+<div class="clear"></div>
+#end
