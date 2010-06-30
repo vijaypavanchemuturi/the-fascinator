@@ -73,49 +73,6 @@ class SettingsActions:
                     portal.set("portal/facet-fields/%s/display" % field, displays[i])
             portalManager.save(portal)
 
-        elif func == "backup-update":
-            pathIds = formData.get("pathIds").split(",")
-            actives = formData.getValues("backup-active")
-            deletes = formData.getValues("backup-delete")
-            if actives is None:
-                actives = []
-            #renditions = formData.getValues("backup-rendition")
-            #if renditions is None:
-            #    renditions = []
-            queries = formData.getValues("backup-queries")
-            if queries is None:
-                queries = []
-            paths = HashMap()
-            for pathId in pathIds:
-                if deletes is None or pathId not in deletes:
-                    path = formData.get("%s-path" % pathId)
-                    pathName = path.replace("/", "_").replace("${user.home}", "")
-                    active = str(pathId in actives).lower()
-                    #rendition = str(pathId in renditions).lower()
-                    query = str(pathId in queries).lower()
-                    ignoreFilter = formData.get("%s-ignore" % pathId)
-
-                    json = HashMap()
-                    json.put("path", path)
-                    json.put("active", active)
-                    json.put("include-portal-query", query)
-                    json.put("ignoreFilter", ignoreFilter)
-
-                    storage = HashMap()
-                    storage.put("type", "file-system")
-
-                    filesystem = HashMap()
-                    filesystem.put("home", path)
-                    filesystem.put("use-link", "false")
-                    storage.put("file-system", filesystem)
-
-                    json.put("storage", storage)
-                    paths.put(pathName, json)
-            # reset the path first
-            portal.setMap("portal/backup/paths", HashMap())
-            portal.setMultiMap("portal/backup/paths", paths)
-            portalManager.save(portal)
-
         elif func == "watcher-update":
             configFile = self.getWatcherFile()
             if configFile is not None:

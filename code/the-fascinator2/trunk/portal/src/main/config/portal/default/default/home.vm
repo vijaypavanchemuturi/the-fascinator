@@ -9,7 +9,6 @@
 
 <div class="grid_12">
   #parse($page.getTemplate('dialogs/view-delete.vm'))
-  #parse($page.getTemplate('dialogs/view-backup.vm'))
   #parse($page.getTemplate('dialogs/view-reharvest.vm'))
   #parse($page.getTemplate('dialogs/basic-search-form.vm'))
 </div>
