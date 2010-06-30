@@ -15,7 +15,6 @@ function copy_samples {
 	copy_sample local-files.json
 	copy_sample local-files.py
 	copy_sample index.json
-	copy_sample backup.json
 	copy_sample usq.json
 	copy_sample usq.py
 }
