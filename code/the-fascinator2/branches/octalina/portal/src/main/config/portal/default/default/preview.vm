@@ -1,2 +1,0 @@
-#set($noLayout=true)
-<div class="preview-content">$!self.getContent()</div>
