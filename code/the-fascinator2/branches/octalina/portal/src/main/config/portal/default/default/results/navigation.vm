@@ -1,0 +1,2 @@
+#set($createViewEnabled = ($paging.totalFound > 0 && ($query != "" || $self.hasSelectedFacets())))
+#parse($page.getTemplate('results/packaging-script.vm'))
