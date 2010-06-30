@@ -1,0 +1,9 @@
+<div class="grid_16">
+  <div id="config-notices" class="box articles notice">
+    <h2>Error</h2>
+    <div class="warning">
+      <b>ERROR</b>
+      $hkMessage
+    </div>
+  </div>
+</div>
