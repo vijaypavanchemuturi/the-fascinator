@@ -22,3 +22,5 @@
   #end
   #parse($page.getTemplate('results/search-annotations.vm'))
 #end
+
+#parse($page.getTemplate('results/search-footer.vm'))
