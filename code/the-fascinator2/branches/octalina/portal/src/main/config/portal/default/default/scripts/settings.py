@@ -36,39 +36,12 @@ class SettingsData:
                 self.__updatePortal()
             if formData.get("emailAction") == "Update":
                 self.__updateEmail()
-            if formData.get("backupAction") == "Update":    
-                self.__updateBackupPaths()
     
     def isSelected(self, category):
         selected = sessionState.get("settingsCategory")
         if category == selected:
             return "selected"
         return ""
-    
-#    def __updateEmail(self):
-#        self.__portal.email = formData.get("emailAddress")
-#        Services.portalManager.save(self.__portal)
-        
-    def __updateBackupPaths(self):
-        backupPaths = self.__portal.backupPaths
-        backupPaths.clear()
-        size = int(formData.get("backupUrlSize"))
-        for i in range (1, size+2):  
-            keyName = "backupPaths_%s_name" % i
-            #valueName = "backupPaths_%s_label" % i
-            valueName = formData.get("default")
-            name = formData.get(keyName)
-            #value = formData.get(valueName)
-            print " * setting.py Updatebackup Path: name='%s', valueName='%s', count='%s'" % (name, valueName, i) 
-            if name==valueName:
-                backupPaths.put(name, "default")
-            elif valueName=="on" and i==size+1: #this will be the newest added path
-                backupPaths.put(name, "default")
-            elif name is not None:
-                backupPaths.put(name, "")
-#            if name is not None and value is not None:
-#                backupPaths.put(name, value)
-        Services.portalManager.save(self.__portal)
     
     def __updatePortal(self):
         self.__portal.name = formData.get("portalName")
