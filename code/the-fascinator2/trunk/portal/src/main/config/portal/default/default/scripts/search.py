@@ -19,6 +19,7 @@ class SearchData:
         self.__result = JsonConfigHelper()
         self.__pageNum = sessionState.get("pageNum", 1)
         self.__selected = []
+        self.__searchField = formData.get("searchField", "full_text")
         self.__search()
         
     def getPortalName(self):
@@ -26,7 +27,10 @@ class SearchData:
         
     def encode(self, url):
         return URLEncoder.encode(url, "UTF-8")
-        
+    
+    def getSearchField(self):
+        return self.__searchField
+    
     def __search(self):
         recordsPerPage = self.__portal.recordsPerPage
         
@@ -44,6 +48,7 @@ class SearchData:
             self.__query = ""
         else:
             self.__query = query
+            query = "%s:%s" % (self.__searchField, query)
         sessionState.set("query", self.__query)
         
         # find objects with annotations matching the query
@@ -53,7 +58,7 @@ class SearchData:
             annoReq.setParam("facet", "false")
             annoReq.setParam("rows", str(99999))
             annoReq.setParam("sort", "dateCreated asc")
-            annoReq.setParam("start", str(0))        
+            annoReq.setParam("start", str(0))
             anotarOut = ByteArrayOutputStream()
             Services.indexer.annotateSearch(annoReq, anotarOut)
             resultForAnotar = JsonConfigHelper(ByteArrayInputStream(anotarOut.toByteArray()))
