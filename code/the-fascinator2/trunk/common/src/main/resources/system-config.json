@@ -106,8 +106,7 @@
                 "description" : "Ingest queue for objects posted from external source.",
                 "priority" : "3",
                 "config" : {
-                    "name" : "ingest",
-                    "user-renderer" : "renderUser"
+                    "name" : "ingest"
                 }
             }
         ]
