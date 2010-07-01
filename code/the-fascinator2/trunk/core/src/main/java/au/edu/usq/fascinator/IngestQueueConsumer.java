@@ -20,8 +20,6 @@ package au.edu.usq.fascinator;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.LinkedHashMap;
-import java.util.Map;
 
 import javax.jms.Connection;
 import javax.jms.DeliveryMode;
@@ -29,7 +27,6 @@ import javax.jms.JMSException;
 import javax.jms.Message;
 import javax.jms.MessageConsumer;
 import javax.jms.MessageProducer;
-import javax.jms.Queue;
 import javax.jms.Session;
 import javax.jms.TextMessage;
 
@@ -77,11 +74,11 @@ public class IngestQueueConsumer implements GenericListener {
     /** JMS Session */
     private Session session;
 
-    /** Render Queues */
-    private Map<String, Queue> renderers;
+    // /** Render Queues */
+    // private Map<String, Queue> renderers;
 
-    /** Render Queue Names */
-    private Map<String, String> rendererNames;
+    // /** Render Queue Names */
+    // private Map<String, String> rendererNames;
 
     /** Indexer object */
     private Indexer indexer;
@@ -127,11 +124,11 @@ public class IngestQueueConsumer implements GenericListener {
             consumer = session.createConsumer(session.createQueue(QUEUE_ID));
             consumer.setMessageListener(this);
 
-            renderers = new LinkedHashMap();
-            for (String selector : rendererNames.keySet()) {
-                renderers.put(selector, session.createQueue(rendererNames
-                        .get(selector)));
-            }
+            // renderers = new LinkedHashMap();
+            // for (String selector : rendererNames.keySet()) {
+            // renderers.put(selector, session.createQueue(rendererNames
+            // .get(selector)));
+            // }
             producer = session.createProducer(null);
             producer.setDeliveryMode(DeliveryMode.PERSISTENT);
 
@@ -163,14 +160,16 @@ public class IngestQueueConsumer implements GenericListener {
                     "file-system"));
             storage.init(sysFile);
 
-            // Setup render queue logic
-            rendererNames = new LinkedHashMap();
-            String userQueue = config.get("config/user-renderer");
-            rendererNames.put(ConveyerBelt.CRITICAL_USER_SELECTOR, userQueue);
-            Map<String, Object> map = config.getMap("config/normal-renderers");
-            for (String selector : map.keySet()) {
-                rendererNames.put(selector, (String) map.get(selector));
-            }
+            // // Setup render queue logic
+            // rendererNames = new LinkedHashMap();
+            // String userQueue = config.get("config/user-renderer");
+            // rendererNames.put(ConveyerBelt.CRITICAL_USER_SELECTOR,
+            // userQueue);
+            // Map<String, Object> map =
+            // config.getMap("config/normal-renderers");
+            // for (String selector : map.keySet()) {
+            // rendererNames.put(selector, (String) map.get(selector));
+            // }
 
         } catch (IOException ioe) {
             log.error("Failed to read configuration: {}", ioe.getMessage());
