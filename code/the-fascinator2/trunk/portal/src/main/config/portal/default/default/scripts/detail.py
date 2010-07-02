@@ -89,14 +89,19 @@ class DetailData:
 
             self.__render = True
             try:
-                self.__object = self.__storage.getObject(self.__oid)
+                try:
+                    self.__object = self.__storage.getObject(self.__oid)
+                    self.__sid = self.__oid
+                except StorageException, e:
+                    self.__sid = self.__getStorageId(self.__oid)
+                    self.__object = self.__storage.getObject(self.__sid)
                 self.__pid = self.__object.getSourceId()
                 self.__payload = self.__object.getPayload(self.__pid)
                 self.__mimeType = self.__payload.getContentType()
-            except StorageException, e:
+            except StorageException, e2:
                 self.__mimeType = "application/octet-stream"
 
-            print "URI='%s' OID='%s' PID='%s' MIME='%s'" % (uri, self.__oid, self.__pid, self.__mimeType)
+            print "URI='%s' OID='%s' SID='%s' PID='%s' MIME='%s'" % (uri, self.__oid, self.__sid, self.__pid, self.__mimeType)
             self.__metadata = JsonConfigHelper()
             self.__search()
             self.__previewPayload = self.__metadata.getPreview()
@@ -112,6 +117,14 @@ class DetailData:
                 except StorageException, e:
                     pass
 
+    def __getStorageId(self, oid):
+        req = SearchRequest('id:"%s"' % oid)
+        req.addParam("fl", "storage_id")
+        out = ByteArrayOutputStream()
+        Services.indexer.search(req, out)
+        json = JsonConfigHelper(ByteArrayInputStream(out.toByteArray()))
+        return json.getList("response/docs").get(0).get("storage_id")
+    
     def isRendered(self):
         return self.__render
 
