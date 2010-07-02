@@ -99,11 +99,16 @@ class DetailData:
                 self.__payload = self.__object.getPayload(self.__pid)
                 self.__mimeType = self.__payload.getContentType()
             except StorageException, e2:
+                self.__sid = self.__oid
                 self.__mimeType = "application/octet-stream"
 
             print "URI='%s' OID='%s' SID='%s' PID='%s' MIME='%s'" % (uri, self.__oid, self.__sid, self.__pid, self.__mimeType)
             self.__metadata = JsonConfigHelper()
             self.__search()
+            
+            if int(self.__json.get("response/numFound")) == 0:
+                return
+            
             self.__previewPayload = self.__metadata.getPreview()
             
             # get the package manifest
@@ -123,6 +128,8 @@ class DetailData:
         out = ByteArrayOutputStream()
         Services.indexer.search(req, out)
         json = JsonConfigHelper(ByteArrayInputStream(out.toByteArray()))
+        if int(json.get("response/numFound")) == 0:
+            raise StorageException("No object matching id: '%s'" % oid)
         return json.getList("response/docs").get(0).get("storage_id")
     
     def isRendered(self):
