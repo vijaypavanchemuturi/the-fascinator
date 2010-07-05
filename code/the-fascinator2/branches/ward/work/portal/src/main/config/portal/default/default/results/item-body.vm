@@ -1,5 +1,0 @@
-#if ($thumbnail)
-<a class="image" href="$portalPath/detail/$id">
-  <img src="$portalPath/download/$id/$thumbnail" />
-</a>
-#end
