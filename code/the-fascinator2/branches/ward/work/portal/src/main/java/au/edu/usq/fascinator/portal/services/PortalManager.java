@@ -18,10 +18,11 @@
  */
 package au.edu.usq.fascinator.portal.services;
 
-import au.edu.usq.fascinator.portal.Portal;
+import java.io.File;
 import java.util.Map;
 import java.util.Set;
-import java.io.File;
+
+import au.edu.usq.fascinator.portal.Portal;
 
 public interface PortalManager {
 
@@ -46,8 +47,6 @@ public interface PortalManager {
     public void remove(String name);
 
     public void save(Portal portal);
-
-    public void backup(Portal portal);
 
     public void reharvest(String objectId);
 

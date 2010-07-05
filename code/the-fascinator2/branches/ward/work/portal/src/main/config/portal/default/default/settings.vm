@@ -29,21 +29,6 @@
     </td>
   </tr>
 #end
-#macro(backupRow $id $active $path $ignoreFilter $includeQueries $extraClass)
-  <tr id="$id" class="backup-row $extraClass">
-    <td>
-      <input class="backup-active" name="backup-active" type="checkbox" value="$id" #if($active=="true")checked="checked"#end />
-    </td>
-    <td>#editableText($id "path" $path)</td>
-    <td>#editableText($id "ignore" $ignoreFilter)</td>
-    <td>
-      <input class="backup-queries" name="backup-queries" type="checkbox" value="$id" #if($includeQueries=="true")checked="checked"#end />
-    </td>
-    <td>
-      <input class="backup-delete" name="backup-delete" type="checkbox" value="$id" />
-    </td>
-  </tr>
-#end
 #macro(watcherRow $id $stopped $path $fileFilter $dirFilter $extraClass)
   <tr id="$id" class="watcher-row $extraClass">
     <td>
@@ -162,17 +147,17 @@
 
 #if ($renderSettingsForms)
 <div class="grid_4">
-  <div class="box menu">
-    <h2>Category</h2>
+  #set($menuTitle = "Category")
+  #parse($page.getTemplate('wrapping/menu-open.vm'))
+  #set($menuTitle = $nullValue)
     <ul class="menu">
       #category("general" "General")
       #category("view" "View")
       #category("facets" "Facets")
-      #category("backup" "Backup")
       #category("watcher" "Watcher")
       #category("housekeeping" "House Keeping")
     </ul>
-  </div>
+  #parse($page.getTemplate('wrapping/menu-close.vm'))
 </div>
 <div id="form-section" class="grid_12">
   <div id="general-section" class="box hidden">
@@ -258,43 +243,6 @@
       <button class="cancel">Cancel</button>
       <img class="hidden" id="facets-loading" src="$portalPath/images/icons/loading.gif" />
       <span id="facets-message"></span>
-    </div>
-  </div>
-  <div id="backup-section" class="box hidden">
-    <h2>Backup</h2>
-    <div class="block category-form" id="backup-form">
-      <fieldset>
-        <label for="backup-table">Backup locations</label>
-        <table>
-          <thead>
-            <tr>
-              <th width="5%">Active</th>
-              <th width="50%">Path</th>
-              <th width="30%">Ignore filter</th>
-              <th>Queries</th>
-              <th>Delete</th>
-            </tr>
-            #backupRow("backup-blank" "true" '${user.home}/backup' ".svn|.ice|.*|~*" "true" "hidden")
-          </thead>
-          <tbody id="backup-table">
-          #set($paths = $self.portal.getJsonMap("portal/backup/paths"))
-          #foreach($path in $paths.keySet())
-            #set($options = $paths.get($path))
-            #set($id = "backup-$velocityCount")
-            #set($fullPath = $options.getPlainText("path", $path))
-            #set($active = $options.get("active"))
-            #set($ignoreFilter = $options.get("ignoreFilter"))
-            #set($includeQueries = $options.get("include-portal-query"))
-            #backupRow($id $active $fullPath $ignoreFilter $includeQueries "")
-          #end
-          </tbody>
-        </table>
-        <button class="add" rel="backup">Add</button>
-        <button class="update">Update</button>
-        <button class="cancel">Cancel</button>
-        <img class="hidden" id="backup-loading" src="$portalPath/images/icons/loading.gif" />
-        <span id="backup-message"></span>
-      </fieldset>
     </div>
   </div>
   <div id="watcher-section" class="box hidden">
@@ -515,30 +463,6 @@ $(function() {
                 $("#facets-message").text("Updated successfully");
                 setTimeout(function() { $("#facets-message").empty(); }, 3000);
                 $("#facets-section button.update").removeAttr("disabled");
-            },
-            "json");
-    });
-
-    // save backup settings
-    $("#backup-section button.update").removeAttr("disabled").click(function() {
-        $(this).attr("disabled", "disabled");
-        $("#backup-loading").show();
-        var data = $("#backup-table :input").serialize();
-        var ids = "";
-        jQuery.each($("#backup-table tr:not(:has(.backup-delete:checked))"),
-            function(i, tr) {
-                ids += $(tr).attr("id") + ",";
-            });
-        ids = ids.substring(ids, ids.length-1);
-        jQuery.post("$portalPath/actions/settings.ajax?" + data,
-            { func: "backup-update", pathIds: ids },
-            function(data, status) {
-                $("#backup-table span").css("font-weight", "normal");
-                $("#backup-loading").hide();
-                $(".backup-delete:checked").parents("tr").remove();
-                $("#backup-message").text("Updated successfully");
-                setTimeout(function() { $("#backup-message").empty(); }, 3000);
-                $("#backup-section button.update").removeAttr("disabled");
             },
             "json");
     });

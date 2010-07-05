@@ -91,6 +91,9 @@
 <script type="text/javascript" src="$portalPath/js/tree/jquery.tree.min.js"></script>
 <script type="text/javascript">
 $(function() {
+##  #if($self.getFormData("auto-complete"))
+##    $("#package-form").submit();
+##  #end
     function getParentIds(node) {
         var parents = "";
         $(node).parents("li").each(function() {

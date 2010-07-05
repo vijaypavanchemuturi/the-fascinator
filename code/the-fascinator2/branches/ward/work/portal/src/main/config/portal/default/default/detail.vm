@@ -3,9 +3,7 @@
 * Zero hits
 ************************#
 #if($self.solrResponse.get("response/numFound") == 0)
-  <h2 id="page-heading">Page not found</h2>
-  <p>Please try a different <a href="$portalPath/search">search</a>.</p>
-
+  #parse($page.getTemplate('detail-screen/not-found.vm'))
 #************************
 * Normal page render
 ************************#
@@ -24,14 +22,7 @@
   ************************#
   #parse($page.getTemplate('detail-screen/sword-dialog.vm'))
   #parse($page.getTemplate('detail-screen/blog-dialog.vm'))
-  
-  ## reharvest progress
-  <div id="reharvest-form" class="box hidden">
-    <h2><span id="reharvest-loading" class="right"><img src="$portalPath/images/icons/loading.gif" /></span>Reharvest progress</h2>
-    <p>Reharvesting of '$title' in progress...</p>
-    <ul id="reharvest-progress"></ul>
-    <p class="hidden" id="reharvest-complete">Reharvest completed, please <a href="$portalPath/detail/$oid">refresh</a> to view the latest version</p>
-  </div>
+  #parse($page.getTemplate('detail-screen/reharvest-dialog.vm'))
   
   #************************
   * Pending a render?

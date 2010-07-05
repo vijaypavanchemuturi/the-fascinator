@@ -7,7 +7,8 @@ $!pageHeader
 <!--[if IE 7]><link rel="stylesheet" type="text/css" href="$portalPath/css/fluid960gs/ie.css" media="screen" /><![endif]-->
 <link rel="stylesheet" type="text/css" href="$portalPath/css/ui-lightness/jquery-ui-1.7.2.custom.css" media="screen" />
 <link rel="stylesheet" type="text/css" href="$portalPath/css/styles.css" />
-<link rel="stylesheet" type="text/css" href="$portalPath/css/anotar/anotar.css" />
+#parse($page.getTemplate('layout/html-head-links.vm'))
 <script type="text/javascript" src="$portalPath/js/json2.min.js"></script>
 <script type="text/javascript" src="$portalPath/js/jquery-1.3.2.min.js"></script>
 <script type="text/javascript" src="$portalPath/js/jquery-ui-1.7.2.custom.min.js"></script>
+#parse($page.getTemplate('layout/html-head-scripts.vm'))

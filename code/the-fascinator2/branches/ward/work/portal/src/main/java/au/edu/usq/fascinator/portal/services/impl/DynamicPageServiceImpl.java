@@ -224,12 +224,13 @@ public class DynamicPageServiceImpl implements DynamicPageService {
     @Override
     public String render(String portalId, String pageName, OutputStream out,
             FormData formData, JsonSessionState sessionState) {
-
         String mimeType = "text/html";
         boolean isAjax = pageName.endsWith(".ajax");
         if (isAjax) {
             pageName = pageName.substring(0, pageName.lastIndexOf(".ajax"));
         }
+        log.debug("rendering portalId='{}', pageName='{}' isAjax="+(isAjax?"true":"false"),
+                    portalId, pageName);
         StringBuilder renderMessages = new StringBuilder();
 
         // setup script and velocity context
@@ -289,6 +290,7 @@ public class DynamicPageServiceImpl implements DynamicPageService {
         Object pageObject = new Object();
         try {
             pageObject = evalScript(portalId, pageName, bindings);
+            log.debug("evaluated script");
         } catch (Exception e) {
             ByteArrayOutputStream eOut = new ByteArrayOutputStream();
             e.printStackTrace(new PrintStream(eOut));
@@ -347,6 +349,7 @@ public class DynamicPageServiceImpl implements DynamicPageService {
                 }
             }
         }
+        log.debug("finished rendering {}/{}", portalId, pageName);
 
         return mimeType;
     }

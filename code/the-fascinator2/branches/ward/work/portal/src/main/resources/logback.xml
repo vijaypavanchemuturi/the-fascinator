@@ -33,9 +33,6 @@
     <appender-ref ref="SIFT" />
   </root>
   <logger name="au.edu.usq" level="DEBUG" />
-  <logger name="au.edu.usq.fascinator.BackupClient" level="INFO">
-    <appender-ref ref="CYCLIC" />
-  </logger>
   <logger name="au.edu.usq.fascinator.HarvestClient" level="INFO">
     <appender-ref ref="CYCLIC" />
   </logger>

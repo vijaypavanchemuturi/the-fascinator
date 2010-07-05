@@ -89,23 +89,6 @@
         "label": "Source type",
         "display": "list"
       }
-    },
-    "backup": {
-      "email": "fascinator@usq.edu.au",
-      "paths": {
-        "${user.home}/.fascinator/backup": {
-            "active": false,
-            "ignoreFilter": ".svn|.ice|.*|~*",
-            "include-rendition-meta": true,
-            "include-portal-query": false
-        },
-        "${user.home}/.fascinator/backup1": {
-            "active": true,
-            "ignoreFilter": ".svn|.ice|.*|~*",
-            "include-rendition-meta": true,
-            "include-portal-query": true
-        }
-      }
     }
   }
 }
