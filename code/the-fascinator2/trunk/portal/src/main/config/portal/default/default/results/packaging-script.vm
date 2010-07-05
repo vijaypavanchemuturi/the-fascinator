@@ -10,6 +10,9 @@
       </div>
     </li>
     <ul>
+      #if($self.getActiveManifestId())
+      <li><a href="#" id="deselect-package">Deselect '$self.getActiveManifestTitle()'</a></li>
+      #end
       <li>
         <a href="#" id="package-create-selected">
           <img src="$portalPath/images/icons/loading.gif" class="hidden right" id="package-selected-loading" />
@@ -18,12 +21,10 @@
           </span>
         </a>
       </li>
-      #if($self.getActiveManifestId())
-      <li><a href="#" id="package-create-new">Create new package...</a></li>
-      #end
       <li><a href="#" id="package-clear-all">Clear all items in package</a></li>
       <li><a href="#" id="package-select-page">Select all on this page</a></li>
       <li><a href="#" id="package-deselect-page">Deselect all items on this page</a></li>
+      <li><a href="package" id="package-create-new">Create new package...</a></li>
     </ul>
   </ul>
   #parse($page.getTemplate('wrapping/menu-close.vm'))
@@ -87,11 +88,18 @@ $(function() {
         }
     }
 
-    $("#package-create-new").click(function() {
+    $("#deselect-package").click(function() {
         clearPackage();
-        $("#package-create-new").hide();
+        $("#deselect-package").hide();
         $("#package-create-selected").html("Package selected items...");
         return false;
+    });
+
+    $("#package-create-new").click(function() {
+        clearPackage();
+        ##$("#package-create-new").hide();
+        ##$("#package-create-selected").html("Package selected items...");
+        ##return false;
     });
 
     $("#package-create-selected").click(function() {
@@ -145,6 +153,16 @@ $(function() {
 
     $(".package-select").click(function() {
         updatePackage();
+    });
+
+    var packageTypeDialog = $("#package-type-dialog");
+    packageTypeDialog.dialog({title: "PackageType", autoOpen: false,
+             hide: "blind", modal: true });
+    $("#package-type-dialog-cancel").click(function(){packageTypeDialog.dialog("close");});
+    $("#package-type-dialog-ok").click(function(){
+        var packageType = $("#package-type-select").val();
+        packageTypeDialog.dialog("close");
+        createPackage(packageType);
     });
 });
 </script>

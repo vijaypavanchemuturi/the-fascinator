@@ -10,6 +10,7 @@ import locale
 
 class UploadedData:
     def __init__(self):
+        #print "workflow.py - UploadedData.__init__()"
         self.errorMsg = None
         self.fileName = formData.get("upload-file-file")
         self.formProcess = None
@@ -44,6 +45,7 @@ class UploadedData:
 
         if self.formProcess:
             self.processForm()
+        #print "workflow.py - UploadedData.__init__() done."
 
     def getError(self):
         if self.errorMsg is None:
@@ -140,6 +142,7 @@ class UploadedData:
 
     def prepareTemplate(self):
         # Retrieve our workflow config
+        #print "prepareTemplate()"
         try:
             objMeta = self.getObjectMetadata()
             jsonObject = Services.storage.getObject(objMeta.get("jsonConfigOid"))
@@ -166,6 +169,10 @@ class UploadedData:
             self.errorMsg = "Invalid workflow configuration"
             return False
 
+        #print "--------------"
+        #print "meta='%s'" % meta        # "workflow.metadata"
+        #print "currentStep='%s'" % currentStep
+        #print "stages='%s'" % stages
         nextFlag = False
         for stage in stages:
             # We've found the next stage
@@ -176,6 +183,10 @@ class UploadedData:
             if stage.get("name") == currentStep:
                 nextFlag = True
                 currentStage = stage
+
+        #print "currentStage='%s'" % currentStage
+        #print "nextStage='%s'" % nextStage
+        #print "--------------"
 
         if nextStage is None:
             if currentStage is None:
@@ -196,7 +207,11 @@ class UploadedData:
             self.errorMsg = "Sorry, but your current security permissions don't allow you to administer this item"
             return False
 
-        self.localFormData = FormData()
+        self.localFormData = FormData()     # localFormData for organiser.vm
+#        try:
+#            autoComplete = currentStage.get("auto-complete", "")
+#            self.localFormData.set("auto-complete", autoComplete)
+#        except: pass
         # Check for existing data
         oldFormData = meta.getJsonList("formData")
         if oldFormData.size() > 0:
@@ -267,7 +282,8 @@ class UploadedData:
         return self.formProcess
 
     def renderTemplate(self):
-        return self.renderer.renderTemplate(portalId, self.template, self.localFormData, sessionState)
+        r = self.renderer.renderTemplate(portalId, self.template, self.localFormData, sessionState)
+        return r
 
     def setWorkflowMetadata(self, oldMetadata):
         try:
