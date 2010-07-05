@@ -103,7 +103,7 @@ public class FfmpegInfo {
     }
 
     /**
-     * Get and clean a value from the raw ouput
+     * Get and clean a value from the raw output
      *
      * @param json raw output
      * @param path where the data should be stored
@@ -125,7 +125,7 @@ public class FfmpegInfo {
         int eq;
 
         // Parse the output from FFprobe
-        for (String line : rawMetaData.split("\n")) {
+        for (String line : rawMetaData.split("\r\n|\r|\n")) {
             // Section wrappers
             if (line.equals("[STREAM]")) {
                 stream = new JsonConfigHelper();

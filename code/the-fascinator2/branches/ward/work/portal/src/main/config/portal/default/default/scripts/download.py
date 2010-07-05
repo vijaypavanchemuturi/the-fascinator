@@ -1,10 +1,12 @@
-from __main__ import Services, contextPath, pageName, portalId, request, response
+from __main__ import Services, contextPath, log, pageName, portalId, request, response
 
 import os
 
+from au.edu.usq.fascinator.api.indexer import SearchRequest
 from au.edu.usq.fascinator.api.storage import StorageException
+from au.edu.usq.fascinator.common import JsonConfigHelper
 
-from java.io import ByteArrayOutputStream
+from java.io import ByteArrayInputStream, ByteArrayOutputStream
 from java.net import URLDecoder
 
 from org.apache.commons.io import IOUtils
@@ -52,22 +54,31 @@ class DownloadData:
             writer = response.getPrintWriter("text/plain; charset=UTF-8")
             writer.println("Not found: uri='%s'" % uri)
             writer.close()
-    
+
     def __resolve(self, uri):
         slash = uri.find("/")
-
         if slash == -1:
             return None, None
-
         oid = uri[:slash]
-        object = Services.storage.getObject(oid)
-
+        try:
+            object = Services.storage.getObject(oid)
+        except StorageException, se:
+            # not found check if oid's are mapped differently, use storage_id
+            sid = self.__getStorageId(oid)
+            object = Services.storage.getObject(sid)
         pid = uri[slash+1:]
         if pid == "":
             pid = object.getSourceId()
-
         payload = object.getPayload(pid)
         return object, payload
+
+    def __getStorageId(self, oid):
+        req = SearchRequest('id:"%s"' % oid)
+        req.addParam("fl", "storage_id")
+        out = ByteArrayOutputStream()
+        Services.indexer.search(req, out)
+        json = JsonConfigHelper(ByteArrayInputStream(out.toByteArray()))
+        return json.getList("response/docs").get(0).get("storage_id")
 
 if __name__ == "__main__":
     scriptObject = DownloadData()

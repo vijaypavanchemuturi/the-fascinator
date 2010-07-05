@@ -1,14 +1,12 @@
 #macro(displayFacetTree $facetTreeId $facetField)
-  <div id="$facetTreeId" class="hidden">
+  <div class="facet-list-container hidden">
     #set($menuTitle = $facetField.get("label"))
     #parse($page.getTemplate('wrapping/menu-open.vm'))
     #set($menuTitle = $nullValue)
-      <div class="menu facet-list clearfix"></div>
+      <div id="$facetTreeId" class="menu facet-list clearfix"></div>
     #parse($page.getTemplate('wrapping/menu-close.vm'))
     <script type="text/javascript">
-    $(function() {
-        createTree("#$facetTreeId .facet-list", "$facetTreeId");
-    });
+    $(function() { createTree("#$facetTreeId", "$facetTreeId"); });
     </script>
   </div>
 #end
@@ -19,7 +17,8 @@
   #set($menuTitle = $facetField.get("label"))
   #parse($page.getTemplate('wrapping/menu-open.vm'))
   #set($menuTitle = $nullValue)
-    <ul class="facet-list menu" id="$facetFieldKey">
+  <div class="facet-list" id="$facetFieldKey">
+    <ul class="menu">
     #foreach($facetCountKey in $facetCounts.keySet())
       #set($facetCount = $facetCounts.get($facetCountKey))
       #set($facetQuery = $self.getFacetQuery($facetFieldKey, $facetCountKey))
@@ -41,6 +40,7 @@
       </li>
     #end
     </ul>
+  </div>
   #parse($page.getTemplate('wrapping/menu-close.vm'))
   #end
 #end
@@ -100,13 +100,18 @@
                   $(node).children("a").toggleClass("checked");
               },
               onload: function(tree) {
-                  tree.container.find("a").bind("click", function() {
+                  var anchor = tree.container.find("a");
+                  anchor.each(function() {
+                      var title = $(this).html();
+                      $(this).attr("title", title.substring(title.indexOf("</ins>") + 6));
+                  });
+                  anchor.bind("click", function() {
                       var checked = $(this).hasClass("checked") == false;
                       doAction(checked ? "add_fq" : "remove_fq", $(this).parent().attr("fq"));
                   });
                   var nodeCount = $(selector).find("li").length;
                   if (nodeCount > 0) {
-                      $("#"+facetField).show();
+                      $("#"+facetField).parents(".facet-list-container").show();
                   }
               }
           }

@@ -29,7 +29,6 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import au.edu.usq.fascinator.BackupClient;
 import au.edu.usq.fascinator.HarvestClient;
 import au.edu.usq.fascinator.common.JsonConfig;
 import au.edu.usq.fascinator.portal.Portal;
@@ -183,25 +182,11 @@ public class PortalManagerImpl implements PortalManager {
     }
 
     @Override
-    public void backup(Portal portal) {
-        BackupClient backupClient;
-        try {
-            File portalDir = new File(portalsDir, portal.getName());
-            // log.info("****** " + portalDir);
-            backupClient = new BackupClient(portalDir, portal.getBackupPaths(),
-                    portal.getQuery());
-            backupClient.run();
-        } catch (IOException e) {
-            log.error("Portal backup failed", e);
-        }
-    }
-
-    @Override
     public void reharvest(String objectId) {
         try {
             HarvestClient client = new HarvestClient();
             // High priority when user requests
-            //   single object be reharvested
+            // single object be reharvested
             client.reharvest(objectId, true);
         } catch (Exception e) {
             log.error("Object reharvest failed", e);
