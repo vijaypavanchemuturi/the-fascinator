@@ -86,8 +86,14 @@ class SettingsData:
     
     def getEmail(self):
         return JsonConfig().get("email")
-
+    
     def getTimeout(self):
         return JsonConfig().get("portal/houseKeeping/config/frequency")
+    
+    def getFacetDisplays(self):
+        return self.__portal.getMap("portal/facet-displays") or \
+            {   "list" : "List menu",
+                "tree" : "Dynamic tree"
+            }
 
 scriptObject = SettingsData()
