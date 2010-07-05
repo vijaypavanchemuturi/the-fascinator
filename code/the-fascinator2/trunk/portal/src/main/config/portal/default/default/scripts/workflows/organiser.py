@@ -46,6 +46,9 @@ class OrganiserData:
     
     def getPackageTitle(self):
         return StringEscapeUtils.escapeHtml(formData.get("title", self.__manifest.get("title")))
+
+    def getMeta(self, metaName):
+        return StringEscapeUtils.escapeHtml(formData.get(metaName, self.__manifest.get(metaName)))
     
     def getManifestViewId(self):
         searchPortal = self.__manifest.get("viewId", defaultPortal)
