@@ -54,10 +54,6 @@
               },
               onload: function(tree) {
                   var anchor = tree.container.find("a");
-                  anchor.each(function() {
-                      var title = $(this).html();
-                      $(this).attr("title", title.substring(title.indexOf("</ins>") + 6));
-                  });
                   anchor.bind("click", function() {
                       var checked = $(this).hasClass("checked") == false;
                       doAction(checked ? "add_fq" : "remove_fq", $(this).parent().attr("fq"));
