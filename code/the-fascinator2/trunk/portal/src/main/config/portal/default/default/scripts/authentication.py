@@ -2,7 +2,7 @@ from au.edu.usq.fascinator.api.access import AccessControlException;
 from au.edu.usq.fascinator.api.authentication import AuthenticationException;
 from au.edu.usq.fascinator.api.roles import RolesException;
 
-from __main__ import Services, formData, sessionState
+from __main__ import security, formData, sessionState
 
 class Authentication:
     active_access_plugin = None
@@ -14,9 +14,9 @@ class Authentication:
     GUEST_ROLE = 'guest'
 
     def __init__(self):
-        self.access = Services.getAccessControlManager()
-        self.auth = Services.getAuthManager()
-        self.role = Services.getRoleManager()
+        self.access = security.getAccessControlManager()
+        self.auth = security.getAuthManager()
+        self.role = security.getRoleManager()
         self.check_login()
 
     def change_password(self, username, password):
@@ -119,16 +119,15 @@ class Authentication:
         try:
             role_list = []
             if self.current_user is not None:
-                java_list = self.role.getRoles(self.current_user.getUsername())
+                role_list
+                java_list = security.getRolesList(self.current_user)
                 for role in java_list:
                     role_list.append(role)
-            else:
-                role_list.append(self.GUEST_ROLE)
-        except RolesException, e:
-            self.error_message = self.parse_error(e)
-        except AuthenticationException, e:
+        except Exception, e:
             self.error_message = self.parse_error(e)
 
+        role_list.append(self.GUEST_ROLE)
+        self.roleList = role_list
         return role_list
 
     def get_access_roles_list(self, recordId):
@@ -149,8 +148,7 @@ class Authentication:
     def get_user(self, username, source):
         try:
             self.active_auth_plugin = source
-            self.auth.setActivePlugin(source)
-            user = self.auth.getUser(username)
+            user = security.getUser(username, source)
             self.has_error = False
             return user
         except AuthenticationException, e:
@@ -212,11 +210,9 @@ class Authentication:
     def logout(self):
         if self.current_user is not None:
             try:
-                self.auth.logOut(self.current_user)
-                self.current_user  = None
+                security.logout(self.current_user)
+                self.current_user = None
                 self.error_message = None
-                sessionState.set("username", None)
-                sessionState.set("source",   None)
                 self.has_error = False
             except AuthenticationException, e:
                 self.error_message = self.parse_error(e)

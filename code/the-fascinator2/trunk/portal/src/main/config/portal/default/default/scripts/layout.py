@@ -43,4 +43,7 @@ class LayoutData:
     def getQueueStats(self):
         return Services.getHouseKeepingManager().getQueueStats()
 
+    def getSsoProviders(self):
+        return security.ssoBuildLogonInterface()
+
 scriptObject = LayoutData()

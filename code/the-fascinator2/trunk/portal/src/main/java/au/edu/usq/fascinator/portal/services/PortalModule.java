@@ -34,6 +34,7 @@ import au.edu.usq.fascinator.portal.services.impl.HarvestManagerImpl;
 import au.edu.usq.fascinator.portal.services.impl.HouseKeepingManagerImpl;
 import au.edu.usq.fascinator.portal.services.impl.PortalManagerImpl;
 import au.edu.usq.fascinator.portal.services.impl.ScriptingServicesImpl;
+import au.edu.usq.fascinator.portal.services.impl.PortalSecurityManagerImpl;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -76,6 +77,7 @@ public class PortalModule {
         binder.bind(DynamicPageService.class, DynamicPageServiceImpl.class);
         binder.bind(PortalManager.class, PortalManagerImpl.class);
         binder.bind(ScriptingServices.class, ScriptingServicesImpl.class);
+        binder.bind(PortalSecurityManager.class, PortalSecurityManagerImpl.class);
     }
 
     public static HouseKeepingManager buildHouseKeepingManager(

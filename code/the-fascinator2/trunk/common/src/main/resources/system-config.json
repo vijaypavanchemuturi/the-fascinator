@@ -1,8 +1,9 @@
 {
-    "version": "0.6.11",
+    "version": "0.6.12",
     "configured": false,
     "urlBase" : "http://localhost:9997/portal/",
     "email" : "fascinator@usq.edu.au",
+    "sso": ["OpenID"],
     "accesscontrol": {
         "type": "simple",
         "simple": {
