@@ -577,3 +577,20 @@ ul.global-topic {
     border: 1px dashed #999999;
     padding: 5px;
 }
+#login-form .or {
+    text-align: center;
+    font-weight: bold;
+    font-size: 150%;
+}
+.ssoLogin {
+    text-align: center;
+}
+.ssoLogin hr {
+    margin-bottom: 5px;
+}
+.ssoLogin img {
+    vertical-align: middle;
+}
+.ssoLogin input.custom {
+    width: 175px;
+}
