@@ -1,3 +1,4 @@
+#set($query = $sessionState.get('query'))
 #if("$!query" != "" || $self.hasSelectedFacets())
   #set($menuTitle = "Actions")
   #parse($page.getTemplate('wrapping/menu-open.vm'))
