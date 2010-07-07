@@ -24,6 +24,7 @@ if "%1" == "start" goto start
 if "%1" == "stop" goto stop
 if "%1" == "build" goto build
 if "%1" == "rebuild" goto rebuild
+if "%1" == "notest" goto notest
 
 :status
 set Cmd=tasklist /fi "WINDOWTITLE eq The Fascinator - mvn*" /fo csv /nh
@@ -55,6 +56,10 @@ goto end
 
 :rebuild
 call mvn clean install
+goto end
+
+:notest
+call mvn clean install -Dmaven.test.skip=true
 goto end
 
 :running
