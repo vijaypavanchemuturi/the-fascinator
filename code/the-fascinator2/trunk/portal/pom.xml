@@ -218,6 +218,10 @@
                 </dependency>
                 <dependency>
                     <groupId>au.edu.usq.fascinator.plugins</groupId>
+                    <artifactId>plugin-access-solr</artifactId>
+                </dependency>
+                <dependency>
+                    <groupId>au.edu.usq.fascinator.plugins</groupId>
                     <artifactId>plugin-authentication-filesystem</artifactId>
                 </dependency>
                 <dependency>
