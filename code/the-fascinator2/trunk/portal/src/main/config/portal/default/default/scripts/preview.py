@@ -1,5 +1,6 @@
+from au.edu.usq.fascinator.common import JsonConfigHelper
 from au.edu.usq.fascinator.api.storage import PayloadType, StorageException
-from java.io import ByteArrayOutputStream
+from java.io import ByteArrayOutputStream, InputStreamReader
 from org.apache.commons.io import IOUtils
 from org.w3c.tidy import Tidy
 
@@ -14,8 +15,10 @@ class PreviewData:
     def __load(self, oid):
         template = """<div class="title" /><div class="page-toc" /><div class="body"><div>%s</div></div>"""
         print "Loading HTML preview for %s..." % oid
-        if oid == "blank":
-            return template % "<p>This page intentionally left blank.</p>"
+        if oid.startswith("blank-"):
+##            package = formData.get("package")
+##            return template % self.__getTableOfContents(package, oid)
+            return template % ('<div class="blank-toc" id="%s-content"></div>' % oid)
         else:
             object = Services.getStorage().getObject(oid)
             
@@ -70,5 +73,37 @@ class PreviewData:
         out = ByteArrayOutputStream()
         tidy.parse(IOUtils.toInputStream(content, "UTF-8"), out)
         return out.toString("UTF-8")
+    
+    def __getTableOfContents(self, package, oid):
+        try:
+            # get the package manifest
+            object = Services.getStorage().getObject(package)
+            sourceId = object.getSourceId()
+            payload = object.getPayload(sourceId)
+            payloadReader = InputStreamReader(payload.open(), "UTF-8")
+            manifest = JsonConfigHelper(payloadReader)
+            payloadReader.close()
+            payload.close()
+            object.close()
+            # generate toc
+            result = self.__toc(manifest.getJsonMap("manifest/" + oid.replace("blank-", "node-") + "/children"))
+        except Exception, e:
+            print "Failed to load manifest '%s': '%s'" % (package, str(e))
+            result = '<div class="error">Failed to generate table of contents!</div><pre>%s</pre>' % str(e)
+        return '<div class="blank-node-toc">%s</div>' % result
+    
+    def __toc(self, manifest):
+        print "__toc: %s" % manifest
+        html = '<ul>'
+        for key in manifest.keySet():
+            node = manifest.get(key)
+            href = key.replace("node-", "blank-")
+            title = node.get("title")
+            html += '<li><a href="#%s">%s</a></li>' % (href, title)
+            children = node.getJsonMap("children")
+            if children:
+                html += '<li>%s</li>' % self.__toc(children)
+        html += "</ul>"
+        return html
 
 scriptObject = PreviewData()

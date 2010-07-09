@@ -594,3 +594,11 @@ ul.global-topic {
 .ssoLogin input.custom {
     width: 175px;
 }
+
+.blank-toc {
+    font-size: 1.2em;
+}
+
+.blank-toc a {
+    font-weight: normal;
+}
