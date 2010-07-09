@@ -73,7 +73,7 @@ class OrganiserData:
             if node.get("hidden") != "True":
                 relPath = node.get("id")
                 if not relPath:
-                    relPath = "blank"
+                    relPath = key.replace("node", "blank")
                 rvtNode.put("visible", True)
                 rvtNode.put("relPath", relPath)
                 rvtNode.put("title", node.get("title"))

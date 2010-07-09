@@ -24,7 +24,7 @@ $(function() {
     rvt.contentSelector = "#package-content";
     rvt.fixRelativeLinks = false;
     #if($isPackage)
-      rvt.contentBaseUrl = "$portalPath/preview?oid=";
+      rvt.contentBaseUrl = "$portalPath/preview?package=$oid&oid=";
     #elseif($isImsPackage)
       rvt.contentBaseUrl = "$portalPath/download/$oid/";
     #end
@@ -34,7 +34,16 @@ $(function() {
         fixLinks("", "#package-content img", "src", oid);
         $(".article-heading").html($(window.location.hash).children("a").text());
         
-        if (oid == "blank") {
+        var tree = jQuery.tree.reference(rvt.tocSelector);
+        tree.select_branch("#" + oid + " > a");
+        
+        if (oid.match(/^blank/)) {
+            var dest = $("#" + oid + "-content:empty");
+            if (dest.length > 0) {
+                var source = $("#" + oid + " > ul");
+                source.clone().appendTo(dest);
+                $(dest).find("ul").show();
+            }
             $("#object-tag-list, #location-tag-list, .annotatable").hide();
         } else {
             var docCommentNode = $("#package-content > div:visible > .annotatable");
@@ -64,15 +73,6 @@ $(function() {
         //imageNode.load(function(){alert("loaded " + src);setupImageTags("div[rel='" + oid + "']");});
     };
     rvt.displayTOC = function(nodes) {
-        function fixIds(nodes) {
-            jQuery.each(nodes, function(count, node) {
-                node.attributes.rel = "#" + node.attributes.id;
-                if (node.children) {
-                    fixIds(node.children);
-                }
-            });
-        }
-        fixIds(nodes);
         var opts = {
             data: {
                 type: "json",
@@ -83,14 +83,26 @@ $(function() {
                 "default": { draggable: false }
             },
             callback: {
+                beforechange: function(node, tree) {
+                    console.log("beforechange: ", node);
+                    $("#package-toc a.clicked").removeClass("clicked");
+                    return true;
+                },
                 onselect: function(node, tree) {
-                    var rel = $(node).attr("rel");
-                    if (rel == "#blank") {
+                    console.log("onselect: ", node);
+                    var id = $(node).attr("id");
+                    if (id.match(/^blank-/)) {
+                        var dest = $("#" + id + "-content:empty");
+                        if (dest.length > 0) {
+                            var source = $(node).find(" > ul");
+                            source.clone().appendTo(dest);
+                            $(dest).find("ul").show();
+                        }
                         $("#object-tag-list, #location-tag-list, .annotatable").hide();
                     } else {
                         $("#object-tag-list, #location-tag-list, .annotatable").show();
                     }
-                    window.location.hash = rel;
+                    window.location.hash = "#" + id;
                     $(".article-heading").html($(node).children("a").text());
                     return false;
                 }
