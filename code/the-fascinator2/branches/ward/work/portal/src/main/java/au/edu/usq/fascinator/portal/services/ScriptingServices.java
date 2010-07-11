@@ -28,13 +28,7 @@ public interface ScriptingServices {
 
     public DynamicPageService getPageService();
 
-    public AccessControlManager getAccessControlManager();
-
-    public AuthManager getAuthManager();
-
     public Indexer getIndexer();
-
-    public RolesManager getRoleManager();
 
     public Storage getStorage();
 

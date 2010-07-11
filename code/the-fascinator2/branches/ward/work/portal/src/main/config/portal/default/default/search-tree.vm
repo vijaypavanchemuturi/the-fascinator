@@ -1,10 +1,12 @@
 #macro(createFacetNode $facet $state $isLast)
+#set($data = "$facet.name ($facet.count)")
 {
     attributes: {
         id: "$facet.id",
-        fq: "$facet.facetQuery"
+        fq: "$facet.facetQuery",
+        title: "$data"
     },
-    data: "$facet.name ($facet.count)"
+    data: "$data"
     #set($size = $facet.subFacets.size())
     #if($size > 0)
         ,

@@ -15,6 +15,15 @@
   </span>
   #end
   <a href="$portalPath/detail/$id">$title</a>
+##
+  #if($self.canManage($item.get("workflow_security")) && ($wfStep=="depositing"))
+    <a href="$portalPath/workflow/$id">
+     <span style="font-size:60%; font-weight:normal;">
+      (Depositing - $title)
+     </span>
+    </a>
+  #end
+##
 </h3>
 #if ($manifestItemTitle && $manifestItemTitle != $title)
 <span>Packaged as: <h5 class="package-item-title">$manifestItemTitle</h5></span>

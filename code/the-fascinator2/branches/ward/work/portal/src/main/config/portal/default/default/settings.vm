@@ -14,11 +14,14 @@
     </td>
     <td>#editableText($id "label" $label)</td>
     <td>
-      <span class="field-text visible">$page.capitalise($display)</span>
+      #set($facetDisplays = $self.getFacetDisplays())
+      <span class="field-text visible">$facetDisplays.get($display)</span>
       <div class="field-form hidden" id="${id}-display">
         <select class="field-input" name="facets-display">
-          <option name="list"#if($display=="list") selected="selected"#end>List</option>
-          <option name="tree"#if($display=="tree") selected="selected"#end>Tree</option>
+          #foreach($facetDisplayKey in $facetDisplays.keySet())
+            #set($facetDisplay = $facetDisplays.get($facetDisplayKey))
+            <option name="$facetDisplayKey"#if($display==$facetDisplayKey) selected="selected"#end>$facetDisplay</option>
+          #end
         </select>
         <a class="accept" href="#"><img alt="Accept" src="$portalPath/images/icons/tick.png" /></a>
         <a class="cancel" href="#"><img alt="Cancel" src="$portalPath/images/icons/cross.png" /></a>
@@ -447,7 +450,7 @@ $(function() {
             var id = orderArray[i];
             var fField = $("#" + id + "-field .field-input").val();
             var fLabel = $("#" + id + "-label .field-input").val();
-            var fDisplay = $("#" + id + "-display .field-input").val().toLowerCase();
+            var fDisplay = $("#" + id + "-display .field-input option:selected").attr("name");
             var fDelete = $("#" + id + " .facets-delete").attr("checked");
             data += "&field=" + fField +
                     "&label=" + fLabel +

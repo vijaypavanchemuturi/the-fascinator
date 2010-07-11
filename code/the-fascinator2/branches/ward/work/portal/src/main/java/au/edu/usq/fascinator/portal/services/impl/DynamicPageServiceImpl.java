@@ -25,6 +25,7 @@ import au.edu.usq.fascinator.portal.guitoolkit.GUIToolkit;
 import au.edu.usq.fascinator.portal.services.DynamicPageService;
 import au.edu.usq.fascinator.portal.services.HouseKeepingManager;
 import au.edu.usq.fascinator.portal.services.PortalManager;
+import au.edu.usq.fascinator.portal.services.PortalSecurityManager;
 import au.edu.usq.fascinator.portal.services.ScriptingServices;
 import au.edu.usq.fascinator.portal.velocity.JythonLogger;
 import au.edu.usq.fascinator.portal.velocity.JythonUberspect;
@@ -90,6 +91,9 @@ public class DynamicPageServiceImpl implements DynamicPageService {
 
     @Inject
     private HouseKeepingManager houseKeeping;
+
+    @Inject
+    private PortalSecurityManager security;
 
     private String defaultPortal;
     private String defaultSkin;
@@ -241,6 +245,7 @@ public class DynamicPageServiceImpl implements DynamicPageService {
         bindings.put("response", response);
         bindings.put("formData", formData);
         bindings.put("sessionState", sessionState);
+        bindings.put("security", security);
         bindings.put("contextPath", contextPath);
         bindings.put("scriptsPath", scriptsPath + "/" + portalId + "/scripts");
         bindings.put("portalDir", scriptsPath + "/" + portalId);

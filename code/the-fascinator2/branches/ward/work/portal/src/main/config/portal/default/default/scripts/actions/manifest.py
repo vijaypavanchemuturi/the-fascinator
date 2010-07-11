@@ -1,7 +1,11 @@
 from au.edu.usq.fascinator.common import JsonConfigHelper
+from au.edu.usq.fascinator.portal import FormData
 
 from java.io import ByteArrayInputStream
+from java.io import StringWriter
+from org.apache.commons.io import IOUtils
 from java.lang import Boolean, String
+from json import read as jsonReader, write as jsonWriter
 
 from org.apache.commons.lang import StringEscapeUtils
 
@@ -26,13 +30,33 @@ class ManifestActions:
         
         if func == "update-package-meta":
             print "*********  update-package-meta ***************"
-            metaList = list(formData.getValues("metaList"))
-            for metaName in metaList:
-                value = formData.get(metaName)
-                self.__manifest.set(metaName, value)
-            #title = formData.get("title")
-            #self.__manifest.set("title", StringEscapeUtils.escapeHtml(title))
-            self.__saveManifest()
+            try:
+                #payload = self.__object.getPayload(sourceId)
+                #writer = StringWriter()
+                #IOUtils.copy(payload.open(), writer)
+                #manifest = jsonReader(writer.toString())
+                #payload.close()
+                #manifest = jsonReader(str(self.__manifest))
+                manifest = {}  # start with a blank copy (so that deleted item are removed
+                metaList = list(formData.getValues("metaList"))
+                try:
+                    for metaName in metaList:
+                        value = formData.get(metaName)
+                        manifest[metaName] = value
+                        print metaName, value
+                except Exception, e: 
+                    print "Error: '%s'" % str(e)
+                self.__manifest = JsonConfigHelper(jsonWriter(manifest))
+                self.__saveManifest()
+                # we also should be re-indexing here because
+                #   the title may have changed etc.
+                # Re-index the object
+          #      Services.indexer.index(self.__object.getId())
+          #      Services.indexer.commit()
+                result='{"ok":"saved ok"}';
+            except Exception, e:
+                print "Error updating package metaData - '%s'" % str(e)
+                result='{"error":"%s"}' % str(e);
         if func == "rename":
             title = formData.get("title")
             self.__manifest.set("%s/title" % nodePath, title)
