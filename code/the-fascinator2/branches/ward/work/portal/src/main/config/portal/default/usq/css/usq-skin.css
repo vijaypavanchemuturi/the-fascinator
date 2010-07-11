@@ -138,3 +138,6 @@ h2 span {
 #result-list .tags {
     border: 0px;
 }
+.relatedlinks-bodytext a.selected:link {
+    background-color: #CCCCCC;
+}

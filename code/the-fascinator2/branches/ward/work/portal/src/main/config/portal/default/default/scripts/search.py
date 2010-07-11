@@ -11,17 +11,26 @@ from au.edu.usq.fascinator.portal import Pagination, Portal
 from java.io import ByteArrayInputStream, ByteArrayOutputStream, File
 from java.net import URLDecoder, URLEncoder
 from java.util import ArrayList, HashMap, LinkedHashMap, HashSet
-from java.lang import Exception
+from java.lang import Boolean, Exception
 
 class SearchData:
     def __init__(self):
         self.__portal = Services.portalManager.get(portalId)
+        sessionNav = self.__portal.get("portal/use-session-navigation", "true")
+        self.__useSessionNavigation = Boolean.parseBoolean(sessionNav)
         self.__result = JsonConfigHelper()
-        self.__pageNum = sessionState.get("pageNum", 1)
-        self.__selected = []
+        if self.__useSessionNavigation:
+            self.__pageNum = sessionState.get("pageNum", 1)
+        else:
+            self.__pageNum = 1
+        self.__selected = ArrayList()
+        self.__fqParts = []
         self.__searchField = formData.get("searchField", "full_text")
         self.__search()
-        
+    
+    def usingSessionNavigation(self):
+        return self.__restful
+    
     def getPortalName(self):
         return self.__portal.getDescription()
         
@@ -37,8 +46,8 @@ class SearchData:
         uri = URLDecoder.decode(request.getAttribute("RequestURI"))
         query = None
         pagePath = portalId + "/" + pageName
-        if uri != pagePath:
-            query = uri[len(pagePath)+1:]
+        ##if uri != pagePath:
+        ##    query = uri[len(pagePath)+1:]
         if query is None or query == "":
             query = formData.get("query")
         if query is None or query == "":
@@ -70,7 +79,7 @@ class SearchData:
                 print "Found annotation for %s" % annotatesUri
             # add annotation ids to query
             query += ' OR id:("' + '" OR "'.join(ids) + '")'
-
+        
         portalSearchQuery = self.__portal.searchQuery
         if portalSearchQuery == "":
             portalSearchQuery = query
@@ -79,47 +88,59 @@ class SearchData:
                 query += " AND " + portalSearchQuery
             else:
                 query = portalSearchQuery
-
+        
         req = SearchRequest(query)
         req.setParam("facet", "true")
         req.setParam("rows", str(recordsPerPage))
         req.setParam("facet.field", self.__portal.facetFieldList)
-        req.setParam("facet.sort", "true")
+        req.setParam("facet.sort", str(self.__portal.getFacetSort()))
         req.setParam("facet.limit", str(self.__portal.facetCount))
         req.setParam("sort", "f_dc_title asc")
         
         # setup facets
-        action = formData.get("verb")
-        value = formData.get("value")
-        fq = sessionState.get("fq")
-        if fq is not None:
-            self.__pageNum = 1
-            req.setParam("fq", fq)
-        if action == "add_fq":
-            self.__pageNum = 1
-            name = formData.get("name")
-            print " * add_fq: %s" % value
-            req.addParam("fq", URLDecoder.decode(value, "UTF-8"))
-        elif action == "remove_fq":
-            self.__pageNum = 1
-            req.removeParam("fq", URLDecoder.decode(value, "UTF-8"))
-        elif action == "clear_fq":
-            self.__pageNum = 1
-            req.removeParam("fq")
-        elif action == "select-page":
-            self.__pageNum = int(value)
-        req.addParam("fq", 'item_type:"object"')
+        if self.__useSessionNavigation:
+            action = formData.get("verb")
+            value = formData.get("value")
+            fq = sessionState.get("fq")
+            if fq is not None:
+                self.__pageNum = 1
+                req.setParam("fq", fq)
+            if action == "add_fq":
+                self.__pageNum = 1
+                name = formData.get("name")
+                req.addParam("fq", URLDecoder.decode(value, "UTF-8"))
+            elif action == "remove_fq":
+                self.__pageNum = 1
+                req.removeParam("fq", URLDecoder.decode(value, "UTF-8"))
+            elif action == "clear_fq":
+                self.__pageNum = 1
+                req.removeParam("fq")
+            elif action == "select-page":
+                self.__pageNum = int(value)
+        else:
+            navUri = uri[len(pagePath):]
+            self.__pageNum, fq, self.__fqParts = self.__parseUri(navUri)
+            savedfq = sessionState.get("savedfq")
+            limits = []
+            if savedfq:
+                limits.extend(savedfq)
+            if fq:
+                limits.extend(fq)
+                sessionState.set("savedfq", limits)
+                for q in fq:
+                    req.addParam("fq", URLDecoder.decode(q, "UTF-8"))
         
         portalQuery = self.__portal.query
-        print " * portalQuery=%s" % portalQuery
         if portalQuery:
             req.addParam("fq", portalQuery)
+        req.addParam("fq", 'item_type:"object"')
+        if req.getParams("fq"):
+            self.__selected = ArrayList(req.getParams("fq"))
         
-        self.__selected = list(req.getParams("fq"))
-
-        sessionState.set("fq", self.__selected)
-        sessionState.set("searchQuery", portalSearchQuery)
-        sessionState.set("pageNum", self.__pageNum)
+        if self.__useSessionNavigation:
+            sessionState.set("fq", self.__selected)
+            sessionState.set("searchQuery", portalSearchQuery)
+            sessionState.set("pageNum", self.__pageNum)
         
         # Make sure 'fq' has already been set in the session
         if not page.authentication.is_admin():
@@ -128,7 +149,7 @@ class SearchData:
             current_user = page.authentication.get_username()
             owner_query = 'owner:"' + current_user + '"'
             req.addParam("fq", "(" + security_query + ") OR (" + owner_query + ")")
-
+        
         req.setParam("start", str((self.__pageNum - 1) * recordsPerPage))
         
         print " * search.py:", req.toString(), self.__pageNum
@@ -140,15 +161,14 @@ class SearchData:
             self.__paging = Pagination(self.__pageNum,
                                        int(self.__result.get("response/numFound")),
                                        self.__portal.recordsPerPage)
-
-
+    
     def canManage(self, wfSecurity):
         user_roles = page.authentication.get_roles_list()
         for role in user_roles:
             if role in wfSecurity:
                 return True
         return False
-
+    
     def getQueryTime(self):
         return int(self.__result.get("responseHeader/QTime")) / 1000.0;
     
@@ -170,7 +190,7 @@ class SearchData:
         for i in range(0,len(valueList),2):
             name = valueList[i]
             count = valueList[i+1]
-            if count > 0:
+            if (name.find("/") == -1 or self.hasSelectedFacets()) and count > 0:
                 values.put(name, count)
         return values
     
@@ -198,7 +218,7 @@ class SearchData:
     
     def isImage(self, format):
         return format.startswith("image/")
-
+    
     def getMimeTypeIcon(self, format):
         # check for specific icon
         iconPath = "images/icons/mimetype/%s/icon.png" % format
@@ -234,6 +254,75 @@ class SearchData:
             activeManifest.set("viewId", portalId)
             sessionState.set("package/active", activeManifest)
         return activeManifest
+    
+    #### RESTful style URL support methods
+    def getPageQuery(self, page):
+        prefix = ""
+        if self.__fqParts:
+            prefix = "/" + "/".join(self.__fqParts)
+        suffix = ""
+        if page > 1:
+            suffix = "/page/%s" % page
+        return prefix + suffix
+    
+    def getFacetQueryUri(self, name, value):
+        return "%s/%s" % (name, value)
+    
+    def getFacetValue(self, facetValue):
+        return facetValue.split("/")[-1]
+    
+    def getLimitQueryWith(self, fq):
+        limits = ArrayList(self.__fqParts)
+        limits.add("category/" + fq)
+        return "/".join(limits)
+    
+    def getFacetIndent(self, facetValue):
+        return len(facetValue.split("/"))
+    
+    def getLimitQueryWithout(self, fq):
+        limits = ArrayList(self.__fqParts)
+        limits.remove("category/" + fq)
+        if limits.isEmpty():
+            return ""
+        return "/".join(limits)
+    
+    def __parseUri(self, uri):
+        page = 1
+        fq = []
+        fqParts = []
+        if uri != "":
+            parts = uri.split("/")
+            partType = None
+            facetKey = None
+            facetValues = None
+            for part in parts:
+                if partType == "page":
+                    facetKey = None
+                    facetValue = None
+                    page = int(part)
+                elif partType == "category":
+                    partType = "category-value"
+                    facetValues = None
+                    facetKey = part
+                elif partType == "category-value":
+                    if facetValues is None:
+                        facetValues = []
+                    if part in ["page", "category"]:
+                        partType = part
+                        facetQuery = '%s:"%s"' % (facetKey, "/".join(facetValues))
+                        fq.append(facetQuery)
+                        fqParts.append("category/%s/%s" % (facetKey, "/".join(facetValues)))
+                        facetKey = None
+                        facetValues = None
+                    else:
+                        facetValues.append(URLDecoder.decode(part))
+                else:
+                    partType = part
+            if partType == "category-value":
+                facetQuery = '%s:"%s"' % (facetKey, "/".join(facetValues))
+                fq.append(facetQuery)
+                fqParts.append("category/%s/%s" % (facetKey, "/".join(facetValues)))
+        return page, fq, fqParts
 
     def test(self, id=""):
         # cache this answer

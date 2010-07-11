@@ -31,6 +31,7 @@ import au.edu.usq.fascinator.portal.services.GenericStreamResponse;
 import au.edu.usq.fascinator.portal.services.HouseKeepingManager;
 import au.edu.usq.fascinator.portal.services.HttpStatusCodeResponse;
 import au.edu.usq.fascinator.portal.services.PortalManager;
+import au.edu.usq.fascinator.portal.services.PortalSecurityManager;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -89,6 +90,9 @@ public class Dispatch {
     private PortalManager portalManager;
 
     @Inject
+    private PortalSecurityManager security;
+
+    @Inject
     private Request request;
 
     @Inject
@@ -145,11 +149,36 @@ public class Dispatch {
 
         /* TODO: refactor this by moving all static resources into
          * 'includes/css/*' and similar. Reduce to one test. */
-        if (!(resourceName.startsWith("css/") ||
-              resourceName.startsWith("images/") ||
-              resourceName.startsWith("js/") ||
-              resourceName.startsWith("flowplayer/"))
-            && !isAjax) {
+        boolean staticResource = false;
+        if (resourceName.startsWith("css/") ||
+            resourceName.startsWith("images/") ||
+            resourceName.startsWith("js/") ||
+            resourceName.startsWith("flowplayer/")) {
+            staticResource = true;
+        }
+
+        // Single Sign-On integration
+        if (!staticResource) {
+            try {
+                // Instantiate with access to the session
+                String ssoId = security.ssoInit(sessionState);
+                if (ssoId != null) {
+                    // We are logging in, so send them to the SSO portal
+                    String ssoUrl = security.ssoGetRemoteLogonURL(ssoId);
+                    if (ssoUrl != null) {
+                        response.sendRedirect(ssoUrl);
+                        return GenericStreamResponse.noResponse();
+                    }
+                } else {
+                    // Otherwise, check if we have user's details
+                    security.ssoCheckUserDetails();
+                }
+            } catch (Exception ex) {
+                log.error("SSO Error!", ex);
+            }
+        }
+
+        if (!staticResource && !isAjax) {
             log.debug("Resource: '{}'", resourceName);
             if (houseKeeping.requiresAction()) {
                 String template = houseKeeping.getTemplate();
