@@ -125,10 +125,10 @@ if roles is not None:
         rules.add(AddField("security_filter", role))
 else:
     # Default to guest access if Null object returned
-    schema = pyUtils.getAccessSchema("simple");
+    schema = pyUtils.getAccessSchema("derby");
     schema.setRecordId(oid)
     schema.set("role", "guest")
-    pyUtils.setAccessSchema(schema, "simple")
+    pyUtils.setAccessSchema(schema, "derby")
     rules.add(AddField("security_filter", "guest"))
 
 model = rdf2go.RDF2Go.getModelFactory().createModel()

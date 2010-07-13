@@ -13,9 +13,7 @@
     <relativePath>../pom.xml</relativePath>
   </parent>
   <modules>
-    <module>access/couch</module>
-    <module>access/simple</module>
-    <module>access/solr</module>
+    <module>access/derby</module>
     <module>authentication/internal</module>
     <module>authentication/filesystem</module>
     <module>harvester/filesystem</module>
