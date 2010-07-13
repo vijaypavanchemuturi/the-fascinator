@@ -83,13 +83,7 @@ $(function() {
                 "default": { draggable: false }
             },
             callback: {
-                beforechange: function(node, tree) {
-                    console.log("beforechange: ", node);
-                    $("#package-toc a.clicked").removeClass("clicked");
-                    return true;
-                },
                 onselect: function(node, tree) {
-                    console.log("onselect: ", node);
                     var id = $(node).attr("id");
                     if (id.match(/^blank-/)) {
                         var dest = $("#" + id + "-content:empty");
