@@ -27,16 +27,16 @@ def indexList(name, values):
         rules.add(AddField(name, value))
 
 def grantAccess(object, newRole):
-    schema = object.getAccessSchema("simple");
+    schema = object.getAccessSchema("derby");
     schema.setRecordId(oid)
     schema.set("role", newRole)
-    object.setAccessSchema(schema, "simple")
+    object.setAccessSchema(schema, "derby")
 
 def revokeAccess(object, oldRole):
-    schema = object.getAccessSchema("simple");
+    schema = object.getAccessSchema("derby");
     schema.setRecordId(oid)
     schema.set("role", oldRole)
-    object.removeAccessSchema(schema, "simple")
+    object.removeAccessSchema(schema, "derby")
 
 #start with blank solr document
 rules.add(New())

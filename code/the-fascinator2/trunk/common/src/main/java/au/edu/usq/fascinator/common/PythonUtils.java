@@ -141,6 +141,13 @@ public class PythonUtils {
                 log.warn("Failed to close producer: {}", jmse.getMessage());
             }
         }
+        if (access != null) {
+            try {
+                access.shutdown();
+            } catch (PluginException ex) {
+                log.warn("Failed shutting down access control manager:", ex);
+            }
+        }
     }
 
     /*****

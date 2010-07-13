@@ -47,16 +47,16 @@ def getNodeValues (doc, xPath):
     return valueList
 
 def grantAccess(object, newRole):
-    schema = object.getAccessSchema("simple");
+    schema = object.getAccessSchema("derby");
     schema.setRecordId(oid)
     schema.set("role", newRole)
-    object.setAccessSchema(schema, "simple")
+    object.setAccessSchema(schema, "derby")
 
 def revokeAccess(object, oldRole):
-    schema = object.getAccessSchema("simple");
+    schema = object.getAccessSchema("derby");
     schema.setRecordId(oid)
     schema.set("role", oldRole)
-    object.removeAccessSchema(schema, "simple")
+    object.removeAccessSchema(schema, "derby")
     pass
 
 #start with blank solr document

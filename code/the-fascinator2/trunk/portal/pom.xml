@@ -214,11 +214,7 @@
             <dependencies>
                 <dependency>
                     <groupId>au.edu.usq.fascinator.plugins</groupId>
-                    <artifactId>plugin-access-simple</artifactId>
-                </dependency>
-                <dependency>
-                    <groupId>au.edu.usq.fascinator.plugins</groupId>
-                    <artifactId>plugin-access-solr</artifactId>
+                    <artifactId>plugin-access-derby</artifactId>
                 </dependency>
                 <dependency>
                     <groupId>au.edu.usq.fascinator.plugins</groupId>
