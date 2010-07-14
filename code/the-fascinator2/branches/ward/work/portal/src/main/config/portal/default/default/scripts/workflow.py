@@ -7,6 +7,7 @@ from java.lang import String
 from java.net import URLDecoder
 
 import locale
+import time
 
 class UploadedData:
     def __init__(self):
@@ -20,7 +21,10 @@ class UploadedData:
         self.pageService = Services.getPageService()
         self.renderer = toolkit.getDisplayComponent(self.pageService)
         self.template = None
+        self.isAjax = bool(formData.get("ajax"))
 
+        print "****  workflow  ****", self.isAjax
+        print formData.formFields 
         # Normal workflow progressions
         if self.fileName is None:
             self.hasUpload = False
@@ -31,20 +35,51 @@ class UploadedData:
                 self.template = None
             else:
                 self.formProcess = True
-
-        # First stage, post-upload
-        else:
+        else:   # First stage, post-upload
+            print "    fileName=%s" % self.fileName
             self.hasUpload = True
+            print "wait 3 "
+            time.sleep(3)
             self.fileDetails = sessionState.get(self.fileName)
             print " * workflow.py : Upload details : ", repr(self.fileDetails)
             self.template = self.fileDetails.get("template")
             self.errorMsg = self.fileDetails.get("error")
 
-        self.getObject()
-        self.getWorkflowMetadata()
+        time.sleep(1)
+        obj = self.getObject()
+        wfMetadata = self.getWorkflowMetadata()       # workflow.metadata
 
         if self.formProcess:
+            print " workflow - processForm"
             self.processForm()
+        if self.isAjax:
+            print " workflow - ajax"
+            self.prepareTemplate()
+            if wfMetadata is None or obj is None:
+                print "** Waiting **"
+                time.sleep(1)
+                obj = self.getObject()
+                wfMetadata = self.getWorkflowMetadata()       # workflow.metadata
+                print "obj='%s'" % obj
+                print "wfMetadata='%s'" % wfMetadata
+            oid = obj.getId()
+
+            title = formData.get("title")
+            desc = formData.get("description")
+            title = "Title X"
+            desc = "Desc. X"
+            wfMetadata.set("formData/title", title)
+            wfMetadata.set("formData/description", desc)
+            wfMetadata.set("targetStep", "metadata")
+            self.setWorkflowMetadata(wfMetadata)
+            # Re-index the object
+            Services.indexer.index(self.getOid())
+            Services.indexer.commit()
+            #time.sleep(1)
+            #
+            writer = response.getPrintWriter("text/plain; charset=UTF-8")
+            writer.println('{"ok":"ajax data", "oid":"%s"}' % oid);
+            writer.close()
         #print "workflow.py - UploadedData.__init__() done."
 
     def getError(self):
@@ -85,6 +120,7 @@ class UploadedData:
                     self.metadata = JsonConfigHelper(wfPayload.open())
                     wfPayload.close()
                 except StorageException, e:
+                    print "getWorkflowMetadata() error - '%s'" % str(e)
                     pass
         return self.metadata
 
@@ -130,6 +166,7 @@ class UploadedData:
             return True
 
     def isPending(self):
+        return False    ####################################
         metaProps = self.getObject().getMetadata()
         status = metaProps.get("render-pending")
         if status is None or status == "false":
@@ -239,6 +276,8 @@ class UploadedData:
             self.errorMsg = "Error retrieving workflow metadata"
             return
         # From the payload get any old form data
+        print "****  processForm  ****"
+        print meta
         oldFormData = meta.getJsonList("formData")
         if oldFormData.size() > 0:
             oldFormData = oldFormData.get(0)
@@ -257,7 +296,6 @@ class UploadedData:
                 print " *** Special Field : '" + field + "' => '" + formData.get(field) + "'"
                 if field == "targetStep":
                     meta.set(field, formData.get(field))
-
             # Everything else... metadata
             else:
                 print " *** Metadata Field : '" + field + "' => '" + formData.get(field) + "'"
@@ -268,6 +306,8 @@ class UploadedData:
         for field in data.keySet():
             meta.set("formData/" + field, data.get(field))
 
+        print "after"
+        print meta
         # Write the workflow metadata back into the payload
         response = self.setWorkflowMetadata(meta)
         if not response:
