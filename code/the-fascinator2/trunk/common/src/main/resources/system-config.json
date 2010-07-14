@@ -1,13 +1,13 @@
 {
-    "version": "0.6.12",
+    "version": "0.6.13",
     "configured": false,
     "urlBase" : "http://localhost:9997/portal/",
     "email" : "fascinator@usq.edu.au",
     "sso": ["OpenID"],
     "accesscontrol": {
-        "type": "simple",
-        "simple": {
-            "path": "${fascinator.home}/security/access.properties"
+    "type" : "derby",
+        "derby" : {
+            "derbyHome" : "${fascinator.home}/database"
         }
     },
     "authentication": {
