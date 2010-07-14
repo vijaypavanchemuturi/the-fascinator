@@ -125,6 +125,9 @@ public class Dispatch {
 
     private JsonConfig sysConfig;
 
+    // detailSubPage detection
+    private Pattern detailPattern;
+
     public StreamResponse onActivate(Object... params) {
         log.debug("Dispatch starting : {} {}",
                 request.getMethod(), request.getPath());
@@ -156,9 +159,30 @@ public class Dispatch {
             resourceName.startsWith("flowplayer/")) {
             staticResource = true;
         }
+        // The detail screen generates a lot of background calls to the server
+        boolean detailSubPage = false;
+        if (resourceName.equals("detail") ||
+            resourceName.equals("download") ||
+            resourceName.equals("preview")) {
+            // Simple answer
+            detailSubPage = true;
 
-        // Single Sign-On integration
-        if (!staticResource) {
+            // Now check for the core page
+            if (resourceName.equals("detail")) {
+                if (detailPattern == null) {
+                    detailPattern = Pattern.compile("detail/\\w+/*$");
+                }
+                Matcher matcher = detailPattern.matcher(requestUri);
+                if (matcher.find()) {
+                    // This is actually the 'core' detail page
+                    detailSubPage = false;
+                }
+            }
+        }
+
+        // Some things we don't want running excepted on 'real' page loads
+        if (!staticResource && !detailSubPage && !isAjax) {
+            // Single Sign-On integration
             try {
                 // Instantiate with access to the session
                 String ssoId = security.ssoInit(sessionState);
@@ -176,9 +200,8 @@ public class Dispatch {
             } catch (Exception ex) {
                 log.error("SSO Error!", ex);
             }
-        }
 
-        if (!staticResource && !isAjax) {
+            // House keeping
             log.debug("Resource: '{}'", resourceName);
             if (houseKeeping.requiresAction()) {
                 String template = houseKeeping.getTemplate();
