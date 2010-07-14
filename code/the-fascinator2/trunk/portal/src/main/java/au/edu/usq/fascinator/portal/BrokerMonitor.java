@@ -221,11 +221,11 @@ public class BrokerMonitor implements GenericListener {
             // A tiny sleep should allow the broker time
             //  to come online if it isn't already.
             try {
-                Thread.sleep(50);
+                Thread.sleep(200);
             } catch (InterruptedException ex) {
                 // Just interrupted sleep, no big deal
             }
-            log.info("Restarting timer. Timeout = {}s", DEFAULT_TIMEOUT);
+            //log.info("Restarting timer. Timeout = {}s", DEFAULT_TIMEOUT);
             timer.cancel();
             timer = null;
         }
