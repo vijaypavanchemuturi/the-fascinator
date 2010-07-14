@@ -185,7 +185,7 @@ class LoginData:
 
     def reindex_record(self, recordId):
         portalManager = Services.getPortalManager()
-        portalManager.reHarvestObject(recordId)
+        portalManager.reharvest(recordId)
 
     def remove_user(self):
         username = formData.get("username")

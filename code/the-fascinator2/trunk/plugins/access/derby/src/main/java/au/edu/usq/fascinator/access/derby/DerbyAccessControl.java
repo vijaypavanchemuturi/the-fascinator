@@ -242,18 +242,18 @@ public class DerbyAccessControl implements AccessControl {
                 + " is not registered with the JDBC driver manager";
         try {
             // Tell the database to close
-            DriverManager.getConnection(DERBY_PROTOCOL + SECURITY_DATABASE +
-                    ";shutdown=true");
-            // Shutdown the whole engine?
-            //DriverManager.getConnection(DERBY_PROTOCOL + ";shutdown=true");
+            DriverManager.getConnection(DERBY_PROTOCOL + ";shutdown=true");
+            // Shutdown just this database (but not the engine)
+            //DriverManager.getConnection(DERBY_PROTOCOL + SECURITY_DATABASE +
+            //        ";shutdown=true");
         } catch (SQLException ex) {
-            // These test values are used if the whole engine is to be shutdown
-            //if (ex.getErrorCode() == 50000 &&
-            //        ex.getSQLState().equals("XJ015")) {
+            // These test values are used if the engine is NOT shutdown
+            //if (ex.getErrorCode() == 45000 &&
+            //        ex.getSQLState().equals("08006")) {
 
             // Valid response
-            if (ex.getErrorCode() == 45000 &&
-                    ex.getSQLState().equals("08006")) {
+            if (ex.getErrorCode() == 50000 &&
+                    ex.getSQLState().equals("XJ015")) {
             // Error response
             } else {
                 // Make sure we ignore simple thread issues
