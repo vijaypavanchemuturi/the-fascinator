@@ -4,6 +4,7 @@ class UploadData:
         self.writer = response.getPrintWriter("text/html; charset=UTF-8")
 
         listener = sessionState.get("upload_listener");
+        print "action/upload.py (ajax) - listener=%s" % listener
 
         if listener is not None:
             bytesRead = listener.getBytesRead();

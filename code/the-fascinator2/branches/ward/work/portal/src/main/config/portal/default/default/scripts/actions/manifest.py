@@ -37,13 +37,20 @@ class ManifestActions:
                 #manifest = jsonReader(writer.toString())
                 #payload.close()
                 #manifest = jsonReader(str(self.__manifest))
+                #manifest["formData"] = {}  # start with a blank copy (so that deleted item are removed
                 manifest = {}  # start with a blank copy (so that deleted item are removed
                 metaList = list(formData.getValues("metaList"))
+                for k in manifest:
+                    if k.find(":")>0:
+                        manifest.pop(k)
                 try:
                     for metaName in metaList:
                         value = formData.get(metaName)
-                        manifest[metaName] = value
-                        print metaName, value
+                        #manifest["formData"][metaName] = value
+                        manifest["formData"] = value
+                    for metaName in ["title", "description"]:
+                        manifest[metaName] = manifest[metaName];
+                    print manifest
                 except Exception, e: 
                     print "Error: '%s'" % str(e)
                 self.__manifest = JsonConfigHelper(jsonWriter(manifest))
@@ -51,8 +58,8 @@ class ManifestActions:
                 # we also should be re-indexing here because
                 #   the title may have changed etc.
                 # Re-index the object
-          #      Services.indexer.index(self.__object.getId())
-          #      Services.indexer.commit()
+                Services.indexer.index(self.__object.getId())
+                Services.indexer.commit()
                 result='{"ok":"saved ok"}';
             except Exception, e:
                 print "Error updating package metaData - '%s'" % str(e)
