@@ -3,64 +3,68 @@
 # this script starts a fascinator harvest using maven
 # only usable when installed in development mode
 #
+# get absolute path of where the script is run from
+PROG_DIR=`cd \`dirname $0\`; pwd`
 
-# suppress console output from pushd/popd
-pushd() {
-    builtin pushd "$@" > /dev/null
-}
-popd() {
-    builtin popd "$@" > /dev/null
-}
+# file to store pid
+PID_FILE=$PROG_DIR/tf.pid
 
-# show usage
-function usage {
-    echo "Usage: `basename $0` [jsonFile]"
-    echo "Where [jsonFile] is a JSON configuration file."
-    echo "If [jsonFile] is not an absolute path, the file is assumed to be in:"
-    echo "    $HARVEST_DIR"
-    echo "Available sample files:"
-    for HARVEST_FILE in `ls $HARVEST_DIR/*.json`; do
-        TMP=${HARVEST_FILE##*/harvest/}
-        echo -n "    "
-        echo $TMP | cut -d . -f 1-1
-    done
-}
-
-# get fascinator home dir
-pushd `dirname $0`
-TF_HOME=`pwd`
-popd
+# display program header
+echo "The Fascinator (Developer) - Harvest Client"
 
 # setup environment
-. $TF_HOME/tf_env.sh
+. $PROG_DIR/tf_env.sh
 
-HARVEST_DIR=$FASCINATOR_HOME/harvest
-if [ "$1" == "" ]; then
-    usage
-    exit 0
-fi
+# harvest config directory
+HARVEST_DIR=$TF_HOME/harvest
 
-# get platform
-OS=`uname`
-if [ "$OS" == "Darwin" ]; then
-    NUM_PROCS=`ps a | grep [j]etty | wc -l`
+usage() {
+	echo "Usage: `basename $0` JSON_FILE"
+	echo "Where JSON_FILE is a JSON configuration file."
+	echo "If JSON_FILE is not an absolute path, the file is assumed to be in:"
+	echo "    $HARVEST_DIR"
+	echo "Available sample files:"
+	for HARVEST_FILE in `ls $HARVEST_DIR/*.json`; do
+		_TMP=${HARVEST_FILE##*/harvest/}
+		echo -n "    "
+		echo $_TMP | cut -d . -f 1-1
+	done
+	exit 1
+}
+
+running() {
+	[ -f $PID_FILE ] || return 1
+	PID=$(cat $PID_FILE)
+	ps -p $PID > /dev/null 2> /dev/null || return 1
+	return 0
+}
+
+# check script arguments
+[ $# -gt 0 ] || usage
+
+# only run harvest if fascinator is running
+if running; then
+	if [ -f $1 ]; then
+		JSON_FILE=$1
+	else
+		JSON_FILE=$HARVEST_DIR/$1.json
+	fi
+	shift
+	ARGS="$*"
+	echo " * Starting harvest with: $JSON_FILE"
+	if [ -f $JSON_FILE ]; then
+		mvn $ARGS \
+			-f $PROG_DIR/core/pom.xml \
+			-P dev \
+			-Dexec.args=$JSON_FILE \
+			-Dexec.mainClass=au.edu.usq.fascinator.HarvestClient \
+			exec:java &> $TF_HOME/logs/harvest.out
+		echo "   - Finished on `date`"
+		echo "   - Log file: $TF_HOME/logs/harvest.out"
+	else
+		echo "   - File not found!"
+		usage
+	fi
 else
-    NUM_PROCS=`pgrep -l -f jetty | wc -l`
-fi
-
-# only harvest if TF is running
-if [ $NUM_PROCS == 1 ]; then
-    if [ -f $1 ]; then
-        JSON_FILE=$1
-    else
-        JSON_FILE=$HARVEST_DIR/$1.json
-    fi
-    if [ -f $JSON_FILE ]; then
-        mvn -f $TF_HOME/core/pom.xml -P dev -Dexec.args=$JSON_FILE -Dexec.mainClass=au.edu.usq.fascinator.HarvestClient exec:java &> $FASCINATOR_HOME/logs/harvest.out
-    else
-        echo "ERROR: '$JSON_FILE' not found!"
-        usage
-    fi
-else
-    echo "Please start The Fascinator before harvesting."
+	echo " * The Fascinator is not running!"
 fi

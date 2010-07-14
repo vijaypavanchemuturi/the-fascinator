@@ -2,27 +2,31 @@
 #
 # this script sets the environment for other fascinator scripts
 #
-# work out proxy info
-TMP=${http_proxy#*//}
-HOST=${TMP%:*}
-TMP=${http_proxy##*:}
-PORT=${TMP%/}
+# jvm memory settings
+JAVA_OPTS="-XX:MaxPermSize=256m -Xmx512m"
 
-# set environment
-OS=`uname`
-if [ "$OS" == "Darwin" ] ; then
-	export JAVA_HOME=/System/Library/Frameworks/JavaVM.framework/Versions/1.6.0/Home
+# use http_proxy if defined
+if [ -n "$http_proxy" ]; then
+	_TMP=${http_proxy#*//}
+	PROXY_HOST=${_TMP%:*}
+	_TMP=${http_proxy##*:}
+	PROXY_PORT=${_TMP%/}
+	echo " * Detected HTTP proxy host:'$PROXY_HOST' port:'$PROXY_PORT'"
+	PROXY_OPTS="-Dhttp.proxyHost=$PROXY_HOST -Dhttp.proxyPort=$PROXY_PORT -Dhttp.nonProxyHosts=localhost"
 else
-	# assume ubuntu with sun-java6-jdk installed
-	export JAVA_HOME=/usr/lib/jvm/java-6-sun
+	echo " * No HTTP proxy detected"
 fi
-if [ "$FASCINATOR_HOME" == "" ]; then
-	export FASCINATOR_HOME=$HOME/.fascinator
+
+# set fascinator home directory
+if [ -z "$TF_HOME" ]; then
+	export TF_HOME=$HOME/.fascinator
 fi
-if [ "$SOLR_BASE_DIR" == "" ]; then
-	export SOLR_BASE_DIR=$FASCINATOR_HOME
+
+# set solr base directory
+if [ -z "$SOLR_BASE_DIR" ]; then
+	SOLR_BASE_DIR=$TF_HOME
 fi
-if [ "$PORTAL_HOME" == "" ]; then
-    export PORTAL_HOME=$FASCINATOR_HOME/portal
-fi
-export MAVEN_OPTS="-XX:MaxPermSize=256m -Xmx512m -Dhttp.proxyHost=$HOST -Dhttp.proxyPort=$PORT -Dhttp.nonProxyHosts=localhost -Dfascinator.home=$FASCINATOR_HOME -Dsolr.base.dir=$SOLR_BASE_DIR -Dportal.home=$PORTAL_HOME $MAVEN_OPTS"
+CONFIG_DIRS="-Dfascinator.home=$TF_HOME -Dsolr.base.dir=$SOLR_BASE_DIR"
+
+# set options for maven to use
+export MAVEN_OPTS="$JAVA_OPTS $PROXY_OPTS $CONFIG_DIRS"
