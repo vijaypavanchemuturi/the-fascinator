@@ -289,6 +289,7 @@ public class GenericPayload implements Payload {
                 bytes.write((char) c);
             }
             ramStore = bytes.toByteArray();
+            setContentType(MimeTypeUtil.getMimeType(ramStore, getId()));
         } catch (Exception e) {
             log.error("Error during input storage", e);
         } finally {

@@ -51,10 +51,8 @@ public class ApertureTransformerTest {
 
     private DigitalObject testObject, testObjectOutput;
 
-    private static String config =
-            "{\"aperture\":{\"outputPath\":\"" +
-            System.getProperty("java.io.tmpdir").replace("\\", "/") +
-            "\"}}";
+    private static String config = "{\"aperture\":{\"outputPath\":\""
+            + System.getProperty("java.io.tmpdir").replace("\\", "/") + "\"}}";
 
     @Before
     public void setup() throws Exception {
@@ -102,17 +100,6 @@ public class ApertureTransformerTest {
         Assert.assertEquals("Aperture rdf", rdfPayload.getLabel());
         Assert.assertEquals("application/xml+rdf", rdfPayload.getContentType());
         Assert.assertEquals(PayloadType.Enrichment, rdfPayload.getType());
-    }
-
-    // Test unknown file type
-    @Test
-    public void testUnknownFileType() throws URISyntaxException,
-            TransformerException, StorageException {
-        File fileName = new File(getClass().getResource("/Desktop.7z").toURI());
-
-        testObject = StorageUtils.storeFile(ram, fileName);
-        testObjectOutput = aperture.transform(testObject, "{}");
-        Assert.assertEquals(1, testObject.getPayloadIdList().size());
     }
 
     // Test unknown file type
@@ -187,5 +174,18 @@ public class ApertureTransformerTest {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
+    }
+
+    @Test
+    public void testPackageManifest() throws URISyntaxException,
+            TransformerException, StorageException {
+        File fileName = new File(getClass().getResource("/manifest.tfpackage")
+                .toURI());
+        testObject = StorageUtils.storeFile(ram, fileName);
+        testObjectOutput = aperture.transform(testObject, "{}");
+        System.out.println(testObject.getPayload("manifest.tfpackage")
+                .getContentType());
+        Assert.assertEquals("application/x-fascinator-package", testObject
+                .getPayload("manifest.tfpackage").getContentType());
     }
 }
