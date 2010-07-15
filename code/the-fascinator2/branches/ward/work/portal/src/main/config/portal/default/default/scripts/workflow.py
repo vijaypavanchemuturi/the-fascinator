@@ -8,6 +8,8 @@ from java.net import URLDecoder
 
 import locale
 import time
+from json import read as jsonReader, write as jsonWriter
+
 
 class UploadedData:
     def __init__(self):
@@ -23,8 +25,7 @@ class UploadedData:
         self.template = None
         self.isAjax = bool(formData.get("ajax"))
 
-        print "****  workflow  ****", self.isAjax
-        print formData.formFields 
+        #print "****  workflow  ****", self.isAjax
         # Normal workflow progressions
         if self.fileName is None:
             self.hasUpload = False
@@ -36,9 +37,8 @@ class UploadedData:
             else:
                 self.formProcess = True
         else:   # First stage, post-upload
-            print "    fileName=%s" % self.fileName
             self.hasUpload = True
-            print "wait 3 "
+            print "wait 3 " ############################################################
             time.sleep(3)
             self.fileDetails = sessionState.get(self.fileName)
             print " * workflow.py : Upload details : ", repr(self.fileDetails)
@@ -50,11 +50,10 @@ class UploadedData:
         wfMetadata = self.getWorkflowMetadata()       # workflow.metadata
 
         if self.formProcess:
-            print " workflow - processForm"
+            #print " workflow - processForm"
             self.processForm()
         if self.isAjax:
             print " workflow - ajax"
-            self.prepareTemplate()
             if wfMetadata is None or obj is None:
                 print "** Waiting **"
                 time.sleep(1)
@@ -63,19 +62,28 @@ class UploadedData:
                 print "obj='%s'" % obj
                 print "wfMetadata='%s'" % wfMetadata
             oid = obj.getId()
+            self.prepareTemplate()
+            wfMetadataDict = jsonReader(wfMetadata.toString())
+            fData = wfMetadataDict.get("formData")
+            if fData is None:
+                fData = {}
+                wfMetadataDict["formData"] = fData
 
-            title = formData.get("title")
-            desc = formData.get("description")
-            title = "Title X"
-            desc = "Desc. X"
-            wfMetadata.set("formData/title", title)
-            wfMetadata.set("formData/description", desc)
+            metaDataList = formData.get("metaDataList", "")
+            metaDataList = metaDataList.split(",")
+            for mdName in metaDataList:
+                data = formData.get(mdName, "")
+                #mdName = mdName.replace(":", "_")
+                fData[mdName] = data
+                #print "* formData/%s = '%s'" % (mdName, data)
+            wfMetadata = JsonConfigHelper(jsonWriter(wfMetadataDict))
+            self.metadata = wfMetadata
+
             wfMetadata.set("targetStep", "metadata")
             self.setWorkflowMetadata(wfMetadata)
             # Re-index the object
             Services.indexer.index(self.getOid())
             Services.indexer.commit()
-            #time.sleep(1)
             #
             writer = response.getPrintWriter("text/plain; charset=UTF-8")
             writer.println('{"ok":"ajax data", "oid":"%s"}' % oid);

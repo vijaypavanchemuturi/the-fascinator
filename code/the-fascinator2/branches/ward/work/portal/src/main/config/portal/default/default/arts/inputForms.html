@@ -122,7 +122,6 @@
                           <label for="z:Attachment.0.dc:title">File: </label>
                           <input type="file" id="z:Attachment.0.dc:title"
                                name="upload-file-file"/>
-                          <input type="text" name="test" value="testData"/>xxxy
                         </form>
                     </div>
                     <p>
@@ -172,12 +171,14 @@
               <p><textarea rows="4" cols="80" id="z:Attachment.0.dc:description"></textarea></p>
               <p>Note: the file format will be determined by the server.</p>
               <input type="button" id="add-file" value="Add"/>
+              <span class="hidden" id="uploading-file-msg" style="font-size:120%;"> </span>
+              <img class='hidden' id='upload-file-loading' src='/portal/default/images/loading-progress.gif' alt='Loading'/>
               </div>
             <hr/>
 
-            <img class='hidden' id='upload-file-loading' src='images/loading-progress.gif' alt='Loading'/>
-            F
             <h2>Files already added</h2>
+            <iframe id="uploadframe" name="uploadframe" 
+                    style="display:none; height:8ex; width:80em; border:1px solid red;"/>
             <p id="files-already-added"><!-- --></p>
         </div>
         <div class="tab-nav">

@@ -78,7 +78,11 @@ class DownloadData:
         out = ByteArrayOutputStream()
         Services.indexer.search(req, out)
         json = JsonConfigHelper(ByteArrayInputStream(out.toByteArray()))
-        return json.getList("response/docs").get(0).get("storage_id")
+        list = json.getList("response/docs")
+        if not list.isEmpty():
+            return list.get(0).get("storage_id")
+        else:
+            return oid
 
 if __name__ == "__main__":
     scriptObject = DownloadData()
