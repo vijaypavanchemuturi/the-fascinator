@@ -158,13 +158,17 @@
         var addAFile = $("#add-a-file");
         var file = addAFile.find("input[type=file]");  // "z:Attachment.0.dc:title"
         var metaData = {};
-        var i, form = addAFile.find("form"), input;
-        var metaDataList = [
+        var i, form = addAFile.find("form"), input, numOfFiles=0;
+        var mdList, metaDataList = [
                         "z:Attachment.0.dc:title",
                         "z:Attachment.0.z:type",
                         "z:Attachment.0.dc:date",
                         "z:Attachment.0.dc:description",
                         ];
+        if(!file.val()){
+            messageBox("Please select a file to upload first!");
+            return;
+        }
         for(i=1; i<1000; i++){
             var givenName = "z:Attachment.0.dc:creator."+i+".foaf:Person.foaf:givenName";
             var familyName = "z:Attachment.0.dc:creator."+i+".foaf:Person.foaf:familyName";
@@ -182,21 +186,71 @@
         metaData["description"] = metaData["z:Attachment.0.dc:description"];
 
         form.find("input[type=hidden]").remove();
+        mdList = [];
         for(var key in metaData){
+            var nkey = key.replace(/\.0/, "." + (numOfFiles+1));
+            mdList.push(nkey);
             input = $("<input type='hidden'/>");
-            input.attr("name", key);
+            input.attr("name", nkey);
             input.attr("value", metaData[key]);
             form.append(input);
         }
         form.append("<input type='hidden' name='ajax' value='1' />");
         form.attr("action", "/portal/default/workflow");
-        form.attr("target", "NEW"); 
+        form.append("<input type='hidden' name='upload-file-workflow' value='workflow1' />");
+        input = $("<input type='hidden' name='metaDataList' />");
+        input.attr("value", mdList.join(","));
+        form.append(input);
+        form.attr("target", "uploadframe");
 
-        //if(!file.val()){
-        //    messageBox("Please select a file to upload first!");
-        //    return;
-        //}
+        function disableAllFields(tf){
+            addAFile.find("input, select, textarea").attr("disabled", tf);
+        }
+        function resetAllFields(){
+            disableAllFields(false);
+            file.val("");
+            $("#add-a-file .upload-info").html("");
+            $.each(metaDataList, function(i, key){
+                addAFile.find("#[id='"+key+"']").val("").attr("disabled", false);
+            });
+        }
+        var iframe=$("#uploadframe");
+        function getIBody(){
+            var ibody;
+            if(iframe[0].contentDocument) ibody=iframe[0].contentDocument.body;
+            else ibody = iframe[0].contentWindow.document.body;
+            return $(ibody);
+        }
+        try{
+            disableAllFields(true);
+            $("#upload-file-loading").show();
+            $("#uploading-file-msg").text("Uploading please wait.").
+                css("color", "green").show();
+            getIBody().text("Uploading please wait...");
+        }catch(e){
+
+        }
         form.submit();
+        try{
+           iframe.unbind().load(function() {
+                $("#upload-file-loading").hide();
+                // add to list of already added files
+                var json;
+                try{
+                    eval("json=" + getIBody().text());
+                    alert(json.toSource() + ", " + json.oid);
+                    resetAllFields();
+                    $("#uploading-file-msg").text("Uploaded OK");
+                }catch(e){
+                    $("#uploading-file-msg").css("color", "red").
+                        text("Failed to uploading file (ERROR)");
+                    disableAllFields(false);
+                }
+                setTimeout(function(){ $("#uploading-file-msg").fadeOut(2000); }, 3000);
+           });
+        }catch(e){
+            alert("Error: "+e);
+        }
     }
 
     function changeToTabLayout(elem){
