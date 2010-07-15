@@ -22,6 +22,7 @@ import au.edu.usq.fascinator.MessagingServices;
 import au.edu.usq.fascinator.portal.HouseKeeper;
 import au.edu.usq.fascinator.common.JsonConfig;
 import au.edu.usq.fascinator.common.JsonConfigHelper;
+import au.edu.usq.fascinator.portal.UserAction;
 import au.edu.usq.fascinator.portal.services.HouseKeepingManager;
 
 import java.io.IOException;
@@ -103,57 +104,28 @@ public class HouseKeepingManagerImpl implements HouseKeepingManager {
     }
 
     /**
-     * Are there any House Keeping actions requiring attention from the user.
+     * Get the messages to display for the user
      *
-     * @returns boolean flag
+     * @returns List<UserAction> The current list of message
      */
     @Override
-    public boolean requiresAction() {
+    public List<UserAction> getUserMessages() {
         if (houseKeeper == null) {
-            return true;
+            return new ArrayList();
         } else {
-            return houseKeeper.requiresUserAction();
+            return houseKeeper.getUserMessages();
         }
     }
 
     /**
-     * Get the message House Keeping wants to display to the user.
+     * Confirm and remove a message/action
      *
-     * @returns String containing the message to display.
+     * @param actionId The ID of the action to remove
      */
     @Override
-    public String getMessage() {
-        if (houseKeeper == null) {
-            return "WARNING!: The HouseKeeping object failed to start. Please notify an administrator";
-        } else {
-            return houseKeeper.getUserMessage();
-        }
-    }
-
-    /**
-     * Get the template House Keeping wants to frame its message in.
-     *
-     * @returns String containing the template to use.
-     */
-    @Override
-    public String getTemplate() {
+    public void confirmMessage(String actionId) throws Exception {
         if (houseKeeper != null) {
-            String template = houseKeeper.getDisplayTemplate();
-            if (template != null) {
-                return template;
-            }
-        }
-        return null;
-    }
-
-    /**
-     * Send a confirmation of the message receipt to HouseKeeping.
-     *
-     */
-    @Override
-    public void confirmMessage() {
-        if (houseKeeper != null) {
-            houseKeeper.confirmMessage();
+            houseKeeper.confirmMessage(actionId);
         }
     }
 

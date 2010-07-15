@@ -28,7 +28,6 @@ import au.edu.usq.fascinator.portal.FormData;
 import au.edu.usq.fascinator.portal.JsonSessionState;
 import au.edu.usq.fascinator.portal.services.DynamicPageService;
 import au.edu.usq.fascinator.portal.services.GenericStreamResponse;
-import au.edu.usq.fascinator.portal.services.HouseKeepingManager;
 import au.edu.usq.fascinator.portal.services.HttpStatusCodeResponse;
 import au.edu.usq.fascinator.portal.services.PortalManager;
 import au.edu.usq.fascinator.portal.services.PortalSecurityManager;
@@ -46,7 +45,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
@@ -82,9 +80,6 @@ public class Dispatch {
 
     @Inject
     private DynamicPageService pageService;
-
-    @Inject
-    private HouseKeepingManager houseKeeping;
 
     @Inject
     private PortalManager portalManager;
@@ -199,17 +194,6 @@ public class Dispatch {
                 }
             } catch (Exception ex) {
                 log.error("SSO Error!", ex);
-            }
-
-            // House keeping
-            log.debug("Resource: '{}'", resourceName);
-            if (houseKeeping.requiresAction()) {
-                String template = houseKeeping.getTemplate();
-                if (template != null) {
-                    resourceName = template;
-                    log.debug("House Keeping resource override: '{}'",
-                            resourceName);
-                }
             }
         }
 

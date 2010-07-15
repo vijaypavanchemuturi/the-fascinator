@@ -18,7 +18,11 @@
  */
 package au.edu.usq.fascinator.portal.services;
 
+import au.edu.usq.fascinator.portal.UserAction;
+
+import java.util.List;
 import java.util.Map;
+
 import org.apache.tapestry5.ioc.services.RegistryShutdownListener;
 
 /**
@@ -29,31 +33,18 @@ import org.apache.tapestry5.ioc.services.RegistryShutdownListener;
 public interface HouseKeepingManager extends RegistryShutdownListener {
 
     /**
-     * Are there any House Keeping actions requiring attention from the user.
+     * Get the messages to display for the user
      *
-     * @returns boolean flag
+     * @returns List<UserAction> The current list of message
      */
-    public boolean requiresAction();
+    public List<UserAction> getUserMessages();
 
     /**
-     * Get the message House Keeping wants to display to the user.
+     * Confirm and remove a message/action
      *
-     * @returns String containing the message to display.
+     * @param actionId The ID of the action to remove
      */
-    public String getMessage();
-
-    /**
-     * Get the template House Keeping wants to frame its message in.
-     *
-     * @returns String containing the template to use.
-     */
-    public String getTemplate();
-
-    /**
-     * Send a confirmation of the message receipt to HouseKeeping.
-     *
-     */
-    public void confirmMessage();
+    public void confirmMessage(String actionId) throws Exception;
 
     /**
      * Send a message to HouseKeeping.
