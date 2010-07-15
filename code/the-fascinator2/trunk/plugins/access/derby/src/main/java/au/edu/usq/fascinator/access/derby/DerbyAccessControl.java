@@ -218,7 +218,6 @@ public class DerbyAccessControl implements AccessControl {
                     "Error during database preparation:", ex);
         }
         log.debug("Derby security database online!");
-
     }
 
     /**

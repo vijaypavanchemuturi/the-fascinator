@@ -258,21 +258,7 @@ public class DynamicPageServiceImpl implements DynamicPageService {
                 .getServerPort());
         bindings.put("toolkit", toolkit);
         bindings.put("log", log);
-
-        if (houseKeeping.requiresAction()) {
-            String template = houseKeeping.getTemplate();
-            if (template == null) {
-                bindings.put("hkNotice", true);
-            } else {
-                bindings.put("hkNotice", false);
-            }
-            bindings.put("hkMessage", houseKeeping.getMessage());
-            houseKeeping.confirmMessage();
-        } else {
-            bindings.put("hkMessage", "");
-            bindings.put("hkNotice", false);
-        }
-
+        bindings.put("notifications", houseKeeping.getUserMessages());
         bindings.put("bindings", bindings);
 
         // run page and template scripts

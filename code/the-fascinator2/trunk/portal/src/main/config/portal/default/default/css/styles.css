@@ -451,27 +451,74 @@ ul.nobgtabs li a.ui-state-active {
     display: none;
 }
 
-#config-notices h2, .notice h2 {
-    background-color: #CC3300;
-}
-
-#config-notices, .notice {
+#notifications {
     background-color: #FFDDDD;
     margin-bottom: 5px;
     margin-top: 5px;
+    font-size: 140%;
 }
 
-#config-notices .warning, .notice .warning {
-    padding: 5px;
-    font-size: 125%;
-}
-
-#config-notices .warning b, .notice .warning b {
+#notifications h2 {
     display: block;
+    background-color: #CC3300;
     background-image: url('../images/icons/server_error.png');
-    background-position: 0 50%;
+    background-position: 10px 50%;
     background-repeat: no-repeat;
-    padding-left: 20px;
+    padding-left: 30px;
+}
+
+#notifications .content {
+    padding: 10px;
+}
+
+#notifications .blocking, #notifications .normal, #notifications .lowHeader {
+    border: 1px solid #999999;
+    margin-bottom: 7px;
+    padding: 3px;
+    background-position: 5px 50%;
+    background-repeat: no-repeat;
+    padding-left: 35px;
+}
+
+#notifications .blocking {
+    background-image: url('../images/icons/exclamation.png');
+    background-color: blanchedalmond;
+}
+
+#notifications .normal {
+    background-image: url('../images/icons/information.png');
+    background-color: cornsilk;
+}
+
+#notifications .confirm, #notifications .lowManage {
+    border: 1px solid #666666;
+    float: right;
+    background-color: white;
+    background-image: url('../images/icons/cross.png');
+    background-position: 2px 3px;
+    background-repeat: no-repeat;
+    padding: 1px 5px 0px 20px;
+    margin-right: 5px;
+    font-weight: bold;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+#notifications .administrator {
+    border: 1px solid #CCCCCC;
+    margin: 5px;
+    padding: 5px;
+}
+
+#notifications .lowHeader {
+    border: 0px;
+    padding-left: 3px;
+}
+
+#notifications .lowHeader a {
+    font-weight: normal;
+    font-size: 80%;
+    color: blue;
 }
 
 .owner {

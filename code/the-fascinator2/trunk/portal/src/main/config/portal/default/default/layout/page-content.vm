@@ -1,10 +1,12 @@
 <div class="grid_16">
   #parse($page.getTemplate('dialogs/notice.vm'))
   #parse($page.getTemplate('dialogs/login.vm'))
-  #if($pageContent)
+  #if($pageContent && (!$blockingNotifications || $renderSettingsForms))
     $pageContent
   #else
-    #parse($page.getTemplate('layout/error-screen.vm'))
+    #if (!$blockingNotifications)
+      #parse($page.getTemplate('layout/error-screen.vm'))
+    #end
   #end
 </div>
 <div class="clear"></div>

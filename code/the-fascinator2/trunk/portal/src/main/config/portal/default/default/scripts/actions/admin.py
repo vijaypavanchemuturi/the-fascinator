@@ -1,3 +1,5 @@
+import sys
+
 from authentication import Authentication
 
 class LoginData:
@@ -48,6 +50,28 @@ class LoginData:
 
             else:
                 self.throw_error(err)
+
+    def confirm_message(self):
+        msgId = formData.get("message")
+        hk = Services.getHouseKeepingManager()
+
+        if msgId is None:
+            self.throw_error("No message ID provided")
+
+        try:
+            if msgId == "ALL":
+                list = hk.getUserMessages();
+                for entry in list:
+                    if not entry.block:
+                        hk.confirmMessage(str(entry.id));
+            else:
+                hk.confirmMessage(msgId);
+        except:
+            error = sys.exc_info()[1]
+            self.throw_error(error.getMessage())
+
+        self.writer.println("ok")
+        self.writer.close()
 
     def create_role(self):
         rolename = formData.get("field")
@@ -170,6 +194,7 @@ class LoginData:
 
         switch = {
             "add-user"           : self.add_user,
+            "confirm-message"    : self.confirm_message,
             "create-role"        : self.create_role,
             "create-user"        : self.create_user,
             "delete-role"        : self.delete_role,
