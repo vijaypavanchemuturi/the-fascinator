@@ -1,5 +1,5 @@
 {
-    "version": "0.6.13",
+    "version": "0.6.14",
     "configured": false,
     "urlBase" : "http://localhost:9997/portal/",
     "email" : "fascinator@usq.edu.au",
@@ -185,6 +185,9 @@
             "upload-path": "${fascinator.home}/uploads/workflow-harvester",
             "json-config": "${fascinator.home}/harvest/workflows/workflow-harvester.json"
         }
+    },
+    "mime-types" : {
+        "tfpackage" : "application/x-fascinator-package"
     },
     "portal": {
         "home": "${portal.home}",

@@ -25,7 +25,6 @@ import java.io.InputStream;
 
 import org.apache.commons.lang.StringUtils;
 import org.semanticdesktop.aperture.mime.identifier.MimeTypeIdentifier;
-import org.semanticdesktop.aperture.mime.identifier.magic.MagicMimeTypeIdentifier;
 import org.semanticdesktop.aperture.util.IOUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,7 +43,7 @@ public class MimeTypeUtil {
     private static Logger log = LoggerFactory.getLogger(MimeTypeUtil.class);
 
     /** Identifier */
-    private static MimeTypeIdentifier identifier = new MagicMimeTypeIdentifier();
+    private static MimeTypeIdentifier identifier = new MagicMimeTypeIdentifierWrapper();
 
     /**
      * Gets the MIME type for the specified file name
@@ -108,6 +107,17 @@ public class MimeTypeUtil {
                     toPrintable(ioe));
         }
         return DEFAULT_MIME_TYPE;
+    }
+
+    /**
+     * Gets the MIME type for the specified byte array and filename
+     * 
+     * @param bytes a byte array
+     * @param filename a file name
+     * @return MIME type
+     */
+    public static String getMimeType(byte[] bytes, String filename) {
+        return identifier.identify(bytes, filename, null);
     }
 
     /**
