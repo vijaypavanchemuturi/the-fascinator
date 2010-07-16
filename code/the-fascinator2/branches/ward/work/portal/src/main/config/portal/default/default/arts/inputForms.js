@@ -119,12 +119,8 @@
         var oid = packageData.oid;
         var metaList = [];
         var data = getDataList().getNameValues();
-        alert(data.toSource());
-        return;
         for(var k in data){
-            if(k!="title" && k!="description"){
-                metaList.push(k);
-            }
+            metaList.push(k);
         }
         data.func=func; data.oid=oid; data.metaList=metaList;
         $.ajax({ type:"POST", url:url, data:data,
@@ -147,7 +143,6 @@
     function updateForm(data){
         var key, value, setData;
         setData = getDataList();
-        //alert(data.toSource())
         for(key in data){
             value = data[key];
             setData.set(key, value);
@@ -240,6 +235,13 @@
                     eval("json=" + getIBody().text());
                     alert(json.toSource() + ", " + json.oid);
                     resetAllFields();
+                    $.getJSON("../actions/manifest",
+                        {"itemId":json.oid, "title":metaData["title"],
+                            "func":"add", "oid":packageData.oid},
+                        function(data){
+                            alert(data.toSource());
+                        }
+                    );
                     $("#uploading-file-msg").text("Uploaded OK");
                 }catch(e){
                     $("#uploading-file-msg").css("color", "red").
@@ -480,12 +482,7 @@
                 step = "setupJsonMultiSelects";
                 setupJsonMultiSelects();
                 step = "updateForm";
-                //var formData = packageData.manifest.formData
-                //if(!formData) formData={};
-                //if(!formData["dc:title"]) formData["dc:title"]=packageData.manifest.title;
-                //if(!formData["dc:abstract"]) formData["dc:abstract"]=packageData.manifest.description;
-                //updateForm(formData);
-                updateForm(packageData.manifest);
+                updateForm(packageData.metaData);
             }catch(e){
                 alert("Error: (step "+step+") "+e);
             }

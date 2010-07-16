@@ -16,8 +16,9 @@ class ManifestActions:
         result = "{}"
         func = formData.get("func")
         oid = formData.get("oid")
-        
-        if func != "update-package-meta":
+        print "func='%s', oid='%s'" % (func, oid)
+
+        if func not in ["update-package-meta", "add"]:
             nodeId = formData.get("nodeId")
             nodePath = self.__getNodePath(formData.get("parents"), nodeId)
             originalPath = "manifest//%s" % nodeId
@@ -34,37 +35,43 @@ class ManifestActions:
                 #payload = self.__object.getPayload(sourceId)
                 #writer = StringWriter()
                 #IOUtils.copy(payload.open(), writer)
-                #manifest = jsonReader(writer.toString())
+                #tfpackage = jsonReader(writer.toString())
                 #payload.close()
-                #manifest = jsonReader(str(self.__manifest))
-                #manifest["formData"] = {}  # start with a blank copy (so that deleted item are removed
-                manifest = {}  # start with a blank copy (so that deleted item are removed
+                tfpackage = jsonReader(str(self.__manifest))
                 metaList = list(formData.getValues("metaList"))
-                for k in manifest:
-                    if k.find(":")>0:
-                        manifest.pop(k)
+                removedSet = set(tfpackage.get("metaList", [])).difference(metaList)
                 try:
                     for metaName in metaList:
                         value = formData.get(metaName)
-                        #manifest["formData"][metaName] = value
-                        manifest["formData"] = value
-                    for metaName in ["title", "description"]:
-                        manifest[metaName] = manifest[metaName];
-                    print manifest
+                        [metaName] = value
+                    tfpackage["metaList"] = metaList
+                    for metaName in removedSet:
+                        del tfpackage[metaName]
                 except Exception, e: 
                     print "Error: '%s'" % str(e)
-                self.__manifest = JsonConfigHelper(jsonWriter(manifest))
+                self.__manifest = JsonConfigHelper(jsonWriter(tfpackage))
                 self.__saveManifest()
-                # we also should be re-indexing here because
-                #   the title may have changed etc.
-                # Re-index the object
+                # Re-index the object  - for title|description changes
                 Services.indexer.index(self.__object.getId())
                 Services.indexer.commit()
                 result='{"ok":"saved ok"}';
             except Exception, e:
                 print "Error updating package metaData - '%s'" % str(e)
                 result='{"error":"%s"}' % str(e);
-        if func == "rename":
+        elif func == "add":
+            itemId = formData.get("itemId")
+            title = formData.get("title")
+            if itemId is None:
+                result = '{"error":"no id given!"}'
+            tfpackage = jsonReader(str(self.__manifest))
+            if tfpackage.get("manifest") is None:
+                tfpackage["manifest"]={}
+            tfpackage["manifest"]["node-%s" % itemId] = {"id":itemId, "title":title}
+            self.__manifest = JsonConfigHelper(jsonWriter(tfpackage))
+            self.__saveManifest()
+            result = jsonWriter({"ok":"ok",
+                    "manifest":tfpackage["manifest"]})
+        elif func == "rename":
             title = formData.get("title")
             self.__manifest.set("%s/title" % nodePath, title)
             self.__saveManifest()

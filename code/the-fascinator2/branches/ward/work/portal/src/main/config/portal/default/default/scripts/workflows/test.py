@@ -2,10 +2,13 @@ from __main__ import Services, formData
 
 from au.edu.usq.fascinator.common import JsonConfigHelper
 
-from java.io import InputStreamReader
-from java.lang import Exception
-from java.util import ArrayList, HashMap
 from org.apache.commons.lang import StringEscapeUtils
+from java.lang import Exception as JavaException, Boolean, String
+from java.util import ArrayList, HashMap
+from java.io import InputStreamReader, ByteArrayInputStream, StringWriter
+from org.apache.commons.io import IOUtils
+
+from json import read as jsonReader, write as jsonWriter
 
 
 class Test(object):
@@ -15,14 +18,19 @@ class Test(object):
         result = None
         try:
             # get the package manifest
-            object = Services.getStorage().getObject(self.__oid)
-            sourceId = object.getSourceId()
-            payload = object.getPayload(sourceId)
-            payloadReader = InputStreamReader(payload.open(), "UTF-8")
-            self.__manifest = JsonConfigHelper(payloadReader)
-            payloadReader.close()
+            obj = Services.getStorage().getObject(self.__oid)
+            sourceId = obj.getSourceId()
+            payload = obj.getPayload(sourceId)
+            writer = StringWriter()
+            IOUtils.copy(payload.open(), writer)
+            self.__tfpackage = jsonReader(writer.toString())
             payload.close()
-            object.close()
+            obj.close()
+
+            print "**** test.py"
+            print self.__oid
+            print self.__tfpackage
+            
             # check if we need to do processing
             func = formData.get("func")
             if func == "get-rvt-manifest":
@@ -36,22 +44,22 @@ class Test(object):
             writer.close()
 
     def getManifest(self):
-        return self.__manifest.getJsonMap("manifest")
+        return self.__tfpackage.get("manifest", {})
 
     def getFormData(self, field):
         return StringEscapeUtils.escapeHtml(formData.get(field, ""))
 
-    def getPackageTitle(self):
-        return StringEscapeUtils.escapeHtml(formData.get("title", self.__manifest.get("title")))
-
     def getMeta(self, metaName):
-        return StringEscapeUtils.escapeHtml(formData.get(metaName, self.__manifest.get(metaName)))
+        return StringEscapeUtils.escapeHtml(formData.get(metaName, self.__tfpackage.get(metaName)))
 
-    def getManifest(self):
-        return str(self.__manifest)
+    def getJsonMetadata(self):
+        return jsonWriter(self.__tfpackage)
+
+    def getJsonTest(self):
+        return jsonWriter("""Testing a string with ' and " and \n\rnewlines""")
 
     def getManifestViewId(self):
-        searchPortal = self.__manifest.get("viewId", defaultPortal)
+        searchPortal = self.__tfpackage.get("viewId", defaultPortal)
         if Services.portalManager.exists(searchPortal):
             return searchPortal
         else:
@@ -59,7 +67,7 @@ class Test(object):
 
     def __getRvtManifest(self, manifest):
         rvtMap = HashMap()
-        rvtMap.put("title", self.__manifest.get("title"))
+        rvtMap.put("title", self.__tfpackage.get("title"))
         rvtMap.put("toc", self.__getRvtNodes(manifest))
         rvtManifest = JsonConfigHelper(rvtMap)
         return rvtManifest.toString()
@@ -81,5 +89,5 @@ class Test(object):
                 rvtNodes.add(rvtNode)
         return rvtNodes
 
-if __name__ == "__main__":
-    scriptObject = Test()
+scriptObject = Test()
+
