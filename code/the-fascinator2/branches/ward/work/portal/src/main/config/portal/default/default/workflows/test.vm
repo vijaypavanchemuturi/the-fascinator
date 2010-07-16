@@ -1,4 +1,3 @@
-#set($manifest = $self.manifest)
 #set($oid = $self.getFormData('oid'))
 #set($title = $self.getFormData('title'))
 #set($pageTitle = $title)
@@ -40,15 +39,14 @@
 ##
 <script type="text/javascript" src="$portalPath/js/tree/jquery.tree.min.js"></script>
 <script type="text/javascript">
+// <![CDATA[
   var packageData = {
             portalPath:"$portalPath",
-            title:"$self.getPackageTitle()",
-            description:"$self.getMeta('description')",
-            targetStep:"$self.getFormData('nextStep')",
-            manifest:$self.getManifest(),
+            metaData:$self.getJsonMetadata(),
+            test:$self.getJsonTest(),
             oid:"$oid"
         };
-
+// ]]>
 </script>
 <script type="text/javascript" src="$portalPath/arts/inputForms.js"></script>
 

@@ -214,9 +214,9 @@ class UploadedData:
             self.errorMsg = "Invalid workflow configuration"
             return False
 
-        print "--------------"
-        print "meta='%s'" % meta        # "workflow.metadata"
-        print "currentStep='%s'" % currentStep
+        #print "--------------"
+        #print "meta='%s'" % meta        # "workflow.metadata"
+        #print "currentStep='%s'" % currentStep
         #print "stages='%s'" % stages
         nextFlag = False
         for stage in stages:
@@ -229,9 +229,9 @@ class UploadedData:
                 nextFlag = True
                 currentStage = stage
 
-        print "currentStage='%s'" % currentStage
-        print "nextStage='%s'" % nextStage
-        print "--------------"
+        #print "currentStage='%s'" % currentStage
+        #print "nextStage='%s'" % nextStage
+        #print "--------------"
 
         if nextStage is None:
             if currentStage is None:
@@ -253,10 +253,6 @@ class UploadedData:
             return False
 
         self.localFormData = FormData()     # localFormData for organiser.vm
-#        try:
-#            autoComplete = currentStage.get("auto-complete", "")
-#            self.localFormData.set("auto-complete", autoComplete)
-#        except: pass
         # Check for existing data
         oldFormData = meta.getJsonList("formData")
         if oldFormData.size() > 0:
