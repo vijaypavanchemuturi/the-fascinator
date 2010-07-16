@@ -324,15 +324,17 @@ class SearchData:
                 fqParts.append("category/%s/%s" % (facetKey, "/".join(facetValues)))
         return page, fq, fqParts
 
-    def test(self, id=""):
+    def isSelectableForPackage(self, oid):
         # cache this answer
+        # ensure a package cannot select itself
         activeManifest = self.__getActiveManifest()
-        print "activeManifest='%s'" % activeManifest
         packageType = activeManifest.get("packageType", "default")
-        json = JsonConfigHelper(JsonConfig.getSystemFile())
-        pt = json.getMap("portal/packageTypes/%s" % packageType)
-        pInP = json.get("portal/packageTypes/%s/packages-in-package" % packageType)=="true"
-        return pInP and (id!= self.getActiveManifestId())
+        # check if the package type allows packages in a package - do we need this??
+        ##json = JsonConfig()
+        ##pInP = Boolean.parseBoolean(json.get("portal/packageTypes/%s/packages-in-package" % packageType))
+        pInP = True
+        # need to check the package doesn't contain the active package?
+        return pInP and (oid != self.getActiveManifestId())
 
 if __name__ == "__main__":
     scriptObject = SearchData()

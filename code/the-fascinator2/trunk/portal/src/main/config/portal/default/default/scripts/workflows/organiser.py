@@ -18,14 +18,7 @@ class OrganiserData:
         result = None
         try:
             # get the package manifest
-            object = Services.getStorage().getObject(self.__oid)
-            sourceId = object.getSourceId()
-            payload = object.getPayload(sourceId)
-            payloadReader = InputStreamReader(payload.open(), "UTF-8")
-            self.__manifest = JsonConfigHelper(payloadReader)
-            payloadReader.close()
-            payload.close()
-            object.close()
+            self.__manifest = self.__readManifest(self.__oid)
             # check if we need to do processing
             func = formData.get("func")
             if func == "get-rvt-manifest":
@@ -46,7 +39,7 @@ class OrganiserData:
     
     def getPackageTitle(self):
         return StringEscapeUtils.escapeHtml(formData.get("title", self.__manifest.get("title")))
-
+    
     def getMeta(self, metaName):
         return StringEscapeUtils.escapeHtml(formData.get(metaName, self.__manifest.get(metaName)))
     
@@ -56,6 +49,45 @@ class OrganiserData:
             return searchPortal
         else:
             return defaultPortal
+    
+    def getMimeType(self, oid):
+        return self.__getContentType(oid)
+    
+    def getMimeTypeIcon(self, oid):
+        # check for specific icon
+        contentType = self.__getContentType(oid)
+        iconPath = "images/icons/mimetype/%s/icon.png" % contentType
+        resource = Services.getPageService().resourceExists(portalId, iconPath)
+        if resource is not None:
+            return iconPath
+        elif contentType.find("/") != -1:
+            # check for major type
+            return self.getMimeTypeIcon(contentType[:contentType.find("/")])
+        # use default icon
+        return "images/icons/mimetype/icon.png"
+    
+    def __getContentType(self, oid):
+        if oid == "blank":
+            contentType = "application/x-fascinator-blank-node"
+        else:
+            object = Services.getStorage().getObject(oid)
+            sourceId = object.getSourceId()
+            payload = object.getPayload(sourceId)
+            contentType = payload.getContentType()
+            payload.close()
+            object.close()
+        return contentType
+    
+    def __readManifest(self, oid):
+        object = Services.getStorage().getObject(oid)
+        sourceId = object.getSourceId()
+        payload = object.getPayload(sourceId)
+        payloadReader = InputStreamReader(payload.open(), "UTF-8")
+        manifest = JsonConfigHelper(payloadReader)
+        payloadReader.close()
+        payload.close()
+        object.close()
+        return manifest
     
     def __getRvtManifest(self, manifest):
         rvtMap = HashMap()
@@ -68,17 +100,32 @@ class OrganiserData:
         rvtNodes = ArrayList()
         #print "manifest=%s" % manifest
         for key in manifest.keySet():
+            package = False
             node = manifest.get(key)
-            rvtNode = HashMap()
-            if node.get("hidden") != "True":
-                relPath = node.get("id")
-                if not relPath:
-                    relPath = key.replace("node", "blank")
-                rvtNode.put("visible", True)
-                rvtNode.put("relPath", relPath)
-                rvtNode.put("title", node.get("title"))
-                rvtNode.put("children", self.__getRvtNodes(node.getJsonMap("children")))
-                rvtNodes.add(rvtNode)
+            try:
+                # add the node
+                rvtNode = HashMap()
+                if node.get("hidden") != "True":
+                    relPath = node.get("id")
+                    # check if node is a package
+                    if relPath:
+                        package = (self.__getContentType(relPath) == "application/x-fascinator-package")
+                    else:
+                        relPath = key.replace("node", "blank")
+                    rvtNode.put("visible", True)
+                    rvtNode.put("title", node.get("title"))
+                    if package:
+                        subManifest = self.__readManifest(relPath)
+                        if subManifest:
+                            subManifest = subManifest.getJsonMap("manifest")
+                            rvtNode.put("children", self.__getRvtNodes(subManifest))
+                        relPath = key.replace("node", "package")
+                    else:
+                        rvtNode.put("children", self.__getRvtNodes(node.getJsonMap("children")))
+                    rvtNode.put("relPath", relPath)
+                    rvtNodes.add(rvtNode)
+            except Exception, e:
+                log.error("Failed to process node '%s': '%s'" % (node.toString(), str(e)))
         return rvtNodes
 
 if __name__ == "__main__":

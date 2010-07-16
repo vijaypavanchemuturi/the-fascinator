@@ -1,6 +1,8 @@
 from au.edu.usq.fascinator.common import JsonConfigHelper
 from au.edu.usq.fascinator.api.storage import PayloadType, StorageException
 from java.io import ByteArrayOutputStream, InputStreamReader
+from java.lang import Exception
+from java.util import ArrayList, HashMap
 from org.apache.commons.io import IOUtils
 from org.w3c.tidy import Tidy
 
@@ -20,33 +22,38 @@ class PreviewData:
 ##            return template % self.__getTableOfContents(package, oid)
             return template % ('<div class="blank-toc" id="%s-content"></div>' % oid)
         else:
-            object = Services.getStorage().getObject(oid)
-            
-            # get preview payload or source if no preview
-            pid = self.__getPreviewPid(object)
-            payload = object.getPayload(pid)
-            mimeType = payload.getContentType()
-            
-            print "pid=%s mimeType=%s" % (pid, mimeType)
-            isHtml = mimeType in ["text/html", "application/xhtml+xml"]
-            if isHtml or mimeType.startswith("text/"):
-                out = ByteArrayOutputStream()
-                IOUtils.copy(payload.open(), out)
-                content = out.toString("UTF-8")
-                if content.find('class="body"'):  ## assumes ICE content
-                    return content
-                elif isHtml:
-                    return template % content
-                elif mimeType == "text/plain":
-                    return template % ('<pre>%s</pre>' % content)
-                else:
-                    return content
-            elif mimeType.startswith("image/"):
-                return template % ('<div rel="%s"><img src="%s" /></div>' % (oid, pid))
+            if oid.startswith("package-"):
+                pipId = oid[oid.find("-")+1:]
+                print "package pipId=%s" % pipId
+                manifest = self.__readManifest(pipId)
+                return template % ('<div class="package-description">%s</div><div class="blank-toc" id="%s-content"></div>' % (manifest.get("description"), oid))
             else:
-                return '<a href="%s" rel="%s">%s</a>' % (oid, mimeType, pid)
-            payload.close()
-            object.close()
+                object = Services.getStorage().getObject(oid)
+                # get preview payload or source if no preview
+                pid = self.__getPreviewPid(object)
+                payload = object.getPayload(pid)
+                mimeType = payload.getContentType()
+                
+                print "pid=%s mimeType=%s" % (pid, mimeType)
+                isHtml = mimeType in ["text/html", "application/xhtml+xml"]
+                if isHtml or mimeType.startswith("text/"):
+                    out = ByteArrayOutputStream()
+                    IOUtils.copy(payload.open(), out)
+                    content = out.toString("UTF-8")
+                    if content.find('class="body"'):  ## assumes ICE content
+                        return content
+                    elif isHtml:
+                        return template % content
+                    elif mimeType == "text/plain":
+                        return template % ('<pre>%s</pre>' % content)
+                    else:
+                        return content
+                elif mimeType.startswith("image/"):
+                    return template % ('<div rel="%s" class="image"><img src="%s" /></div><div class="clear"></div>' % (oid, pid))
+                else:
+                    return '<a href="%s" rel="%s">%s</a>' % (oid, mimeType, pid)
+                payload.close()
+                object.close()
     
     def __getPreviewPid(self, object):
         pidList = object.getPayloadIdList()
@@ -105,5 +112,16 @@ class PreviewData:
                 html += '<li>%s</li>' % self.__toc(children)
         html += "</ul>"
         return html
+    
+    def __readManifest(self, oid):
+        object = Services.getStorage().getObject(oid)
+        sourceId = object.getSourceId()
+        payload = object.getPayload(sourceId)
+        payloadReader = InputStreamReader(payload.open(), "UTF-8")
+        manifest = JsonConfigHelper(payloadReader)
+        payloadReader.close()
+        payload.close()
+        object.close()
+        return manifest
 
 scriptObject = PreviewData()
