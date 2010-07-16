@@ -22,6 +22,7 @@ $(function() {
     var rvt = rvtFactory(jQuery);
     rvt.tocSelector = "#package-toc";
     rvt.contentSelector = "#package-content";
+    rvt.contentScrollToTop = function() { alert($(window).offset()); };
     rvt.fixRelativeLinks = false;
     #if($isPackage)
       rvt.contentBaseUrl = "$portalPath/preview?package=$oid&oid=";
@@ -37,11 +38,14 @@ $(function() {
         var tree = jQuery.tree.reference(rvt.tocSelector);
         tree.select_branch("#" + oid + " > a");
         
-        if (oid.match(/^blank/)) {
+        if (oid.match(/^blank/) || oid.match(/^package/)) {
             var dest = $("#" + oid + "-content:empty");
             if (dest.length > 0) {
                 var source = $("#" + oid + " > ul");
-                source.clone().appendTo(dest);
+                source.clone(true).appendTo(dest);
+                $(dest).find("ul li a").each(function(count, item) {
+                    $(item).attr("href", "#" + $(item).parent().attr("id"));
+                });
                 $(dest).find("ul").show();
             }
             $("#object-tag-list, #location-tag-list, .annotatable").hide();
@@ -85,11 +89,14 @@ $(function() {
             callback: {
                 onselect: function(node, tree) {
                     var id = $(node).attr("id");
-                    if (id.match(/^blank-/)) {
+                    if (id.match(/^blank-/) || id.match(/^package/)) {
                         var dest = $("#" + id + "-content:empty");
                         if (dest.length > 0) {
                             var source = $(node).find(" > ul");
-                            source.clone().appendTo(dest);
+                            source.clone(true).appendTo(dest);
+                            $(dest).find("ul li a").each(function(count, item) {
+                                $(item).attr("href", "#" + $(item).parent().attr("id"));
+                            });
                             $(dest).find("ul").show();
                         }
                         $("#object-tag-list, #location-tag-list, .annotatable").hide();
@@ -97,7 +104,24 @@ $(function() {
                         $("#object-tag-list, #location-tag-list, .annotatable").show();
                     }
                     window.location.hash = "#" + id;
-                    $(".article-heading").html($(node).children("a").text());
+                    var itemTitle = jQuery.trim($(node).children("a").text());
+                    $(".article-heading").html(itemTitle);
+                    
+                    var openOriginal = $("#open-original");
+                    var openTitle = "Open '" + itemTitle + "'";
+                    if (id.match(/^blank-/) || id.match(/^package/)) {
+                        if (openOriginal.length > 0) {
+                            openOriginal.fadeOut();
+                        }
+                    } else {
+                        if (openOriginal.length == 0) {
+                            $("#packaging").append('<li id="open-original"><a href="#"></a></li>');
+                            openOriginal = $("#open-original");
+                        }
+                        openOriginal.find("a").attr("href", "$portalPath/detail/" + id);
+                        openOriginal.find("a").text(openTitle);
+                        openOriginal.fadeIn();
+                    }
                     return false;
                 }
             }

@@ -100,17 +100,23 @@ form .message {
     vertical-align: text-bottom;
 }
 
-.article div.image {
+div.image {
+    background: #fff;
+    border: 1px solid #bbb;
     float: left;
     margin: 3px 10px 3px 0;
     padding: 4px;
-    border: 1px solid #bbb;
-    background: #fff;
+}
+div.image:hover {
+    border: 1px solid #666;
+}
+div.image img {
+    float: left;
 }
 
 div.tags {
-    border-top: 1px dotted #999999;
     border-bottom: 1px dotted #999999;
+    border-top: 1px dotted #999999;
     margin-bottom: 3px;
     padding: 0.3em 0;
 }
@@ -215,11 +221,22 @@ ul.nav li.label {
     border: none;
     color: black;
     font-weight: bold;
+    padding-top: 1px;
+    padding-bottom: 1px;
 }
 
 #toc li a.item-hidden {
     color: gray;
     font-style: italic;
+}
+
+#toc .mime-type {
+    padding-left: 2px;
+    padding-right: 2px;
+}
+
+#toc ins {
+    display: none;
 }
 
 label.checkbox {
@@ -314,11 +331,21 @@ span.view-type a.selected {
     background: #666666;
 }
 
+#package-content ul {
+    margin-bottom: 0;
+}
+
 div.article-heading, #package-content div.title {
     border-bottom: 1px solid #CCCCCC;
     font-weight: bold;
-    font-size: 1.5em;
-    margin-bottom: 10px;
+    font-size: 1.6em;
+    margin-bottom: 15px;
+}
+
+.package-description {
+    font-size: 1.2em;
+    padding-left: 5px;
+    padding-bottom: 5px;
 }
 
 fieldset.login p select {
@@ -528,7 +555,7 @@ ul.nobgtabs li a.ui-state-active {
     padding-left: 20px;
 }
 
-li img.workflow {
+li img.workflow, .mime-icon {
     vertical-align: middle;
 }
 
@@ -576,6 +603,11 @@ li img.workflow {
 }
 #package-clear-all {
     background-image: url('../images/icons/package_delete.png');
+    background-repeat: no-repeat;
+    background-position: 7px 50%;
+}
+#deselect-package {
+    background-image: url('../images/icons/cancel.png');
     background-repeat: no-repeat;
     background-position: 7px 50%;
 }
