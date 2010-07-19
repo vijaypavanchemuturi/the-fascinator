@@ -59,6 +59,7 @@ class SolrDoc:
 
 class DetailData:
     def __init__(self):
+        self.__flvFlag = None
         self.__object = None
         self.__render = True
         if formData.get("func") == "open-file":
@@ -317,11 +318,20 @@ class DetailData:
         return False
 
     def hasFlv(self):
-        pid = self.__pid
-        pid = pid[:pid.find(".")] + ".flv"
-        if self.containsPid(pid):
-            return pid
-        return ""
+        if self.__flvFlag is not None:
+            return self.__flvFlag
+        payloadIdList = self.getObject().getPayloadIdList()
+        for payloadId in payloadIdList:
+            try:
+                payload = self.getObject().getPayload(payloadId)
+                mimeType = payload.getContentType()
+                if mimeType == "video/x-flv":
+                    self.__flvFlag = payloadId
+                    return payloadId
+            except StorageException, e:
+                pass
+        self.__flvFlag = False
+        return False
 
     def hasHtml(self):
         payloadIdList = self.getObject().getPayloadIdList()
