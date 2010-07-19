@@ -68,7 +68,10 @@ class ManifestActions:
                 tfpackage["manifest"]={}
             tfpackage["manifest"]["node-%s" % itemId] = {"id":itemId, "title":title}
             self.__manifest = JsonConfigHelper(jsonWriter(tfpackage))
-            self.__saveManifest()
+            #self.__saveManifest()
+            print "***********"
+            print " manifest.py func='add'"
+            print tfpackage
             result = jsonWriter({"ok":"ok",
                     "manifest":tfpackage["manifest"]})
         elif func == "rename":

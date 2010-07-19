@@ -244,7 +244,13 @@ public class FileSystemDigitalObject extends GenericDigitalObject {
         if (man.containsKey(pid)) {
             return man.get(pid);
         } else {
-            throw new StorageException("ID '" + pid + "' does not exist.");
+            buildManifest();
+            man = getManifest();
+            if (man.containsKey(pid)) {
+                return man.get(pid);
+            } else {
+                throw new StorageException("ID '" + pid + "' does not exist.");
+            }
         }
     }
 

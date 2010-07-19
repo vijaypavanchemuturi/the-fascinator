@@ -183,15 +183,21 @@ public class PortalManagerImpl implements PortalManager {
 
     @Override
     public void reharvest(String objectId) {
+        reharvest(objectId, true);
+    }
+
+    @Override
+    public void reharvest(String objectId, boolean userPriority) {
         try {
             HarvestClient client = new HarvestClient();
             // High priority when user requests
             // single object be reharvested
-            client.reharvest(objectId, true);
+            client.reharvest(objectId, userPriority);
         } catch (Exception e) {
             log.error("Object reharvest failed", e);
         }
     }
+
 
     @Override
     public void reharvest(Set<String> objectIds) {
