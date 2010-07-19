@@ -1,6 +1,7 @@
 from au.edu.usq.fascinator.api.storage import StorageException
 from au.edu.usq.fascinator.common import JsonConfigHelper
 from au.edu.usq.fascinator.portal import FormData
+from au.edu.usq.fascinator.common.storage import StorageUtils
 
 from java.io import ByteArrayInputStream
 from java.lang import String
@@ -31,54 +32,72 @@ class UploadedData:
             self.hasUpload = False
             self.fileDetails = None
             oid = formData.get("oid")
-            if oid is None:
-                self.formProcess = False
-                self.template = None
-            else:
+            if oid is not None:
                 self.formProcess = True
         else:   # First stage, post-upload
             self.hasUpload = True
-            print "wait 3 " ############################################################
-            time.sleep(3)
             self.fileDetails = sessionState.get(self.fileName)
             print " * workflow.py : Upload details : ", repr(self.fileDetails)
-            self.template = self.fileDetails.get("template")
+            self.template = self.fileDetails.get("template")    # renderTemplate
             self.errorMsg = self.fileDetails.get("error")
-
-        time.sleep(1)
-        obj = self.getObject()
-        wfMetadata = self.getWorkflowMetadata()       # workflow.metadata
 
         if self.formProcess:
             #print " workflow - processForm"
+            obj = self.getObject()
+            wfMetadata = self.getWorkflowMetadata()      # workflow.metadata
             self.processForm()
+            return
         if self.isAjax:
             print " workflow - ajax"
-            if wfMetadata is None or obj is None:
-                print "** Waiting **"
-                time.sleep(1)
+            global page
+            from authentication import Authentication
+            class _(): pass
+            page = _()
+            page.authentication = Authentication()
+
+            for x in range(30):     # 
+                self.object = None
                 obj = self.getObject()
-                wfMetadata = self.getWorkflowMetadata()       # workflow.metadata
-                print "obj='%s'" % obj
-                print "wfMetadata='%s'" % wfMetadata
+                if obj is None:     # wait for object
+                    print "%s - obj is None" % (x+1)
+                    time.sleep(.1)
+                    continue
+                #wfMetadata = self.getWorkflowMetadata()  # workflow.metadata
+                #if wfMetadata is None:
+                #    time.sleep(.1)
+                #    continue
+
+            obj = self.getObject()
             oid = obj.getId()
-            self.prepareTemplate()
+            wfMetadata = self.getWorkflowMetadata()  # workflow.metadata
+            if wfMetadata is None:
+                wfMetadataDict = {"id":oid, "step":"pending",
+                            "pageTitle":"Uploaded Files - Management",
+                            "label":"Pending", "createdBy":"workflow.py"}
+                wfMetadata = JsonConfigHelper(jsonWriter(wfMetadataDict))
+                self.setWorkflowMetadata(wfMetadata)
+                self.metadata = None
+                wfMetadata = self.getWorkflowMetadata()  # workflow.metadata
+                ##
+                self.metadata = None
+                wfMetadata = self.getWorkflowMetadata()  # workflow.metadata
+                #print "-------------1"
+                #print wfMetadata
+                #print "-------------"
+            self.prepareTemplate()                   #
             wfMetadataDict = jsonReader(wfMetadata.toString())
             fData = wfMetadataDict.get("formData")
             if fData is None:
                 fData = {}
                 wfMetadataDict["formData"] = fData
-
             metaDataList = formData.get("metaDataList", "")
             metaDataList = metaDataList.split(",")
             for mdName in metaDataList:
                 data = formData.get(mdName, "")
                 #mdName = mdName.replace(":", "_")
                 fData[mdName] = data
-                #print "* formData/%s = '%s'" % (mdName, data)
             wfMetadata = JsonConfigHelper(jsonWriter(wfMetadataDict))
             self.metadata = wfMetadata
-
             wfMetadata.set("targetStep", "metadata")
             self.setWorkflowMetadata(wfMetadata)
             # Re-index the object
@@ -333,7 +352,8 @@ class UploadedData:
         try:
             jsonString = String(oldMetadata.toString())
             inStream = ByteArrayInputStream(jsonString.getBytes("UTF-8"))
-            self.object.updatePayload("workflow.metadata", inStream)
+            #self.object.updatePayload("workflow.metadata", inStream)
+            StorageUtils.createOrUpdatePayload(self.object, "workflow.metadata", inStream)
             return True
         except StorageException, e:
             return False

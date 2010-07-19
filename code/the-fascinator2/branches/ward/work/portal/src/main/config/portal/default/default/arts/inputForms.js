@@ -1,3 +1,4 @@
+
 (function($){
     function getDataList(){
         dataList = {};      // name:{get:func(), set:func(d)], name.0:[get:func(i), set:func(i, d)}
@@ -126,7 +127,6 @@
         $.ajax({ type:"POST", url:url, data:data,
             success:function(data){
                 if(data.error || !data.ok){
-                    alert(data.toSource());
                     messageBox("Failed to save! (error='"+data.error+"')");
                 }else{
                     $("#saved-result").text("Saved OK").
@@ -191,7 +191,7 @@
             form.append(input);
         }
         form.append("<input type='hidden' name='ajax' value='1' />");
-        form.attr("action", "/portal/default/workflow");
+        form.attr("action", "/portal/default/workflow.ajax");
         form.append("<input type='hidden' name='upload-file-workflow' value='workflow1' />");
         input = $("<input type='hidden' name='metaDataList' />");
         input.attr("value", mdList.join(","));
@@ -216,6 +216,7 @@
             else ibody = iframe[0].contentWindow.document.body;
             return $(ibody);
         }
+        form.submit();
         try{
             disableAllFields(true);
             $("#upload-file-loading").show();
@@ -225,7 +226,6 @@
         }catch(e){
 
         }
-        form.submit();
         try{
            iframe.unbind().load(function() {
                 $("#upload-file-loading").hide();
@@ -233,8 +233,8 @@
                 var json;
                 try{
                     eval("json=" + getIBody().text());
-                    alert(json.toSource() + ", " + json.oid);
                     resetAllFields();
+                    alert(json.toSource());
                     $.getJSON("../actions/manifest",
                         {"itemId":json.oid, "title":metaData["title"],
                             "func":"add", "oid":packageData.oid},

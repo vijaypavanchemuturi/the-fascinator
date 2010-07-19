@@ -50,6 +50,8 @@ public interface PortalManager {
 
     public void reharvest(String objectId);
 
+    public void reharvest(String objectId, boolean userPriority);
+
     public void reharvest(Set<String> objectIds);
 
 }
