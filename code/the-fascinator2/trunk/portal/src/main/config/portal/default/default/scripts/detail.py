@@ -106,12 +106,12 @@ class DetailData:
             print "URI='%s' OID='%s' SID='%s' PID='%s' MIME='%s'" % (uri, self.__oid, self.__sid, self.__pid, self.__mimeType)
             self.__metadata = JsonConfigHelper()
             self.__search()
-            
+
             if int(self.__json.get("response/numFound")) == 0:
                 return
-            
+
             self.__previewPayload = self.__metadata.getPreview()
-            
+
             # get the package manifest
             self.__manifest = JsonConfigHelper()
             if self.__metadata.isPackage():
@@ -132,7 +132,7 @@ class DetailData:
         if int(json.get("response/numFound")) == 0:
             raise StorageException("No object matching id: '%s'" % oid)
         return json.getList("response/docs").get(0).get("storage_id")
-    
+
     def isRendered(self):
         return self.__render
 
@@ -241,7 +241,7 @@ class DetailData:
                 objectLink = '<a class="iframe-link-alt" href="%s">View outside the frame</a>' % objectPath
                 objectFrame = '<iframe class="iframe-preview" src="%s"></iframe>' % objectPath
                 contentStr = objectLink + "<br/>" + objectFrame
-                    
+
             else:
                 #print "pid=%s payload=%s" % (pid, payload)
                 if self.__payload is not None:
@@ -377,8 +377,7 @@ class DetailData:
     def isMetadataOnly(self):
         previewPid = self.getPreview()
         if previewPid is None:
-            # packages don't have previews by default
-            if self.__metadata.isPackage():
+            if self.__metadata.isPackage() or self.hasFlv() or self.hasHtml():
                 return False
             elif self.hasError():
                 #check if have error...
