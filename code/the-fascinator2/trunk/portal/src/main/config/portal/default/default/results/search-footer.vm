@@ -1,4 +1,4 @@
-<h2 id="page-heading">
+<div class="results-footer">
   <span class="paging right">#parse($page.getTemplate("results/search-paging.vm"))</span>
-</h2>
+</div>
 <div class="clear"></div>

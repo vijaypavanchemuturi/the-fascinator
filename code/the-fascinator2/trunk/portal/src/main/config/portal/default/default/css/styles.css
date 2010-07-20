@@ -681,3 +681,8 @@ ul.global-topic {
 .blank-toc a {
     font-weight: normal;
 }
+
+.results-footer span.paging {
+    font-size: 23px;
+    margin: 10px 10px;
+}
