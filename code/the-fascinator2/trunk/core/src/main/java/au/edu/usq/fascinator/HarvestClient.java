@@ -240,10 +240,9 @@ public class HarvestClient {
             // process deleted objects
             do {
                 for (String oid : harvester.getDeletedObjectIdList()) {
-                    storage.removeObject(oid);
                     queueDelete(oid, configFile);
                 }
-            } while (harvester.hasMoreObjects());
+            } while (harvester.hasMoreDeletedObjects());
         }
 
         log.info("Completed in "

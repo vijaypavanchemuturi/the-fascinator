@@ -172,7 +172,7 @@ public class FileSystemHarvester extends GenericHarvester {
         // Check for valid targest
         List<JsonConfigHelper> list = config
                 .getJsonList("harvester/file-system/targets");
-        if (list.size() == 0) {
+        if (list.isEmpty()) {
             throw new HarvesterException("No targets specified");
         }
 
@@ -493,7 +493,7 @@ public class FileSystemHarvester extends GenericHarvester {
                 File realFile = new File(id);
                 if (!realFile.exists()) {
                     FileUtils.deleteQuietly(idFile.getParentFile());
-                    fileObjectIdList.add(id);
+                    fileObjectIdList.add(StorageUtils.generateOid(realFile));
                 }
             } catch (IOException ioe) {
                 log.warn("Failed to read {}", idFile);
@@ -514,7 +514,7 @@ public class FileSystemHarvester extends GenericHarvester {
     /**
      * Create digital object
      * 
-     * @param file File to be transformed to be ditigal object
+     * @param file File to be transformed to be digital object
      * @return object id of created digital object
      * @throws HarvesterException if fail to create the object
      * @throws StorageException if fail to save the file to the storage

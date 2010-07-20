@@ -300,6 +300,7 @@ public class HarvestQueueConsumer implements GenericListener {
                     config.get("deleted", "false"));
             if (deleted) {
                 log.info("Removing object {}...", oid);
+                storage.removeObject(oid);
                 indexer.remove(oid);
                 return;
             }
