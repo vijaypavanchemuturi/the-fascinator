@@ -83,7 +83,12 @@ public class FileSystemPayload extends GenericPayload {
                 try {
                     String linkPath = FileUtils.readFileToString(dataFile);
                     File linkFile = new File(linkPath);
-                    setContentType(MimeTypeUtil.getMimeType(linkFile));
+                    if (linkFile.exists()) {
+                        setContentType(MimeTypeUtil.getMimeType(linkFile));
+                    } else {
+                        log.debug("Linked file '{}' no longer exists!",
+                                linkFile.getAbsolutePath());
+                    }
                 } catch (IOException ioe) {
                     log.warn("Failed to get linked file", ioe);
                 }
