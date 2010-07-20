@@ -4,8 +4,8 @@
         "file-system": {
             "targets": [
                 {
-                    "baseDir": "${user.home}/My Documents",
-                    "facetDir": "${user.home}/My Documents/",
+                    "baseDir": "${harvest.dir}",
+                    "facetDir": "${harvest.dir}",
                     "ignoreFilter": ".svn|.ice|.*|~*|Thumbs.db|.DS_Store",
                     "recursive": true,
                     "force": true,
