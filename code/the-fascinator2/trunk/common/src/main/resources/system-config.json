@@ -208,4 +208,7 @@
             }
         }
     }
+    "watcher" : {
+    	"path": "${watcher.install.path}"
+    }
 }
