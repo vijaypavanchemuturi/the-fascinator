@@ -18,6 +18,12 @@
         <dependency>
             <groupId>au.edu.usq.fascinator</groupId>
             <artifactId>fascinator-common</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>velocity</groupId>
+                    <artifactId>velocity</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>au.edu.usq.fascinator</groupId>
@@ -114,7 +120,7 @@
         <dependency>
             <groupId>org.apache.velocity</groupId>
             <artifactId>velocity</artifactId>
-            <version>1.6.3</version>
+            <version>1.6.4</version>
         </dependency>
         <dependency>
             <groupId>org.python</groupId>

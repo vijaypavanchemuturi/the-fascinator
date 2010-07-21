@@ -51,3 +51,10 @@ $!self.noSuchMethod()
 <li>$key = $value</li>
 #end
 </ul>
+
+#define($test)
+<p>set by define directive!</p>
+#end
+
+<h3>define</h3>
+$!test
