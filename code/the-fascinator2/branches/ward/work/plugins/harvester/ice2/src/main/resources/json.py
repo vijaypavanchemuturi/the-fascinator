@@ -221,6 +221,7 @@ class JsonReader(object):
     def _readObject(self):
         result = {}
         assert self._next() == '{'
+        self._eatWhitespace()
         done = self._peek() == '}'
         while not done:
             key = self._read()

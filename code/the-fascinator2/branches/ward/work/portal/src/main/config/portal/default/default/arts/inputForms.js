@@ -233,22 +233,46 @@
                 var json;
                 try{
                     eval("json=" + getIBody().text());
-                    resetAllFields();
-                    alert(json.toSource());
-                    $.getJSON("../actions/manifest",
-                        {"itemId":json.oid, "title":metaData["title"],
-                            "func":"add", "oid":packageData.oid},
-                        function(data){
-                            alert(data.toSource());
-                        }
-                    );
-                    $("#uploading-file-msg").text("Uploaded OK");
+                    if(json.ok){
+                        resetAllFields();
+                        // ../workflows/test.ajax?func=addItem&oid=X&id=X&title=X
+                        var id=json.oid, oid=packageData.oid, title=metaData.title;
+                        var url="../workflows/test.ajax";
+                        $.getJSON(url,
+                            {func:"addItem", oid:oid, id:id, title:title},
+                            function(data){
+                                //alert(data.toSource());
+                                if(data.ok){
+                                    // ../workflows/test.ajax?func=getItem&id=
+                                    $.getJSON(url, {func:"getItem", id:id},
+                                        function(data){
+                                            alert(data.toSource());
+                                            if(data.doc){
+                                                addPackagedItem(0, data.doc);
+                                            }
+                                        }
+                                    );
+                                }
+                            }
+                        );
+                        //$.getJSON("../actions/manifest",
+                        //    {"itemId":json.oid, "title":metaData["title"],
+                        //        "func":"add", "oid":packageData.oid},
+                        //    function(data){
+                        //        alert(data.toSource());
+                        //        // ../workflows/test.ajax?func=getItem&id=
+                        //    } 
+                        //);
+                        $("#uploading-file-msg").text("Uploaded OK");
+                    }else{
+                        throw json.error;
+                    }
                 }catch(e){
                     $("#uploading-file-msg").css("color", "red").
-                        text("Failed to uploading file (ERROR)");
+                        text("Failed to uploading file. ERROR: "+e);
                     disableAllFields(false);
                 }
-                setTimeout(function(){ $("#uploading-file-msg").fadeOut(2000); }, 3000);
+                setTimeout(function(){ $("#uploading-file-msg").fadeOut(3000); }, 4000);
            });
         }catch(e){
             alert("Error: "+e);
@@ -265,6 +289,28 @@
         });
         elem.prepend(ul);
         return elem;
+    }
+
+    var addPackagedItem;
+    function addFilesAlreadyAdded(packageData){
+        var p = $("#files-already-added");
+        var portalPath = packageData.portalPath;
+        var packagedItems = packageData.packagedItems;
+        // {thumbnail:"icons_thumbnail.jpg", description:"Description of icons",
+        //      id:"eeceaa96721e8f5682b5bde81d0a6536", title:"icons.gif"}
+        addPackagedItem = function(c, item){
+            var div = $("<div class='' style='border-bottom:1px solid gray;padding:1ex;'/>");
+            div.attr("id", "item-"+item.id);
+            div.append($("<h3>"+item.title+"</h3>"));
+            if(item.thumbnail){
+                var src = [portalPath, "download", item.id, item.thumbnail].join("/");
+                var img = $("<img src='"+src+"' />");
+                div.append(img);
+            }
+            div.append($("<p class='item-description'>"+item.description+"</p>"));
+            p.append(div);
+        };
+        $.each(packagedItems, addPackagedItem);
     }
 
     function setupFileUploader(){
@@ -483,6 +529,8 @@
                 setupJsonMultiSelects();
                 step = "updateForm";
                 updateForm(packageData.metaData);
+                // #files-already-added
+                addFilesAlreadyAdded(packageData);
             }catch(e){
                 alert("Error: (step "+step+") "+e);
             }
