@@ -10,8 +10,8 @@ import locale
 
 class UploadedData:
     def __init__(self):
-        #print "workflow.py - UploadedData.__init__()"
         self.errorMsg = None
+        # Test if some actual form data is available
         self.fileName = formData.get("upload-file-file")
         self.formProcess = None
         self.localFormData = None
@@ -34,6 +34,10 @@ class UploadedData:
 
         # First stage, post-upload
         else:
+            # Some browsers won't match what came through dispatch, resolve that
+            dispatchFileName = sessionState.get("fileName")
+            if dispatchFileName != self.fileName and self.fileName.find(dispatchFileName) != -1:
+                self.fileName = dispatchFileName
             self.hasUpload = True
             self.fileDetails = sessionState.get(self.fileName)
             print " * workflow.py : Upload details : ", repr(self.fileDetails)
