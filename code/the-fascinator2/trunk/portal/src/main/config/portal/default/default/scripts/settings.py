@@ -79,7 +79,9 @@ class SettingsData:
         return PluginManager.getTransformerPlugins()
     
     def getWatcherConfig(self):
-        configFile = FascinatorHome.getPathFile("watcher/config.json")
+        json = JsonConfig()
+        watcherPath = json.get("watcher/path", "${fascinator.home}/watcher)")
+        configFile = File("%s/app/config.json" % watcherPath)
         if configFile.exists():
             return JsonConfigHelper(configFile)
         return None
