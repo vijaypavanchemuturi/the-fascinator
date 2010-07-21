@@ -686,3 +686,26 @@ ul.global-topic {
     font-size: 23px;
     margin: 10px 10px;
 }
+.rendition-links {
+    float: right;
+    margin: 5px;
+    border: 1px solid black;
+    background-color: #EEEEEE;
+    padding-bottom: 2px;
+}
+.rendition-links span.heading {
+    background-color: #000000;
+    color: #FFFFFF;
+    font-size: 140%;
+    font-weight: bold;
+}
+.rendition-links span {
+    display: block;
+    padding: 1px 5px;
+}
+.rendition-links span.pdf-rendition-link {
+    background-image: url('../images/icons/mimetype/application/pdf/icon.png');
+    background-repeat: no-repeat;
+    background-position: 5px 50%;
+    padding-left: 25px;
+}

@@ -101,7 +101,7 @@ $(function() {
     $("span.slide-link > a").each(function() {
         addRendition($(this).attr("href"), "View slide show");
     });
-    $("div.rendition-links").remove();
+    $("div.rendition-links").hide();
 
     #if($self.isMetadataOnly())
     $("#preview").after($("#metadata")).remove();
