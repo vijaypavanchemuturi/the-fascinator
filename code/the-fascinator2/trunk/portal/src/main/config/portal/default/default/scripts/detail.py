@@ -1,4 +1,4 @@
-import os
+import os, urllib
 
 from au.edu.usq.fascinator.api.indexer import SearchRequest
 from au.edu.usq.fascinator.api.storage import StorageException
@@ -326,8 +326,8 @@ class DetailData:
                 payload = self.getObject().getPayload(payloadId)
                 mimeType = payload.getContentType()
                 if mimeType == "video/x-flv":
-                    self.__flvFlag = payloadId
-                    return payloadId
+                    self.__flvFlag = urllib.quote(payloadId)
+                    return self.__flvFlag
             except StorageException, e:
                 pass
         self.__flvFlag = False
