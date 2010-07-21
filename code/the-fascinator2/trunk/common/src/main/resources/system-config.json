@@ -207,7 +207,7 @@
                 "frequency": "300"
             }
         }
-    }
+    },
     "watcher" : {
     	"path": "${watcher.install.path}"
     }
