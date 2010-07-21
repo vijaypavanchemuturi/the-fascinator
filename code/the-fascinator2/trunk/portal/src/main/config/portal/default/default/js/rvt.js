@@ -215,6 +215,10 @@ var rvtFactory = function(jQ){
             });
             
             var html = body.find(">div");
+            // Move any rendition links down into the body of the document so they aren't lost
+            jQ(data).find("div.rendition-links").each(function(c,node){
+                html.prepend("<div class='rendition-links'><span class='heading'>Renditions</span>" + unescape(jQ(node).html()) + "</div>");
+            });
             pages[hash]=html;
             rvt.updateContent(pages[hash]);
         }
