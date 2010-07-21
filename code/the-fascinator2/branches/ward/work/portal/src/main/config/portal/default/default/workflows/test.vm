@@ -43,6 +43,8 @@
   var packageData = {
             portalPath:"$portalPath",
             metaData:$self.getJsonMetadata(),
+            ajaxRequestUrl:"$self.getAjaxRequestUrl()",
+            packagedItems:$self.getJsonPackagedItems(),
             test:$self.getJsonTest(),
             oid:"$oid"
         };

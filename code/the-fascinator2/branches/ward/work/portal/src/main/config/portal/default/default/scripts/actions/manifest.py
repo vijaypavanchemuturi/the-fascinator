@@ -63,15 +63,20 @@ class ManifestActions:
             title = formData.get("title")
             if itemId is None:
                 result = '{"error":"no id given!"}'
-            tfpackage = jsonReader(str(self.__manifest))
+            print "---3"
+            x = '"manifest" : {  },  '
+            print str(self.__manifest).replace("\n", "").replace(x, "")
+            print "---"
+            tfpackage = jsonReader(str(self.__manifest).replace("\n", "").replace(x, ""))
             if tfpackage.get("manifest") is None:
                 tfpackage["manifest"]={}
             tfpackage["manifest"]["node-%s" % itemId] = {"id":itemId, "title":title}
             self.__manifest = JsonConfigHelper(jsonWriter(tfpackage))
-            #self.__saveManifest()
-            print "***********"
-            print " manifest.py func='add'"
-            print tfpackage
+            self.__saveManifest()
+            #print "***********"
+            #print " manifest.py func='add'"
+            #print tfpackage
+            #print "***********"
             result = jsonWriter({"ok":"ok",
                     "manifest":tfpackage["manifest"]})
         elif func == "rename":

@@ -55,17 +55,18 @@ class UploadedData:
             page = _()
             page.authentication = Authentication()
 
-            for x in range(30):     # 
+            if self.fileDetails.get("error"):
+                print " *** ERROR: '%s'" % self.fileDetails.get("error")
+                writer = response.getPrintWriter("text/plain; charset=UTF-8")
+                writer.println(jsonWriter({"error":self.fileDetails.get("error")}))
+                writer.close()
+            for x in range(10):     #
                 self.object = None
                 obj = self.getObject()
-                if obj is None:     # wait for object
-                    print "%s - obj is None" % (x+1)
-                    time.sleep(.1)
-                    continue
-                #wfMetadata = self.getWorkflowMetadata()  # workflow.metadata
-                #if wfMetadata is None:
-                #    time.sleep(.1)
-                #    continue
+                if obj is not None:     # wait for object
+                    break
+                print "%s - obj is None" % (x+1)
+                time.sleep(.2)
 
             obj = self.getObject()
             oid = obj.getId()
@@ -99,7 +100,13 @@ class UploadedData:
             wfMetadata = JsonConfigHelper(jsonWriter(wfMetadataDict))
             self.metadata = wfMetadata
             wfMetadata.set("targetStep", "metadata")
+            wasPending = self.isPending()
             self.setWorkflowMetadata(wfMetadata)
+            # Check 
+            self.object = None
+            if wasPending and (self.isPending()==False):
+                self.setWorkflowMetadata(wfMetadata)
+            #
             # Re-index the object
             Services.indexer.index(self.getOid())
             Services.indexer.commit()
@@ -193,7 +200,6 @@ class UploadedData:
             return True
 
     def isPending(self):
-        return False    ####################################
         metaProps = self.getObject().getMetadata()
         status = metaProps.get("render-pending")
         if status is None or status == "false":
