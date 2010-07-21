@@ -350,6 +350,8 @@ public class Dispatch {
         if (oid != null) {
             file_details.put("oid",  oid);
         }
+        // Helps some browsers (like IE7) resolve the path from the form
+        sessionState.set("fileName", uploadedFile.getFileName());
         sessionState.set(uploadedFile.getFileName(), file_details);
     }
 
