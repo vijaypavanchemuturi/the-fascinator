@@ -33,6 +33,7 @@
     <appender-ref ref="SIFT" />
   </root>
   <logger name="au.edu.usq" level="DEBUG" />
+  <logger name="org.apache.activemq" level="INFO" />
   <logger name="au.edu.usq.fascinator.HarvestClient" level="INFO">
     <appender-ref ref="CYCLIC" />
   </logger>
