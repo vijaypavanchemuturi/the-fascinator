@@ -135,14 +135,18 @@ public class ConveyerBelt {
                         // Instantiate the transformer
                         Transformer transformer =
                                 PluginManager.getTransformer(id);
-                        try {
-                            transformer.init(map.get(name).toString());
-                            // Finally, store it for use later
-                            transformers.put(name, transformer);
-                            log.info("Transformer warmed: '{}'", name);
-
-                        } catch (PluginException ex) {
-                            throw new TransformerException(ex);
+                        if (transformer != null) {
+                            try {
+                                transformer.init(map.get(name).toString());
+                                // Finally, store it for use later
+                                transformers.put(name, transformer);
+                                log.info("Transformer warmed: '{}'", name);
+    
+                            } catch (PluginException ex) {
+                                throw new TransformerException(ex);
+                            }
+                        } else {
+                            log.info("Transformer not found: '{}'", name);
                         }
                     } else {
                         log.warn("Invalid transformer config, no ID.");
