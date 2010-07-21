@@ -148,7 +148,7 @@ public class Dispatch {
         /* TODO: refactor this by moving all static resources into
          * 'includes/css/*' and similar. Reduce to one test. */
         boolean staticResource = false;
-        if (resourceName.startsWith("css/") ||
+        if (resourceName.startsWith("css/") || resourceName.equals("css") ||
             resourceName.startsWith("images/") ||
             resourceName.startsWith("js/") ||
             resourceName.startsWith("flowplayer/")) {
