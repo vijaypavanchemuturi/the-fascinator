@@ -3,7 +3,7 @@ from au.edu.usq.fascinator.common import JsonConfigHelper
 
 class ObjectMeta:
     def __init__(self):
-        print "formData=%s" % formData
+        #print "formData=%s" % formData
         json = JsonConfigHelper()
         oid = formData.get("oid")
         if oid:
