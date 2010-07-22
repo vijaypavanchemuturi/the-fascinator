@@ -813,7 +813,7 @@ public class HouseKeeper implements GenericListener {
     }
 
     /**
-     * Store a new action in the database and update the action queue.
+     * Remove an old action from the database and update the action queue.
      *
      * @param action The User action to store
      */
@@ -892,9 +892,12 @@ public class HouseKeeper implements GenericListener {
     }
 
     /**
-     * Store a new action in the database and update the action queue.
+     * Prepare a statement and return it. The statement will be recorded in the
+     * plugin's map of statements to be released at shutdown.
      *
-     * @param action The User action to store
+     * @param index The index to file the statement under in the hashmap
+     * @param sql The sql statement to prepare
+     * @return PreparedStatement The statement that was prepared
      */
     private PreparedStatement prepare(String index, String sql)
             throws SQLException {

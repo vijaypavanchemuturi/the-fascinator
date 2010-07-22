@@ -70,7 +70,7 @@ public interface AccessControl extends Plugin {
             throws AccessControlException;
 
     /**
-     * A basic wrapper for getSchemas() to return ust the roles of the schemas.
+     * A basic wrapper for getSchemas() to return just the roles of the schemas.
      * Useful during index and/or audit when this is the only data required.
      *
      * @param recordId The record to retrieve roles for.
