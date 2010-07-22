@@ -5,27 +5,27 @@
       <ul id="render-list"></ul>
   </div>
   ## ActiveMQ ajax based messaging - disabled for now due to instability
-  #*
-  <script type="text/javascript" src="$portalPath/js/amq/amq_jquery_adapter.js"></script>
-  <script type="text/javascript" src="$portalPath/js/amq/amq.js"></script>
-  <script type="text/javascript">
-      var amq = org.activemq.Amq;
-      var clientId = "workflow_$oid";
-      var clientTopic = "topic://message";
-      function waitRender(message) {
-          var json = this.JSON.parse(message.nodeValue);
-          if (json.id == "$oid") {
-              $("#render-list").append("<li>" + json.message + "</li>");
-              if (json.status == "renderComplete") {
-                  amq.removeListener(clientId, clientTopic);
-                  window.location = "$portalPath/workflow/$oid";
-              }
-          }
-      }
-      amq.init({ uri: "$contextPath/amq/", timeout: 10 });
-      amq.addListener(clientId, clientTopic, waitRender);
-  </script>
-  *#
+  ##
+  ##<script type="text/javascript" src="$portalPath/js/amq/amq_jquery_adapter.js"></script>
+  ##<script type="text/javascript" src="$portalPath/js/amq/amq.js"></script>
+  ##<script type="text/javascript">
+  ##    var amq = org.activemq.Amq;
+  ##    var clientId = "workflow_$oid";
+  ##    var clientTopic = "topic://message";
+  ##    function waitRender(message) {
+  ##        var json = this.JSON.parse(message.nodeValue);
+  ##        if (json.id == "$oid") {
+  ##            $("#render-list").append("<li>" + json.message + "</li>");
+  ##            if (json.status == "renderComplete") {
+  ##                amq.removeListener(clientId, clientTopic);
+  ##                window.location = "$portalPath/workflow/$oid";
+  ##            }
+  ##        }
+  ##    }
+  ##    amq.init({ uri: "$contextPath/amq/", timeout: 10 });
+  ##    amq.addListener(clientId, clientTopic, waitRender);
+  ##</script>
+  ##
   ## Poll the render-pending flag on the object
   <script type="text/javascript">
   var pollTimerId = 0;
@@ -51,7 +51,7 @@
       }, 
       "json");
   }
-  pollTimerId = setTimeout("poll()", 2500);
+  pollTimerId = setInterval("poll()", 2500);
   </script>
 #end
 
