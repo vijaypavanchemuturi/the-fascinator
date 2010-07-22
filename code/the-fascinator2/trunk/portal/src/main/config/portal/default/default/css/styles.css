@@ -709,3 +709,15 @@ ul.global-topic {
     background-position: 5px 50%;
     padding-left: 25px;
 }
+
+.notice h2 {
+    background-color: orange;
+}
+
+.notice .warning, .notice .info {
+    padding: 5px;
+}
+
+.notice .warning b, .notice .info b {
+    display: block;
+}

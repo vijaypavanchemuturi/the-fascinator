@@ -4,7 +4,8 @@
       <img src="$portalPath/images/loading-progress.gif" />
       <ul id="render-list"></ul>
   </div>
-  ## ActiveMQ ajax based messaging
+  ## ActiveMQ ajax based messaging - disabled for now due to instability
+  #*
   <script type="text/javascript" src="$portalPath/js/amq/amq_jquery_adapter.js"></script>
   <script type="text/javascript" src="$portalPath/js/amq/amq.js"></script>
   <script type="text/javascript">
@@ -23,6 +24,34 @@
       }
       amq.init({ uri: "$contextPath/amq/", timeout: 10 });
       amq.addListener(clientId, clientTopic, waitRender);
+  </script>
+  *#
+  ## Poll the render-pending flag on the object
+  <script type="text/javascript">
+  var pollTimerId = 0;
+  function poll() {
+    jQuery.post("$portalPath/actions/object_meta.ajax",
+      { "oid" : "$oid" },
+      function(data) {
+        if (data.error) {
+            $("#render-list").prev("img").hide();
+            $("#render-list").before('<img src="$portalPath/images/icons/exclamation.png" /><span>&nbsp;<b>Error</b>:&nbsp;' + data.error + '</span>');
+            return;
+        }
+        if (data.meta) {
+            var pending = data.meta["render-pending"];
+            if (pending == "false") {
+                // redirect to continue workflow
+                $("#render-list").prev("img").hide();
+                $("#render-list").before('<img src="$portalPath/images/icons/information.png" /><span>&nbsp;The render process has completed!</span>');
+                clearTimeout(pollTimerId);
+                window.location = "$portalPath/workflow/$oid";
+            }
+        }
+      }, 
+      "json");
+  }
+  pollTimerId = setTimeout("poll()", 2500);
   </script>
 #end
 

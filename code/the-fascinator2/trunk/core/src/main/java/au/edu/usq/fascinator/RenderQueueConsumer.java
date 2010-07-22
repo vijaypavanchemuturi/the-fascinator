@@ -41,7 +41,6 @@ import javax.jms.MessageConsumer;
 import javax.jms.MessageProducer;
 import javax.jms.Session;
 import javax.jms.TextMessage;
-import javax.jms.Topic;
 
 import org.apache.activemq.ActiveMQConnectionFactory;
 import org.slf4j.Logger;
@@ -76,7 +75,7 @@ public class RenderQueueConsumer implements GenericListener {
     private Session session;
 
     /** JMS Topic */
-    private Topic broadcast;
+    // private Topic broadcast;
 
     /** Indexer object */
     private Indexer indexer;
@@ -104,7 +103,7 @@ public class RenderQueueConsumer implements GenericListener {
 
     /**
      * Constructor required by ServiceLoader. Be sure to use init()
-     *
+     * 
      */
     public RenderQueueConsumer() {
         thread = new Thread(this, LISTENER_ID);
@@ -112,7 +111,7 @@ public class RenderQueueConsumer implements GenericListener {
 
     /**
      * Start thread running
-     *
+     * 
      */
     @Override
     public void run() {
@@ -122,17 +121,16 @@ public class RenderQueueConsumer implements GenericListener {
             // Get a connection to the broker
             String brokerUrl = globalConfig.get("messaging/url",
                     ActiveMQConnectionFactory.DEFAULT_BROKER_BIND_URL);
-            ActiveMQConnectionFactory connectionFactory =
-                    new ActiveMQConnectionFactory(brokerUrl);
+            ActiveMQConnectionFactory connectionFactory = new ActiveMQConnectionFactory(
+                    brokerUrl);
             connection = connectionFactory.createConnection();
 
             session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
 
-            consumer = session.createConsumer(
-                    session.createQueue(QUEUE_ID));
+            consumer = session.createConsumer(session.createQueue(QUEUE_ID));
             consumer.setMessageListener(this);
 
-            broadcast = session.createTopic(MessagingServices.MESSAGE_TOPIC);
+            // broadcast = session.createTopic(MessagingServices.MESSAGE_TOPIC);
             producer = session.createProducer(null);
             producer.setDeliveryMode(DeliveryMode.PERSISTENT);
 
@@ -144,24 +142,24 @@ public class RenderQueueConsumer implements GenericListener {
 
     /**
      * Initialization method
-     *
+     * 
      * @param config Configuration to use
      * @throws IOException if the configuration file not found
      */
     @Override
     public void init(JsonConfigHelper config) throws Exception {
-        this.name = config.get("config/name");
+        name = config.get("config/name");
         QUEUE_ID = name;
         thread.setName(name);
 
         try {
             globalConfig = new JsonConfig();
             File sysFile = JsonConfig.getSystemFile();
-            indexer = PluginManager.getIndexer(
-                    globalConfig.get("indexer/type", "solr"));
+            indexer = PluginManager.getIndexer(globalConfig.get("indexer/type",
+                    "solr"));
             indexer.init(sysFile);
-            storage = PluginManager.getStorage(
-                    globalConfig.get("storage/type", "file-system"));
+            storage = PluginManager.getStorage(globalConfig.get("storage/type",
+                    "file-system"));
             storage.init(sysFile);
 
             conveyer = new ConveyerBelt(ConveyerBelt.RENDER);
@@ -177,7 +175,7 @@ public class RenderQueueConsumer implements GenericListener {
 
     /**
      * Return the ID string for this listener
-     *
+     * 
      */
     @Override
     public String getId() {
@@ -250,7 +248,7 @@ public class RenderQueueConsumer implements GenericListener {
 
     /**
      * Callback function for incoming messages.
-     *
+     * 
      * @param message The incoming message
      */
     @Override
@@ -271,8 +269,8 @@ public class RenderQueueConsumer implements GenericListener {
 
             // Get our object from storage
             object = storage.getObject(oid);
-            sendNotification(oid, "renderStart",
-                    "(" + name + ") Renderer starting : '" + oid + "'");
+            sendNotification(oid, "renderStart", "(" + name
+                    + ") Renderer starting : '" + oid + "'");
 
             // Push through the conveyer belt
             log.info("Updating object...");
@@ -286,8 +284,8 @@ public class RenderQueueConsumer implements GenericListener {
             }
 
             // Finish up
-            sendNotification(oid, "renderComplete",
-                    "(" + name + ") Renderer complete : '" + oid + "'");
+            sendNotification(oid, "renderComplete", "(" + name
+                    + ") Renderer complete : '" + oid + "'");
             Properties props = object.getMetadata();
             props.setProperty("render-pending", "false");
             object.close();
@@ -321,18 +319,18 @@ public class RenderQueueConsumer implements GenericListener {
         jsonMessage.set("message", message);
 
         TextMessage msg = session.createTextMessage(jsonMessage.toString());
-        producer.send(broadcast, msg);
+        // producer.send(broadcast, msg);
     }
 
     /**
      * Sets the priority level for the thread. Used by the OS.
-     *
+     * 
      * @param newPriority The priority level to set the thread at
      */
     @Override
     public void setPriority(int newPriority) {
-        if (newPriority >= Thread.MIN_PRIORITY &&
-            newPriority <= Thread.MAX_PRIORITY) {
+        if (newPriority >= Thread.MIN_PRIORITY
+                && newPriority <= Thread.MAX_PRIORITY) {
             thread.setPriority(newPriority);
         }
     }
