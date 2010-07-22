@@ -209,6 +209,6 @@
         }
     },
     "watcher" : {
-    	"path": "${watcher.install.path}"
+    	"path": "${INSTALL_PATH}/watcher"
     }
 }
