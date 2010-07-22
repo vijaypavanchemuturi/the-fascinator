@@ -82,7 +82,8 @@ $(function() {
     });
 });
 </script>
-
+## activemq ajax disabled due to instability
+#*
   #set($contentTitle = "Broadcast topic")
   #parse($page.getTemplate('wrapping/content-block-open.vm'))
   #set($contentTitle = $nullValue)
@@ -110,7 +111,7 @@ $(function() {
       amq.init({ uri: "$contextPath/amq/", timeout: 10 });
       amq.addListener(clientId, clientTopic, waitRender);
   </script>
-
+*#
   #else
     <div class="block">
       <div class="login-error">
