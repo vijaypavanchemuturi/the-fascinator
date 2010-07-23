@@ -3,6 +3,7 @@ from au.edu.usq.fascinator.common import FascinatorHome, JsonConfig, JsonConfigH
 from au.edu.usq.fascinator.portal import Portal
 
 from java.io import ByteArrayInputStream, ByteArrayOutputStream, File
+from java.util import HashMap
 
 class SettingsData:
 
@@ -93,9 +94,11 @@ class SettingsData:
         return JsonConfig().get("portal/houseKeeping/config/frequency")
     
     def getFacetDisplays(self):
-        return self.__portal.getMap("portal/facet-displays") or \
-            {   "list" : "List menu",
-                "tree" : "Dynamic tree"
-            }
+        facetDisplays = self.__portal.getMap("portal/facet-displays")
+        if facetDisplays is None or facetDisplays.isEmpty():
+            facetDisplays = HashMap()
+            facetDisplays.put("list", "List menu")
+            facetDisplays.put("tree", "Dynamic tree")
+        return facetDisplays
 
 scriptObject = SettingsData()
