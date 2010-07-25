@@ -1,0 +1,12 @@
+<div class="grid_16">
+  <div id="config-notices" class="box articles notice">
+    <h2>Template error</h2>
+    <div class="warning">
+      <b>ERROR</b>
+      There was an error rendering the page. See details below.
+      <hr />
+      <pre>$renderMessages</pre>
+    </div>
+  </div>
+</div>
+<div class="clear"></div>
