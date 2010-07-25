@@ -68,10 +68,10 @@ class PackagingActions:
             if username is None:
                 username = "guest" # necessary?
             harvester = None
-            # set up config files if necessary
+            # set up config files, and make sure they are both deployed
             workflowsDir = FascinatorHome.getPathFile("harvest/workflows")
             configFile = self.__getFile(workflowsDir, jsonConfigFile)
-            #rulesFile = self.__getFile(workflowsDir, "packaging-rules.py")
+            rulesFile = self.__getFile(workflowsDir, "packaging-rules.py")
             # run the harvest client with our packaging workflow config
             harvester = HarvestClient(configFile, manifestFile, username)
             harvester.start()

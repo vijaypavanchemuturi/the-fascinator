@@ -2,7 +2,7 @@
 from au.edu.usq.fascinator.common import JsonConfigHelper, JsonConfig
 from org.apache.commons.lang import StringEscapeUtils
 
-from json import read as jsonReader, write as jsonWriter
+from json2 import read as jsonReader, write as jsonWriter
 
 ##
 from java.awt import Point, Dimension, FlowLayout

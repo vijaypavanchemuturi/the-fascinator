@@ -9,7 +9,7 @@ from java.net import URLDecoder
 
 import locale
 import time
-from json import read as jsonReader, write as jsonWriter
+from json2 import read as jsonReader, write as jsonWriter
 
 
 class UploadedData:

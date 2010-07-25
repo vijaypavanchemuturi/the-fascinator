@@ -5,7 +5,7 @@ from java.io import ByteArrayInputStream
 from java.io import StringWriter
 from org.apache.commons.io import IOUtils
 from java.lang import Boolean, String
-from json import read as jsonReader, write as jsonWriter
+from json2 import read as jsonReader, write as jsonWriter
 
 from org.apache.commons.lang import StringEscapeUtils
 
@@ -43,7 +43,7 @@ class ManifestActions:
                 try:
                     for metaName in metaList:
                         value = formData.get(metaName)
-                        [metaName] = value
+                        tfpackage[metaName] = value
                     tfpackage["metaList"] = metaList
                     for metaName in removedSet:
                         del tfpackage[metaName]
