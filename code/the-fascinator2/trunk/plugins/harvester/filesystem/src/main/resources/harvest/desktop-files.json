@@ -1,6 +1,6 @@
 {
     "harvester": {
-        "type": "file-system",
+        "type": "workflow-harvester",
         "file-system": {
             "targets": [
                 {
