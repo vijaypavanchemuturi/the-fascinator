@@ -84,7 +84,11 @@ public class GenericSchema implements AccessControlSchema {
             for (int i = 0; i < field_list.length; i++) {
                 if (property.equals(field_list[i].getName())) {
                     try {
-                        return field_list[i].get(this).toString();
+                        if (field_list[i].get(this) == null) {
+                            return null;
+                        } else {
+                            return field_list[i].get(this).toString();
+                        }
                     } catch (IllegalArgumentException ex) {
                         log.error("User Object, Illegal argument : {}", ex);
                         return null;
