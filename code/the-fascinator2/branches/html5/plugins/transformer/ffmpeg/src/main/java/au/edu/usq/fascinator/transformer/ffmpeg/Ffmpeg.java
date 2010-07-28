@@ -35,17 +35,20 @@ public interface Ffmpeg {
     /** Default extractor binary name */
     public static final String DEFAULT_BIN_METADATA = "ffprobe";
 
+    /** Default transcoder binary name for alternative preview */
+    public static final String DEFAULT_BIN_TRANSCODE_THEORA = "ffmpeg2theora";
+
     /**
-     * Test what level of functionality is available for ffmpeg
-     *  on the current system.
-     *
+     * Test what level of functionality is available for ffmpeg on the current
+     * system.
+     * 
      * @return String showing binary name or null
      */
     public String testAvailability();
 
     /**
      * Extract metadata from the given file
-     *
+     * 
      * @param file to extract metadata from
      * @return String containing the raw output
      * @throws IOException if execution failed
@@ -54,7 +57,7 @@ public interface Ffmpeg {
 
     /**
      * Transform a file using given parameters
-     *
+     * 
      * @param params List of parameters to pass to the command line executable
      * @return String containing the raw output
      * @throws IOException if execution failed
@@ -63,7 +66,7 @@ public interface Ffmpeg {
 
     /**
      * Extract and process metadata from the given file
-     *
+     * 
      * @param file to extract metadata from
      * @return FfmpegInfo containing the processed output
      * @throws IOException if execution failed
