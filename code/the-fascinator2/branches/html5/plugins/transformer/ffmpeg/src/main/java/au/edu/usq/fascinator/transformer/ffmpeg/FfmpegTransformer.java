@@ -71,6 +71,9 @@ public class FfmpegTransformer implements Transformer {
     /** Ffmpeg class for conversion */
     private Ffmpeg ffmpeg;
 
+    /** Ffmpeg2Theora class for conversion */
+    private Ffmpeg2theora ffmpeg2theora;
+
     /** Flag for first execution */
     private boolean firstRun = true;
 
@@ -148,10 +151,18 @@ public class FfmpegTransformer implements Transformer {
     private String testExecLevel() {
         // Make sure we can start
         if (ffmpeg == null) {
-            ffmpeg = new FfmpegImpl(get(config, "binaries/transcoding"),
-                    get(config, "binaries/metadata"));
+            ffmpeg = new FfmpegImpl(get(config, "binaries/transcoding"), get(
+                    config, "binaries/metadata"));
         }
         return ffmpeg.testAvailability();
+    }
+
+    private String testExecFfmpeg2Theora() {
+        if (ffmpeg2theora == null) {
+            ffmpeg2theora = new Ffmpeg2theora(get(config,
+                    "binaries/theoraTranscoding"));
+        }
+        return ffmpeg2theora.testAvailability();
     }
 
     /**
@@ -267,6 +278,26 @@ public class FfmpegTransformer implements Transformer {
                 return object;
             } finally {
                 converted.delete();
+            }
+        }
+
+        // AltPreview (ogv/ogg file)
+        if (testExecFfmpeg2Theora() != null) {
+            excludeList = getList(itemConfig, "preview/excludeExt");
+            if (!excludeList.contains(ext.toLowerCase())
+                    && (info.hasVideo() || info.hasAudio())) {
+                File altPreview = getAltPreview(file);
+                try {
+                    Payload payload = createFfmpegPayload(object, altPreview);
+                    payload.setType(PayloadType.AltPreview);
+                    payload.close();
+                    altPreview.delete();
+                } catch (Exception ex) {
+                    errorAndClose(object, altPreview, ex);
+                    return object;
+                } finally {
+                    altPreview.delete();
+                }
             }
         }
 
@@ -390,6 +421,38 @@ public class FfmpegTransformer implements Transformer {
             params.add("mjpeg"); // mjpeg output format
             params.add(outputFile.getAbsolutePath()); // output file
             String stderr = ffmpeg.transform(params);
+            if (outputFile.exists()) {
+                if (outputFile.length() == 0) {
+                    throw new TransformerException(
+                            "File conversion failed!\n=====\n" + stderr);
+                }
+            } else {
+                throw new TransformerException(
+                        "File conversion failed!\n=====\n" + stderr);
+            }
+            // log.debug(stderr);
+            log.info("Thumbnail created: outputFile={}", outputFile);
+        } catch (IOException ioe) {
+            log.error("Failed to create thumbnail!", ioe);
+            throw new TransformerException(ioe);
+        }
+        return outputFile;
+    }
+
+    private File getAltPreview(File sourceFile) throws TransformerException {
+        log.info("Creating alternative preview...");
+        String basename = FilenameUtils.getBaseName(sourceFile.getName());
+        File outputFile = new File(outputDir, basename + ".ogv");
+        if (outputFile.exists()) {
+            FileUtils.deleteQuietly(outputFile);
+        }
+        try {
+            List<String> params = new ArrayList<String>();
+            params.add(sourceFile.getAbsolutePath()); // input file
+            params.add("-o");
+            // get random frame from first quarter of video
+            params.add(outputFile.getAbsolutePath()); // output file
+            String stderr = ffmpeg2theora.transform(params);
             if (outputFile.exists()) {
                 if (outputFile.length() == 0) {
                     throw new TransformerException(
