@@ -1,0 +1,27 @@
+#set($pageTitle = 'Home')
+
+#parse($page.getTemplate('elements/atom-link.vm'))
+<h2 id="page-heading">
+  <span>$page.portalName</span> $atomHtml
+</h2>
+
+#parse($page.getTemplate('menus/home-main-menu.vm'))
+
+<div class="grid_12">
+  #parse($page.getTemplate('dialogs/view-delete.vm'))
+  #parse($page.getTemplate('dialogs/view-reharvest.vm'))
+  #parse($page.getTemplate('dialogs/basic-search-form.vm'))
+</div>
+<div class="clear"></div>
+
+<!-- IE7 needs a blank div here, class="prefix_4" doesn't work -->
+<div class="grid_4">&nbsp;</div>
+
+#parse($page.getTemplate('menus/home-new-items.vm'))
+#set ($workflows = $self.workflows)
+#if ($workflows.size() > 0)
+  #parse($page.getTemplate('menus/home-task-list.vm'))
+#else
+  #parse($page.getTemplate('menus/home-my-items.vm'))
+#end
+<div class="clear"></div>
