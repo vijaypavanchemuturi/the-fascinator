@@ -136,7 +136,8 @@
             "outputPath": "${java.io.tmpdir}/${user.name}/ffmpeg-output",
             "binaries": {
                 "transcoding": "ffmpeg",
-                "metadata": "ffprobe"
+                "metadata": "ffprobe",
+                "theoraTranscoding" : "ffmpeg2theora"
             },
             "metadata": {
                 "excludeExt": "odt,doc,docx,pdf,ppt,html,htm,tfpackage"
@@ -150,6 +151,13 @@
                 "excludeExt": "flv,m4a,mp3,jpg,png",
                 "params": {
                     "default": "-f flv -b 192k -ab 64k -ar 44100 -ac 1 -s 400x224 -padtop 30 -padbottom 30"
+                }
+            },
+            "altPreview" : {
+                "outputExt" : "ogg",
+                "excludeExt" : "ogg",
+                "params" : {
+                  "default" : ""
                 }
             }
         },
