@@ -1,0 +1,1 @@
+<span class="right">Showing ${paging.startNum} to ${paging.endNum} of ${paging.totalFound} items </span> Results
