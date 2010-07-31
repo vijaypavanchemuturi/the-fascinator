@@ -11,7 +11,7 @@
 <div class="grid_6">
   #parse($page.getTemplate('dialogs/view-delete.vm'))
   #parse($page.getTemplate('dialogs/view-reharvest.vm'))
-  #parse($page.getTemplate('dialogs/basic-search-form.vm'))
+  ##parse($page.getTemplate('dialogs/basic-search-form.vm'))
 </div>
 <div class="clear"></div>
 
@@ -19,6 +19,33 @@
 ##<div class="grid_4">&nbsp;</div>
 
 #parse($page.getTemplate('menus/home-new-items.vm'))
+
+<div class="grid_6">
+#set($menuTitle = "Browse")
+  #parse($page.getTemplate('wrapping/info-box-open.vm'))
+  #set($menuTitle = $nullValue)
+  <div class="block">
+ <ol>
+    #foreach($item in $self.result)
+      #set($itemId = $item.get('id'))
+      #set($itemTitle = $item.get("dc_title").get(0))
+      #set($owner = $item.get("owner"))
+      #if ("$!owner" != "" && $owner == $page.authentication.get_username())
+          #set ($class = " class='owner'")
+      #else
+          #set ($class = "")
+      #end
+      <li$class>
+        <a href="$portalPath/detail/$itemId">$itemTitle</a>
+        #set($wfStep = $item.get("workflow_step").get(0))
+        #if ("$!wfStep" != "" && $wfStep != "" && $wfStep != "live")
+        <img class="workflow" src="$portalPath/images/icons/wf_${wfStep}.png" title="Workflow: $wfStep"/>
+        #end
+      </li>
+    #end
+    </ol>
+</div>
+  
 ##set ($workflows = $self.workflows)
 ##if ($workflows.size() > 0)
  ##parse($page.getTemplate('menus/home-task-list.vm'))
