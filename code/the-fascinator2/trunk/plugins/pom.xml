@@ -19,6 +19,7 @@
     <module>harvester/filesystem</module>
     <module>harvester/ice2</module>
     <module>harvester/oai-pmh</module>
+    <module>harvester/solrmarc</module>
     <module>harvester/workflow</module>
     <module>indexer/solr</module>
     <module>roles/internal</module>
@@ -28,6 +29,7 @@
     <module>transformer/ffmpeg</module>
     <module>transformer/ice2</module>
     <module>transformer/ims</module>
+    <module>transformer/solrmarc</module>
     <!-- TODO The following modules need to be updated to new Storage API -->
     <!--
     <module>harvester/jsonq</module>
