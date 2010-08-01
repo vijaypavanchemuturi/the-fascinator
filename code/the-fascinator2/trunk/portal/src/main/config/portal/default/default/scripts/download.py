@@ -35,7 +35,7 @@ class DownloadData:
 
             type = payload.getContentType()
             # Enocode textual responses before sending
-            if type.startswith("text/"):
+            if type is not None and type.startswith("text/"):
                 out = ByteArrayOutputStream()
                 IOUtils.copy(payload.open(), out)
                 payload.close()
@@ -44,7 +44,11 @@ class DownloadData:
                 writer.close()
             # Other data can just be streamed out
             else:
-                out = response.getOutputStream(payload.getContentType())
+                if type is None:
+                    # Send as raw data
+                    out = response.getOutputStream("binary/octet-stream")
+                else:
+                    out = response.getOutputStream(type)
                 IOUtils.copy(payload.open(), out)
                 payload.close()
                 object.close()
