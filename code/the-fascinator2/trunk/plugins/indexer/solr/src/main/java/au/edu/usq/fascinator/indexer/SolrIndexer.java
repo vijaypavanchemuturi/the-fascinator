@@ -456,6 +456,21 @@ public class SolrIndexer implements Indexer {
             File solrFile = index(object, payload, confPayload.open(),
                     rulesPayload.open(), props);
 
+            // Did the indexer alter metadata?
+            String toClose = props.getProperty("objectRequiresClose");
+            if (toClose != null) {
+                log.debug("Indexing has altered metadata, closing object.");
+                log.debug("===> {}", props.getProperty("renderQueue"));
+                props.remove("objectRequiresClose");
+                object.close();
+                try {
+                    props = object.getMetadata();
+                    log.debug("===> {}", props.getProperty("renderQueue"));
+                } catch (StorageException ex) {
+                    throw new IndexerException("Failed loading properties : ", ex);
+                }
+            }
+
             if (solrFile != null) {
                 InputStream inputDoc = new FileInputStream(solrFile);
                 String xml = IOUtils.toString(inputDoc, "UTF-8");
@@ -615,6 +630,8 @@ public class SolrIndexer implements Indexer {
                 jsonConfig = new JsonConfigHelper(inConf);
                 inConf.close();
             }
+
+            log.debug("===> {}", props.getProperty("renderQueue"));
 
             RuleManager rules = new RuleManager();
             python.set("indexer", this);
