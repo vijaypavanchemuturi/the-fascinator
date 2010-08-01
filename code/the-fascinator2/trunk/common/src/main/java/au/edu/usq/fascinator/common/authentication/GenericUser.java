@@ -64,7 +64,7 @@ public class GenericUser implements User {
             }
             return response.toString();
         } catch (ClassNotFoundException ex) {
-            log.error(ex.getMessage());
+            log.error("Error retrieving user specification", ex);
             return "Error retrieving user specification";
         }
     }
@@ -98,7 +98,7 @@ public class GenericUser implements User {
                 }
             }
         } catch (ClassNotFoundException ex) {
-            log.error(ex.getMessage());
+            log.error("Error accessing user data", ex);
             return null;
         }
 
@@ -129,7 +129,7 @@ public class GenericUser implements User {
                 }
             }
         } catch (ClassNotFoundException ex) {
-            log.error(ex.getMessage());
+            log.error("Error setting user data", ex);
             return;
         }
     }
