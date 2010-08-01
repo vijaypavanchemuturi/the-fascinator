@@ -97,7 +97,7 @@ public class ConveyerBelt {
 
         // Property data, highest priority
         String pluginList = props.getProperty(thisType);
-        if (pluginList != null && !pluginList.equals("")) {
+        if (pluginList != null) {
             // Turn the string into a real list
             for (String plugin : StringUtils.split(pluginList, ",")) {
                 plugins.add(StringUtils.trim(plugin));
