@@ -245,6 +245,11 @@ public class HarvestClient {
             } while (harvester.hasMoreDeletedObjects());
         }
 
+        // Shutdown the harvester
+        if (harvester != null) {
+            harvester.shutdown();
+        }
+
         log.info("Completed in "
                 + ((System.currentTimeMillis() - start) / 1000.0) + " seconds");
     }
