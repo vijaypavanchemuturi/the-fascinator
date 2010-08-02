@@ -12,7 +12,7 @@
   <version>0.3.3-SNAPSHOT</version>
  </parent>
  <description>
-		Provides facilities for reading RSS/ATOM feeds (via ROME Fetcher).
+  Provides facilities for reading RSS/ATOM feeds (via ROME Fetcher).
 	</description>
 
  <pluginRepositories>
@@ -24,15 +24,14 @@
 
  <dependencies>
   <dependency>
-   <groupId>commons-logging</groupId>
-   <artifactId>commons-logging</artifactId>
-   <version>1.1.1</version>
-   <scope>provided</scope>
+   <groupId>org.slf4j</groupId>
+   <artifactId>slf4j-api</artifactId>
+   <version>1.6.1</version>
   </dependency>
   <dependency>
    <groupId>org.slf4j</groupId>
-   <artifactId>jcl-over-slf4j</artifactId>
-   <version>1.5.11</version>
+   <artifactId>slf4j-log4j12</artifactId>
+   <version>1.6.1</version>
   </dependency>
   <dependency>
    <groupId>rome</groupId>
@@ -47,16 +46,19 @@
    <version>1.6.bundle</version>
    <scope>compile</scope>
   </dependency>
-  <dependency>
-   <groupId>au.edu.usq.fascinator</groupId>
-   <artifactId>fascinator-common</artifactId>
-   <version>0.4.0</version>
-  </dependency>
 
   <dependency>
    <groupId>org.apache.velocity</groupId>
    <artifactId>velocity</artifactId>
    <version>1.6.2</version>
+   <type>jar</type>
+   <scope>compile</scope>
+  </dependency>
+
+  <dependency>
+   <groupId>com.hp.hpl.jena</groupId>
+   <artifactId>jena</artifactId>
+   <version>2.6.3</version>
    <type>jar</type>
    <scope>compile</scope>
   </dependency>
@@ -82,52 +84,39 @@
      <archive>
       <manifest>
        <mainClass>au.edu.usq.fascinator.contrib.feedreader.FeedReader
-							</mainClass>
+       </mainClass>
       </manifest>
      </archive>
     </configuration>
    </plugin>
-   <plugin>
-    <groupId>au.edu.usq.fascinator.maven-plugins</groupId>
-    <artifactId>rdf-reactor</artifactId>
-    <version>0.1.0</version>
-    <configuration>
-     <outputDirectory>src/main/java</outputDirectory>
-     <schemaList>
-      <schemaItem>
-       <schemaName>Dublin Core</schemaName>
-       <packageName>au.edu.usq.fascinator.contrib.feedreader.vocabulary.dc
-							</packageName>
-       <methodPrefix>Dc</methodPrefix>
-       <schemaUrlLibrary>
-        <java.net.URL>http://purl.org/dc/terms/
-                                </java.net.URL>
 
-       </schemaUrlLibrary>
-      </schemaItem>
-      <schemaItem>
-       <schemaName>Nepomuk</schemaName>
-       <packageName>au.edu.usq.fascinator.contrib.feedreader.vocabulary.nie
-							</packageName>
-       <methodPrefix>Nepo</methodPrefix>
-       <schemaUrlLibrary>
-        <java.net.URL>http://www.semanticdesktop.org/ontologies/nie/
-								</java.net.URL>
-
-       </schemaUrlLibrary>
-      </schemaItem>
-     </schemaList>
-    </configuration>
-
-   </plugin>
    <plugin>
     <groupId>org.codehaus.mojo</groupId>
     <artifactId>exec-maven-plugin</artifactId>
     <version>1.1.1</version>
     <configuration>
      <mainClass>au.edu.usq.fascinator.contrib.feedreader.FeedReader
-					</mainClass>
+     </mainClass>
     </configuration>
+   </plugin>
+   <plugin>
+    <groupId>au.edu.usq.fascinator.maven-plugins</groupId>
+    <artifactId>jena-schemagen</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <configuration>
+    <input>http://www.semanticdesktop.org/ontologies/2007/01/19/nie/</input>
+    <output>src/main/java/</output>
+    <packageName>au.edu.usq.fascinator.contrib.feedreader.vocabulary</packageName>
+    <className>NIE</className>
+    </configuration>
+    <executions>
+          <execution>
+            <phase>generate-sources</phase>
+            <goals>
+              <goal>schemagen</goal>
+            </goals>
+          </execution>
+        </executions>
    </plugin>
   </plugins>
 
@@ -148,11 +137,11 @@
       <version>1.1.1</version>
       <configuration>
        <mainClass>au.edu.usq.fascinator.contrib.feedreader.FeedReader
-							</mainClass>
+       </mainClass>
        <arguments>
         <argument>
          --url=http://blog.duncan.dickinson.name/feeds/posts/default
-								</argument>
+        </argument>
         <argument>
          --cache_dir=target
 								</argument>
@@ -177,7 +166,7 @@
       <version>1.1.1</version>
       <configuration>
        <mainClass>au.edu.usq.fascinator.contrib.feedreader.FeedReader
-							</mainClass>
+       </mainClass>
        <arguments>
         <argument>--url=http://ptsefton.com/feed
 								</argument>
@@ -205,13 +194,13 @@
       <version>1.1.1</version>
       <configuration>
        <mainClass>au.edu.usq.fascinator.contrib.feedreader.FeedReader
-							</mainClass>
+       </mainClass>
        <arguments>
         <argument>--url=http://ptsefton.com/feed
                                 </argument>
         <argument>
          --url=http://blog.duncan.dickinson.name/feeds/posts/default
-								</argument>
+        </argument>
         <argument>
          --url=http://adfi.usq.edu.au/blog/feed/
                                 </argument>
@@ -242,12 +231,12 @@
       <version>1.1.1</version>
       <configuration>
        <mainClass>au.edu.usq.fascinator.contrib.feedreader.FeedReader
-							</mainClass>
+       </mainClass>
        <arguments>
         <argument>
          --url=http://twitter.com/statuses/user_timeline/759251.rss
 
-								</argument>
+        </argument>
         <argument>
          --cache_dir=target
                                 </argument>
@@ -272,11 +261,11 @@
       <version>1.1.1</version>
       <configuration>
        <mainClass>au.edu.usq.fascinator.contrib.feedreader.FeedReader
-							</mainClass>
+       </mainClass>
        <arguments>
         <argument>--url=http://feeds.delicious.com/v2/rss/tag/eresearch
 
-								</argument>
+        </argument>
         <argument>
          --cache_dir=target
                                 </argument>
@@ -301,11 +290,11 @@
       <version>1.1.1</version>
       <configuration>
        <mainClass>au.edu.usq.fascinator.contrib.feedreader.FeedReader
-							</mainClass>
+       </mainClass>
        <arguments>
         <argument>
          --url=http://wwmm.ch.cam.ac.uk/crystaleye/feed/all/feed.xml
-								</argument>
+        </argument>
         <argument>
          --cache_dir=target
                                 </argument>
@@ -330,10 +319,10 @@
       <version>1.1.1</version>
       <configuration>
        <mainClass>au.edu.usq.fascinator.contrib.feedreader.FeedReader
-							</mainClass>
+       </mainClass>
        <arguments>
         <argument>--url=http://rss.slashdot.org/Slashdot/slashdot
-								</argument>
+        </argument>
         <argument>
          --cache_dir=target
                                 </argument>
@@ -363,7 +352,7 @@
         <link>http://java.sun.com/javase/6/docs/api
 						</link>
         <link>https://rome.dev.java.net/apidocs/subprojects/fetcher/1.0
-							</link>
+        </link>
         <link>https://rome.dev.java.net/apidocs/1_0
 						</link>
        </links>

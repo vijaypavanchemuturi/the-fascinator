@@ -17,25 +17,22 @@
  */
 package au.edu.usq.fascinator.contrib.feedreader.printer;
 
-import java.io.IOException;
-import java.io.StringWriter;
+import java.io.ByteArrayOutputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import org.htmlparser.util.ParserException;
-import org.ontoware.rdf2go.ModelFactory;
-import org.ontoware.rdf2go.RDF2Go;
-import org.ontoware.rdf2go.exception.ModelRuntimeException;
-import org.ontoware.rdf2go.model.Model;
-import org.ontoware.rdf2go.model.node.impl.PlainLiteralImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import au.edu.usq.fascinator.contrib.feedreader.util.FeedHelper;
 import au.edu.usq.fascinator.contrib.feedreader.util.PlainTextExtractor;
-import au.edu.usq.fascinator.contrib.feedreader.vocabulary.dc.Thing;
-import au.edu.usq.fascinator.contrib.feedreader.vocabulary.nie.InformationElement;
+import au.edu.usq.fascinator.contrib.feedreader.vocabulary.NIE;
 
+import com.hp.hpl.jena.rdf.model.Model;
+import com.hp.hpl.jena.rdf.model.ModelFactory;
+import com.hp.hpl.jena.rdf.model.Resource;
+import com.hp.hpl.jena.vocabulary.DCTerms;
 import com.sun.syndication.feed.synd.SyndCategory;
 import com.sun.syndication.feed.synd.SyndContent;
 import com.sun.syndication.feed.synd.SyndEntry;
@@ -58,52 +55,43 @@ public class RDFPrinter {
      * @return RDF/XML representation of the feed.
      */
     public static String toRDFXML(SyndEntry entry) {
-        ModelFactory modelFactory = RDF2Go.getModelFactory();
-        Model model = modelFactory.createModel();
-        model.open();
+        // create an empty Model
+        Model model = ModelFactory.createDefaultModel();
+        model.setNsPrefix("nie", NIE.NS);
+        model.setNsPrefix("dc", DCTerms.NS);
 
-        String uri = FeedHelper.getID(entry);
-
-        // Create a new DC RDF model
-        Thing dc = new Thing(model, uri, true);
-
-        // Set the dc.identifier
-        dc.setDcIdentifier(new PlainLiteralImpl(uri));
-
-        // Set title
-        dc.setDcTitle(new PlainLiteralImpl(entry.getTitle()));
-
-        // Add Description
-        if (entry.getDescription() != null) {
-            dc.addDcDescription(new PlainLiteralImpl(entry.getDescription()
-                    .getValue()));
-        }
+        String identifier = FeedHelper.getID(entry);
+        // create the resource
+        Resource post = model.createResource(identifier);
+        post.addProperty(DCTerms.identifier, identifier);
+        post.addProperty(DCTerms.title, entry.getTitle());
 
         // Set authors
         for (SyndPerson author : FeedHelper.getAuthors(entry)) {
-            dc.addDcCreator(new PlainLiteralImpl(author.getName()));
+            post.addProperty(DCTerms.creator, author.getName());
         }
 
         // Creation/Publish date
+
         if (entry.getPublishedDate() != null) {
-            dc.setDcDateCreated(new PlainLiteralImpl(formatDate(entry
-                    .getPublishedDate())));
+            post.addProperty(DCTerms.created, formatDate(entry
+                    .getPublishedDate()));
         }
 
         // Modified date
         if (entry.getUpdatedDate() != null) {
-            String d = formatDate(entry.getUpdatedDate());
-            dc.setDcDateModified(new PlainLiteralImpl(d));
+            post.addProperty(DCTerms.modified, formatDate(entry
+                    .getUpdatedDate()));
         }
 
         // Add categories
         for (SyndCategory category : FeedHelper.getCategories(entry)) {
-            dc.addDcSubject(new PlainLiteralImpl(category.getName()));
+            post.addProperty(DCTerms.subject, category.getName());
         }
 
         // Add any referenced links
         for (SyndLink link : FeedHelper.getLinks(entry)) {
-            dc.addDcReferences(new PlainLiteralImpl(link.getHref()));
+            post.addProperty(DCTerms.references, link.getHref());
         }
 
         // Abstract
@@ -116,13 +104,10 @@ public class RDFPrinter {
             } catch (ParserException e) {
                 text = "Failed to parse abstract";
             }
-            if (text != null) dc.setDcDescription(new PlainLiteralImpl(text));
+            if (text != null) post.addProperty(DCTerms.description, text);
         }
 
         // Plain text
-
-        InformationElement nie = new InformationElement(model, uri, true);
-
         StringBuilder plainText = new StringBuilder();
         for (SyndContent content : FeedHelper.getContents(entry)) {
             try {
@@ -132,20 +117,11 @@ public class RDFPrinter {
                 plainText.append("Failed to parse content");
             }
         }
-        nie.setNepoPlainTextContent(plainText.toString());
+        post.addProperty(NIE.plainTextContent, plainText.toString());
 
-        StringWriter rdfXML = new StringWriter();
-
-        try {
-            model.writeTo(rdfXML);
-        } catch (ModelRuntimeException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        model.close();
-        return rdfXML.toString();
+        ByteArrayOutputStream os = new ByteArrayOutputStream();
+        model.write(os);
+        return os.toString();
     }
 
     /**
