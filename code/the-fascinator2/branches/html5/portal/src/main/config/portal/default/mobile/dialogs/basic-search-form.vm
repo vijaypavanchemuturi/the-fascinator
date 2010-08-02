@@ -1,11 +1,11 @@
 #set($contentTitle = "Search")
-#parse($page.getTemplate('wrapping/content-block-open.vm'))
+##parse($page.getTemplate('wrapping/content-block-open.vm'))
 #set($contentTitle = $nullValue)
-  <div class="block">
-    <p>Enter one or more keywords</p>
+  <div class="block minisearch">
     <form action="search" id="search-form" method="get">
       <input type="text" name="query" size="50" id="search-query" /> 
-     <button id="search-button">Search</button>
+     ##<button id="search-button"><img src="images/icons/magnifier.png"/></button>
+      <a class="search" href="#"><img src="$portalPath/images/icons/magnifier.png" /></a>
     </form>
   </div>
   <div class="block">
@@ -15,7 +15,7 @@
 
 <script type="text/javascript">
 $(function() {
-    $("#search-button").click(function() {
+    /*$("#search-button").click(function() {
         var query = $("#search-query").val();
         if (query != "") {
             $("#search-form").submit();
@@ -23,6 +23,13 @@ $(function() {
             window.location.href = "$portalPath/search";
         }
         return false;
+    });*/
+    
+    $(function() {
+        $("a.search").click(function() {
+            $("form.search").submit();
+            return false;
+        });
     });
 });
 </script>

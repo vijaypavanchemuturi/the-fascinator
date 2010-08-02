@@ -18,19 +18,6 @@
  */
 package au.edu.usq.fascinator.portal.services.impl;
 
-import au.edu.usq.fascinator.common.JsonConfig;
-import au.edu.usq.fascinator.portal.FormData;
-import au.edu.usq.fascinator.portal.JsonSessionState;
-import au.edu.usq.fascinator.portal.guitoolkit.GUIToolkit;
-import au.edu.usq.fascinator.portal.services.DynamicPageService;
-import au.edu.usq.fascinator.portal.services.HouseKeepingManager;
-import au.edu.usq.fascinator.portal.services.PortalManager;
-import au.edu.usq.fascinator.portal.services.PortalSecurityManager;
-import au.edu.usq.fascinator.portal.services.ScriptingServices;
-import au.edu.usq.fascinator.portal.velocity.JythonLogger;
-import au.edu.usq.fascinator.portal.velocity.JythonUberspect;
-import au.edu.usq.fascinator.portal.velocity.Slf4jLogChute;
-
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.InputStream;
@@ -67,6 +54,20 @@ import org.python.util.PythonInterpreter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import au.edu.usq.fascinator.common.JsonConfig;
+import au.edu.usq.fascinator.common.JsonConfigHelper;
+import au.edu.usq.fascinator.portal.FormData;
+import au.edu.usq.fascinator.portal.JsonSessionState;
+import au.edu.usq.fascinator.portal.guitoolkit.GUIToolkit;
+import au.edu.usq.fascinator.portal.services.DynamicPageService;
+import au.edu.usq.fascinator.portal.services.HouseKeepingManager;
+import au.edu.usq.fascinator.portal.services.PortalManager;
+import au.edu.usq.fascinator.portal.services.PortalSecurityManager;
+import au.edu.usq.fascinator.portal.services.ScriptingServices;
+import au.edu.usq.fascinator.portal.velocity.JythonLogger;
+import au.edu.usq.fascinator.portal.velocity.JythonUberspect;
+import au.edu.usq.fascinator.portal.velocity.Slf4jLogChute;
+
 public class DynamicPageServiceImpl implements DynamicPageService {
 
     private static final String DEFAULT_LAYOUT_TEMPLATE = "layout";
@@ -98,6 +99,7 @@ public class DynamicPageServiceImpl implements DynamicPageService {
     private String defaultPortal;
     private String defaultSkin;
     private List<String> skinPriority;
+    private Map<String, List<String>> userAgentSkinPriority;
 
     private String layoutName;
 
@@ -125,13 +127,31 @@ public class DynamicPageServiceImpl implements DynamicPageService {
             defaultSkin = config.get("portal/skins/default", DEFAULT_SKIN);
 
             // Skin customisations
-            skinPriority = new ArrayList();
+            skinPriority = new ArrayList<String>();
             List<Object> skins = config.getList("portal/skins/order");
             for (Object object : skins) {
                 skinPriority.add(object.toString());
             }
             if (!skinPriority.contains(defaultSkin)) {
                 skinPriority.add(defaultSkin);
+            }
+
+            // User-Agent skin overrides
+            userAgentSkinPriority = new HashMap<String, List<String>>();
+            List<Object> userAgentList = config
+                    .getList("portal/skins/user-agents");
+            for (Object userAgent : userAgentList) {
+                JsonConfigHelper json = new JsonConfigHelper(
+                        (Map<String, Object>) userAgent);
+                String matches = json.get("matches");
+                List<String> order = new ArrayList<String>();
+                for (Object obj : json.getList("order")) {
+                    order.add(obj.toString());
+                }
+                if (!order.contains(defaultSkin)) {
+                    order.add(defaultSkin);
+                }
+                userAgentSkinPriority.put(matches, order);
             }
 
             // Template directory
@@ -187,19 +207,39 @@ public class DynamicPageServiceImpl implements DynamicPageService {
     }
 
     private String testSkins(String portalId, String resourceName) {
+        // Check for User-Agent overrides first
+        String userAgent = request.getHeader("User-Agent");
+        for (String pattern : userAgentSkinPriority.keySet()) {
+            if (userAgent.matches(pattern)) {
+                return testSkins(portalId, resourceName,
+                        userAgentSkinPriority.get(pattern));
+            }
+        }
+        return testSkins(portalId, resourceName, skinPriority);
+    }
+
+    private String testSkins(String portalId, String resourceName,
+            List<String> order) {
         String path = null;
         boolean noExt = resourceName.indexOf('.') == -1;
         // Loop through our skins
-        for (String skin : skinPriority) {
-            path = portalId+"/"+skin+"/"+resourceName;
+        for (String skin : order) {
+            path = portalId + "/" + skin + "/" + resourceName;
             // Check raw resource
-            if (Velocity.resourceExists(path)) {return path;}
+            if (Velocity.resourceExists(path)) {
+                return path;
+            }
             // Look for templates and scripts if it had no extension
             if (noExt) {
-                path = path+".vm";
-                if (Velocity.resourceExists(path)) {return path;}
-                path = portalId+"/"+skin+"/scripts/"+resourceName+".py";
-                if (Velocity.resourceExists(path)) {return path;}
+                path = path + ".vm";
+                if (Velocity.resourceExists(path)) {
+                    return path;
+                }
+                path = portalId + "/" + skin + "/scripts/" + resourceName
+                        + ".py";
+                if (Velocity.resourceExists(path)) {
+                    return path;
+                }
             }
         }
         // We didn't find it
@@ -365,8 +405,8 @@ public class DynamicPageServiceImpl implements DynamicPageService {
                 for (String key : bindings.keySet()) {
                     python.set(key, bindings.get(key));
                 }
-                JythonLogger jythonLogger = new JythonLogger((Logger) bindings
-                        .get("log"), scriptName);
+                JythonLogger jythonLogger = new JythonLogger(
+                        (Logger) bindings.get("log"), scriptName);
                 python.setOut(jythonLogger);
                 python.setErr(jythonLogger);
                 python.execfile(in);
@@ -390,8 +430,8 @@ public class DynamicPageServiceImpl implements DynamicPageService {
 
     private void addClassPaths(String portalId, PySystemState sys) {
         for (String skin : skinPriority) {
-            sys.path.append(Py.newString(
-                    scriptsPath + "/" + portalId + "/" + skin + "/scripts"));
+            sys.path.append(Py.newString(scriptsPath + "/" + portalId + "/"
+                    + skin + "/scripts"));
         }
         if (!defaultPortal.equals(portalId)) {
             addClassPaths(defaultPortal, sys);

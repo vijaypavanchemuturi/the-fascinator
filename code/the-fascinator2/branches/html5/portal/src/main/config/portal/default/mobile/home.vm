@@ -11,7 +11,7 @@
 <div class="grid_6">
   #parse($page.getTemplate('dialogs/view-delete.vm'))
   #parse($page.getTemplate('dialogs/view-reharvest.vm'))
-  ##parse($page.getTemplate('dialogs/basic-search-form.vm'))
+  #parse($page.getTemplate('dialogs/basic-search-form.vm'))
 </div>
 <div class="clear"></div>
 
