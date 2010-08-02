@@ -1,0 +1,194 @@
+a {
+color:#333333;
+}
+
+nav {
+    margin: 0;
+    padding: 7px 6px 0;
+    background: #DDED4D url(../../images/gradient.png) repeat-x 0 -110px;
+    line-height: 100%;
+
+    border-radius: 1em;
+    -webkit-border-radius: 1em 2em 1em 2em;
+    -moz-border-radius: 1em 2em 1em 2em;
+
+    -webkit-box-shadow: 0 1px 3px rgba(0,0,0, .4);
+    -moz-box-shadow: 0 1px 3px rgba(0,0,0, .4);    
+}
+
+nav ul li {
+    margin: 0 5px;
+    padding: 0 0 8px;
+    float: left;
+    position: relative;
+    list-style: none;
+}
+
+/* main level link */
+nav li a {
+    font-weight: bold;
+    color: #747373;
+    text-decoration: none;
+    display: block;
+    padding:  8px 20px;
+    margin: 0;
+
+	-webkit-border-radius: 1em 1.6em 1em 1.6em;
+    -moz-border-radius: 1em 1.6em 1em 1.6em;
+    
+    text-shadow: 0 1px 1px rgba(0,0,0, .3);
+}
+
+nav li a:hover {
+background:none repeat scroll 0 0 #FFFFFF;
+color:#000000;
+}
+
+/* main level link hover */
+nav ul .current a, nav ul li:hover > a {
+    background: #FF8D00 url(../../images/gradient.png) repeat-x 0 -40px;
+    color: #094626;
+    border-top: solid 1px #f8f8f8;
+
+    -webkit-box-shadow: 0 1px 1px rgba(0,0,0, .2);
+    -moz-box-shadow: 0 1px 1px rgba(0,0,0, .2);
+    box-shadow: 0 1px 1px rgba(0,0,0, .2);
+
+    text-shadow: 0 1px 0 rgba(255,255,255, 1);
+}
+
+/* sub levels link hover */
+nav ul ul li:hover a, nav ul li:hover li a {
+    background: none;
+    border: none;
+    color: #666;
+
+    -webkit-box-shadow: none;
+    -moz-box-shadow: none;
+}
+
+/* level 2 list */
+nav ul ul {
+    display: none;
+
+    margin: 0;
+    padding: 0;
+    width: 185px;
+    position: absolute;
+    top: 35px;
+    left: 0;
+    background: #E9f38E url(../../images/gradient.png) repeat-x 0 0;
+    border: solid 1px #B4B4B4;
+
+    -webkit-border-radius: 10px;
+    -moz-border-radius: 10px;
+    border-radius: 10px;
+
+    -webkit-box-shadow: 0 1px 3px rgba(0,0,0, .3);
+    -moz-box-shadow: 0 1px 3px rgba(0,0,0, .3);
+    box-shadow: 0 1px 3px rgba(0,0,0, .3);
+}
+
+nav ul ul a:hover {
+    background: #A20091 url(../../images/gradient.png) repeat-x 0 -100px !important;
+    color: #fff !important;
+
+    -webkit-border-radius: 0;
+    -moz-border-radius: 0;
+
+    text-shadow: 0 1px 1px rgba(0,0,0, .1);
+}
+
+/* dropdown */
+nav ul li:hover > ul {
+    display: block;
+}
+
+nav ul ul li {
+float:none;
+margin:0;
+padding:0;
+}
+
+nav ul ul a {
+font-weight:normal;
+text-shadow:0 1px 0 #FFFFFF;
+}
+
+/* level 3+ list */
+nav ul ul ul {
+    left: 181px;
+    top: -3px;
+}
+
+/* rounded corners of first and last link */
+nav ul ul li:first-child > a {
+    -webkit-border-top-left-radius: 5px;
+    -moz-border-radius-topleft: 5px;
+
+    -webkit-border-top-right-radius: 5px;
+    -moz-border-radius-topright: 5px;
+}
+
+nav ul ul li:last-child > a {
+    -webkit-border-bottom-left-radius: 5px;
+    -moz-border-radius-bottomleft: 5px;
+
+    -webkit-border-bottom-right-radius: 5px;
+    -moz-border-radius-bottomright: 5px;
+}
+
+/* clearfix */
+nav:after {
+    content: ".";
+    display: block;
+    clear: both;
+    visibility: hidden;
+    line-height: 0;
+    height: 0;
+}
+nav {
+    display: inline-block;
+} 
+html[xmlns] nav {
+    display: block;
+}
+ 
+* html nav ul {
+    height: 1%;
+}
+
+.container_16{width:100%;margin-left:2%;margin-right:4%;}
+.container_16 .grid_6, .container_16 .grid_12 {
+	width: 99%;
+	margin-right: 4%;
+}
+
+h1#branding {
+	/*vertical align*/
+	background: #FFFFFF;
+}
+
+
+.box h2 {
+background:url(../../images/gradient.png) repeat-x scroll 0 -100px #A20091;
+color:#FFFFFF;
+font-size:1em;
+font-weight:normal;
+margin:-10px -10px 0;
+padding:6px 12px;
+text-transform:uppercase;
+}
+
+.box {
+background:none repeat scroll 0 0 #E9f38E;
+margin-bottom:20px;
+padding:10px 10px 1px;
+border-radius: 1em;
+-webkit-border-radius: 1em;
+-moz-border-radius: 1em;
+}
+
+.minisearch {
+	float: right;
+}
