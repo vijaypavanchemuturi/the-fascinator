@@ -1,3 +1,21 @@
+/*
+ * Copyright (C) 2009 University of Southern Queensland
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+
 package au.edu.usq.fascinator.maven_plugins.rdf_reactor_file;
 
 import java.io.BufferedReader;
@@ -124,8 +142,8 @@ public class SchemaItem {
         if (schemaUrlLibrary != null) {
             for (URL schema : schemaUrlLibrary) {
                 log.info("Schema requested from " + schema.toExternalForm());
-                File rdfs = downloadSchema(schema, getSchemaFilePath(
-                        workingDirectory, schema));
+                File rdfs = downloadSchema(schema,
+                        getSchemaFilePath(workingDirectory, schema));
                 model.readFrom(new FileReader(rdfs));
             }
         }
@@ -248,7 +266,8 @@ public class SchemaItem {
         this.log = mavenLogger;
         // Check to make sure that we have a file or a URL
         if (schemaUrlLibrary == null && schemaFileLibrary == null) {
-            throw new MojoFailureException(this, "Schema file error",
+            throw new MojoFailureException(this,
+                    "Schema file error",
                     "No locations (file or URL given for " + this.schemaName);
         }
 
@@ -256,7 +275,8 @@ public class SchemaItem {
         try {
             workingSchemaModel = loadSchema(workingDirectory);
         } catch (IOException e) {
-            throw new MojoFailureException(e, "Schema access error",
+            throw new MojoFailureException(e,
+                    "Schema access error",
                     "Could not access the requested schema for " + schemaName);
         }
         log.info("Generating code for " + schemaName
@@ -265,10 +285,15 @@ public class SchemaItem {
                 + ". skipBuiltins is " + skipBuiltins + ".");
 
         try {
-            CodeGenerator.generate(workingSchemaModel, outputDirectory,
-                    packageName, Reasoning.rdfs, skipBuiltins, methodPrefix);
+            CodeGenerator.generate(workingSchemaModel,
+                    outputDirectory,
+                    packageName,
+                    Reasoning.rdfs,
+                    skipBuiltins,
+                    methodPrefix);
         } catch (Exception e) {
-            throw new MojoFailureException(e, "RDFS processing error",
+            throw new MojoFailureException(e,
+                    "RDFS processing error",
                     "Could not generate code from the specified RDF schema file.");
         } finally {
             model.close();

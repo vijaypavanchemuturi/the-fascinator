@@ -1,0 +1,2 @@
+Documentation is available under src/site. To create the Maven site,
+please run "mvn site".

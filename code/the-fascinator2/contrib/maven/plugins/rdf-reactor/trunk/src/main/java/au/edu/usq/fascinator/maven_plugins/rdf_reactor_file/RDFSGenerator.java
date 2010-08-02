@@ -1,12 +1,25 @@
+/*
+ * Copyright (C) 2009 University of Southern Queensland
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
 package au.edu.usq.fascinator.maven_plugins.rdf_reactor_file;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.List;
 
-import org.apache.log4j.BasicConfigurator;
-import org.apache.log4j.FileAppender;
-import org.apache.log4j.SimpleLayout;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -15,6 +28,7 @@ import org.apache.maven.project.MavenProject;
 /**
  * Maven plugin for generating Java classes from RDFS.
  * 
+ * @author Duncan Dickinson
  * @goal rdfs
  * @phase generate-sources
  */
@@ -78,8 +92,11 @@ public class RDFSGenerator extends AbstractMojo {
 
         for (SchemaItem schema : schemaList) {
             getLog().info("Preparing schema: " + schema.getSchemaName());
-            schema.generateCode(skipBuiltins, workingDirectory,
-                    outputDirectory, rdfReactorLogfile, getLog());
+            schema.generateCode(skipBuiltins,
+                    workingDirectory,
+                    outputDirectory,
+                    rdfReactorLogfile,
+                    getLog());
         }
 
         // add generated code to list of files to be compiled
@@ -89,21 +106,25 @@ public class RDFSGenerator extends AbstractMojo {
     }
 
     private void initialiseRDFReactorLogfile() throws MojoExecutionException {
-        try {
-            // make sure that directory for log file exists.
-            rdfReactorLogfile.getParentFile().mkdirs();
-            // configure logging infrastructure for RDFReactor
-            FileAppender logFileAppender = new FileAppender(new SimpleLayout(),
-                    rdfReactorLogfile.getAbsolutePath());
-            BasicConfigurator.configure(logFileAppender);
-        } catch (IOException ioe) {
-            throw new MojoExecutionException(
-                    "Cannot open log file for writing RDFReactor log messages",
-                    ioe);
-        }
-        getLog()
-                .info(
-                        "RDFReactor's log messages are written to "
-                                + rdfReactorLogfile);
+        // make sure that directory for log file exists.
+        rdfReactorLogfile.getParentFile().mkdirs();
+
+        // try {
+        //
+        // // configure logging infrastructure for RDFReactor
+        //
+        // FileAppender logFileAppender = new FileAppender(new SimpleLayout(),
+        // rdfReactorLogfile.getAbsolutePath());
+        // BasicConfigurator.configure(logFileAppender);
+        //
+        // } catch (IOException ioe) {
+        // throw new
+        // MojoExecutionException("Cannot open log file for writing RDFReactor log messages",
+        // ioe);
+        // }
+
+        getLog().info("RDFReactor's log messages are written to "
+                + rdfReactorLogfile);
     }
+
 }
