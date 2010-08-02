@@ -1,6 +1,8 @@
-<div class="grid_16">
+<div style="float: right; margin-top: 20px; margin-right: 130px;">
 <nav>
-<ul class="nav_main"><li><a href="$portalPath/home">Home</a></li>
+<ul>
+   <li><a href="#">Menu</a>
+<ul><li class="current"><a href="$portalPath/home">Home</a></li>
 <li><a href="$portalPath/search">Browse</a></li>
 <li>
       <a href="#">Views</a>
@@ -17,20 +19,22 @@
     #parse($page.getTemplate('elements/queues.vm'))
     #### not yet finished
     ##<li><a href="$portalPath/harvest">Harvest</a></li>
-    <li class="secondary">
-      <a class="search" href="#"><img src="$portalPath/images/icons/magnifier.png" /></a>
-    </li>
-    <li class="secondary">
-      <form action="$portalPath/search" class="search" method="get">
-        <input class="text" type="text" id="query" name="query" size="25" value="$!sessionState.get('query')" />
-      </form>
-    </li>
-    <li class="secondary">
+    ##<li class="secondary">
+    ##  <a class="search" href="#"><img src="$portalPath/images/icons/magnifier.png" /></a>
+    ##</li>
+    ##<li class="secondary">
+    ##  <form action="$portalPath/search" class="search" method="get">
+    ##    <input class="text" type="text" id="query" name="query" size="25" value="$!sessionState.get('query')" />
+    ##  </form>
+    ##</li>
+    <li>
       #if($page.authentication.is_logged_in())
       <span id="user-info" class="status">Welcome $page.authentication.get_name(), <a href="#" id="logout-now">Logout</a></span>
       #else
       <span id="user-info" class="status"><a id="login-now" href="#">Login</a></span>
       #end
+    </li>
+</ul>
     </li>
 </ul>
 </nav>
