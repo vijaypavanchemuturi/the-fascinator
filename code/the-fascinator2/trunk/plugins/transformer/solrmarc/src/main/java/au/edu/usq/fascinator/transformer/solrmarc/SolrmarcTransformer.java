@@ -150,7 +150,7 @@ public class SolrmarcTransformer implements Transformer {
         // Get the payload to transform
         Payload payload = null;
         try {
-            payload = in.getPayload(BINARY_PAYLOAD);
+            payload = in.getPayload(XML_PAYLOAD);
         } catch (StorageException ex) {
             // No marc to transform
             log.error("No MARC data found to transform.");
@@ -216,10 +216,12 @@ public class SolrmarcTransformer implements Transformer {
      * @return String The cleaned output
      */
     private String cleanMetadata(String metadata) {
-        Pattern p = Pattern.compile("{cntrl}");
-        Matcher m = p.matcher(metadata);
-        log.debug("Replaced {} control characters.", m.groupCount());
-        return m.replaceAll("");
+        // TODO
+        return metadata;
+        //Pattern p = Pattern.compile("{cntrl}");
+        //Matcher m = p.matcher(metadata);
+        //log.debug("Replaced {} control characters.", m.groupCount());
+        //return m.replaceAll("");
     }
 
     /**

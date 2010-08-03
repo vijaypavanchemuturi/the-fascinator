@@ -460,12 +460,12 @@ public class SolrIndexer implements Indexer {
             String toClose = props.getProperty("objectRequiresClose");
             if (toClose != null) {
                 log.debug("Indexing has altered metadata, closing object.");
-                log.debug("===> {}", props.getProperty("renderQueue"));
+                //log.debug("===> {}", props.getProperty("renderQueue"));
                 props.remove("objectRequiresClose");
                 object.close();
                 try {
                     props = object.getMetadata();
-                    log.debug("===> {}", props.getProperty("renderQueue"));
+                    //log.debug("===> {}", props.getProperty("renderQueue"));
                 } catch (StorageException ex) {
                     throw new IndexerException("Failed loading properties : ", ex);
                 }
@@ -631,7 +631,7 @@ public class SolrIndexer implements Indexer {
                 inConf.close();
             }
 
-            log.debug("===> {}", props.getProperty("renderQueue"));
+            //log.debug("===> {}", props.getProperty("renderQueue"));
 
             RuleManager rules = new RuleManager();
             python.set("indexer", this);
