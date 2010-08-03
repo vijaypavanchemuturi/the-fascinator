@@ -4,7 +4,7 @@ function setupImageTags(selector) {
     var hash = location.hash.substring(1);
     #set($dq = '"')
     #if($isPackage)
-        #set($rootUri = "$dq$oid#$dq+hash")
+        #set($rootUri = "$dq$oid%23$dq+hash")
     #else
         #set($rootUri = "$dq$oid$dq")
     #end
