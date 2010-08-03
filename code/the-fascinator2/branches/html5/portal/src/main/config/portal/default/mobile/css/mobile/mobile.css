@@ -1,194 +1,318 @@
+#headerbar {
+	background-position: 0px 0px;
+	background:url(../../images/gradient.png) repeat-x scroll 0 -100px #A20091;
+	background-repeat: repeat-x;
+	border-bottom: 1px solid #1E1E1E;
+	font-size: 19px;
+	height: 45px;
+	width: 100%;
+}
+
+#headerbar-title
+{
+	border-style: none;
+	display: block;
+	font-weight: bold;
+	height: 29px;
+	margin: 0px;
+	overflow: hidden;
+	padding-bottom: 4px;
+	padding-left: 10px;
+	padding-top: 10px;
+	text-overflow: ellipsis;
+	text-shadow: #242424 -1px -1px 1px;
+	white-space: nowrap;
+	width: 85%;
+}
+
+#headerbar-title, #headerbar-title a{
+	color: #EEE;
+}
+
+#headerbar-title a{
+	font-family: HelveticaNeue-Bold, sans-serif;
+	letter-spacing: -1px;
+	position: relative;
+	text-decoration: none;
+}
+
+#headerbar-title img#logo-icon {
+	bottom: 1px;
+	float: left;
+	height: 28px;
+	margin-right: 7px;
+	max-width: 30px;
+	padding: 0px;
+	position: relative;
+	width: 28px;
+}
+
+div {
+	display: block;
+}
+
+#headerbar-menu {
+	margin: 0px;
+	padding: 0px;
+	position: absolute;
+	right: 0px;
+	top: 0px;
+}
+
+#headerbar-menu a{
+	background: url(../../images/wptouch-menu-dropper.png) 0px 0px;
+	display: block;
+	height: 45px;
+	margin: 0px;
+	padding: 0px;
+	width: 30px;
+}
+
+a, h3#com-head {
+	color: #006BB3;
+}
+
 a {
-color:#333333;
+	text-decoration: none:
 }
 
-nav {
-    margin: 0;
-    padding: 7px 6px 0;
-    background: #DDED4D url(../../images/gradient.png) repeat-x 0 -110px;
-    line-height: 100%;
-
-    border-radius: 1em;
-    -webkit-border-radius: 1em 2em 1em 2em;
-    -moz-border-radius: 1em 2em 1em 2em;
-
-    -webkit-box-shadow: 0 1px 3px rgba(0,0,0, .4);
-    -moz-box-shadow: 0 1px 3px rgba(0,0,0, .4);    
+a:-webkit-any-link{
+	color: -webkit-link;
+	cursor: auto;
+	text-decoration: underline;
 }
 
-nav ul li {
-    margin: 0 5px;
-    padding: 0 0 8px;
-    float: left;
-    position: relative;
-    list-style: none;
+a:-webkit-any-link:active{
+	color: -webkit-activelink;
 }
 
-/* main level link */
-nav li a {
-    font-weight: bold;
-    color: #747373;
-    text-decoration: none;
-    display: block;
-    padding:  8px 20px;
-    margin: 0;
-
-	-webkit-border-radius: 1em 1.6em 1em 1.6em;
-    -moz-border-radius: 1em 1.6em 1em 1.6em;
-    
-    text-shadow: 0 1px 1px rgba(0,0,0, .3);
+body {
+	-webkit-text-size-adjust: none;
+	font: normal normal normal 12px/normal Helvetica;
+	margin: 0px;
+	min-height: 460px;
+	padding: 0px;
 }
 
-nav li a:hover {
-background:none repeat scroll 0 0 #FFFFFF;
-color:#000000;
+#drop-fade{
+	background: #333;
+	-webkit-box-shadow: black -3px 2px 3px;
+	border-top: 1px solid #3E3E3E;
+	display: block;
+	height: auto;
+	overflow: hidden;
+	position: relative;
+	text-align: right;
+	width: 100%;
 }
 
-/* main level link hover */
-nav ul .current a, nav ul li:hover > a {
-    background: #FF8D00 url(../../images/gradient.png) repeat-x 0 -40px;
-    color: #094626;
-    border-top: solid 1px #f8f8f8;
-
-    -webkit-box-shadow: 0 1px 1px rgba(0,0,0, .2);
-    -moz-box-shadow: 0 1px 1px rgba(0,0,0, .2);
-    box-shadow: 0 1px 1px rgba(0,0,0, .2);
-
-    text-shadow: 0 1px 0 rgba(255,255,255, 1);
+#drop-fade #searchopen {
+	background: url(http://adfi.usq.edu.au/blog/wp-content/plugins/wptouch/themes/core/core-images/menu-sprite.png) no-repeat 2px -92px;
+padding-left: 18px;
 }
 
-/* sub levels link hover */
-nav ul ul li:hover a, nav ul li:hover li a {
-    background: none;
-    border: none;
-    color: #666;
-
-    -webkit-box-shadow: none;
-    -moz-box-shadow: none;
-}
-
-/* level 2 list */
-nav ul ul {
-    display: none;
-
-    margin: 0;
-    padding: 0;
-    width: 185px;
-    position: absolute;
-    top: 35px;
-    left: 0;
-    background: #E9f38E url(../../images/gradient.png) repeat-x 0 0;
-    border: solid 1px #B4B4B4;
-
-    -webkit-border-radius: 10px;
-    -moz-border-radius: 10px;
-    border-radius: 10px;
-
-    -webkit-box-shadow: 0 1px 3px rgba(0,0,0, .3);
-    -moz-box-shadow: 0 1px 3px rgba(0,0,0, .3);
-    box-shadow: 0 1px 3px rgba(0,0,0, .3);
-}
-
-nav ul ul a:hover {
-    background: #A20091 url(../../images/gradient.png) repeat-x 0 -100px !important;
-    color: #fff !important;
-
-    -webkit-border-radius: 0;
-    -moz-border-radius: 0;
-
-    text-shadow: 0 1px 1px rgba(0,0,0, .1);
-}
-
-/* dropdown */
-nav ul li:hover > ul {
-    display: block;
-}
-
-nav ul ul li {
-float:none;
-margin:0;
-padding:0;
-}
-
-nav ul ul a {
-font-weight:normal;
-text-shadow:0 1px 0 #FFFFFF;
-}
-
-/* level 3+ list */
-nav ul ul ul {
-    left: 181px;
-    top: -3px;
-}
-
-/* rounded corners of first and last link */
-nav ul ul li:first-child > a {
-    -webkit-border-top-left-radius: 5px;
-    -moz-border-radius-topleft: 5px;
-
-    -webkit-border-top-right-radius: 5px;
-    -moz-border-radius-topright: 5px;
-}
-
-nav ul ul li:last-child > a {
-    -webkit-border-bottom-left-radius: 5px;
-    -moz-border-radius-bottomleft: 5px;
-
-    -webkit-border-bottom-right-radius: 5px;
-    -moz-border-radius-bottomright: 5px;
-}
-
-/* clearfix */
-nav:after {
-    content: ".";
-    display: block;
-    clear: both;
-    visibility: hidden;
-    line-height: 0;
-    height: 0;
-}
-nav {
-    display: inline-block;
-} 
-html[xmlns] nav {
-    display: block;
-}
- 
-* html nav ul {
-    height: 1%;
-}
-
-.container_16{width:100%;margin-left:2%;margin-right:4%;}
-.container_16 .grid_6, .container_16 .grid_12 {
-	width: 99%;
-	margin-right: 4%;
-}
-
-h1#branding {
-	/*vertical align*/
-	background: #FFFFFF;
-}
-
-
-.box h2 {
-background:url(../../images/gradient.png) repeat-x scroll 0 -100px #A20091;
-color:#FFFFFF;
-font-size:1em;
-font-weight:normal;
-margin:-10px -10px 0;
-padding:6px 12px;
-text-transform:uppercase;
-}
-
-.box {
-background:none repeat scroll 0 0 #E9f38E;
-margin-bottom:20px;
-padding:10px 10px 1px;
-border-radius: 1em;
--webkit-border-radius: 1em;
--moz-border-radius: 1em;
-}
-
-.minisearch {
+#drop-fade a.top {
+	bottom: 3px;
+	color: white;
+	display: block;
 	float: right;
+	font-size: 10px;
+	margin-right: 8px;
+	padding: 6px 2px 2px 0px;
+	position: relative;
+	text-shadow: black 0px -1px 1px
+}
+
+a, h3#com-head {
+	color: #006BB3;
+}
+
+#wptouch-search {
+	display: none;
+	left: 0px;
+	position: absolute;
+	top: 0px;
+	width: 100%;
+	z-index: 1;
+}
+
+#wptouch-login, #wptouch-search {
+	background: black url(http://adfi.usq.edu.au/blog/wp-content/plugins/wptouch/themes/core/core-images/head-fade-bk.png);
+}
+
+#wptouch-search-inner {
+	background-repeat: repeat-x;
+	height: 40px;
+	padding-top: 5px;
+	text-align: center;
+	width: 100%;
+}
+
+form {
+	display: block;
+	margin-top: 0em;
+}
+
+input#s {
+	border: 1px solid #1B1B1B;
+	border-bottom-left-radius: 10px 10px;
+	border-bottom-right-radius: 10px 10px;
+	border-top-left-radius: 10px 10px;
+	border-top-right-radius: 10px 10px;
+	color: #222;
+	font-size: 13px;
+	font-weight: bold;
+	margin-top: 6px;
+	padding: 4px;
+	text-align: left;
+	width: 80%;
+}
+
+input {
+	max-width: 96%;
+}
+
+img.head-close {
+	display: inline;
+	left: 5px;
+	position: relative;
+	top: 6px;
+}
+
+#wptouch-menu {
+	-webkit-box-shadow: #333 -6px 6px 6px;
+	display: none;
+	position: absolute;
+	top: 45px;
+	z-index: 2;
+}
+
+.dropper {
+	background-color: #2C2C2C;
+	border-top: 1px solid #1B1B1B;
+	font-size: 13px;
+	margin: 0px;
+	padding: 0px;
+	position: relative;
+	width: 100%;
+	z-index: 1;
+}
+
+#tabnav {
+	background-color: #444;
+	border-bottom: 1px solid #1B1B1B;
+	border-top: 1px solid #575757;
+	height: 24px;
+	margin-bottom: -1px;
+	padding-left: 10px;
+	padding-top: 3px;
+}
+
+#tabnav a.selected {
+	-webkit-box-shadow: #222 0px -2px 3px;
+	background-color: #2C2C2C;
+	border-bottom: 1px solid #2C2C2C;
+	border: 1px solid;
+	border-top-left-radius: 4px 4px;
+	border-top-right-radius: 4px 4px;
+	color: white !important;
+	margin-left: -1px;
+	margin-right: -1px;
+	position: relative;
+	text-shadow: black 0px -1px 1px;
+	z-index: 1;
+}
+
+#tabnav a {
+	color: #999;
+	display: inline-block;
+	margin: 0px;
+	padding: 2px 8px 7px;
+	text-shadow: #111 0px -1px 1px;
+}
+
+#dropper a {
+	color: #D2D2D2;
+	display: block;
+	font-weight: bold;
+	margin: 0px;
+	padding: 11px 35px 11px 15px;
+	text-align: left;
+	text-shadow: black -1px -1px 1px;
+	width: auto;
+}
+
+.dropper ul {
+	list-style-type: none;
+	margin: 0px;
+	padding: 0px;
+	position: relative;
+}
+
+ul {
+	list-style-position: outside;
+	list-style-type: circle;
+	margin: 0px;
+	padding: 0px 20px;
+}
+
+ul, menu, dir {
+	-webkit-padding-start: 40px;
+	display: block;
+	list-style-type: disc;
+	margin: 1em 0px;
+}
+
+.dropper li {
+	background: url(http://adfi.usq.edu.au/blog/wp-content/plugins/wptouch/themes/core/core-images/arrow.png) no-repeat 100% 50%;
+	border-bottom: 1px solid #1D1D1D;
+	border-top: ;
+	margin: 0px;
+	padding: 0px;
+	text-align: left;
+	text-transform: capitalize;
+}
+
+li {
+	color: #555;
+	font-size: 12px;
+	line-height: 17px;
+	margin-bottom: 10px;
+	padding-bottom: 10px;
+	user agent stylesheet
+}
+
+.dropper a {
+	color: #D2D2D2;
+	display: block;
+	font-weight: bold;
+	margin: 0px;
+	padding: 11px 35px 11px 15px;
+	text-align: left;
+	text-shadow: black -1px -1px 1px;
+	width: auto;
+}
+
+#wptouch-menu-inner img {
+	bottom: 5px;
+	float: left;
+	padding-right: 10px;
+	position: relative;
+	right: 0px;
+	width: 28px;
+}
+
+#tabnav a.selected {
+	-webkit-box-shadow: #222 0px -2px 3px;
+	background-color: #2C2C2C;
+	border-bottom: 1px solid #2C2C2C;
+	border: 1px solid;
+	border-top-left-radius: 4px 4px;
+	border-top-right-radius: 4px 4px;
+	color: white !important;
+	margin-left: -1px;
+	margin-right: -1px;
+	position: relative;
+	text-shadow: black 0px -1px 1px;
+	z-index: 1;
 }
