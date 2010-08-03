@@ -1,4 +1,5 @@
 <link rel="stylesheet" type="text/css" href="$portalPath/js/autocomplete/jquery.autocomplete.css" />
+<link rel="stylesheet" type="text/css" href="$portalPath/css/anotar/anotar.css" />
 <link rel="stylesheet" type="text/css" href="$portalPath/css/anotar/image-annotation.css" />
 #set($dc = $meta.dublinCore)
 <!-- DC info as per http://dublincore.org/documents/dc-html/ -->

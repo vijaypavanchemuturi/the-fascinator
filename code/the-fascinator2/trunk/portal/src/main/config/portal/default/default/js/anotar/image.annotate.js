@@ -71,6 +71,7 @@
             this.button = $('<p><a class="image-annotate-add" id="image-annotate-add" href="#">Tag image</a></p>');
             this.button.click(function() {
                 $.fn.annotateImage.add(image);
+                return false;
             });
             this.canvas.after(this.button);
         }

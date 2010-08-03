@@ -72,9 +72,16 @@ $(function() {
         setupAnotarTags();
         setupAnotarLocationTags();
         
-        // image tags not working yet
-        //var imageNode = $("div[rel='" + oid + "'] > img");
-        //imageNode.load(function(){alert("loaded " + src);setupImageTags("div[rel='" + oid + "']");});
+        var imageNode = $("div[rel='" + oid + "'] > img");
+        if (imageNode.length > 0 && imageNode.attr("rel") != "loaded") {
+            // need to wait for image to load before calling the image annotation plugin
+            var imageObj = new Image();
+            imageObj.src = imageNode.attr("src");
+            $(imageObj).load(function() {
+                imageNode.attr("rel", "loaded");
+                setupImageTags("div[rel='" + oid + "'] > img");
+            });
+        }
     };
     rvt.displayTOC = function(nodes) {
         var opts = {
