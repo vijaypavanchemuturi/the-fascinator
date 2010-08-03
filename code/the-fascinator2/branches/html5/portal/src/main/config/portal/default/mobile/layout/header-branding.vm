@@ -1,6 +1,8 @@
-<div class="grid_16">
-  <h1 id="branding" style="float:left;"><a href="$portalPath/home"><img src="$portalPath/images/fasc_feather.png" width="69" height="62" style="padding-right:10px"/>The Fascinator</a></h1>
-  
+<div id="headerbar">
+    <div id="headerbar-title">
+		<img id="logo-icon" src="$portalPath/images/fasc_feather.png" alt="ADFI Blog">
+		<a href="$portalPath/home">The Fascinator</a>
+	</div>
+
  #parse($page.getTemplate('layout/header-application.vm'))
-</div>
-<div class="clear"></div>
+ </div>

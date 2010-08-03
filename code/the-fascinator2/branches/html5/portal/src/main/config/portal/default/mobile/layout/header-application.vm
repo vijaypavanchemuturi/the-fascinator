@@ -1,7 +1,83 @@
-<div style="float: right; margin-top: 20px; margin-right: 130px;">
+<div id="headerbar-menu">
+	<a href="#" onclick="bnc_jquery_menu_drop(); return false;"></a>
+</div>
+
+<div id="wptouch-search" style="display: none; "> 
+ 		<div id="wptouch-search-inner">
+ 		<form action="$portalPath/search" class="search" method="get">
+        	<input class="text" type="text" id="query" name="query" size="25" value="$!sessionState.get('query')" /><a class="search" href="#"><img src="$portalPath/images/icons/magnifier.png" /></a>
+        </form>
+		</div>
+	</div>
+
+<div id="drop-fade">
+    	<a id="searchopen" class="top" href="#" onclick="bnc_jquery_search_toggle(); return false;">Search</a>
+</div>
+
+<div id="wptouch-menu" class="dropper" style="display: none; "> 		
+        <div id="wptouch-menu-inner">
+	        <div id="menu-head">
+	        	<div id="tabnav">
+					<a href="#head-pages" class="selected">Menu</a>
+		        	<a href="#head-tags" class="">Tags</a>	    	    	<a href="#head-cats" class="">Categories</a>	    	    		        	</div>
+	
+				<ul id="head-pages" style="display: block; ">
+					<li><a href="http://adfi.usq.edu.au/blog"><img src="http://adfi.usq.edu.au/blog/wp-content/plugins/wptouch/images/icon-pool/Default.png" alt="">Home</a></li>            
+										<li><a href="http://adfi.usq.edu.au/blog/feed/"><img src="http://adfi.usq.edu.au/blog/wp-content/plugins/wptouch/images/icon-pool/RSS.png" alt="">RSS Feed</a></li>					<li><a href="mailto:chandlerb@usq.edu.au"><img src="http://adfi.usq.edu.au/blog/wp-content/plugins/wptouch/images/icon-pool/Mail.png" alt="">E-Mail</a></li>           
+				</ul>
+	
+				<ul id="head-cats" style="display: none; ">
+	  	 			<li><a href="http://adfi.usq.edu.au/blog/category/meeting-report/">Meeting report (27)</a></li><li><a href="http://adfi.usq.edu.au/blog/category/conference/">Conference (9)</a></li><li><a href="http://adfi.usq.edu.au/blog/category/eresearch/">eResearch (4)</a></li><li><a href="http://adfi.usq.edu.au/blog/category/elearning/">eLearning (3)</a></li><li><a href="http://adfi.usq.edu.au/blog/category/development/">Development (3)</a></li><li><a href="http://adfi.usq.edu.au/blog/category/journal/">Journal (2)</a></li><li><a href="http://adfi.usq.edu.au/blog/category/general/">General (1)</a></li><li><a href="http://adfi.usq.edu.au/blog/category/uncategorized/">Uncategorized (0)</a></li>				</ul>
+	
+				<ul id="head-tags" style="display: none; ">
+					<li><ul class="wp-tag-cloud">
+	<li><a href="http://adfi.usq.edu.au/blog/tag/ands/" class="tag-link-27" title="16 topics" style="font-size: 13px;">ANDS</a></li>
+	<li><a href="http://adfi.usq.edu.au/blog/tag/annotation/" class="tag-link-14" title="8 topics" style="font-size: 13px;">annotation</a></li>
+	<li><a href="http://adfi.usq.edu.au/blog/tag/anotar/" class="tag-link-37" title="11 topics" style="font-size: 13px;">Anotar</a></li>
+	<li><a href="http://adfi.usq.edu.au/blog/tag/arts/" class="tag-link-52" title="3 topics" style="font-size: 13px;">Arts</a></li>
+	<li><a href="http://adfi.usq.edu.au/blog/tag/cmap/" class="tag-link-16" title="6 topics" style="font-size: 13px;">CMAP</a></li>
+	<li><a href="http://adfi.usq.edu.au/blog/tag/communities/" class="tag-link-45" title="5 topics" style="font-size: 13px;">communities</a></li>
+	<li><a href="http://adfi.usq.edu.au/blog/tag/conference/" class="tag-link-35" title="10 topics" style="font-size: 13px;">Conference</a></li>
+	<li><a href="http://adfi.usq.edu.au/blog/tag/docx/" class="tag-link-47" title="7 topics" style="font-size: 13px;">DOCX</a></li>
+	<li><a href="http://adfi.usq.edu.au/blog/tag/ebook/" class="tag-link-19" title="4 topics" style="font-size: 13px;">eBook</a></li>
+	<li><a href="http://adfi.usq.edu.au/blog/tag/education/" class="tag-link-50" title="2 topics" style="font-size: 13px;">education</a></li>
+	<li><a href="http://adfi.usq.edu.au/blog/tag/elearning/" class="tag-link-5" title="4 topics" style="font-size: 13px;">eLearning</a></li>
+	<li><a href="http://adfi.usq.edu.au/blog/tag/eresearch/" class="tag-link-6" title="5 topics" style="font-size: 13px;">eResearch</a></li>
+	<li><a href="http://adfi.usq.edu.au/blog/tag/events/" class="tag-link-22" title="3 topics" style="font-size: 13px;">Events</a></li>
+	<li><a href="http://adfi.usq.edu.au/blog/tag/grants/" class="tag-link-24" title="4 topics" style="font-size: 13px;">grants</a></li>
+	<li><a href="http://adfi.usq.edu.au/blog/tag/ice/" class="tag-link-3" title="20 topics" style="font-size: 13px;">ice</a></li>
+	<li><a href="http://adfi.usq.edu.au/blog/tag/media/" class="tag-link-26" title="16 topics" style="font-size: 13px;">media</a></li>
+	<li><a href="http://adfi.usq.edu.au/blog/tag/mobile/" class="tag-link-25" title="5 topics" style="font-size: 13px;">mobile</a></li>
+	<li><a href="http://adfi.usq.edu.au/blog/tag/moodle/" class="tag-link-20" title="14 topics" style="font-size: 13px;">Moodle</a></li>
+	<li><a href="http://adfi.usq.edu.au/blog/tag/pmrc/" class="tag-link-46" title="8 topics" style="font-size: 13px;">PMRC</a></li>
+	<li><a href="http://adfi.usq.edu.au/blog/tag/policy/" class="tag-link-11" title="2 topics" style="font-size: 13px;">policy</a></li>
+	<li><a href="http://adfi.usq.edu.au/blog/tag/presentations/" class="tag-link-21" title="2 topics" style="font-size: 13px;">presentations</a></li>
+	<li><a href="http://adfi.usq.edu.au/blog/tag/publications/" class="tag-link-23" title="6 topics" style="font-size: 13px;">publications</a></li>
+	<li><a href="http://adfi.usq.edu.au/blog/tag/report/" class="tag-link-9" title="4 topics" style="font-size: 13px;">report</a></li>
+	<li><a href="http://adfi.usq.edu.au/blog/tag/second-life/" class="tag-link-36" title="2 topics" style="font-size: 13px;">Second Life</a></li>
+	<li><a href="http://adfi.usq.edu.au/blog/tag/server/" class="tag-link-13" title="2 topics" style="font-size: 13px;">server</a></li>
+	<li><a href="http://adfi.usq.edu.au/blog/tag/sword/" class="tag-link-10" title="2 topics" style="font-size: 13px;">SWORD</a></li>
+	<li><a href="http://adfi.usq.edu.au/blog/tag/tell/" class="tag-link-49" title="2 topics" style="font-size: 13px;">TELL</a></li>
+	<li><a href="http://adfi.usq.edu.au/blog/tag/tf/" class="tag-link-4" title="22 topics" style="font-size: 13px;">The Fascinator</a></li>
+	<li><a href="http://adfi.usq.edu.au/blog/tag/toolbar/" class="tag-link-30" title="2 topics" style="font-size: 13px;">Toolbar</a></li>
+	<li><a href="http://adfi.usq.edu.au/blog/tag/virtual-worlds/" class="tag-link-12" title="12 topics" style="font-size: 13px;">Virtual Worlds</a></li>
+</ul>
+</li>
+				</ul>
+
+		<ul id="head-account" style="display: none; ">
+								    <li class="text">
+				    	Enter your username and password<br>in the boxes above.													<br><br>Not registered yet?<br>You can <a href="http://adfi.usq.edu.au/blog/wp-register.php" target="_blank">sign-up here</a>.										    </li>
+							</ul>
+			</div>
+
+
+
+
+<div>
 <nav>
-<ul>
-   <li><a href="#">Menu</a>
+##<ul>
+##   <li><a href="#">Menu</a>
 <ul><li class="current"><a href="$portalPath/home">Home</a></li>
 <li><a href="$portalPath/search">Browse</a></li>
 <li>
@@ -35,16 +111,8 @@
       #end
     </li>
 </ul>
-    </li>
-</ul>
+##    </li>
+##</ul>
 </nav>
-  
 </div>
-<script type="text/javascript">
-    $(function() {
-        $("a.search").click(function() {
-            $("form.search").submit();
-            return false;
-        });
-    });
-</script>
+  
