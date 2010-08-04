@@ -30,7 +30,7 @@
     <h2>Test javascipt widgets form page</h2>
 
     <!-- Field registartion -->
-    <input type="hidden" id="metaList" value="hidden1, hidden2, stext1, stext2, chkbox1, " />
+    <input type="hidden" id="formFields" value="hidden1, hidden2, stext1, stext2, chkbox1, " />
 
     <!-- optional hidden fields -->
     <input type="hidden" id="hidden1" value="HideOne" />
@@ -57,6 +57,50 @@
 
     <div>
       <h3>Simple text list widgets</h3> <!-- add, delete, ordered? -->
+      <h4>Not sortable input</h4>
+      <table class="input-list"><tbody>  <!--  -->
+        <tr class="item-input-display">
+          <td><input type="text" placeholder="enter a tag here" id="tag2.0"/></td>
+          <td class="delete-item"><a href="#">delete</a></td>
+          <td style="width:100%;"/>
+        </tr>
+        <tr>
+          <td><input type="button" class="add-another-item" value="Add another tag"/></td>
+          <td></td>
+        </tr>
+      </tbody></table>
+
+      <h4>Not sortable</h4>
+      <table class="input-list"><tbody>  <!--  -->
+        <tr class="item-display">
+          <td class="item-display" style="border:1px solid #cccccc;"></td>
+          <td class="delete-item"><a href="#">delete</a></td>
+          <td style="width:100%;"/>
+        </tr>
+        <tr class="item-input">
+          <td><input type="text" placeholder="enter a tag here" id="tag.0"/></td>
+          <td><input type="button" class="item-add" value="Add"/></td>
+        </tr>
+      </tbody></table>
+
+      <h4>Sortable</h4>
+<!--
+      <table class="input-list-sortable" id="keywords.0"><tbody> 
+        <tr class="sort-item-item">
+          <td class="sort-handle"><img src="grippy.png"/></td>
+          <td class="sort-number">1</td>
+          <td><input type="text" placeholder="enter a keyword here" id="dc:subject.usq:folksonomy.1"/></td>
+          <td class="delete-row" style="display:none;">delete</td>
+          <td style="width:100%;"/>
+        </tr>
+        <tr>
+          <td></td>
+          <td></td>
+          <td><input type="button" class="add-tr-item" value="Add another keyword"/></td>
+          <td></td>
+        </tr>
+      </tbody></table>
+-->
     </div>
 
     <div>
