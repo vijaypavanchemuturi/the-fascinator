@@ -127,6 +127,9 @@
           alert("Error: table.input-list can not have both 'item-display' and 'item-input-display' table row classes");
           return;
         }
+        // For handling 'item-display' (where there is a separate/special row for handling the display of added items)
+        //    Note: if there is an 'item-display' row then it is expected that there will also be an 
+        //        'item-input' row as well an 'item-add' button/link
         displaySelector = "tr.item-display";
         tmp=table.find(displaySelector).hide();
         displayRowTemplate=tmp.eq(0);
@@ -150,15 +153,15 @@
           tmp.find(".sort-number").text(count);
           table.find(displaySelector+":last").after(tmp);
           visibleItems.find(".delete-item").show();
-          if(count==1) tmp.find(".delete-item").hide();
+          //if(count==1) tmp.find(".delete-item").hide();
           tmp.find(".delete-item").click(del);
         }
 
         del=function(e){
           $(this).parents("tr").remove();
-          if(table.find(displaySelector+":visible").size()==1){
-            table.find(displaySelector+":visible .delete-item").hide();
-          }
+          //if(table.find(displaySelector+":visible").size()==1){
+          //  table.find(displaySelector+":visible .delete-item").hide();
+          //}
           reorder();
           return false;
         }
@@ -181,6 +184,9 @@
         });
 /* */
       }else if(table.find("tr.item-input-display").size()){
+        // For handling 'item-input-display' type lists
+        //   Note: if there is an 'item-input-display' row then it is also excepted that there
+        //      will be an 'add-another-item' button or link
         displaySelector="tr.item-input-display";
         tmp=table.find(displaySelector).hide();
         displayRowTemplate=tmp.eq(0);
@@ -209,6 +215,7 @@
         add();
         table.find(".add-another-item").click(add);
       }
+
       reorder=function(){
         table.find(displaySelector+":visible").each(function(c, i){
           $(i).find("*[id]").each(function(_, i){
