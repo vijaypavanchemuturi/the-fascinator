@@ -45,6 +45,10 @@
     return s.replace(/^\s+|\s+$/g, "")
   }
 
+  function getById(id){
+    return $(document.getElementById(id));
+  }
+
   function reduce(c, func, i){
     if(!i)i=0;
     $.each(c, function(k, v){
@@ -111,6 +115,12 @@
       var displaySelector;
       var add, del, reorder;
       table = $(i);
+      if(table.hasClass("sortable")){
+        table.find("tbody:first").sortable({
+          items:"tr.sortable-item",
+          update:function(e, ui){ reorder(); }
+        });
+      }
 // check all variable names 
       if(table.find("tr.item-display").size()){
         if(table.find("tr.item-input-display").size()){
@@ -124,17 +134,20 @@
           // get item value(s) & validate (if no validation just test for is not empty)
           var values=[];
           table.find("tr.item-input input[type=text]").each(function(c, i){
-            values[c]=$.trim($(i).val());
+            values[c]=[$.trim($(i).val()), i.id];
             $(i).val("");
           }).eq(0).focus();
-          if(!any(values, function(v){ return $.trim(v)!==""; })) return;
+          if(!any(values, function(v){ return v[0]!==""; })) return;
           visibleItems = table.find(displaySelector+":visible");
           tmp = displayRowTemplate.clone().show();
           count = visibleItems.size()+1;
           tmp.find("*[id]").each(function(c, i){ i.id = i.id.replace(/\.0(?=\.|$)/, "."+count); });
           tmp.find("td.item-display").each(function(c, i){
-            $(i).text(values[c]);
+            var id = values[c][1].replace(/\.0(?=\.|$)/, "."+count);
+            $(i).text(values[c][0]);
+            $(i).append("<input type='hidden' id='"+id+"' value='"+values[c][0]+"'/>");
           });
+          tmp.find(".sort-number").text(count);
           table.find(displaySelector+":last").after(tmp);
           visibleItems.find(".delete-item").show();
           if(count==1) tmp.find(".delete-item").hide();
@@ -155,6 +168,16 @@
           if(e.which==13){
             add();
           }
+          if(e.which==8 && false){      // backspace delete/recall exp.
+            if($(e.target).val()==""){
+              if(table.find(displaySelector+":visible").size()>0){
+                var i=table.find(displaySelector+":visible:last input:last");
+                del.apply(i);
+                $(e.target).val(i.val());
+                return false;
+              }
+            }
+          }
         });
 /* */
       }else if(table.find("tr.item-input-display").size()){
@@ -167,12 +190,12 @@
           tmp = displayRowTemplate.clone().show();
           count = visibleItems.size()+1;
           tmp.find("*[id]").each(function(c, i){ i.id = i.id.replace(/\.0(?=\.|$)/, "."+count); });
+          tmp.find(".sort-number").text(count);
           table.find(displaySelector+":last").after(tmp);
           visibleItems.find(".delete-item").show();
           if(count==1) tmp.find(".delete-item").hide();
           tmp.find(".delete-item").click(del);
         }
-        add();
 
         del=function(e){
           $(this).parents("tr").remove();
@@ -183,13 +206,15 @@
           return false;
         }
 
+        add();
         table.find(".add-another-item").click(add);
       }
       reorder=function(){
-        $(displaySelector+":visible").each(function(c, i){
+        table.find(displaySelector+":visible").each(function(c, i){
           $(i).find("*[id]").each(function(_, i){
             i.id = i.id.replace(/\.\d+(?=\.|$)/, "."+(c+1));
           });
+          $(i).find(".sort-number").text(c+1);
         });
       }
 
