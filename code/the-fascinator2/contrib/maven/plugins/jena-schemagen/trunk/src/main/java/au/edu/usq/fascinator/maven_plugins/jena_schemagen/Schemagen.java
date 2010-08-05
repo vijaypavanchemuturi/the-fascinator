@@ -18,6 +18,7 @@
 package au.edu.usq.fascinator.maven_plugins.jena_schemagen;
 
 import java.io.File;
+import java.util.Map;
 
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -27,8 +28,6 @@ import org.apache.maven.plugin.MojoFailureException;
  * @author dickinso
  * @see http://jena.sourceforge.net/how-to/schemagen.html
  * @goal schemagen
- * @phase generate-sources
- * 
  */
 public class Schemagen extends AbstractMojo {
     /**
@@ -37,31 +36,21 @@ public class Schemagen extends AbstractMojo {
      * @parameter
      * @required
      */
-    private String input;
+    private Map<String, String> schema;
 
     /**
      * The file or directory for the output
      * 
-     * @parameter
-     * @required
+     * @parameter expression="${project.build.directory}/schemagen"
      */
-    private String output;
+    private File outputFolder;
 
     /**
      * The Java package name
      * 
-     * @parameter
-     * @optional
+     * @parameter expression=""
      */
     private String packageName;
-
-    /**
-     * The Java class name
-     * 
-     * @parameter
-     * @optional
-     */
-    private String className;
 
     /**
      * @param args
@@ -75,16 +64,17 @@ public class Schemagen extends AbstractMojo {
      * @see org.apache.maven.plugin.Mojo#execute()
      */
     public void execute() throws MojoExecutionException, MojoFailureException {
-        File outFolder = new File(output
+        File outFolder = new File(outputFolder.getPath() + File.separator
                 + packageName.replace('.', File.separatorChar));
         outFolder.mkdirs();
 
-        getLog().info("Input: " + input);
         getLog().info("Output: " + outFolder.getPath());
 
-        String[] args = { "-i", input, "-o", outFolder.getPath(), "--package",
-                packageName, "-n", className };
-        jena.schemagen.main(args);
-
+        for (String item : schema.keySet()) {
+            getLog().info("Loading: " + item + " - " + schema.get(item));
+            String[] args = { "-i", schema.get(item), "-o",
+                    outFolder.getPath(), "--package", packageName, "-n", item };
+            jena.schemagen.main(args);
+        }
     }
 }
