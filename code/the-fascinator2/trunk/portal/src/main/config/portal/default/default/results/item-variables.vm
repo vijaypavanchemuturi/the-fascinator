@@ -8,6 +8,9 @@
 #end
 #set ($title = $page.escapeHtml($title))
 #set ($format = $item.get("dc_format").get(0))
+#if("$!format" == "")
+    #set($format = "")
+#end
 #set ($description = "")
 #set ($description = $item.get("dc_description").get(0))
 #set ($resultClass = "article")
