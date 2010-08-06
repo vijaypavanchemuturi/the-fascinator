@@ -1,45 +1,6 @@
 
 (function($){
 
-            function tableUpdate(tbody){
-                var rows = tbody.find("tr.sort-item");
-                rows.each(function(c, r){
-                    r = $(r);
-                    r.find("td:eq(1)").text(c+1);
-                    r.find("td input").each(function(c2, i){
-                        i = $(i);
-                        var id = i.attr("id");
-                        id = id.replace(/\.[1-9]\d*/g, "."+(c+1));
-                        i.attr("id", id);
-                    });
-                });
-                rows.find("td.delete-row:first").show();
-                if(rows.size()<2) rows.find("td.delete-row:first").hide();
-            }
-            $(".row-sortable tbody").sortable({
-                    items:".sort-item",
-                    update: function(e, ui){
-                        //var tbody = $(".row-sortable tbody");
-                        var tbody = $(e.target);
-                        tableUpdate(tbody);
-                    }
-                }).each(function(c, tbody){tableUpdate($(tbody));});
-            $(".add-tr-item").click(function(ev){
-                var tbody = $(ev.target).parents("tbody");
-                var tmp = tbody.find("tr.tr-item:last");
-                var c = tmp.clone(true);
-                c.find("input").val("");
-                tmp.after(c);
-                tableUpdate(tbody);
-            });
-            $("td.delete-row").click(function(ev){
-                var tr = $(ev.target).parents("tr");
-                var tbody = tr.parents("tbody");
-                tr.remove();
-                tableUpdate(tbody);
-                return false;
-            });
-
   function trim(s){
     return $.trim(s);
     return s.replace(/^\s+|\s+$/g, "")
@@ -66,7 +27,9 @@
   }
 /* */
   $(function(){
+    // ==============
     // Date inputs
+    // ==============
     $("input.dateYMD, input.date").datepicker({dateFormat:"yy-mm-dd", changeMonth:true, changeYear:true, showButtonPanel:false});
     function datepickerOnClose(dateText, inst){
         var month = $("#ui-datepicker-div .ui-datepicker-month :selected").val();
@@ -107,13 +70,15 @@
       onChangeMonthYear:function(year, month, inst){ datepickerBeforeShow(null, inst); },
       onSelect:function(dateText, inst){}
     });
-    // ====
+    // ==============
     
+    
+    // ==============
     // Simple (text) list input type
+    // ==============
     $("table.input-list").each(function(c, i){
-      var table, count, tmp, visibleItems, displayRowTemplate;
-      var displaySelector;
-      var add, del, reorder;
+      var table, count, tmp, visibleItems, displayRowTemplate, displaySelector;
+      var add, del, reorder, addUniqueOnly=false;
       table = $(i);
       if(table.hasClass("sortable")){
         table.find("tbody:first").sortable({
@@ -122,7 +87,7 @@
         });
       }
 // check all variable names 
-      if(table.find("tr.item-display").size()){
+      if(table.find(".item-display").size()){
         if(table.find("tr.item-input-display").size()){
           alert("Error: table.input-list can not have both 'item-display' and 'item-input-display' table row classes");
           return;
@@ -130,7 +95,7 @@
         // For handling 'item-display' (where there is a separate/special row for handling the display of added items)
         //    Note: if there is an 'item-display' row then it is expected that there will also be an 
         //        'item-input' row as well an 'item-add' button/link
-        displaySelector = "tr.item-display";
+        displaySelector = ".item-display";
         tmp=table.find(displaySelector).hide();
         displayRowTemplate=tmp.eq(0);
         add=function(){
@@ -142,10 +107,13 @@
           }).eq(0).focus();
           if(!any(values, function(v){ return v[0]!==""; })) return;
           visibleItems = table.find(displaySelector+":visible");
+          if(addUniqueOnly){
+            // Check that this entry is unique
+          }
           tmp = displayRowTemplate.clone().show();
           count = visibleItems.size()+1;
           tmp.find("*[id]").each(function(c, i){ i.id = i.id.replace(/\.0(?=\.|$)/, "."+count); });
-          tmp.find("td.item-display").each(function(c, i){
+          tmp.find(".item-display-item").each(function(c, i){
             var id = values[c][1].replace(/\.0(?=\.|$)/, "."+count);
             $(i).text(values[c][0]);
             $(i).append("<input type='hidden' id='"+id+"' value='"+values[c][0]+"'/>");
@@ -167,6 +135,7 @@
         }
         
         table.find(".item-add").click(add);
+        addUniqueOnly = table.find(".item-add").hasClass("add-unique-only");
         table.find("tr.item-input input[type=text]:last").keypress(function(e){
           if(e.which==13){
             add();
@@ -182,7 +151,6 @@
             }
           }
         });
-/* */
       }else if(table.find("tr.item-input-display").size()){
         // For handling 'item-input-display' type lists
         //   Note: if there is an 'item-input-display' row then it is also excepted that there
@@ -226,6 +194,119 @@
       }
 
     });
+    // ==============
+    
+    
+    // ==============
+    // Multi-dropdown selection
+    // ==============
+    //function buildSelectList(list, _default, selectable, ns, getJson, onSelection){
+    function buildSelectList(json, parent, getJson, onSelection){
+      var s, o, children={}, ns, selectable;
+      ns = (json.namespace || "") || (parent.namespace || "");
+      selectable = (json.selectable==null)?(!!parent.selectable):(!!json.selectable);
+      s = $("<select/>");
+      if(!json.default){
+        o = $("<option value=''>Please select one</option>");        
+        s.append(o);
+      }
+      $.each(json.list, function(c, i){
+        var sel=!!(i.selectable!=null?i.selectable:selectable);
+        children[i.id]={url:(i.children==1?i.id:i.children), label:i.label, id:i.id, 
+                        selectable:sel, namespace:ns, parent:parent};
+        o = $("<option/>");
+        o.attr("value", i.id);
+        if(i.id==json.default) o.attr("selected", "selected");
+        o.text(i.label);
+        s.append(o);
+      });
+      function onChange(){
+        var id, child, j;
+        id = s.val();
+        child = children[id] || {parent:parent};
+        s.nextUntil(":not(select)").remove();
+        if(child.url){
+          j = getJson(child.url);
+          s.after(buildSelectList(j, child, getJson, onSelection));
+        }
+        onSelection(child);
+      }      
+      s.change(onChange);
+      setTimeout(onChange, 10);
+      return s;
+    }
+
+    $(".data-source-drop-down").each(function(c, dsdd){
+      var ds=$(dsdd), id=dsdd.id, jsonUrl, json, selAdd;
+      var selAddNs, selAddId, selAddLabel;
+      ds.hide();
+      selAdd = ds.parent().find(".selection-add");
+      // ".json-data-source-url" val(), ".json-data-source" text(),
+      //    ".selection-add"
+      function getJson(urlId, absolute){
+        var j=json[urlId], url=urlId;
+        if(j) return j;
+        if(!absolute){
+          url=jsonUrl+urlId;
+        }
+        $.getJSON(url, function(data){
+          json=data;
+          return json;
+        });
+      }
+      jsonUrl=$(".json-data-source-url").val();
+      if(jsonUrl){
+        json=getJson(jsonUrl, true);
+        if(/\//.test()){
+          jsonUrl=jsonUrl.split(/\/([^\/]*$)/)[0]+"/";  // split at the last /
+        }else{
+          jsonUrl="";
+        }
+      }else{
+        json=$(".json-data-source");
+        json = json.val() || json.text();
+      }
+      function onSelection(info){
+        var sel;
+        //info.namespace, info.id, info.label, info.selectable, info.parent
+        while(info.selectable!==false && info.selectable!==true){ 
+          if(info.parent) info = info.parent;
+          else info.selectable=false;
+        }
+        sel=info.selectable;
+        if(/BUTTON|INPUT/.test(selAdd[0].tagName)){
+          selAdd.attr("disabled", sel?"":"disabled");
+        }else{
+          sel?selAdd.show():selAdd.hide();
+        }
+        if(sel){
+          selAddNs=info.namespace; selAddId=info.id; selAddLabel=info.label;
+        }else{
+          selAddNs=""; selAddId=""; selAddLabel="";
+        }
+        ds.find(".selection-add-id").val(selAddId);
+        ds.find(".selection-add-label").val(selAddLabel);
+        selAdd.find(".selection-add-id").text(selAddId);
+        selAdd.find(".selection-add-label").text(selAddLabel);
+      }
+      if(json){
+        try{
+          json = eval("("+json+")");
+        }catch(e){
+          alert("Not valid json!"); return;
+        }
+        // OK now build the select-option
+
+        var o = buildSelectList(json, {}, getJson, onSelection);
+        ds.after(o);
+        //o.after(selAdd);
+      }
+      selAdd.click(function(){
+        
+      });
+    });
+    // ==============
+
     alert("loaded ok ");
   });
 
