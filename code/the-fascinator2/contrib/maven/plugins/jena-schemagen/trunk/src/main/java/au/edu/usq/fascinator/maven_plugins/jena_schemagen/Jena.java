@@ -41,6 +41,7 @@ public class Jena extends SchemaGenerator {
      * @see org.apache.maven.plugin.Mojo#execute()
      */
     public void execute() throws MojoExecutionException, MojoFailureException {
+        getLog().info("Using Jena to generate schema");
         File outFolder = new File(getOutputFolder().getPath() + File.separator
                 + getPackageName().replace('.', File.separatorChar));
         outFolder.mkdirs();
