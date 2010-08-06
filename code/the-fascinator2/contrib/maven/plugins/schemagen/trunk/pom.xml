@@ -2,10 +2,10 @@
  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
  <modelVersion>4.0.0</modelVersion>
  <groupId>au.edu.usq.fascinator.maven-plugins</groupId>
- <artifactId>jena-schemagen</artifactId>
+ <artifactId>schemagen</artifactId>
  <version>0.0.1-SNAPSHOT</version>
  <packaging>maven-plugin</packaging>
- <name>Jena Schemagen plugin</name>
+ <name>Schemagen plugin</name>
  <parent>
   <artifactId>organisation</artifactId>
   <groupId>au.edu.usq.fascinator</groupId>
