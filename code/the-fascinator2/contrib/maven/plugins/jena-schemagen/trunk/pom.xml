@@ -48,6 +48,16 @@
    <version>1.2.16</version>
    <scope>compile</scope>
   </dependency>
+  <dependency>
+   <groupId>org.semweb4j</groupId>
+   <artifactId>rdf2go.api</artifactId>
+   <version>4.7.2</version>
+  </dependency>
+  <dependency>
+   <groupId>org.semweb4j</groupId>
+   <artifactId>rdf2go.impl.jena24</artifactId>
+   <version>4.7.2</version>
+  </dependency>
  </dependencies>
 
  <build>
@@ -73,17 +83,42 @@
      </archive>
     </configuration>
    </plugin>
-   <plugin>
-    <groupId>org.codehaus.mojo</groupId>
-    <artifactId>exec-maven-plugin</artifactId>
-    <version>1.1.1</version>
-    <configuration>
-     <mainClass>au.edu.usq.fascinator.maven_plugins.jena_schemagen.Schemagen
-     </mainClass>
-    </configuration>
-   </plugin>
   </plugins>
  </build>
+ <profiles>
+  <profile>
+   <id>jena</id>
+   <build>
+    <plugins>
+     <plugin>
+      <groupId>org.codehaus.mojo</groupId>
+      <artifactId>exec-maven-plugin</artifactId>
+      <version>1.1.1</version>
+      <configuration>
+       <mainClass>au.edu.usq.fascinator.maven_plugins.jena_schemagen.Jena
+     </mainClass>
+      </configuration>
+     </plugin>
+    </plugins>
+   </build>
+  </profile>
+  <profile>
+   <id>rdf2go</id>
+   <build>
+    <plugins>
+     <plugin>
+      <groupId>org.codehaus.mojo</groupId>
+      <artifactId>exec-maven-plugin</artifactId>
+      <version>1.1.1</version>
+      <configuration>
+       <mainClass>au.edu.usq.fascinator.maven_plugins.jena_schemagen.RDF2Go
+     </mainClass>
+      </configuration>
+     </plugin>
+    </plugins>
+   </build>
+  </profile>
+ </profiles>
  <reporting>
   <plugins>
    <plugin>
