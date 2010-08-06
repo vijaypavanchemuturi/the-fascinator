@@ -104,7 +104,7 @@ $(function() {
     $("div.rendition-links").hide();
 
     #if($self.isMetadataOnly())
-    $("#preview").after($("#metadata")).remove();
+    $("#preview").after($("#metadata").parent()).remove();
     #end
 });
 </script>
