@@ -44,7 +44,7 @@ public class RDF2Go extends SchemaGenerator {
      * @see org.apache.maven.plugin.Mojo#execute()
      */
     public void execute() throws MojoExecutionException, MojoFailureException {
-
+        getLog().info("Using RDF2Go to generate schema");
         for (String item : getSchema().keySet()) {
             getLog().info("Loading: " + item + " - " + getSchema().get(item));
 
@@ -59,8 +59,14 @@ public class RDF2Go extends SchemaGenerator {
             } catch (IOException e) {
                 throw new MojoFailureException(e.getMessage());
             }
+
+            File outFolder = new File(getOutputFolder().getPath()
+                    + File.separator
+                    + getPackageName().replace('.', File.separatorChar));
+            outFolder.mkdirs();
+
             String[] args = { "-i", schema.getAbsolutePath(), "-o",
-                    getOutputFolder().getPath(), "--package", getPackageName(),
+                    outFolder.getAbsolutePath(), "--package", getPackageName(),
                     "-n", item, "-a", getSchema().get(item) };
             try {
                 getLog().info("Calling VocabularyWriter for "
