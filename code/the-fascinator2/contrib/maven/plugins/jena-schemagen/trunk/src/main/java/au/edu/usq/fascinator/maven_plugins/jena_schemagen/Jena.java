@@ -18,39 +18,16 @@
 package au.edu.usq.fascinator.maven_plugins.jena_schemagen;
 
 import java.io.File;
-import java.util.Map;
 
-import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 
 /**
  * @author dickinso
  * @see http://jena.sourceforge.net/how-to/schemagen.html
- * @goal schemagen
+ * @goal jena
  */
-public class Schemagen extends AbstractMojo {
-    /**
-     * The file or URI of the schema
-     * 
-     * @parameter
-     * @required
-     */
-    private Map<String, String> schema;
-
-    /**
-     * The file or directory for the output
-     * 
-     * @parameter expression="${project.build.directory}/schemagen"
-     */
-    private File outputFolder;
-
-    /**
-     * The Java package name
-     * 
-     * @parameter expression=""
-     */
-    private String packageName;
+public class Jena extends SchemaGenerator {
 
     /**
      * @param args
@@ -64,17 +41,19 @@ public class Schemagen extends AbstractMojo {
      * @see org.apache.maven.plugin.Mojo#execute()
      */
     public void execute() throws MojoExecutionException, MojoFailureException {
-        File outFolder = new File(outputFolder.getPath() + File.separator
-                + packageName.replace('.', File.separatorChar));
+        File outFolder = new File(getOutputFolder().getPath() + File.separator
+                + getPackageName().replace('.', File.separatorChar));
         outFolder.mkdirs();
 
         getLog().info("Output: " + outFolder.getPath());
 
-        for (String item : schema.keySet()) {
-            getLog().info("Loading: " + item + " - " + schema.get(item));
-            String[] args = { "-i", schema.get(item), "-o",
-                    outFolder.getPath(), "--package", packageName, "-n", item };
-            jena.schemagen.main(args);
+        for (String item : getSchema().keySet()) {
+            getLog().info("Loading: " + item + " - " + getSchema().get(item));
+            String[] args = { "-i", getSchema().get(item), "-o",
+                    outFolder.getPath(), "--package", getPackageName(), "-n",
+                    item };
+            main(args);
         }
     }
+
 }
