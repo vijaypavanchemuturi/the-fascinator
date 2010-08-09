@@ -44,7 +44,6 @@ def getNodeValues (doc, xPath):
             if nodeValue not in valueList:
                 valueList.append(node.getText())
     return valueList 
-
 #start with blank solr document
 rules.add(New())
 
@@ -137,79 +136,79 @@ if pid == metaPid:
     
     # Extract from aperture.rdf if exist
     try:
-        from au.edu.usq.fascinator.common.nco import Contact
-        from au.edu.usq.fascinator.common.nfo import PaginatedTextDocument
-        from au.edu.usq.fascinator.common.nid3 import ID3Audio
-        from au.edu.usq.fascinator.common.nie import InformationElement
+        from org.semanticdesktop.aperture.vocabulary import NCO;
+        from org.semanticdesktop.aperture.vocabulary import NFO;
+        from org.semanticdesktop.aperture.vocabulary import NID3;
+        from org.semanticdesktop.aperture.vocabulary import NIE;
+        from org.semanticdesktop.aperture.rdf.impl import RDFContainerImpl;
+        from org.ontoware.rdf2go.model.node.impl import URIImpl;
         
         rdfPayload = object.getPayload("aperture.rdf")
         rdfModel = pyUtils.getRdfModel(rdfPayload)
+        #rdfModel.dump()
         
         #Seems like aperture only encode the spaces. Tested against special characters file name
         #and it's working 
         safeOid = oid.replace(" ", "%20")
-        #under windows we need to add a slash
-        if not safeOid.startswith("/"):
-            safeOid = "/" + safeOid
-        rdfId = "file:%s" % safeOid
+        rdfId = "urn:oid:%s" % safeOid.rstrip("/")
         
-        #Set write to False so it won't write to the model
-        paginationTextDocument = PaginatedTextDocument(rdfModel, rdfId, False)
-        informationElement = InformationElement(rdfModel, rdfId, False)
-        id3Audio = ID3Audio(rdfModel, rdfId, False)
+        container = RDFContainerImpl(rdfModel, rdfId)
         
         #1. get title only if no title returned by ICE
         if titleList == []:
-            allTitles = informationElement.getAllTitle();
-            while (allTitles.hasNext()):
-                title = allTitles.next().strip()
-                if title != "":
-                    titleList.append(title)
-            allTitles = id3Audio.getAllTitle()
-            while (allTitles.hasNext()):
-                title = allTitles.next().strip()
-                if title != "":
-                    titleList.append(title)
+            titleCollection = container.getAll(NIE.title)
+            iterator = titleCollection.iterator()
+            while iterator.hasNext():
+                node = iterator.next()
+                result = str(node).strip() 
+                titleList.append(result)
+            
+            titleCollection = container.getAll(NID3.title)
+            iterator = titleCollection.iterator()
+            while iterator.hasNext():
+                node = iterator.next()
+                result = str(node).strip() 
+                titleList.append(result)
         
         #2. get creator only if no creator returned by ICE
         if creatorList == []:
-            allCreators = paginationTextDocument.getAllCreator();
-            while (allCreators.hasNext()):
-                thing = allCreators.next()
-                contacts = Contact(rdfModel, thing.getResource(), False)
-                allFullnames = contacts.getAllFullname()
-                while (allFullnames.hasNext()):
-                     creatorList.append(allFullnames.next())
-        
+            creatorCollection = container.getAll(NCO.creator);
+            iterator = creatorCollection.iterator()
+            while iterator.hasNext():
+                node = iterator.next()
+                creatorUri = URIImpl(str(node))
+                creatorContainer = RDFContainerImpl(rdfModel, creatorUri);
+                value = creatorContainer.getString(NCO.fullname);
+                if value and value not in creatorList:
+                    creatorList.append(value)
+                    
         #3. getFullText: only aperture has this information
-        if informationElement.hasPlainTextContent():
-            allPlainTextContents = informationElement.getAllPlainTextContent()
-            while(allPlainTextContents.hasNext()):
-                fulltextString = allPlainTextContents.next()
-                fulltext.append(fulltextString)
+        fulltextString = container.getString(NIE.plainTextContent)
+        if fulltextString:
+            fulltext.append(fulltextString.strip())
+            #4. description/abstract will not be returned by aperture, so if no description found
+            # in dc.xml returned by ICE, put first 100 characters
+            if descriptionList == []:
+                descriptionString = fulltextString
+                if len(fulltextString)>100:
+                    descriptionString = fulltextString[:100] + "..."
+                descriptionList.append(descriptionString)
                 
-                #4. description/abstract will not be returned by aperture, so if no description found
-                # in dc.xml returned by ICE, put first 100 characters
-                if descriptionList == []:
-                    descriptionString = fulltextString
-                    if len(fulltextString)>100:
-                        descriptionString = fulltextString[:100] + "..."
-                    descriptionList.append(descriptionString)
-        
-        if id3Audio.hasAlbumTitle():
-            albumTitle = id3Audio.getAllAlbumTitle().next().strip()
-            descriptionList.append("Album: " + albumTitle)
-        
+        #4 album title
+        albumTitle = container.getString(NID3.albumTitle)
+        if albumTitle:
+            descriptionList.append("Album: " + albumTitle.strip())
+
         #5. mimeType: only aperture has this information
-        if informationElement.hasMimeType():
-            allMimeTypes = informationElement.getAllMimeType()
-            while(allMimeTypes.hasNext()):
-                formatList.append(allMimeTypes.next())
-    
+        mimeType = container.getString(NIE.mimeType)
+        if mimeType:
+            formatList.append(mimeType.strip())
+            
         #6. contentCreated
         if creationDate == []:
-            if informationElement.hasContentCreated():
-                creationDate.append(informationElement.getContentCreated().getTime().toString())
+            contentCreated = container.getString(NIE.contentCreated)
+            if contentCreated:
+                creationDate.append(contentCreated.strip())
     except StorageException, e:
         #print "Failed to index aperture data (%s)" % str(e)
         pass

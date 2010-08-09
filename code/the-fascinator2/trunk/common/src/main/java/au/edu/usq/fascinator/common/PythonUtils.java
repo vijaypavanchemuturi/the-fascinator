@@ -19,14 +19,6 @@
 
 package au.edu.usq.fascinator.common;
 
-import au.edu.usq.fascinator.api.PluginException;
-import au.edu.usq.fascinator.api.PluginManager;
-import au.edu.usq.fascinator.api.access.AccessControlException;
-import au.edu.usq.fascinator.api.access.AccessControlManager;
-import au.edu.usq.fascinator.api.access.AccessControlSchema;
-import au.edu.usq.fascinator.api.storage.Payload;
-import au.edu.usq.fascinator.api.storage.StorageException;
-
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -50,18 +42,27 @@ import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.DocumentFactory;
 import org.dom4j.io.SAXReader;
-import org.ontoware.rdf2go.RDF2Go;
+import org.ontoware.rdf2go.Reasoning;
 import org.ontoware.rdf2go.exception.ModelRuntimeException;
+import org.ontoware.rdf2go.impl.jena24.ModelImplJena24;
 import org.ontoware.rdf2go.model.Model;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import au.edu.usq.fascinator.api.PluginException;
+import au.edu.usq.fascinator.api.PluginManager;
+import au.edu.usq.fascinator.api.access.AccessControlException;
+import au.edu.usq.fascinator.api.access.AccessControlManager;
+import au.edu.usq.fascinator.api.access.AccessControlSchema;
+import au.edu.usq.fascinator.api.storage.Payload;
+import au.edu.usq.fascinator.api.storage.StorageException;
 
 /**
  * The purpose of this class is to expose common Java classes and methods we use
  * to Python scripts.
  * 
- * Messaging is a duplicate of au.edu.usq.fascinator.MessagingServices
- *  since Common library cannot acces it.
+ * Messaging is a duplicate of au.edu.usq.fascinator.MessagingServices since
+ * Common library cannot acces it.
  * 
  * @author Greg Pendlebury
  */
@@ -114,10 +115,9 @@ public class PythonUtils {
         }
     }
 
-
     /*****
      * Try to closing any objects that require closure
-     *
+     * 
      */
     public void shutdown() {
         if (connection != null) {
@@ -152,14 +152,14 @@ public class PythonUtils {
 
     /*****
      * Send a message to the given message queue
-     *
+     * 
      * @param messageQueue to connect to
      * @param message to send
      * @return boolean flag for success
      */
     public boolean sendMessage(String messageQueue, String message) {
         try {
-            //log.debug("Queuing '{}' to '{}'", msg, name);
+            // log.debug("Queuing '{}' to '{}'", msg, name);
             sendMessage(getDestination(messageQueue, true), message);
             return true;
         } catch (JMSException jmse) {
@@ -170,7 +170,7 @@ public class PythonUtils {
 
     /**
      * Sends a message to a JMS destination.
-     *
+     * 
      * @param name destination name
      * @param msg message to send
      */
@@ -183,7 +183,7 @@ public class PythonUtils {
     /**
      * Gets a JMS destination with the given name. If the destination doesn't
      * exist it is created and cached for reuse.
-     *
+     * 
      * @param name name of the destination
      * @param queue true if the destination is a queue, false for topic
      * @return a JMS destination
@@ -340,7 +340,7 @@ public class PythonUtils {
         Reader reader = null;
         try {
             reader = new InputStreamReader(rdfIn, "UTF-8");
-            model = RDF2Go.getModelFactory().createModel();
+            model = new ModelImplJena24(Reasoning.rdfs);
             model.open();
             model.readFrom(reader);
         } catch (ModelRuntimeException mre) {

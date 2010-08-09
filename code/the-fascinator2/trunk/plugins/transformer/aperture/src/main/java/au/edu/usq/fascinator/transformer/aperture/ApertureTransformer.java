@@ -18,18 +18,6 @@
  */
 package au.edu.usq.fascinator.transformer.aperture;
 
-import au.edu.usq.fascinator.api.PluginDescription;
-import au.edu.usq.fascinator.api.PluginException;
-import au.edu.usq.fascinator.api.storage.DigitalObject;
-import au.edu.usq.fascinator.api.storage.Payload;
-import au.edu.usq.fascinator.api.storage.PayloadType;
-import au.edu.usq.fascinator.api.storage.StorageException;
-import au.edu.usq.fascinator.api.transformer.Transformer;
-import au.edu.usq.fascinator.api.transformer.TransformerException;
-import au.edu.usq.fascinator.common.JsonConfigHelper;
-import au.edu.usq.fascinator.common.MimeTypeUtil;
-import au.edu.usq.fascinator.common.storage.StorageUtils;
-
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -59,6 +47,18 @@ import org.semanticdesktop.aperture.rdf.impl.RDFContainerImpl;
 import org.semanticdesktop.aperture.vocabulary.NIE;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import au.edu.usq.fascinator.api.PluginDescription;
+import au.edu.usq.fascinator.api.PluginException;
+import au.edu.usq.fascinator.api.storage.DigitalObject;
+import au.edu.usq.fascinator.api.storage.Payload;
+import au.edu.usq.fascinator.api.storage.PayloadType;
+import au.edu.usq.fascinator.api.storage.StorageException;
+import au.edu.usq.fascinator.api.transformer.Transformer;
+import au.edu.usq.fascinator.api.transformer.TransformerException;
+import au.edu.usq.fascinator.common.JsonConfigHelper;
+import au.edu.usq.fascinator.common.MimeTypeUtil;
+import au.edu.usq.fascinator.common.storage.StorageUtils;
 
 /**
  * Provides static methods for extracting RDF metadata from a given file.
@@ -120,17 +120,18 @@ public class ApertureTransformer implements Transformer {
     /**
      * Extractor Constructor
      */
-    public ApertureTransformer() {}
+    public ApertureTransformer() {
+    }
 
     /**
      * Overridden method init to initialize
-     *
+     * 
      * Configuration sample: "transformer": { "conveyer":
      * "aperture-extractor, ice-transformer", "extractor": { "outputPath" :
      * "${user.home}/ice2-output" }, "ice-transformer": { "url":
      * "http://ice-service.usq.edu.au/api/convert/", "outputPath":
      * "${user.home}/ice2-output" } }
-     *
+     * 
      * @param jsonString of configuration for Extractor
      * @throws PluginException if fail to parse the config
      */
@@ -146,13 +147,13 @@ public class ApertureTransformer implements Transformer {
 
     /**
      * Overridden method init to initialize
-     *
+     * 
      * Configuration sample: "transformer": { "conveyer":
      * "aperture-extractor, ice-transformer", "extractor": { "outputPath" :
      * "${user.home}/ice2-output" }, "ice-transformer": { "url":
      * "http://ice-service.usq.edu.au/api/convert/", "outputPath":
      * "${user.home}/ice2-output" } }
-     *
+     * 
      * @param jsonFile to retrieve the configuration for Extractor
      * @throws PluginException if fail to read the config file
      */
@@ -174,8 +175,8 @@ public class ApertureTransformer implements Transformer {
             firstRun = false;
             log.info("--Initializing Extractor plugin--");
             // Cache directory
-            outputPath = config.get("aperture/outputPath",
-                    System.getProperty("java.io.tmpdir"));
+            outputPath = config.get("aperture/outputPath", System
+                    .getProperty("java.io.tmpdir"));
         }
     }
 
@@ -366,7 +367,7 @@ public class ApertureTransformer implements Transformer {
 
     /**
      * Gets a PluginDescription object relating to this plugin.
-     *
+     * 
      * @return a PluginDescription
      */
     @Override
@@ -421,7 +422,7 @@ public class ApertureTransformer implements Transformer {
             File oid = new File(in.getId());
             if (inFile.exists()) {
                 // Never write to file
-                RDFContainer rdf = extractRDF(inFile, oid.toURI().toString());
+                RDFContainer rdf = extractRDF(inFile, "urn:oid:" + in.getId());
                 if (rdf != null) {
                     log.info("Done extraction: " + rdf.getClass());
                     Payload rdfPayload = StorageUtils.createOrUpdatePayload(in,
