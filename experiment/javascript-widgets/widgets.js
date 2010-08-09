@@ -101,14 +101,30 @@
         add=function(){
           // get item value(s) & validate (if no validation just test for is not empty)
           var values=[];
+          var test=[];
           table.find("tr.item-input input[type=text]").each(function(c, i){
             values[c]=[$.trim($(i).val()), i.id];
-            $(i).val("");
+            test[c]=values[c][0];
+            $(i).val("");   // reset
           }).eq(0).focus();
           if(!any(values, function(v){ return v[0]!==""; })) return;
+          //
           visibleItems = table.find(displaySelector+":visible");
           if(addUniqueOnly){
             // Check that this entry is unique
+            var unique=true;
+            visibleItems.each(function(c, i){
+              i=$(i);
+              var same=true;
+              i.find("input[type=hidden]").each(function(c2, i){
+                if(test[c2]!=i.value)same=false;
+              });
+              if(same)unique=false;
+            });
+            if(!unique){
+                alert("Selection is already in the list. (not a unique value)");
+                return;
+            }
           }
           tmp = displayRowTemplate.clone().show();
           count = visibleItems.size()+1;
