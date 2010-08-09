@@ -97,29 +97,4 @@
         <scope>compile</scope>
     </dependency>
   </dependencies>
-  <!--
-    below code are necessary to use schemagen
-    mvn -e clean schemagen:rdf2go
-  -->
-  <build>
-   <plugins>
-    <plugin>
-        <groupId>au.edu.usq.fascinator.maven-plugins</groupId>
-        <artifactId>schemagen</artifactId>
-        <version>0.0.1-SNAPSHOT</version>
-        <goals><goal>rdf2go</goal></goals>
-        <configuration>
-         <schema>
-          <NIE>http://www.semanticdesktop.org/ontologies/2007/01/19/nie/</NIE>
-          <NFO>http://www.semanticdesktop.org/ontologies/2007/03/22/nfo/</NFO>
-          <NID3>http://www.semanticdesktop.org/ontologies/2007/05/10/nid3/</NID3>
-          <NCO>http://www.semanticdesktop.org/ontologies/2007/03/22/nco/</NCO>
-          <DCTerms>http://purl.org/dc/elements/1.1/</DCTerms>
-         </schema>
-         <outputFolder>src/main/java/</outputFolder>
-         <packageName>au.edu.usq.fascinator.common.vocabulary.rdf2go</packageName>
-        </configuration>
-       </plugin>
-    </plugins>
-  </build>
 </project>
