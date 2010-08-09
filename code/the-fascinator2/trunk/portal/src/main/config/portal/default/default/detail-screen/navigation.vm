@@ -52,7 +52,7 @@
         #if($self.hasHtml())
           <li><a id='blog-this' href='#'>Publish to blog...</a></li>
         #end
-        #if($page.authentication.is_admin())
+        #if($page.authentication.is_admin() && !$self.isPending())
           <li><a id="reharvest" href="$portalPath/detail/$oid">Reharvest...</a></li>
         #end
       </ul>
