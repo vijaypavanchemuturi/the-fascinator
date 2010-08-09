@@ -26,6 +26,45 @@
     return flag;
   }
 /* */
+
+  function save(){
+    var data={}, s, v, e;
+    var fields = $("#formFields").val().split(/[\s,]+/);
+    function getValue(i){
+      e = $("*[id="+i+"]");
+      if(e.size()==0) e=$("input[name="+i+"]");
+      if(e.size()==0) return null;
+      v = e.val();
+      if(e.attr("type")==="checkbox"){
+        if(!e.attr("checked"))v="";
+      }
+      return v;
+    }
+    $.each(fields, function(c, i){
+      s = /\.\d+(\.|$)/.test(i);
+      if(s){
+        var id, count=1;
+        while(true){
+          id = i.replace(/\.0(?=\.|$)/, "."+count);
+          v=getValue(id);
+          if(v===null) break;
+          data[id]=v;
+          count+=1;
+        }
+      }else{
+        v=getValue(i);
+        data[i]=v;
+      }
+    });
+    alert(data.toSource());
+  }
+
+  function restore(){
+  }
+
+  function reset(){
+  }
+
   $(function(){
     // ==============
     // Date inputs
@@ -317,9 +356,10 @@
         ds.after(o);
         //o.after(selAdd);
       }
-      selAdd.click(function(){
-        
-      });
+
+      $("#save").click(save);
+      $("#restore").click(restore);
+      $("#reset").click(reset);
     });
     // ==============
 
