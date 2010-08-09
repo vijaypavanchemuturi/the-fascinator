@@ -21,6 +21,7 @@
  <properties>
   <svn-repository>http://fascinator.usq.edu.au/svn-auth/</svn-repository>
   <svn-parent-dir>code/the-fascinator2</svn-parent-dir>
+  <fascinator.version>0.6.0-SNAPSHOT</fascinator.version>
  </properties>
  <modules>
   <module>common</module>
@@ -34,102 +35,102 @@
    <dependency>
     <groupId>au.edu.usq.fascinator</groupId>
     <artifactId>fascinator-core</artifactId>
-    <version>0.6.0-SNAPSHOT</version>
+    <version>${fascinator.version}</version>
    </dependency>
    <dependency>
     <groupId>au.edu.usq.fascinator</groupId>
     <artifactId>fascinator-common</artifactId>
-    <version>0.6.0-SNAPSHOT</version>
+    <version>${fascinator.version}</version>
    </dependency>
    <dependency>
     <groupId>au.edu.usq.fascinator</groupId>
     <artifactId>fascinator-plugin-api</artifactId>
-    <version>0.6.0-SNAPSHOT</version>
+    <version>${fascinator.version}</version>
    </dependency>
    <dependency>
     <groupId>au.edu.usq.fascinator.plugins</groupId>
     <artifactId>plugin-access-derby</artifactId>
-    <version>0.6.0-SNAPSHOT</version>
+    <version>${fascinator.version}</version>
    </dependency>
    <dependency>
     <groupId>au.edu.usq.fascinator.plugins</groupId>
     <artifactId>plugin-authentication-filesystem</artifactId>
-    <version>0.6.0-SNAPSHOT</version>
+    <version>${fascinator.version}</version>
    </dependency>
    <dependency>
     <groupId>au.edu.usq.fascinator.plugins</groupId>
     <artifactId>plugin-authentication-internal</artifactId>
-    <version>0.6.0-SNAPSHOT</version>
+    <version>${fascinator.version}</version>
    </dependency>
    <dependency>
     <groupId>au.edu.usq.fascinator.plugins</groupId>
     <artifactId>plugin-roles-internal</artifactId>
-    <version>0.6.0-SNAPSHOT</version>
+    <version>${fascinator.version}</version>
    </dependency>
    <dependency>
     <groupId>au.edu.usq.fascinator.plugins</groupId>
     <artifactId>plugin-storage-filesystem</artifactId>
-    <version>0.6.0-SNAPSHOT</version>
+    <version>${fascinator.version}</version>
    </dependency>
    <dependency>
     <groupId>au.edu.usq.fascinator.plugins</groupId>
     <artifactId>plugin-harvester-jsonq</artifactId>
-    <version>0.5.0-SNAPSHOT</version>
+    <version>${fascinator.version}</version>
    </dependency>
    <dependency>
     <groupId>au.edu.usq.fascinator.plugins</groupId>
     <artifactId>plugin-harvester-filesystem</artifactId>
-    <version>0.6.0-SNAPSHOT</version>
+    <version>${fascinator.version}</version>
    </dependency>
    <dependency>
     <groupId>au.edu.usq.fascinator.plugins</groupId>
     <artifactId>plugin-harvester-ice2</artifactId>
-    <version>0.6.0-SNAPSHOT</version>
+    <version>${fascinator.version}</version>
    </dependency>
    <dependency>
     <groupId>au.edu.usq.fascinator.plugins</groupId>
     <artifactId>plugin-harvester-workflow</artifactId>
-    <version>0.6.0-SNAPSHOT</version>
+    <version>${fascinator.version}</version>
    </dependency>
    <dependency>
     <groupId>au.edu.usq.fascinator.plugins</groupId>
     <artifactId>plugin-storage-fedora3</artifactId>
-    <version>0.5.0-SNAPSHOT</version>
+    <version>${fascinator.version}</version>
    </dependency>
    <dependency>
     <groupId>au.edu.usq.fascinator.plugins</groupId>
     <artifactId>plugin-storage-ram</artifactId>
-    <version>0.6.0-SNAPSHOT</version>
+    <version>${fascinator.version}</version>
    </dependency>
    <dependency>
     <groupId>au.edu.usq.fascinator.plugins</groupId>
     <artifactId>plugin-indexer-solr</artifactId>
-    <version>0.6.0-SNAPSHOT</version>
+    <version>${fascinator.version}</version>
    </dependency>
    <dependency>
     <groupId>au.edu.usq.fascinator.plugins</groupId>
     <artifactId>plugin-transformer-aperture</artifactId>
-    <version>0.6.0-SNAPSHOT</version>
+    <version>${fascinator.version}</version>
    </dependency>
    <dependency>
     <groupId>au.edu.usq.fascinator.plugins</groupId>
     <artifactId>plugin-transformer-ffmpeg</artifactId>
-    <version>0.6.0-SNAPSHOT</version>
+    <version>${fascinator.version}</version>
    </dependency>
    <dependency>
     <groupId>au.edu.usq.fascinator.plugins</groupId>
     <artifactId>plugin-transformer-ice2</artifactId>
-    <version>0.6.0-SNAPSHOT</version>
+    <version>${fascinator.version}</version>
    </dependency>
    <dependency>
     <groupId>au.edu.usq.fascinator.plugins</groupId>
     <artifactId>plugin-transformer-ims</artifactId>
-    <version>0.6.0-SNAPSHOT</version>
+    <version>${fascinator.version}</version>
    </dependency>
    <dependency>
     <groupId>au.edu.usq.fascinator.plugins</groupId>
     <artifactId>plugin-harvester-oai-pmh</artifactId>
-    <version>0.6.0-SNAPSHOT</version>
+    <version>${fascinator.version}</version>
    </dependency>
    <dependency>
     <groupId>commons-httpclient</groupId>
@@ -257,6 +258,12 @@
    <url>https://fascinator.usq.edu.au/nexus/content/groups/public</url>
   </repository>
  </repositories>
+ <pluginRepositories>
+  <pluginRepository>
+   <id>snapshot</id>
+   <url>https://fascinator.usq.edu.au/nexus/content/groups/public-snapshots</url>
+  </pluginRepository>
+ </pluginRepositories>
  <distributionManagement>
   <site>
    <id>fascinator</id>
