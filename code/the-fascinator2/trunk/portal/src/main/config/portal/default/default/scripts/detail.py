@@ -81,11 +81,13 @@ class DetailData:
                     from download import DownloadData
                     DownloadData()
                     self.__render = False
+                    bindings.put("SkipTemplateRender", True)
                     return
             else:
                 # Fix missing trailing slashes
                 response.sendRedirect(contextPath + "/" + uri + "/")
                 self.__render = False
+                bindings.put("SkipTemplateRender", True)
                 return
 
             self.__render = True
