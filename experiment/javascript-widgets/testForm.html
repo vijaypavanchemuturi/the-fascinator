@@ -31,7 +31,8 @@
     <h2>Test javascipt widgets form page</h2>
 
     <!-- Field registartion -->
-    <input type="hidden" id="formFields" value="hidden1, hidden2, stext1, stext2, chkbox1, sel1" />
+    <input type="hidden" id="formFields" value="hidden1, hidden2, stext1, stext2, chkbox1, radio1, sel1,
+                                                vA.0, vB.0, vC.0, test.0.label, test.0" />
 
     <!-- optional hidden fields -->
     <input type="hidden" id="hidden1" value="HideOne" />
@@ -150,22 +151,6 @@
       </tbody></table>
     </div>
 
-<!--
-      <table class="input-list"><tbody>  
-        <tr class="item-display">
-          <td class="sort-number"></td>
-          <td class="item-display-item" style="border:1px solid #cccccc;"></td>
-          <td class="delete-item"><a href="#">delete</a></td>
-          <td style="width:100%;"></td>
-        </tr>
-        <tr class="item-input">
-          <td></td>
-          <td><input type="text" placeholder="enter a tag here" id="tag.0"/></td>
-          <td><input type="button" class="item-add" value="Add"/></td>
-          <td></td>
-        </tr>
-      </tbody></table>
--->
     <div>
       <h3>Datasource drop-down</h3> <!-- JSON source or list, defaultOption, (add) mutli-select, checkbox, radio -->
       <table class="input-list"><tbody>  <!--  -->
@@ -231,6 +216,12 @@
 
     <div>
       <h3>Form validation</h3>
+    </div>
+
+    <div style='border:1px solid lightgray;padding:1em;margin:1em;'>
+      <button id="save">Save</button>
+      <button id="reset">Reset</button>
+      <button id="restore">Restore</button>
     </div>
 
   </body>
