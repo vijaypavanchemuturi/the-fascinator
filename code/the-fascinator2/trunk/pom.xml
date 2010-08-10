@@ -15,7 +15,7 @@
  <url>http://fascinator.usq.edu.au</url>
  <properties>
   <svn-repository>http://fascinator.usq.edu.au/svn/</svn-repository>
-  <svn-repository>https://fascinator.usq.edu.au/svn-auth/</svn-repository>
+  <svn-dev-repository>https://fascinator.usq.edu.au/svn-auth/</svn-dev-repository>
   <svn-parent-dir>code/the-fascinator2</svn-parent-dir>
   <svn-path>${svn-repository}${svn-parent-dir}</svn-path>
   <svn-dev-path>${svn-dev-repository}${svn-parent-dir}</svn-dev-path>
