@@ -19,7 +19,7 @@
   <svn-parent-dir>code/the-fascinator2</svn-parent-dir>
   <svn-path>${svn-repository}${svn-parent-dir}</svn-path>
   <svn-dev-path>${svn-dev-repository}${svn-parent-dir}</svn-dev-path>
-  <fascinator.version>0.6.0</fascinator.version>
+  <fascinator.version>${project.version}</fascinator.version>
  </properties>
  <scm>
   <url>http://fascinator.usq.edu.au/svn/code/the-fascinator2</url>
