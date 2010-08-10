@@ -27,17 +27,16 @@
  <properties>
   <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   <jdk-version>1.6</jdk-version>
-  <svn-repository>http://fascinator.usq.edu.au/svn/
-		</svn-repository>
+  <svn-repository>http://fascinator.usq.edu.au/svn/</svn-repository>
+  <svn-dev-repository>https://fascinator.usq.edu.au/svn-auth/</svn-dev-repository>
   <svn-parent-dir>project_meta/trunk</svn-parent-dir>
   <svn-path>${svn-repository}${svn-parent-dir}</svn-path>
+  <svn-dev-path>${svn-dev-repository}${svn-parent-dir}</svn-dev-path>
  </properties>
  <scm>
-  <url>https://fascinator.usq.edu.au/svn/project_meta/trunk</url>
-  <connection>scm:svn:https://fascinator.usq.edu.au/svn/project_meta/trunk
-		</connection>
-  <developerConnection>scm:svn:https://fascinator.usq.edu.au/svn/project_meta/trunk
-		</developerConnection>
+  <url>${svn-path}</url>
+  <connection>scm:svn:${svn-path}</connection>
+  <developerConnection>scm:svn:${svn-dev-path}</developerConnection>
  </scm>
  <developers>
   <developer>
