@@ -33,10 +33,10 @@
   <svn-path>${svn-repository}${svn-parent-dir}</svn-path>
  </properties>
  <scm>
-  <url>http://fascinator.usq.edu.au/svn/project_meta/trunk</url>
-  <connection>scm:svn:http://fascinator.usq.edu.au/svn/project_meta/trunk
+  <url>https://fascinator.usq.edu.au/svn/project_meta/trunk</url>
+  <connection>scm:svn:https://fascinator.usq.edu.au/svn/project_meta/trunk
 		</connection>
-  <developerConnection>scm:svn:http://fascinator.usq.edu.au/svn/project_meta/trunk
+  <developerConnection>scm:svn:https://fascinator.usq.edu.au/svn/project_meta/trunk
 		</developerConnection>
  </scm>
  <developers>
@@ -99,7 +99,7 @@
  <inceptionYear>2009</inceptionYear>
  <ciManagement>
   <system>Hudson</system>
-  <url>http://build.adfi.usq.edu.au/ci</url>
+  <url>https://build.adfi.usq.edu.au/ci</url>
  </ciManagement>
  <mailingLists>
   <mailingList>
