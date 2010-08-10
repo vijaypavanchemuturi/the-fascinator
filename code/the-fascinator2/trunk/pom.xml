@@ -13,16 +13,19 @@
  </parent>
  <description>The Desktop Fascinator is an experimental software package based on The Fascinator, which is inspired by the ongoing problem of getting eResearch data/metadata and publications into repositories where they can be backed up, preserved and shared with a network of other researchers.</description>
  <url>http://fascinator.usq.edu.au</url>
- <scm>
-  <url>http://fascinator.usq.edu.au/svn/code/the-fascinator2</url>
-  <connection>scm:svn:http://fascinator.usq.edu.au/svn/code/the-fascinator2</connection>
-  <developerConnection>scm:svn:http://fascinator.usq.edu.au/svn-auth/code/the-fascinator2</developerConnection>
- </scm>
  <properties>
-  <svn-repository>http://fascinator.usq.edu.au/svn-auth/</svn-repository>
+  <svn-repository>http://fascinator.usq.edu.au/svn/</svn-repository>
+  <svn-repository>https://fascinator.usq.edu.au/svn-auth/</svn-repository>
   <svn-parent-dir>code/the-fascinator2</svn-parent-dir>
+  <svn-path>${svn-repository}${svn-parent-dir}</svn-path>
+  <svn-dev-path>${svn-dev-repository}${svn-parent-dir}</svn-dev-path>
   <fascinator.version>0.6.0-SNAPSHOT</fascinator.version>
  </properties>
+ <scm>
+  <url>${svn-path}</url>
+  <connection>scm:svn:${svn-path}</connection>
+  <developerConnection>scm:svn:${svn-dev-path}</developerConnection>
+ </scm>
  <modules>
   <module>common</module>
   <module>core</module>
