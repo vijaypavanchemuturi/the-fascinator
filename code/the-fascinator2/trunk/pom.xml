@@ -5,7 +5,7 @@
  <artifactId>the-fascinator</artifactId>
  <packaging>pom</packaging>
  <name>The Fascinator</name>
- <version>0.6.0</version>
+ <version>0.7.0-SNAPSHOT</version>
  <parent>
   <groupId>au.edu.usq.fascinator</groupId>
   <artifactId>organisation</artifactId>
@@ -22,9 +22,9 @@
   <fascinator.version>0.6.0</fascinator.version>
  </properties>
  <scm>
-  <url>http://fascinator.usq.edu.au/svn/code/the-fascinator2/tags/the-fascinator-0.6.0</url>
-  <connection>scm:svn:http://fascinator.usq.edu.au/svn/code/the-fascinator2/tags/the-fascinator-0.6.0</connection>
-  <developerConnection>scm:svn:https://fascinator.usq.edu.au/svn-auth/code/the-fascinator2/tags/the-fascinator-0.6.0</developerConnection>
+  <url>http://fascinator.usq.edu.au/svn/code/the-fascinator2</url>
+  <connection>scm:svn:http://fascinator.usq.edu.au/svn/code/the-fascinator2</connection>
+  <developerConnection>scm:svn:https://fascinator.usq.edu.au/svn-auth/code/the-fascinator2</developerConnection>
  </scm>
  <modules>
   <module>common</module>
