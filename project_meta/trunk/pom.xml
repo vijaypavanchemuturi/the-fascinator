@@ -133,7 +133,7 @@
   </snapshotRepository>
   <site>
    <id>build.adfi.usq.edu.au</id>
-   <url>file:///var/www/hudson/fascinator</url>
+   <url>file:///var/www/hudson/${artifactId}-${version}</url>
   </site>
  </distributionManagement>
  <build>
