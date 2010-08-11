@@ -15,7 +15,7 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-package au.edu.usq.fascinator.maven_plugins.jena_schemagen;
+package au.edu.usq.fascinator.maven_plugins.schemagen;
 
 import java.io.File;
 import java.util.Map;

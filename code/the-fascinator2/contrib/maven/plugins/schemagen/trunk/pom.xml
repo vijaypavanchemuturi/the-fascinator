@@ -9,7 +9,7 @@
  <parent>
   <artifactId>organisation</artifactId>
   <groupId>au.edu.usq.fascinator</groupId>
-  <version>0.3.3-SNAPSHOT</version>
+  <version>0.4.0</version>
  </parent>
 
  <dependencies>
@@ -71,7 +71,7 @@
     <configuration>
      <archive>
       <manifest>
-       <mainClass>au.edu.usq.fascinator.maven_plugins.jena_schemagen.Schemagen
+       <mainClass>au.edu.usq.fascinator.maven_plugins.schemagen.Schemagen
        </mainClass>
       </manifest>
      </archive>
@@ -89,7 +89,7 @@
       <artifactId>exec-maven-plugin</artifactId>
       <version>1.1.1</version>
       <configuration>
-       <mainClass>au.edu.usq.fascinator.maven_plugins.jena_schemagen.Jena
+       <mainClass>au.edu.usq.fascinator.maven_plugins.schemagen.Jena
      </mainClass>
       </configuration>
      </plugin>
@@ -105,7 +105,7 @@
       <artifactId>exec-maven-plugin</artifactId>
       <version>1.1.1</version>
       <configuration>
-       <mainClass>au.edu.usq.fascinator.maven_plugins.jena_schemagen.RDF2Go
+       <mainClass>au.edu.usq.fascinator.maven_plugins.schemagen.RDF2Go
      </mainClass>
       </configuration>
      </plugin>
