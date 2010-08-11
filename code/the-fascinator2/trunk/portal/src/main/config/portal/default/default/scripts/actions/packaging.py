@@ -8,7 +8,7 @@ from au.edu.usq.fascinator.common.storage import StorageUtils
 from java.io import File, FileOutputStream, InputStreamReader, OutputStreamWriter
 from java.lang import Exception
 
-from org.apache.commons.io import IOUtils
+from org.apache.commons.io import FileUtils, IOUtils
 
 class PackagingActions:
     
@@ -134,7 +134,10 @@ class PackagingActions:
                 harvester.shutdown()
             else:
                 # update existing object
-                object = StorageUtils.storeFile(Services.getStorage(), manifestFile)
+                object = StorageUtils.getDigitalObject(Services.getStorage(), manifestId)
+                manifestStream = FileUtils.openInputStream(manifestFile)
+                StorageUtils.createOrUpdatePayload(object, manifestHash, manifestStream)
+                manifestStream.close()
                 object.close()
         except Exception, ex:
             error = "Packager workflow failed: %s" % str(ex)

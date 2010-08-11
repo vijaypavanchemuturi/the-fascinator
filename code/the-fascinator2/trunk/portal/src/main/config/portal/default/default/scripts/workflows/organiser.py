@@ -51,7 +51,7 @@ class OrganiserData:
             return defaultPortal
     
     def getMimeType(self, oid):
-        return self.__getContentType(oid)
+        return self.__getContentType(oid) or ""
     
     def getMimeTypeIcon(self, oid):
         #print " *** getMimeTypeIcon(%s)" % oid
@@ -61,7 +61,7 @@ class OrganiserData:
         resource = Services.getPageService().resourceExists(portalId, iconPath)
         if resource is not None:
             return iconPath
-        elif contentType.find("/") != -1:
+        elif contentType is not None and contentType.find("/") != -1:
             # check for major type
             iconPath = "images/icons/mimetype/%s/icon.png" % contentType[:contentType.find("/")]
             resource = Services.getPageService().resourceExists(portalId, iconPath)
@@ -72,6 +72,7 @@ class OrganiserData:
     
     def __getContentType(self, oid):
         #print " *** __getContentType(%s)" % oid
+        contentType = ""
         if oid == "blank":
             contentType = "application/x-fascinator-blank-node"
         else:
