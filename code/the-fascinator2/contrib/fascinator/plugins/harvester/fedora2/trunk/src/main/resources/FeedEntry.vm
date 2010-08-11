@@ -1,0 +1,56 @@
+<div>
+<h1>$title</h1>
+#if ($description)
+
+<ul>
+#if($date)
+<li>Published: $date</li>
+#end
+#if($modified)
+<li>Modified: $modified</li>
+#end
+</ul>
+
+#if($subject)
+<h2>Tags</h2>
+<ul>
+#foreach( $item in $subject )
+	<li>$item.getName()</li>
+#end
+<ul>
+#end
+
+<h2>Abstract</h2>
+		<p>$description.getValue()</p>
+#end
+
+#if ($content)
+#foreach( $item in $content )
+	#if ($item.getType() == "html")
+		<p>$item.getValue()</p>
+	#else
+		<pre>
+		$item.getValue()
+		</pre>
+	#end
+#end
+#end
+
+#if ($relation)
+<h2>Links</h2>
+<ul>
+#foreach( $link in $relation )
+	
+    <li><a href="$link.getHref()"></a>
+    #if ($link.getTitle())
+    	$link.getTitle()
+    #else
+    	Untitled
+    #end
+    </li>
+    #end
+
+</ul>
+#end
+
+</div>
