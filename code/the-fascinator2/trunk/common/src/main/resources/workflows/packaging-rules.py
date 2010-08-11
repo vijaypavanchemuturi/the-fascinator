@@ -5,10 +5,6 @@ from org.dom4j.io import SAXReader
 
 from au.edu.usq.fascinator.api.storage import StorageException
 from au.edu.usq.fascinator.common import JsonConfigHelper
-from au.edu.usq.fascinator.common.nco import Contact
-from au.edu.usq.fascinator.common.nfo import PaginatedTextDocument
-from au.edu.usq.fascinator.common.nid3 import ID3Audio
-from au.edu.usq.fascinator.common.nie import InformationElement
 from au.edu.usq.fascinator.common.storage import StorageUtils
 from au.edu.usq.fascinator.indexer.rules import AddField, New
 #
