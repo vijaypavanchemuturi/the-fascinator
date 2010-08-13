@@ -24,6 +24,7 @@
         <module>plugin-api</module>
         <module>plugins</module>
         <module>portal</module>
+        <module>vocabulary</module>
     </modules>
     <dependencyManagement>
         <dependencies>
@@ -40,6 +41,11 @@
             <dependency>
                 <groupId>au.edu.usq.fascinator</groupId>
                 <artifactId>fascinator-plugin-api</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>au.edu.usq.fascinator</groupId>
+                <artifactId>fascinator-vocabulary</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
