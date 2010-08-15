@@ -19,12 +19,21 @@
 
 package au.edu.usq.fascinator.common;
 
+import au.edu.usq.fascinator.api.PluginException;
+import au.edu.usq.fascinator.api.PluginManager;
+import au.edu.usq.fascinator.api.access.AccessControlException;
+import au.edu.usq.fascinator.api.access.AccessControlManager;
+import au.edu.usq.fascinator.api.access.AccessControlSchema;
+import au.edu.usq.fascinator.api.storage.Payload;
+import au.edu.usq.fascinator.api.storage.StorageException;
+
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -48,14 +57,6 @@ import org.ontoware.rdf2go.impl.jena24.ModelImplJena24;
 import org.ontoware.rdf2go.model.Model;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import au.edu.usq.fascinator.api.PluginException;
-import au.edu.usq.fascinator.api.PluginManager;
-import au.edu.usq.fascinator.api.access.AccessControlException;
-import au.edu.usq.fascinator.api.access.AccessControlManager;
-import au.edu.usq.fascinator.api.access.AccessControlSchema;
-import au.edu.usq.fascinator.api.storage.Payload;
-import au.edu.usq.fascinator.api.storage.StorageException;
 
 /**
  * The purpose of this class is to expose common Java classes and methods we use
@@ -422,6 +423,35 @@ public class PythonUtils {
         }
         try {
             return access.getRoles(recordId);
+        } catch (AccessControlException ex) {
+            log.error("Failed to query security plugin for roles", ex);
+            return null;
+        }
+    }
+
+    /*****
+     * Find the list of roles with access to the given object, but only looking
+     * at a single plugin.
+     *
+     * @param recordId the object to query
+     * @param plugin the plugin we are interested in
+     * @return List<String> of roles with access to the object
+     */
+    public List<String> getRolesWithAccess(String recordId, String plugin) {
+        if (access == null) {
+            return null;
+        }
+        try {
+            List<String> roles = new ArrayList();
+            access.setActivePlugin(plugin);
+            List<AccessControlSchema> schemas = access.getSchemas(recordId);
+            for (AccessControlSchema schema : schemas) {
+                String role = schema.get("role");
+                if (role != null) {
+                    roles.add(role);
+                }
+            }
+            return roles;
         } catch (AccessControlException ex) {
             log.error("Failed to query security plugin for roles", ex);
             return null;
