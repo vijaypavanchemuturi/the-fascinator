@@ -133,6 +133,7 @@
 
     <!-- Workflow/Security fields -->
     <field name="security_filter" type="string" indexed="true" stored="true" multiValued="true" />
+    <field name="security_exception" type="string" indexed="true" stored="true" multiValued="true" />
     <field name="hidden_flag" type="boolean" indexed="true" stored="true" />
     <field name="owner" type="string" indexed="true" stored="true" />
     <field name="workflow_id" type="string" indexed="true" stored="true" />

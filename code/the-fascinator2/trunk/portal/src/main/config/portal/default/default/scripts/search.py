@@ -144,11 +144,13 @@ class SearchData:
         
         # Make sure 'fq' has already been set in the session
         if not page.authentication.is_admin():
-            security_roles = page.authentication.get_roles_list()
-            security_query = 'security_filter:("' + '" OR "'.join(security_roles) + '")'
             current_user = page.authentication.get_username()
+            security_roles = page.authentication.get_roles_list()
+            security_filter = 'security_filter:("' + '" OR "'.join(security_roles) + '")'
+            security_exceptions = 'security_exception:"' + current_user + '"'
             owner_query = 'owner:"' + current_user + '"'
-            req.addParam("fq", "(" + security_query + ") OR (" + owner_query + ")")
+            security_query = "(" + security_filter + ") OR (" + security_exceptions + ") OR (" + owner_query + ")"
+            req.addParam("fq", security_query)
         
         req.setParam("start", str((self.__pageNum - 1) * recordsPerPage))
         
