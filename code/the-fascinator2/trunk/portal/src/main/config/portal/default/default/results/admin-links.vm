@@ -4,6 +4,9 @@
     #foreach ($role in $item.get("security_filter"))
     <div class="locked">$role</div>
     #end
+    #foreach ($user in $item.get("security_exception"))
+    <div class="owner">$user</div>
+    #end
   </div>
   <a class="admin-delete-link" rel="$id" title="$title" href="#">Delete Object</a>
 </div>

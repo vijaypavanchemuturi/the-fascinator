@@ -25,8 +25,10 @@ class HomeData:
         # Security prep work
         current_user = page.authentication.get_username()
         security_roles = page.authentication.get_roles_list()
-        security_query = 'security_filter:("' + '" OR "'.join(security_roles) + '")'
+        security_filter = 'security_filter:("' + '" OR "'.join(security_roles) + '")'
+        security_exceptions = 'security_exception:"' + current_user + '"'
         owner_query = 'owner:"' + current_user + '"'
+        security_query = "(" + security_filter + ") OR (" + security_exceptions + ") OR (" + owner_query + ")"
 
         req = SearchRequest("last_modified:[NOW-1MONTH TO *]")
         req.setParam("fq", 'item_type:"object"')
@@ -37,7 +39,7 @@ class HomeData:
         req.setParam("rows", "10")
         req.setParam("sort", "last_modified desc, f_dc_title asc");
         if not page.authentication.is_admin():
-            req.addParam("fq", "(" + security_query + ") OR (" + owner_query + ")")
+            req.addParam("fq", security_query)
         out = ByteArrayOutputStream()
         indexer.search(req, out)
         self.__latest = JsonConfigHelper(ByteArrayInputStream(out.toByteArray()))
@@ -51,7 +53,7 @@ class HomeData:
         req.setParam("rows", "10")
         req.setParam("sort", "last_modified desc, f_dc_title asc");
         if not page.authentication.is_admin():
-            req.addParam("fq", "(" + security_query + ") OR (" + owner_query + ")")
+            req.addParam("fq", security_query)
         out = ByteArrayOutputStream()
         indexer.search(req, out)
         self.__mine = JsonConfigHelper(ByteArrayInputStream(out.toByteArray()))
@@ -65,7 +67,7 @@ class HomeData:
         req.setParam("rows", "10")
         req.setParam("sort", "last_modified desc, f_dc_title asc");
         if not page.authentication.is_admin():
-            req.addParam("fq", "(" + security_query + ") OR (" + owner_query + ")")
+            req.addParam("fq", security_query)
         out = ByteArrayOutputStream()
         indexer.search(req, out)
         self.__workflows = JsonConfigHelper(ByteArrayInputStream(out.toByteArray()))
@@ -79,7 +81,7 @@ class HomeData:
         req.addParam("fq", "")
         req.setParam("rows", "0")
         if not page.authentication.is_admin():
-            req.addParam("fq", "(" + security_query + ") OR (" + owner_query + ")")
+            req.addParam("fq", security_query)
         out = ByteArrayOutputStream()
         indexer.search(req, out)
         
