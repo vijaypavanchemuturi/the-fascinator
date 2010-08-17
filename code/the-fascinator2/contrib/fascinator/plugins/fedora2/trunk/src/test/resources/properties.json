@@ -1,0 +1,21 @@
+{
+    "harvester": {
+        "type": "feed-harvester",
+        "feed-harvester": {
+            "urls": ["http://blog.duncan.dickinson.name/feeds/posts/default"],
+            "cache": "target/feed-reader",
+            "template": "target/classes/FeedEntry.vm"
+        }
+    },
+    
+    "indexer": {
+        "script": {
+            "type": "python",
+            "rules": "rules.py"
+        },
+        "params": {
+            "repository.name": "RSS/ATOM Feeds",
+            "repository.type": "feed-harvest"
+        }
+    }
+}
