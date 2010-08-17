@@ -1,0 +1,13 @@
+<link rel="stylesheet" type="text/css" href="$portalPath/js/autocomplete/jquery.autocomplete.css" />
+<link rel="stylesheet" type="text/css" href="$portalPath/css/anotar/anotar.css" />
+<link rel="stylesheet" type="text/css" href="$portalPath/css/anotar/image-annotation.css" />
+#set($dc = $meta.dublinCore)
+<!-- DC info as per http://dublincore.org/documents/dc-html/ -->
+<link rel="schema.DC" href="http://purl.org/dc/elements/1.1/" />
+#foreach($key in $dc.keySet())
+  #set($name = $self.formatMetaName($key))
+  #set($values = $dc.get($key))
+  #foreach($content in $values)
+    <meta name="$name" content="$content"/>
+  #end
+#end
