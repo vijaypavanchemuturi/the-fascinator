@@ -48,7 +48,7 @@
       e.after(s);
       checkNameLookup(e);
       s.click(function(){
-        doNameLookup(e.val(), s.position());
+        doNameLookup(e, s.position());
         return false;
       });
     });
@@ -56,8 +56,8 @@
       $.trim(e.val())===""?e.next().hide():e.next().show();
     }
 
-    function doNameLookup(queryStr, position){
-      var displayDetails;
+    function doNameLookup(e, position){
+      var displayDetails, queryStr=e.val();
       $.getJSON(nameLookupUrl, {query:queryStr}, function(data){
         var div, d, a;
         //alert(data.toSource());
@@ -85,7 +85,9 @@
         dialog.html(div);
         dialog.dialog({position:position, buttons:{
                         "OK":function(){
-                            alert(div.find("input[name=name]:checked").val());
+                            var value=div.find("input[name=name]:checked").val();
+                            e.parent().find(".nameLookup-nameUrl").val(value);
+                            alert(value);
                             dialog.dialog("close");
                           },
                           "Cancel":function(){
