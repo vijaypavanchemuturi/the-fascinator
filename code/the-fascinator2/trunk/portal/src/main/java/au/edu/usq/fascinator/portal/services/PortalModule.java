@@ -29,6 +29,7 @@ import au.edu.usq.fascinator.api.roles.RolesManager;
 import au.edu.usq.fascinator.api.storage.Storage;
 import au.edu.usq.fascinator.common.JsonConfig;
 import au.edu.usq.fascinator.portal.JsonSessionState;
+import au.edu.usq.fascinator.portal.services.impl.DatabaseServicesImpl;
 import au.edu.usq.fascinator.portal.services.impl.DynamicPageServiceImpl;
 import au.edu.usq.fascinator.portal.services.impl.HarvestManagerImpl;
 import au.edu.usq.fascinator.portal.services.impl.HouseKeepingManagerImpl;
@@ -78,6 +79,13 @@ public class PortalModule {
         binder.bind(PortalManager.class, PortalManagerImpl.class);
         binder.bind(ScriptingServices.class, ScriptingServicesImpl.class);
         binder.bind(PortalSecurityManager.class, PortalSecurityManagerImpl.class);
+    }
+
+    public static DatabaseServices buildDatabaseServices(
+            RegistryShutdownHub hub) {
+        DatabaseServices database = new DatabaseServicesImpl();
+        hub.addRegistryShutdownListener(database);
+        return database;
     }
 
     public static HouseKeepingManager buildHouseKeepingManager(
