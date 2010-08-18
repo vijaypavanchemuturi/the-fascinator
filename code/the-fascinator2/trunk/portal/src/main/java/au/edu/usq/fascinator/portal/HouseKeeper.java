@@ -903,8 +903,6 @@ public class HouseKeeper implements GenericListener {
             throws SQLException {
         PreparedStatement statement = statements.get(index);
         if (statement == null) {
-            // We want blocking actions first,
-            // otherwise in order of creation
             statement = db.prepareStatement(sql);
             statements.put(index, statement);
         }

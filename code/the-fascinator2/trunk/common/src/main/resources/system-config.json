@@ -1,5 +1,5 @@
 {
-    "version": "0.6.15",
+    "version": "0.7.1",
     "configured": false,
     "urlBase" : "http://localhost:9997/portal/",
     "email" : "fascinator@usq.edu.au",
@@ -188,6 +188,9 @@
     },
     "mime-types" : {
         "tfpackage" : "application/x-fascinator-package"
+    },
+    "database-service": {
+        "derbyHome" : "${fascinator.home}/database-service"
     },
     "portal": {
         "home": "${portal.home}",
