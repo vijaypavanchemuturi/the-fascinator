@@ -18,7 +18,6 @@ class DatabaseTest:
             if check is not None and not self.__error:
                 self.createTable()
 
-        # Something is wrong with our database/connection
         if not self.__error:
             # Check they have an agreement
             if self.verify("bob", "object"):
