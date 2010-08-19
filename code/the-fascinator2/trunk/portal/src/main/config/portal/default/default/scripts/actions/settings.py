@@ -1,7 +1,5 @@
 from au.edu.usq.fascinator.common import JsonConfig, JsonConfigHelper
 
-from authentication import Authentication
-
 from java.io import FileWriter
 from java.util import HashMap
 
@@ -10,12 +8,9 @@ from org.apache.commons.lang import StringUtils
 
 class SettingsActions:
     def __init__(self):
-        self.authentication = Authentication()
-        self.authentication.session_init()
-
         self.writer = response.getPrintWriter("text/html; charset=UTF-8")
 
-        if self.authentication.is_logged_in() and self.authentication.is_admin():
+        if page.authentication.is_logged_in() and page.authentication.is_admin():
             self.process()
         else:
             print " * settings.py : AJAX : Unauthorised access"

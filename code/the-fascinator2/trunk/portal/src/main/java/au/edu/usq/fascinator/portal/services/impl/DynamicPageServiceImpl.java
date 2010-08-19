@@ -269,20 +269,18 @@ public class DynamicPageServiceImpl implements DynamicPageService {
         bindings.put("bindings", bindings);
 
         // run page and template scripts
-        if (!isAjax) {
-            Object layoutObject = new Object();
-            try {
-                layoutObject = evalScript(portalId, layoutName, bindings);
-            } catch (Exception e) {
-                ByteArrayOutputStream eOut = new ByteArrayOutputStream();
-                e.printStackTrace(new PrintStream(eOut));
-                String eMsg = eOut.toString();
-                log.warn("Failed to run page script!\n=====\n{}\n=====", eMsg);
-                renderMessages.append("Layout script error:\n");
-                renderMessages.append(eMsg);
-            }
-            bindings.put("page", layoutObject);
+        Object layoutObject = new Object();
+        try {
+            layoutObject = evalScript(portalId, layoutName, bindings);
+        } catch (Exception e) {
+            ByteArrayOutputStream eOut = new ByteArrayOutputStream();
+            e.printStackTrace(new PrintStream(eOut));
+            String eMsg = eOut.toString();
+            log.warn("Failed to run page script!\n=====\n{}\n=====", eMsg);
+            renderMessages.append("Layout script error:\n");
+            renderMessages.append(eMsg);
         }
+        bindings.put("page", layoutObject);
 
         Object pageObject = new Object();
         try {
