@@ -1,16 +1,11 @@
 import sys
 
-from authentication import Authentication
-
 class LoginData:
 
     def __init__(self):
-        self.authentication = Authentication()
-        self.authentication.session_init()
-
         self.writer = response.getPrintWriter("text/html; charset=UTF-8")
 
-        if self.authentication.is_logged_in() and self.authentication.is_admin():
+        if page.authentication.is_logged_in() and page.authentication.is_admin():
             self.process()
         else:
             self.throw_error("Only administrative users can access this feature")
@@ -19,10 +14,10 @@ class LoginData:
         username = formData.get("field")
         rolename = formData.get("hidden")
         source = formData.get("source")
-        self.authentication.set_role_plugin(source)
-        self.authentication.set_role(username, rolename)
+        page.authentication.set_role_plugin(source)
+        page.authentication.set_role(username, rolename)
 
-        err = self.authentication.get_error()
+        err = page.authentication.get_error()
         if err is None:
             self.writer.println(username)
             self.writer.close()
@@ -40,10 +35,10 @@ class LoginData:
 
         else:
             source = formData.get("source")
-            self.authentication.set_auth_plugin(source)
-            self.authentication.change_password(username, password)
+            page.authentication.set_auth_plugin(source)
+            page.authentication.change_password(username, password)
 
-            err = self.authentication.get_error()
+            err = page.authentication.get_error()
             if err is None:
                 self.writer.println(username)
                 self.writer.close()
@@ -76,10 +71,10 @@ class LoginData:
     def create_role(self):
         rolename = formData.get("field")
         source   = formData.get("source")
-        self.authentication.set_role_plugin(source)
-        self.authentication.create_role(rolename)
+        page.authentication.set_role_plugin(source)
+        page.authentication.create_role(rolename)
 
-        err = self.authentication.get_error()
+        err = page.authentication.get_error()
         if err is None:
             self.writer.println(rolename)
             self.writer.close()
@@ -97,10 +92,10 @@ class LoginData:
 
         else:
             source = formData.get("source")
-            self.authentication.set_auth_plugin(source)
-            self.authentication.create_user(username, password)
+            page.authentication.set_auth_plugin(source)
+            page.authentication.create_user(username, password)
 
-            err = self.authentication.get_error()
+            err = page.authentication.get_error()
             if err is None:
                 self.writer.println(username)
                 self.writer.close()
@@ -111,10 +106,10 @@ class LoginData:
     def delete_role(self):
         rolename = formData.get("rolename")
         source = formData.get("source")
-        self.authentication.set_role_plugin(source)
-        self.authentication.delete_role(rolename)
+        page.authentication.set_role_plugin(source)
+        page.authentication.delete_role(rolename)
 
-        err = self.authentication.get_error()
+        err = page.authentication.get_error()
         if err is None:
             self.writer.println(rolename)
             self.writer.close()
@@ -125,10 +120,10 @@ class LoginData:
     def delete_user(self):
         username = formData.get("username")
         source = formData.get("source")
-        self.authentication.set_auth_plugin(source)
-        self.authentication.delete_user(username)
+        page.authentication.set_auth_plugin(source)
+        page.authentication.delete_user(username)
 
-        err = self.authentication.get_error()
+        err = page.authentication.get_error()
         if err is None:
             self.writer.println(username)
             self.writer.close()
@@ -138,9 +133,9 @@ class LoginData:
 
     def get_current_access(self):
         record = formData.get("record")
-        roles_list = self.authentication.get_access_roles_list(record)
+        roles_list = page.authentication.get_access_roles_list(record)
 
-        err = self.authentication.get_error()
+        err = page.authentication.get_error()
         if err is None:
             # We need a JSON string for javascript
             plugin_strings = []
@@ -161,10 +156,10 @@ class LoginData:
         record = formData.get("record")
         role   = formData.get("role")
         source = formData.get("source")
-        self.authentication.set_access_plugin(source)
-        self.authentication.grant_access(record, role)
+        page.authentication.set_access_plugin(source)
+        page.authentication.grant_access(record, role)
 
-        err = self.authentication.get_error()
+        err = page.authentication.get_error()
         if err is None:
             self.writer.println(role)
             self.writer.close()
@@ -176,10 +171,10 @@ class LoginData:
     def list_users(self):
         rolename = formData.get("rolename")
         source = formData.get("source")
-        self.authentication.set_auth_plugin(source)
-        user_list = self.authentication.list_users(rolename)
+        page.authentication.set_auth_plugin(source)
+        user_list = page.authentication.list_users(rolename)
 
-        err = self.authentication.get_error()
+        err = page.authentication.get_error()
         if err is None:
             # We need a JSON string for javascript
             responseMessage = "{['" + "','".join(user_list) + "']}"
@@ -216,10 +211,10 @@ class LoginData:
         username = formData.get("username")
         rolename = formData.get("rolename")
         source = formData.get("source")
-        self.authentication.set_role_plugin(source)
-        self.authentication.remove_role(username, rolename)
+        page.authentication.set_role_plugin(source)
+        page.authentication.remove_role(username, rolename)
 
-        err = self.authentication.get_error()
+        err = page.authentication.get_error()
         if err is None:
             self.writer.println(username)
             self.writer.close()
@@ -231,10 +226,10 @@ class LoginData:
         record = formData.get("record")
         role   = formData.get("role")
         source = formData.get("source")
-        self.authentication.set_access_plugin(source)
-        self.authentication.revoke_access(record, role)
+        page.authentication.set_access_plugin(source)
+        page.authentication.revoke_access(record, role)
 
-        err = self.authentication.get_error()
+        err = page.authentication.get_error()
         if err is None:
             self.writer.println(role)
             self.writer.close()
