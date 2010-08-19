@@ -1,0 +1,7 @@
+#parse($page.getTemplate('elements/atom-link.vm'))
+<h2 id="page-heading">
+  <span class="paging right">#parse($page.getTemplate("results/search-paging.vm"))</span>
+  <span>Search</span>
+  <span>$atomHtml</span>
+</h2>
+<div class="clear"></div>
