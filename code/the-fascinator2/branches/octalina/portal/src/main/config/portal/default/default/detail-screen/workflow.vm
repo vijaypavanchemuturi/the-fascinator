@@ -1,0 +1,11 @@
+#if ($hasWorkflow && $canOrganise)
+#set($menuTitle = "Workflow Step")
+#parse($page.getTemplate('wrapping/info-box-open.vm'))
+#set($menuTitle = $nullValue)
+  <ul class="menu">
+    <li>
+      <a href='$portalPath/workflow/$self.encode($oid)' title="$workflowStep">$workflowStep</a>
+    </li>
+  </ul>
+#parse($page.getTemplate('wrapping/info-box-close.vm'))
+#end

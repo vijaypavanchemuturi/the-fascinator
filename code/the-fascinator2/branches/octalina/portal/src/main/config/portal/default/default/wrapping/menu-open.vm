@@ -1,0 +1,10 @@
+#if($hideMenu)
+<div class="box menu hidden">
+#else
+<div class="box menu">
+#end
+#if ((!$menuTitle) && ("$!menuTitle" == ""))
+  <h2>&nbsp;</h2>
+#else
+  <h2>$menuTitle</h2>
+#end

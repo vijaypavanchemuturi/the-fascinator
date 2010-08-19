@@ -1,0 +1,48 @@
+<div class="grid_16">
+  <ul class="nav main">
+    <li><a href="$portalPath/home">Home</a></li>
+    <li><a href="$portalPath/search">Browse</a></li>
+    <li>
+      <a href="#">Views</a>
+      <ul>
+      #foreach($portal in $page.portals)
+        <li><a href="$contextPath/$portal.name/home">$portal.description</a></li>
+      #end
+      </ul>
+    </li>
+    #if ($page.authentication.is_admin())
+    <li><a href="$portalPath/settings">Settings</a></li>
+    <li><a href="$portalPath/admin">Admin</a></li>
+    #end
+    #parse($page.getTemplate('elements/queues.vm'))
+    #### not yet finished
+    ##<li><a href="$portalPath/harvest">Harvest</a></li>
+    <li class="secondary">
+      <a class="search" href="#"><img src="$portalPath/images/icons/magnifier.png" /></a>
+    </li>
+    <li class="secondary">
+      <form action="$portalPath/search" class="search" method="get">
+        <input class="text" type="text" id="query" name="query" size="25" value="$!sessionState.get('query')" />
+      </form>
+    </li>
+    <li class="secondary">
+      <span class="status">View: $page.portalName</span>
+    </li>
+    <li class="secondary">
+      #if($page.authentication.is_logged_in())
+      <span id="user-info" class="status">Welcome $page.authentication.get_name(), <a href="#" id="logout-now">Logout</a></span>
+      #else
+      <span id="user-info" class="status"><a id="login-now" href="#">Login</a></span>
+      #end
+    </li>
+    $!navContent
+  </ul>
+</div>
+<script type="text/javascript">
+    $(function() {
+        $("a.search").click(function() {
+            $("form.search").submit();
+            return false;
+        });
+    });
+</script>
