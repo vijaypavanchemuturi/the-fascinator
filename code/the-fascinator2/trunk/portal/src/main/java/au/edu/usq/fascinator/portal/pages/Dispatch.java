@@ -417,6 +417,7 @@ public class Dispatch {
             return null;
         }
 
+        isSpecial = false;
         String match = getBestMatchResource(resourceName);
         log.trace("resourceName = {}, match = {}", resourceName, match);
 
@@ -426,7 +427,6 @@ public class Dispatch {
     public String getBestMatchResource(String resource) {
         String searchable = resource;
         String ext = "";
-        isSpecial = false;
         isPost = requestUri.endsWith(POST_EXT);
         // Look for AJAX
         if (resource.endsWith(AJAX_EXT)) {
