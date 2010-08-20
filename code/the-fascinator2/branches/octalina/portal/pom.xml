@@ -1,4 +1,5 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>au.edu.usq.fascinator</groupId>
     <artifactId>fascinator-portal</artifactId>
@@ -241,6 +242,11 @@
                     <groupId>au.edu.usq.fascinator.plugins</groupId>
                     <artifactId>plugin-harvester-filesystem</artifactId>
                 </dependency>
+                <!-- <dependency>
+                    <groupId>au.edu.usq.fascinator.plugins</groupId>
+                    <artifactId>plugin-harvester-fedora</artifactId>
+                    <version>0.1.0-SNAPSHOT</version>
+                </dependency> -->
                 <dependency>
                     <groupId>au.edu.usq.fascinator.plugins</groupId>
                     <artifactId>plugin-harvester-ice2</artifactId>
@@ -274,14 +280,13 @@
                     <artifactId>plugin-transformer-ims</artifactId>
                 </dependency>
                 <!--
-                <dependency>
+                    <dependency>
                     <groupId>au.edu.usq.fascinator.plugins</groupId>
                     <artifactId>plugin-transformer-solrmarc</artifactId>
-                </dependency>
-                <dependency>
-                  <groupId>au.edu.usq.fascinator.plugins</groupId>
-                  <artifactId>plugin-storage-fedora3</artifactId>
-                </dependency>
+                    </dependency> <dependency>
+                    <groupId>au.edu.usq.fascinator.plugins</groupId>
+                    <artifactId>plugin-storage-fedora3</artifactId>
+                    </dependency>
                 -->
                 <dependency>
                     <groupId>au.edu.usq.fascinator.plugins</groupId>
@@ -290,6 +295,10 @@
                 <dependency>
                     <groupId>au.edu.usq.fascinator.plugins</groupId>
                     <artifactId>plugin-roles-internal</artifactId>
+                </dependency>
+                <dependency>
+                    <groupId>au.edu.usq.fascinator.plugins</groupId>
+                    <artifactId>plugin-subscriber-solrEventLog</artifactId>
                 </dependency>
             </dependencies>
             <build>
@@ -334,7 +343,7 @@
                                 </goals>
                                 <configuration>
                                     <includeGroupIds>au.edu.usq.fascinator.plugins</includeGroupIds>
-                                    <includeArtifactIds>plugin-harvester-filesystem,plugin-harvester-ice2,plugin-harvester-oai-pmh,plugin-harvester-workflow</includeArtifactIds>
+                                    <includeArtifactIds>plugin-harvester-filesystem,plugin-harvester-ice2,plugin-harvester-oai-pmh,plugin-harvester-workflow,plugin-harvester-fedora</includeArtifactIds>
                                     <includes>harvest/**</includes>
                                     <outputDirectory>${fascinator.home}</outputDirectory>
                                 </configuration>
@@ -359,12 +368,14 @@
                         </dependencies>
                         <configuration>
                             <connectors>
-                                <connector implementation="org.mortbay.jetty.nio.SelectChannelConnector">
+                                <connector
+                                    implementation="org.mortbay.jetty.nio.SelectChannelConnector">
                                     <port>9997</port>
                                     <maxIdleTime>60000</maxIdleTime>
                                 </connector>
                             </connectors>
-                            <requestLog implementation="org.mortbay.jetty.NCSARequestLog">
+                            <requestLog
+                                implementation="org.mortbay.jetty.NCSARequestLog">
                                 <append>false</append>
                                 <filename>target/request.log</filename>
                             </requestLog>
@@ -380,7 +391,8 @@
                                 </systemProperty>
                             </systemProperties>
                             <contextHandlers>
-                                <contextHandler implementation="org.mortbay.jetty.webapp.WebAppContext">
+                                <contextHandler
+                                    implementation="org.mortbay.jetty.webapp.WebAppContext">
                                     <war>${basedir}/target/dependency/solr-webapp-1.4.0.war</war>
                                     <contextPath>/solr</contextPath>
                                 </contextHandler>
