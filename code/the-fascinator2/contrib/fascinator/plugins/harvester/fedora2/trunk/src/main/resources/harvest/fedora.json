@@ -1,0 +1,21 @@
+{
+    "harvester": {
+        "type": "fedora",
+        "fedora": {
+            "baseUrl": "http://ogma.newcastle.edu.au/fedora/",
+            "maxRequests": "-1",
+            "requestSize": "100"
+        }
+    },
+
+    "indexer": {
+        "script": {
+            "type": "python",
+            "rules": "fedora.py"
+        },
+        "params": {
+            "repository.name": "Newcastle",
+            "repository.type": "Fedora"
+        }
+    }
+}
