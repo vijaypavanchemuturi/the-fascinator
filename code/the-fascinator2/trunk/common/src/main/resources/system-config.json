@@ -1,5 +1,5 @@
 {
-    "version": "0.7.1",
+    "version": "0.7.2",
     "configured": false,
     "urlBase" : "http://localhost:9997/portal/",
     "email" : "fascinator@usq.edu.au",
@@ -206,8 +206,11 @@
         "houseKeeping": {
             "config": {
                 "derbyHome" : "${fascinator.home}/database",
+                "quartzConfig" : "${fascinator.home}/quartz.properties",
                 "desktop": true,
-                "frequency": "300"
+                "frequency": "300",
+                "jobs" : [
+                ]
             }
         }
     },
