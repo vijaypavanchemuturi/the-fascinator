@@ -10,7 +10,7 @@
  <parent>
   <groupId>au.edu.usq.fascinator</groupId>
   <artifactId>organisation</artifactId>
-  <version>0.4.0</version>
+  <version>0.5.0-SNAPSHOT</version>
  </parent>
  <description>The Fascinator platform is a set of components that can be remixed/mashed to meet a variety of repository-centric needs.
  Developers: For code analysis, please refer to https://build.adfi.usq.edu.au/sonar/project/index/au.edu.usq.fascinator:the-fascinator.
@@ -232,33 +232,7 @@
  </dependencyManagement>
  <build>
   <pluginManagement>
-   <plugins>
-    <plugin>
-     <groupId>org.apache.maven.plugins</groupId>
-     <artifactId>maven-project-info-reports-plugin</artifactId>
-     <version>2.2</version>
-    </plugin>
-    <plugin>
-     <groupId>org.apache.maven.plugins</groupId>
-     <artifactId>maven-surefire-report-plugin</artifactId>
-     <version>2.5</version>
-    </plugin>
-    <plugin>
-     <groupId>org.apache.maven.plugins</groupId>
-     <artifactId>maven-javadoc-plugin</artifactId>
-     <version>2.6.1</version>
-     <configuration>
-      <links>
-       <link>http://java.sun.com/javase/6/docs/api</link>
-      </links>
-     </configuration>
-    </plugin>
-    <plugin>
-     <groupId>org.apache.maven.plugins</groupId>
-     <artifactId>maven-surefire-plugin</artifactId>
-     <version>2.5</version>
-    </plugin>
-   </plugins>
+
   </pluginManagement>
   <plugins>
    <!--
@@ -266,6 +240,10 @@
     <artifactId>rat-maven-plugin</artifactId>
     <version>1.0-alpha-3</version> </plugin>
    -->
+   <plugin>
+    <groupId>org.apache.maven.plugins</groupId>
+    <artifactId>maven-site-plugin</artifactId>
+   </plugin>
    <plugin>
     <groupId>org.apache.maven.plugins</groupId>
     <artifactId>maven-surefire-plugin</artifactId>
@@ -386,52 +364,12 @@
        </reportSet>
       </reportSets>
      </plugin>
-     <plugin>
-      <groupId>org.apache.maven.plugins</groupId>
-      <artifactId>maven-jxr-plugin</artifactId>
-      <version>2.1</version>
-      <configuration>
-       <aggregate>true</aggregate>
-      </configuration>
-     </plugin>
-
      <!--
       <plugin> <groupId>org.apache.maven.plugins</groupId>
-      <artifactId>maven-pmd-plugin</artifactId> <version>2.4</version>
-      <configuration> <aggregate>true</aggregate>
-      <targetJdk>${jdk-version}</targetJdk> <linkXref>true</linkXref>
-      </configuration> </plugin>
+      <artifactId>maven-jxr-plugin</artifactId> <version>2.1</version>
+      <configuration> <aggregate>true</aggregate> </configuration>
+      </plugin>
      -->
-     <!-- 
-     <plugin>
-      <groupId>org.apache.maven.plugins</groupId>
-      <artifactId>maven-checkstyle-plugin</artifactId>
-      <version>2.2</version>
-      <configuration>
-       <aggregate>true</aggregate>
-      </configuration>
-     </plugin>
-      -->
-     <!-- 
-     <plugin>
-      <groupId>org.codehaus.mojo</groupId>
-      <artifactId>taglist-maven-plugin</artifactId>
-      <version>2.3</version>
-      <configuration>
-       <aggregate>true</aggregate>
-      </configuration>
-     </plugin>
-      -->
-     <!-- 
-     <plugin>
-      <groupId>org.apache.maven.plugins</groupId>
-      <artifactId>maven-surefire-report-plugin</artifactId>
-      <version>2.5</version>
-      <configuration>
-       <aggregate>true</aggregate>
-      </configuration>
-     </plugin>
-      -->
     </plugins>
    </reporting>
   </profile>
