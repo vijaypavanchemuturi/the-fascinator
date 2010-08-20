@@ -109,6 +109,15 @@
                 "config" : {
                     "name" : "ingest"
                 }
+            },
+            {
+                "id" : "subscriber",
+                "description" : "Subscriber queue for event log.",
+                "priority": "7",
+                "config": {
+                    "name" : "subscriber",
+                    "subscribers": ["solr-event-log"]
+                }
             }
         ]
     },
@@ -212,6 +221,13 @@
         }
     },
     "watcher" : {
-    	"path": "${INSTALL_PATH}/watcher"
+        "path": "${INSTALL_PATH}/watcher"
+    },
+    "subscriber": {
+        "solr": {
+            "uri": "http://localhost:9997/solr/eventlog",
+            "autocommit": false,
+            "embedded": false
+        }
     }
 }

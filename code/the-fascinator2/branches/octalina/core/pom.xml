@@ -64,6 +64,11 @@
     <profile>
       <id>dev</id>
       <dependencies>
+        <!-- <dependency>
+          <groupId>au.edu.usq.fascinator.plugins</groupId>
+          <artifactId>plugin-harvester-fedora</artifactId>
+          <version>0.1.0-SNAPSHOT</version>
+        </dependency> -->
         <dependency>
           <groupId>au.edu.usq.fascinator.plugins</groupId>
           <artifactId>plugin-harvester-filesystem</artifactId>
@@ -103,6 +108,10 @@
         <dependency>
           <groupId>au.edu.usq.fascinator.plugins</groupId>
           <artifactId>plugin-access-derby</artifactId>
+        </dependency>
+        <dependency>
+          <groupId>au.edu.usq.fascinator.plugins</groupId>
+          <artifactId>plugin-subscriber-solrEventLog</artifactId>
         </dependency>
       </dependencies>
       <build>

@@ -12,7 +12,7 @@ if [ -n "$http_proxy" ]; then
 	_TMP=${http_proxy##*:}
 	PROXY_PORT=${_TMP%/}
 	echo " * Detected HTTP proxy host:'$PROXY_HOST' port:'$PROXY_PORT'"
-	PROXY_OPTS="-Dhttp.proxyHost=$PROXY_HOST -Dhttp.proxyPort=$PROXY_PORT -Dhttp.nonProxyHosts=localhost"
+	PROXY_OPTS="-Dhttp.proxyHost=$PROXY_HOST -Dhttp.proxyPort=$PROXY_PORT -Dhttp.nonProxyHosts=localhost|*.newcastle.edu.au"
 else
 	echo " * No HTTP proxy detected"
 fi

@@ -18,6 +18,30 @@
  */
 package au.edu.usq.fascinator.portal.services;
 
+import javax.servlet.http.HttpServletRequest;
+
+import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.tapestry5.ioc.Configuration;
+import org.apache.tapestry5.ioc.MappedConfiguration;
+import org.apache.tapestry5.ioc.OrderedConfiguration;
+import org.apache.tapestry5.ioc.ServiceBinder;
+import org.apache.tapestry5.ioc.annotations.Inject;
+import org.apache.tapestry5.ioc.services.RegistryShutdownHub;
+import org.apache.tapestry5.services.AliasContribution;
+import org.apache.tapestry5.services.ApplicationStateContribution;
+import org.apache.tapestry5.services.ApplicationStateCreator;
+import org.apache.tapestry5.services.ApplicationStateManager;
+import org.apache.tapestry5.services.Request;
+import org.apache.tapestry5.services.RequestGlobals;
+import org.apache.tapestry5.services.URLEncoder;
+import org.apache.tapestry5.urlrewriter.RewriteRuleApplicability;
+import org.apache.tapestry5.urlrewriter.SimpleRequestWrapper;
+import org.apache.tapestry5.urlrewriter.URLRewriteContext;
+import org.apache.tapestry5.urlrewriter.URLRewriterRule;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
+
 import au.edu.usq.fascinator.AccessManager;
 import au.edu.usq.fascinator.AuthenticationManager;
 import au.edu.usq.fascinator.RoleManager;
@@ -33,32 +57,11 @@ import au.edu.usq.fascinator.portal.services.impl.DatabaseServicesImpl;
 import au.edu.usq.fascinator.portal.services.impl.DynamicPageServiceImpl;
 import au.edu.usq.fascinator.portal.services.impl.HarvestManagerImpl;
 import au.edu.usq.fascinator.portal.services.impl.HouseKeepingManagerImpl;
+import au.edu.usq.fascinator.portal.services.impl.IndexerServiceImpl;
 import au.edu.usq.fascinator.portal.services.impl.PortalManagerImpl;
-import au.edu.usq.fascinator.portal.services.impl.ScriptingServicesImpl;
 import au.edu.usq.fascinator.portal.services.impl.PortalSecurityManagerImpl;
-
-import javax.servlet.http.HttpServletRequest;
-
-import org.apache.commons.codec.digest.DigestUtils;
-import org.apache.tapestry5.ioc.Configuration;
-import org.apache.tapestry5.ioc.MappedConfiguration;
-import org.apache.tapestry5.ioc.OrderedConfiguration;
-import org.apache.tapestry5.ioc.ServiceBinder;
-import org.apache.tapestry5.ioc.annotations.Inject;
-import org.apache.tapestry5.ioc.services.RegistryShutdownHub;
-import org.apache.tapestry5.services.AliasContribution;
-import org.apache.tapestry5.services.ApplicationStateContribution;
-import org.apache.tapestry5.services.ApplicationStateCreator;
-import org.apache.tapestry5.services.Request;
-import org.apache.tapestry5.services.RequestGlobals;
-import org.apache.tapestry5.services.URLEncoder;
-import org.apache.tapestry5.urlrewriter.RewriteRuleApplicability;
-import org.apache.tapestry5.urlrewriter.SimpleRequestWrapper;
-import org.apache.tapestry5.urlrewriter.URLRewriteContext;
-import org.apache.tapestry5.urlrewriter.URLRewriterRule;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.slf4j.MDC;
+import au.edu.usq.fascinator.portal.services.impl.ScriptingServicesImpl;
+import au.edu.usq.fascinator.portal.services.impl.StorageWrapperImpl;
 
 public class PortalModule {
 
@@ -78,11 +81,11 @@ public class PortalModule {
         binder.bind(DynamicPageService.class, DynamicPageServiceImpl.class);
         binder.bind(PortalManager.class, PortalManagerImpl.class);
         binder.bind(ScriptingServices.class, ScriptingServicesImpl.class);
-        binder.bind(PortalSecurityManager.class, PortalSecurityManagerImpl.class);
+        binder.bind(PortalSecurityManager.class,
+                PortalSecurityManagerImpl.class);
     }
 
-    public static DatabaseServices buildDatabaseServices(
-            RegistryShutdownHub hub) {
+    public static DatabaseServices buildDatabaseServices(RegistryShutdownHub hub) {
         DatabaseServices database = new DatabaseServicesImpl();
         hub.addRegistryShutdownListener(database);
         return database;
@@ -90,7 +93,7 @@ public class PortalModule {
 
     public static HouseKeepingManager buildHouseKeepingManager(
             RegistryShutdownHub hub) {
-        HouseKeepingManager houseKeeping= new HouseKeepingManagerImpl();
+        HouseKeepingManager houseKeeping = new HouseKeepingManagerImpl();
         hub.addRegistryShutdownListener(houseKeeping);
         return houseKeeping;
     }
@@ -115,13 +118,13 @@ public class PortalModule {
         }
     }
 
-    public static Indexer buildIndexer() {
+    public static Indexer buildIndexer(@Inject ApplicationStateManager asm) {
         try {
             JsonConfig config = new JsonConfig();
             Indexer indexer = PluginManager.getIndexer(config.get(
                     "indexer/type", DEFAULT_INDEXER_TYPE));
             indexer.init(JsonConfig.getSystemFile());
-            return indexer;
+            return new IndexerServiceImpl(indexer, asm);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -137,13 +140,13 @@ public class PortalModule {
         }
     }
 
-    public static Storage buildStorage() {
+    public static Storage buildStorage(@Inject ApplicationStateManager asm) {
         try {
             JsonConfig config = new JsonConfig();
             Storage storage = PluginManager.getStorage(config.get(
                     "storage/type", DEFAULT_STORAGE_TYPE));
             storage.init(JsonConfig.getSystemFile());
-            return storage;
+            return new StorageWrapperImpl(storage, asm);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

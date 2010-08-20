@@ -29,6 +29,7 @@ import au.edu.usq.fascinator.api.harvester.Harvester;
 import au.edu.usq.fascinator.api.indexer.Indexer;
 import au.edu.usq.fascinator.api.roles.Roles;
 import au.edu.usq.fascinator.api.storage.Storage;
+import au.edu.usq.fascinator.api.subscriber.Subscriber;
 import au.edu.usq.fascinator.api.transformer.Transformer;
 import au.edu.usq.fascinator.api.transformer.TransformerException;
 
@@ -273,5 +274,37 @@ public class PluginManager {
             transformers.put(plugin.getId(), plugin);
         }
         return transformers;
+    }
+
+    /**
+     * Gets an subscriber plugin
+     * 
+     * @param id plugin identifier
+     * @return an Subscriber plugin, or null if not found
+     */
+    public static Subscriber getSubscriber(String id) {
+        ServiceLoader<Subscriber> plugins = ServiceLoader
+                .load(Subscriber.class);
+        for (Subscriber plugin : plugins) {
+            if (id.equals(plugin.getId())) {
+                return plugin;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Get a list of Subscriber plugins
+     * 
+     * @return map of Subscriber plugin, or empty map if not found
+     */
+    public static Map<String, Subscriber> getSubscriberPlugins() {
+        Map<String, Subscriber> access_plugins = new HashMap<String, Subscriber>();
+        ServiceLoader<Subscriber> plugins = ServiceLoader
+                .load(Subscriber.class);
+        for (Subscriber plugin : plugins) {
+            access_plugins.put(plugin.getId(), plugin);
+        }
+        return access_plugins;
     }
 }
