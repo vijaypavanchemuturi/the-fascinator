@@ -1,22 +1,18 @@
-#parse($page.getTemplate('results/search-results-list-header.vm'))
+#set($is_admin = $page.authentication.is_admin())
+
+#parseTemplate("results/search-results-list-header.vm")
 
 #if($hasResult)
-
-  #set($contentTitle = "#parse($page.getTemplate('results/search-results-heading.vm'))")
-  #parse($page.getTemplate('wrapping/content-block-open.vm'))
-  #set($contentTitle = $nullValue)
-
-  #set ($is_admin = $page.authentication.is_admin())
-  #foreach($item in $self.result.getList("response/docs"))
-    #parse($page.getTemplate('results/search-results-item.vm'))
-  #end
+    #set($contentTitle = "#parseTemplate('results/search-results-heading.vm')")
+    #parseTemplate("wrapping/content-block-open.vm")
+    #foreach($item in $self.result.getJsonList("response/docs"))
+        #renderObject($item "result")
+    #end
 #else
-
-  #set($contentTitle = "Results")
-  #parse($page.getTemplate('wrapping/content-block-open.vm'))
-  #set($contentTitle = $nullValue)
-  #parse($page.getTemplate('results/search-results-none.vm'))
-  #parse($page.getTemplate('wrapping/content-block-close.vm'))
+    #set($contentTitle = "Results")
+    #parseTemplate("wrapping/content-block-open.vm")
+    #parseTemplate("results/search-results-none.vm")
+    #parseTemplate("wrapping/content-block-close.vm")
 #end
 
-#parse($page.getTemplate('wrapping/content-block-close.vm'))
+#parseTemplate("wrapping/content-block-close.vm")
