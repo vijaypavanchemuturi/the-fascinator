@@ -1,0 +1,4 @@
+#parseDisplayTemplate("detail/common.vm")
+#parseDisplayTemplate("detail/preview/header.vm")
+#parseDisplayTemplate("detail/preview/body.vm")
+#parseDisplayTemplate("detail/preview/footer.vm")

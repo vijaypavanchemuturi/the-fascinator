@@ -1,16 +1,95 @@
-import os, urllib
+import re
+
+from java.io import ByteArrayInputStream, ByteArrayOutputStream
+from java.lang import Boolean
+from java.net import URLDecoder
 
 from au.edu.usq.fascinator.api.indexer import SearchRequest
-from au.edu.usq.fascinator.api.storage import StorageException
 from au.edu.usq.fascinator.common import JsonConfigHelper
 
-from java.awt import Desktop
-from java.io import ByteArrayInputStream, ByteArrayOutputStream, File, StringWriter
-from java.net import URLDecoder, URLEncoder
-from java.util import TreeMap
+class DetailData:
+    def __init__(self):
+        uri = URLDecoder.decode(request.getAttribute("RequestURI"))
+        matches = re.match("^(.*?)/(.*?)/(?:(.*?)/)?(.*)$", uri)
+        if matches and matches.group(3):
+            self.__oid = matches.group(3)
+            pid = matches.group(4)
+            if pid:
+                # download payload
+                downloadPath = "%s/download/%s/%s" % (contextPath, self.__oid, pid)
+                response.sendRedirect(downloadPath)
+        else:
+            # require trailing slash for relative paths
+            response.sendRedirect("%s/%s/" % (contextPath, uri))
+    
+    def objectExists(self):
+        return self.__getNumFound() == 1
+    
+    def getMetadata(self):
+        if not hasattr(self, "__metadata"):
+            if self.objectExists():
+                self.__metadata = self.__getSolrData().getJsonList("response/docs").get(0)
+            else:
+                self.__metadata = JsonConfigHelper()
+        return self.__metadata
+    
+    def getObject(self):
+        return self.__getObject(self.__oid)
+    
+    def isPending(self):
+        obj = self.getObject()
+        if obj:
+            meta = obj.getMetadata()
+            status = meta.get("render-pending")     # TODO use constant?
+            return Boolean.parseBoolean(status)
+        return False
+    
+    def __getSolrData(self, oid = None):
+        if not hasattr(self, "__solrData"):
+            if oid is None:
+                oid = self.__oid
+            req = SearchRequest('id:"%s"' % oid)
+            out = ByteArrayOutputStream()
+            Services.getIndexer().search(req, out)
+            self.__solrData = JsonConfigHelper(ByteArrayInputStream(out.toByteArray()))
+        return self.__solrData
+    
+    def __getNumFound(self, oid = None):
+        return int(self.__getSolrData(oid).get("response/numFound"))
+    
+    def __getObject(self, oid = None):
+        if not hasattr(self, "__object"):
+            if oid is None:
+                oid = self.__oid
+            try:
+                try:
+                    self.__object = Services.getStorage().getObject(oid)
+                except StorageException:
+                    sid = self.__getStorageId(oid)
+                    self.__object = Services.getStorage().getObject(sid)
+            except StorageException:
+                pass
+        return self.__object
+    
+    def __getStorageId(self, oid):
+        if not hasattr(self, "__sid"):
+            self.__sid = self.__getMetadata(oid).get("storage_id")
+        return self.__sid
 
-from org.apache.commons.io import FileUtils, IOUtils
-from org.apache.commons.lang import StringEscapeUtils
+#import os, urllib
+
+#from au.edu.usq.fascinator.api.indexer import SearchRequest
+#from au.edu.usq.fascinator.api.storage import StorageException
+#from au.edu.usq.fascinator.common import JsonConfigHelper
+
+#from java.awt import Desktop
+#from java.io import ByteArrayInputStream, ByteArrayOutputStream, File, StringWriter
+#from java.net import URLDecoder, URLEncoder
+#from java.util import TreeMap
+
+#from org.apache.commons.io import FileUtils, IOUtils
+#from org.apache.commons.lang import StringEscapeUtils
+
 
 class SolrDoc:
     def __init__(self, json):
@@ -56,8 +135,7 @@ class SolrDoc:
     def toString(self):
         return self.json.toString()
 
-
-class DetailData:
+class DetailData0:
     def __init__(self):
         self.__flvFlag = None
         self.__object = None
@@ -397,4 +475,5 @@ class DetailData:
         else:
             return True
 
-scriptObject = DetailData()
+if __name__ == "__main__":
+    scriptObject = DetailData()

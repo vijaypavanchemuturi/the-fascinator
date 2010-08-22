@@ -395,9 +395,17 @@ public class DynamicPageServiceImpl implements DynamicPageService {
         log.debug("displayType: '{}'", displayType);
         log.debug("templateName: '{}'", templateName);
 
+        Object parentPageObject = null;
+        if (context.containsKey("parent")) {
+            parentPageObject = context.get("parent");
+        } else {
+            parentPageObject = context.get("self");
+        }
+        log.debug("parentPageObject: '{}'", parentPageObject);
+
         context.put("pageName", template);
         context.put("displayType", displayType);
-        context.put("parent", context.get("self"));
+        context.put("parent", parentPageObject);
         context.put("metadata", metadata);
 
         // evaluate the context script if exists
@@ -417,6 +425,7 @@ public class DynamicPageServiceImpl implements DynamicPageService {
         }
         context.put("self", pageObject);
 
+        String content = "";
         try {
             // render the page content
             log.debug("Rendering display page {}/{}.vm...", portalId,
@@ -424,14 +433,14 @@ public class DynamicPageServiceImpl implements DynamicPageService {
             StringWriter pageContentWriter = new StringWriter();
             Template pageContent = getTemplate(portalId, templateName);
             pageContent.merge(context, pageContentWriter);
-            return pageContentWriter.toString();
+            content = pageContentWriter.toString();
         } catch (Exception e) {
             log.error("Failed rendering display page: {}", templateName);
             e.printStackTrace();
         }
 
         log.debug("========== END renderObject ==========");
-        return "";
+        return content;
     }
 
     private Object evalScript(String portalId, String scriptName,

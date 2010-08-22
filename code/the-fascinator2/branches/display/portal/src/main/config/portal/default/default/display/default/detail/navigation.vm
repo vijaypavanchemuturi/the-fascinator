@@ -1,0 +1,20 @@
+#parseDisplayTemplate("detail/common.vm")
+
+#set($menuTitle = "Actions")
+#parseTemplate("wrapping/main-menu-open.vm")
+#parseDisplayTemplate("detail/navigation/actions.vm")
+#parseTemplate("wrapping/main-menu-close.vm")
+
+#parseDisplayTemplate("detail/navigation/custom.vm")
+
+#set($menuTitle = "Metadata")
+#parseTemplate("wrapping/info-box-open.vm")
+#parseDisplayTemplate("detail/navigation/metadata.vm")
+#parseTemplate("wrapping/info-box-close.vm")
+
+<div id="attachments">
+    #set($menuTitle = '<a href="#">Attachments</a>')
+    #parseTemplate("wrapping/info-box-open.vm")
+    #parseDisplayTemplate("detail/navigation/attachments.vm")
+    #parseTemplate("wrapping/info-box-close.vm")
+</div>
