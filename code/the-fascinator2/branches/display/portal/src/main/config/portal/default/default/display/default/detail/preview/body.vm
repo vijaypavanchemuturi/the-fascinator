@@ -1,0 +1,2 @@
+<h3>Description</h3>
+<p>$!metadata.getList("dc_description").get(0)</p>

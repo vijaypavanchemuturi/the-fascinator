@@ -164,12 +164,13 @@ class SearchData:
                                        int(self.__result.get("response/numFound")),
                                        self.__portal.recordsPerPage)
     
-    def canManage(self, wfSecurity):
-        user_roles = page.authentication.get_roles_list()
-        for role in user_roles:
-            if role in wfSecurity:
-                return True
-        return False
+    ## moved to display/default/result
+    #def canManage(self, wfSecurity):
+    #    user_roles = page.authentication.get_roles_list()
+    #   for role in user_roles:
+    #        if role in wfSecurity:
+    #            return True
+    #    return False
     
     def getQueryTime(self):
         return int(self.__result.get("responseHeader/QTime")) / 1000.0;
@@ -221,17 +222,18 @@ class SearchData:
     def isImage(self, format):
         return format.startswith("image/")
     
-    def getMimeTypeIcon(self, format):
-        # check for specific icon
-        iconPath = "images/icons/mimetype/%s/icon.png" % format
-        resource = Services.getPageService().resourceExists(portalId, iconPath)
-        if resource is not None:
-            return iconPath
-        elif format.find("/") != -1:
-            # check for major type
-            return self.getMimeTypeIcon(format[:format.find("/")])
-        # use default icon
-        return "images/icons/mimetype/icon.png"
+    ## moved to display/default/result
+    #def getMimeTypeIcon(self, format):
+    #    # check for specific icon
+    #    iconPath = "images/icons/mimetype/%s/icon.png" % format
+    #    resource = Services.getPageService().resourceExists(portalId, iconPath)
+    #    if resource is not None:
+    #        return iconPath
+    #    elif format.find("/") != -1:
+    #        # check for major type
+    #        return self.getMimeTypeIcon(format[:format.find("/")])
+    #    # use default icon
+    #    return "images/icons/mimetype/icon.png"
     
     def getActiveManifestTitle(self):
         return self.__getActiveManifest().get("title")

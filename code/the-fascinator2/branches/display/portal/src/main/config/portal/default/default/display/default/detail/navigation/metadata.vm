@@ -1,0 +1,5 @@
+## TODO finish this
+<table>
+    <tr><th>Title</th></tr>
+    <tr><td>$metadata.getList("dc_title").get(0)</td></tr>
+</table>

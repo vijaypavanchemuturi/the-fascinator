@@ -1,3 +1,18 @@
+#if($self.objectExists())
+    #set($metadata = $self.metadata)
+    #renderObject($metadata "detail/title")
+    <div class="grid_4">
+        #renderObject($metadata "detail/navigation")
+    </div>
+    <div class="grid_12">
+        #renderObject($metadata "detail")
+    </div>
+#else
+    #parseTemplate("detail-screen/not-found.vm")
+#end
+
+
+#if($nullValue)
 #if($self.isRendered())
 #************************
 * Zero hits
@@ -62,4 +77,5 @@
 #else
     ## content is written directly to the response, generally relative paths (ie. payloads) are handled here
     #set($noLayout=true)
+#end
 #end

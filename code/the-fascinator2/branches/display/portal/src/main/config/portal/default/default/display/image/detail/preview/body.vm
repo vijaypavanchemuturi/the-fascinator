@@ -1,0 +1,5 @@
+#set($preview = $metadata.get("preview"))
+<a class="image" href="#">
+    <img src="$portalPath/download/$oid/$preview" />
+</a>
+<div class="clear"></div>
