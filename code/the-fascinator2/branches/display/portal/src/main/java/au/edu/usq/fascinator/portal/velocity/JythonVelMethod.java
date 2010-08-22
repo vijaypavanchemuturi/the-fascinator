@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.velocity.util.introspection.VelMethod;
+import org.python.core.Py;
 import org.python.core.PyInteger;
 import org.python.core.PyList;
 import org.python.core.PyObject;
@@ -65,9 +66,9 @@ public class JythonVelMethod implements VelMethod {
                     } else if (param instanceof List) {
                         args.add(new PyList((List) param));
                     } else {
-                        log.debug("Unsupported param type:"
-                                + param.getClass().getName());
-                        return null;
+                        log.debug("Converting param type: {} to PyObject",
+                                param.getClass().getName());
+                        args.add(Py.java2py(param));
                     }
                 }
                 retVal = method.__call__(args.toArray(new PyObject[] {}));

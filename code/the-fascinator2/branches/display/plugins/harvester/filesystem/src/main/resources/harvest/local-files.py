@@ -324,4 +324,21 @@ if pid == metaPid:
         filePath = filePath.replace("\\", "/").replace(baseFilePath, baseDir)
     indexPath("file_path", filePath, includeLastPart=False)
     
-    
+    # check the object metadata for display type set by harvester or transformer
+    # otherwise determine the display type by mime type
+    displayType = params.getProperty("displayType")
+    if not displayType:
+        displayType = "default"
+        primaryType = formatList[0]
+        major, minor = primaryType.split("/")
+        if major == "application":
+            if minor == "pdf" \
+                    or minor.startswith("vnd.ms") \
+                    or minor.startswith("vnd.openxmlformats") \
+                    or minor.startswith("vnd.oasis.opendocument."):
+                displayType = "word-processing"
+        elif major in ["audio", "video", "image"]:
+            displayType = major
+        elif major == "text":
+            displayType = minor
+    rules.add(AddField("display_type", displayType))
