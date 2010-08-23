@@ -22,6 +22,7 @@ import org.apache.tapestry5.ioc.annotations.Inject;
 
 import au.edu.usq.fascinator.api.indexer.Indexer;
 import au.edu.usq.fascinator.api.storage.Storage;
+import au.edu.usq.fascinator.portal.services.DatabaseServices;
 import au.edu.usq.fascinator.portal.services.DynamicPageService;
 import au.edu.usq.fascinator.portal.services.HarvestManager;
 import au.edu.usq.fascinator.portal.services.HouseKeepingManager;
@@ -29,6 +30,9 @@ import au.edu.usq.fascinator.portal.services.PortalManager;
 import au.edu.usq.fascinator.portal.services.ScriptingServices;
 
 public class ScriptingServicesImpl implements ScriptingServices {
+
+    @Inject
+    private DatabaseServices database;
 
     @Inject
     private DynamicPageService pageService;
@@ -47,6 +51,11 @@ public class ScriptingServicesImpl implements ScriptingServices {
 
     @Inject
     private PortalManager portalManager;
+
+    @Override
+    public DatabaseServices getDatabase() {
+        return database;
+    }
 
     @Override
     public DynamicPageService getPageService() {

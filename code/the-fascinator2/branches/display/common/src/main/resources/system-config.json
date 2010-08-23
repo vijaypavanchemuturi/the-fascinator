@@ -1,5 +1,5 @@
 {
-    "version": "0.6.15",
+    "version": "0.7.2",
     "configured": false,
     "urlBase" : "http://localhost:9997/portal/",
     "email" : "fascinator@usq.edu.au",
@@ -189,6 +189,9 @@
     "mime-types" : {
         "tfpackage" : "application/x-fascinator-package"
     },
+    "database-service": {
+        "derbyHome" : "${fascinator.home}/database-service"
+    },
     "portal": {
         "home": "${portal.home}",
         "contentDir": "${fascinator.home}/content",
@@ -203,8 +206,11 @@
         "houseKeeping": {
             "config": {
                 "derbyHome" : "${fascinator.home}/database",
+                "quartzConfig" : "${fascinator.home}/quartz.properties",
                 "desktop": true,
-                "frequency": "300"
+                "frequency": "300",
+                "jobs" : [
+                ]
             }
         }
     },
