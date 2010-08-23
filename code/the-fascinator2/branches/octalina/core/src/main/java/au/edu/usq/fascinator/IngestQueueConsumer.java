@@ -20,6 +20,8 @@ package au.edu.usq.fascinator;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 import javax.jms.Connection;
 import javax.jms.DeliveryMode;
@@ -95,6 +97,9 @@ public class IngestQueueConsumer implements GenericListener {
     /** Thread reference */
     private Thread thread;
 
+    /** Messaging services */
+    private MessagingServices messaging;
+
     /**
      * Constructor required by ServiceLoader. Be sure to use init()
      * 
@@ -159,6 +164,12 @@ public class IngestQueueConsumer implements GenericListener {
             storage = PluginManager.getStorage(globalConfig.get("storage/type",
                     "file-system"));
             storage.init(sysFile);
+
+            try {
+                messaging = MessagingServices.getInstance();
+            } catch (JMSException jmse) {
+                log.error("Failed to start connection: {}", jmse.getMessage());
+            }
 
             // // Setup render queue logic
             // rendererNames = new LinkedHashMap();
@@ -290,7 +301,15 @@ public class IngestQueueConsumer implements GenericListener {
                 storage.removeObject(objectId);
                 indexer.remove(objectId);
                 indexer.annotateRemove(objectId);
+
+                // Log event
+                sentMessage(oid, "delete");
+                sentMessage(oid, "delete-anotar");
+
                 return;
+            } else {
+                // Log event
+                sentMessage(oid, "modify");
             }
 
         } catch (JMSException jmse) {
@@ -302,6 +321,24 @@ public class IngestQueueConsumer implements GenericListener {
         } catch (StorageException e) {
             log.error("Failed to delete object: {}", e.getMessage());
         }
+    }
+
+    /**
+     * To put events to subscriber queue
+     * 
+     * @param oid Object id
+     * @param eventType type of events happened
+     * @param context where the event happened
+     * @param jsonFile Configuration file
+     */
+    private void sentMessage(String oid, String eventType) {
+        log.info(" * Sending message: {} with event {}", oid, eventType);
+        Map<String, String> param = new LinkedHashMap<String, String>();
+        param.put("oid", oid);
+        param.put("eventType", eventType);
+        param.put("username", "system");
+        param.put("context", "RenderQueueConsumer");
+        messaging.onEvent(param);
     }
 
     /**
