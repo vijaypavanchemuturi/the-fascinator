@@ -25,6 +25,7 @@ import java.io.OutputStream;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
@@ -387,6 +388,9 @@ public class HarvestClient {
         // done with the object
         object.close();
 
+        // put in event log
+        sentMessage(oid, "modify");
+
         // queue the object for indexing
         queueHarvest(oid, configFile, commit);
     }
@@ -453,6 +457,24 @@ public class HarvestClient {
         } else {
             return uploadedOid;
         }
+    }
+
+    /**
+     * To put events to subscriber queue
+     * 
+     * @param oid Object id
+     * @param eventType type of events happened
+     * @param context where the event happened
+     * @param jsonFile Configuration file
+     */
+    private void sentMessage(String oid, String eventType) {
+        log.info(" * Sending message: {} with event {}", oid, eventType);
+        Map<String, String> param = new LinkedHashMap<String, String>();
+        param.put("oid", oid);
+        param.put("eventType", eventType);
+        param.put("username", "system");
+        param.put("context", "HarvestClient");
+        messaging.onEvent(param);
     }
 
     /**

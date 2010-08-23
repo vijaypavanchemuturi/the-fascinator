@@ -18,19 +18,10 @@
  */
 package au.edu.usq.fascinator;
 
-import au.edu.usq.fascinator.api.PluginException;
-import au.edu.usq.fascinator.api.PluginManager;
-import au.edu.usq.fascinator.api.indexer.Indexer;
-import au.edu.usq.fascinator.api.indexer.IndexerException;
-import au.edu.usq.fascinator.api.storage.DigitalObject;
-import au.edu.usq.fascinator.api.storage.Storage;
-import au.edu.usq.fascinator.api.storage.StorageException;
-import au.edu.usq.fascinator.api.transformer.TransformerException;
-import au.edu.usq.fascinator.common.JsonConfig;
-import au.edu.usq.fascinator.common.JsonConfigHelper;
-
 import java.io.File;
 import java.io.IOException;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Properties;
 
 import javax.jms.Connection;
@@ -46,6 +37,17 @@ import org.apache.activemq.ActiveMQConnectionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
+
+import au.edu.usq.fascinator.api.PluginException;
+import au.edu.usq.fascinator.api.PluginManager;
+import au.edu.usq.fascinator.api.indexer.Indexer;
+import au.edu.usq.fascinator.api.indexer.IndexerException;
+import au.edu.usq.fascinator.api.storage.DigitalObject;
+import au.edu.usq.fascinator.api.storage.Storage;
+import au.edu.usq.fascinator.api.storage.StorageException;
+import au.edu.usq.fascinator.api.transformer.TransformerException;
+import au.edu.usq.fascinator.common.JsonConfig;
+import au.edu.usq.fascinator.common.JsonConfigHelper;
 
 /**
  * Consumer for rendering transformers. Jobs in this queue are generally longer
@@ -100,6 +102,9 @@ public class RenderQueueConsumer implements GenericListener {
 
     /** Transformer conveyer belt */
     private ConveyerBelt conveyer;
+
+    /** Messaging services */
+    private MessagingServices messaging;
 
     /**
      * Constructor required by ServiceLoader. Be sure to use init()
@@ -170,6 +175,12 @@ public class RenderQueueConsumer implements GenericListener {
         } catch (PluginException pe) {
             log.error("Failed to initialise plugin: {}", pe.getMessage());
             throw pe;
+        }
+
+        try {
+            messaging = MessagingServices.getInstance();
+        } catch (JMSException jmse) {
+            log.error("Failed to start connection: {}", jmse.getMessage());
         }
     }
 
@@ -283,6 +294,9 @@ public class RenderQueueConsumer implements GenericListener {
                 indexer.commit();
             }
 
+            // Log event
+            sentMessage(oid, "modify");
+
             // Finish up
             sendNotification(oid, "renderComplete", "(" + name
                     + ") Renderer complete : '" + oid + "'");
@@ -320,6 +334,24 @@ public class RenderQueueConsumer implements GenericListener {
 
         TextMessage msg = session.createTextMessage(jsonMessage.toString());
         // producer.send(broadcast, msg);
+    }
+
+    /**
+     * To put events to subscriber queue
+     * 
+     * @param oid Object id
+     * @param eventType type of events happened
+     * @param context where the event happened
+     * @param jsonFile Configuration file
+     */
+    private void sentMessage(String oid, String eventType) {
+        log.info(" * Sending message: {} with event {}", oid, eventType);
+        Map<String, String> param = new LinkedHashMap<String, String>();
+        param.put("oid", oid);
+        param.put("eventType", eventType);
+        param.put("username", "system");
+        param.put("context", "RenderQueueConsumer");
+        messaging.onEvent(param);
     }
 
     /**
