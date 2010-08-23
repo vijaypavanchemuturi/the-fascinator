@@ -1,0 +1,82 @@
+<html>
+ <head>
+  <title>Testing</title>
+    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"><!-- --></script>
+    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.2/jquery-ui.min.js"><!-- --> </script>  
+    <script src="widgets.js"> </script>
+  <script>
+    $(function(){
+      var msgElem=$("#msg").hide();
+      $("#saveBut").click(function(){
+        var v=widgets.getValidator();
+        var msg=v.isOkToSave()?"OK to Save":"Save validation failed. Can not save yet!";
+        msgElem.text(msg).show();
+      });
+      $("#submitBut").click(function(){
+        var v=widgets.getValidator();
+        var msg=v.isOkToSubmit()?"OK to Save":"Save validation failed. Can not save yet!";
+        alert(msg);
+      });
+    });
+  </script>
+  <style>
+    label.validation-err-msg { color:red; }
+    .validation-rule { display:none; }
+  </style>
+ <head>
+ <body>
+  <h3>testing</h3>
+  
+  <p>Title: <input type="text" id="dc:title" size="20" 
+            placeholder="enter title here" autofocus/>
+      <label class="validation-err-msg" for="dc:title">
+          The title must have between 3 and 8 characters!
+      </label>
+      <input type="hidden" class="validation-rule" 
+             value="for(dc:title);test(len>2 and len<9);when(onBlur,onsave);name(test1);"/>
+  </p>
+  <p>
+    Please enter 'one', 'two', or 'three': <input type='text' id='testinput' /> 
+    <label class="validation-err-msg" for="testinput">Must be: one, two or three</label>
+    <input type="hidden" class="validation-rule" 
+            value="for(testinput); when(onblur,onsave); name(test); test(/^(one|two|three)$/);"/>
+  </p>
+  <p>
+    Date (YYYYMMDD):<input type="text" id="date1"/>
+    <label class="validation-err-msg" for="date1">Please enter a validate date!</label>
+    <span class="validation-rule">for(date1); when(blur, save, submit); test(YYYYMMDD);</span>
+  </p>
+  <p>
+    OR <input type="text" id="i1"/>
+    <input type="text" id="i2"/>
+    <label class="validation-err-msg" style="color:red;" for="either">Either one must contain content!</label>
+    <input type="hidden" class="validation-rule" 
+            value="for(i1);name(i1);test(notEmpty);"/>
+    <input type="hidden" class="validation-rule" 
+            value="for(i2);name(i2);test(notEmpty);"/>
+    <input type="hidden" class="validation-rule" 
+            value="for(either);when('#i1,#i2'.blur, save);test(i1 or i2);"/>
+  </p>
+  <p>
+    AND <input type="text" id="i3"/>
+    <input type="text" id="i4"/>
+    <label class="validation-err-msg" style="color:red;" for="both">Both must be notEmpty!</label>
+    <input type="hidden" class="validation-rule" 
+            value="for(i3);name(i3);test(notEmpty);"/>
+    <input type="hidden" class="validation-rule" 
+            value="for(i4);name(i4);test(notEmpty);"/>
+    <input type="hidden" class="validation-rule" 
+            value="for(both);when('#i3,#i4'.blur, save);test(i3 and i4);"/>
+  </p>
+
+  <p>
+    <button id="saveBut">Save test</button> 
+    <button id="submitBut">Submit test</button>
+    <span style="color:orange;padding-left:4em;" id="msg">Message</span>
+  </p>
+
+  <div>
+    <a href="validationTest.html">Refresh</a>
+  </div>
+ <body>
+</html>
