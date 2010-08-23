@@ -78,6 +78,10 @@ public class DynamicPageServiceImpl implements DynamicPageService {
 
     private static final String DEFAULT_SKIN = "default";
 
+    private static final String AJAX_EXT = ".ajax";
+
+    private static final String SCRIPT_EXT = ".script";
+
     private Logger log = LoggerFactory.getLogger(DynamicPageServiceImpl.class);
 
     @Inject
@@ -260,9 +264,13 @@ public class DynamicPageServiceImpl implements DynamicPageService {
             FormData formData, JsonSessionState sessionState) {
 
         String mimeType = "text/html";
-        boolean isAjax = pageName.endsWith(".ajax");
+        boolean isAjax = pageName.endsWith(AJAX_EXT);
         if (isAjax) {
-            pageName = pageName.substring(0, pageName.lastIndexOf(".ajax"));
+            pageName = pageName.substring(0, pageName.lastIndexOf(AJAX_EXT));
+        }
+        boolean isScript = pageName.endsWith(SCRIPT_EXT);
+        if (isScript) {
+            pageName = pageName.substring(0, pageName.lastIndexOf(SCRIPT_EXT));
         }
         StringBuilder renderMessages = new StringBuilder();
 
@@ -293,21 +301,19 @@ public class DynamicPageServiceImpl implements DynamicPageService {
         bindings.put("bindings", bindings);
 
         // run page and template scripts
-        if (!isAjax) {
-            Object layoutObject = new Object();
-            try {
-                String scriptName = "scripts/" + layoutName + ".py";
-                layoutObject = evalScript(portalId, scriptName, bindings);
-            } catch (Exception e) {
-                ByteArrayOutputStream eOut = new ByteArrayOutputStream();
-                e.printStackTrace(new PrintStream(eOut));
-                String eMsg = eOut.toString();
-                log.warn("Failed to run page script!\n=====\n{}\n=====", eMsg);
-                renderMessages.append("Layout script error:\n");
-                renderMessages.append(eMsg);
-            }
-            bindings.put("page", layoutObject);
+        Object layoutObject = new Object();
+        try {
+            String scriptName = "scripts/" + layoutName + ".py";
+            layoutObject = evalScript(portalId, scriptName, bindings);
+        } catch (Exception e) {
+            ByteArrayOutputStream eOut = new ByteArrayOutputStream();
+            e.printStackTrace(new PrintStream(eOut));
+            String eMsg = eOut.toString();
+            log.warn("Failed to run page script!\n=====\n{}\n=====", eMsg);
+            renderMessages.append("Layout script error:\n");
+            renderMessages.append(eMsg);
         }
+        bindings.put("page", layoutObject);
 
         Object pageObject = new Object();
         try {
@@ -328,7 +334,7 @@ public class DynamicPageServiceImpl implements DynamicPageService {
         }
 
         boolean committed = response.isCommitted();
-        log.debug("Response has been sent or redirected");
+        // log.debug("Response has been sent or redirected");
 
         if (!committed && resourceExists(portalId, pageName + ".vm") != null) {
             // set up the velocity context
@@ -347,7 +353,7 @@ public class DynamicPageServiceImpl implements DynamicPageService {
                 StringWriter pageContentWriter = new StringWriter();
                 Template pageContent = getTemplate(portalId, pageName);
                 pageContent.merge(vc, pageContentWriter);
-                if (isAjax) {
+                if (isAjax || isScript) {
                     out.write(pageContentWriter.toString().getBytes());
                 } else {
                     vc.put("pageContent", pageContentWriter.toString());
@@ -357,11 +363,12 @@ public class DynamicPageServiceImpl implements DynamicPageService {
                 renderMessages.append(e.getMessage());
                 vc.put("renderMessages", renderMessages.toString());
                 log.error("Failed rendering page: {}, {} ({})", new String[] {
-                        pageName, e.getMessage(), isAjax ? "ajax" : "html" });
-                e.printStackTrace();
+                        pageName, e.getMessage(),
+                        isAjax ? "ajax" : isScript ? "script" : "html" });
+                log.error("Stack Track:\n", e);
             }
 
-            if (!isAjax) {
+            if (!(isAjax || isScript)) {
                 try {
                     // render the page using the layout template
                     log.debug("Rendering layout {}/{}.vm for page {}.vm...",

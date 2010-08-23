@@ -18,13 +18,12 @@
  */
 package au.edu.usq.fascinator.portal.services;
 
-import au.edu.usq.fascinator.api.access.AccessControlManager;
-import au.edu.usq.fascinator.api.authentication.AuthManager;
 import au.edu.usq.fascinator.api.indexer.Indexer;
-import au.edu.usq.fascinator.api.roles.RolesManager;
 import au.edu.usq.fascinator.api.storage.Storage;
 
 public interface ScriptingServices {
+
+    public DatabaseServices getDatabase();
 
     public DynamicPageService getPageService();
 

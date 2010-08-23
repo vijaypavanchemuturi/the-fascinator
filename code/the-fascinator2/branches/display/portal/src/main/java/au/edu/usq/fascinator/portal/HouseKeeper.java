@@ -28,9 +28,14 @@ import au.edu.usq.fascinator.api.storage.StorageException;
 import au.edu.usq.fascinator.common.JsonConfig;
 import au.edu.usq.fascinator.common.JsonConfigHelper;
 import au.edu.usq.fascinator.common.storage.StorageUtils;
+import au.edu.usq.fascinator.portal.quartz.ExternalJob;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.sql.DatabaseMetaData;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -38,6 +43,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -47,6 +53,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.logging.Level;
 
 import javax.jms.DeliveryMode;
 import javax.jms.Destination;
@@ -59,6 +66,12 @@ import javax.jms.Session;
 import javax.jms.TextMessage;
 
 import org.apache.activemq.ActiveMQConnectionFactory;
+import org.apache.commons.io.IOUtils;
+import org.quartz.CronTrigger;
+import org.quartz.JobDetail;
+import org.quartz.Scheduler;
+import org.quartz.SchedulerException;
+import org.quartz.impl.StdSchedulerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
@@ -88,6 +101,9 @@ public class HouseKeeper implements GenericListener {
 
     /** Notifications table */
     private static String NOTIFICATIONS_TABLE = "notifications";
+
+    /** Quartz properties */
+    private static String DEFAULT_QUARTZ_FILE = "quartz.properties";
 
     /** Logging */
     private Logger log = LoggerFactory.getLogger(HouseKeeper.class);
@@ -148,6 +164,12 @@ public class HouseKeeper implements GenericListener {
 
     /** Startup flag for completion */
     private boolean renderReady = false;
+
+    /** Quartz Scheduler */
+    private Scheduler scheduler;
+
+    /** Config for scheduled jobs */
+    private List<JsonConfigHelper> jobConfig;
 
     /**
      * Switch log file
@@ -221,7 +243,6 @@ public class HouseKeeper implements GenericListener {
                 // Establish a database connection, create the database if needed
                 db = DriverManager.getConnection(DERBY_PROTOCOL +
                         SECURITY_DATABASE + ";create=true", props);
-
                 // Look for our table
                 checkTable(NOTIFICATIONS_TABLE);
                 // Sync in-memory actions to database
@@ -236,6 +257,15 @@ public class HouseKeeper implements GenericListener {
                 log.error("Error during database preparation:", ex);
             }
             log.debug("Derby house keeping database online!");
+
+            // Quartz Scheduler
+            try {
+                scheduler = StdSchedulerFactory.getDefaultScheduler();
+                scheduler.start();
+                quartzScheduling();
+            } catch (SchedulerException ex) {
+                log.error("Scheduled failed to start: ", ex);
+            }
 
             // Start our callback timer
             log.info("Starting callback timer. Timeout = {}s", timeout);
@@ -253,6 +283,62 @@ public class HouseKeeper implements GenericListener {
             log.error("Error starting message thread!", ex);
         }
         closeLog();
+    }
+
+    /**
+     * Wrapper method to encapsulate the scheduling logic.
+     *
+     */
+    private void quartzScheduling() {
+        // Loop through each job
+        for (JsonConfigHelper thisJob : jobConfig) {
+            String name = thisJob.get("name");
+            if (name == null) {
+                log.error("Configuration error. " +
+                        "All jobs must have a 'name' value.");
+                continue;
+            }
+
+            // Step 1 - Do we have a valid trigger?
+            CronTrigger trigger = null;
+            try {
+                trigger = new CronTrigger(name, null, thisJob.get("timing"));
+                log.info("Scheduling Job: '{}' => '{}'",
+                        name, thisJob.get("timing"));
+                //log.debug("Job timing: \n===\n{}\n===\n",
+                //        trigger.getExpressionSummary());
+            } catch (ParseException ex) {
+                log.error("Error in job timing ('{}')", name, ex);
+                continue;
+            }
+
+            // Step 2 - Prepare the job
+            JobDetail job = new JobDetail(name, null, ExternalJob.class);
+            String token = thisJob.get("token");
+            String urlString = thisJob.get("url");
+            if (urlString == null) {
+                log.error("No job URL in config ('{}')", name);
+                continue;
+            }
+            try {
+                // Make sure the URL is valid... we don't need it though
+                URL url = new URL(urlString);
+                job.getJobDataMap().put("url", urlString);
+                if (token != null) {
+                    job.getJobDataMap().put("token", token);
+                }
+            } catch (MalformedURLException ex) {
+                log.error("Invalid URL: '{}'", urlString, ex);
+                continue;
+            }
+
+            // Step 3 - Schedule the job
+            try {
+                scheduler.scheduleJob(job, trigger);
+            } catch (SchedulerException ex) {
+                log.error("Error scheduling job: ", ex);
+            }
+        }
     }
 
     /**
@@ -293,6 +379,31 @@ public class HouseKeeper implements GenericListener {
             }
             File sysFile = JsonConfig.getSystemFile();
             stats = new LinkedHashMap();
+
+            // Quartz Scheduler properties file
+            String quartzConfig = config.get("config/quartzConfig");
+            if (quartzConfig == null) {
+                throw new Exception(
+                    "No scheduling config provided: 'config/quartzConfig'!");
+            }
+            File quartzProps = new File(quartzConfig);
+            if (!quartzProps.exists()) {
+                log.warn("Quartz config file '{}' not found, deploying default",
+                        quartzConfig);
+                quartzProps.getParentFile().mkdirs();
+                OutputStream out = new FileOutputStream(quartzProps);
+                IOUtils.copy(getClass().getResourceAsStream("/" +
+                        DEFAULT_QUARTZ_FILE), out);
+                out.close();
+                log.info("Default configuration copied to '{}'", quartzProps);
+            }
+            if (quartzProps != null && quartzProps.exists()) {
+                System.setProperty("org.quartz.properties",
+                        quartzProps.getAbsolutePath());
+            }
+
+            /** Get the config for scheduled jobs */
+            jobConfig = config.getJsonList("config/jobs");
 
             // Initialise plugins
             indexer = PluginManager.getIndexer(
@@ -429,6 +540,15 @@ public class HouseKeeper implements GenericListener {
                 }
             } catch (SQLException ex) {
                 log.warn("Error closing connection:", ex);
+            }
+        }
+
+        // Shutdown the scheduler
+        if (scheduler != null) {
+            try {
+                scheduler.shutdown();
+            } catch (SchedulerException ex) {
+                log.warn("Failed to close connection: {}", ex);
             }
         }
 
@@ -903,8 +1023,6 @@ public class HouseKeeper implements GenericListener {
             throws SQLException {
         PreparedStatement statement = statements.get(index);
         if (statement == null) {
-            // We want blocking actions first,
-            // otherwise in order of creation
             statement = db.prepareStatement(sql);
             statements.put(index, statement);
         }

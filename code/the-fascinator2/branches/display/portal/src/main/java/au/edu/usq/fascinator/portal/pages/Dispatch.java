@@ -67,6 +67,8 @@ public class Dispatch {
 
     private static final String POST_EXT = ".post";
 
+    private static final String SCRIPT_EXT = ".script";
+
     private static final String DEFAULT_RESOURCE = "home";
 
     @Inject
@@ -110,9 +112,9 @@ public class Dispatch {
     private String requestId;
     private String[] path;
     private HttpServletRequest hsr;
-    private boolean isAjax;
     private boolean isFile;
     private boolean isPost;
+    private boolean isSpecial;
 
     // Rendering variables
     private String mimeType;
@@ -176,7 +178,7 @@ public class Dispatch {
         }
 
         // Some things we don't want running excepted on 'real' page loads
-        if (!staticResource && !detailSubPage && !isAjax) {
+        if (!staticResource && !detailSubPage && !isSpecial) {
             // Single Sign-On integration
             try {
                 // Instantiate with access to the session
@@ -205,7 +207,7 @@ public class Dispatch {
         }
 
         // make static resources cacheable
-        if (resourceName.indexOf(".") != -1 && !isAjax) {
+        if (resourceName.indexOf(".") != -1 && !isSpecial) {
             response.setHeader("Cache-Control", "public");
             response.setDateHeader("Expires", System.currentTimeMillis()
                     + new TimeInterval("10y").milliseconds());
@@ -357,7 +359,7 @@ public class Dispatch {
 
     private void renderProcessing() {
         // render the page or retrieve the resource
-        if ((resourceName.indexOf(".") == -1) || isAjax) {
+        if ((resourceName.indexOf(".") == -1) || isSpecial) {
             FormData formData = formDataMap.get(requestId);
             if (formData == null) {
                 formData = new FormData(request, hsr);
@@ -383,7 +385,7 @@ public class Dispatch {
             try {
                 FormData formData = new FormData(request);
                 formDataMap.put(requestId, formData);
-                if (isAjax == false) {
+                if (isSpecial == false) {
                     String redirectUri = resourceName;
                     if (path.length > 2) {
                         redirectUri += StringUtils.join(path, "/", 2,
@@ -415,25 +417,39 @@ public class Dispatch {
             return null;
         }
 
+        isSpecial = false;
         String match = getBestMatchResource(resourceName);
         log.trace("resourceName = {}, match = {}", resourceName, match);
 
         return match;
     }
 
-    public String getBestMatchResource(String thisResourceName) {
+    public String getBestMatchResource(String resource) {
+        String searchable = resource;
+        String ext = "";
         isPost = requestUri.endsWith(POST_EXT);
-        isAjax = thisResourceName.endsWith(AJAX_EXT);
-        if (isAjax) {
-            thisResourceName = thisResourceName.substring(0, thisResourceName
-                    .lastIndexOf(AJAX_EXT));
+        // Look for AJAX
+        if (resource.endsWith(AJAX_EXT)) {
+            isSpecial = true;
+            ext = AJAX_EXT;
         }
-        if (pageService.resourceExists(portalId, thisResourceName) != null) {
-            return thisResourceName + (isAjax ? AJAX_EXT : "");
+        // Look for scripts
+        if (resource.endsWith(SCRIPT_EXT)) {
+            isSpecial = true;
+            ext = SCRIPT_EXT;
         }
-        int slash = thisResourceName.lastIndexOf('/');
+        // Strip special extensions whilst checking on disk
+        if (isSpecial) {
+            searchable = resource.substring(0, resource.lastIndexOf(ext));
+        }
+        // Return if found
+        if (pageService.resourceExists(portalId, searchable) != null) {
+            return resource;
+        }
+        // Keep checking
+        int slash = resource.lastIndexOf('/');
         if (slash != -1) {
-            return getBestMatchResource(thisResourceName.substring(0, slash));
+            return getBestMatchResource(resource.substring(0, slash));
         }
         return null;
     }
