@@ -721,3 +721,21 @@ ul.global-topic {
 .notice .warning b, .notice .info b {
     display: block;
 }
+
+p.item-description, div.sample-content {
+    margin-bottom: 0.75em;
+}
+
+div.sample-content {
+    background-color: #EEEEEE;
+    padding: 3px 5px;
+    border: 1px solid #CCCCCC;
+}
+
+blockquote.plain-text {
+    quotes: "\201C" "\201D";
+    border: 0px;
+    font-style: italic;
+}
+blockquote.plain-text:before {content: open-quote; font-weight: bold;}
+blockquote.plain-text:after {content: close-quote; font-weight: bold;}
