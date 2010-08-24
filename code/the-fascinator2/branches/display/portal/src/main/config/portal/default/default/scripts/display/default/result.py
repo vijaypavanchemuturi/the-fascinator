@@ -15,7 +15,7 @@ class ObjectResultData:
         if valueList.size() > 0:
             return valueList.get(0)
         return ""
-    
+
     def getMimeTypeIcon(self, format):
         # check for specific icon
         iconPath = "images/icons/mimetype/%s/icon.png" % format
