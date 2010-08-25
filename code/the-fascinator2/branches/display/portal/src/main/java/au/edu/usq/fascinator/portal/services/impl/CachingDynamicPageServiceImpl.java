@@ -446,6 +446,11 @@ public class CachingDynamicPageServiceImpl implements DynamicPageService {
     private PyObject evalScript(String portalId, String scriptName,
             Map<String, Object> bindings) {
         String path = resourceExists(portalId, scriptName);
+        if (path == null) {
+            log.debug("No script for portalId:'{}' scriptName:'{}'", portalId,
+                    scriptName);
+            return null;
+        }
         PyObject scriptObject = getPythonObject(path);
         boolean useCache = scriptObject != null;
         if (scriptObject == null) {
@@ -489,7 +494,7 @@ public class CachingDynamicPageServiceImpl implements DynamicPageService {
                 }
                 python.cleanup();
             } else {
-                log.debug("Script not found: '{}'", path);
+                log.debug("Failed to load script: '{}'", path);
             }
         }
         if (useCache && scriptObject != null) {
