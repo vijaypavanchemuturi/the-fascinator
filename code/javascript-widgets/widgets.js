@@ -48,20 +48,21 @@ var widgets=null;
       msgBox.dialog("open").find("span:first").text(msg);
   }
 
-  function save(){
+  function save(ctx){
     var data={}, s, v, e, url, formFields, replaceFunc;
-    formFields = $("#formFields").val() + $("#formFields-readonly").val();
+    ctx = ctx || $("body");
+    formFields = ctx.find(".form-fields:first").val() + ctx.find(".form-fields-readonly:first").val();
     formFields = $.grep(formFields.split(/[\s,]+/),
                             function(i){return /\S/.test(i)});
-    url = $("#saveFormFieldsUrl").val();
+    url = ctx.find(".save-form-fields-url:first").val();
     replaceFunc=function(s){
         s = s.replace(/[{}()]/g, "");   // make it safe - no function calls
         return eval(s);
     };
     url = url.replace(/{[^}]+}/g, replaceFunc);
     function getValue(i){
-      e = $("*[id="+i+"]");
-      if(e.size()==0) e=$("input[name="+i+"]");
+      e = getById(i);   //$("*[id="+i+"]");
+      if(e.size()==0) e=ctx.find("input[name="+i+"]");
       if(e.size()==0){return null;}
       v = e.val();
       if(e.attr("type")==="checkbox"){
@@ -95,7 +96,7 @@ var widgets=null;
             if(data.error || !data.ok){
                 messageBox("Failed to save! (error='"+data.error+"')");
             }else{
-                $("#saved-result").text("Saved OK").
+                ctx.find(".saved-result:first").text("Saved OK").
                     css("color", "green").show().fadeOut(4000);
             }
         },
@@ -106,9 +107,10 @@ var widgets=null;
     });
   }
 
-  function restore(data){
+  function restore(ctx, data){
+      ctx = ctx || $("body");
       var keys=[], skeys=[], inputs, input;
-      var formFields = $.grep($("#formFields").val().split(/[\s,]+/),
+      var formFields = $.grep(ctx.find(".form-fields:first").val().split(/[\s,]+/),
                             function(i){return /\S/.test(i)});
   //alert(data.toSource());
       $.each(data, function(k, v){keys.push(k);});
@@ -116,7 +118,7 @@ var widgets=null;
       skeys = $.grep(keys, function(i){return /\.\d+(\.|$)/.test(i);}, true);
       //alert(skeys.toSource());
       //alert(formFields.toSource());
-      inputs = $("input, textarea, select");
+      inputs = ctx.find("input, textarea, select");
       $.each(skeys, function(c, v){
           if($.inArray(v, formFields)!=-1){
               inputs.filter("[id="+v+"]").val(data[v]);
@@ -136,7 +138,7 @@ var widgets=null;
                 input = inputs.filter("[id="+k+"]");
                 input.parents(".input-list:first").find(".add-another-item, .item-add").click();
                 // update inputs - this could be done better
-                inputs = $("input, textarea, select");
+                inputs = ctx.find("input, textarea, select");
                 input = inputs.filter("[id="+v+"]");
           if(input.size()==0){
               alert("id '"+v+"' not found!");
@@ -151,8 +153,9 @@ var widgets=null;
   }
 
   function validation(){
-    var reg1=/(\s*(\w+)\s*(\(((('([^'\\]|\\.)*')|("([^"\\]|\\.)*")|(\/([^\/\\]|\\.)*\/)|(([^'"\/\\]|\\.)*?))*?)\))\s*(;|$)\s*)|([^;]*(;|$))/g; // 2, 4, 14, 15=Err
+    var reg1=/(\s*(\w+)\s*(\(((('([^'\\]|\\.)*')|("([^"\\]|\\.)*")|(\/([^\/\\]|\\.)*\/)|(([^'"\/\\]|\\.)*?))*?)\))\s*(;|$)\s*)|(\s*(;|$))/g; // 2, 4, 14, 15=Err
     var reg2=/(\()|(\))|('([^'\\]|\\.)*')|("([^"\\]|\\.)*")|(\/([^\/\\]|\\.)*\/)|(\w[\w\d\._]*)|(([^\(\)\w\s'"\/\\]|\\.)+)/g;
+    var reg3=/(\s*(rule)\s*(\{((('([^'\\]|\\.)*')|("([^"\\]|\\.)*")|(\/([^\/\\]|\\.)*\/)|(([^'"\/\\]|\\.)*?))*?)\}))/g; // 4
     var tests={}, namedTests={};
     function iterReader(arr){
       var pos=-1; l=arr.length;
@@ -164,11 +167,13 @@ var widgets=null;
     }
     function isOkToX(x){
       var e=false;
+      hideAllMessages();
       $.each(tests[x]||[], function(c,f){
         e|=f();
       });
       return !e;
     }
+    function hideAllMessages(){$(".validation-err-msg").hide();}
     function testTest(name){
         var test=namedTests[name];
         if(test && test._testFunc){
@@ -182,26 +187,31 @@ var widgets=null;
     function getExpr(reader){
       // tests: !=str, =str, /regex/, !/regex/, empty, notEmpty, email, date, [>1], (), ex1 AND ex2, ex1 OR ex2,
       var v=reader.next(), expr="", getNumber;
+      var vl=v.toLowerCase();
       getNumber=function(){
-          return reader.next()*1;
-      }
-      if(v=="email"){v="/.+?\\@.+\\..+?/";}
-      else if(v=="empty"){expr="(v=='')";}
-      else if(v=="YYYY"){    v="/^[12]\\d{3}$/";}
-      else if(v=="YYYYMM"){  v="/^[12]\\d{3}([\\/\\\\\\-](0?[1-9]|1[012])|((0[1-9])|(1[012])))$/";}
-      else if(v=="YYYYMMDD"){v="/^[12]\\d{3}([\\/\\\\\\-](0?[1-9]|1[012])|((0[1-9])|(1[012])))([\\/\\\\\\-](0?[1-9]|[12]\\d|3[01])|((0[1-9])|[12]\\d|(3[01])))$/";}
-      else if(v=="len"){
+          var v, n = NaN;
           v=reader.next();
-          if(v=="("){v=reader.next();if(v==")")v=reader.next();}
+          if(v=="("){v=reader.next();if(reader.lookAHead()==")")reader.next();}
+          return v*1;
+      }
+      if(vl=="email"){v="/.+?\\@.+\\..+?/";}
+      else if(vl=="empty"){expr="(v=='')";}
+      else if(vl=="yyyy"){    v="/^[12]\\d{3}$/";}
+      else if(vl=="yyyymm"){  v="/^[12]\\d{3}([\\/\\\\\\-](0?[1-9]|1[012])|((0[1-9])|(1[012])))$/";}
+      else if(vl=="yyyymmdd"){v="/^[12]\\d{3}([\\/\\\\\\-](0?[1-9]|1[012])|((0[1-9])|(1[012])))([\\/\\\\\\-](0?[1-9]|[12]\\d|3[01])|((0[1-9])|[12]\\d|(3[01])))$/";}
+      else if(vl=="leneq" || vl=="lengtheq"){
           var n = getNumber();
           if(isNaN(n)){ /*Error*/ return "";}
-          if(v=="="){v="/^.{"+n+"}$/";}
-          else if(v==">"){v="/^.{"+(n+1)+",}$/";}
-          else if(v=="<"){v="/^.{0,"+(n-1)+"}$/";}
-          else { /*Error*/ return "";}
-      }
-      //
-      if(v=="notEmpty"){expr="(v!='')";}
+          v="/^.{"+n+"}$/"; }
+      else if(vl=="lengt" || vl=="lengthgt"){
+          var n = getNumber();
+          if(isNaN(n)){ /*Error*/ return "";}
+          v="/^.{"+(n+1)+",}$/"; }
+      else if(vl=="lenlt" || vl=="lengthlt"){
+          var n = getNumber();
+          if(isNaN(n)){ /*Error*/ return "";}
+          v="/^.{0,"+(n-1)+"}$/"; }
+      if(vl=="notempty"){expr="(v!='')";}
       else if(v=="="){expr="(v=="+reader.next()+")";}
       else if(v=="!="){expr="(v!="+reader.next()+")";}
       else if(v[0]=="/"){expr="("+v+".test(v))";}
@@ -244,9 +254,8 @@ var widgets=null;
         var vLabels=$("label.validation-err-msg");
         $(".validation-err-msg").hide();
         //value="for('dc:title'),notEQ(''),when(onChange)"
-        $(".validation-rule").each(function(c, v){
+        function rule(v){
             var dict={};
-            v = $(v).val() || $(v).text();
             function match(){
                 m=arguments;     //2, 4, 14, 15=Err
                 if(m[0].length==0)return "";
@@ -273,10 +282,19 @@ var widgets=null;
                 a.push(dict);
                 if(dict["name"]){
                     namedTests[dict["name"]]=dict;
+                }else if(!namedTests[f]){   // default name is 'for' id
+                    namedTests[f]=dict;
                 }
             }
+        }
+        $(".validation-rule").each(function(c, v){
+            v = $(v).val() || $(v).text();
+            rule(v);
         });
-        //alert(validationsFor.toSource());
+        $(".validation-rules").each(function(c, v){
+            v = $(v).text();
+            v.replace(reg3, function(){ var v=arguments[4]; if(v)rule(v); });
+        });
         $.each(validationsFor, function(f, l){
             var target = $(document.getElementById(f));
             var reader, getValue, showValidationMessage;
@@ -324,6 +342,7 @@ var widgets=null;
       test:function(){},
       isOkToSave:function(){return isOkToX("save");},
       isOkToSubmit:function(){return isOkToX("submit");},
+      hideAllMessages:hideAllMessages,
       parseErrors:{}
     }
   };
@@ -350,6 +369,119 @@ var widgets=null;
     elem.prepend(ul);
     return elem;
   }
+
+  function setupFileUploader(fileUploadSections, onChange){
+    if(!fileUploadSections) fileUploadSections=$(".file-upload-section");
+    fileUploadSections.each(function(c, e){
+        var handleFileDrop;
+        var ifile, fileUploadSection;
+        fileUploadSection = $(e);
+        ifile = fileUploadSection.find("input[type=file]");
+        if(!onChange){
+            onChange=function(fileInfo, fileUploadSection){
+                var s;
+                s=["<span>", fileInfo.typeName, ": ", fileInfo.name, " (",
+                    fileInfo.kSize, "k) </span>"];
+                s = $(s.join(""));
+                if(fileInfo.createImage) s.append(fileInfo.createImage());
+                fileUploadSection.find(".file-upload-info").html(s);
+            };
+        }
+        ifile.change(function(e){
+            var fileInfo=getFileUploadInfo(e.target.files[0]);
+            onChange(fileInfo, fileUploadSection);
+        });
+        fileUploadSection.bind("dragover", function(ev){
+            if(ev.target.tagName=="INPUT"){ return true; }
+            ev.stopPropagation(); ev.preventDefault();
+        });
+        handleFileDrop=function(ev){
+            var file, fileInfo;
+            if(ev.target.tagName=="INPUT"){ return true; }
+            ev.stopPropagation(); ev.preventDefault();
+            file=ev.dataTransfer.files[0];
+            fileInfo=getFileUploadInfo(file);
+            onChange(fileInfo, fileUploadSection);
+            ifile.val("");      // reset
+            //gDroppedFile=file;
+            //ifile[0].files[0]=file;
+            return;
+        }
+        //fileUploadSection.bind("drop", handleFileDrop);  // Note: binding to the wrong 'drop' event!
+        if(fileUploadSection[0].addEventListener){
+            fileUploadSection[0].addEventListener("drop", handleFileDrop, false);
+        }
+    });
+  }
+
+  function getFileUploadInfo(file){
+    var fileInfo = {};
+    fileInfo.file = file;
+    fileInfo.size = file.size;
+    fileInfo.kSize = parseInt(file.size/1024+0.5);
+    fileInfo.type = file.type;
+    fileInfo.name = file.name;
+    try{ 
+        fileInfo.encodedData=file.getAsDataURL();
+    }catch(e){ }
+    if(file.type.search("image/")==0){
+        fileInfo.image=true;
+        fileInfo.typeName = "Image";
+        if(fileInfo.encodedData){
+            fileInfo.createImage=function(){
+                var i;
+                i=$("<img class='thumbnail' style='vertical-align:middle;'/>");
+                i.attr("src", fileInfo.encodedData);
+                i.attr("title", fileInfo.name);
+                return i;
+            };
+        }
+    }else if(file.type.match("video|flash")){
+        fileInfo.video=true;
+        fileInfo.typeName = "Video";
+    }else if(file.type.match("text|pdf|doc|soffice|rdf|txt|opendocument")){
+        fileInfo.document=true;
+        fileInfo.typeName = "Document";
+    }else{
+        fileInfo.typeName = "File";
+    }
+    return fileInfo;
+  }
+
+  function createFileSubmitter(){
+      var iframe, getBody, submit;
+      iframe = $("<iframe id='upload-iframe' style='display:none; height:8ex; width:80em; border:1px solid red;'/>");
+      $("body").append(iframe);
+      if(iframe[0].contentDocument){
+          getBody=function(){ return $(iframe[0].contentDocument.body); };
+      }else{
+          getBody=function(){ return $(iframe[0].contentWindow.document.body); };
+      }
+      submit=function(url, elems, callback){
+          var form = $("<form method='POST' enctype='multipart/form-data' />");
+          iframe.unbind();
+          if(!url)url=window.location.href+"";
+          form.attr("action", url);
+          $.each(elems, function(c, e){
+              form.append($(e).clone());
+          });
+          getBody().append(form);
+          setTimeout(function(){
+              iframe.load(function(){
+                  var ibody=getBody();
+                  callback(ibody.text, ibody);
+              });
+              form.submit();
+          }, 10);
+      };
+      // submit(url, elems, callback)
+      //    url = url to sumbit to
+      //    elems = 'input' elements to be submitted (cloned)
+      //    callback = function(textResult, iframeBody)
+      return {submit:submit, iframe:iframe, getBody:getBody};
+  }
+  gfs = createFileSubmitter;
+
 
   function onContentLoaded(){
     // ==============
@@ -396,12 +528,13 @@ try{
       onChangeMonthYear:function(year, month, inst){ datepickerBeforeShow(null, inst); },
       onSelect:function(dateText, inst){}
     });
-}catch(e){/*alert(e);*/}
+}catch(e){alert(e);}
     // ==============
     
     // ==============
     // Simple (text) list input type
     // ==============
+    // TODO: remove table, tbody, tr and td references, just rely on the classes
     $("table.input-list").each(function(c, i){
       var table, count, tmp, visibleItems, displayRowTemplate, displaySelector;
       var add, del, reorder, addUniqueOnly=false;
@@ -656,11 +789,11 @@ try{
         json=$(".json-data-source");
         json = json.val() || json.text();
         try{
-          //json = eval("("+json+")");
           json = $.parseJSON(json);
+          //json = eval("("+json+")");
           onJson(json);
         }catch(e){
-          alert("Not valid json!");
+          alert("Not valid json! - "+e);
           json = null;
           return;
         }
@@ -668,11 +801,12 @@ try{
     });
     // ==============
 
+    setupFileUploader();                    // 
     validator = validation();
     validator.setup();
-    $("#saveFormFields").click(save);
-    $("#restoreFormFields").click(restore);
-    $("#resetFormFields").click(reset);
+    $(".save-form-fields").click(save);
+    $(".restore-form-fields").click(restore);
+    $(".reset-form-fields").click(reset);
 
   }
 

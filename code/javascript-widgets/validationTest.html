@@ -14,14 +14,15 @@
       });
       $("#submitBut").click(function(){
         var v=widgets.getValidator();
-        var msg=v.isOkToSubmit()?"OK to Save":"Save validation failed. Can not save yet!";
-        alert(msg);
+        var msg=v.isOkToSubmit()?"OK to Submit":"Submit validation failed!";
+        msgElem.text(msg).show();
       });
     });
   </script>
   <style>
     label.validation-err-msg { color:red; }
-    .validation-rule { display:none; }
+    .validation-rule { display:inline; color:lightblue;}
+    .validation-rules { display:inline; color:lightblue;}
   </style>
  <head>
  <body>
@@ -32,14 +33,12 @@
       <label class="validation-err-msg" for="dc:title">
           The title must have between 3 and 8 characters!
       </label>
-      <input type="hidden" class="validation-rule" 
-             value="for(dc:title);test(len>2 and len<9);when(onBlur,onsave);name(test1);"/>
+      <span class="validation-rule">for(dc:title);test(lenGT 2 and lenLT(9));when(onBlur,onsubmit);name(test1);</span>
   </p>
   <p>
     Please enter 'one', 'two', or 'three': <input type='text' id='testinput' /> 
     <label class="validation-err-msg" for="testinput">Must be: one, two or three</label>
-    <input type="hidden" class="validation-rule" 
-            value="for(testinput); when(onblur,onsave); name(test); test(/^(one|two|three)$/);"/>
+    <span class="validation-rule">for(testinput); when(onblur,onsubmit); name(test); test(/^(one|two|three)$/);</span>
   </p>
   <p>
     Date (YYYYMMDD):<input type="text" id="date1"/>
@@ -47,26 +46,26 @@
     <span class="validation-rule">for(date1); when(blur, save, submit); test(YYYYMMDD);</span>
   </p>
   <p>
-    OR <input type="text" id="i1"/>
-    <input type="text" id="i2"/>
+    NotEmpty <input type="text" id="i1"/> OR <input type="text" id="i2"/>
     <label class="validation-err-msg" style="color:red;" for="either">Either one must contain content!</label>
     <input type="hidden" class="validation-rule" 
             value="for(i1);name(i1);test(notEmpty);"/>
     <input type="hidden" class="validation-rule" 
             value="for(i2);name(i2);test(notEmpty);"/>
     <input type="hidden" class="validation-rule" 
-            value="for(either);when('#i1,#i2'.blur, save);test(i1 or i2);"/>
+            value="for(either);when('#i1,#i2'.blur, submit);test(i1 or i2);"/>
   </p>
   <p>
-    AND <input type="text" id="i3"/>
-    <input type="text" id="i4"/>
+    NotEmpty <input type="text" id="i3"/> AND <input type="text" id="i4"/>
     <label class="validation-err-msg" style="color:red;" for="both">Both must be notEmpty!</label>
+<!--
     <input type="hidden" class="validation-rule" 
             value="for(i3);name(i3);test(notEmpty);"/>
     <input type="hidden" class="validation-rule" 
             value="for(i4);name(i4);test(notEmpty);"/>
     <input type="hidden" class="validation-rule" 
-            value="for(both);when('#i3,#i4'.blur, save);test(i3 and i4);"/>
+            value="for(both);when('#i3,#i4'.blur, submit);test(i3 and i4);"/>
+-->
   </p>
 
   <p>
@@ -76,6 +75,13 @@
   </p>
 
   <div>
+    <pre class="validation-rules">
+      rulex {for(either);when('#i1,#i2'.blur, submit);test(i1 or i2);};
+
+      rule {for(i3);name(i3);test(notEmpty);};
+      rule {for(i4);test(notEmpty);}  // Note: name defaults to 'i4'
+      rule {for(both);when('#i3,#i4'.blur, submit);test(i3 and i4);};
+    </pre><br/>
     <a href="validationTest.html">Refresh</a>
   </div>
  <body>
