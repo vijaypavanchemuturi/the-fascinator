@@ -24,14 +24,14 @@
       .dateYM { width: 7.5ex; }
       .dateMMY { width: 14em; }
       .dateY { width: 4.5ex;}
-
+      .thumbnail { height:100px; }
     </style>
   </head>
   <body>
     <h2>Test javascipt widgets form page</h2>
 
     <!-- Field registartion -->
-    <input type="hidden" id="formFields" value="hidden1, hidden2, stext1, stext2, chkbox1, radio1, sel1,
+    <input type="hidden" class="form-fields" value="hidden1, hidden2, stext1, stext2, chkbox1, radio1, sel1,
                                                 vA.0, vB.0, vC.0, test.0.label, test.0" />
 
     <!-- optional hidden fields -->
@@ -167,39 +167,39 @@
               <!-- <input type='hidden' class='json-data-source-url' value=''/> -->
               <span class="json-data-source">
 {
-  list: [
-          {label:"GroupA", id:"gA", children:1},
-          {label:"GroupB", id:"gB", children:"GroupB"},
-          {label:"GroupC", id:"gC", children:"GroupC.json"}
+  "list": [
+          {"label":"GroupA", "id":"gA", "children":1},
+          {"label":"GroupB", "id":"gB", "children":"GroupB"},
+          {"label":"GroupC", "id":"gC", "children":"GroupC.json"}
         ],
-  namespace:"addThisToTheId",
-  gA:     {
-            list: [
-                    {label:"Light-Red", id:"gA-red"},
-                    {label:"Light-Green", id:"gA-green"},
-                    {label:"Light-Blue", id:"gA-blue"}
-                  ], selectable:1, default:"gA-blue"
+  "namespace":"addThisToTheId",
+  "gA":     {
+            "list": [
+                    {"label":"Light-Red", "id":"gA-red"},
+                    {"label":"Light-Green", "id":"gA-green"},
+                    {"label":"Light-Blue", "id":"gA-blue"}
+                  ], "selectable":1, "default":"gA-blue"
           },
-  GroupB: {
-            list: [
-                    {label:"Dark-Red", id:"gB-red"},
-                    {label:"Dark-Green", id:"gB-green"},
-                    {label:"Dark-Blue", id:"gB-blue"}
-                  ], selectable:1, default:""
+  "GroupB": {
+            "list": [
+                    {"label":"Dark-Red", "id":"gB-red"},
+                    {"label":"Dark-Green", "id":"gB-green"},
+                    {"label":"Dark-Blue", "id":"gB-blue"}
+                  ], "selectable":1, "default":""
           },
   "GroupC.json": {
-            list: [
-                    {label:"Lime-Red", id:"gC-red"},
-                    {label:"Lime-Green", id:"gC-green", children:"lGreenTypes"},
-                    {label:"Lime-Blue", id:"gC-blue"}
-                  ], selectable:1, default:"gC-green"
+            "list": [
+                    {"label":"Lime-Red", "id":"gC-red"},
+                    {"label":"Lime-Green", "id":"gC-green", "children":"lGreenTypes"},
+                    {"label":"Lime-Blue", "id":"gC-blue"}
+                  ], "selectable":1, "default":"gC-green"
           },
-  lGreenTypes: {
-            list: [
-                    {label:"Green Go", id:"gC-go"},
-                    {label:"Green Goo", id:"gC-goo"},
-                    {label:"Green Stuff", id:"gC-stuff"}
-                  ], selectable:1, default:""
+  "lGreenTypes": {
+            "list": [
+                    {"label":"Green Go", "id":"gC-go"},
+                    {"label":"Green Goo", "id":"gC-goo"},
+                    {"label":"Green Stuff", "id":"gC-stuff"}
+                  ], "selectable":1, "default":""
           }
 }
               </span>
@@ -215,13 +215,23 @@
     </div>
 
     <div>
+      <h3>File Uploading</h3>
+      <div class="file-upload-section" style="border:1px solid blue;padding:2em;">
+        <label>File: <input type="file" id="file" class="file-upload"/><span class="file-upload-info" style="padding-left:4em;"> </span></label>
+      </div>
+    </div>
+
+    <div id="msg" style='color:orange; border:1px solid orange; padding:1ex;'> Message: </div>
+
+    <div>
       <h3>Form validation</h3>
+      See <a href='validationTest.html'>validation tests</a>
     </div>
 
     <div style='border:1px solid lightgray;padding:1em;margin:1em;'>
-      <button id="save">Save</button>
-      <button id="reset">Reset</button>
-      <button id="restore">Restore</button>
+      <button class="form-save">Save</button>
+      <button class="form-reset">Reset</button>
+      <button class="form-restore">Restore</button>
     </div>
 
   </body>
