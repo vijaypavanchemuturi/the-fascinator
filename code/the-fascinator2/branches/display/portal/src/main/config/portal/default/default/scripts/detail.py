@@ -3,8 +3,10 @@ import re
 from java.io import ByteArrayInputStream, ByteArrayOutputStream
 from java.lang import Boolean
 from java.net import URLDecoder
+from java.util import TreeMap
 
 from au.edu.usq.fascinator.api.indexer import SearchRequest
+from au.edu.usq.fascinator.api.storage import StorageException
 from au.edu.usq.fascinator.common import JsonConfigHelper
 
 class DetailPage:
@@ -12,6 +14,7 @@ class DetailPage:
         pass
     
     def __activate__(self, context):
+        self.services = context["Services"]
         self.request = context["request"]
         self.response = context["response"]
         self.contextPath = context["contextPath"]
@@ -19,69 +22,72 @@ class DetailPage:
         uri = URLDecoder.decode(self.request.getAttribute("RequestURI"))
         matches = re.match("^(.*?)/(.*?)/(?:(.*?)/)?(.*)$", uri)
         if matches and matches.group(3):
-            self.__oid = matches.group(3)
+            oid = matches.group(3)
             pid = matches.group(4)
             if pid:
                 # download payload
-                downloadPath = "%s/download/%s/%s" % (self.contextPath, self.__oid, pid)
+                downloadPath = "%s/download/%s/%s" % (self.contextPath, oid, pid)
                 self.response.sendRedirect(downloadPath)
+            else:
+                self.__loadSolrData(oid)
+                if self.isIndexed():
+                    self.__object = self.__getObject(oid)
+                    self.__metadata = self.__solrData.getJsonList("response/docs").get(0)
+                    self.__json = JsonConfigHelper(self.__solrData.getList("response/docs").get(0))
+                    self.__metadataMap = TreeMap(self.__json.getMap("/"))
         else:
             # require trailing slash for relative paths
             self.response.sendRedirect("%s/%s/" % (self.contextPath, uri))
     
-    def objectExists(self):
+    def isIndexed(self):
         return self.__getNumFound() == 1
     
     def getMetadata(self):
-        if not hasattr(self, "__metadata"):
-            if self.objectExists():
-                self.__metadata = self.__getSolrData().getJsonList("response/docs").get(0)
-            else:
-                self.__metadata = JsonConfigHelper()
         return self.__metadata
     
+    def getMetadataMap(self):
+        return self.__metadataMap
+    
     def getObject(self):
-        return self.__getObject(self.__oid)
-    
-    def isPending(self):
-        obj = self.getObject()
-        if obj:
-            meta = obj.getMetadata()
-            status = meta.get("render-pending")     # TODO use constant?
-            return Boolean.parseBoolean(status)
-        return False
-    
-    def __getSolrData(self, oid = None):
-        if not hasattr(self, "__solrData"):
-            if oid is None:
-                oid = self.__oid
-            req = SearchRequest('id:"%s"' % oid)
-            out = ByteArrayOutputStream()
-            Services.getIndexer().search(req, out)
-            self.__solrData = JsonConfigHelper(ByteArrayInputStream(out.toByteArray()))
-        return self.__solrData
-    
-    def __getNumFound(self, oid = None):
-        return int(self.__getSolrData(oid).get("response/numFound"))
-    
-    def __getObject(self, oid = None):
-        if not hasattr(self, "__object"):
-            if oid is None:
-                oid = self.__oid
-            try:
-                try:
-                    self.__object = Services.getStorage().getObject(oid)
-                except StorageException:
-                    sid = self.__getStorageId(oid)
-                    self.__object = Services.getStorage().getObject(sid)
-            except StorageException:
-                pass
         return self.__object
     
+    def isPending(self):
+        meta = self.getObject().getMetadata()
+        status = meta.get("render-pending")
+        return Boolean.parseBoolean(status)
+    
+    def getFriendlyName(self, name):
+        if name.startswith("dc_"):
+            name = name[3:]
+        if name.startswith("meta_"):
+            name = name[5:]
+        return name.replace("_", " ").capitalize()
+    
+    def __loadSolrData(self, oid):
+        req = SearchRequest('id:"%s"' % oid)
+        out = ByteArrayOutputStream()
+        self.services.getIndexer().search(req, out)
+        self.__solrData = JsonConfigHelper(ByteArrayInputStream(out.toByteArray()))
+    
+    def __getNumFound(self):
+        return int(self.__solrData.get("response/numFound"))
+    
+    def __getObject(self, oid):
+        try:
+            storage = self.services.getStorage()
+            try:
+                obj = storage.getObject(oid)
+            except StorageException:
+                sid = self.__getStorageId(oid)
+                obj = storage.getObject(sid)
+                print "Object not found: oid='%s', trying sid='%s'" % (oid, sid)
+        except StorageException, se:
+            print "Object not found: oid='%s'" % oid
+        return obj
+    
     def __getStorageId(self, oid):
-        if not hasattr(self, "__sid"):
-            self.__sid = self.__getMetadata(oid).get("storage_id")
-        return self.__sid
+        return self.__metadata.get("storage_id")
+    
 
 #import os, urllib
 
@@ -98,49 +104,7 @@ class DetailPage:
 #from org.apache.commons.lang import StringEscapeUtils
 
 
-class SolrDoc:
-    def __init__(self, json):
-        self.json = json
 
-    def getField(self, name):
-        field = self.json.getList("response/docs/%s" % name)
-        if field.isEmpty():
-            return None
-        return field.get(0)
-
-    def getFieldText(self, name):
-        return self.json.get("response/docs/%s" % name)
-
-    def getFieldList(self, name):
-        return self.json.getList("response/docs/%s" % name)
-
-    def getDublinCore(self):
-        dc = self.json.getList("response/docs").get(0)
-        remove = []
-        for entry in dc:
-            if not entry.startswith("dc_") and not entry.startswith("meta_"):
-                remove.append(entry)
-        for key in remove:
-            dc.remove(key)
-        return TreeMap(JsonConfigHelper(dc).getMap("/"))
-
-    def getPreview(self):
-        dc = self.json.getList("response/docs").get(0)
-        try:
-            preview = dc.get("preview")
-            return preview
-        except Exception, e:
-            return None
-
-    def getAltPreviews(self):
-        dc = self.json.getList("response/docs").get(0)
-        return dc.get("altpreview") or []
-
-    def isPackage(self):
-        return self.getField("dc_format") == "application/x-fascinator-package"
-
-    def toString(self):
-        return self.json.toString()
 
 class DetailData0:
     def __init__(self):

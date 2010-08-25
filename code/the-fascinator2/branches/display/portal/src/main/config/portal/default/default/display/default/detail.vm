@@ -1,4 +1,12 @@
 #parseDisplayTemplate("detail/common.vm")
+#if($parent.isPending())
+    <div id="pending" class="box articles notice">
+        <h2>Pending</h2>
+        <div class="warning">
+            <b>IMPORTANT</b>Please note that this object is currently in the render queue. There may be pending changes not visible below.
+        </div>
+    </div>
+#end
 #parseDisplayTemplate("detail/preview/header.vm")
 #parseDisplayTemplate("detail/preview/body.vm")
 #parseDisplayTemplate("detail/preview/footer.vm")
