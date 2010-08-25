@@ -31,7 +31,6 @@ class AuthenticationData:
             self.error_message = self.parse_error(e)
 
     def check_login(self):
-        print " *** formData: '%s'" % self.formData
         action = self.formData.get("verb")
 
         # User is logging in
