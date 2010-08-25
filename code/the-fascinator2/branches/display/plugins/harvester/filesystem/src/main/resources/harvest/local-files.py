@@ -332,11 +332,16 @@ if pid == metaPid:
         primaryType = formatList[0]
         major, minor = primaryType.split("/")
         if major == "application":
-            if minor == "pdf" \
-                    or minor.startswith("vnd.ms") \
-                    or minor.startswith("vnd.openxmlformats") \
-                    or minor.startswith("vnd.oasis.opendocument."):
+            if minor == "pdf":
+                displayType = "pdf"
+            elif minor in ["vnd.ms-word",
+                           "vnd.oasis.opendocument.text",
+                           "vnd.openxmlformats-officedocument.wordprocessingml"]:
                 displayType = "word-processing"
+            elif minor in ["vnd.ms-powerpoint",
+                           "vnd.oasis.opendocument.presentation",
+                           "vnd.openxmlformats-officedocument.presentationml"]:
+                displayType = "presentation"
         elif major in ["audio", "video", "image"]:
             displayType = major
         elif major == "text":

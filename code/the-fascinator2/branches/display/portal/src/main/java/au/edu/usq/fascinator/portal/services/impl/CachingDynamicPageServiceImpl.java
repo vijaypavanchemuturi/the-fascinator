@@ -473,14 +473,17 @@ public class CachingDynamicPageServiceImpl implements DynamicPageService {
                 scriptObject = python.get("scriptObject");
                 if (scriptObject == null) {
                     useCache = true;
+                    log.debug("isXHR:{}", request.isXHR());
                     String scriptClassName = StringUtils
                             .capitalize(FilenameUtils.getBaseName(scriptName))
-                            + "Page";
+                            + (request.isXHR() ? "Data" : "Page");
                     PyObject scriptClass = python.get(scriptClassName);
                     log.debug("Instantiating object from class '{}'...",
                             scriptClassName);
-                    scriptObject = scriptClass.__call__();
-                    cachePythonObject(path, scriptObject);
+                    if (scriptClass != null) {
+                        scriptObject = scriptClass.__call__();
+                        cachePythonObject(path, scriptObject);
+                    }
                 } else {
                     log.debug("DEPRECATED: script:'{}'", path);
                 }
@@ -489,7 +492,7 @@ public class CachingDynamicPageServiceImpl implements DynamicPageService {
                 log.debug("Script not found: '{}'", path);
             }
         }
-        if (useCache) {
+        if (useCache && scriptObject != null) {
             try {
                 if (scriptObject.__findattr__("__activate__") != null) {
                     log.debug("Activating cached script:'{}'", path);
