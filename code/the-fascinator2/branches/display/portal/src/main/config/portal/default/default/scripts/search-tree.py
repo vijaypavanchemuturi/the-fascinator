@@ -4,7 +4,7 @@ from au.edu.usq.fascinator.common import JsonConfigHelper
 from java.io import ByteArrayInputStream, ByteArrayOutputStream
 from java.net import URLEncoder
 from java.util import ArrayList, HashMap
-from authentication import Authentication
+from authentication import AuthenticationData
 
 class Facet:
     def __init__(self, key, value, count):
@@ -60,8 +60,7 @@ class FacetList:
 
 class SearchTreeData:
     def __init__(self):
-        self.authentication = Authentication()
-        self.authentication.session_init()
+        self.authentication = AuthenticationData()
         self.__search()
     
     def __search(self):
