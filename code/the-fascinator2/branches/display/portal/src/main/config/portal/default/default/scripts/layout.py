@@ -1,20 +1,22 @@
 import md5
-
-from authentication import Authentication
-
-from java.net import URLEncoder
+from authentication import AuthenticationData
 from org.apache.commons.lang import StringEscapeUtils
 
 class LayoutPage:
+    def __init__(self):
+        self.authentication = AuthenticationData()
+    
     def __activate__(self, context):
-        self.authentication = Authentication()
-        self.authentication.session_init()
+        self.services = context["Services"]
+        self.security = context["security"]
+        self.portalId = context["portalId"]
+        self.authentication.__activate__(context)
     
     def getPortal(self):
-        return Services.getPortalManager().get(portalId)
+        return self.services.getPortalManager().get(self.portalId)
     
     def getPortals(self):
-        return Services.getPortalManager().portals
+        return self.services.getPortalManager().portals
     
     def getPortalName(self):
         return self.getPortal().getDescription()
@@ -35,11 +37,11 @@ class LayoutPage:
         return text[0].upper() + text[1:]
     
     def getTemplate(self, templateName):
-        return Services.pageService.resourceExists(portalId, templateName)
+        return self.services.pageService.resourceExists(self.portalId, templateName)
     
     def getQueueStats(self):
-        return Services.getHouseKeepingManager().getQueueStats()
+        return self.services.getHouseKeepingManager().getQueueStats()
     
     def getSsoProviders(self):
-        return security.ssoBuildLogonInterface()
+        return self.security.ssoBuildLogonInterface()
 

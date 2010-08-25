@@ -1,5 +1,3 @@
-#from __main__ import Services, contextPath, log, pageName, portalId, request, response
-
 import os
 
 from au.edu.usq.fascinator.api.indexer import SearchRequest
@@ -16,6 +14,7 @@ class DownloadPage:
         pass
     
     def __activate__(self, context):
+        self.services = context["Services"]
         self.contextPath = context["contextPath"]
         self.pageName = context["pageName"]
         self.portalId = context["portalId"]
@@ -28,7 +27,7 @@ class DownloadPage:
         try:
             object, payload = self.__resolve(uri)
             if object == None:
-                response.sendRedirect(self.contextPath + "/" + fullUri + "/")
+                self.response.sendRedirect(self.contextPath + "/" + fullUri + "/")
                 return
             print "URI='%s' OID='%s' PID='%s'" % (uri, object.getId(), payload.getId())
         except StorageException, e:
@@ -39,7 +38,7 @@ class DownloadPage:
             filename = os.path.split(payload.getId())[1]
             mimeType = payload.getContentType()
             if mimeType == "application/octet-stream":
-                response.setHeader("Content-Disposition", "attachment; filename=%s" % filename)
+                self.response.setHeader("Content-Disposition", "attachment; filename=%s" % filename)
 
             type = payload.getContentType()
             # Enocode textual responses before sending
@@ -47,7 +46,7 @@ class DownloadPage:
                 out = ByteArrayOutputStream()
                 IOUtils.copy(payload.open(), out)
                 payload.close()
-                writer = response.getPrintWriter(type + "; charset=UTF-8")
+                writer = self.response.getPrintWriter(type + "; charset=UTF-8")
                 writer.println(out.toString("UTF-8"))
                 writer.close()
             # Other data can just be streamed out
@@ -62,9 +61,9 @@ class DownloadPage:
                 object.close()
                 out.close()
         else:
-            response.setStatus(404)
-            writer = response.getPrintWriter("text/plain; charset=UTF-8")
-            writer.println("Not found: uri='%s'" % uri)
+            self.response.setStatus(404)
+            writer = self.response.getPrintWriter("text/plain; charset=UTF-8")
+            writer.println("Resource not found: uri='%s'" % uri)
             writer.close()
 
     def __resolve(self, uri):
@@ -73,11 +72,11 @@ class DownloadPage:
             return None, None
         oid = uri[:slash]
         try:
-            object = Services.getStorage().getObject(oid)
+            object = self.services.getStorage().getObject(oid)
         except StorageException, se:
             # not found check if oid's are mapped differently, use storage_id
             sid = self.__getStorageId(oid)
-            object = Services.getStorage().getObject(sid)
+            object = self.services.getStorage().getObject(sid)
         pid = uri[slash+1:]
         if pid == "":
             pid = object.getSourceId()
@@ -88,9 +87,6 @@ class DownloadPage:
         req = SearchRequest('id:"%s"' % oid)
         req.addParam("fl", "storage_id")
         out = ByteArrayOutputStream()
-        Services.getIndexer().search(req, out)
+        self.services.getIndexer().search(req, out)
         json = JsonConfigHelper(ByteArrayInputStream(out.toByteArray()))
         return json.getList("response/docs").get(0).get("storage_id")
-
-#if __name__ == "__main__":
-#    scriptObject = DownloadData()
