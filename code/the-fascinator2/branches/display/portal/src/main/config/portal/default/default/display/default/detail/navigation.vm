@@ -10,6 +10,7 @@
 #set($menuTitle = "Metadata")
 #parseTemplate("wrapping/info-box-open.vm")
 #parseDisplayTemplate("detail/navigation/metadata.vm")
+#parseDisplayTemplate("detail/navigation/custom-metadata.vm")
 #parseTemplate("wrapping/info-box-close.vm")
 
 <div id="attachments">

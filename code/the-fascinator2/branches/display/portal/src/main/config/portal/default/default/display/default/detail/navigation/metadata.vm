@@ -1,5 +1,23 @@
-## TODO finish this
-<table>
-    <tr><th>Title</th></tr>
-    <tr><td>$metadata.getList("dc_title").get(0)</td></tr>
+#macro(displayField $key)
+    #set($valueList = $metaMap.get($key))
+    #if($valueList)
+        <tr><th>$parent.getFriendlyName($key)</th></tr>
+        <tr>
+            <td>
+                #if($valueList.size())
+                    #foreach($value in $valueList)
+                        <span class="meta-value condense">$value</span>
+                        <br />
+                    #end
+                #else
+                    <span class="meta-value condense">$valueList</span>
+                #end
+            </td>
+        </tr>
+    #end
+#end
+<table class="meta">
+    #displayField("dc_title")
+    #displayField("dc_creator")
+    #displayField("dc_description")
 </table>
