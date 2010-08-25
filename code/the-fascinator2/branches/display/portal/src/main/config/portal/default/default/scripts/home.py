@@ -5,6 +5,7 @@ from java.util import HashMap
 
 class HomeData:
     def __init__(self):
+        print "*** HomeData.__init__() ***"
         action = formData.get("verb")
         portalName = formData.get("value")
         sessionState.remove("fq")

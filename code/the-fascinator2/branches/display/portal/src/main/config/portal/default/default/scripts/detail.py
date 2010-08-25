@@ -7,20 +7,27 @@ from java.net import URLDecoder
 from au.edu.usq.fascinator.api.indexer import SearchRequest
 from au.edu.usq.fascinator.common import JsonConfigHelper
 
-class DetailData:
+class DetailPage:
     def __init__(self):
-        uri = URLDecoder.decode(request.getAttribute("RequestURI"))
+        pass
+    
+    def __activate__(self, context):
+        self.request = context["request"]
+        self.response = context["response"]
+        self.contextPath = context["contextPath"]
+        
+        uri = URLDecoder.decode(self.request.getAttribute("RequestURI"))
         matches = re.match("^(.*?)/(.*?)/(?:(.*?)/)?(.*)$", uri)
         if matches and matches.group(3):
             self.__oid = matches.group(3)
             pid = matches.group(4)
             if pid:
                 # download payload
-                downloadPath = "%s/download/%s/%s" % (contextPath, self.__oid, pid)
-                response.sendRedirect(downloadPath)
+                downloadPath = "%s/download/%s/%s" % (self.contextPath, self.__oid, pid)
+                self.response.sendRedirect(downloadPath)
         else:
             # require trailing slash for relative paths
-            response.sendRedirect("%s/%s/" % (contextPath, uri))
+            self.response.sendRedirect("%s/%s/" % (self.contextPath, uri))
     
     def objectExists(self):
         return self.__getNumFound() == 1
@@ -475,5 +482,5 @@ class DetailData0:
         else:
             return True
 
-if __name__ == "__main__":
-    scriptObject = DetailData()
+#if __name__ == "__main__":
+#    scriptObject = DetailData()

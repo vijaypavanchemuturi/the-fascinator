@@ -15,6 +15,9 @@ from java.lang import Boolean, Exception
 
 class SearchData:
     def __init__(self):
+        print "*** SearchData.__init__() ***"
+#    
+#    def __activate__(self, context):
         self.__portal = Services.portalManager.get(portalId)
         sessionNav = self.__portal.get("portal/use-session-navigation", "true")
         self.__useSessionNavigation = Boolean.parseBoolean(sessionNav)
@@ -219,22 +222,7 @@ class SearchData:
     def getFacetQuery(self, name, value):
         return '%s:"%s"' % (name, value)
     
-    def isImage(self, format):
-        return format.startswith("image/")
-    
-    ## moved to display/default/result
-    #def getMimeTypeIcon(self, format):
-    #    # check for specific icon
-    #    iconPath = "images/icons/mimetype/%s/icon.png" % format
-    #    resource = Services.getPageService().resourceExists(portalId, iconPath)
-    #    if resource is not None:
-    #        return iconPath
-    #    elif format.find("/") != -1:
-    #        # check for major type
-    #        return self.getMimeTypeIcon(format[:format.find("/")])
-    #    # use default icon
-    #    return "images/icons/mimetype/icon.png"
-    
+    # Packaging support
     def getActiveManifestTitle(self):
         return self.__getActiveManifest().get("title")
     
@@ -259,7 +247,10 @@ class SearchData:
             sessionState.set("package/active", activeManifest)
         return activeManifest
     
-    #### RESTful style URL support methods
+    def isSelectableForPackage(self, oid):
+        return oid != self.getActiveManifestId()
+    
+    # RESTful style URL support methods
     def getPageQuery(self, page):
         prefix = ""
         if self.__fqParts:
@@ -327,18 +318,6 @@ class SearchData:
                 fq.append(facetQuery)
                 fqParts.append("category/%s/%s" % (facetKey, "/".join(facetValues)))
         return page, fq, fqParts
-
-    def isSelectableForPackage(self, oid):
-        # cache this answer
-        # ensure a package cannot select itself
-        activeManifest = self.__getActiveManifest()
-        packageType = activeManifest.get("packageType", "default")
-        # check if the package type allows packages in a package - do we need this??
-        ##json = JsonConfig()
-        ##pInP = Boolean.parseBoolean(json.get("portal/packageTypes/%s/packages-in-package" % packageType))
-        pInP = True
-        # need to check the package doesn't contain the active package?
-        return pInP and (oid != self.getActiveManifestId())
 
 if __name__ == "__main__":
     scriptObject = SearchData()

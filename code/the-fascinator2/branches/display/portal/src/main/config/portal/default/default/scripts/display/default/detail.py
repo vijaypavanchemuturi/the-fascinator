@@ -1,7 +1,8 @@
 
-class ObjectDetailData:
+class DetailPage:
     def __init__(self):
-        print " *** OBJECT DETAIL DATA"
+        pass
     
-if __name__ == "__main__":
-    scriptObject = ObjectDetailData()
+    def __activate(self, context):
+        pass
+    
