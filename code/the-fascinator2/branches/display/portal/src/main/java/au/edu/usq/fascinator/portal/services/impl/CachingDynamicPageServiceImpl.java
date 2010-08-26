@@ -28,9 +28,11 @@ import java.io.StringWriter;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -263,7 +265,7 @@ public class CachingDynamicPageServiceImpl implements DynamicPageService {
         if (isScript) {
             pageName = pageName.substring(0, pageName.lastIndexOf(SCRIPT_EXT));
         }
-        StringBuilder renderMessages = new StringBuilder();
+        Set<String> renderMessages = new HashSet<String>();
 
         // setup script and velocity context
         String contextPath = request.getContextPath();
@@ -295,30 +297,30 @@ public class CachingDynamicPageServiceImpl implements DynamicPageService {
 
         // run page and template scripts
         PyObject layoutObject = new PyObject();
+        String scriptName = "scripts/" + layoutName + ".py";
         try {
-            String scriptName = "scripts/" + layoutName + ".py";
             layoutObject = evalScript(portalId, scriptName, bindings);
         } catch (Exception e) {
             ByteArrayOutputStream eOut = new ByteArrayOutputStream();
             e.printStackTrace(new PrintStream(eOut));
             String eMsg = eOut.toString();
-            log.warn("Failed to run page script!\n=====\n{}\n=====", eMsg);
-            renderMessages.append("Layout script error:\n");
-            renderMessages.append(eMsg);
+            log.warn("Failed to run layout script!\n=====\n{}\n=====", eMsg);
+            renderMessages.add("Layout script error: " + scriptName + "\n"
+                    + eMsg);
         }
         bindings.put("page", layoutObject);
 
-        Object pageObject = new Object();
+        PyObject pageObject = new PyObject();
         try {
-            String scriptName = "scripts/" + pageName + ".py";
+            scriptName = "scripts/" + pageName + ".py";
             pageObject = evalScript(portalId, scriptName, bindings);
         } catch (Exception e) {
             ByteArrayOutputStream eOut = new ByteArrayOutputStream();
             e.printStackTrace(new PrintStream(eOut));
             String eMsg = eOut.toString();
             log.warn("Failed to run page script!\n=====\n{}\n=====", eMsg);
-            renderMessages.append("Page script error:\n");
-            renderMessages.append(eMsg);
+            renderMessages
+                    .add("Page script error: " + scriptName + "\n" + eMsg);
         }
         bindings.put("self", pageObject);
         Object mimeTypeAttr = request.getAttribute("Content-Type");
@@ -336,8 +338,8 @@ public class CachingDynamicPageServiceImpl implements DynamicPageService {
                 vc.put(key, bindings.get(key));
             }
             vc.put("velocityContext", vc);
-            if (renderMessages.length() > 0) {
-                vc.put("renderMessages", renderMessages.toString());
+            if (!renderMessages.isEmpty()) {
+                vc.put("renderMessages", renderMessages);
             }
 
             try {
@@ -352,13 +354,11 @@ public class CachingDynamicPageServiceImpl implements DynamicPageService {
                     vc.put("pageContent", pageContentWriter.toString());
                 }
             } catch (Exception e) {
-                renderMessages.append("Page content template error:\n");
-                renderMessages.append(e.getMessage());
-                vc.put("renderMessages", renderMessages.toString());
+                renderMessages.add("Page content template error:\n"
+                        + e.getMessage());
                 log.error("Failed rendering page: {}, {} ({})", new String[] {
                         pageName, e.getMessage(),
                         isAjax ? "ajax" : isScript ? "script" : "html" });
-                log.error("Stack Track:\n", e);
             }
 
             if (!(isAjax || isScript)) {
@@ -380,6 +380,7 @@ public class CachingDynamicPageServiceImpl implements DynamicPageService {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public String renderObject(Context context, String template,
             JsonConfigHelper metadata) {
         log.debug("========== START renderObject ==========");
@@ -411,18 +412,27 @@ public class CachingDynamicPageServiceImpl implements DynamicPageService {
 
         // evaluate the context script if exists
         Object pageObject = new Object();
+        String scriptName = "scripts/" + templateName + ".py";
         try {
-            @SuppressWarnings("unchecked")
             Map<String, Object> bindings = (Map<String, Object>) objectContext
                     .get("bindings");
             bindings.put("metadata", metadata);
-            String scriptName = "scripts/" + templateName + ".py";
             pageObject = evalScript(portalId, scriptName, bindings);
         } catch (Exception e) {
             ByteArrayOutputStream eOut = new ByteArrayOutputStream();
             e.printStackTrace(new PrintStream(eOut));
             String eMsg = eOut.toString();
             log.warn("Failed to run display script!\n=====\n{}\n=====", eMsg);
+            Set<String> renderMessages = null;
+            if (objectContext.containsKey("renderMessages")) {
+                renderMessages = (Set<String>) objectContext
+                        .get("renderMessages");
+            } else {
+                renderMessages = new HashSet<String>();
+                context.put("renderMessages", renderMessages);
+            }
+            renderMessages
+                    .add("Page script error: " + scriptName + "\n" + eMsg);
         }
         objectContext.put("self", pageObject);
 
@@ -437,7 +447,6 @@ public class CachingDynamicPageServiceImpl implements DynamicPageService {
             content = pageContentWriter.toString();
         } catch (Exception e) {
             log.error("Failed rendering display page: {}", templateName);
-            e.printStackTrace();
         }
 
         log.debug("========== END renderObject ==========");
@@ -492,6 +501,7 @@ public class CachingDynamicPageServiceImpl implements DynamicPageService {
                     }
                 } else {
                     log.debug("DEPRECATED: script:'{}'", path);
+                    // scriptObject = new PyObject();
                 }
                 python.cleanup();
             } else {
@@ -499,16 +509,19 @@ public class CachingDynamicPageServiceImpl implements DynamicPageService {
             }
         }
         if (useCache && scriptObject != null) {
-            try {
-                if (scriptObject.__findattr__("__activate__") != null) {
-                    log.debug("Activating cached script:'{}'", path);
-                    scriptObject.invoke("__activate__", Py.java2py(bindings));
-                } else {
-                    log.warn("__activate__ not found in '{}'", path);
-                }
-            } catch (Exception e) {
-                log.error("Page activation failed!", e);
+            // try {
+            if (scriptObject.__findattr__("__activate__") != null) {
+                log.debug("Activating cached script:'{}'", path);
+                scriptObject.invoke("__activate__", Py.java2py(bindings));
+            } else {
+                log.warn("__activate__ not found in '{}'", path);
             }
+            // } catch (Exception e) {
+            // ByteArrayOutputStream eOut = new ByteArrayOutputStream();
+            // e.printStackTrace(new PrintStream(eOut));
+            // String eMsg = eOut.toString();
+            // log.warn("Failed to activate page!\n=====\n{}\n=====", eMsg);
+            // }
         }
         return scriptObject;
     }
