@@ -4,12 +4,13 @@ from org.apache.commons.lang import StringEscapeUtils
 
 class LayoutPage:
     def __init__(self):
-        self.authentication = AuthenticationData()
+        pass
     
     def __activate__(self, context):
         self.services = context["Services"]
         self.security = context["security"]
         self.portalId = context["portalId"]
+        self.authentication = AuthenticationData()
         self.authentication.__activate__(context)
     
     def getPortal(self):
