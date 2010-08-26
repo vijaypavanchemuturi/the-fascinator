@@ -1,4 +1,4 @@
-class BasicLivePage:
+class BasicLiveData:
     def __init__(self):
         pass
 

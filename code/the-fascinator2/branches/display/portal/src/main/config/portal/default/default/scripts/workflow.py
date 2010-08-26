@@ -8,7 +8,7 @@ from java.net import URLDecoder
 
 import locale
 
-class WorkflowPage:
+class WorkflowData:
     def __init__(self):
         pass
 

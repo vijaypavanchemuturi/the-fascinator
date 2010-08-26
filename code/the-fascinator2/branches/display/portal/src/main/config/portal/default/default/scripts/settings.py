@@ -5,7 +5,7 @@ from au.edu.usq.fascinator.portal import Portal
 from java.io import File
 from java.util import HashMap
 
-class SettingsPage:
+class SettingsData:
 
     def __init__(self):
         pass

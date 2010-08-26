@@ -1,6 +1,6 @@
 from au.edu.usq.fascinator.common import JsonConfigHelper
 
-class AdminPage:
+class AdminData:
 
     def __init__(self):
         pass
