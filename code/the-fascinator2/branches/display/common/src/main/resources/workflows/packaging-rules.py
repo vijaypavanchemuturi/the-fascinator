@@ -185,6 +185,8 @@ if pid == metaPid:
 
     for key in customFields:
         indexList(key, customFields[key])
+    
+    rules.add(AddField("displayType", "package"))
 
     # AFTER saving the data, send messages for workflows
     # Any messages for the new step?
