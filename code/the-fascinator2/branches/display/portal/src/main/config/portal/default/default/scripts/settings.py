@@ -1,8 +1,8 @@
 from au.edu.usq.fascinator.api import PluginManager
-from au.edu.usq.fascinator.common import FascinatorHome, JsonConfig, JsonConfigHelper
+from au.edu.usq.fascinator.common import JsonConfig, JsonConfigHelper
 from au.edu.usq.fascinator.portal import Portal
 
-from java.io import ByteArrayInputStream, ByteArrayOutputStream, File
+from java.io import File
 from java.util import HashMap
 
 class SettingsPage:
