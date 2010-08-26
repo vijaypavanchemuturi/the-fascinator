@@ -236,6 +236,9 @@ class SearchData:
         return self.__getActiveManifest().get("manifest//node-%s" % oid) is not None
     
     def getManifestItemTitle(self, oid, defaultValue):
+        print "******* '%s' '%s'" % (oid, defaultValue)
+        print self.__getActiveManifest()
+        print self.__getActiveManifest().get("manifest//node-%s/title" % oid, defaultValue)
         return self.__getActiveManifest().get("manifest//node-%s/title" % oid, defaultValue)
     
     def __getActiveManifest(self):

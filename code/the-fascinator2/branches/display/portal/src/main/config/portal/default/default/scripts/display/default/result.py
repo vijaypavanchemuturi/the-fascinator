@@ -5,11 +5,13 @@ class ResultPage:
         self.portalId = context["portalId"]
         self.metadata = context["metadata"]
     
-    def canManage(self, workflowRoles):
-        userRoles = self.page.authentication.get_roles_list()
-        for role in userRoles:
-            if role in workflowRoles:
-                return True
+    def canManage(self):
+        workflowRoles = self.metadata.get("workflow_security")
+        if workflowRoles:
+            userRoles = self.page.authentication.get_roles_list()
+            for role in userRoles:
+                if role in workflowRoles:
+                    return True
         return False
     
     def get(self, name):

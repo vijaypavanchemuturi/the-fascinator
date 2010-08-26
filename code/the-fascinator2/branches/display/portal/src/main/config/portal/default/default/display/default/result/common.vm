@@ -1,22 +1,7 @@
 #set($id = $self.get("id"))
 #set($title = $self.get("dc_title"))
 #set($description = $self.get("dc_description"))
-
-##set($title = "")
-##set($title = $item.getList("dc_title").get(0))
-##if("$!title" == "")
-    ##set($title = "Untitled")
-##end
-##set($title = $page.escapeHtml($title))
-
-##set($description = "")
-##set($description = $item.getList("dc_description").get(0))
-##set($description = $self.get($item, "dc_description"))
-
 #set($format = $self.get("dc_format"))
-#if("$!format" == "")
-    #set($format = "")
-#end
 
 #set($itemClass = "article")
 #if($velocityCount == 1)
@@ -25,7 +10,6 @@
     #set($itemClass = "$itemClass alternate")
 #end
 
-##set($isPackage = "$!format" == "application/x-fascinator-package")
-##set($manifestItemTitle = $self.getManifestItemTitle($id, $title))
-##set($wfStep = $item.get("workflow_step").getList(0))
-##set($thumbnail = $item.get("thumbnail"))
+#set($isPackage = "$!format" == "application/x-fascinator-package")
+#set($manifestItemTitle = $parent.getManifestItemTitle($id, $title))
+#set($wfStep = $self.get("workflow_step"))
