@@ -213,3 +213,7 @@ div.annotatable {
     cursor: pointer;
     vertical-align: bottom;
 }
+
+.object-comments {
+    margin-bottom: 15px;
+}

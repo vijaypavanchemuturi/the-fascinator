@@ -1,4 +1,5 @@
 <div class="box" id="$oid">
     <h2>Preview</h2>
-    #parseDisplayTemplate("detail/preview/content-header.vm")
     <div class="article first">
+        <div class="article-heading">$title</div>
+        #parseDisplayTemplate("detail/preview/content-header.vm")
