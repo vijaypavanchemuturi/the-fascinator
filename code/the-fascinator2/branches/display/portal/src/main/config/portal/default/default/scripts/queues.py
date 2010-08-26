@@ -1,7 +1,7 @@
 from au.edu.usq.fascinator.common import JsonConfig
 from au.edu.usq.fascinator.common import JsonConfigHelper
 
-class QueuesPage:
+class QueuesData:
     def __init__(self):
         pass
 

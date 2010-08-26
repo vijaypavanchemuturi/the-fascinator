@@ -491,7 +491,7 @@ public class CachingDynamicPageServiceImpl implements DynamicPageService {
                     log.debug("isXHR:{}", request.isXHR());
                     String scriptClassName = StringUtils
                             .capitalize(FilenameUtils.getBaseName(scriptName))
-                            + (request.isXHR() ? "Data" : "Page");
+                            + "Data";
                     PyObject scriptClass = python.get(scriptClassName);
                     log.debug("Instantiating object from class '{}'...",
                             scriptClassName);

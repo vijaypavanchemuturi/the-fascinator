@@ -1,4 +1,4 @@
-class BasicInitPage:
+class BasicInitData:
     def __init__(self):
         pass
 

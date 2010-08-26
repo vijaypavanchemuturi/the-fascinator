@@ -1,4 +1,4 @@
-class UploadPage:
+class UploadData:
 
     def __init__(self):
         pass

@@ -2,7 +2,7 @@ from au.edu.usq.fascinator.api.indexer import SearchRequest
 from au.edu.usq.fascinator.common import JsonConfigHelper
 from java.io import ByteArrayInputStream, ByteArrayOutputStream
 
-class HomePage:
+class HomeData:
     def __init__(self):
         pass
 

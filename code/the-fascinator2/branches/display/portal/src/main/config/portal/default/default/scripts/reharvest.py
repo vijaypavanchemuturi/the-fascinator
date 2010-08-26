@@ -4,14 +4,19 @@ from au.edu.usq.fascinator.common import JsonConfigHelper
 from java.io import ByteArrayInputStream, ByteArrayOutputStream
 from java.util import HashSet
 
-class Reharvest:
+class ReharvestData:
     def __init__(self):
-        print "formData=%s" % formData
-        func = formData.get("func")
+        pass
+
+    def __activate__(self, context):
+        self.velocityContext = context
+
+        print "formData=%s" % self.vc("formData")
+        func = self.vc("formData").get("func")
         result = "{}"
         resultType = "text/plain; charset=UTF-8"
-        oid = formData.get("oid")
-        portalId = formData.get("portalId")
+        oid = self.vc("formData").get("oid")
+        portalId = self.vc("formData").get("portalId")
         portalManager = Services.getPortalManager()
         if func == "reharvest":
             if oid:
@@ -42,8 +47,8 @@ class Reharvest:
                 result = '{ status: "failed" }'
         elif func == "get-state":
             result = '{ running: "%s", lastResult: "%s" }' % \
-                (sessionState.get("reharvest/running"),
-                 sessionState.get("reharvest/lastResult"))
+                (self.vc("sessionState").get("reharvest/running"),
+                 self.vc("sessionState").get("reharvest/lastResult"))
         elif func == "get-log":
             context = LoggerFactory.getILoggerFactory()
             logger = context.getLogger("au.edu.usq.fascinator.HarvestClient")
@@ -65,8 +70,14 @@ class Reharvest:
                     result += layout.doLayout(event)
             result += "</table>"
             resultType = "text/html; charset=UTF-8"
-        writer = response.getPrintWriter(resultType)
+        writer = self.vc("response").getPrintWriter(resultType)
         writer.println(result)
         writer.close()
 
-scriptObject = Reharvest()
+    # Get from velocity context
+    def vc(self, index):
+        if self.velocityContext[index] is not None:
+            return self.velocityContext[index]
+        else:
+            log.error("ERROR: Requested context entry '" + index + "' doesn't exist")
+            return None

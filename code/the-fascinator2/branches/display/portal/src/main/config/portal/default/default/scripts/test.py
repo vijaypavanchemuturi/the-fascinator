@@ -1,6 +1,6 @@
 from java.util import ArrayList, HashMap
 
-class TestPage:
+class TestData:
     def __init__(self):
         pass
 

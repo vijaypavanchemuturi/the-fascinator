@@ -9,15 +9,12 @@ import au.edu.usq.fascinator.common.JsonConfig as JsonConfig
 import au.edu.usq.fascinator.common.JsonConfigHelper as JsonConfigHelper
 import au.edu.usq.fascinator.common.storage.impl.GenericDigitalObject as GenericDigitalObject
 import au.edu.usq.fascinator.common.storage.impl.FilePayload as FilePayload
-import au.edu.usq.fascinator.transformer.ims.ImsDigitalObject as ImsDigitalObject
 import java.io.File as File;
-import org.apache.commons.io.FileUtils as FileUtils
-import au.edu.usq.fascinator.HarvestClient as HarvestClient
 import au.edu.usq.fascinator.QueueStorage as QueueStorage
 import java.io.FileWriter as FileWriter
 from java.lang import Exception
 
-class SwordPage(object):
+class SwordData(object):
     def __init__(self):
         pass
 

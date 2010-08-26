@@ -2,7 +2,7 @@ import md5
 from authentication import AuthenticationData
 from org.apache.commons.lang import StringEscapeUtils
 
-class LayoutPage:
+class LayoutData:
     def __init__(self):
         pass
     
@@ -13,6 +13,15 @@ class LayoutPage:
         self.authentication = AuthenticationData()
         self.authentication.__activate__(context)
     
+        #self.formData = context["formData"]
+        #self.sessionState = context["sessionState"]
+        #if self.formData is not None:
+        #    for field in self.formData.getFormFields():
+        #        log.debug("Form Data: '{}' => '{}'", field, self.formData.get(field))
+        #if self.sessionState is not None:
+        #    for field in self.sessionState.keySet():
+        #        log.debug("Session Data: '{}' => '{}'", field, self.sessionState.get(field))
+
     def getPortal(self):
         return self.services.getPortalManager().get(self.portalId)
     
