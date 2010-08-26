@@ -4,15 +4,27 @@ from java.lang import Exception
 from org.apache.commons.io import FileUtils
 from org.purl.sword.client import Client, PostMessage
 
-class SwordHelper(object):
+class SwordData(object):
     def __init__(self):
+        pass
+
+    def __activate__(self, context):
+        self.velocityContext = context
         self.__processRequest()
 
+    # Get from velocity context
+    def vc(self, index):
+        if self.velocityContext[index] is not None:
+            return self.velocityContext[index]
+        else:
+            log.error("ERROR: Requested context entry '" + index + "' doesn't exist")
+            return None
+
     def __processRequest(self):
-        func = formData.get("func")
-        url = formData.get("url")
+        func = self.vc("formData").get("func")
+        url = self.vc("formData").get("url")
         client = Client()
-        client.setCredentials(formData.get("username"), formData.get("password"))
+        client.setCredentials(self.vc("formData").get("username"), self.vc("formData").get("password"))
         if func == "collections":
             responseType = "application/json; charset=UTF-8"
             try:
@@ -41,8 +53,6 @@ class SwordHelper(object):
         else:
             responseType = "text/html; charset=UTF-8"
             responseData = ""
-        out = response.getPrintWriter(responseType)
+        out = self.vc("response").getPrintWriter(responseType)
         out.println(responseData)
         out.close()
-
-scriptObject = SwordHelper()
