@@ -1,4 +1,3 @@
-<h4>Full object metadata</h4>
 <table class="meta">
 #foreach($key in $metaMap.keySet())
     <tr>
