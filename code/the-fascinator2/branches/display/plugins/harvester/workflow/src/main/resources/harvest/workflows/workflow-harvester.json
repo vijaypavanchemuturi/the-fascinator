@@ -36,14 +36,14 @@
             "label": "Basic Metadata Check",
             "security": ["editor", "admin"],
             "visibility": ["metadata", "editor", "admin"],
-            "template": "workflows/basic-init"
+            "template": "workflows/basicInit"
         },
         {
             "name": "live",
             "label": "Live",
             "security": ["editor", "admin"],
             "visibility": ["guest"],
-            "template": "workflows/basic-live"
+            "template": "workflows/basicLive"
         }
     ]
 }
