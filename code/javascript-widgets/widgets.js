@@ -48,6 +48,10 @@ var widgets=null;
       msgBox.dialog("open").find("span:first").text(msg);
   }
 
+  function submit(ctx){
+
+  }
+  
   function save(ctx){
     var data={}, s, v, e, url, formFields, replaceFunc;
     ctx = ctx || $("body");
@@ -482,60 +486,27 @@ var widgets=null;
   }
   gfs = createFileSubmitter;
 
+  function datepickerOnClose(dateText, inst){
+    var month = $("#ui-datepicker-div .ui-datepicker-month :selected").val();
+    var year = $("#ui-datepicker-div .ui-datepicker-year :selected").val();
+    if(!month)month=0;
+    $(this).datepicker('setDate', new Date(year, month, 1));
+    $(this).blur();
+  }
+  function datepickerBeforeShow(input, inst){
+    inst = $("#" + inst.id);
+    if(inst.hasClass("dateMY") || inst.hasClass("dateYM") || inst.hasClass("dateY")){
+      setTimeout(function(){
+          $(".ui-datepicker-calendar").remove();
+          $(".ui-datepicker-current").remove();
+          $(".ui-datepicker-close").text("OK");
+          if(inst.hasClass("dateY")) $(".ui-datepicker-month").remove();
+        }, 10);
+    }
+  }
 
-  function onContentLoaded(){
-    // ==============
-    // Date inputs
-    // ==============
-try{
-    $("input.dateYMD, input.date").datepicker({dateFormat:"yy-mm-dd", changeMonth:true, changeYear:true, showButtonPanel:false});
-    function datepickerOnClose(dateText, inst){
-        var month = $("#ui-datepicker-div .ui-datepicker-month :selected").val();
-        var year = $("#ui-datepicker-div .ui-datepicker-year :selected").val();
-        if(!month)month=0;
-        $(this).datepicker('setDate', new Date(year, month, 1));
-        $(this).blur();
-    }
-    function datepickerBeforeShow(input, inst){
-        inst = $("#" + inst.id);
-        if(inst.hasClass("dateMY") || inst.hasClass("dateYM") || inst.hasClass("dateY")){
-          setTimeout(function(){
-              $(".ui-datepicker-calendar").remove();
-              $(".ui-datepicker-current").remove();
-              $(".ui-datepicker-close").text("OK");
-              if(inst.hasClass("dateY")) $(".ui-datepicker-month").remove();
-            }, 10);
-        }
-    }
-    $('input.dateYM').datepicker({
-      changeMonth: true, changeYear: true, showButtonPanel: true, dateFormat: 'yy-mm',
-      onClose: datepickerOnClose,
-      beforeShow:datepickerBeforeShow,   
-      onChangeMonthYear:function(year, month, inst){ datepickerBeforeShow(null, inst); },
-      onSelect:function(dateText, inst){}
-    });
-    $('input.dateMMY').datepicker({
-      changeMonth: true, changeYear: true, showButtonPanel: true, dateFormat: 'MM yy',
-      onClose: datepickerOnClose,
-      beforeShow:datepickerBeforeShow,   
-      onChangeMonthYear:function(year, month, inst){ datepickerBeforeShow(null, inst); },
-      onSelect:function(dateText, inst){}
-    });
-    $('input.dateY').datepicker({
-      changeMonth: false, changeYear: true, showButtonPanel: true, dateFormat: 'yy',
-      onClose: datepickerOnClose,
-      beforeShow:datepickerBeforeShow,   
-      onChangeMonthYear:function(year, month, inst){ datepickerBeforeShow(null, inst); },
-      onSelect:function(dateText, inst){}
-    });
-}catch(e){alert(e);}
-    // ==============
-    
-    // ==============
-    // Simple (text) list input type
-    // ==============
-    // TODO: remove table, tbody, tr and td references, just rely on the classes
-    $("table.input-list").each(function(c, i){
+  // TODO: remove table, tbody, tr and td references, just rely on the classes
+  function listInput(c, i){
       var table, count, tmp, visibleItems, displayRowTemplate, displaySelector;
       var add, del, reorder, addUniqueOnly=false;
       table = $(i);
@@ -545,14 +516,14 @@ try{
           update:function(e, ui){ reorder(); }
         });
       }
-// check all variable names 
+// check all variable names
       if(table.find(".item-display").size()){
         if(table.find("tr.item-input-display").size()){
           alert("Error: table.input-list can not have both 'item-display' and 'item-input-display' table row classes");
           return;
         }
         // For handling 'item-display' (where there is a separate/special row for handling the display of added items)
-        //    Note: if there is an 'item-display' row then it is expected that there will also be an 
+        //    Note: if there is an 'item-display' row then it is expected that there will also be an
         //        'item-input' row as well an 'item-add' button/link
         displaySelector = ".item-display";
         tmp=table.find(displaySelector).hide();
@@ -610,7 +581,7 @@ try{
           reorder();
           return false;
         }
-        
+
         table.find(".item-add").click(add);
         addUniqueOnly = table.find(".item-add").hasClass("add-unique-only");
         table.find("tr.item-input input[type=text]:last").keypress(function(e){
@@ -669,27 +640,23 @@ try{
           $(i).find(".sort-number").text(c+1);
         });
       }
+  }
 
-    });
-    // ==============
-    
-  
-    // ==============
-    // Multi-dropdown selection
-    // ==============
-    //function buildSelectList(list, _default, selectable, ns, getJson, onSelection){
-    function buildSelectList(json, parent, getJson, onSelection){
+  // ==============
+  // Multi-dropdown selection
+  // ==============
+  function buildSelectList(json, parent, getJson, onSelection){
       var s, o, children={}, ns, selectable;
       ns = (json.namespace || "") || (parent.namespace || "");
       selectable = (json.selectable==null)?(!!parent.selectable):(!!json.selectable);
       s = $("<select/>");
       if(!json["default"]){
-        o = $("<option value=''>Please select one</option>");        
+        o = $("<option value=''>Please select one</option>");
         s.append(o);
       }
       $.each(json.list, function(c, i){
         var sel=!!(i.selectable!=null?i.selectable:selectable);
-        children[i.id]={url:(i.children==1?i.id:i.children), label:i.label, id:i.id, 
+        children[i.id]={url:(i.children==1?i.id:i.children), label:i.label, id:i.id,
                         selectable:sel, namespace:ns, parent:parent};
         o = $("<option/>");
         o.attr("value", i.id);
@@ -718,13 +685,13 @@ try{
           });
         }
         onSelection(child);
-      }      
+      }
       s.change(onChange);
       setTimeout(onChange, 10);
       return s;
-    }
+  }
 
-    $(".data-source-drop-down").each(function(c, dsdd){
+  function sourceDropDown(c, dsdd){
       var ds=$(dsdd), id=dsdd.id, jsonUrl, json=[], selAdd;
       var selAddNs, selAddId, selAddLabel;
       var getJson, onSelection, onJson;
@@ -757,6 +724,8 @@ try{
         }
         sel=info.selectable;
         if(/BUTTON|INPUT/.test(selAdd[0].tagName)){
+        //if(/INPUT/.test(selAdd[0].tagName)){
+            alert(selAdd.size()+", text="+selAdd.text());
           selAdd.attr("disabled", sel?"":"disabled");
         }else{
           sel?selAdd.show():selAdd.hide();
@@ -798,7 +767,49 @@ try{
           return;
         }
       }
+  }
+
+  function onContentLoaded(){
+    // ==============
+    // Date inputs
+    // ==============
+    $("input.dateYMD, input.date").datepicker({
+        dateFormat:"yy-mm-dd", changeMonth:true, changeYear:true, showButtonPanel:false
     });
+    $('input.dateYM').datepicker({
+      changeMonth: true, changeYear: true, showButtonPanel: true, dateFormat: 'yy-mm',
+      onClose: datepickerOnClose,
+      beforeShow:datepickerBeforeShow,   
+      onChangeMonthYear:function(year, month, inst){ datepickerBeforeShow(null, inst); },
+      onSelect:function(dateText, inst){}
+    });
+    $('input.dateMMY').datepicker({
+      changeMonth: true, changeYear: true, showButtonPanel: true, dateFormat: 'MM yy',
+      onClose: datepickerOnClose,
+      beforeShow:datepickerBeforeShow,   
+      onChangeMonthYear:function(year, month, inst){ datepickerBeforeShow(null, inst); },
+      onSelect:function(dateText, inst){}
+    });
+    $('input.dateY').datepicker({
+      changeMonth: false, changeYear: true, showButtonPanel: true, dateFormat: 'yy',
+      onClose: datepickerOnClose,
+      beforeShow:datepickerBeforeShow,   
+      onChangeMonthYear:function(year, month, inst){ datepickerBeforeShow(null, inst); },
+      onSelect:function(dateText, inst){}
+    });
+    // ==============
+    
+    // ==============
+    // Simple (text) list input type
+    // ==============
+    $("table.input-list").each(listInput);
+    // ==============
+    
+  
+    // ==============
+    // Multi-dropdown selection
+    // ==============
+    $(".data-source-drop-down").each(sourceDropDown);
     // ==============
 
     setupFileUploader();                    // 
@@ -807,6 +818,7 @@ try{
     $(".save-form-fields").click(save);
     $(".restore-form-fields").click(restore);
     $(".reset-form-fields").click(reset);
+    $(".submit-form-fields").click(submit);
 
   }
 
