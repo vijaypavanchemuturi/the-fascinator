@@ -342,6 +342,8 @@ if pid == metaPid:
                            "vnd.oasis.opendocument.presentation",
                            "vnd.openxmlformats-officedocument.presentationml"]:
                 displayType = "presentation"
+            elif minor == "application/x-fascinator-package":
+                displayType = "package"
         elif major in ["audio", "video", "image"]:
             displayType = major
         elif major == "text":
