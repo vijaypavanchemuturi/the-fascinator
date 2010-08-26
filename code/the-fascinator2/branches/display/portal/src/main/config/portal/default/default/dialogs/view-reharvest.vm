@@ -27,7 +27,7 @@ $(function() {
     $("#reharvest-view, #reharvest-cancel").click(function() {
         $("#reharvest-view").toggleClass("selected");
         $("#reharvest-form").toggle("blind");
-        jQuery.post("$portalPath/reharvest.ajax",
+        jQuery.post("$portalPath/actions/reharvest.ajax",
             { func: "get-state" },
             function(data, status) {
                 if (data.running == true) {
@@ -45,7 +45,7 @@ $(function() {
 
     $("#reharvest-accept").click(function() {
         var reharvestLogTimerId;
-        jQuery.post("$portalPath/reharvest.ajax", { func: "get-state" },
+        jQuery.post("$portalPath/actions/reharvest.ajax", { func: "get-state" },
             function(data, status) {
                 if (data.running == true) {
                     $("#reharvest-start").hide();
@@ -58,7 +58,7 @@ $(function() {
                             $("#reharvest-progress, #reharvest-result").show();
                             reharvestLogTimerId = setInterval("getReharvestLog()", 500);
                         });
-                    jQuery.post("$portalPath/reharvest.ajax",
+                    jQuery.post("$portalPath/actions/reharvest.ajax",
                         { func: "reharvest", portalId: "$portalId" },
                         function(data, status) {
                             jQuery.post("$portalPath/actions/state.ajax",
