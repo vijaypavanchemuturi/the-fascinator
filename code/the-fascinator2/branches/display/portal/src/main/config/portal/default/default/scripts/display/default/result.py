@@ -1,5 +1,5 @@
 
-class ResultPage:
+class ResultData:
     def __activate__(self, context):
         self.page = context["page"]
         self.portalId = context["portalId"]

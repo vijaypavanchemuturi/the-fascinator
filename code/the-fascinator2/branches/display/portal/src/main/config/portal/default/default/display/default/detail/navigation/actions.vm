@@ -1,4 +1,7 @@
+#set($menuTitle = "Actions")
+#parseTemplate("wrapping/main-menu-open.vm")
 <ul class="menu">
     <li><a href="#">Open file...</a></li>
     #parseDisplayTemplate("detail/navigation/custom-actions.vm")
 </ul>
+#parseTemplate("wrapping/main-menu-close.vm")

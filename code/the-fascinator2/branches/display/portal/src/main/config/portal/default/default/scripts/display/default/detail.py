@@ -1,5 +1,5 @@
 
-class DetailPage:
+class DetailData:
     def __init__(self):
         pass
     
