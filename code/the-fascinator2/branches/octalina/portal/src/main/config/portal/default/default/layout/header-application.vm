@@ -11,6 +11,7 @@
       </ul>
     </li>
     #if ($page.authentication.is_admin())
+    <li><a href="$portalPath/batchprocess">Batch update</a></li>
     <li><a href="$portalPath/settings">Settings</a></li>
     <li><a href="$portalPath/admin">Admin</a></li>
     #end

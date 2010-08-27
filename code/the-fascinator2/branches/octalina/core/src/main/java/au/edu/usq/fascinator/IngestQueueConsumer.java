@@ -332,7 +332,6 @@ public class IngestQueueConsumer implements GenericListener {
      * @param jsonFile Configuration file
      */
     private void sentMessage(String oid, String eventType) {
-        log.info(" * Sending message: {} with event {}", oid, eventType);
         Map<String, String> param = new LinkedHashMap<String, String>();
         param.put("oid", oid);
         param.put("eventType", eventType);

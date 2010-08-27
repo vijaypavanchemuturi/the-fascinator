@@ -18,12 +18,13 @@
  */
 package au.edu.usq.fascinator.portal.guitoolkit;
 
-import au.edu.usq.fascinator.common.JsonConfig;
 import java.util.Map;
+
+import au.edu.usq.fascinator.common.JsonConfig;
 
 /**
  * Render web forms based on descriptive metadata.
- *
+ * 
  * @author Greg Pendlebury
  */
 public class GUIFormRenderer {
@@ -32,44 +33,50 @@ public class GUIFormRenderer {
     }
 
     public String ajaxFluidErrorHolder(String prefix) {
-        return "<div class='stop-error hidden' id='"+prefix+"-error'>\n" +
-                 "<span id='"+prefix+"-message'></span>\n" +
-               "</div>\n";
+        return "<div class='stop-error hidden' id='" + prefix + "-error'>\n"
+                + "<span id='" + prefix + "-message'></span>\n" + "</div>\n";
     }
 
     public String ajaxFluidLoader(String prefix) {
-        return "<img class='hidden' id='"+prefix+"-loading' src='images/icons/loading.gif' alt='Loading'/>\n";
+        return "<img class='hidden' id='" + prefix
+                + "-loading' src='images/icons/loading.gif' alt='Loading'/>\n";
     }
 
     public String ajaxProgressLoader(String prefix) {
-        return "<img class='hidden' id='"+prefix+"-loading' src='images/loading-progress.gif' alt='Loading'/>\n";
+        return "<img class='hidden' id='"
+                + prefix
+                + "-loading' src='images/loading-progress.gif' alt='Loading'/>\n";
     }
 
     public String renderFormElement(String name, String type, String label) {
         return renderFormElement(name, type, label, "");
     }
 
-    public String renderFormElement(String name, String type, String label, String value) {
+    public String renderFormElement(String name, String type, String label,
+            String value) {
         String element = "";
         if (label != null && !label.equals("")) {
-            element += "<label for='"+name+"'>"+label+"</label>\n";
+            element += "<label for='" + name + "'>" + label + "</label>\n";
         }
-        element += "<input type='"+type+"' id='"+name+"' name='"+name+"'";
+        element += "<input type='" + type + "' id='" + name + "' name='" + name
+                + "'";
         if (value != null && !value.equals("")) {
-            element += " value='"+value+"'";
+            element += " value='" + value + "'";
         }
         element += "/>\n";
         return element;
     }
 
-    public String renderFormSelect(String name, String label, Map<String, String> values) {
+    public String renderFormSelect(String name, String label,
+            Map<String, String> values) {
         String select = "";
         if (label != null && !label.equals("")) {
-            select += "<label for='"+name+"'>"+label+"</label>\n";
+            select += "<label for='" + name + "'>" + label + "</label>\n";
         }
-        select += "<select id='"+name+"' name='"+name+"'>\n";
+        select += "<select id='" + name + "' name='" + name + "'>\n";
         for (String plugins : values.keySet()) {
-            select += "<option value='"+plugins+"'>"+values.get(plugins)+"</option>\n";
+            select += "<option value='" + plugins + "'>" + values.get(plugins)
+                    + "</option>\n";
         }
         select += "</select>\n";
         return select;

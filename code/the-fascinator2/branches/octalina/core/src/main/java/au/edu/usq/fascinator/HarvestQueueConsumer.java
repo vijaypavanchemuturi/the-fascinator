@@ -155,8 +155,8 @@ public class HarvestQueueConsumer implements GenericListener {
             // broadcast = session.createTopic(MessagingServices.MESSAGE_TOPIC);
             renderers = new LinkedHashMap();
             for (String selector : rendererNames.keySet()) {
-                renderers.put(selector, session.createQueue(rendererNames
-                        .get(selector)));
+                renderers.put(selector,
+                        session.createQueue(rendererNames.get(selector)));
             }
             producer = session.createProducer(null);
             producer.setDeliveryMode(DeliveryMode.PERSISTENT);
@@ -427,7 +427,6 @@ public class HarvestQueueConsumer implements GenericListener {
      * @param jsonFile Configuration file
      */
     private void sentMessage(String oid, String eventType) {
-        log.info(" * Sending message: {} with event {}", oid, eventType);
         Map<String, String> param = new LinkedHashMap<String, String>();
         param.put("oid", oid);
         param.put("eventType", eventType);

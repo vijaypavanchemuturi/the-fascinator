@@ -248,7 +248,9 @@ public class SubscriberQueueConsumer implements GenericListener {
             String text = ((TextMessage) message).getText();
             JsonConfigHelper config = new JsonConfigHelper(text);
             String oid = config.get("oid");
-            log.info(" *** Received event, object id={}", oid);
+            String context = config.get("context", "");
+
+            log.info(" *** Received event, object id={}, from={}", oid, context);
 
             sendNotification(oid, "loggin start", "(" + name
                     + ") Event Logging starting : '" + oid + "'");
@@ -262,7 +264,7 @@ public class SubscriberQueueConsumer implements GenericListener {
             param.put("id", id);
             param.put("oid", oid);
             param.put("eventType", config.get("eventType"));
-            param.put("context", config.get("context", ""));
+            param.put("context", context);
             param.put("user", config.get("user", "guest"));
             param.put("eventTime", now);
 
