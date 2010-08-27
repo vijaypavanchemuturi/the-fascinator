@@ -1,19 +1,27 @@
 from java.io import ByteArrayOutputStream
 from org.apache.commons.io import IOUtils
 
-class ObjectResultData:
+class ResultData:
     def __init__(self):
         pass
-
-    def canManage(self, wfSecurity):
-        user_roles = page.authentication.get_roles_list()
-        for role in user_roles:
-            if role in wfSecurity:
-                return True
+    
+    def __activate__(self, context):
+        self.services = context["Services"]
+        self.page = context["page"]
+        self.metadata = context["metadata"]
+        self.portalId = context["portalId"]
+    
+    def canManage(self):
+        wfSecurity = self.metadata.get("workflow_security")
+        if wfSecurity:
+            user_roles = self.page.authentication.get_roles_list()
+            for role in user_roles:
+                if role in wfSecurity:
+                    return True
         return False
 
     def get(self, name):
-        valueList = metadata.getList(name)
+        valueList = self.metadata.getList(name)
         if valueList.size() > 0:
             return valueList.get(0)
         return ""
@@ -21,7 +29,7 @@ class ObjectResultData:
     def getMimeTypeIcon(self, format):
         # check for specific icon
         iconPath = "images/icons/mimetype/%s/icon.png" % format
-        resource = Services.getPageService().resourceExists(portalId, iconPath)
+        resource = self.services.getPageService().resourceExists(self.portalId, iconPath)
         if resource is not None:
             return iconPath
         elif format.find("/") != -1:
@@ -32,7 +40,7 @@ class ObjectResultData:
 
     def getSourceSample(self, id, limit):
         # Get source payload
-        object = Services.getStorage().getObject(id)
+        object = self.services.getStorage().getObject(id)
         if object is not None:
             payload = object.getPayload(object.getSourceId())
 
@@ -51,6 +59,3 @@ class ObjectResultData:
                 return  string
         else:
             return ""
-
-if __name__ == "__main__":
-    scriptObject = ObjectResultData()
