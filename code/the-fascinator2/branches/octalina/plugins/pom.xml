@@ -30,6 +30,7 @@
     <module>transformer/ice2</module>
     <module>transformer/ims</module>
     <module>transformer/solrmarc</module>
+    <module>transformer/customised</module>
     <module>subscriber/solrEventLog</module>
     <!-- TODO The following modules need to be updated to new Storage API -->
     <!--
