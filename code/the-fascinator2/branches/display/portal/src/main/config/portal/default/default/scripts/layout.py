@@ -1,5 +1,6 @@
 import md5
 from authentication import AuthenticationData
+from java.net import URLDecoder
 from org.apache.commons.lang import StringEscapeUtils
 
 class LayoutData:
@@ -9,10 +10,13 @@ class LayoutData:
     def __activate__(self, context):
         self.services = context["Services"]
         self.security = context["security"]
+        self.request = context["request"]
         self.portalId = context["portalId"]
+        uri = URLDecoder.decode(self.request.getAttribute("RequestURI"))
+        self.__relPath = "/".join(uri.split("/")[1:])
         self.authentication = AuthenticationData()
         self.authentication.__activate__(context)
-    
+        
         #self.formData = context["formData"]
         #self.sessionState = context["sessionState"]
         #if self.formData is not None:
@@ -21,7 +25,10 @@ class LayoutData:
         #if self.sessionState is not None:
         #    for field in self.sessionState.keySet():
         #        log.debug("Session Data: '{}' => '{}'", field, self.sessionState.get(field))
-
+    
+    def getRelativePath(self):
+        return self.__relPath
+    
     def getPortal(self):
         return self.services.getPortalManager().get(self.portalId)
     

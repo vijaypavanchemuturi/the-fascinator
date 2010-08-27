@@ -739,3 +739,9 @@ blockquote.plain-text {
 }
 blockquote.plain-text:before {content: open-quote; font-weight: bold;}
 blockquote.plain-text:after {content: close-quote; font-weight: bold;}
+
+ul.main li ul li.selected-view a {
+    background-color: #444;
+    cursor: pointer;
+    font-weight: bolder;
+}

@@ -1,17 +1,24 @@
 #set($pageTitle = "Detail")
-#define($pageHeader)
-## cannot have this in display template because of how the velocity context is wrapped
-<link rel="stylesheet" type="text/css" href="$portalPath/css/anotar/anotar.css" />
+#if($self.isDetail())
+    #define($pageHeader)
+        ## cannot have this in display template because of how the velocity context is wrapped
+        <link rel="stylesheet" type="text/css" href="$portalPath/css/anotar/anotar.css" />
+    #end
 #end
 #if($self.isIndexed())
     #set($metadata = $self.metadata)
-    #renderObject($metadata "detail/title")
-    <div class="grid_4">
-        #renderObject($metadata "detail/navigation")
-    </div>
-    <div class="grid_12">
+    #if($self.isDetail())
+        #renderObject($metadata "detail/title")
+        <div class="grid_4">
+            #renderObject($metadata "detail/navigation")
+        </div>
+        <div class="grid_12">
+            #renderObject($metadata "detail")
+        </div>
+    #else
+        #set($noLayout = "true")
         #renderObject($metadata "detail")
-    </div>
+    #end
     <script type="text/javascript" src="$portalPath/js/jquery.condense.min.js"></script>
     <script type="text/javascript">
         $(function() {

@@ -9,7 +9,7 @@ from java.net import URLDecoder
 
 from org.apache.commons.io import IOUtils
 
-class DownloadPage:
+class DownloadData:
     def __init__(self):
         pass
     
@@ -29,7 +29,7 @@ class DownloadPage:
             if object == None:
                 self.response.sendRedirect(self.contextPath + "/" + fullUri + "/")
                 return
-            print "URI='%s' OID='%s' PID='%s'" % (uri, object.getId(), payload.getId())
+            #print "URI='%s' OID='%s' PID='%s'" % (uri, object.getId(), payload.getId())
         except StorageException, e:
             payload = None
             print "Failed to get object: %s" % (str(e))
@@ -73,7 +73,7 @@ class DownloadPage:
         oid = uri[:slash]
         try:
             object = self.services.getStorage().getObject(oid)
-        except StorageException, se:
+        except StorageException:
             # not found check if oid's are mapped differently, use storage_id
             sid = self.__getStorageId(oid)
             object = self.services.getStorage().getObject(sid)
