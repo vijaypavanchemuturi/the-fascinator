@@ -31,8 +31,10 @@ try{
   log("Requires 'json-template' - avaiable from: http://json-template.googlecode.com/files/json-template.js");
   exit();
 }
+process.title="node.js Server";
 
 htmlUploadForm="<form action='/upload' method='POST' enctype='multipart/form-data'>" +
+" <a href='testForm.html'>Test form</a><br/>" +
 " <input type='file' name='upload-file'/> <p><input type='text' name='testtext' value='testing [123]'/></p>" +
 " <input type='checkbox' value='1' name='ajax'/>AJAX &#160; " +
 " <input type='submit' value='upload'/>" +
@@ -47,31 +49,57 @@ server=http.createServer(function(req, res){
   switch(urlInfo.pathname){
     case "/upload": fileUpload(req, res); break;
     case "/": htmlOutput(res, htmlUploadForm); break;
-    default: show404(res); break;
+    default: serveFile(res, urlInfo.pathname); break;
   }
 });
 server.listen(port);
 log("Serving on http://localhost:"+port+"/");
 fs.mkdir("temp", 0777);
 
+function serveFile(res, p){
+  var d,e;
+  p = path.basename(p);
+  if(path.existsSync(p)){
+    d = fs.readFileSync(p);
+    e = path.extname(p);
+    if(e==".htm" || e==".html"){
+      res.writeHead(200, {"content-type":"text/html"});
+      res.write(d);
+      res.end();
+    }else if(e==".js" || e==".json"){
+      res.writeHead(200, {"content-type":"text/plain"});
+      res.write(d);
+      res.end();
+    }else{
+      show404(res);
+    }
+  }else{
+    show404(res);
+  }
+}
 
 function fileUpload(req, res){
   var html, t, ajax=false;
   var iform = new formidable.IncomingForm();
   iform.uploadDir = "temp";
   iform.keepExtensions = true;
-  iform.parse(req, function(err, fields, files){
-    each(files, function(k, v){
-      v.stats = fs.statSync(v.path);
+  try{
+    iform.parse(req, function(err, fields, files){
+      each(files, function(k, v){
+        v.stats = fs.statSync(v.path);
+      });
+      if(fields.ajax){
+        html = JSON.stringify({fields:fields, files:files});
+      }else{
+        t = jtemp.Template("<div><p>File upload:</p> Fields:<pre>{fields}</pre> Files:<pre>{files}</pre><a href='/'>back</a></div>");
+        html=t.expand({fields:JSON.stringify(fields), files:JSON.stringify(files)});
+      }
+      htmlOutput(res, html);
     });
-    if(fields.ajax){
-      html = JSON.stringify({fields:fields, files:files});
-    }else{
-      t = jtemp.Template("<div><p>File upload:</p> Fields:<pre>{fields}</pre> Files:<pre>{files}</pre><a href='/'>back</a></div>");
-      html=t.expand({fields:JSON.stringify(fields), files:JSON.stringify(files)});
-    }
-    htmlOutput(res, html);
-  });
+  }catch(e){
+    log("ERROR: "+e);
+    htmlOutput(res, "<pre>"+e+"</pre>");
+  }
 }
 
 function htmlOutput(res, html){
