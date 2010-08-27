@@ -1,0 +1,215 @@
+#macro(editableText $id $suffix $value)
+<span class="field-text visible">$value</span>
+<div class="field-form hidden" id="${id}-${suffix}">
+  <input class="field-input" name="${id}-${suffix}" type="text" value="$value" />
+  <a class="accept" href="#"><img alt="Accept" src="$portalPath/images/icons/tick.png" /></a>
+  <a class="cancel" href="#"><img alt="Cancel" src="$portalPath/images/icons/cross.png" /></a>
+</div>
+#end
+#macro(facetRow $id $field $label $display $extraClass)
+  <tr id="$id" class="facets-row $extraClass">
+    <td>
+      <img class="facets-grip" src="$portalPath/images/icons/grippy.png" />
+      #editableText($id "field" $field)
+    </td>
+    <td>#editableText($id "label" $label)</td>
+    <td>
+      #set($facetDisplays = $self.getFacetDisplays())
+      <span class="field-text visible">$facetDisplays.get($display)</span>
+      <div class="field-form hidden" id="${id}-display">
+        <select class="field-input" name="facets-display">
+          #foreach($facetDisplayKey in $facetDisplays.keySet())
+            #set($facetDisplay = $facetDisplays.get($facetDisplayKey))
+            <option name="$facetDisplayKey"#if($display==$facetDisplayKey) selected="selected"#end>$facetDisplay</option>
+          #end
+        </select>
+        <a class="accept" href="#"><img alt="Accept" src="$portalPath/images/icons/tick.png" /></a>
+        <a class="cancel" href="#"><img alt="Cancel" src="$portalPath/images/icons/cross.png" /></a>
+      </div>
+    </td>
+    <td>
+      <input class="facets-delete" name="facets-delete" type="checkbox" value="$id" />
+    </td>
+  </tr>
+#end
+#macro(watcherRow $id $stopped $path $fileFilter $dirFilter $extraClass)
+  <tr id="$id" class="watcher-row $extraClass">
+    <td>
+      <input class="watcher-active" name="watcher-active" type="checkbox" value="$id" #if($stopped=="false")checked="checked"#end />
+    </td>
+    <td>#editableText($id "path" $path)</td>
+    <td>#editableText($id "file" $fileFilter)</td>
+    <td>#editableText($id "dir" $dirFilter)</td>
+    <td>
+      <input class="watcher-delete" name="watcher-delete" type="checkbox" value="$id" />
+    </td>
+  </tr>
+#end
+#macro(category $id $label)
+  <li><a id="${id}-category" class="category" href="#" rel="$id">$label</a></li>
+#end
+
+#set($pageTitle = "Batch Update")
+<h2 id="page-heading">Batch Update</h2>
+#set($renderBatchProcessForms = true)
+
+#########################
+###  Admin login required
+
+##if (!$page.authentication.is_admin())
+##set($renderBatchProcessForms = false)
+##  <div class="box">
+##    <div class="block">
+##      <div class="login-error">
+##        Sorry, but you need to be logged in as an administrator to use this screen.
+##      </div>
+##    </div>
+##  </div>
+##end
+
+#########################
+###  Render page
+
+#if ($renderBatchProcessForms)
+<div class="grid_4">
+  #set($menuTitle = "Batch Update")
+  #parse($page.getTemplate('wrapping/menu-open.vm'))
+  #set($menuTitle = $nullValue)
+    <ul class="menu">
+      #category("general" "General")
+    </ul>
+  #parse($page.getTemplate('wrapping/menu-close.vm'))
+</div>
+<div id="form-section" class="grid_12">
+  <div id="general-section" class="box hidden">
+    <h2>General</h2>
+    <div class="box" id="upload-file-form">
+        $self.render_upload_form()
+        <img class="hidden" id="general-loading" src="$portalPath/images/icons/loading.gif" />
+        <span id="general-message"></span>
+    </div>
+  </div>
+</div>
+<script type="text/javascript" src="$portalPath/js/jquery-ui-1.7.2.custom.min.js"></script>
+<script type="text/javascript" src="$portalPath/js/jquery.cookie.js"></script>
+<script type="text/javascript">
+$(function() {
+    // change category
+    $(".category").click(function() {
+        var category = $(this);
+        if (!category.hasClass("selected")) {
+            $(".category").removeClass("selected");
+            category.addClass("selected");
+            $("#form-section > div").addClass("hidden")
+            var formId = category.attr("rel");
+            $("#" + formId + "-section").removeClass("hidden");
+            jQuery.cookie("category", formId, { path: "$portalPath/settings" });
+        }
+        return false;
+    });
+
+    var selected = "general";
+    ##if($page.isConfigured())
+        // restore selected category
+    ##    selected = jQuery.cookie("category") || selected;
+    ##end
+    $("#" + selected + "-category").click();
+
+    // make text fields editable
+    $(".field-text").live("click", function() {
+        $(this).toggleClass("hidden").toggleClass("visible")
+            .next().toggleClass("hidden").toggleClass("inline");
+        return false;
+    });
+
+    // submit editable fields
+    $(".field-form").submit(function() {
+        $(this).find(".accept").click();
+        return false;
+    });
+
+    // accept editable fields
+    $(".field-form .accept").live("click", function() {
+        var parentEl = $(this).parent(".field-form");
+        var textEl = parentEl.prev(".field-text");
+        var inputEl = $(this).prev(".field-input");
+        parentEl.toggleClass("hidden").toggleClass("inline");
+        textEl.toggleClass("hidden").toggleClass("visible");
+        var oldValue = textEl.text();
+        var newValue = inputEl.val();
+        if (oldValue != newValue) {
+            textEl.css("font-weight", "bold").text(newValue);
+        }
+        return false;
+    });
+
+    // cancel editable fields
+    $(".field-form .cancel").live("click", function() {
+        $(this)
+            .parent().toggleClass("hidden").toggleClass("inline")
+                .prev().toggleClass("hidden").toggleClass("visible");
+        return false;
+    });
+
+    // add new table row
+    $("button.add").click(function() {
+        var rel = $(this).attr("rel");
+        var blankRowId = rel + "-blank";
+        var tableId = rel + "-table";
+        var newRow = $("#" + blankRowId).clone(true).appendTo($("#" + tableId));
+        newRow.removeClass("hidden");
+        newRow.find(".field-text").css("font-weight", "bold");
+        var newId = rel + "-" + ($("#" + tableId + " tr").length);
+        newRow.attr("id", newId);
+        newRow.find(".field-form").each(function() {
+            var id = $(this).attr("id");
+            $(this).attr("id", id.replace(blankRowId, newId));
+        });
+        newRow.find(":input").each(function() {
+            var name = $(this).attr("name");
+            $(this).attr("name", name.replace(blankRowId, newId));
+            $(this).filter("input:checkbox").attr("value", newId);
+        });
+        newRow.find(".field-text:first").click();
+        newRow.find(".field-input:first").focus();
+        return false;
+    });
+
+    // cancel form changes
+    $("input#cancel").click(function() {
+        window.location.reload();
+        return false;
+    });
+
+    // update general category
+    $("#general-section input#upload").removeAttr("disabled").click(function() {
+        $(this).attr("disabled", "disabled");
+        $("#general-loading").show();
+        var data = $("#general-form").serialize();
+        jQuery.ajax({
+            type : "POST",
+            url : "$portalPath/actions/batchprocess.ajax?" + data,
+            success:
+                function(data, status) {
+                    $("#general-loading").hide();
+                    $("#general-message").text("Updated successfully");
+                    setTimeout(function() { $("#general-message").empty(); }, 3000);
+                    $("#general-section input#upload").removeAttr("disabled");
+                },
+            error:
+                function (req, status, e) {
+                    $("#general-loading").hide();
+                    $("#general-message").text(req.responseText);
+                    setTimeout(function() { $("#general-message").empty(); }, 3000);
+                    $("#general-section input#upload").removeAttr("disabled");
+                },
+            data: {
+                func: "batch-update"
+            }
+        });
+    });
+
+});
+</script>
+
+#end
