@@ -413,6 +413,13 @@ public class CachingDynamicPageServiceImpl implements DynamicPageService {
         // evaluate the context script if exists
         Object pageObject = new Object();
         String scriptName = "scripts/" + templateName + ".py";
+        Set<String> renderMessages = null;
+        if (objectContext.containsKey("renderMessages")) {
+            renderMessages = (Set<String>) objectContext.get("renderMessages");
+        } else {
+            renderMessages = new HashSet<String>();
+            context.put("renderMessages", renderMessages);
+        }
         try {
             Map<String, Object> bindings = (Map<String, Object>) objectContext
                     .get("bindings");
@@ -423,14 +430,6 @@ public class CachingDynamicPageServiceImpl implements DynamicPageService {
             e.printStackTrace(new PrintStream(eOut));
             String eMsg = eOut.toString();
             log.warn("Failed to run display script!\n=====\n{}\n=====", eMsg);
-            Set<String> renderMessages = null;
-            if (objectContext.containsKey("renderMessages")) {
-                renderMessages = (Set<String>) objectContext
-                        .get("renderMessages");
-            } else {
-                renderMessages = new HashSet<String>();
-                context.put("renderMessages", renderMessages);
-            }
             renderMessages
                     .add("Page script error: " + scriptName + "\n" + eMsg);
         }
@@ -447,6 +446,11 @@ public class CachingDynamicPageServiceImpl implements DynamicPageService {
             content = pageContentWriter.toString();
         } catch (Exception e) {
             log.error("Failed rendering display page: {}", templateName);
+            ByteArrayOutputStream eOut = new ByteArrayOutputStream();
+            e.printStackTrace(new PrintStream(eOut));
+            String eMsg = eOut.toString();
+            renderMessages.add("Page content template error: " + templateName
+                    + "\n" + eMsg);
         }
 
         log.debug("========== END renderObject ==========");

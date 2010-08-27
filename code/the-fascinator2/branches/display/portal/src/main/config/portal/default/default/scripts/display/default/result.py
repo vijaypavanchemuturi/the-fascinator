@@ -1,6 +1,7 @@
 
 class ResultData:
     def __activate__(self, context):
+        self.services = context["Services"]
         self.page = context["page"]
         self.portalId = context["portalId"]
         self.metadata = context["metadata"]
@@ -23,7 +24,7 @@ class ResultData:
     def getMimeTypeIcon(self, format):
         # check for specific icon
         iconPath = "images/icons/mimetype/%s/icon.png" % format
-        resource = Services.getPageService().resourceExists(self.portalId, iconPath)
+        resource = self.services.getPageService().resourceExists(self.portalId, iconPath)
         if resource is not None:
             return iconPath
         elif format.find("/") != -1:

@@ -9,7 +9,7 @@
                     #if($portal.name != $portalId)
                         <li><a href="$contextPath/$portal.name/$page.getRelativePath()">$portal.description</a></li>
                     #else
-                        <li class="selected-view"><a href="#">$portal.description</a></li>
+                        <li class="selected-view"><a href="#" onclick="return false">$portal.description</a></li>
                     #end
                 #end
             </ul>
