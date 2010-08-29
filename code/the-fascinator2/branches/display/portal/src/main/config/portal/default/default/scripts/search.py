@@ -11,7 +11,7 @@ from java.util import ArrayList, LinkedHashMap, HashSet
 
 class SearchData:
     def __init__(self):
-        pass
+        self.lastPortalId = ""
     
     def __activate__(self, context):
         self.services = context["Services"]
@@ -20,7 +20,7 @@ class SearchData:
         self.sessionState = context["sessionState"]
         self.request = context["request"]
         self.pageName = context["pageName"]
-
+        
         self.__portal = context["page"].getPortal()
         sessionNav = self.__portal.get("portal/use-session-navigation", "true")
         self.__useSessionNavigation = Boolean.parseBoolean(sessionNav)
@@ -32,6 +32,11 @@ class SearchData:
         self.__selected = ArrayList()
         self.__fqParts = []
         self.__searchField = self.formData.get("searchField", "full_text")
+        
+        if self.__portal.getName() != self.lastPortalId:
+            self.sessionState.remove("fq")
+            self.lastPortalId =  self.__portal.getName()
+        
         self.__search()
     
     def usingSessionNavigation(self):

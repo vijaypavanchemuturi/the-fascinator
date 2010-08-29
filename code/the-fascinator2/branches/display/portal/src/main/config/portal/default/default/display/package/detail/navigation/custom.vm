@@ -7,6 +7,9 @@
 <script type="text/javascript" src="$portalPath/js/rvt.js"></script>
 <script type="text/javascript">
 $(function() {
+    // remove the default actions
+    $("#open-this, #reharvest-this").remove();
+    
     // RVT
     var rvt = rvtFactory(jQuery);
     rvt.tocSelector = "#package-toc";

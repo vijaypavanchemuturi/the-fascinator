@@ -1,0 +1,13 @@
+#set($hasWorkflow = $self.hasWorkflow())
+#set($hasWorkflowAccess = $self.hasWorkflowAccess())
+#if($hasWorkflow && $hasWorkflowAccess)
+    #set($menuTitle = "Workflow")
+    #parseTemplate("wrapping/menu-open.vm")
+    <ul class="menu">
+        #set($workflowStep = $self.getWorkflowStep())
+        <li>
+            <a href="$portalPath/workflow/$oid" title="$workflowStep">Manage: $workflowStep</a>
+        </li>
+    </ul>
+    #parseTemplate("wrapping/menu-close.vm")
+#end
