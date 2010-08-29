@@ -1,4 +1,4 @@
-import json, time
+import json2 as json, time
 
 from au.edu.usq.fascinator.api.indexer import SearchRequest
 from au.edu.usq.fascinator.api.storage import StorageException
