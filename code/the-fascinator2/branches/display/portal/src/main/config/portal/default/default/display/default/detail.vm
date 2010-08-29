@@ -9,6 +9,7 @@
             </div>
         </div>
     #end
+    #parseDisplayTemplate("detail/dialogs.vm")
     #parseDisplayTemplate("detail/preview/header.vm")
 #else
     ## RVT requests an ICE-style format
