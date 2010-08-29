@@ -1,10 +1,27 @@
 #set($menuTitle = "Actions")
 #parseTemplate("wrapping/main-menu-open.vm")
 <ul class="menu">
-    <li><a href="#">Open file...</a></li>
-    #if($page.authentication.is_admin() && !$parent.isPending())
-    <li><a id="reharvest" href="$portalPath/detail/$oid">Reharvest...</a></li>
+    #if($parent.hasLocalFile())
+        <li>
+            <a id="open-this" href="#">Open file</a>
+        </li>
     #end
     #parseDisplayTemplate("detail/navigation/custom-actions.vm")
+    #if($page.authentication.is_admin())
+        #if(!$parent.isPending())
+            <li id="reharvest-this"><a id="reharvest" href="$portalPath/detail/$oid">Reharvest</a></li>
+        #end
+    #end
 </ul>
 #parseTemplate("wrapping/main-menu-close.vm")
+<script type="text/javascript">
+$("#open-this").click(function() {
+    jQuery.post("$portalPath/open.ajax", { oid: "$oid" },
+        function(data, status) {
+            if (data.message) {
+                alert("Failed to open file: " + data.message);
+            }
+        }, "json");
+    return false;
+});
+</script>

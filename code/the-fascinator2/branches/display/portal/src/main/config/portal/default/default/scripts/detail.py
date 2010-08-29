@@ -1,4 +1,4 @@
-import re
+import os, re
 
 from java.io import ByteArrayInputStream, ByteArrayOutputStream
 from java.lang import Boolean
@@ -41,6 +41,11 @@ class DetailData:
         else:
             # require trailing slash for relative paths
             self.response.sendRedirect("%s/%s/" % (self.contextPath, uri))
+    
+    def hasLocalFile(self):
+        # get original file.path from object properties
+        filePath = self.getObject().getMetadata().getProperty("file.path")
+        return filePath and os.path.exists(filePath)
     
     def getOid(self):
         return self.__oid
