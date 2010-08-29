@@ -3,14 +3,19 @@ import org.apache.commons.httpclient.methods.GetMethod as GetMethod
 
 from au.edu.usq.fascinator.common import JsonConfigHelper
 
-class GeoNames:
+class GeonamesData:
     def __init__(self):
+        pass
+
+    def __activate__(self, context):
+        self.vc = context
+
         responseType = "text/html; charset=UTF-8"
         responseMsg = ""
-        func = formData.get("func")
+        func = self.vc("formData").get("func")
         if func == "placeName":
             try:
-                placeName = formData.get("q")
+                placeName = self.vc("formData").get("q")
                 url = "http://ws.geonames.org/searchJSON?fuzzy=0.7&q=" + placeName
                 client = BasicHttpClient(url)
                 get = GetMethod(url)
@@ -24,11 +29,9 @@ class GeoNames:
                 r = str(e), None
             responseType = "text/plain; charset=UTF-8"
             #responseMsg = "\nToowoomba, Australia\nToowoomba, Africa";
-        writer = response.getPrintWriter(responseType)
+        writer = self.vc("response").getPrintWriter(responseType)
         writer.println(responseMsg)
         writer.close()
-
-scriptObject = GeoNames()
 
 #"countryName" : "Australia",
 #  "adminCode1" : "04",

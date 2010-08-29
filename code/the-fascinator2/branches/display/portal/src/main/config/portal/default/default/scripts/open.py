@@ -4,10 +4,14 @@ from java.lang import Exception
 
 class OpenData:
     def __init__(self):
-        writer = response.getPrintWriter("text/plain; charset=UTF-8")
+        pass
+
+    def __activate__(self, context):
+        self.vc = context
+        writer = self.vc["response"].getPrintWriter("text/plain; charset=UTF-8")
         jsonResponse = "{}"
         try:
-            oid = formData.get("oid")
+            oid = self.vc["formData"].get("oid")
             object = Services.getStorage().getObject(oid);
             filePath = object.getMetadata().getProperty("file.path")
             object.close()
@@ -17,5 +21,3 @@ class OpenData:
             jsonResponse = '{ "message": "%s" }' % e.getMessage()
         writer.println(jsonResponse)
         writer.close()
-
-scriptObject = OpenData()

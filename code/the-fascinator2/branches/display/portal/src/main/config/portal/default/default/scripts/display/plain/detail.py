@@ -2,8 +2,11 @@ from java.io import ByteArrayOutputStream
 from org.apache.commons.io import IOUtils
 from org.apache.commons.lang import StringEscapeUtils
 
-class ObjectDetailData:
+class DetailData:
     def __init__(self):
+        pass
+
+    def __activate__(self, context):
         pass
 
     def getContent(self, oid, metadata):
@@ -29,6 +32,3 @@ class ObjectDetailData:
         string = out.toString("UTF-8")
 
         return "<pre>" + StringEscapeUtils.escapeHtml(string) + "</pre>"
-
-if __name__ == "__main__":
-    scriptObject = ObjectDetailData()
