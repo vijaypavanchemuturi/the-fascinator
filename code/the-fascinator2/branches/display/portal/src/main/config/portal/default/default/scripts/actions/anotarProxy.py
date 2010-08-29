@@ -7,18 +7,23 @@ import org.apache.commons.httpclient.methods.PostMethod as PostMethod
 
 from java.lang import Exception
 
-class Anotar:
+class AnotarProxyData:
     def __init__(self):
-        self.url = formData.get("url")
-        self.method = formData.get("method")
-        self.payload = formData.get("json")
+        pass
 
-        self.writer = response.getPrintWriter("text/html; charset=UTF-8")
-        self.client = BasicHttpClient(url)
+    def __activate__(self, context):
+        self.vc = context
+
+        self.url = self.vc["formData"].get("url")
+        self.method = self.vc["formData"].get("method")
+        self.payload = self.vc["formData"].get("json")
+
+        self.writer = self.vc["response"].getPrintWriter("text/html; charset=UTF-8")
+        self.client = BasicHttpClient(self.url)
 
         #response = self.process()
-        response = "Hi"
-        self.writer.println(response)
+        responseMsg = "Hi"
+        self.writer.println(responseMsg)
         self.writer.close()
 
     def process(self):
@@ -40,7 +45,7 @@ class Anotar:
     def __get(self):
         try:
             get = GetMethod(self.url)
-            statusInt = client.executeMethod(get)
+            statusInt = self.client.executeMethod(get)
             r = str(statusInt), get.getResponseBodyAsString().strip()
         except Exception, e:
             r = str(e), None
@@ -50,7 +55,7 @@ class Anotar:
         try:
             post = PostMethod(self.url)
             post.setRequestBody(self.payload)
-            statusInt = client.executeMethod(post)
+            statusInt = self.client.executeMethod(post)
             r = str(statusInt), post.getResponseBodyAsString().strip()
         except Exception, e:
             r = str(e), None
@@ -60,7 +65,7 @@ class Anotar:
         try:
             put = PutMethod(self.url)
             put.setRequestBody(self.payload)
-            statusInt = client.executeMethod(put)
+            statusInt = self.client.executeMethod(put)
             r = str(statusInt), put.getResponseBodyAsString().strip()
         except Exception, e:
             r = str(e), None
@@ -69,7 +74,7 @@ class Anotar:
     def __delete(self):
         try:
             delete = DeleteMethod(self.url)
-            statusInt = client.executeMethod(delete)
+            statusInt = self.client.executeMethod(delete)
             r = str(statusInt), delete.getResponseBodyAsString().strip()
         except Exception, e:
             r = str(e), None

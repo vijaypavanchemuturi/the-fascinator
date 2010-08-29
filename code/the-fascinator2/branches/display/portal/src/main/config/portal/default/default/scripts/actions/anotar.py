@@ -11,11 +11,18 @@ from org.apache.commons.io import IOUtils
 
 class AnotarData:
     def __init__(self):
-        self.action = formData.get("action")
-        self.rootUri = formData.get("rootUri")
-        self.json = formData.get("json")
-        self.type = formData.get("type")
-        self.rootUriList = formData.getValues("rootUriList")
+        pass
+
+    def __activate__(self, context):
+        self.velocityContext = context
+        # This gets called a lot
+        self.fd = self.vc("formData").get
+
+        self.action = self.fd("action")
+        self.rootUri = self.fd("rootUri")
+        self.json = self.fd("json")
+        self.type = self.fd("type")
+        self.rootUriList = self.vc("formData").getValues("rootUriList")
         #print "action:'%s' formData:'%s'" % (self.action, formData)
 
         # used so that ajax requests don't cache
@@ -23,7 +30,7 @@ class AnotarData:
             self.rootUri = self.rootUri[:self.rootUri.find("?ticks")]
 
         # Portal path info
-        portalPath = contextPath + "/" + portalId + "/"
+        portalPath = contextPath + "/" + self.vc("portalId") + "/"
         self.oid = self.rootUri
         if self.oid and self.oid.startswith(portalPath):
             self.oid = self.oid[len(portalPath):]
@@ -47,7 +54,7 @@ class AnotarData:
             # Response is empty
             result = self.delete()
             if result != "":
-                response.setStatus(500)
+                self.vc("response").setStatus(500)
         elif self.action == "get-image":
             # Response is the JSON format expected by image annotation plugin
             result = self.get_image()
@@ -56,9 +63,17 @@ class AnotarData:
             result = self.save_image()
         elif self.action == "delete-image":
             result = self.delete_image()
-        writer = response.getPrintWriter("text/plain; charset=UTF-8")
+        writer = self.vc("response").getPrintWriter("text/plain; charset=UTF-8")
         writer.println(result)
         writer.close()
+
+    # Get from velocity context
+    def vc(self, index):
+        if self.velocityContext[index] is not None:
+            return self.velocityContext[index]
+        else:
+            log.error("ERROR: Requested context entry '" + index + "' doesn't exist")
+            return None
 
     def generate_id(self):
         counter = 0
@@ -76,7 +91,7 @@ class AnotarData:
         jsonObj.set("id", self.pid)
         rootUri = jsonObj.get("annotates/rootUri")
         if rootUri is not None:
-            baseUrl = "http://%s:%s/" % (request.serverName, serverPort)
+            baseUrl = "http://%s:%s/" % (self.vc("request").serverName, serverPort)
             myUri = baseUrl + rootUri + "#" + self.pid
             jsonObj.set("uri", myUri)
 
@@ -161,7 +176,7 @@ class AnotarData:
 
     def delete(self):
         self.obj = None
-        pidList = formData.getValues("pidList")
+        pidList = self.vc("formData").getValues("pidList")
         try:
             try:
                 self.obj = Services.storage.getObject(self.oid)
@@ -294,18 +309,18 @@ class AnotarData:
   "lang" : "en"
 }
 """
-        mediaDimension = "xywh=%s,%s,%s,%s" % (formData.get("left"), formData.get("top"), formData.get("width"), formData.get("height"))
+        mediaDimension = "xywh=%s,%s,%s,%s" % (self.fd("left"), self.fd("top"), self.fd("width"), self.fd("height"))
         locatorValue = "%s#%s" % (self.rootUri, mediaDimension)
         dateCreated = time.strftime("%Y-%m-%dT%H:%M:%SZ")
-        self.json = jsonTemplate % (self.rootUri, self.rootUri, locatorValue, formData.get("creator"), formData.get("creatorUri"), \
-                                    dateCreated, formData.get("text"))
-        id = formData.get("id")
+        self.json = jsonTemplate % (self.rootUri, self.rootUri, locatorValue, self.fd("creator"), self.fd("creatorUri"), \
+                                    dateCreated, self.fd("text"))
+        id = self.fd("id")
         if id == "new":
             id = None
         result = self.put(id)
 
     def delete_image(self):
-        pid = formData.get("id")
+        pid = self.fd("id")
         try:
             try:
                 self.obj = Services.storage.getObject(self.oid)
@@ -320,5 +335,3 @@ class AnotarData:
             if self.obj:
                 self.obj.close()
         return ""
-
-scriptObject = AnotarData()

@@ -2,23 +2,35 @@
 from au.edu.usq.fascinator.api.storage import StorageException
 from au.edu.usq.fascinator.common import JsonConfigHelper
 
-from java.io import BufferedReader, InputStreamReader
-from java.lang import Exception, StringBuilder
+from java.lang import Exception
 from java.util import ArrayList, HashMap
 
 from org.apache.commons.io import IOUtils
 
-class JsonIms(object):
+class JsonImsData(object):
     def __init__(self):
+        pass
+
+    def __activate__(self, context):
+        self.velocityContext = context
+
         json = self.__getJson()
-        out = response.getOutputStream("application/json; charset=UTF-8")
+        out = self.vc("response").getOutputStream("application/json; charset=UTF-8")
         out.write(json)
         out.close()
-    
+
+    # Get from velocity context
+    def vc(self, index):
+        if self.velocityContext[index] is not None:
+            return self.velocityContext[index]
+        else:
+            log.error("ERROR: Requested context entry '" + index + "' doesn't exist")
+            return None
+
     def __getJson(self):
         rvtMap = HashMap()
         try:
-            oid = formData.get("oid")
+            oid = self.vc("formData").get("oid")
             object = Services.storage.getObject(oid)
             payload = object.getPayload("imsmanifest.xml")
             try:
@@ -45,10 +57,10 @@ class JsonIms(object):
             object.close()
         except StorageException, e:
             data["DEBUG"] = str(e.getMessage())
-        
+
         rvtManifest = JsonConfigHelper(rvtMap)
         return rvtManifest.toString()
-    
+
     def __getJsonItems(self, ns, items, resources):
         rvtNodes = ArrayList()
         for item in items:
@@ -65,6 +77,3 @@ class JsonIms(object):
                 rvtNode.put("children", self.__getJsonItems(ns, item.findall(ns+"item"), resources))
                 rvtNodes.add(rvtNode)
         return rvtNodes
-
-if __name__ == "__main__":
-    scriptObject = JsonIms()

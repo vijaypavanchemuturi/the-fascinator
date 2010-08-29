@@ -1,5 +1,3 @@
-from __main__ import Services, formData, response
-
 import os.path, urllib
 
 from au.edu.usq.fascinator.common import JsonConfigHelper
@@ -14,9 +12,14 @@ from javax.xml.bind import JAXBContext, Marshaller
 
 from org.apache.commons.io import IOUtils
 
-class ImsPackage:
+class ImscpData:
     def __init__(self, outputFile=None):
-        oid = formData.get("oid")
+        pass
+
+    def __activate__(self, context):
+        self.velocityContext = context
+
+        oid = self.vc("formData").get("oid")
         print "Creating IMS content package for: %s" % oid
         try:
             # get the package manifest
@@ -27,14 +30,22 @@ class ImsPackage:
             payload.close()
             object.close()
             # create the package
-            url = formData.get("url")
+            url = self.vc("formData").get("url")
             if outputFile is None and url is None:
                 self.__createPackage()
             elif url is not None and outputFile is not None:
                 self.__createPackage(outputFile)
         except Exception, e:
             log.error("Failed to create IMS content package: %s" % str(e))
-    
+
+    # Get from velocity context
+    def vc(self, index):
+        if self.velocityContext[index] is not None:
+            return self.velocityContext[index]
+        else:
+            log.error("ERROR: Requested context entry '" + index + "' doesn't exist")
+            return None
+
     def __createPackage(self, outputFile=None):
         title = self.__manifest.get("title")
         manifest = self.__createManifest()
@@ -45,7 +56,7 @@ class ImsPackage:
         jaxbElem = ObjectFactory.createManifest(ObjectFactory(), manifest)
         m.marshal(jaxbElem, writer)
         writer.close()
-        
+
         if outputFile is not None:
             print "writing to %s..." % outputFile
             out = FileOutputStream(outputFile)
@@ -54,13 +65,13 @@ class ImsPackage:
             filename = urllib.quote(title.replace(" ", "_"))
             response.setHeader("Content-Disposition", "attachment; filename=%s.zip" % filename)
             out = response.getOutputStream("application/zip")
-        
+
         zipOut = ZipOutputStream(out)
-        
+
         zipOut.putNextEntry(ZipEntry("imsmanifest.xml"))
         IOUtils.write(writer.toString(), zipOut)
         zipOut.closeEntry()
-        
+
         oidList = self.__manifest.getList("manifest//id")
         for oid in oidList:
             obj = Services.getStorage().getObject(oid)
@@ -74,16 +85,16 @@ class ImsPackage:
             obj.close()
         zipOut.close()
         out.close()
-    
+
     def __createManifest(self):
         manifest = ManifestType()
         meta = MetadataType()
         meta.setSchema("IMS Content")
         meta.setSchemaversion("1.1.4")
         manifest.setMetadata(meta)
-        
+
         jsonManifest = self.__manifest.getJsonMap("manifest")
-        
+
         orgs = OrganizationsType()
         org = OrganizationType()
         org.setIdentifier("default")
@@ -91,13 +102,13 @@ class ImsPackage:
         orgs.getOrganization().add(org)
         orgs.setDefault(org)
         manifest.setOrganizations(orgs)
-        
+
         resources = ResourcesType()
         manifest.setResources(resources)
         self.__createItems(org, resources, jsonManifest)
-        
+
         return manifest
-    
+
     def __createItems(self, parent, resources, jsonManifest):
         for key in jsonManifest.keySet():
             jsonRes = jsonManifest.get(key)
@@ -110,7 +121,7 @@ class ImsPackage:
                 resources.getResource().add(webRes)
             except Exception, e:
                 print "Failed to create item for '%s': %s" % (key, str(e))
-    
+
     def __createItemAndResource(self, key, jsonRes):
         hidden = jsonRes.get("hidden", "False")
         # organization item
@@ -135,6 +146,3 @@ class ImsPackage:
                 webRes.getFile().add(file)
         obj.close()
         return item, webRes
-    
-if __name__ == "__main__":
-    scriptObject = ImsPackage()
