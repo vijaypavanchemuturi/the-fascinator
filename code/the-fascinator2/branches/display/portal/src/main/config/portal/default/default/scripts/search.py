@@ -35,6 +35,8 @@ class SearchData:
         
         if self.__portal.getName() != self.lastPortalId:
             self.sessionState.remove("fq")
+            self.sessionState.remove("pageNum")
+            self.__pageNum = 1
             self.lastPortalId =  self.__portal.getName()
         
         self.__search()
