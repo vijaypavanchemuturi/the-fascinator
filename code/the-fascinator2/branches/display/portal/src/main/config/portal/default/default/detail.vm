@@ -1,8 +1,7 @@
 #set($pageTitle = "Detail")
 #if($self.isDetail())
     #define($pageHeader)
-        ## cannot have this in display template because of how the velocity context is wrapped
-        <link rel="stylesheet" type="text/css" href="$portalPath/css/anotar/anotar.css" />
+        #renderObject($metadata "detail/head")
     #end
 #end
 #if($self.isIndexed())
