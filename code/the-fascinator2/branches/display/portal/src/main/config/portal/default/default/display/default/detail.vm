@@ -17,17 +17,16 @@
         <div class="title"></div>
         <div class="page-toc"></div>
         <div class="body">
-            <div id="anno-root">
+            <div>
 #end
 
 #parseDisplayTemplate("detail/preview/body.vm")
 
 #if($parent.isDetail())
     #parseDisplayTemplate("detail/preview/footer.vm")
+    #parseDisplayTemplate("detail/annotation.vm")
 #else
             </div>
         </div>
     </div>
 #end
-
-#parseDisplayTemplate("detail/annotation.vm")
