@@ -391,6 +391,14 @@ public class CachingDynamicPageServiceImpl implements DynamicPageService {
         if ("".equals(displayType)) {
             displayType = defaultDisplay;
         }
+        // On the detail page, check for a preview template too
+        if (template.startsWith("detail")) {
+            String previewType = metadata.get("preview_type");
+            if (previewType != null && !"".equals(previewType)) {
+                log.debug("Preview template found: '{}'", previewType);
+                displayType = previewType;
+            }
+        }
         String templateName = "display/" + displayType + "/" + template;
 
         log.debug("displayType: '{}'", displayType);

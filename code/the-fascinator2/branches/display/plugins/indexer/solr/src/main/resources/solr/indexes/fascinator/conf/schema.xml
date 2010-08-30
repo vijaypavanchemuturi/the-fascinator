@@ -131,6 +131,7 @@
     <field name="preview" type="string" indexed="true" stored="true" />
     <field name="altpreview" type="string" indexed="true" stored="true" multiValued="true" />
     <field name="display_type" type="string" indexed="true" stored="true" />
+    <field name="preview_type" type="string" indexed="true" stored="true" />
 
     <!-- Workflow/Security fields -->
     <field name="security_filter" type="string" indexed="true" stored="true" multiValued="true" />
