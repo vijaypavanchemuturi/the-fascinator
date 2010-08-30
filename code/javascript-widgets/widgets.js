@@ -1,9 +1,9 @@
 
-var widgets=null;
+var widgets={forms:[]};
 
 
 (function($){
-  var validator;
+  var formClassName = "widget-form";
 
   function trim(s){
     return $.trim(s);
@@ -47,116 +47,31 @@ var widgets=null;
       }
       msgBox.dialog("open").find("span:first").text(msg);
   }
-
-  function submit(ctx){
-
-  }
   
-  function save(ctx){
-    var data={}, s, v, e, url, formFields, replaceFunc;
-    ctx = ctx || $("body");
-    formFields = ctx.find(".form-fields:first").val() + ctx.find(".form-fields-readonly:first").val();
-    formFields = $.grep(formFields.split(/[\s,]+/),
-                            function(i){return /\S/.test(i)});
-    url = ctx.find(".save-form-fields-url:first").val();
-    replaceFunc=function(s){
-        s = s.replace(/[{}()]/g, "");   // make it safe - no function calls
-        return eval(s);
-    };
-    url = url.replace(/{[^}]+}/g, replaceFunc);
-    function getValue(i){
-      e = getById(i);   //$("*[id="+i+"]");
-      if(e.size()==0) e=ctx.find("input[name="+i+"]");
-      if(e.size()==0){return null;}
-      v = e.val();
-      if(e.attr("type")==="checkbox"){
-        if(!e.attr("checked"))v="";
-      }
-      return v;
-    }
-    $.each(formFields, function(c, i){
-      s = /\.\d+(\.|$)/.test(i);
-      if(s){
-        var id, count=1;
-        while(true){
-          id = i.replace(/\.0(?=\.|$)/, "."+count);
-          v=getValue(id);
-          if(v===null) break;
-          data[id]=v;
-          count+=1;
-        }
-      }else{
-        v=getValue(i);
-        data[i]=v;
-      }
+  function changeToTabLayout(elem){
+    var h, li, ul = $("<ul></ul>");
+    elem.children("h3").each(function(c, e){
+        h = $(e);
+        li = $("<li><a href='#" + h.next().attr("id") + "'><span>" + h.text() + "</span></a></li>");
+        ul.append(li);
+        h.remove();
     });
-    if(data.metaList=="[]"){
-        s = [];
-        $.each(data, function(k, v){if(k!="metaList")s.push(k);});
-        data.metaList=s;
+    if(true){
+        var sel;
+        elem.find(".prev-tab").click(function(){
+            sel=elem.tabs("option", "selected");
+            elem.tabs("option", "selected", sel-1);
+        });
+        elem.find(".next-tab").click(function(){
+            sel=elem.tabs("option", "selected");
+            elem.tabs("option", "selected", sel+1);
+        });
     }
-    $.ajax({type:"POST", url:url, data:data,
-        success:function(data){
-            if(data.error || !data.ok){
-                messageBox("Failed to save! (error='"+data.error+"')");
-            }else{
-                ctx.find(".saved-result:first").text("Saved OK").
-                    css("color", "green").show().fadeOut(4000);
-            }
-        },
-        error:function(xhr, status, e){
-            messageBox("Failed to save! (status='"+status+"')");
-        },
-        dataType:"json"
-    });
+    elem.prepend(ul);
+    return elem;
   }
 
-  function restore(ctx, data){
-      ctx = ctx || $("body");
-      var keys=[], skeys=[], inputs, input;
-      var formFields = $.grep(ctx.find(".form-fields:first").val().split(/[\s,]+/),
-                            function(i){return /\S/.test(i)});
-  //alert(data.toSource());
-      $.each(data, function(k, v){keys.push(k);});
-      keys.sort();
-      skeys = $.grep(keys, function(i){return /\.\d+(\.|$)/.test(i);}, true);
-      //alert(skeys.toSource());
-      //alert(formFields.toSource());
-      inputs = ctx.find("input, textarea, select");
-      $.each(skeys, function(c, v){
-          if($.inArray(v, formFields)!=-1){
-              inputs.filter("[id="+v+"]").val(data[v]);
-          }
-      });
-      // list items
-      skeys = $.grep(keys, function(i){return /\.\d+(\.|$)/.test(i);});
-      $.each(skeys, function(c, v){
-          var k = v.replace(/\.\d+(?=(\.|$))/, ".0");
-          if($.inArray(k, formFields)!=-1){
-              input = inputs.filter("[id="+v+"]");
-        //if(data[v]=="")data[v]="[Blank]";
-        //alert(v + ", "+ data[v]);
-              if(input.size()>0){
-                input.val(data[v]);
-              }else{
-                input = inputs.filter("[id="+k+"]");
-                input.parents(".input-list:first").find(".add-another-item, .item-add").click();
-                // update inputs - this could be done better
-                inputs = ctx.find("input, textarea, select");
-                input = inputs.filter("[id="+v+"]");
-          if(input.size()==0){
-              alert("id '"+v+"' not found!");
-          }
-                input.val(data[v]);
-              }
-          }
-      });
-  }
-
-  function reset(){
-  }
-
-  function validation(){
+  function validator(){
     var reg1=/(\s*(\w+)\s*(\(((('([^'\\]|\\.)*')|("([^"\\]|\\.)*")|(\/([^\/\\]|\\.)*\/)|(([^'"\/\\]|\\.)*?))*?)\))\s*(;|$)\s*)|(\s*(;|$))/g; // 2, 4, 14, 15=Err
     var reg2=/(\()|(\))|('([^'\\]|\\.)*')|("([^"\\]|\\.)*")|(\/([^\/\\]|\\.)*\/)|(\w[\w\d\._]*)|(([^\(\)\w\s'"\/\\]|\\.)+)/g;
     var reg3=/(\s*(rule)\s*(\{((('([^'\\]|\\.)*')|("([^"\\]|\\.)*")|(\/([^\/\\]|\\.)*\/)|(([^'"\/\\]|\\.)*?))*?)\}))/g; // 4
@@ -250,8 +165,7 @@ var widgets=null;
         }
         return {action:action, target:target};
     }
-    return {
-      setup:function(onLoadTest){
+    function setup(ctx, onLoadTest){
         var m, w, va, f, a, t;
         var validationsFor={}, valdationsForLists={};
         //var matchQuotedStr = '("([^"\\]|\\.)*")';     // continues matching until closing (unescaped) quote
@@ -291,11 +205,11 @@ var widgets=null;
                 }
             }
         }
-        $(".validation-rule").each(function(c, v){
+        ctx.findx(".validation-rule").each(function(c, v){
             v = $(v).val() || $(v).text();
             rule(v);
         });
-        $(".validation-rules").each(function(c, v){
+        ctx.findx(".validation-rules").each(function(c, v){
             v = $(v).text();
             v.replace(reg3, function(){ var v=arguments[4]; if(v)rule(v); });
         });
@@ -310,7 +224,6 @@ var widgets=null;
 
                 $.each(l, function(c, d){
                     testStr="";
-                    //alert(d.toSource());
                     if(d.test){
                       reader = iterReader(d.test.match(reg2));
                       testStr = getExpr(reader);
@@ -342,498 +255,711 @@ var widgets=null;
                 });
             }
         });
-      },
+    }
+    return {
+      setup:setup,
       test:function(){},
       isOkToSave:function(){return isOkToX("save");},
       isOkToSubmit:function(){return isOkToX("submit");},
       hideAllMessages:hideAllMessages,
       parseErrors:{}
     }
-  };
+  }
+  widgets.validator = validator;
   
-  function changeToTabLayout(elem){
-    var h, li, ul = $("<ul></ul>");
-    elem.children("h3").each(function(c, e){
-        h = $(e);
-        li = $("<li><a href='#" + h.next().attr("id") + "'><span>" + h.text() + "</span></a></li>");
-        ul.append(li);
-        h.remove();
-    });
-    if(true){
-        var sel;
-        elem.find(".prev-tab").click(function(){
-            sel=elem.tabs("option", "selected");
-            elem.tabs("option", "selected", sel-1);
-        });
-        elem.find(".next-tab").click(function(){
-            sel=elem.tabs("option", "selected");
-            elem.tabs("option", "selected", sel+1);
-        });
-    }
-    elem.prepend(ul);
-    return elem;
-  }
+  function formWidget(ctx){
+      var widgetForm;
+      var validator;
+      var listeners={};
+      var ctxInputs;
 
-  function setupFileUploader(fileUploadSections, onChange){
-    if(!fileUploadSections) fileUploadSections=$(".file-upload-section");
-    fileUploadSections.each(function(c, e){
-        var handleFileDrop;
-        var ifile, fileUploadSection;
-        fileUploadSection = $(e);
-        ifile = fileUploadSection.find("input[type=file]");
-        if(!onChange){
-            onChange=function(fileInfo, fileUploadSection){
-                var s;
-                s=["<span>", fileInfo.typeName, ": ", fileInfo.name, " (",
-                    fileInfo.kSize, "k) </span>"];
-                s = $(s.join(""));
-                if(fileInfo.createImage) s.append(fileInfo.createImage());
-                fileUploadSection.find(".file-upload-info").html(s);
-            };
-        }
-        ifile.change(function(e){
-            var fileInfo=getFileUploadInfo(e.target.files[0]);
-            onChange(fileInfo, fileUploadSection);
-        });
-        fileUploadSection.bind("dragover", function(ev){
-            if(ev.target.tagName=="INPUT"){ return true; }
-            ev.stopPropagation(); ev.preventDefault();
-        });
-        handleFileDrop=function(ev){
-            var file, fileInfo;
-            if(ev.target.tagName=="INPUT"){ return true; }
-            ev.stopPropagation(); ev.preventDefault();
-            file=ev.dataTransfer.files[0];
-            fileInfo=getFileUploadInfo(file);
-            onChange(fileInfo, fileUploadSection);
-            ifile.val("");      // reset
-            //gDroppedFile=file;
-            //ifile[0].files[0]=file;
-            return;
-        }
-        //fileUploadSection.bind("drop", handleFileDrop);  // Note: binding to the wrong 'drop' event!
-        if(fileUploadSection[0].addEventListener){
-            fileUploadSection[0].addEventListener("drop", handleFileDrop, false);
-        }
-    });
-  }
-
-  function getFileUploadInfo(file){
-    var fileInfo = {};
-    fileInfo.file = file;
-    fileInfo.size = file.size;
-    fileInfo.kSize = parseInt(file.size/1024+0.5);
-    fileInfo.type = file.type;
-    fileInfo.name = file.name;
-    try{ 
-        fileInfo.encodedData=file.getAsDataURL();
-    }catch(e){ }
-    if(file.type.search("image/")==0){
-        fileInfo.image=true;
-        fileInfo.typeName = "Image";
-        if(fileInfo.encodedData){
-            fileInfo.createImage=function(){
-                var i;
-                i=$("<img class='thumbnail' style='vertical-align:middle;'/>");
-                i.attr("src", fileInfo.encodedData);
-                i.attr("title", fileInfo.name);
-                return i;
-            };
-        }
-    }else if(file.type.match("video|flash")){
-        fileInfo.video=true;
-        fileInfo.typeName = "Video";
-    }else if(file.type.match("text|pdf|doc|soffice|rdf|txt|opendocument")){
-        fileInfo.document=true;
-        fileInfo.typeName = "Document";
-    }else{
-        fileInfo.typeName = "File";
-    }
-    return fileInfo;
-  }
-
-  function createFileSubmitter(){
-      var iframe, getBody, submit;
-      iframe = $("<iframe id='upload-iframe' style='display:none; height:8ex; width:80em; border:1px solid red;'/>");
-      $("body").append(iframe);
-      if(iframe[0].contentDocument){
-          getBody=function(){ return $(iframe[0].contentDocument.body); };
-      }else{
-          getBody=function(){ return $(iframe[0].contentWindow.document.body); };
+      function addListener(name, func){
+          var l;
+          l=listeners[name];
+          if(!l){
+              l = [];
+              listeners[name]=l;
+          }
+          l.push(func);
       }
-      submit=function(url, elems, callback){
-          var form = $("<form method='POST' enctype='multipart/form-data' />");
-          iframe.unbind();
-          if(!url)url=window.location.href+"";
-          form.attr("action", url);
-          $.each(elems, function(c, e){
-              form.append($(e).clone());
+      function removeListener(name, func){
+          var l, i;
+          l=listeners[name]||[];
+          i=$.inArray(name, l);
+          if(i>-1)l.splice(i, 1);
+      }
+      function removeListeners(name){
+          delete listeners[name];
+      }
+      function raiseEvents(name){
+          var l=listeners[name]||[];
+          for(var k in l){
+              var f = l[k];
+              try{
+                  if(f()===false) return false; // cancel event
+              }catch(e){}
+          }
+      }
+
+      function onSubmit(){
+        if(raiseEvents("onSubmit")==false) return false;
+        alert("onSubmit()");
+        //submit();
+        return true;
+      }
+      function onSave(){
+        if(raiseEvents("onSave")==false) return false;
+        alert("onSave()");
+        //save();
+        return true;
+      }
+      function onRestore(data){
+        if(raiseEvents("onRestore")==false) return false;
+        //messageBox(JSON.stringify(data))
+        restore(data);
+        return true;
+      }
+      function onReset(data){
+        if(raiseEvents("onReset")==false) return false;
+        reset(data);
+        return true;
+      }
+
+      function submit(){
+
+      }
+
+      function save(){
+        var data={}, s, v, e, url, formFields, replaceFunc, ctxInputs;
+        formFields = ctx.findx(".form-fields:first").val() + ctx.findx(".form-fields-readonly:first").val();
+        formFields = $.grep(formFields.split(/[\s,]+/),
+                                function(i){return /\S/.test(i)});
+        url = ctx.findx(".form-fields-save-url:first").val();
+        replaceFunc=function(s){
+            s = s.replace(/[{}()]/g, "");   // make it safe - no function calls
+            return eval(s);
+        };
+        url = url.replace(/{[^}]+}/g, replaceFunc);
+        function getValue(i){
+          e = getById(i);
+          if(e.size()==0) e=ctxInputs.filter("[name="+i+"]");
+          if(e.size()==0){return null;}
+          v = e.val();
+          if(e.attr("type")==="checkbox"){
+            if(!e.attr("checked"))v="";
+          }
+          return v;
+        }
+        $.each(formFields, function(c, i){
+          s = /\.\d+(\.|$)/.test(i);
+          if(s){
+            var id, count=1;
+            while(true){
+              id = i.replace(/\.0(?=\.|$)/, "."+count);
+              v=getValue(id);
+              if(v===null) break;
+              data[id]=v;
+              count+=1;
+            }
+          }else{
+            v=getValue(i);
+            data[i]=v;
+          }
+        });
+        if(data.metaList=="[]"){
+            s = [];
+            $.each(data, function(k, v){if(k!="metaList")s.push(k);});
+            data.metaList=s;
+        }
+        $.ajax({type:"POST", url:url, data:data,
+            success:function(data){
+                if(data.error || !data.ok){
+                    messageBox("Failed to save! (error='"+data.error+"')");
+                }else{
+                    ctx.findx(".saved-result:first").text("Saved OK").
+                        css("color", "green").show().fadeOut(4000);
+                }
+            },
+            error:function(xhr, status, e){
+                messageBox("Failed to save! (status='"+status+"')");
+            },
+            dataType:"json"
+        });
+      }
+
+      function restore(data){
+          var keys=[], skeys=[], input;
+          var formFields = $.grep(ctx.findx(".form-fields:first").val().split(/[\s,]+/),
+                                function(i){return /\S/.test(i)});
+          $.each(data, function(k, v){keys.push(k);});
+          keys.sort();
+          skeys = $.grep(keys, function(i){return /\.\d+(\.|$)/.test(i);}, true);
+          $.each(skeys, function(c, v){
+              if($.inArray(v, formFields)!=-1){
+                  ctxInputs.filter("[id="+v+"]").val(data[v]);
+              }
           });
-          getBody().append(form);
-          setTimeout(function(){
-              iframe.load(function(){
-                  var ibody=getBody();
-                  callback(ibody.text, ibody);
-              });
-              form.submit();
-          }, 10);
-      };
-      // submit(url, elems, callback)
-      //    url = url to sumbit to
-      //    elems = 'input' elements to be submitted (cloned)
-      //    callback = function(textResult, iframeBody)
-      return {submit:submit, iframe:iframe, getBody:getBody};
-  }
-  gfs = createFileSubmitter;
-
-  function datepickerOnClose(dateText, inst){
-    var month = $("#ui-datepicker-div .ui-datepicker-month :selected").val();
-    var year = $("#ui-datepicker-div .ui-datepicker-year :selected").val();
-    if(!month)month=0;
-    $(this).datepicker('setDate', new Date(year, month, 1));
-    $(this).blur();
-  }
-  function datepickerBeforeShow(input, inst){
-    inst = $("#" + inst.id);
-    if(inst.hasClass("dateMY") || inst.hasClass("dateYM") || inst.hasClass("dateY")){
-      setTimeout(function(){
-          $(".ui-datepicker-calendar").remove();
-          $(".ui-datepicker-current").remove();
-          $(".ui-datepicker-close").text("OK");
-          if(inst.hasClass("dateY")) $(".ui-datepicker-month").remove();
-        }, 10);
-    }
-  }
-
-  // TODO: remove table, tbody, tr and td references, just rely on the classes
-  function listInput(c, i){
-      var table, count, tmp, visibleItems, displayRowTemplate, displaySelector;
-      var add, del, reorder, addUniqueOnly=false;
-      table = $(i);
-      if(table.hasClass("sortable")){
-        table.find("tbody:first").sortable({
-          items:"tr.sortable-item",
-          update:function(e, ui){ reorder(); }
-        });
+          // list items
+          skeys = $.grep(keys, function(i){return /\.\d+(\.|$)/.test(i);});
+          $.each(skeys, function(c, v){
+              var k = v.replace(/\.\d+(?=(\.|$))/, ".0");
+              if($.inArray(k, formFields)!=-1){
+                  input = ctxInputs.filter("[id="+v+"]");
+                  if(input.size()>0){
+                    input.val(data[v]);
+                  }else{
+                    input = ctxInputs.filter("[id="+k+"]");
+                    input.parents(".input-list:first").find(".add-another-item, .item-add").click();
+                    // update inputs - this could be done better
+                    ctxInputs = ctx.findx("input, textarea, select");
+                    input = ctxInputs.filter("[id="+v+"]");
+              if(input.size()==0){
+                  alert("id '"+v+"' not found!");
+              }
+                    input.val(data[v]);
+                  }
+              }
+          });
       }
-// check all variable names
-      if(table.find(".item-display").size()){
-        if(table.find("tr.item-input-display").size()){
-          alert("Error: table.input-list can not have both 'item-display' and 'item-input-display' table row classes");
-          return;
-        }
-        // For handling 'item-display' (where there is a separate/special row for handling the display of added items)
-        //    Note: if there is an 'item-display' row then it is expected that there will also be an
-        //        'item-input' row as well an 'item-add' button/link
-        displaySelector = ".item-display";
-        tmp=table.find(displaySelector).hide();
-        displayRowTemplate=tmp.eq(0);
-        add=function(){
-          // get item value(s) & validate (if no validation just test for is not empty)
-          var values=[];
-          var test=[];
-          table.find("tr.item-input input[type=text]").each(function(c, i){
-            values[c]=[$.trim($(i).val()), i.id];
-            test[c]=values[c][0];
-            $(i).val("");   // reset
-          }).eq(0).focus();
-          if(!any(values, function(v){ return v[0]!==""; })) return;
-          //
-          visibleItems = table.find(displaySelector+":visible");
-          if(addUniqueOnly){
-            // Check that this entry is unique
-            var unique=true;
-            visibleItems.each(function(c, i){
-              i=$(i);
-              var same=true;
-              i.find("input").each(function(c2, i){
-                if(test[c2]!=i.value)same=false;
-              });
-              if(same)unique=false;
+
+      function reset(){
+      }
+
+
+      function setupFileUploader(fileUploadSections, onChange){
+        if(!fileUploadSections) fileUploadSections=ctx.findx(".file-upload-section");
+        fileUploadSections.each(function(c, e){
+            var handleFileDrop;
+            var ifile, fileUploadSection;
+            fileUploadSection = $(e);
+            ifile = fileUploadSection.find("input[type=file]");
+            if(!onChange){
+                onChange=function(fileInfo, fileUploadSection){
+                    var s;
+                    s=["<span>", fileInfo.typeName, ": ", fileInfo.name, " (",
+                        fileInfo.kSize, "k) </span>"];
+                    s = $(s.join(""));
+                    if(fileInfo.createImage) s.append(fileInfo.createImage());
+                    fileUploadSection.find(".file-upload-info").html(s);
+                };
+            }
+            ifile.change(function(e){
+                var fileInfo=getFileUploadInfo(e.target.files[0]);
+                onChange(fileInfo, fileUploadSection);
             });
-            if(!unique){
-                alert("Selection is already in the list. (not a unique value)");
+            fileUploadSection.bind("dragover", function(ev){
+                if(ev.target.tagName=="INPUT"){ return true; }
+                ev.stopPropagation(); ev.preventDefault();
+            });
+            handleFileDrop=function(ev){
+                var file, fileInfo;
+                if(ev.target.tagName=="INPUT"){ return true; }
+                ev.stopPropagation(); ev.preventDefault();
+                file=ev.dataTransfer.files[0];
+                fileInfo=getFileUploadInfo(file);
+                onChange(fileInfo, fileUploadSection);
+                ifile.val("");      // reset
+                //gDroppedFile=file;
+                //ifile[0].files[0]=file;
                 return;
             }
-          }
-          tmp = displayRowTemplate.clone().show();
-          count = visibleItems.size()+1;
-          tmp.find("*[id]").each(function(c, i){ i.id = i.id.replace(/\.0(?=\.|$)/, "."+count); });
-          tmp.find(".item-display-item").each(function(c, i){
-            var id = values[c][1].replace(/\.0(?=\.|$)/, "."+count);
-            //$(i).text(values[c][0]);
-            //$(i).append("<input type='hidden' id='"+id+"' value='"+values[c][0]+"'/>");
-            $(i).append("<input type='text' id='"+id+"' value='"+values[c][0]+
-                        "' readonly='readonly' size='64' />");
-          });
-          tmp.find(".sort-number").text(count);
-          table.find(displaySelector+":last").after(tmp);
-          visibleItems.find(".delete-item").show();
-          //if(count==1) tmp.find(".delete-item").hide();
-          tmp.find(".delete-item").click(del);
-        }
-
-        del=function(e){
-          $(this).parents("tr").remove();
-          //if(table.find(displaySelector+":visible").size()==1){
-          //  table.find(displaySelector+":visible .delete-item").hide();
-          //}
-          reorder();
-          return false;
-        }
-
-        table.find(".item-add").click(add);
-        addUniqueOnly = table.find(".item-add").hasClass("add-unique-only");
-        table.find("tr.item-input input[type=text]:last").keypress(function(e){
-          if(e.which==13){
-            add();
-          }
-          if(e.which==8 && false){      // backspace delete/recall exp.
-            if($(e.target).val()==""){
-              if(table.find(displaySelector+":visible").size()>0){
-                var i=table.find(displaySelector+":visible:last input:last");
-                del.apply(i);
-                $(e.target).val(i.val());
-                return false;
-              }
+            //fileUploadSection.bind("drop", handleFileDrop);  // Note: binding to the wrong 'drop' event!
+            if(fileUploadSection[0].addEventListener){
+                fileUploadSection[0].addEventListener("drop", handleFileDrop, false);
             }
-          }
-        });
-      }else if(table.find("tr.item-input-display").size()){
-        // For handling 'item-input-display' type lists
-        //   Note: if there is an 'item-input-display' row then it is also excepted that there
-        //      will be an 'add-another-item' button or link
-        displaySelector="tr.item-input-display";
-        tmp=table.find(displaySelector).hide();
-        displayRowTemplate=tmp.eq(0);
-
-        add=function(){
-          visibleItems = table.find(displaySelector+".count-this");
-          tmp = displayRowTemplate.clone().show().addClass("count-this");
-          count = visibleItems.size()+1;
-          tmp.find("*[id]").each(function(c, i){ i.id = i.id.replace(/\.0(?=\.|$)/, "."+count); });
-          tmp.find(".sort-number").text(count);
-          table.find(displaySelector+":last").after(tmp);
-          visibleItems.find(".delete-item").show();
-          if(count==1) tmp.find(".delete-item").hide();
-          tmp.find(".delete-item").click(del);
-        }
-
-        del=function(e){
-          $(this).parents("tr").remove();
-          if(table.find(displaySelector+":visible").size()==1){
-            table.find(displaySelector+":visible .delete-item").hide();
-          }
-          reorder();
-          return false;
-        }
-
-        add();
-        table.find(".add-another-item").click(add);
-      }
-
-      reorder=function(){
-        table.find(displaySelector+":visible").each(function(c, i){
-          $(i).find("*[id]").each(function(_, i){
-            i.id = i.id.replace(/\.\d+(?=\.|$)/, "."+(c+1));
-          });
-          $(i).find(".sort-number").text(c+1);
         });
       }
-  }
 
-  // ==============
-  // Multi-dropdown selection
-  // ==============
-  function buildSelectList(json, parent, getJson, onSelection){
-      var s, o, children={}, ns, selectable;
-      ns = (json.namespace || "") || (parent.namespace || "");
-      selectable = (json.selectable==null)?(!!parent.selectable):(!!json.selectable);
-      s = $("<select/>");
-      if(!json["default"]){
-        o = $("<option value=''>Please select one</option>");
-        s.append(o);
-      }
-      $.each(json.list, function(c, i){
-        var sel=!!(i.selectable!=null?i.selectable:selectable);
-        children[i.id]={url:(i.children==1?i.id:i.children), label:i.label, id:i.id,
-                        selectable:sel, namespace:ns, parent:parent};
-        o = $("<option/>");
-        o.attr("value", i.id);
-        if(i.id==json["default"]) o.attr("selected", "selected");
-        o.text(i.label);
-        s.append(o);
-      });
-      function onChange(){
-        var id, child, j;
-        id = s.val();
-        child = children[id] || {parent:parent};
-        if(s.nextUntil){
-            s.nextUntil(":not(select)").remove();
-        }else{
-            function removeSelects(s){
-                if(s.size()==0)return;
-                removeSelects(s.next("select"));
-                s.remove();
-            }
-            removeSelects(s.next("select"));
-        }
-        if(child.url){
-          getJson(child.url, false, function(j){
-              s.after(buildSelectList(j, child, getJson, onSelection));
-              onSelection(child);
-          });
-        }
-        onSelection(child);
-      }
-      s.change(onChange);
-      setTimeout(onChange, 10);
-      return s;
-  }
-
-  function sourceDropDown(c, dsdd){
-      var ds=$(dsdd), id=dsdd.id, jsonUrl, json=[], selAdd;
-      var selAddNs, selAddId, selAddLabel;
-      var getJson, onSelection, onJson;
-      ds.hide();
-      selAdd = ds.parent().find(".selection-add");
-      // ".json-data-source-url" val(), ".json-data-source" text(),
-      //    ".selection-add"
-      getJson = function(urlId, absolute, onJson){
-        var j, url=urlId;
-        if(json) j=json[urlId]
-        if(j){
-            onJson(j);
-            return;
-        }
-        if(!absolute){
-          url=jsonUrl+urlId;
-          if(!/\.json$/.test(url)) url+=".json";
-        }
-        $.getJSON(url, function(data){
-          json=data;
-          onJson(json);
-        });
-      }
-      onSelection = function(info){
-        var sel;
-        //info.namespace, info.id, info.label, info.selectable, info.parent
-        while(info.selectable!==false && info.selectable!==true){
-          if(info.parent) info = info.parent;
-          else info.selectable=false;
-        }
-        sel=info.selectable;
-        if(/BUTTON|INPUT/.test(selAdd[0].tagName)){
-        //if(/INPUT/.test(selAdd[0].tagName)){
-            alert(selAdd.size()+", text="+selAdd.text());
-          selAdd.attr("disabled", sel?"":"disabled");
-        }else{
-          sel?selAdd.show():selAdd.hide();
-        }
-        if(sel){
-          selAddNs=info.namespace; selAddId=info.id; selAddLabel=info.label;
-        }else{
-          selAddNs=""; selAddId=""; selAddLabel="";
-        }
-        ds.find(".selection-add-id").val(selAddId);
-        ds.find(".selection-add-label").val(selAddLabel);
-        selAdd.find(".selection-add-id").text(selAddId);
-        selAdd.find(".selection-add-label").text(selAddLabel);
-      }
-      onJson = function(json){
-        // OK now build the select-option
-        var o = buildSelectList(json, {}, getJson, onSelection);
-        ds.after(o);
-        //o.after(selAdd);
-      }
-      jsonUrl=ds.find(".json-data-source-url").val();
-      if(jsonUrl){
-        json=getJson(jsonUrl, true, onJson);
-        if(/\//.test(jsonUrl)){
-          jsonUrl=jsonUrl.split(/\/([^\/]*$)/)[0]+"/";  // split at the last /
-        }else{
-          jsonUrl="";
-        }
-      }else{
-        json=$(".json-data-source");
-        json = json.val() || json.text();
+      function getFileUploadInfo(file){
+        var fileInfo = {};
+        fileInfo.file = file;
+        fileInfo.size = file.size;
+        fileInfo.kSize = parseInt(file.size/1024+0.5);
+        fileInfo.type = file.type;
+        fileInfo.name = file.name;
         try{
-          json = $.parseJSON(json);
-          //json = eval("("+json+")");
-          onJson(json);
-        }catch(e){
-          alert("Not valid json! - "+e);
-          json = null;
-          return;
+            fileInfo.encodedData=file.getAsDataURL();
+        }catch(e){ }
+        if(file.type.search("image/")==0){
+            fileInfo.image=true;
+            fileInfo.typeName = "Image";
+            if(fileInfo.encodedData){
+                fileInfo.createImage=function(){
+                    var i;
+                    i=$("<img class='thumbnail' style='vertical-align:middle;'/>");
+                    i.attr("src", fileInfo.encodedData);
+                    i.attr("title", fileInfo.name);
+                    return i;
+                };
+            }
+        }else if(file.type.match("video|flash")){
+            fileInfo.video=true;
+            fileInfo.typeName = "Video";
+        }else if(file.type.match("text|pdf|doc|soffice|rdf|txt|opendocument")){
+            fileInfo.document=true;
+            fileInfo.typeName = "Document";
+        }else{
+            fileInfo.typeName = "File";
         }
+        return fileInfo;
       }
+
+      function createFileSubmitter(){
+          var iframe, getBody, submit;
+          iframe = $("<iframe id='upload-iframe' style='display:none; height:8ex; width:80em; border:1px solid red;'/>");
+          $("body").append(iframe);
+          if(iframe[0].contentDocument){
+              getBody=function(){ return $(iframe[0].contentDocument.body); };
+          }else{
+              getBody=function(){ return $(iframe[0].contentWindow.document.body); };
+          }
+          submit=function(url, elems, callback){
+              var form = $("<form method='POST' enctype='multipart/form-data' />");
+              iframe.unbind();
+              if(!url)url=window.location.href+"";
+              form.attr("action", url);
+              $.each(elems, function(c, e){
+                  form.append($(e).clone());
+              });
+              getBody().append(form);
+              setTimeout(function(){
+                  iframe.load(function(){
+                      var ibody=getBody();
+                      callback(ibody.text, ibody);
+                  });
+                  form.submit();
+              }, 10);
+          };
+          // submit(url, elems, callback)
+          //    url = url to sumbit to
+          //    elems = 'input' elements to be submitted (cloned)
+          //    callback = function(textResult, iframeBody)
+          return {submit:submit, iframe:iframe, getBody:getBody};
+      }
+      gfs = createFileSubmitter;
+
+      // TODO: remove table, tbody, tr and td references, just rely on the classes
+      function listInput(c, i){
+          var table, count, tmp, visibleItems, displayRowTemplate, displaySelector;
+          var add, del, reorder, addUniqueOnly=false;
+          table = $(i);
+          if(table.hasClass("sortable")){
+            table.find("tbody:first").sortable({
+              items:"tr.sortable-item",
+              update:function(e, ui){ reorder(); }
+            });
+          }
+    // check all variable names
+          if(table.find(".item-display").size()){
+            if(table.find("tr.item-input-display").size()){
+              alert("Error: table.input-list can not have both 'item-display' and 'item-input-display' table row classes");
+              return;
+            }
+            // For handling 'item-display' (where there is a separate/special row for handling the display of added items)
+            //    Note: if there is an 'item-display' row then it is expected that there will also be an
+            //        'item-input' row as well an 'item-add' button/link
+            displaySelector = ".item-display";
+            tmp=table.find(displaySelector).hide();
+            displayRowTemplate=tmp.eq(0);
+            add=function(){
+              // get item value(s) & validate (if no validation just test for is not empty)
+              var values=[];
+              var test=[];
+              table.find("tr.item-input input[type=text]").each(function(c, i){
+                values[c]=[$.trim($(i).val()), i.id];
+                test[c]=values[c][0];
+                $(i).val("");   // reset
+              }).eq(0).focus();
+              if(!any(values, function(v){ return v[0]!==""; })) return;
+              //
+              visibleItems = table.find(displaySelector+":visible");
+              if(addUniqueOnly){
+                // Check that this entry is unique
+                var unique=true;
+                visibleItems.each(function(c, i){
+                  i=$(i);
+                  var same=true;
+                  i.find("input").each(function(c2, i){
+                    if(test[c2]!=i.value)same=false;
+                  });
+                  if(same)unique=false;
+                });
+                if(!unique){
+                    alert("Selection is already in the list. (not a unique value)");
+                    return;
+                }
+              }
+              tmp = displayRowTemplate.clone().show();
+              count = visibleItems.size()+1;
+              tmp.find("*[id]").each(function(c, i){
+                  //$(i).addClass(i.id);
+                  i.id = i.id.replace(/\.0(?=\.|$)/, "."+count);
+              });
+              tmp.find(".item-display-item").each(function(c, i){
+                var id = values[c][1].replace(/\.0(?=\.|$)/, "."+count);
+                //$(i).text(values[c][0]);
+                //$(i).append("<input type='hidden' id='"+id+"' value='"+values[c][0]+"'/>");
+                $(i).append("<input type='text' id='"+id+"' value='"+values[c][0]+
+                            "' readonly='readonly' size='64' />");
+              });
+              tmp.find(".sort-number").text(count);
+              table.find(displaySelector+":last").after(tmp);
+              visibleItems.find(".delete-item").show();
+              //if(count==1) tmp.find(".delete-item").hide();
+              tmp.find(".delete-item").click(del);
+            }
+
+            del=function(e){
+              $(this).parents("tr").remove();
+              //if(table.find(displaySelector+":visible").size()==1){
+              //  table.find(displaySelector+":visible .delete-item").hide();
+              //}
+              reorder();
+              return false;
+            }
+
+            table.find(".item-add").click(add);
+            addUniqueOnly = table.find(".item-add").hasClass("add-unique-only");
+            table.find("tr.item-input input[type=text]:last").keypress(function(e){
+              if(e.which==13){
+                add();
+              }
+              if(e.which==8 && false){      // backspace delete/recall exp.
+                if($(e.target).val()==""){
+                  if(table.find(displaySelector+":visible").size()>0){
+                    var i=table.find(displaySelector+":visible:last input:last");
+                    del.apply(i);
+                    $(e.target).val(i.val());
+                    return false;
+                  }
+                }
+              }
+            });
+          }else if(table.find("tr.item-input-display").size()){
+            // For handling 'item-input-display' type lists
+            //   Note: if there is an 'item-input-display' row then it is also excepted that there
+            //      will be an 'add-another-item' button or link
+            displaySelector="tr.item-input-display";
+            tmp=table.find(displaySelector).hide();
+            displayRowTemplate=tmp.eq(0);
+
+            add=function(){
+              visibleItems = table.find(displaySelector+".count-this");
+              tmp = displayRowTemplate.clone().show().addClass("count-this");
+              count = visibleItems.size()+1;
+              tmp.find("*[id]").each(function(c, i){
+                  //$(i).addClass(i.id);
+                  i.id = i.id.replace(/\.0(?=\.|$)/, "."+count);
+              });
+              tmp.find(".sort-number").text(count);
+              table.find(displaySelector+":last").after(tmp);
+              visibleItems.find(".delete-item").show();
+              if(count==1) tmp.find(".delete-item").hide();
+              tmp.find(".delete-item").click(del);
+            }
+
+            del=function(e){
+              $(this).parents("tr").remove();
+              if(table.find(displaySelector+":visible").size()==1){
+                table.find(displaySelector+":visible .delete-item").hide();
+              }
+              reorder();
+              return false;
+            }
+
+            add();
+            table.find(".add-another-item").click(add);
+          }
+
+          reorder=function(){
+            table.find(displaySelector+":visible").each(function(c, i){
+              $(i).find("*[id]").each(function(_, i){
+                i.id = i.id.replace(/\.\d+(?=\.|$)/, "."+(c+1));
+              });
+              $(i).find(".sort-number").text(c+1);
+            });
+          }
+      }
+
+      // ==============
+      // Multi-dropdown selection
+      // ==============
+      function buildSelectList(json, parent, getJson, onSelection){
+          var s, o, children={}, ns, selectable;
+          ns = (json.namespace || "") || (parent.namespace || "");
+          selectable = (json.selectable==null)?(!!parent.selectable):(!!json.selectable);
+          s = $("<select/>");
+          if(!json["default"]){
+            o = $("<option value=''>Please select one</option>");
+            s.append(o);
+          }
+          $.each(json.list, function(c, i){
+            var sel=!!(i.selectable!=null?i.selectable:selectable);
+            children[i.id]={url:(i.children==1?i.id:i.children), label:i.label, id:i.id,
+                            selectable:sel, namespace:ns, parent:parent};
+            o = $("<option/>");
+            o.attr("value", i.id);
+            if(i.id==json["default"]) o.attr("selected", "selected");
+            o.text(i.label);
+            s.append(o);
+          });
+          function onChange(){
+            var id, child, j;
+            id = s.val();
+            child = children[id] || {parent:parent};
+            if(s.nextUntil){
+                s.nextUntil(":not(select)").remove();
+            }else{
+                function removeSelects(s){
+                    if(s.size()==0)return;
+                    removeSelects(s.next("select"));
+                    s.remove();
+                }
+                removeSelects(s.next("select"));
+            }
+            if(child.url){
+              getJson(child.url, false, function(j){
+                  s.after(buildSelectList(j, child, getJson, onSelection));
+                  onSelection(child);
+              });
+            }
+            onSelection(child);
+          }
+          s.change(onChange);
+          setTimeout(onChange, 10);
+          return s;
+      }
+
+      function sourceDropDown(c, dsdd){
+          var ds=$(dsdd), id=dsdd.id, jsonUrl, json=[], selAdd;
+          var selAddNs, selAddId, selAddLabel;
+          var getJson, onSelection, onJson;
+          ds.hide();
+          selAdd = ds.parent().find(".selection-add");
+          // ".json-data-source-url" val(), ".json-data-source" text(),
+          //    ".selection-add"
+          getJson = function(urlId, absolute, onJson){
+            var j, url=urlId;
+            if(json) j=json[urlId]
+            if(j){
+                onJson(j);
+                return;
+            }
+            if(!absolute){
+              url=jsonUrl+urlId;
+              if(!/\.json$/.test(url)) url+=".json";
+            }
+            $.getJSON(url, function(data){
+              json=data;
+              onJson(json);
+            });
+          }
+          onSelection = function(info){
+            var sel;
+            //info.namespace, info.id, info.label, info.selectable, info.parent
+            while(info.selectable!==false && info.selectable!==true){
+              if(info.parent) info = info.parent;
+              else info.selectable=false;
+            }
+            sel=info.selectable;
+            if(/BUTTON|INPUT/.test(selAdd[0].tagName)){
+              selAdd.attr("disabled", sel?"":"disabled");
+            }else{
+              sel?selAdd.show():selAdd.hide();
+            }
+            if(sel){
+              selAddNs=info.namespace; selAddId=info.id; selAddLabel=info.label;
+            }else{
+              selAddNs=""; selAddId=""; selAddLabel="";
+            }
+            ds.find(".selection-add-id").val(selAddId);
+            ds.find(".selection-add-label").val(selAddLabel);
+            selAdd.find(".selection-add-id").text(selAddId);
+            selAdd.find(".selection-add-label").text(selAddLabel);
+          }
+          onJson = function(json){
+            // OK now build the select-option
+            var o = buildSelectList(json, {}, getJson, onSelection);
+            ds.after(o);
+            //o.after(selAdd);
+          }
+          jsonUrl=ds.find(".json-data-source-url").val();
+          if(jsonUrl){
+            json=getJson(jsonUrl, true, onJson);
+            if(/\//.test(jsonUrl)){
+              jsonUrl=jsonUrl.split(/\/([^\/]*$)/)[0]+"/";  // split at the last /
+            }else{
+              jsonUrl="";
+            }
+          }else{
+            json=$(".json-data-source");
+            json = json.val() || json.text();
+            try{
+              json = $.parseJSON(json);
+              //json = eval("("+json+")");
+              onJson(json);
+            }catch(e){
+              alert("Not valid json! - "+e);
+              json = null;
+              return;
+            }
+          }
+      }
+
+      function init(_ctx){
+        var id;
+        if(!_ctx)_ctx=$("body");
+        ctx = _ctx;
+        id=ctx.attr("id");
+        widgets.formsById[id] = widgetForm;
+        widgetForm.id=id;
+        ctx.findx = function(selector){
+            // find all selector(ed) elements but not ones that are in a subform
+            var nsel = (","+selector).split(",").join(", ."+formClassName+" ");
+            return ctx.find(selector).not(ctx.find(nsel));
+        };
+
+        // ==============
+        // Simple (text) list input type
+        // ==============
+        ctx.findx(".input-list").each(listInput);
+        // --------------
+        // ==============
+        // Multi-dropdown selection
+        // ==============
+        ctx.findx(".data-source-drop-down").each(sourceDropDown);
+        // --------------
+        ctxInputs = ctx.findx("input, textarea, select");
+
+        //
+        if(ctx.findx("input[type=file]")){
+            setupFileUploader();
+            widgetForm.hasFileUpload=true;
+        }
+        if(widgets.validator){
+            validator = widgets.validator();
+            validator.setup(ctx);
+            widgetForm.validator = validator;
+            addListener("onSave", validator.isOkToSave);
+            addListener("onSubmit", validator.isOkToSubmit);
+        }
+        ctx.findx(".form-fields-save").click(onSave);
+        ctx.findx(".form-fields-submit").click(onSubmit);
+        ctx.findx(".form-fields-restore").click(onRestore);
+        ctx.findx(".form-fields-reset").click(onReset);
+        widgetForm.ctx = ctx;
+      }
+
+      widgetForm= {
+        submit:onSubmit,
+        save:onSave,
+        restore:onRestore,
+        reset:onReset,
+        addListener:addListener,
+        removeListener:removeListener,
+        removeListeners:removeListeners,
+        end:true
+        // setSaveUrl, setSubmitUrl, setResetJson, setRestoreData
+      };
+      widgets.forms.push(widgetForm);
+      if(ctx) init(ctx);
+      return widgetForm;
   }
+  widgets.formWidget = formWidget;
 
-  function onContentLoaded(){
-    // ==============
-    // Date inputs
-    // ==============
-    $("input.dateYMD, input.date").datepicker({
-        dateFormat:"yy-mm-dd", changeMonth:true, changeYear:true, showButtonPanel:false
-    });
-    $('input.dateYM').datepicker({
-      changeMonth: true, changeYear: true, showButtonPanel: true, dateFormat: 'yy-mm',
-      onClose: datepickerOnClose,
-      beforeShow:datepickerBeforeShow,   
-      onChangeMonthYear:function(year, month, inst){ datepickerBeforeShow(null, inst); },
-      onSelect:function(dateText, inst){}
-    });
-    $('input.dateMMY').datepicker({
-      changeMonth: true, changeYear: true, showButtonPanel: true, dateFormat: 'MM yy',
-      onClose: datepickerOnClose,
-      beforeShow:datepickerBeforeShow,   
-      onChangeMonthYear:function(year, month, inst){ datepickerBeforeShow(null, inst); },
-      onSelect:function(dateText, inst){}
-    });
-    $('input.dateY').datepicker({
-      changeMonth: false, changeYear: true, showButtonPanel: true, dateFormat: 'yy',
-      onClose: datepickerOnClose,
-      beforeShow:datepickerBeforeShow,   
-      onChangeMonthYear:function(year, month, inst){ datepickerBeforeShow(null, inst); },
-      onSelect:function(dateText, inst){}
-    });
-    // ==============
-    
-    // ==============
-    // Simple (text) list input type
-    // ==============
-    $("table.input-list").each(listInput);
-    // ==============
-    
-  
-    // ==============
-    // Multi-dropdown selection
-    // ==============
-    $(".data-source-drop-down").each(sourceDropDown);
-    // ==============
 
-    setupFileUploader();                    // 
-    validator = validation();
-    validator.setup();
-    $(".save-form-fields").click(save);
-    $(".restore-form-fields").click(restore);
-    $(".reset-form-fields").click(reset);
-    $(".submit-form-fields").click(submit);
 
-  }
+    function datepickerOnClose(dateText, inst){
+        var month = $("#ui-datepicker-div .ui-datepicker-month :selected").val();
+        var year = $("#ui-datepicker-div .ui-datepicker-year :selected").val();
+        if(!month)month=0;
+        $(this).datepicker('setDate', new Date(year, month, 1));
+        $(this).blur();
+    }
+    function datepickerBeforeShow(input, inst){
+        inst = $("#" + inst.id);
+        if(inst.hasClass("dateMY") || inst.hasClass("dateYM") || inst.hasClass("dateY")){
+            setTimeout(function(){
+                $(".ui-datepicker-calendar").remove();
+                $(".ui-datepicker-current").remove();
+                $(".ui-datepicker-close").text("OK");
+                if(inst.hasClass("dateY")) $(".ui-datepicker-month").remove();
+            }, 10);
+        }
+    }
 
-  $(function(){
-    onContentLoaded();
-  });
+    function contentLoaded(){
+        // ==============
+        // Date inputs
+        // ==============
+        $("input.dateYMD, input.date").datepicker({
+            dateFormat:"yy-mm-dd", changeMonth:true, changeYear:true, showButtonPanel:false
+        });
+        $('input.dateYM').datepicker({
+            changeMonth: true, changeYear: true, showButtonPanel: true, dateFormat: 'yy-mm',
+            onClose: datepickerOnClose,
+            beforeShow:datepickerBeforeShow,
+            onChangeMonthYear:function(year, month, inst){ datepickerBeforeShow(null, inst); },
+            onSelect:function(dateText, inst){}
+        });
+        $('input.dateMMY').datepicker({
+            changeMonth: true, changeYear: true, showButtonPanel: true, dateFormat: 'MM yy',
+            onClose: datepickerOnClose,
+            beforeShow:datepickerBeforeShow,
+            onChangeMonthYear:function(year, month, inst){ datepickerBeforeShow(null, inst); },
+            onSelect:function(dateText, inst){}
+        });
+        $('input.dateY').datepicker({
+            changeMonth: false, changeYear: true, showButtonPanel: true, dateFormat: 'yy',
+            onClose: datepickerOnClose,
+            beforeShow:datepickerBeforeShow,
+            onChangeMonthYear:function(year, month, inst){ datepickerBeforeShow(null, inst); },
+            onSelect:function(dateText, inst){}
+        });
+        // ==============
 
-  widgets = {
-    changeToTabLayout:changeToTabLayout,
-    restore:restore,
-    getValidator:function(){return validator;},
-    onContentLoaded:onContentLoaded
-  };
+        $("."+formClassName).each(function(c, e){
+            try{
+                widgets.formWidget($(e));
+            }catch(e){
+                alert("Error: "+e);
+            }
+        });
+    }
+
+
+    //widgets.forms=[];
+    widgets.formsById={};
+    widgets.messageBox = messageBox;
+    widgets.changeToTabLayout = changeToTabLayout;
+    widgets.contentLoaded = contentLoaded;
+    widgets.validator = validator;
+    widgets.formWidget = formWidget;
 
 })(jQuery);
 
 
+
+  //validator(ctx)
+  //      setup:setup,
+  //      test:function(){},
+  //      isOkToSave:function(){return isOkToX("save");},
+  //      isOkToSubmit:function(){return isOkToX("submit");},
+  //      hideAllMessages:hideAllMessages,
+  //      parseErrors:{}
+
+  //formWidget(ctx)
+//      return {
+//        ctx:ctx,
+//        submit:onSubmit,
+//        save:onSave,
+//        restore:onRestore,
+//        reset:onReset,
+//        getValidator:function(){return validator;},
+//        addListener:addListener,
+//        removeListener:removeListener,
+//        removeListeners:removeListeners,
+//        end:true
+//        // setSaveUrl, setSubmitUrl, setResetJson, setRestoreData
+//      };
 
