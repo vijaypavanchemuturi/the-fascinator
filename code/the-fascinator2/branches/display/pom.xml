@@ -10,12 +10,20 @@
  <parent>
   <groupId>au.edu.usq.fascinator</groupId>
   <artifactId>organisation</artifactId>
-  <version>0.5.0-SNAPSHOT</version>
+  <version>0.5.1-SNAPSHOT</version>
  </parent>
- <description>The Fascinator platform is a set of components that can be remixed/mashed to meet a variety of repository-centric needs.
- Developers: For code analysis, please refer to https://build.adfi.usq.edu.au/sonar/project/index/au.edu.usq.fascinator:the-fascinator.
+ <description>The Fascinator platform is a set of components that can be
+  remixed/mashed to meet a variety of repository-centric needs.
+  Developers: For code analysis, please refer to
+  https://build.adfi.usq.edu.au/sonar/project/index/au.edu.usq.fascinator:the-fascinator.
  </description>
  <url>http://fascinator.usq.edu.au</url>
+ <issueManagement>
+ </issueManagement>
+ <ciManagement>
+  <system>Hudson</system>
+  <url>https://build.adfi.usq.edu.au/ci/job/The%20Fascinator/</url>
+ </ciManagement>
  <scm>
   <url>http://fascinator.usq.edu.au/svn/code/the-fascinator2</url>
   <connection>scm:svn:http://fascinator.usq.edu.au/svn/code/the-fascinator2/trunk</connection>
@@ -235,11 +243,6 @@
 
   </pluginManagement>
   <plugins>
-   <!--
-    <plugin> <groupId>org.codehaus.mojo</groupId>
-    <artifactId>rat-maven-plugin</artifactId>
-    <version>1.0-alpha-3</version> </plugin>
-   -->
    <plugin>
     <groupId>org.apache.maven.plugins</groupId>
     <artifactId>maven-site-plugin</artifactId>
@@ -253,7 +256,8 @@
        set fascinator.home to the current module's target directory
        during unit testing
       -->
-      <fascinator.home>${basedir}/target/fascinator-home</fascinator.home>
+      <fascinator.home>${basedir}/target/fascinator-home
+      </fascinator.home>
      </systemPropertyVariables>
     </configuration>
    </plugin>
@@ -272,7 +276,8 @@
   </repository>
   <repository>
    <id>fascinator-snapshots</id>
-   <url>https://fascinator.usq.edu.au/nexus/content/groups/public-snapshots</url>
+   <url>https://fascinator.usq.edu.au/nexus/content/groups/public-snapshots
+   </url>
    <releases>
     <enabled>false</enabled>
    </releases>
@@ -284,7 +289,8 @@
  <pluginRepositories>
   <pluginRepository>
    <id>fascinator-snapshots</id>
-   <url>https://fascinator.usq.edu.au/nexus/content/groups/public-snapshots</url>
+   <url>https://fascinator.usq.edu.au/nexus/content/groups/public-snapshots
+   </url>
    <releases>
     <enabled>false</enabled>
    </releases>
@@ -300,88 +306,47 @@
   </site>
  </distributionManagement>
 
- <profiles>
-  <profile>
-   <id>rapid-report</id>
-   <activation>
-    <activeByDefault>false</activeByDefault>
-   </activation>
-   <reporting>
-    <plugins>
-     <plugin>
-      <groupId>org.apache.maven.plugins</groupId>
-      <artifactId>maven-project-info-reports-plugin</artifactId>
-      <reportSets>
-       <reportSet>
-        <reports>
-         <report>index</report>
-        </reports>
-       </reportSet>
-      </reportSets>
-     </plugin>
-     <plugin>
-      <groupId>org.apache.maven.plugins</groupId>
-      <artifactId>maven-surefire-report-plugin</artifactId>
-      <configuration>
-       <aggregate>true</aggregate>
-      </configuration>
-     </plugin>
-    </plugins>
-   </reporting>
-  </profile>
-  <profile>
-   <id>full-report</id>
-   <activation>
-    <activeByDefault>true</activeByDefault>
-   </activation>
-   <reporting>
-    <plugins>
+ <reporting>
+  <plugins>
 
-     <plugin>
-      <groupId>org.apache.maven.plugins</groupId>
-      <artifactId>maven-project-info-reports-plugin</artifactId>
-      <reportSets>
-       <reportSet>
-        <reports>
-         <report>index</report>
-         <report>project-team</report>
-         <report>mailing-list</report>
-         <report>cim</report>
-         <report>issue-tracking</report>
-         <report>license</report>
-         <report>scm</report>
-         <report>summary</report>
-         <report>modules</report>
-        </reports>
-       </reportSet>
-      </reportSets>
-     </plugin>
-     <plugin>
-      <groupId>org.apache.maven.plugins</groupId>
-      <artifactId>maven-javadoc-plugin</artifactId>
-      <reportSets>
-       <reportSet>
-        <id>default</id>
-        <reports>
-         <report>javadoc</report>
-         <report>test-javadoc</report>
-        </reports>
-       </reportSet>
-       <reportSet>
-        <reports>
-         <report>aggregate</report>
-        </reports>
-       </reportSet>
-      </reportSets>
-     </plugin>
-     <!--
-      <plugin> <groupId>org.apache.maven.plugins</groupId>
-      <artifactId>maven-jxr-plugin</artifactId> <version>2.1</version>
-      <configuration> <aggregate>true</aggregate> </configuration>
-      </plugin>
-     -->
-    </plugins>
-   </reporting>
-  </profile>
- </profiles>
+   <plugin>
+    <groupId>org.apache.maven.plugins</groupId>
+    <artifactId>maven-project-info-reports-plugin</artifactId>
+    <reportSets>
+     <reportSet>
+      <reports>
+       <report>index</report>
+       <report>project-team</report>
+       <report>mailing-list</report>
+       <report>cim</report>
+       <report>issue-tracking</report>
+       <report>license</report>
+       <report>scm</report>
+       <report>summary</report>
+       <report>modules</report>
+      </reports>
+     </reportSet>
+    </reportSets>
+   </plugin>
+
+   <plugin>
+    <groupId>org.apache.maven.plugins</groupId>
+    <artifactId>maven-javadoc-plugin</artifactId>
+    <reportSets>
+     <reportSet>
+      <id>default</id>
+      <reports>
+       <report>javadoc</report>
+       <report>test-javadoc</report> 
+      </reports>
+     </reportSet>
+     <reportSet>
+      <reports>
+       <report>aggregate</report>
+      </reports>
+     </reportSet>
+    </reportSets>
+   </plugin>
+  </plugins>
+ </reporting>
 </project>
