@@ -1,5 +1,7 @@
 import os, re
 
+from download import DownloadData
+
 from java.io import ByteArrayInputStream, ByteArrayOutputStream
 from java.lang import Boolean
 from java.net import URLDecoder
@@ -26,10 +28,13 @@ class DetailData:
         if matches and matches.group(3):
             oid = matches.group(3)
             pid = matches.group(4)
+            # If we have a PID
             if pid:
-                # download payload
-                downloadPath = "%s/download/%s/%s" % (self.contextPath, oid, pid)
-                self.response.sendRedirect(downloadPath)
+                # Download the payload instead... supports relative links
+                download = DownloadData()
+                download.__activate__(context)
+
+            # Otherwise, render the detail screen
             else:
                 self.__oid = oid
                 self.__loadSolrData(oid)
