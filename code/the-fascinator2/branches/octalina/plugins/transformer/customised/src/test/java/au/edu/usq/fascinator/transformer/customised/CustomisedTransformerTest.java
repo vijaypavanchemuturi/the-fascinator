@@ -18,10 +18,7 @@
  */
 package au.edu.usq.fascinator.transformer.customised;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.net.URISyntaxException;
 import java.util.Properties;
 
@@ -29,12 +26,11 @@ import junit.framework.Assert;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import au.edu.usq.fascinator.api.PluginManager;
 import au.edu.usq.fascinator.api.storage.DigitalObject;
-import au.edu.usq.fascinator.api.storage.Payload;
-import au.edu.usq.fascinator.api.storage.PayloadType;
 import au.edu.usq.fascinator.api.storage.Storage;
 import au.edu.usq.fascinator.api.storage.StorageException;
 import au.edu.usq.fascinator.api.transformer.TransformerException;
@@ -44,7 +40,7 @@ import au.edu.usq.fascinator.common.storage.StorageUtils;
  * @author Linda Octalina
  * 
  */
-
+@Ignore
 public class CustomisedTransformerTest {
     private CustomisedTransformer aperture;
 
