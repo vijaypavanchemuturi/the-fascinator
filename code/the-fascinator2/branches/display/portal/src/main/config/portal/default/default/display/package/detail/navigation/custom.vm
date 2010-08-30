@@ -8,7 +8,30 @@
 <script type="text/javascript">
 $(function() {
     // remove the default actions
-    $("#open-this, #reharvest-this").remove();
+    $("#open-this, #reharvest-this").parent().remove();
+    if ($("#actions-menu ul.menu li").length == 0) {
+        $("#actions-menu").hide();
+    }
+    
+    // clone the tree for toc (blank/package) content pages
+    var isTocPage = /^(blank|package)-/;
+    function setupTocPage(id, node) {
+        var rawId = id.replace(isTocPage, "");
+        var dest = $("#" + rawId + "-content");
+        // create the div if not there already
+        if (dest.length == 0) {
+            $("#package-content").append('<div id="' + rawId + '-content"></div>');
+            dest = $("#" + rawId + "-content");
+        }
+        if (dest.length > 0) {
+            var source = $(node).find(" > ul");
+            source.clone(true).appendTo(dest);
+            $(dest).find("ul li a").each(function(count, item) {
+                $(item).attr("href", "#" + $(item).parent().attr("id"));
+            });
+            $(dest).find("ul").show();
+        }
+    }
     
     // RVT
     var rvt = rvtFactory(jQuery);
@@ -16,27 +39,20 @@ $(function() {
     rvt.contentSelector = "#package-content";
     rvt.contentScrollToTop = function() { alert($(window).offset()); };
     rvt.fixRelativeLinks = false;
-    rvt.contentBaseUrl = "$portalPath/detail/"; //?package=$oid&oid=";
+    rvt.contentBaseUrl = "$portalPath/detail/";
     rvt.contentLoadedCallback = function(rvt) {
         var oid = window.location.hash.substring(1);
+        
         //fixLinks("", "#package-content a", "href", oid);
         //fixLinks("", "#package-content img", "src", oid);
+        
         $(".article-heading").html($(window.location.hash).children("a").text());
         
         var tree = jQuery.tree.reference(rvt.tocSelector);
         tree.select_branch("#" + oid + " > a");
         
-        if (oid.match(/^blank/) || oid.match(/^package/)) {
-            var dest = $("#" + oid + "-content:empty");
-            if (dest.length > 0) {
-                var source = $("#" + oid + " > ul");
-                source.clone(true).appendTo(dest);
-                $(dest).find("ul li a").each(function(count, item) {
-                    $(item).attr("href", "#" + $(item).parent().attr("id"));
-                });
-                $(dest).find("ul").show();
-            }
-            $("#object-tag-list, #location-tag-list, .annotatable").hide();
+        if (isTocPage.test(oid)) {
+            setupTocPage(oid, $("#" + oid));
         } else {
             var docCommentNode = $("#package-content > div:visible > .annotatable");
             if (docCommentNode.length == 0) {
@@ -79,6 +95,7 @@ $(function() {
                 setupImageTags("div[rel='" + oid + "'] > img");
             });
         }
+        return false;
     };
     rvt.displayTOC = function(nodes) {
         var opts = {
@@ -93,24 +110,17 @@ $(function() {
             callback: {
                 onselect: function(node, tree) {
                     var id = $(node).attr("id");
-                    if (id.match(/^blank-/) || id.match(/^package/)) {
-                        var dest = $("#" + id + "-content:empty");
-                        if (dest.length > 0) {
-                            var source = $(node).find(" > ul");
-                            source.clone(true).appendTo(dest);
-                            $(dest).find("ul li a").each(function(count, item) {
-                                $(item).attr("href", "#" + $(item).parent().attr("id"));
-                            });
-                            $(dest).find("ul").show();
-                        }
-                        $("#object-tag-list, #location-tag-list, .annotatable").hide();
+                    if (isTocPage.test(id)) {
+                        setupTocPage(id, node);
                     } else {
                         $("#object-tag-list, #location-tag-list, .annotatable").show();
                     }
+                    
                     window.location.hash = "#" + id;
                     var itemTitle = jQuery.trim($(node).children("a").text());
                     $(".article-heading").html(itemTitle);
                     
+                    /*
                     var openOriginal = $("#open-original");
                     var openTitle = "Open '" + itemTitle + "'";
                     if (id.match(/^blank-/) || id.match(/^package/)) {
@@ -126,6 +136,8 @@ $(function() {
                         openOriginal.find("a").text(openTitle);
                         openOriginal.fadeIn();
                     }
+                    */
+                    
                     return false;
                 }
             }

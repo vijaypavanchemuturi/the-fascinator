@@ -1,63 +1,67 @@
-#set($menuTitle = "Actions")
-#parseTemplate("wrapping/main-menu-open.vm")
-<ul class="menu">
-    #if($parent.hasLocalFile())
-        <li>
-            <a id="open-this" href="#">Open file</a>
-            <script type="text/javascript">
-            $("#open-this").click(function() {
-                jQuery.post("$portalPath/open.ajax", { oid: "$oid" },
-                    function(data, status) {
-                        if (data.message) {
-                            alert("Failed to open file: " + data.message);
-                        }
-                    }, "json");
-                return false;
-            });
-            </script>
-        </li>
-    #end
-    #parseDisplayTemplate("detail/navigation/custom-actions.vm")
-    #if($page.authentication.is_admin())
-        #if(!$parent.isPending())
-            <li id="reharvest-this"><a id="reharvest" href="$portalPath/detail/$oid">Reharvest</a></li>
-            <script type="text/javascript">
-            var pollTimerId = 0;
-            function poll() {
-                jQuery.post("$portalPath/actions/objectMeta.ajax",
-                    { "oid" : "$oid" },
-                    function(data) {
-                        if (data.error) {
-                            $("#reharvest-form").append('<img src="$portalPath/images/icons/exclamation.png" /><span>&nbsp;<b>Error</b>:&nbsp;' + data.error + '</span>');
-                            return;
-                        }
-                        if (data.meta) {
-                            var pending = data.meta["render-pending"];
-                            if (pending == "false") {
-                                clearTimeout(pollTimerId);
-                                $("#reharvest-loading, #reharvest-in-progress").fadeOut(
-                                    function() {
-                                        $("#reharvest-form b").html("COMPLETE");
-                                        $("#reharvest-complete").fadeIn();
-                                    });
+<div id="actions-menu">
+    #set($menuTitle = "Actions")
+    #parseTemplate("wrapping/main-menu-open.vm")
+    <ul class="menu">
+        #if($parent.hasLocalFile())
+            <li>
+                <a id="open-this" href="#">Open file</a>
+                <script type="text/javascript">
+                $("#open-this").click(function() {
+                    jQuery.post("$portalPath/open.ajax", { oid: "$oid" },
+                        function(data, status) {
+                            if (data.message) {
+                                alert("Failed to open file: " + data.message);
                             }
-                        }
-                    },
-                    "json");
-            }
-            $(function() {
-                $("#reharvest-this").click(function() {
-                    $(this).hide();
-                    $("#reharvest-form").show();
-                    jQuery.post("$portalPath/actions/reharvest.ajax",
-                        { func: "reharvest", oid: "$oid" },
-                        function(data) { pollTimerId = setInterval("poll()", 2500); },
-                        "json");
+                        }, "json");
                     return false;
                 });
-            });
-            </script>
+                </script>
+            </li>
         #end
-    #end
-</ul>
-#parseTemplate("wrapping/main-menu-close.vm")
+        #parseDisplayTemplate("detail/navigation/custom-actions.vm")
+        #if($page.authentication.is_admin())
+            #if(!$parent.isPending())
+                <li>
+                    <a id="reharvest-this" href="$portalPath/detail/$oid">Reharvest</a>
+                    <script type="text/javascript">
+                    var pollTimerId = 0;
+                    function poll() {
+                        jQuery.post("$portalPath/actions/objectMeta.ajax",
+                            { "oid" : "$oid" },
+                            function(data) {
+                                if (data.error) {
+                                    $("#reharvest-form").append('<img src="$portalPath/images/icons/exclamation.png" /><span>&nbsp;<b>Error</b>:&nbsp;' + data.error + '</span>');
+                                    return;
+                                }
+                                if (data.meta) {
+                                    var pending = data.meta["render-pending"];
+                                    if (pending == "false") {
+                                        clearTimeout(pollTimerId);
+                                        $("#reharvest-loading, #reharvest-in-progress").fadeOut(
+                                            function() {
+                                                $("#reharvest-form b").html("COMPLETE");
+                                                $("#reharvest-complete").fadeIn();
+                                            });
+                                    }
+                                }
+                            },
+                            "json");
+                    }
+                    $(function() {
+                        $("#reharvest-this").click(function() {
+                            $(this).hide();
+                            $("#reharvest-form").show();
+                            jQuery.post("$portalPath/actions/reharvest.ajax",
+                                { func: "reharvest", oid: "$oid" },
+                                function(data) { pollTimerId = setInterval("poll()", 2500); },
+                                "json");
+                            return false;
+                        });
+                    });
+                    </script>
+                </li>
+            #end
+        #end
+    </ul>
+    #parseTemplate("wrapping/main-menu-close.vm")
+</div>
