@@ -406,6 +406,7 @@ ul.nobgtabs li a.ui-state-active {
     padding: 2px 2px 2px 5px;
     border: 1px solid #666666;
     background: #999999;
+    margin-bottom: 10px;
 }
 .admin-security-link {
     background-image: url('../images/icons/application_key.png');
@@ -615,9 +616,10 @@ li img.workflow, .mime-icon {
 #package-selected-items {
     font-size: 1.2em;
 }
-.content-preview-inline iframe {
+.content-preview iframe {
     width: 99%;
     height: 600px;
+    border: 1px solid black;
 }
 .iframe-link-alt {
     background-image: url('../images/icons/application_go.png');
