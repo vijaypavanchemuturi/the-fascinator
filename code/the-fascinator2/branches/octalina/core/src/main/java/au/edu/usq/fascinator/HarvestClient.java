@@ -505,8 +505,8 @@ public class HarvestClient {
                 props.setProperty("indexOnHarvest",
                         jsonConfig.get("transformer/indexOnHarvest"));
 
-                String renderQueueStr = convertListToCommaDelim(jsonConfig
-                        .getList("transformer/renderQueue"));
+                String renderQueueStr = StringUtils.join(
+                        jsonConfig.getList("transformer/renderQueue"), ",");
                 props.setProperty("renderQueue", renderQueueStr);
 
                 String harvestQueueStr = convertListToCommaDelim(jsonConfig

@@ -1,4 +1,5 @@
 from au.edu.usq.fascinator.api.indexer import SearchRequest
+from au.edu.usq.fascinator.api.storage import StorageException
 from au.edu.usq.fascinator.common import JsonConfigHelper
 from au.edu.usq.fascinator import HarvestClient
 from java.io import File, ByteArrayInputStream, ByteArrayOutputStream
@@ -7,10 +8,10 @@ class BatchProcess:
     def __init__(self):
         self.writer = response.getPrintWriter("text/html; charset=UTF-8")
         print " *** action batchProcess.py: formData=%s" % formData
+        self.storage = Services.getStorage()
+        self.__process()
         
-        self.process()
-        
-    def process(self):
+    def __process(self):
         func = formData.get("func")
         result = {}
         if func == "batch-update":
@@ -28,25 +29,53 @@ class BatchProcess:
 
                 try:
                     # need to do paging... but for now... don care first
-                    harvester = HarvestClient()
+                    self.__harvester = HarvestClient()
                     print objectIdList
-                    harvester.processBatchUpdate(objectIdList, config)
-                    
-                    harvester.shutdown()
+                    #harvester.processBatchUpdate(objectIdList, config)
+                    #harvester.shutdown()
                     
                     #harvestClient = HarvestClient()
                     #harvestClient.processBatchUpdate(ob)
+                    
+                    for oid in objectIdList:
+                        self.__processObject(oid)
+                    
                 except Exception, ex:
                     error = "Batch update failed: %s" % str(ex)
                     log.error(error, ex)
-                    if harvester is not None:
-                        harvester.shutdown()
+                    #if harvester is not None:
+                    #    harvester.shutdown()
                     return '{ status: "failed" }'
             
         self.writer.println(result)
         self.writer.close()
         
-        
+    def __processObject(self, oid):
+        print "Processing '%s'..." % oid
+        try:
+            # temporarily update the object properties for transforming
+            obj = self.storage.getObject(oid)
+            props = obj.getMetadata()
+            indexOnHarvest = self.__setProperty(props, "indexOnHarvest", "false")
+            harvestQueue = self.__setProperty(props, "harvestQueue")
+            renderQueue = self.__setProperty(props, "renderQueue", "customised")
+            customisedScript = self.__setProperty(props, "customisedScript", formData.get("script-file"))
+            obj.close()
+            # signal a reharvest
+            self.__harvester.reharvest(oid);
+        except StorageException, se:
+            print se
+    
+    def __setProperty(self, props, key, newValue=None):
+        oldValue = props.get(key)
+        if oldValue:
+            props.setProperty("copyOf_" + key, oldValue)
+        if newValue:
+            props.setProperty(key, newValue)
+        else:
+            props.remove(key)
+        return oldValue
+    
     def __search(self):
         indexer = Services.getIndexer()
         portalQuery = Services.getPortalManager().get(portalId).getQuery()

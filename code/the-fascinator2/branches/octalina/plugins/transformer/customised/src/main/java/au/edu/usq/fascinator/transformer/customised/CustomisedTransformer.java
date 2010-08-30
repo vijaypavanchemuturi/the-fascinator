@@ -20,21 +20,18 @@ package au.edu.usq.fascinator.transformer.customised;
 
 import java.io.File;
 import java.io.IOException;
-
 import java.util.Properties;
 
+import org.python.util.PythonInterpreter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import au.edu.usq.fascinator.api.PluginDescription;
 import au.edu.usq.fascinator.api.PluginException;
 import au.edu.usq.fascinator.api.storage.DigitalObject;
-import au.edu.usq.fascinator.api.storage.StorageException;
 import au.edu.usq.fascinator.api.transformer.Transformer;
 import au.edu.usq.fascinator.api.transformer.TransformerException;
 import au.edu.usq.fascinator.common.JsonConfigHelper;
-import au.edu.usq.fascinator.common.MimeTypeUtil;
-import au.edu.usq.fascinator.common.storage.StorageUtils;
 
 /**
  * Provides methods for batch processing of digital objects
@@ -144,18 +141,41 @@ public class CustomisedTransformer implements Transformer {
             throws TransformerException {
         // Purge old data
         reset();
-
-        log.info("*********** customised transformer");
-        
-        // Modify the property
         try {
             Properties props = in.getMetadata();
-            props.setProperty("modified", "true");
+            JsonConfigHelper json = new JsonConfigHelper(jsonConfig);
+            String scriptFile = json.get("transformer/customised/script",
+                    props.getProperty("customisedScript"));
+            if (scriptFile != null) {
+                log.info("Running script: '{}'", scriptFile);
+                // Run the script
+                PythonInterpreter python = new PythonInterpreter();
+                python.set("object", in);
+                python.set("config", json);
+                python.execfile(scriptFile);
+                python.cleanup();
+                // Modify the property
+                props.setProperty("modified", "true");
+            } else {
+                log.info("");
+            }
 
-        } catch (StorageException e) {
+            restoreProperty(props, "indexOnHarvest");
+            restoreProperty(props, "harvestQueue");
+            restoreProperty(props, "renderQueue");
+            restoreProperty(props, "customisedScript");
+        } catch (Exception e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
         return in;
+    }
+
+    private void restoreProperty(Properties props, String key) {
+        String copyKey = "copyOf_" + key;
+        if (props.containsKey(copyKey)) {
+            String copyValue = props.remove(copyKey).toString();
+            props.setProperty(key, copyValue);
+        }
     }
 }
