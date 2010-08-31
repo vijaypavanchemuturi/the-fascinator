@@ -5,29 +5,54 @@
         #renderObject($metadata "detail/head")
     #end
 #end
-#if($self.isIndexed())
-    #if($self.isDetail())
-        #renderObject($metadata "detail/title")
-        <div class="grid_4">
-            #renderObject($metadata "detail/navigation")
-        </div>
-        <div class="grid_12">
-            #renderObject($metadata "detail")
-        </div>
+
+#############
+## Access Check
+#############
+#set($ua = $self.getUserAgreement())
+#if ($ua.isAccessible())
+
+    #############
+    ## User Agreements
+    #############
+    #if ($ua.isRequired())
+        #parseTemplate("detail-screen/user-agreement.vm")
+
+    #############
+    ## Normal page render
+    #############
     #else
-        #set($noLayout = "true")
-        #renderObject($metadata "detail")
+        #if($self.isIndexed())
+            #if($self.isDetail())
+                #renderObject($metadata "detail/title")
+                <div class="grid_4">
+                    #renderObject($metadata "detail/navigation")
+                </div>
+                <div class="grid_12">
+                    #renderObject($metadata "detail")
+                </div>
+            #else
+                #set($noLayout = "true")
+                #renderObject($metadata "detail")
+            #end
+            <script type="text/javascript" src="$portalPath/js/jquery.condense.min.js"></script>
+            <script type="text/javascript">
+                $(function() {
+                    $(".condense").condense({
+                        ellipsis: "...",
+                        moreText: "<em>(more)</em>",
+                        lessText: "<em>(less)</em>"
+                    });
+                });
+            </script>
+        #else
+            #parseTemplate("detail-screen/not-found.vm")
+        #end
     #end
-    <script type="text/javascript" src="$portalPath/js/jquery.condense.min.js"></script>
-    <script type="text/javascript">
-        $(function() {
-            $(".condense").condense({
-                ellipsis: "...",
-                moreText: "<em>(more)</em>",
-                lessText: "<em>(less)</em>"
-            });
-        });
-    </script>
+
+#############
+## Access Denied
+#############
 #else
-    #parseTemplate("detail-screen/not-found.vm")
+    #parseTemplate("detail-screen/login-required.vm")
 #end

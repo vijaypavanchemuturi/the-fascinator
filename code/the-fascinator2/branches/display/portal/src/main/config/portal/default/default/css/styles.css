@@ -735,13 +735,32 @@ div.sample-content {
     border: 1px solid #CCCCCC;
 }
 
-blockquote.plain-text {
+div.user-agreement {
+    font-size: 125%;
+    padding: 10px;
+}
+div.user-agreement form {
+    margin: 10px 10px 5px;
+}
+div.user-agreement pre {
+    font-size: 125%;
+    padding: 10px;
+    border: 1px solid #999999;
+    background-color: #eeeeee;
+}
+blockquote.plain-text, div.user-agreement blockquote {
     quotes: "\201C" "\201D";
     border: 0px;
     font-style: italic;
 }
-blockquote.plain-text:before {content: open-quote; font-weight: bold;}
-blockquote.plain-text:after {content: close-quote; font-weight: bold;}
+blockquote.plain-text:before {
+    content: open-quote;
+    font-weight: bold;
+}
+blockquote.plain-text:after {
+    content: close-quote;
+    font-weight: bold;
+}
 
 ul.main li ul li.selected-view a {
     background-color: #444;
