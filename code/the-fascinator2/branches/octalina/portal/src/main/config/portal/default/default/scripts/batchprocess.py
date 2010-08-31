@@ -9,7 +9,7 @@ class BatchProcess:
                 "<fieldset class='login'>\n" \
                 "<legend>Batch Update configuration  File</legend>\n"
         uploadForm += self.formRenderer.ajaxFluidErrorHolder("upload-file") + "<p>\n"
-        uploadForm += self.formRenderer.renderFormElement("script-file", "text", "Location of the configuration file:") + "</p>\n"
+        uploadForm += self.formRenderer.renderFormElement("config-file", "text", "Location of the configuration file:") + "</p>\n"
         
         uploadForm += self.formRenderer.renderFormElement("upload", "button", "", "Batch Update")
         uploadForm += self.formRenderer.renderFormElement("cancel", "button", "", "Cancel")
