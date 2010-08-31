@@ -26,7 +26,6 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
@@ -181,6 +180,7 @@ public class HarvestClient {
     private DigitalObject updateHarvestFile(File file) throws StorageException {
         // Check the file in storage
         DigitalObject object = StorageUtils.checkHarvestFile(storage, file);
+        log.info(".... object: " + object);
         if (object != null) {
             // If we got an object back its new or updated
             JsonConfigHelper message = new JsonConfigHelper();
@@ -206,13 +206,19 @@ public class HarvestClient {
         long start = System.currentTimeMillis();
         log.info("Started at " + now);
 
+        log.info("Started at11111 " + now);
         // cache harvester config and indexer rules
+        log.info("configFile " + configFile.getAbsolutePath());
         configObject = updateHarvestFile(configFile);
+        log.info("rulesFile " + rulesFile.getAbsolutePath());
+        log.info("rulesFile " + rulesFile.exists());
         rulesObject = updateHarvestFile(rulesFile);
 
+        log.info("rulesFile done..");
         // initialise the harvester
         Harvester harvester = null;
         String harvesterType = config.get("harvester/type");
+        log.info("***** harvesterType:" + harvesterType);
         harvester = PluginManager.getHarvester(harvesterType, storage);
         if (harvester == null) {
             throw new HarvesterException("Harvester plugin '" + harvesterType
@@ -475,93 +481,6 @@ public class HarvestClient {
         param.put("username", "system");
         param.put("context", "HarvestClient");
         messaging.onEvent(param);
-    }
-
-    public void processBatchUpdate(List<String> objectIdList,
-            File batchConfigFile) throws HarvesterException {
-        for (String oid : objectIdList) {
-
-            try {
-                // get the object
-                DigitalObject object = storage.getObject(oid);
-                Properties props = object.getMetadata();
-
-                JsonConfigHelper jsonConfig = new JsonConfigHelper(
-                        batchConfigFile);
-
-                // config
-                String configOid = props.getProperty("jsonConfigOid");
-
-                // backing up old props
-                props.put("resetProps", "true");
-                props.put("indexOnHarvest-old",
-                        props.getProperty("indexOnHarvest", ""));
-                props.put("renderQueue-old",
-                        props.getProperty("renderQueue", ""));
-                props.put("harvestQueue-old",
-                        props.getProperty("harvestQueue", ""));
-
-                // new props value
-                props.setProperty("indexOnHarvest",
-                        jsonConfig.get("transformer/indexOnHarvest"));
-
-                String renderQueueStr = StringUtils.join(
-                        jsonConfig.getList("transformer/renderQueue"), ",");
-                props.setProperty("renderQueue", renderQueueStr);
-
-                String harvestQueueStr = convertListToCommaDelim(jsonConfig
-                        .getList("transformer/harvestQueue"));
-                props.setProperty("harvestQueue", harvestQueueStr);
-                props.put("batch-update-script",
-                        jsonConfig.get("update-script", ""));
-
-                // get its harvest config
-                if (configOid == null) {
-                    log.warn("No harvest config for '{}', using defaults...");
-                    configFile = JsonConfig.getSystemFile();
-                } else {
-                    log.debug("Using config from '{}'", configOid);
-                    DigitalObject configObj = storage.getObject(configOid);
-                    Payload payload = configObj.getPayload(configObj
-                            .getSourceId());
-                    configFile = File.createTempFile("reharvest", ".json");
-                    OutputStream out = new FileOutputStream(configFile);
-                    IOUtils.copy(payload.open(), out);
-                    out.close();
-                    payload.close();
-                    configObj.close();
-                }
-
-                object.close();
-
-                sentMessage(oid, "modify");
-                // queue the object for indexing
-                queueHarvest(oid, configFile, false);
-
-                log.info("---------- done setting up properties...");
-
-            } catch (StorageException e) {
-                throw new HarvesterException("Fail to get object metadata: "
-                        + e);
-            } catch (IOException e) {
-                throw new HarvesterException(
-                        "Fail to read batch update configuration file: " + e);
-            }
-        }
-    }
-
-    private String convertListToCommaDelim(List<Object> objectList) {
-        String listStr = "";
-        for (Object str : objectList) {
-            listStr += str.toString() + ",";
-        }
-        log.info("******************** str: " + listStr);
-        log.info("******************** str: "
-                + listStr.substring(0, listStr.length() - 1));
-        if (listStr.endsWith(",")) {
-            listStr = listStr.substring(0, listStr.length() - 1);
-        }
-        return listStr;
     }
 
     /**

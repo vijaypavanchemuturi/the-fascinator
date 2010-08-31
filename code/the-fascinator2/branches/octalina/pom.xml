@@ -84,11 +84,11 @@
                 <artifactId>plugin-harvester-filesystem</artifactId>
                 <version>${project.version}</version>
             </dependency>
-            <!-- <dependency>
+            <dependency>
                 <groupId>au.edu.usq.fascinator.plugins</groupId>
                 <artifactId>plugin-harvester-fedora</artifactId>
                 <version>0.1.0-SNAPSHOT</version>
-            </dependency> -->
+            </dependency>
             <dependency>
                 <groupId>au.edu.usq.fascinator.plugins</groupId>
                 <artifactId>plugin-harvester-ice2</artifactId>

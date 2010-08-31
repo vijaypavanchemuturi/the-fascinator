@@ -185,6 +185,9 @@
         },
         "ims": {
             "id": "ims"
+        },
+        "customised" : {
+          "id" : "customised"
         }
     },
     "uploader": {
