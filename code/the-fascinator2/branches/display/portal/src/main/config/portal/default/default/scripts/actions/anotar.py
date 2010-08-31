@@ -1,4 +1,4 @@
-import json2 as json, time
+import re, time, json2 as json
 
 from au.edu.usq.fascinator.api.indexer import SearchRequest
 from au.edu.usq.fascinator.api.storage import StorageException
@@ -23,6 +23,7 @@ class AnotarData:
         self.json = self.fd("json")
         self.type = self.fd("type")
         self.rootUriList = self.vc("formData").getValues("rootUriList")
+        self.contextPath = self.vc("contextPath")
         #print "action:'%s' formData:'%s'" % (self.action, formData)
 
         # used so that ajax requests don't cache
@@ -30,7 +31,7 @@ class AnotarData:
             self.rootUri = self.rootUri[:self.rootUri.find("?ticks")]
 
         # Portal path info
-        portalPath = contextPath + "/" + self.vc("portalId") + "/"
+        portalPath = self.contextPath + "/" + self.vc("portalId") + "/"
         self.oid = self.rootUri
         if self.oid and self.oid.startswith(portalPath):
             self.oid = self.oid[len(portalPath):]
@@ -91,7 +92,7 @@ class AnotarData:
         jsonObj.set("id", self.pid)
         rootUri = jsonObj.get("annotates/rootUri")
         if rootUri is not None:
-            baseUrl = "http://%s:%s/" % (self.vc("request").serverName, serverPort)
+            baseUrl = "http://%s:%s/" % (self.vc("request").serverName, self.vc("serverPort"))
             myUri = baseUrl + rootUri + "#" + self.pid
             jsonObj.set("uri", myUri)
 

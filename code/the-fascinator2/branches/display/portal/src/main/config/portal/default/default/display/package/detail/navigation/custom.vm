@@ -6,6 +6,37 @@
 <script type="text/javascript" src="$portalPath/js/tree/jquery.tree.min.js"></script>
 <script type="text/javascript" src="$portalPath/js/rvt.js"></script>
 <script type="text/javascript">
+
+function fixLinks(baseUrl, selector, attrName, oid) {
+    $(selector).each(function() {
+        var attr = $(this).attr(attrName);
+        if (attr != null) {
+            // fix for IE7 attr() returning resolved URLs - strip base URL
+            var href = window.location.href;
+            hrefBase = href.substring(0, href.lastIndexOf("/"));
+            attrBase = attr.substring(0, hrefBase.length);
+            if (hrefBase == attrBase) {
+                attr = attr.substring(hrefBase.length + 1);
+            }
+            if (attr.indexOf("tfObject:") == 0) {
+                // First class objects (links only, not images)
+                var relUrl = "$portalPath/detail/";
+                var tmpUrl = attr.substring(9);
+                $(this).attr(attrName, escape(relUrl + tmpUrl));
+            } else {
+                // Payloads, images and links
+                if (attr.indexOf("#") != 0 && attr.indexOf("://") == -1 && attr.indexOf("/") != 0) {
+                    var relUrl = "$portalPath/detail/" + oid + "/";
+                    var tmpUrl = baseUrl.substring(baseUrl.indexOf("/", 8));
+                    tmpUrl = tmpUrl.replace(relUrl, "");
+                    tmpUrl = tmpUrl.substring(0, tmpUrl.lastIndexOf("/")+1);
+                    $(this).attr(attrName, escape(relUrl + tmpUrl + attr));
+                }
+            }
+        }
+    });
+}
+
 $(function() {
     // remove the default actions
     $("#open-this, #reharvest-this").parent().remove();
@@ -20,7 +51,7 @@ $(function() {
         var dest = $("#" + rawId + "-content");
         // create the div if not there already
         if (dest.length == 0) {
-            $("#package-content").append('<div id="' + rawId + '-content"></div>');
+            $(".package-content").append('<div id="' + rawId + '-content"></div>');
             dest = $("#" + rawId + "-content");
         }
         if (dest.length > 0) {
@@ -36,15 +67,15 @@ $(function() {
     // RVT
     var rvt = rvtFactory(jQuery);
     rvt.tocSelector = "#package-toc";
-    rvt.contentSelector = "#package-content";
+    rvt.contentSelector = ".package-content";
     rvt.contentScrollToTop = function() { alert($(window).offset()); };
     rvt.fixRelativeLinks = false;
     rvt.contentBaseUrl = "$portalPath/detail/";
     rvt.contentLoadedCallback = function(rvt) {
         var oid = window.location.hash.substring(1);
         
-        //fixLinks("", "#package-content a", "href", oid);
-        //fixLinks("", "#package-content img", "src", oid);
+        fixLinks("", ".package-content a", "href", oid);
+        fixLinks("", ".package-content img", "src", oid);
         
         $(".article-heading").html($(window.location.hash).children("a").text());
         
@@ -54,9 +85,9 @@ $(function() {
         if (isTocPage.test(oid)) {
             setupTocPage(oid, $("#" + oid));
         } else {
-            var docCommentNode = $("#package-content > div:visible > .annotatable");
+            var docCommentNode = $(".package-content > div:visible > .annotatable");
             if (docCommentNode.length == 0) {
-                $("#package-content > div:visible")
+                $(".package-content > div:visible")
                     .append('<div class="object-comments"><div class="annotatable"><span class="hidden">' + oid + '</span>Comment on this item:</div></div>');
             }
             
@@ -66,7 +97,7 @@ $(function() {
                     '<div class="object-tag-list">Tags: <span class="object-tags"></span></div>' +
                     //'<div class="location-tag-list">Location: <span class="location-tags"></span></div>' +
                   '</div>';
-                $("#package-content > div:visible > :first").before(tagTemplate);
+                $(".package-content > div:visible > :first").before(tagTemplate);
             }
             
             $("#object-tag-list, #location-tag-list, .annotatable").show();
@@ -92,7 +123,7 @@ $(function() {
             imageObj.src = imageNode.attr("src");
             $(imageObj).load(function() {
                 imageNode.attr("rel", "loaded");
-                setupImageTags("div[rel='" + oid + "'] > img");
+                setupImageTagging("div[rel='" + oid + "'] > img", "$oid%23" + oid);
             });
         }
         return false;
