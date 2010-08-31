@@ -11,22 +11,11 @@
     #end
     #parseDisplayTemplate("detail/dialogs.vm")
     #parseDisplayTemplate("detail/preview/header.vm")
-#else
-    ## RVT requests an ICE-style format
-    <div>
-        <div class="title"></div>
-        <div class="page-toc"></div>
-        <div class="body">
-            <div>
-#end
-
-#parseDisplayTemplate("detail/preview/body.vm")
-
-#if($parent.isDetail())
+    #parseDisplayTemplate("detail/preview/body.vm")
     #parseDisplayTemplate("detail/preview/footer.vm")
     #parseDisplayTemplate("detail/annotation.vm")
 #else
-            </div>
-        </div>
-    </div>
+    #parseDisplayTemplate("detail/preview/simple/header.vm")
+    #parseDisplayTemplate("detail/preview/body.vm")
+    #parseDisplayTemplate("detail/preview/simple/footer.vm")
 #end

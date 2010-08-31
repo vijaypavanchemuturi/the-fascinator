@@ -1,11 +1,11 @@
 #set($pageTitle = "Detail")
+#set($metadata = $self.metadata)
 #if($self.isDetail())
     #define($pageHeader)
         #renderObject($metadata "detail/head")
     #end
 #end
 #if($self.isIndexed())
-    #set($metadata = $self.metadata)
     #if($self.isDetail())
         #renderObject($metadata "detail/title")
         <div class="grid_4">
