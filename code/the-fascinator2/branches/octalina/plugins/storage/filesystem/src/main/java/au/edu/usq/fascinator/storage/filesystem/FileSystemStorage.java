@@ -126,7 +126,12 @@ public class FileSystemStorage implements Storage {
         // Don't need to do anything
     }
 
-    private File getPath(String oid) {
+    private File getPath(String oid) throws StorageException {
+        if (oid.length() < 6) {
+            throw new StorageException("oID '" + oid
+                    + "' length must be greater than 6.");
+        }
+
         String dir = oid.substring(0, 2) + File.separator + oid.substring(2, 4)
                 + File.separator + oid.substring(4, 6) + File.separator;
         return new File(homeDir, dir + oid);

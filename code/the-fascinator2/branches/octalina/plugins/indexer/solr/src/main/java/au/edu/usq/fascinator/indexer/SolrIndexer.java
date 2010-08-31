@@ -599,8 +599,10 @@ public class SolrIndexer implements Indexer {
                 extras.append("wt=json");
                 result = searcher.get(request.getQuery(), extras.toString(),
                         false);
-                IOUtils.copy(result, response);
-                result.close();
+                if (result != null) {
+                    IOUtils.copy(result, response);
+                    result.close();
+                }
             } catch (IOException ioe) {
                 throw new IndexerException(ioe);
             }
