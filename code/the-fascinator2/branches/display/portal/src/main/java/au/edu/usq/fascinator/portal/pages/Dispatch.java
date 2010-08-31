@@ -388,8 +388,9 @@ public class Dispatch {
                 if (isSpecial == false) {
                     String redirectUri = resourceName;
                     if (path.length > 2) {
-                        redirectUri += StringUtils.join(path, "/", 2,
-                                path.length);
+                        // Current path but replace "/dispatch" with context
+                        redirectUri = request.getContextPath() +
+                                request.getPath().substring(9);
                     }
                     log.info("Redirecting to {}...", redirectUri);
                     response.sendRedirect(redirectUri);

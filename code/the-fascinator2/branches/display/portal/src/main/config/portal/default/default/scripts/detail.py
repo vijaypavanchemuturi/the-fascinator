@@ -1,6 +1,7 @@
 import os, re
 
 from download import DownloadData
+from userAgreement import AgreementData
 
 from java.io import ByteArrayInputStream, ByteArrayOutputStream
 from java.lang import Boolean
@@ -13,16 +14,19 @@ from au.edu.usq.fascinator.common import JsonConfigHelper
 
 class DetailData:
     def __init__(self):
-        pass
-    
+        self.userAgreement = AgreementData(bindings)
+
     def __activate__(self, context):
+        self.velocityContext = context
         self.services = context["Services"]
         self.request = context["request"]
         self.response = context["response"]
         self.contextPath = context["contextPath"]
         self.formData = context["formData"]
         self.page = context["page"]
-        
+
+        self.uaActivated = False
+
         uri = URLDecoder.decode(self.request.getAttribute("RequestURI"))
         matches = re.match("^(.*?)/(.*?)/(?:(.*?)/)?(.*)$", uri)
         if matches and matches.group(3):
@@ -46,43 +50,43 @@ class DetailData:
         else:
             # require trailing slash for relative paths
             self.response.sendRedirect("%s/%s/" % (self.contextPath, uri))
-    
+
     def hasLocalFile(self):
         # get original file.path from object properties
         filePath = self.getObject().getMetadata().getProperty("file.path")
         return filePath and os.path.exists(filePath)
-    
+
     def getOid(self):
         return self.__oid
-    
+
     def isIndexed(self):
         return self.__getNumFound() == 1
-    
+
     def getMetadata(self):
         return self.__metadata
-    
+
     def getMetadataMap(self):
         return self.__metadataMap
-    
+
     def getObject(self):
         return self.__object
-    
+
     def isPending(self):
         meta = self.getObject().getMetadata()
         status = meta.get("render-pending")
         return Boolean.parseBoolean(status)
-    
+
     def getFriendlyName(self, name):
         if name.startswith("dc_"):
             name = name[3:]
         if name.startswith("meta_"):
             name = name[5:]
         return name.replace("_", " ").capitalize()
-    
+
     def isDetail(self):
         preview = Boolean.parseBoolean(self.formData.get("preview", "false"))
         return not (self.request.isXHR() or preview)
-    
+
     def __loadSolrData(self, oid):
         portal = self.page.getPortal()
         query = 'id:"%s"' % oid
@@ -95,10 +99,10 @@ class DetailData:
         out = ByteArrayOutputStream()
         self.services.getIndexer().search(req, out)
         self.__solrData = JsonConfigHelper(ByteArrayInputStream(out.toByteArray()))
-    
+
     def __getNumFound(self):
         return int(self.__solrData.get("response/numFound"))
-    
+
     def __getObject(self, oid):
         try:
             storage = self.services.getStorage()
@@ -111,7 +115,12 @@ class DetailData:
         except StorageException:
             print "Object not found: oid='%s'" % oid
         return obj
-    
+
     def __getStorageId(self, oid):
         return self.__metadata.get("storage_id")
-    
+
+    def getUserAgreement(self):
+        if not self.uaActivated:
+            self.userAgreement.__activate__(self.velocityContext, self.getMetadata())
+            self.uaActivated = True
+        return self.userAgreement
