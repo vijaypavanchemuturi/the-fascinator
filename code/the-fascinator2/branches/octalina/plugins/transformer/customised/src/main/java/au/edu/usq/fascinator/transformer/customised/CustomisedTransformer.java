@@ -18,8 +18,10 @@
  */
 package au.edu.usq.fascinator.transformer.customised;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.util.Properties;
 
 import org.python.util.PythonInterpreter;
@@ -28,7 +30,6 @@ import org.slf4j.LoggerFactory;
 
 import au.edu.usq.fascinator.api.PluginDescription;
 import au.edu.usq.fascinator.api.PluginException;
-import au.edu.usq.fascinator.api.indexer.IndexerException;
 import au.edu.usq.fascinator.api.storage.DigitalObject;
 import au.edu.usq.fascinator.api.transformer.Transformer;
 import au.edu.usq.fascinator.api.transformer.TransformerException;
@@ -174,6 +175,7 @@ public class CustomisedTransformer implements Transformer {
                 python.set("object", in);
                 python.set("config", json);
                 python.set("pyUtils", pyUtils);
+                python.set("log", log);
                 python.execfile(scriptFile);
                 python.cleanup();
                 // Modify the property
@@ -184,7 +186,10 @@ public class CustomisedTransformer implements Transformer {
             restoreAllProperty(props);
 
         } catch (Exception e) {
-            log.error(e.getMessage());
+            ByteArrayOutputStream eOut = new ByteArrayOutputStream();
+            e.printStackTrace(new PrintStream(eOut));
+            String eMsg = eOut.toString();
+            log.warn("Failed to run script!\n=====\n{}\n=====", eMsg);
         }
         return in;
     }
