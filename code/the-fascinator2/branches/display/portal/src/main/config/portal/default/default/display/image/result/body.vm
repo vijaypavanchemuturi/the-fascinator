@@ -9,5 +9,6 @@
             <p class="item-description condense">$description</p>
         </div>
     #end
+    $self.getImageSummary()
     <div class="clear"></div>
 #end

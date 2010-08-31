@@ -6,10 +6,10 @@
             #set($valueList = $metaMap.get($key))
             #if($valueList.size())
                 #foreach($value in $valueList)
-                    <span class="meta-value">$value</span><br/>
+                    <span class="meta-value">$self.escape($value)</span><br/>
                 #end
             #else
-                $valueList
+                $self.escape($valueList)
             #end
         </td>
     </tr>
