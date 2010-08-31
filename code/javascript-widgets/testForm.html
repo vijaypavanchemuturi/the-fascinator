@@ -7,6 +7,13 @@
     <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"><!-- --></script>
     <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.2/jquery-ui.min.js"><!-- --></script>
     <script type="text/javascript" src="widgets.js"><!-- --></script>
+    <script type="text/javascript">
+     //<!--
+        $(widgets.contentLoaded);
+        function subFormSubmitted(){}
+        function subFormSubmittedResult(){}
+     //-->
+    </script>
     <!-- base -->
     <link type="text/css" rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8/themes/base/jquery-ui.css" />
 <!-- dark-hive, ui-darkness, ui-lightness
@@ -28,6 +35,7 @@
     </style>
   </head>
   <body>
+   <div class="widget-form">
     <h2>Test javascipt widgets form page</h2>
 
     <!-- Field registartion -->
@@ -214,13 +222,14 @@
       </tbody></table>
     </div>
 
-    <div class="sub-form">
+    <div class="widget-form">
       <h3>Subform</h3>
       <div style='border:1px solid blue;padding:1ex;'>
         <input type="hidden" class="form-fields" value="file1, text99" />
-        <input type="hidden" class="form-fields-readonly" value="subHidden" />
+        <input type="hidden" class="form-fields-readonly" value="subHidden ajax" />
         <input type="hidden" id="subHidden" value="hiddenSubValue"/>
-        <input type="hidden" class="submit-form-fields-url" value="http://localhost:9123?ajax=1" />
+        <input type='hidden' name='ajax' value='1' />
+        <input type="hidden" class="submit-form-fields-url" value="/upload" />
         
         <h4>File Uploading</h4>
         <div class="file-upload-section" style="border:1px dotted blue;padding:1em;">
@@ -228,8 +237,11 @@
         </div>
         <p> Text: <input type='text' id='text99' value="testing"/> </p>
 <button>test</button>
-        <p><button class="submit-form-fields">Submit</button></p>
-        <div id="result" style='color:orange; border:1px solid orange; padding:1ex;'> Results: </div>
+        <p><button class="form-fields-submit">Submit</button></p>
+          <input type="hidden" name="submitted-func" value="subFormSubmitted"/>
+          <input type="hidden" name="submitted-result-func" value="subFormSubmittedResult"/>
+        <!--<span class="sumbitted-result" style="padding-left:2em;font-size:120%;"> </span>-->
+        <div id="submitted-result" style='color:orange; border:1px solid orange; padding:1ex;'> Results: </div>
       </div>
     </div>
 
@@ -245,6 +257,7 @@
       <button class="form-restore">Restore</button>
     </div>
 
+   </div>
   </body>
 </html>
 

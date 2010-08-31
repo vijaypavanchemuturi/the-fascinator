@@ -1,5 +1,5 @@
 
-var widgets={forms:[]};
+var widgets={forms:[], globalObject:this};
 
 
 (function($){
@@ -11,7 +11,12 @@ var widgets={forms:[]};
   }
 
   function getById(id){
-    return $(document.getElementById(id));
+    var e=document.getElementById(id);
+    if(e){
+        return $(e);
+    }else{
+        return $("#_doesNotExist_.-_");
+    }
   }
 
   function reduce(c, func, i){
@@ -268,7 +273,7 @@ var widgets={forms:[]};
   widgets.validator = validator;
   
   function formWidget(ctx){
-      var widgetForm;
+      var widgetForm={};
       var validator;
       var listeners={};
       var ctxInputs;
@@ -302,44 +307,77 @@ var widgets={forms:[]};
       }
 
       function onSubmit(){
-        if(raiseEvents("onSubmit")==false) return false;
-        alert("onSubmit()");
-        //submit();
+        if(raiseEvents("onSubmit")==false){
+            return false;
+        }
+        submit();
         return true;
       }
       function onSave(){
-        if(raiseEvents("onSave")==false) return false;
-        alert("onSave()");
-        //save();
+        if(raiseEvents("onSave")==false){
+            return false;
+        }
+        save();
         return true;
       }
       function onRestore(data){
-        if(raiseEvents("onRestore")==false) return false;
+        if(raiseEvents("onRestore")==false){
+            return false;
+        }
         //messageBox(JSON.stringify(data))
         restore(data);
         return true;
       }
       function onReset(data){
-        if(raiseEvents("onReset")==false) return false;
+        if(raiseEvents("onReset")==false){
+            return false;
+        }
         reset(data);
         return true;
       }
 
       function submit(){
-
+          submitSave("submit");
       }
 
       function save(){
-        var data={}, s, v, e, url, formFields, replaceFunc, ctxInputs;
-        formFields = ctx.findx(".form-fields:first").val() + ctx.findx(".form-fields-readonly:first").val();
-        formFields = $.grep(formFields.split(/[\s,]+/),
-                                function(i){return /\S/.test(i)});
-        url = ctx.findx(".form-fields-save-url:first").val();
+          submitSave("save");
+      }
+
+      function submitSave(stype){
+        var data, url, replaceFunc;
         replaceFunc=function(s){
             s = s.replace(/[{}()]/g, "");   // make it safe - no function calls
             return eval(s);
         };
+        data = getFormData();
+        url = ctx.findx(".form-fields-"+stype+"-url").val();
         url = url.replace(/{[^}]+}/g, replaceFunc);
+        function completed(data){
+            if(data.error || !data.ok){
+                messageBox("Failed to "+stype+"! (error='"+data.error+"')");
+            }else{
+                if(stype=="save"){
+                    ctx.findx(".saved-result").text("Saved OK").
+                        css("color", "green").show().fadeOut(4000);
+                }else if(stype=="submit"){
+                    ctx.findx(".sumbitted-result").text("Submitted OK").
+                        css("color", "green").show().fadeOut(4000);
+                }
+            }
+        }
+        $.ajax({type:"POST", url:url, data:data,
+            success:completed,
+            error:function(xhr, status, e){ completed({error:"status='"+status+"'"}); },
+            dataType:"json"
+        });
+      }
+
+      function getFormData(){
+        var data={}, s, v, e, formFields;
+        formFields = ctx.findx(".form-fields").val() +","+ ctx.findx(".form-fields-readonly").val();
+        formFields = $.grep(formFields.split(/[\s,]+/),
+                                function(i){return /\S/.test(i)});
         function getValue(i){
           e = getById(i);
           if(e.size()==0) e=ctxInputs.filter("[name="+i+"]");
@@ -347,44 +385,39 @@ var widgets={forms:[]};
           v = e.val();
           if(e.attr("type")==="checkbox"){
             if(!e.attr("checked"))v="";
+          } else if(e.attr("type")==="radio"){
+            v = e.filter(":checked").val();
           }
           return v;
         }
         $.each(formFields, function(c, i){
-          s = /\.\d+(\.|$)/.test(i);
+          s = /\.0+(\.|$)/.test(i);
           if(s){
             var id, count=1;
             while(true){
+             try{
               id = i.replace(/\.0(?=\.|$)/, "."+count);
               v=getValue(id);
               if(v===null) break;
               data[id]=v;
               count+=1;
+             } catch(e){
+                 alert(e);
+                 throw e;
+             }
             }
           }else{
             v=getValue(i);
             data[i]=v;
           }
         });
-        if(data.metaList=="[]"){
+        if(data.metaList=="[]" || data.metaDataList=="[]"){
             s = [];
             $.each(data, function(k, v){if(k!="metaList")s.push(k);});
-            data.metaList=s;
+            if(data.metaList=="[]"){ data.metaList=s; }
+            if(data.metaDataList=="[]"){ data.metaDataList=s; }
         }
-        $.ajax({type:"POST", url:url, data:data,
-            success:function(data){
-                if(data.error || !data.ok){
-                    messageBox("Failed to save! (error='"+data.error+"')");
-                }else{
-                    ctx.findx(".saved-result:first").text("Saved OK").
-                        css("color", "green").show().fadeOut(4000);
-                }
-            },
-            error:function(xhr, status, e){
-                messageBox("Failed to save! (status='"+status+"')");
-            },
-            dataType:"json"
-        });
+        return data;
       }
 
       function restore(data){
@@ -422,7 +455,9 @@ var widgets={forms:[]};
           });
       }
 
-      function reset(){
+      function reset(data){
+          if(!data)data={};
+          
       }
 
 
@@ -514,18 +549,21 @@ var widgets={forms:[]};
               getBody=function(){ return $(iframe[0].contentWindow.document.body); };
           }
           submit=function(url, elems, callback){
+              // callback(resultText, iframeBodyElement);
               var form = $("<form method='POST' enctype='multipart/form-data' />");
               iframe.unbind();
               if(!url)url=window.location.href+"";
               form.attr("action", url);
               $.each(elems, function(c, e){
-                  form.append($(e).clone());
+                  var c=$(e).clone();
+                  if(c.attr("name")===""){c.attr("name", e.id);}
+                  form.append(c);
               });
               getBody().append(form);
               setTimeout(function(){
                   iframe.load(function(){
                       var ibody=getBody();
-                      callback(ibody.text, ibody);
+                      callback(ibody.text(), ibody);
                   });
                   form.submit();
               }, 10);
@@ -536,7 +574,6 @@ var widgets={forms:[]};
           //    callback = function(textResult, iframeBody)
           return {submit:submit, iframe:iframe, getBody:getBody};
       }
-      gfs = createFileSubmitter;
 
       // TODO: remove table, tbody, tr and td references, just rely on the classes
       function listInput(c, i){
@@ -832,10 +869,8 @@ var widgets={forms:[]};
         ctxInputs = ctx.findx("input, textarea, select");
 
         //
-        if(ctx.findx("input[type=file]")){
-            setupFileUploader();
-            widgetForm.hasFileUpload=true;
-        }
+        widgetForm.hasFileUpload= (ctx.findx("input[type=file]").size()>0);
+        if(widgetForm.hasFileUpload){ setupFileUploader(); }
         if(widgets.validator){
             validator = widgets.validator();
             validator.setup(ctx);
@@ -850,17 +885,28 @@ var widgets={forms:[]};
         widgetForm.ctx = ctx;
       }
 
-      widgetForm= {
-        submit:onSubmit,
-        save:onSave,
-        restore:onRestore,
-        reset:onReset,
-        addListener:addListener,
-        removeListener:removeListener,
-        removeListeners:removeListeners,
-        end:true
+      //widgetForm= {
+        //submit:onSubmit,
+        //save:onSave,
+        //restore:onRestore,
+        //reset:onReset,
+        //addListener:addListener,
+        //removeListener:removeListener,
+        //removeListeners:removeListeners,
+      //  end:true
         // setSaveUrl, setSubmitUrl, setResetJson, setRestoreData
-      };
+      //};
+      widgetForm.submit=onSubmit;
+      widgetForm.save=onSave;
+      widgetForm.restore=onRestore;
+      widgetForm.reset=onReset;
+      widgetForm.addListener=addListener;
+      widgetForm.removeListener=removeListener;
+      widgetForm.removeListeners=removeListeners;
+      widgetForm._createFileSubmitter=createFileSubmitter;   // for testing only
+      widgetForm._getFormData=getFormData;
+
+
       widgets.forms.push(widgetForm);
       if(ctx) init(ctx);
       return widgetForm;
