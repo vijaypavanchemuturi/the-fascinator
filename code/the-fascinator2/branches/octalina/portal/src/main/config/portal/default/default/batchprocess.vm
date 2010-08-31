@@ -56,16 +56,16 @@
 #########################
 ###  Admin login required
 
-##if (!$page.authentication.is_admin())
-##set($renderBatchProcessForms = false)
-##  <div class="box">
-##    <div class="block">
-##      <div class="login-error">
-##        Sorry, but you need to be logged in as an administrator to use this screen.
-##      </div>
-##    </div>
-##  </div>
-##end
+#if (!$page.authentication.is_admin())
+#set($renderBatchProcessForms = false)
+  <div class="box">
+    <div class="block">
+      <div class="login-error">
+        Sorry, but you need to be logged in as an administrator to use this screen.
+      </div>
+    </div>
+  </div>
+#end
 
 #########################
 ###  Render page

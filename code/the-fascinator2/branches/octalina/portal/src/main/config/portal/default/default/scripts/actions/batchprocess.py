@@ -4,6 +4,8 @@ from au.edu.usq.fascinator.common import JsonConfigHelper
 from au.edu.usq.fascinator import HarvestClient
 from java.io import File, ByteArrayInputStream, ByteArrayOutputStream
 
+from org.apache.commons.lang import StringUtils;
+
 class BatchProcess:
     def __init__(self):
         self.writer = response.getPrintWriter("text/html; charset=UTF-8")
@@ -15,10 +17,10 @@ class BatchProcess:
         func = formData.get("func")
         result = {}
         if func == "batch-update":
-            configFile = formData.get("script-file")
+            configFile = formData.get("config-file")
             if configFile == "":
-                result = "Invalid script file"
-                self.throw_error("Invalid script file")
+                result = "Invalid configuration file"
+                self.throw_error("Invalid configuration file")
             else:
                 config = File(configFile)
                 if not config.exists():
@@ -37,8 +39,10 @@ class BatchProcess:
                     #harvestClient = HarvestClient()
                     #harvestClient.processBatchUpdate(ob)
                     
+                    configHelper = JsonConfigHelper(config)
+                    
                     for oid in objectIdList:
-                        self.__processObject(oid)
+                        self.__processObject(oid, configHelper)
                     
                 except Exception, ex:
                     error = "Batch update failed: %s" % str(ex)
@@ -50,16 +54,26 @@ class BatchProcess:
         self.writer.println(result)
         self.writer.close()
         
-    def __processObject(self, oid):
-        print "Processing '%s'..." % oid
+    def __processObject(self, oid, configHelper):
         try:
             # temporarily update the object properties for transforming
             obj = self.storage.getObject(oid)
             props = obj.getMetadata()
-            indexOnHarvest = self.__setProperty(props, "indexOnHarvest", "false")
-            harvestQueue = self.__setProperty(props, "harvestQueue")
-            renderQueue = self.__setProperty(props, "renderQueue", "customised")
-            customisedScript = self.__setProperty(props, "customisedScript", formData.get("script-file"))
+            
+            newIndexOnHarvest = configHelper.get("transformer/indexOnHarvest")
+            newRenderQueue = StringUtils.join(
+                        configHelper.getList("transformer/renderQueue"), ",")
+            newHarvestQueue = StringUtils.join(
+                        configHelper.getList("transformer/harvestQueue"), ",")
+            
+            indexOnHarvest = self.__setProperty(props, "indexOnHarvest", newIndexOnHarvest)
+            harvestQueue = self.__setProperty(props, "harvestQueue", newHarvestQueue)
+            renderQueue = self.__setProperty(props, "renderQueue", newRenderQueue)
+            customisedScript = self.__setProperty(props, "customisedScript", configHelper.get("update-script"))
+            
+            #has been set in CustomisedTransformer
+            #batchModify = self.__setProperty(props, "batchModify", "true")
+            
             obj.close()
             # signal a reharvest
             self.__harvester.reharvest(oid);
@@ -111,7 +125,7 @@ class BatchProcess:
             indexer.search(req, out)
             result = JsonConfigHelper(ByteArrayInputStream(out.toByteArray()))
             
-            docs = result.getList("response/docs/id")
+            docs = result.getList("response/docs/storage_id")
             
             objectIdList.extend(docs)
             
@@ -121,46 +135,7 @@ class BatchProcess:
             if (startRow > numFound):
                 break
 
-        return objectIdList 
-         
-#
-#            try {
-#                indexer.search(request, result);
-#                JsonConfigHelper js;
-#
-#                js = new JsonConfigHelper(result.toString());
-#                for (Object oid : js.getList("response/docs/id")) {
-#                    DigitalObject object = null;
-#                    try {
-#                        object = realStorage.getObject(oid.toString());
-#                    } catch (StorageException ex) {
-#                        log.error("Error getting object", ex);
-#                    }
-#
-#                    try {
-#                        Properties sofMeta = object.getMetadata();
-#                        String rulesOid = sofMeta.getProperty("rulesOid");
-#                        if (!rulesList.contains(rulesOid)) {
-#                            updateRules(rulesOid);
-#                            rulesList.add(rulesOid);
-#                        }
-#                        processObject(object, rulesOid, null, false);
-#                    } catch (StorageException ex) {
-#                        log.error("Error indexing object", ex);
-#                    }
-#                }
-#
-#                startRow += numPerPage;
-#                numFound = Integer.parseInt(js.get("response/numFound"));
-#
-#            } catch (IndexerException e) {
-#                e.printStackTrace();
-#            } catch (IOException e) {
-#                e.printStackTrace();
-#            }
-#        } while (startRow < numFound);
-        
-        
+        return objectIdList
     
     def throw_error(self, message):
         response.setStatus(500)
