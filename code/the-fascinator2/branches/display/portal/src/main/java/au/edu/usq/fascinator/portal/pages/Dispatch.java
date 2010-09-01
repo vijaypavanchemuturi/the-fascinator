@@ -153,7 +153,8 @@ public class Dispatch {
         if (resourceName.startsWith("css/") || resourceName.equals("css") ||
             resourceName.startsWith("images/") ||
             resourceName.startsWith("js/") ||
-            resourceName.startsWith("flowplayer/")) {
+            resourceName.startsWith("flowplayer/") ||
+            resourceName.endsWith(".ico")) {
             staticResource = true;
         }
         // The detail screen generates a lot of background calls to the server
