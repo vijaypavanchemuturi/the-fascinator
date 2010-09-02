@@ -10,12 +10,14 @@
 ## Access Check
 #############
 #set($ua = $self.getUserAgreement())
+#set($renderContent = true)
 #if ($ua.isAccessible())
 
     #############
     ## User Agreements
     #############
     #if ($ua.isRequired())
+        #set($renderContent = false)
         #parseTemplate("detail-screen/user-agreement.vm")
 
     #############
@@ -46,6 +48,7 @@
                 });
             </script>
         #else
+            #set($renderContent = false)
             #parseTemplate("detail-screen/not-found.vm")
         #end
     #end
@@ -54,5 +57,6 @@
 ## Access Denied
 #############
 #else
+    #set($renderContent = false)
     #parseTemplate("detail-screen/login-required.vm")
 #end
