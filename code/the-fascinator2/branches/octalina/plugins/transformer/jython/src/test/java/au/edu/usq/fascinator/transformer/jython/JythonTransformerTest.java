@@ -16,7 +16,7 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-package au.edu.usq.fascinator.transformer.customised;
+package au.edu.usq.fascinator.transformer.jython;
 
 import java.io.File;
 import java.net.URISyntaxException;
@@ -35,14 +35,15 @@ import au.edu.usq.fascinator.api.storage.Storage;
 import au.edu.usq.fascinator.api.storage.StorageException;
 import au.edu.usq.fascinator.api.transformer.TransformerException;
 import au.edu.usq.fascinator.common.storage.StorageUtils;
+import au.edu.usq.fascinator.transformer.jython.JythonTransformer;
 
 /**
  * @author Linda Octalina
  * 
  */
 @Ignore
-public class CustomisedTransformerTest {
-    private CustomisedTransformer aperture;
+public class JythonTransformerTest {
+    private JythonTransformer aperture;
 
     private Storage ram;
 
@@ -53,7 +54,7 @@ public class CustomisedTransformerTest {
 
     @Before
     public void setup() throws Exception {
-        aperture = new CustomisedTransformer();
+        aperture = new JythonTransformer();
         aperture.init(config);
         ram = PluginManager.getStorage("ram");
         ram.init("{}");

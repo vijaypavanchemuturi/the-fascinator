@@ -1,5 +1,5 @@
 /*
- * The Fascinator - Plugin - Transformer - Customised
+ * The Fascinator - Plugin - Transformer - Jython
  * Copyright (C) 2009  University of Southern Queensland
  *
  * This program is free software: you can redistribute it and/or modify
@@ -16,7 +16,7 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-package au.edu.usq.fascinator.transformer.customised;
+package au.edu.usq.fascinator.transformer.jython;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -42,10 +42,10 @@ import au.edu.usq.fascinator.common.PythonUtils;
  * 
  * @author Linda Octalina
  */
-public class CustomisedTransformer implements Transformer {
+public class JythonTransformer implements Transformer {
     /** Logger */
     private static Logger log = LoggerFactory
-            .getLogger(CustomisedTransformer.class);
+            .getLogger(JythonTransformer.class);
 
     /** Json config file **/
     private JsonConfigHelper config;
@@ -57,7 +57,7 @@ public class CustomisedTransformer implements Transformer {
     /**
      * Extractor Constructor
      */
-    public CustomisedTransformer() {
+    public JythonTransformer() {
     }
 
     /**
@@ -113,7 +113,7 @@ public class CustomisedTransformer implements Transformer {
      */
     @Override
     public String getId() {
-        return "customised";
+        return "jython";
     }
 
     /**
@@ -123,7 +123,7 @@ public class CustomisedTransformer implements Transformer {
      */
     @Override
     public String getName() {
-        return "Customised Extractor";
+        return "Jython Extractor";
     }
 
     /**
@@ -159,8 +159,9 @@ public class CustomisedTransformer implements Transformer {
         try {
             Properties props = in.getMetadata();
             JsonConfigHelper json = new JsonConfigHelper(jsonConfig);
-            String scriptFile = json.get("transformer/customised/script",
-                    props.getProperty("customisedScript"));
+            //String scriptFile = json.get("transformer/jython/script",
+            //        props.getProperty("jythonScript"));
+            String scriptFile = props.getProperty("jythonScript");
             if (scriptFile != null) {
                 File script = new File(scriptFile);
                 if (!script.exists()) {
@@ -178,8 +179,13 @@ public class CustomisedTransformer implements Transformer {
                 python.set("log", log);
                 python.execfile(scriptFile);
                 python.cleanup();
-                // Modify the property
-                props.setProperty("modified", "true");
+                
+                // This is only for export
+                String resetModifiedProperty = props.getProperty("resetModifiedProperty", "false");
+                if (resetModifiedProperty == "true") {
+                    props.setProperty("modified", "false");
+                }
+                
             } else {
                 log.info("Script file not found");
             }
@@ -203,7 +209,7 @@ public class CustomisedTransformer implements Transformer {
         restoreProperty(props, "indexOnHarvest");
         restoreProperty(props, "harvestQueue");
         restoreProperty(props, "renderQueue");
-        restoreProperty(props, "customisedScript");
+        restoreProperty(props, "jythonScript");
     }
 
     /**
@@ -217,6 +223,8 @@ public class CustomisedTransformer implements Transformer {
         if (props.containsKey(copyKey)) {
             String copyValue = props.remove(copyKey).toString();
             props.setProperty(key, copyValue);
+        } else {
+            props.remove(key);
         }
     }
 }
