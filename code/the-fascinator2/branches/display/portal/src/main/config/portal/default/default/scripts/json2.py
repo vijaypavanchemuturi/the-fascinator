@@ -1,6 +1,5 @@
 import string
 import types
-import re
 
 ##    json.py implements a JSON (http://json.org) reader and writer.
 ##    Copyright (C) 2005  Patrick D. Logan
@@ -257,6 +256,7 @@ class JsonReader(object):
 
 class JsonWriter(object):
     def __init__(self):
+        import re
         self.unicodeRE = re.compile(u"([\u0080-\uffff])")
         self.unicodeREfunction = lambda(x): r"\u%04x" % ord(x.group(1))
         self.stringUnicodeRE = re.compile("([\x80-\xff])")

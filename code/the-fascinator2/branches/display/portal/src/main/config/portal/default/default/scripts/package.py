@@ -1,5 +1,5 @@
 from au.edu.usq.fascinator.common import JsonConfigHelper, JsonConfig
-from json import write as jsonWriter
+from json2 import write as jsonWriter
 
 ##### Debugging
 #from java.awt import FlowLayout
