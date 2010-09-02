@@ -354,11 +354,23 @@ public class CachingDynamicPageServiceImpl implements DynamicPageService {
                     vc.put("pageContent", pageContentWriter.toString());
                 }
             } catch (Exception e) {
-                renderMessages.add("Page content template error:\n"
-                        + e.getMessage());
-                log.error("Failed rendering page: {}, {} ({})", new String[] {
-                        pageName, e.getMessage(),
-                        isAjax ? "ajax" : isScript ? "script" : "html" });
+                ByteArrayOutputStream eOut = new ByteArrayOutputStream();
+                e.printStackTrace(new PrintStream(eOut));
+                String eMsg = eOut.toString();
+                log.error("Failed to run page script ({})!\n=====\n{}\n=====",
+                        isAjax ? "ajax" : isScript ? "script" : "html",
+                        eMsg);
+                String errorMsg = "<pre>Page content template error: "
+                        + pageName + "\n" + eMsg + "</pre>";
+                if (isAjax || isScript) {
+                    try {
+                        out.write(errorMsg.getBytes());
+                    } catch (Exception e2) {
+                        log.error("Failed to output error message!");
+                    }
+                } else {
+                    vc.put("pageContent", errorMsg);
+                }
             }
 
             if (!(isAjax || isScript)) {
