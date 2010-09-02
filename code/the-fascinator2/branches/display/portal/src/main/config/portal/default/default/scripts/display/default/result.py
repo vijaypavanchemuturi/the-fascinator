@@ -21,14 +21,19 @@ class ResultData:
             return valueList.get(0)
         return ""
     
-    def getMimeTypeIcon(self, format):
+    def getMimeTypeIcon(self, path, format, altText = None):
+        if format[-1:] == ".":
+            format = format[0:-1]
+        if altText is None:
+            altText = format
         # check for specific icon
         iconPath = "images/icons/mimetype/%s/icon.png" % format
         resource = self.services.getPageService().resourceExists(self.portalId, iconPath)
         if resource is not None:
-            return iconPath
+            return "<img src=\"%s/%s\" title=\"%s\" />" % (path, iconPath, altText)
         elif format.find("/") != -1:
             # check for major type
-            return self.getMimeTypeIcon(format.split("/")[0])
+            return self.getMimeTypeIcon(path, format.split("/")[0], altText)
         # use default icon
-        return "images/icons/mimetype/icon.png"
+        iconPath = "images/icons/mimetype/icon.png"
+        return "<img src=\"%s/%s\" title=\"%s\" />" % (path, iconPath, altText)
