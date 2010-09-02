@@ -281,7 +281,7 @@
                 </dependency>
                 <dependency>
                     <groupId>au.edu.usq.fascinator.plugins</groupId>
-                    <artifactId>plugin-transformer-customised</artifactId>
+                    <artifactId>plugin-transformer-jython</artifactId>
                 </dependency>
                 <!-- <dependency> <groupId>au.edu.usq.fascinator.plugins</groupId> 
                     <artifactId>plugin-transformer-solrmarc</artifactId> </dependency> <dependency> 

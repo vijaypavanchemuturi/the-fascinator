@@ -49,8 +49,8 @@
   <li><a id="${id}-category" class="category" href="#" rel="$id">$label</a></li>
 #end
 
-#set($pageTitle = "Batch Update")
-<h2 id="page-heading">Batch Update</h2>
+#set($pageTitle = "Batch Process")
+<h2 id="page-heading">Batch Process</h2>
 #set($renderBatchProcessForms = true)
 
 #########################
@@ -72,21 +72,33 @@
 
 #if ($renderBatchProcessForms)
 <div class="grid_4">
-  #set($menuTitle = "Batch Update")
+  #set($menuTitle = "Batch Process")
   #parse($page.getTemplate('wrapping/menu-open.vm'))
   #set($menuTitle = $nullValue)
     <ul class="menu">
-      #category("general" "General")
+      #category("update" "Update")
+      #category("export" "Export")
     </ul>
   #parse($page.getTemplate('wrapping/menu-close.vm'))
 </div>
 <div id="form-section" class="grid_12">
-  <div id="general-section" class="box hidden">
-    <h2>General</h2>
-    <div class="box" id="upload-file-form">
-        $self.render_upload_form()
-        <img class="hidden" id="general-loading" src="$portalPath/images/icons/loading.gif" />
-        <span id="general-message"></span>
+  <div id="update-section" class="box hidden">
+    <h2>Update</h2>
+    <div class="box" id="update-script-file-form">
+        $self.renderUpdateForm()
+        <img class="hidden" id="update-loading" src="$portalPath/images/icons/loading.gif" />
+        <span id="update-message"></span>
+    </div>
+  </div>
+</div>
+<div id="form-section" class="grid_12">
+  <div id="export-section" class="box hidden">
+    <h2>export</h2>
+    <div class="box" id="export-script-file-form">
+        $self.renderExportForm()
+        <strong>Number of modified record: $self.numberOfModifiedRecord()</strong>
+        <img class="hidden" id="export-loading" src="$portalPath/images/icons/loading.gif" />
+        <span id="export-message"></span>
     </div>
   </div>
 </div>
@@ -108,103 +120,71 @@ $(function() {
         return false;
     });
 
-    var selected = "general";
+    var selected = "update";
     ##if($page.isConfigured())
         // restore selected category
     ##    selected = jQuery.cookie("category") || selected;
     ##end
     $("#" + selected + "-category").click();
 
-    // make text fields editable
-    $(".field-text").live("click", function() {
-        $(this).toggleClass("hidden").toggleClass("visible")
-            .next().toggleClass("hidden").toggleClass("inline");
-        return false;
-    });
-
-    // submit editable fields
-    $(".field-form").submit(function() {
-        $(this).find(".accept").click();
-        return false;
-    });
-
-    // accept editable fields
-    $(".field-form .accept").live("click", function() {
-        var parentEl = $(this).parent(".field-form");
-        var textEl = parentEl.prev(".field-text");
-        var inputEl = $(this).prev(".field-input");
-        parentEl.toggleClass("hidden").toggleClass("inline");
-        textEl.toggleClass("hidden").toggleClass("visible");
-        var oldValue = textEl.text();
-        var newValue = inputEl.val();
-        if (oldValue != newValue) {
-            textEl.css("font-weight", "bold").text(newValue);
-        }
-        return false;
-    });
-
-    // cancel editable fields
-    $(".field-form .cancel").live("click", function() {
-        $(this)
-            .parent().toggleClass("hidden").toggleClass("inline")
-                .prev().toggleClass("hidden").toggleClass("visible");
-        return false;
-    });
-
-    // add new table row
-    $("button.add").click(function() {
-        var rel = $(this).attr("rel");
-        var blankRowId = rel + "-blank";
-        var tableId = rel + "-table";
-        var newRow = $("#" + blankRowId).clone(true).appendTo($("#" + tableId));
-        newRow.removeClass("hidden");
-        newRow.find(".field-text").css("font-weight", "bold");
-        var newId = rel + "-" + ($("#" + tableId + " tr").length);
-        newRow.attr("id", newId);
-        newRow.find(".field-form").each(function() {
-            var id = $(this).attr("id");
-            $(this).attr("id", id.replace(blankRowId, newId));
-        });
-        newRow.find(":input").each(function() {
-            var name = $(this).attr("name");
-            $(this).attr("name", name.replace(blankRowId, newId));
-            $(this).filter("input:checkbox").attr("value", newId);
-        });
-        newRow.find(".field-text:first").click();
-        newRow.find(".field-input:first").focus();
-        return false;
-    });
-
     // cancel form changes
-    $("input#cancel").click(function() {
+    $("input#update-cancel input#update-export").click(function() {
         window.location.reload();
         return false;
     });
 
-    // update general category
-    $("#general-section input#upload").removeAttr("disabled").click(function() {
+    // batch update category
+    $("#update-section input#update-upload").removeAttr("disabled").click(function() {
         $(this).attr("disabled", "disabled");
-        $("#general-loading").show();
-        var data = $("#general-form").serialize();
+        $("#update-loading").show();
+        var data = $("#update-form").serialize();
         jQuery.ajax({
             type : "POST",
             url : "$portalPath/actions/batchprocess.ajax?" + data,
             success:
                 function(data, status) {
-                    $("#general-loading").hide();
-                    $("#general-message").text("Updated successfully");
-                    setTimeout(function() { $("#general-message").empty(); }, 3000);
-                    $("#general-section input#upload").removeAttr("disabled");
+                    $("#update-loading").hide();
+                    $("#update-message").text("Updated successfully");
+                    setTimeout(function() { $("#update-message").empty(); }, 3000);
+                    $("#update-section input#update-upload").removeAttr("disabled");
                 },
             error:
                 function (req, status, e) {
-                    $("#general-loading").hide();
-                    $("#general-message").text(req.responseText);
-                    setTimeout(function() { $("#general-message").empty(); }, 3000);
-                    $("#general-section input#upload").removeAttr("disabled");
+                    $("#update-loading").hide();
+                    $("#update-message").text(req.responseText);
+                    setTimeout(function() { $("#update-message").empty(); }, 3000);
+                    $("#update-section input#update-upload").removeAttr("disabled");
                 },
             data: {
                 func: "batch-update"
+            }
+        });
+    });
+    
+    // batch export category
+    $("#export-section input#export-upload").removeAttr("disabled").click(function() {
+        $(this).attr("disabled", "disabled");
+        $("#export-loading").show();
+        var data = $("#export-form").serialize();
+        jQuery.ajax({
+            type : "POST",
+            url : "$portalPath/actions/batchprocess.ajax?" + data,
+            success:
+                function(data, status) {
+                    $("#export-loading").hide();
+                    $("#export-message").text("Exported successfully");
+                    setTimeout(function() { $("#export-message").empty(); }, 3000);
+                    $("#export-section input#export-upload").removeAttr("disabled");
+                },
+            error:
+                function (req, status, e) {
+                    $("#export-loading").hide();
+                    $("#export-message").text(req.responseText);
+                    setTimeout(function() { $("#export-message").empty(); }, 3000);
+                    $("#export-section input#export-upload").removeAttr("disabled");
+                },
+            data: {
+                func: "batch-export"
             }
         });
     });

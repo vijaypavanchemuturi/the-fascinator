@@ -1,7 +1,7 @@
 from au.edu.usq.fascinator.api.indexer import SearchRequest
 from au.edu.usq.fascinator.api.storage import StorageException
-from au.edu.usq.fascinator.common import JsonConfigHelper
 from au.edu.usq.fascinator import HarvestClient
+from au.edu.usq.fascinator.common import JsonConfigHelper
 from java.io import File, ByteArrayInputStream, ByteArrayOutputStream
 
 from org.apache.commons.lang import StringUtils;
@@ -16,63 +16,58 @@ class BatchProcess:
     def __process(self):
         func = formData.get("func")
         result = {}
+        
         if func == "batch-update":
-            configFile = formData.get("config-file")
-            if configFile == "":
-                result = "Invalid configuration file"
-                self.throw_error("Invalid configuration file")
-            else:
-                config = File(configFile)
-                if not config.exists():
-                    result = "Configuration file is not exist"
-                    self.throw_error("Configuration file is not exist")
-                    
-                objectIdList = self.__search()
-
-                try:
-                    # need to do paging... but for now... don care first
-                    self.__harvester = HarvestClient()
-                    print objectIdList
-                    #harvester.processBatchUpdate(objectIdList, config)
-                    #harvester.shutdown()
-                    
-                    #harvestClient = HarvestClient()
-                    #harvestClient.processBatchUpdate(ob)
-                    
-                    configHelper = JsonConfigHelper(config)
-                    
-                    for oid in objectIdList:
-                        self.__processObject(oid, configHelper)
-                    
-                except Exception, ex:
-                    error = "Batch update failed: %s" % str(ex)
-                    log.error(error, ex)
-                    #if harvester is not None:
-                    #    harvester.shutdown()
-                    return '{ status: "failed" }'
+            updateScriptFile = formData.get("update-script-file")
+            self.__checkIfScriptFileIsValid(updateScriptFile)
+                
+            objectIdList = self.__search("*:*")
+            try:
+                self.__harvester = HarvestClient()
+                for oid in objectIdList:
+                    self.__processObject(oid, updateScriptFile, "false")
+            except Exception, ex:
+                error = "Batch update failed: %s" % str(ex)
+                log.error(error, ex)
+                return '{ status: "failed" }'
+        elif func == "batch-export":
+            exportScriptFile = formData.get("export-script-file")
+            self.__checkIfScriptFileIsValid(exportScriptFile)
+            
+            objectIdList = self.__search("modified:true")
+            try:
+                self.__harvester = HarvestClient()
+                for oid in objectIdList:
+                    self.__processObject(oid, exportScriptFile, "true")
+            except Exception, ex:
+                error = "Batch export failed: %s" % str(ex)
+                log.error(error, ex)
+                return '{ status: "failed" }'
             
         self.writer.println(result)
         self.writer.close()
         
-    def __processObject(self, oid, configHelper):
+    def __checkIfScriptFileIsValid(self, scriptFile):
+        if scriptFile == "":
+            result = "Invalid script file"
+            self.throw_error("Invalid script file")
+        script = File(scriptFile)
+        if not script.exists():
+            result = "Script file is not exist"
+            self.throw_error("Script file is not exist")
+    
+    def __processObject(self, oid, scriptFile, resetModifiedProperty):
         try:
+            print "** processObject: ", oid
             # temporarily update the object properties for transforming
             obj = self.storage.getObject(oid)
             props = obj.getMetadata()
             
-            newIndexOnHarvest = configHelper.get("transformer/indexOnHarvest")
-            newRenderQueue = StringUtils.join(
-                        configHelper.getList("transformer/renderQueue"), ",")
-            newHarvestQueue = StringUtils.join(
-                        configHelper.getList("transformer/harvestQueue"), ",")
-            
-            indexOnHarvest = self.__setProperty(props, "indexOnHarvest", newIndexOnHarvest)
-            harvestQueue = self.__setProperty(props, "harvestQueue", newHarvestQueue)
-            renderQueue = self.__setProperty(props, "renderQueue", newRenderQueue)
-            customisedScript = self.__setProperty(props, "customisedScript", configHelper.get("update-script"))
-            
-            #has been set in CustomisedTransformer
-            #batchModify = self.__setProperty(props, "batchModify", "true")
+            indexOnHarvest = self.__setProperty(props, "indexOnHarvest", "false")
+            harvestQueue = self.__setProperty(props, "harvestQueue", "")
+            renderQueue = self.__setProperty(props, "renderQueue", "jython")
+            props.setProperty("resetModifiedProperty", resetModifiedProperty)
+            jythonScript = self.__setProperty(props, "jythonScript", scriptFile)
             
             obj.close()
             # signal a reharvest
@@ -90,7 +85,7 @@ class BatchProcess:
             props.remove(key)
         return oldValue
     
-    def __search(self):
+    def __search(self, searchField):
         indexer = Services.getIndexer()
         portalQuery = Services.getPortalManager().get(portalId).getQuery()
         portalSearchQuery = Services.getPortalManager().get(portalId).getSearchQuery()
@@ -107,7 +102,7 @@ class BatchProcess:
         numPerPage = 25
         numFound = 0
         
-        req = SearchRequest("*:*")
+        req = SearchRequest(searchField)
         if portalQuery:
             req.addParam("fq", portalQuery)
         if portalSearchQuery:
