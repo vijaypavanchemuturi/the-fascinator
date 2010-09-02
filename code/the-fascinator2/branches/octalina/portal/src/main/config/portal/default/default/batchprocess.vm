@@ -96,7 +96,7 @@
     <h2>export</h2>
     <div class="box" id="export-script-file-form">
         $self.renderExportForm()
-        <strong>Number of modified record: $self.numberOfModifiedRecord()</strong>
+        <strong>Number of modified record: <span id="num-modified">$self.numberOfModifiedRecord()</span></strong>
         <img class="hidden" id="export-loading" src="$portalPath/images/icons/loading.gif" />
         <span id="export-message"></span>
     </div>
@@ -188,7 +188,10 @@ $(function() {
             }
         });
     });
-
+    
+    $("#export-category").click(function() {
+        $("#num-modified").load("$portalPath/batchprocess.ajax?func=num-modified");
+    });
 });
 </script>
 

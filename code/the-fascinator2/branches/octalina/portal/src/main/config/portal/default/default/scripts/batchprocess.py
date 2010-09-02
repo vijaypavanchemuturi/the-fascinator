@@ -8,6 +8,11 @@ class BatchProcess:
 
     def __init__(self):
         self.formRenderer = toolkit.getFormRenderer()
+        func = formData.get("func")
+        if func == "num-modified":
+            writer = response.getPrintWriter("text/plain")
+            writer.println(self.numberOfModifiedRecord())
+            writer.close()
 
     def renderUpdateForm(self):
         return self.__createBatchForm("update")
