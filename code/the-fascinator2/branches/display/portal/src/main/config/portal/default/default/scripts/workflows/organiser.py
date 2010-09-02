@@ -1,5 +1,4 @@
-import md5
-
+from au.edu.usq.fascinator.api.storage import StorageException
 from au.edu.usq.fascinator.common import JsonConfigHelper
 
 from java.io import InputStreamReader
@@ -63,35 +62,42 @@ class OrganiserData:
     def getMimeType(self, oid):
         return self.__getContentType(oid) or ""
     
-    def getMimeTypeIcon(self, oid):
-        #print " *** getMimeTypeIcon(%s)" % oid
+    def getMimeTypeIcon(self, path, oid, altText = None):
+        format = self.__getContentType(oid)
+        return self.__getMimeTypeIcon(path, format, altText)
+
+    def __getMimeTypeIcon(self, path, format, altText = None):
+        if format[-1:] == ".":
+            format = format[0:-1]
+        if altText is None:
+            altText = format
         # check for specific icon
-        contentType = self.__getContentType(oid)
-        iconPath = "images/icons/mimetype/%s/icon.png" % contentType
+        iconPath = "images/icons/mimetype/%s/icon.png" % format
         resource = Services.getPageService().resourceExists(self.vc("portalId"), iconPath)
         if resource is not None:
-            return iconPath
-        elif contentType is not None and contentType.find("/") != -1:
+            return "<img class=\"mime-type\" src=\"%s/%s\" title=\"%s\" />" % (path, iconPath, altText)
+        elif format.find("/") != -1:
             # check for major type
-            iconPath = "images/icons/mimetype/%s/icon.png" % contentType[:contentType.find("/")]
-            resource = Services.getPageService().resourceExists(self.vc("portalId"), iconPath)
-            if resource is not None:
-                return iconPath
+            return self.__getMimeTypeIcon(path, format.split("/")[0], altText)
         # use default icon
-        return "images/icons/mimetype/icon.png"
-    
+        iconPath = "images/icons/mimetype/icon.png"
+        return "<img class=\"mime-type\" src=\"%s/%s\" title=\"%s\" />" % (path, iconPath, altText)
+
     def __getContentType(self, oid):
         #print " *** __getContentType(%s)" % oid
         contentType = ""
         if oid == "blank":
             contentType = "application/x-fascinator-blank-node"
         else:
-            object = Services.getStorage().getObject(oid)
-            sourceId = object.getSourceId()
-            payload = object.getPayload(sourceId)
-            contentType = payload.getContentType()
-            payload.close()
-            object.close()
+            try:
+                object = Services.getStorage().getObject(oid)
+                sourceId = object.getSourceId()
+                payload = object.getPayload(sourceId)
+                contentType = payload.getContentType()
+                payload.close()
+                object.close()
+            except StorageException, e:
+                log.error("Error during getObject()", e)
         return contentType
     
     def __readManifest(self, oid):
