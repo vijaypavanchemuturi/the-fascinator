@@ -53,7 +53,7 @@ class DetailData:
 
     def hasLocalFile(self):
         # get original file.path from object properties
-        filePath = self.getObject().getMetadata().getProperty("file.path")
+        filePath = self.getProperty("file.path")
         return filePath and os.path.exists(filePath)
 
     def getOid(self):
@@ -124,3 +124,13 @@ class DetailData:
             self.userAgreement.__activate__(self.velocityContext, self.getMetadata())
             self.uaActivated = True
         return self.userAgreement
+
+    def getFileName(self):
+        filePath = self.getProperty("file.path")
+        return os.path.split(filePath)[1]
+
+    def getFileNameSplit(self, index):
+        return os.path.splitext(self.getFileName())[index]
+
+    def getProperty(self, field):
+        return self.getObject().getMetadata().getProperty(field)
