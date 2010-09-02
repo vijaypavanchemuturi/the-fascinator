@@ -40,6 +40,7 @@
     "messaging" : {
         "url" : "tcp://localhost:61616",
         "stompUrl" : "stomp://localhost:61613",
+        "jmxPort": "1099",
         "home" : "${fascinator.home}/activemq-data",
         "threads" : [
             {
@@ -186,8 +187,8 @@
         "ims": {
             "id": "ims"
         },
-        "customised" : {
-          "id" : "customised"
+        "jython" : {
+          "id" : "jython"
         }
     },
     "uploader": {
