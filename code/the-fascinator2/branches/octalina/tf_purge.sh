@@ -2,10 +2,10 @@
 #
 # this script is used for deleting fascinator data
 # data will be deleted:
-# 1. $FASCINATOR_HOME/storage
-# 2. $FASCINATOR_HOME/activemq-data
-# 3. $FASCINATOR_HOME/logs
-# 4. $FASCINATOR_HOME/cache
+# 1. $TF_HOME/storage
+# 2. $TF_HOME/activemq-data
+# 3. $TF_HOME/logs
+# 4. $TF_HOME/cache
 # 5. $SOLR_BASE_DIR/solr/indexes/anotar/index
 # 6. $SOLR_BASE_DIR/solr/indexes/fascinator/index
 # 7. $SOLR_BASE_DIR/solr/indexes/security/index
@@ -20,7 +20,7 @@ popd() {
 
 # get fascinator home dir
 pushd `dirname $0`
-TF_HOME=`pwd`
+TF_CODE=`pwd`
 popd
 
 if [ "$1" == "" ]; then
@@ -29,25 +29,29 @@ if [ "$1" == "" ]; then
 fi
 
 # setup environment
-. $TF_HOME/tf_env.sh
+. $TF_CODE/tf_env.sh
 
 if [ "$1" == "all" ]; then
     echo Deleting all data
-    echo Deleting: $FASCINATOR_HOME/storage
-    rm -rf $FASCINATOR_HOME/storage
+    echo Deleting: $TF_HOME/storage
+    rm -rf $TF_HOME/storage
 
-    echo Deleting: $FASCINATOR_HOME/activemq-data
-    rm -rf $FASCINATOR_HOME/activemq-data
+    echo Deleting: $TF_HOME/activemq-data
+    rm -rf $TF_HOME/activemq-data
 
-    echo Deleting: $FASCINATOR_HOME/logs
-    rm -rf $FASCINATOR_HOME/logs
+    echo Deleting: $TF_HOME/logs
+    rm -rf $TF_HOME/logs
 
-    echo Deleting: $FASCINATOR_HOME/cache
-    rm -rf $FASCINATOR_HOME/cache
+    echo Deleting: $TF_HOME/cache
+    rm -rf $TF_HOME/cache
 fi
 
 if [ "$1" == "all" -o "$1" == "solr" ]; then
     echo Deleting solr data
+
+    if [ ! -d "$SOLR_BASE_DIR/solr" ]; then
+       SOLR_BASE_DIR = $TF_HOME
+    fi
     
     echo Deleting: $SOLR_BASE_DIR/solr/indexes/anotar/index
     rm -rf $SOLR_BASE_DIR/solr/indexes/anotar/index
