@@ -10,7 +10,7 @@
   <parent>
     <groupId>au.edu.usq.fascinator</groupId>
     <artifactId>fascinator-plugins</artifactId>
-    <version>0.6.0</version>
+    <version>0.6.1</version>
   </parent>
   <dependencies>
     <dependency>
@@ -25,14 +25,17 @@
     <dependency>
       <groupId>au.edu.usq.fascinator</groupId>
       <artifactId>fascinator-common</artifactId>
+      <version>0.6.1</version>
     </dependency>
     <dependency>
       <groupId>au.edu.usq.fascinator</groupId>
       <artifactId>fascinator-core</artifactId>
+      <version>0.6.1</version>
     </dependency>
     <dependency>
       <groupId>au.edu.usq.fascinator</groupId>
       <artifactId>fascinator-plugin-api</artifactId>
+      <version>0.6.1</version>
     </dependency>
     <dependency>
       <groupId>commons-codec</groupId>
