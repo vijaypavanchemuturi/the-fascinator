@@ -1,13 +1,17 @@
 from au.edu.usq.fascinator.api.indexer import SearchRequest
 from au.edu.usq.fascinator.common import JsonConfigHelper
 from java.io import ByteArrayInputStream, ByteArrayOutputStream
-from java.util import HashMap
 
 class HomeData:
     def __init__(self):
-        action = formData.get("verb")
-        portalName = formData.get("value")
-        sessionState.remove("fq")
+        pass
+
+    def __activate__(self, context):
+        self.velocityContext = context
+
+        action = self.vc("formData").get("verb")
+        portalName = self.vc("formData").get("value")
+        self.vc("sessionState").remove("fq")
         if action == "delete-portal":
             print " * home.py: delete portal %s" % portalName
             Services.portalManager.remove(portalName)
@@ -16,19 +20,28 @@ class HomeData:
         self.__workflows = JsonConfigHelper()
         self.__result = JsonConfigHelper()
         self.__search()
-    
+
+    # Get from velocity context
+    def vc(self, index):
+        if self.velocityContext[index] is not None:
+            return self.velocityContext[index]
+        else:
+            print "ERROR: Requested context entry '" + index + "' doesn't exist"
+            return None
+
     def __search(self):
         indexer = Services.getIndexer()
-        portalQuery = Services.getPortalManager().get(portalId).getQuery()
-        portalSearchQuery = Services.getPortalManager().get(portalId).getSearchQuery()
+        portalQuery = Services.getPortalManager().get(self.vc("portalId")).getQuery()
+        portalSearchQuery = Services.getPortalManager().get(self.vc("portalId")).getSearchQuery()
         
         # Security prep work
-        current_user = page.authentication.get_username()
-        security_roles = page.authentication.get_roles_list()
+        current_user = self.vc("page").authentication.get_username()
+        security_roles = self.vc("page").authentication.get_roles_list()
         security_filter = 'security_filter:("' + '" OR "'.join(security_roles) + '")'
         security_exceptions = 'security_exception:"' + current_user + '"'
         owner_query = 'owner:"' + current_user + '"'
         security_query = "(" + security_filter + ") OR (" + security_exceptions + ") OR (" + owner_query + ")"
+        isAdmin = self.vc("page").authentication.is_admin()
 
         req = SearchRequest("last_modified:[NOW-1MONTH TO *]")
         req.setParam("fq", 'item_type:"object"')
@@ -38,7 +51,7 @@ class HomeData:
             req.addParam("fq", portalSearchQuery)
         req.setParam("rows", "10")
         req.setParam("sort", "last_modified desc, f_dc_title asc");
-        if not page.authentication.is_admin():
+        if not isAdmin:
             req.addParam("fq", security_query)
         out = ByteArrayOutputStream()
         indexer.search(req, out)
@@ -52,7 +65,7 @@ class HomeData:
             req.addParam("fq", portalSearchQuery)
         req.setParam("rows", "10")
         req.setParam("sort", "last_modified desc, f_dc_title asc");
-        if not page.authentication.is_admin():
+        if not isAdmin:
             req.addParam("fq", security_query)
         out = ByteArrayOutputStream()
         indexer.search(req, out)
@@ -66,7 +79,7 @@ class HomeData:
             req.addParam("fq", portalSearchQuery)
         req.setParam("rows", "10")
         req.setParam("sort", "last_modified desc, f_dc_title asc");
-        if not page.authentication.is_admin():
+        if not isAdmin:
             req.addParam("fq", security_query)
         out = ByteArrayOutputStream()
         indexer.search(req, out)
@@ -80,12 +93,12 @@ class HomeData:
             req.addParam("fq", portalSearchQuery)
         req.addParam("fq", "")
         req.setParam("rows", "0")
-        if not page.authentication.is_admin():
+        if not isAdmin:
             req.addParam("fq", security_query)
         out = ByteArrayOutputStream()
         indexer.search(req, out)
         
-        sessionState.set("fq", 'item_type:"object"')
+        self.vc("sessionState").set("fq", 'item_type:"object"')
         #sessionState.set("query", portalQuery.replace("\"", "'"))
         
         self.__result = JsonConfigHelper(ByteArrayInputStream(out.toByteArray()))
@@ -101,5 +114,3 @@ class HomeData:
 
     def getItemCount(self):
         return self.__result.get("response/numFound")
-
-scriptObject = HomeData()

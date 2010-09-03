@@ -1,47 +1,53 @@
 from au.edu.usq.fascinator.common import JsonConfigHelper
 
 from java.io import ByteArrayInputStream
-from java.lang import Boolean, String
+from java.lang import String
 
 from org.apache.commons.lang import StringEscapeUtils
 
-class ManifestActions:
+class ManifestData:
     def __init__(self):
-        print "formData=%s" % formData
-        
+        pass
+
+    def __activate__(self, context):
+        self.velocityContext = context
+        self.fd = self.vc("formData").get
+
+        print "formData=%s" % self.vc("formData")
+
         result = "{}"
-        func = formData.get("func")
-        oid = formData.get("oid")
-        
+        func = self.fd("func")
+        oid = self.fd("oid")
+
         if func != "update-package-meta":
-            nodeId = formData.get("nodeId")
-            nodePath = self.__getNodePath(formData.get("parents"), nodeId)
+            nodeId = self.fd("nodeId")
+            nodePath = self.__getNodePath(self.fd("parents"), nodeId)
             originalPath = "manifest//%s" % nodeId
-        
+
         self.__object = Services.getStorage().getObject(oid)
         sourceId = self.__object.getSourceId()
         payload = self.__object.getPayload(sourceId)
         self.__manifest = JsonConfigHelper(payload.open())
         payload.close()
-        
+
         if func == "update-package-meta":
             print "*********  update-package-meta ***************"
-            metaList = list(formData.getValues("metaList"))
+            metaList = list(self.vc("formData").getValues("metaList"))
             for metaName in metaList:
-                value = formData.get(metaName)
+                value = self.fd(metaName)
                 self.__manifest.set(metaName, value)
             #title = formData.get("title")
             #self.__manifest.set("title", StringEscapeUtils.escapeHtml(title))
             self.__saveManifest()
         if func == "rename":
-            title = formData.get("title")
+            title = self.fd("title")
             self.__manifest.set("%s/title" % nodePath, title)
             self.__saveManifest()
         elif func == "move":
-            refNodeId = formData.get("refNodeId")
-            refNodePath = self.__getNodePath(formData.get("refParents"),
-                                             formData.get("refNodeId"));
-            moveType = formData.get("type")
+            refNodeId = self.fd("refNodeId")
+            refNodePath = self.__getNodePath(self.fd("refParents"),
+                                             self.fd("refNodeId"));
+            moveType = self.fd("type")
             if moveType == "before":
                 self.__manifest.moveBefore(originalPath, refNodePath)
             elif moveType == "after":
@@ -50,8 +56,8 @@ class ManifestActions:
                 self.__manifest.move(originalPath, nodePath)
             self.__saveManifest()
         elif func == "update":
-            title = StringEscapeUtils.escapeHtml(formData.get("title"))
-            hidden = formData.get("hidden")
+            title = StringEscapeUtils.escapeHtml(self.fd("title"))
+            hidden = self.fd("hidden")
             hidden = hidden == "true"
             self.__manifest.set("%s/title" % nodePath, title)
             self.__manifest.set("%s/hidden" % nodePath, str(hidden))
@@ -69,10 +75,18 @@ class ManifestActions:
             result = '{ title: "%s" }' % title
         
         self.__object.close()
-        writer = response.getPrintWriter("text/plain; charset=UTF-8")
+        writer = self.vc("response").getPrintWriter("text/plain; charset=UTF-8")
         writer.println(result)
         writer.close()
     
+    # Get from velocity context
+    def vc(self, index):
+        if self.velocityContext[index] is not None:
+            return self.velocityContext[index]
+        else:
+            log.error("ERROR: Requested context entry '" + index + "' doesn't exist")
+            return None
+
     def __getNodePath(self, parents, nodeId):
         parents = [p for p in parents.split(",") if p != ""]
         nodePath = "manifest/%s" % nodeId
@@ -90,5 +104,3 @@ class ManifestActions:
         manifestStr = String(self.__manifest.toString())
         self.__object.updatePayload(self.__object.getSourceId(),
                                     ByteArrayInputStream(manifestStr.getBytes("UTF-8")))
-
-scriptObject = ManifestActions()

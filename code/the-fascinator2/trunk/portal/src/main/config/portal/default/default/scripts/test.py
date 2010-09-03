@@ -2,6 +2,10 @@ from java.util import ArrayList, HashMap
 
 class TestData:
     def __init__(self):
+        pass
+
+    def __activate__(self, context):
+        self.vc = context
         self.trueField = True
         self.falseField = False
     
@@ -35,5 +39,3 @@ class TestData:
         javaMap.put("two", 2)
         javaMap.put("three", 3)
         return javaMap
-
-scriptObject = TestData()

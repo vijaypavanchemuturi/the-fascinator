@@ -1,8 +1,13 @@
 from au.edu.usq.fascinator.common import JsonConfig
 from au.edu.usq.fascinator.common import JsonConfigHelper
 
-class Queues:
+class QueuesData:
     def __init__(self):
+        pass
+
+    def __activate__(self, context):
+        self.velocityContext = context
+
         self.config = JsonConfigHelper(JsonConfig.getSystemFile())
         self.threads = self.config.getJsonList("messaging/threads")
 
@@ -11,5 +16,3 @@ class Queues:
             name = thread.get("config/name")
             if name == queue:
                 return thread.get("description")
-
-scriptObject = Queues()

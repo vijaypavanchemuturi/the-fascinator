@@ -8,24 +8,29 @@ from java.net import URLDecoder
 
 import locale
 
-class UploadedData:
+class WorkflowData:
     def __init__(self):
+        pass
+
+    def __activate__(self, context):
+        self.velocityContext = context
+
         self.errorMsg = None
         # Test if some actual form data is available
-        self.fileName = formData.get("upload-file-file")
+        self.fileName = self.vc("formData").get("upload-file-file")
         self.formProcess = None
         self.localFormData = None
         self.metadata = None
         self.object = None
         self.pageService = Services.getPageService()
-        self.renderer = toolkit.getDisplayComponent(self.pageService)
+        self.renderer = self.vc("toolkit").getDisplayComponent(self.pageService)
         self.template = None
 
         # Normal workflow progressions
         if self.fileName is None:
             self.hasUpload = False
             self.fileDetails = None
-            oid = formData.get("oid")
+            oid = self.vc("formData").get("oid")
             if oid is None:
                 self.formProcess = False
                 self.template = None
@@ -35,11 +40,11 @@ class UploadedData:
         # First stage, post-upload
         else:
             # Some browsers won't match what came through dispatch, resolve that
-            dispatchFileName = sessionState.get("fileName")
+            dispatchFileName = self.vc("sessionState").get("fileName")
             if dispatchFileName != self.fileName and self.fileName.find(dispatchFileName) != -1:
                 self.fileName = dispatchFileName
             self.hasUpload = True
-            self.fileDetails = sessionState.get(self.fileName)
+            self.fileDetails = self.vc("sessionState").get(self.fileName)
             print " * workflow.py : Upload details : ", repr(self.fileDetails)
             self.template = self.fileDetails.get("template")
             self.errorMsg = self.fileDetails.get("error")
@@ -50,6 +55,14 @@ class UploadedData:
         if self.formProcess:
             self.processForm()
         #print "workflow.py - UploadedData.__init__() done."
+
+    # Get from velocity context
+    def vc(self, index):
+        if self.velocityContext[index] is not None:
+            return self.velocityContext[index]
+        else:
+            log.error("ERROR: Requested context entry '" + index + "' doesn't exist")
+            return None
 
     def getError(self):
         if self.errorMsg is None:
@@ -106,11 +119,11 @@ class UploadedData:
                 oid = self.fileDetails.get("oid")
             else:
                 # 2) or POST process from workflow change
-                oid = formData.get("oid")
+                oid = self.vc("formData").get("oid")
                 if oid is None:
                     # 3) or GET on page to start the process
-                    uri = URLDecoder.decode(request.getAttribute("RequestURI"))
-                    basePath = portalId + "/" + pageName
+                    uri = URLDecoder.decode(self.vc("request").getAttribute("RequestURI"))
+                    basePath = self.vc("portalId") + "/" + self.vc("pageName")
                     oid = uri[len(basePath)+1:]
 
             # Now get the object
@@ -202,7 +215,7 @@ class UploadedData:
 
         # Security check
         workflow_security = currentStage.getList("security")
-        user_roles = page.authentication.get_roles_list()
+        user_roles = self.vc("page").authentication.get_roles_list()
         valid = False
         for role in user_roles:
             if role in workflow_security:
@@ -254,18 +267,18 @@ class UploadedData:
         specialFields = ["oid", "targetStep"]
 
         # Process all the new fields submitted
-        newFormFields = formData.getFormFields()
+        newFormFields = self.vc("formData").getFormFields()
         for field in newFormFields:
             # Special fields - we are expecting them
             if field in specialFields:
-                print " *** Special Field : '" + field + "' => '" + formData.get(field) + "'"
+                print " *** Special Field : '" + field + "' => '" + self.vc("formData").get(field) + "'"
                 if field == "targetStep":
-                    meta.set(field, formData.get(field))
+                    meta.set(field, self.vc("formData").get(field))
 
             # Everything else... metadata
             else:
-                print " *** Metadata Field : '" + field + "' => '" + formData.get(field) + "'"
-                oldFormData.set(field, formData.get(field))
+                print " *** Metadata Field : '" + field + "' => '" + self.vc("formData").get(field) + "'"
+                oldFormData.set(field, self.vc("formData").get(field))
 
         # Write the form data back into the workflow metadata
         data = oldFormData.getMap("/")
@@ -286,7 +299,7 @@ class UploadedData:
         return self.formProcess
 
     def renderTemplate(self):
-        r = self.renderer.renderTemplate(portalId, self.template, self.localFormData, sessionState)
+        r = self.renderer.renderTemplate(self.vc("portalId"), self.template, self.localFormData, self.vc("sessionState"))
         return r
 
     def setWorkflowMetadata(self, oldMetadata):
@@ -300,5 +313,3 @@ class UploadedData:
 
     def uploadDetails(self):
         return self.fileDetails
-
-scriptObject = UploadedData()

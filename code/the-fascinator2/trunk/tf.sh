@@ -38,8 +38,8 @@ ARGS="$*"
 start() {
 	echo " * Starting The Fascinator..."
 	if [ -f $PID_FILE ]; then
-		echo "   - Found PID file: $PID_FILE"
 		PID=`cat $PID_FILE`
+		echo "   - Found PID file: $PID_FILE ($PID)"
 		if [ -z "`ps -p $PID -o pid=`" ]; then
 			echo "   - Process $PID not found! Removing PID file..."
 			rm -f $PID_FILE
@@ -51,8 +51,9 @@ start() {
 	mkdir -p $TF_HOME/logs
 	cd $PROG_DIR/portal
 	nohup mvn $ARGS -P dev jetty:run &> $TF_HOME/logs/stdout.out &
+	PID=$!
 	cd - > /dev/null 2> /dev/null
-	echo $! > $PID_FILE
+	echo $PID > $PID_FILE
 	echo "   - Started on `date`"
 	echo "   - PID: `cat $PID_FILE`"
 	echo "   - Log files in $TF_HOME/logs"
@@ -61,8 +62,8 @@ start() {
 stop() {
 	echo " * Stopping The Fascinator..."
 	if [ -f $PID_FILE ]; then
-		echo "   - Found PID file: $PID_FILE"
 		PID=`cat $PID_FILE`
+		echo "   - Found PID file: $PID_FILE ($PID)"
 		if [ -z "`ps -p $PID -o pid=`" ]; then
 			echo "   - Process $PID not found! Removing PID file..."
 		else

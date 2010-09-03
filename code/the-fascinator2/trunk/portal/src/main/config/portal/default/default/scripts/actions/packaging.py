@@ -10,13 +10,18 @@ from java.lang import Exception
 
 from org.apache.commons.io import FileUtils, IOUtils
 
-class PackagingActions:
+class PackagingData:
     
     def __init__(self):
-        print "formData=%s" % formData
+        pass
+
+    def __activate__(self, context):
+        self.velocityContext = context
+
+        print "formData=%s" % self.vc("formData")
 
         result = "{}"
-        func = formData.get("func")
+        func = self.vc("formData").get("func")
         if func == "create-new":
             result = self.__createNew()
         elif func == "create-from-selected":
@@ -30,9 +35,17 @@ class PackagingActions:
         elif func == "add-custom":
             result = self.__addCustom()
         
-        writer = response.getPrintWriter("application/json; charset=UTF-8")
+        writer = self.vc("response").getPrintWriter("application/json; charset=UTF-8")
         writer.println(result)
         writer.close()
+
+    # Get from velocity context
+    def vc(self, index):
+        if self.velocityContext[index] is not None:
+            return self.velocityContext[index]
+        else:
+            log.error("ERROR: Requested context entry '" + index + "' doesn't exist")
+            return None
 
     def __createNew(self):
         print "Creating a new package..."
@@ -48,12 +61,12 @@ class PackagingActions:
         outStream = FileOutputStream(manifestFile)
         outWriter = OutputStreamWriter(outStream, "UTF-8")
 
-        sessionState.set("package/active", None)
+        self.vc("sessionState").set("package/active", None)
         manifest = self.__getActiveManifest()
         manifest.set("packageType", packageType)
-        metaList = list(formData.getValues("metaList"))
+        metaList = list(self.vc("formData").getValues("metaList"))
         for metaName in metaList:
-            value = formData.get(metaName)
+            value = self.vc("formData").get(metaName)
             manifest.set(metaName, value)
         #
         print "------"
@@ -64,14 +77,14 @@ class PackagingActions:
 
         try:
             # harvest the package as an object
-            username = sessionState.get("username")
+            username = self.vc("sessionState").get("username")
             if username is None:
                 username = "guest" # necessary?
             harvester = None
-            # set up config files if necessary
+            # set up config files, creating if necessary
             workflowsDir = FascinatorHome.getPathFile("harvest/workflows")
             configFile = self.__getFile(workflowsDir, jsonConfigFile)
-            #rulesFile = self.__getFile(workflowsDir, "packaging-rules.py")
+            self.__getFile(workflowsDir, "packaging-rules.py")
             # run the harvest client with our packaging workflow config
             harvester = HarvestClient(configFile, manifestFile, username)
             harvester.start()
@@ -119,7 +132,7 @@ class PackagingActions:
         try:
             if manifestId is None:
                 # harvest the package as an object
-                username = sessionState.get("username")
+                username = self.vc("sessionState").get("username")
                 if username is None:
                     username = "guest" # necessary?
                 harvester = None
@@ -154,9 +167,9 @@ class PackagingActions:
     def __update(self):
         print "Updating package selection..."
         activeManifest = self.__getActiveManifest()
-        added = formData.getValues("added")
+        added = self.vc("formData").getValues("added")
         if added:
-            titles = formData.getValues("titles")
+            titles = self.vc("formData").getValues("titles")
             for i in range(len(added)):
                 id = added[i]
                 title = titles[i]
@@ -167,7 +180,7 @@ class PackagingActions:
                     activeManifest.set("manifest/node-%s/title" % id, title)
                 else:
                     print "%s already exists" % id
-        removed = formData.getValues("removed")
+        removed = self.vc("formData").getValues("removed")
         if removed:
             for id in removed:
                 node = activeManifest.get("manifest//node-%s" % id)
@@ -179,14 +192,14 @@ class PackagingActions:
     
     def __clear(self):
         print "Clearing package selection..."
-        sessionState.remove("package/active")
-        sessionState.remove("package/active/id")
-        sessionState.remove("package/active/pid")
+        self.vc("sessionState").remove("package/active")
+        self.vc("sessionState").remove("package/active/id")
+        self.vc("sessionState").remove("package/active/pid")
         return "{}"
     
     def __modify(self):
         print "Set active package..."
-        oid = formData.get("oid")
+        oid = self.vc("formData").get("oid")
         try:
             object = Services.getStorage().getObject(oid)
             sourceId = object.getSourceId()
@@ -196,19 +209,19 @@ class PackagingActions:
             payloadReader.close()
             payload.close()
             object.close()
-            sessionState.set("package/active", manifest)
-            sessionState.set("package/active/id", oid)
-            sessionState.set("package/active/pid", sourceId)
+            self.vc("sessionState").set("package/active", manifest)
+            self.vc("sessionState").set("package/active/id", oid)
+            self.vc("sessionState").set("package/active/pid", sourceId)
         except StorageException, e:
-            response.setStatus(500)
+            self.vc("response").setStatus(500)
             return '{ error: %s }' % str(e)
         return '{ count: %s }' % self.__getCount()
 
     def __getPackageTypeAndJsonConfigFile(self):
         try:
-            packageType = formData.get("packageType", "default")
-            if packageType=="":
-                packageType="default"
+            packageType = self.vc("formData").get("packageType", "default")
+            if packageType == "":
+                packageType = "default"
             json = JsonConfigHelper(JsonConfig.getSystemFile())
             pt = json.getMap("portal/packageTypes/" + packageType)
             jsonConfigFile = pt.get("jsonconfig")
@@ -223,18 +236,18 @@ class PackagingActions:
         return '{ attributes: { id: "node-%s", rel: "blank" }, data: "Untitled" }' % id
     
     def __getActiveManifestId(self):
-        return sessionState.get("package/active/id")
+        return self.vc("sessionState").get("package/active/id")
     
     def __getActiveManifestPid(self):
-        return sessionState.get("package/active/pid")
+        return self.vc("sessionState").get("package/active/pid")
     
     def __getActiveManifest(self):
-        activeManifest = sessionState.get("package/active")
+        activeManifest = self.vc("sessionState").get("package/active")
         if not activeManifest:
             activeManifest = JsonConfigHelper()
             activeManifest.set("title", "New package")
             activeManifest.set("viewId", portalId)
-            sessionState.set("package/active", activeManifest)
+            self.vc("sessionState").set("package/active", activeManifest)
         return activeManifest
     
     def __getCount(self):
@@ -249,5 +262,3 @@ class PackagingActions:
             IOUtils.copy(Services.getClass().getResourceAsStream("/workflows/" + filename), out)
             out.close()
         return file
-
-scriptObject = PackagingActions()

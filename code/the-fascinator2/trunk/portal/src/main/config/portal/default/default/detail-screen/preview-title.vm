@@ -1,1 +1,1 @@
-<h2 id="page-heading">#if($isPackage)$title#{else}Detail#end</h2>
+<h2 id="page-heading">#if("$!title" == "")Detail#{else}$title#end</h2>

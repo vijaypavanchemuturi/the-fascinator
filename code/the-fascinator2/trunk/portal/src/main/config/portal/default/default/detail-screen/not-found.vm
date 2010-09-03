@@ -1,3 +1,22 @@
-#set($pageTitle = "Not found")
-<h2 id="page-heading">Page not found</h2>
-<p>Please try a different <a href="$portalPath/search">search</a>.</p>
+#set($pageTitle = "Object not available")
+<h2 id="page-heading">$pageTitle</h2>
+<div class="grid_16">
+    <div class="box">
+        <p>The object with identifier <strong>$self.getOid()</strong> was not found.
+           It may not exist or is not available in the current view.
+        </p>
+        <ul>
+            <li>Change your <a href="$portalPath/search">search</a> request</li>
+            <li>
+                Change the current <strong>view</strong>:
+                <ul>
+                    #foreach($portal in $page.portals)
+                        #if($portal.name != $portalId)
+                            <li><a href="$contextPath/$portal.name/$page.getRelativePath()">$portal.description</a></li>
+                        #end
+                    #end
+                </ul>
+            </li>
+        </ul>
+    </div>
+</div>
