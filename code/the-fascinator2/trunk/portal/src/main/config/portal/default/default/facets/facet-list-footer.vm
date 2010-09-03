@@ -1,4 +1,3 @@
-<script type="text/javascript" src="$portalPath/js/jquery.truncate.js"></script>
 <script type="text/javascript">
 $(function() {
     addActionParam("query", "$!query");
@@ -19,12 +18,6 @@ $(function() {
     $(".remove-facet").click(function() {
         doAction("remove_fq", $(this).attr("rel"));
         return false;
-    });
-
-    // truncate descriptions
-    $("p.item-description").truncate(500, {
-        trail: [ '... <a href="#" class="truncate_show">more</a>',
-                 ' <a href="#" class="truncate_hide">less</a>' ]
     });
 });
 </script>

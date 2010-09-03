@@ -6,15 +6,28 @@ from java.util import HashMap
 from org.apache.commons.io.output import NullWriter
 from org.apache.commons.lang import StringUtils
 
-class SettingsActions:
+class SettingsData:
     def __init__(self):
-        self.writer = response.getPrintWriter("text/html; charset=UTF-8")
+        pass
 
-        if page.authentication.is_logged_in() and page.authentication.is_admin():
+    def __activate__(self, context):
+        self.velocityContext = context
+
+        self.writer = self.vc("response").getPrintWriter("text/html; charset=UTF-8")
+
+        if self.vc("page").authentication.is_logged_in() and self.vc("page").authentication.is_admin():
             self.process()
         else:
             print " * settings.py : AJAX : Unauthorised access"
             self.throw_error("Only administrative users can access this feature")
+
+    # Get from velocity context
+    def vc(self, index):
+        if self.velocityContext[index] is not None:
+            return self.velocityContext[index]
+        else:
+            log.error("ERROR: Requested context entry '" + index + "' doesn't exist")
+            return None
 
     def getWatcherFile(self):
         configFile = FascinatorHome.getPathFile("watcher/config.json")
@@ -23,30 +36,30 @@ class SettingsActions:
         return None
 
     def process(self):
-        print " * settings.py: formData=%s" % formData
+        print " * settings.py: formData=%s" % self.vc("formData")
 
         result = "{}"
         portalManager = Services.getPortalManager()
-        portal = portalManager.get(portalId)
-        func = formData.get("func")
+        portal = portalManager.get(self.vc("portalId"))
+        func = self.vc("formData").get("func")
 
         if func == "view-update":
-            portal.setDescription(formData.get("view-description"))
-            portal.setQuery(formData.get("view-query"))
-            portal.setSearchQuery(formData.get("view-search-query"))
-            print " *** ", formData.get("view-records-per-page")
-            portal.setRecordsPerPage(int(formData.get("view-records-per-page")))
-            portal.setFacetCount(int(formData.get("view-facet-count")))
-            portal.setFacetSort(formData.get("view-facet-sort") is not None)
+            portal.setDescription(self.vc("formData").get("view-description"))
+            portal.setQuery(self.vc("formData").get("view-query"))
+            portal.setSearchQuery(self.vc("formData").get("view-search-query"))
+            print " *** ", self.vc("formData").get("view-records-per-page")
+            portal.setRecordsPerPage(int(self.vc("formData").get("view-records-per-page")))
+            portal.setFacetCount(int(self.vc("formData").get("view-facet-count")))
+            portal.setFacetSort(self.vc("formData").get("view-facet-sort") is not None)
             portalManager.save(portal)
 
         elif func == "general-update":
             config = JsonConfig()
-            email = StringUtils.trimToEmpty(formData.get("general-email"))
+            email = StringUtils.trimToEmpty(self.vc("formData").get("general-email"))
             systemEmail = StringUtils.trimToEmpty(config.get("email"))
             print email, systemEmail
             if systemEmail != email:
-                config.set("email", formData.get("general-email"), True)
+                config.set("email", self.vc("formData").get("general-email"), True)
                 config.set("configured", "true", True)
                 config.store(NullWriter(), True)
                 # mark restart
@@ -57,10 +70,10 @@ class SettingsActions:
 
         elif func == "facets-update":
             portal.removePath("portal/facet-fields")
-            fields = formData.getValues("field")
-            labels = formData.getValues("label")
-            displays = formData.getValues("display")
-            deletes = formData.getValues("delete")
+            fields = self.vc("formData").getValues("field")
+            labels = self.vc("formData").getValues("label")
+            displays = self.vc("formData").getValues("display")
+            deletes = self.vc("formData").getValues("delete")
             for i in range(0, len(fields)):
                 field = fields[i]
                 if deletes[i] == "false":
@@ -71,21 +84,21 @@ class SettingsActions:
         elif func == "watcher-update":
             configFile = self.getWatcherFile()
             if configFile is not None:
-                pathIds = formData.get("pathIds").split(",")
-                actives = formData.getValues("watcher-active")
+                pathIds = self.vc("formData").get("pathIds").split(",")
+                actives = self.vc("formData").getValues("watcher-active")
                 if actives is None:
                     actives = []
-                deletes = formData.getValues("watcher-delete")
+                deletes = self.vc("formData").getValues("watcher-delete")
                 if deletes is None:
                     deletes = []
                 watchDirs = HashMap()
                 for pathId in pathIds:
                     if pathId not in deletes:
-                        path = formData.get("%s-path" % pathId)
+                        path = self.vc("formData").get("%s-path" % pathId)
                         stopped = str(pathId not in actives).lower()
                         watchDir = HashMap()
-                        watchDir.put("ignoreFileFilter", formData.get("%s-file" % pathId))
-                        watchDir.put("ignoreDirectories", formData.get("%s-dir" % pathId))
+                        watchDir.put("ignoreFileFilter", self.vc("formData").get("%s-file" % pathId))
+                        watchDir.put("ignoreDirectories", self.vc("formData").get("%s-dir" % pathId))
                         watchDir.put("cxtTags", [])
                         watchDir.put("stopped", stopped)
                         watchDirs.put(path, watchDir)
@@ -107,7 +120,7 @@ class SettingsActions:
 
         elif func == "housekeeping-update":
             config = JsonConfig()
-            freq = StringUtils.trimToEmpty(formData.get("housekeeping-timeout"))
+            freq = StringUtils.trimToEmpty(self.vc("formData").get("housekeeping-timeout"))
             systemFreq = StringUtils.trimToEmpty(config.get("portal/houseKeeping/config/frequency"))
             result = "House Keeper refreshed"
             if systemFreq != freq:
@@ -123,8 +136,6 @@ class SettingsActions:
         self.writer.close()
 
     def throw_error(self, message):
-        response.setStatus(500)
+        self.vc("response").setStatus(500)
         self.writer.println("Error: " + message)
         self.writer.close()
-
-scriptObject = SettingsActions()

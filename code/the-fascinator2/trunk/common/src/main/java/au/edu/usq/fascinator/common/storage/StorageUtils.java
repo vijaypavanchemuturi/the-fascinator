@@ -216,7 +216,7 @@ public class StorageUtils {
                 String oldMod = metadata.getProperty("lastModified");
 
                 // Quick test - has it been changed?
-                if (!oldMod.equals(lastMod)) {
+                if (oldMod == null || !oldMod.equals(lastMod)) {
                     // Hash the file contents
                     String oldHash = metadata.getProperty("fileHash");
                     String fileHash = hashFile(file);

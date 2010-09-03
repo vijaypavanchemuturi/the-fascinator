@@ -148,6 +148,7 @@ a.search img {
 
 table.meta {
     table-layout: fixed;
+    margin-top: 10px;
 }
 
 table.meta td {
@@ -339,7 +340,7 @@ div.article-heading, #package-content div.title {
     border-bottom: 1px solid #CCCCCC;
     font-weight: bold;
     font-size: 1.6em;
-    margin-bottom: 15px;
+    margin-bottom: 4px;
 }
 
 .package-description {
@@ -405,6 +406,7 @@ ul.nobgtabs li a.ui-state-active {
     padding: 2px 2px 2px 5px;
     border: 1px solid #666666;
     background: #999999;
+    margin-bottom: 10px;
 }
 .admin-security-link {
     background-image: url('../images/icons/application_key.png');
@@ -614,9 +616,10 @@ li img.workflow, .mime-icon {
 #package-selected-items {
     font-size: 1.2em;
 }
-.content-preview-inline iframe {
+.content-preview iframe {
     width: 99%;
     height: 600px;
+    border: 1px solid black;
 }
 .iframe-link-alt {
     background-image: url('../images/icons/application_go.png');
@@ -720,4 +723,47 @@ ul.global-topic {
 
 .notice .warning b, .notice .info b {
     display: block;
+}
+
+p.item-description, div.sample-content {
+    margin-bottom: 0.75em;
+}
+
+div.sample-content {
+    background-color: #EEEEEE;
+    padding: 3px 5px;
+    border: 1px solid #CCCCCC;
+}
+
+div.user-agreement {
+    font-size: 125%;
+    padding: 10px;
+}
+div.user-agreement form {
+    margin: 10px 10px 5px;
+}
+div.user-agreement pre {
+    font-size: 125%;
+    padding: 10px;
+    border: 1px solid #999999;
+    background-color: #eeeeee;
+}
+blockquote.plain-text, div.user-agreement blockquote {
+    quotes: "\201C" "\201D";
+    border: 0px;
+    font-style: italic;
+}
+blockquote.plain-text:before {
+    content: open-quote;
+    font-weight: bold;
+}
+blockquote.plain-text:after {
+    content: close-quote;
+    font-weight: bold;
+}
+
+ul.main li ul li.selected-view a {
+    background-color: #444;
+    cursor: pointer;
+    font-weight: bolder;
 }

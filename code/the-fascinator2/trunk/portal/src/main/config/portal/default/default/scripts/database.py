@@ -2,8 +2,13 @@ import java.lang.Exception as JavaException
 import java.util.Date as JavaDate;
 import java.sql.Timestamp as JavaTimestamp;
 
-class DatabaseTest:
+class DatabaseData:
     def __init__(self):
+        pass
+
+    def __activate__(self, context):
+        self.velocityContext = context
+
         self.__db = Services.database
         self.__error = False
         self.__errorMsg = ""
@@ -172,5 +177,3 @@ AND    username = ?
     def resetErrors(self):
         self.__error = False
         self.__errorMsg = ""
-
-scriptObject = DatabaseTest()

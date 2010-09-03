@@ -24,7 +24,9 @@ import au.edu.usq.fascinator.api.PluginManager;
 import au.edu.usq.fascinator.api.access.AccessControlException;
 import au.edu.usq.fascinator.api.access.AccessControlManager;
 import au.edu.usq.fascinator.api.access.AccessControlSchema;
+import au.edu.usq.fascinator.api.storage.DigitalObject;
 import au.edu.usq.fascinator.api.storage.Payload;
+import au.edu.usq.fascinator.api.storage.PayloadType;
 import au.edu.usq.fascinator.api.storage.StorageException;
 
 import java.io.ByteArrayInputStream;
@@ -34,9 +36,13 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.jms.Connection;
 import javax.jms.DeliveryMode;
@@ -115,6 +121,21 @@ public class PythonUtils {
             throw new PluginException(ex);
         }
     }
+
+    // Static lists of mime type substrings used during indexing
+    private static final Set<String> majors = Collections.unmodifiableSet(
+            new HashSet<String>(Arrays.asList(new String[] {
+                "audio", "video", "image"})));
+    private static final Set<String> wordMinors = Collections.unmodifiableSet(
+            new HashSet<String>(Arrays.asList(new String[] {
+                "vnd.ms-word",
+                "vnd.oasis.opendocument.text",
+                "vnd.openxmlformats-officedocument.wordprocessingml"})));
+    private static final Set<String> pptMinors = Collections.unmodifiableSet(
+            new HashSet<String>(Arrays.asList(new String[] {
+                "vnd.ms-powerpoint",
+                "vnd.oasis.opendocument.presentation",
+                "vnd.openxmlformats-officedocument.presentationml"})));
 
     /*****
      * Try to closing any objects that require closure
@@ -456,5 +477,84 @@ public class PythonUtils {
             log.error("Failed to query security plugin for roles", ex);
             return null;
         }
+    }
+
+    /*****
+     * Find the MIME type to use at display time, giving first priority to the
+     * preview payload, then to the source payload.
+     *
+     * @param indexerFormats The list of types so far allocated by the rules script.
+     * @param object The object being indexed.
+     * @param preview The preview payload
+     * @return String The MIME type to be used at display time.
+     */
+    public String getDisplayMimeType(String[] indexerFormats,
+            DigitalObject object, String preview) {
+        // The source should be the first type given by the indexer
+        String result = indexerFormats[0];
+
+        // Lets look for a preview payload
+        if (preview != null) {
+            try {
+                Payload payload = object.getPayload(preview);
+                PayloadType type = payload.getType();
+                if (type != null && type.equals(PayloadType.Preview)) {
+                    if (payload.getContentType() != null) {
+                        result = payload.getContentType();
+                    }
+                }
+            } catch (StorageException ex) {
+                log.error("Error accessing payload: '{}'", preview, ex);
+            }
+        }
+
+        return result;
+    }
+
+    /*****
+     * A basic method for selecting common display templates from a given MIME
+     * type. This simple algorithm is suitable for most rules files.
+     *
+     * @param preview The MIME type.
+     * @return String The display type.
+     */
+    public String basicDisplayType(String mimeType) {
+        String[] parts = mimeType.split("/");
+        // Invalid or unknown MIME types
+        if (parts == null || parts.length != 2) {
+            return "default";
+        }
+        // Otherwise, decide based on different parts
+        String major = parts[0];
+        String minor = parts[1];
+
+        // Top level templates (like 'video')
+        if (majors.contains(major)) {
+            return major;
+        }
+        // Common applications
+        if (major.equals("application")) {
+            // PDF
+            if (minor.equals("pdf")) {
+                return minor;
+            }
+            // Word processors
+            if (wordMinors.contains(minor)) {
+                return "word-processing";
+            }
+            // Presentations
+            if (pptMinors.contains(minor)) {
+                return "presentation";
+            }
+            if (minor.equals("x-fascinator-package")) {
+                return "package";
+            }
+        }
+        // Text based: eg. 'plain', 'html'
+        if (major.equals("text")) {
+            return minor;
+        }
+        // Unknown
+        return "default";
     }
 }

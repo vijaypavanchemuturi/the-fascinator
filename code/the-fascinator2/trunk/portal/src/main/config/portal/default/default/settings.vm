@@ -247,12 +247,7 @@ $(function() {
         return false;
     });
 
-    var selected = "general";
-    #if($page.isConfigured())
-        // restore selected category
-        selected = jQuery.cookie("category") || selected;
-    #end
-    $("#" + selected + "-category").click();
+    $("#general-category").click();
 
     // make text fields editable
     $(".field-text").live("click", function() {

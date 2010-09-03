@@ -138,7 +138,7 @@ $(function() {
     #if($isPackage)
       rvt.getManifestJson("$portalPath/workflows/organiser.ajax?func=get-rvt-manifest&oid=$oid");
     #elseif($isImsPackage)
-      rvt.getManifestJson("$portalPath/actions/json_ims.ajax?oid=$oid");
+      rvt.getManifestJson("$portalPath/actions/jsonIms.ajax?oid=$oid");
     #end
 });
 </script>

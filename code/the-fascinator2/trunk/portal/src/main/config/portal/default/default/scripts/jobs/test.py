@@ -1,22 +1,27 @@
 import md5
 
-class TestScript:
+class TestData:
 
     def __init__(self):
-        self.writer = response.getPrintWriter("text/html; charset=UTF-8")
+        pass
+
+    def __activate__(self, context):
+        self.vc = context
+
+        self.writer = self.vc["response"].getPrintWriter("text/html; charset=UTF-8")
 
         # Did the request have a token?
-        token = formData.get("token")
+        token = self.vc["formData"].get("token")
         if token is None:
             self.throwDenial("Access denied!")
-
-        # Security token check
-        key = "JobSecurityToken12345"
-        validToken = md5.new(key).hexdigest()
-        if validToken != token:
-            self.throwDenial("Invalid security token provided!")
         else:
-            self.process()
+            # Security token check
+            key = "JobSecurityToken12345"
+            validToken = md5.new(key).hexdigest()
+            if validToken != token:
+                self.throwDenial("Invalid security token provided!")
+            else:
+                self.process()
 
     def process(self):
         # Message is not important
@@ -24,13 +29,11 @@ class TestScript:
         self.writer.close()
 
     def throwDenial(self, message):
-        response.setStatus(403)
+        self.vc["response"].setStatus(403)
         self.writer.println(message)
         self.writer.close()
 
     def throwError(self, message):
-        response.setStatus(500)
+        self.vc["response"].setStatus(500)
         self.writer.println("Error: " + message)
         self.writer.close()
-
-scriptObject = TestScript()

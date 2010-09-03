@@ -3,6 +3,10 @@ from au.edu.usq.fascinator.api import PluginManager
 class HarvestData:
     
     def __init__(self):
+        pass
+
+    def __activate__(self, context):
+        self.velocityContext = context
         self.__harvestManager = Services.getHarvestManager()
         self.__content = self.__harvestManager.getContents().values().iterator().next()
         print self.__content
@@ -18,5 +22,3 @@ class HarvestData:
     
     def getContent(self):
         return self.__content
-
-scriptObject = HarvestData()

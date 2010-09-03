@@ -1,49 +1,64 @@
 import md5
-
-from authentication import Authentication
-
-from au.edu.usq.fascinator.common import JsonConfig
-from java.net import URLEncoder
+from authentication import AuthenticationData
+from java.net import URLDecoder
 from org.apache.commons.lang import StringEscapeUtils
 
 class LayoutData:
-
     def __init__(self):
-        self.authentication = Authentication();
-        self.authentication.session_init();
-        self.config = JsonConfig()
-
+        pass
+    
+    def __activate__(self, context):
+        self.services = context["Services"]
+        self.security = context["security"]
+        self.request = context["request"]
+        self.portalId = context["portalId"]
+        uri = URLDecoder.decode(self.request.getAttribute("RequestURI"))
+        self.__relPath = "/".join(uri.split("/")[1:])
+        self.authentication = AuthenticationData()
+        self.authentication.__activate__(context)
+        
+        #self.formData = context["formData"]
+        #self.sessionState = context["sessionState"]
+        #if self.formData is not None:
+        #    for field in self.formData.getFormFields():
+        #        log.debug("Form Data: '{}' => '{}'", field, self.formData.get(field))
+        #if self.sessionState is not None:
+        #    for field in self.sessionState.keySet():
+        #        log.debug("Session Data: '{}' => '{}'", field, self.sessionState.get(field))
+    
+    def getRelativePath(self):
+        return self.__relPath
+    
     def getPortal(self):
-        return Services.getPortalManager().get(portalId)
-
+        return self.services.getPortalManager().get(self.portalId)
+    
     def getPortals(self):
-        return Services.getPortalManager().portals
-
+        return self.services.getPortalManager().portals
+    
     def getPortalName(self):
         return self.getPortal().getDescription()
-
+    
     def escapeXml(self, text):
         return StringEscapeUtils.escapeXml(text)
-
+    
     def escapeHtml(self, text):
         return StringEscapeUtils.escapeHtml(text)
-
+    
     def unescapeHtml(self, text):
         return StringEscapeUtils.unescapeHtml(text)
-
+    
     def md5Hash(self, data):
         return md5.new(data).hexdigest()
-
+    
     def capitalise(self, text):
         return text[0].upper() + text[1:]
-
+    
     def getTemplate(self, templateName):
-        return Services.pageService.resourceExists(portalId, templateName)
-
+        return self.services.pageService.resourceExists(self.portalId, templateName)
+    
     def getQueueStats(self):
-        return Services.getHouseKeepingManager().getQueueStats()
-
+        return self.services.getHouseKeepingManager().getQueueStats()
+    
     def getSsoProviders(self):
-        return security.ssoBuildLogonInterface()
+        return self.security.ssoBuildLogonInterface()
 
-scriptObject = LayoutData()
