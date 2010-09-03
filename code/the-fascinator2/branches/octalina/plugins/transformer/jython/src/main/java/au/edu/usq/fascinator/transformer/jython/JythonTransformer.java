@@ -179,13 +179,7 @@ public class JythonTransformer implements Transformer {
                 python.set("log", log);
                 python.execfile(scriptFile);
                 python.cleanup();
-                
-                // This is only for export
-                String resetModifiedProperty = props.getProperty("resetModifiedProperty", "false");
-                if (resetModifiedProperty == "true") {
-                    props.setProperty("modified", "false");
-                }
-                
+
             } else {
                 log.info("Script file not found");
             }

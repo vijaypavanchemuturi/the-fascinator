@@ -175,6 +175,7 @@ $(function() {
                     $("#export-message").text("Exported successfully");
                     setTimeout(function() { $("#export-message").empty(); }, 3000);
                     $("#export-section input#export-upload").removeAttr("disabled");
+                    $("#num-modified").text("0");
                 },
             error:
                 function (req, status, e) {
@@ -188,7 +189,6 @@ $(function() {
             }
         });
     });
-    
     $("#export-category").click(function() {
         $("#num-modified").load("$portalPath/batchprocess.ajax?func=num-modified");
     });

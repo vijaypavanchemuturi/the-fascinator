@@ -343,7 +343,7 @@
                                 <configuration>
                                     <includeGroupIds>au.edu.usq.fascinator.plugins</includeGroupIds>
                                     <includeArtifactIds>plugin-harvester-filesystem,plugin-harvester-ice2,plugin-harvester-oai-pmh,plugin-harvester-workflow,plugin-harvester-fedora</includeArtifactIds>
-                                    <includes>harvest/**</includes>
+                                    <includes>harvest/**,batch-update/**</includes>
                                     <outputDirectory>${fascinator.home}</outputDirectory>
                                 </configuration>
                             </execution>
