@@ -26,23 +26,28 @@ class BatchProcess:
                 "<legend>Batch %s script file</legend>\n" % (processName, processName)
         form += self.formRenderer.ajaxFluidErrorHolder("%s-script-file" % processName) + "\n"
         
-        form += self.formRenderer.renderFormSelect("%s-script-file" % processName, \
-                "Batch %s script:" % processName, self.__scriptList(processName))
-        form += "<div><br/>"
-        form += self.formRenderer.renderFormElement("%s-upload" % processName, "button", "", "Batch %s" % processName)
-        form += self.formRenderer.renderFormElement("%s-cancel" % processName, "button", "", "Cancel")
-        form += self.formRenderer.ajaxProgressLoader("%s-script-file" % processName)
-        form += "</div></fieldset></form>\n"
+        if self.__scriptList(processName) != {}:
+            form += self.formRenderer.renderFormSelect("%s-script-file" % processName, \
+                    "Batch %s script:" % processName, self.__scriptList(processName))
+            form += "<div><br/>"
+            form += self.formRenderer.renderFormElement("%s-upload" % processName, "button", "", "Batch %s" % processName)
+            form += self.formRenderer.renderFormElement("%s-cancel" % processName, "button", "", "Cancel")
+            form += self.formRenderer.ajaxProgressLoader("%s-script-file" % processName)
+            form += "</div>"
+        else:
+            form += "<div>There is not script available to do batch processing.</div>"
+        form += "</fieldset></form>\n"
         return form
     
     def __scriptList(self, processName):
         scriptDir = "%s/batch-process/%s" % (os.environ.get("TF_HOME"), processName)
-        scriptFiles = os.listdir(scriptDir)
         scriptDic = {}
-        if scriptFiles:
-            for script in scriptFiles:
-                scriptFilePath = "%s/%s" % (scriptDir, script)
-                scriptDic[scriptFilePath] = script
+        if os.path.isdir(scriptDir):
+            scriptFiles = os.listdir(scriptDir)
+            if scriptFiles:
+                for script in scriptFiles:
+                    scriptFilePath = "%s/%s" % (scriptDir, script)
+                    scriptDic[scriptFilePath] = script
         return scriptDic
     
     def numberOfModifiedRecord(self):
