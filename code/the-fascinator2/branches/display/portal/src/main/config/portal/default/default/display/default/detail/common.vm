@@ -1,5 +1,0 @@
-#set($metaMap = $parent.getMetadataMap())
-#set($oid = $metadata.get("id"))
-#set($title = $metadata.getList("dc_title").get(0))
-
-#parseDisplayTemplate("detail/custom-common.vm")

@@ -1,1 +1,0 @@
-<h2 id="page-heading">#if("$!title" == "")Detail#{else}$title#end</h2>
