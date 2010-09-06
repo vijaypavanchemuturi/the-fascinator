@@ -70,6 +70,10 @@ import au.edu.usq.fascinator.portal.velocity.JythonLogger;
 
 public class CachingDynamicPageServiceImpl implements DynamicPageService {
 
+    private static final String CACHING_LEVEL_DATE = "dynamic";
+
+    private static final String CACHING_LEVEL_FULL = "full";
+
     private static final String DEFAULT_LAYOUT_TEMPLATE = "layout";
 
     private static final String DEFAULT_SKIN = "default";
@@ -111,13 +115,21 @@ public class CachingDynamicPageServiceImpl implements DynamicPageService {
 
     private String layoutName;
 
-    private String scriptsPath;
+    private String portalPath;
 
     private GUIToolkit toolkit;
 
     private HashMap<String, PyObject> scriptCache;
 
     private HashMap<String, Long> scriptCacheLastModified;
+
+    private HashMap<String, String> skinCache;
+
+    private HashMap<String, Long> skinCacheLastModified;
+
+    private boolean cacheFull;
+
+    private boolean cacheDate;
 
     public CachingDynamicPageServiceImpl() {
         try {
@@ -152,14 +164,35 @@ public class CachingDynamicPageServiceImpl implements DynamicPageService {
             }
 
             // setup velocity engine
-            scriptsPath = homePath.getAbsolutePath();
+            portalPath = homePath.getAbsolutePath();
             Properties props = new Properties();
             props.load(getClass().getResourceAsStream("/velocity.properties"));
-            props.setProperty(Velocity.FILE_RESOURCE_LOADER_PATH, scriptsPath);
+            props.setProperty(Velocity.FILE_RESOURCE_LOADER_PATH, portalPath);
             Velocity.init(props);
 
+            // Caching
             scriptCache = new HashMap<String, PyObject>();
             scriptCacheLastModified = new HashMap<String, Long>();
+            skinCache = new HashMap<String, String>();
+            skinCacheLastModified = new HashMap<String, Long>();
+            String cacheLevel = config.get("portal/cachingLevel",
+                    CACHING_LEVEL_DATE);
+            cacheDate = false;
+            cacheFull = false;
+            if (cacheLevel.equals(CACHING_LEVEL_FULL)) {
+                cacheDate = true;
+                cacheFull = true;
+                log.info("Full caching active...");
+            } else {
+                if (cacheLevel.equals(CACHING_LEVEL_DATE)) {
+                    cacheDate = true;
+                    cacheFull = false;
+                    log.info("Dynamic caching active...");
+                } else {
+                    log.info("Caching disabled or invalid configuration! '{}'",
+                            cacheLevel);
+                }
+            }
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -173,9 +206,16 @@ public class CachingDynamicPageServiceImpl implements DynamicPageService {
     @Override
     public String resourceExists(String portalId, String resourceName,
             boolean fallback) {
-        // Look through the skins of the specified portal
-        String path = testSkins(portalId, resourceName);
+        // Try the cache
+        String path = getSkinPath(portalId, resourceName);
         if (path != null) {
+            return path;
+        }
+
+        // Look through the skins of the specified portal
+        path = testSkins(portalId, resourceName);
+        if (path != null) {
+            cacheSkinPath(portalId, resourceName, path);
             return path;
         }
         // Check if it's a display skin
@@ -193,6 +233,7 @@ public class CachingDynamicPageServiceImpl implements DynamicPageService {
                 }
                 path = testSkins(portalId, fallbackResourceName);
                 if (path != null) {
+                    cacheSkinPath(portalId, resourceName, path);
                     return path;
                 }
             }
@@ -281,8 +322,8 @@ public class CachingDynamicPageServiceImpl implements DynamicPageService {
         bindings.put("sessionState", sessionState);
         bindings.put("security", security);
         bindings.put("contextPath", contextPath);
-        bindings.put("scriptsPath", scriptsPath + "/" + portalId + "/scripts");
-        bindings.put("portalDir", scriptsPath + "/" + portalId);
+        bindings.put("scriptsPath", portalPath + "/" + portalId + "/scripts");
+        bindings.put("portalDir", portalPath + "/" + portalId);
         bindings.put("portalId", portalId);
         bindings.put("portalPath", contextPath + "/" + portalId);
         bindings.put("defaultPortal", defaultPortal);
@@ -485,7 +526,10 @@ public class CachingDynamicPageServiceImpl implements DynamicPageService {
                     scriptName);
             return null;
         }
-        PyObject scriptObject = getPythonObject(path);
+        PyObject scriptObject = null;
+        if (cacheDate) {
+            scriptObject = getPythonObject(path);
+        }
         boolean useCache = scriptObject != null;
         if (scriptObject == null) {
             log.debug("Loading script '{}'", path);
@@ -521,7 +565,9 @@ public class CachingDynamicPageServiceImpl implements DynamicPageService {
                             scriptClassName);
                     if (scriptClass != null) {
                         scriptObject = scriptClass.__call__();
-                        cachePythonObject(path, scriptObject);
+                        if (cacheDate) {
+                            cachePythonObject(path, scriptObject);
+                        }
                     }
                 } else {
                     log.debug("DEPRECATED: script:'{}'", path);
@@ -552,7 +598,7 @@ public class CachingDynamicPageServiceImpl implements DynamicPageService {
 
     private void addClassPaths(String portalId, PySystemState sys) {
         for (String skin : skinPriority) {
-            sys.path.append(Py.newString(scriptsPath + "/" + portalId + "/"
+            sys.path.append(Py.newString(portalPath + "/" + portalId + "/"
                     + skin + "/scripts"));
         }
         if (!defaultPortal.equals(portalId)) {
@@ -568,24 +614,62 @@ public class CachingDynamicPageServiceImpl implements DynamicPageService {
 
     private void cachePythonObject(String path, PyObject pyObject) {
         scriptCache.put(path, pyObject);
-        scriptCacheLastModified.put(path, getLastModified(path));
+        // Only cache by modification date if full caching is not active
+        if (!cacheFull) {
+            scriptCacheLastModified.put(path, getLastModified(path));
+        }
+    }
+
+    private void cacheSkinPath(String portalId, String resource, String path) {
+        String index = portalId + "/" + resource;
+        skinCache.put(index, path);
+        //log.debug("Caching '{}' : '{}'", index, path);
+        // Only cache by modification date if full caching is not active
+        if (!cacheFull) {
+            skinCacheLastModified.put(index, getLastModified(path));
+        }
     }
 
     private PyObject getPythonObject(String path) {
         if (scriptCache.containsKey(path)) {
-            Long lastCached = scriptCacheLastModified.get(path);
-            if (lastCached != null && lastCached < getLastModified(path)) {
-                // expire the object
-                return null;
+            // If full caching is not active
+            if (!cacheFull) {
+                // Also check the modification date
+                Long lastCached = scriptCacheLastModified.get(path);
+                if (lastCached != null && lastCached < getLastModified(path)) {
+                    // expire the object
+                    return null;
+                }
             }
             return scriptCache.get(path);
         }
         return null;
     }
 
+    private String getSkinPath(String portalId, String resource) {
+        String index = portalId + "/" + resource;
+        if (skinCache.containsKey(index)) {
+            String path = skinCache.get(index);
+            // If full caching is not active
+            if (!cacheFull) {
+                // Also check the modification date
+                Long lastCached = skinCacheLastModified.get(index);
+                if (lastCached != null && lastCached < getLastModified(path)) {
+                    // expire the object
+                    //log.debug("Expired '{}'", index);
+                    return null;
+                }
+            }
+            //log.debug("Cached '{}' : '{}'", index, path);
+            return path;
+        }
+        return null;
+    }
+
     private long getLastModified(String path) {
-        File file = new File(scriptsPath, path);
+        File file = new File(portalPath, path);
         if (file.exists()) {
+            //log.debug("Last modified '{}' : {}", file.getAbsolutePath(), file.lastModified());
             return file.lastModified();
         }
         return -1;

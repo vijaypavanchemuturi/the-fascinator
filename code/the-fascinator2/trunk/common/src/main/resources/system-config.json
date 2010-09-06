@@ -1,5 +1,5 @@
 {
-    "version": "0.7.2",
+    "version": "0.7.3",
     "configured": false,
     "urlBase" : "http://localhost:9997/portal/",
     "email" : "fascinator@usq.edu.au",
@@ -200,6 +200,7 @@
             "default": "default",
             "order": []
         },
+        "cachingLevel": "dynamic",
         "layout": "layout",
         "nativeJython": true,
         "harvestFiles": "${fascinator.home}/harvest",
