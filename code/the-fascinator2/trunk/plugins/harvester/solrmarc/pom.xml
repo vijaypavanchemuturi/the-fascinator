@@ -26,16 +26,18 @@
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
     </dependency>
-   <dependency>
-     <groupId>org.slf4j</groupId>
-     <artifactId>log4j-over-slf4j</artifactId>
-     <version>1.5.8</version>
-   </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>log4j-over-slf4j</artifactId>
+      <version>1.5.8</version>
+    </dependency>
+    <!--
     <dependency>
       <groupId>com.ibm.icu</groupId>
       <artifactId>icu4j</artifactId>
       <version>2.6.1</version>
     </dependency>
+    -->
     <dependency>
       <groupId>beanshell</groupId>
       <artifactId>bsh</artifactId>
