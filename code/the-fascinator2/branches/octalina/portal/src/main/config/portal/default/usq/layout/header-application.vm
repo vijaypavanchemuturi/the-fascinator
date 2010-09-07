@@ -30,7 +30,7 @@
       #if($page.authentication.is_logged_in())
       <span id="user-info" class="status">Welcome $page.authentication.get_name(), <a href="#" id="logout-now">Logout</a></span>
       #else
-      <span id="user-info" class="status"><a id="login-now" href="#">Login</a></span>
+      <span id="user-info" class="status"><a class="login-now" href="#">Login</a></span>
       #end
     </li>
     $!navContent

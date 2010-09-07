@@ -130,8 +130,6 @@ public class HarvestClient {
      */
     public HarvestClient(File configFile, File uploadedFile, String owner)
             throws HarvesterException {
-        MDC.put("name", "client");
-
         this.configFile = configFile;
         this.uploadedFile = uploadedFile;
         fileOwner = owner;

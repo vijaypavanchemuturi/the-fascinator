@@ -1,31 +1,44 @@
-import os.path
-import array, md5, os
+import md5, os.path
 
-from au.edu.usq.fascinator.api import PluginManager
 from au.edu.usq.fascinator.api.indexer import SearchRequest
-from au.edu.usq.fascinator.api.storage import Payload, PayloadType
-from au.edu.usq.fascinator.common import JsonConfig, JsonConfigHelper
-from au.edu.usq.fascinator.common.storage.impl import GenericPayload
-from au.edu.usq.fascinator.portal import Pagination, Portal
+from au.edu.usq.fascinator.common import JsonConfigHelper
+from au.edu.usq.fascinator.portal import Pagination
 
-from java.io import ByteArrayInputStream, ByteArrayOutputStream, File
-from java.net import URLDecoder, URLEncoder
-from java.util import ArrayList, HashMap, LinkedHashMap, HashSet
-from java.lang import Boolean, Exception
+from java.io import ByteArrayInputStream, ByteArrayOutputStream
+from java.lang import Boolean
+from java.net import URLDecoder
+from java.util import ArrayList, LinkedHashMap, HashSet
 
 class SearchData:
     def __init__(self):
-        self.__portal = Services.portalManager.get(portalId)
+        self.lastPortalId = ""
+    
+    def __activate__(self, context):
+        self.services = context["Services"]
+        self.page = context["page"]
+        self.formData = context["formData"]
+        self.sessionState = context["sessionState"]
+        self.request = context["request"]
+        self.pageName = context["pageName"]
+        
+        self.__portal = context["page"].getPortal()
         sessionNav = self.__portal.get("portal/use-session-navigation", "true")
         self.__useSessionNavigation = Boolean.parseBoolean(sessionNav)
         self.__result = JsonConfigHelper()
         if self.__useSessionNavigation:
-            self.__pageNum = sessionState.get("pageNum", 1)
+            self.__pageNum = self.sessionState.get("pageNum", 1)
         else:
             self.__pageNum = 1
         self.__selected = ArrayList()
         self.__fqParts = []
-        self.__searchField = formData.get("searchField", "full_text")
+        self.__searchField = self.formData.get("searchField", "full_text")
+        
+        if self.__portal.getName() != self.lastPortalId:
+            self.sessionState.remove("fq")
+            self.sessionState.remove("pageNum")
+            self.__pageNum = 1
+            self.lastPortalId =  self.__portal.getName()
+        
         self.__search()
     
     def usingSessionNavigation(self):
@@ -33,23 +46,17 @@ class SearchData:
     
     def getPortalName(self):
         return self.__portal.getDescription()
-        
-    def encode(self, url):
-        return URLEncoder.encode(url, "UTF-8")
     
     def getSearchField(self):
         return self.__searchField
     
     def __search(self):
         recordsPerPage = self.__portal.recordsPerPage
-        
-        uri = URLDecoder.decode(request.getAttribute("RequestURI"))
+        uri = URLDecoder.decode(self.request.getAttribute("RequestURI"))
         query = None
-        pagePath = portalId + "/" + pageName
-        ##if uri != pagePath:
-        ##    query = uri[len(pagePath)+1:]
+        pagePath = self.__portal.getName() + "/" + self.pageName
         if query is None or query == "":
-            query = formData.get("query")
+            query = self.formData.get("query")
         if query is None or query == "":
             query = "*:*"
         
@@ -58,7 +65,7 @@ class SearchData:
         else:
             self.__query = query
             query = "%s:%s" % (self.__searchField, query)
-        sessionState.set("query", self.__query)
+        self.sessionState.set("query", self.__query)
         
         # find objects with annotations matching the query
         if query != "*:*":
@@ -69,7 +76,7 @@ class SearchData:
             annoReq.setParam("sort", "dateCreated asc")
             annoReq.setParam("start", str(0))
             anotarOut = ByteArrayOutputStream()
-            Services.indexer.annotateSearch(annoReq, anotarOut)
+            self.services.indexer.annotateSearch(annoReq, anotarOut)
             resultForAnotar = JsonConfigHelper(ByteArrayInputStream(anotarOut.toByteArray()))
             resultForAnotar = resultForAnotar.getJsonList("response/docs")
             ids = HashSet()
@@ -99,15 +106,14 @@ class SearchData:
         
         # setup facets
         if self.__useSessionNavigation:
-            action = formData.get("verb")
-            value = formData.get("value")
-            fq = sessionState.get("fq")
+            action = self.formData.get("verb")
+            value = self.formData.get("value")
+            fq = self.sessionState.get("fq")
             if fq is not None:
                 self.__pageNum = 1
                 req.setParam("fq", fq)
             if action == "add_fq":
                 self.__pageNum = 1
-                name = formData.get("name")
                 req.addParam("fq", URLDecoder.decode(value, "UTF-8"))
             elif action == "remove_fq":
                 self.__pageNum = 1
@@ -120,13 +126,13 @@ class SearchData:
         else:
             navUri = uri[len(pagePath):]
             self.__pageNum, fq, self.__fqParts = self.__parseUri(navUri)
-            savedfq = sessionState.get("savedfq")
+            savedfq = self.sessionState.get("savedfq")
             limits = []
             if savedfq:
                 limits.extend(savedfq)
             if fq:
                 limits.extend(fq)
-                sessionState.set("savedfq", limits)
+                self.sessionState.set("savedfq", limits)
                 for q in fq:
                     req.addParam("fq", URLDecoder.decode(q, "UTF-8"))
         
@@ -138,14 +144,14 @@ class SearchData:
             self.__selected = ArrayList(req.getParams("fq"))
         
         if self.__useSessionNavigation:
-            sessionState.set("fq", self.__selected)
-            sessionState.set("searchQuery", portalSearchQuery)
-            sessionState.set("pageNum", self.__pageNum)
+            self.sessionState.set("fq", self.__selected)
+            self.sessionState.set("searchQuery", portalSearchQuery)
+            self.sessionState.set("pageNum", self.__pageNum)
         
         # Make sure 'fq' has already been set in the session
-        if not page.authentication.is_admin():
-            current_user = page.authentication.get_username()
-            security_roles = page.authentication.get_roles_list()
+        if not self.page.authentication.is_admin():
+            current_user = self.page.authentication.get_username()
+            security_roles = self.page.authentication.get_roles_list()
             security_filter = 'security_filter:("' + '" OR "'.join(security_roles) + '")'
             security_exceptions = 'security_exception:"' + current_user + '"'
             owner_query = 'owner:"' + current_user + '"'
@@ -157,19 +163,12 @@ class SearchData:
         print " * search.py:", req.toString(), self.__pageNum
         
         out = ByteArrayOutputStream()
-        Services.indexer.search(req, out)
+        self.services.indexer.search(req, out)
         self.__result = JsonConfigHelper(ByteArrayInputStream(out.toByteArray()))
         if self.__result is not None:
             self.__paging = Pagination(self.__pageNum,
                                        int(self.__result.get("response/numFound")),
                                        self.__portal.recordsPerPage)
-    
-    def canManage(self, wfSecurity):
-        user_roles = page.authentication.get_roles_list()
-        for role in user_roles:
-            if role in wfSecurity:
-                return True
-        return False
     
     def getQueryTime(self):
         return int(self.__result.get("responseHeader/QTime")) / 1000.0;
@@ -218,26 +217,12 @@ class SearchData:
     def getFacetQuery(self, name, value):
         return '%s:"%s"' % (name, value)
     
-    def isImage(self, format):
-        return format.startswith("image/")
-    
-    def getMimeTypeIcon(self, format):
-        # check for specific icon
-        iconPath = "images/icons/mimetype/%s/icon.png" % format
-        resource = Services.getPageService().resourceExists(portalId, iconPath)
-        if resource is not None:
-            return iconPath
-        elif format.find("/") != -1:
-            # check for major type
-            return self.getMimeTypeIcon(format[:format.find("/")])
-        # use default icon
-        return "images/icons/mimetype/icon.png"
-    
+    # Packaging support
     def getActiveManifestTitle(self):
         return self.__getActiveManifest().get("title")
     
     def getActiveManifestId(self):
-        return sessionState.get("package/active/id")
+        return self.sessionState.get("package/active/id")
     
     def getSelectedItemsCount(self):
         return self.__getActiveManifest().getList("manifest//id").size()
@@ -249,15 +234,18 @@ class SearchData:
         return self.__getActiveManifest().get("manifest//node-%s/title" % oid, defaultValue)
     
     def __getActiveManifest(self):
-        activeManifest = sessionState.get("package/active")
+        activeManifest = self.sessionState.get("package/active")
         if not activeManifest:
             activeManifest = JsonConfigHelper()
             activeManifest.set("title", "New package")
-            activeManifest.set("viewId", portalId)
-            sessionState.set("package/active", activeManifest)
+            activeManifest.set("viewId", self.__portal.getName())
+            self.sessionState.set("package/active", activeManifest)
         return activeManifest
     
-    #### RESTful style URL support methods
+    def isSelectableForPackage(self, oid):
+        return oid != self.getActiveManifestId()
+    
+    # RESTful style URL support methods
     def getPageQuery(self, page):
         prefix = ""
         if self.__fqParts:
@@ -300,7 +288,6 @@ class SearchData:
             for part in parts:
                 if partType == "page":
                     facetKey = None
-                    facetValue = None
                     page = int(part)
                 elif partType == "category":
                     partType = "category-value"
@@ -326,17 +313,3 @@ class SearchData:
                 fqParts.append("category/%s/%s" % (facetKey, "/".join(facetValues)))
         return page, fq, fqParts
 
-    def isSelectableForPackage(self, oid):
-        # cache this answer
-        # ensure a package cannot select itself
-        activeManifest = self.__getActiveManifest()
-        packageType = activeManifest.get("packageType", "default")
-        # check if the package type allows packages in a package - do we need this??
-        ##json = JsonConfig()
-        ##pInP = Boolean.parseBoolean(json.get("portal/packageTypes/%s/packages-in-package" % packageType))
-        pInP = True
-        # need to check the package doesn't contain the active package?
-        return pInP and (oid != self.getActiveManifestId())
-
-if __name__ == "__main__":
-    scriptObject = SearchData()

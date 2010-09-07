@@ -53,8 +53,8 @@ import au.edu.usq.fascinator.api.roles.RolesManager;
 import au.edu.usq.fascinator.api.storage.Storage;
 import au.edu.usq.fascinator.common.JsonConfig;
 import au.edu.usq.fascinator.portal.JsonSessionState;
+import au.edu.usq.fascinator.portal.services.impl.CachingDynamicPageServiceImpl;
 import au.edu.usq.fascinator.portal.services.impl.DatabaseServicesImpl;
-import au.edu.usq.fascinator.portal.services.impl.DynamicPageServiceImpl;
 import au.edu.usq.fascinator.portal.services.impl.HarvestManagerImpl;
 import au.edu.usq.fascinator.portal.services.impl.HouseKeepingManagerImpl;
 import au.edu.usq.fascinator.portal.services.impl.IndexerServiceImpl;
@@ -78,7 +78,8 @@ public class PortalModule {
 
     public static void bind(ServiceBinder binder) {
         binder.bind(HarvestManager.class, HarvestManagerImpl.class);
-        binder.bind(DynamicPageService.class, DynamicPageServiceImpl.class);
+        binder.bind(DynamicPageService.class,
+                CachingDynamicPageServiceImpl.class);
         binder.bind(PortalManager.class, PortalManagerImpl.class);
         binder.bind(ScriptingServices.class, ScriptingServicesImpl.class);
         binder.bind(PortalSecurityManager.class,
@@ -182,10 +183,10 @@ public class PortalModule {
                 HttpServletRequest req = requestGlobals.getHTTPServletRequest();
                 String ctxPath = request.getContextPath();
                 String uri = req.getRequestURI();
-                request.setAttribute("RequestURI", uri.substring(ctxPath
-                        .length() + 1));
-                request.setAttribute("RequestID", DigestUtils.md5Hex(uri
-                        + req.getQueryString()));
+                request.setAttribute("RequestURI",
+                        uri.substring(ctxPath.length() + 1));
+                request.setAttribute("RequestID",
+                        DigestUtils.md5Hex(uri + req.getQueryString()));
 
                 // forward all requests to the main dispatcher
                 String path = request.getPath();

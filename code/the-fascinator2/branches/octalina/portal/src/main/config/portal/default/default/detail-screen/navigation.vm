@@ -1,21 +1,5 @@
-#macro(createNavTree $root $class)
-<ul class="$class">
-  #foreach($key in $root.keySet())
-    #set($item = $root.get($key))
-    #set($id = $item.get("id"))
-    #set($children = $item.getJsonMap("children"))
-    #set($numChildren = $children.keySet().size())
-    #set($hidden = "false")
-    #set($hidden = $item.get("hidden"))
-    <li #if($numChildren > 0)class="open"#end id="$key" rel="$id">
-      <a class="#if($id == $oid)clicked#end #if($hidden && $hidden == 'true')item-hidden#end" href="#">$item.get("title")</a>
-      #if($numChildren > 0)
-        #createNavTree($children "children")
-      #end
-    </li>
-  #end
-</ul>
-#end
+#renderObject($metadata "actions")
+
 
 #if($isPackage)
   #if($self.canOrganise())

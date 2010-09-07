@@ -84,13 +84,15 @@ item_security = []
 workflow_security = []
 
 if pid == metaPid:
+    previewPid = None
     for payloadId in object.getPayloadIdList():
         try:
             payload = object.getPayload(payloadId)
             if str(payload.getType())=="Thumbnail":
                 rules.add(AddField("thumbnail", payload.getId()))
             elif str(payload.getType())=="Preview":
-                rules.add(AddField("preview", payload.getId()))
+                previewPid = payload.getId()
+                rules.add(AddField("preview", previewPid))
             elif str(payload.getType())=="AltPreview":
                 rules.add(AddField("altpreview", payload.getId()))
         except Exception, e:
@@ -431,6 +433,20 @@ if pid == metaPid:
         message = msg.toString()
         for target in message_list:
             pyUtils.sendMessage(target, message)
+
+    # check the object metadata for display type set by harvester or transformer
+    # otherwise determine the display type by mime type
+    displayType = params.getProperty("displayType")
+    if not displayType:
+        displayType = formatList[0]
+        if displayType is not None:
+            rules.add(AddField("display_type", pyUtils.basicDisplayType(displayType)))
+    # Some object use a special preview template. eg. word docs with a html preview
+    previewType = params.getProperty("previewType")
+    if not previewType:
+        previewType = pyUtils.getDisplayMimeType(formatList, object, previewPid)
+        if previewType is not None and previewType != displayType:
+            rules.add(AddField("preview_type", pyUtils.basicDisplayType(previewType)))
 
 # Security
 roles = pyUtils.getRolesWithAccess(oid)

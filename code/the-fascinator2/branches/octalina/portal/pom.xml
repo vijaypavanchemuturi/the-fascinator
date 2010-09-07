@@ -129,6 +129,11 @@
             <version>2.5.1</version>
         </dependency>
         <dependency>
+            <groupId>org.quartz-scheduler</groupId>
+            <artifactId>quartz</artifactId>
+            <version>1.8.4</version>
+        </dependency>
+        <dependency>
             <groupId>org.tuckey</groupId>
             <artifactId>urlrewritefilter</artifactId>
             <version>3.1.0</version>
@@ -243,11 +248,6 @@
                 </dependency>
                 <dependency>
                     <groupId>au.edu.usq.fascinator.plugins</groupId>
-                    <artifactId>plugin-harvester-fedora</artifactId>
-                    <version>0.1.0-SNAPSHOT</version>
-                </dependency>
-                <dependency>
-                    <groupId>au.edu.usq.fascinator.plugins</groupId>
                     <artifactId>plugin-harvester-ice2</artifactId>
                 </dependency>
                 <dependency>
@@ -283,9 +283,7 @@
                     <artifactId>plugin-transformer-jython</artifactId>
                 </dependency>
                 <!-- <dependency> <groupId>au.edu.usq.fascinator.plugins</groupId> 
-                    <artifactId>plugin-transformer-solrmarc</artifactId> </dependency> <dependency> 
-                    <groupId>au.edu.usq.fascinator.plugins</groupId> <artifactId>plugin-storage-fedora3</artifactId> 
-                    </dependency> -->
+                    <artifactId>plugin-transformer-solrmarc</artifactId> </dependency>-->
                 <dependency>
                     <groupId>au.edu.usq.fascinator.plugins</groupId>
                     <artifactId>plugin-storage-filesystem</artifactId>
@@ -361,8 +359,8 @@
                                 </goals>
                                 <configuration>
                                     <includeGroupIds>au.edu.usq.fascinator.plugins</includeGroupIds>
-                                    <includeArtifactIds>plugin-harvester-filesystem,plugin-harvester-ice2,plugin-harvester-oai-pmh,plugin-harvester-workflow,plugin-harvester-fedora</includeArtifactIds>
-                                    <includes>harvest/**,batch-process/**</includes>
+                                    <includeArtifactIds>plugin-harvester-filesystem,plugin-harvester-ice2,plugin-harvester-oai-pmh,plugin-harvester-workflow</includeArtifactIds>
+                                    <includes>harvest/**</includes>
                                     <outputDirectory>${fascinator.home}</outputDirectory>
                                 </configuration>
                             </execution>
@@ -387,7 +385,7 @@
                         <configuration>
                             <connectors>
                                 <connector implementation="org.mortbay.jetty.nio.SelectChannelConnector">
-                                    <port>9998</port>
+                                    <port>9997</port>
                                     <maxIdleTime>60000</maxIdleTime>
                                 </connector>
                             </connectors>
