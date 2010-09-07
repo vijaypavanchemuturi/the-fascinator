@@ -106,11 +106,6 @@
    </dependency>
    <dependency>
     <groupId>au.edu.usq.fascinator.plugins</groupId>
-    <artifactId>plugin-storage-fedora3</artifactId>
-    <version>${project.version}</version>
-   </dependency>
-   <dependency>
-    <groupId>au.edu.usq.fascinator.plugins</groupId>
     <artifactId>plugin-storage-ram</artifactId>
     <version>${project.version}</version>
    </dependency>
