@@ -18,52 +18,22 @@
    <artifactId>maven-plugin-api</artifactId>
    <version>2.0</version>
   </dependency>
-  <dependency>
-   <groupId>org.apache.maven</groupId>
-   <artifactId>maven-core</artifactId>
-   <version>2.0</version>
-  </dependency>
 
   <dependency>
-   <groupId>org.slf4j</groupId>
-   <artifactId>slf4j-api</artifactId>
-   <version>1.6.1</version>
-   <scope>compile</scope>
-  </dependency>
-  <dependency>
-   <groupId>org.slf4j</groupId>
-   <artifactId>slf4j-log4j12</artifactId>
-   <version>1.6.1</version>
-  </dependency>
-  <dependency>
-   <groupId>log4j</groupId>
-   <artifactId>log4j</artifactId>
-   <version>1.2.16</version>
-   <scope>compile</scope>
-  </dependency>
-  <dependency>
-   <groupId>org.semweb4j</groupId>
-   <artifactId>rdf2go.api</artifactId>
-   <version>4.7.2</version>
-  </dependency>
-  <dependency>
-   <groupId>org.semweb4j</groupId>
-   <artifactId>rdf2go.impl.jena26</artifactId>
-   <version>4.7.3</version>
+   <groupId>au.edu.usq.fascinator</groupId>
+   <artifactId>fascinator-vocabulary</artifactId>
+   <version>0.7.0-SNAPSHOT</version>
   </dependency>
 
  </dependencies>
 
+ <description>This plugin can be used to generate a set of Java classes for accessing RDF via RDF2Go.</description>
+ <url>http://fascinator.usq.edu.au/trac/wiki/tf2/contrib/maven/plugins/schemagen</url>
+ <scm>
+ 	<url>http://fascinator.usq.edu.au/svn/code/the-fascinator2/contrib/maven/plugins/schemagen/</url>
+ </scm>
  <build>
   <plugins>
-   <plugin>
-    <groupId>org.apache.maven.plugins</groupId>
-    <artifactId>maven-compiler-plugin</artifactId>
-    <configuration>
-     <source>${jdk-version}</source>
-     <target>${jdk-version}</target>
-    </configuration>
-   </plugin>
    <plugin>
     <groupId>org.apache.maven.plugins</groupId>
     <artifactId>maven-jar-plugin</artifactId>
@@ -71,7 +41,7 @@
     <configuration>
      <archive>
       <manifest>
-       <mainClass>au.edu.usq.fascinator.maven_plugins.schemagen.Schemagen
+       <mainClass>au.edu.usq.fascinator.maven_plugins.schemagen.RDF2Go
        </mainClass>
       </manifest>
      </archive>
@@ -81,23 +51,10 @@
  </build>
  <profiles>
   <profile>
-   <id>jena</id>
-   <build>
-    <plugins>
-     <plugin>
-      <groupId>org.codehaus.mojo</groupId>
-      <artifactId>exec-maven-plugin</artifactId>
-      <version>1.1.1</version>
-      <configuration>
-       <mainClass>au.edu.usq.fascinator.maven_plugins.schemagen.Jena
-     </mainClass>
-      </configuration>
-     </plugin>
-    </plugins>
-   </build>
-  </profile>
-  <profile>
    <id>rdf2go</id>
+   <activation>
+    <activeByDefault>true</activeByDefault>
+   </activation>
    <build>
     <plugins>
      <plugin>
@@ -122,10 +79,4 @@
    </plugin>
   </plugins>
  </reporting>
- <repositories>
-  <repository>
-   <id>adfi-usq-releases</id>
-   <url>http://fascinator.usq.edu.au/nexus/content/groups/public</url>
-  </repository>
- </repositories>
 </project>

@@ -30,7 +30,9 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 
 /**
- * @author dickinso
+ * Maven plugin for generating Java classes from RDFS for use with RDF2Go.
+ * 
+ * @author Duncan Dickinson
  * @goal rdf2go
  * 
  */
@@ -67,7 +69,8 @@ public class RDF2Go extends SchemaGenerator {
 
             String[] args = { "-i", schema.getAbsolutePath(), "-o",
                     outFolder.getAbsolutePath(), "--package", getPackageName(),
-                    "-n", item, "-a", getSchema().get(item) };
+                    "-n", item, "-a", getSchema().get(item),
+                    "-namespacestrict", Boolean.toString(getNamespaceStrict()) };
             try {
                 getLog().info("Calling VocabularyWriter for "
                         + schema.getAbsolutePath());
