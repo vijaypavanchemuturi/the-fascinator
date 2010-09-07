@@ -51,6 +51,13 @@ abstract class SchemaGenerator extends AbstractMojo {
      */
     private String packageName;
 
+    /**
+     * True to limit elements to only those in the namespace, false otherwise
+     * 
+     * @parameter expression="true" property="namespaceStrict"
+     */
+    private boolean namespaceStrict = true;
+
     public File getOutputFolder() {
         return outputFolder;
     }
@@ -61,6 +68,18 @@ abstract class SchemaGenerator extends AbstractMojo {
 
     public Map<String, String> getSchema() {
         return schema;
+    }
+
+    public boolean getNamespaceStrict() {
+        return isNamespaceStrict();
+    }
+
+    public boolean isNamespaceStrict() {
+        return namespaceStrict;
+    }
+
+    public void setNamespaceStrict(boolean namespaceStrict) {
+        this.namespaceStrict = namespaceStrict;
     }
 
     public void setOutputFolder(File outputFolder) {
