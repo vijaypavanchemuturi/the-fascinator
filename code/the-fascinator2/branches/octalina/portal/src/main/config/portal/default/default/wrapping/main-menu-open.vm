@@ -1,6 +1,0 @@
-<div class="box menu">
-#if ((!$menuTitle) && ("$!menuTitle" == ""))
-  <h2>&nbsp;</h2>
-#else
-  <h2>$menuTitle</h2>
-#end
