@@ -1,0 +1,20 @@
+<div class="whatsnew">
+  <div class="whatsnew-heading">
+    <div class="whatsnew-heading-bl">
+      <div class="whatsnew-heading-br">
+        <div class="whatsnew-heading-tl">
+          <div class="whatsnew-heading-tr">
+#if ((!$menuTitle) && ("$!menuTitle" == ""))
+            <div class="whatsnew-headingtext">&nbsp;</div>
+#else
+            <div class="whatsnew-headingtext"><h2>$menuTitle</h2></div>
+#end
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="whatsnew-body">
+    <div class="whatsnew-body-bl">
+      <div class="whatsnew-body-br">
+        <div class="whatsnew-bodytext">
