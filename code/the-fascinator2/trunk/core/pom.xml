@@ -101,8 +101,17 @@
           <artifactId>plugin-transformer-ims</artifactId>
         </dependency>
         <dependency>
+            <groupId>au.edu.usq.fascinator.plugins</groupId>
+            <artifactId>plugin-transformer-jython</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
           <groupId>au.edu.usq.fascinator.plugins</groupId>
           <artifactId>plugin-access-derby</artifactId>
+        </dependency>
+        <dependency>
+          <groupId>au.edu.usq.fascinator.plugins</groupId>
+          <artifactId>plugin-subscriber-solrEventLog</artifactId>
         </dependency>
       </dependencies>
       <build>

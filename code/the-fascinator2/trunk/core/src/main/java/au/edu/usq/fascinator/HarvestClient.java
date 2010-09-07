@@ -25,6 +25,7 @@ import java.io.OutputStream;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
@@ -138,8 +139,8 @@ public class HarvestClient {
                 config = new JsonConfig();
             } else {
                 config = new JsonConfig(configFile);
-                rulesFile = new File(configFile.getParent(), config
-                        .get("indexer/script/rules"));
+                rulesFile = new File(configFile.getParent(),
+                        config.get("indexer/script/rules"));
             }
         } catch (IOException ioe) {
             throw new HarvesterException("Failed to read configuration file: '"
@@ -177,6 +178,7 @@ public class HarvestClient {
     private DigitalObject updateHarvestFile(File file) throws StorageException {
         // Check the file in storage
         DigitalObject object = StorageUtils.checkHarvestFile(storage, file);
+        log.info(".... object: " + object);
         if (object != null) {
             // If we got an object back its new or updated
             JsonConfigHelper message = new JsonConfigHelper();
@@ -202,13 +204,19 @@ public class HarvestClient {
         long start = System.currentTimeMillis();
         log.info("Started at " + now);
 
+        log.info("Started at11111 " + now);
         // cache harvester config and indexer rules
+        log.info("configFile " + configFile.getAbsolutePath());
         configObject = updateHarvestFile(configFile);
+        log.info("rulesFile " + rulesFile.getAbsolutePath());
+        log.info("rulesFile " + rulesFile.exists());
         rulesObject = updateHarvestFile(rulesFile);
 
+        log.info("rulesFile done..");
         // initialise the harvester
         Harvester harvester = null;
         String harvesterType = config.get("harvester/type");
+        log.info("***** harvesterType:" + harvesterType);
         harvester = PluginManager.getHarvester(harvesterType, storage);
         if (harvester == null) {
             throw new HarvesterException("Harvester plugin '" + harvesterType
@@ -385,6 +393,9 @@ public class HarvestClient {
         // done with the object
         object.close();
 
+        // put in event log
+        sentMessage(oid, "modify");
+
         // queue the object for indexing
         queueHarvest(oid, configFile, commit);
     }
@@ -433,8 +444,8 @@ public class HarvestClient {
             JsonConfigHelper json = new JsonConfigHelper(jsonFile);
             json.set("oid", oid);
             json.set("deleted", "true");
-            messaging.queueMessage(HarvestQueueConsumer.HARVEST_QUEUE, json
-                    .toString());
+            messaging.queueMessage(HarvestQueueConsumer.HARVEST_QUEUE,
+                    json.toString());
         } catch (IOException ioe) {
             log.error("Failed to parse message: {}", ioe.getMessage());
         }
@@ -451,6 +462,23 @@ public class HarvestClient {
         } else {
             return uploadedOid;
         }
+    }
+
+    /**
+     * To put events to subscriber queue
+     * 
+     * @param oid Object id
+     * @param eventType type of events happened
+     * @param context where the event happened
+     * @param jsonFile Configuration file
+     */
+    private void sentMessage(String oid, String eventType) {
+        Map<String, String> param = new LinkedHashMap<String, String>();
+        param.put("oid", oid);
+        param.put("eventType", eventType);
+        param.put("username", "system");
+        param.put("context", "HarvestClient");
+        messaging.onEvent(param);
     }
 
     /**

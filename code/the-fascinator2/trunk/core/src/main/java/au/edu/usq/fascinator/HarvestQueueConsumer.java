@@ -114,12 +114,21 @@ public class HarvestQueueConsumer implements GenericListener {
     /** Transformer conveyer belt */
     private ConveyerBelt conveyer;
 
+    /** Messaging services */
+    private MessagingServices messaging;
+
     /**
      * Constructor required by ServiceLoader. Be sure to use init()
      * 
      */
     public HarvestQueueConsumer() {
         thread = new Thread(this, HARVEST_QUEUE);
+
+        try {
+            messaging = MessagingServices.getInstance();
+        } catch (JMSException jmse) {
+            log.error("Failed to start connection: {}", jmse.getMessage());
+        }
     }
 
     /**
@@ -146,8 +155,8 @@ public class HarvestQueueConsumer implements GenericListener {
             // broadcast = session.createTopic(MessagingServices.MESSAGE_TOPIC);
             renderers = new LinkedHashMap();
             for (String selector : rendererNames.keySet()) {
-                renderers.put(selector, session.createQueue(rendererNames
-                        .get(selector)));
+                renderers.put(selector,
+                        session.createQueue(rendererNames.get(selector)));
             }
             producer = session.createProducer(null);
             producer.setDeliveryMode(DeliveryMode.PERSISTENT);
@@ -300,6 +309,11 @@ public class HarvestQueueConsumer implements GenericListener {
                 log.info("Removing object {}...", oid);
                 storage.removeObject(oid);
                 indexer.remove(oid);
+                indexer.annotateRemove(oid);
+
+                // Log event
+                sentMessage(oid, "delete");
+                sentMessage(oid, "delete-anotar");
                 return;
             }
 
@@ -308,6 +322,9 @@ public class HarvestQueueConsumer implements GenericListener {
             object = conveyer.transform(object, config);
             indexObject(config);
             queueRenderJob(config);
+
+            // Log event
+            sentMessage(oid, "modify");
 
         } catch (TransformerException tex) {
             log.error("Error during transformation: {}", tex);
@@ -399,6 +416,23 @@ public class HarvestQueueConsumer implements GenericListener {
 
         TextMessage msg = session.createTextMessage(jsonMessage.toString());
         // producer.send(broadcast, msg);
+    }
+
+    /**
+     * To put events to subscriber queue
+     * 
+     * @param oid Object id
+     * @param eventType type of events happened
+     * @param context where the event happened
+     * @param jsonFile Configuration file
+     */
+    private void sentMessage(String oid, String eventType) {
+        Map<String, String> param = new LinkedHashMap<String, String>();
+        param.put("oid", oid);
+        param.put("eventType", eventType);
+        param.put("username", "system");
+        param.put("context", "HarvestQueueConsumer");
+        messaging.onEvent(param);
     }
 
     /**

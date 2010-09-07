@@ -35,6 +35,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import au.edu.usq.fascinator.common.JsonConfig;
+import au.edu.usq.fascinator.common.JsonConfigHelper;
 
 /**
  * Messaging services
@@ -185,7 +186,7 @@ public class MessagingServices {
      */
     public void publishMessage(String name, String msg) {
         try {
-            //log.debug("Publishing '{}' to '{}'", msg, name);
+            // log.debug("Publishing '{}' to '{}'", msg, name);
             sendMessage(getDestination(name, false), msg);
         } catch (JMSException jmse) {
             log.error("Failed to publish message", jmse);
@@ -200,7 +201,7 @@ public class MessagingServices {
      */
     public void queueMessage(String name, String msg) {
         try {
-            //log.debug("Queuing '{}' to '{}'", msg, name);
+            // log.debug("Queuing '{}' to '{}'", msg, name);
             sendMessage(getDestination(name, true), msg);
         } catch (JMSException jmse) {
             log.error("Failed to queue message", jmse);
@@ -215,7 +216,8 @@ public class MessagingServices {
      */
     public void sendMessage(Destination destination, String msg)
             throws JMSException {
-        //log.debug("Sending message to '{}': '{}'", destination.toString(), msg);
+        // log.debug("Sending message to '{}': '{}'", destination.toString(),
+        // msg);
         TextMessage message = session.createTextMessage(msg);
         producer.send(destination, message);
     }
@@ -238,5 +240,26 @@ public class MessagingServices {
             destinations.put(name, destination);
         }
         return destination;
+    }
+
+    /**
+     * To put events to subscriber queue
+     * 
+     * @param oid Object id
+     * @param eventType type of events happened
+     * @param context where the event happened
+     * @param jsonFile Configuration file
+     */
+    public void onEvent(Map<String, String> param) {
+        JsonConfigHelper json = new JsonConfigHelper();
+        String username = param.get("username");
+        if (username == null) {
+            username = "guest";
+        }
+        json.set("oid", param.get("oid"));
+        json.set("eventType", param.get("eventType"));
+        json.set("context", param.get("context"));
+        json.set("user", username);
+        queueMessage(SubscriberQueueConsumer.SUBSCRIBER_QUEUE, json.toString());
     }
 }
