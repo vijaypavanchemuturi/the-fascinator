@@ -3,7 +3,7 @@
     "name" : "default",
     "description" : "Everything",
     "query" : "",
-    "records-per-page" : "10",
+    "records-per-page" : "25",
     "facet-count" : "100",
     "facet-sort-by-count" : "false",
     "debug" : "true",
@@ -49,6 +49,7 @@
         "label" : "Workflow Step",
         "display" : "list"
       }
-    }
+    },
+    "searchQuery" : ""
   }
 }

@@ -1,5 +1,5 @@
 {
-    "version": "0.7.3",
+    "version": "0.7.4",
     "configured": false,
     "urlBase" : "http://localhost:9997/portal/",
     "email" : "fascinator@usq.edu.au",
@@ -40,6 +40,7 @@
     "messaging" : {
         "url" : "tcp://localhost:61616",
         "stompUrl" : "stomp://localhost:61613",
+        "jmxPort": "1099",
         "home" : "${fascinator.home}/activemq-data",
         "threads" : [
             {
@@ -109,6 +110,15 @@
                 "config" : {
                     "name" : "ingest"
                 }
+            },
+            {
+                "id" : "subscriber",
+                "description" : "Subscriber queue for event log.",
+                "priority": "7",
+                "config": {
+                    "name" : "subscriber",
+                    "subscribers": ["solr-event-log"]
+                }
             }
         ]
     },
@@ -176,6 +186,9 @@
         },
         "ims": {
             "id": "ims"
+        },
+        "jython" : {
+          "id" : "jython"
         }
     },
     "uploader": {
@@ -216,6 +229,13 @@
         }
     },
     "watcher" : {
-    	"path": "${INSTALL_PATH}/watcher"
+        "path": "${INSTALL_PATH}/watcher"
+    },
+    "subscriber": {
+        "solr": {
+            "uri": "http://localhost:9997/solr/eventlog",
+            "autocommit": false,
+            "embedded": false
+        }
     }
 }
