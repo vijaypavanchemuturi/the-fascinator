@@ -1,4 +1,4 @@
-import htmlentitydefs, sys
+import htmlentitydefs
 
 from au.edu.usq.fascinator.api.storage import PayloadType
 from au.edu.usq.fascinator.common import FascinatorHome, JsonConfigHelper
@@ -31,24 +31,29 @@ class ProxyBasicAuthStrategy(BasicAuthStrategy):
             httpClient.getHostConfiguration().setProxy(proxyHost, proxyPort)
             print "Using proxy '%s:%s'" % (proxyHost, proxyPort)
 
-class AtomEntryPoster:
+class BlogData:
     def __init__(self):
+        pass
+
+    def __activate__(self, context):
+        self.velocityContext = context
+
         responseType = "text/html; charset=UTF-8"
         responseMsg = ""
-        func = formData.get("func")
+        func = self.vc("formData").get("func")
         if func == "url-history":
             responseType = "text/plain; charset=UTF-8"
             responseMsg = "\n".join(self.getUrls())
         else:
             try:
-                url = formData.get("url")
-                title = formData.get("title")
-                username = formData.get("username")
-                password = formData.get("password")
+                url = self.vc("formData").get("url")
+                title = self.vc("formData").get("title")
+                username = self.vc("formData").get("username")
+                password = self.vc("formData").get("password")
                 try:
                     auth = ProxyBasicAuthStrategy(username, password, url)
                     self.__service = AtomClientFactory.getAtomService(url, auth)
-                    oid = formData.get("oid")
+                    oid = self.vc("formData").get("oid")
                     if oid is not None:
                         self.__object = Services.getStorage().getObject(oid)
                         sourceId = self.__object.getSourceId()
@@ -82,10 +87,18 @@ class AtomEntryPoster:
             except Exception, e:
                 print "Failed to post: %s" % e.getMessage()
                 responseMsg = "<p class='error'>%s</p>"  % e.getMessage()
-        writer = response.getPrintWriter(responseType)
+        writer = self.vc("response").getPrintWriter(responseType)
         writer.println(responseMsg)
         writer.close()
     
+    # Get from velocity context
+    def vc(self, index):
+        if self.velocityContext[index] is not None:
+            return self.velocityContext[index]
+        else:
+            log.error("ERROR: Requested context entry '" + index + "' doesn't exist")
+            return None
+
     def getUrls(self):
         return FileUtils.readLines(self.__getHistoryFile())
     
@@ -258,6 +271,3 @@ class AtomEntryPoster:
         if self.__object and self.__object.getId() == oid:
             return self.__object
         return Services.getStorage().getObject(oid)
-    
-
-scriptObject = AtomEntryPoster()

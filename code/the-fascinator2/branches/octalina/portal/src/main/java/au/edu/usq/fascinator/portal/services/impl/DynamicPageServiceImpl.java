@@ -31,6 +31,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.script.Bindings;
 import javax.script.ScriptContext;
@@ -45,6 +48,7 @@ import org.apache.tapestry5.services.Response;
 import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.Velocity;
+import org.apache.velocity.context.Context;
 import org.apache.velocity.runtime.RuntimeSingleton;
 import org.python.core.Py;
 import org.python.core.PyModule;
@@ -55,6 +59,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import au.edu.usq.fascinator.common.JsonConfig;
+import au.edu.usq.fascinator.common.JsonConfigHelper;
 import au.edu.usq.fascinator.portal.FormData;
 import au.edu.usq.fascinator.portal.JsonSessionState;
 import au.edu.usq.fascinator.portal.guitoolkit.GUIToolkit;
@@ -64,8 +69,6 @@ import au.edu.usq.fascinator.portal.services.PortalManager;
 import au.edu.usq.fascinator.portal.services.PortalSecurityManager;
 import au.edu.usq.fascinator.portal.services.ScriptingServices;
 import au.edu.usq.fascinator.portal.velocity.JythonLogger;
-import au.edu.usq.fascinator.portal.velocity.JythonUberspect;
-import au.edu.usq.fascinator.portal.velocity.Slf4jLogChute;
 
 public class DynamicPageServiceImpl implements DynamicPageService {
 
@@ -100,7 +103,9 @@ public class DynamicPageServiceImpl implements DynamicPageService {
     private PortalSecurityManager security;
 
     private String defaultPortal;
+
     private String defaultSkin;
+
     private List<String> skinPriority;
 
     private String layoutName;
@@ -129,7 +134,7 @@ public class DynamicPageServiceImpl implements DynamicPageService {
             defaultSkin = config.get("portal/skins/default", DEFAULT_SKIN);
 
             // Skin customisations
-            skinPriority = new ArrayList();
+            skinPriority = new ArrayList<String>();
             List<Object> skins = config.getList("portal/skins/order");
             for (Object object : skins) {
                 skinPriority.add(object.toString());
@@ -149,22 +154,10 @@ public class DynamicPageServiceImpl implements DynamicPageService {
 
             // setup velocity engine
             scriptsPath = homePath.getAbsolutePath();
-            Velocity.setProperty(Velocity.FILE_RESOURCE_LOADER_PATH,
-                    homePath.getAbsolutePath());
-            Velocity.setProperty(Velocity.RUNTIME_LOG_LOGSYSTEM_CLASS,
-                    Slf4jLogChute.class.getName());
-            Velocity.setProperty(Velocity.VM_LIBRARY, "portal-library.vm");
-            Velocity.setProperty(Velocity.UBERSPECT_CLASSNAME,
-                    JythonUberspect.class.getName());
-            Velocity.setProperty(Velocity.FILE_RESOURCE_LOADER_CACHE, false);
-            Velocity.setProperty(Velocity.VM_LIBRARY_AUTORELOAD, true);
-            Velocity.setProperty(Velocity.VM_PERM_ALLOW_INLINE, true);
-            Velocity.setProperty(Velocity.VM_PERM_ALLOW_INLINE_REPLACE_GLOBAL,
-                    true);
-            Velocity.setProperty(Velocity.VM_PERM_INLINE_LOCAL, true);
-            Velocity.setProperty(Velocity.VM_CONTEXT_LOCALSCOPE, true);
-            Velocity.setProperty(Velocity.SET_NULL_ALLOWED, true);
-            Velocity.init();
+            Properties props = new Properties();
+            props.load(getClass().getResourceAsStream("/velocity.properties"));
+            props.setProperty(Velocity.FILE_RESOURCE_LOADER_PATH, scriptsPath);
+            Velocity.init(props);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -178,15 +171,45 @@ public class DynamicPageServiceImpl implements DynamicPageService {
     @Override
     public String resourceExists(String portalId, String resourceName,
             boolean fallback) {
-        // Look through the skins of the specificied portal
+        // log.debug(" * resourceExists:'{},{}'", portalId, resourceName);
+        // Look through the skins of the specified portal
         String path = testSkins(portalId, resourceName);
+        // log.debug(" ** testSkins:'{}'", path);
         if (path != null) {
             return path;
         }
+        // Check if it's a display skin
+        Pattern p = Pattern
+                .compile("^(?:(.*)/)?display/(?:([a-z][^/]*))?/(.*)$");
+        Matcher m = p.matcher(resourceName);
+        // log.debug(" *** matches:'{}'", m.matches());
+        if (m.matches()) {
+            // log.debug(" **** m[1]:'{}'", m.group(1));
+            // log.debug(" **** m[2]:'{}'", m.group(2));
+            // log.debug(" **** m[3]:'{}'", m.group(3));
+
+            String displayType = m.group(2);
+            if (!"default".equals(displayType)) {
+                String relPath = m.group(3);
+                String fallbackResourceName = "display/default/" + relPath;
+                if (m.group(1) != null) {
+                    fallbackResourceName = "scripts/" + fallbackResourceName;
+                }
+                // log.debug(" **** fallbackResourceName:'{}'",
+                // fallbackResourceName);
+                path = testSkins(portalId, fallbackResourceName);
+                // log.debug(" **** testSkins:'{}'", path);
+                if (path != null) {
+                    return path;
+                }
+            }
+        }
+
         // Check if we can fall back to default portal
         if (fallback && !defaultPortal.equals(portalId)) {
-            return testSkins(defaultPortal, resourceName);
+            return resourceExists(defaultPortal, resourceName, false);
         }
+
         return null;
     }
 
@@ -253,6 +276,7 @@ public class DynamicPageServiceImpl implements DynamicPageService {
 
         // setup script and velocity context
         String contextPath = request.getContextPath();
+
         Map<String, Object> bindings = new HashMap<String, Object>();
         bindings.put("Services", scriptingServices);
         bindings.put("systemProperties", System.getProperties());
@@ -279,7 +303,8 @@ public class DynamicPageServiceImpl implements DynamicPageService {
         // run page and template scripts
         Object layoutObject = new Object();
         try {
-            layoutObject = evalScript(portalId, layoutName, bindings);
+            String scriptName = "scripts/" + layoutName + ".py";
+            layoutObject = evalScript(portalId, scriptName, bindings);
         } catch (Exception e) {
             ByteArrayOutputStream eOut = new ByteArrayOutputStream();
             e.printStackTrace(new PrintStream(eOut));
@@ -292,7 +317,8 @@ public class DynamicPageServiceImpl implements DynamicPageService {
 
         Object pageObject = new Object();
         try {
-            pageObject = evalScript(portalId, pageName, bindings);
+            String scriptName = "scripts/" + pageName + ".py";
+            pageObject = evalScript(portalId, scriptName, bindings);
         } catch (Exception e) {
             ByteArrayOutputStream eOut = new ByteArrayOutputStream();
             e.printStackTrace(new PrintStream(eOut));
@@ -307,13 +333,16 @@ public class DynamicPageServiceImpl implements DynamicPageService {
             mimeType = mimeTypeAttr.toString();
         }
 
-        if (!bindings.containsKey("SkipTemplateRender")
-                && resourceExists(portalId, pageName + ".vm") != null) {
+        boolean committed = response.isCommitted();
+        // log.debug("Response has been sent or redirected");
+
+        if (!committed && resourceExists(portalId, pageName + ".vm") != null) {
             // set up the velocity context
             VelocityContext vc = new VelocityContext();
             for (String key : bindings.keySet()) {
                 vc.put(key, bindings.get(key));
             }
+            vc.put("velocityContext", vc);
             if (renderMessages.length() > 0) {
                 vc.put("renderMessages", renderMessages.toString());
             }
@@ -336,7 +365,7 @@ public class DynamicPageServiceImpl implements DynamicPageService {
                 log.error("Failed rendering page: {}, {} ({})", new String[] {
                         pageName, e.getMessage(),
                         isAjax ? "ajax" : isScript ? "script" : "html" });
-                log.error("Stack Track:\n",e);
+                log.error("Stack Track:\n", e);
             }
 
             if (!(isAjax || isScript)) {
@@ -357,10 +386,73 @@ public class DynamicPageServiceImpl implements DynamicPageService {
         return mimeType;
     }
 
+    public String renderObject(Context context, String template,
+            JsonConfigHelper metadata) {
+        log.debug("========== START renderObject ==========");
+
+        // setup script and velocity context
+        String portalId = context.get("portalId").toString();
+
+        String displayType = metadata.get("display_type", "default");
+        if ("".equals(displayType)) {
+            displayType = "default"; // TODO configurable
+        }
+        String templateName = "display/" + displayType + "/" + template;
+
+        log.debug("displayType: '{}'", displayType);
+        log.debug("templateName: '{}'", templateName);
+
+        Object parentPageObject = null;
+        if (context.containsKey("parent")) {
+            parentPageObject = context.get("parent");
+        } else {
+            parentPageObject = context.get("self");
+        }
+        log.debug("parentPageObject: '{}'", parentPageObject);
+
+        context.put("pageName", template);
+        context.put("displayType", displayType);
+        context.put("parent", parentPageObject);
+        context.put("metadata", metadata);
+
+        // evaluate the context script if exists
+        Object pageObject = new Object();
+        try {
+            @SuppressWarnings("unchecked")
+            Map<String, Object> bindings = (Map<String, Object>) context
+                    .get("bindings");
+            bindings.put("metadata", metadata);
+            String scriptName = "scripts/" + templateName + ".py";
+            pageObject = evalScript(portalId, scriptName, bindings);
+        } catch (Exception e) {
+            ByteArrayOutputStream eOut = new ByteArrayOutputStream();
+            e.printStackTrace(new PrintStream(eOut));
+            String eMsg = eOut.toString();
+            log.warn("Failed to run display script!\n=====\n{}\n=====", eMsg);
+        }
+        context.put("self", pageObject);
+
+        String content = "";
+        try {
+            // render the page content
+            log.debug("Rendering display page {}/{}.vm...", portalId,
+                    templateName);
+            StringWriter pageContentWriter = new StringWriter();
+            Template pageContent = getTemplate(portalId, templateName);
+            pageContent.merge(context, pageContentWriter);
+            content = pageContentWriter.toString();
+        } catch (Exception e) {
+            log.error("Failed rendering display page: {}", templateName);
+            e.printStackTrace();
+        }
+
+        log.debug("========== END renderObject ==========");
+        return content;
+    }
+
     private Object evalScript(String portalId, String scriptName,
             Map<String, Object> bindings) throws ScriptException {
         Object scriptObject = new Object();
-        scriptName = "scripts/" + scriptName + ".py";
         log.debug("Running page script {}/{}...", portalId, scriptName);
         String path = resourceExists(portalId, scriptName);
         InputStream in = getResource(path);

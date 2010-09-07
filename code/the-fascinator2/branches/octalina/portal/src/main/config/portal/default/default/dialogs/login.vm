@@ -14,7 +14,7 @@
             width: "450px"
         }
         $("#login-form").dialog(dialogOpts);
-        $("#login-now").click(function() {
+        $(".login-now").click(function() {
             loginNow();
             return false;
         });

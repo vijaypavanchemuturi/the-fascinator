@@ -1,6 +1,3 @@
-
-
-
 #from org.purl.sword.client.Client import *
 #import org.apache.commons.httpclient.auth.AuthChallengeProcessor as AuthChallengeProcessor
 #import org.apache.commons.httpclient.HttpMethodDirector as HttpMethodDirector
@@ -12,24 +9,33 @@ import au.edu.usq.fascinator.common.JsonConfig as JsonConfig
 import au.edu.usq.fascinator.common.JsonConfigHelper as JsonConfigHelper
 import au.edu.usq.fascinator.common.storage.impl.GenericDigitalObject as GenericDigitalObject
 import au.edu.usq.fascinator.common.storage.impl.FilePayload as FilePayload
-import au.edu.usq.fascinator.transformer.ims.ImsDigitalObject as ImsDigitalObject
 import java.io.File as File;
-import org.apache.commons.io.FileUtils as FileUtils
-import au.edu.usq.fascinator.HarvestClient as HarvestClient
 import au.edu.usq.fascinator.QueueStorage as QueueStorage
 import java.io.FileWriter as FileWriter
 from java.lang import Exception
 
-class SwordHelper(object):
+class SwordData(object):
     def __init__(self):
+        pass
+
+    def __activate__(self, context):
+        self.velocityContext = context
         self.__processRequest()
 
+    # Get from velocity context
+    def vc(self, index):
+        if self.velocityContext[index] is not None:
+            return self.velocityContext[index]
+        else:
+            log.error("ERROR: Requested context entry '" + index + "' doesn't exist")
+            return None
+
     def __processRequest(self):
-        baseUrl = "http://%s:%s%s/%s" % (request.serverName, serverPort, contextPath, portalId)
+        baseUrl = "http://%s:%s%s/%s" % (self.vc("request").serverName, self.vc("serverPort"), self.vc("contextPath"), self.vc("portalId"))
         depositUrl = "%s/sword/deposit.post" % baseUrl
         sword = SwordSimpleServer(depositUrl)
         try:
-            p =  request.path.split(portalId+"/"+pageName+"/")[1]  # portalPath
+            p =  self.vc("request").path.split(self.vc("portalId")+"/"+self.vc("pageName")+"/")[1]  # portalPath
         except:
             p = ""
         if p=="post":
@@ -45,21 +51,21 @@ class SwordHelper(object):
         elif p=="servicedocument":
             #print "\n--- servicedocument ---"
             sdr = sword.getServiceDocumentRequest()
-            sdr.username = formData.get("username", "test")
-            sdr.password = formData.get("password", "test")
-            if formData.get("test"):
+            sdr.username = self.vc("formData").get("username", "test")
+            sdr.password = self.vc("formData").get("password", "test")
+            if self.vc("formData").get("test"):
                 depositUrl += "?test=1"
             sd = sword.doServiceDocument(sdr)  # get a serviceDocument
-            out = response.getPrintWriter("text/xml; charset=UTF-8")
+            out = self.vc("response").getPrintWriter("text/xml; charset=UTF-8")
             out.println(str(sd))
             out.close()
-            bindings["pageName"] = "-noTemplate-"
+            self.velocityContext["pageName"] = "-noTemplate-"
             return sd
         elif p=="deposit.post":
             #print "\n--- deposit ---  formData='%s'" % str(formData)
-            inputStream = formData.getInputStream()
+            inputStream = self.vc("formData").getInputStream()
             headers = {}
-            for x in formData.getHeaders().entrySet():
+            for x in self.vc("formData").getHeaders().entrySet():
                 headers[x.getKey()] = x.getValue()
             deposit = sword.getDeposit()
             noOp = headers.get("X-No-Op") or "false"
@@ -126,18 +132,15 @@ class SwordHelper(object):
                 print "---"
                 print " -- Exception - '%s'" % str(e)
                 print "---"
-            response.setStatus(201)
+            self.vc("response").setStatus(201)
             self.__mimeType = "text/xml"
-            bindings["pageName"] = "-noTemplate-"
-            responseOutput.write(str(depositResponse))
+            self.velocityContext["pageName"] = "-noTemplate-"
+            self.vc("responseOutput").write(str(depositResponse))
             return
         elif p=="test":
             print "\n--- testing ---"
-            print "formData='%s'" % str(formData)
+            print "formData='%s'" % str(self.vc("formData"))
         return "Test"
     
     def __getPortal(self):
-        return Services.portalManager.get(portalId)
-
-
-scriptObject = SwordHelper()
+        return Services.portalManager.get(self.vc("portalId"))

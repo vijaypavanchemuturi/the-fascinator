@@ -1,16 +1,22 @@
 class LoginData:
-
     def __init__(self):
-        if page.authentication.is_logged_in():
-            if page.authentication.is_admin():
-                responseMsg = page.authentication.get_name() + ":admin"
+        pass
+
+    def __activate__(self, context):
+        # Context data
+        self.velocityContext = context
+        auth = self.velocityContext["page"].authentication
+        resp = self.velocityContext["response"]
+
+        # Do login
+        if auth.is_logged_in():
+            if auth.is_admin():
+                responseMsg = auth.get_name() + ":admin"
             else:
-                responseMsg = page.authentication.get_name() + ":notadmin"
+                responseMsg = auth.get_name() + ":notadmin"
         else:
-            responseMsg = page.authentication.get_error()
-            response.setStatus(500)
-        writer = response.getPrintWriter("text/html; charset=UTF-8")
+            responseMsg = auth.get_error()
+            resp.setStatus(500)
+        writer = resp.getPrintWriter("text/html; charset=UTF-8")
         writer.println(responseMsg)
         writer.close()
-
-scriptObject = LoginData()

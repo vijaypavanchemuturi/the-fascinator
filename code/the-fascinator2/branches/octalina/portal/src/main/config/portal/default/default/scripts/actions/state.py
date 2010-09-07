@@ -1,26 +1,36 @@
-from au.edu.usq.fascinator.portal import Portal
-
 class StateActions:
     def __init__(self):
-        print " * state.py: formData=%s" % formData
+        pass
+
+    def __activate__(self, context):
+        self.velocityContext = context
+
+        print " * state.py: formData=%s" % self.vc("formData")
         result = "{}"
         portalManager = Services.getPortalManager()
-        portal = portalManager.get(portalId)
-        func = formData.get("func")
-        name = formData.get("name")
+        func = self.vc("formData").get("func")
+        name = self.vc("formData").get("name")
+
         if func == "set":
-            value = formData.get("value")
-            sessionState.set(name, value)
+            value = self.vc("formData").get("value")
+            self.vc("sessionState").set(name, value)
             result = '{ name: "%s", value: "%s" }' % (name, value)
         elif func == "get":
-            value = sessionState.get(name)
+            value = self.vc("sessionState").get(name)
             result = '{ value: "%s" }' % value
         elif func == "remove":
-            value = sessionState.get(name)
-            sessionState.remove(name)
+            value = self.vc("sessionState").get(name)
+            self.vc("sessionState").remove(name)
             result = '{ value: "%s" }' % value
-        writer = response.getPrintWriter("text/plain; charset=UTF-8")
+
+        writer = self.vc("response").getPrintWriter("text/plain; charset=UTF-8")
         writer.println(result)
         writer.close()
 
-scriptObject = StateActions()
+    # Get from velocity context
+    def vc(self, index):
+        if self.velocityContext[index] is not None:
+            return self.velocityContext[index]
+        else:
+            log.error("ERROR: Requested context entry '" + index + "' doesn't exist")
+            return None

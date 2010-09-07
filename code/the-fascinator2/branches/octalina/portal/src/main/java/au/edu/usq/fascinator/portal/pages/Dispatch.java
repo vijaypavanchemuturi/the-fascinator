@@ -153,7 +153,8 @@ public class Dispatch {
         if (resourceName.startsWith("css/") || resourceName.equals("css") ||
             resourceName.startsWith("images/") ||
             resourceName.startsWith("js/") ||
-            resourceName.startsWith("flowplayer/")) {
+            resourceName.startsWith("flowplayer/") ||
+            resourceName.endsWith(".ico")) {
             staticResource = true;
         }
         // The detail screen generates a lot of background calls to the server
@@ -388,8 +389,9 @@ public class Dispatch {
                 if (isSpecial == false) {
                     String redirectUri = resourceName;
                     if (path.length > 2) {
-                        redirectUri += StringUtils.join(path, "/", 2,
-                                path.length);
+                        // Current path but replace "/dispatch" with context
+                        redirectUri = request.getContextPath() +
+                                request.getPath().substring(9);
                     }
                     log.info("Redirecting to {}...", redirectUri);
                     response.sendRedirect(redirectUri);
@@ -417,6 +419,7 @@ public class Dispatch {
             return null;
         }
 
+        isSpecial = false;
         String match = getBestMatchResource(resourceName);
         log.trace("resourceName = {}, match = {}", resourceName, match);
 
@@ -426,7 +429,6 @@ public class Dispatch {
     public String getBestMatchResource(String resource) {
         String searchable = resource;
         String ext = "";
-        isSpecial = false;
         isPost = requestUri.endsWith(POST_EXT);
         // Look for AJAX
         if (resource.endsWith(AJAX_EXT)) {

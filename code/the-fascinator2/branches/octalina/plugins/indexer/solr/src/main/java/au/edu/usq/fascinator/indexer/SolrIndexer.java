@@ -1,6 +1,6 @@
 /* 
  * The Fascinator - Indexer
- * Copyright (C) 2009 University of Southern Queensland
+ * Copyright (C) 2009-2010 University of Southern Queensland
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,7 +19,6 @@
 package au.edu.usq.fascinator.indexer;
 
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -41,33 +40,20 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-import java.util.Set;
-
-import javax.xml.parsers.ParserConfigurationException;
 
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.UsernamePasswordCredentials;
 import org.apache.commons.httpclient.auth.AuthScope;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
-import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrRequest;
 import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
-import org.apache.solr.client.solrj.embedded.EmbeddedSolrServer;
 import org.apache.solr.client.solrj.impl.CommonsHttpSolrServer;
 import org.apache.solr.client.solrj.request.DirectXmlRequest;
-import org.apache.solr.client.solrj.response.QueryResponse;
-import org.apache.solr.core.CoreContainer;
-import org.apache.solr.core.SolrCore;
-import org.apache.solr.request.JSONResponseWriter;
-import org.apache.solr.request.LocalSolrQueryRequest;
-import org.apache.solr.request.SolrQueryRequest;
-import org.apache.solr.request.SolrQueryResponse;
+import org.python.core.PyObject;
 import org.python.util.PythonInterpreter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.xml.sax.SAXException;
 
 import au.edu.usq.fascinator.api.PluginDescription;
 import au.edu.usq.fascinator.api.PluginException;
@@ -80,48 +66,78 @@ import au.edu.usq.fascinator.api.storage.DigitalObject;
 import au.edu.usq.fascinator.api.storage.Payload;
 import au.edu.usq.fascinator.api.storage.Storage;
 import au.edu.usq.fascinator.api.storage.StorageException;
-import au.edu.usq.fascinator.common.FascinatorHome;
 import au.edu.usq.fascinator.common.JsonConfig;
 import au.edu.usq.fascinator.common.JsonConfigHelper;
 import au.edu.usq.fascinator.common.PythonUtils;
 
 public class SolrIndexer implements Indexer {
 
-    private static final String DEFAULT_SOLR_HOME = FascinatorHome
-            .getPath("solr");
-
+    /** Default payload for object metadata */
     private static String DEFAULT_METADATA_PAYLOAD = "TF-OBJ-META";
 
-    private Logger log = LoggerFactory.getLogger(SolrIndexer.class);
-    private JsonConfig config;
-
-    private Storage storage;
-
-    private SolrServer solr;
-    private SolrServer anotar;
-    private CoreContainer coreContainer;
-    private boolean autoCommit;
-    private boolean anotarAutoCommit;
-
+    /** Actual payload for object metadata */
     private String propertiesId;
 
+    /** Logging */
+    private Logger log = LoggerFactory.getLogger(SolrIndexer.class);
+
+    /** Configuration */
+    private JsonConfig config;
+
+    /** Storage API */
+    private Storage storage;
+
+    /** Main Solr core */
+    private SolrServer solr;
+
+    /** Anotar core */
+    private SolrServer anotar;
+
+    /** Auto-commit flag for main core */
+    private boolean autoCommit;
+
+    /** Auto-commit flag for anotar core */
+    private boolean anotarAutoCommit;
+
+    /** List of temporary files to clean up later */
     private List<File> tempFiles;
 
+    /** Username for Solr */
     private String username;
+
+    /** Password for Solr */
     private String password;
 
+    /** Flag if init() has been run before */
     private boolean loaded;
 
+    /** Keep track of custom parameters */
     private Map<String, String> customParams;
 
-    private PythonInterpreter python;
+    /** Utility function for use inside python scripts */
     private PythonUtils pyUtils;
 
+    /** Cache of instantiated python scripts */
+    private HashMap<String, PyObject> scriptCache;
+
+    /** Flag for use of the cache */
+    private boolean useCache;
+
+    /**
+     * Get the ID of the plugin
+     * 
+     * @return String : The ID of this plugin
+     */
     @Override
     public String getId() {
         return "solr";
     }
 
+    /**
+     * Get the name of the plugin
+     * 
+     * @return String : The name of this plugin
+     */
     @Override
     public String getName() {
         return "Apache Solr Indexer";
@@ -141,11 +157,17 @@ public class SolrIndexer implements Indexer {
         loaded = false;
     }
 
+    /**
+     * Initialize the plugin
+     * 
+     * @param jsonString The JSON configuration to use as a string
+     * @throws IndexerException if errors occur during initialization
+     */
     @Override
     public void init(String jsonString) throws IndexerException {
         try {
-            config = new JsonConfig(new ByteArrayInputStream(jsonString
-                    .getBytes("UTF-8")));
+            config = new JsonConfig(new ByteArrayInputStream(
+                    jsonString.getBytes("UTF-8")));
             init();
         } catch (UnsupportedEncodingException e) {
             throw new IndexerException(e);
@@ -154,6 +176,12 @@ public class SolrIndexer implements Indexer {
         }
     }
 
+    /**
+     * Initialize the plugin
+     * 
+     * @param jsonFile A file containing the JSON configuration
+     * @throws IndexerException if errors occur during initialization
+     */
     @Override
     public void init(File jsonFile) throws IndexerException {
         try {
@@ -164,6 +192,12 @@ public class SolrIndexer implements Indexer {
         }
     }
 
+    /**
+     * Private method wrapped by the above two methods to perform the actual
+     * initialization after the JSON config is accessed.
+     * 
+     * @throws IndexerException if errors occur during initialization
+     */
     private void init() throws IndexerException {
         if (!loaded) {
             loaded = true;
@@ -188,158 +222,120 @@ public class SolrIndexer implements Indexer {
 
             customParams = new HashMap<String, String>();
 
-            python = new PythonInterpreter();
             try {
                 pyUtils = new PythonUtils(config);
             } catch (PluginException ex) {
                 throw new IndexerException(ex);
             }
+            scriptCache = new HashMap<String, PyObject>();
+            useCache = Boolean.parseBoolean(config.get("indexer/useCache",
+                    "true"));
         }
         loaded = true;
     }
 
+    /**
+     * Set a value in the custom parameters of the indexer.
+     * 
+     * @param property : The index to use
+     * @param value : The value to store
+     */
     public void setCustomParam(String property, String value) {
         customParams.put(property, value);
     }
 
+    /**
+     * Initialize a Solr core object.
+     * 
+     * @param coreName : The core to initialize
+     * @return SolrServer : The initialized core
+     */
     private SolrServer initCore(String coreName) {
         try {
-            boolean isEmbedded = Boolean.parseBoolean(config.get("indexer/"
-                    + coreName + "/embedded"));
-            if (isEmbedded) {
-                /* TODO - Fix embedded for Solr 1.4 */
-                String home = config.get("indexer/" + coreName + "/home",
-                        DEFAULT_SOLR_HOME);
-                log.info("home={}", home);
-                File homeDir = new File(home);
-                if (!homeDir.exists()) {
-                    log.info("Preparing default Solr home...");
-                    prepareHome(homeDir);
-                }
-                System.setProperty("solr.solr.home", homeDir.getAbsolutePath());
-                File coreXmlFile = new File(homeDir, "solr.xml");
-                coreContainer = new CoreContainer(homeDir.getAbsolutePath(),
-                        coreXmlFile);
-                for (SolrCore core : coreContainer.getCores()) {
-                    log.info("loaded core: {}", core.getName());
-                }
-                return new EmbeddedSolrServer(coreContainer, "search");
-            } else {
-                URI solrUri = new URI(config
-                        .get("indexer/" + coreName + "/uri"));
-                CommonsHttpSolrServer thisCore = new CommonsHttpSolrServer(
-                        solrUri.toURL());
-                username = config.get("indexer/" + coreName + "/username");
-                password = config.get("indexer/" + coreName + "/password");
-                if (username != null && password != null) {
-                    UsernamePasswordCredentials credentials = new UsernamePasswordCredentials(
-                            username, password);
-                    HttpClient hc = ((CommonsHttpSolrServer) solr)
-                            .getHttpClient();
-                    hc.getParams().setAuthenticationPreemptive(true);
-                    hc.getState().setCredentials(AuthScope.ANY, credentials);
-                }
-                return thisCore;
+            URI solrUri = new URI(config.get("indexer/" + coreName + "/uri"));
+            CommonsHttpSolrServer thisCore = new CommonsHttpSolrServer(
+                    solrUri.toURL());
+            username = config.get("indexer/" + coreName + "/username");
+            password = config.get("indexer/" + coreName + "/password");
+            if (username != null && password != null) {
+                UsernamePasswordCredentials credentials = new UsernamePasswordCredentials(
+                        username, password);
+                HttpClient hc = ((CommonsHttpSolrServer) solr).getHttpClient();
+                hc.getParams().setAuthenticationPreemptive(true);
+                hc.getState().setCredentials(AuthScope.ANY, credentials);
             }
+            return thisCore;
         } catch (MalformedURLException mue) {
             log.error(coreName + " : Malformed URL", mue);
         } catch (URISyntaxException urise) {
             log.error(coreName + " : Invalid URI", urise);
         } catch (IOException ioe) {
             log.error(coreName + " : Failed to read Solr configuration", ioe);
-        } catch (ParserConfigurationException pce) {
-            log.error(coreName + " : Failed to parse Solr configuration", pce);
-        } catch (SAXException saxe) {
-            log.error(coreName + " : Failed to load Solr configuration", saxe);
         }
         return null;
     }
 
-    private void prepareHome(File homeDir) throws IOException {
-        try {
-            URI defaultSolrUri = getClass().getResource("/solr").toURI();
-            log.info("defaultSolrUri={},url={}", defaultSolrUri, defaultSolrUri
-                    .getScheme());
-            FileUtils.copyURLToFile(defaultSolrUri.toURL(), homeDir);
-        } catch (URISyntaxException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-    }
-
+    /**
+     * Shutdown the plugin
+     * 
+     * @throws PluginException if any errors occur during shutdown
+     */
     @Override
     public void shutdown() throws PluginException {
-        if (coreContainer != null) {
-            coreContainer.shutdown();
-        }
         pyUtils.shutdown();
         cleanupTempFiles();
     }
 
+    /**
+     * Return a reference to this plugins instantiated storage layer
+     * 
+     * @return Storage : the storage API being used
+     */
     public Storage getStorage() {
         return storage;
     }
 
+    /**
+     * Perform a Solr search and stream the results into the provided output
+     * 
+     * @param request : A prepared SearchRequest object
+     * @param response : The OutputStream to send results to
+     * @throws IndexerException if there were errors during the search
+     */
     @Override
     public void search(SearchRequest request, OutputStream response)
             throws IndexerException {
-        if (solr instanceof EmbeddedSolrServer) {
-            EmbeddedSolrServer ess = ((EmbeddedSolrServer) solr);
-            SolrQuery query = new SolrQuery();
-            query.setQuery(request.getQuery());
+        SolrSearcher searcher = new SolrSearcher(
+                ((CommonsHttpSolrServer) solr).getBaseURL());
+        if (username != null && password != null) {
+            searcher.authenticate(username, password);
+        }
+        InputStream result;
+        try {
+            StringBuilder extras = new StringBuilder();
             for (String name : request.getParamsMap().keySet()) {
-                Set<String> values = request.getParams(name);
-                query.setParam(name, values.toArray(new String[] {}));
-            }
-            try {
-                QueryResponse resp = ess.query(query);
-                JSONResponseWriter jrw = new JSONResponseWriter();
-                jrw.init(resp.getResponse());
-                SolrQueryRequest a = new LocalSolrQueryRequest(coreContainer
-                        .getCore("search"), query);
-                SolrQueryResponse b = new SolrQueryResponse();
-                b.setAllValues(resp.getResponse());
-                ByteArrayOutputStream out = new ByteArrayOutputStream();
-                Writer w = new OutputStreamWriter(out);
-                jrw.write(w, a, b);
-                w.close();
-                log.info("out={}", out.toString("UTF-8"));
-                IOUtils.copy(new ByteArrayInputStream(out.toByteArray()),
-                        response);
-            } catch (SolrServerException sse) {
-                sse.printStackTrace();
-                throw new IndexerException(sse);
-            } catch (IOException ioe) {
-                throw new IndexerException(ioe);
-            }
-        } else {
-            SolrSearcher searcher = new SolrSearcher(
-                    ((CommonsHttpSolrServer) solr).getBaseURL());
-            if (username != null && password != null) {
-                searcher.authenticate(username, password);
-            }
-            InputStream result;
-            try {
-                StringBuilder extras = new StringBuilder();
-                for (String name : request.getParamsMap().keySet()) {
-                    for (String param : request.getParams(name)) {
-                        extras.append(name);
-                        extras.append("=");
-                        extras.append(URLEncoder.encode(param, "UTF-8"));
-                        extras.append("&");
-                    }
+                for (String param : request.getParams(name)) {
+                    extras.append(name);
+                    extras.append("=");
+                    extras.append(URLEncoder.encode(param, "UTF-8"));
+                    extras.append("&");
                 }
-                extras.append("wt=json");
-                result = searcher.get(request.getQuery(), extras.toString(),
-                        false);
-                IOUtils.copy(result, response);
-                result.close();
-            } catch (IOException ioe) {
-                throw new IndexerException(ioe);
             }
+            extras.append("wt=json");
+            result = searcher.get(request.getQuery(), extras.toString(), false);
+            IOUtils.copy(result, response);
+            result.close();
+        } catch (IOException ioe) {
+            throw new IndexerException(ioe);
         }
     }
 
+    /**
+     * Remove the specified object from the index
+     * 
+     * @param oid : The identifier of the object to remove
+     * @throws IndexerException if there were errors during removal
+     */
     @Override
     public void remove(String oid) throws IndexerException {
         log.debug("Deleting " + oid + " from index");
@@ -353,6 +349,13 @@ public class SolrIndexer implements Indexer {
         }
     }
 
+    /**
+     * Remove the specified payload from the index
+     * 
+     * @param oid : The identifier of the payload's object
+     * @param pid : The identifier of the payload to remove
+     * @throws IndexerException if there were errors during removal
+     */
     @Override
     public void remove(String oid, String pid) throws IndexerException {
         log.debug("Deleting {}::{} from index", oid, pid);
@@ -367,6 +370,12 @@ public class SolrIndexer implements Indexer {
         }
     }
 
+    /**
+     * Remove all annotations from the index against an object
+     * 
+     * @param oid : The identifier of the object
+     * @throws IndexerException if there were errors during removal
+     */
     @Override
     public void annotateRemove(String oid) throws IndexerException {
         log.debug("Deleting " + oid + " from Anotar index");
@@ -380,11 +389,19 @@ public class SolrIndexer implements Indexer {
         }
     }
 
+    /**
+     * Remove the specified annotation from the index
+     * 
+     * @param oid : The identifier of the object
+     * @param annoId : The identifier of the annotation
+     * @throws IndexerException if there were errors during removal
+     */
     @Override
-    public void annotateRemove(String oid, String pid) throws IndexerException {
-        log.debug("Deleting {}::{} from Anotar index", oid, pid);
+    public void annotateRemove(String oid, String annoId)
+            throws IndexerException {
+        log.debug("Deleting {}::{} from Anotar index", oid, annoId);
         try {
-            anotar.deleteByQuery("rootUri:\"" + oid + "\" AND id:\"" + pid
+            anotar.deleteByQuery("rootUri:\"" + oid + "\" AND id:\"" + annoId
                     + "\"");
             anotar.commit();
         } catch (SolrServerException sse) {
@@ -394,6 +411,12 @@ public class SolrIndexer implements Indexer {
         }
     }
 
+    /**
+     * Index an object and all of its payloads
+     * 
+     * @param oid : The identifier of the object
+     * @throws IndexerException if there were errors during indexing
+     */
     @Override
     public void index(String oid) throws IndexerException {
         try {
@@ -411,6 +434,13 @@ public class SolrIndexer implements Indexer {
         }
     }
 
+    /**
+     * Index a specific payload
+     * 
+     * @param oid : The identifier of the payload's object
+     * @param pid : The identifier of the payload
+     * @throws IndexerException if there were errors during indexing
+     */
     @Override
     public void index(String oid, String pid) throws IndexerException {
         try {
@@ -422,6 +452,13 @@ public class SolrIndexer implements Indexer {
         }
     }
 
+    /**
+     * Index a specific payload
+     * 
+     * @param object : The payload's object
+     * @param pid : The payload
+     * @throws IndexerException if there were errors during indexing
+     */
     public void index(DigitalObject object, Payload payload)
             throws IndexerException {
         String oid = object.getId();
@@ -460,14 +497,15 @@ public class SolrIndexer implements Indexer {
             String toClose = props.getProperty("objectRequiresClose");
             if (toClose != null) {
                 log.debug("Indexing has altered metadata, closing object.");
-                //log.debug("===> {}", props.getProperty("renderQueue"));
+                // log.debug("===> {}", props.getProperty("renderQueue"));
                 props.remove("objectRequiresClose");
                 object.close();
                 try {
                     props = object.getMetadata();
-                    //log.debug("===> {}", props.getProperty("renderQueue"));
+                    // log.debug("===> {}", props.getProperty("renderQueue"));
                 } catch (StorageException ex) {
-                    throw new IndexerException("Failed loading properties : ", ex);
+                    throw new IndexerException("Failed loading properties : ",
+                            ex);
                 }
             }
 
@@ -483,13 +521,16 @@ public class SolrIndexer implements Indexer {
                 }
             }
         } catch (Exception e) {
-            e.printStackTrace();
-            log.error("Indexing failed!\n-----\n{}\n-----\n", e.getMessage());
+            log.error("Indexing failed!\n-----\n", e);
         } finally {
             cleanupTempFiles();
         }
     }
 
+    /**
+     * Call a manual commit against the index
+     * 
+     */
     @Override
     public void commit() {
         try {
@@ -500,17 +541,33 @@ public class SolrIndexer implements Indexer {
         }
     }
 
+    /**
+     * Index an annotation
+     * 
+     * @param oid : The identifier of the annotation's object
+     * @param pid : The identifier of the annotation
+     * @throws IndexerException if there were errors during indexing
+     */
     @Override
     public void annotate(String oid, String pid) throws IndexerException {
+        // At this stage this is identical to the 'index()' method
+        // above, but there may be changes at a later date.
         try {
             DigitalObject object = storage.getObject(oid);
             Payload payload = object.getPayload(pid);
-            index(object, payload);
+            annotate(object, payload);
         } catch (StorageException ex) {
             throw new IndexerException(ex);
         }
     }
 
+    /**
+     * Index a specific annotation
+     * 
+     * @param object : The annotation's object
+     * @param pid : The annotation payload
+     * @throws IndexerException if there were errors during indexing
+     */
     private void annotate(DigitalObject object, Payload payload)
             throws IndexerException {
         String oid = object.getId();
@@ -540,75 +597,59 @@ public class SolrIndexer implements Indexer {
                 }
             }
         } catch (Exception e) {
-            e.printStackTrace();
-            log.error("Indexing failed!\n-----\n{}\n-----\n", e.getMessage());
+            log.error("Indexing failed!\n-----\n", e);
         } finally {
             cleanupTempFiles();
         }
     }
 
+    /**
+     * Search for annotations and return the result to the provided stream
+     * 
+     * @param request : The SearchRequest object
+     * @param response : The OutputStream to send responses to
+     * @throws IndexerException if there were errors during indexing
+     */
     @Override
     public void annotateSearch(SearchRequest request, OutputStream response)
             throws IndexerException {
-        if (anotar instanceof EmbeddedSolrServer) {
-            EmbeddedSolrServer ess = ((EmbeddedSolrServer) anotar);
-            SolrQuery query = new SolrQuery();
-            query.setQuery(request.getQuery());
+        SolrSearcher searcher = new SolrSearcher(
+                ((CommonsHttpSolrServer) anotar).getBaseURL());
+        if (username != null && password != null) {
+            searcher.authenticate(username, password);
+        }
+        InputStream result;
+        try {
+            StringBuilder extras = new StringBuilder();
             for (String name : request.getParamsMap().keySet()) {
-                Set<String> values = request.getParams(name);
-                query.setParam(name, values.toArray(new String[] {}));
-            }
-            try {
-                QueryResponse resp = ess.query(query);
-                JSONResponseWriter jrw = new JSONResponseWriter();
-                jrw.init(resp.getResponse());
-                SolrQueryRequest a = new LocalSolrQueryRequest(coreContainer
-                        .getCore("search"), query);
-                SolrQueryResponse b = new SolrQueryResponse();
-                b.setAllValues(resp.getResponse());
-                ByteArrayOutputStream out = new ByteArrayOutputStream();
-                Writer w = new OutputStreamWriter(out);
-                jrw.write(w, a, b);
-                w.close();
-                log.info("out={}", out.toString("UTF-8"));
-                IOUtils.copy(new ByteArrayInputStream(out.toByteArray()),
-                        response);
-            } catch (SolrServerException sse) {
-                sse.printStackTrace();
-                throw new IndexerException(sse);
-            } catch (IOException ioe) {
-                throw new IndexerException(ioe);
-            }
-        } else {
-            SolrSearcher searcher = new SolrSearcher(
-                    ((CommonsHttpSolrServer) anotar).getBaseURL());
-            if (username != null && password != null) {
-                searcher.authenticate(username, password);
-            }
-            InputStream result;
-            try {
-                StringBuilder extras = new StringBuilder();
-                for (String name : request.getParamsMap().keySet()) {
-                    for (String param : request.getParams(name)) {
-                        extras.append(name);
-                        extras.append("=");
-                        extras.append(URLEncoder.encode(param, "UTF-8"));
-                        extras.append("&");
-                    }
+                for (String param : request.getParams(name)) {
+                    extras.append(name);
+                    extras.append("=");
+                    extras.append(URLEncoder.encode(param, "UTF-8"));
+                    extras.append("&");
                 }
-                extras.append("wt=json");
-                result = searcher.get(request.getQuery(), extras.toString(),
-                        false);
-                if (result != null) {
-                    IOUtils.copy(result, response);
-                    result.close();
-                }
-            } catch (IOException ioe) {
-                throw new IndexerException(ioe);
             }
+            extras.append("wt=json");
+            result = searcher.get(request.getQuery(), extras.toString(), false);
+            IOUtils.copy(result, response);
+            result.close();
+        } catch (IOException ioe) {
+            throw new IndexerException(ioe);
         }
     }
 
+    /**
+     * Index a payload using the provided data
+     * 
+     * @param object : The DigitalObject to index
+     * @param payload : The Payload to index
+     * @param inConf : An InputStream holding the config file
+     * @param inRules : An InputStream holding the rules file
+     * @param props : Properties object containing the object's metadata
+     * @return File : Temporary file containing the output to index
+     * @throws IOException if there were errors accessing files
+     * @throws RuleException if there were errors during indexing
+     */
     private File index(DigitalObject object, Payload payload,
             InputStream inConf, InputStream inRules, Properties props)
             throws IOException, RuleException {
@@ -616,6 +657,19 @@ public class SolrIndexer implements Indexer {
         return index(object, payload, in, inConf, inRules, props);
     }
 
+    /**
+     * Index a payload using the provided data
+     * 
+     * @param object : The DigitalObject to index
+     * @param payload : The Payload to index
+     * @param in : Reader containing the new empty document
+     * @param inConf : An InputStream holding the config file
+     * @param inRules : An InputStream holding the rules file
+     * @param props : Properties object containing the object's metadata
+     * @return File : Temporary file containing the output to index
+     * @throws IOException if there were errors accessing files
+     * @throws RuleException if there were errors during indexing
+     */
     private File index(DigitalObject object, Payload payload, Reader in,
             InputStream inConf, InputStream inRules, Properties props)
             throws IOException, RuleException {
@@ -633,7 +687,7 @@ public class SolrIndexer implements Indexer {
                 inConf.close();
             }
 
-            //log.debug("===> {}", props.getProperty("renderQueue"));
+            PythonInterpreter python = new PythonInterpreter();
 
             RuleManager rules = new RuleManager();
             python.set("indexer", this);
@@ -661,6 +715,14 @@ public class SolrIndexer implements Indexer {
         return solrFile;
     }
 
+    /**
+     * Create a temporary file
+     * 
+     * @param prefix : String to use at the beginning of the file's name
+     * @param postfix : String to finish the file's name with
+     * @return File : A new file in the system's temp directory
+     * @throws IOException if there was an error creating the file
+     */
     private File createTempFile(String prefix, String postfix)
             throws IOException {
         File tempFile = File.createTempFile(prefix, postfix);
@@ -672,6 +734,10 @@ public class SolrIndexer implements Indexer {
         return tempFile;
     }
 
+    /**
+     * Remove all temp files the plugin has
+     * 
+     */
     private void cleanupTempFiles() {
         if (tempFiles != null) {
             for (File tempFile : tempFiles) {
@@ -681,5 +747,30 @@ public class SolrIndexer implements Indexer {
             }
             tempFiles = null;
         }
+    }
+
+    /**
+     * Add a python object to the cache if caching if configured
+     * 
+     * @param oid : The rules OID to use as an index
+     * @param pyObject : The compiled PyObject to cache
+     */
+    private void cachePythonObject(String oid, PyObject pyObject) {
+        if (useCache) {
+            scriptCache.put(oid, pyObject);
+        }
+    }
+
+    /**
+     * Return a python object from the cache if configured
+     * 
+     * @param oid : The rules OID to retrieve if cached
+     * @return PyObject : The cached object, null if not found
+     */
+    private PyObject getPythonObject(String oid) {
+        if (useCache && scriptCache.containsKey(oid)) {
+            return scriptCache.get(oid);
+        }
+        return null;
     }
 }

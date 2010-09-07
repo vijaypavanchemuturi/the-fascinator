@@ -21,6 +21,9 @@ package au.edu.usq.fascinator.portal.services;
 import java.io.InputStream;
 import java.io.OutputStream;
 
+import org.apache.velocity.context.Context;
+
+import au.edu.usq.fascinator.common.JsonConfigHelper;
 import au.edu.usq.fascinator.portal.FormData;
 import au.edu.usq.fascinator.portal.JsonSessionState;
 
@@ -37,5 +40,8 @@ public interface DynamicPageService {
 
     public String render(String portalId, String pageName, OutputStream out,
             FormData formData, JsonSessionState sessionState);
+
+    public String renderObject(Context context, String template,
+            JsonConfigHelper metadata);
 
 }

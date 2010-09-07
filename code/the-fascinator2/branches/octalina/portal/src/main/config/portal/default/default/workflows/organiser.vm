@@ -9,7 +9,7 @@
     #set($hidden = $item.get("hidden"))
     #set($itemTitle = $item.get("title"))
     <li id="$key" rel="$!id">
-      <img class="mime-type" src="$portalPath/$self.getMimeTypeIcon($id)" rel="$self.getMimeType($id)" />
+      $self.getMimeTypeIcon($portalPath, $id)
       <a class="#if($id == $oid)clicked#end #if("$!hidden" == "True")item-hidden#end" href="#"><ins></ins>$itemTitle</a>
       #if($numChildren > 0)
         #createNavTree($children "children")

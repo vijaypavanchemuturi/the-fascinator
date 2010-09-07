@@ -1,9 +1,5 @@
-from __main__ import Services, formData
-
-import md5
-
+from au.edu.usq.fascinator.api.storage import StorageException
 from au.edu.usq.fascinator.common import JsonConfigHelper
-from au.edu.usq.fascinator.portal.services import PortalManager
 
 from java.io import InputStreamReader
 from java.lang import Exception
@@ -13,35 +9,48 @@ from org.apache.commons.lang import StringEscapeUtils
 
 class OrganiserData:
     def __init__(self):
-        print "formData: %s" % formData
-        self.__oid = formData.get("oid")
+        pass
+
+    def __activate__(self, context):
+        self.velocityContext = context
+
+        print "formData: %s" % self.vc("formData")
+        self.__oid = self.vc("formData").get("oid")
         result = None
         try:
             # get the package manifest
             self.__manifest = self.__readManifest(self.__oid)
             # check if we need to do processing
-            func = formData.get("func")
+            func = self.vc("formData").get("func")
             if func == "get-rvt-manifest":
                 result = self.__getRvtManifest(self.getManifest())
         except Exception, e:
             log.error("Failed to load manifest", e);
             result = '{ status: "error", message: "%s" }' % str(e)
         if result is not None:
-            writer = response.getPrintWriter("application/json; charset=UTF-8")
+            writer = self.vc("response").getPrintWriter("application/json; charset=UTF-8")
             writer.println(result)
             writer.close()
     
+    # Get from velocity context
+    def vc(self, index):
+        if self.velocityContext[index] is not None:
+            return self.velocityContext[index]
+        else:
+            log.error("ERROR: Requested context entry '" + index + "' doesn't exist")
+            return None
+
     def getManifest(self):
         return self.__manifest.getJsonMap("manifest")
     
     def getFormData(self, field):
-        return StringEscapeUtils.escapeHtml(formData.get(field, ""))
+        return StringEscapeUtils.escapeHtml(self.vc("formData").get(field, ""))
     
     def getPackageTitle(self):
-        return StringEscapeUtils.escapeHtml(formData.get("title", self.__manifest.get("title")))
+        return StringEscapeUtils.escapeHtml(self.vc("formData").get("title", self.__manifest.get("title")))
     
     def getMeta(self, metaName):
-        return StringEscapeUtils.escapeHtml(formData.get(metaName, self.__manifest.get(metaName)))
+        return StringEscapeUtils.escapeHtml(self.vc("formData").get(metaName, self.__manifest.get(metaName)))
     
     def getManifestViewId(self):
         searchPortal = self.__manifest.get("viewId", defaultPortal)
@@ -53,35 +62,42 @@ class OrganiserData:
     def getMimeType(self, oid):
         return self.__getContentType(oid) or ""
     
-    def getMimeTypeIcon(self, oid):
-        #print " *** getMimeTypeIcon(%s)" % oid
+    def getMimeTypeIcon(self, path, oid, altText = None):
+        format = self.__getContentType(oid)
+        return self.__getMimeTypeIcon(path, format, altText)
+
+    def __getMimeTypeIcon(self, path, format, altText = None):
+        if format[-1:] == ".":
+            format = format[0:-1]
+        if altText is None:
+            altText = format
         # check for specific icon
-        contentType = self.__getContentType(oid)
-        iconPath = "images/icons/mimetype/%s/icon.png" % contentType
-        resource = Services.getPageService().resourceExists(portalId, iconPath)
+        iconPath = "images/icons/mimetype/%s/icon.png" % format
+        resource = Services.getPageService().resourceExists(self.vc("portalId"), iconPath)
         if resource is not None:
-            return iconPath
-        elif contentType is not None and contentType.find("/") != -1:
+            return "<img class=\"mime-type\" src=\"%s/%s\" title=\"%s\" />" % (path, iconPath, altText)
+        elif format.find("/") != -1:
             # check for major type
-            iconPath = "images/icons/mimetype/%s/icon.png" % contentType[:contentType.find("/")]
-            resource = Services.getPageService().resourceExists(portalId, iconPath)
-            if resource is not None:
-                return iconPath
+            return self.__getMimeTypeIcon(path, format.split("/")[0], altText)
         # use default icon
-        return "images/icons/mimetype/icon.png"
-    
+        iconPath = "images/icons/mimetype/icon.png"
+        return "<img class=\"mime-type\" src=\"%s/%s\" title=\"%s\" />" % (path, iconPath, altText)
+
     def __getContentType(self, oid):
         #print " *** __getContentType(%s)" % oid
         contentType = ""
         if oid == "blank":
             contentType = "application/x-fascinator-blank-node"
         else:
-            object = Services.getStorage().getObject(oid)
-            sourceId = object.getSourceId()
-            payload = object.getPayload(sourceId)
-            contentType = payload.getContentType()
-            payload.close()
-            object.close()
+            try:
+                object = Services.getStorage().getObject(oid)
+                sourceId = object.getSourceId()
+                payload = object.getPayload(sourceId)
+                contentType = payload.getContentType()
+                payload.close()
+                object.close()
+            except StorageException, e:
+                log.error("Error during getObject()", e)
         return contentType
     
     def __readManifest(self, oid):
@@ -133,6 +149,3 @@ class OrganiserData:
             except Exception, e:
                 log.error("Failed to process node '%s': '%s'" % (node.toString(), str(e)))
         return rvtNodes
-
-if __name__ == "__main__":
-    scriptObject = OrganiserData()
