@@ -1,0 +1,6 @@
+<div class="box">
+#if ((!$contentTitle) && ("$!contentTitle" == ""))
+  <h2>&nbsp;</h2>
+#else
+  <h2>$contentTitle</h2>
+#end
