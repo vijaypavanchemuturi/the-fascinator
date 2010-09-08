@@ -43,8 +43,8 @@ class DetailData:
                 self.__oid = oid
                 self.__loadSolrData(oid)
                 if self.isIndexed():
-                    self.__object = self.__getObject(oid)
                     self.__metadata = self.__solrData.getJsonList("response/docs").get(0)
+                    self.__object = self.__getObject(oid)
                     self.__json = JsonConfigHelper(self.__solrData.getList("response/docs").get(0))
                     self.__metadataMap = TreeMap(self.__json.getMap("/"))
         else:
