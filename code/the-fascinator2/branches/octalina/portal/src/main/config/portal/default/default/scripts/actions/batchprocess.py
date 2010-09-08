@@ -4,21 +4,32 @@ from au.edu.usq.fascinator import HarvestClient
 from au.edu.usq.fascinator.common import JsonConfigHelper
 from java.io import File, ByteArrayInputStream, ByteArrayOutputStream
 
-from org.apache.commons.lang import StringUtils;
+from org.apache.commons.lang import StringUtils
 
-class BatchProcess:
+class BatchprocessData:
     def __init__(self):
-        self.writer = response.getPrintWriter("text/html; charset=UTF-8")
-        print " *** action batchProcess.py: formData=%s" % formData
-        self.storage = Services.getStorage()
+        pass
+
+    def __activate__(self, context):
+        self.formData = context["formData"]
+        self.response = context["response"]
+        self.services = context["Services"]
+        self.page = context["page"]
+        self.portal = self.page.getPortal()
+        self.vc = context["toolkit"]
+        self.log = context["log"]
+        func = self.formData.get("func")
+        self.writer = self.response.getPrintWriter("text/html; charset=UTF-8")
+        print " *** action batchProcess.py: formData=%s" % self.formData
+        self.storage = self.services.getStorage()
         self.__process()
-        
+    
     def __process(self):
-        func = formData.get("func")
+        func = self.formData.get("func")
         result = {}
         
         if func == "batch-update":
-            updateScriptFile = formData.get("update-script-file")
+            updateScriptFile = self.formData.get("update-script-file")
             self.__checkIfScriptFileIsValid(updateScriptFile)
                 
             objectIdList = self.__search("*:*")
@@ -28,10 +39,10 @@ class BatchProcess:
                     self.__processObject(oid, updateScriptFile, "false")
             except Exception, ex:
                 error = "Batch update failed: %s" % str(ex)
-                log.error(error, ex)
+                self.log.error(error, ex)
                 return '{ status: "failed" }'
         elif func == "batch-export":
-            exportScriptFile = formData.get("export-script-file")
+            exportScriptFile = self.formData.get("export-script-file")
             self.__checkIfScriptFileIsValid(exportScriptFile)
             
             objectIdList = self.__search("modified:true")
@@ -41,7 +52,7 @@ class BatchProcess:
                     self.__processObject(oid, exportScriptFile, "true")
             except Exception, ex:
                 error = "Batch export failed: %s" % str(ex)
-                log.error(error, ex)
+                self.log.error(error, ex)
                 return '{ status: "failed" }'
             
         self.writer.println(result)
@@ -63,11 +74,11 @@ class BatchProcess:
             obj = self.storage.getObject(oid)
             props = obj.getMetadata()
             
-            indexOnHarvest = self.__setProperty(props, "indexOnHarvest", "false")
-            harvestQueue = self.__setProperty(props, "harvestQueue", "")
+            self.__setProperty(props, "indexOnHarvest", "false")
+            self.__setProperty(props, "harvestQueue", "")
             renderQueue = self.__setProperty(props, "renderQueue", "jython")
             props.setProperty("resetModifiedProperty", resetModifiedProperty)
-            jythonScript = self.__setProperty(props, "jythonScript", scriptFile)
+            self.__setProperty(props, "jythonScript", scriptFile)
             
             obj.close()
             # signal a reharvest
@@ -86,13 +97,13 @@ class BatchProcess:
         return oldValue
     
     def __search(self, searchField):
-        indexer = Services.getIndexer()
-        portalQuery = Services.getPortalManager().get(portalId).getQuery()
-        portalSearchQuery = Services.getPortalManager().get(portalId).getSearchQuery()
+        indexer = self.services.getIndexer()
+        portalQuery = self.services.getPortalManager().get(self.portal.getName()).getQuery()
+        portalSearchQuery = self.services.getPortalManager().get(self.portal.getName()).getSearchQuery()
         
         # Security prep work
-        current_user = page.authentication.get_username()
-        security_roles = page.authentication.get_roles_list()
+        current_user = self.page.authentication.get_username()
+        security_roles = self.page.authentication.get_roles_list()
         security_filter = 'security_filter:("' + '" OR "'.join(security_roles) + '")'
         security_exceptions = 'security_exception:"' + current_user + '"'
         owner_query = 'owner:"' + current_user + '"'
@@ -107,7 +118,7 @@ class BatchProcess:
             req.addParam("fq", portalQuery)
         if portalSearchQuery:
             req.addParam("fq", portalSearchQuery)
-        if not page.authentication.is_admin():
+        if not self.page.authentication.is_admin():
             req.addParam("fq", security_query)
         
         objectIdList = []
@@ -133,8 +144,7 @@ class BatchProcess:
         return objectIdList
     
     def throw_error(self, message):
-        response.setStatus(500)
+        self.response.setStatus(500)
         self.writer.println("Error: " + message)
         self.writer.close()
         
-scriptObject = BatchProcess()
