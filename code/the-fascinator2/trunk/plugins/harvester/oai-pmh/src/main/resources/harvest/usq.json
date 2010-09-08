@@ -6,6 +6,13 @@
             "maxRequests": 1
         }
     },
+
+    "transformer": {
+        "harvestQueue": [],
+        "indexOnHarvest": "false",
+        "renderQueue": []
+    },
+
     "indexer": {
         "script": {
             "type": "python",

@@ -35,42 +35,48 @@ import au.edu.usq.fascinator.common.PythonUtils;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.Reader;
-import java.io.StringReader;
 import java.io.UnsupportedEncodingException;
-import java.io.Writer;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.UsernamePasswordCredentials;
 import org.apache.commons.httpclient.auth.AuthScope;
 import org.apache.commons.io.IOUtils;
-import org.apache.solr.client.solrj.SolrRequest;
 import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.CommonsHttpSolrServer;
 import org.apache.solr.client.solrj.request.DirectXmlRequest;
+import org.python.core.Py;
 import org.python.core.PyObject;
 import org.python.util.PythonInterpreter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 
 public class SolrIndexer implements Indexer {
+
+    /** A fake OID for Anotar - Used in caching/execution */
+    private static String ANOTAR_RULES_OID = "FakeAnotarRulesOid1234";
+
+    /** The name of the core class inside rules files */
+    private static String SCRIPT_CLASS_NAME = "IndexData";
+
+    /** The name of the activation method required on instantiated classes */
+    private static String SCRIPT_ACTIVATE_METHOD = "__activate__";
 
     /** Default payload for object metadata */
     private static String DEFAULT_METADATA_PAYLOAD = "TF-OBJ-META";
@@ -99,9 +105,6 @@ public class SolrIndexer implements Indexer {
     /** Auto-commit flag for anotar core */
     private boolean anotarAutoCommit;
 
-    /** List of temporary files to clean up later */
-    private List<File> tempFiles;
-
     /** Username for Solr */
     private String username;
 
@@ -120,8 +123,38 @@ public class SolrIndexer implements Indexer {
     /** Cache of instantiated python scripts */
     private HashMap<String, PyObject> scriptCache;
 
+    /** Cache of instantiated config files */
+    private HashMap<String, JsonConfigHelper> configCache;
+
     /** Flag for use of the cache */
     private boolean useCache;
+
+    /** Buffer of documents waiting submission */
+    private List<String> docBuffer;
+
+    /** Time the oldest document was written into the buffer */
+    private long bufferOldest;
+
+    /** Time the youngest document was written into the buffer */
+    private long bufferYoungest;
+
+    /** Total size of documents currently in the buffer */
+    private int bufferSize;
+
+    /** Buffer Limit : Number of documents */
+    private int bufferDocLimit;
+
+    /** Buffer Limit : Total data size */
+    private int bufferSizeLimit;
+
+    /** Buffer Limit : Maximum age of oldest document */
+    private int bufferTimeLimit;
+
+    /** Run a timer to check the buffer periodically */
+    private Timer timer;
+
+    /** Logging context for timer */
+    private String timerMDC;
 
     /**
      * Get the ID of the plugin
@@ -227,9 +260,30 @@ public class SolrIndexer implements Indexer {
             } catch (PluginException ex) {
                 throw new IndexerException(ex);
             }
+            // Caching
             scriptCache = new HashMap<String, PyObject>();
+            configCache = new HashMap<String, JsonConfigHelper>();
             useCache = Boolean.parseBoolean(config.get(
                     "indexer/useCache", "true"));
+            // Buffering
+            docBuffer = new ArrayList();
+            bufferSize = 0;
+            bufferOldest = 0;
+            bufferDocLimit = Integer.parseInt(
+                    config.get("indexer/buffer/docLimit", "1"));
+            bufferSizeLimit = Integer.parseInt(
+                    config.get("indexer/buffer/sizeLimit", "0"));
+            bufferTimeLimit = Integer.parseInt(
+                    config.get("indexer/buffer/timeLimit", "0"));
+
+            // Timeout 'tick' for buffer (10s)
+            timer = new Timer("SolrIndexer:" + this.toString(), true);
+            timer.scheduleAtFixedRate(new TimerTask() {
+                @Override
+                public void run() {
+                    checkTimeout();
+                }
+            }, 0, 10000);
         }
         loaded = true;
     }
@@ -283,7 +337,7 @@ public class SolrIndexer implements Indexer {
     @Override
     public void shutdown() throws PluginException {
         pyUtils.shutdown();
-        cleanupTempFiles();
+        timer.cancel();
     }
 
     /**
@@ -468,7 +522,7 @@ public class SolrIndexer implements Indexer {
             annotate(object, payload);
             return;
         }
-        log.info("Indexing OID:'" + oid + "', PID: '" + pid + "'");
+        //log.info("Indexing OID:'{}', PID: '{}'", oid, pid);
 
         // get the indexer properties or we can't index
         Properties props;
@@ -479,50 +533,30 @@ public class SolrIndexer implements Indexer {
         }
 
         try {
-            // Get the harvester config
+            // Get the harvest files
             String confOid = props.getProperty("jsonConfigOid");
-            DigitalObject confObj = storage.getObject(confOid);
-            Payload confPayload = confObj.getPayload(confObj.getSourceId());
-            // Get the rules script
             String rulesOid = props.getProperty("rulesOid");
-            DigitalObject rulesObj = storage.getObject(rulesOid);
-            Payload rulesPayload = rulesObj.getPayload(rulesObj.getSourceId());
 
-            // index the object
-            File solrFile = index(object, payload, confPayload.open(),
-                    rulesPayload.open(), props);
+            // Generate the Solr document
+            String document = index(object, payload, confOid, rulesOid, props);
 
             // Did the indexer alter metadata?
             String toClose = props.getProperty("objectRequiresClose");
             if (toClose != null) {
                 log.debug("Indexing has altered metadata, closing object.");
-                //log.debug("===> {}", props.getProperty("renderQueue"));
                 props.remove("objectRequiresClose");
                 object.close();
                 try {
                     props = object.getMetadata();
-                    //log.debug("===> {}", props.getProperty("renderQueue"));
                 } catch (StorageException ex) {
                     throw new IndexerException("Failed loading properties : ",
                             ex);
                 }
             }
 
-            if (solrFile != null) {
-                InputStream inputDoc = new FileInputStream(solrFile);
-                String xml = IOUtils.toString(inputDoc, "UTF-8");
-                inputDoc.close();
-                SolrRequest update = new DirectXmlRequest("/update", xml);
-                solr.request(update);
-                if (autoCommit) {
-                    log.debug("Running forced commit!");
-                    solr.commit();
-                }
-            }
+            addToBuffer(document);
         } catch (Exception e) {
             log.error("Indexing failed!\n-----\n", e);
-        } finally {
-            cleanupTempFiles();
         }
     }
 
@@ -532,12 +566,137 @@ public class SolrIndexer implements Indexer {
      */
     @Override
     public void commit() {
-        try {
-            solr.commit();
-        } catch (Exception e) {
-            log.warn("Solr forced commit failed. Document will not be visible"
-                    + " until Solr autocommit fires. Error message: {}", e);
+        submitBuffer(true);
+    }
+
+    /**
+     * Add a new document into the buffer, and check if submission is required
+     *
+     * @param document : The Solr document to add to the buffer.
+     */
+    private void addToBuffer(String document) {
+        if (timerMDC == null) {
+            timerMDC = MDC.get("name");
         }
+
+        int length = document.length();
+        // If this is the first document in the buffer, record its age
+        bufferYoungest = new Date().getTime();
+        if (docBuffer.isEmpty()) {
+            bufferOldest = new Date().getTime();
+            log.debug("=== New buffer starting: {}", bufferOldest);
+        }
+        // Add to the buffer
+        docBuffer.add(document);
+        bufferSize += length;
+        // Check if submission is required
+        checkBuffer();
+    }
+
+    /**
+     * Method to fire on timeout() events to ensure buffers don't go stale
+     * after the last item in a harvest passes through.
+     *
+     */
+    private void checkTimeout() {
+        if (timerMDC != null) {
+            MDC.put("name", timerMDC);
+        }
+        if (docBuffer.isEmpty()) return;
+
+        // How long has the NEWest item been waiting?
+        long wait = ((new Date().getTime()) - bufferYoungest) / 1000;
+        // If the buffer has been updated in the last 20s ignore it
+        if (wait < 20) return;
+
+        // Else, time to flush the buffer
+        log.debug("=== Flushing old buffer: {}s", wait);
+        submitBuffer(true);
+    }
+
+    /**
+     * Assess the document buffer and decide is it is ready to submit
+     *
+     */
+    private void checkBuffer() {
+        // Doc count limit
+        if (docBuffer.size() >= bufferDocLimit) {
+            log.debug("=== Buffer check: Doc limit reached '{}'", docBuffer.size());
+            submitBuffer(false);
+            return;
+        }
+        // Size limit
+        if (bufferSize > bufferSizeLimit) {
+            log.debug("=== Buffer check: Size exceeded '{}'", bufferSize);
+            submitBuffer(false);
+            return;
+        }
+        // Time limit
+        long age = ((new Date().getTime()) - bufferOldest) / 1000;
+        if (age > bufferTimeLimit) {
+            log.debug("=== Buffer check: Age exceeded '{}s'", age);
+            submitBuffer(false);
+            return;
+        }
+    }
+
+    /**
+     * Submit all documents currently in the buffer to Solr, then purge
+     *
+     */
+    private void submitBuffer(boolean forceCommit) {
+        int size = docBuffer.size();
+        if (size > 0) {
+            // Debugging
+            //String age = String.valueOf(
+            //        ((new Date().getTime()) - bufferOldest) / 1000);
+            //String length = String.valueOf(bufferSize);
+            //log.debug("Submitting buffer: " + size + " documents, " + length +
+            //        " bytes, " + age + "s");
+            log.debug("=== Submitting buffer: " + size + " documents");
+
+            // Concatenate all documents in the buffer
+            String submission = "";
+            for (String doc : docBuffer) {
+                submission += doc;
+                //log.debug("DOC: {}", doc);
+            }
+
+            // Submit if the result is valid
+            if (!submission.equals("")) {
+                // Wrap in the basic Solr 'add' node
+                submission = "<add>" + submission + "</add>";
+                // And submit
+                try {
+                    solr.request(new DirectXmlRequest("/update", submission));
+                } catch (Exception ex) {
+                    log.error("Error submitting documents to Solr!", ex);
+                }
+                // Commit if required
+                if (autoCommit || forceCommit) {
+                    log.info("Running forced commit!");
+                    try {
+                        solr.commit();
+                    } catch (Exception e) {
+                        log.warn("Solr forced commit failed. Document will" +
+                                " not be visible until Solr autocommit fires." +
+                                " Error message: {}", e);
+                    }
+                }
+            }
+        }
+        purgeBuffer();
+    }
+
+    /**
+     * Purge the document buffer
+     *
+     */
+    private void purgeBuffer() {
+        docBuffer.clear();
+        bufferSize = 0;
+        bufferOldest = 0;
+        bufferYoungest = 0;
     }
 
     /**
@@ -576,15 +735,14 @@ public class SolrIndexer implements Indexer {
         }
 
         try {
-            // Get the rules file
-            InputStream rulesStream = getClass().getResourceAsStream(
-                    "/anotar.py");
-
             File solrFile = null;
             Properties props = new Properties();
             props.setProperty("metaPid", pid);
 
-            solrFile = index(object, payload, null, rulesStream, props);
+            String document = index(object, payload, null, ANOTAR_RULES_OID, props);
+
+/* Don't use the buffer, submit directly
+            solrFile = 
             if (solrFile != null) {
                 InputStream inputDoc = new FileInputStream(solrFile);
                 String xml = IOUtils.toString(inputDoc, "UTF-8");
@@ -595,10 +753,9 @@ public class SolrIndexer implements Indexer {
                     anotar.commit();
                 }
             }
+ */
         } catch (Exception e) {
             log.error("Indexing failed!\n-----\n", e);
-        } finally {
-            cleanupTempFiles();
         }
     }
 
@@ -642,110 +799,139 @@ public class SolrIndexer implements Indexer {
      *
      * @param object : The DigitalObject to index
      * @param payload : The Payload to index
-     * @param inConf : An InputStream holding the config file
-     * @param inRules : An InputStream holding the rules file
-     * @param props : Properties object containing the object's metadata
-     * @return File : Temporary file containing the output to index
-     * @throws IOException if there were errors accessing files
-     * @throws RuleException if there were errors during indexing
-     */
-    private File index(DigitalObject object, Payload payload,
-            InputStream inConf, InputStream inRules, Properties props)
-            throws IOException, RuleException {
-        Reader in = new StringReader("<add><doc/></add>");
-        return index(object, payload, in, inConf, inRules, props);
-    }
-
-    /**
-     * Index a payload using the provided data
-     *
-     * @param object : The DigitalObject to index
-     * @param payload : The Payload to index
      * @param in : Reader containing the new empty document
      * @param inConf : An InputStream holding the config file
-     * @param inRules : An InputStream holding the rules file
+     * @param rulesOid : The oid of the rules file to use
      * @param props : Properties object containing the object's metadata
      * @return File : Temporary file containing the output to index
      * @throws IOException if there were errors accessing files
      * @throws RuleException if there were errors during indexing
      */
-    private File index(DigitalObject object, Payload payload, Reader in,
-            InputStream inConf, InputStream inRules, Properties props)
+    private String index(DigitalObject object, Payload payload,
+            String confOid, String rulesOid, Properties props)
             throws IOException, RuleException {
-        File solrFile = createTempFile("solr", ".xml");
-        Writer out = new OutputStreamWriter(new FileOutputStream(solrFile),
-                "UTF-8");
-        InputStream rulesIn = null;
         try {
-            // Make our harvest config more useful
-            JsonConfigHelper jsonConfig = null;
-            if (inConf == null) {
-                jsonConfig = new JsonConfigHelper();
+            JsonConfigHelper jsonConfig = getConfigFile(confOid);
+
+            // Get our data ready
+            Map<String, Object> bindings = new HashMap();
+            Map<String, String> fields = new HashMap();
+            bindings.put("fields", fields);
+            bindings.put("jsonConfig", jsonConfig);
+            bindings.put("indexer", this);
+            bindings.put("object", object);
+            bindings.put("payload", payload);
+            bindings.put("params", props);
+            bindings.put("pyUtils", pyUtils);
+
+            // Run the data through our script
+            PyObject script = getPythonObject(rulesOid);
+            if (script.__findattr__(SCRIPT_ACTIVATE_METHOD) != null) {
+                script.invoke(SCRIPT_ACTIVATE_METHOD, Py.java2py(bindings));
             } else {
-                jsonConfig = new JsonConfigHelper(inConf);
-                inConf.close();
+                log.warn("Activation method not found!");
             }
 
-            PythonInterpreter python = new PythonInterpreter();
-
-            RuleManager rules = new RuleManager();
-            python.set("indexer", this);
-            python.set("jsonConfig", jsonConfig);
-            python.set("rules", rules);
-            python.set("object", object);
-            python.set("payload", payload);
-            python.set("params", props);
-            python.set("inputReader", in);
-            python.set("pyUtils", pyUtils);
-            python.execfile(inRules);
-            rules.run(in, out);
-            if (rules.cancelled()) {
-                log.info("Indexing rules were cancelled");
-                return null;
-            }
-            python.cleanup();
+            // Evaluate the fields prepared during execution
+            return pyUtils.solrDocument(fields);
         } catch (Exception e) {
             throw new RuleException(e);
-        } finally {
-            if (inRules != null) {
-                inRules.close();
-            }
         }
-        return solrFile;
     }
 
     /**
-     * Create a temporary file
+     * Evaluate the rules file stored under the provided object ID. If caching
+     * is configured the compiled python object will be cached to speed up
+     * subsequent access.
      *
-     * @param prefix : String to use at the beginning of the file's name
-     * @param postfix : String to finish the file's name with
-     * @return File : A new file in the system's temp directory
-     * @throws IOException if there was an error creating the file
+     * @param oid : The rules OID to retrieve if cached
+     * @return PyObject : The cached object, null if not found
      */
-    private File createTempFile(String prefix, String postfix)
-            throws IOException {
-        File tempFile = File.createTempFile(prefix, postfix);
-        tempFile.deleteOnExit();
-        if (tempFiles == null) {
-            tempFiles = Collections.synchronizedList(new ArrayList<File>());
+    private PyObject getPythonObject(String oid) {
+        // Try the cache first
+        PyObject rulesObject = deCachePythonObject(oid);
+        if (rulesObject != null) {
+            return rulesObject;
         }
-        tempFiles.add(tempFile);
-        return tempFile;
+        // We need to evaluate then
+        InputStream inStream;
+        if (oid.equals(ANOTAR_RULES_OID)) {
+            // Anotar rules
+            inStream = getClass().getResourceAsStream("/anotar.py");
+            log.debug("First time parsing rules script: 'ANOTAR'");
+            rulesObject = evalScript(inStream);
+            cachePythonObject(oid, rulesObject);
+            return rulesObject;
+
+        } else {
+            // A standard rules file
+            DigitalObject object;
+            Payload payload;
+            try {
+                object = storage.getObject(oid);
+                payload = object.getPayload(object.getSourceId());
+                inStream = payload.open();
+                log.debug("First time parsing rules script: '{}'", oid);
+                rulesObject = evalScript(inStream);
+                payload.close();
+                cachePythonObject(oid, rulesObject);
+                return rulesObject;
+            } catch (StorageException ex) {
+                log.error("Rules file could not be retrieved! '{}'", oid, ex);
+                return null;
+            }
+        }
     }
 
     /**
-     * Remove all temp files the plugin has
+     * Retrieve and parse the config file stored under the provided object ID.
+     * If caching is configured the instantiated config object will be cached
+     * to speed up subsequent access.
      *
+     * @param oid : The rules OID to retrieve if cached
+     * @return PyObject : The cached object, null if not found
      */
-    private void cleanupTempFiles() {
-        if (tempFiles != null) {
-            for (File tempFile : tempFiles) {
-                if (tempFile.exists()) {
-                    tempFile.delete();
-                }
-            }
-            tempFiles = null;
+    private JsonConfigHelper getConfigFile(String oid) {
+        if (oid == null) return null;
+
+        // Try the cache first
+        JsonConfigHelper configFile = deCacheConfig(oid);
+        if (configFile != null) {
+            return configFile;
         }
+        // Or evaluate afresh
+        try {
+            DigitalObject object = storage.getObject(oid);
+            Payload payload = object.getPayload(object.getSourceId());
+            log.debug("First time parsing config file: '{}'", oid);
+            configFile = new JsonConfigHelper(payload.open());
+            payload.close();
+            cacheConfig(oid, configFile);
+            return configFile;
+        } catch (IOException ex) {
+            log.error("Rules file could not be parsed! '{}'", oid, ex);
+            return null;
+        } catch (StorageException ex) {
+            log.error("Rules file could not be retrieved! '{}'", oid, ex);
+            return null;
+        }
+    }
+
+    /**
+     * Evaluate and return a Python script.
+     *
+     * @param inStream : InputStream containing the script to evaluate
+     * @return PyObject : Compiled result
+     */
+    private PyObject evalScript(InputStream inStream) {
+        // Execute the script
+        PythonInterpreter python = new PythonInterpreter();
+        python.execfile(inStream);
+        // Get the result and cleanup
+        PyObject scriptClass = python.get(SCRIPT_CLASS_NAME);
+        python.cleanup();
+        // Instantiate and return the result
+        return scriptClass.__call__();
     }
 
     /**
@@ -755,7 +941,7 @@ public class SolrIndexer implements Indexer {
      * @param pyObject : The compiled PyObject to cache
      */
     private void cachePythonObject(String oid, PyObject pyObject) {
-        if (useCache) {
+        if (useCache && pyObject != null) {
             scriptCache.put(oid, pyObject);
         }
     }
@@ -766,9 +952,34 @@ public class SolrIndexer implements Indexer {
      * @param oid : The rules OID to retrieve if cached
      * @return PyObject : The cached object, null if not found
      */
-    private PyObject getPythonObject(String oid) {
+    private PyObject deCachePythonObject(String oid) {
         if (useCache && scriptCache.containsKey(oid)) {
             return scriptCache.get(oid);
+        }
+        return null;
+    }
+
+    /**
+     * Add a config class to the cache if caching if configured
+     *
+     * @param oid : The config OID to use as an index
+     * @param config : The instantiated JsonConfigHelper to cache
+     */
+    private void cacheConfig(String oid, JsonConfigHelper config) {
+        if (useCache && config != null) {
+            configCache.put(oid, config);
+        }
+    }
+
+    /**
+     * Return a config class from the cache if configured
+     *
+     * @param oid : The config OID to retrieve if cached
+     * @return JsonConfigHelper : The cached config, null if not found
+     */
+    private JsonConfigHelper deCacheConfig(String oid) {
+        if (useCache && configCache.containsKey(oid)) {
+            return configCache.get(oid);
         }
         return null;
     }

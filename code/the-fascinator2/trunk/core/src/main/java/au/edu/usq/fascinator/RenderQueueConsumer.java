@@ -18,6 +18,17 @@
  */
 package au.edu.usq.fascinator;
 
+import au.edu.usq.fascinator.api.PluginException;
+import au.edu.usq.fascinator.api.PluginManager;
+import au.edu.usq.fascinator.api.indexer.Indexer;
+import au.edu.usq.fascinator.api.indexer.IndexerException;
+import au.edu.usq.fascinator.api.storage.DigitalObject;
+import au.edu.usq.fascinator.api.storage.Storage;
+import au.edu.usq.fascinator.api.storage.StorageException;
+import au.edu.usq.fascinator.api.transformer.TransformerException;
+import au.edu.usq.fascinator.common.JsonConfig;
+import au.edu.usq.fascinator.common.JsonConfigHelper;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.LinkedHashMap;
@@ -37,17 +48,6 @@ import org.apache.activemq.ActiveMQConnectionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
-
-import au.edu.usq.fascinator.api.PluginException;
-import au.edu.usq.fascinator.api.PluginManager;
-import au.edu.usq.fascinator.api.indexer.Indexer;
-import au.edu.usq.fascinator.api.indexer.IndexerException;
-import au.edu.usq.fascinator.api.storage.DigitalObject;
-import au.edu.usq.fascinator.api.storage.Storage;
-import au.edu.usq.fascinator.api.storage.StorageException;
-import au.edu.usq.fascinator.api.transformer.TransformerException;
-import au.edu.usq.fascinator.common.JsonConfig;
-import au.edu.usq.fascinator.common.JsonConfigHelper;
 
 /**
  * Consumer for rendering transformers. Jobs in this queue are generally longer
@@ -103,6 +103,9 @@ public class RenderQueueConsumer implements GenericListener {
     /** Transformer conveyer belt */
     private ConveyerBelt conveyer;
 
+    /** Auto commit flag on index */
+    private boolean autoCommit;
+
     /** Messaging services */
     private MessagingServices messaging;
 
@@ -156,6 +159,13 @@ public class RenderQueueConsumer implements GenericListener {
         name = config.get("config/name");
         QUEUE_ID = name;
         thread.setName(name);
+
+        // Set autoCommit if we are the user priority queue
+        if (name.equals(ConveyerBelt.CRITICAL_USER_SELECTOR)) {
+            autoCommit = true;
+        } else {
+            autoCommit = false;
+        }
 
         try {
             globalConfig = new JsonConfig();
@@ -290,7 +300,7 @@ public class RenderQueueConsumer implements GenericListener {
             // Index the object
             log.info("Indexing object...");
             indexer.index(object.getId());
-            if (Boolean.parseBoolean(config.get("commit", "false"))) {
+            if (autoCommit || Boolean.parseBoolean(config.get("commit", "false"))) {
                 indexer.commit();
             }
 

@@ -21,6 +21,9 @@ class ResultData:
             return valueList.get(0)
         return ""
     
+    def getList(self, name):
+        return self.metadata.getList(name)
+
     def getMimeTypeIcon(self, path, format, altText = None):
         if format[-1:] == ".":
             format = format[0:-1]

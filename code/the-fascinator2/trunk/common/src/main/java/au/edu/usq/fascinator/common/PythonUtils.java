@@ -53,6 +53,7 @@ import javax.jms.Session;
 import javax.jms.TextMessage;
 
 import org.apache.activemq.ActiveMQConnectionFactory;
+import org.apache.commons.lang.StringEscapeUtils;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.DocumentFactory;
@@ -556,5 +557,32 @@ public class PythonUtils {
         }
         // Unknown
         return "default";
+    }
+
+    /*****
+     * Generate a Solr document from a map of provided key/value pairs.
+     *
+     * @param fields : The lists of evaluated fields for the document
+     * @return String : The generated XML snippet
+     */
+    public String solrDocument(Map<String, String> fields) {
+        String result = "<doc>";
+        for (String field : fields.keySet()) {
+            result += solrField(field, fields.get(field));
+        }
+        result += "</doc>";
+        return result;
+    }
+
+    /*****
+     * Generate an XML snippet representing a key/value pair in a Solr doc.
+     *
+     * @param field : The field
+     * @param value : The value
+     * @return String : The generated XML snippet
+     */
+    public String solrField(String field, String value) {
+        if (field == null || value == null) return null;
+        return "<field name=\"" + field + "\">" + StringEscapeUtils.escapeXml(value) + "</field>";
     }
 }

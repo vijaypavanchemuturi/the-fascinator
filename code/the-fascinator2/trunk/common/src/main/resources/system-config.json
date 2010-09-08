@@ -1,5 +1,5 @@
 {
-    "version": "0.7.4",
+    "version": "0.7.5",
     "configured": false,
     "urlBase" : "http://localhost:9997/portal/",
     "email" : "fascinator@usq.edu.au",
@@ -40,7 +40,6 @@
     "messaging" : {
         "url" : "tcp://localhost:61616",
         "stompUrl" : "stomp://localhost:61613",
-        "jmxPort": "1099",
         "home" : "${fascinator.home}/activemq-data",
         "threads" : [
             {
@@ -125,15 +124,19 @@
     "indexer": {
         "type": "solr",
         "properties": "SOF-META",
+        "useCache" : true,
+        "buffer": {
+            "docLimit" : "200",
+            "sizeLimit" : "204800",
+            "timeLimit" : "30"
+        },
         "solr": {
             "uri": "http://localhost:9997/solr/fascinator",
-            "autocommit": false,
-            "embedded": false
+            "autocommit": false
         },
         "anotar": {
             "uri": "http://localhost:9997/solr/anotar",
-            "autocommit": true,
-            "embedded": false
+            "autocommit": true
         }
     },
     "transformerDefaults": {

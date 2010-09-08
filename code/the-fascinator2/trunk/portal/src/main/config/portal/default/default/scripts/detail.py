@@ -32,6 +32,11 @@ class DetailData:
         if matches and matches.group(3):
             oid = matches.group(3)
             pid = matches.group(4)
+
+            self.__metadata = JsonConfigHelper()
+            self.__object = self.__getObject(oid)
+            self.__oid = oid
+
             # If we have a PID
             if pid:
                 # Download the payload instead... supports relative links
@@ -40,13 +45,16 @@ class DetailData:
 
             # Otherwise, render the detail screen
             else:
-                self.__oid = oid
                 self.__loadSolrData(oid)
                 if self.isIndexed():
                     self.__metadata = self.__solrData.getJsonList("response/docs").get(0)
-                    self.__object = self.__getObject(oid)
+                    if self.__object is None:
+                        # Try again, indexed records might have a special storage_id
+                        self.__object = self.__getObject(oid)
                     self.__json = JsonConfigHelper(self.__solrData.getList("response/docs").get(0))
                     self.__metadataMap = TreeMap(self.__json.getMap("/"))
+                else:
+                    self.__metadata.set("id", oid)
         else:
             # require trailing slash for relative paths
             self.response.sendRedirect("%s/%s/" % (self.contextPath, uri))
@@ -110,8 +118,9 @@ class DetailData:
                 obj = storage.getObject(oid)
             except StorageException:
                 sid = self.__getStorageId(oid)
-                obj = storage.getObject(sid)
-                print "Object not found: oid='%s', trying sid='%s'" % (oid, sid)
+                if sid is not None:
+                    obj = storage.getObject(sid)
+                    print "Object not found: oid='%s', trying sid='%s'" % (oid, sid)
         except StorageException:
             print "Object not found: oid='%s'" % oid
         return obj

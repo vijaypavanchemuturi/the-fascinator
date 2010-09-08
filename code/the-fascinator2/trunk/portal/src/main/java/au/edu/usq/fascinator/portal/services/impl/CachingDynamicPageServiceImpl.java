@@ -220,7 +220,7 @@ public class CachingDynamicPageServiceImpl implements DynamicPageService {
         }
         // Check if it's a display skin
         Pattern p = Pattern
-                .compile("^(?:(.*)/)?display/(?:([a-z][^/]*))?/(.*)$");
+                .compile("^(?:(.*)/)?display/(?:([a-zA-Z][^/]*))?/(.*)$");
         Matcher m = p.matcher(resourceName);
         if (m.matches()) {
             String displayType = m.group(2);
@@ -436,7 +436,7 @@ public class CachingDynamicPageServiceImpl implements DynamicPageService {
     @SuppressWarnings("unchecked")
     public String renderObject(Context context, String template,
             JsonConfigHelper metadata) {
-        log.debug("========== START renderObject ==========");
+        //log.debug("========== START renderObject ==========");
 
         // setup script and velocity context
         String portalId = context.get("portalId").toString();
@@ -454,8 +454,8 @@ public class CachingDynamicPageServiceImpl implements DynamicPageService {
         }
         String templateName = "display/" + displayType + "/" + template;
 
-        log.debug("displayType: '{}'", displayType);
-        log.debug("templateName: '{}'", templateName);
+        //log.debug("displayType: '{}'", displayType);
+        //log.debug("templateName: '{}'", templateName);
 
         Object parentPageObject = null;
         Context objectContext = new VelocityContext(context);
@@ -464,7 +464,7 @@ public class CachingDynamicPageServiceImpl implements DynamicPageService {
         } else {
             parentPageObject = objectContext.get("self");
         }
-        log.debug("parentPageObject: '{}'", parentPageObject);
+        //log.debug("parentPageObject: '{}'", parentPageObject);
 
         objectContext.put("pageName", template);
         objectContext.put("displayType", displayType);
@@ -514,7 +514,7 @@ public class CachingDynamicPageServiceImpl implements DynamicPageService {
                     + "\n" + eMsg);
         }
 
-        log.debug("========== END renderObject ==========");
+        //log.debug("========== END renderObject ==========");
         return content;
     }
 
@@ -581,7 +581,7 @@ public class CachingDynamicPageServiceImpl implements DynamicPageService {
         if (useCache && scriptObject != null) {
             // try {
             if (scriptObject.__findattr__("__activate__") != null) {
-                log.debug("Activating cached script:'{}'", path);
+                //log.debug("Activating cached script:'{}'", path);
                 scriptObject.invoke("__activate__", Py.java2py(bindings));
             } else {
                 log.warn("__activate__ not found in '{}'", path);
