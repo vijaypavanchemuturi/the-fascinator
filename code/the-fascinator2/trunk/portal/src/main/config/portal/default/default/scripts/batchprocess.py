@@ -44,7 +44,7 @@ class BatchprocessData:
             form += self.formRenderer.ajaxProgressLoader("%s-script-file" % processName)
             form += "</div>"
         else:
-            form += "<div>There is not script available to do batch processing.</div>"
+            form += "<div>There is no script available to do batch processing.</div>"
         form += "</fieldset></form>\n"
         return form
     
