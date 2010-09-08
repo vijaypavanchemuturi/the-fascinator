@@ -36,7 +36,6 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.slf4j.MDC;
 
 import au.edu.usq.fascinator.api.PluginException;
 import au.edu.usq.fascinator.api.PluginManager;
@@ -204,19 +203,13 @@ public class HarvestClient {
         long start = System.currentTimeMillis();
         log.info("Started at " + now);
 
-        log.info("Started at11111 " + now);
         // cache harvester config and indexer rules
-        log.info("configFile " + configFile.getAbsolutePath());
         configObject = updateHarvestFile(configFile);
-        log.info("rulesFile " + rulesFile.getAbsolutePath());
-        log.info("rulesFile " + rulesFile.exists());
         rulesObject = updateHarvestFile(rulesFile);
 
-        log.info("rulesFile done..");
         // initialise the harvester
         Harvester harvester = null;
         String harvesterType = config.get("harvester/type");
-        log.info("***** harvesterType:" + harvesterType);
         harvester = PluginManager.getHarvester(harvesterType, storage);
         if (harvester == null) {
             throw new HarvesterException("Harvester plugin '" + harvesterType
