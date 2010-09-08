@@ -8,6 +8,11 @@ Based on payloadToDelete values, this script will also remove the payload
 from fascinator and datastream from fedora.
 """
 
+""" CHANGE THE FEDORA url, username and password """
+fedoraUrl = "http://localhost:8001/fedora/"
+username = "fedoraAdmin"
+password = "fedoraAdmin"
+
 from fedora.client import FedoraClient
 from org.apache.commons.io import IOUtils
 from au.edu.usq.fascinator.harvester.fedora.restclient import FedoraRestClient
@@ -28,9 +33,9 @@ def checkIfDsExist(apim, fedoraId, value, dsState):
 
 print "** Export to Fedora2 **"
 
-client = FedoraClient("http://localhost:8001/fedora/", "fedoraAdmin", "fedoraAdmin") 
+client = FedoraClient(fedoraUrl, username, password) 
 apim = client.getAPIM()
-restClient = FedoraRestClient("http://localhost:8001/fedora")
+restClient = FedoraRestClient(fedoraUrl)
 
 #Delete the payload that is supposed to be deleted
 props = object.getMetadata()
