@@ -1,3 +1,17 @@
+"""*** NOTE: this is a draft version of fix MARC records script. 
+You might need to modify the script to fit your needs.
+
+This script will:
+ 1. Get the invalid payload (DS1)
+ 2. Append prefix "marc" to the content
+ 3. Save the modified content to new payload (MARC)
+ 4. Set the value of payloadToDelete to DS1 
+ 5. Set the value of payloadToExport to MARC
+
+The values of payloadToDelete and payloadToExport will be used in
+export script.
+"""
+
 from java.io import ByteArrayInputStream
 from org.python.core.util import FileUtil, StringUtil
 from xml.etree import ElementTree
@@ -9,6 +23,8 @@ def restoreProperty(props, key):
         props.setProperty(key, copyValue)
     else:
         props.remove(key)
+
+print " *** Update Marc Prefix *** "
 
 # setup namespaces
 ElementTree._namespace_map["http://www.loc.gov/MARC21/slim"] = "marc"
