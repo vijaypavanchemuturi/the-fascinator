@@ -33,7 +33,7 @@ public class New extends Rule {
 
     @Override
     public void run(Reader in, Writer out) throws RuleException {
-        log("Creating new Solr document");
+        //log("Creating new Solr document");
         try {
             out.write("<add allowDups=\"false\"><doc/></add>");
         } catch (IOException ioe) {

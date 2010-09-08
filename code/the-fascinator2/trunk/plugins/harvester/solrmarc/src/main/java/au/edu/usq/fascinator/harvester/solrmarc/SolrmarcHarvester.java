@@ -55,7 +55,8 @@ public class SolrmarcHarvester extends GenericHarvester {
     private static String DEFAULT_BATCH_SIZE = "100";
 
     /** Limit the number of records imported */
-    private static String DEFAULT_RECORD_LIMIT = "-1";
+    private static String DEFAULT_RECORD_LIMIT =
+            String.valueOf(Integer.MAX_VALUE);
 
     /** PID for binary marc payload **/
     private static String BINARY_PAYLOAD = "binary.marc";
@@ -138,6 +139,10 @@ public class SolrmarcHarvester extends GenericHarvester {
                 config.get("harvester/solrmarc/batchSize", DEFAULT_BATCH_SIZE));
         recordLimit = Integer.parseInt(
                 config.get("harvester/solrmarc/limit", DEFAULT_RECORD_LIMIT));
+        // In-case '-1' or similar is used to set no limit
+        if (recordLimit < 0) {
+            recordLimit = Integer.parseInt(DEFAULT_RECORD_LIMIT);
+        }
         recordCount = 0;
 
         // Now start solrmarc
