@@ -4,7 +4,7 @@ import org.ontoware.rdf2go.model.node.URI;
 import org.ontoware.rdf2go.model.node.impl.URIImpl;
 
 /**
- * Vocabulary File. Created by org.ontoware.rdf2go.util.VocabularyWriter on Wed Aug 11 14:52:32 EST 2010
+ * Vocabulary File. Created by org.ontoware.rdf2go.util.VocabularyWriter on Wed Sep 08 14:25:24 EST 2010
  * input file: C:\Users\dickinso.USQ\AppData\Local\Temp\DC.xml
  * namespace: http://purl.org/dc/elements/1.1/
  */

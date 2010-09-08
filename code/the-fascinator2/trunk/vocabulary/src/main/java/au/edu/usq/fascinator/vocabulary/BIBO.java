@@ -4,7 +4,7 @@ import org.ontoware.rdf2go.model.node.URI;
 import org.ontoware.rdf2go.model.node.impl.URIImpl;
 
 /**
- * Vocabulary File. Created by org.ontoware.rdf2go.util.VocabularyWriter on Wed Aug 11 14:52:30 EST 2010
+ * Vocabulary File. Created by org.ontoware.rdf2go.util.VocabularyWriter on Wed Sep 08 14:25:06 EST 2010
  * input file: C:\Users\dickinso.USQ\AppData\Local\Temp\BIBO.xml
  * namespace: http://purl.org/ontology/bibo/
  */
@@ -46,16 +46,16 @@ public interface BIBO {
     public static final URI Map = new URIImpl("http://purl.org/ontology/bibo/Map", false);
 
     /**
-     * Label: Standard@en 
-     * Comment: A document describing a standard@en 
-     */
-    public static final URI Standard = new URIImpl("http://purl.org/ontology/bibo/Standard", false);
-
-    /**
      * Label: Letter@en 
      * Comment: A written or printed communication addressed to a person or organization and usually transmitted by mail.@en 
      */
     public static final URI Letter = new URIImpl("http://purl.org/ontology/bibo/Letter", false);
+
+    /**
+     * Label: Standard@en 
+     * Comment: A document describing a standard@en 
+     */
+    public static final URI Standard = new URIImpl("http://purl.org/ontology/bibo/Standard", false);
 
     /**
      * Label: Academic Article@en 
@@ -244,16 +244,16 @@ public interface BIBO {
     public static final URI LegalDocument = new URIImpl("http://purl.org/ontology/bibo/LegalDocument", false);
 
     /**
-     * Label: Brief@en 
-     * Comment: A written argument submitted to a court.@en 
-     */
-    public static final URI Brief = new URIImpl("http://purl.org/ontology/bibo/Brief", false);
-
-    /**
      * Label: Book@en 
      * Comment: A written or printed work of fiction or nonfiction, usually on sheets of paper fastened or bound together within covers.@en 
      */
     public static final URI Book = new URIImpl("http://purl.org/ontology/bibo/Book", false);
+
+    /**
+     * Label: Brief@en 
+     * Comment: A written argument submitted to a court.@en 
+     */
+    public static final URI Brief = new URIImpl("http://purl.org/ontology/bibo/Brief", false);
 
     /**
      * Label: Workshop@en 
@@ -358,19 +358,19 @@ public interface BIBO {
     public static final URI CollectedDocument = new URIImpl("http://purl.org/ontology/bibo/CollectedDocument", false);
 
     /**
-     * Comment: 76e88773:12a5f7e0a72:-7fca 
+     * Comment: 43d8f24a:12aef9704d0:-7fca 
      * Range: http://www.w3.org/2000/01/rdf-schema#Literal 
      */
     public static final URI isbn13 = new URIImpl("http://purl.org/ontology/bibo/isbn13", false);
 
     /**
-     * Comment: 76e88773:12a5f7e0a72:-7fcd 
+     * Comment: 43d8f24a:12aef9704d0:-7fcd 
      * Range: http://www.w3.org/2000/01/rdf-schema#Literal 
      */
     public static final URI isbn10 = new URIImpl("http://purl.org/ontology/bibo/isbn10", false);
 
     /**
-     * Comment: 76e88773:12a5f7e0a72:-7fd9 
+     * Comment: 43d8f24a:12aef9704d0:-7fd9 
      * Range: http://www.w3.org/2000/01/rdf-schema#Literal 
      */
     public static final URI eissn = new URIImpl("http://purl.org/ontology/bibo/eissn", false);
@@ -456,7 +456,7 @@ public interface BIBO {
     public static final URI number = new URIImpl("http://purl.org/ontology/bibo/number", false);
 
     /**
-     * Comment: 76e88773:12a5f7e0a72:-7fd3 
+     * Comment: 43d8f24a:12aef9704d0:-7fd3 
      * Range: http://www.w3.org/2000/01/rdf-schema#Literal 
      */
     public static final URI handle = new URIImpl("http://purl.org/ontology/bibo/handle", false);
@@ -478,19 +478,19 @@ public interface BIBO {
     public static final URI pageEnd = new URIImpl("http://purl.org/ontology/bibo/pageEnd", false);
 
     /**
-     * Comment: 76e88773:12a5f7e0a72:-7fe2 
+     * Comment: 43d8f24a:12aef9704d0:-7fe2 
      * Range: http://www.w3.org/2000/01/rdf-schema#Literal 
      */
     public static final URI coden = new URIImpl("http://purl.org/ontology/bibo/coden", false);
 
     /**
-     * Comment: 76e88773:12a5f7e0a72:-7fdc 
+     * Comment: 43d8f24a:12aef9704d0:-7fdc 
      * Range: http://www.w3.org/2000/01/rdf-schema#Literal 
      */
     public static final URI eanucc13 = new URIImpl("http://purl.org/ontology/bibo/eanucc13", false);
 
     /**
-     * Comment: 76e88773:12a5f7e0a72:-7fc7 
+     * Comment: 43d8f24a:12aef9704d0:-7fc7 
      * Range: http://www.w3.org/2000/01/rdf-schema#Literal 
      */
     public static final URI issn = new URIImpl("http://purl.org/ontology/bibo/issn", false);
@@ -498,7 +498,7 @@ public interface BIBO {
     /**
      * Label: uri@en 
      * Comment: Universal Resource Identifier of a document@en 
-     * Comment: 76e88773:12a5f7e0a72:-7fb5 
+     * Comment: 43d8f24a:12aef9704d0:-7fb5 
      * Range: http://www.w3.org/2000/01/rdf-schema#Literal 
      */
     public static final URI uri = new URIImpl("http://purl.org/ontology/bibo/uri", false);
@@ -516,31 +516,31 @@ public interface BIBO {
     public static final URI isbn = new URIImpl("http://purl.org/ontology/bibo/isbn", false);
 
     /**
-     * Comment: 76e88773:12a5f7e0a72:-7fb8 
+     * Comment: 43d8f24a:12aef9704d0:-7fb8 
      * Range: http://www.w3.org/2000/01/rdf-schema#Literal 
      */
     public static final URI upc = new URIImpl("http://purl.org/ontology/bibo/upc", false);
 
     /**
-     * Comment: 76e88773:12a5f7e0a72:-7fc1 
+     * Comment: 43d8f24a:12aef9704d0:-7fc1 
      * Range: http://www.w3.org/2000/01/rdf-schema#Literal 
      */
     public static final URI oclcnum = new URIImpl("http://purl.org/ontology/bibo/oclcnum", false);
 
     /**
-     * Comment: 76e88773:12a5f7e0a72:-7fdf 
+     * Comment: 43d8f24a:12aef9704d0:-7fdf 
      * Range: http://www.w3.org/2000/01/rdf-schema#Literal 
      */
     public static final URI doi = new URIImpl("http://purl.org/ontology/bibo/doi", false);
 
     /**
-     * Comment: 76e88773:12a5f7e0a72:-7fe5 
+     * Comment: 43d8f24a:12aef9704d0:-7fe5 
      * Range: http://www.w3.org/2000/01/rdf-schema#Literal 
      */
     public static final URI asin = new URIImpl("http://purl.org/ontology/bibo/asin", false);
 
     /**
-     * Comment: 76e88773:12a5f7e0a72:-7fd6 
+     * Comment: 43d8f24a:12aef9704d0:-7fd6 
      * Range: http://www.w3.org/2000/01/rdf-schema#Literal 
      */
     public static final URI gtin14 = new URIImpl("http://purl.org/ontology/bibo/gtin14", false);
@@ -552,7 +552,7 @@ public interface BIBO {
     public static final URI shortDescription = new URIImpl("http://purl.org/ontology/bibo/shortDescription", false);
 
     /**
-     * Comment: 76e88773:12a5f7e0a72:-7fbe 
+     * Comment: 43d8f24a:12aef9704d0:-7fbe 
      * Range: http://www.w3.org/2000/01/rdf-schema#Literal 
      */
     public static final URI pmid = new URIImpl("http://purl.org/ontology/bibo/pmid", false);
@@ -574,13 +574,13 @@ public interface BIBO {
     public static final URI pageStart = new URIImpl("http://purl.org/ontology/bibo/pageStart", false);
 
     /**
-     * Comment: 76e88773:12a5f7e0a72:-7fbb 
+     * Comment: 43d8f24a:12aef9704d0:-7fbb 
      * Range: http://www.w3.org/2000/01/rdf-schema#Literal 
      */
     public static final URI sici = new URIImpl("http://purl.org/ontology/bibo/sici", false);
 
     /**
-     * Comment: 76e88773:12a5f7e0a72:-7fd0 
+     * Comment: 43d8f24a:12aef9704d0:-7fd0 
      * Range: http://www.w3.org/2000/01/rdf-schema#Literal 
      */
     public static final URI identifier = new URIImpl("http://purl.org/ontology/bibo/identifier", false);
@@ -602,7 +602,7 @@ public interface BIBO {
     public static final URI pages = new URIImpl("http://purl.org/ontology/bibo/pages", false);
 
     /**
-     * Comment: 76e88773:12a5f7e0a72:-7fc4 
+     * Comment: 43d8f24a:12aef9704d0:-7fc4 
      * Range: http://www.w3.org/2000/01/rdf-schema#Literal 
      */
     public static final URI lccn = new URIImpl("http://purl.org/ontology/bibo/lccn", false);
@@ -634,7 +634,7 @@ public interface BIBO {
     /**
      * Label: issuer 
      * Comment: An entity responsible for issuing often informally published documents such as press releases, reports, etc. 
-     * Comment: 76e88773:12a5f7e0a72:-7ff1 
+     * Comment: 43d8f24a:12aef9704d0:-7ff1 
      * Range: http://xmlns.com/foaf/0.1/Agent 
      */
     public static final URI issuer = new URIImpl("http://purl.org/ontology/bibo/issuer", false);
@@ -650,7 +650,7 @@ public interface BIBO {
      * Label: list of editors@en 
      * Comment: An ordered list of editors. Normally, this list is seen as a priority list that order editors by importance.@en 
      * Comment: http://purl.org/ontology/bibo/Document 
-     * Range: 76e88773:12a5f7e0a72:-7ff4 
+     * Range: 43d8f24a:12aef9704d0:-7ff4 
      */
     public static final URI editorList = new URIImpl("http://purl.org/ontology/bibo/editorList", false);
 
@@ -672,7 +672,7 @@ public interface BIBO {
     /**
      * Label: translator 
      * Comment: A person who translates written document from one language to another.@en 
-     * Comment: 76e88773:12a5f7e0a72:-7fe8 
+     * Comment: 43d8f24a:12aef9704d0:-7fe8 
      * Range: http://xmlns.com/foaf/0.1/Agent 
      */
     public static final URI translator = new URIImpl("http://purl.org/ontology/bibo/translator", false);
@@ -680,7 +680,7 @@ public interface BIBO {
     /**
      * Label: editor 
      * Comment: A person having managerial and sometimes policy-making responsibility for the editorial part of a publishing firm or of a newspaper, magazine, or other publication.@en 
-     * Comment: 76e88773:12a5f7e0a72:-7ff7 
+     * Comment: 43d8f24a:12aef9704d0:-7ff7 
      * Range: http://xmlns.com/foaf/0.1/Agent 
      */
     public static final URI editor = new URIImpl("http://purl.org/ontology/bibo/editor", false);
@@ -696,7 +696,7 @@ public interface BIBO {
      * Label: list of authors@en 
      * Comment: An ordered list of authors. Normally, this list is seen as a priority list that order authors by importance.@en 
      * Comment: http://purl.org/ontology/bibo/Document 
-     * Range: 76e88773:12a5f7e0a72:-8000 
+     * Range: 43d8f24a:12aef9704d0:-8000 
      */
     public static final URI authorList = new URIImpl("http://purl.org/ontology/bibo/authorList", false);
 
@@ -741,7 +741,7 @@ public interface BIBO {
     /**
      * Label: owner@en 
      * Comment: Owner of a document or a collection of documents.@en 
-     * Comment: 76e88773:12a5f7e0a72:-7fee 
+     * Comment: 43d8f24a:12aef9704d0:-7fee 
      * Range: http://xmlns.com/foaf/0.1/Agent 
      */
     public static final URI owner = new URIImpl("http://purl.org/ontology/bibo/owner", false);
@@ -766,7 +766,7 @@ public interface BIBO {
      * Label: list of contributors@en 
      * Comment: An ordered list of contributors. Normally, this list is seen as a priority list that order contributors by importance.@en 
      * Comment: http://purl.org/ontology/bibo/Document 
-     * Range: 76e88773:12a5f7e0a72:-7ffd 
+     * Range: 43d8f24a:12aef9704d0:-7ffd 
      */
     public static final URI contributorList = new URIImpl("http://purl.org/ontology/bibo/contributorList", false);
 
@@ -806,7 +806,7 @@ first document.@en
     /**
      * Label: distributor@en 
      * Comment: Distributor of a document or a collection of documents.@en 
-     * Comment: 76e88773:12a5f7e0a72:-7ffa 
+     * Comment: 43d8f24a:12aef9704d0:-7ffa 
      * Range: http://xmlns.com/foaf/0.1/Agent 
      */
     public static final URI distributor = new URIImpl("http://purl.org/ontology/bibo/distributor", false);
@@ -840,7 +840,7 @@ another purpose.@en
     /**
      * Label: producer@en 
      * Comment: Producer of a document or a collection of documents.@en 
-     * Comment: 76e88773:12a5f7e0a72:-7feb 
+     * Comment: 43d8f24a:12aef9704d0:-7feb 
      * Range: http://xmlns.com/foaf/0.1/Agent 
      */
     public static final URI producer = new URIImpl("http://purl.org/ontology/bibo/producer", false);
