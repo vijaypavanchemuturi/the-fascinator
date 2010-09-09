@@ -31,6 +31,7 @@ import au.edu.usq.fascinator.api.storage.Storage;
 import au.edu.usq.fascinator.api.storage.StorageException;
 import au.edu.usq.fascinator.common.JsonConfig;
 import au.edu.usq.fascinator.common.JsonConfigHelper;
+import au.edu.usq.fascinator.common.MessagingServices;
 import au.edu.usq.fascinator.common.PythonUtils;
 
 import java.io.ByteArrayInputStream;
@@ -43,14 +44,14 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URLEncoder;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.List;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Timer;
 import java.util.TimerTask;
+import javax.jms.JMSException;
 
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.UsernamePasswordCredentials;
@@ -129,32 +130,8 @@ public class SolrIndexer implements Indexer {
     /** Flag for use of the cache */
     private boolean useCache;
 
-    /** Buffer of documents waiting submission */
-    private List<String> docBuffer;
-
-    /** Time the oldest document was written into the buffer */
-    private long bufferOldest;
-
-    /** Time the youngest document was written into the buffer */
-    private long bufferYoungest;
-
-    /** Total size of documents currently in the buffer */
-    private int bufferSize;
-
-    /** Buffer Limit : Number of documents */
-    private int bufferDocLimit;
-
-    /** Buffer Limit : Total data size */
-    private int bufferSizeLimit;
-
-    /** Buffer Limit : Maximum age of oldest document */
-    private int bufferTimeLimit;
-
-    /** Run a timer to check the buffer periodically */
-    private Timer timer;
-
-    /** Logging context for timer */
-    private String timerMDC;
+    /** Messaging services */
+    private MessagingServices messaging;
 
     /**
      * Get the ID of the plugin
@@ -265,25 +242,12 @@ public class SolrIndexer implements Indexer {
             configCache = new HashMap<String, JsonConfigHelper>();
             useCache = Boolean.parseBoolean(config.get(
                     "indexer/useCache", "true"));
-            // Buffering
-            docBuffer = new ArrayList();
-            bufferSize = 0;
-            bufferOldest = 0;
-            bufferDocLimit = Integer.parseInt(
-                    config.get("indexer/buffer/docLimit", "1"));
-            bufferSizeLimit = Integer.parseInt(
-                    config.get("indexer/buffer/sizeLimit", "0"));
-            bufferTimeLimit = Integer.parseInt(
-                    config.get("indexer/buffer/timeLimit", "0"));
 
-            // Timeout 'tick' for buffer (10s)
-            timer = new Timer("SolrIndexer:" + this.toString(), true);
-            timer.scheduleAtFixedRate(new TimerTask() {
-                @Override
-                public void run() {
-                    checkTimeout();
-                }
-            }, 0, 10000);
+            try {
+                messaging = MessagingServices.getInstance();
+            } catch (JMSException jmse) {
+                log.error("Failed to start connection: {}", jmse.getMessage());
+            }
         }
         loaded = true;
     }
@@ -337,7 +301,6 @@ public class SolrIndexer implements Indexer {
     @Override
     public void shutdown() throws PluginException {
         pyUtils.shutdown();
-        timer.cancel();
     }
 
     /**
@@ -554,7 +517,7 @@ public class SolrIndexer implements Indexer {
                 }
             }
 
-            addToBuffer(document);
+            addToBuffer(oid + "/" + pid, document);
         } catch (Exception e) {
             log.error("Indexing failed!\n-----\n", e);
         }
@@ -566,7 +529,7 @@ public class SolrIndexer implements Indexer {
      */
     @Override
     public void commit() {
-        submitBuffer(true);
+        sendToIndex("{ \"event\" : \"commit\" }");
     }
 
     /**
@@ -574,129 +537,24 @@ public class SolrIndexer implements Indexer {
      *
      * @param document : The Solr document to add to the buffer.
      */
-    private void addToBuffer(String document) {
-        if (timerMDC == null) {
-            timerMDC = MDC.get("name");
-        }
-
-        int length = document.length();
-        // If this is the first document in the buffer, record its age
-        bufferYoungest = new Date().getTime();
-        if (docBuffer.isEmpty()) {
-            bufferOldest = new Date().getTime();
-            log.debug("=== New buffer starting: {}", bufferOldest);
-        }
-        // Add to the buffer
-        docBuffer.add(document);
-        bufferSize += length;
-        // Check if submission is required
-        checkBuffer();
+    private void addToBuffer(String index, String document) {
+        JsonConfigHelper message = new JsonConfigHelper();
+        message.set("event", "index");
+        message.set("index", index);
+        message.set("document", document);
+        sendToIndex(message.toString());
     }
 
     /**
-     * Method to fire on timeout() events to ensure buffers don't go stale
-     * after the last item in a harvest passes through.
+     * To put events to subscriber queue
      *
+     * @param oid Object id
+     * @param eventType type of events happened
+     * @param context where the event happened
+     * @param jsonFile Configuration file
      */
-    private void checkTimeout() {
-        if (timerMDC != null) {
-            MDC.put("name", timerMDC);
-        }
-        if (docBuffer.isEmpty()) return;
-
-        // How long has the NEWest item been waiting?
-        long wait = ((new Date().getTime()) - bufferYoungest) / 1000;
-        // If the buffer has been updated in the last 20s ignore it
-        if (wait < 20) return;
-
-        // Else, time to flush the buffer
-        log.debug("=== Flushing old buffer: {}s", wait);
-        submitBuffer(true);
-    }
-
-    /**
-     * Assess the document buffer and decide is it is ready to submit
-     *
-     */
-    private void checkBuffer() {
-        // Doc count limit
-        if (docBuffer.size() >= bufferDocLimit) {
-            log.debug("=== Buffer check: Doc limit reached '{}'", docBuffer.size());
-            submitBuffer(false);
-            return;
-        }
-        // Size limit
-        if (bufferSize > bufferSizeLimit) {
-            log.debug("=== Buffer check: Size exceeded '{}'", bufferSize);
-            submitBuffer(false);
-            return;
-        }
-        // Time limit
-        long age = ((new Date().getTime()) - bufferOldest) / 1000;
-        if (age > bufferTimeLimit) {
-            log.debug("=== Buffer check: Age exceeded '{}s'", age);
-            submitBuffer(false);
-            return;
-        }
-    }
-
-    /**
-     * Submit all documents currently in the buffer to Solr, then purge
-     *
-     */
-    private void submitBuffer(boolean forceCommit) {
-        int size = docBuffer.size();
-        if (size > 0) {
-            // Debugging
-            //String age = String.valueOf(
-            //        ((new Date().getTime()) - bufferOldest) / 1000);
-            //String length = String.valueOf(bufferSize);
-            //log.debug("Submitting buffer: " + size + " documents, " + length +
-            //        " bytes, " + age + "s");
-            log.debug("=== Submitting buffer: " + size + " documents");
-
-            // Concatenate all documents in the buffer
-            String submission = "";
-            for (String doc : docBuffer) {
-                submission += doc;
-                //log.debug("DOC: {}", doc);
-            }
-
-            // Submit if the result is valid
-            if (!submission.equals("")) {
-                // Wrap in the basic Solr 'add' node
-                submission = "<add>" + submission + "</add>";
-                // And submit
-                try {
-                    solr.request(new DirectXmlRequest("/update", submission));
-                } catch (Exception ex) {
-                    log.error("Error submitting documents to Solr!", ex);
-                }
-                // Commit if required
-                if (autoCommit || forceCommit) {
-                    log.info("Running forced commit!");
-                    try {
-                        solr.commit();
-                    } catch (Exception e) {
-                        log.warn("Solr forced commit failed. Document will" +
-                                " not be visible until Solr autocommit fires." +
-                                " Error message: {}", e);
-                    }
-                }
-            }
-        }
-        purgeBuffer();
-    }
-
-    /**
-     * Purge the document buffer
-     *
-     */
-    private void purgeBuffer() {
-        docBuffer.clear();
-        bufferSize = 0;
-        bufferOldest = 0;
-        bufferYoungest = 0;
+    private void sendToIndex(String message) {
+        messaging.queueMessage(SolrWrapperQueueConsumer.QUEUE_ID, message);
     }
 
     /**
@@ -735,25 +593,16 @@ public class SolrIndexer implements Indexer {
         }
 
         try {
-            File solrFile = null;
             Properties props = new Properties();
             props.setProperty("metaPid", pid);
 
-            String document = index(object, payload, null, ANOTAR_RULES_OID, props);
-
-/* Don't use the buffer, submit directly
-            solrFile = 
-            if (solrFile != null) {
-                InputStream inputDoc = new FileInputStream(solrFile);
-                String xml = IOUtils.toString(inputDoc, "UTF-8");
-                inputDoc.close();
-                SolrRequest update = new DirectXmlRequest("/update", xml);
-                anotar.request(update);
+            String doc = index(object, payload, null, ANOTAR_RULES_OID, props);
+            if (doc != null) {
+                anotar.request(new DirectXmlRequest("/update", doc));
                 if (anotarAutoCommit) {
                     anotar.commit();
                 }
             }
- */
         } catch (Exception e) {
             log.error("Indexing failed!\n-----\n", e);
         }

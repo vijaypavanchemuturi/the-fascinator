@@ -18,6 +18,7 @@
  */
 package au.edu.usq.fascinator;
 
+import au.edu.usq.fascinator.common.MessagingServices;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;

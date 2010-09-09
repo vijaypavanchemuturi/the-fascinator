@@ -18,7 +18,7 @@
  */
 package au.edu.usq.fascinator.portal;
 
-import au.edu.usq.fascinator.GenericListener;
+import au.edu.usq.fascinator.common.GenericListener;
 import au.edu.usq.fascinator.common.JsonConfig;
 import au.edu.usq.fascinator.common.JsonConfigHelper;
 

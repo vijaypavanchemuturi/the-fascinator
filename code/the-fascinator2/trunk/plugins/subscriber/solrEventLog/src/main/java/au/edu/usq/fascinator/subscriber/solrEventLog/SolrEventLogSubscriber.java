@@ -36,6 +36,12 @@ import au.edu.usq.fascinator.api.authentication.AuthenticationException;
 import au.edu.usq.fascinator.api.subscriber.Subscriber;
 import au.edu.usq.fascinator.api.subscriber.SubscriberException;
 import au.edu.usq.fascinator.common.JsonConfig;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
+import org.slf4j.MDC;
 
 /**
  * A Fascinator Subscriber plugin implementation using a security solr core
@@ -48,11 +54,47 @@ public class SolrEventLogSubscriber implements Subscriber {
     private final Logger log = LoggerFactory
             .getLogger(SolrEventLogSubscriber.class);
 
+    /** Buffer Limit : Document count */
+    private static String BUFFER_LIMIT_DOCS = "200";
+
+    /** Buffer Limit : Size */
+    private static String BUFFER_LIMIT_SIZE = "204800";
+
+    /** Buffer Limit : Time */
+    private static String BUFFER_LIMIT_TIME = "30";
+
     /** Solr URI */
     private URI uri;
 
     /** Solr Core */
     private CommonsHttpSolrServer core;
+
+    /** Buffer of documents waiting submission */
+    private List<String> docBuffer;
+
+    /** Time the oldest document was written into the buffer */
+    private long bufferOldest;
+
+    /** Time the youngest document was written into the buffer */
+    private long bufferYoungest;
+
+    /** Total size of documents currently in the buffer */
+    private int bufferSize;
+
+    /** Buffer Limit : Number of documents */
+    private int bufferDocLimit;
+
+    /** Buffer Limit : Total data size */
+    private int bufferSizeLimit;
+
+    /** Buffer Limit : Maximum age of oldest document */
+    private int bufferTimeLimit;
+
+    /** Run a timer to check the buffer periodically */
+    private Timer timer;
+
+    /** Logging context for timer */
+    private String timerMDC;
 
     /**
      * Gets an identifier for this type of plugin. This should be a simple name
@@ -136,9 +178,159 @@ public class SolrEventLogSubscriber implements Subscriber {
             Thread.sleep(200);
             // Make sure it is online
             core.ping();
+
+            // Buffering
+            docBuffer = new ArrayList();
+            bufferSize = 0;
+            bufferOldest = 0;
+            bufferDocLimit = Integer.parseInt(config.get(
+                    "subscriber/solr/buffer/docLimit", BUFFER_LIMIT_DOCS));
+            bufferSizeLimit = Integer.parseInt(config.get(
+                    "subscriber/solr/buffer/sizeLimit", BUFFER_LIMIT_SIZE));
+            bufferTimeLimit = Integer.parseInt(config.get(
+                    "subscriber/solr/buffer/timeLimit", BUFFER_LIMIT_TIME));
+
+            // Timeout 'tick' for buffer (10s)
+            timer = new Timer("SolrEventLog:" + this.toString(), true);
+            timer.scheduleAtFixedRate(new TimerTask() {
+                @Override
+                public void run() {
+                    checkTimeout();
+                }
+            }, 0, 10000);
         } catch (Exception ex) {
             throw new SubscriberException(ex);
         }
+    }
+
+    /**
+     * Add a new document into the buffer, and check if submission is required
+     *
+     * @param document : The Solr document to add to the buffer.
+     */
+    private void addToBuffer(String document) {
+        if (timerMDC == null) {
+            timerMDC = MDC.get("name");
+        }
+
+        int length = document.length();
+        // If this is the first document in the buffer, record its age
+        bufferYoungest = new Date().getTime();
+        if (docBuffer.isEmpty()) {
+            bufferOldest = new Date().getTime();
+            log.debug("=== New buffer starting: {}", bufferOldest);
+        }
+        // Add to the buffer
+        docBuffer.add(document);
+        bufferSize += length;
+        // Check if submission is required
+        checkBuffer();
+    }
+
+    /**
+     * Method to fire on timeout() events to ensure buffers don't go stale
+     * after the last item in a harvest passes through.
+     *
+     */
+    private void checkTimeout() {
+        if (timerMDC != null) {
+            MDC.put("name", timerMDC);
+        }
+        if (docBuffer.isEmpty()) return;
+
+        // How long has the NEWest item been waiting?
+        long wait = ((new Date().getTime()) - bufferYoungest) / 1000;
+        // If the buffer has been updated in the last 20s ignore it
+        if (wait < 20) return;
+
+        // Else, time to flush the buffer
+        log.debug("=== Flushing old buffer: {}s", wait);
+        submitBuffer(true);
+    }
+
+    /**
+     * Assess the document buffer and decide is it is ready to submit
+     *
+     */
+    private void checkBuffer() {
+        // Doc count limit
+        if (docBuffer.size() >= bufferDocLimit) {
+            log.debug("=== Buffer check: Doc limit reached '{}'", docBuffer.size());
+            submitBuffer(false);
+            return;
+        }
+        // Size limit
+        if (bufferSize > bufferSizeLimit) {
+            log.debug("=== Buffer check: Size exceeded '{}'", bufferSize);
+            submitBuffer(false);
+            return;
+        }
+        // Time limit
+        long age = ((new Date().getTime()) - bufferOldest) / 1000;
+        if (age > bufferTimeLimit) {
+            log.debug("=== Buffer check: Age exceeded '{}s'", age);
+            submitBuffer(false);
+            return;
+        }
+    }
+
+    /**
+     * Submit all documents currently in the buffer to Solr, then purge
+     *
+     */
+    private void submitBuffer(boolean forceCommit) {
+        int size = docBuffer.size();
+        if (size > 0) {
+            // Debugging
+            //String age = String.valueOf(
+            //        ((new Date().getTime()) - bufferOldest) / 1000);
+            //String length = String.valueOf(bufferSize);
+            //log.debug("Submitting buffer: " + size + " documents, " + length +
+            //        " bytes, " + age + "s");
+            log.debug("=== Submitting buffer: " + size + " documents");
+
+            // Concatenate all documents in the buffer
+            String submission = "";
+            for (String doc : docBuffer) {
+                submission += doc;
+                //log.debug("DOC: {}", doc);
+            }
+
+            // Submit if the result is valid
+            if (!submission.equals("")) {
+                // Wrap in the basic Solr 'add' node
+                submission = "<add>" + submission + "</add>";
+                // And submit
+                try {
+                    core.request(new DirectXmlRequest("/update", submission));
+                } catch (Exception ex) {
+                    log.error("Error submitting documents to Solr!", ex);
+                }
+                // Commit if required
+                if (forceCommit) {
+                    log.info("Running forced commit!");
+                    try {
+                        core.commit();
+                    } catch (Exception e) {
+                        log.warn("Solr forced commit failed. Document will" +
+                                " not be visible until Solr autocommit fires." +
+                                " Error message: {}", e);
+                    }
+                }
+            }
+        }
+        purgeBuffer();
+    }
+
+    /**
+     * Purge the document buffer
+     *
+     */
+    private void purgeBuffer() {
+        docBuffer.clear();
+        bufferSize = 0;
+        bufferOldest = 0;
+        bufferYoungest = 0;
     }
 
     /**
@@ -148,13 +340,12 @@ public class SolrEventLogSubscriber implements Subscriber {
      */
     @Override
     public void shutdown() throws SubscriberException {
-        // Don't need to do anything
+        timer.cancel();
     }
 
     private void addToIndex(Map<String, String> param) throws Exception {
         String doc = writeUpdateString(param);
-        core.request(new DirectXmlRequest("/update", doc));
-        core.commit();
+        addToBuffer(doc);
     }
 
     private String writeUpdateString(Map<String, String> param) {

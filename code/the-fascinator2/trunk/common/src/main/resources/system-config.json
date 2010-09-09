@@ -1,5 +1,5 @@
 {
-    "version": "0.7.5",
+    "version": "0.7.6",
     "configured": false,
     "urlBase" : "http://localhost:9997/portal/",
     "email" : "fascinator@usq.edu.au",
@@ -118,6 +118,14 @@
                     "name" : "subscriber",
                     "subscribers": ["solr-event-log"]
                 }
+            },
+            {
+                "id" : "solrwrapper",
+                "description" : "Wrapper for ingest into main Solr core.",
+                "priority": "5",
+                "config": {
+                    "name" : "solrwrapper"
+                }
             }
         ]
     },
@@ -132,10 +140,13 @@
         },
         "solr": {
             "uri": "http://localhost:9997/solr/fascinator",
-            "autocommit": false
+            "coreName": "fascinator",
+            "autocommit": false,
+            "embedded": true
         },
         "anotar": {
             "uri": "http://localhost:9997/solr/anotar",
+            "coreName": "anotar",
             "autocommit": true
         }
     },
@@ -237,8 +248,11 @@
     "subscriber": {
         "solr": {
             "uri": "http://localhost:9997/solr/eventlog",
-            "autocommit": false,
-            "embedded": false
+            "buffer": {
+                "docLimit" : "200",
+                "sizeLimit" : "204800",
+                "timeLimit" : "30"
+            }
         }
     }
 }

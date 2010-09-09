@@ -16,7 +16,7 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-package au.edu.usq.fascinator;
+package au.edu.usq.fascinator.common;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -34,15 +34,15 @@ import org.apache.activemq.ActiveMQConnectionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import au.edu.usq.fascinator.common.JsonConfig;
-import au.edu.usq.fascinator.common.JsonConfigHelper;
-
 /**
  * Messaging services
  * 
  * @author Oliver Lucido
  */
 public class MessagingServices {
+
+    /** Subscriber Queue name */
+    public static final String SUBSCRIBER_QUEUE = "subscriber";
 
     /** Error topic string */
     public static final String ERROR_TOPIC = "error";
@@ -260,6 +260,6 @@ public class MessagingServices {
         json.set("eventType", param.get("eventType"));
         json.set("context", param.get("context"));
         json.set("user", username);
-        queueMessage(SubscriberQueueConsumer.SUBSCRIBER_QUEUE, json.toString());
+        queueMessage(SUBSCRIBER_QUEUE, json.toString());
     }
 }

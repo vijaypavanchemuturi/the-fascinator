@@ -18,7 +18,7 @@
  */
 package au.edu.usq.fascinator.portal;
 
-import au.edu.usq.fascinator.GenericListener;
+import au.edu.usq.fascinator.common.GenericListener;
 import au.edu.usq.fascinator.api.PluginException;
 import au.edu.usq.fascinator.api.PluginManager;
 import au.edu.usq.fascinator.api.indexer.Indexer;
