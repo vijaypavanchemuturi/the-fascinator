@@ -18,6 +18,7 @@
  */
 package au.edu.usq.fascinator;
 
+import au.edu.usq.fascinator.common.MessagingServices;
 import java.io.File;
 import java.io.IOException;
 import java.util.LinkedHashMap;
@@ -48,6 +49,7 @@ import au.edu.usq.fascinator.api.storage.DigitalObject;
 import au.edu.usq.fascinator.api.storage.Storage;
 import au.edu.usq.fascinator.api.storage.StorageException;
 import au.edu.usq.fascinator.api.transformer.TransformerException;
+import au.edu.usq.fascinator.common.GenericListener;
 import au.edu.usq.fascinator.common.JsonConfig;
 import au.edu.usq.fascinator.common.JsonConfigHelper;
 
@@ -366,7 +368,7 @@ public class HarvestQueueConsumer implements GenericListener {
             String oid = object.getId();
             sendNotification(oid, "indexStart", "Indexing '" + oid
                     + "' started");
-            log.info("Indexing object {}...", oid);
+            log.info("{} : Indexing object {}...", name, oid);
             indexer.index(oid);
             sendNotification(oid, "indexComplete", "Index of '" + oid
                     + "' completed");

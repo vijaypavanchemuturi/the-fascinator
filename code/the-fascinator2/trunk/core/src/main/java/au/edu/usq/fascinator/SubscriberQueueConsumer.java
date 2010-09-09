@@ -1,6 +1,6 @@
 /* 
- * The Fascinator - Core
- * Copyright (C) 2009 University of Southern Queensland
+ * The Fascinator - Common - Subscriber Queue Consumer
+ * Copyright (C) 2010 University of Southern Queensland
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -46,6 +46,7 @@ import org.slf4j.MDC;
 import au.edu.usq.fascinator.api.PluginManager;
 import au.edu.usq.fascinator.api.subscriber.Subscriber;
 import au.edu.usq.fascinator.api.subscriber.SubscriberException;
+import au.edu.usq.fascinator.common.GenericListener;
 import au.edu.usq.fascinator.common.JsonConfig;
 import au.edu.usq.fascinator.common.JsonConfigHelper;
 
@@ -252,7 +253,7 @@ public class SubscriberQueueConsumer implements GenericListener {
 
             log.info(" *** Received event, object id={}, from={}", oid, context);
 
-            sendNotification(oid, "loggin start", "(" + name
+            sendNotification(oid, "logging start", "(" + name
                     + ") Event Logging starting : '" + oid + "'");
 
             DateFormat df = new SimpleDateFormat(DATETIME_FORMAT);
@@ -272,7 +273,7 @@ public class SubscriberQueueConsumer implements GenericListener {
                 subscriber.onEvent(param);
             }
 
-            sendNotification(oid, "loggin end", "(" + name
+            sendNotification(oid, "logging end", "(" + name
                     + ") Event Logging ending : '" + oid + "'");
 
         } catch (JMSException jmse) {

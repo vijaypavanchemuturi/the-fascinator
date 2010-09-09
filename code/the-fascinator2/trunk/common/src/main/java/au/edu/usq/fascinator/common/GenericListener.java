@@ -1,6 +1,6 @@
 /*
- * The Fascinator - Core
- * Copyright (C) 2009 University of Southern Queensland
+ * The Fascinator - Common - GenericListener
+ * Copyright (C) 2009-10 University of Southern Queensland
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,14 +16,12 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-package au.edu.usq.fascinator;
+package au.edu.usq.fascinator.common;
 
 import java.io.IOException;
 
 import javax.jms.JMSException;
 import javax.jms.MessageListener;
-
-import au.edu.usq.fascinator.common.JsonConfigHelper;
 
 /**
  * A Basic message listener for use in IndexerServlet.

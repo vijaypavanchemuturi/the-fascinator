@@ -18,7 +18,7 @@
  */
 package au.edu.usq.fascinator.portal.services.impl;
 
-import au.edu.usq.fascinator.MessagingServices;
+import au.edu.usq.fascinator.common.MessagingServices;
 import au.edu.usq.fascinator.portal.HouseKeeper;
 import au.edu.usq.fascinator.common.JsonConfig;
 import au.edu.usq.fascinator.common.JsonConfigHelper;

@@ -12,7 +12,7 @@ import org.apache.tapestry5.services.ApplicationStateManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import au.edu.usq.fascinator.MessagingServices;
+import au.edu.usq.fascinator.common.MessagingServices;
 import au.edu.usq.fascinator.api.PluginDescription;
 import au.edu.usq.fascinator.api.PluginException;
 import au.edu.usq.fascinator.api.storage.DigitalObject;
