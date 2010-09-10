@@ -47,6 +47,7 @@ import java.net.URLEncoder;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Timer;
@@ -664,7 +665,7 @@ public class SolrIndexer implements Indexer {
 
             // Get our data ready
             Map<String, Object> bindings = new HashMap();
-            Map<String, String> fields = new HashMap();
+            Map<String, List<String>> fields = new HashMap();
             bindings.put("fields", fields);
             bindings.put("jsonConfig", jsonConfig);
             bindings.put("indexer", this);

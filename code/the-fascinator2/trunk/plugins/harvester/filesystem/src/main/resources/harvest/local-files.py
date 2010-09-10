@@ -40,18 +40,18 @@ class IndexData:
         else:
             self.oid += "/" + self.pid
             self.itemType = "datastream"
-            self.index.put("identifier", self.pid)
+            self.utils.add(self.index, "identifier", self.pid)
 
-        self.index.put("id", self.oid)
-        self.index.put("storage_id", self.oid)
-        self.index.put("item_type", self.itemType)
-        self.index.put("last_modified", time.strftime("%Y-%m-%dT%H:%M:%SZ"))
-        self.index.put("harvest_config", self.params.getProperty("jsonConfigOid"))
-        self.index.put("harvest_rules",  self.params.getProperty("rulesOid"))
+        self.utils.add(self.index, "id", self.oid)
+        self.utils.add(self.index, "storage_id", self.oid)
+        self.utils.add(self.index, "item_type", self.itemType)
+        self.utils.add(self.index, "last_modified", time.strftime("%Y-%m-%dT%H:%M:%SZ"))
+        self.utils.add(self.index, "harvest_config", self.params.getProperty("jsonConfigOid"))
+        self.utils.add(self.index, "harvest_rules",  self.params.getProperty("rulesOid"))
 
     def __basicData(self):
-        self.index.put("repository_name", self.params["repository.name"])
-        self.index.put("repository_type", self.params["repository.type"])
+        self.utils.add(self.index, "repository_name", self.params["repository.name"])
+        self.utils.add(self.index, "repository_type", self.params["repository.type"])
 
     def __previews(self):
         self.previewPid = None
@@ -60,12 +60,12 @@ class IndexData:
                 payload = self.object.getPayload(payloadId)
                 print "TYPE:", payload.getType()
                 if str(payload.getType())=="Thumbnail":
-                    self.index.put("thumbnail", payload.getId())
+                    self.utils.add(self.index, "thumbnail", payload.getId())
                 elif str(payload.getType())=="Preview":
                     self.previewPid = payload.getId()
-                    self.index.put("preview", self.previewPid)
+                    self.utils.add(self.index, "preview", self.previewPid)
                 elif str(payload.getType())=="AltPreview":
-                    self.index.put("altpreview", payload.getId())
+                    self.utils.add(self.index, "altpreview", payload.getId())
             except Exception, e:
                 pass
 
@@ -73,14 +73,14 @@ class IndexData:
         roles = self.utils.getRolesWithAccess(self.oid)
         if roles is not None:
             for role in roles:
-                self.index.put("security_filter", role)
+                self.utils.add(self.index, "security_filter", role)
         else:
             # Default to guest access if Null object returned
             schema = self.utils.getAccessSchema("derby");
             schema.setRecordId(self.oid)
             schema.set("role", "guest")
             self.utils.setAccessSchema(schema, "derby")
-            self.index.put("security_filter", "guest")
+            self.utils.add(self.index, "security_filter", "guest")
 
     def __indexPath(self, name, path, includeLastPart=True):
         parts = path.split("/")
@@ -92,11 +92,11 @@ class IndexData:
             if part != "":
                 if part.startswith("/"):
                     part = part[1:]
-                self.index.put(name, part)
+                self.utils.add(self.index, name, part)
 
     def __indexList(self, name, values):
         for value in values:
-            self.index.put(name, value)
+            self.utils.add(self.index, name, value)
 
     def __getNodeValues(self, doc, xPath):
         nodes = doc.selectNodes(xPath)
@@ -272,7 +272,7 @@ class IndexData:
                 width = ffmpeg.get("video/width")
                 height = ffmpeg.get("video/height")
                 if width is not None and height is not None:
-                    self.index.put("dc_size", width + " x " + height)
+                    self.utils.add(self.index, "dc_size", width + " x " + height)
 
                 # Duration
                 duration = ffmpeg.get("duration")
@@ -280,47 +280,47 @@ class IndexData:
                     if int(duration) > 59:
                         secs = int(duration) % 60
                         mins = (int(duration) - secs) / 60
-                        self.index.put("dc_duration", "%dm %ds" % (mins, secs))
+                        self.utils.add(self.index, "dc_duration", "%dm %ds" % (mins, secs))
                     else:
-                        self.index.put("dc_duration", duration + " second(s)")
+                        self.utils.add(self.index, "dc_duration", duration + " second(s)")
 
                 # Format
                 media = ffmpeg.get("format/label")
                 if media is not None:
-                    self.index.put("dc_media_format", media)
+                    self.utils.add(self.index, "dc_media_format", media)
 
                 # Video
                 codec = ffmpeg.get("video/codec/simple")
                 label = ffmpeg.get("video/codec/label")
                 if codec is not None and label is not None:
-                    self.index.put("video_codec_simple", codec)
-                    self.index.put("video_codec_label", label)
-                    self.index.put("meta_video_codec", label + " (" + codec + ")")
+                    self.utils.add(self.index, "video_codec_simple", codec)
+                    self.utils.add(self.index, "video_codec_label", label)
+                    self.utils.add(self.index, "meta_video_codec", label + " (" + codec + ")")
                 else:
                     if codec is not None:
-                        self.index.put("video_codec_simple", codec)
-                        self.index.put("meta_video_codec", codec)
+                        self.utils.add(self.index, "video_codec_simple", codec)
+                        self.utils.add(self.index, "meta_video_codec", codec)
                     if label is not None:
-                        self.index.put("video_codec_label", label)
-                        self.index.put("meta_video_codec", label)
+                        self.utils.add(self.index, "video_codec_label", label)
+                        self.utils.add(self.index, "meta_video_codec", label)
                 pixel_format = ffmpeg.get("video/pixel_format")
                 if pixel_format is not None:
-                    self.index.put("meta_video_pixel_format", pixel_format)
+                    self.utils.add(self.index, "meta_video_pixel_format", pixel_format)
 
                 # Audio
                 codec = ffmpeg.get("audio/codec/simple")
                 label = ffmpeg.get("audio/codec/label")
                 if codec is not None and label is not None:
-                    self.index.put("audio_codec_simple", codec)
-                    self.index.put("audio_codec_label", label)
-                    self.index.put("meta_audio_codec", label + " (" + codec + ")")
+                    self.utils.add(self.index, "audio_codec_simple", codec)
+                    self.utils.add(self.index, "audio_codec_label", label)
+                    self.utils.add(self.index, "meta_audio_codec", label + " (" + codec + ")")
                 else:
                     if codec is not None:
-                        self.index.put("audio_codec_simple", codec)
-                        self.index.put("meta_audio_codec", codec)
+                        self.utils.add(self.index, "audio_codec_simple", codec)
+                        self.utils.add(self.index, "meta_audio_codec", codec)
                     if label is not None:
-                        self.index.put("audio_codec_label", label)
-                        self.index.put("meta_audio_codec", label)
+                        self.utils.add(self.index, "audio_codec_label", label)
+                        self.utils.add(self.index, "meta_audio_codec", label)
                 sample_rate = ffmpeg.get("audio/sample_rate")
                 if sample_rate is not None:
                     sample_rate = "%.1f KHz" % (int(sample_rate) / 1000)
@@ -328,12 +328,12 @@ class IndexData:
                 if channels is not None:
                     channels += " Channel(s)"
                 if sample_rate is not None and channels is not None:
-                    self.index.put("meta_audio_details", sample_rate + ", " + channels)
+                    self.utils.add(self.index, "meta_audio_details", sample_rate + ", " + channels)
                 else:
                     if sample_rate is not None:
-                        self.index.put("meta_audio_details", sample_rate)
+                        self.utils.add(self.index, "meta_audio_details", sample_rate)
                     if channels is not None:
-                        self.index.put("meta_audio_details", channels)
+                        self.utils.add(self.index, "meta_audio_details", channels)
         except StorageException, e:
             #print "Failed to index FFmpeg metadata (%s)" % str(e)
             pass
@@ -357,10 +357,10 @@ class IndexData:
         if not displayType:
             displayType = self.formatList[0]
             if displayType is not None:
-                self.index.put("display_type", self.utils.basicDisplayType(displayType))
+                self.utils.add(self.index, "display_type", self.utils.basicDisplayType(displayType))
         # Some object use a special preview template. eg. word docs with a html preview
         previewType = self.params.getProperty("previewType")
         if not previewType:
             previewType = self.utils.getDisplayMimeType(self.formatList, self.object, self.previewPid)
             if previewType is not None and previewType != displayType:
-                self.index.put("preview_type", self.utils.basicDisplayType(previewType))
+                self.utils.add(self.index, "preview_type", self.utils.basicDisplayType(previewType))
