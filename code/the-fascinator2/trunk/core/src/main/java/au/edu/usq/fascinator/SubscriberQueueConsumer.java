@@ -158,11 +158,16 @@ public class SubscriberQueueConsumer implements GenericListener {
             List<Object> subscribers = config.getList("config/subscribers");
             if (!subscribers.isEmpty()) {
                 for (Object object : subscribers) {
-                    if (!object.toString().equals("")) {
+                    String sid = object.toString();
+                    if (!sid.equals("")) {
                         Subscriber subscriber = PluginManager
-                                .getSubscriber(object.toString());
-                        subscriber.init(sysFile);
-                        subscriberList.add(subscriber);
+                                .getSubscriber(sid);
+                        if (subscriber != null) {
+                            subscriber.init(sysFile);
+                            subscriberList.add(subscriber);
+                        } else {
+                            log.error("Error loading subscriber: '{}'", sid);
+                        }
                     }
                 }
             }

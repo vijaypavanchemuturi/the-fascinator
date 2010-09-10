@@ -1,6 +1,6 @@
 /*
- * The Fascinator - Solr Access Control plugin
- * Copyright (C) 2008-2010 University of Southern Queensland
+ * The Fascinator - Solr Event Log Subscriber
+ * Copyright (C) 2010 University of Southern Queensland
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -41,6 +41,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
+import org.apache.commons.lang.StringEscapeUtils;
 import org.slf4j.MDC;
 
 /**
@@ -343,20 +344,38 @@ public class SolrEventLogSubscriber implements Subscriber {
         timer.cancel();
     }
 
+    /**
+     * Add the event to the index
+     *
+     * @param param : Map of key/value pairs to add to the index
+     * @throws Exception if there was an error
+     */
     private void addToIndex(Map<String, String> param) throws Exception {
         String doc = writeUpdateString(param);
         addToBuffer(doc);
     }
 
+    /**
+     * Turn a a message into a Solr document
+     *
+     * @param param : Map of key/value pairs to add to the index
+     */
     private String writeUpdateString(Map<String, String> param) {
         String fieldStr = "";
         for (String paramName : param.keySet()) {
-            fieldStr += "<field name=\"" + paramName + "\">"
-                    + param.get(paramName) + "</field>";
+            fieldStr += "<field name=\"" + paramName + "\">" +
+                    StringEscapeUtils.escapeXml(param.get(paramName)) +
+                    "</field>";
         }
         return "<add><doc>" + fieldStr + "</doc></add>";
     }
 
+    /**
+     * Method to fire for incoming events
+     *
+     * @param param : Map of key/value pairs to add to the index
+     * @throws SubscriberException if there was an error
+     */
     @Override
     public void onEvent(Map<String, String> param) throws SubscriberException {
         try {

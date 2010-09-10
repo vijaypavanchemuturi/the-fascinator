@@ -560,15 +560,36 @@ public class PythonUtils {
     }
 
     /*****
+     * Add the provided key/value pair into the index.
+     *
+     * @param index : Data structure to add data into
+     * @param field : The field name
+     * @param value : The value to store
+     */
+    public void add(Map<String, List<String>> index, String field, String value) {
+        // Adding data
+        if (index.containsKey(field)) {
+            index.get(field).add(value);
+        // New data
+        } else {
+            List<String> newList = new ArrayList();
+            newList.add(value);
+            index.put(field, newList);
+        }
+    }
+
+    /*****
      * Generate a Solr document from a map of provided key/value pairs.
      *
      * @param fields : The lists of evaluated fields for the document
      * @return String : The generated XML snippet
      */
-    public String solrDocument(Map<String, String> fields) {
+    public String solrDocument(Map<String, List<String>> fields) {
         String result = "<doc>";
         for (String field : fields.keySet()) {
-            result += solrField(field, fields.get(field));
+            for (String value : fields.get(field)) {
+                result += solrField(field, value);
+            }
         }
         result += "</doc>";
         return result;
@@ -583,6 +604,7 @@ public class PythonUtils {
      */
     public String solrField(String field, String value) {
         if (field == null || value == null) return null;
-        return "<field name=\"" + field + "\">" + StringEscapeUtils.escapeXml(value) + "</field>";
+        return "<field name=\"" + field + "\">" +
+                StringEscapeUtils.escapeXml(value) + "</field>";
     }
 }

@@ -131,8 +131,8 @@ public class RenderQueueConsumer implements GenericListener {
             // Get a connection to the broker
             String brokerUrl = globalConfig.get("messaging/url",
                     ActiveMQConnectionFactory.DEFAULT_BROKER_BIND_URL);
-            ActiveMQConnectionFactory connectionFactory = new ActiveMQConnectionFactory(
-                    brokerUrl);
+            ActiveMQConnectionFactory connectionFactory =
+                    new ActiveMQConnectionFactory(brokerUrl);
             connection = connectionFactory.createConnection();
 
             session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
@@ -302,7 +302,8 @@ public class RenderQueueConsumer implements GenericListener {
             // Index the object
             log.info("Indexing object...");
             indexer.index(object.getId());
-            if (autoCommit || Boolean.parseBoolean(config.get("commit", "false"))) {
+            if (autoCommit || Boolean.parseBoolean(
+                    config.get("commit", "false"))) {
                 indexer.commit();
             }
 

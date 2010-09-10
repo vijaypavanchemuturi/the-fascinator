@@ -1,4 +1,5 @@
 import time
+
 from au.edu.usq.fascinator.api.storage import StorageException
 
 class IndexData:
@@ -25,8 +26,8 @@ class IndexData:
             self.__marcData()
 
     def __basicData(self):
-        self.index.put("repository_name", self.params["repository.name"])
-        self.index.put("repository_type", self.params["repository.type"])
+        self.utils.add(self.index, "repository_name", self.params["repository.name"])
+        self.utils.add(self.index, "repository_type", self.params["repository.type"])
 
     def __fixRenderQueues(self):
         # On the first index after a harvest we need to put the transformer
@@ -65,7 +66,7 @@ class IndexData:
 
     def __mapVuFind(self, ourField, theirField, map):
         for value in map.getList(theirField):
-            self.index.put(ourField, value)
+            self.utils.add(self.index, ourField, value)
 
     def __newDoc(self):
         self.oid = self.object.getId()
@@ -77,25 +78,25 @@ class IndexData:
         else:
             self.oid += "/" + self.pid
             self.itemType = "datastream"
-            self.index.put("identifier", self.pid)
+            self.utils.add(self.index, "identifier", self.pid)
 
-        self.index.put("id", self.oid)
-        self.index.put("item_type", self.itemType)
-        self.index.put("last_modified", time.strftime("%Y-%m-%dT%H:%M:%SZ"))
-        self.index.put("harvest_config", self.params.getProperty("jsonConfigOid"))
-        self.index.put("harvest_rules",  self.params.getProperty("rulesOid"))
-        self.index.put("display_type", "solrmarc")
+        self.utils.add(self.index, "id", self.oid)
+        self.utils.add(self.index, "item_type", self.itemType)
+        self.utils.add(self.index, "last_modified", time.strftime("%Y-%m-%dT%H:%M:%SZ"))
+        self.utils.add(self.index, "harvest_config", self.params.getProperty("jsonConfigOid"))
+        self.utils.add(self.index, "harvest_rules",  self.params.getProperty("rulesOid"))
+        self.utils.add(self.index, "display_type", "solrmarc")
 
     def __previews(self):
         for payloadId in self.object.getPayloadIdList():
             try:
                 payload = self.object.getPayload(payloadId)
                 if str(payload.getType())=="Thumbnail":
-                    self.index.put("thumbnail", payload.getId())
+                    self.utils.add(self.index, "thumbnail", payload.getId())
                 elif str(payload.getType())=="Preview":
-                    self.index.put("preview", payload.getId())
+                    self.utils.add(self.index, "preview", payload.getId())
                 elif str(payload.getType())=="AltPreview":
-                    self.index.put("altpreview", payload.getId())
+                    self.utils.add(self.index, "altpreview", payload.getId())
             except Exception, e:
                 pass
 
@@ -103,11 +104,11 @@ class IndexData:
         roles = self.utils.getRolesWithAccess(self.oid)
         if roles is not None:
             for role in roles:
-                self.index.put("security_filter", role)
+                self.utils.add(self.index, "security_filter", role)
         else:
             # Default to guest access if Null object returned
             schema = self.utils.getAccessSchema("derby");
             schema.setRecordId(self.oid)
             schema.set("role", "guest")
             self.utils.setAccessSchema(schema, "derby")
-            self.index.put("security_filter", "guest")
+            self.utils.add(self.index, "security_filter", "guest")
