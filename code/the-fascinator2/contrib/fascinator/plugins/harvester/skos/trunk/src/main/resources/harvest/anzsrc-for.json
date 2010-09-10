@@ -1,0 +1,18 @@
+{
+    "harvester": {
+        "type": "skos",
+        "skos": {
+            "baseFile": "${fascinator.home}/skos/for.rdf"
+        }
+    },
+    "indexer": {
+        "script": {
+            "type": "python",
+            "rules": "anzsrc-for.py"
+        },
+        "params": {
+            "repository.name": "ANZSRC",
+            "repository.type": "for"
+        }
+    }
+}
