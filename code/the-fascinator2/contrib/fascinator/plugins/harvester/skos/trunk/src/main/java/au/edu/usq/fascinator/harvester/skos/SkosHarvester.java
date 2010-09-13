@@ -258,7 +258,7 @@ public class SkosHarvester extends GenericHarvester {
             throws HarvesterException, StorageException, IOException {
         Storage storage = getStorage();
         String conceptId = getType(conceptUri.toString());
-        log.info("*********************** creating oid: {}", conceptId);
+        log.info("Creating Skos: {}", conceptId);
         String oid = DigestUtils.md5Hex(conceptId);
         DigitalObject object = StorageUtils.getDigitalObject(storage, oid);
         String pid = conceptId + ".rdf";
@@ -272,7 +272,7 @@ public class SkosHarvester extends GenericHarvester {
         Properties props = object.getMetadata();
         props.setProperty("render-pending", "true");
         props.setProperty("skos-uri", newConceptUri);
-        props.setProperty("concept-uri", conceptScheme.toString());
+        props.setProperty("concept-uri", conceptUri.toString());
 
         object.close();
         return object.getId();
