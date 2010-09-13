@@ -2,7 +2,7 @@
     "harvester": {
         "type": "skos",
         "skos": {
-            "baseFile": "${fascinator.home}/skos/for.rdf"
+            "baseFile": "${fascinator.home}/skos/seo.rdf"
         }
     },
     "indexer": {
@@ -12,7 +12,7 @@
         },
         "params": {
             "repository.name": "ANZSRC",
-            "repository.type": "FOR"
+            "repository.type": "SEO"
         }
     }
 }
