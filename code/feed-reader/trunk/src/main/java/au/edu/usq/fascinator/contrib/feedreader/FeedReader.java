@@ -94,7 +94,18 @@ public class FeedReader {
         log.info("Produce HTML: " + outputHtml);
         log.info("Produce RDF: " + outputRdf);
 
-        for (URL url : (ArrayList<URL>) argumentMap.get(OPT_URL)) {
+        readFeeds(cacheDir,
+                outputHtml,
+                outputRdf,
+                outputDir,
+                (ArrayList<URL>) argumentMap.get(OPT_URL));
+
+    }
+
+    public static void readFeeds(String cacheDir, boolean outputHtml,
+            boolean outputRdf, String outputDir, ArrayList<URL> urlList)
+            throws MalformedURLException, FileNotFoundException {
+        for (URL url : urlList) {
             Feed feed = new Feed(url, cacheDir);
             feed
                     .addFeedReaderStateChangeListener(new DemoItemListener(outputHtml,
