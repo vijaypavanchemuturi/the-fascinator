@@ -1,6 +1,6 @@
 To run feed-reader:
 
-mvn clean rdf-reactor:rdfs install
+mvn clean install
 mvn -P<profile> exec:java
 
 There are a few profiles, please refer to the pom. For example:
@@ -18,10 +18,3 @@ Notes:
     
  * If cache is not set, ~/.feed-reader contains the cache
   
-  
-Loading the DC and NIE vocabs: 
- * If you need to reload the RDF Class implementations, run:
-     mvn rdf-reactor:rdfs
- * Note that au.edu.usq.fascinator.contrib.feedreader.vocabulary.dc.URI will break
-    You need to resolve the clach between the class and org.ontoware.rdf2go.model.node.URI
-    I take out the import and see where I need to supply the absolute class

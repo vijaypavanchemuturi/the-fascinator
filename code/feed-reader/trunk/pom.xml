@@ -5,66 +5,49 @@
 	</groupId>
  <artifactId>feed-reader</artifactId>
  <name>RSS/ATOM Feed Reader</name>
- <version>0.0.1-SNAPSHOT</version>
+ <version>0.7.0-SNAPSHOT</version>
  <parent>
-  <artifactId>organisation</artifactId>
+  <artifactId>the-fascinator</artifactId>
   <groupId>au.edu.usq.fascinator</groupId>
-  <version>0.3.3-SNAPSHOT</version>
+  <version>0.7.0-SNAPSHOT</version>
  </parent>
  <description>
   Provides facilities for reading RSS/ATOM feeds (via ROME Fetcher).
 	</description>
 
- <pluginRepositories>
-  <pluginRepository>
-   <id>adfi-usq-releases</id>
-   <url>http://fascinator.usq.edu.au/nexus/content/groups/public</url>
-  </pluginRepository>
- </pluginRepositories>
-
  <dependencies>
   <dependency>
-   <groupId>org.slf4j</groupId>
-   <artifactId>slf4j-api</artifactId>
-   <version>1.6.1</version>
+   <groupId>au.edu.usq.fascinator</groupId>
+   <artifactId>fascinator-vocabulary</artifactId>
   </dependency>
   <dependency>
    <groupId>org.slf4j</groupId>
-   <artifactId>slf4j-log4j12</artifactId>
-   <version>1.6.1</version>
+   <artifactId>slf4j-api</artifactId>
+  </dependency>
+  <dependency>
+   <groupId>ch.qos.logback</groupId>
+   <artifactId>logback-core</artifactId>
+  </dependency>
+  <dependency>
+   <groupId>ch.qos.logback</groupId>
+   <artifactId>logback-classic</artifactId>
   </dependency>
   <dependency>
    <groupId>rome</groupId>
    <artifactId>rome-fetcher</artifactId>
    <version>1.0</version>
-   <type>jar</type>
-   <scope>compile</scope>
   </dependency>
   <dependency>
    <groupId>org.htmlparser</groupId>
    <artifactId>htmlparser</artifactId>
    <version>1.6.bundle</version>
-   <scope>compile</scope>
   </dependency>
-
   <dependency>
    <groupId>org.apache.velocity</groupId>
    <artifactId>velocity</artifactId>
    <version>1.6.2</version>
-   <type>jar</type>
-   <scope>compile</scope>
-  </dependency>
-
-  <dependency>
-   <groupId>com.hp.hpl.jena</groupId>
-   <artifactId>jena</artifactId>
-   <version>2.6.3</version>
-   <type>jar</type>
-   <scope>compile</scope>
   </dependency>
  </dependencies>
- <scm>
- </scm>
 
  <build>
   <plugins>
@@ -98,25 +81,6 @@
      <mainClass>au.edu.usq.fascinator.contrib.feedreader.FeedReader
      </mainClass>
     </configuration>
-   </plugin>
-   <plugin>
-    <groupId>au.edu.usq.fascinator.maven-plugins</groupId>
-    <artifactId>jena-schemagen</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
-    <configuration>
-    <input>http://www.semanticdesktop.org/ontologies/2007/01/19/nie/</input>
-    <output>src/main/java/</output>
-    <packageName>au.edu.usq.fascinator.contrib.feedreader.vocabulary</packageName>
-    <className>NIE</className>
-    </configuration>
-    <executions>
-          <execution>
-            <phase>generate-sources</phase>
-            <goals>
-              <goal>schemagen</goal>
-            </goals>
-          </execution>
-        </executions>
    </plugin>
   </plugins>
 
@@ -337,29 +301,23 @@
     </plugins>
    </build>
   </profile>
-
-
-  <profile>
-   <id>full-report</id>
-   <reporting>
-    <plugins>
-     <plugin>
-      <groupId>org.apache.maven.plugins</groupId>
-      <artifactId>maven-javadoc-plugin</artifactId>
-
-      <configuration>
-       <links>
-        <link>http://java.sun.com/javase/6/docs/api
-						</link>
-        <link>https://rome.dev.java.net/apidocs/subprojects/fetcher/1.0
-        </link>
-        <link>https://rome.dev.java.net/apidocs/1_0
-						</link>
-       </links>
-      </configuration>
-     </plugin>
-    </plugins>
-   </reporting>
-  </profile>
  </profiles>
+ <reporting>
+  <plugins>
+   <plugin>
+    <groupId>org.apache.maven.plugins</groupId>
+    <artifactId>maven-javadoc-plugin</artifactId>
+    <configuration>
+     <links>
+      <link>http://java.sun.com/javase/6/docs/api
+                        </link>
+      <link>https://rome.dev.java.net/apidocs/subprojects/fetcher/1.0
+        </link>
+      <link>https://rome.dev.java.net/apidocs/1_0
+                        </link>
+     </links>
+    </configuration>
+   </plugin>
+  </plugins>
+ </reporting>
 </project>
