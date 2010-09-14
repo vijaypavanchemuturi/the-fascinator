@@ -66,7 +66,7 @@ public class JythonVelMethod implements VelMethod {
                     } else if (param instanceof List) {
                         args.add(new PyList((List) param));
                     } else {
-                        log.debug("Converting param type: {} to PyObject",
+                        log.trace("Converting param type: {} to PyObject",
                                 param.getClass().getName());
                         args.add(Py.java2py(param));
                     }
