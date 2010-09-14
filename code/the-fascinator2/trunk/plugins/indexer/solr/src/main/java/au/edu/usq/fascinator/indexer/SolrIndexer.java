@@ -18,22 +18,6 @@
  */
 package au.edu.usq.fascinator.indexer;
 
-import au.edu.usq.fascinator.api.PluginDescription;
-import au.edu.usq.fascinator.api.PluginException;
-import au.edu.usq.fascinator.api.PluginManager;
-import au.edu.usq.fascinator.api.indexer.Indexer;
-import au.edu.usq.fascinator.api.indexer.IndexerException;
-import au.edu.usq.fascinator.api.indexer.SearchRequest;
-import au.edu.usq.fascinator.api.indexer.rule.RuleException;
-import au.edu.usq.fascinator.api.storage.DigitalObject;
-import au.edu.usq.fascinator.api.storage.Payload;
-import au.edu.usq.fascinator.api.storage.Storage;
-import au.edu.usq.fascinator.api.storage.StorageException;
-import au.edu.usq.fascinator.common.JsonConfig;
-import au.edu.usq.fascinator.common.JsonConfigHelper;
-import au.edu.usq.fascinator.common.MessagingServices;
-import au.edu.usq.fascinator.common.PythonUtils;
-
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
@@ -44,14 +28,12 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URLEncoder;
-import java.util.Date;
+import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-import java.util.Timer;
-import java.util.TimerTask;
+
 import javax.jms.JMSException;
 
 import org.apache.commons.httpclient.HttpClient;
@@ -67,7 +49,22 @@ import org.python.core.PyObject;
 import org.python.util.PythonInterpreter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.slf4j.MDC;
+
+import au.edu.usq.fascinator.api.PluginDescription;
+import au.edu.usq.fascinator.api.PluginException;
+import au.edu.usq.fascinator.api.PluginManager;
+import au.edu.usq.fascinator.api.indexer.Indexer;
+import au.edu.usq.fascinator.api.indexer.IndexerException;
+import au.edu.usq.fascinator.api.indexer.SearchRequest;
+import au.edu.usq.fascinator.api.indexer.rule.RuleException;
+import au.edu.usq.fascinator.api.storage.DigitalObject;
+import au.edu.usq.fascinator.api.storage.Payload;
+import au.edu.usq.fascinator.api.storage.Storage;
+import au.edu.usq.fascinator.api.storage.StorageException;
+import au.edu.usq.fascinator.common.JsonConfig;
+import au.edu.usq.fascinator.common.JsonConfigHelper;
+import au.edu.usq.fascinator.common.MessagingServices;
+import au.edu.usq.fascinator.common.PythonUtils;
 
 public class SolrIndexer implements Indexer {
 
@@ -136,7 +133,7 @@ public class SolrIndexer implements Indexer {
 
     /**
      * Get the ID of the plugin
-     *
+     * 
      * @return String : The ID of this plugin
      */
     @Override
@@ -146,7 +143,7 @@ public class SolrIndexer implements Indexer {
 
     /**
      * Get the name of the plugin
-     *
+     * 
      * @return String : The name of this plugin
      */
     @Override
@@ -170,15 +167,15 @@ public class SolrIndexer implements Indexer {
 
     /**
      * Initialize the plugin
-     *
+     * 
      * @param jsonString The JSON configuration to use as a string
      * @throws IndexerException if errors occur during initialization
      */
     @Override
     public void init(String jsonString) throws IndexerException {
         try {
-            config = new JsonConfig(new ByteArrayInputStream(jsonString
-                    .getBytes("UTF-8")));
+            config = new JsonConfig(new ByteArrayInputStream(
+                    jsonString.getBytes("UTF-8")));
             init();
         } catch (UnsupportedEncodingException e) {
             throw new IndexerException(e);
@@ -189,7 +186,7 @@ public class SolrIndexer implements Indexer {
 
     /**
      * Initialize the plugin
-     *
+     * 
      * @param jsonFile A file containing the JSON configuration
      * @throws IndexerException if errors occur during initialization
      */
@@ -206,7 +203,7 @@ public class SolrIndexer implements Indexer {
     /**
      * Private method wrapped by the above two methods to perform the actual
      * initialization after the JSON config is accessed.
-     *
+     * 
      * @throws IndexerException if errors occur during initialization
      */
     private void init() throws IndexerException {
@@ -241,8 +238,8 @@ public class SolrIndexer implements Indexer {
             // Caching
             scriptCache = new HashMap<String, PyObject>();
             configCache = new HashMap<String, JsonConfigHelper>();
-            useCache = Boolean.parseBoolean(config.get(
-                    "indexer/useCache", "true"));
+            useCache = Boolean.parseBoolean(config.get("indexer/useCache",
+                    "true"));
 
             try {
                 messaging = MessagingServices.getInstance();
@@ -255,7 +252,7 @@ public class SolrIndexer implements Indexer {
 
     /**
      * Set a value in the custom parameters of the indexer.
-     *
+     * 
      * @param property : The index to use
      * @param value : The value to store
      */
@@ -265,7 +262,7 @@ public class SolrIndexer implements Indexer {
 
     /**
      * Initialize a Solr core object.
-     *
+     * 
      * @param coreName : The core to initialize
      * @return SolrServer : The initialized core
      */
@@ -277,8 +274,8 @@ public class SolrIndexer implements Indexer {
             username = config.get("indexer/" + coreName + "/username");
             password = config.get("indexer/" + coreName + "/password");
             if (username != null && password != null) {
-                UsernamePasswordCredentials credentials =
-                        new UsernamePasswordCredentials(username, password);
+                UsernamePasswordCredentials credentials = new UsernamePasswordCredentials(
+                        username, password);
                 HttpClient hc = ((CommonsHttpSolrServer) solr).getHttpClient();
                 hc.getParams().setAuthenticationPreemptive(true);
                 hc.getState().setCredentials(AuthScope.ANY, credentials);
@@ -296,7 +293,7 @@ public class SolrIndexer implements Indexer {
 
     /**
      * Shutdown the plugin
-     *
+     * 
      * @throws PluginException if any errors occur during shutdown
      */
     @Override
@@ -306,7 +303,7 @@ public class SolrIndexer implements Indexer {
 
     /**
      * Return a reference to this plugins instantiated storage layer
-     *
+     * 
      * @return Storage : the storage API being used
      */
     public Storage getStorage() {
@@ -315,7 +312,7 @@ public class SolrIndexer implements Indexer {
 
     /**
      * Perform a Solr search and stream the results into the provided output
-     *
+     * 
      * @param request : A prepared SearchRequest object
      * @param response : The OutputStream to send results to
      * @throws IndexerException if there were errors during the search
@@ -350,7 +347,7 @@ public class SolrIndexer implements Indexer {
 
     /**
      * Remove the specified object from the index
-     *
+     * 
      * @param oid : The identifier of the object to remove
      * @throws IndexerException if there were errors during removal
      */
@@ -369,7 +366,7 @@ public class SolrIndexer implements Indexer {
 
     /**
      * Remove the specified payload from the index
-     *
+     * 
      * @param oid : The identifier of the payload's object
      * @param pid : The identifier of the payload to remove
      * @throws IndexerException if there were errors during removal
@@ -390,7 +387,7 @@ public class SolrIndexer implements Indexer {
 
     /**
      * Remove all annotations from the index against an object
-     *
+     * 
      * @param oid : The identifier of the object
      * @throws IndexerException if there were errors during removal
      */
@@ -409,13 +406,14 @@ public class SolrIndexer implements Indexer {
 
     /**
      * Remove the specified annotation from the index
-     *
+     * 
      * @param oid : The identifier of the object
      * @param annoId : The identifier of the annotation
      * @throws IndexerException if there were errors during removal
      */
     @Override
-    public void annotateRemove(String oid, String annoId) throws IndexerException {
+    public void annotateRemove(String oid, String annoId)
+            throws IndexerException {
         log.debug("Deleting {}::{} from Anotar index", oid, annoId);
         try {
             anotar.deleteByQuery("rootUri:\"" + oid + "\" AND id:\"" + annoId
@@ -430,7 +428,7 @@ public class SolrIndexer implements Indexer {
 
     /**
      * Index an object and all of its payloads
-     *
+     * 
      * @param oid : The identifier of the object
      * @throws IndexerException if there were errors during indexing
      */
@@ -453,7 +451,7 @@ public class SolrIndexer implements Indexer {
 
     /**
      * Index a specific payload
-     *
+     * 
      * @param oid : The identifier of the payload's object
      * @param pid : The identifier of the payload
      * @throws IndexerException if there were errors during indexing
@@ -471,7 +469,7 @@ public class SolrIndexer implements Indexer {
 
     /**
      * Index a specific payload
-     *
+     * 
      * @param object : The payload's object
      * @param pid : The payload
      * @throws IndexerException if there were errors during indexing
@@ -486,7 +484,7 @@ public class SolrIndexer implements Indexer {
             annotate(object, payload);
             return;
         }
-        //log.info("Indexing OID:'{}', PID: '{}'", oid, pid);
+        // log.info("Indexing OID:'{}', PID: '{}'", oid, pid);
 
         // get the indexer properties or we can't index
         Properties props;
@@ -502,7 +500,8 @@ public class SolrIndexer implements Indexer {
             String rulesOid = props.getProperty("rulesOid");
 
             // Generate the Solr document
-            String document = index(object, payload, confOid, rulesOid, props);
+            List<String> documents = index(object, payload, confOid, rulesOid,
+                    props);
 
             // Did the indexer alter metadata?
             String toClose = props.getProperty("objectRequiresClose");
@@ -518,7 +517,11 @@ public class SolrIndexer implements Indexer {
                 }
             }
 
-            addToBuffer(oid + "/" + pid, document);
+            int count = 0;
+            for (String doc : documents) {
+                addToBuffer(oid + "/" + pid + "." + count, doc);
+                count++;
+            }
         } catch (Exception e) {
             log.error("Indexing failed!\n-----\n", e);
         }
@@ -526,7 +529,7 @@ public class SolrIndexer implements Indexer {
 
     /**
      * Call a manual commit against the index
-     *
+     * 
      */
     @Override
     public void commit() {
@@ -535,7 +538,7 @@ public class SolrIndexer implements Indexer {
 
     /**
      * Add a new document into the buffer, and check if submission is required
-     *
+     * 
      * @param document : The Solr document to add to the buffer.
      */
     private void addToBuffer(String index, String document) {
@@ -548,7 +551,7 @@ public class SolrIndexer implements Indexer {
 
     /**
      * To put events to subscriber queue
-     *
+     * 
      * @param oid Object id
      * @param eventType type of events happened
      * @param context where the event happened
@@ -560,7 +563,7 @@ public class SolrIndexer implements Indexer {
 
     /**
      * Index an annotation
-     *
+     * 
      * @param oid : The identifier of the annotation's object
      * @param pid : The identifier of the annotation
      * @throws IndexerException if there were errors during indexing
@@ -568,7 +571,7 @@ public class SolrIndexer implements Indexer {
     @Override
     public void annotate(String oid, String pid) throws IndexerException {
         // At this stage this is identical to the 'index()' method
-        //    above, but there may be changes at a later date.
+        // above, but there may be changes at a later date.
         try {
             DigitalObject object = storage.getObject(oid);
             Payload payload = object.getPayload(pid);
@@ -580,7 +583,7 @@ public class SolrIndexer implements Indexer {
 
     /**
      * Index a specific annotation
-     *
+     * 
      * @param object : The annotation's object
      * @param pid : The annotation payload
      * @throws IndexerException if there were errors during indexing
@@ -597,11 +600,14 @@ public class SolrIndexer implements Indexer {
             Properties props = new Properties();
             props.setProperty("metaPid", pid);
 
-            String doc = index(object, payload, null, ANOTAR_RULES_OID, props);
-            if (doc != null) {
-                anotar.request(new DirectXmlRequest("/update", doc));
-                if (anotarAutoCommit) {
-                    anotar.commit();
+            List<String> documents = index(object, payload, null,
+                    ANOTAR_RULES_OID, props);
+            if (documents != null) {
+                for (String doc : documents) {
+                    anotar.request(new DirectXmlRequest("/update", doc));
+                    if (anotarAutoCommit) {
+                        anotar.commit();
+                    }
                 }
             }
         } catch (Exception e) {
@@ -611,7 +617,7 @@ public class SolrIndexer implements Indexer {
 
     /**
      * Search for annotations and return the result to the provided stream
-     *
+     * 
      * @param request : The SearchRequest object
      * @param response : The OutputStream to send responses to
      * @throws IndexerException if there were errors during indexing
@@ -646,7 +652,7 @@ public class SolrIndexer implements Indexer {
 
     /**
      * Index a payload using the provided data
-     *
+     * 
      * @param object : The DigitalObject to index
      * @param payload : The Payload to index
      * @param in : Reader containing the new empty document
@@ -657,7 +663,7 @@ public class SolrIndexer implements Indexer {
      * @throws IOException if there were errors accessing files
      * @throws RuleException if there were errors during indexing
      */
-    private String index(DigitalObject object, Payload payload,
+    private List<String> index(DigitalObject object, Payload payload,
             String confOid, String rulesOid, Properties props)
             throws IOException, RuleException {
         try {
@@ -666,7 +672,9 @@ public class SolrIndexer implements Indexer {
             // Get our data ready
             Map<String, Object> bindings = new HashMap();
             Map<String, List<String>> fields = new HashMap();
+            List<Map<String, List<String>>> extraIndexes = new ArrayList<Map<String, List<String>>>();
             bindings.put("fields", fields);
+            bindings.put("extraIndexes", extraIndexes);
             bindings.put("jsonConfig", jsonConfig);
             bindings.put("indexer", this);
             bindings.put("object", object);
@@ -683,7 +691,14 @@ public class SolrIndexer implements Indexer {
             }
 
             // Evaluate the fields prepared during execution
-            return pyUtils.solrDocument(fields);
+            List<String> docs = new ArrayList<String>();
+            // generate primary solr doc
+            docs.add(pyUtils.solrDocument(fields));
+            // generate extra solr docs
+            for (Map<String, List<String>> extraFields : extraIndexes) {
+                docs.add(pyUtils.solrDocument(extraFields));
+            }
+            return docs;
         } catch (Exception e) {
             throw new RuleException(e);
         }
@@ -693,7 +708,7 @@ public class SolrIndexer implements Indexer {
      * Evaluate the rules file stored under the provided object ID. If caching
      * is configured the compiled python object will be cached to speed up
      * subsequent access.
-     *
+     * 
      * @param oid : The rules OID to retrieve if cached
      * @return PyObject : The cached object, null if not found
      */
@@ -735,14 +750,16 @@ public class SolrIndexer implements Indexer {
 
     /**
      * Retrieve and parse the config file stored under the provided object ID.
-     * If caching is configured the instantiated config object will be cached
-     * to speed up subsequent access.
-     *
+     * If caching is configured the instantiated config object will be cached to
+     * speed up subsequent access.
+     * 
      * @param oid : The rules OID to retrieve if cached
      * @return PyObject : The cached object, null if not found
      */
     private JsonConfigHelper getConfigFile(String oid) {
-        if (oid == null) return null;
+        if (oid == null) {
+            return null;
+        }
 
         // Try the cache first
         JsonConfigHelper configFile = deCacheConfig(oid);
@@ -769,7 +786,7 @@ public class SolrIndexer implements Indexer {
 
     /**
      * Evaluate and return a Python script.
-     *
+     * 
      * @param inStream : InputStream containing the script to evaluate
      * @return PyObject : Compiled result
      */
@@ -786,7 +803,7 @@ public class SolrIndexer implements Indexer {
 
     /**
      * Add a python object to the cache if caching if configured
-     *
+     * 
      * @param oid : The rules OID to use as an index
      * @param pyObject : The compiled PyObject to cache
      */
@@ -798,7 +815,7 @@ public class SolrIndexer implements Indexer {
 
     /**
      * Return a python object from the cache if configured
-     *
+     * 
      * @param oid : The rules OID to retrieve if cached
      * @return PyObject : The cached object, null if not found
      */
@@ -811,7 +828,7 @@ public class SolrIndexer implements Indexer {
 
     /**
      * Add a config class to the cache if caching if configured
-     *
+     * 
      * @param oid : The config OID to use as an index
      * @param config : The instantiated JsonConfigHelper to cache
      */
@@ -823,7 +840,7 @@ public class SolrIndexer implements Indexer {
 
     /**
      * Return a config class from the cache if configured
-     *
+     * 
      * @param oid : The config OID to retrieve if cached
      * @return JsonConfigHelper : The cached config, null if not found
      */
