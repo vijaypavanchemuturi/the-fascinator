@@ -28,7 +28,6 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URLEncoder;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -500,8 +499,7 @@ public class SolrIndexer implements Indexer {
             String rulesOid = props.getProperty("rulesOid");
 
             // Generate the Solr document
-            List<String> documents = index(object, payload, confOid, rulesOid,
-                    props);
+            String doc = index(object, payload, confOid, rulesOid, props);
 
             // Did the indexer alter metadata?
             String toClose = props.getProperty("objectRequiresClose");
@@ -517,11 +515,7 @@ public class SolrIndexer implements Indexer {
                 }
             }
 
-            int count = 0;
-            for (String doc : documents) {
-                addToBuffer(oid + "/" + pid + "." + count, doc);
-                count++;
-            }
+            addToBuffer(oid + "/" + pid, doc);
         } catch (Exception e) {
             log.error("Indexing failed!\n-----\n", e);
         }
@@ -547,6 +541,17 @@ public class SolrIndexer implements Indexer {
         message.set("index", index);
         message.set("document", document);
         sendToIndex(message.toString());
+    }
+
+    /**
+     * Send the document to buffer directly
+     * 
+     * @param index
+     * @param fields
+     */
+    public void sendIndexToBuffer(String index, Map<String, List<String>> fields) {
+        String doc = pyUtils.solrDocument(fields);
+        addToBuffer(index, doc);
     }
 
     /**
@@ -600,14 +605,11 @@ public class SolrIndexer implements Indexer {
             Properties props = new Properties();
             props.setProperty("metaPid", pid);
 
-            List<String> documents = index(object, payload, null,
-                    ANOTAR_RULES_OID, props);
-            if (documents != null) {
-                for (String doc : documents) {
-                    anotar.request(new DirectXmlRequest("/update", doc));
-                    if (anotarAutoCommit) {
-                        anotar.commit();
-                    }
+            String doc = index(object, payload, null, ANOTAR_RULES_OID, props);
+            if (doc != null) {
+                anotar.request(new DirectXmlRequest("/update", doc));
+                if (anotarAutoCommit) {
+                    anotar.commit();
                 }
             }
         } catch (Exception e) {
@@ -663,18 +665,16 @@ public class SolrIndexer implements Indexer {
      * @throws IOException if there were errors accessing files
      * @throws RuleException if there were errors during indexing
      */
-    private List<String> index(DigitalObject object, Payload payload,
-            String confOid, String rulesOid, Properties props)
-            throws IOException, RuleException {
+    private String index(DigitalObject object, Payload payload, String confOid,
+            String rulesOid, Properties props) throws IOException,
+            RuleException {
         try {
             JsonConfigHelper jsonConfig = getConfigFile(confOid);
 
             // Get our data ready
             Map<String, Object> bindings = new HashMap();
             Map<String, List<String>> fields = new HashMap();
-            List<Map<String, List<String>>> extraIndexes = new ArrayList<Map<String, List<String>>>();
             bindings.put("fields", fields);
-            bindings.put("extraIndexes", extraIndexes);
             bindings.put("jsonConfig", jsonConfig);
             bindings.put("indexer", this);
             bindings.put("object", object);
@@ -690,15 +690,7 @@ public class SolrIndexer implements Indexer {
                 log.warn("Activation method not found!");
             }
 
-            // Evaluate the fields prepared during execution
-            List<String> docs = new ArrayList<String>();
-            // generate primary solr doc
-            docs.add(pyUtils.solrDocument(fields));
-            // generate extra solr docs
-            for (Map<String, List<String>> extraFields : extraIndexes) {
-                docs.add(pyUtils.solrDocument(extraFields));
-            }
-            return docs;
+            return pyUtils.solrDocument(fields);
         } catch (Exception e) {
             throw new RuleException(e);
         }
