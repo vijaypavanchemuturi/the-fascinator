@@ -10,8 +10,10 @@
     <script type="text/javascript">
      //<!--
         $(widgets.contentLoaded);
-        function subFormSubmitted(){}
-        function subFormSubmittedResult(){}
+        function subFormSubmitted(){ $("#result-msg").text("subForm Submitted function called ok"); }
+        function subFormSubmittedResult(form, data){ 
+            $("#result-msg").text(JSON.stringify(data)); 
+        }
      //-->
     </script>
     <!-- base -->
@@ -228,8 +230,7 @@
         <input type="hidden" class="form-fields" value="file1, text99" />
         <input type="hidden" class="form-fields-readonly" value="subHidden ajax" />
         <input type="hidden" id="subHidden" value="hiddenSubValue"/>
-        <input type='hidden' name='ajax' value='1' />
-        <input type="hidden" class="submit-form-fields-url" value="/upload" />
+        <input type="hidden" class="form-fields-submit-url" value="/upload?ajax=1" />
         
         <h4>File Uploading</h4>
         <div class="file-upload-section" style="border:1px dotted blue;padding:1em;">
@@ -238,10 +239,13 @@
         <p> Text: <input type='text' id='text99' value="testing"/> </p>
 <button>test</button>
         <p><button class="form-fields-submit">Submit</button></p>
-          <input type="hidden" name="submitted-func" value="subFormSubmitted"/>
-          <input type="hidden" name="submitted-result-func" value="subFormSubmittedResult"/>
+          <input type="hidden" class="submit-func" value="subFormSubmitted"/>
+          <input type="hidden" class="submit-result-func" value="subFormSubmittedResult"/>
         <!--<span class="sumbitted-result" style="padding-left:2em;font-size:120%;"> </span>-->
-        <div id="submitted-result" style='color:orange; border:1px solid orange; padding:1ex;'> Results: </div>
+        <div style='color:orange; border:1px solid orange; padding:1ex;'> 
+          Results: <span class="submitted-result"> </span> <br/>
+          <span id='result-msg'> </span>
+        </div>
       </div>
     </div>
 

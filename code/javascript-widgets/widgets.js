@@ -5,6 +5,19 @@ var widgets={forms:[], globalObject:this};
 (function($){
   var formClassName = "widget-form";
 
+  function fn(s){
+      var re=/^([\w$,\s]+)-\>/, re2=/;|}/;
+      var a, b;
+      if(re.test(s)){
+          b=s.replace(re, function(_, a1){a=a1;return "";});
+          if(!re2.test(b)) b = "return " + b;
+      } else {
+          a = "$1,$2,$3,$4";
+          b=s;
+      }
+      return new Function(a, b);
+  }
+
   function trim(s){
     return $.trim(s);
     return s.replace(/^\s+|\s+$/g, "")
@@ -33,6 +46,16 @@ var widgets={forms:[], globalObject:this};
       if(func(v)) flag=true;
     });
     return flag;
+  }
+
+  function isFunction(func){
+      return typeof(func)==="function";
+  }
+
+  function callIfFunction(func, a, b, c){
+      if(typeof(func)==="function"){
+          try{ func(a, b, c); }catch(e){}
+      }
   }
 
   function messageBox(msg){
@@ -346,31 +369,64 @@ var widgets={forms:[], globalObject:this};
 
       function submitSave(stype){
         var data, url, replaceFunc;
+        var xFunc, xResultFunc;
         replaceFunc=function(s){
             s = s.replace(/[{}()]/g, "");   // make it safe - no function calls
             return eval(s);
         };
+        xFunc = widgets.globalObject[ctx.findx("."+stype+"-func").val()];
+        xResultFunc = widgets.globalObject[ctx.findx("."+stype+"-result-func").val()];
+        callIfFunction(xFunc, widgetForm);
         data = getFormData();
         url = ctx.findx(".form-fields-"+stype+"-url").val();
         url = url.replace(/{[^}]+}/g, replaceFunc);
         function completed(data){
+            if(typeof(data)=="string"){
+                text = data;
+                try{
+                    data = JSON.parse(data);
+                }catch(e){
+                    data = {error:e};
+                }
+            }
+            callIfFunction(xResultFunc, widgetForm, data);
             if(data.error || !data.ok){
-                messageBox("Failed to "+stype+"! (error='"+data.error+"')");
+                if(!data.ok && !data.error) data.error="Failed to receive an 'ok'!";
+                messageBox("Failed to "+stype+"! (error='"+data.error+"') data='"+text+"'");
             }else{
                 if(stype=="save"){
                     ctx.findx(".saved-result").text("Saved OK").
                         css("color", "green").show().fadeOut(4000);
                 }else if(stype=="submit"){
-                    ctx.findx(".sumbitted-result").text("Submitted OK").
+                    ctx.findx(".submit-result").text("Submitted OK").
                         css("color", "green").show().fadeOut(4000);
                 }
             }
         }
-        $.ajax({type:"POST", url:url, data:data,
-            success:completed,
-            error:function(xhr, status, e){ completed({error:"status='"+status+"'"}); },
-            dataType:"json"
-        });
+        if(data.title===null)data.title=data["dc:title"];
+        if(data.description===null)data.description=data["dc:description"];
+        if(widgetForm.hasFileUpload){
+            var elems=[], h=$("<input type='text' name='json' />");
+            var fileSubmitter = createFileSubmitter();
+            h.val(JSON.stringify(data));
+            elems.push(h[0]);
+            $.each(data, function(k, v){
+                h=$("<input type='text' />");
+                h.attr("name", k); h.val(v);
+                elems.push(h[0]);
+            });
+            ctx.findx("input[type=file]").each(function(c, f){
+                elems.push(f);
+            });
+            fileSubmitter.submit(url, elems, completed);
+        }else{
+            // data.json = JSON.stringify(data);
+            $.ajax({type:"POST", url:url, data:data,
+                success:completed,
+                error:function(xhr, status, e){ completed({error:"status='"+status+"'"}); },
+                dataType:"json"
+            });
+        }
       }
 
       function getFormData(){
@@ -421,7 +477,7 @@ var widgets={forms:[], globalObject:this};
       }
 
       function restore(data){
-          var keys=[], skeys=[], input;
+          var keys=[], skeys=[], input, t;
           var formFields = $.grep(ctx.findx(".form-fields:first").val().split(/[\s,]+/),
                                 function(i){return /\S/.test(i)});
           $.each(data, function(k, v){keys.push(k);});
@@ -442,7 +498,12 @@ var widgets={forms:[], globalObject:this};
                     input.val(data[v]);
                   }else{
                     input = ctxInputs.filter("[id="+k+"]");
-                    input.parents(".input-list:first").find(".add-another-item, .item-add").click();
+                    t=input.parents(".input-list:first").find(".add-another-item, .item-add");
+                    if(t[0].forceAdd){
+                        t[0].forceAdd();
+                    }else{
+                        t.click();
+                    }
                     // update inputs - this could be done better
                     ctxInputs = ctx.findx("input, textarea, select");
                     input = ctxInputs.filter("[id="+v+"]");
@@ -598,7 +659,7 @@ var widgets={forms:[], globalObject:this};
             displaySelector = ".item-display";
             tmp=table.find(displaySelector).hide();
             displayRowTemplate=tmp.eq(0);
-            add=function(){
+            add=function(e, force){
               // get item value(s) & validate (if no validation just test for is not empty)
               var values=[];
               var test=[];
@@ -607,25 +668,28 @@ var widgets={forms:[], globalObject:this};
                 test[c]=values[c][0];
                 $(i).val("");   // reset
               }).eq(0).focus();
-              if(!any(values, function(v){ return v[0]!==""; })) return;
               //
               visibleItems = table.find(displaySelector+":visible");
-              if(addUniqueOnly){
-                // Check that this entry is unique
-                var unique=true;
-                visibleItems.each(function(c, i){
-                  i=$(i);
-                  var same=true;
-                  i.find("input").each(function(c2, i){
-                    if(test[c2]!=i.value)same=false;
-                  });
-                  if(same)unique=false;
-                });
-                if(!unique){
-                    alert("Selection is already in the list. (not a unique value)");
-                    return;
-                }
+              if(!force){
+                  if(!any(values, function(v){ return v[0]!==""; })) return;
+                  if(addUniqueOnly){
+                    // Check that this entry is unique
+                    var unique=true;
+                    visibleItems.each(function(c, i){
+                      i=$(i);
+                      var same=true;
+                      i.find("input").each(function(c2, i){
+                        if(test[c2]!=i.value)same=false;
+                      });
+                      if(same)unique=false;
+                    });
+                    if(!unique){
+                        alert("Selection is already in the list. (not a unique value)");
+                        return;
+                    }
+                  }
               }
+
               tmp = displayRowTemplate.clone().show();
               count = visibleItems.size()+1;
               tmp.find("*[id]").each(function(c, i){
@@ -656,6 +720,7 @@ var widgets={forms:[], globalObject:this};
             }
 
             table.find(".item-add").click(add);
+            table.find(".item-add")[0].forceAdd = function(){add(null, true);};
             addUniqueOnly = table.find(".item-add").hasClass("add-unique-only");
             table.find("tr.item-input input[type=text]:last").keypress(function(e){
               if(e.which==13){
