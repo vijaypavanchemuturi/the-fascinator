@@ -60,5 +60,21 @@
       </exclusions> 
       </dependency> -->
   </dependencies>
+    <distributionManagement>
+        <repository>
+            <id>releases</id>
+            <name>The Fascinator Releases</name>
+            <url>https://fascinator.usq.edu.au/nexus/content/repositories/releases</url>
+        </repository>
+        <snapshotRepository>
+            <id>snapshots</id>
+            <name>The Fascinator Snapshots</name>
+            <url>https://fascinator.usq.edu.au/nexus/content/repositories/snapshots</url>
+        </snapshotRepository>
+        <site>
+            <id>build.adfi.usq.edu.au</id>
+            <url>file:///var/www/hudson/${artifactId}-${version}</url>
+        </site>
+    </distributionManagement>  
 </project>
  
