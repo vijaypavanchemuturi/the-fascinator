@@ -112,6 +112,7 @@ class DetailData:
         return int(self.__solrData.get("response/numFound"))
 
     def __getObject(self, oid):
+        obj = None
         try:
             storage = self.services.getStorage()
             try:
