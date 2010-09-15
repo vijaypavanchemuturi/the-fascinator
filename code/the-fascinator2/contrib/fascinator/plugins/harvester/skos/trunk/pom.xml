@@ -7,9 +7,9 @@
   <name>The Fascinator - Plugin - Harvester - SKOS</name>
   <description>Performs a batch harvest of any SKOS Concept Shemes</description>
   <url>http://fascinator.usq.edu.au/trac/wiki/tf2/DeveloperNotes/plugins/harvester/anzsrc</url>
-  <parent>
-  <groupId>au.edu.usq.fascinator</groupId>
+ <parent>
   <artifactId>organisation</artifactId>
+  <groupId>au.edu.usq.fascinator</groupId>
   <version>0.5.1-SNAPSHOT</version>
  </parent>
   <!-- <parent>
@@ -60,21 +60,5 @@
       </exclusions> 
       </dependency> -->
   </dependencies>
-    <distributionManagement>
-        <repository>
-            <id>releases</id>
-            <name>The Fascinator Releases</name>
-            <url>https://fascinator.usq.edu.au/nexus/content/repositories/releases</url>
-        </repository>
-        <snapshotRepository>
-            <id>snapshots</id>
-            <name>The Fascinator Snapshots</name>
-            <url>https://fascinator.usq.edu.au/nexus/content/repositories/snapshots</url>
-        </snapshotRepository>
-        <site>
-            <id>build.adfi.usq.edu.au</id>
-            <url>file:///var/www/hudson/${artifactId}-${version}</url>
-        </site>
-    </distributionManagement>  
 </project>
  
