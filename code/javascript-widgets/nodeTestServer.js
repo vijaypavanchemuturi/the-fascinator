@@ -38,7 +38,7 @@ htmlUploadForm="<form action='/upload' method='POST' enctype='multipart/form-dat
 " <input type='file' name='upload-file'/> <p><input type='text' name='testtext' value='testing [123]'/></p>" +
 " <input type='checkbox' value='1' name='ajax'/>AJAX &#160; " +
 " <input type='submit' value='upload'/>" +
-"</form>";
+"</form>" + "<form action='/upload?ajax=1' method='POST'><input type='text' name='tt' value='t'/><input type='submit' value='uploadAjax'/></form>";
 
 function each(obj, func){ 
   for(var k in obj){ func(k, obj[k]); }
@@ -47,7 +47,7 @@ function each(obj, func){
 server=http.createServer(function(req, res){
   var urlInfo = url.parse(req.url);
   switch(urlInfo.pathname){
-    case "/upload": fileUpload(req, res); break;
+    case "/upload": fileUpload(req, res, urlInfo.query); break;
     case "/": htmlOutput(res, htmlUploadForm); break;
     default: serveFile(res, urlInfo.pathname); break;
   }
@@ -78,22 +78,31 @@ function serveFile(res, p){
   }
 }
 
-function fileUpload(req, res){
-  var html, t, ajax=false;
+function fileUpload(req, res, query){
+  var html, t, ajax=/ajax\=/.test(query);
   var iform = new formidable.IncomingForm();
   iform.uploadDir = "temp";
   iform.keepExtensions = true;
   try{
     iform.parse(req, function(err, fields, files){
+      if(fields.ajax) ajax=true;
       each(files, function(k, v){
         v.stats = fs.statSync(v.path);
       });
-      if(fields.ajax){
-        html = JSON.stringify({fields:fields, files:files});
+      if(ajax){
+        for(var file in files){
+          try{
+            file=files[file];
+            file.size = file.stats.size;
+            delete file.stats;
+          }catch(e){}
+        }
+        html = JSON.stringify({fields:fields, files:files, ok:true});
       }else{
         t = jtemp.Template("<div><p>File upload:</p> Fields:<pre>{fields}</pre> Files:<pre>{files}</pre><a href='/'>back</a></div>");
-        html=t.expand({fields:JSON.stringify(fields), files:JSON.stringify(files)});
+        html=t.expand({fields:JSON.stringify(fields), files:JSON.stringify(files), ok:true});
       }
+      log(html);
       htmlOutput(res, html);
     });
   }catch(e){
