@@ -195,11 +195,11 @@ var widgets={forms:[], globalObject:this};
     }
     function setup(ctx, onLoadTest){
         var m, w, va, f, a, t;
-        var validationsFor={}, valdationsForLists={};
+        var validationsFor={}, validationsForClass={};
         //var matchQuotedStr = '("([^"\\]|\\.)*")';     // continues matching until closing (unescaped) quote
-        var vLabels=$("label.validation-err-msg");
+        var vLabels=ctx.find("label.validation-err-msg");
         $(".validation-err-msg").hide();
-        //value="for('dc:title'),notEQ(''),when(onChange)"
+        //value="for('dc:title');test(notEmpty);when(onChange)"
         function rule(v){
             var dict={};
             function match(){
@@ -218,13 +218,8 @@ var widgets={forms:[], globalObject:this};
             f=dict["for"];
             dict["when"]=(dict["when"]||"");
             if(f){
-                if(/\.0(?=\.|$)/.test(dict[f])){
-                    a = validationsForLists[f];
-                    if(!a) a=validationsForLists[f]=[];
-                }else{
-                    a = validationsFor[f];
-                    if(!a) a=validationsFor[f]=[];
-                }
+                a = validationsFor[f];
+                if(!a) a=validationsFor[f]=[];
                 a.push(dict);
                 if(dict["name"]){
                     namedTests[dict["name"]]=dict;
@@ -232,12 +227,21 @@ var widgets={forms:[], globalObject:this};
                     namedTests[f]=dict;
                 }
             }
+            f=dict["forclass"];
+            if(f){
+                a = validationsForClass[f];
+                if(!a) a=validationsForClass[f]=[];
+                a.push(dict);
+                if(dict["name"]){
+                    namedTests[dict["name"]]=dict;
+                } // no default name
+            }
         }
-        ctx.findx(".validation-rule").each(function(c, v){
+        ctx.find(".validation-rule").each(function(c, v){
             v = $(v).val() || $(v).text();
             rule(v);
         });
-        ctx.findx(".validation-rules").each(function(c, v){
+        ctx.find(".validation-rules").each(function(c, v){
             v = $(v).text();
             v.replace(reg3, function(){ var v=arguments[4]; if(v)rule(v); });
         });
@@ -273,16 +277,46 @@ var widgets={forms:[], globalObject:this};
                           tests[w.action].push(func);
                         }
                       }
-//                      $.each(d.when.split(/(,|\s)+/), function(c, w){
-//                        if(w.substr(0,2)=="on") w=w.substr(2);
-//                        target.bind(w, func);
-//                        if(!tests[w]) tests[w]=[];
-//                        tests[w].push(func);
-//                      });
                     }
                 });
             }
         });
+        // forClass(test)
+        $.each(validationsForClass, function(fc, l){
+            $.each(l, function(c, d){
+              var cls, m, reader, testStr, testCode;
+              cls = d.forclass;
+              if(d.test){
+                reader = iterReader(d.test.match(reg2));
+                testStr = getExpr(reader);
+                testCode="showValidationMessage(!("+testStr+"));";
+
+                m = d.when.match(reg2);
+                if(m){
+                  reader = iterReader(m);
+                  while(w=getWhen(reader)){
+                    var checkFunc=function(){
+                      var target, id, v, vLabel, showValidationMessage;
+                      target = $(this);
+                      id = target.attr("id");
+                      v = target.val();
+                      vLabel=ctx.find("label.validation-err-msg[for="+id+"]");
+                      showValidationMessage=function(show){ 
+                          show?vLabel.show():vLabel.hide(); return show;
+                      };
+                      try{
+                          eval(testCode);
+                      }catch(e){
+                          alert("ERROR executing testCode: " +e.message);
+                      }
+                    }
+                    ctx.find("."+cls).die().live(w.action, checkFunc);
+                  }
+                }
+              }
+            });
+        });
+
     }
     return {
       setup:setup,
@@ -753,6 +787,10 @@ var widgets={forms:[], globalObject:this};
                   //$(i).addClass(i.id);
                   i.id = i.id.replace(/\.0(?=\.|$)/, "."+count);
               });
+              tmp.find("label[for]").each(function(c, i){
+                  i=$(i);
+                  i.attr("for", i.attr("for").replace(/\.0(?=\.|$)/, "."+count));
+              });
               tmp.find(".sort-number").text(count);
               table.find(displaySelector+":last").after(tmp);
               visibleItems.find(".delete-item").show();
@@ -775,10 +813,14 @@ var widgets={forms:[], globalObject:this};
 
           reorder=function(){
             table.find(displaySelector+":visible").each(function(c, i){
-              $(i).find("*[id]").each(function(_, i){
-                i.id = i.id.replace(/\.\d+(?=\.|$)/, "."+(c+1));
+             try{
+              $(i).find("*[id]").each(function(_, i2){
+                var labels = $(i).find("label[for="+i2.id+"]");
+                i2.id = i2.id.replace(/\.\d+(?=\.|$)/, "."+(c+1));
+                labels.attr("for", i2.id);
               });
               $(i).find(".sort-number").text(c+1);
+             }catch(e){alert(e.message)}
             });
           }
       }

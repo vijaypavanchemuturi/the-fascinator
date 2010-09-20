@@ -1,11 +1,14 @@
 <html>
  <head>
+  <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+  <meta charset="utf-8"/>
   <title>Validation Widget Testing</title>
     <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"><!-- --></script>
     <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.2/jquery-ui.min.js"><!-- --> </script>  
-    <script src="widgets.js"> </script>
-  <script>
+    <script type="text/javascript" src="widgets.js"><!-- --> </script>
+  <script type="text/javascript">
     $(function(){
+      widgets.contentLoaded();
       var msgElem=$("#msg").hide();
       $("#saveBut").click(function(){
         var v=widgets.getValidator();
@@ -25,7 +28,7 @@
     .validation-rules { display:inline; color:lightblue;}
   </style>
  <head>
- <body>
+ <body class="widget-form">
   <h3>Validation testing</h3>
   
   <p>Title: <input type="text" id="dc:title" size="20" 
@@ -84,5 +87,41 @@
     </pre><br/>
     <a href="validationTest.html">Refresh</a>
   </div>
+
+  <div>
+      <h4>Sortable</h4>
+      <table class="input-list sortable"><tbody> 
+        <tr class="item-input-display sortable-item">
+          <td class="sort-handle"><img src="grippy.png"/></td>
+          <td class="sort-number">1</td>
+          <td><input type="text" placeholder="enter a keyword here" id="keyword.0" class="keyword_0"/></td>
+          <td><button class="delete-item">delete</button></td>
+          <td style="width:100%;">
+            <label class="validation-err-msg" style="color:red;" for="keyword.0">Must not be Empty!</label>
+          </td>
+        </tr>
+        <tr>
+          <td></td>
+          <td></td>
+          <td><input type="button" class="add-another-item" value="Add another keyword"/></td>
+          <td></td>
+          <td></td>
+        </tr>
+      </tbody></table>
+      <p>
+        <input type='text' id='vtest'/><label for="vtest" class="validation-err-msg" style="color:red;">Must not be Empty!</label>
+      <p>
+      <pre class="validation-rules">
+        rule {for(vtest);test(notEmpty);when(onBlur);};
+        rule {forClass(keyword_0);test(notEmpty);when(onBlur);};
+      </pre>
+  </div>
+
  <body>
 </html>
+
+
+
+
+
+

@@ -253,6 +253,12 @@
     <div>
       <h3>Form validation</h3>
       See <a href='validationTest.html'>validation tests</a>
+      <p>
+        <input type='text' id='vtest'/> <label for="vtest" class="validation-err-msg" style="color:red;"> Must not be Empty!</label>
+        <pre class="validation-rules">
+          rule {for(vtest);test(notEmpty);when(onBlur);};
+        </pre>  
+      </p>  
     </div>
 
     <div style='border:1px solid lightgray;padding:1em;margin:1em;'>
