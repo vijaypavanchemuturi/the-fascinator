@@ -81,13 +81,22 @@ public class FileSystemPayload extends GenericPayload {
             setLinked(Boolean.parseBoolean(link));
             if (isLinked()) {
                 try {
-                    String linkPath = FileUtils.readFileToString(dataFile);
-                    File linkFile = new File(linkPath);
-                    if (linkFile.exists()) {
-                        setContentType(MimeTypeUtil.getMimeType(linkFile));
+                    long fileSize = dataFile.length();
+                    // Arbitrary test for length of link. We have observed
+                    //  instances of real data being treated as a link.
+                    if (fileSize > 2000) {
+                        log.debug("Linked file '{}' is unusually large. It is" +
+                                " most likely not really linked and is corrupt",
+                                dataFile.getAbsolutePath());
                     } else {
-                        log.debug("Linked file '{}' no longer exists!",
-                                linkFile.getAbsolutePath());
+                        String linkPath = FileUtils.readFileToString(dataFile);
+                        File linkFile = new File(linkPath);
+                        if (linkFile.exists()) {
+                            setContentType(MimeTypeUtil.getMimeType(linkFile));
+                        } else {
+                            log.debug("Linked file '{}' no longer exists!",
+                                    linkFile.getAbsolutePath());
+                        }
                     }
                 } catch (IOException ioe) {
                     log.warn("Failed to get linked file", ioe);
