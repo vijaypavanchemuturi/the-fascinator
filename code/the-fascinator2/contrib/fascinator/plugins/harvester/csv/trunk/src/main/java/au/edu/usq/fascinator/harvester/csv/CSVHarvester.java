@@ -323,9 +323,7 @@ public class CSVHarvester extends GenericHarvester {
 		if (value != null) {
 			String existing = json.get(field);
 			if (existing != null) {
-				if (existing.equals(value)) {
-					// Match is good
-				} else {
+				if (! existing.equals(value)) {
 					// Data mismatch, we have two or more different values
 					// in a field that should be the same.
 					throw new Exception("Duplicate in field '" + field + "'!");
