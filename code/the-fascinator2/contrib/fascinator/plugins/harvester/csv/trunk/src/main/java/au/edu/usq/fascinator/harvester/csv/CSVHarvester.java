@@ -18,15 +18,6 @@
  */
 package au.edu.usq.fascinator.harvester.csv;
 
-import au.edu.usq.fascinator.api.harvester.HarvesterException;
-import au.edu.usq.fascinator.api.storage.DigitalObject;
-import au.edu.usq.fascinator.api.storage.Payload;
-import au.edu.usq.fascinator.api.storage.StorageException;
-import au.edu.usq.fascinator.common.JsonConfigHelper;
-import au.edu.usq.fascinator.common.harvester.impl.GenericHarvester;
-
-import com.Ostermiller.util.CSVParser;
-
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
@@ -39,17 +30,24 @@ import java.io.InputStreamReader;
 import java.io.StringReader;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
 import org.apache.commons.codec.digest.DigestUtils;
-import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import au.edu.usq.fascinator.api.harvester.HarvesterException;
+import au.edu.usq.fascinator.api.storage.DigitalObject;
+import au.edu.usq.fascinator.api.storage.Payload;
+import au.edu.usq.fascinator.api.storage.Storage;
+import au.edu.usq.fascinator.api.storage.StorageException;
+import au.edu.usq.fascinator.common.JsonConfigHelper;
+import au.edu.usq.fascinator.common.harvester.impl.GenericHarvester;
+import au.edu.usq.fascinator.common.storage.StorageUtils;
+
+import com.Ostermiller.util.CSVParser;
 
 /**
  * 
@@ -60,12 +58,6 @@ import org.slf4j.LoggerFactory;
  * @author Greg Pendlebury
  */
 public class CSVHarvester extends GenericHarvester {
-
-	/** Package payload */
-	private static String PACKAGE_PAYLOAD = "authority.tfpackage";
-
-	/** Workflow payload */
-	private static String WORKFLOW_PAYLOAD = "workflow.metadata";
 
 	/** logging */
 	private Logger log = LoggerFactory.getLogger(CSVHarvester.class);
@@ -78,9 +70,6 @@ public class CSVHarvester extends GenericHarvester {
 
 	/** Data file */
 	private File csvData;
-
-	/** Data structure to hold parsed data */
-	private HashMap<String, HashMap<String, String>> parsedData;
 
 	/** Delimiter in the CSV */
 	private char delimiter = ',';
@@ -123,7 +112,7 @@ public class CSVHarvester extends GenericHarvester {
 
 		delimiter = config.get("harvester/csv/delimiter", ",").charAt(0);
 
-		idColumn = config.get("harvester/csv/idColumn");
+		idColumn = convertFieldName(config.get("harvester/csv/idColumn"));
 		if (idColumn == null) {
 			throw new HarvesterException("No ID Column defined.");
 		}
@@ -136,8 +125,6 @@ public class CSVHarvester extends GenericHarvester {
 			throw new HarvesterException("Could not find CSV data file: '"
 					+ filePath + "'");
 		}
-
-		parsedData = new HashMap<String, HashMap<String, String>>();
 
 		hasMore = false;
 	}
@@ -175,7 +162,6 @@ public class CSVHarvester extends GenericHarvester {
 		BufferedReader br = new BufferedReader(new InputStreamReader(in));
 
 		int i = 0; // Row counter
-		int j = 0; // Column counter
 		boolean titleFlag = false;
 		boolean stop = false;
 		// Line by line from buffered reader
@@ -189,7 +175,7 @@ public class CSVHarvester extends GenericHarvester {
 					values = CSVParser.parse(new StringReader(line), delimiter);
 				} catch (IOException ex) {
 					log.error("Error parsing CSV file", ex);
-					throw new HarvesterException("Error parsing CSV file", ex);
+					throw new HarvesterException("Error parsing CSV file: " + ex.getMessage(), ex);
 				}
 
 				for (String[] columns : values) {
@@ -199,7 +185,9 @@ public class CSVHarvester extends GenericHarvester {
 							// Print if debugging
 							// log.debug("HEADING {}: '{}'", j, column);
 							// j++;
-							dataFields.add(column);
+							String col = convertFieldName(column);
+							dataFields.add(col);
+							log.debug("CSV field name: {}", col);
 						}
 						// j = 0;
 						if (!dataFields.contains(idColumn)) {
@@ -207,6 +195,7 @@ public class CSVHarvester extends GenericHarvester {
 									+ idColumn
 									+ ") does not appear in the first row");
 						}
+						
 						titleFlag = true;
 						continue;
 					} else {
@@ -214,56 +203,8 @@ public class CSVHarvester extends GenericHarvester {
 						if (i % 500 == 0) {
 							log.info("Parsing row {}", i);
 						}
-
-						JsonConfigHelper json = new JsonConfigHelper();
-						JsonConfigHelper packageJson = new JsonConfigHelper();
-						packageJson.set("viewId", "default");
-						packageJson.set("packageType", "name-authority");
-
-						j = 0;
-						String id = null;
-						HashMap<String, String> rowData = new HashMap<String, String>();
-						for (String column : columns) {
-							if (idColumn.equals(dataFields.get(j))) {
-								id = column;
-							}
-							try {
-								store(dataFields.get(j), column, json);
-							} catch (Exception ex) {
-								log.error("Error parsing record '{}'", id, ex);
-							}
-							j++;
-						}
-
-						json.set("id", id);
-						json.set("step", "pending");
-						packageJson.set("title", id);
-						packageJson.set("description", "Authority record for '"
-								+ id + "'");
-
+						fileObjectIdList.add(createRecord(columns));
 						i++;
-						// Add an empty package manifest
-						// TODO: Work-around for #656
-						packageJson.set("manifest", "===REPLACE=ME===");
-						String jsonString = packageJson.toString();
-						jsonString = jsonString.replace("\"===REPLACE=ME===\"",
-								"{}");
-						try {
-							packageJson = new JsonConfigHelper(jsonString);
-						} catch (IOException ex) {
-							packageJson = null;
-							log.error("Error parsing json '{}': ", jsonString);
-						}
-
-						if (json != null && packageJson != null) {
-							try {
-								String oid = storeJson(json.toString(),
-										packageJson.toString(), id);
-								fileObjectIdList.add(oid);
-							} catch (StorageException ex) {
-								log.error("Error during storage: ", ex);
-							}
-						}
 					}
 				}
 
@@ -284,66 +225,68 @@ public class CSVHarvester extends GenericHarvester {
 
 	}
 
-	private String storeJson(String workflowData, String packageData,
-			String recordId) throws HarvesterException, StorageException {
-		String oid = DigestUtils.md5Hex(recordId);
-		DigitalObject object = null;
+	public static String convertFieldName(String str) {
+		//TODO: workaround as the JSON library balks at spaces in the key
+		return str.replaceAll("\\s", "_");
+	}
+	
+	private String createRecord(String[] columns) {
+		int j = 0;
+		String id = null;
 
-		// Check if the object is already in storage
-		boolean inStorage = true;
-		try {
-			object = getStorage().getObject(oid);
-		} catch (StorageException ex) {
-			inStorage = false;
-		}
+		JsonConfigHelper json = new JsonConfigHelper();
 
-		// New items
-		if (!inStorage) {
-			try {
-				object = getStorage().createObject(oid);
-			} catch (StorageException ex) {
-				throw new HarvesterException("Error creating new object: ", ex);
+		for (String column : columns) {
+			if (idColumn.equals(dataFields.get(j))) {
+				id = column;
 			}
-			storePayload(object, PACKAGE_PAYLOAD, getStream(packageData));
-			storePayload(object, WORKFLOW_PAYLOAD, getStream(workflowData));
-
-			// Update an existing item
-		} else {
-			updateOrCreate(PACKAGE_PAYLOAD, object, packageData);
-			updateOrCreate(WORKFLOW_PAYLOAD, object, workflowData);
+			try {
+				store(dataFields.get(j), column, json);
+			} catch (Exception ex) {
+				log.error("Error parsing record '{}': " + ex.getMessage(), id, ex);
+			}
+			j++;
 		}
 
-		// Update object metadata
-		Properties props = object.getMetadata();
-		props.setProperty("render-pending", "true");
-		object.close();
+		json.set("id", id);
+		json.set("step", "pending");
 
-		return object.getId();
+		if (json != null) {
+			try {
+				return storeJson(json, csvData.getName() + "?" + id);
+			} catch (StorageException ex) {
+				log.error("Error during storage: ", ex);
+			} catch (HarvesterException ex) {
+				log.error("Harvest error: ", ex);
+			}
+		}
+		return null;
 	}
 
-	/**
-	 * Update a payload in the object, or create if it doesn't exist
-	 * 
-	 * @param pid
-	 *            The Payload id to update/create
-	 * @param object
-	 *            The object to hold the payload
-	 * @param data
-	 *            The data to store
-	 * @throws HarvesterException
-	 *             If unable to do update or create payload
-	 */
-	private void updateOrCreate(String pid, DigitalObject object, String data)
-			throws HarvesterException {
-		try {
-			// Confirm it exists
-			object.getPayload(pid);
-			object.updatePayload(pid, getStream(data));
-		} catch (StorageException ex) {
-			log.error("Existing object '{}' has no payload '{}', adding",
-					object.getId(), pid);
-			storePayload(object, pid, getStream(data));
+	private String storeJson(JsonConfigHelper jsonData, String recordId)
+			throws HarvesterException, StorageException {
+		Storage storage = getStorage();
+		String oid = DigestUtils.md5Hex(recordId);
+		DigitalObject object = StorageUtils.getDigitalObject(storage, oid);
+		String pid = "metadata.json";
+
+		InputStream stream = getStream(jsonData.toString());
+
+		if (stream == null) {
+			log.error("Failed to create a stream from the JSON Data");
 		}
+
+		Payload payload = StorageUtils.createOrUpdatePayload(object, pid,
+				stream);
+		payload.setContentType("application/json");
+		payload.close();
+
+		// update object metadata
+		Properties props = object.getMetadata();
+		props.setProperty("render-pending", "true");
+
+		object.close();
+		return object.getId();
 	}
 
 	/**
@@ -353,11 +296,10 @@ public class CSVHarvester extends GenericHarvester {
 	 *            The data to read
 	 * @return InputStream of the data
 	 */
-	private InputStream getStream(String data) {
+	public static InputStream getStream(String data) {
 		try {
 			return new ByteArrayInputStream(data.getBytes("utf-8"));
 		} catch (UnsupportedEncodingException ex) {
-			log.error("Error parsing metadata, invalid UTF-8");
 			return null;
 		}
 	}
@@ -379,7 +321,7 @@ public class CSVHarvester extends GenericHarvester {
 	private void store(String field, String value, JsonConfigHelper json)
 			throws Exception {
 		if (value != null) {
-			String existing = json.get("formData/" + field);
+			String existing = json.get(field);
 			if (existing != null) {
 				if (existing.equals(value)) {
 					// Match is good
@@ -390,7 +332,7 @@ public class CSVHarvester extends GenericHarvester {
 				}
 			} else {
 				// First time we've seen this field
-				json.set("formData/" + field, value);
+				json.set(field, value);
 			}
 		}
 	}
@@ -426,27 +368,5 @@ public class CSVHarvester extends GenericHarvester {
 	@Override
 	public boolean hasMoreDeletedObjects() {
 		return false;
-	}
-
-	/**
-	 * Store an inputstream as a payload for the given object.
-	 * 
-	 * @param object
-	 *            The object to store the payload in
-	 * @param pid
-	 *            The payload ID to use when storing
-	 * @param in
-	 *            The inputstream to store data from
-	 * @return Payload The resulting payload stored
-	 * @throws HarvesterException
-	 *             on storage errors
-	 */
-	private Payload storePayload(DigitalObject object, String pid,
-			InputStream in) throws HarvesterException {
-		try {
-			return object.createStoredPayload(pid, in);
-		} catch (StorageException ex) {
-			throw new HarvesterException("Error storing payload: ", ex);
-		}
 	}
 }
