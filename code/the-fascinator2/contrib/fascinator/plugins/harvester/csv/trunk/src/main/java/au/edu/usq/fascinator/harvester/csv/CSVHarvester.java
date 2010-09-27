@@ -150,6 +150,12 @@ public class CSVHarvester extends GenericHarvester {
 		if (filePath == null) {
 			throw new HarvesterException("No data file provided!");
 		}
+		
+		csvData = new File(filePath);
+		if (csvData == null || !csvData.exists()) {
+			throw new HarvesterException("Could not find CSV data file: '"
+					+ filePath + "'");
+		}
 
 		delimiter = config.get("harvester/csv/delimiter", ",").charAt(0);
 
@@ -162,26 +168,24 @@ public class CSVHarvester extends GenericHarvester {
 			recordIDPrefix = config.get("harvester/csv/recordIDPrefix");
 		}
 
-		String limitString = config.get("harvester/callista/limit", "-1");
+		String limitString = config.get("harvester/csv/limit", "-1");
 		limit = Integer.parseInt(limitString);
 
 		ignoredFields = new ArrayList<String>();
-		List<Object> ignore = config.getList("harvester/callista/ignoreFields");
+		List<Object> ignore = config.getList("harvester/csv/ignoreFields");
 		for (Object item : ignore) {
-			ignoredFields.add(convertFieldName((String) item));
+			String s = convertFieldName((String) item);
+			ignoredFields.add(s);
+			log.debug("Ignoring field: " + s);
 		}
 
 		includedFields = new ArrayList<String>();
 		List<Object> include = config
-				.getList("harvester/callista/includedFields");
+				.getList("harvester/csv/includedFields");
 		for (Object item : include) {
-			includedFields.add(convertFieldName((String) item));
-		}
-
-		csvData = new File(filePath);
-		if (csvData == null || !csvData.exists()) {
-			throw new HarvesterException("Could not find CSV data file: '"
-					+ filePath + "'");
+			String s = convertFieldName((String) item);
+			includedFields.add(s);
+			log.debug("Including field: " + s);
 		}
 
 		hasMore = false;
@@ -319,6 +323,8 @@ public class CSVHarvester extends GenericHarvester {
 			if (includedFields.size() > 0 && !includedFields.contains(colName)) {
 				continue;
 			}
+			
+			//log.debug("Storing field: " + colName);
 			try {
 				store(colName, column, json);
 			} catch (Exception ex) {
