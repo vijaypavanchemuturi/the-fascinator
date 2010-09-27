@@ -304,8 +304,9 @@ public class CSVHarvester extends GenericHarvester {
 		JsonConfigHelper json = new JsonConfigHelper();
 
 		for (String column : columns) {
-			String colName = dataFields.get(j);
 			j++;
+			String colName = dataFields.get(j);
+			
 			if (idColumn == null) {
 				id = recordIDPrefix + Integer.toString(rowNumber);
 			} else if (idColumn.equals(colName)) {
