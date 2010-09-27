@@ -58,6 +58,9 @@ import com.Ostermiller.util.CSVParser;
  * <li>fileLocation: The location of the csv file (required)</li>
  * <li>idColumn: the column holding the primary key. 
  * 	If not provided, the row number will be used.</li>
+ * <li>recordIDPrefix: Adds a prefix to the value found in the ID column.
+ *	For example, setting this as "http://id.example.com/" with an ID value of "453"
+ *	will result in http://id.example.com/453 as the ID. 
  * <li>delimiter: The csv delimiter. Comma (,) is the default</li>
  * <li>ignoredFields: An array of fields (columns) ignored by the harvest.</li>
  * <li>includedFields: An array of fields (columns) included by the harvest</li>
@@ -84,7 +87,7 @@ import com.Ostermiller.util.CSVParser;
  */
 /**
  * @author dickinso
- *
+ * 
  */
 public class CSVHarvester extends GenericHarvester {
 
@@ -105,12 +108,15 @@ public class CSVHarvester extends GenericHarvester {
 
 	/** Ignored field names (column) */
 	private ArrayList<String> ignoredFields = null;
-	
+
 	/** Included field names (column) */
 	private ArrayList<String> includedFields = null;
 
 	/** The name of the column holding the ID */
 	String idColumn = null;
+
+	/** A prefix for generating the object's ID */
+	String recordIDPrefix = "";
 
 	/** Debugging limit */
 	private int limit;
@@ -148,8 +154,12 @@ public class CSVHarvester extends GenericHarvester {
 		delimiter = config.get("harvester/csv/delimiter", ",").charAt(0);
 
 		idColumn = convertFieldName(config.get("harvester/csv/idColumn"));
-		if (idColumn == null) {
-			throw new HarvesterException("No ID Column defined.");
+		// if (idColumn == null) {
+		// throw new HarvesterException("No ID Column defined.");
+		// }
+
+		if (config.get("harvester/csv/recordIDPrefix") != null) {
+			recordIDPrefix = config.get("harvester/csv/recordIDPrefix");
 		}
 
 		String limitString = config.get("harvester/callista/limit", "-1");
@@ -157,16 +167,17 @@ public class CSVHarvester extends GenericHarvester {
 
 		ignoredFields = new ArrayList<String>();
 		List<Object> ignore = config.getList("harvester/callista/ignoreFields");
-		for (Object item: ignore){
-			ignoredFields.add(convertFieldName((String)item));
+		for (Object item : ignore) {
+			ignoredFields.add(convertFieldName((String) item));
 		}
-		
+
 		includedFields = new ArrayList<String>();
-		List<Object> include = config.getList("harvester/callista/includedFields");
-		for (Object item: include){
-			includedFields.add(convertFieldName((String)item));
+		List<Object> include = config
+				.getList("harvester/callista/includedFields");
+		for (Object item : include) {
+			includedFields.add(convertFieldName((String) item));
 		}
-		
+
 		csvData = new File(filePath);
 		if (csvData == null || !csvData.exists()) {
 			throw new HarvesterException("Could not find CSV data file: '"
@@ -273,11 +284,12 @@ public class CSVHarvester extends GenericHarvester {
 
 	}
 
-	
 	/**
-	 * Replaces spaces with an underscore.
-	 * Workaround as the JSON library balks at spaces in the key
-	 * @param str The space to be converted
+	 * Replaces spaces with an underscore. Workaround as the JSON library balks
+	 * at spaces in the key
+	 * 
+	 * @param str
+	 *            The space to be converted
 	 * @return A string with all spaces converted into underscores
 	 */
 	public static String convertFieldName(String str) {
@@ -286,23 +298,24 @@ public class CSVHarvester extends GenericHarvester {
 	}
 
 	private String createRecord(String[] columns, int rowNumber) {
-		int j = 0;
+		int j = -1;
 		String id = null;
 
 		JsonConfigHelper json = new JsonConfigHelper();
 
 		for (String column : columns) {
 			String colName = dataFields.get(j);
-			if (idColumn == null){
-				id = Integer.toString(rowNumber);
+			j++;
+			if (idColumn == null) {
+				id = recordIDPrefix + Integer.toString(rowNumber);
 			} else if (idColumn.equals(colName)) {
-				id = column;
+				id = recordIDPrefix + column;
 			}
-			
-			if (ignoredFields.contains(colName)){
+
+			if (ignoredFields.contains(colName)) {
 				continue;
 			}
-			if (includedFields.size()>0 && !includedFields.contains(colName)) {
+			if (includedFields.size() > 0 && !includedFields.contains(colName)) {
 				continue;
 			}
 			try {
@@ -311,7 +324,6 @@ public class CSVHarvester extends GenericHarvester {
 				log.error("Error parsing record '{}': " + ex.getMessage(), id,
 						ex);
 			}
-			j++;
 		}
 
 		json.set("id", id);
