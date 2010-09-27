@@ -31,6 +31,7 @@ import java.io.StringReader;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Properties;
 import java.util.Set;
 
@@ -50,12 +51,40 @@ import au.edu.usq.fascinator.common.storage.StorageUtils;
 import com.Ostermiller.util.CSVParser;
 
 /**
- * 
+ * Harvester for CSV files.
+ * <p>
+ * Configuration options:
+ * <ul>
+ * <li>fileLocation: The location of the csv file (required)</li>
+ * <li>idColumn: the column holding the primary key. 
+ * 	If not provided, the row number will be used.</li>
+ * <li>delimiter: The csv delimiter. Comma (,) is the default</li>
+ * <li>ignoredFields: An array of fields (columns) ignored by the harvest.</li>
+ * <li>includedFields: An array of fields (columns) included by the harvest</li>
+ * </ul>
+ * <p>
+ * You can select to harvest all columns (fields) or be selective:
+ * <ul>
+ * <li>If you don't set ignoredFields or includedFields: all fields are harvested.</li>
+ * <li>ignoredFields has precedence over includedFields: 
+ * 	If you have the same field in both lists, it will get ignored.</li>
+ * <li>If you only provide fields in ignoredFields (and leave includedFields blank), all other fields will be harvested</li>
+ * <li>If you only provide fields in includedFields (and leave ignoredFields blank), only these fields will be harvested</li>
+ * </ul>
+ * <p>
+ * Note: due to limitations in our JSON parser, any fields with a space in the name
+ * (e.g. "First Name") will have the space replaced by an underscore (e.g. "First_Name").
+ * If you use spaces in items in the ignoredFields or includedFields arrays they'll be converted as well.
+ * <p>
+ * Fields with repeated names result in only the first value being stored.
  * <p>
  * Based on Greg Pendlebury's CallistaHarvester.
  * 
  * @author Duncan Dickinson
- * @author Greg Pendlebury
+ */
+/**
+ * @author dickinso
+ *
  */
 public class CSVHarvester extends GenericHarvester {
 
@@ -73,6 +102,12 @@ public class CSVHarvester extends GenericHarvester {
 
 	/** Delimiter in the CSV */
 	private char delimiter = ',';
+
+	/** Ignored field names (column) */
+	private ArrayList<String> ignoredFields = null;
+	
+	/** Included field names (column) */
+	private ArrayList<String> includedFields = null;
 
 	/** The name of the column holding the ID */
 	String idColumn = null;
@@ -107,7 +142,7 @@ public class CSVHarvester extends GenericHarvester {
 
 		String filePath = config.get("harvester/csv/fileLocation");
 		if (filePath == null) {
-			throw new HarvesterException("No Callista data file provided!");
+			throw new HarvesterException("No data file provided!");
 		}
 
 		delimiter = config.get("harvester/csv/delimiter", ",").charAt(0);
@@ -120,6 +155,18 @@ public class CSVHarvester extends GenericHarvester {
 		String limitString = config.get("harvester/callista/limit", "-1");
 		limit = Integer.parseInt(limitString);
 
+		ignoredFields = new ArrayList<String>();
+		List<Object> ignore = config.getList("harvester/callista/ignoreFields");
+		for (Object item: ignore){
+			ignoredFields.add(convertFieldName((String)item));
+		}
+		
+		includedFields = new ArrayList<String>();
+		List<Object> include = config.getList("harvester/callista/includedFields");
+		for (Object item: include){
+			includedFields.add(convertFieldName((String)item));
+		}
+		
 		csvData = new File(filePath);
 		if (csvData == null || !csvData.exists()) {
 			throw new HarvesterException("Could not find CSV data file: '"
@@ -175,7 +222,8 @@ public class CSVHarvester extends GenericHarvester {
 					values = CSVParser.parse(new StringReader(line), delimiter);
 				} catch (IOException ex) {
 					log.error("Error parsing CSV file", ex);
-					throw new HarvesterException("Error parsing CSV file: " + ex.getMessage(), ex);
+					throw new HarvesterException("Error parsing CSV file: "
+							+ ex.getMessage(), ex);
 				}
 
 				for (String[] columns : values) {
@@ -195,7 +243,7 @@ public class CSVHarvester extends GenericHarvester {
 									+ idColumn
 									+ ") does not appear in the first row");
 						}
-						
+
 						titleFlag = true;
 						continue;
 					} else {
@@ -203,7 +251,7 @@ public class CSVHarvester extends GenericHarvester {
 						if (i % 500 == 0) {
 							log.info("Parsing row {}", i);
 						}
-						fileObjectIdList.add(createRecord(columns));
+						fileObjectIdList.add(createRecord(columns, i));
 						i++;
 					}
 				}
@@ -225,25 +273,43 @@ public class CSVHarvester extends GenericHarvester {
 
 	}
 
+	
+	/**
+	 * Replaces spaces with an underscore.
+	 * Workaround as the JSON library balks at spaces in the key
+	 * @param str The space to be converted
+	 * @return A string with all spaces converted into underscores
+	 */
 	public static String convertFieldName(String str) {
-		//TODO: workaround as the JSON library balks at spaces in the key
+		// TODO: workaround as the JSON library balks at spaces in the key
 		return str.replaceAll("\\s", "_");
 	}
-	
-	private String createRecord(String[] columns) {
+
+	private String createRecord(String[] columns, int rowNumber) {
 		int j = 0;
 		String id = null;
 
 		JsonConfigHelper json = new JsonConfigHelper();
 
 		for (String column : columns) {
-			if (idColumn.equals(dataFields.get(j))) {
+			String colName = dataFields.get(j);
+			if (idColumn == null){
+				id = Integer.toString(rowNumber);
+			} else if (idColumn.equals(colName)) {
 				id = column;
 			}
+			
+			if (ignoredFields.contains(colName)){
+				continue;
+			}
+			if (includedFields.size()>0 && !includedFields.contains(colName)) {
+				continue;
+			}
 			try {
-				store(dataFields.get(j), column, json);
+				store(colName, column, json);
 			} catch (Exception ex) {
-				log.error("Error parsing record '{}': " + ex.getMessage(), id, ex);
+				log.error("Error parsing record '{}': " + ex.getMessage(), id,
+						ex);
 			}
 			j++;
 		}
@@ -323,7 +389,7 @@ public class CSVHarvester extends GenericHarvester {
 		if (value != null) {
 			String existing = json.get(field);
 			if (existing != null) {
-				if (! existing.equals(value)) {
+				if (!existing.equals(value)) {
 					// Data mismatch, we have two or more different values
 					// in a field that should be the same.
 					throw new Exception("Duplicate in field '" + field + "'!");
