@@ -5,7 +5,9 @@ from au.edu.usq.fascinator.api.storage import StorageException
 from au.edu.usq.fascinator.common import JsonConfigHelper
 
 from java.io import ByteArrayInputStream, ByteArrayOutputStream
+from java.lang import Boolean
 from java.net import URLDecoder
+from java.util import TreeMap
 
 from org.apache.commons.io import IOUtils
 
@@ -20,7 +22,9 @@ class DownloadData:
         self.portalId = context["portalId"]
         self.request = context["request"]
         self.response = context["response"]
-        
+        self.formData = context["formData"]
+        self.page = context["page"]
+
         basePath = self.portalId + "/" + self.pageName
         fullUri = URLDecoder.decode(self.request.getAttribute("RequestURI"))
         uri = fullUri[len(basePath)+1:]
@@ -29,10 +33,25 @@ class DownloadData:
             if object == None:
                 self.response.sendRedirect(self.contextPath + "/" + fullUri + "/")
                 return
+            else:
+                oid = object.getId()
+                self.__metadata = JsonConfigHelper()
+                self.__loadSolrData(oid)
+                if self.isIndexed():
+                    self.__metadata = self.__solrData.getJsonList("response/docs").get(0)
+                    self.__json = JsonConfigHelper(self.__solrData.getList("response/docs").get(0))
+                    self.__metadataMap = TreeMap(self.__json.getMap("/"))
+                else:
+                    self.__metadata.set("id", oid)
             #print "URI='%s' OID='%s' PID='%s'" % (uri, object.getId(), payload.getId())
         except StorageException, e:
             payload = None
             print "Failed to get object: %s" % (str(e))
+
+        if self.isAccessDenied():
+            # Redirect to the object page for standard access denied error
+            self.response.sendRedirect(self.contextPath + "/" + self.portalId + "/detail/" + object.getId())
+            return
 
         if payload is not None:
             filename = os.path.split(payload.getId())[1]
@@ -66,6 +85,31 @@ class DownloadData:
             writer.println("Resource not found: uri='%s'" % uri)
             writer.close()
 
+    def getAllowedRoles(self):
+        metadata = self.getMetadata()
+        if metadata is not None:
+            return metadata.getList("security_filter")
+        else:
+            return []
+
+    def getMetadata(self):
+        return self.__metadata
+
+    def isAccessDenied(self):
+        myRoles = self.page.authentication.get_roles_list()
+        allowedRoles = self.getAllowedRoles()
+        for role in myRoles:
+            if role in allowedRoles:
+                return  False
+        return True
+
+    def isDetail(self):
+        preview = Boolean.parseBoolean(self.formData.get("preview", "false"))
+        return not (self.request.isXHR() or preview)
+
+    def isIndexed(self):
+        return self.__getNumFound() == 1
+
     def __resolve(self, uri):
         slash = uri.find("/")
         if slash == -1:
@@ -83,6 +127,9 @@ class DownloadData:
         payload = object.getPayload(pid)
         return object, payload
 
+    def __getNumFound(self):
+        return int(self.__solrData.get("response/numFound"))
+
     def __getStorageId(self, oid):
         req = SearchRequest('id:"%s"' % oid)
         req.addParam("fl", "storage_id")
@@ -90,3 +137,16 @@ class DownloadData:
         self.services.getIndexer().search(req, out)
         json = JsonConfigHelper(ByteArrayInputStream(out.toByteArray()))
         return json.getList("response/docs").get(0).get("storage_id")
+
+    def __loadSolrData(self, oid):
+        portal = self.page.getPortal()
+        query = 'id:"%s"' % oid
+        if self.isDetail() and portal.getSearchQuery():
+            query += " AND " + portal.getSearchQuery()
+        req = SearchRequest(query)
+        req.addParam("fq", 'item_type:"object"')
+        if self.isDetail():
+            req.addParam("fq", portal.getQuery())
+        out = ByteArrayOutputStream()
+        self.services.getIndexer().search(req, out)
+        self.__solrData = JsonConfigHelper(ByteArrayInputStream(out.toByteArray()))

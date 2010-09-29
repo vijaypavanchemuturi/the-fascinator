@@ -59,6 +59,13 @@ class DetailData:
             # require trailing slash for relative paths
             self.response.sendRedirect("%s/%s/" % (self.contextPath, uri))
 
+    def getAllowedRoles(self):
+        metadata = self.getMetadata()
+        if metadata is not None:
+            return metadata.getList("security_filter")
+        else:
+            return []
+
     def getFileName(self):
         filePath = self.getProperty("file.path")
         return os.path.split(filePath)[1]
@@ -99,6 +106,14 @@ class DetailData:
         filePath = self.getProperty("file.path")
         return filePath and os.path.exists(filePath)
 
+    def isAccessDenied(self):
+        myRoles = self.page.authentication.get_roles_list()
+        allowedRoles = self.getAllowedRoles()
+        for role in myRoles:
+            if role in allowedRoles:
+                return  False
+        return True
+
     def isDetail(self):
         preview = Boolean.parseBoolean(self.formData.get("preview", "false"))
         return not (self.request.isXHR() or preview)
@@ -110,6 +125,9 @@ class DetailData:
         meta = self.getObject().getMetadata()
         status = meta.get("render-pending")
         return Boolean.parseBoolean(status)
+
+    def setStatus(self, status):
+        self.response.setStatus(status)
 
     def __getNumFound(self):
         return int(self.__solrData.get("response/numFound"))

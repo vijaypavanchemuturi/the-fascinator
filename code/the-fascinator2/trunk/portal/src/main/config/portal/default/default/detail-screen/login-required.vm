@@ -1,3 +1,5 @@
+#set($status = $self.setStatus(401))
+
 #set($pageTitle = "Login Required")
 <h2 id="page-heading">$pageTitle</h2>
 <div class="grid_16">
