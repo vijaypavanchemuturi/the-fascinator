@@ -767,3 +767,23 @@ ul.main li ul li.selected-view a {
     cursor: pointer;
     font-weight: bolder;
 }
+legend span.legend {
+    display: block;
+    white-space: normal;
+    width: 90%;
+}
+#workflowSecurity {
+    background-color: #EEEEEE;
+    border: 1px solid #CCCCCC;
+    padding: 7px;
+    margin: 3px 3px 10px;
+}
+#workflowSecurity #wfOverride {
+    width: 20px;
+}
+#workflowSecurity p {
+    margin-bottom: 5px;
+}
+#workflowWarn {
+    font-weight: strong;
+}

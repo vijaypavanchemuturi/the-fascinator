@@ -1,4 +1,5 @@
 import sys
+from au.edu.usq.fascinator.api.storage import StorageException
 
 class AdminData:
 
@@ -145,6 +146,41 @@ class AdminData:
 
     def get_current_access(self):
         record = self.vc("formData").get("record")
+
+        # Is this object in a workflow?
+        hasWorkflow = False
+        storage = self.vc("Services").getStorage()
+        object = None
+        try:
+            object = storage.getObject(record)
+            wfPayload = object.getPayload("workflow.metadata")
+            if wfPayload is not None:
+                hasWorkflow = True;
+        except StorageException, e:
+            # Flag is already set to false
+            pass
+
+        # Do we already pay attention to this?
+        wfOverride = False
+        if hasWorkflow:
+            try:
+                metadata = object.getMetadata()
+                flag = metadata.getProperty("overrideWfSecurity")
+                if flag is not None and flag == "true":
+                    wfOverride = True
+            except StorageException, e:
+                # Flag is already set to false
+                pass
+
+        # Ready JSON section for workflows
+        if hasWorkflow:
+            if wfOverride:
+                wfString = "'workflow': {'hasWf': true, 'useWf': false}"
+            else:
+                wfString = "'workflow': {'hasWf': true, 'useWf': true}"
+        else:
+            wfString = "'workflow': {'hasWf': false, 'useWf': true}"
+
         roles_list = self.vc("page").authentication.get_access_roles_list(record)
 
         err = self.vc("page").authentication.get_error()
@@ -157,7 +193,8 @@ class AdminData:
                     plugin_strings.append("'" + plugin + "' : ['" + "','".join(roles) + "']")
                 else:
                     plugin_strings.append("'" + plugin + "' : []")
-            responseMessage = "{" + ",".join(plugin_strings) + "}"
+            pluginString = "'plugins': {" + ",".join(plugin_strings) + "}"
+            responseMessage = "{" + wfString + ", " + pluginString + "}"
             self.writer.println(responseMessage)
             self.writer.close()
 
@@ -211,7 +248,8 @@ class AdminData:
             "grant-access"       : self.grant_access,
             "list-users"         : self.list_users,
             "remove-user"        : self.remove_user,
-            "revoke-access"      : self.revoke_access
+            "revoke-access"      : self.revoke_access,
+            "workflow-override"  : self.workflow_override
         }
         switch.get(action, self.unknown_action)()
 
@@ -257,3 +295,33 @@ class AdminData:
 
     def unknown_action(self):
         self.throw_error("Unknown action requested - '" + self.vc("formData").get("verb") + "'")
+
+    def workflow_override(self):
+        record = self.vc("formData").get("record")
+        newFlag = self.vc("formData").get("wfOverride")
+
+        # Is this object in a workflow?
+        hasWorkflow = False
+        storage = self.vc("Services").getStorage()
+        object = None
+        try:
+            object = storage.getObject(record)
+            wfPayload = object.getPayload("workflow.metadata")
+            if wfPayload is not None:
+                hasWorkflow = True;
+        except StorageException, e:
+            self.throw_error("Error accessing object in storage")
+
+        # Do we already pay attention to this?
+        wfOverride = False
+        if hasWorkflow:
+            try:
+                metadata = object.getMetadata()
+                metadata.setProperty("overrideWfSecurity", newFlag)
+                object.close()
+                self.writer.println(newFlag)
+                self.writer.close()
+            except StorageException, e:
+                self.throw_error("Error accessing object metadata")
+        else:
+            self.throw_error("This object is not in a workflow")

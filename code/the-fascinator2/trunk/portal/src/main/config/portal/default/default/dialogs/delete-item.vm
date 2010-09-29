@@ -1,7 +1,7 @@
 <div class="box hidden" id="delete-dialog">
   <form id="delete" method="post">
     <fieldset class="search">
-      <legend>Delete : '<span id="delete-legend"></span>'</legend>
+      <legend><span class="legend">Delete : '<span id="delete-legend"></span>'</span></legend>
       <div class="stop-error hidden" id="delete-error">
         <span id="delete-message"></span>
       </div>

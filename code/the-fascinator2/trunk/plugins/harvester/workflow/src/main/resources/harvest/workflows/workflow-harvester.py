@@ -78,6 +78,11 @@ class IndexData:
                 pass
 
     def __security(self):
+        overrideFlag = self.params.getProperty("overrideWfSecurity", "false")
+        if overrideFlag == "true":
+            overrideFlag = True
+        else:
+            overrideFlag = False
         # Security
         roles = self.utils.getRolesWithAccess(self.oid)
         if roles is not None:
@@ -85,7 +90,7 @@ class IndexData:
             for role in roles:
                 # Should show up, but during debugging we got a few
                 if role != "":
-                    if role in self.item_security:
+                    if role in self.item_security or overrideFlag:
                         # They still have access
                         self.utils.add(self.index, "security_filter", role)
                     else:
