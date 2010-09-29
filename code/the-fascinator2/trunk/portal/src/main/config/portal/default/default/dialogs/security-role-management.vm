@@ -29,15 +29,24 @@
 <div class="box hidden" id="security-form">
   <form id="security" method="post">
     <fieldset class="search">
-      <legend>Security : '<span id="security-legend"></span>'</legend>
+      <legend><span class="legend">Security</span></legend>
       <div class="stop-error hidden" id="security-error">
         <span id="security-message"></span>
       </div>
-      <p>Below are all the currently active security plugins and the roles they allow access to this item:</p>
-      <div id="security-field-holder">
-#buildSecurityFields($page.authentication.get_plugins_access())
+
+      <div id="workflowSecurity" class="hidden">
+        <p>Item: '<span id="security-legend"></span>'</p>
+        <p>This item is managed by a workflow. Most workflows enforce their own security, but some will allow you to override.</p>
+        <p><input type="checkbox" id="wfOverride" /> Override workflow security with my own.</p>
       </div>
-      <input id="security-cancel" type="button" value="Close" />
+
+      <div id="customSecurity" class="hidden">
+        <p>Below are all the currently active security plugins and the roles they allow access to this item:</p>
+        <div id="security-field-holder">
+    #buildSecurityFields($page.authentication.get_plugins_access())
+        </div>
+        <input id="security-cancel" type="button" value="Close" />
+      </div>
     </fieldset>
   </form>
 </div>
@@ -122,18 +131,74 @@ $(function() {
         return false;
     });
 
+    $("#wfOverride").click(function() {
+        var checked = $(this).attr("checked");
+
+        // Notify the server
+        jQuery.ajax({
+            type : "POST",
+            url : "$portalPath/actions/admin.ajax",
+            success:
+                function(data, status) {
+                    // Change the UI
+                    if (checked) {
+                        $("#customSecurity").show();
+                    } else {
+                        $("#customSecurity").hide();
+                    }
+                },
+            error:
+                function (req, status, e) {
+                    $("#security-error").show();
+                    $("#security-message").html(req.responseText);
+                    // Reverse the UI change
+                    if (checked) {
+                        $("#wfOverride").attr("checked", !checked);
+                    }
+                },
+            data: {
+                record: recordId,
+                wfOverride: checked,
+                verb: "workflow-override"
+            }
+        });
+    });
+
     function securityQuery(data, status) {
         var response = eval("(" + data + ")");
-        for (var i in response) {
+
+        // Workflow override
+        var workflow = response.workflow;
+        if (workflow.hasWf) {
+            // We have a workflow
+            $("#workflowSecurity").show();
+            if (workflow.useWf) {
+                // And we are still using it
+                $("#wfOverride").attr("checked", false);
+                $("#customSecurity").hide();
+            } else {
+                // But we've been told to ignore it
+                $("#wfOverride").attr("checked", true);
+                $("#customSecurity").show();
+            }
+        } else {
+            // No workflow
+            $("#workflowSecurity").hide();
+            $("#customSecurity").show();
+        }
+
+        // Plugin data
+        var plugins = response.plugins;
+        for (var i in plugins) {
             $("#security-rows-" + i).html("");
-            if (response[i].length == 0) {
+            if (plugins[i].length == 0) {
                 $("#security-empty-" + i).show();
                 $("#security-loading-" + i).hide();
             } else {
                 $("#security-empty-" + i).hide();
-                len = response[i].length;
+                len = plugins[i].length;
                 for (var j = 0; j < len; j++) {
-                    addRow(i, response[i][j]);
+                    addRow(i, plugins[i][j]);
                 }
                 $("#security-loading-" + i).hide();
             }
