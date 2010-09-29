@@ -59,16 +59,19 @@ class DetailData:
             # require trailing slash for relative paths
             self.response.sendRedirect("%s/%s/" % (self.contextPath, uri))
 
-    def hasLocalFile(self):
-        # get original file.path from object properties
+    def getFileName(self):
         filePath = self.getProperty("file.path")
-        return filePath and os.path.exists(filePath)
+        return os.path.split(filePath)[1]
 
-    def getOid(self):
-        return self.__oid
+    def getFileNameSplit(self, index):
+        return os.path.splitext(self.getFileName())[index]
 
-    def isIndexed(self):
-        return self.__getNumFound() == 1
+    def getFriendlyName(self, name):
+        if name.startswith("dc_"):
+            name = name[3:]
+        if name.startswith("meta_"):
+            name = name[5:]
+        return name.replace("_", " ").capitalize()
 
     def getMetadata(self):
         return self.__metadata
@@ -79,34 +82,34 @@ class DetailData:
     def getObject(self):
         return self.__object
 
-    def isPending(self):
-        meta = self.getObject().getMetadata()
-        status = meta.get("render-pending")
-        return Boolean.parseBoolean(status)
+    def getOid(self):
+        return self.__oid
 
-    def getFriendlyName(self, name):
-        if name.startswith("dc_"):
-            name = name[3:]
-        if name.startswith("meta_"):
-            name = name[5:]
-        return name.replace("_", " ").capitalize()
+    def getProperty(self, field):
+        return self.getObject().getMetadata().getProperty(field)
+
+    def getUserAgreement(self):
+        if not self.uaActivated:
+            self.userAgreement.__activate__(self.velocityContext, self.getMetadata())
+            self.uaActivated = True
+        return self.userAgreement
+
+    def hasLocalFile(self):
+        # get original file.path from object properties
+        filePath = self.getProperty("file.path")
+        return filePath and os.path.exists(filePath)
 
     def isDetail(self):
         preview = Boolean.parseBoolean(self.formData.get("preview", "false"))
         return not (self.request.isXHR() or preview)
 
-    def __loadSolrData(self, oid):
-        portal = self.page.getPortal()
-        query = 'id:"%s"' % oid
-        if self.isDetail() and portal.getSearchQuery():
-            query += " AND " + portal.getSearchQuery()
-        req = SearchRequest(query)
-        req.addParam("fq", 'item_type:"object"')
-        if self.isDetail():
-            req.addParam("fq", portal.getQuery())
-        out = ByteArrayOutputStream()
-        self.services.getIndexer().search(req, out)
-        self.__solrData = JsonConfigHelper(ByteArrayInputStream(out.toByteArray()))
+    def isIndexed(self):
+        return self.__getNumFound() == 1
+
+    def isPending(self):
+        meta = self.getObject().getMetadata()
+        status = meta.get("render-pending")
+        return Boolean.parseBoolean(status)
 
     def __getNumFound(self):
         return int(self.__solrData.get("response/numFound"))
@@ -129,18 +132,15 @@ class DetailData:
     def __getStorageId(self, oid):
         return self.__metadata.get("storage_id")
 
-    def getUserAgreement(self):
-        if not self.uaActivated:
-            self.userAgreement.__activate__(self.velocityContext, self.getMetadata())
-            self.uaActivated = True
-        return self.userAgreement
-
-    def getFileName(self):
-        filePath = self.getProperty("file.path")
-        return os.path.split(filePath)[1]
-
-    def getFileNameSplit(self, index):
-        return os.path.splitext(self.getFileName())[index]
-
-    def getProperty(self, field):
-        return self.getObject().getMetadata().getProperty(field)
+    def __loadSolrData(self, oid):
+        portal = self.page.getPortal()
+        query = 'id:"%s"' % oid
+        if self.isDetail() and portal.getSearchQuery():
+            query += " AND " + portal.getSearchQuery()
+        req = SearchRequest(query)
+        req.addParam("fq", 'item_type:"object"')
+        if self.isDetail():
+            req.addParam("fq", portal.getQuery())
+        out = ByteArrayOutputStream()
+        self.services.getIndexer().search(req, out)
+        self.__solrData = JsonConfigHelper(ByteArrayInputStream(out.toByteArray()))
