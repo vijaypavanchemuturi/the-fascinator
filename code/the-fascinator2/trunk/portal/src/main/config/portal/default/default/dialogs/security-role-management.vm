@@ -34,13 +34,13 @@
         <span id="security-message"></span>
       </div>
 
-      <div id="workflowSecurity" class="hidden">
+      <div id="workflowSecurity">
         <p>Item: '<span id="security-legend"></span>'</p>
         <p>This item is managed by a workflow. Most workflows enforce their own security, but some will allow you to override.</p>
         <p><input type="checkbox" id="wfOverride" /> Override workflow security with my own.</p>
       </div>
 
-      <div id="customSecurity" class="hidden">
+      <div id="customSecurity">
         <p>Below are all the currently active security plugins and the roles they allow access to this item:</p>
         <div id="security-field-holder">
     #buildSecurityFields($page.authentication.get_plugins_access())
