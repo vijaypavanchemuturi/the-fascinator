@@ -30,6 +30,7 @@ import java.io.InputStreamReader;
 import java.io.StringReader;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Properties;
@@ -113,7 +114,7 @@ public class CSVHarvester extends GenericHarvester {
 	private ArrayList<String> includedFields = null;
 
 	/** The name of the column holding the ID */
-	String idColumn = null;
+	String idColumn = "";
 
 	/** A prefix for generating the object's ID */
 	String recordIDPrefix = "";
@@ -150,7 +151,7 @@ public class CSVHarvester extends GenericHarvester {
 		if (filePath == null) {
 			throw new HarvesterException("No data file provided!");
 		}
-		
+
 		csvData = new File(filePath);
 		if (csvData == null || !csvData.exists()) {
 			throw new HarvesterException("Could not find CSV data file: '"
@@ -159,14 +160,9 @@ public class CSVHarvester extends GenericHarvester {
 
 		delimiter = config.get("harvester/csv/delimiter", ",").charAt(0);
 
-		idColumn = convertFieldName(config.get("harvester/csv/idColumn"));
-		// if (idColumn == null) {
-		// throw new HarvesterException("No ID Column defined.");
-		// }
+		idColumn = convertFieldName(config.get("harvester/csv/idColumn", null));
 
-		if (config.get("harvester/csv/recordIDPrefix") != null) {
-			recordIDPrefix = config.get("harvester/csv/recordIDPrefix");
-		}
+		recordIDPrefix = config.get("harvester/csv/recordIDPrefix", "");
 
 		String limitString = config.get("harvester/csv/limit", "-1");
 		limit = Integer.parseInt(limitString);
@@ -180,8 +176,7 @@ public class CSVHarvester extends GenericHarvester {
 		}
 
 		includedFields = new ArrayList<String>();
-		List<Object> include = config
-				.getList("harvester/csv/includedFields");
+		List<Object> include = config.getList("harvester/csv/includedFields");
 		for (Object item : include) {
 			String s = convertFieldName((String) item);
 			includedFields.add(s);
@@ -245,18 +240,17 @@ public class CSVHarvester extends GenericHarvester {
 					if (!titleFlag) {
 						// Read the field names from the first row
 						for (String column : columns) {
-							// Print if debugging
-							// log.debug("HEADING {}: '{}'", j, column);
-							// j++;
 							String col = convertFieldName(column);
 							dataFields.add(col);
 							log.debug("CSV field name: {}", col);
 						}
 						// j = 0;
-						if (!dataFields.contains(idColumn)) {
-							throw new HarvesterException("The ID Column ("
-									+ idColumn
-									+ ") does not appear in the first row");
+						if (idColumn != null) {
+							if (!dataFields.contains(idColumn)) {
+								throw new HarvesterException("The ID Column ("
+										+ idColumn
+										+ ") does not appear in the first row");
+							}
 						}
 
 						titleFlag = true;
@@ -298,23 +292,33 @@ public class CSVHarvester extends GenericHarvester {
 	 */
 	public static String convertFieldName(String str) {
 		// TODO: workaround as the JSON library balks at spaces in the key
+		if (str == null)
+			return null;
 		return str.replaceAll("\\s", "_");
 	}
 
 	private String createRecord(String[] columns, int rowNumber) {
 		int j = -1;
-		String id = null;
 
 		JsonConfigHelper json = new JsonConfigHelper();
+
+		HashMap<String, Object> data = new HashMap<String, Object>();
+		HashMap<String, Object> metadata = new HashMap<String, Object>();
+
+		if (idColumn == null) {
+			// Use the row number as the ID
+			metadata.put("dc.identifier", recordIDPrefix
+					+ Integer.toString(rowNumber));
+		}
 
 		for (String column : columns) {
 			j++;
 			String colName = dataFields.get(j);
-			
-			if (idColumn == null) {
-				id = recordIDPrefix + Integer.toString(rowNumber);
-			} else if (idColumn.equals(colName)) {
-				id = recordIDPrefix + column;
+
+			if (idColumn != null) {
+				if (idColumn.equals(colName)) {
+					metadata.put("dc.identifier", recordIDPrefix + column);
+				}
 			}
 
 			if (ignoredFields.contains(colName)) {
@@ -323,22 +327,22 @@ public class CSVHarvester extends GenericHarvester {
 			if (includedFields.size() > 0 && !includedFields.contains(colName)) {
 				continue;
 			}
-			
-			//log.debug("Storing field: " + colName);
-			try {
-				store(colName, column, json);
-			} catch (Exception ex) {
-				log.error("Error parsing record '{}': " + ex.getMessage(), id,
-						ex);
-			}
+
+			// log.debug("Storing field: " + colName);
+			data.put(colName, column);
 		}
 
-		json.set("id", id);
-		json.set("step", "pending");
+		try {
+			json.setMap("data", data);
+			json.setMap("metadata", metadata);
+		} catch (Exception ex) {
+			log.error("Error parsing record '{}': " + ex.getMessage(), metadata
+					.get("dc.identifier"), ex);
+		}
 
 		if (json != null) {
 			try {
-				return storeJson(json, csvData.getName() + "?" + id);
+				return storeJson(json, (String) metadata.get("dc.identifier"));
 			} catch (StorageException ex) {
 				log.error("Error during storage: ", ex);
 			} catch (HarvesterException ex) {
@@ -386,37 +390,6 @@ public class CSVHarvester extends GenericHarvester {
 			return new ByteArrayInputStream(data.getBytes("utf-8"));
 		} catch (UnsupportedEncodingException ex) {
 			return null;
-		}
-	}
-
-	/**
-	 * Simple wrapper for storing strings in json to avoid excessive null
-	 * testing. Duplicate testing is performed to ensure only like values exist
-	 * in the data stream and no mismatches exist.
-	 * 
-	 * @param field
-	 *            : Field name to use
-	 * @param value
-	 *            : Data to store, possibly null
-	 * @param json
-	 *            : The JSON object to store in
-	 * @return boolean : <code>true</code> the value is appropriate for storage,
-	 *         <code>false</code> if there is a clash
-	 */
-	private void store(String field, String value, JsonConfigHelper json)
-			throws Exception {
-		if (value != null) {
-			String existing = json.get(field);
-			if (existing != null) {
-				if (!existing.equals(value)) {
-					// Data mismatch, we have two or more different values
-					// in a field that should be the same.
-					throw new Exception("Duplicate in field '" + field + "'!");
-				}
-			} else {
-				// First time we've seen this field
-				json.set(field, value);
-			}
 		}
 	}
 
