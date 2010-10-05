@@ -162,7 +162,7 @@ public class PortalSecurityManagerImpl implements PortalSecurityManager {
      * @return String[] A list of roles
      */
     @Override
-    public String[] getRolesList(GenericUser user) {
+    public String[] getRolesList(User user) {
         String source = user.getSource();
         List<String> ssoRoles = new ArrayList();
 
@@ -172,7 +172,8 @@ public class PortalSecurityManagerImpl implements PortalSecurityManager {
         }
 
         // Standard Users
-        String[] standardRoles = roleManager.getRoles(user.getUsername());
+        GenericUser gUser = (GenericUser) user;
+        String[] standardRoles = roleManager.getRoles(gUser.getUsername());
         for (String role : standardRoles) {
             // Merge the two
             if (!ssoRoles.contains(role)) {
