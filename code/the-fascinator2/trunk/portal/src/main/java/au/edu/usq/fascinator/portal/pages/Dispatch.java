@@ -20,6 +20,8 @@ package au.edu.usq.fascinator.portal.pages;
 
 import au.edu.usq.fascinator.HarvestClient;
 import au.edu.usq.fascinator.api.PluginException;
+import au.edu.usq.fascinator.api.authentication.AuthenticationException;
+import au.edu.usq.fascinator.api.authentication.User;
 import au.edu.usq.fascinator.api.roles.RolesManager;
 import au.edu.usq.fascinator.common.JsonConfig;
 import au.edu.usq.fascinator.common.JsonConfigHelper;
@@ -73,9 +75,6 @@ public class Dispatch {
 
     @Inject
     private Logger log;
-
-    @Inject
-    private RolesManager roleManager;
 
     @SessionState
     private JsonSessionState sessionState;
@@ -242,7 +241,16 @@ public class Dispatch {
 
         // Roles of current user
         String username = (String) sessionState.get("username");
-        List<String> roles = Arrays.asList(roleManager.getRoles(username));
+        String userSource = (String) sessionState.get("source");
+        List<String> roles = null;
+        try {
+            User user = security.getUser(username, userSource);
+            String[] roleArray = security.getRolesList(user);
+            roles = Arrays.asList(roleArray);
+        } catch (AuthenticationException ex) {
+            log.error("Error retrieving user data.");
+            return;
+        }
 
         // The workflow we're using
         List<String> reqParams = request.getParameterNames();
@@ -253,7 +261,6 @@ public class Dispatch {
             log.error("No workflow provided with form data.");
             return;
         }
-
         Map<String, JsonConfigHelper> workflows =
                 sysConfig.getJsonMap("uploader");
         JsonConfigHelper workflowConfig = workflows.get(workflowId);

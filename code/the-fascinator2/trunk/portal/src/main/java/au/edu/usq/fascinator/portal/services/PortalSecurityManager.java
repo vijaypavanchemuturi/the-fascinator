@@ -25,7 +25,6 @@ import au.edu.usq.fascinator.api.authentication.User;
 import au.edu.usq.fascinator.api.roles.RolesManager;
 import au.edu.usq.fascinator.common.authentication.GenericUser;
 import au.edu.usq.fascinator.portal.JsonSessionState;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -64,7 +63,7 @@ public interface PortalSecurityManager {
      * @param user The user object of the current user
      * @return String[] A list of roles
      */
-    public String[] getRolesList(GenericUser user);
+    public String[] getRolesList(User user);
 
     /**
      * Retrieve the details of a user by username
