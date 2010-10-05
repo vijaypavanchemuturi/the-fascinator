@@ -121,6 +121,12 @@ public class CSVHarvester extends GenericHarvester {
 
 	/** Debugging limit */
 	private int limit;
+	
+	/** If header row is the first line of the file */
+	private boolean headerRow;
+	
+	/** Column header */
+	private ArrayList<String> headerList;
 
 	/**
 	 * File System Harvester Constructor
@@ -183,6 +189,14 @@ public class CSVHarvester extends GenericHarvester {
 			log.debug("Including field: " + s);
 		}
 
+		headerRow = Boolean.parseBoolean(config.get("harvester/csv/headerRow", "true"));
+		headerList = new ArrayList<String>();
+		List<Object> header = config.getList("harvester/csv/headerList");
+		for (Object item : header) {
+            String s = convertFieldName((String) item);
+            headerList.add(s);
+            log.debug("Header field: " + s);
+        }
 		hasMore = false;
 	}
 
@@ -224,12 +238,16 @@ public class CSVHarvester extends GenericHarvester {
 		// Line by line from buffered reader
 		// It is assumed that the first line provides the field names
 		String line;
+		log.info("get object id list...");
 		try {
 			while ((line = br.readLine()) != null && !stop) {
 				// Parse the CSV for this line
 				String[][] values;
+				log.debug("lines: {}", line);
 				try {
+				    log.debug("parse 1 with delimiter '{}'", delimiter);
 					values = CSVParser.parse(new StringReader(line), delimiter);
+					log.debug("parse 2");
 				} catch (IOException ex) {
 					log.error("Error parsing CSV file", ex);
 					throw new HarvesterException("Error parsing CSV file: "
@@ -237,13 +255,26 @@ public class CSVHarvester extends GenericHarvester {
 				}
 
 				for (String[] columns : values) {
+				    log.debug("processing lines....");
+				    if (!headerRow) {
+				     // If header list is supplied
+                        for (String header : headerList) {
+                            String col = convertFieldName(header);
+                            dataFields.add(col);
+                            log.debug("CSV field name - no header: {}", col);
+                        }
+                        titleFlag = true;
+				    }
 					if (!titleFlag) {
+					    log.debug("Processing... header");
 						// Read the field names from the first row
-						for (String column : columns) {
-							String col = convertFieldName(column);
-							dataFields.add(col);
-							log.debug("CSV field name: {}", col);
-						}
+					    if (headerRow) {
+                            for (String column : columns) {
+                                String col = convertFieldName(column);
+                                dataFields.add(col);
+                                log.debug("CSV field name: {}", col);
+                            }
+                        }
 						// j = 0;
 						if (idColumn != null) {
 							if (!dataFields.contains(idColumn)) {
@@ -254,8 +285,11 @@ public class CSVHarvester extends GenericHarvester {
 						}
 
 						titleFlag = true;
+
+                        log.info("xxx done");
 						continue;
 					} else {
+					    log.debug("Store normal data rows....");
 						// Store normal data rows
 						if (i % 500 == 0) {
 							log.info("Parsing row {}", i);
@@ -312,6 +346,7 @@ public class CSVHarvester extends GenericHarvester {
 		}
 
 		for (String column : columns) {
+		    log.debug("Processing data: {}", column);
 			j++;
 			String colName = dataFields.get(j);
 
