@@ -1,10 +1,4 @@
 #set($pageTitle = "Detail")
-#set($metadata = $self.metadata)
-#if($self.isDetail())
-    #define($pageHeader)
-        #renderObject($metadata "detail/head")
-    #end
-#end
 
 #############
 ## Access Check
@@ -31,6 +25,13 @@
         ## Normal page render
         #############
         #else
+            #set($metadata = $self.metadata)
+            #if($self.isDetail())
+                #define($pageHeader)
+                    #renderObject($metadata "detail/head")
+                #end
+            #end
+
             #if($self.isIndexed())
                 #if($self.isDetail())
                     #renderObject($metadata "detail/title")
