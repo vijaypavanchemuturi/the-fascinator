@@ -243,11 +243,8 @@ public class CSVHarvester extends GenericHarvester {
 			while ((line = br.readLine()) != null && !stop) {
 				// Parse the CSV for this line
 				String[][] values;
-				log.debug("lines: {}", line);
 				try {
-				    log.debug("parse 1 with delimiter '{}'", delimiter);
 					values = CSVParser.parse(new StringReader(line), delimiter);
-					log.debug("parse 2");
 				} catch (IOException ex) {
 					log.error("Error parsing CSV file", ex);
 					throw new HarvesterException("Error parsing CSV file: "
@@ -255,18 +252,16 @@ public class CSVHarvester extends GenericHarvester {
 				}
 
 				for (String[] columns : values) {
-				    log.debug("processing lines....");
 				    if (!headerRow) {
 				     // If header list is supplied
                         for (String header : headerList) {
                             String col = convertFieldName(header);
                             dataFields.add(col);
-                            log.debug("CSV field name - no header: {}", col);
+                            //log.debug("CSV field name - no header: {}", col);
                         }
                         titleFlag = true;
 				    }
 					if (!titleFlag) {
-					    log.debug("Processing... header");
 						// Read the field names from the first row
 					    if (headerRow) {
                             for (String column : columns) {
@@ -289,7 +284,6 @@ public class CSVHarvester extends GenericHarvester {
                         log.info("xxx done");
 						continue;
 					} else {
-					    log.debug("Store normal data rows....");
 						// Store normal data rows
 						if (i % 500 == 0) {
 							log.info("Parsing row {}", i);
@@ -346,7 +340,8 @@ public class CSVHarvester extends GenericHarvester {
 		}
 
 		for (String column : columns) {
-		    log.debug("Processing data: {}", column);
+		    if (column == null)
+		        column = "";
 			j++;
 			String colName = dataFields.get(j);
 
@@ -363,7 +358,6 @@ public class CSVHarvester extends GenericHarvester {
 				continue;
 			}
 
-			// log.debug("Storing field: " + colName);
 			data.put(colName, column);
 		}
 
