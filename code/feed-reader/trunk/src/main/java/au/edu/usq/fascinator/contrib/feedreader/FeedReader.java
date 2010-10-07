@@ -32,30 +32,22 @@ import org.slf4j.LoggerFactory;
  * @author Duncan Dickinson
  */
 public class FeedReader {
+
     private static Logger log = LoggerFactory.getLogger(FeedReader.class);
-
     private static final String OPT_URL = "--url";
-
     private static final String OPT_HTML = "--html";
-
     private static final String OPT_RDF = "--rdf";
-
+    private static final String OPT_JSON = "--json";
     private static final String OPT_OUTPUT_DIR = "--output_dir";
-
-    private static final String DEFAULT_OUTPUT_DIR = System
-            .getProperty("user.home")
+    private static final String DEFAULT_OUTPUT_DIR = System.getProperty("user.home")
             + "/.feed-reader/output";
-
     private static final String OPT_CACHE_DIR = "--cache_dir";
-
-    private static final String DEFAULT_CACHE_DIR = System
-            .getProperty("user.home")
+    private static final String DEFAULT_CACHE_DIR = System.getProperty("user.home")
             + "/.feed-reader/cache";
 
     /**
      * @param args
      *            Command line arguments
-     * @throws MalformedURLException
      * @throws MalformedURLException
      * @throws FileNotFoundException
      */
@@ -86,6 +78,7 @@ public class FeedReader {
 
         boolean outputHtml = (Boolean) argumentMap.get(OPT_HTML);
         boolean outputRdf = (Boolean) argumentMap.get(OPT_RDF);
+        boolean outputJson = (Boolean) argumentMap.get(OPT_JSON);
         String cacheDir = (String) argumentMap.get(OPT_CACHE_DIR);
         String outputDir = (String) argumentMap.get(OPT_OUTPUT_DIR);
 
@@ -93,25 +86,27 @@ public class FeedReader {
         log.info("Output dir: " + argumentMap.get(OPT_OUTPUT_DIR));
         log.info("Produce HTML: " + outputHtml);
         log.info("Produce RDF: " + outputRdf);
+        log.info("Produce JSON: " + outputJson);
 
         readFeeds(cacheDir,
                 outputHtml,
                 outputRdf,
+                outputJson,
                 outputDir,
                 (ArrayList<URL>) argumentMap.get(OPT_URL));
 
     }
 
     public static void readFeeds(String cacheDir, boolean outputHtml,
-            boolean outputRdf, String outputDir, ArrayList<URL> urlList)
+            boolean outputRdf, boolean outputJson, String outputDir, ArrayList<URL> urlList)
             throws MalformedURLException, FileNotFoundException {
         for (URL url : urlList) {
             Feed feed = new Feed(url, cacheDir);
-            feed
-                    .addFeedReaderStateChangeListener(new DemoItemListener(outputHtml,
-                            outputRdf,
-                            outputDir,
-                            url));
+            feed.addFeedReaderStateChangeListener(new DemoItemListener(outputHtml,
+                    outputRdf,
+                    outputJson,
+                    outputDir,
+                    url));
 
             new Thread(feed).start();
         }
@@ -131,6 +126,8 @@ public class FeedReader {
                     argMap.put(FeedReader.OPT_RDF, true);
                 } else if (kv[0].equals(FeedReader.OPT_HTML)) {
                     argMap.put(FeedReader.OPT_HTML, true);
+                } else if (kv[0].equals(FeedReader.OPT_JSON)) {
+                    argMap.put(FeedReader.OPT_JSON, true);
                 } else {
                     throw new IllegalArgumentException("Unknown option: "
                             + kv[0]);
@@ -171,24 +168,24 @@ public class FeedReader {
     }
 
     private static final void displayUsageMessage() {
-        System.out
-                .println("Usage: FeedReader [OPTIONS] \n\n"
-                        + "FeedReader displays the latest contents of a syndication feed from the URLS\n\n"
-                        + "Options:\n"
-                        + "-h\tView usage message (this one)\n"
-                        + OPT_URL
-                        + "=<feed url>\tThe URL of a feed.\n"
-                        + "\t\tNote: This option may be repeated.\n"
-                        + OPT_CACHE_DIR
-                        + "=<cache dir>\tThe location to cache feed entries - this will be created.\n"
-                        + "\t\t"
-                        + DEFAULT_CACHE_DIR
-                        + " is the default\n"
-                        + OPT_OUTPUT_DIR
-                        + "=<output dir>\tSend output to the specified directory.\n"
-                        + "\t\t" + DEFAULT_OUTPUT_DIR + " is the default\n"
-                        + "\t\tA subdir is created for each feed\n" + OPT_HTML
-                        + "\tProduce HTML output\n" + OPT_RDF
-                        + "\tProduce RDF output\n" + "\n");
+        System.out.println("Usage: FeedReader [OPTIONS] \n\n"
+                + "FeedReader displays the latest contents of a syndication feed from the URLS\n\n"
+                + "Options:\n"
+                + "-h\tView usage message (this one)\n"
+                + OPT_URL
+                + "=<feed url>\tThe URL of a feed.\n"
+                + "\t\tNote: This option may be repeated.\n"
+                + OPT_CACHE_DIR
+                + "=<cache dir>\tThe location to cache feed entries - this will be created.\n"
+                + "\t\t"
+                + DEFAULT_CACHE_DIR
+                + " is the default\n"
+                + OPT_OUTPUT_DIR
+                + "=<output dir>\tSend output to the specified directory.\n"
+                + "\t\t" + DEFAULT_OUTPUT_DIR + " is the default\n"
+                + "\t\tA subdir is created for each feed\n" + OPT_HTML
+                + "\tProduce HTML output\n" + OPT_RDF
+                + "\tProduce JSON output\n" + OPT_JSON
+                + "\tProduce RDF output\n" + "\n");
     }
 }
