@@ -17,6 +17,7 @@
  */
 package au.edu.usq.fascinator.contrib.feedreader;
 
+import au.edu.usq.fascinator.contrib.feedreader.printer.JSONPrinter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -57,9 +58,10 @@ public class DemoItemListener extends ItemListener {
     private File htmlFile = null;
     private boolean rdf = true;
     private File rdfFile = null;
+    private boolean json = true;
+    private File jsonFile = null;
     private String baseFolder = null;
     private String outputFolder;
-
     /**
      * Generic logging
      */
@@ -70,6 +72,8 @@ public class DemoItemListener extends ItemListener {
      *            true if you want HTML output
      * @param rdf
      *            true if you want RDF/XML ouput
+     *  @param json
+     *            true if you want JSON ouput
      * @param outputFolder
      *            where to place any HTML or RDF output
      * @param url
@@ -78,15 +82,16 @@ public class DemoItemListener extends ItemListener {
      */
     public DemoItemListener(boolean html,
             boolean rdf,
+            boolean json,
             String outputFolder,
             URL url) throws FileNotFoundException {
         super();
         this.html = html;
         this.rdf = rdf;
+        this.json = json;
         setOutputFolder(outputFolder);
         this.baseFolder = this.outputFolder
-                + DiskFeedInfoCache
-                        .replaceNonAlphanumeric(url.toExternalForm(), '_')
+                + DiskFeedInfoCache.replaceNonAlphanumeric(url.toExternalForm(), '_')
                 + File.separator;
     }
 
@@ -120,8 +125,7 @@ public class DemoItemListener extends ItemListener {
 
         if (FetcherEvent.EVENT_TYPE_FEED_RETRIEVED.equals(event.getEventType())) {
             saveFeedItems();
-        } else if (FetcherEvent.EVENT_TYPE_FEED_UNCHANGED.equals(event
-                .getEventType())) {
+        } else if (FetcherEvent.EVENT_TYPE_FEED_UNCHANGED.equals(event.getEventType())) {
             log.info("No change in feed: " + this.getFeedURL());
         }
 
@@ -131,10 +135,12 @@ public class DemoItemListener extends ItemListener {
      * Handles the creation of the HTML and RDF files as required
      */
     private void saveFeedItems() {
+        String jsonFileName = null;
         String rdfFileName = null;
         String htmlFileName = null;
-        FileWriter rdfFile = null;
-        FileWriter htmlFile = null;
+        FileWriter jsonFileOut = null;
+        FileWriter rdfFileOut = null;
+        FileWriter htmlFileOut = null;
 
         String propertiesFileName = "feed-reader.properties";
 
@@ -142,29 +148,52 @@ public class DemoItemListener extends ItemListener {
 
         for (SyndEntry entry : itemList) {
             printEntry(entry);
-            if (!rdf && !html) {
+            if (!rdf && !html && !json) {
                 continue;
             }
             String itemFileBase = baseFolder
-                    + DiskFeedInfoCache.replaceNonAlphanumeric(FeedHelper
-                            .getID(entry), '_');
+                    + DiskFeedInfoCache.replaceNonAlphanumeric(FeedHelper.getID(entry), '_');
             new File(baseFolder).mkdirs();
+
+            if (json) {
+                try {
+                    jsonFileName = itemFileBase + ".json";
+                    log.debug("Creating JSON File: " + jsonFileName);
+                    jsonFileOut = new FileWriter(jsonFileName);
+                    jsonFileOut.write(JSONPrinter.toJSON(entry));
+                    jsonFileOut.flush();
+                } catch (IOException e) {
+                    log.error("Failed writing to " + jsonFileName + ": "
+                            + e.getMessage());
+                    break;
+                } finally {
+                    if (jsonFileOut != null) {
+                        try {
+                            jsonFileOut.close();
+                        } catch (IOException e) {
+                            log.error("Error closing " + jsonFileName + ": "
+                                    + e.getMessage());
+                        }
+                    }
+                }
+
+            }
 
             if (rdf) {
                 try {
                     rdfFileName = itemFileBase + ".rdf";
                     log.debug("Creating RDF File: " + rdfFileName);
-                    rdfFile = new FileWriter(rdfFileName);
-                    rdfFile.write(RDFPrinter.toRDFXML(entry));
-                    rdfFile.flush();
+                    rdfFileOut = new FileWriter(rdfFileName);
+                    rdfFileOut.write(RDFPrinter.toRDFXML(entry));
+                    rdfFileOut.flush();
                 } catch (IOException e) {
                     log.error("Failed writing to " + rdfFileName + ": "
                             + e.getMessage());
                     break;
                 } finally {
-                    if (rdfFile != null) {
+                    if (rdfFileOut != null) {
                         try {
-                            rdfFile.close();
+                            rdfFileOut.close();
                         } catch (IOException e) {
                             log.error("Error closing " + rdfFileName + ": "
                                     + e.getMessage());
@@ -181,7 +210,7 @@ public class DemoItemListener extends ItemListener {
                     try {
                         htmlFileName = itemFileBase + ".html";
                         log.debug("Creating HTML File: " + htmlFileName);
-                        htmlFile = new FileWriter(htmlFileName);
+                        htmlFileOut = new FileWriter(htmlFileName);
                         in = new FileInputStream(propertiesFileName);
                         props.load(in);
                         in.close();
@@ -197,9 +226,9 @@ public class DemoItemListener extends ItemListener {
                     templateFile = props.getProperty("html.template");
 
                     try {
-                        htmlFile.write(HTMLPrinter.toXHTMLSegment(entry,
+                        htmlFileOut.write(HTMLPrinter.toXHTMLSegment(entry,
                                 templateFile));
-                        htmlFile.flush();
+                        htmlFileOut.flush();
                     } catch (ResourceNotFoundException e) {
                         log.error("Could not find template " + templateFile
                                 + ": " + e.getMessage());
@@ -217,9 +246,9 @@ public class DemoItemListener extends ItemListener {
                         break;
                     }
                 } finally {
-                    if (htmlFile != null) {
+                    if (htmlFileOut != null) {
                         try {
-                            htmlFile.close();
+                            htmlFileOut.close();
                         } catch (IOException e) {
                             log.error("Error closing " + htmlFileName + ": "
                                     + e.getMessage());
@@ -271,7 +300,7 @@ public class DemoItemListener extends ItemListener {
             try {
                 pr.append(" Body (Plain text): "
                         + PlainTextExtractor.getPlainText(content.getType(),
-                                content.getValue()));
+                        content.getValue()));
             } catch (ParserException e) {
                 pr.append("Failed to parse content");
             }
