@@ -41,10 +41,6 @@ import com.sun.syndication.feed.synd.SyndPersonImpl;
  * 
  */
 public class FeedHelper {
-    /**
-     * Generic logging
-     */
-    private static Logger log = LoggerFactory.getLogger(FeedHelper.class);
 
     /**
      * Some feeds don't provide a URI so this function falls back to the feed's

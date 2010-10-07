@@ -32,11 +32,6 @@ import com.sun.syndication.fetcher.FetcherEvent;
  * @author Duncan Dickinson
  */
 public class ItemListener implements FeedReaderStateChangeListener {
-    /**
-     * Generic logging
-     */
-    private static Logger log = LoggerFactory
-            .getLogger(FeedReaderStateChangeListener.class);
 
     private URL feedURL = null;
     private SyndFeed feed;

@@ -55,11 +55,8 @@ import com.sun.syndication.fetcher.impl.DiskFeedInfoCache;
 public class DemoItemListener extends ItemListener {
 
     private boolean html = true;
-    private File htmlFile = null;
     private boolean rdf = true;
-    private File rdfFile = null;
     private boolean json = true;
-    private File jsonFile = null;
     private String baseFolder = null;
     private String outputFolder;
     /**
@@ -135,15 +132,6 @@ public class DemoItemListener extends ItemListener {
      * Handles the creation of the HTML and RDF files as required
      */
     private void saveFeedItems() {
-        String jsonFileName = null;
-        String rdfFileName = null;
-        String htmlFileName = null;
-        FileWriter jsonFileOut = null;
-        FileWriter rdfFileOut = null;
-        FileWriter htmlFileOut = null;
-
-        String propertiesFileName = "feed-reader.properties";
-
         List<SyndEntry> itemList = this.getFeed().getEntries();
 
         for (SyndEntry entry : itemList) {
@@ -156,109 +144,123 @@ public class DemoItemListener extends ItemListener {
             new File(baseFolder).mkdirs();
 
             if (json) {
-                try {
-                    jsonFileName = itemFileBase + ".json";
-                    log.debug("Creating JSON File: " + jsonFileName);
-                    jsonFileOut = new FileWriter(jsonFileName);
-                    jsonFileOut.write(JSONPrinter.toJSON(entry));
-                    jsonFileOut.flush();
-                } catch (IOException e) {
-                    log.error("Failed writing to " + jsonFileName + ": "
-                            + e.getMessage());
-                    break;
-                } finally {
-                    if (jsonFileOut != null) {
-                        try {
-                            jsonFileOut.close();
-                        } catch (IOException e) {
-                            log.error("Error closing " + jsonFileName + ": "
-                                    + e.getMessage());
-                        }
-                    }
-                }
-
+                saveJSON(itemFileBase, entry);
             }
-
             if (rdf) {
-                try {
-                    rdfFileName = itemFileBase + ".rdf";
-                    log.debug("Creating RDF File: " + rdfFileName);
-                    rdfFileOut = new FileWriter(rdfFileName);
-                    rdfFileOut.write(RDFPrinter.toRDFXML(entry));
-                    rdfFileOut.flush();
-                } catch (IOException e) {
-                    log.error("Failed writing to " + rdfFileName + ": "
-                            + e.getMessage());
-                    break;
-                } finally {
-                    if (rdfFileOut != null) {
-                        try {
-                            rdfFileOut.close();
-                        } catch (IOException e) {
-                            log.error("Error closing " + rdfFileName + ": "
-                                    + e.getMessage());
-                        }
-                    }
-                }
-
+                saveRDF(itemFileBase, entry);
             }
             if (html) {
-                Properties props = new Properties();
-                FileInputStream in;
-                String templateFile = null;
-                try {
-                    try {
-                        htmlFileName = itemFileBase + ".html";
-                        log.debug("Creating HTML File: " + htmlFileName);
-                        htmlFileOut = new FileWriter(htmlFileName);
-                        in = new FileInputStream(propertiesFileName);
-                        props.load(in);
-                        in.close();
-                    } catch (FileNotFoundException e) {
-                        log.error("Could not load " + propertiesFileName
-                                + " file: " + e.getMessage());
-                        break;
-                    } catch (IOException e) {
-                        log.error("Couldn't read " + propertiesFileName
-                                + " file: " + e.getMessage());
-                        break;
-                    }
-                    templateFile = props.getProperty("html.template");
-
-                    try {
-                        htmlFileOut.write(HTMLPrinter.toXHTMLSegment(entry,
-                                templateFile));
-                        htmlFileOut.flush();
-                    } catch (ResourceNotFoundException e) {
-                        log.error("Could not find template " + templateFile
-                                + ": " + e.getMessage());
-                        break;
-                    } catch (ParseErrorException e) {
-                        log.error("Could not parse template " + templateFile
-                                + ": " + e.getMessage());
-                        break;
-                    } catch (IOException e) {
-                        log.error("Failed writing to " + htmlFileName + ": "
-                                + e.getMessage());
-                        break;
-                    } catch (Exception e) {
-                        log.error(e.getMessage());
-                        break;
-                    }
-                } finally {
-                    if (htmlFileOut != null) {
-                        try {
-                            htmlFileOut.close();
-                        } catch (IOException e) {
-                            log.error("Error closing " + htmlFileName + ": "
-                                    + e.getMessage());
-                        }
-                    }
-                }
-
+                saveHTML(itemFileBase, entry, "feed-reader.properties");
             }
         }
 
+    }
+
+    private void saveRDF(String itemFileBase, SyndEntry entry) {
+        String rdfFileName = null;
+
+        FileWriter rdfFileOut = null;
+        try {
+            rdfFileName = itemFileBase + ".rdf";
+            log.debug("Creating RDF File: " + rdfFileName);
+            rdfFileOut = new FileWriter(rdfFileName);
+            rdfFileOut.write(RDFPrinter.toRDFXML(entry));
+            rdfFileOut.flush();
+        } catch (IOException e) {
+            log.error("Failed writing to " + rdfFileName + ": "
+                    + e.getMessage());
+        } finally {
+            if (rdfFileOut != null) {
+                try {
+                    rdfFileOut.close();
+                } catch (IOException e) {
+                    log.error("Error closing " + rdfFileName + ": "
+                            + e.getMessage());
+                }
+            }
+        }
+    }
+
+    private void saveJSON(String itemFileBase, SyndEntry entry) {
+        String jsonFileName = null;
+        FileWriter jsonFileOut = null;
+        try {
+            jsonFileName = itemFileBase + ".json";
+            log.debug("Creating JSON File: " + jsonFileName);
+            jsonFileOut = new FileWriter(jsonFileName);
+            jsonFileOut.write(JSONPrinter.toJSON(entry));
+            jsonFileOut.flush();
+        } catch (IOException e) {
+            log.error("Failed writing to " + jsonFileName + ": "
+                    + e.getMessage());
+        } finally {
+            if (jsonFileOut != null) {
+                try {
+                    jsonFileOut.close();
+                } catch (IOException e) {
+                    log.error("Error closing " + jsonFileName + ": "
+                            + e.getMessage());
+                }
+            }
+        }
+    }
+
+    private void saveHTML(String itemFileBase, SyndEntry entry, String propertiesFileName) {
+        String htmlFileName = null;
+        FileWriter htmlFileOut = null;
+
+        Properties props = new Properties();
+        FileInputStream in;
+        String templateFile = null;
+        try {
+            try {
+                htmlFileName = itemFileBase + ".html";
+                log.debug("Creating HTML File: " + htmlFileName);
+                htmlFileOut = new FileWriter(htmlFileName);
+                in = new FileInputStream(propertiesFileName);
+                props.load(in);
+                in.close();
+            } catch (FileNotFoundException e) {
+                log.error("Could not load " + propertiesFileName
+                        + " file: " + e.getMessage());
+                return;
+            } catch (IOException e) {
+                log.error("Couldn't read " + propertiesFileName
+                        + " file: " + e.getMessage());
+                return;
+            }
+            templateFile = props.getProperty("html.template");
+
+            try {
+                htmlFileOut.write(HTMLPrinter.toXHTMLSegment(entry,
+                        templateFile));
+                htmlFileOut.flush();
+            } catch (ResourceNotFoundException e) {
+                log.error("Could not find template " + templateFile
+                        + ": " + e.getMessage());
+                return;
+            } catch (ParseErrorException e) {
+                log.error("Could not parse template " + templateFile
+                        + ": " + e.getMessage());
+               return;
+            } catch (IOException e) {
+                log.error("Failed writing to " + htmlFileName + ": "
+                        + e.getMessage());
+               return;
+            } catch (Exception e) {
+                log.error(e.getMessage());
+                return;
+            }
+        } finally {
+            if (htmlFileOut != null) {
+                try {
+                    htmlFileOut.close();
+                } catch (IOException e) {
+                    log.error("Error closing " + htmlFileName + ": "
+                            + e.getMessage());
+                }
+            }
+        }
     }
 
     /**
