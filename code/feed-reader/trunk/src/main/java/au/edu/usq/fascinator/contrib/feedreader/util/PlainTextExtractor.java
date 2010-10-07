@@ -35,7 +35,9 @@ public class PlainTextExtractor {
     public static String getPlainText(String type, String value)
             throws ParserException {
 
-        if (type == null) return null;
+        if (type == null){
+            return null;
+        }
 
         if (type.equals("text") || type.equals("text/plain")) {
             return value;
@@ -53,8 +55,9 @@ public class PlainTextExtractor {
     }
 
     static class PlainTextExtractorNodeVisitor extends NodeVisitor {
-        StringBuilder plainText = new StringBuilder();
+        private StringBuilder plainText = new StringBuilder();
 
+        @Override
         public void visitStringNode(Text string) {
             plainText.append(string.getText());
         }
