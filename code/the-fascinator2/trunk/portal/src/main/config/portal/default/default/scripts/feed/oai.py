@@ -89,6 +89,10 @@ class OaiData:
 
     def __activate__(self, context):
         self.velocityContext = context
+        self.services = context["Services"]
+        self.log = context["log"]
+        self.sessionState = context["sessionState"]
+        self.__result = None
 
         print " * oai.py: formData=%s" % self.vc("formData")
         self.vc("request").setAttribute("Content-Type", "text/xml")
@@ -102,7 +106,7 @@ class OaiData:
         if self.velocityContext[index] is not None:
             return self.velocityContext[index]
         else:
-            log.error("ERROR: Requested context entry '" + index + "' doesn't exist")
+            self.log.error("ERROR: Requested context entry '" + index + "' doesn't exist")
             return None
 
     def getVerb(self):
@@ -120,10 +124,17 @@ class OaiData:
     def getResult(self):
         return self.__result
 
+    def getElement(self, elementName, values):
+        elementStr = ""
+        if values:
+            for value in values:
+                elementStr += "<%s>%s</%s>" % (elementName, value, elementName)
+        return elementStr
+
     def __search(self):
         self.__result = JsonConfigHelper()
 
-        portal = Services.getPortalManager().get(self.vc("portalId"))
+        portal = self.services.getPortalManager().get(self.vc("portalId"))
         recordsPerPage = portal.recordsPerPage
 
         query = self.vc("formData").get("query")
@@ -147,5 +158,5 @@ class OaiData:
         print " * oai.py:", req.toString()
 
         out = ByteArrayOutputStream()
-        Services.indexer.search(req, out)
+        self.services.indexer.search(req, out)
         self.__result = JsonConfigHelper(ByteArrayInputStream(out.toByteArray()))

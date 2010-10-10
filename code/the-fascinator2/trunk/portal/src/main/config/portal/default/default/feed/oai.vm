@@ -49,6 +49,22 @@
             </header>
             <metadata>
                 <oai_dc:dc xsi:schemaLocation="http://www.openarchives.org/OAI/2.0/oai_dc/ http://www.openarchives.org/OAI/2.0/oai_dc.xsd" xmlns:oai_dc="http://www.openarchives.org/OAI/2.0/oai_dc/" xmlns:dc="http://purl.org/dc/elements/1.1/">
+                   $self.getElement("dc:title", $item.get("dc_title"))
+                   $self.getElement("dc:creator", $item.get("dc_creator"))
+                   $self.getElement("dc:contributor", $item.get("dc_contributor"))
+                   $self.getElement("dc:coverage", $item.get("dc_coverage"))
+                   $self.getElement("dc:date", $item.get("dc_date"))
+                   $self.getElement("dc:description", $item.get("dc_description"))
+                   $self.getElement("dc:format", $item.get("dc_format"))
+                   $self.getElement("dc:identifier", $item.get("dc_identifier"))
+                   $self.getElement("dc:language", $item.get("dc_language"))
+                   $self.getElement("dc:publisher", $item.get("dc_publisher"))
+                   $self.getElement("dc:relation", $item.get("dc_relation"))
+                   $self.getElement("dc:publisher", $item.get("dc_publisher"))
+                   $self.getElement("dc:rights", $item.get("dc_rights"))
+                   $self.getElement("dc:source", $item.get("dc_source"))
+                   $self.getElement("dc:subject", $item.get("dc_subject"))
+                   $self.getElement("dc:type", $item.get("dc_type"))
                 </oai_dc:dc>
             </metadata>
         </record>
