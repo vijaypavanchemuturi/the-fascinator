@@ -27,17 +27,19 @@ import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
-@XmlRootElement(name = "objectDatastreams")
+@XmlRootElement(name = "objectDatastreams", namespace = ObjectDatastreamsType.NAMESPACE)
 @XmlAccessorType(XmlAccessType.NONE)
 public class ObjectDatastreamsType {
+
+    public static final String NAMESPACE = "http://www.fedora.info/definitions/1/0/access/";
 
     @XmlAttribute
     private String pid;
 
-    @XmlAttribute(name = "baseURL")
+    @XmlAttribute(name = "baseURL", namespace = NAMESPACE)
     private String baseUrl;
 
-    @XmlElement(name = "datastream")
+    @XmlElement(name = "datastream", namespace = NAMESPACE)
     private List<DatastreamType> datastreams;
 
     public String getPid() {

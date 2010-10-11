@@ -33,53 +33,55 @@ import javax.xml.bind.annotation.XmlRootElement;
  * 
  */
 
-@XmlRootElement(name = "datastreamProfile")
+@XmlRootElement(name = "datastreamProfile", namespace = DatastreamProfile.NAMESPACE)
 @XmlAccessorType(XmlAccessType.NONE)
 public class DatastreamProfile {
 
-    @XmlElement(name = "dsLabel")
+    public static final String NAMESPACE = "http://www.fedora.info/definitions/1/0/management/";
+
+    @XmlElement(name = "dsLabel", namespace = NAMESPACE)
     private String dsLabel;
 
-    @XmlElement(name = "dsVersionID")
+    @XmlElement(name = "dsVersionID", namespace = NAMESPACE)
     private String dsVersionID;
 
-    @XmlElement(name = "dsCreateDate")
+    @XmlElement(name = "dsCreateDate", namespace = NAMESPACE)
     private String dsCreateDate;
 
-    @XmlElement(name = "dsState")
+    @XmlElement(name = "dsState", namespace = NAMESPACE)
     private String dsState;
 
-    @XmlElement(name = "dsMIME")
+    @XmlElement(name = "dsMIME", namespace = NAMESPACE)
     private String dsMIME;
 
-    @XmlElement(defaultValue = "", name = "dsFormatURI")
+    @XmlElement(defaultValue = "", name = "dsFormatURI", namespace = NAMESPACE)
     private String dsFormatURI;
 
-    @XmlElement(name = "dsControlGroup")
+    @XmlElement(name = "dsControlGroup", namespace = NAMESPACE)
     private String dsControlGroup;
 
-    @XmlElement(name = "dsSize")
+    @XmlElement(name = "dsSize", namespace = NAMESPACE)
     private String dsSize;
 
-    @XmlElement(name = "dsVersionable")
+    @XmlElement(name = "dsVersionable", namespace = NAMESPACE)
     private String dsVersionable;
 
-    @XmlElement(defaultValue = "", name = "dsInfoType")
+    @XmlElement(defaultValue = "", name = "dsInfoType", namespace = NAMESPACE)
     private String dsInfoType;
 
-    @XmlElement(name = "dsLocation")
+    @XmlElement(name = "dsLocation", namespace = NAMESPACE)
     private String dsLocation;
 
-    @XmlElement(name = "dsLocationType")
+    @XmlElement(name = "dsLocationType", namespace = NAMESPACE)
     private String dsLocationType;
 
-    @XmlElement(defaultValue = "none", name = "dsChecksumType")
+    @XmlElement(defaultValue = "none", name = "dsChecksumType", namespace = NAMESPACE)
     private String dsChecksumType;
 
-    @XmlElement(name = "dsChecksum")
+    @XmlElement(name = "dsChecksum", namespace = NAMESPACE)
     private String dsChecksum;
 
-    @XmlElement(name = "dsAltID")
+    @XmlElement(name = "dsAltID", namespace = NAMESPACE)
     private String dsAltID;
 
     // @Override
