@@ -12,12 +12,14 @@
 #set($itemList = $self.result.getList("response/docs").toArray())
     <$self.verb>
 #if($self.verb == "ListSets")
-#foreach($entry in $page.portals)#set($portal = $entry.value)
+#foreach($entry in $page.portals)
+    #set($portal = $entry)
         <set>
             <setSpec>$portal.name</setSpec>
             <setName>$portal.description</setName>
         </set>
 #end
+##Token checking here....
 #elseif($self.verb == "Identify")
         <repositoryName>The Fascinator</repositoryName>
         <baseURL>http://localhost:9997$contextPath/$portalId</baseURL>
@@ -69,6 +71,7 @@
             </metadata>
         </record>
 #end
+##Token checking here...
 #elseif($self.verb == "ListIdentifiers")
 #foreach($item in $itemList)
         <header>
@@ -77,6 +80,10 @@
             <setSpec>$portalId</setSpec>
         </header>
 #end
+##Token checking here...
+##if $self.token
+    ##<resumptionToken>archive/100/14269136/oai_dc</resumptionToken>
+##end
 #end
     </$self.verb>
 #end
