@@ -35,6 +35,7 @@ import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.httpclient.methods.DeleteMethod;
 import org.apache.commons.httpclient.methods.FileRequestEntity;
 import org.apache.commons.httpclient.methods.GetMethod;
+import org.apache.commons.httpclient.methods.InputStreamRequestEntity;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.httpclient.methods.PutMethod;
 import org.apache.commons.httpclient.methods.RequestEntity;
@@ -233,20 +234,21 @@ public class RestClient extends BasicHttpClient {
      * Get datastream from fedora
      * 
      * @param pid
-     * @param datastreamId
+     * @param dsId
      * @return DatastreamProfile
      * @throws IOException
      */
-    public DatastreamProfile getDatastream(String pid, String datastreamId)
+    public DatastreamProfile getDatastream(String pid, String dsId)
             throws IOException {
         DatastreamProfile result = null;
+        // dsId = URLEncoder.encode(dsId, "UTF-8");
         try {
             StringBuilder uri = new StringBuilder(getBaseUrl());
             uri.append("/objects/");
             uri.append(pid);
             uri.append("/datastreams/");
-            uri.append(datastreamId);
-            uri.append(".xml");
+            uri.append(dsId);
+            uri.append("?format=xml");
 
             GetMethod method = new GetMethod(uri.toString());
             int status = executeMethod(method, true);
@@ -320,6 +322,7 @@ public class RestClient extends BasicHttpClient {
         uri.append("/get/");
         uri.append(pid);
         if (dsId != null) {
+            // dsId = URLEncoder.encode(dsId, "UTF-8");
             uri.append("/");
             uri.append(dsId);
         }
@@ -386,14 +389,19 @@ public class RestClient extends BasicHttpClient {
      * @return created fedoraid
      * @throws IOException
      */
-    public String createObject(String label, String namespace)
+    public String createObject(String pid, String label, String namespace)
             throws IOException {
-        String pid = namespace + ":" + UUID.randomUUID().toString();
         Properties options = new Properties();
         options.setProperty("label", label);
         options.setProperty("namespace", namespace);
         ingest(pid, options, null);
         return pid;
+    }
+
+    public String createObject(String label, String namespace)
+            throws IOException {
+        String pid = namespace + ":" + UUID.randomUUID().toString();
+        return createObject(pid, label, namespace);
     }
 
     /**
@@ -451,21 +459,21 @@ public class RestClient extends BasicHttpClient {
      * @param dsId
      * @param dsLabel
      * @param contentType
-     * @param payloadType
+     * @param altIds
      * @param content
      * @throws IOException
      */
     public void addDatastream(String pid, String dsId, String dsLabel,
-            String contentType, String payloadType, String content)
+            String contentType, String altIds, String content)
             throws IOException {
         Properties options = new Properties();
         options.setProperty("dsLabel", dsLabel);
-        options.setProperty("altIDs", payloadType);
+        options.setProperty("altIDs", altIds);
         options.setProperty("controlGroup",
                 "text/xml".equals(contentType) ? "X" : "M");
         RequestEntity request = new StringRequestEntity(content, contentType,
                 "UTF-8");
-        addDatastream(pid, dsId, options, contentType, payloadType, request);
+        addDatastream(pid, dsId, options, contentType, request);
     }
 
     /**
@@ -475,20 +483,31 @@ public class RestClient extends BasicHttpClient {
      * @param dsId
      * @param dsLabel
      * @param contentType
-     * @param payloadType
+     * @param altIds
      * @param content
      * @throws IOException
      */
     public void addDatastream(String pid, String dsId, String dsLabel,
-            String contentType, String payloadType, File content)
-            throws IOException {
+            String contentType, String altIds, File content) throws IOException {
         Properties options = new Properties();
         options.setProperty("dsLabel", dsLabel);
-        options.setProperty("altIDs", payloadType);
+        options.setProperty("altIDs", altIds);
         options.setProperty("controlGroup", "M");
 
         RequestEntity request = new FileRequestEntity(content, contentType);
-        addDatastream(pid, dsId, options, contentType, payloadType, request);
+        addDatastream(pid, dsId, options, contentType, request);
+    }
+
+    public void addDatastream(String pid, String dsId, String dsLabel,
+            String contentType, String altIds, InputStream content)
+            throws IOException {
+        Properties options = new Properties();
+        options.setProperty("dsLabel", dsLabel);
+        options.setProperty("altIDs", altIds);
+        options.setProperty("controlGroup", "M");
+        RequestEntity request = new InputStreamRequestEntity(content,
+                contentType);
+        addDatastream(pid, dsId, options, contentType, request);
     }
 
     /**
@@ -498,21 +517,21 @@ public class RestClient extends BasicHttpClient {
      * @param dsId
      * @param dsLabel
      * @param contentType
-     * @param payloadType
+     * @param altIds
      * @param dsLocation
      * @throws IOException
      */
     public void addExternalDatastream(String pid, String dsId, String dsLabel,
-            String contentType, String payloadType, String dsLocation)
+            String contentType, String altIds, String dsLocation)
             throws IOException {
         Properties options = new Properties();
         options.setProperty("dsLabel", dsLabel);
-        options.setProperty("altIDs", payloadType);
+        options.setProperty("altIDs", altIds);
         options.setProperty("controlGroup", "E");
         options.setProperty("dsLocation", dsLocation);
         RequestEntity request = new StringRequestEntity("", contentType,
                 "UTF-8");
-        addDatastream(pid, dsId, options, contentType, payloadType, request);
+        addDatastream(pid, dsId, options, contentType, request);
     }
 
     /**
@@ -522,15 +541,12 @@ public class RestClient extends BasicHttpClient {
      * @param dsId
      * @param options
      * @param contentType
-     * @param payloadType
      * @param request
      * @throws IOException
      */
     private void addDatastream(String pid, String dsId, Properties options,
-            String contentType, String payloadType, RequestEntity request)
-            throws IOException {
+            String contentType, RequestEntity request) throws IOException {
         // dsId = URLEncoder.encode(dsId, "UTF-8");
-
         StringBuilder uri = new StringBuilder(getBaseUrl());
         uri.append("/objects/");
         uri.append(pid);
@@ -563,6 +579,7 @@ public class RestClient extends BasicHttpClient {
      */
     public void modifyDatastream(String pid, String dsId, String content)
             throws IOException {
+        // dsId = URLEncoder.encode(dsId, "UTF-8");
         StringBuilder uri = new StringBuilder(getBaseUrl());
         uri.append("/objects/");
         uri.append(pid);
@@ -575,8 +592,52 @@ public class RestClient extends BasicHttpClient {
         method.releaseConnection();
     }
 
+    public void modifyDatastream(String pid, String dsId, String dsLabel,
+            String altIds, String contentType, File content) throws IOException {
+        // dsId = URLEncoder.encode(dsId, "UTF-8");
+        Properties options = new Properties();
+        options.setProperty("dsLabel", dsLabel);
+        options.setProperty("altIDs", altIds);
+        StringBuilder uri = new StringBuilder(getBaseUrl());
+        uri.append("/objects/");
+        uri.append(pid);
+        uri.append("/datastreams/");
+        uri.append(dsId);
+        addParam(uri, options, "dsLabel");
+        addParam(uri, options, "altIDs");
+        PutMethod method = new PutMethod(uri.toString());
+        method.setRequestEntity(new FileRequestEntity(content, contentType));
+        executeMethod(method);
+        method.releaseConnection();
+    }
+
+    public void modifyDatastream(String pid, String dsId, Properties options)
+            throws IOException {
+        // dsId = URLEncoder.encode(dsId, "UTF-8");
+        StringBuilder uri = new StringBuilder(getBaseUrl());
+        uri.append("/objects/");
+        uri.append(pid);
+        uri.append("/datastreams/");
+        uri.append(dsId);
+        addParam(uri, options, "dsLocation");
+        addParam(uri, options, "altIDs");
+        addParam(uri, options, "dsLabel");
+        addParam(uri, options, "versionable");
+        addParam(uri, options, "dsState");
+        addParam(uri, options, "formatURI");
+        addParam(uri, options, "checksumType");
+        addParam(uri, options, "checksum");
+        addParam(uri, options, "mimeType");
+        addParam(uri, options, "logMessage");
+        addParam(uri, options, "ignoreContent");
+        addParam(uri, options, "lastModifiedDate");
+        PutMethod method = new PutMethod(uri.toString());
+        executeMethod(method);
+        method.releaseConnection();
+    }
+
     /**
-     * Purge datastream method *Not sure if it will work yet*....
+     * Purge datastream method
      * 
      * @param pid
      * @param dsId
@@ -588,7 +649,6 @@ public class RestClient extends BasicHttpClient {
         uri.append(pid);
         uri.append("/datastreams/");
         uri.append(dsId);
-        uri.append("true");
         DeleteMethod method = new DeleteMethod(uri.toString());
         executeMethod(method);
         method.releaseConnection();

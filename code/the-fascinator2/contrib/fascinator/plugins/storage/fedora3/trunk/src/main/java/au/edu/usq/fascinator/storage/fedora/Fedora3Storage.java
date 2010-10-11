@@ -19,24 +19,20 @@
 package au.edu.usq.fascinator.storage.fedora;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.net.URLEncoder;
 import java.util.List;
+import java.util.Set;
 
-import org.apache.commons.codec.digest.DigestUtils;
-import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import au.edu.usq.fascinator.api.PluginDescription;
 import au.edu.usq.fascinator.api.PluginException;
 import au.edu.usq.fascinator.api.storage.DigitalObject;
-import au.edu.usq.fascinator.api.storage.Payload;
 import au.edu.usq.fascinator.api.storage.Storage;
 import au.edu.usq.fascinator.api.storage.StorageException;
 import au.edu.usq.fascinator.common.JsonConfig;
 import au.edu.usq.fedora.RestClient;
-import au.edu.usq.fedora.types.ListSessionType;
 import au.edu.usq.fedora.types.ObjectFieldType;
 import au.edu.usq.fedora.types.ResultType;
 
@@ -44,236 +40,142 @@ import au.edu.usq.fedora.types.ResultType;
  * Fedora3 storage to store DigitalObject
  * 
  * @author Linda Octalina & Oliver Lucido
- * 
  */
 public class Fedora3Storage implements Storage {
 
-    /** Default fedora url **/
+    /** Default Fedora base URL **/
     private static final String DEFAULT_URL = "http://localhost:8080/fedora";
 
-    /** Default fedora id namespace **/
+    /** Default Fedora namespace **/
     private static final String DEFAULT_NAMESPACE = "uuid";
 
-    /** Logger **/
+    /** Logger */
     private Logger log = LoggerFactory.getLogger(Fedora3Storage.class);
 
-    /** API to talk to Fedora **/
+    /** Fedora REST API client */
     private RestClient client;
 
-    /**
-     * Get the storage id
-     * 
-     * @return storageId
-     */
+    private String namespace;
+
+    @Override
     public String getId() {
         return "fedora3";
     }
 
-    /**
-     * Get the storage Name
-     * 
-     * @return storageName
-     */
+    @Override
     public String getName() {
-        return "Fedora Commons 3.x Storage Module";
+        return "Fedora Commons 3.x Storage Plugin";
     }
 
-    /**
-     * Fedora3 storage initialisation method
-     * 
-     * @param jsonFile
-     */
+    @Override
     public void init(File jsonFile) throws StorageException {
         try {
-            JsonConfig config = new JsonConfig(jsonFile);
-            String url = config.get("storage/fedora3/url");
+            init(new JsonConfig(jsonFile));
+        } catch (IOException ioe) {
+            throw new StorageException("Failed to read file configuration!");
+        }
+    }
 
+    @Override
+    public void init(String jsonString) throws PluginException {
+        try {
+            init(new JsonConfig(jsonString));
+        } catch (IOException ioe) {
+            throw new StorageException("Failed to read string configuration!");
+        }
+    }
+
+    private void init(JsonConfig config) throws StorageException {
+        try {
+            String url = config.get("storage/fedora3/url", DEFAULT_URL);
             client = new RestClient(url);
             String userName = config.get("storage/fedora3/username");
             String password = config.get("storage/fedora3/password");
-
+            namespace = config.get("storage/fedora3/namespace",
+                    DEFAULT_NAMESPACE);
             if (userName != null && password != null) {
                 client.authenticate(userName, password);
             } else {
-                throw new StorageException("Not Fedora 3");
+                throw new StorageException(
+                        "Username or password must be specified!");
             }
-
         } catch (Exception e) {
-            e.printStackTrace();
             throw new StorageException(e);
         }
     }
 
-    /**
-     * Fedora3 shut down method
-     */
+    @Override
     public void shutdown() throws StorageException {
+        // Don't need to do anything on shutdown
     }
 
-    /**
-     * Fedora3 adding new Digital Object method
-     * 
-     * @param object
-     * @return fedoraId
-     */
-    public String addObject(DigitalObject object) throws StorageException {
-        String fedoraId = null;
-        String oid = object.getId();
+    @Override
+    public PluginDescription getPluginDetails() {
+        return new PluginDescription(this);
+    }
+
+    @Override
+    public DigitalObject createObject(String oid) throws StorageException {
+        // log.debug("createObject({})", oid);
         try {
-            fedoraId = getFedoraId(oid);
-            if (fedoraId == null) {
-                log.debug("Creating new object... ");
-                // fedoraId = client.createObject(oid, DEFAULT_NAMESPACE);
-                fedoraId = createObject(oid);
-                log.debug("Client returned Fedora PID: {}", fedoraId);
+            String fedoraPid = getFedoraPid(oid);
+            if (fedoraPid == null) {
+                fedoraPid = client.createObject(namespace + ":" + oid, oid,
+                        namespace);
             } else {
-                log.debug("Updating object {}", fedoraId);
+                throw new StorageException("oID '" + oid
+                        + "' already exists in storage.");
             }
-
-            for (Payload payload : object.getPayloadList()) {
-                addPayload(oid, payload);
-            }
-        } catch (Exception e) {
-            throw new StorageException("Failed to add object", e);
-        }
-        return fedoraId;
-    }
-
-    /**
-     * Fedora3 removing Digital object method
-     * 
-     * @param oid
-     */
-    public void removeObject(String oid) {
-        try {
-            client.purgeObject(getFedoraId(oid));
+            return new Fedora3DigitalObject(oid, fedoraPid, client);
         } catch (IOException ioe) {
-            log.error("Failed to remove object {}", ioe);
+            throw new StorageException(ioe);
         }
     }
 
-    /**
-     * Fedora3 creating new Digital object method
-     * 
-     * @param oid
-     * @return fedoraId
-     */
-    private String createObject(String oid) {
+    @Override
+    public DigitalObject getObject(String oid) throws StorageException {
+        // log.debug("getObject({})", oid);
         try {
-            return client.createObject(oid, DEFAULT_NAMESPACE);
-        } catch (IOException e) {
-            log.debug("Failed to creatObject: " + oid, e);
-        }
-        return null;
-    }
-
-    /**
-     * Fedora3 adding payload method
-     * 
-     * @param oid: object id
-     * @param payload
-     */
-    public void addPayload(String oid, Payload payload) {
-        try {
-            String fedoraId = getFedoraId(oid);
-            if (fedoraId == null) {
-                fedoraId = createObject(oid);
-            }
-            String dsId = payload.getId();
-            String dsLabel = payload.getLabel();
-            String type = payload.getContentType();
-            String payloadType = payload.getType().toString();
-            File tmpFile = File.createTempFile("f3_", ".tmp");
-            FileOutputStream fos = new FileOutputStream(tmpFile);
-            IOUtils.copy(payload.getInputStream(), fos);
-            fos.close();
-
-            // NOTE: Fedora does not like id and altId to have special
-            // characters like slash or spaces, thus, we are doing the encoding
-            // here. The AltId is in PayloadType:dsId format
-
-            client.addDatastream(fedoraId, "DS" + DigestUtils.md5Hex(dsId),
-                    dsLabel, type, payloadType + ":"
-                            + URLEncoder.encode(dsId, "UTF-8"), tmpFile);
-            tmpFile.delete();
-        } catch (IOException ioe) {
-            log.debug("Failed to add " + payload + " to item " + oid, ioe);
-        }
-    }
-
-    /**
-     * FedoraId remove payload method NOTE: note sure if it's working yet...
-     * 
-     * @param oid
-     * @param pid
-     */
-    public void removePayload(String oid, String pid) {
-        String fedoraId;
-        try {
-            fedoraId = getFedoraId(oid);
-            Payload payload = getPayload(oid, pid);
-            if (fedoraId != null && payload != null) {
-                client.purgeDatastream(fedoraId, payload.getId());
-            }
-        } catch (IOException e) {
-            log.debug("Failed to remove " + pid + " from item " + oid, e);
-        }
-
-    }
-
-    /**
-     * Get Digital object method
-     * 
-     * @param oid
-     * @return DigitalObject
-     */
-    public DigitalObject getObject(String oid) {
-        try {
-            if (oid == null || oid.equals("")) {
-                return null;
-            }
-            String fedoraId = getFedoraId(oid);
-            if (fedoraId != null) {
-                log.debug("Successfully getting object: " + oid
-                        + ", with fedoraid: " + fedoraId);
-                return new Fedora3DigitalObject(client, fedoraId, oid);
+            String fedoraPid = getFedoraPid(oid);
+            if (fedoraPid != null) {
+                return new Fedora3DigitalObject(oid, fedoraPid, client);
             }
         } catch (IOException ioe) {
-            log.debug("Failed to getObject: " + oid);
+            throw new StorageException(ioe);
         }
-        return null;
+        throw new StorageException("oID '" + oid
+                + "' doesn't exist in storage.");
     }
 
-    /**
-     * Get Payload from DigitalObject method
-     * 
-     * @param oid
-     * @param pid
-     * @return Payload
-     */
-    public Payload getPayload(String oid, String pid) {
-        DigitalObject object = getObject(oid);
-        if (object != null) {
-            return object.getPayload(pid);
+    @Override
+    public void removeObject(String oid) throws StorageException {
+        // log.debug("removeObject({})", oid);
+        try {
+            String fid = getFedoraPid(oid);
+            if (fid == null) {
+                throw new StorageException("oID '" + oid + "' not found.");
+            } else {
+                client.purgeObject(fid);
+            }
+        } catch (IOException ioe) {
+            throw new StorageException(ioe);
         }
-        return null;
     }
 
-    /**
-     * Get fedora id method
-     * 
-     * @param oid
-     * @return
-     * @throws IOException
-     */
-    private String getFedoraId(String oid) throws IOException {
+    @Override
+    public Set<String> getObjectIdList() {
+        throw new RuntimeException("Not supported!");
+    }
+
+    private String getFedoraPid(String oid) throws IOException {
         // TODO cache oid lookups?
-        String pid = null;
+        String fid = null;
         ResultType result = client.findObjects(oid, 1);
         List<ObjectFieldType> objects = result.getObjectFields();
         if (!objects.isEmpty()) {
-            pid = objects.get(0).getPid();
+            fid = objects.get(0).getPid();
         }
+        /*
         // Note: Fedora resumeFindObjects has to be called until the search
         // session is completed or the server will hang after approximately 100
         // requests
@@ -287,27 +189,7 @@ public class Fedora3Storage implements Storage {
                 session = null;
             }
         }
-        return pid;
-    }
-
-    /**
-     * Initialisation method that accept jsonString
-     * 
-     * @param jsonString
-     */
-    @Override
-    public void init(String jsonString) throws PluginException {
-
-    }
-
-    /**
-     * Get List of FedoraDigitalObject *** To be implemented, this will be used
-     * for reindexing
-     */
-    @Override
-    public List<DigitalObject> getObjectList() {
-        // Try to use findObjects but need to know what's the term value to
-        // return all objects
-        return null;
+        */
+        return fid;
     }
 }
