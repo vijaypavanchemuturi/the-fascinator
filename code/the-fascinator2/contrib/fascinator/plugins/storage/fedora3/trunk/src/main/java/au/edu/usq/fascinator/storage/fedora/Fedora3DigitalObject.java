@@ -11,6 +11,7 @@ import java.util.Map;
 
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.poi.util.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -77,7 +78,6 @@ public class Fedora3DigitalObject extends GenericDigitalObject {
         // log.debug("createStoredPayload({},{})", getId(), pid);
 
         Map<String, Payload> manifest = getManifest();
-        log.debug("manifest={}", manifest);
         if (manifest.containsKey(pid)) {
             throw new StorageException("pID '" + pid
                     + "' already exists in manifest.");
@@ -95,7 +95,8 @@ public class Fedora3DigitalObject extends GenericDigitalObject {
                 }
                 String prefix = FilenameUtils.getBaseName(pid);
                 String suffix = FilenameUtils.getExtension(pid);
-                suffix = "".equals(suffix) ? suffix : "." + suffix;
+                prefix = StringUtils.rightPad(prefix, 3, "_");
+                suffix = "".equals(suffix) ? null : "." + suffix;
                 File content = File.createTempFile(prefix, suffix);
                 FileOutputStream out = new FileOutputStream(content);
                 IOUtils.copy(in, out);
@@ -177,7 +178,8 @@ public class Fedora3DigitalObject extends GenericDigitalObject {
             Payload payload = manifest.get(pid);
             String prefix = FilenameUtils.getBaseName(pid);
             String suffix = FilenameUtils.getExtension(pid);
-            suffix = "".equals(suffix) ? suffix : "." + suffix;
+            prefix = StringUtils.rightPad(prefix, 3, "_");
+            suffix = "".equals(suffix) ? null : "." + suffix;
             File content = File.createTempFile(prefix, suffix);
             FileOutputStream out = new FileOutputStream(content);
             IOUtils.copy(in, out);
