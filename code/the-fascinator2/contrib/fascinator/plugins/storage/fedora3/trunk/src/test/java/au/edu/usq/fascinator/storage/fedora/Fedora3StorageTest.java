@@ -8,6 +8,7 @@ import junit.framework.Assert;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import au.edu.usq.fascinator.api.storage.DigitalObject;
@@ -15,6 +16,7 @@ import au.edu.usq.fascinator.api.storage.Payload;
 import au.edu.usq.fascinator.api.storage.PayloadType;
 import au.edu.usq.fascinator.api.storage.StorageException;
 
+@Ignore
 public class Fedora3StorageTest {
 
     private Fedora3Storage storage;
