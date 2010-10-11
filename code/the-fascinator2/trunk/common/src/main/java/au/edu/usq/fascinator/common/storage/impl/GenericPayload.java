@@ -25,6 +25,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
+import org.apache.poi.util.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -60,6 +61,8 @@ public class GenericPayload implements Payload {
 
     /** Input stream to read content data from */
     private InputStream inputStream;
+
+    /** In memory storage for generic implementations */
     private byte[] ramStore;
 
     /** Input stream to read content data from */
@@ -83,9 +86,24 @@ public class GenericPayload implements Payload {
      * @param contentType the content type
      */
     public GenericPayload(String id, String label, String contentType) {
+        this(id, label, contentType, null);
+    }
+
+    /**
+     * Creates a data payload with the specified identifier, label, content type
+     * and payload type but no content stream
+     * 
+     * @param id an identifier
+     * @param label a descriptive label
+     * @param contentType the content type
+     * @param payloadType the payload type
+     */
+    public GenericPayload(String id, String label, String contentType,
+            PayloadType payloadType) {
         setId(id);
         setLabel(label);
         setContentType(contentType);
+        setType(payloadType);
         metaChanged = false;
     }
 
@@ -102,10 +120,7 @@ public class GenericPayload implements Payload {
         try {
             setInputStream(new FileInputStream(payloadFile));
         } catch (IOException e) {
-            log
-                    .error(
-                            "Error accessing input stream during payload creation",
-                            e);
+            log.error("Error accessing input stream during payload creation", e);
         }
         metaChanged = false;
     }
@@ -143,6 +158,15 @@ public class GenericPayload implements Payload {
     }
 
     /**
+     * Set the metadata changed flag to a specific value.
+     * 
+     * @param metaChanged
+     */
+    public void setMetaChanged(boolean metaChanged) {
+        this.metaChanged = metaChanged;
+    }
+
+    /**
      * Gets the identifier for this payload
      * 
      * @return an identifier
@@ -159,8 +183,8 @@ public class GenericPayload implements Payload {
      */
     @Override
     public void setId(String id) {
+        metaChanged = (this.id != id);
         this.id = id;
-        metaChanged = true;
     }
 
     /**
@@ -189,8 +213,8 @@ public class GenericPayload implements Payload {
      * @param newLinked True if linked, otherwise false
      */
     public void setLinked(boolean newLinked) {
+        metaChanged = (linked != newLinked);
         linked = newLinked;
-        metaChanged = true;
     }
 
     /**
@@ -200,8 +224,8 @@ public class GenericPayload implements Payload {
      */
     @Override
     public void setType(PayloadType type) {
+        metaChanged = (this.type != type);
         this.type = type;
-        metaChanged = true;
     }
 
     /**
@@ -221,8 +245,8 @@ public class GenericPayload implements Payload {
      */
     @Override
     public void setLabel(String label) {
+        metaChanged = (this.label != label);
         this.label = label;
-        metaChanged = true;
     }
 
     /**
@@ -242,8 +266,8 @@ public class GenericPayload implements Payload {
      */
     @Override
     public void setContentType(String contentType) {
+        metaChanged = (this.contentType != contentType);
         this.contentType = contentType;
-        metaChanged = true;
     }
 
     /**
@@ -277,34 +301,33 @@ public class GenericPayload implements Payload {
     }
 
     /**
-     * Sets the input stream to access the content for this payload
+     * Sets the input stream to access the content for this payload. Note this
+     * stores the stream into memory, proper Payload implementations should
+     * override this method.
      * 
-     * @param an InputStream
+     * @param in the content input stream
      */
-    public void setInputStream(InputStream inputStream) {
-        ByteArrayOutputStream bytes = new ByteArrayOutputStream();
-        int c;
+    public void setInputStream(InputStream in) {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
         try {
-            while ((c = inputStream.read()) != -1) {
-                bytes.write((char) c);
-            }
-            ramStore = bytes.toByteArray();
+            IOUtils.copy(in, out);
+            ramStore = out.toByteArray();
             setContentType(MimeTypeUtil.getMimeType(ramStore, getId()));
         } catch (Exception e) {
-            log.error("Error during input storage", e);
+            log.error("Failed to copy content to memory", e);
         } finally {
             try {
-                inputStream.close();
-            } catch (IOException ex) {
-                log.error("Error during inputStream closure", ex);
+                in.close();
+            } catch (IOException ioe) {
+                log.error("Failed to close content input stream", ioe);
             }
         }
     }
 
     /**
-     * Get the id of the Payload
+     * Gets the Payload identifier
      * 
-     * @return id of the Payload
+     * @return an identifier
      */
     @Override
     public String toString() {

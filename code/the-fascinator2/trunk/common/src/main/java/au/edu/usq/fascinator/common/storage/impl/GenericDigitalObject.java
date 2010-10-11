@@ -138,9 +138,9 @@ public class GenericDigitalObject implements DigitalObject {
             Map<String, Payload> man = getManifest();
             // log.debug("Generic Manifest : " + man);
             if (!man.containsKey(METADATA_PAYLOAD)) {
-                Payload payload = createStoredPayload(METADATA_PAYLOAD, IOUtils
-                        .toInputStream(""));
-                if (getSourceId().equals(METADATA_PAYLOAD)) {
+                Payload payload = createStoredPayload(METADATA_PAYLOAD,
+                        IOUtils.toInputStream("# Object Metadata"));
+                if (METADATA_PAYLOAD.equals(getSourceId())) {
                     setSourceId(null);
                 }
                 payload.setType(PayloadType.Annotation);
