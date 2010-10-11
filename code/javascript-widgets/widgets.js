@@ -745,10 +745,7 @@ var widgets={forms:[], globalObject:this};
             }
 
             del=function(e){
-              $(this).parents("tr").remove();
-              //if(table.find(displaySelector+":visible").size()==1){
-              //  table.find(displaySelector+":visible .delete-item").hide();
-              //}
+              $(this).parents("tr:first").remove();
               reorder();
               return false;
             }
@@ -799,7 +796,8 @@ var widgets={forms:[], globalObject:this};
             }
 
             del=function(e){
-              $(this).parents("tr").remove();
+                alert("remove one");
+              $(this).parents("tr:first").remove();
               if(table.find(displaySelector+":visible").size()==1){
                 table.find(displaySelector+":visible .delete-item").hide();
               }
