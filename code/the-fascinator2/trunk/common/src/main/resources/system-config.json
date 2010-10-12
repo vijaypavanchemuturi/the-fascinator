@@ -1,9 +1,16 @@
 {
-    "version": "0.7.6",
+    "version": "0.7.7",
     "configured": false,
     "urlBase" : "http://localhost:9997/portal/",
     "email" : "fascinator@usq.edu.au",
-    "sso": ["OpenID"],
+    "sso": {
+        "plugins": ["OpenID"],
+        "urlExclusions": {
+            "startsWith" : ["css/", "feed/", "images/", "js/", "flowplayer/"],
+            "endsWidth" : [".ico"],
+            "equals" : ["css"]
+        }
+    },
     "accesscontrol": {
     "type" : "derby",
         "derby" : {

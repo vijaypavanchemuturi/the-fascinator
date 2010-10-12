@@ -253,9 +253,15 @@ public class CachingDynamicPageServiceImpl implements DynamicPageService {
         // Loop through our skins
         for (String skin : skinPriority) {
             path = portalId + "/" + skin + "/" + resourceName;
+
             // Check raw resource
             if (Velocity.resourceExists(path)) {
-                return path;
+                // But make sure it's not a directory, resourceExists()
+                ///   will return directories as valid resources.
+                File file = new File(portalPath, path);
+                if (!file.isDirectory()) {
+                    return path;
+                }
             }
             // Look for templates and scripts if it had no extension
             if (noExt) {

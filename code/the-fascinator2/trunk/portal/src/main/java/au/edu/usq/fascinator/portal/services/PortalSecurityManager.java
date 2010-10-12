@@ -23,7 +23,6 @@ import au.edu.usq.fascinator.api.authentication.AuthenticationException;
 import au.edu.usq.fascinator.api.authentication.AuthManager;
 import au.edu.usq.fascinator.api.authentication.User;
 import au.edu.usq.fascinator.api.roles.RolesManager;
-import au.edu.usq.fascinator.common.authentication.GenericUser;
 import au.edu.usq.fascinator.portal.JsonSessionState;
 import java.util.Map;
 
@@ -84,6 +83,17 @@ public interface PortalSecurityManager {
     public void logout(User user) throws AuthenticationException;
 
     /**
+     * Wrapper method for other SSO methods provided by the security manager.
+     * If desired, the security manager can take care of the integration using
+     * the default usage pattern, rather then calling them individually.
+     *
+     * @param session : The session of the current request
+     * @return boolean : True if SSO has redirected, in which case no response
+     *      should be sent by Dispatch, otherwise False.
+     */
+    public boolean runSsoIntegration(JsonSessionState session);
+
+    /**
      * Initialize the SSO Service, prepare a login if required
      *
      * @param session The server session data
@@ -94,6 +104,7 @@ public interface PortalSecurityManager {
     /**
      * Retrieve the login URL for redirection against a given provider.
      *
+     * @param String The SSO source to use
      * @return String The URL used by the SSO Service for logins
      */
     public String ssoGetRemoteLogonURL(String source);
@@ -111,4 +122,16 @@ public interface PortalSecurityManager {
      * @return Map Containing the data structure of valid SSO interfaces.
      */
     public Map<String, Map<String, String>> ssoBuildLogonInterface();
+
+    /**
+     * Given the provided resource, test whether SSO should be 'aware' of this
+     * resource. 'Aware' resources are valid return return points after SSO
+     * redirects, so the test should return false on (for examples) static
+     * resources and utilities such as atom feeds.
+     *
+     * @param resource : The name of the resource being accessed
+     * @param uri : The full URI of the resource if simple matches fail
+     * @return boolean : True if SSO should be evaluated, False otherwise
+     */
+    public boolean testForSso(String resource, String uri);
 }
