@@ -26,19 +26,20 @@ class DownloadData:
         self.page = context["page"]
 
         self.__metadata = JsonConfigHelper()
-        self.__object = None;
-        self.__payload = None;
+        object = None
+        payload = None
 
         basePath = self.portalId + "/" + self.pageName
         fullUri = URLDecoder.decode(self.request.getAttribute("RequestURI"))
         uri = fullUri[len(basePath)+1:]
         try:
-            self.__resolve(uri)
-            if self.__object == None:
+            object, payload = self.__resolve(uri)
+            if object is None:
+                print " *** redirecting because object not found: '%s'" % uri
                 self.response.sendRedirect(self.contextPath + "/" + fullUri + "/")
                 return
             else:
-                oid = self.__object.getId()
+                oid = object.getId()
                 self.__loadSolrData(oid)
                 if self.isIndexed():
                     self.__metadata = self.__solrData.getJsonList("response/docs").get(0)
@@ -48,26 +49,26 @@ class DownloadData:
                     self.__metadata.set("id", oid)
             #print "URI='%s' OID='%s' PID='%s'" % (uri, object.getId(), payload.getId())
         except StorageException, e:
-            self.__payload = None
+            payload = None
             print "Failed to get object: %s" % (str(e))
 
         if self.isAccessDenied():
             # Redirect to the object page for standard access denied error
-            self.response.sendRedirect(self.contextPath + "/" + self.portalId + "/detail/" + self.__object.getId())
+            self.response.sendRedirect(self.contextPath + "/" + self.portalId + "/detail/" + object.getId())
             return
 
-        if self.__payload is not None:
-            filename = os.path.split(self.__payload.getId())[1]
-            mimeType = self.__payload.getContentType()
+        if payload is not None:
+            filename = os.path.split(payload.getId())[1]
+            mimeType = payload.getContentType()
             if mimeType == "application/octet-stream":
                 self.response.setHeader("Content-Disposition", "attachment; filename=%s" % filename)
 
-            type = self.__payload.getContentType()
+            type = payload.getContentType()
             # Enocode textual responses before sending
             if type is not None and type.startswith("text/"):
                 out = ByteArrayOutputStream()
-                IOUtils.copy(self.__payload.open(), out)
-                self.__payload.close()
+                IOUtils.copy(payload.open(), out)
+                payload.close()
                 writer = self.response.getPrintWriter(type + "; charset=UTF-8")
                 writer.println(out.toString("UTF-8"))
                 writer.close()
@@ -78,9 +79,9 @@ class DownloadData:
                     out = self.response.getOutputStream("application/octet-stream")
                 else:
                     out = self.response.getOutputStream(type)
-                IOUtils.copy(self.__payload.open(), out)
-                self.__payload.close()
-                self.__object.close()
+                IOUtils.copy(payload.open(), out)
+                payload.close()
+                object.close()
                 out.close()
         else:
             self.response.setStatus(404)
@@ -119,15 +120,16 @@ class DownloadData:
             return None, None
         oid = uri[:slash]
         try:
-            self.__object = self.services.getStorage().getObject(oid)
+            object = self.services.getStorage().getObject(oid)
         except StorageException:
             # not found check if oid's are mapped differently, use storage_id
             sid = self.__getStorageId(oid)
-            self.__object = self.services.getStorage().getObject(sid)
+            object = self.services.getStorage().getObject(sid)
         pid = uri[slash+1:]
         if pid == "":
-            pid = self.__object.getSourceId()
-        self.__payload = self.__object.getPayload(pid)
+            pid = object.getSourceId()
+        payload = object.getPayload(pid)
+        return object, payload
 
     def __getNumFound(self):
         return int(self.__solrData.get("response/numFound"))
