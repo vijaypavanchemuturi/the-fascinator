@@ -31,13 +31,18 @@
         div.append("<hr/>");
         div.append($("<table/>").append(tbody=$("<tbody/>")));
         $.each(json.results, function(c, result){
-          var r, a;
+          var r, a, name;
           id="rId"+c;
           tr=$("<tr/>").append(td=$("<td/>"));
           r=$("<input type='radio' name='name' />").attr("id", id);
           r.val(JSON.stringify(result));
           label=$("<label/>").attr("for", id);
-          label.append(result["rdfs:label"]);
+          name = result["rdfs:label"] || result["foaf:name"];
+          label.append(name);
+          if(result["dc:description"]){
+              label.append(" - "+result["dc:description"]);
+          }
+          //
           td.append(r);
           td.append(label);
           //
@@ -50,7 +55,7 @@
             var pos = dialog.parent().position();
             pos.left += 10;
             pos.top += 20;
-            displayDetails(result["rdfs:label"], result, pos, r);
+            displayDetails(name, result, pos, r);
             return false;
           });
         });
@@ -75,6 +80,7 @@
     }
 
     var displayDetails = function(name, details, pos, link){
+        detailDialog.html("");
         detailDialog.text(name);
         detailDialog.append("<hr/>");
         $.each(details, function(k, v){
@@ -131,7 +137,7 @@
                     debug(ok);
                     if(ok){
                         function xUpdate(ns, what){
-                            var nst, k;
+                            var nsp, k;
                             if(!ns) return;
                             nsp = ns+"-";
                             parent.find("."+ns).each(function(c, e){

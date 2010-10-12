@@ -528,9 +528,7 @@ var widgets={forms:[], globalObject:this};
               var k = v.replace(/\.\d+(?=(\.|$))/, ".0");
               if($.inArray(k, formFields)!=-1){
                   input = ctxInputs.filter("[id="+v+"]");
-                  if(input.size()>0){
-                    input.val(data[v]);
-                  }else{
+                  if(input.size()==0){
                     input = ctxInputs.filter("[id="+k+"]");
                     t=input.parents(".input-list:first").find(".add-another-item, .item-add");
                     if(t[0].forceAdd){
@@ -541,9 +539,13 @@ var widgets={forms:[], globalObject:this};
                     // update inputs - this could be done better
                     ctxInputs = ctx.findx("input, textarea, select");
                     input = ctxInputs.filter("[id="+v+"]");
-              if(input.size()==0){
-                  alert("id '"+v+"' not found!");
-              }
+                    if(input.size()==0){
+                        alert("id '"+v+"' not found!");
+                    }
+                  }
+                  if(input.attr("type")=="checkbox"){
+                    input.attr("checked", !!data[v]);
+                  }else{
                     input.val(data[v]);
                   }
               }
@@ -693,6 +695,7 @@ var widgets={forms:[], globalObject:this};
             displaySelector = ".item-display";
             tmp=table.find(displaySelector).hide();
             displayRowTemplate=tmp.eq(0);
+            contentDisable(displayRowTemplate);
             add=function(e, force){
               // get item value(s) & validate (if no validation just test for is not empty)
               var values=[];
@@ -742,6 +745,7 @@ var widgets={forms:[], globalObject:this};
               visibleItems.find(".delete-item").show();
               //if(count==1) tmp.find(".delete-item").hide();
               tmp.find(".delete-item").click(del);
+              contentSetup(tmp);
             }
 
             del=function(e){
@@ -775,6 +779,7 @@ var widgets={forms:[], globalObject:this};
             displaySelector="tr.item-input-display";
             tmp=table.find(displaySelector).hide();
             displayRowTemplate=tmp.eq(0);
+            contentDisable(displayRowTemplate);
 
             add=function(){
               visibleItems = table.find(displaySelector+".count-this");
@@ -793,6 +798,7 @@ var widgets={forms:[], globalObject:this};
               visibleItems.find(".delete-item").show();
               if(count==1) tmp.find(".delete-item").hide();
               tmp.find(".delete-item").click(del);
+              contentSetup(tmp);
             }
 
             del=function(e){
@@ -1028,7 +1034,7 @@ var widgets={forms:[], globalObject:this};
         $(this).blur();
     }
     function datepickerBeforeShow(input, inst){
-        inst = $("#" + inst.id);
+        inst = $(inst.input);
         if(inst.hasClass("dateMY") || inst.hasClass("dateYM") || inst.hasClass("dateY")){
             setTimeout(function(){
                 $(".ui-datepicker-calendar").remove();
@@ -1038,35 +1044,41 @@ var widgets={forms:[], globalObject:this};
             }, 10);
         }
     }
-
-    function contentLoaded(){
+    function contentSetup(ctx){
         // ==============
         // Date inputs
         // ==============
-        $("input.dateYMD, input.date").datepicker({
+        ctx.find("input.dateYMD, input.date").datepicker({
             dateFormat:"yy-mm-dd", changeMonth:true, changeYear:true, showButtonPanel:false
         });
-        $('input.dateYM').datepicker({
+        ctx.find('input.dateYM').datepicker({
             changeMonth: true, changeYear: true, showButtonPanel: true, dateFormat: 'yy-mm',
             onClose: datepickerOnClose,
             beforeShow:datepickerBeforeShow,
             onChangeMonthYear:function(year, month, inst){ datepickerBeforeShow(null, inst); },
             onSelect:function(dateText, inst){}
         });
-        $('input.dateMMY').datepicker({
+        ctx.find('input.dateMMY').datepicker({
             changeMonth: true, changeYear: true, showButtonPanel: true, dateFormat: 'MM yy',
             onClose: datepickerOnClose,
             beforeShow:datepickerBeforeShow,
             onChangeMonthYear:function(year, month, inst){ datepickerBeforeShow(null, inst); },
             onSelect:function(dateText, inst){}
         });
-        $('input.dateY').datepicker({
+        ctx.find('input.dateY').datepicker({
             changeMonth: false, changeYear: true, showButtonPanel: true, dateFormat: 'yy',
             onClose: datepickerOnClose,
             beforeShow:datepickerBeforeShow,
             onChangeMonthYear:function(year, month, inst){ datepickerBeforeShow(null, inst); },
             onSelect:function(dateText, inst){}
         });
+    }
+    function contentDisable(ctx){
+        ctx.find("input").filter(".dateYMD, .date, .dateYM, .dateMMY, .dateY").datepicker("destroy");
+    }
+
+    function contentLoaded(){
+        contentSetup($("body"));
         // ==============
 
         $("."+formClassName).each(function(c, e){
