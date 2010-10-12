@@ -20,10 +20,13 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.ServiceLoader;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.tapestry5.ioc.annotations.Inject;
 import org.apache.tapestry5.services.Request;
 import org.apache.tapestry5.services.RequestGlobals;
+import org.apache.tapestry5.services.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -62,6 +65,10 @@ public class PortalSecurityManagerImpl implements PortalSecurityManager {
     @Inject
     private Request request;
 
+    /** HTTP Response */
+    @Inject
+    private Response response;
+
     /** Request globals */
     @Inject
     private RequestGlobals rg;
@@ -78,6 +85,18 @@ public class PortalSecurityManagerImpl implements PortalSecurityManager {
     /** SSO Login URL */
     private String ssoLoginUrl;
 
+    /** detailSubPage detection */
+    private Pattern detailPattern;
+
+    /** URL Exclusions : Starts with */
+    private List<String> excStarts;
+
+    /** URL Exclusions : Ends with */
+    private List<String> excEnds;
+
+    /** URL Exclusions : Equals */
+    private List<String> excEquals;
+
     /**
      * Basic constructor, should be run automatically by Tapestry.
      *
@@ -89,7 +108,7 @@ public class PortalSecurityManagerImpl implements PortalSecurityManager {
 
         // For all SSO providers configured
         sso = new LinkedHashMap();
-        List<Object> ssoProviders = config.getList("sso");
+        List<Object> ssoProviders = config.getList("sso/plugins");
         for (Object ssoId : ssoProviders) {
             // Instantiate from the ServiceLoader
             SSOInterface valid = getSSOProvider((String) ssoId);
@@ -106,6 +125,24 @@ public class PortalSecurityManagerImpl implements PortalSecurityManager {
                     PortalManager.DEFAULT_PORTAL_NAME);
         serverUrlBase = config.get("urlBase");
         ssoLoginUrl = serverUrlBase + defaultPortal + SSO_LOGIN_PAGE;
+
+        // Get exclusions Strings from config
+        excStarts = castList(config.getList("sso/urlExclusions/startsWith"));
+        excEnds = castList(config.getList("sso/urlExclusions/endsWith"));
+        excEquals = castList(config.getList("sso/urlExclusions/equals"));
+    }
+
+    /**
+     * Cast a list of objects into strings
+     *
+     * @param data : The object list to cast into strings
+     */
+    private List<String> castList(List<Object> data) {
+        List<String> response = new ArrayList();
+        for (Object item : data) {
+            response.add((String) item);
+        }
+        return response;
     }
 
     /**
@@ -236,6 +273,39 @@ public class PortalSecurityManagerImpl implements PortalSecurityManager {
     }
 
     /**
+     * Wrapper method for other SSO methods provided by the security manager.
+     * If desired, the security manager can take care of the integration using
+     * the default usage pattern, rather then calling them individually.
+     *
+     * @param session : The session of the current request
+     * @return boolean : True if SSO has redirected, in which case no response
+     *      should be sent by Dispatch, otherwise False.
+     */
+    @Override
+    public boolean runSsoIntegration(JsonSessionState session) {
+        // Single Sign-On integration
+        try {
+            // Instantiate with access to the session
+            String ssoId = this.ssoInit(session);
+            if (ssoId != null) {
+                // We are logging in, so send them to the SSO portal
+                String ssoUrl = this.ssoGetRemoteLogonURL(ssoId);
+                if (ssoUrl != null) {
+                    response.sendRedirect(ssoUrl);
+                    return true;
+                }
+            } else {
+                // Otherwise, check if we have user's details
+                this.ssoCheckUserDetails();
+            }
+        } catch (Exception ex) {
+            log.error("SSO Error!", ex);
+        }
+
+        return false;
+    }
+
+    /**
      * Initialize the SSO Service, prepare a login if required
      *
      * @param session The server session data
@@ -330,6 +400,7 @@ public class PortalSecurityManagerImpl implements PortalSecurityManager {
     /**
      * Retrieve the login URL for redirection against a given provider.
      *
+     * @param String The SSO source to use
      * @return String The URL used by the SSO Service for logins
      */
     @Override
@@ -340,4 +411,62 @@ public class PortalSecurityManagerImpl implements PortalSecurityManager {
             return sso.get(source).ssoGetRemoteLogonURL();
         }
     }
+
+    /**
+     * Given the provided resource, test whether SSO should be 'aware' of this
+     * resource. 'Aware' resources are valid return return points after SSO
+     * redirects, so the test should return false on (for examples) static
+     * resources and utilities such as atom feeds.
+     *
+     * @param resource : The name of the resource being accessed
+     * @param uri : The full URI of the resource if simple matches fail
+     * @return boolean : True if SSO should be evaluated, False otherwise
+     */
+    @Override
+    public boolean testForSso(String resource, String uri) {
+        // Test for resources that start with unwanted values
+        for (String test : excStarts) {
+            if (resource.startsWith(test)) {
+                return false;
+            }
+        }
+
+        // Test for resources that end with unwanted values
+        for (String test : excEnds) {
+            if (resource.endsWith(test)) {
+                return false;
+            }
+        }
+
+        // Test for resources that equal unwanted values
+        for (String test : excEquals) {
+            if (resource.equals(test)) {
+                return false;
+            }
+        }
+
+        // The detail screen generates a lot of background calls to the server
+        if (resource.equals("detail") ||
+            resource.equals("download") ||
+            resource.equals("preview")) {
+            // Now check for the core page
+            if (resource.equals("detail")) {
+                if (detailPattern == null) {
+                    detailPattern = Pattern.compile("detail/\\w+/*$");
+                }
+                Matcher matcher = detailPattern.matcher(uri);
+                if (matcher.find()) {
+                    // This is actually the 'core' detail page
+                    return true;
+                }
+            }
+
+            // This is just a subpage
+            return false;
+        }
+
+        // Every other page
+        return true;
+    }
+
 }

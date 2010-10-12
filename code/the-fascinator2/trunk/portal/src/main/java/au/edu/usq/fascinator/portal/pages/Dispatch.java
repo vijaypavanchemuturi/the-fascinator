@@ -22,7 +22,6 @@ import au.edu.usq.fascinator.HarvestClient;
 import au.edu.usq.fascinator.api.PluginException;
 import au.edu.usq.fascinator.api.authentication.AuthenticationException;
 import au.edu.usq.fascinator.api.authentication.User;
-import au.edu.usq.fascinator.api.roles.RolesManager;
 import au.edu.usq.fascinator.common.JsonConfig;
 import au.edu.usq.fascinator.common.JsonConfigHelper;
 import au.edu.usq.fascinator.common.MimeTypeUtil;
@@ -146,56 +145,17 @@ public class Dispatch {
                     "Page not found: " + requestUri);
         }
 
-        /* TODO: refactor this by moving all static resources into
-         * 'includes/css/*' and similar. Reduce to one test. */
-        boolean staticResource = false;
-        if (resourceName.startsWith("css/") || resourceName.equals("css") ||
-            resourceName.startsWith("images/") ||
-            resourceName.startsWith("js/") ||
-            resourceName.startsWith("flowplayer/") ||
-            resourceName.endsWith(".ico")) {
-            staticResource = true;
-        }
-        // The detail screen generates a lot of background calls to the server
-        boolean detailSubPage = false;
-        if (resourceName.equals("detail") ||
-            resourceName.equals("download") ||
-            resourceName.equals("preview")) {
-            // Simple answer
-            detailSubPage = true;
-
-            // Now check for the core page
-            if (resourceName.equals("detail")) {
-                if (detailPattern == null) {
-                    detailPattern = Pattern.compile("detail/\\w+/*$");
+        // SSO Integration - Ignore AJAX and such
+        if (!isSpecial) {
+            log.debug("URI: '{}'", requestUri);
+            // Make sure it's not a static resource
+            if (security.testForSso(resourceName, requestUri)) {
+                // Run SSO
+                boolean redirected = security.runSsoIntegration(sessionState);
+                // Finish here if SSO redirected
+                if (redirected) {
+                    return GenericStreamResponse.noResponse();
                 }
-                Matcher matcher = detailPattern.matcher(requestUri);
-                if (matcher.find()) {
-                    // This is actually the 'core' detail page
-                    detailSubPage = false;
-                }
-            }
-        }
-
-        // Some things we don't want running excepted on 'real' page loads
-        if (!staticResource && !detailSubPage && !isSpecial) {
-            // Single Sign-On integration
-            try {
-                // Instantiate with access to the session
-                String ssoId = security.ssoInit(sessionState);
-                if (ssoId != null) {
-                    // We are logging in, so send them to the SSO portal
-                    String ssoUrl = security.ssoGetRemoteLogonURL(ssoId);
-                    if (ssoUrl != null) {
-                        response.sendRedirect(ssoUrl);
-                        return GenericStreamResponse.noResponse();
-                    }
-                } else {
-                    // Otherwise, check if we have user's details
-                    security.ssoCheckUserDetails();
-                }
-            } catch (Exception ex) {
-                log.error("SSO Error!", ex);
             }
         }
 
@@ -206,7 +166,7 @@ public class Dispatch {
                     .synchronizedMap(new HashMap<String, FormData>());
         }
 
-        // make static resources cacheable
+        // Make static resources cacheable
         if (resourceName.indexOf(".") != -1 && !isSpecial) {
             response.setHeader("Cache-Control", "public");
             response.setDateHeader("Expires", System.currentTimeMillis()
@@ -228,7 +188,7 @@ public class Dispatch {
         // Page render time
         renderProcessing();
 
-        // clear formData
+        // Clear formData
         formDataMap.remove(requestId);
 
         return new GenericStreamResponse(mimeType, stream);
