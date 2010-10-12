@@ -56,6 +56,7 @@ class IndexData:
         self.utils.add(self.index, "display_type", "package")
 
         self.item_security = []
+        self.owner = self.params.getProperty("owner", None)
 
     def __basicData(self):
         self.utils.add(self.index, "repository_name", self.params["repository.name"])
@@ -110,7 +111,6 @@ class IndexData:
                     self.__grantAccess(role)
                     self.utils.add(self.index, "security_filter", role)
         # Ownership
-        self.owner = self.params.getProperty("owner", None)
         if self.owner is None:
             self.utils.add(self.index, "owner", "system")
         else:
