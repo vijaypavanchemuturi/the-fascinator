@@ -334,12 +334,17 @@ public class PortalSecurityManagerImpl implements PortalSecurityManager {
             sso.get(ssoId).ssoInit(sessionState, rg.getHTTPServletRequest());
         }
 
-        // If we aren't logging in right now
+        // Are we logging in right now?
+        String ssoId = request.getParameter("ssoId");
+
+        // If this isn't the login page...
         if (!currentAddress.contains(SSO_LOGIN_PAGE)) {
             // Store the current address for use later
             sessionState.set("returnAddress", currentAddress);
-            // We're done now
-            return null;
+            // We might still be logging in from a deep link
+            if (ssoId == null) {
+                return null;
+            }
         }
 
         // Get the last address to return the user to
@@ -350,9 +355,12 @@ public class PortalSecurityManagerImpl implements PortalSecurityManager {
         }
 
         // Which SSO provider did the user request?
-        String ssoId = request.getParameter("ssoId");
         if (ssoId == null) {
-            log.error("==== SSO: No SSO ID found!");
+            log.error("==== SSO: SSO ID not found!");
+            return null;
+        }
+        if (!sso.containsKey(ssoId)) {
+            log.error("==== SSO: SSO ID invalid: '{}'!", ssoId);
             return null;
         }
 
@@ -424,6 +432,12 @@ public class PortalSecurityManagerImpl implements PortalSecurityManager {
      */
     @Override
     public boolean testForSso(String resource, String uri) {
+        // The URL parameters can request forced SSO to this URL
+        String ssoId = request.getParameter("ssoId");
+        if (ssoId != null) {
+            return true;
+        }
+
         // Test for resources that start with unwanted values
         for (String test : excStarts) {
             if (resource.startsWith(test)) {
