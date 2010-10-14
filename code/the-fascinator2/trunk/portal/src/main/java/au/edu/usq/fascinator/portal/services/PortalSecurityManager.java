@@ -129,9 +129,19 @@ public interface PortalSecurityManager {
      * redirects, so the test should return false on (for examples) static
      * resources and utilities such as atom feeds.
      *
+     * @param session : The session for this request
      * @param resource : The name of the resource being accessed
      * @param uri : The full URI of the resource if simple matches fail
      * @return boolean : True if SSO should be evaluated, False otherwise
      */
-    public boolean testForSso(String resource, String uri);
+    public boolean testForSso(JsonSessionState session, String resource,
+            String uri);
+
+    /**
+     * Validate the provided trust token.
+     *
+     * @param token : The token to validate
+     * @return boolean : True if the token is valid, False otherwise
+     */
+    public boolean testTrustToken(String token);
 }

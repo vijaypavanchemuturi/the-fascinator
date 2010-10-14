@@ -147,9 +147,8 @@ public class Dispatch {
 
         // SSO Integration - Ignore AJAX and such
         if (!isSpecial) {
-            log.debug("URI: '{}'", requestUri);
             // Make sure it's not a static resource
-            if (security.testForSso(resourceName, requestUri)) {
+            if (security.testForSso(sessionState, resourceName, requestUri)) {
                 // Run SSO
                 boolean redirected = security.runSsoIntegration(sessionState);
                 // Finish here if SSO redirected
