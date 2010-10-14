@@ -14,7 +14,11 @@ import au.edu.usq.fascinator.portal.services.PortalSecurityManager;
 import au.edu.usq.fascinator.portal.sso.SSOInterface;
 
 import java.io.IOException;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -22,7 +26,10 @@ import java.util.Map;
 import java.util.ServiceLoader;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import javax.servlet.http.HttpServletResponse;
+import org.apache.commons.codec.digest.DigestUtils;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.tapestry5.ioc.annotations.Inject;
 import org.apache.tapestry5.services.Request;
 import org.apache.tapestry5.services.RequestGlobals;
@@ -38,6 +45,12 @@ import org.slf4j.LoggerFactory;
  * @author Greg Pendlebury
  */
 public class PortalSecurityManagerImpl implements PortalSecurityManager {
+
+    /** Prefix to use for 'source' with trust tokens */
+    private static String TRUST_TOKEN_PREFIX = "TrustToken_";
+
+    /** Default trust token expiry period */
+    private static String TRUST_TOKEN_EXPIRY = "600";
 
     /** Logging */
     private Logger log = LoggerFactory.getLogger(
@@ -97,6 +110,12 @@ public class PortalSecurityManagerImpl implements PortalSecurityManager {
     /** URL Exclusions : Equals */
     private List<String> excEquals;
 
+    /** Trust tokens */
+    private Map<String, String> tokens;
+
+    /** Trust tokens - Expiry period */
+    private Map<String, Long> tokenExpiry;
+
     /**
      * Basic constructor, should be run automatically by Tapestry.
      *
@@ -130,6 +149,24 @@ public class PortalSecurityManagerImpl implements PortalSecurityManager {
         excStarts = castList(config.getList("sso/urlExclusions/startsWith"));
         excEnds = castList(config.getList("sso/urlExclusions/endsWith"));
         excEquals = castList(config.getList("sso/urlExclusions/equals"));
+
+        // Trust tokens
+        Map<String, JsonConfigHelper> tokenMap =
+                config.getJsonMap("sso/trustTokens");
+        tokens = new HashMap();
+        tokenExpiry = new HashMap();
+        for (String key : tokenMap.keySet()) {
+            String publicKey = tokenMap.get(key).get("publicKey");
+            String privateKey = tokenMap.get(key).get("privateKey");
+            String expiry = tokenMap.get(key).get("expiry", TRUST_TOKEN_EXPIRY);
+            if (publicKey != null && privateKey != null) {
+                // Valid key
+                tokens.put(publicKey, privateKey);
+                tokenExpiry.put(publicKey, Long.valueOf(expiry));
+            } else {
+                log.error("Invalid token data: '{}'", key);
+            }
+        }
     }
 
     /**
@@ -138,11 +175,11 @@ public class PortalSecurityManagerImpl implements PortalSecurityManager {
      * @param data : The object list to cast into strings
      */
     private List<String> castList(List<Object> data) {
-        List<String> response = new ArrayList();
+        List<String> result = new ArrayList();
         for (Object item : data) {
-            response.add((String) item);
+            result.add((String) item);
         }
-        return response;
+        return result;
     }
 
     /**
@@ -204,7 +241,7 @@ public class PortalSecurityManagerImpl implements PortalSecurityManager {
         List<String> ssoRoles = new ArrayList();
 
         // SSO Users
-        if (sso.keySet().contains(source)) {
+        if (sso.containsKey(source)) {
             ssoRoles = sso.get(source).getRolesList();
         }
 
@@ -233,8 +270,14 @@ public class PortalSecurityManagerImpl implements PortalSecurityManager {
     @Override
     public User getUser(String username, String source)
             throws AuthenticationException {
+        // Sanity check
+        if (username == null || username.equals("") ||
+                source == null || source.equals("")) {
+            throw new AuthenticationException("Invalid user data requested");
+        }
+
         // SSO Users
-        if (sso.keySet().contains(source)) {
+        if (sso.containsKey(source)) {
             GenericUser user = (GenericUser) sso.get(source).getUserObject();
             // Sanity check our data
             if (user == null || !user.getUsername().equals(username)) {
@@ -242,12 +285,30 @@ public class PortalSecurityManagerImpl implements PortalSecurityManager {
                         "Unknown user '" + username + "'");
             }
             return user;
+        }
+
+        // Trust token users
+        if (source.startsWith(TRUST_TOKEN_PREFIX)) {
+            String sUsername = (String) sessionState.get("username");
+            String sSource = (String) sessionState.get("source");
+
+            // We can't lookup token users so it must match
+            if (sUsername == null || !username.equals(sUsername) ||
+                    sSource == null || !source.equals(sSource)) {
+                throw new AuthenticationException(
+                        "Unknown user '" + username + "'");
+            }
+
+            // Seems valid, create a basic user object and return
+            GenericUser user = new GenericUser();
+            user.setUsername(username);
+            user.setSource(source);
+            return user;
+        }
 
         // Standard users
-        } else {
-            authManager.setActivePlugin(source);
-            return authManager.getUser(username);
-        }
+        authManager.setActivePlugin(source);
+        return authManager.getUser(username);
     }
 
     /**
@@ -258,18 +319,25 @@ public class PortalSecurityManagerImpl implements PortalSecurityManager {
     @Override
     public void logout(User user) throws AuthenticationException {
         String source = user.getSource();
+
+        // Clear session
+        sessionState.remove("username");
+        sessionState.remove("source");
+
         // SSO Users
-        if (sso.keySet().contains(source)) {
+        if (sso.containsKey(source)) {
             sso.get(source).logout();
-            sessionState.remove("username");
-            sessionState.remove("source");
+            return;
+        }
+
+        // Trust token users
+        if (source.startsWith(TRUST_TOKEN_PREFIX)) {
+            sessionState.remove("validToken");
+            return;
+        }
 
         // Standard users
-        } else {
-            authManager.logOut(user);
-            sessionState.remove("username");
-            sessionState.remove("source");
-        }
+        authManager.logOut(user);
     }
 
     /**
@@ -283,6 +351,38 @@ public class PortalSecurityManagerImpl implements PortalSecurityManager {
      */
     @Override
     public boolean runSsoIntegration(JsonSessionState session) {
+        // The URL parameters can contain a trust token
+        String utoken = request.getParameter("token");
+        String stoken = (String) sessionState.get("validToken");
+        String token = null;
+        // Or an 'old' token still in the session
+        if (stoken != null) {
+            token = stoken;
+        }
+        // But give the URL priority
+        if (utoken != null) {
+            token = utoken;
+        }
+        if (token != null) {
+            // Valid token
+            if (this.testTrustToken(token)) {
+                // Dispatch can continue
+                return false;
+            }
+
+            // Invalid token
+            // Given that trust tokens are designed for system integration
+            //  we are going to fail with a non-branded error message
+            try {
+                response.sendError(HttpServletResponse.SC_FORBIDDEN,
+                        "Invalid or expired security token!");
+            } catch (IOException ex) {
+                log.error("Error sending 403 response to client!");
+            }
+            // We don't want Dispatch to send a response
+            return true;
+        }
+
         // Single Sign-On integration
         try {
             // Instantiate with access to the session
@@ -426,15 +526,26 @@ public class PortalSecurityManagerImpl implements PortalSecurityManager {
      * redirects, so the test should return false on (for examples) static
      * resources and utilities such as atom feeds.
      *
+     * @param session : The session for this request
      * @param resource : The name of the resource being accessed
      * @param uri : The full URI of the resource if simple matches fail
      * @return boolean : True if SSO should be evaluated, False otherwise
      */
     @Override
-    public boolean testForSso(String resource, String uri) {
+    public boolean testForSso(JsonSessionState session, String resource,
+            String uri) {
+        sessionState = session;
+
         // The URL parameters can request forced SSO to this URL
         String ssoId = request.getParameter("ssoId");
         if (ssoId != null) {
+            return true;
+        }
+
+        // The URL parameters can contain a trust token
+        String utoken = request.getParameter("token");
+        String stoken = (String) sessionState.get("validToken");
+        if (utoken != null || stoken != null) {
             return true;
         }
 
@@ -483,4 +594,98 @@ public class PortalSecurityManagerImpl implements PortalSecurityManager {
         return true;
     }
 
+    /**
+     * Validate the provided trust token.
+     *
+     * @param token : The token to validate
+     * @return boolean : True if the token is valid, False otherwise
+     */
+    @Override
+    public boolean testTrustToken(String token) {
+        String[] parts = StringUtils.split(token, ":");
+
+        // Check the length
+        if (parts.length != 4) {
+            log.error("TOKEN: Should have 4 parts, not {} : '{}'",
+                    parts.length, token);
+            return false;
+        }
+
+        // Check the parts
+        String username = parts[0];
+        String timestamp = parts[1];
+        String publicKey = parts[2];
+        String userToken = parts[3];
+        if (username.isEmpty() || timestamp.isEmpty() || publicKey.isEmpty() ||
+                userToken.isEmpty()) {
+            log.error("TOKEN: One or more parts are empty : '{}'", token);
+            return false;
+        }
+
+        // Make sure the publicKey is valid
+        if (!tokens.containsKey(publicKey)) {
+            log.error("TOKEN: Invalid public key : '{}'", publicKey);
+            return false;
+        }
+        String privateKey = tokens.get(publicKey);
+        Long expiry = tokenExpiry.get(publicKey);
+
+        // Check for valid timestamp & expiry
+        timestamp = getFormattedTime(timestamp);
+        if (timestamp == null) {
+            log.error("TOKEN: Invalid timestamp : '{}'", timestamp);
+            return false;
+        }
+        Long tokenTime = Long.valueOf(timestamp);
+        Long currentTime = Long.valueOf(getFormattedTime(null));
+        Long age = currentTime - tokenTime;
+        if (age > expiry) {
+            log.error("Token is passed its expiry : {}s old", age);
+            return false;
+        }
+
+        // Now validate the token itself
+        String tokenSeed = username + ":" + timestamp + ":" + privateKey;
+        String expectedToken = DigestUtils.md5Hex(tokenSeed);
+        if (userToken.equals(expectedToken)) {
+            // The token is valid
+            sessionState.set("username", username);
+            sessionState.set("source", TRUST_TOKEN_PREFIX + publicKey);
+            // Store it in case we redirect later
+            sessionState.set("validToken", token);
+            return true;
+        }
+
+        // Token was not valid
+        log.error("TOKEN: Invalid token, hash does not match: '{}'", userToken);
+        return false;
+    }
+
+    /**
+     * Get (or validate) a formatted time string. If the input is null, the
+     * current time will be returned, otherwise it will validate the provided
+     * string, returning null if it is invalid.
+     *
+     * @param input : A time string to validate, null will use current time
+     * @return String : A formatted time string, null if input is invalid
+     */
+    private String getFormattedTime(String input) {
+        DateFormat dateFormat = new SimpleDateFormat("yyyyMMddHHmmss");
+        Date dateData;
+        if (input == null) {
+            // Now
+            dateData = new Date();
+        } else {
+            try {
+                // Parse provided date
+                dateData = dateFormat.parse(input);
+            } catch (ParseException ex) {
+                // Invalid date provided
+                return null;
+            }
+        }
+
+        // Return a long containing the time
+        return dateFormat.format(dateData);
+    }
 }

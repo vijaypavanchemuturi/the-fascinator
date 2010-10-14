@@ -100,6 +100,11 @@ class DownloadData:
         return self.__metadata
 
     def isAccessDenied(self):
+        # Admins always have access
+        if self.page.authentication.is_admin():
+            return False
+
+        # Check for normal access
         myRoles = self.page.authentication.get_roles_list()
         allowedRoles = self.getAllowedRoles()
         for role in myRoles:
