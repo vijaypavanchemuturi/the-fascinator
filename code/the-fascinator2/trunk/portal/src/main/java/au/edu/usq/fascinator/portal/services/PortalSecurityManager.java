@@ -23,6 +23,7 @@ import au.edu.usq.fascinator.api.authentication.AuthenticationException;
 import au.edu.usq.fascinator.api.authentication.AuthManager;
 import au.edu.usq.fascinator.api.authentication.User;
 import au.edu.usq.fascinator.api.roles.RolesManager;
+import au.edu.usq.fascinator.portal.FormData;
 import au.edu.usq.fascinator.portal.JsonSessionState;
 import java.util.Map;
 
@@ -88,10 +89,12 @@ public interface PortalSecurityManager {
      * the default usage pattern, rather then calling them individually.
      *
      * @param session : The session of the current request
+     * @param formData : FormData object for the current request
      * @return boolean : True if SSO has redirected, in which case no response
      *      should be sent by Dispatch, otherwise False.
      */
-    public boolean runSsoIntegration(JsonSessionState session);
+    public boolean runSsoIntegration(JsonSessionState session,
+            FormData formData);
 
     /**
      * Initialize the SSO Service, prepare a login if required

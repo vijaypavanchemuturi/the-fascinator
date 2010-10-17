@@ -8,6 +8,7 @@ import au.edu.usq.fascinator.api.roles.RolesManager;
 import au.edu.usq.fascinator.common.JsonConfig;
 import au.edu.usq.fascinator.common.JsonConfigHelper;
 import au.edu.usq.fascinator.common.authentication.GenericUser;
+import au.edu.usq.fascinator.portal.FormData;
 import au.edu.usq.fascinator.portal.JsonSessionState;
 import au.edu.usq.fascinator.portal.services.PortalManager;
 import au.edu.usq.fascinator.portal.services.PortalSecurityManager;
@@ -46,6 +47,9 @@ import org.slf4j.LoggerFactory;
  */
 public class PortalSecurityManagerImpl implements PortalSecurityManager {
 
+    /** Prefix for storing SSO parameters whilst round-tripping */
+    private static String SSO_STORAGE_PREFIX = "ssoStoredParam_";
+
     /** Prefix to use for 'source' with trust tokens */
     private static String TRUST_TOKEN_PREFIX = "TrustToken_";
 
@@ -61,6 +65,9 @@ public class PortalSecurityManagerImpl implements PortalSecurityManager {
 
     /** Session data */
     private JsonSessionState sessionState;
+
+    /** Form data */
+    private FormData formData;
 
     /** Access Manager - item level security */
     @Inject
@@ -346,11 +353,15 @@ public class PortalSecurityManagerImpl implements PortalSecurityManager {
      * the default usage pattern, rather then calling them individually.
      *
      * @param session : The session of the current request
+     * @param formData : FormData object for the current request
      * @return boolean : True if SSO has redirected, in which case no response
      *      should be sent by Dispatch, otherwise False.
      */
     @Override
-    public boolean runSsoIntegration(JsonSessionState session) {
+    public boolean runSsoIntegration(JsonSessionState session,
+            FormData formData) {
+        this.formData = formData;
+
         // The URL parameters can contain a trust token
         String utoken = request.getParameter("token");
         String stoken = (String) sessionState.get("validToken");
@@ -443,7 +454,19 @@ public class PortalSecurityManagerImpl implements PortalSecurityManager {
             sessionState.set("returnAddress", currentAddress);
             // We might still be logging in from a deep link
             if (ssoId == null) {
+                // No we're not, finished now
                 return null;
+            } else {
+                // Yes it's a deep link, store any extra query params
+                // since they probably won't survive the round-trip
+                // through SSO.
+                for (String param : request.getParameterNames()) {
+                    if (!param.equals("ssoId")) {
+                        // Store all the other parameters
+                        sessionState.set(SSO_STORAGE_PREFIX + param,
+                                request.getParameter(param));
+                    }
+                }
             }
         }
 
@@ -475,6 +498,29 @@ public class PortalSecurityManagerImpl implements PortalSecurityManager {
      */
     @Override
     public void ssoCheckUserDetails() {
+        // After the SSO roun-trip, restore any old query parameters we lost
+        List<String> currentParams = request.getParameterNames();
+        // Cast a copy of keySet() to array to avoid errors as we modify
+        String[] oldParams = sessionState.keySet().toArray(new String[0]);
+        // Loop through session data...
+        for (String key : oldParams) {
+            // ... looking for SSO stored params
+            if (key.startsWith(SSO_STORAGE_PREFIX)) {
+                // Remove our prefix...
+                String oldParam = key.replace(SSO_STORAGE_PREFIX, "");
+                // ... and check if it survived the trip
+                if (!currentParams.contains(oldParam)) {
+                    // No it didn't, add it to form data... the parameters are
+                    //   already accessible from there in Jython
+                    String data = (String) sessionState.get(key);
+                    formData.set(oldParam, data);
+                    // Don't forget to clear it from the session
+                    sessionState.remove(key);
+                }
+            }
+        }
+
+        // Check our SSO providers for valid logins
         for (String ssoId : sso.keySet()) {
             sso.get(ssoId).ssoCheckUserDetails();
             GenericUser user = (GenericUser) sso.get(ssoId).getUserObject();

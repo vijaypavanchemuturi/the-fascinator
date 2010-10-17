@@ -145,24 +145,22 @@ public class Dispatch {
                     "Page not found: " + requestUri);
         }
 
+        // Initialise storage for our form data
+        // if there's no persistant data found.
+        prepareFormData();
+
         // SSO Integration - Ignore AJAX and such
         if (!isSpecial) {
             // Make sure it's not a static resource
             if (security.testForSso(sessionState, resourceName, requestUri)) {
                 // Run SSO
-                boolean redirected = security.runSsoIntegration(sessionState);
+                boolean redirected = security.runSsoIntegration(
+                        sessionState, formDataMap.get(requestId));
                 // Finish here if SSO redirected
                 if (redirected) {
                     return GenericStreamResponse.noResponse();
                 }
             }
-        }
-
-        // Initialise storage for our form data
-        // if there's no persistant data found.
-        if (formDataMap == null) {
-            formDataMap = Collections
-                    .synchronizedMap(new HashMap<String, FormData>());
         }
 
         // Make static resources cacheable
@@ -173,7 +171,6 @@ public class Dispatch {
         }
 
         // Are we doing a file upload?
-        hsr = rg.getHTTPServletRequest();
         isFile = ServletFileUpload.isMultipartContent(hsr);
         if (isFile) {
             fileProcessing();
@@ -191,6 +188,27 @@ public class Dispatch {
         formDataMap.remove(requestId);
 
         return new GenericStreamResponse(mimeType, stream);
+    }
+
+    private void prepareFormData() {
+        if (formDataMap == null) {
+            formDataMap = Collections
+                    .synchronizedMap(new HashMap<String, FormData>());
+        }
+
+        hsr = rg.getHTTPServletRequest();
+        requestId = request.getAttribute("RequestID").toString();
+
+        // Make sure we only run for 'real' pages
+        if ((resourceName.indexOf(".") == -1) || isSpecial) {
+            // Check if formData already exists from a POST redirect
+            //  The requestId will match on a redirect
+            FormData formData = formDataMap.get(requestId);
+            if (formData == null) {
+                formData = new FormData(request, hsr);
+            }
+            formDataMap.put(requestId, formData);
+        }
     }
 
     private void fileProcessing() {
@@ -299,7 +317,8 @@ public class Dispatch {
         }
         boolean success = file.delete();
         if (!success) {
-            log.error("Error deleting uploaded file from cache: " + file.getAbsolutePath());
+            log.error("Error deleting uploaded file from cache: " +
+                    file.getAbsolutePath());
         }
 
         // Now create some session data for use later
@@ -327,14 +346,9 @@ public class Dispatch {
     private void renderProcessing() {
         // render the page or retrieve the resource
         if ((resourceName.indexOf(".") == -1) || isSpecial) {
-            FormData formData = formDataMap.get(requestId);
-            if (formData == null) {
-                formData = new FormData(request, hsr);
-            }
-            formDataMap.put(requestId, formData);
             ByteArrayOutputStream out = new ByteArrayOutputStream();
             mimeType = pageService.render(portalId, resourceName, out,
-                    formData, sessionState);
+                    formDataMap.get(requestId), sessionState);
             stream = new ByteArrayInputStream(out.toByteArray());
         } else {
             mimeType = MimeTypeUtil.getMimeType(resourceName);
@@ -347,11 +361,8 @@ public class Dispatch {
 
         // 'isPost' in particular allows special cases to
         // override and prevent redirection.
-        requestId = request.getAttribute("RequestID").toString();
         if ("POST".equalsIgnoreCase(request.getMethod()) && !isPost) {
             try {
-                FormData formData = new FormData(request);
-                formDataMap.put(requestId, formData);
                 if (isSpecial == false) {
                     String redirectUri = resourceName;
                     if (path.length > 2) {
