@@ -178,7 +178,7 @@ public class HarvestClient {
     private DigitalObject updateHarvestFile(File file) throws StorageException {
         // Check the file in storage
         DigitalObject object = StorageUtils.checkHarvestFile(storage, file);
-        log.info(".... object: " + object);
+        log.info("=== Check harvest file: '{}'=> '{}'", file.getName(), object);
         if (object != null) {
             // If we got an object back its new or updated
             JsonConfigHelper message = new JsonConfigHelper();
@@ -189,6 +189,7 @@ public class HarvestClient {
             // Otherwise grab the existing object
             String oid = StorageUtils.generateOid(file);
             object = StorageUtils.getDigitalObject(storage, oid);
+            log.info("=== Try again: '{}'=> '{}'", file.getName(), object);
         }
         return object;
     }

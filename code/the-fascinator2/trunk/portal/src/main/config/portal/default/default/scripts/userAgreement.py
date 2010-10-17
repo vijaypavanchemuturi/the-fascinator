@@ -91,7 +91,7 @@ class AgreementData:
         self.__log.debug("===== processForm()")
         if form is not None:
             accept = form.get("accept")
-            if accept is None:
+            if accept is None or accept != "true":
                 return
             if self.__user is None:
                 self.__log.error("User Agreement acceptance recieved and no user logged in")
