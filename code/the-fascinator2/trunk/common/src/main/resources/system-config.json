@@ -1,5 +1,5 @@
 {
-    "version": "0.7.8",
+    "version": "0.7.9",
     "configured": false,
     "urlBase" : "http://localhost:9997/portal/",
     "email" : "fascinator@usq.edu.au",
@@ -166,25 +166,99 @@
         "ffmpeg": {
             "id": "ffmpeg",
             "outputPath": "${java.io.tmpdir}/${user.name}/ffmpeg-output",
+
             "binaries": {
                 "transcoding": "ffmpeg",
                 "metadata": "ffprobe"
             },
-            "metadata": {
-                "excludeExt": "odt,doc,docx,pdf,ppt,html,htm,tfpackage"
-            },
-            "thumbnail": {
-                "size": "160x120",
-                "excludeExt": ""
-            },
-            "preview": {
-                "outputExt": "flv",
-                "excludeExt": "flv,m4a,mp3,jpg,png",
-                "params": {
-                    "default": "-f flv -b 192k -ab 64k -ar 44100 -ac 1 -s 400x224 -padtop 30 -padbottom 30"
+
+            "supportedFormats": [
+                {
+                    "group": "audio",
+                    "extensions": "aac,ac3,aif,aiff,au,m4a,mp2,mp3,oga,ogg,swa,wav"
+                },
+                {
+                    "group": "image",
+                    "extensions": "bmp,gif,jpeg,jpg,png,tif,tiff"
+                },
+                {
+                    "group": "video",
+                    "extensions": "asf,avi,f4v,flv,h264,hdmov,m4v,matroska,mjpeg,mjpg,mov,mp4,mpg,mpeg,mpeg4,ogm,ogv,ogx,swf,wmv"
                 }
+            ],
+
+            "transcodings": {
+                "audio": [
+                    {
+                        "alias": "MP3 Preview",
+                        "renditions": [
+                            {
+                                "name": "ffmpegPreview.mp3",
+                                "type": "Preview",
+                                "audioOnly": "true",
+                                "options": "-b 192k",
+                                "output": "-f mp3"
+                            }
+                        ]
+                    }
+                ],
+                "image": [
+                    {
+                        "alias": "JPG Renditions",
+                        "renditions": [
+                            {
+                                "name": "ffmpegThumbnail.jpg",
+                                "type": "Thumbnail",
+                                "maxWidth": "160",
+                                "maxHeight": "120",
+                                "padding": "none",
+                                "options": "-y -r 1",
+                                "output": "-vcodec mjpeg -f mjpeg"
+                            },
+                            {
+                                "name": "ffmpegPreview.jpg",
+                                "type": "Preview",
+                                "maxWidth": "600",
+                                "padding": "none",
+                                "options": "-y -r 1",
+                                "output": "-vcodec mjpeg -f mjpeg"
+                            }
+                        ]
+                    }
+                ],
+                "video": [
+                    {
+                        "alias": "JPG Thumbnail",
+                        "renditions": [
+                            {
+                                "name": "ffmpegThumbnail.jpg",
+                                "type": "Thumbnail",
+                                "maxWidth": "160",
+                                "maxHeight": "90",
+                                "padding": "individual",
+                                "options": "-y -deinterlace -ss [[OFFSET]] -t 00:00:01 -r 1",
+                                "output": "-vcodec mjpeg -f mjpeg"
+                            }
+                        ]
+                    },
+                    {
+                        "alias": "FLV Preview",
+                        "renditions": [
+                            {
+                                "name": "ffmpegPreview.flv",
+                                "type": "Preview",
+                                "maxWidth": "400",
+                                "maxHeight": "224",
+                                "padding": "individual",
+                                "options": "-b 192k -ab 64k -ar 44100 -ac 1",
+                                "output": "-f flv"
+                            }
+                        ]
+                    }
+                ]
             }
         },
+
         "ice2": {
             "id": "ice2",
             "url": "http://ice-service.usq.edu.au/api/convert/",

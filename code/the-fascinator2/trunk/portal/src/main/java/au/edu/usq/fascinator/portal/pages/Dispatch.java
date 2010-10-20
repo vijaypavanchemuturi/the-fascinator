@@ -124,8 +124,8 @@ public class Dispatch {
     private Pattern detailPattern;
 
     public StreamResponse onActivate(Object... params) {
-        log.debug("Dispatch starting : {} {}",
-                request.getMethod(), request.getPath());
+        //log.debug("Dispatch starting : {} {}",
+        //        request.getMethod(), request.getPath());
 
         try {
             sysConfig = new JsonConfig(JsonConfig.getSystemFile());

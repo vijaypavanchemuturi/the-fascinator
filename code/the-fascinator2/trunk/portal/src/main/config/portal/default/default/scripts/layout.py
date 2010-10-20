@@ -25,7 +25,10 @@ class LayoutData:
         #if self.sessionState is not None:
         #    for field in self.sessionState.keySet():
         #        log.debug("Session Data: '{}' => '{}'", field, self.sessionState.get(field))
-    
+        #log.debug("PATH: '{}'", self.request.getPath())
+        #for param in self.request.getParameterNames():
+        #    log.debug("PARAM: '{}' : '{}'", param, self.request.getParameter(param));
+
     def getRelativePath(self):
         return self.__relPath
     
@@ -61,4 +64,3 @@ class LayoutData:
     
     def getSsoProviders(self):
         return self.security.ssoBuildLogonInterface()
-

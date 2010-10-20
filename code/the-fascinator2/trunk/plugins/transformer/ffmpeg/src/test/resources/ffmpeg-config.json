@@ -1,21 +1,103 @@
 {
     "outputPath": "${java.io.tmpdir}/${user.name}/ffmpeg-output",
+
     "binaries": {
         "transcoding": "ffmpeg",
         "metadata": "ffprobe"
     },
-    "metadata": {
-        "excludeExt": "odt,doc,docx,pdf,ppt,html,htm,tfpackage"
-    },
-    "thumbnail": {
-        "size": "160x120",
-        "excludeExt": "jpg,png,mov,m4v,mp4"
-    },
-    "preview": {
-        "outputExt": "flv",
-        "excludeExt": "flv,m4a,mp3,jpg,png,mov,m4v,mp4",
-        "params": {
-            "default": "-f flv -b 192k -ab 64k -ar 44100 -ac 1 -s 400x224"
+
+    "supportedFormats": [
+        {
+            "group": "audio",
+            "extensions": "aac,ac3,aif,aiff,au,m4a,mp2,mp3,oga,ogg,swa,wav"
+        },
+        {
+            "group": "image",
+            "extensions": "bmp,gif,jpeg,jpg,png,tif,tiff"
+        },
+        {
+            "group": "video",
+            "extensions": "asf,avi,f4v,flv,h264,hdmov,m4v,matroska,mjpeg,mjpg,mov,mp4,mpg,mpeg,mpeg4,ogm,ogv,ogx,swf,wmv"
         }
+    ],
+
+    "displayTypes": {
+        "video": "video"
+    },
+
+    "transcodings": {
+        "audio": [
+            {
+                "alias": "MP3 Preview",
+                "renditions": [
+                    {
+                        "name": "ffmpegPreview.mp3",
+                        "type": "Preview",
+                        "formatMetadata": "MP3",
+                        "audioOnly": "true",
+                        "options": "-b 192k",
+                        "output": "-f mp3"
+                    }
+                ]
+            }
+        ],
+        "image": [
+            {
+                "alias": "JPG Renditions",
+                "renditions": [
+                    {
+                        "name": "ffmpegThumbnail.jpg",
+                        "type": "Thumbnail",
+                        "formatMetadata": "JPG",
+                        "maxWidth": "160",
+                        "maxHeight": "120",
+                        "padding": "none",
+                        "options": "-y -r 1",
+                        "output": "-vcodec mjpeg -f mjpeg"
+                    },
+                    {
+                        "name": "ffmpegPreview.jpg",
+                        "type": "Preview",
+                        "formatMetadata": "JPG",
+                        "maxWidth": "600",
+                        "padding": "none",
+                        "options": "-y -r 1",
+                        "output": "-vcodec mjpeg -f mjpeg"
+                    }
+                ]
+            }
+        ],
+        "video": [
+            {
+                "alias": "JPG Thumbnail",
+                "renditions": [
+                    {
+                        "name": "ffmpegThumbnail.jpg",
+                        "type": "Thumbnail",
+                        "formatMetadata": "JPG",
+                        "maxWidth": "160",
+                        "maxHeight": "90",
+                        "padding": "none",
+                        "options": "-y -deinterlace -ss [[OFFSET]] -t 00:00:01 -r 1",
+                        "output": "-vcodec mjpeg -f mjpeg"
+                    }
+                ]
+            },
+            {
+                "alias": "FLV Preview",
+                "renditions": [
+                    {
+                        "name": "ffmpegPreview.flv",
+                        "type": "Preview",
+                        "formatMetadata": "FLV",
+                        "maxWidth": "400",
+                        "maxHeight": "224",
+                        "padding": "none",
+                        "options": "-b 192k -ab 64k -ar 44100 -ac 1",
+                        "output": "-f flv"
+                    }
+                ]
+            }
+        ]
     }
 }

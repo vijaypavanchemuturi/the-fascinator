@@ -24,7 +24,9 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,6 +53,9 @@ public class FfmpegImpl implements Ffmpeg {
     /** Level of available functionality */
     private String availability = "Unknown";
 
+    /** Environment variables */
+    private Map<String, String> env;
+
     /**
      * Instantiate using default binaries
      *
@@ -69,6 +74,7 @@ public class FfmpegImpl implements Ffmpeg {
         this.extraction = false;
         this.executable = executable == null ? DEFAULT_BIN_TRANSCODE : executable;
         this.metadata   = metadata   == null ? DEFAULT_BIN_METADATA  : metadata;
+        env = new HashMap();
     }
 
     /**
@@ -197,7 +203,34 @@ public class FfmpegImpl implements Ffmpeg {
         }
         cmd.addAll(params);
         log.debug("Executing: {}", cmd);
-        return new ProcessBuilder(cmd).start();
+        //for (String param : params) {
+        //    log.debug("PARAM: {}", param);
+        //}
+        return createProcess(cmd).start();
+    }
+
+    /**
+     * Create and return a new process, making sure any custom environment
+     * variables have been set.
+     *
+     * @param commands : The list of commands to execute in the new process
+     * @return ProcessBuilder : The process to be executed
+     * @throws IOException if execution failed
+     */
+    private ProcessBuilder createProcess(List<String> commands) {
+        // Very simple... nothing to do
+        if (env.isEmpty()) {
+            return new ProcessBuilder(commands);
+        }
+
+        // Otherwise, add our custom data
+        ProcessBuilder process = new ProcessBuilder(commands);
+        Map<String, String> currentEnv = process.environment();
+        for (String key : env.keySet()) {
+            currentEnv.put(key, env.get(key));
+        }
+        // Then return
+        return process;
     }
 
     /**
@@ -327,5 +360,16 @@ public class FfmpegImpl implements Ffmpeg {
             }
         }
         return null;
+    }
+
+    /**
+     * Set an environment variable to be made available to the executing FFmpeg
+     *
+     * @param key : The name of environment variable
+     * @param value : The value to assign
+     */
+    @Override
+    public void setEnvironmentVariable(String key, String value) {
+        env.put(key, value);
     }
 }
