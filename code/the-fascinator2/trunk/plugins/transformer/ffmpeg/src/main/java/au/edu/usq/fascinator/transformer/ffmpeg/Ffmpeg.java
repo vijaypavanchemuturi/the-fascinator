@@ -69,4 +69,12 @@ public interface Ffmpeg {
      * @throws IOException if execution failed
      */
     public FfmpegInfo getInfo(File inputFile) throws IOException;
+
+    /**
+     * Set an environment variable to be made available to the executing FFmpeg
+     *
+     * @param key : The name of environment variable
+     * @param value : The value to assign
+     */
+    public void setEnvironmentVariable(String key, String value);
 }

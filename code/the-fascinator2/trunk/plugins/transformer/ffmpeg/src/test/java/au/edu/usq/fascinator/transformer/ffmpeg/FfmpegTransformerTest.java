@@ -34,6 +34,7 @@ import au.edu.usq.fascinator.api.storage.Storage;
 import au.edu.usq.fascinator.api.transformer.Transformer;
 import au.edu.usq.fascinator.common.JsonConfigHelper;
 import au.edu.usq.fascinator.common.storage.StorageUtils;
+import java.util.Properties;
 
 /**
  * Test a variety of small media files against FFmpeg
@@ -186,6 +187,21 @@ public class FfmpegTransformerTest {
         JsonConfigHelper metadata = new JsonConfigHelper(ffMetadata.open());
         ffMetadata.close();
 
+        // Check some output data
+        Assert.assertEquals(metadata.get("outputs/ffmpegThumbnail.jpg/width"),  "90");
+        Assert.assertEquals(metadata.get("outputs/ffmpegThumbnail.jpg/height"), "120");
+        Assert.assertEquals(metadata.get("outputs/ffmpegPreview.jpg/width"),    "600");
+        Assert.assertEquals(metadata.get("outputs/ffmpegPreview.jpg/height"),   "800");
+
+        // And some rough file sizes (don't want to be too specific
+        //  incase there are slight variations on systems)
+        String tSize = metadata.get("outputs/ffmpegThumbnail.jpg/size");
+        int thumbSize = Integer.valueOf(tSize);
+        Assert.assertTrue(thumbSize > 3700);
+        String pSize = metadata.get("outputs/ffmpegPreview.jpg/size");
+        int previewSize = Integer.valueOf(pSize);
+        Assert.assertTrue(previewSize > 42000);
+
         // FFmpeg
         if (execLevel.equals(Ffmpeg.DEFAULT_BIN_TRANSCODE)) {
             Assert.assertEquals(metadata.get("duration"), "0");
@@ -203,7 +219,7 @@ public class FfmpegTransformerTest {
             Assert.assertEquals(metadata.get("duration"),           "0");
         }
     }
- 
+
     /**
      * Tests:
      *  1) Transform a PNG image without failure
@@ -226,6 +242,21 @@ public class FfmpegTransformerTest {
         Payload ffMetadata = outputObject.getPayload("ffmpeg.info");
         JsonConfigHelper metadata = new JsonConfigHelper(ffMetadata.open());
         ffMetadata.close();
+
+        // Check some output data
+        Assert.assertEquals(metadata.get("outputs/ffmpegThumbnail.jpg/width"),  "120");
+        Assert.assertEquals(metadata.get("outputs/ffmpegThumbnail.jpg/height"), "120");
+        Assert.assertEquals(metadata.get("outputs/ffmpegPreview.jpg/width"),    "600");
+        Assert.assertEquals(metadata.get("outputs/ffmpegPreview.jpg/height"),   "602");
+
+        // And some rough file sizes (don't want to be too specific
+        //  incase there are slight variations on systems)
+        String tSize = metadata.get("outputs/ffmpegThumbnail.jpg/size");
+        int thumbSize = Integer.valueOf(tSize);
+        Assert.assertTrue(thumbSize > 4800);
+        String pSize = metadata.get("outputs/ffmpegPreview.jpg/size");
+        int previewSize = Integer.valueOf(pSize);
+        Assert.assertTrue(previewSize > 37000);
 
         // FFmpeg
         if (execLevel.equals(Ffmpeg.DEFAULT_BIN_TRANSCODE)) {
@@ -267,6 +298,21 @@ public class FfmpegTransformerTest {
         JsonConfigHelper metadata = new JsonConfigHelper(ffMetadata.open());
         ffMetadata.close();
 
+        // Check some output data
+        Assert.assertEquals(metadata.get("outputs/ffmpegThumbnail.jpg/width"),  "120");
+        Assert.assertEquals(metadata.get("outputs/ffmpegThumbnail.jpg/height"), "90");
+        Assert.assertEquals(metadata.get("outputs/ffmpegPreview.flv/width"),    "298");
+        Assert.assertEquals(metadata.get("outputs/ffmpegPreview.flv/height"),   "224");
+
+        // And some rough file sizes (don't want to be too specific
+        //  incase there are slight variations on systems)
+        String tSize = metadata.get("outputs/ffmpegThumbnail.jpg/size");
+        int thumbSize = Integer.valueOf(tSize);
+        Assert.assertTrue(thumbSize > 5500);
+        String pSize = metadata.get("outputs/ffmpegPreview.flv/size");
+        int previewSize = Integer.valueOf(pSize);
+        Assert.assertTrue(previewSize > 2400000);
+
         // FFmpeg
         if (execLevel.equals(Ffmpeg.DEFAULT_BIN_TRANSCODE)) {
             Assert.assertEquals(metadata.get("duration"), "85");
@@ -288,6 +334,11 @@ public class FfmpegTransformerTest {
             Assert.assertEquals(metadata.get("audio/channels"),     "2");
             Assert.assertEquals(metadata.get("audio/language"),     "eng");
         }
+
+        // Verify custom display type is set
+        Properties props = outputObject.getMetadata();
+        String displayType = props.getProperty("displayType");
+        Assert.assertEquals(displayType, "video");
     }
 
     /**
@@ -313,6 +364,21 @@ public class FfmpegTransformerTest {
         JsonConfigHelper metadata = new JsonConfigHelper(ffMetadata.open());
         ffMetadata.close();
 
+        // Check some output data
+        Assert.assertEquals(metadata.get("outputs/ffmpegThumbnail.jpg/width"),  "70");
+        Assert.assertEquals(metadata.get("outputs/ffmpegThumbnail.jpg/height"), "90");
+        Assert.assertEquals(metadata.get("outputs/ffmpegPreview.flv/width"),    "176");
+        Assert.assertEquals(metadata.get("outputs/ffmpegPreview.flv/height"),   "224");
+
+        // And some rough file sizes (don't want to be too specific
+        //  incase there are slight variations on systems)
+        String tSize = metadata.get("outputs/ffmpegThumbnail.jpg/size");
+        int thumbSize = Integer.valueOf(tSize);
+        Assert.assertTrue(thumbSize > 1800);
+        String pSize = metadata.get("outputs/ffmpegPreview.flv/size");
+        int previewSize = Integer.valueOf(pSize);
+        Assert.assertTrue(previewSize > 250000);
+
         // FFmpeg
         if (execLevel.equals(Ffmpeg.DEFAULT_BIN_TRANSCODE)) {
             Assert.assertEquals(metadata.get("duration"), "4");
@@ -334,6 +400,11 @@ public class FfmpegTransformerTest {
             Assert.assertEquals(metadata.get("audio/channels"),     "2");
             Assert.assertEquals(metadata.get("audio/language"),     "eng");
         }
+
+        // Verify custom display type is set
+        Properties props = outputObject.getMetadata();
+        String displayType = props.getProperty("displayType");
+        Assert.assertEquals(displayType, "video");
     }
 
     /**
@@ -359,6 +430,21 @@ public class FfmpegTransformerTest {
         JsonConfigHelper metadata = new JsonConfigHelper(ffMetadata.open());
         ffMetadata.close();
 
+        // Check some output data
+        Assert.assertEquals(metadata.get("outputs/ffmpegThumbnail.jpg/width"),  "160");
+        Assert.assertEquals(metadata.get("outputs/ffmpegThumbnail.jpg/height"), "90");
+        Assert.assertEquals(metadata.get("outputs/ffmpegPreview.flv/width"),    "398");
+        Assert.assertEquals(metadata.get("outputs/ffmpegPreview.flv/height"),   "224");
+
+        // And some rough file sizes (don't want to be too specific
+        //  incase there are slight variations on systems)
+        String tSize = metadata.get("outputs/ffmpegThumbnail.jpg/size");
+        int thumbSize = Integer.valueOf(tSize);
+        Assert.assertTrue(thumbSize > 15000);
+        String pSize = metadata.get("outputs/ffmpegPreview.flv/size");
+        int previewSize = Integer.valueOf(pSize);
+        Assert.assertTrue(previewSize > 2700000);
+
         // FFmpeg
         if (execLevel.equals(Ffmpeg.DEFAULT_BIN_TRANSCODE)) {
             Assert.assertEquals(metadata.get("duration"), "109");
@@ -378,6 +464,11 @@ public class FfmpegTransformerTest {
             // This video has no audio
             Assert.assertNull(metadata.get("audio/codec/simple"));
         }
+
+        // Verify custom display type is set
+        Properties props = outputObject.getMetadata();
+        String displayType = props.getProperty("displayType");
+        Assert.assertEquals(displayType, "video");
     }
 
     /**
@@ -403,6 +494,12 @@ public class FfmpegTransformerTest {
         Payload ffMetadata = outputObject.getPayload("ffmpeg.info");
         JsonConfigHelper metadata = new JsonConfigHelper(ffMetadata.open());
         ffMetadata.close();
+
+        // And some rough file sizes (don't want to be too specific
+        //  incase there are slight variations on systems)
+        String pSize = metadata.get("outputs/ffmpegPreview.mp3/size");
+        int previewSize = Integer.valueOf(pSize);
+        Assert.assertTrue(previewSize > 2700);
 
         // FFmpeg
         if (execLevel.equals(Ffmpeg.DEFAULT_BIN_TRANSCODE)) {
@@ -446,6 +543,21 @@ public class FfmpegTransformerTest {
         JsonConfigHelper metadata = new JsonConfigHelper(ffMetadata.open());
         ffMetadata.close();
 
+        // Check some output data
+        Assert.assertEquals(metadata.get("outputs/ffmpegThumbnail.jpg/width"),  "70");
+        Assert.assertEquals(metadata.get("outputs/ffmpegThumbnail.jpg/height"), "90");
+        Assert.assertEquals(metadata.get("outputs/ffmpegPreview.flv/width"),    "176");
+        Assert.assertEquals(metadata.get("outputs/ffmpegPreview.flv/height"),   "224");
+
+        // And some rough file sizes (don't want to be too specific
+        //  incase there are slight variations on systems)
+        String tSize = metadata.get("outputs/ffmpegThumbnail.jpg/size");
+        int thumbSize = Integer.valueOf(tSize);
+        Assert.assertTrue(thumbSize > 1800);
+        String pSize = metadata.get("outputs/ffmpegPreview.flv/size");
+        int previewSize = Integer.valueOf(pSize);
+        Assert.assertTrue(previewSize > 190000);
+
         // FFmpeg
         if (execLevel.equals(Ffmpeg.DEFAULT_BIN_TRANSCODE)) {
             Assert.assertEquals(metadata.get("duration"), "5");
@@ -467,5 +579,10 @@ public class FfmpegTransformerTest {
             Assert.assertEquals(metadata.get("audio/channels"),     "2");
             Assert.assertEquals(metadata.get("audio/language"),     "eng");
         }
+
+        // Verify custom display type is set
+        Properties props = outputObject.getMetadata();
+        String displayType = props.getProperty("displayType");
+        Assert.assertEquals(displayType, "video");
     }
 }

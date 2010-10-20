@@ -58,6 +58,12 @@ public class FfmpegInfo {
     /** Media duration */
     private int duration;
 
+    /** Media width */
+    private int width;
+
+    /** Media height */
+    private int height;
+
     /** Format data */
     private JsonConfigHelper format = new JsonConfigHelper();
 
@@ -79,7 +85,6 @@ public class FfmpegInfo {
      */
     public FfmpegInfo(Ffmpeg ffmpeg, File inputFile) throws IOException {
         // Process and grab output
-        log.debug("Extraction: {}", inputFile);
         rawMediaData = ffmpeg.extract(inputFile);
         if (rawMediaData == null || rawMediaData.length() == 0) {
             supported = false;
@@ -147,10 +152,16 @@ public class FfmpegInfo {
 
             // File the data
             eq = line.indexOf("=");
-            if (stream == null) {
-                format.set(line.substring(0, eq), line.substring(eq+1));
-            } else {
-                stream.set(line.substring(0, eq), line.substring(eq+1));
+            if (eq != -1) {
+                // Make sure spaces in the key are removed
+                String key = line.substring(0, eq).replace(" ", "_");
+                String value = line.substring(eq + 1);
+
+                if (stream == null) {
+                    format.set(key, value);
+                } else {
+                    stream.set(key, value);
+                }
             }
         }
     }
@@ -163,9 +174,18 @@ public class FfmpegInfo {
     private void parseFFmpegMetadata(String rawMetaData) {
         // Check if supported
         if (supported = (rawMetaData.indexOf(": Unknown format") == -1)) {
-            // get duration
-            Pattern p = Pattern.compile("Duration: ((\\d+):(\\d+):(\\d+))");
+            // get size
+            width = 0;
+            height = 0;
+            Pattern p = Pattern.compile(", ((\\d+)x(\\d+))(,)* ");
             Matcher m = p.matcher(rawMetaData);
+            if (m.find()) {
+                width = Integer.valueOf(m.group(2));
+                height = Integer.valueOf(m.group(3));
+            }
+            // get duration
+            p = Pattern.compile("Duration: ((\\d+):(\\d+):(\\d+))");
+            m = p.matcher(rawMetaData);
             if (m.find()) {
                 long hrs = Long.parseLong(m.group(2)) * 3600;
                 long min = Long.parseLong(m.group(3)) * 60;
@@ -205,6 +225,8 @@ public class FfmpegInfo {
         mData.set("format/label", getCleanValue(format, "format_long_name"));
 
         // Decode Video
+        width = 0;
+        height = 0;
         if (videoStream != null) {
             String codec = getCleanValue(videoStream, "codec_name");
             if (codec != null) video = true;
@@ -214,12 +236,22 @@ public class FfmpegInfo {
             if (lang == null) lang = getCleanValue(videoStream, "tags/language");
             mData.set("video/language", lang);
 
+            // Dimensions
+            String widthStr = getCleanValue(videoStream, "width");
+            if (widthStr != null) {
+                width = Integer.valueOf(widthStr);
+                mData.set("video/width", widthStr);
+            }
+            String heightStr = getCleanValue(videoStream, "height");
+            if (heightStr != null) {
+                height = Integer.valueOf(heightStr);
+                mData.set("video/height", heightStr);
+            }
+
             mData.set("video/codec/tag",        getCleanValue(videoStream, "codec_tag"));
             mData.set("video/codec/tag_string", getCleanValue(videoStream, "codec_tag_string"));
             mData.set("video/codec/simple",     getCleanValue(videoStream, "codec_name"));
             mData.set("video/codec/label",      getCleanValue(videoStream, "codec_long_name"));
-            mData.set("video/width",            getCleanValue(videoStream, "width"));
-            mData.set("video/height",           getCleanValue(videoStream, "height"));
             mData.set("video/pixel_format",     getCleanValue(videoStream, "pix_fmt"));
         }
 
@@ -281,6 +313,24 @@ public class FfmpegInfo {
      */
     public int getDuration() {
         return duration;
+    }
+
+    /**
+     * Return the duration of the media
+     *
+     * @return int duration in seconds
+     */
+    public int getWidth() {
+        return width;
+    }
+
+    /**
+     * Return the duration of the media
+     *
+     * @return int duration in seconds
+     */
+    public int getHeight() {
+        return height;
     }
 
     /**
