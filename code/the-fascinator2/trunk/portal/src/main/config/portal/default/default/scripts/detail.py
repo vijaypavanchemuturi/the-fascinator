@@ -5,7 +5,7 @@ from userAgreement import AgreementData
 
 from java.io import ByteArrayInputStream, ByteArrayOutputStream
 from java.lang import Boolean
-from java.net import URLDecoder
+from java.net import URLDecoder, URLEncoder
 from java.util import TreeMap
 
 from au.edu.usq.fascinator.api.indexer import SearchRequest
@@ -26,6 +26,9 @@ class DetailData:
         self.page = context["page"]
 
         self.uaActivated = False
+        useDownload = Boolean.parseBoolean(self.formData.get("download", "true"))
+        self.__isPreview = Boolean.parseBoolean(self.formData.get("preview", "false"))
+        self.__previewPid = None
 
         uri = URLDecoder.decode(self.request.getAttribute("RequestURI"))
         matches = re.match("^(.*?)/(.*?)/(?:(.*?)/)?(.*)$", uri)
@@ -39,25 +42,27 @@ class DetailData:
 
             # If we have a PID
             if pid:
-                # Download the payload instead... supports relative links
-                download = DownloadData()
-                download.__activate__(context)
-
+                if useDownload:
+                    # Download the payload to support relative links
+                    download = DownloadData()
+                    download.__activate__(context)
+                else:
+                    # Render the detail screen with the alternative preview
+                    self.__readMetadata(oid)
+                    self.__previewPid = pid
             # Otherwise, render the detail screen
             else:
-                self.__loadSolrData(oid)
-                if self.isIndexed():
-                    self.__metadata = self.__solrData.getJsonList("response/docs").get(0)
-                    if self.__object is None:
-                        # Try again, indexed records might have a special storage_id
-                        self.__object = self.__getObject(oid)
-                    self.__json = JsonConfigHelper(self.__solrData.getList("response/docs").get(0))
-                    self.__metadataMap = TreeMap(self.__json.getMap("/"))
-                else:
-                    self.__metadata.set("id", oid)
+                self.__readMetadata(oid)
+                self.__previewPid = self.getPreview()
+
+            if self.__previewPid:
+                self.__previewPid = URLEncoder.encode(self.__previewPid, "UTF-8")
         else:
             # require trailing slash for relative paths
-            self.response.sendRedirect("%s/%s/" % (self.contextPath, uri))
+            q = ""
+            if self.__isPreview:
+                q = "?preview=true"
+            self.response.sendRedirect("%s/%s/%s" % (self.contextPath, uri, q))
 
     def getAllowedRoles(self):
         metadata = self.getMetadata()
@@ -66,9 +71,11 @@ class DetailData:
         else:
             return []
 
+    def getAltPreviews(self):
+        return self.__metadata.getList("altpreview")
+
     def getFileName(self):
-        filePath = self.getProperty("file.path")
-        return os.path.split(filePath)[1]
+        return self.getObject().getSourceId()
 
     def getFileNameSplit(self, index):
         return os.path.splitext(self.getFileName())[index]
@@ -92,6 +99,12 @@ class DetailData:
     def getOid(self):
         return self.__oid
 
+    def getPreview(self):
+        return self.__metadata.get("preview")
+
+    def getPreviewPid(self):
+        return self.__previewPid
+
     def getProperty(self, field):
         return self.getObject().getMetadata().getProperty(field)
 
@@ -111,12 +124,11 @@ class DetailData:
         allowedRoles = self.getAllowedRoles()
         for role in myRoles:
             if role in allowedRoles:
-                return  False
+                return False
         return True
 
     def isDetail(self):
-        preview = Boolean.parseBoolean(self.formData.get("preview", "false"))
-        return not (self.request.isXHR() or preview)
+        return not (self.request.isXHR() or self.__isPreview)
 
     def isIndexed(self):
         return self.__getNumFound() == 1
@@ -162,3 +174,17 @@ class DetailData:
         out = ByteArrayOutputStream()
         self.services.getIndexer().search(req, out)
         self.__solrData = JsonConfigHelper(ByteArrayInputStream(out.toByteArray()))
+
+    def __readMetadata(self, oid):
+        self.__loadSolrData(oid)
+        if self.isIndexed():
+            self.__metadata = self.__solrData.getJsonList("response/docs").get(0)
+            if self.__object is None:
+                # Try again, indexed records might have a special storage_id
+                self.__object = self.__getObject(oid)
+            # Just a more usable instance of metadata
+            self.__json = JsonConfigHelper(self.__solrData.getList("response/docs").get(0))
+            self.__metadataMap = TreeMap(self.__json.getMap("/"))
+        else:
+            self.__metadata.set("id", oid)
+
