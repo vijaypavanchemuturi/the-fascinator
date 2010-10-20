@@ -212,7 +212,7 @@
                                 "maxWidth": "160",
                                 "maxHeight": "120",
                                 "padding": "none",
-                                "options": "-y -r 1",
+                                "options": "-r 1",
                                 "output": "-vcodec mjpeg -f mjpeg"
                             },
                             {
@@ -220,7 +220,7 @@
                                 "type": "Preview",
                                 "maxWidth": "600",
                                 "padding": "none",
-                                "options": "-y -r 1",
+                                "options": "-r 1",
                                 "output": "-vcodec mjpeg -f mjpeg"
                             }
                         ]
@@ -236,7 +236,7 @@
                                 "maxWidth": "160",
                                 "maxHeight": "90",
                                 "padding": "individual",
-                                "options": "-y -deinterlace -ss [[OFFSET]] -t 00:00:01 -r 1",
+                                "options": "-deinterlace -ss [[OFFSET]] -t 00:00:01 -r 1",
                                 "output": "-vcodec mjpeg -f mjpeg"
                             }
                         ]
