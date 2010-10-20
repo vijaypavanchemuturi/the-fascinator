@@ -669,7 +669,7 @@ public class FfmpegTransformer implements Transformer {
             // *************
             params.add("-i");
             // Quote to preserve spaces in filenames
-            params.add("\"" + sourceFile.getAbsolutePath() + "\"");
+            params.add(preserveSpaces(sourceFile.getAbsolutePath()));
             // Overwrite output file if it exists
             params.add("-y");
 
@@ -720,8 +720,7 @@ public class FfmpegTransformer implements Transformer {
             if (!options.isEmpty()) {
                 params.addAll(options);
             }
-            // Quote to preserve spaces in filenames
-            params.add("\"" + outputFile.getAbsolutePath() + "\"");
+            params.add(preserveSpaces(outputFile.getAbsolutePath()));
 
             // *************
             // 5) All done. Perform the transcoding
@@ -756,6 +755,23 @@ public class FfmpegTransformer implements Transformer {
             metadata.put(key, renderMetadata);
         }
         return outputFile;
+    }
+
+    /**
+     * Preserve spaces in command line parameters in an OS dependent fashion.
+     *
+     * @param input : The String to preserve
+     * @return String : The resultant string
+     */
+    private String preserveSpaces(String input) {
+        String os = System.getProperty("os.name").toLowerCase();
+        if (os.contains("windows")) {
+            // Windows, quote the string
+            return "\"" + input + "\"";
+        } else {
+            // Everyone else, escape the spaces
+            return input.replace(" ", "\\ ");
+        }
     }
 
     /**

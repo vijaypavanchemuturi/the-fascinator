@@ -585,4 +585,63 @@ public class FfmpegTransformerTest {
         String displayType = props.getProperty("displayType");
         Assert.assertEquals(displayType, "video");
     }
+
+    /**
+     * Tests:
+     *  1) Transform an AVI with spaces in its name
+     *
+     * @throws Exception on failure
+     */
+    @Test
+    public void spacesTest() throws Exception {
+        // FFmpeg is not installed
+        if (execLevel == null) return;
+
+        System.out.println("\n======\n  TEST: spacesTest()\n======\n");
+        outputObject = transform("/relay sample.avi");
+
+        Payload ffMetadata = outputObject.getPayload("ffmpeg.info");
+        JsonConfigHelper metadata = new JsonConfigHelper(ffMetadata.open());
+        ffMetadata.close();
+
+        // Check some output data
+        Assert.assertEquals(metadata.get("outputs/ffmpegThumbnail.jpg/width"),  "112");
+        Assert.assertEquals(metadata.get("outputs/ffmpegThumbnail.jpg/height"), "90");
+        Assert.assertEquals(metadata.get("outputs/ffmpegPreview.flv/width"),    "280");
+        Assert.assertEquals(metadata.get("outputs/ffmpegPreview.flv/height"),   "224");
+
+        // And some rough file sizes (don't want to be too specific
+        //  incase there are slight variations on systems)
+        String tSize = metadata.get("outputs/ffmpegThumbnail.jpg/size");
+        int thumbSize = Integer.valueOf(tSize);
+        Assert.assertTrue(thumbSize > 10000);
+        String pSize = metadata.get("outputs/ffmpegPreview.flv/size");
+        int previewSize = Integer.valueOf(pSize);
+        Assert.assertTrue(previewSize > 250000);
+
+        // FFmpeg
+        if (execLevel.equals(Ffmpeg.DEFAULT_BIN_TRANSCODE)) {
+            Assert.assertEquals(metadata.get("duration"), "5");
+        }
+
+        // FFprobe
+        if (execLevel.equals(Ffmpeg.DEFAULT_BIN_METADATA)) {
+            Assert.assertEquals(metadata.get("format/simple"),      "avi");
+            Assert.assertEquals(metadata.get("duration"),           "10");
+
+            Assert.assertEquals(metadata.get("video/codec/simple"), "camtasia");
+            Assert.assertEquals(metadata.get("video/pixel_format"), "bgr24");
+            Assert.assertEquals(metadata.get("video/width"),        "1280");
+            Assert.assertEquals(metadata.get("video/height"),       "1024");
+
+            Assert.assertEquals(metadata.get("audio/codec/simple"), "pcm_s16le");
+            Assert.assertEquals(metadata.get("audio/sample_rate"),  "22050");
+            Assert.assertEquals(metadata.get("audio/channels"),     "1");
+        }
+
+        // Verify custom display type is set
+        Properties props = outputObject.getMetadata();
+        String displayType = props.getProperty("displayType");
+        Assert.assertEquals(displayType, "video");
+    }
 }
