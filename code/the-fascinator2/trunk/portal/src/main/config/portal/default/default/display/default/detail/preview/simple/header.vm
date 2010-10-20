@@ -1,3 +1,4 @@
+#parseDisplayTemplate("detail/preview/simple/custom-header.vm")
 <div class="preview-content">
     <div class="title"></div>
     <div class="page-toc"></div>
