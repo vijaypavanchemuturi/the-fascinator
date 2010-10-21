@@ -1,5 +1,5 @@
 {
-    "version": "0.7.9",
+    "version": "0.7.10",
     "configured": false,
     "urlBase" : "http://localhost:9997/portal/",
     "email" : "fascinator@usq.edu.au",
@@ -133,6 +133,32 @@
                 "priority": "5",
                 "config": {
                     "name" : "solrwrapper"
+                }
+            },
+            {
+                "id" : "emailnotification",
+                "description" : "Queue to send email notifications",
+                "priority" : "8",
+                "config" : {
+                    "name" : "emailnotification",
+                    "debug" : false,
+                    "from" : {
+                        "email" : "fascinator@usq.edu.au",
+                        "name": "The Fascinator"
+                    },
+                    "smtp" : {
+                        "host" : "smtp.gmail.com",
+                        "port" : "25",
+                        "sslPort" : "465",
+                        "ssl" : true,
+                        "tls" : false,
+                        "username" : "someone@gmail.com",
+                        "password" : "secret"
+                    },
+                    "defaults" : {
+                        "subject" : "Notification",
+                        "body": "nt"
+                    }
                 }
             }
         ]

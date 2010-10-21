@@ -68,6 +68,32 @@
   </div>
 #parse($page.getTemplate('wrapping/content-block-close.vm'))
 
+<div class="block">
+    #set($contentTitle = "Test message queue")
+    #parseTemplate("wrapping/content-block-open.vm")
+    <br/>
+    <p>Use this to test message queues. No validation is done on the messages sent, use with caution.</p>
+    <fieldset class="login">
+        <p>
+            <label for="queueName">Queue</label>
+            <select id="queueName" name="queueName">
+                #foreach($queueId in $qData.keySet())
+                    <option value="$queueId">$queueId</option>
+                #end
+            </select>
+        </p>
+        <p>
+            <label for="queueMessage">Message</label>
+            <textarea id="queueMessage" name="queueMessage" rows="10" cols="40">{
+}</textarea>
+        </p>
+    </fieldset>
+    <p>
+        <button id="sendMessage">Send</button>
+    </p>
+    #parseTemplate("wrapping/content-block-close.vm")
+</div>
+
 <script type="text/javascript">
 $(function() {
     $("#hide-descriptions").click(function() {
@@ -79,6 +105,12 @@ $(function() {
         $("#hide-descriptions").show();
         $("#show-descriptions").hide();
         $(".queue-stats td.description").show();
+    });
+    $("#sendMessage").click(function() {
+        jQuery.post("$portalPath/queues.ajax",
+        {   queueName: $("#queueName").val(),
+            queueMessage: $("#queueMessage").val()
+        });
     });
 });
 </script>
