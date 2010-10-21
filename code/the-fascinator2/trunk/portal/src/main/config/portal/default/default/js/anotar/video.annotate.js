@@ -64,8 +64,11 @@ function parseMediaFragmentUri(uri, message_div){
 
     var media_fragment = new MediaFragment();
 
-    const re_fragment = /[^?#]*[?#]([^#]*)/;
-    const axissegment = new Array("t", "xywh", "track", "id");
+    // const not working in IE7/8
+//    const re_fragment = /[^?#]*[?#]([^#]*)/;
+//    const axissegment = new Array("t", "xywh", "track", "id");
+    var re_fragment = /[^?#]*[?#]([^#]*)/;
+    var axissegment = new Array("t", "xywh", "track", "id");
     
     var query = uri.split(re_fragment);
     if (query.length <= 1 || query[1] == "") return null;
@@ -91,7 +94,8 @@ function parseMediaFragmentUri(uri, message_div){
 
 function handleTimeSegment(segment) {
     var segment = new TimeSegment();
-    const re_timeparam = /^(npt|smpte|smpte-25|smpte-30|smpte-30-drop|clock):{0,1}(.*)/;
+    //const re_timeparam = /^(npt|smpte|smpte-25|smpte-30|smpte-30-drop|clock):{0,1}(.*)/;
+    var re_timeparam = /^(npt|smpte|smpte-25|smpte-30|smpte-30-drop|clock):{0,1}(.*)/;
     
     var timeparam = re_timeparam.exec(segment);
     if (timeparam == null) return null;
