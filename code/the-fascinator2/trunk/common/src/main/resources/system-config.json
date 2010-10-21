@@ -1,5 +1,5 @@
 {
-    "version": "0.7.10",
+    "version": "0.7.11",
     "configured": false,
     "urlBase" : "http://localhost:9997/portal/",
     "email" : "fascinator@usq.edu.au",
@@ -347,6 +347,14 @@
                 "frequency": "300",
                 "jobs" : [
                 ]
+            }
+        },
+        "oai-pmh": {
+            "metadataFormats": {
+                "oai_dc": {
+                    "schema": "http://www.openarchives.org/OAI/2.0/oai_dc.xsd",
+                    "metadataNamespace": "http://www.openarchives.org/OAI/2.0/oai_dc/"
+                }
             }
         }
     },
