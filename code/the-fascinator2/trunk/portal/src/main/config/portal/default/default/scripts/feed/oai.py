@@ -1,6 +1,6 @@
-import random, time
+import random, time, os
 from au.edu.usq.fascinator.api.indexer import SearchRequest
-from au.edu.usq.fascinator.common import JsonConfigHelper
+from au.edu.usq.fascinator.common import JsonConfig, JsonConfigHelper
 from java.io import ByteArrayInputStream, ByteArrayOutputStream
 
 class SolrDoc:
@@ -51,7 +51,7 @@ class OaiPmhVerb:
             self.__metadataPrefix = formData.get("metadataPrefix")
             if self.__metadataPrefix is None:
                 self.__error = OaiPmhError("badArgument", "Missing required argument: metadataPrefix")
-            elif self.__metadataPrefix != "oai_dc":
+            elif self.__metadataPrefix != "oai_dc" and self.__metadataPrefix != "rif_cs":
                 self.__error = OaiPmhError("cannotDisseminateFormat",
                                            "Record not available as metadata type: %s" % self.__metadataPrefix)
         elif self.__verb in ["Identify", "ListMetadataFormats", "ListSets"]:
@@ -92,6 +92,7 @@ class OaiData:
         self.services = context["Services"]
         self.log = context["log"]
         self.sessionState = context["sessionState"]
+        self.portalDir = context["portalDir"]
         self.__result = None
 
         print " * oai.py: formData=%s" % self.vc("formData")
@@ -153,6 +154,15 @@ class OaiData:
             req.addParam("fq", portalQuery)
 
         # TODO resumptionToken
+        resumptionToken = self.sessionState.get("resumptionToken")
+        if resumptionToken:
+            start = resumptionToken.getStart() + recordsPerPage
+            token = ResumptionToken(start) 
+        else:
+            start = 0
+            token = ResumptionToken(start)
+        self.sessionState.set("resumptionToken", token)
+        
         #req.setParam("start", str((self.__pageNum - 1) * recordsPerPage))
 
         print " * oai.py:", req.toString()
@@ -160,3 +170,13 @@ class OaiData:
         out = ByteArrayOutputStream()
         self.services.indexer.search(req, out)
         self.__result = JsonConfigHelper(ByteArrayInputStream(out.toByteArray()))
+        
+    def __createToken(self):
+        pass
+
+    def getMetadataFormats(self):
+        conf = JsonConfig()
+        formats = conf.getMap("portal/oai-pmh/metadataFormats")
+        return formats
+
+
