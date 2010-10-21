@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+    <meta charset="utf-8"/>
+    <title>TempTest javascript-widgets form</title>
+    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"><!-- --></script>
+    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.2/jquery-ui.min.js"><!-- --></script>
+    <script type="text/javascript" src="widgets.js"><!-- --></script>
+    <script type="text/javascript">
+     //<!--
+        $(widgets.contentLoaded);
+        function subFormSubmitted(){ $("#result-msg").text("subForm Submitted function called ok"); }
+        function subFormSubmittedResult(form, data){
+            $("#result-msg").text(JSON.stringify(data));
+        }
+     //-->
+    </script>
+    <!-- base -->
+    <link type="text/css" rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8/themes/base/jquery-ui.css" />
+<!-- dark-hive, ui-darkness, ui-lightness
+    <link type="text/css" rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8/themes/dark-hive/jquery-ui.css" />
+    <link type="text/css" rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8/themes/ui-darkness/jquery-ui.css" />
+    <link type="text/css" rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8/themes/ui-lightness/jquery-ui.css" />
+-->
+    <style>
+      h2 { color:blue; }
+      h3 { color:blue; margin-top:2em;}
+      h4 { color:blue; }
+      .block { display:block; margin:0.5em; }
+      textarea { font-size:110%; }
+      .dateYMD { width: 11ex; }
+      .dateYM { width: 7.5ex; }
+      .dateMMY { width: 14em; }
+      .dateY { width: 4.5ex;}
+      .thumbnail { height:100px; }
+    </style>
+  </head>
+  <body>
+   <div class="widget-form">
+    <h2>Temp-Test javascipt widgets form page</h2>
+
+    <!-- Field registartion -->
+    <input type="hidden" class="form-fields" value="hidden1, hidden2, stext1, stext2, chkbox1, radio1, sel1,
+                                                vA.0, vB.0, vC.0, test.0.label, test.0" />
+
+    <!-- optional hidden fields -->
+    <input type="hidden" id="hidden1" value="HideOne" />
+    <input type="hidden" id="hidden2" value="HideTwo" />
+    <input type="hidden" id="test:test" value="Test:Test" />
+
+    <div>
+        <h3>testing</h3>
+        <table class="input-list">
+          <tfoot>
+            <tr>
+              <td colspan="7"><input class="add-another-item" type="button" value="Add another creator" /></td>
+            </tr>
+          </tfoot>
+          <tbody>
+            <tr class="item-input-display">
+              <td class="sort-number">1</td>
+              <td>
+                  <span class="data-source-drop-down" id="testid.0"
+                        data-json-source-urlX="../workflows/forms/json/relators/collections/index.json"
+                        data-json-data='{
+            "namespace": "http://id.loc.gov/vocabulary/relators/",
+            "list": [
+                     {"children": 0, "id": "cre", "label": "Creator"},
+                     {"children": 0, "id": "art", "label": "Artist"},
+                     {"children": 0, "id": "aut", "label": "Author"},
+                     {"children": 0, "id": "cur", "label": "Curator"},
+                     {"children": 0, "id": "mus", "label": "Musician"},
+                     {"children": 0, "id": "msd", "label": "Musical Director"},
+                     {"children": 0, "id": "cmp", "label": "Composer"},
+                     {"children": 0, "id": "drt", "label": "Director"},
+                     {"children": 0, "id": "pro", "label": "Producer"},
+                     {"children": 0, "id": "oth", "label": "Other"},
+         ],
+         "selectable": 1
+     }'
+                        data-id="dc:creator.foaf:Person.0.usq:role">
+                  </span>
+              </td>
+              <td class="delete-item"><a href="#">delete</a></td>
+              <td style="width: 100%;"></td>
+            </tr>
+          </tbody>
+        </table>
+    </div>
+<!--
+####
+    <div>
+        <h3>testing</h3>
+        <a href='javascript:(function(){$("#table2").toggle();})();'>show/hide table</a>
+        <table class="input-list" style="display:none;" id="table2">
+          <tfoot>
+            <tr>
+              <td colspan="7"><input class="add-another-item" type="button" value="Add another creator" /></td>
+            </tr>
+          </tfoot>
+          <tbody>
+            <tr class="item-input-display">
+              <td class="sort-number">1</td>
+              <td>
+                  <span class="data-source-drop-down" id="testidx.0"
+                        data-json-source-urlX="../workflows/forms/json/relators/collections/index.json"
+                        data-json-data='{
+            "namespace": "http://id.loc.gov/vocabulary/relators/",
+            "list": [
+                     {"children": 0, "id": "cre", "label": "Creator"},
+                     {"children": 0, "id": "art", "label": "Artist"},
+                     {"children": 0, "id": "aut", "label": "Author"},
+                     {"children": 0, "id": "cur", "label": "Curator"},
+                     {"children": 0, "id": "mus", "label": "Musician"},
+                     {"children": 0, "id": "msd", "label": "Musical Director"},
+                     {"children": 0, "id": "cmp", "label": "Composer"},
+                     {"children": 0, "id": "drt", "label": "Director"},
+                     {"children": 0, "id": "pro", "label": "Producer"},
+                     {"children": 0, "id": "oth", "label": "Other"},
+         ],
+         "selectable": 1
+     }'
+                        data-id="dc:creator.foaf:Person.0.usq:rolex">
+                  </span>
+              </td>
+              <td class="delete-item"><a href="#">delete</a></td>
+              <td style="width: 100%;"></td>
+            </tr>
+          </tbody>
+        </table>
+    </div>
+#### -->
+   </div>
+  </body>
+</html>
+
+
+
+
+
+

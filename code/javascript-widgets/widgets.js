@@ -4,8 +4,34 @@ var widgets={forms:[], globalObject:this};
 
 (function($){
   var formClassName = "widget-form";
+  var pendingWork = {};
 
-  function fn(s){
+  if(!$.fn.dataset){     // if dataset function not defined
+      $.fn.dataset=function(name, value){return this.attr("data-"+name, value);};
+  }
+  if(!$.fn.getDatasets){
+      $.fn.getDatasets=function(ff){
+          var atts, d={}, item, name, value;
+          if(this[0]){
+            atts=this[0].attributes;
+            for(var i=0,l=atts.length; i<l; i++){
+                item=atts.item(i);
+                name=item.name;
+                if(name.substr(0,5)=="data-"){
+                    name=name.substr(5);
+                    value=item.value;
+                    if(!ff || ff(name, value)){
+                        d[name]=value;
+                    }
+                }
+            }
+          }
+          return d;
+      };
+  }
+
+  function fn(s){ // inline function generator
+      // fn("a,b->a+b")(3, 2)   or fn("$1+$2")(3, 2)
       var re=/^([\w$,\s]+)-\>/, re2=/;|}/;
       var a, b;
       if(re.test(s)){
@@ -17,10 +43,31 @@ var widgets={forms:[], globalObject:this};
       }
       return new Function(a, b);
   }
+  _fn = fn;
+
+  var _idNum=1;
+  function getIdNum(){
+      return _idNum++;
+  }
 
   function trim(s){
     return $.trim(s);
     return s.replace(/^\s+|\s+$/g, "")
+  }
+
+  function keys(d, f){
+    var keys=[], k;
+    for(k in d){
+        if(!f || f(k)){
+            keys.push(k);
+        }
+    }
+    return keys;
+  }
+  function values(d){
+      var values=[], k;
+      for(k in d){values.push(d[k]);}
+      return values;
   }
 
   function getById(id){
@@ -328,6 +375,335 @@ var widgets={forms:[], globalObject:this};
     }
   }
   widgets.validator = validator;
+
+  function helpWidget(e){
+    var helpContent, showText, hideText;
+    var showLink, hideLink, doNext;
+    var show, hide;
+    helpContent = $("#" + e.dataset("help-content-id"));
+    helpContent.hide();
+    showLink = e.find(".helpWidget-show");
+    hideLink = e.find(".helpWidget-hide").hide();
+    show=function(){
+        helpContent.slideDown();
+        showLink.hide(); hideLink.show();
+        doNext=hide;
+    };
+    hide=function(){
+        helpContent.slideUp();
+        showLink.show(); hideLink.hide();
+        doNext=show;
+    };
+    doNext=show;
+    e.click(function(){
+        doNext();
+    });
+  }
+
+  function listInput(c, i){
+      var liSect, count, tmp, visibleItems, displayRowTemplate, displaySelector;
+      var add, del, getDelFuncFor, reorder, addUniqueOnly=false;
+      var maxSize, minSize, addButton, addButtonDisableTest;
+      liSect = $(i);
+      maxSize = liSect.dataset("max-size")*1;
+      if(isNaN(maxSize)){
+          maxSize=100;
+      }
+      if(maxSize<1)maxSize=1;
+      minSize = liSect.dataset("min-size")*1;
+      if(isNaN(minSize)){
+          minSize=0;
+      }
+      if(minSize>maxSize)minSize=maxSize;
+      if(liSect.hasClass("sortable")){
+        //liSect.find("tbody:first").sortable({
+        liSect.sortable({
+          items:".sortable-item",
+          update:function(e, ui){ reorder(); }
+        });
+      }
+      addButton=liSect.find(".add-another-item, .item-add");
+      addButtonDisableTest=function(){
+          visibleItems = liSect.find(displaySelector+".count-this");
+          count = visibleItems.size();
+          if(count>=maxSize){addButton.attr("disabled", true);}
+      }
+      addButton.bind("disableTest", addButtonDisableTest);
+      del=function(e){
+        e.remove();
+        if(liSect.find(".item-input-display:visible").size()<=minSize){
+          liSect.find(".item-input-display:visible .delete-item").hide();
+        }
+        addButton.attr("disabled", false);
+        addButton.trigger("disableTest");
+        reorder();
+        return false;
+      }
+      getDelFuncFor=function(e){
+          return function(){return del(e);};
+      }
+      var _add=function(e, force){
+      }
+// check all variable names
+      if(liSect.find(".item-display").size()){
+        if(liSect.find(".item-input-display").size()){
+          alert("Error: .input-list can not have both 'item-display' and 'item-input-display' table row classes");
+          return;
+        }
+        // For handling 'item-display' (where there is a separate/special row for handling the display of added items)
+        //    Note: if there is an 'item-display' row then it is expected that there will also be an
+        //        'item-input' row as well an 'item-add' button/link
+        displaySelector = ".item-display";
+        tmp=liSect.find(displaySelector).hide();
+        displayRowTemplate=tmp.eq(0);
+        contentDisable(displayRowTemplate);
+        add=function(e, force){
+          // get item value(s) & validate (if no validation just test for is not empty)
+          var values=[];
+          var test=[];
+          liSect.find(".item-input input[type=text]").each(function(c, i){
+            values[c]=[$.trim($(i).val()), i.id];
+            test[c]=values[c][0];
+            if($(i).parents(".data-source-drop-down").size()==0)$(i).val("");   // reset
+          }).eq(0).focus();
+          //
+          visibleItems = liSect.find(displaySelector+".count-this");
+          if(!force){
+              if(!any(values, function(v){ return v[0]!==""; })) return;
+              if(addUniqueOnly){
+                // Check that this entry is unique
+                var unique=true;
+                visibleItems.each(function(c, i){
+                  i=$(i);
+                  var same=true;
+                  i.find("input").each(function(c2, i){
+                    if(test[c2]!=i.value)same=false;
+                  });
+                  if(same)unique=false;
+                });
+                if(!unique){
+                    alert("Selection is already in the list. (not a unique value)");
+                    return;
+                }
+              }
+          }
+          tmp = displayRowTemplate.clone().show().addClass("count-this");
+          count = visibleItems.size()+1;
+          tmp.find("*[id]").each(function(c, i){
+              i.id = i.id.replace(/\.0(?=\.|$)/, "."+count);
+          });
+          tmp.find(".item-display-item").each(function(c, i){
+            var id = values[c][1].replace(/\.0(?=\.|$)/, "."+count);
+            $(i).append("<input type='text' id='"+id+"' value='"+values[c][0]+
+                        "' readonly='readonly' size='40' />");
+          });
+          tmp.find(".sort-number").text(count);
+          liSect.find(displaySelector+":last").after(tmp);
+          visibleItems.find(".delete-item").show();
+          tmp.find(".delete-item").click(getDelFuncFor(tmp));
+          addButton.trigger("disableTest");
+          contentSetup(tmp);
+        }
+        addButton.click(add);
+        addButton[0].forceAdd = function(){add(null, true);};
+        addUniqueOnly = addButton.hasClass("add-unique-only");
+        liSect.find(".item-input input[type=text]:last").keypress(function(e){
+          if(e.which==13){
+            add();
+          }
+        });
+      }else if(liSect.find(".item-input-display").size()){
+        // For handling 'item-input-display' type lists
+        //   Note: if there is an 'item-input-display' row then it is also excepted that there
+        //      will be an 'add-another-item' button or link
+        displaySelector=".item-input-display";
+        if(minSize==0)minSize=1;
+        tmp=liSect.find(displaySelector).hide();
+        displayRowTemplate=tmp.eq(0);
+        contentDisable(displayRowTemplate);
+        add=function(){
+          visibleItems = liSect.find(displaySelector+".count-this");
+          tmp = displayRowTemplate.clone().show().addClass("count-this");
+          count = visibleItems.size()+1;
+          //alert("add "+count);
+          tmp.find("*[id]").each(function(c, i){
+              //$(i).addClass(i.id);
+              i.id = i.id.replace(/\.0(?=\.|$)/, "."+count);
+          });
+          tmp.find("label[for]").each(function(c, i){
+              i=$(i);
+              i.attr("for", i.attr("for").replace(/\.0(?=\.|$)/, "."+count));
+          });
+          tmp.find(".sort-number").text(count);
+          liSect.find(displaySelector+":last").after(tmp);
+          if(count<=minSize) tmp.find(".delete-item").hide();
+          else visibleItems.find(".delete-item").show();
+          tmp.find(".delete-item").click(getDelFuncFor(tmp));
+          if(count>=maxSize){addButton.attr("disabled", true);}
+          contentSetup(tmp);
+        }
+        for(var x=0;x<minSize;x++){add();}
+        addButton.click(add);
+      }
+
+      reorder=function(){
+        liSect.find(displaySelector+":visible").each(function(c, i){
+         try{
+          $(i).find("*[id]").each(function(_, i2){
+            var labels = $(i).find("label[for="+i2.id+"]");
+            i2.id = i2.id.replace(/\.\d+(?=\.|$)/, "."+(c+1));
+            labels.attr("for", i2.id);
+          });
+          $(i).find(".sort-number").text(c+1);
+         }catch(e){alert(e.message)}
+        });
+      }
+  }
+
+  // ==============
+  // Multi-dropdown selection
+  // ==============
+  function buildSelectList(json, parent, getJson, onSelection){
+      var s, o, children={}, ns, selectable;
+      ns = (json.namespace || "") || (parent.namespace || "");
+      selectable = (json.selectable==null)?(!!parent.selectable):(!!json.selectable);
+      s = $("<select/>");
+      if(!json["default"]){
+        o = $("<option value=''>Please select one</option>");
+        s.append(o);
+      }
+      $.each(json.list, function(c, i){
+        var sel=!!(i.selectable!=null?i.selectable:selectable);
+        children[i.id]={url:(i.children==1?i.id:i.children), label:i.label, id:i.id,
+                        selectable:sel, namespace:ns, parent:parent};
+        o = $("<option/>");
+        o.attr("value", i.id);
+        if(i.id==json["default"]) o.attr("selected", "selected");
+        o.text(i.label);
+        s.append(o);
+      });
+      function onChange(){
+        var id, child, j;
+        id = s.val();
+        child = children[id] || {parent:parent};
+        if(s.nextUntil){
+            s.nextUntil(":not(select)").remove();
+        }else{
+            function removeSelects(s){
+                if(s.size()==0)return;
+                removeSelects(s.next("select"));
+                s.remove();
+            }
+            removeSelects(s.next("select"));
+        }
+        if(child.url){
+          getJson(child.url, function(j){
+              s.after(buildSelectList(j, child, getJson, onSelection));
+              onSelection(child);
+          });
+        }
+        onSelection(child);
+      }
+      s.change(onChange);
+      setTimeout(onChange, 10);
+      return s;
+  }
+
+  function sourceDropDown(c, dsdd){
+      var ds=$(dsdd), id=dsdd.id, jsonBaseUrl, jsonInitUrlId, jsonData, jsonCache={};
+      var selAdd, selAddNs, selAddId, selAddLabel, addButtonDisableTest;
+      var lastSelectionSelectable=false, selectId;
+      var getJson, onSelection, onJson;
+      if(ds.dataset("done")){ return; }
+      ds.children("*:not(select)").hide();
+      jsonBaseUrl=ds.dataset("json-source-url") || ds.find(".json-data-source-url").val();
+      if( jsonBaseUrl && (/\//.test(jsonBaseUrl)) ){
+          jsonInitUrlId=jsonBaseUrl.split(/\/([^\/]*$)/)[1];
+          jsonBaseUrl=jsonBaseUrl.split(/\/([^\/]*$)/)[0]+"/";  // split at the last /
+      }else{
+          jsonBaseUrl="";
+          jsonInitUrlId="";
+      }
+      if(jsonInitUrlId==""){     // then get the jsonData if any
+          jsonData=ds.find(".json-data-source");
+          jsonData=ds.dataset("json-data") || json.val() || json.text();
+          try{
+              jsonData = $.parseJSON(jsonData);
+              //json = eval("("+json+")");
+              jsonCache=jsonData;
+              jsonCache[""]=jsonData;
+          }catch(e){
+              alert("Not valid json! - "+e);
+          }
+      }
+      selectId=ds.dataset("id");
+      selAdd = ds.parent().find(".selection-add");
+      getJson = function(urlId, onJson){
+        var j, url=jsonBaseUrl+urlId;
+        var workId = getIdNum();
+        pendingWork[workId]=url;
+        j=jsonCache[urlId]
+        if(j){
+            //onJson(j);
+            setTimeout(function(){
+                    onJson(j);
+                    delete pendingWork[workId];
+                }, 10);
+            return;
+        }
+        url=jsonBaseUrl+urlId;
+        if(!/\.json$/.test(url)) url+=".json";
+        $.getJSON(url, function(data){
+          jsonCache[urlId]=data;
+          onJson(data);
+          delete pendingWork[workId];
+        });
+      }
+      addButtonDisableTest = function(){
+        if(lastSelectionSelectable==false){
+            if(/BUTTON|INPUT/.test(selAdd[0].tagName)){
+                selAdd.attr("disabled", true);
+            }else{
+                selAdd.hide();
+            }
+        }
+      };
+      selAdd.bind("disableTest", addButtonDisableTest);
+      onSelection = function(info){
+        //info.namespace, info.id, info.label, info.selectable, info.parent
+        while(info.selectable!==false && info.selectable!==true){
+          if(info.parent) info = info.parent;
+          else info.selectable=false;
+        }
+        lastSelectionSelectable=info.selectable;
+        if(/BUTTON|INPUT/.test(selAdd[0].tagName)){
+          selAdd.attr("disabled", lastSelectionSelectable?"":"disabled");
+        }else{
+          lastSelectionSelectable?selAdd.show():selAdd.hide();
+        }
+        selAdd.trigger("disableTest");
+        if(lastSelectionSelectable){
+          selAddNs=info.namespace; selAddId=info.id; selAddLabel=info.label;
+        }else{
+          selAddNs=""; selAddId=""; selAddLabel="";
+        }
+        ds.find(".selection-add-id").val(selAddId);
+        ds.find(".selection-add-label").val(selAddLabel);
+        selAdd.find(".selection-add-id").text(selAddId);
+        selAdd.find(".selection-add-label").text(selAddLabel);
+      };
+      onJson = function(json){
+        // OK now build the select-option
+        var o = buildSelectList(json, {}, getJson, onSelection);
+        if(selectId){
+            o.attr("id", selectId);
+            selectId=null;
+        }
+        ds.append(o);
+      };
+      getJson(jsonInitUrlId, onJson);
+      ds.dataset("done", 1);
+  }
   
   function formWidget(ctx){
       var widgetForm={};
@@ -531,10 +907,12 @@ var widgets={forms:[], globalObject:this};
                   if(input.size()==0){
                     input = ctxInputs.filter("[id="+k+"]");
                     t=input.parents(".input-list:first").find(".add-another-item, .item-add");
-                    if(t[0].forceAdd){
-                        t[0].forceAdd();
-                    }else{
-                        t.click();
+                    if(t.size()){
+                        if(t[0].forceAdd){
+                            t[0].forceAdd();
+                        }else{
+                            t.click();
+                        }
                     }
                     // update inputs - this could be done better
                     ctxInputs = ctx.findx("input, textarea, select");
@@ -554,9 +932,8 @@ var widgets={forms:[], globalObject:this};
 
       function reset(data){
           if(!data)data={};
-          
+          //
       }
-
 
       function setupFileUploader(fileUploadSections, onChange){
         if(!fileUploadSections) fileUploadSections=ctx.findx(".file-upload-section");
@@ -672,288 +1049,6 @@ var widgets={forms:[], globalObject:this};
           return {submit:submit, iframe:iframe, getBody:getBody};
       }
 
-      // TODO: remove table, tbody, tr and td references, just rely on the classes
-      function listInput(c, i){
-          var table, count, tmp, visibleItems, displayRowTemplate, displaySelector;
-          var add, del, reorder, addUniqueOnly=false;
-          table = $(i);
-          if(table.hasClass("sortable")){
-            table.find("tbody:first").sortable({
-              items:"tr.sortable-item",
-              update:function(e, ui){ reorder(); }
-            });
-          }
-    // check all variable names
-          if(table.find(".item-display").size()){
-            if(table.find("tr.item-input-display").size()){
-              alert("Error: table.input-list can not have both 'item-display' and 'item-input-display' table row classes");
-              return;
-            }
-            // For handling 'item-display' (where there is a separate/special row for handling the display of added items)
-            //    Note: if there is an 'item-display' row then it is expected that there will also be an
-            //        'item-input' row as well an 'item-add' button/link
-            displaySelector = ".item-display";
-            tmp=table.find(displaySelector).hide();
-            displayRowTemplate=tmp.eq(0);
-            contentDisable(displayRowTemplate);
-            add=function(e, force){
-              // get item value(s) & validate (if no validation just test for is not empty)
-              var values=[];
-              var test=[];
-              table.find("tr.item-input input[type=text]").each(function(c, i){
-                values[c]=[$.trim($(i).val()), i.id];
-                test[c]=values[c][0];
-                $(i).val("");   // reset
-              }).eq(0).focus();
-              //
-              visibleItems = table.find(displaySelector+":visible");
-              if(!force){
-                  if(!any(values, function(v){ return v[0]!==""; })) return;
-                  if(addUniqueOnly){
-                    // Check that this entry is unique
-                    var unique=true;
-                    visibleItems.each(function(c, i){
-                      i=$(i);
-                      var same=true;
-                      i.find("input").each(function(c2, i){
-                        if(test[c2]!=i.value)same=false;
-                      });
-                      if(same)unique=false;
-                    });
-                    if(!unique){
-                        alert("Selection is already in the list. (not a unique value)");
-                        return;
-                    }
-                  }
-              }
-
-              tmp = displayRowTemplate.clone().show();
-              count = visibleItems.size()+1;
-              tmp.find("*[id]").each(function(c, i){
-                  //$(i).addClass(i.id);
-                  i.id = i.id.replace(/\.0(?=\.|$)/, "."+count);
-              });
-              tmp.find(".item-display-item").each(function(c, i){
-                var id = values[c][1].replace(/\.0(?=\.|$)/, "."+count);
-                //$(i).text(values[c][0]);
-                //$(i).append("<input type='hidden' id='"+id+"' value='"+values[c][0]+"'/>");
-                $(i).append("<input type='text' id='"+id+"' value='"+values[c][0]+
-                            "' readonly='readonly' size='64' />");
-              });
-              tmp.find(".sort-number").text(count);
-              table.find(displaySelector+":last").after(tmp);
-              visibleItems.find(".delete-item").show();
-              //if(count==1) tmp.find(".delete-item").hide();
-              tmp.find(".delete-item").click(del);
-              contentSetup(tmp);
-            }
-
-            del=function(e){
-              $(this).parents("tr:first").remove();
-              reorder();
-              return false;
-            }
-
-            table.find(".item-add").click(add);
-            table.find(".item-add")[0].forceAdd = function(){add(null, true);};
-            addUniqueOnly = table.find(".item-add").hasClass("add-unique-only");
-            table.find("tr.item-input input[type=text]:last").keypress(function(e){
-              if(e.which==13){
-                add();
-              }
-              if(e.which==8 && false){      // backspace delete/recall exp.
-                if($(e.target).val()==""){
-                  if(table.find(displaySelector+":visible").size()>0){
-                    var i=table.find(displaySelector+":visible:last input:last");
-                    del.apply(i);
-                    $(e.target).val(i.val());
-                    return false;
-                  }
-                }
-              }
-            });
-          }else if(table.find("tr.item-input-display").size()){
-            // For handling 'item-input-display' type lists
-            //   Note: if there is an 'item-input-display' row then it is also excepted that there
-            //      will be an 'add-another-item' button or link
-            displaySelector="tr.item-input-display";
-            tmp=table.find(displaySelector).hide();
-            displayRowTemplate=tmp.eq(0);
-            contentDisable(displayRowTemplate);
-
-            add=function(){
-              visibleItems = table.find(displaySelector+".count-this");
-              tmp = displayRowTemplate.clone().show().addClass("count-this");
-              count = visibleItems.size()+1;
-              tmp.find("*[id]").each(function(c, i){
-                  //$(i).addClass(i.id);
-                  i.id = i.id.replace(/\.0(?=\.|$)/, "."+count);
-              });
-              tmp.find("label[for]").each(function(c, i){
-                  i=$(i);
-                  i.attr("for", i.attr("for").replace(/\.0(?=\.|$)/, "."+count));
-              });
-              tmp.find(".sort-number").text(count);
-              table.find(displaySelector+":last").after(tmp);
-              visibleItems.find(".delete-item").show();
-              if(count==1) tmp.find(".delete-item").hide();
-              tmp.find(".delete-item").click(del);
-              contentSetup(tmp);
-            }
-
-            del=function(e){
-                alert("remove one");
-              $(this).parents("tr:first").remove();
-              if(table.find(displaySelector+":visible").size()==1){
-                table.find(displaySelector+":visible .delete-item").hide();
-              }
-              reorder();
-              return false;
-            }
-
-            add();
-            table.find(".add-another-item").click(add);
-          }
-
-          reorder=function(){
-            table.find(displaySelector+":visible").each(function(c, i){
-             try{
-              $(i).find("*[id]").each(function(_, i2){
-                var labels = $(i).find("label[for="+i2.id+"]");
-                i2.id = i2.id.replace(/\.\d+(?=\.|$)/, "."+(c+1));
-                labels.attr("for", i2.id);
-              });
-              $(i).find(".sort-number").text(c+1);
-             }catch(e){alert(e.message)}
-            });
-          }
-      }
-
-      // ==============
-      // Multi-dropdown selection
-      // ==============
-      function buildSelectList(json, parent, getJson, onSelection){
-          var s, o, children={}, ns, selectable;
-          ns = (json.namespace || "") || (parent.namespace || "");
-          selectable = (json.selectable==null)?(!!parent.selectable):(!!json.selectable);
-          s = $("<select/>");
-          if(!json["default"]){
-            o = $("<option value=''>Please select one</option>");
-            s.append(o);
-          }
-          $.each(json.list, function(c, i){
-            var sel=!!(i.selectable!=null?i.selectable:selectable);
-            children[i.id]={url:(i.children==1?i.id:i.children), label:i.label, id:i.id,
-                            selectable:sel, namespace:ns, parent:parent};
-            o = $("<option/>");
-            o.attr("value", i.id);
-            if(i.id==json["default"]) o.attr("selected", "selected");
-            o.text(i.label);
-            s.append(o);
-          });
-          function onChange(){
-            var id, child, j;
-            id = s.val();
-            child = children[id] || {parent:parent};
-            if(s.nextUntil){
-                s.nextUntil(":not(select)").remove();
-            }else{
-                function removeSelects(s){
-                    if(s.size()==0)return;
-                    removeSelects(s.next("select"));
-                    s.remove();
-                }
-                removeSelects(s.next("select"));
-            }
-            if(child.url){
-              getJson(child.url, false, function(j){
-                  s.after(buildSelectList(j, child, getJson, onSelection));
-                  onSelection(child);
-              });
-            }
-            onSelection(child);
-          }
-          s.change(onChange);
-          setTimeout(onChange, 10);
-          return s;
-      }
-
-      function sourceDropDown(c, dsdd){
-          var ds=$(dsdd), id=dsdd.id, jsonUrl, json=[], selAdd;
-          var selAddNs, selAddId, selAddLabel;
-          var getJson, onSelection, onJson;
-          ds.hide();
-          selAdd = ds.parent().find(".selection-add");
-          // ".json-data-source-url" val(), ".json-data-source" text(),
-          //    ".selection-add"
-          getJson = function(urlId, absolute, onJson){
-            var j, url=urlId;
-            if(json) j=json[urlId]
-            if(j){
-                onJson(j);
-                return;
-            }
-            if(!absolute){
-              url=jsonUrl+urlId;
-              if(!/\.json$/.test(url)) url+=".json";
-            }
-            $.getJSON(url, function(data){
-              json=data;
-              onJson(json);
-            });
-          }
-          onSelection = function(info){
-            var sel;
-            //info.namespace, info.id, info.label, info.selectable, info.parent
-            while(info.selectable!==false && info.selectable!==true){
-              if(info.parent) info = info.parent;
-              else info.selectable=false;
-            }
-            sel=info.selectable;
-            if(/BUTTON|INPUT/.test(selAdd[0].tagName)){
-              selAdd.attr("disabled", sel?"":"disabled");
-            }else{
-              sel?selAdd.show():selAdd.hide();
-            }
-            if(sel){
-              selAddNs=info.namespace; selAddId=info.id; selAddLabel=info.label;
-            }else{
-              selAddNs=""; selAddId=""; selAddLabel="";
-            }
-            ds.find(".selection-add-id").val(selAddId);
-            ds.find(".selection-add-label").val(selAddLabel);
-            selAdd.find(".selection-add-id").text(selAddId);
-            selAdd.find(".selection-add-label").text(selAddLabel);
-          }
-          onJson = function(json){
-            // OK now build the select-option
-            var o = buildSelectList(json, {}, getJson, onSelection);
-            ds.after(o);
-            //o.after(selAdd);
-          }
-          jsonUrl=ds.find(".json-data-source-url").val();
-          if(jsonUrl){
-            json=getJson(jsonUrl, true, onJson);
-            if(/\//.test(jsonUrl)){
-              jsonUrl=jsonUrl.split(/\/([^\/]*$)/)[0]+"/";  // split at the last /
-            }else{
-              jsonUrl="";
-            }
-          }else{
-            json=$(".json-data-source");
-            json = json.val() || json.text();
-            try{
-              json = $.parseJSON(json);
-              //json = eval("("+json+")");
-              onJson(json);
-            }catch(e){
-              alert("Not valid json! - "+e);
-              json = null;
-              return;
-            }
-          }
-      }
-
       function init(_ctx){
         var id;
         if(!_ctx)_ctx=$("body");
@@ -967,18 +1062,7 @@ var widgets={forms:[], globalObject:this};
             return ctx.find(selector).not(ctx.find(nsel));
         };
 
-        // ==============
-        // Simple (text) list input type
-        // ==============
-        ctx.findx(".input-list").each(listInput);
-        // --------------
-        // ==============
-        // Multi-dropdown selection
-        // ==============
-        ctx.findx(".data-source-drop-down").each(sourceDropDown);
-        // --------------
         ctxInputs = ctx.findx("input, textarea, select");
-
         //
         widgetForm.hasFileUpload= (ctx.findx("input[type=file]").size()>0);
         if(widgetForm.hasFileUpload){ setupFileUploader(); }
@@ -996,17 +1080,6 @@ var widgets={forms:[], globalObject:this};
         widgetForm.ctx = ctx;
       }
 
-      //widgetForm= {
-        //submit:onSubmit,
-        //save:onSave,
-        //restore:onRestore,
-        //reset:onReset,
-        //addListener:addListener,
-        //removeListener:removeListener,
-        //removeListeners:removeListeners,
-      //  end:true
-        // setSaveUrl, setSubmitUrl, setResetJson, setRestoreData
-      //};
       widgetForm.submit=onSubmit;
       widgetForm.save=onSave;
       widgetForm.restore=onRestore;
@@ -1045,6 +1118,10 @@ var widgets={forms:[], globalObject:this};
         }
     }
     function contentSetup(ctx){
+        //
+        ctx.find(".helpWidget").each(function(c, e){
+            helpWidget($(e));
+        });
         // ==============
         // Date inputs
         // ==============
@@ -1072,6 +1149,22 @@ var widgets={forms:[], globalObject:this};
             onChangeMonthYear:function(year, month, inst){ datepickerBeforeShow(null, inst); },
             onSelect:function(dateText, inst){}
         });
+        // ==============
+        // Multi-dropdown selection
+        // ==============
+        ctx.find(".data-source-drop-down").each(sourceDropDown);
+        // ==============
+        // Simple (text) list input type
+        // ==============
+        //ctx.find(".input-list").each(listInput);
+        var callback=function(){
+            if($.isEmptyObject(pendingWork)){
+                ctx.find(".input-list").each(listInput);
+            }else{
+                setTimeout(callback, 20);
+            }
+        }
+        setTimeout(callback, 20);
     }
     function contentDisable(ctx){
         ctx.find("input").filter(".dateYMD, .date, .dateYM, .dateMMY, .dateY").datepicker("destroy");
@@ -1103,26 +1196,6 @@ var widgets={forms:[], globalObject:this};
 
 
 
-  //validator(ctx)
-  //      setup:setup,
-  //      test:function(){},
-  //      isOkToSave:function(){return isOkToX("save");},
-  //      isOkToSubmit:function(){return isOkToX("submit");},
-  //      hideAllMessages:hideAllMessages,
-  //      parseErrors:{}
 
-  //formWidget(ctx)
-//      return {
-//        ctx:ctx,
-//        submit:onSubmit,
-//        save:onSave,
-//        restore:onRestore,
-//        reset:onReset,
-//        getValidator:function(){return validator;},
-//        addListener:addListener,
-//        removeListener:removeListener,
-//        removeListeners:removeListeners,
-//        end:true
-//        // setSaveUrl, setSubmitUrl, setResetJson, setRestoreData
-//      };
+
 
