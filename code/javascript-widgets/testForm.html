@@ -68,6 +68,49 @@
       </label>
     </div>
 
+####
+<div>
+    <h3>testing</h3>
+    <table class="input-list">
+      <tfoot>
+        <tr>
+          <td colspan="7"><input class="add-another-item" type="button" value="Add another creator" /></td>
+        </tr>
+      </tfoot>
+      <tbody>
+        <tr class="item-input-display">
+          <td class="sort-number">1</td>
+          <td>
+              <span class="data-source-drop-down" id="testid.0"
+                    data-json-source-urlX="../workflows/forms/json/relators/collections/index.json"
+                    data-json-data='{
+	"namespace": "http://id.loc.gov/vocabulary/relators/",
+	"list": [
+	         {"children": 0, "id": "cre", "label": "Creator"},
+	         {"children": 0, "id": "art", "label": "Artist"},
+	         {"children": 0, "id": "aut", "label": "Author"},
+	         {"children": 0, "id": "cur", "label": "Curator"},
+	         {"children": 0, "id": "mus", "label": "Musician"},
+	         {"children": 0, "id": "msd", "label": "Musical Director"},
+	         {"children": 0, "id": "cmp", "label": "Composer"},
+	         {"children": 0, "id": "drt", "label": "Director"},
+	         {"children": 0, "id": "pro", "label": "Producer"},
+	         {"children": 0, "id": "oth", "label": "Other"},
+     ],
+     "selectable": 1
+ }'
+                    data-id="dc:creator.foaf:Person.0.usq:role">
+              </span>
+          </td>
+          <td class="delete-item"><a href="#">delete</a></td>
+          <td style="width: 100%;"></td>
+        </tr>
+      </tbody>
+    </table>
+    
+</div>
+####
+
     <div>
       <h3>Date widgets</h3> <!-- YMD, YM, Y -->
       <label class="block">Date (YMD): <input type="text" placeholder="YYYY/MM/DD" class="dateYMD" id="dateYMD"/></label>
@@ -94,8 +137,8 @@
         </tr>
       </tbody></table>
 
-      <h4>Not sortable input</h4>
-      <table class="input-list"><tbody>  <!--  -->
+      <h4>Not sortable input (min-size=3, max-size=5)</h4>
+      <table class="input-list" data-min-size="3" data-max-size="5"><tbody>  <!--  -->
         <tr class="item-input-display">
           <td><input type="text" placeholder="enter a tag here" id="tag2.0"/></td>
           <td class="delete-item"><a href="#">delete</a></td>
@@ -163,8 +206,10 @@
 
     <div>
       <h3>Datasource drop-down</h3> <!-- JSON source or list, defaultOption, (add) mutli-select, checkbox, radio -->
-      <table class="input-list"><tbody>  <!--  -->
-        <tr class="item-display">
+
+      <table class="input-list sortable"><tbody> 
+        <tr class="item-display sortable-item">
+          <td> =&#160;<span class="sort-number"></span>&#160;= </td>
           <td>
             <span class="item-display-item"></span>
             <span class="item-display-item" style="color:lightblue;"></span>
@@ -174,7 +219,6 @@
         <tr class="item-input">
           <td colspan="2">
             <span class="data-source-drop-down" id="dsdd.0">
-              <!-- <input type='hidden' class='json-data-source-url' value=''/> -->
               <span class="json-data-source">
 {
   "list": [
@@ -217,6 +261,58 @@
               <input type="text" class="selection-add-id" id="test.0" value="testing" />
             </span>
             <button class="item-add selection-add add-unique-only">
+              Add '<span class="selection-add-label"></span>'(id=<span class="selection-add-id"></span>)
+            </button>
+          </td>
+        </tr>
+      </tbody></table>
+<!-- -->
+    </div>
+
+    <div>
+      <h3>Datasource drop-down 2
+          <span class="helpWidget" style="float:right;font-size:75%;color:green;padding-right:2em;"
+                data-help-content-id="help-content">
+            <span class="helpWidget-show">help</span>
+            <span class="helpWidget-hide">hide-help</span>
+          </span>
+      </h3> <!-- JSON source or list, defaultOption, (add) mutli-select, checkbox, radio -->
+      <div id="help-content" style="border:1px solid lightgreen;color:green;padding:1ex;margin:0.5ex;">
+          This is a sample help content.
+          <p>The quick brown fox <div>jumps</div> over the lazy dog.</p>
+          <p>max-size=1</p>
+      </div>
+      <table class="input-list" data-max-size="2" id="inputListTest2"><tbody>  <!--  -->
+        <tr class="item-display">
+          <td>
+            <span class="item-display-item"></span>
+            <span class="item-display-item" style="color:lightblue;"></span>
+            <a class="delete-item" href="#">delete</a></td>
+          <td></td>
+        </tr>
+        <tr class="item-input">
+          <td colspan="2">
+            <span class="data-source-drop-down">
+              <!-- <input type='hidden' class='json-data-source-url' value=''/> -->
+              <span class="json-data-source">
+{ "namespace": "http://namespace.url",
+  "list": [
+            {"children": 1, "id": "x1", "label": "One"},
+            {"children": 0, "id": "x2", "label": "Two", "selectable": 1}
+          ],
+   "x1": {
+            "list": [
+                        {"id": "x1a", "label": "OneA"},
+                        {"id": "x1b", "label": "OneB"}
+                    ],
+            "selectable":1,
+            "default": "x1b"
+         }
+}               </span>
+              <input type="text" class="selection-add-label" id="test.0.label" value="testing" />
+              <input type="text" class="selection-add-id" id="test.0" value="testing" />
+            </span>
+            <button class="item-add selection-add add-unique-only" id="sa-but">
               Add '<span class="selection-add-label"></span>'(id=<span class="selection-add-id"></span>)
             </button>
           </td>
