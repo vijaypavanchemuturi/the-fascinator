@@ -84,7 +84,7 @@ $(function() {
             var html = '<p>' + message + '<br/><br/>Redirecting: ' + link + '</p>';
             $("#player-container").html(html);
             ## When we redirect, check for a preview flag
-            //window.location = fallback + window.location.search;
+            window.location = fallback + window.location.search;
 
         ## We're done
         } else {
