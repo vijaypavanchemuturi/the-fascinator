@@ -61,6 +61,7 @@ class HeadData:
 
     def parseFFmpeg(self, parent):
         if parent is not None:
+            payload = None
             object = parent.getObject()
             if object is not None:
                 try:
