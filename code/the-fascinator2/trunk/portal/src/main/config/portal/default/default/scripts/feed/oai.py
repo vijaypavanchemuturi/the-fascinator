@@ -50,7 +50,12 @@ class OaiPmhVerb:
         elif self.__verb in ["GetRecord", "ListIdentifiers", "ListRecords"]:
             self.__metadataPrefix = formData.get("metadataPrefix")
             if self.__metadataPrefix is None:
-                self.__error = OaiPmhError("badArgument", "Missing required argument: metadataPrefix")
+                #check if resumptionToken exist
+                self.__resumptionToken = formData.get("resumptionToken")
+                if self.__resumptionToken is None:
+                    self.__error = OaiPmhError("badArgument", "Missing required argument: metadataPrefix")
+                else:
+                    self.__metadataPrefix = self.__resumptionToken.split("/")[3]
             elif self.__metadataPrefix != "oai_dc" and self.__metadataPrefix != "rif_cs":
                 self.__error = OaiPmhError("cannotDisseminateFormat",
                                            "Record not available as metadata type: %s" % self.__metadataPrefix)
@@ -72,16 +77,22 @@ class OaiPmhVerb:
         return self.__identifier
 
 class ResumptionToken:
-    def __init__(self, start):
-        random.seed()
-        self.__token = "%016x" % random.getrandbits(128)
-        self.__start = start;
+    def __init__(self, token=None, start=0, metadataPrefix=""):
+        if token is None:
+            random.seed()
+            token = "%016x" % random.getrandbits(128)
+        self.__token = token
+        self.__start = start
+        self.__metadataPrefix = metadataPrefix
     
     def getToken(self):
         return self.__token
     
     def getStart(self):
         return self.__start
+    
+    def getConstructedToken(self):
+        return "archive/%s/%s/%s" % (self.__start, self.__token, self.__metadataPrefix)
 
 class OaiData:
     def __init__(self):
@@ -94,6 +105,7 @@ class OaiData:
         self.sessionState = context["sessionState"]
         self.portalDir = context["portalDir"]
         self.__result = None
+        self.__token = None
 
         print " * oai.py: formData=%s" % self.vc("formData")
         self.vc("request").setAttribute("Content-Type", "text/xml")
@@ -153,26 +165,37 @@ class OaiData:
         if portalQuery:
             req.addParam("fq", portalQuery)
 
-        # TODO resumptionToken
-        resumptionToken = self.sessionState.get("resumptionToken")
+        #Check if there's resumption token exist in the formData
+        resumptionToken = self.vc("formData").get("resumptionToken")
         if resumptionToken:
-            start = resumptionToken.getStart() + recordsPerPage
-            token = ResumptionToken(start) 
+            # sample: archive/145/6f9b63f83bdb5d1e634b0348f77d8cb3/oai_dc
+            _, start, token, metadataPrefix = resumptionToken.split("/")
+            start = int(start) + recordsPerPage
+            self.__token = ResumptionToken(token=token, start=start, metadataPrefix=metadataPrefix)
         else:
-            start = 0
-            token = ResumptionToken(start)
-        self.sessionState.set("resumptionToken", token)
+            start = recordsPerPage
+            metadataPrefix = self.vc("formData").get("metadataPrefix")
+            self.__token = ResumptionToken(start=start, metadataPrefix=metadataPrefix)
         
-        #req.setParam("start", str((self.__pageNum - 1) * recordsPerPage))
-
+        req.setParam("start", str(start))
+        
+        resumptionTokenList = self.sessionState.get("resumptionTokenList")
+        #resumptionTokenList = {}
+        if resumptionTokenList == None:
+            resumptionTokenList = {}
+        resumptionTokenList[self.__token.getToken()] = self.__token.getConstructedToken()
+        
+        #Need to know how long the server need to store this token
+        self.sessionState.set("resumptionTokenList", resumptionTokenList)
+        
         print " * oai.py:", req.toString()
 
         out = ByteArrayOutputStream()
         self.services.indexer.search(req, out)
         self.__result = JsonConfigHelper(ByteArrayInputStream(out.toByteArray()))
         
-    def __createToken(self):
-        pass
+    def getToken(self):
+        return self.__token
 
     def getMetadataFormats(self):
         conf = JsonConfig()
