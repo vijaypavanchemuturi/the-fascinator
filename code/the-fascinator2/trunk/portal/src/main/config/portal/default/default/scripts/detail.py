@@ -29,6 +29,7 @@ class DetailData:
         useDownload = Boolean.parseBoolean(self.formData.get("download", "true"))
         self.__isPreview = Boolean.parseBoolean(self.formData.get("preview", "false"))
         self.__previewPid = None
+        self.__hasPid = False
 
         uri = URLDecoder.decode(self.request.getAttribute("RequestURI"))
         matches = re.match("^(.*?)/(.*?)/(?:(.*?)/)?(.*)$", uri)
@@ -42,6 +43,7 @@ class DetailData:
 
             # If we have a PID
             if pid:
+                self.__hasPid = True
                 if useDownload:
                     # Download the payload to support relative links
                     download = DownloadData()
@@ -70,6 +72,13 @@ class DetailData:
             return metadata.getList("security_filter")
         else:
             return []
+
+    def getAllPreviews(self):
+        list = self.getAltPreviews()
+        preview = self.getPreview()
+        if not list.contains(preview):
+            list.add(preview)
+        return list
 
     def getAltPreviews(self):
         return self.__metadata.getList("altpreview")
@@ -118,6 +127,9 @@ class DetailData:
         # get original file.path from object properties
         filePath = self.getProperty("file.path")
         return filePath and os.path.exists(filePath)
+
+    def hasPid(self):
+        return self.__hasPid
 
     def isAccessDenied(self):
         myRoles = self.page.authentication.get_roles_list()

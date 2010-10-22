@@ -365,9 +365,13 @@ if pid == metaPid:
         displayType = formatList[0]
         if displayType is not None:
             rules.add(AddField("display_type", pyUtils.basicDisplayType(displayType)))
+    else:
+        self.utils.add(self.index, "display_type", displayType)
     # Some object use a special preview template. eg. word docs with a html preview
     previewType = params.getProperty("previewType")
     if not previewType:
         previewType = pyUtils.getDisplayMimeType(formatList, object, previewPid)
         if previewType is not None and previewType != displayType:
             rules.add(AddField("preview_type", pyUtils.basicDisplayType(previewType)))
+    else:
+        self.utils.add(self.index, "preview_type", previewType)

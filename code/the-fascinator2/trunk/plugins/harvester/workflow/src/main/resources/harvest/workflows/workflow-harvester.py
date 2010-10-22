@@ -506,9 +506,13 @@ class IndexData:
             displayType = self.formatList[0]
             if displayType is not None:
                 self.utils.add(self.index, "display_type", self.utils.basicDisplayType(displayType))
+        else:
+            self.utils.add(self.index, "display_type", displayType)
         # Some object use a special preview template. eg. word docs with a html preview
         previewType = self.params.getProperty("previewType")
         if not previewType:
             previewType = self.utils.getDisplayMimeType(self.formatList, self.object, self.previewPid)
             if previewType is not None and previewType != displayType:
                 self.utils.add(self.index, "preview_type", self.utils.basicDisplayType(previewType))
+        else:
+            self.utils.add(self.index, "preview_type", previewType)

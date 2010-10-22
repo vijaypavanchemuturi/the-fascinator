@@ -60,6 +60,28 @@
                     });
                     </script>
                 </li>
+
+                <li>
+                    <a id="reindex-this" href="$portalPath/detail/$oid">
+                        Reindex
+                        <span id="reindexloading" class="hidden"><img src="$portalPath/images/icons/loading.gif" /></span>
+                    </a>
+                    <script type="text/javascript">
+                    $(function() {
+                        $("#reindex-this").click(function() {
+                            $("#reindexloading").show();
+                            jQuery.post("$portalPath/actions/reharvest.ajax",
+                                { func: "reindex", oid: "$oid" },
+                                function(data) {
+                                    $("#reindexloading").hide();
+                                    window.location.reload();
+                                },
+                                "json");
+                            return false;
+                        });
+                    });
+                    </script>
+                </li>
             #end
             <li><a target="blank" href="/solr/fascinator/select?q=(id:$oid%20AND%20item_type:object)">View Solr Index</a></li>
         #end
