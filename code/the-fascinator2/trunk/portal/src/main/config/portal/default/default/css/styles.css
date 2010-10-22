@@ -787,3 +787,13 @@ legend span.legend {
 #workflowWarn {
     font-weight: strong;
 }
+.ffmpegIndex {
+    margin-bottom: 10px;
+    border: 1px solid #CCCCCC;
+    background-color: #EEEEEE;
+    padding: 5px 10px;
+}
+.ffmpegIndex p {
+    font-size: 125%;
+    margin-bottom: 2px;
+}

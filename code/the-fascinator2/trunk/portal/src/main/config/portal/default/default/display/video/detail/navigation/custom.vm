@@ -1,4 +1,3 @@
-#set($previews = $parent.getAltPreviews())
 #if(!$previews.isEmpty())
     <div id="preview-menu">
         #set($menuTitle = "Previews")

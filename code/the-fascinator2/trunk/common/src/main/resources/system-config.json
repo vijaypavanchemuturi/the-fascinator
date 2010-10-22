@@ -1,5 +1,5 @@
 {
-    "version": "0.7.11",
+    "version": "0.7.12",
     "configured": false,
     "urlBase" : "http://localhost:9997/portal/",
     "email" : "fascinator@usq.edu.au",
@@ -213,6 +213,10 @@
                 }
             ],
 
+            "displayTypes": {
+                "video": "ffmpeg"
+            },
+
             "transcodings": {
                 "audio": [
                     {
@@ -221,6 +225,8 @@
                             {
                                 "name": "ffmpegPreview.mp3",
                                 "type": "Preview",
+                                "formatMetadata": "MP3",
+                                "codecMetadata": "mp3",
                                 "audioOnly": "true",
                                 "options": "-b 192k",
                                 "output": "-f mp3"
@@ -235,6 +241,7 @@
                             {
                                 "name": "ffmpegThumbnail.jpg",
                                 "type": "Thumbnail",
+                                "formatMetadata": "JPG",
                                 "maxWidth": "160",
                                 "maxHeight": "120",
                                 "padding": "none",
@@ -244,6 +251,7 @@
                             {
                                 "name": "ffmpegPreview.jpg",
                                 "type": "Preview",
+                                "formatMetadata": "JPG",
                                 "maxWidth": "600",
                                 "padding": "none",
                                 "options": "-r 1",
@@ -259,6 +267,7 @@
                             {
                                 "name": "ffmpegThumbnail.jpg",
                                 "type": "Thumbnail",
+                                "formatMetadata": "JPG",
                                 "maxWidth": "160",
                                 "maxHeight": "90",
                                 "padding": "individual",
@@ -273,6 +282,7 @@
                             {
                                 "name": "ffmpegPreview.flv",
                                 "type": "Preview",
+                                "formatMetadata": "FLV",
                                 "maxWidth": "400",
                                 "maxHeight": "224",
                                 "padding": "individual",

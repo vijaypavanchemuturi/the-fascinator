@@ -43,7 +43,7 @@ $(function() {
         return false;
     });
 
-    if (!disableVideoAnotar) {
+    if ((window.disableVideoAnotar === undefined) || !disableVideoAnotar) {
         anotarFactory(jQuery, videoConfig);
     }
 });

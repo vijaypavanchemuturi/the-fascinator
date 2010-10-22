@@ -46,7 +46,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-import java.util.logging.Level;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
@@ -344,6 +343,7 @@ public class FfmpegTransformer implements Transformer {
             try {
                 Properties prop = object.getMetadata();
                 prop.setProperty("displayType", display);
+                prop.setProperty("previewType", display);
             } catch (StorageException ex) {
                 addError("display", "Could not access object metadata", ex);
             }
@@ -660,6 +660,10 @@ public class FfmpegTransformer implements Transformer {
         String formatString = render.get("formatMetadata");
         if (formatString != null) {
             renderMetadata.set("format", formatString);
+        }
+        String codecString = render.get("codecMetadata");
+        if (codecString != null) {
+            renderMetadata.set("codec", codecString);
         }
 
         try {

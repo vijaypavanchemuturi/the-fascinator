@@ -45,6 +45,14 @@ class ReharvestData:
                 result = '{ status: "ok" }'
             else:
                 result = '{ status: "failed" }'
+        if func == "reindex":
+            if oid:
+                print "Reindexing single object: %s" % oid
+                Services.indexer.index(oid)
+                Services.indexer.commit()
+                result = '{ status: "ok" }'
+            else:
+                result = '{ status: "failed" }'
         elif func == "get-state":
             result = '{ running: "%s", lastResult: "%s" }' % \
                 (self.vc("sessionState").get("reharvest/running"),
