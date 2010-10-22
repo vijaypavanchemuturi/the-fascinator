@@ -3,6 +3,8 @@ from au.edu.usq.fascinator.api.indexer import SearchRequest
 from au.edu.usq.fascinator.common import JsonConfig, JsonConfigHelper
 from java.io import ByteArrayInputStream, ByteArrayOutputStream
 
+from org.apache.commons.lang import StringEscapeUtils
+
 class SolrDoc:
     def __init__(self, json):
         self.json = json
@@ -164,14 +166,26 @@ class OaiData:
         print " * portalQuery=%s" % portalQuery
         if portalQuery:
             req.addParam("fq", portalQuery)
-
+        
         #Check if there's resumption token exist in the formData
         resumptionToken = self.vc("formData").get("resumptionToken")
+        resumptionTokenList = None
+        numFoundFromPrevToken = 0
         if resumptionToken:
             # sample: archive/145/6f9b63f83bdb5d1e634b0348f77d8cb3/oai_dc
             _, start, token, metadataPrefix = resumptionToken.split("/")
             start = int(start) + recordsPerPage
-            self.__token = ResumptionToken(token=token, start=start, metadataPrefix=metadataPrefix)
+            
+            resumptionTokenList = self.sessionState.get("resumptionTokenList")
+            if resumptionTokenList.has_key(token):
+                numFoundFromPrevToken = int(resumptionTokenList[token][0])
+            
+            #Forseen the next 2 pages to check if the next token is the last page of the request
+            if start + recordsPerPage >= numFoundFromPrevToken:
+                start = 0
+                self.__token = None
+            else:
+                self.__token = ResumptionToken(token=token, start=start, metadataPrefix=metadataPrefix)
         else:
             start = recordsPerPage
             metadataPrefix = self.vc("formData").get("metadataPrefix")
@@ -179,20 +193,22 @@ class OaiData:
         
         req.setParam("start", str(start))
         
-        resumptionTokenList = self.sessionState.get("resumptionTokenList")
-        #resumptionTokenList = {}
-        if resumptionTokenList == None:
-            resumptionTokenList = {}
-        resumptionTokenList[self.__token.getToken()] = self.__token.getConstructedToken()
-        
-        #Need to know how long the server need to store this token
-        self.sessionState.set("resumptionTokenList", resumptionTokenList)
-        
         print " * oai.py:", req.toString()
 
         out = ByteArrayOutputStream()
         self.services.indexer.search(req, out)
         self.__result = JsonConfigHelper(ByteArrayInputStream(out.toByteArray()))
+        totalFound = self.__result.get("response/numFound")
+        
+        #Storing the resumptionToken to session
+        if self.__token:
+            resumptionTokenList = self.sessionState.get("resumptionTokenList")
+            #resumptionTokenList = {}
+            if resumptionTokenList == None:
+                resumptionTokenList = {}
+            resumptionTokenList[self.__token.getToken()] = (totalFound, self.__token.getConstructedToken())
+            #Need to know how long the server need to store this token
+            self.sessionState.set("resumptionTokenList", resumptionTokenList)
         
     def getToken(self):
         return self.__token
@@ -201,5 +217,8 @@ class OaiData:
         conf = JsonConfig()
         formats = conf.getMap("portal/oai-pmh/metadataFormats")
         return formats
+    
+    def encodeXml(self, string):
+        return StringEscapeUtils.escapeXml(string);
 
 

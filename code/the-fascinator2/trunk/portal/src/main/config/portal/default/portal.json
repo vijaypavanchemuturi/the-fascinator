@@ -3,7 +3,7 @@
     "name" : "default",
     "description" : "Everything",
     "query" : "",
-    "records-per-page" : "25",
+    "records-per-page" : "100",
     "facet-count" : "100",
     "facet-sort-by-count" : "false",
     "debug" : "true",
