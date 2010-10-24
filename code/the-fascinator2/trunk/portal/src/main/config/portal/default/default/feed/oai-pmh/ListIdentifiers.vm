@@ -6,4 +6,8 @@
             <setSpec>$portalId</setSpec>
         </header>
     #end
+    
+    #if ($self.token)
+        <resumptionToken>$self.token.getConstructedToken()</resumptionToken>
+    #end
 </ListIdentifiers>
