@@ -620,7 +620,7 @@ public class PortalSecurityManagerImpl implements PortalSecurityManager {
         // This is an edge case, where the payload was a deep link,
         //   it's not a subpage we can ignore
         String returnAddress = (String) sessionState.get("returnAddress");
-        if (returnAddress.endsWith(uri)) {
+        if (returnAddress != null && returnAddress.endsWith(uri)) {
             return true;
         }
 
