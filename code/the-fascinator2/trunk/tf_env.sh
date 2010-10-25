@@ -3,7 +3,7 @@
 # this script sets the environment for other fascinator scripts
 #
 # jvm memory settings
-JAVA_OPTS="-XX:MaxPermSize=256m -Xmx512m"
+JAVA_OPTS="-XX:MaxPermSize=256m -Xmx2048m"
 
 # use http_proxy if defined
 if [ -n "$http_proxy" ]; then
