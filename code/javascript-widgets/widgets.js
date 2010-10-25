@@ -4,7 +4,6 @@ var widgets={forms:[], globalObject:this};
 
 (function($){
   var formClassName = "widget-form";
-  var pendingWork = {};
 
   if(!$.fn.dataset){     // if dataset function not defined
       $.fn.dataset=function(name, value){return this.attr("data-"+name, value);};
@@ -49,6 +48,7 @@ var widgets={forms:[], globalObject:this};
   function getIdNum(){
       return _idNum++;
   }
+  gId = getIdNum;
 
   function trim(s){
     return $.trim(s);
@@ -639,16 +639,10 @@ var widgets={forms:[], globalObject:this};
       selectId=ds.dataset("id");
       selAdd = ds.parent().find(".selection-add");
       getJson = function(urlId, onJson){
-        var j, url=jsonBaseUrl+urlId;
-        var workId = getIdNum();
-        pendingWork[workId]=url;
+        var j, url=urlId;
         j=jsonCache[urlId]
         if(j){
-            //onJson(j);
-            setTimeout(function(){
-                    onJson(j);
-                    delete pendingWork[workId];
-                }, 10);
+            onJson(j);
             return;
         }
         url=jsonBaseUrl+urlId;
@@ -656,7 +650,6 @@ var widgets={forms:[], globalObject:this};
         $.getJSON(url, function(data){
           jsonCache[urlId]=data;
           onJson(data);
-          delete pendingWork[workId];
         });
       }
       addButtonDisableTest = function(){
@@ -1157,14 +1150,7 @@ var widgets={forms:[], globalObject:this};
         // Simple (text) list input type
         // ==============
         //ctx.find(".input-list").each(listInput);
-        var callback=function(){
-            if($.isEmptyObject(pendingWork)){
-                ctx.find(".input-list").each(listInput);
-            }else{
-                setTimeout(callback, 20);
-            }
-        }
-        setTimeout(callback, 20);
+        setTimeout(function(){ctx.find(".input-list").each(listInput);}, 2000)
     }
     function contentDisable(ctx){
         ctx.find("input").filter(".dateYMD, .date, .dateYM, .dateMMY, .dateY").datepicker("destroy");

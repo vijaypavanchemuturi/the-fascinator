@@ -6,7 +6,7 @@
     <title>Test javascript-widgets form</title>
     <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"><!-- --></script>
     <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.2/jquery-ui.min.js"><!-- --></script>
-    <script type="text/javascript" src="widgets.js"><!-- --></script>
+    <script type="text/javascript" src="widgets2.js"><!-- --></script>
     <script type="text/javascript">
      //<!--
         $(widgets.contentLoaded);
@@ -82,7 +82,7 @@
           <td class="sort-number">1</td>
           <td>
               <span class="data-source-drop-down" id="testid.0"
-                    data-json-source-urlX="../workflows/forms/json/relators/collections/index.json"
+                    data-json-source-urlX="dropDwonListSample.json"
                     data-json-data='{
 	"namespace": "http://id.loc.gov/vocabulary/relators/",
 	"list": [
@@ -95,7 +95,7 @@
 	         {"children": 0, "id": "cmp", "label": "Composer"},
 	         {"children": 0, "id": "drt", "label": "Director"},
 	         {"children": 0, "id": "pro", "label": "Producer"},
-	         {"children": 0, "id": "oth", "label": "Other"},
+	         {"children": 0, "id": "oth", "label": "Other"}
      ],
      "selectable": 1
  }'
@@ -279,7 +279,7 @@
       </h3> <!-- JSON source or list, defaultOption, (add) mutli-select, checkbox, radio -->
       <div id="help-content" style="border:1px solid lightgreen;color:green;padding:1ex;margin:0.5ex;">
           This is a sample help content.
-          <p>The quick brown fox <div>jumps</div> over the lazy dog.</p>
+          <div>The quick brown fox <div>jumps</div> over the lazy dog.</div>
           <p>max-size=1</p>
       </div>
       <table class="input-list" data-max-size="2" id="inputListTest2"><tbody>  <!--  -->
@@ -349,12 +349,13 @@
     <div>
       <h3>Form validation</h3>
       See <a href='validationTest.html'>validation tests</a>
-      <p>
-        <input type='text' id='vtest'/> <label for="vtest" class="validation-err-msg" style="color:red;"> Must not be Empty!</label>
+      <div>
+        <input type='text' id='vtest'/>
+        <label for="vtest" class="validation-err-msg" style="color:red;"> Must not be Empty!</label>
         <pre class="validation-rules">
           rule {for(vtest);test(notEmpty);when(onBlur);};
         </pre>  
-      </p>  
+      </div>
     </div>
 
     <div style='border:1px solid lightgray;padding:1em;margin:1em;'>
