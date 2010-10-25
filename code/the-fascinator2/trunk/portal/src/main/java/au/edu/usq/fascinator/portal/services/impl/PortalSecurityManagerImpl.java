@@ -616,6 +616,14 @@ public class PortalSecurityManagerImpl implements PortalSecurityManager {
             }
         }
 
+        // Detail screen - specific payload target
+        // This is an edge case, where the payload was a deep link,
+        //   it's not a subpage we can ignore
+        String returnAddress = (String) sessionState.get("returnAddress");
+        if (returnAddress.endsWith(uri)) {
+            return true;
+        }
+
         // The detail screen generates a lot of background calls to the server
         if (resource.equals("detail") ||
             resource.equals("download") ||
