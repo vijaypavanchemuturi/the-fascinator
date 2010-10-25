@@ -87,6 +87,10 @@ public class CachingDynamicPageServiceImpl implements DynamicPageService {
     private Logger log = LoggerFactory
             .getLogger(CachingDynamicPageServiceImpl.class);
 
+    private JsonConfig config;
+
+    private String urlBase;
+
     @Inject
     private RequestGlobals requestGlobals;
 
@@ -133,7 +137,8 @@ public class CachingDynamicPageServiceImpl implements DynamicPageService {
 
     public CachingDynamicPageServiceImpl() {
         try {
-            JsonConfig config = new JsonConfig();
+            config = new JsonConfig();
+            urlBase = config.get("urlBase");
             layoutName = config.get("portal/layout", DEFAULT_LAYOUT_TEMPLATE);
             toolkit = new GUIToolkit();
 
@@ -320,6 +325,7 @@ public class CachingDynamicPageServiceImpl implements DynamicPageService {
         // TODO remove request/session based bindings once all scripts/templates
         // are using the cacheable format
         Map<String, Object> bindings = new HashMap<String, Object>();
+        bindings.put("systemConfig", config);
         bindings.put("Services", scriptingServices);
         bindings.put("systemProperties", System.getProperties());
         bindings.put("request", request);
@@ -335,6 +341,7 @@ public class CachingDynamicPageServiceImpl implements DynamicPageService {
         bindings.put("defaultPortal", defaultPortal);
         bindings.put("pageName", pageName);
         bindings.put("responseOutput", out);
+        bindings.put("urlBase", urlBase);
         bindings.put("serverPort", requestGlobals.getHTTPServletRequest()
                 .getServerPort());
         bindings.put("toolkit", toolkit);
