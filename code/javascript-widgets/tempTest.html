@@ -169,7 +169,37 @@
                            "selectable": 1
                         }'></span>
     </div>
-    
+
+    <div>
+        <table class="input-list test" data-max-size="1">
+          <tfoot>
+            <tr class="item-input">
+              <td>
+                <span class="data-source-drop-down" id="rdf:type.0">
+                  <input type="hidden" class="json-data-source-url" value="dropDownListSample.json" />
+                  <input type="text"   class="selection-add-label" id="rdf:type.0.rdf:label" value="[one]" />
+                  <input type="text"   class="selection-add-id" id="rdf:type.0.rdf:resource" value="[two]" />
+                </span>
+                <button class="item-add selection-add add-unique-only"
+                    >Add '<span class="selection-add-label"></span>'<!--
+                        (id=<span class="selection-add-id"></span>)
+                    -->
+                </button>
+              </td>
+            </tr>
+          </tfoot>
+          <tbody>
+            <tr class="item-display">
+              <td>
+                <span class="item-display-item"></span>
+                <span class="item-display-item" style="color: lightblue; display: none;"></span>
+                <a class="delete-item" href="#">delete</a>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+    </div>
+
     <div style='border:1px solid lightgray;padding:1em;margin:1em;'>
       <button class="form-fields-save">Save</button>
       <!--<button class="form-fields-submit">Submit</button>  (save+)
