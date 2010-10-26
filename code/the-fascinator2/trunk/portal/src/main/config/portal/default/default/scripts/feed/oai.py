@@ -3,6 +3,8 @@ from au.edu.usq.fascinator.api.indexer import SearchRequest
 from au.edu.usq.fascinator.common import JsonConfig, JsonConfigHelper
 from java.io import ByteArrayInputStream, ByteArrayOutputStream
 
+from java.lang import Boolean
+
 from org.apache.commons.lang import StringEscapeUtils
 
 class SolrDoc:
@@ -46,6 +48,7 @@ class OaiPmhVerb:
     def __init__(self, formData):
         self.__error = None
         self.__verb = formData.get("verb")
+        self.__metadataFormats = self.__metadataFormatList()
         print " * verb=%s" % self.__verb
         if self.__verb is None:
             self.__error = OaiPmhError("badVerb", "No verb was specified")
@@ -58,13 +61,20 @@ class OaiPmhVerb:
                     self.__error = OaiPmhError("badArgument", "Missing required argument: metadataPrefix")
                 else:
                     self.__metadataPrefix = self.__resumptionToken.split("/")[3]
-            elif self.__metadataPrefix != "oai_dc" and self.__metadataPrefix != "rif_cs":
+            elif self.__metadataPrefix not in self.__metadataFormatList():
                 self.__error = OaiPmhError("cannotDisseminateFormat",
                                            "Record not available as metadata type: %s" % self.__metadataPrefix)
         elif self.__verb in ["Identify", "ListMetadataFormats", "ListSets"]:
             pass
         else:
             self.__error = OaiPmhError("badVerb", "Unknown verb: '%s'" % self.__verb)
+
+    def __metadataFormatList(self):
+        metadataFormats = JsonConfig().getMap("portal/oai-pmh/metadataFormats")
+        metadataList = []
+        for format in metadataFormats.keySet():
+            metadataList.append(str(format))
+        return metadataList
 
     def getError(self):
         return self.__error
@@ -108,13 +118,25 @@ class OaiData:
         self.portalDir = context["portalDir"]
         self.__result = None
         self.__token = None
-
+        
+        self.__portalName = context["page"].getPortal().getName()
+        
         print " * oai.py: formData=%s" % self.vc("formData")
         self.vc("request").setAttribute("Content-Type", "text/xml")
         self.__request = OaiPmhVerb(self.vc("formData"))
         if self.getError() is None and \
                 self.getVerb() in ["GetRecord", "ListIdentifiers", "ListRecords"]:
-            self.__search()
+            
+            ## Only list those data if the metadata format is enabled
+            metadataPrefix = self.vc("formData").get("metadataPrefix")
+            
+            enabledInAllViews = Boolean.parseBoolean(JsonConfig().get("portal/oai-pmh/metadataFormats/%s/enabledInAllViews" % metadataPrefix, "false"))
+            if enabledInAllViews:
+                self.__search()
+            else:
+                enabledInViews = JsonConfig().getList("portal/oai-pmh/metadataFormats/%s/enabledViews" % metadataPrefix)
+                if self.__portalName in enabledInViews:
+                    self.__search()
 
     # Get from velocity context
     def vc(self, index):
