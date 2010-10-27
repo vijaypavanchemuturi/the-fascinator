@@ -398,14 +398,19 @@ var widgets={forms:[], globalObject:this};
   widgets.validator = validator;
 
   function helpWidget(e){
-    var helpContent, showText, hideText;
+    var helpContent, showText, hideText, url;
     var showLink, hideLink, doNext;
     var show, hide;
     helpContent = $("#" + e.dataset("help-content-id"));
     helpContent.hide();
+    url=e.dataset("help-content-url");
     showLink = e.find(".helpWidget-show");
     hideLink = e.find(".helpWidget-hide").hide();
     show=function(){
+        if($.trim(helpContent.text())=="" && url){
+            helpContent.text("Loading help. Please wait...");
+            helpContent.load(url);
+        }
         helpContent.slideDown();
         showLink.hide(); hideLink.show();
         doNext=hide;
@@ -419,6 +424,16 @@ var widgets={forms:[], globalObject:this};
     e.click(function(){
         doNext();
     });
+  }
+
+  function showHideCheck(e){
+    var t;
+    try{
+        t=e.dataset("target-nearest-selector");
+        alert("showHideCheck t='"+t+"' "+e.attr("checked"));
+    }catch(e){
+        alert("Error in showHideCheck() - "+e.message);
+    }
   }
 
   function listInput(c, i){
@@ -534,6 +549,7 @@ var widgets={forms:[], globalObject:this};
           visibleItems.find(".delete-item").show();
           tmp.find(".delete-item").click(getDelFuncFor(tmp));
           addButton.trigger("disableTest");
+          if(count>=maxSize){addButton.attr("disabled", true);}
           contentSetup(tmp);
         }
         addButton.click(add);
@@ -723,8 +739,8 @@ var widgets={forms:[], globalObject:this};
         select=makeSelectList(json);
         if(selectId) select.attr("id", selectId);
         select.val(e.dataset("value"));
-        if(!select.val()){alert("text="+e.text()); select.val(e.text());}
-        if(!select.val()){alert("val="+e.val());select.val(e.val());}
+        if(!select.val()){select.val(e.text());}
+        if(!select.val()){select.val(e.val());}
         e.replaceWith(select);
     }
     jsonGetter("", onJson);
@@ -1302,6 +1318,9 @@ var widgets={forms:[], globalObject:this};
         //alert("contentSetup()");
         ctx.find(".helpWidget").each(function(c, e){
             helpWidget($(e));
+        });
+        ctx.find(".show-hide-widget").each(function(c, e){
+            showHideCheck($(e));
         });
         // ==============
         // Date inputs

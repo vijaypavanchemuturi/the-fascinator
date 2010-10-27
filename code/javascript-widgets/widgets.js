@@ -1149,8 +1149,7 @@ var widgets={forms:[], globalObject:this};
         // ==============
         // Simple (text) list input type
         // ==============
-        //ctx.find(".input-list").each(listInput);
-        setTimeout(function(){ctx.find(".input-list").each(listInput);}, 2000)
+        ctx.find(".input-list").each(listInput);
     }
     function contentDisable(ctx){
         ctx.find("input").filter(".dateYMD, .date, .dateYM, .dateMMY, .dateY").datepicker("destroy");
