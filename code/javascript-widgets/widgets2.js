@@ -427,10 +427,21 @@ var widgets={forms:[], globalObject:this};
   }
 
   function showHideCheck(e){
-    var t;
+    var s, t, p=e;
     try{
-        t=e.dataset("target-nearest-selector");
-        alert("showHideCheck t='"+t+"' "+e.attr("checked"));
+        s=e.dataset("target-nearest-selector");
+        // find the nearest matching element
+        while(p[0].tagName!="BODY" && p.size()){
+            t = p.find(s);
+            if(t.size()){
+                t.toggle(e.attr("checked"));
+                e.change(function(){
+                    t.toggle(e.attr("checked"));
+                });
+                break;
+            }
+            p = p.parent();
+        }
     }catch(e){
         alert("Error in showHideCheck() - "+e.message);
     }
