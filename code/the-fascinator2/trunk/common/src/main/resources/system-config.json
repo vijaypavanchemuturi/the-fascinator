@@ -6,8 +6,8 @@
     "sso": {
         "plugins": ["OpenID"],
         "urlExclusions": {
-            "startsWith" : ["css/", "feed/", "images/", "js/", "flowplayer/"],
-            "endsWidth" : [".ico"],
+            "startsWith" : ["css/", "feed/", "images/", "js/", "flowplayer/", "mediaplayer/"],
+            "endsWith" : [".ico"],
             "equals" : ["css"]
         },
         "trustTokens": {}
