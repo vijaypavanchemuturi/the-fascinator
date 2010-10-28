@@ -184,17 +184,19 @@ public class FfmpegImpl implements Ffmpeg {
      */
     private Process execute() throws IOException {
         List<String> noParams = Collections.emptyList();
-        return execute(noParams);
+        return execute(noParams, null);
     }
 
     /**
      * Execute that binary with provided parameters
      *
      * @param params to execute with
+     * @param location A File object of the working directory to use during transcoding
      * @return Process that was executed
      * @throws IOException if execution failed
      */
-    private Process execute(List<String> params) throws IOException {
+    private Process execute(List<String> params, File location)
+            throws IOException {
         List<String> cmd = new ArrayList<String>();
         if (extraction) {
             cmd.add(metadata);
@@ -206,7 +208,7 @@ public class FfmpegImpl implements Ffmpeg {
         //for (String param : params) {
         //    log.debug("PARAM: {}", param);
         //}
-        return createProcess(cmd).start();
+        return createProcess(cmd, location).start();
     }
 
     /**
@@ -214,10 +216,11 @@ public class FfmpegImpl implements Ffmpeg {
      * variables have been set.
      *
      * @param commands : The list of commands to execute in the new process
+     * @param location A File object of the working directory to use during transcoding
      * @return ProcessBuilder : The process to be executed
      * @throws IOException if execution failed
      */
-    private ProcessBuilder createProcess(List<String> commands) {
+    private ProcessBuilder createProcess(List<String> commands, File location) {
         // Very simple... nothing to do
         if (env.isEmpty()) {
             return new ProcessBuilder(commands);
@@ -225,6 +228,11 @@ public class FfmpegImpl implements Ffmpeg {
 
         // Otherwise, add our custom data
         ProcessBuilder process = new ProcessBuilder(commands);
+        // Working directory
+        if (location != null) {
+            process.directory(location);
+        }
+        // Environment
         Map<String, String> currentEnv = process.environment();
         for (String key : env.keySet()) {
             currentEnv.put(key, env.get(key));
@@ -271,12 +279,13 @@ public class FfmpegImpl implements Ffmpeg {
      *
      * @param params List of parameters to provide the process
      * @param out Stream to route output
+     * @param location A File object of the working directory to use during transcoding
      * @return Process that was executed
      * @throws IOException if execution failed
      */
-    private Process executeAndWait(List<String> params, OutputStream out)
-            throws IOException {
-        return waitFor(execute(params), out);
+    private Process executeAndWait(List<String> params, OutputStream out,
+            File location) throws IOException {
+        return waitFor(execute(params, location), out);
     }
 
     /**
@@ -305,7 +314,7 @@ public class FfmpegImpl implements Ffmpeg {
         }
 
         params.add(inputFile.getAbsolutePath());
-        executeAndWait(params, out);
+        executeAndWait(params, out, null);
         this.extraction = false;
         return out.toString("UTF-8");
     }
@@ -314,13 +323,15 @@ public class FfmpegImpl implements Ffmpeg {
      * Transform a file using the provided parameters
      *
      * @param params List of parameters to provide the binary
+     * @param location A File object of the working directory to use during transcoding
      * @return String containing the raw output
      * @throws IOException if execution failed
      */
     @Override
-    public String transform(List<String> params) throws IOException {
+    public String transform(List<String> params, File location)
+            throws IOException {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        executeAndWait(params, out);
+        executeAndWait(params, out, location);
         String response = out.toString("UTF-8");
         if (response.contains("Compile-time maximum width")) {
             throw new IOException("Maximum resolution exceeded!\n=====\n" + response);

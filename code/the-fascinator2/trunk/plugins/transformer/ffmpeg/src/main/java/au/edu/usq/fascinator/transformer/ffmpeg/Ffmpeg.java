@@ -56,10 +56,11 @@ public interface Ffmpeg {
      * Transform a file using given parameters
      *
      * @param params List of parameters to pass to the command line executable
+     * @param location A File object of the working directory to use during transcoding
      * @return String containing the raw output
      * @throws IOException if execution failed
      */
-    public String transform(List<String> params) throws IOException;
+    public String transform(List<String> params, File location) throws IOException;
 
     /**
      * Extract and process metadata from the given file

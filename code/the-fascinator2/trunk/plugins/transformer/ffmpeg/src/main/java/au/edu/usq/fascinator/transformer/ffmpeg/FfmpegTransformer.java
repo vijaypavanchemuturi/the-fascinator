@@ -80,6 +80,9 @@ public class FfmpegTransformer implements Transformer {
     /** FFMPEG output directory */
     private File outputDir;
 
+    /** FFMPEG output directory */
+    private File outputRoot;
+
     /** Ffmpeg class for conversion */
     private Ffmpeg ffmpeg;
 
@@ -159,8 +162,8 @@ public class FfmpegTransformer implements Transformer {
 
             // Prep output area
             String outputPath = config.get("outputPath");
-            outputDir = new File(outputPath);
-            outputDir.mkdirs();
+            outputRoot = new File(outputPath);
+            outputRoot.mkdirs();
 
             // Set system variable for presets location
             String presetsPath = config.get("presetsPath");
@@ -286,6 +289,9 @@ public class FfmpegTransformer implements Transformer {
         }
         // Purge old data
         reset();
+        String oid = object.getId();
+        outputDir = new File(outputRoot, oid);
+        outputDir.mkdirs();
 
         try {
             itemConfig = new JsonConfigHelper(jsonConfig);
@@ -728,7 +734,7 @@ public class FfmpegTransformer implements Transformer {
             // *************
             // 5) All done. Perform the transcoding
             // *************
-            String stderr = ffmpeg.transform(params);
+            String stderr = ffmpeg.transform(params, outputDir);
             renderMetadata.set("debugOutput", stderr);
             if (outputFile.exists()) {
                 long fileSize = outputFile.length();
@@ -898,8 +904,8 @@ public class FfmpegTransformer implements Transformer {
         }
 
         // Scale and round the numbers to return
-        int newWidth = Math.round((float) width / scale);
-        int newHeight = Math.round((float) height / scale);
+        int newWidth = makeEven(Math.round((float) width / scale));
+        int newHeight = makeEven(Math.round((float) height / scale));
         return newWidth + "x" + newHeight;
     }
 
