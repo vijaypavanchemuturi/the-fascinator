@@ -98,6 +98,7 @@ class DetailData:
         if parent is not None:
             object = parent.getObject()
             if object is not None:
+                payload = None
                 try:
                     payload = object.getPayload("ffmpeg.info")
                     # Stream the content out to string
