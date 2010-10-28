@@ -750,7 +750,7 @@ var widgets={forms:[], globalObject:this};
         select=makeSelectList(json);
         if(selectId) select.attr("id", selectId);
         select.val(e.dataset("value"));
-        if(!select.val()){select.val(e.text());}
+        if(!select.val()){select.val($.trim(e.text()));}
         if(!select.val()){select.val(e.val());}
         e.replaceWith(select);
     }
