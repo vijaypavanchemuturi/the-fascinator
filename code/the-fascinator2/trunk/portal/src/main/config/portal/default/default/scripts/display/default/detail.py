@@ -11,6 +11,7 @@ class DetailData:
     def __activate__(self, context):
         self.__ffmpegRaw = None
         self.__ffmpegData = None
+        self.__urlBase = context["urlBase"]
     
     def escape(self, text):
         return StringEscapeUtils.escapeHtml(text)
@@ -119,3 +120,7 @@ class DetailData:
                     if payload is not None:
                         payload.close()
         return False
+    
+    def getUrlBase(self):
+        return self.__urlBase
+

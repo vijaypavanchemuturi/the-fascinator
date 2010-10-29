@@ -21,6 +21,7 @@
 #set($codec = $self.getFFmpegData($preview, "codec"))
 #set($width = $self.getFFmpegData($preview, "width"))
 #set($height = $self.getFFmpegData($preview, "height"))
+#set($urlBase = $self.getUrlBase())
 
 <script type="text/javascript">
 var disableVideoAnotar = false;
@@ -29,7 +30,6 @@ $(function() {
     function getStyle(width, height) {
         return "width: " + width + "px; height: " + height + "px;";
     }
-
     var oid = "$oid";
     var filename = "$preview";
     var filepath = "$portalPath/download/$oid/" + filename;
@@ -142,24 +142,23 @@ $(function() {
     #if($parent.isDetail())
     if (!disableVideoAnotar) {
         $("#player_seek_start").live("click", function() {
-            player.seek(0);
+            jwplayer().seek(0);
         });
         $("#player_rewind").live("click", function() {
-            player.seek(player.getTime() - 1);
+            jwplayer().seek(jwplayer().getPosition()-1);
         });
         $("#player_play").live("click", function() {
-            player.toggle();
+            jwplayer().play();
         });
         $("#player_forward").live("click", function() {
-            player.seek(player.getTime()+1);
+            jwplayer().seek(jwplayer().getPosition()+1);
         });
         $("#player_seek_end").live("click", function() {
-            player.seek(player.getClip().fullDuration-1);
-            player.pause();
+            jwplayer().seek(jwplayer().getDuration()-1);
+            jwplayer().pause();
         });
-
         $("#player_mark_start_time").live("click", function() {
-            $("#txtStartMark").attr("value", player.getTime());
+            $("#txtStartMark").attr("value", jwplayer().getPosition());
             $("#player_mark_end_time").attr("disabled", false);
             $("#txtEndMark").attr("disabled", false);
         });
@@ -176,7 +175,7 @@ $(function() {
         });
 
         $("#player_mark_end_time").live("click", function() {
-            $("#txtEndMark").attr("value", player.getTime());
+            $("#txtEndMark").attr("value", jwplayer().getPosition());
             start = $('#txtStartMark').val();
             end = $('#txtEndMark').val();
             processClip(start, end);
@@ -189,19 +188,19 @@ $(function() {
         });
 
         function processClip(start, end) {
-            uri = player.getClip().url + "#";
+            uri = "$urlBase$portalId/detail/$oid/$preview#";
             if (start != "" && end != "") {
                 //Use Normal Play Time as described in http://www.ietf.org/rfc/rfc2326.txt
                 uri += "t=npt:";
                 if (start != "" && start > 0) {
                     uri += start + "s"
-                    if (player.getClip().duration < start) {
+                    if (jwplayer().getDuration() < start) {
                         //warning += "<li>The requested start-point is greater than the video's duration.</li>";
                     }
                 }
                 if (end != "") {
                     uri += "," + end + "s";
-                    if (player.getClip().duration < end) {
+                    if (jwplayer().getDuration() < end) {
                         //warning += "<li>The requested end-point is greater than the video's duration.</li>";
                     }
                 }
@@ -213,36 +212,52 @@ $(function() {
             $("#txtStartMark").attr("value", "");
             $("#txtEndMark").attr("value", "");
             $("#media_clip").attr("rel", "");
-            if (player.getClip()) {
-                player.pause();
-                player.getClip().update({duration:player.getClip().fullDuration});
-            }
+            
+            jwplayer().pause();
+            playlist = jwplayer().getPlaylistItem();
+            playlist.start = 0;
+            playlist.duration = playlist.oldDuration;
+            jwplayer().load(playlist);
+            jwplayer().play();
         });
 
         $("#player_play_fragment").live("click", function() {
-            player.pause();
-            player.seek($('#txtStartMark').val());
-            player.getClip().update({duration:$('#txtEndMark').val()});
-            player.play();
+            var start = $('#txtStartMark').val();
+            var end = $('#txtEndMark').val();
+            
+            jwplayer().pause();
+            playlist = jwplayer().getPlaylistItem();
+            playlist.start = start;
+            // Store the original duration
+            if (!playlist.oldDuration) {
+                playlist.oldDuration = jwplayer().getDuration();
+            }
+            playlist.duration = end;
+            jwplayer().load(playlist);
+            
+            jwplayer().play();
         });
 
         $(".player_play_clip").live("click", function() {
-            player.pause();
             var startTime = $(this).siblings(".startTime").text().replace("s", "");
             var endTime = $(this).siblings(".endTime").text().replace("s", "");
-            player.seek(startTime);
-            player.getClip().update({duration:endTime});
-            player.play();
+            jwplayer().pause();
+            playlist = jwplayer().getPlaylistItem();
+            playlist.start = startTime;
+            playlist.duration = endTime;
+            jwplayer().load(playlist);
+            jwplayer().play();
             $(".player_reset").removeAttr("disabled");
         });
 
         $(".player_reset").click(function() {
-            if (player.getClip()) {
-                player.pause();
-                player.getClip().update({duration:player.getClip().fullDuration});
-                player.seek(0);
-                $(this).attr("disabled", "disabled");
-            }
+            jwplayer().pause();
+            playlist = jwplayer().getPlaylistItem();
+            playlist.start = 0;
+            playlist.duration = playlist.oldDuration;
+            jwplayer().load(playlist);
+            jwplayer().play();
+            $(this).attr("disabled", "disabled");
         });
     } else {
         $(".player_reset").hide();
