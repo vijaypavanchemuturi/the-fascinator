@@ -51,18 +51,18 @@ var widgets={forms:[], globalObject:this};
           b=s;
       }
       return new Function(a, b);
-  }
+  };
   _fn = fn;
 
   var _idNum=1;
   function getIdNum(){
       return _idNum++;
-  }
+  };
 
   function trim(s){
     return $.trim(s);
     return s.replace(/^\s+|\s+$/g, "")
-  }
+  };
 
   function keys(d, f){
     var keys=[], k;
@@ -72,12 +72,12 @@ var widgets={forms:[], globalObject:this};
         }
     }
     return keys;
-  }
+  };
   function values(d){
       var values=[], k;
       for(k in d){values.push(d[k]);}
       return values;
-  }
+  };
 
   function getById(id){
     var e=document.getElementById(id);
@@ -86,7 +86,7 @@ var widgets={forms:[], globalObject:this};
     }else{
         return $("#_doesNotExist_.-_");
     }
-  }
+  };
 
   function reduce(c, func, i){
     if(!i)i=0;
@@ -94,7 +94,7 @@ var widgets={forms:[], globalObject:this};
       i = func(v, i);
     });
     return i;
-  }
+  };
 
   function any(c, func){
     var flag=false;
@@ -102,17 +102,17 @@ var widgets={forms:[], globalObject:this};
       if(func(v)) flag=true;
     });
     return flag;
-  }
+  };
 
   function isFunction(func){
       return typeof(func)==="function";
-  }
+  };
 
   function callIfFunction(func, a, b, c){
-      if(typeof(func)==="function"){
-          try{ func(a, b, c); }catch(e){}
+      if($.isFunction(func)){
+          try{ return func(a, b, c); }catch(e){}
       }
-  }
+  };
 
   function messageBox(msg){
       var msgBox=messageBox.msgBox;
@@ -130,7 +130,7 @@ var widgets={forms:[], globalObject:this};
                 modal:true, autoOpen:false });
       }
       msgBox.dialog("open").find("span:first").text(msg);
-  }
+  };
 
   function changeToTabLayout(elem){
     var h, li, ul = $("<ul></ul>");
@@ -153,31 +153,67 @@ var widgets={forms:[], globalObject:this};
     }
     elem.prepend(ul);
     return elem;
-  }
+  };
 
   function validator(){
-    var reg1=/(\s*(\w+)\s*(\(((('([^'\\]|\\.)*')|("([^"\\]|\\.)*")|(\/([^\/\\]|\\.)*\/)|(([^'"\/\\]|\\.)*?))*?)\))\s*(;|$)\s*)|(\s*(;|$))/g; // 2, 4, 14, 15=Err
+    var iterReader, isOkToX, testTest, getExpr, getWhen
+    var hideAllMessages, setup
+/*
+(                                           1
+  \s*                                           any white spaces
+  (\w+)                                     2   name (word)
+  \s*                                           any white spaces
+  (                                         3
+    \(                                          (
+    (                                       4
+      (                                     5
+        ( ' ( [^'\\] | \\. )* ' )               'str\e'  6&7
+        |
+        ( " ( [^"\\] | \\. )* " )               "str\e"  8&9
+        |
+        ( \/ ( [^\/\\] | \\. )* \/ )            /reg\e/  10&11
+        |
+        (                                   12
+          ( [^'"\)\(\/\\] | \\. )*              anything but ' " ) ( \ /  13
+        )
+      )*
+    )
+    \)                                          )
+  )
+  \s*
+  (; | $)                                   14  ; or end of string
+  \s*
+)
+|
+(                                           15
+  \s* ( ; | $ )                             16
+)
+ */
+    //var reg1=/(\s*(\w+)\s*(\(((('([^'\\]|\\.)*')|("([^"\\]|\\.)*")|(\/([^\/\\]|\\.)*\/)|(([^'"\/\\]|\\.)*?))*?)\))\s*(;|$)\s*)|(\s*(;|$))/g; // 2, 4, 14, 15=Err
+    //var reg2=/(\()|(\))|('([^'\\]|\\.)*')|("([^"\\]|\\.)*")|(\/([^\/\\]|\\.)*\/)|(\w[\w\d\._]*)|(([^\(\)\w\s'"\/\\]|\\.)+)/g;
+    //var reg3=/(\s*(rule)\s*(\{((('([^'\\]|\\.)*')|("([^"\\]|\\.)*")|(\/([^\/\\]|\\.)*\/)|(([^'"\/\\]|\\.)*?))*?)\}))/g; // 4
+    var reg1=/(\s*(\w+)\s*(\(((('([^'\\]|\\.)*')|("([^"\\]|\\.)*")|(\/([^\/\\]|\\.)*\/)|(([^'"\)\(\/\\]|\\.)*))*)\))\s*(;|$)\s*)|(\s*(;|$))/g; // 2, 4, 14, 15=Err
     var reg2=/(\()|(\))|('([^'\\]|\\.)*')|("([^"\\]|\\.)*")|(\/([^\/\\]|\\.)*\/)|(\w[\w\d\._]*)|(([^\(\)\w\s'"\/\\]|\\.)+)/g;
-    var reg3=/(\s*(rule)\s*(\{((('([^'\\]|\\.)*')|("([^"\\]|\\.)*")|(\/([^\/\\]|\\.)*\/)|(([^'"\/\\]|\\.)*?))*?)\}))/g; // 4
+    var reg3=/(\s*(rule)\s*(\{((('([^'\\]|\\.)*')|("([^"\\]|\\.)*")|(\/([^\/\\]|\\.)*\/)|(([^'"\)\(\/\\]|\\.)*))*)\}))/g; // 4
     var tests={}, namedTests={};
-    function iterReader(arr){
+    iterReader=function(arr){
       var pos=-1; l=arr.length;
       function current(){ return arr[pos]; }
       function next(){pos+=1; return current();}
       function hasMore(){return (pos+1)<l;}
       function lookAHead(){return arr[pos+1];}
       return {current:current, next:next, hasMore:hasMore, lookAHead:lookAHead};
-    }
-    function isOkToX(x){
+    };
+    isOkToX=function(x){
       var e=false;
       hideAllMessages();
       $.each(tests[x]||[], function(c,f){
         e|=f();
       });
       return !e;
-    }
-    function hideAllMessages(){$(".validation-err-msg").hide();}
-    function testTest(name){
+    };
+    hideAllMessages=function(){$(".validation-err-msg").hide();};
+    testTest=function(name){
         var test=namedTests[name];
         if(test && test._testFunc){
             try{
@@ -186,8 +222,8 @@ var widgets={forms:[], globalObject:this};
             }
         }
         return false;
-    }
-    function getExpr(reader){
+    };
+    getExpr=function(reader){
       // tests: !=str, =str, /regex/, !/regex/, empty, notEmpty, email, date, [>1], (), ex1 AND ex2, ex1 OR ex2,
       var v=reader.next(), expr="", getNumber;
       var vl=v.toLowerCase();
@@ -237,8 +273,8 @@ var widgets={forms:[], globalObject:this};
         else if(v=="OR"){reader.next(); expr+="||"+getExpr(reader);}
       }
       return expr;
-    }
-    function getWhen(reader){
+    };
+    getWhen=function(reader){
         var d, action, target;
         if(!reader.hasMore()) return null;
         d=reader.next();
@@ -260,17 +296,18 @@ var widgets={forms:[], globalObject:this};
             if(d=="," || d==";") break;
         }
         return {action:action, target:target};
-    }
-    function setup(ctx, onLoadTest){
+    };
+    setup=function(ctx, onLoadTest){
+        var rule, match;
         var m, w, va, f, a, t;
         var validationsFor={}, validationsForClass={};
         //var matchQuotedStr = '("([^"\\]|\\.)*")';     // continues matching until closing (unescaped) quote
         var vLabels=ctx.find("label.validation-err-msg");
         $(".validation-err-msg").hide();
         //value="for('dc:title');test(notEmpty);when(onChange)"
-        function rule(v){
+        rule=function(v){
             var dict={};
-            function match(){
+            match=function(){
                 m=arguments;     //2, 4, 14, 15=Err
                 if(m[0].length==0)return "";
                 if(m[15]){
@@ -281,7 +318,7 @@ var widgets={forms:[], globalObject:this};
                 va=m[4];
                 dict[w]=va;
                 return "";
-            }
+            };
             v.replace(reg1, match);
             f=dict["for"];
             dict["when"]=(dict["when"]||"");
@@ -304,7 +341,7 @@ var widgets={forms:[], globalObject:this};
                     namedTests[dict["name"]]=dict;
                 } // no default name
             }
-        }
+        };
         ctx.find(".validation-rule").each(function(c, v){
             v = $(v).val() || $(v).text();
             rule(v);
@@ -320,8 +357,10 @@ var widgets={forms:[], globalObject:this};
             if(true){
                 var vLabel=vLabels.filter("[for="+f+"]");
                 getValue=function(){ return target.val(); };
-                showValidationMessage=function(show){ show?vLabel.show():vLabel.hide(); return show;};
-
+                showValidationMessage=function(show){
+                    show?vLabel.show():vLabel.hide();
+                    return show;
+                };
                 $.each(l, function(c, d){
                     testStr="";
                     if(d.test){
@@ -358,11 +397,10 @@ var widgets={forms:[], globalObject:this};
                 reader = iterReader(d.test.match(reg2));
                 testStr = getExpr(reader);
                 testCode="showValidationMessage(!("+testStr+"));";
-
                 m = d.when.match(reg2);
                 if(m){
                   reader = iterReader(m);
-                  while(w=getWhen(reader)){
+                  while(!!(w=getWhen(reader))){
                     var checkFunc=function(){
                       var target, id, v, vLabel, showValidationMessage;
                       target = $(this);
@@ -384,8 +422,7 @@ var widgets={forms:[], globalObject:this};
               }
             });
         });
-
-    }
+    };
     return {
       setup:setup,
       test:function(){},
@@ -393,9 +430,8 @@ var widgets={forms:[], globalObject:this};
       isOkToSubmit:function(){return isOkToX("submit");},
       hideAllMessages:hideAllMessages,
       parseErrors:{}
-    }
-  }
-  widgets.validator = validator;
+    };
+  };
 
   function helpWidget(e){
     var helpContent, showText, hideText, url;
@@ -489,9 +525,6 @@ var widgets={forms:[], globalObject:this};
       addButton.bind("disableTest", addButtonDisableTest);
       del=function(e){
         e.remove();
-        if(xfind(".item-input-display:visible").size()<=minSize){
-          xfind(".item-input-display:visible .delete-item").hide();
-        }
         addButton.attr("disabled", false);
         addButton.trigger("disableTest");
         reorder();
@@ -525,6 +558,7 @@ var widgets={forms:[], globalObject:this};
             if($(i).parents(".data-source-drop-down").size()==0)$(i).val("");   // reset
           }).eq(0).focus();
           //
+          tmp = displayRowTemplate.clone().show().addClass("count-this");
           visibleItems = xfind(displaySelector+".count-this");
           if(!force){
               if(!any(values, function(v){ return v[0]!==""; })) return;
@@ -545,7 +579,6 @@ var widgets={forms:[], globalObject:this};
                 }
               }
           }
-          tmp = displayRowTemplate.clone().show().addClass("count-this");
           count = visibleItems.size()+1;
           tmp.find("*[id]").each(function(c, i){
               i.id = i.id.replace(regFirst0, "."+count);
@@ -613,7 +646,11 @@ var widgets={forms:[], globalObject:this};
       reorder=function(){
         var xf, regFirst = /\.\d+(?=\.|$)/;
         // reorder last digit only in our direct input-list only
-        xfind(displaySelector+":visible").each(function(c, i){
+        visibleItems = xfind(displaySelector+".count-this");
+        if(visibleItems.filter(".item-input-display").size()<=minSize){
+          xfind(".item-input-display .delete-item").hide();
+        }
+        visibleItems.each(function(c, i){
             i=$(i);
             xf=function(selector){
                 return i.find(selector).not(i.find(".input-list").find(selector));
@@ -660,8 +697,8 @@ var widgets={forms:[], globalObject:this};
       var jsonBaseUrl, jsonInitUrlId, jsonCache={}, jsonData;
       if(jsonSourceUrl){
           if(/\//.test(jsonSourceUrl)){
-            jsonInitUrlId=jsonSourceUrl.split(/\/([^\/]*$)/)[1];
-            jsonBaseUrl=jsonSourceUrl.split(/\/([^\/]*$)/)[0]+"/";  // split at the last /
+            jsonInitUrlId=jsonSourceUrl.split(/\/(?=[^\/]*$)/)[1];
+            jsonBaseUrl=jsonSourceUrl.split(/\/(?=[^\/]*$)/)[0]+"/";  // split at the last /
           }else{
               jsonInitUrlId=jsonSourceUrl;
               jsonBaseUrl="";
@@ -714,7 +751,8 @@ var widgets={forms:[], globalObject:this};
             try{
                 onJson(data);
             }catch(e){
-                alert("onJson error: "+e.message);
+                alert("onJson error: "+e.message+"  (for url='"+url+"')");
+                //alert(onJson);
             }
             pendingWorkDone();
         });
@@ -722,6 +760,7 @@ var widgets={forms:[], globalObject:this};
       return jsonGetter;
   }
   _gjg = getJsonGetter;
+  _g = {"json":[]};
 
   function makeSelectList(json){
       var s, o, ns=json.namespace||"", _default=json["default"], list=json.list;
@@ -730,6 +769,7 @@ var widgets={forms:[], globalObject:this};
         s.append($("<option value=''>Please select one</option>"));
       }
       $.each(list, function(_c, i){
+        if(!i)return;
         o = $("<option/>");
         o.attr("value", ns+i.id);
         if((ns+i.id)==_default) o.attr("selected", "selected");
@@ -866,6 +906,7 @@ var widgets={forms:[], globalObject:this};
             ds.append(o);
         }catch(e){
             alert("Error in sourceDropDown onJson function - " + e.message);
+            throw e;
         }
       };
       jsonGetter("", onJson);
@@ -875,13 +916,18 @@ var widgets={forms:[], globalObject:this};
     }
   }
 
-  function formWidget(ctx){
+  function formWidget(ctx, globalObject, validator){
+      // functions
+      var addListener, removeListener, removeListeners, raiseEvents
+      var onSubmit, onSave, onRestore, onReset
+      var submit, save, submitSave, getFormData, restore
+      var reset, setupFileUploader, getFileUploadInfo, createFileSubmitter, init
+      // variables
       var widgetForm={};
-      var validator;
       var listeners={};
       var ctxInputs;
 
-      function addListener(name, func){
+      addListener=function(name, func){
           var l;
           l=listeners[name];
           if(!l){
@@ -890,16 +936,16 @@ var widgets={forms:[], globalObject:this};
           }
           l.push(func);
       }
-      function removeListener(name, func){
+      removeListener=function(name, func){
           var l, i;
           l=listeners[name]||[];
           i=$.inArray(name, l);
           if(i>-1)l.splice(i, 1);
       }
-      function removeListeners(name){
+      removeListeners=function(name){
           delete listeners[name];
       }
-      function raiseEvents(name){
+      raiseEvents=function(name){
           var l=listeners[name]||[];
           for(var k in l){
               var f = l[k];
@@ -909,21 +955,21 @@ var widgets={forms:[], globalObject:this};
           }
       }
 
-      function onSubmit(){
+      onSubmit=function(){
         if(raiseEvents("onSubmit")==false){
             return false;
         }
         submit();
         return true;
       }
-      function onSave(){
+      onSave=function(){
         if(raiseEvents("onSave")==false){
             return false;
         }
         save();
         return true;
       }
-      function onRestore(data){
+      onRestore=function(data){
         if(raiseEvents("onRestore")==false){
             return false;
         }
@@ -931,7 +977,7 @@ var widgets={forms:[], globalObject:this};
         restore(data);
         return true;
       }
-      function onReset(data){
+      onReset=function(data){
         if(raiseEvents("onReset")==false){
             return false;
         }
@@ -939,15 +985,15 @@ var widgets={forms:[], globalObject:this};
         return true;
       }
 
-      function submit(){
+      submit=function(){
           submitSave("submit");
       }
 
-      function save(){
+      save=function(){
           submitSave("save");
       }
 
-      function submitSave(stype){
+      submitSave=function(stype){
         var data, url;
         var xPreFunc, xFunc, xResultFunc;
         var replaceFunc, completed;
@@ -955,14 +1001,16 @@ var widgets={forms:[], globalObject:this};
             s = s.replace(/[{}()]/g, "");   // make it safe - no function calls
             return eval(s);
         };
-        xPreFunc = widgets.globalObject[ctx.dataset("pre-"+stype+"-func")];
-        xFunc = widgets.globalObject[ctx.dataset(stype+"-func")];
-        xResultFunc = widgets.globalObject[ctx.findx("."+stype+"-result-func").val()];
-        callIfFunction(xPreFunc, widgetForm);
+        if(globalObject){
+            xPreFunc = globalObject[ctx.dataset("pre-"+stype+"-func")];
+            xFunc = globalObject[ctx.dataset(stype+"-func")];
+            xResultFunc = globalObject[ctx.findx("."+stype+"-result-func").val()];
+        }
+        if(callIfFunction(xPreFunc, widgetForm)==false){return false;}
         data = getFormData();
         completed=function(data){
             if(typeof(data)=="string"){
-                text = data;
+                var dataStr=data;
                 try{
                     data = JSON.parse(data);
                 }catch(e){
@@ -972,7 +1020,7 @@ var widgets={forms:[], globalObject:this};
             callIfFunction(xResultFunc, widgetForm, data);
             if(data.error || !data.ok){
                 if(!data.ok && !data.error) data.error="Failed to receive an 'ok'!";
-                messageBox("Failed to "+stype+"! (error='"+data.error+"') data='"+text+"'");
+                messageBox("Failed to "+stype+"! (error='"+data.error+"') data='"+dataStr+"'");
             }else{
                 if(stype=="save"){
                     ctx.findx(".saved-result").text("Saved OK").
@@ -985,8 +1033,8 @@ var widgets={forms:[], globalObject:this};
         };
         if(data.title===null)data.title=data["dc:title"];
         if(data.description===null)data.description=data["dc:description"];
-        callIfFunction(xFunc, widgetForm, data);
-        url = ctx.dataset("url") || ctx.findx(".form-fields-"+stype+"-url").val();
+        if(callIfFunction(xFunc, widgetForm, data)==false){return false;}
+        url = ctx.dataset(stype+"-url") || ctx.findx(".form-fields-"+stype+"-url").val();
         if(url){
             url = url.replace(/{[^}]+}/g, replaceFunc);
             if(widgetForm.hasFileUpload){
@@ -1016,7 +1064,7 @@ var widgets={forms:[], globalObject:this};
         }
       }
 
-      function getFormData(){
+      getFormData=function(){
         var data={}, s, v, e, formFields;
         var getValue, getXValue;
         var regFirst0=/\.0(?=\.|$)/;
@@ -1075,8 +1123,7 @@ var widgets={forms:[], globalObject:this};
         return data;
       }
 
-
-      function restore(data){
+      restore=function(data){
           var keys=[], skeys=[], input, t, formFields, regAll, regLast;
           regAll = /\.\d+(?=(\.|$))/;
           // find a .digit. that is not followed by a .digit. -- not followed= (?!.*\.\d+(?=(\.|$)))
@@ -1088,7 +1135,7 @@ var widgets={forms:[], globalObject:this};
           $.each(data, function(k, v){keys.push(k);});
           keys.sort();
           skeys = $.grep(keys, function(i){return /\.\d+(\.|$)/.test(i);}, true);
-          gc = ctxInputs;
+          _gc = ctxInputs;
           $.each(skeys, function(c, v){
               if($.inArray(v, formFields)!=-1){
                   ctxInputs.filter("[id="+v+"]").val(data[v]);
@@ -1136,12 +1183,12 @@ var widgets={forms:[], globalObject:this};
           });
       }
 
-      function reset(data){
+      reset=function(data){
           if(!data)data={};
           //
       }
 
-      function setupFileUploader(fileUploadSections, onChange){
+      setupFileUploader=function(fileUploadSections, onChange){
         if(!fileUploadSections) fileUploadSections=ctx.findx(".file-upload-section");
         fileUploadSections.each(function(c, e){
             var handleFileDrop;
@@ -1185,7 +1232,7 @@ var widgets={forms:[], globalObject:this};
         });
       }
 
-      function getFileUploadInfo(file){
+      getFileUploadInfo=function(file){
         var fileInfo = {};
         fileInfo.file = file;
         fileInfo.size = file.size;
@@ -1219,7 +1266,7 @@ var widgets={forms:[], globalObject:this};
         return fileInfo;
       }
 
-      function createFileSubmitter(){
+      createFileSubmitter=function(){
           var iframe, getBody, submit;
           iframe = $("<iframe id='upload-iframe' style='display:none; height:8ex; width:80em; border:1px solid red;'/>");
           $("body").append(iframe);
@@ -1255,29 +1302,27 @@ var widgets={forms:[], globalObject:this};
           return {submit:submit, iframe:iframe, getBody:getBody};
       }
 
-      function init(_ctx){
+      init=function(_ctx, validator){
         var id;
         if(!_ctx)_ctx=$("body");
         ctx = _ctx;
         id=ctx.attr("id");
-        widgets.formsById[id] = widgetForm;
         widgetForm.id=id;
-        ctx.findx = function(selector){
+        ctx.findx=function(selector){
             // find all selector(ed) elements but not ones that are in a subform
-            var nsel = (","+selector).split(",").join(", ."+formClassName+" ");
+            var nsel=(","+selector).split(",").join(", ."+formClassName+" ");
             return ctx.find(selector).not(ctx.find(nsel));
         };
-
-        ctxInputs = ctx.findx("input, textarea, select");
+        ctxInputs=ctx.findx("input, textarea, select");
         //
         widgetForm.hasFileUpload= (ctx.findx("input[type=file]").size()>0);
         if(widgetForm.hasFileUpload){ setupFileUploader(); }
-        if(widgets.validator){
-            validator = widgets.validator();
-            validator.setup(ctx);
-            widgetForm.validator = validator;
-            addListener("onSave", validator.isOkToSave);
-            addListener("onSubmit", validator.isOkToSubmit);
+        if(validator){
+            var v = validator();
+            v.setup(ctx);
+            widgetForm.validator = v;
+            addListener("onSave", v.isOkToSave);
+            addListener("onSubmit", v.isOkToSubmit);
         }
         ctx.findx(".form-fields-save").click(onSave);
         ctx.findx(".form-fields-submit").click(onSubmit);
@@ -1296,13 +1341,9 @@ var widgets={forms:[], globalObject:this};
       widgetForm._createFileSubmitter=createFileSubmitter;   // for testing only
       widgetForm._getFormData=getFormData;
 
-
-      widgets.forms.push(widgetForm);
-      if(ctx) init(ctx);
+      if(ctx) init(ctx, validator);
       return widgetForm;
   }
-  //widgets.formWidget = formWidget;
-
 
 
     function datepickerOnClose(dateText, inst){
@@ -1326,7 +1367,6 @@ var widgets={forms:[], globalObject:this};
     function contentSetup(ctx, completedCallback){
         //
       try{
-        //alert("contentSetup()");
         ctx.find(".helpWidget").each(function(c, e){
             helpWidget($(e));
         });
@@ -1363,7 +1403,7 @@ var widgets={forms:[], globalObject:this};
         //
         trackPendingWork = true;
         pendingWorkAllDoneFunc=function(){
-            //alert("done")
+            //alert("all pending work (setup work) done!");
             trackPendingWork = false;
             // ==============
             // Simple (text) list input type
@@ -1384,6 +1424,7 @@ var widgets={forms:[], globalObject:this};
             // there is no pendingWork to wait for!
             pendingWorkAllDoneFunc();
         }
+        gPendingWork=pendingWork;
       }catch(e){
           alert("Error in contentSetup() - "+e.message);
       }
@@ -1394,10 +1435,15 @@ var widgets={forms:[], globalObject:this};
     }
 
     function contentLoaded(completedCallback){
+        //alert("contentLoaded");
         contentSetup($("body"), function(){
             $("."+formClassName).each(function(c, e){
                 try{
-                    formWidget($(e));
+                    var widgetForm=formWidget($(e), 
+                                            widgets.globalObject,
+                                            widgets.validator);
+                    widgets.forms.push(widgetForm);
+                    widgets.formsById[widgetForm.id] = widgetForm;
                 }catch(e){
                     alert("Error: "+e);
                 }
@@ -1407,7 +1453,6 @@ var widgets={forms:[], globalObject:this};
             }
         });
     }
-
 
     //widgets.forms=[];
     widgets.formsById={};
