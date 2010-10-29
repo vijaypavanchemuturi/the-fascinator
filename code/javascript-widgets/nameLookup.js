@@ -1,7 +1,10 @@
 
 
 (function(){
-    var dialog=$("<div>Test dialog message!</div>").dialog({
+    var dialog, detailDialog;
+    $(function(){
+        //setTimeout(function(){
+            dialog=$("<div>Test dialog message!</div>").dialog({
                   title:"Name lookup",
                   height:350,  maxHeight:600,
                   width:400,
@@ -11,7 +14,7 @@
                   draggable:true,
                   autoOpen:false
                 });
-    var detailDialog=$("<div/>").dialog({
+            detailDialog=$("<div/>").dialog({
                   title:"Detail information",
                   height:"auto",
                   width:400,
@@ -21,8 +24,9 @@
                   draggable:false,
                   autoOpen:false
                 });
-    gdialog = dialog;
-
+            gdialog = dialog;
+        //}, 10);
+    });
 
     var displayNameLookups = function(json, position, queryStr, callback){
         var div, tbody, tr, td, label, id;
