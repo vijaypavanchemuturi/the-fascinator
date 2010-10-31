@@ -34,6 +34,7 @@ import au.edu.usq.fascinator.api.storage.Storage;
 import au.edu.usq.fascinator.api.transformer.Transformer;
 import au.edu.usq.fascinator.common.JsonConfigHelper;
 import au.edu.usq.fascinator.common.storage.StorageUtils;
+import java.io.InputStream;
 import java.util.Properties;
 
 /**
@@ -55,6 +56,9 @@ public class FfmpegTransformerTest {
     /** Temp file */
     private File file;
 
+    /** Configuration */
+    private JsonConfigHelper config;
+
     /** Input object */
     private DigitalObject inputObject;
 
@@ -71,9 +75,15 @@ public class FfmpegTransformerTest {
         ram = PluginManager.getStorage("ram");
         ram.init("{}");
 
+        // Read config
+        InputStream in = getClass().getResourceAsStream("/ffmpeg-config.json");
+        config = new JsonConfigHelper(in);
+
+        // Start the transformer
         transformer = new FfmpegTransformer();
-        file = new File(getClass().getResource("/ffmpeg-config.json").toURI());
-        transformer.init(file);
+        transformer.init(config.toString());
+
+        // Test functionality level
         this.execTest();
     }
 
@@ -87,6 +97,30 @@ public class FfmpegTransformerTest {
         if (ram != null) ram.shutdown();
         if (inputObject != null) inputObject.close();
         if (outputObject != null) outputObject.close();
+        // Cleanup temp space
+        if (transformer != null) transformer.shutdown();
+        String path = config.get("outputPath");
+        if (!delete(new File(path))) {
+            throw new Exception("Delete failed, something is still locked!");
+        }
+    }
+
+    /**
+     * Recursively delete a file/directory
+     *
+     * @params file File object to delete
+     * @return boolean: True if deleted, False if not
+     */
+    private boolean delete(File file) {
+        if (file == null) {
+            return false;
+        }
+        if (file.isDirectory()) {
+            for (File child : file.listFiles()) {
+                delete(child);
+            }
+        }
+        return file.delete();
     }
 
     /**
@@ -129,8 +163,8 @@ public class FfmpegTransformerTest {
         System.out.println("\n======\n  TEST: transformAudio()\n======\n");
         outputObject = transform("/african_drum.aif");
 
-        // Should have 3 payloads
-        Assert.assertEquals("There should be 3 Payloads", 3, outputObject
+        // Should have 4 payloads
+        Assert.assertEquals("There should be 4 Payloads", 4, outputObject
                 .getPayloadIdList().size());
 
         // Should have a preview payload
@@ -159,8 +193,8 @@ public class FfmpegTransformerTest {
         System.out.println("\n======\n  TEST: invalidFfmpeg()\n======\n");
         outputObject = transform("/mol19.cml");
 
-        // Should have only 1 payload, invalid = no 'ffmpeg.info'
-        Assert.assertEquals(1, outputObject.getPayloadIdList().size());
+        // Should have only 2 payloads, invalid = no 'ffmpeg.info'
+        Assert.assertEquals(2, outputObject.getPayloadIdList().size());
     }
 
     /**
@@ -197,7 +231,9 @@ public class FfmpegTransformerTest {
         //  incase there are slight variations on systems)
         String tSize = metadata.get("outputs/ffmpegThumbnail.jpg/size");
         int thumbSize = Integer.valueOf(tSize);
-        Assert.assertTrue(thumbSize > 3700);
+        // Thumbnails in particular, just test for larger then zero, since we
+        //   pick a random frame each execution.
+        Assert.assertTrue(thumbSize > 0);
         String pSize = metadata.get("outputs/ffmpegPreview.jpg/size");
         int previewSize = Integer.valueOf(pSize);
         Assert.assertTrue(previewSize > 42000);
@@ -253,7 +289,9 @@ public class FfmpegTransformerTest {
         //  incase there are slight variations on systems)
         String tSize = metadata.get("outputs/ffmpegThumbnail.jpg/size");
         int thumbSize = Integer.valueOf(tSize);
-        Assert.assertTrue(thumbSize > 4800);
+        // Thumbnails in particular, just test for larger then zero, since we
+        //   pick a random frame each execution.
+        Assert.assertTrue(thumbSize > 0);
         String pSize = metadata.get("outputs/ffmpegPreview.jpg/size");
         int previewSize = Integer.valueOf(pSize);
         Assert.assertTrue(previewSize > 37000);
@@ -308,7 +346,9 @@ public class FfmpegTransformerTest {
         //  incase there are slight variations on systems)
         String tSize = metadata.get("outputs/ffmpegThumbnail.jpg/size");
         int thumbSize = Integer.valueOf(tSize);
-        Assert.assertTrue(thumbSize > 5500);
+        // Thumbnails in particular, just test for larger then zero, since we
+        //   pick a random frame each execution.
+        Assert.assertTrue(thumbSize > 0);
         String pSize = metadata.get("outputs/ffmpegPreview.flv/size");
         int previewSize = Integer.valueOf(pSize);
         Assert.assertTrue(previewSize > 2400000);
@@ -374,7 +414,9 @@ public class FfmpegTransformerTest {
         //  incase there are slight variations on systems)
         String tSize = metadata.get("outputs/ffmpegThumbnail.jpg/size");
         int thumbSize = Integer.valueOf(tSize);
-        Assert.assertTrue(thumbSize > 1800);
+        // Thumbnails in particular, just test for larger then zero, since we
+        //   pick a random frame each execution.
+        Assert.assertTrue(thumbSize > 0);
         String pSize = metadata.get("outputs/ffmpegPreview.flv/size");
         int previewSize = Integer.valueOf(pSize);
         Assert.assertTrue(previewSize > 250000);
@@ -440,7 +482,9 @@ public class FfmpegTransformerTest {
         //  incase there are slight variations on systems)
         String tSize = metadata.get("outputs/ffmpegThumbnail.jpg/size");
         int thumbSize = Integer.valueOf(tSize);
-        Assert.assertTrue(thumbSize > 15000);
+        // Thumbnails in particular, just test for larger then zero, since we
+        //   pick a random frame each execution.
+        Assert.assertTrue(thumbSize > 0);
         String pSize = metadata.get("outputs/ffmpegPreview.flv/size");
         int previewSize = Integer.valueOf(pSize);
         Assert.assertTrue(previewSize > 2700000);
@@ -553,7 +597,9 @@ public class FfmpegTransformerTest {
         //  incase there are slight variations on systems)
         String tSize = metadata.get("outputs/ffmpegThumbnail.jpg/size");
         int thumbSize = Integer.valueOf(tSize);
-        Assert.assertTrue(thumbSize > 1800);
+        // Thumbnails in particular, just test for larger then zero, since we
+        //   pick a random frame each execution.
+        Assert.assertTrue(thumbSize > 0);
         String pSize = metadata.get("outputs/ffmpegPreview.flv/size");
         int previewSize = Integer.valueOf(pSize);
         Assert.assertTrue(previewSize > 190000);
@@ -614,14 +660,16 @@ public class FfmpegTransformerTest {
         //  incase there are slight variations on systems)
         String tSize = metadata.get("outputs/ffmpegThumbnail.jpg/size");
         int thumbSize = Integer.valueOf(tSize);
-        Assert.assertTrue(thumbSize > 10000);
+        // Thumbnails in particular, just test for larger then zero, since we
+        //   pick a random frame each execution.
+        Assert.assertTrue(thumbSize > 0);
         String pSize = metadata.get("outputs/ffmpegPreview.flv/size");
         int previewSize = Integer.valueOf(pSize);
         Assert.assertTrue(previewSize > 250000);
 
         // FFmpeg
         if (execLevel.equals(Ffmpeg.DEFAULT_BIN_TRANSCODE)) {
-            Assert.assertEquals(metadata.get("duration"), "5");
+            Assert.assertEquals(metadata.get("duration"), "10");
         }
 
         // FFprobe
@@ -643,5 +691,47 @@ public class FfmpegTransformerTest {
         Properties props = outputObject.getMetadata();
         String displayType = props.getProperty("displayType");
         Assert.assertEquals(displayType, "video");
+    }
+
+    /**
+     * Tests:
+     *  1) Two 4s AVIs will be merged into an 8s AVI
+     *
+     * @throws Exception on failure
+     */
+    @Test
+    public void segmentsTest() throws Exception {
+        // FFmpeg is not installed
+        if (execLevel == null) return;
+
+        System.out.println("\n======\n  TEST: segmentsTest()\n======\n");
+
+        // Get the first segment and create an object
+        inputObject = ram.createObject("segmentOid");
+        StorageUtils.createOrUpdatePayload(inputObject, "segment0.avi",
+                getClass().getResourceAsStream("/segment0.avi"));
+        // Store the second segment and update properties
+        StorageUtils.createOrUpdatePayload(inputObject, "segment1.avi",
+                getClass().getResourceAsStream("/segment1.avi"));
+        Properties props = inputObject.getMetadata();
+        props.setProperty("mediaSegments", "2");
+
+        // Transform the object
+        outputObject = transformer.transform(inputObject, "{}");
+
+        Payload ffMetadata = outputObject.getPayload("ffmpeg.info");
+        JsonConfigHelper metadata = new JsonConfigHelper(ffMetadata.open());
+        ffMetadata.close();
+
+        // FFmpeg
+        if (execLevel.equals(Ffmpeg.DEFAULT_BIN_TRANSCODE)) {
+            Assert.assertEquals(metadata.get("duration"), "8");
+        }
+
+        // FFprobe
+        if (execLevel.equals(Ffmpeg.DEFAULT_BIN_METADATA)) {
+            Assert.assertEquals(metadata.get("format/simple"),      "avi");
+            Assert.assertEquals(metadata.get("duration"),           "8");
+        }
     }
 }
