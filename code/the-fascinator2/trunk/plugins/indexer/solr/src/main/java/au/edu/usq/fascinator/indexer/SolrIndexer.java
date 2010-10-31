@@ -686,6 +686,7 @@ public class SolrIndexer implements Indexer {
             PyObject script = getPythonObject(rulesOid);
             if (script.__findattr__(SCRIPT_ACTIVATE_METHOD) != null) {
                 script.invoke(SCRIPT_ACTIVATE_METHOD, Py.java2py(bindings));
+                object.close();
             } else {
                 log.warn("Activation method not found!");
             }

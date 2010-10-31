@@ -37,15 +37,20 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
+
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
@@ -65,11 +70,17 @@ public class FfmpegTransformer implements Transformer {
     /** Error Payload */
     private static String ERROR_PAYLOAD = "ffmpegErrors.json";
 
+    /** Merged Payload */
+    private static String MERGED_PAYLOAD = "ffmpegMerged.";
+
     /** Metadata Payload */
     private static String METADATA_PAYLOAD = "ffmpeg.info";
 
     /** Logger */
     private Logger log = LoggerFactory.getLogger(FfmpegTransformer.class);
+
+    /** Statistics database */
+    private FfmpegDatabase stats;
 
     /** System config file */
     private JsonConfigHelper config;
@@ -98,8 +109,23 @@ public class FfmpegTransformer implements Transformer {
     /** Metadata storage */
     private Map<String, JsonConfigHelper> metadata;
 
+    /** Old Metadata */
+    private Map<String, JsonConfigHelper> oldMetadata;
+
     /** Error messages */
     private Map<String, JsonConfigHelper> errors;
+
+    /** Object ID */
+    private String oid;
+
+    /** Frame rate to use during merge */
+    private String mergeRate;
+
+    /** Frame rate to use AFTER merge */
+    private String finalRate;
+
+    /** Format to use AFTER merge */
+    private String finalFormat;
 
     /**
      * Basic constructor
@@ -165,6 +191,16 @@ public class FfmpegTransformer implements Transformer {
             outputRoot = new File(outputPath);
             outputRoot.mkdirs();
 
+            // Database
+            String useDB = config.get("database/enabled", "false");
+            if (Boolean.parseBoolean(useDB)) {
+                try {
+                    stats = new FfmpegDatabase(config);
+                } catch(Exception ex) {
+                    log.error("Statistics database failed to initialise!");
+                }
+            }
+
             // Set system variable for presets location
             String presetsPath = config.get("presetsPath");
             if (presetsPath != null) {
@@ -186,6 +222,7 @@ public class FfmpegTransformer implements Transformer {
         format = null;
         errors = new LinkedHashMap();
         metadata = new LinkedHashMap();
+        oldMetadata = new LinkedHashMap();
     }
 
     /**
@@ -289,7 +326,7 @@ public class FfmpegTransformer implements Transformer {
         }
         // Purge old data
         reset();
-        String oid = object.getId();
+        oid = object.getId();
         outputDir = new File(outputRoot, oid);
         outputDir.mkdirs();
 
@@ -298,6 +335,12 @@ public class FfmpegTransformer implements Transformer {
         } catch (IOException ex) {
             throw new TransformerException("Invalid configuration! '{}'", ex);
         }
+
+        // Resolve multi-segment files first
+        mergeRate = get(itemConfig, "merging/mpegFrameRate", "25");
+        finalRate = get(itemConfig, "merging/finalFrameRate", "10");
+        finalFormat = get(itemConfig, "merging/finalFormat", "avi");
+        mergeSegments(object);
 
         // Find the format 'group' this file is in
         String sourceId = object.getSourceId();
@@ -313,14 +356,7 @@ public class FfmpegTransformer implements Transformer {
         // Cache the file from storage
         File file;
         try {
-            file = new File(outputDir, sourceId);
-            FileOutputStream tempFileOut = new FileOutputStream(file);
-            // Payload from storage
-            Payload payload = object.getPayload(sourceId);
-            // Copy and close
-            IOUtils.copy(payload.open(), tempFileOut);
-            payload.close();
-            tempFileOut.close();
+            file = cacheFile(object, sourceId);
         } catch (IOException ex) {
             addError(sourceId, "Error writing temp file", ex);
             errorAndClose(object);
@@ -342,6 +378,23 @@ public class FfmpegTransformer implements Transformer {
         //  only return under certain circumstances (ie. not just because
         //  one rendition fails), and the object must get closed.
         // **************************************************************
+
+        // Read any pre-existing rendition metadata from previous tranformations
+        //++++++++++++++++++++++++++++
+        // TODO: This is useless until the last modified date can be retrieved
+        // against the source file. Storage API does not currently support this,
+        // it just returns a data stream.
+        //
+        // Once this feature exists the basic algorithm should be:
+        // 1) Retrieve old metadata
+        // 2) Loop through each rendition preparation as normal
+        // 3) When the transcoding is ready to start, use the parameters to
+        //    query the database for the last time the exact transcoding was
+        //    and comparing against last modifed.
+        // 4) If the transcoding is newer than the source, skip running FFmpeg
+        //    and just use the same metadata as last time.
+        //++++++++++++++++++++++++++++
+        //readMetadata(object);
 
         // Check for a custom display type
         String display = get(itemConfig, "displayTypes/" + format);
@@ -435,6 +488,255 @@ public class FfmpegTransformer implements Transformer {
             file.delete();
         }
         return object;
+    }
+
+    /**
+     * Stream data from specified payload into a file in our temp cache.
+     *
+     * @param object: The digital object to use
+     * @param pid: The payload ID to extract
+     * @return File: The cached File
+     * @throws FileNotFoundException: If accessing the cache fails
+     * @throws StorageException: If accessing the object in storage fails
+     * @throws IOException: If the data copy fails
+     */
+    private File cacheFile(DigitalObject object, String pid)
+            throws FileNotFoundException, StorageException, IOException {
+        // Get our cache location
+        File file = new File(outputDir, pid);
+        FileOutputStream tempFileOut = new FileOutputStream(file);
+        // Get payload from storage
+        Payload payload = object.getPayload(pid);
+        try {
+            // Copy to cache
+            IOUtils.copy(payload.open(), tempFileOut);
+        } catch (IOException ex) {
+            payload.close();
+            throw ex;
+        }
+        // Close and return
+        payload.close();
+        tempFileOut.close();
+        return file;
+    }
+
+    /**
+     * Check the object for a multi-segment source and merge them. Such sources
+     * must come from a harvester specifically designed to match this
+     * transformer. As such we can make certain assumptions, and if they are not
+     * met we just fail silently with a log entry.
+     *
+     * @param object: The digital object to modify
+     */
+    private void mergeSegments(DigitalObject object) {
+        try {
+            // Retrieve (optional) segment information from metadata
+            Properties props = object.getMetadata();
+            String segs = props.getProperty("mediaSegments");
+            if (segs == null) return;
+            int segments = Integer.parseInt(segs);
+            if (segments <= 1) return;
+
+            // We need to do some merging, lets validate IDs first
+            log.info("Found {} source segments! Merging...", segments);
+            List<String> segmentIds = new ArrayList();
+            Set<String> payloadIds = object.getPayloadIdList();
+            // The first segment
+            String sourceId = object.getSourceId();
+            if (sourceId == null || !payloadIds.contains(sourceId)) {
+                log.error("Cannot find source payload.");
+                return;
+            }
+            segmentIds.add(sourceId);
+            // Find the other segments
+            for (int i = 1; i < segments; i++) {
+                // We won't know the extension though
+                String segmentId = "segment" + i + ".";
+                for (String pid : payloadIds) {
+                    if (pid.startsWith(segmentId)) {
+                        segmentIds.add(pid);
+                    }
+                }
+            }
+
+            // Did we find every segment?
+            if (segmentIds.size() != segments) {
+                log.error("Unable to find all segments in payload list.");
+                return;
+            }
+
+            // Transcode all the files to neutral MPEGs first
+            Map<String, File> files = new HashMap();
+            for (String segment : segmentIds) {
+                try {
+                    File file = basicMpeg(object, segment);
+                    if (file != null) {
+                        files.put(segment, file);
+                    }
+                } catch(Exception ex) {
+                    log.error("Error transcoding segment to MPEG: ", ex);
+                    // Cleanup
+                    for (File f : files.values()) {
+                        if (f.exists()) f.delete();
+                    }
+                    return;
+                }
+            }
+
+            // Did every transcoding succeed?
+            if (files.size() != segments) {
+                log.error("At least one segment transcoding failed.");
+                // Cleanup
+                for (File f : files.values()) {
+                    if (f.exists()) f.delete();
+                }
+                return;
+            }
+
+            // Now to try merging all the segments. In MPEG format
+            //  they can just be concatenated.
+            try {
+                // Create our output file
+                String filename = "temp_" + MERGED_PAYLOAD + "mpg";
+                File merged = new File(outputDir, filename);
+                if (merged.exists()) {
+                    merged.delete();
+                }
+                FileOutputStream out = new FileOutputStream(merged);
+
+                // Merge each segment in order
+                for (String sId : segmentIds) {
+                    try {
+                        mergeSegment(out, files.get(sId));
+                    } catch(IOException ex) {
+                        log.error("Failed to stream to merged file: ", ex);
+                        out.close();
+                        // Cleanup
+                        for (File f : files.values()) {
+                            if (f.exists()) f.delete();
+                        }
+                        merged.delete();
+                        return;
+                    }
+                }
+                out.close();
+
+                // Final step, run the output file through a transcoding to
+                //   write the correct metadata (eg. duration)
+                filename = MERGED_PAYLOAD + finalFormat;
+                File transcoded = new File(outputDir, filename);
+                if (transcoded.exists()) {
+                    transcoded.delete();
+                }
+
+                // Render
+                String stderr = mergeRender(merged, transcoded);
+                log.debug("=====\n{}", stderr);
+                if (transcoded.exists()) {
+                    // Now we need to 'fix' the object, add the new source
+                    FileInputStream fis = new FileInputStream(transcoded);
+                    String pid = transcoded.getName();
+                    Payload p = StorageUtils.createOrUpdatePayload(
+                            object, pid, fis);
+                    fis.close();
+                    p.setType(PayloadType.Source);
+                    object.setSourceId(pid);
+
+                    // Remove all the old segments
+                    for (String sId : segmentIds) {
+                        object.removePayload(sId);
+                    }
+                    props.remove("mediaSegments");
+                    object.close();
+
+                    // Cleanup segments
+                    for (File f : files.values()) {
+                        if (f.exists()) f.delete();
+                    }
+                    merged.delete();
+                    transcoded.delete();
+                }
+            } catch (IOException ex) {
+                log.error("Error merging segments: ", ex);
+            }
+
+        } catch (StorageException ex) {
+            log.error("Error accessing object metadata: ", ex);
+        }
+    }
+
+    /**
+     * Stream the contents of a file into an outputstream.
+     *
+     * @param out: The outputstream to send to
+     * @param file: The file to stream
+     * @throws IOException if the stream fails
+     */
+    private void mergeSegment(OutputStream out, File file) throws IOException {
+        FileInputStream in = new FileInputStream(file);
+        try {
+            IOUtils.copy(in, out);
+        } catch (IOException ex) {
+            // We're just catching this so the finally
+            //  statement will close the stream
+            throw ex;
+        } finally {
+            in.close();
+        }
+    }
+
+    /**
+     * Convert the payload specified to a neutral MPEG for later concatenation.
+     *
+     * @param type The input string to resolve to a proper type
+     * @return PayloadType The properly enumerated type to use
+     */
+    private File basicMpeg(DigitalObject object, String pid) throws Exception {
+        // Prepare files
+        File sourceFile = cacheFile(object, pid);
+        String ext = FilenameUtils.getExtension(pid);
+        String output = pid.substring(0, pid.length() - ext.length()) + "mpg";
+        log.debug("=== OUT: '{}'", output);
+        File outputFile = new File(outputDir, "output_" + output);
+        if (outputFile.exists()) {
+            FileUtils.deleteQuietly(outputFile);
+        }
+        log.info("Converting '{}': '{}'",
+                sourceFile.getName(), outputFile.getName());
+
+        // Render
+        String stderr = mergeRender(sourceFile, outputFile);
+
+        log.debug("=====\n{}", stderr);
+        if (outputFile.exists()) {
+            return outputFile;
+        }
+        return null;
+    }
+
+    /**
+     * Wrap a basic conversion used repeatedly during file merges
+     *
+     * @param in: The source file
+     * @param out: The outout file
+     * @return String: FFmpeg's console output
+     * @thorws IOException: if there are file access errors
+     */
+    private String mergeRender(File in, File out) throws IOException {
+        // Render config
+        List<String> params = new ArrayList();
+        params.add("-i");
+        params.add(in.getAbsolutePath());
+        params.add("-sameq");
+        params.add("-r");
+        if (out.getName().equals(MERGED_PAYLOAD + finalFormat)) {
+            params.add(finalRate);
+        } else {
+            params.add(mergeRate);
+        }
+        params.add(out.getAbsolutePath());
+        // Render
+        return ffmpeg.transform(params, outputDir);
     }
 
     /**
@@ -618,6 +920,30 @@ public class FfmpegTransformer implements Transformer {
     }
 
     /**
+     * Read FFMPEG metadata from the object if it exists
+     *
+     * @param object: The object to extract data from
+     */
+    private void readMetadata(DigitalObject object) {
+        Set<String> pids = object.getPayloadIdList();
+        if (pids.contains(METADATA_PAYLOAD)) {
+            try {
+                Payload payload = object.getPayload(METADATA_PAYLOAD);
+                JsonConfigHelper data = new JsonConfigHelper(payload.open());
+                payload.close();
+                oldMetadata = data.getJsonMap("outputs");
+                //for (String k : oldMetadata.keySet()) {
+                //    log.debug("\n====\n{}\n===\n{}", k, oldMetadata.get(k));
+                //}
+            } catch (IOException ex) {
+                log.error("Error parsing metadata JSON: ", ex);
+            } catch (StorageException ex) {
+                log.error("Error accessing metadata payload: ", ex);
+            }
+        }
+    }
+
+    /**
      * Write FFMPEG metadata to disk
      * 
      * @param data : Extracted metadata
@@ -650,6 +976,13 @@ public class FfmpegTransformer implements Transformer {
     private File convert(File sourceFile, JsonConfigHelper render,
             FfmpegInfo info) throws TransformerException {
 
+        // Statistics variables
+        long startTime, timeSpent;
+        String resolution;
+        // One list for all settings, the other is a subset for statistics
+        List<String> statParams = new ArrayList<String>();
+        List<String> params = new ArrayList<String>();
+
         // Prepare the output location
         String outputName = render.get("name");
         if (outputName == null) return null;
@@ -673,7 +1006,6 @@ public class FfmpegTransformer implements Transformer {
         }
 
         try {
-            List<String> params = new ArrayList<String>();
             // *************
             // 1) Input file
             // *************
@@ -691,15 +1023,15 @@ public class FfmpegTransformer implements Transformer {
             long start = 0;
             for (int i = 0; i < options.size(); i++) {
                 String option = options.get(i);
+                // For stats, use placeholder.. random data messes with hashing
+                statParams.add(option);
                 // If it even exists that is...
                 if (option.equalsIgnoreCase("[[OFFSET]]")) {
                     start = (long) (Math.random() * info.getDuration() * 0.25);
-                    options.set(i, Long.toString(start));
+                    option = Long.toString(start);
                 }
-            }
-            // Merge option parameters into standard parameters
-            if (!options.isEmpty()) {
-                params.addAll(options);
+                // Store the parameter for usage
+                params.add(option);
             }
 
             // *************
@@ -711,13 +1043,22 @@ public class FfmpegTransformer implements Transformer {
             // Non-audio files need some resolution work
             if (!audio) {
                 List<String> dimensions = getPaddedParams(render, info,
-                        renderMetadata);
+                        renderMetadata, statParams);
                 if (dimensions == null || dimensions.isEmpty()) {
                     addError(key, "Error calculating dimensions");
                     return null;
                 }
                 // Merge resultion parameters into standard parameters
                 params.addAll(dimensions);
+            }
+            // Statistics
+            String width = renderMetadata.get("width");
+            String height = renderMetadata.get("height");
+            if (width == null || height == null) {
+                // Audio... or an error
+                resolution = "0x0";
+            } else {
+                resolution = width + "x" + height;
             }
 
             // *************
@@ -728,13 +1069,18 @@ public class FfmpegTransformer implements Transformer {
             // Merge option parameters into standard parameters
             if (!options.isEmpty()) {
                 params.addAll(options);
+                statParams.addAll(options);
             }
             params.add(outputFile.getAbsolutePath());
 
             // *************
             // 5) All done. Perform the transcoding
             // *************
+            startTime = new Date().getTime();
             String stderr = ffmpeg.transform(params, outputDir);
+            timeSpent = (new Date().getTime()) - startTime;
+
+            renderMetadata.set("timeSpent", String.valueOf(timeSpent));
             renderMetadata.set("debugOutput", stderr);
             if (outputFile.exists()) {
                 long fileSize = outputFile.length();
@@ -762,6 +1108,26 @@ public class FfmpegTransformer implements Transformer {
         } else {
             // For anything else, record metadata
             metadata.put(key, renderMetadata);
+            // And statistics
+            if (stats != null) {
+                Map<String, String> data = new HashMap();
+                data.put("oid",           oid);
+                data.put("datetime",      String.valueOf(startTime));
+                data.put("timespent",     String.valueOf(timeSpent));
+                data.put("renderString",  StringUtils.join(statParams, " "));
+                data.put("mediaduration", String.valueOf(info.getDuration()));
+                data.put("inresolution",  info.getWidth()+"x"+info.getHeight());
+                data.put("outresolution", resolution);
+                data.put("insize",        String.valueOf(sourceFile.length()));
+                data.put("outsize",       String.valueOf(outputFile.length()));
+                data.put("infile",        sourceFile.getName());
+                data.put("outfile",       outputFile.getName());
+                try {
+                    stats.storeTranscoding(data);
+                } catch (Exception ex) {
+                    log.error("Error storing statistics: ", ex);
+                }
+            }
         }
         return outputFile;
     }
@@ -771,12 +1137,15 @@ public class FfmpegTransformer implements Transformer {
      * padding required to match the desired output whilst maintaining the
      * aspect ratio.
      *
-     * @param render : Configuration to use during the render
+     * @param renderConfig : Configuration to use during the render
      * @param info : Parsed metadata about the source
+     * @param renderMetadata : extracted metadata about the source
+     * @param stats : The list of parameters to keep for statistics
      * @return List<String> : A list of parameters
      */
     private List<String> getPaddedParams(JsonConfigHelper renderConfig,
-            FfmpegInfo info, JsonConfigHelper renderMetadata) {
+            FfmpegInfo info, JsonConfigHelper renderMetadata,
+            List<String> stats) {
         List<String> response = new ArrayList();
 
         // Get the output dimensions to use for the actual video
@@ -801,6 +1170,9 @@ public class FfmpegTransformer implements Transformer {
             // Don't forget metadata
             renderMetadata.set("width", String.valueOf(x));
             renderMetadata.set("height", String.valueOf(y));
+            // or stats
+            stats.add("padding");
+            stats.add("{none}");
             return response;
         }
 
@@ -833,6 +1205,9 @@ public class FfmpegTransformer implements Transformer {
             response.add(String.valueOf(padXright));
             response.add("-padcolor");
             response.add(paddingColor);
+            // Collect stats
+            stats.add("padding");
+            stats.add("{individual}");
             return response;
         }
 
@@ -848,6 +1223,9 @@ public class FfmpegTransformer implements Transformer {
             response.add(size);
             response.add("-vf");
             response.add(filter);
+            // Collect stats
+            stats.add("padding");
+            stats.add("{filter}");
             return response;
         }
 
@@ -855,6 +1233,9 @@ public class FfmpegTransformer implements Transformer {
         log.error("Invalid padding config found: '{}'", paddingConfig);
         response.add("-s");
         response.add(size);
+        // Collect stats
+        stats.add("padding");
+        stats.add("{invalid}");
         return response;
     }
 
@@ -1054,5 +1435,15 @@ public class FfmpegTransformer implements Transformer {
      */
     @Override
     public void shutdown() throws PluginException {
+        // Shutdown the database
+        if (stats != null) {
+            try {
+                stats.shutdown();
+            } catch (Exception ex) {
+                log.error("Error shutting down database: ", ex);
+                throw new PluginException(ex);
+            }
+        }
     }
+
 }

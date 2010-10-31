@@ -1,5 +1,5 @@
 {
-    "version": "0.7.13",
+    "version": "0.7.14",
     "configured": false,
     "urlBase" : "http://localhost:9997/portal/",
     "email" : "fascinator@usq.edu.au",
@@ -198,6 +198,11 @@
                 "metadata": "ffprobe"
             },
 
+            "database": {
+                "enabled": "false",
+                "derbyHome": "${fascinator.home}/database"
+            },
+
             "supportedFormats": [
                 {
                     "group": "audio",
@@ -215,6 +220,12 @@
 
             "displayTypes": {
                 "video": "ffmpeg"
+            },
+
+            "merging": {
+                "mpegFrameRate": "25",
+                "finalFormat": "avi",
+                "finalFrameRate": "10"
             },
 
             "transcodings": {
