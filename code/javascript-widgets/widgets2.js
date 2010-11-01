@@ -478,7 +478,6 @@ var widgets={forms:[], globalObject:this};
             }
             p = p.parent();
         }
-        alert("showHideCheck()");
     }catch(e){
         alert("Error in showHideCheck() - "+e.message);
     }
