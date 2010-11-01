@@ -80,7 +80,7 @@
                         });
         //dialog.dialog("option", "position", [position.left, position.top]);
         dialog.dialog("open");
-        dialog.parent().css("top", position.top+"px").css("left", position.left+"px");
+        //dialog.parent().css("top", position.top+"px").css("left", position.left+"px");
     }
 
     var displayDetails = function(name, details, pos, link){
@@ -125,10 +125,10 @@
         ctx.find(".nameLookup-lookup").die().live("click", function(e){
             var target, parent, queryTerm, queryUrl;
             target=$(e.target);
-            gtarget = target
-            parent=target.parent();
-            if(parent.find(".nameLookup-name").size()==0){
-                parent = parent.parent();
+            _gtarget = target;
+            parent=target;
+            while(parent.size() && (parent.find(".nameLookup-name").size()==0)){
+                parent=parent.parent();
             }
             queryTerm = parent.find(".nameLookup-name").map(function(i, e){return e.value;});
             queryTerm = $.trim($.makeArray(queryTerm).join(" "));
