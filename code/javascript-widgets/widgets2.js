@@ -478,6 +478,7 @@ var widgets={forms:[], globalObject:this};
             }
             p = p.parent();
         }
+        alert("showHideCheck()");
     }catch(e){
         alert("Error in showHideCheck() - "+e.message);
     }
@@ -1004,9 +1005,12 @@ var widgets={forms:[], globalObject:this};
         if(globalObject){
             xPreFunc = globalObject[ctx.dataset("pre-"+stype+"-func")];
             xFunc = globalObject[ctx.dataset(stype+"-func")];
-            xResultFunc = globalObject[ctx.findx("."+stype+"-result-func").val()];
+            xResultFunc = globalObject[ctx.dataset(stype+"-result-func")];
         }
-        if(callIfFunction(xPreFunc, widgetForm)==false){return false;}
+        if(callIfFunction(xPreFunc, widgetForm)===false){
+            callIfFunction(xResultFunc, widgetForm, {error:"canceled by pre-"+stype+"-func"});
+            return false;
+        }
         data = getFormData();
         completed=function(data){
             if(typeof(data)=="string"){
@@ -1033,7 +1037,10 @@ var widgets={forms:[], globalObject:this};
         };
         if(data.title===null)data.title=data["dc:title"];
         if(data.description===null)data.description=data["dc:description"];
-        if(callIfFunction(xFunc, widgetForm, data)==false){return false;}
+        if(callIfFunction(xFunc, widgetForm, data)===false){
+            callIfFunction(xResultFunc, widgetForm, {error:"canceled by "+stype+"-func"});
+            return false;
+        }
         url = ctx.dataset(stype+"-url") || ctx.findx(".form-fields-"+stype+"-url").val();
         if(url){
             url = url.replace(/{[^}]+}/g, replaceFunc);
