@@ -1,13 +1,13 @@
 {
-    "version": "0.7.14",
-    "configured": false,
-    "urlBase" : "http://localhost:9997/portal/",
-    "email" : "fascinator@usq.edu.au",
+    "version": "0.7.13",
+    "configured": true,
+    "urlBase" : "http://novadev2.newcastle.edu.au/mint/",
+    "email" : "dave.huthnance@newcastle.edu.au",
     "sso": {
         "plugins": ["OpenID"],
         "urlExclusions": {
-            "startsWith" : ["css/", "feed/", "images/", "js/", "flowplayer/", "mediaplayer/"],
-            "endsWith" : [".ico"],
+            "startsWith" : ["css/", "feed/", "images/", "js/", "flowplayer/"],
+            "endsWidth" : [".ico"],
             "equals" : ["css"]
         },
         "trustTokens": {}
@@ -33,21 +33,17 @@
     "storage": {
         "type": "file-system",
         "file-system": {
-            "home": "${fascinator.home}/storage"
+            "home": "${storage.home}"
         },
         "fedora3": {
             "url": "http://localhost:8080/fedora",
             "username": "fedoraAdmin",
             "password": "fedoraAdmin"
-        },
-        "couchdb": {
-            "url": "http://localhost:8080/couch"
-        },
-        "ignoreFilter": ".svn|.ice|.*|~*"
+        }
     },
     "messaging" : {
-        "url" : "tcp://localhost:61616",
-        "stompUrl" : "stomp://localhost:61613",
+        "url" : "tcp://localhost:8087",
+        "stompUrl" : "stomp://localhost:8088",
         "home" : "${fascinator.home}/activemq-data",
         "threads" : [
             {
@@ -147,13 +143,7 @@
                         "name": "The Fascinator"
                     },
                     "smtp" : {
-                        "host" : "smtp.gmail.com",
-                        "port" : "25",
-                        "sslPort" : "465",
-                        "ssl" : true,
-                        "tls" : false,
-                        "username" : "someone@gmail.com",
-                        "password" : "secret"
+                        "host" : "smtp-gw.usq.edu.au"
                     },
                     "defaults" : {
                         "subject" : "Notification",
@@ -167,176 +157,36 @@
         "type": "solr",
         "properties": "SOF-META",
         "useCache" : true,
+        "cachingLevel" : "dynamic",
         "buffer": {
             "docLimit" : "200",
             "sizeLimit" : "204800",
             "timeLimit" : "30"
         },
         "solr": {
-            "uri": "http://localhost:9997/solr/fascinator",
+            "uri": "http://localhost:${jetty.port}/solr/fascinator",
             "coreName": "fascinator",
             "autocommit": false,
-            "embedded": true
+            "embedded": false
         },
         "anotar": {
-            "uri": "http://localhost:9997/solr/anotar",
+            "uri": "http://localhost:${jetty.port}/solr/anotar",
             "coreName": "anotar",
             "autocommit": true
         }
     },
     "transformerDefaults": {
-        "aperture": {
-            "id": "aperture",
-            "outputPath": "${java.io.tmpdir}/${user.name}/ice2-output"
+    	"solrmarc": {
+            "id": "solrmarc",
+            "configPath": "${fascinator.home}/solrmarc/vital-config.properties"
         },
-        "ffmpeg": {
-            "id": "ffmpeg",
-            "outputPath": "${java.io.tmpdir}/${user.name}/ffmpeg-output",
-
-            "binaries": {
-                "transcoding": "ffmpeg",
-                "metadata": "ffprobe"
-            },
-
-            "database": {
-                "enabled": "false",
-                "derbyHome": "${fascinator.home}/database"
-            },
-
-            "supportedFormats": [
-                {
-                    "group": "audio",
-                    "extensions": "aac,ac3,aif,aiff,au,m4a,mp2,mp3,oga,ogg,swa,wav"
-                },
-                {
-                    "group": "image",
-                    "extensions": "bmp,gif,jpeg,jpg,png,tif,tiff"
-                },
-                {
-                    "group": "video",
-                    "extensions": "asf,avi,f4v,flv,h264,hdmov,m4v,matroska,mjpeg,mjpg,mov,mp4,mpg,mpeg,mpeg4,ogm,ogv,ogx,swf,wmv"
-                }
-            ],
-
-            "displayTypes": {
-                "video": "ffmpeg"
-            },
-
-            "merging": {
-                "mpegFrameRate": "25",
-                "finalFormat": "avi",
-                "finalFrameRate": "10"
-            },
-
-            "transcodings": {
-                "audio": [
-                    {
-                        "alias": "MP3 Preview",
-                        "renditions": [
-                            {
-                                "name": "ffmpegPreview.mp3",
-                                "type": "Preview",
-                                "formatMetadata": "MP3",
-                                "codecMetadata": "mp3",
-                                "audioOnly": "true",
-                                "options": "-b 192k",
-                                "output": "-f mp3"
-                            }
-                        ]
-                    }
-                ],
-                "image": [
-                    {
-                        "alias": "JPG Renditions",
-                        "renditions": [
-                            {
-                                "name": "ffmpegThumbnail.jpg",
-                                "type": "Thumbnail",
-                                "formatMetadata": "JPG",
-                                "maxWidth": "160",
-                                "maxHeight": "120",
-                                "padding": "none",
-                                "options": "-r 1",
-                                "output": "-vcodec mjpeg -f mjpeg"
-                            },
-                            {
-                                "name": "ffmpegPreview.jpg",
-                                "type": "Preview",
-                                "formatMetadata": "JPG",
-                                "maxWidth": "600",
-                                "padding": "none",
-                                "options": "-r 1",
-                                "output": "-vcodec mjpeg -f mjpeg"
-                            }
-                        ]
-                    }
-                ],
-                "video": [
-                    {
-                        "alias": "JPG Thumbnail",
-                        "renditions": [
-                            {
-                                "name": "ffmpegThumbnail.jpg",
-                                "type": "Thumbnail",
-                                "formatMetadata": "JPG",
-                                "maxWidth": "160",
-                                "maxHeight": "90",
-                                "padding": "individual",
-                                "options": "-deinterlace -ss [[OFFSET]] -t 00:00:01 -r 1",
-                                "output": "-vcodec mjpeg -f mjpeg"
-                            }
-                        ]
-                    },
-                    {
-                        "alias": "FLV Preview",
-                        "renditions": [
-                            {
-                                "name": "ffmpegPreview.flv",
-                                "type": "Preview",
-                                "formatMetadata": "FLV",
-                                "maxWidth": "400",
-                                "maxHeight": "224",
-                                "padding": "individual",
-                                "options": "-b 192k -ab 64k -ar 44100 -ac 1",
-                                "output": "-f flv"
-                            }
-                        ]
-                    }
-                ]
-            }
-        },
-
-        "ice2": {
-            "id": "ice2",
-            "url": "http://ice-service.usq.edu.au/api/convert/",
-            "outputPath": "${java.io.tmpdir}/${user.name}/ice2-output",
-            "excludeRenditionExt": "txt,mp3,m4a,mov,mp4,wav,wma,wmv,mpg,flv",
-            "priority": "true",
-            "resize": {
-                "thumbnail": {
-                    "option": "fixedWidth",
-                    "ratio": "-90",
-                    "fixedWidth": "160",
-                    "enlarge": "false"
-                },
-                "preview": {
-                    "option": "fixedWidth",
-                    "ratio": "-90",
-                    "fixedWidth": "600",
-                    "enlarge": "false"
-                }
-            }
-        },
-        "ims": {
-            "id": "ims"
-        },
-        "jython" : {
-          "id" : "jython"
+        "marc-authors": {
+            "id": "marc-authors"
         }
     },
     "uploader": {
-        "workflow1": {
-            "screen-label": "Workflow 1",
+        "basic-upload": {
+            "screen-label": "Basic Upload",
             "security": ["registered", "metadata", "editor", "admin"],
             "upload-path": "${fascinator.home}/uploads/workflow-harvester",
             "json-config": "${fascinator.home}/harvest/workflows/workflow-harvester.json"
@@ -345,28 +195,35 @@
     "mime-types" : {
         "tfpackage" : "application/x-fascinator-package"
     },
-    "database-service": {
-        "derbyHome" : "${fascinator.home}/database-service"
-    },
     "portal": {
         "home": "${portal.home}",
         "contentDir": "${fascinator.home}/content",
         "defaultView": "default",
         "skins": {
             "default": "default",
-            "order": []
+            "order": [ "newcastle" ]
         },
         "cachingLevel": "dynamic",
         "layout": "layout",
         "nativeJython": true,
+        "packageTypes": {
+            "default": {
+                "jsonconfig": "packaging-config.json",
+                "packages-in-package": false
+            },
+            "name-authority": {
+                "jsonconfig": "name-authority.json",
+                "packages-in-package": false
+            }
+        },
         "harvestFiles": "${fascinator.home}/harvest",
         "houseKeeping": {
             "config": {
                 "derbyHome" : "${fascinator.home}/database",
-                "quartzConfig" : "${fascinator.home}/quartz.properties",
+                "quartzConfig": "${fascinator.home}/quartz.properties",
                 "desktop": true,
                 "frequency": "300",
-                "jobs" : [
+                "jobs": [
                 ]
             }
         },
@@ -374,20 +231,40 @@
             "sessionExpiry": "300000",
             "metadataFormats": {
                 "oai_dc": {
-                    "enabledInAllViews": true,
+                    "enabledInAllViews": false,
                     "enabledViews": ["default"],
                     "schema": "http://www.openarchives.org/OAI/2.0/oai_dc.xsd",
                     "metadataNamespace": "http://www.openarchives.org/OAI/2.0/oai_dc/"
+                },
+                "eac_cpf": {
+                    "enabledInAllViews": false,
+                    "enabledViews": ["master"],
+                    "schema": "urn:isbn:1-931666-33-4 http://eac.staatsbibliothek-berlin.de/schema/cpf.xsd",
+                    "metadataNamespace": "urn:isbn:1-931666-33-4"
+                },
+                "rif_cs": {
+                    "enabledInAllViews": false,
+                    "enabledViews": ["master"],
+                    "schema": "http://ands.org.au/standards/rif-cs/registryObjects http://services.ands.org.au/home/orca/schemata/registryObjects.xsd",
+                    "metadataNamespace": "http://ands.org.au/standards/rif-cs/registryObjects"
                 }
             }
         }
+    },
+    "proxy-urls": {
+        "mintPeople" : "http://novadev2.newcastle.edu.au:8086/mint/master/opensearch/lookup",
+        "mintFor" : "http://novadev2.newcastle.edu.au:8086/mint/for/opensearch/lookup",
+        "mintSeo" : "http://novadev2.newcastle.edu.au:8086/mint/seo/opensearch/lookup",
+        "mintAuthor" : "http://novadev2.newcastle.edu.au:8086/mint/author/opensearch/lookup",
+        "mintGeoNames" : "http://novadev2.newcastle.edu.au:8086/mint/geonmaes/opensearch/lookup",
+        "mintOrgUnit" : "http://novadev2.newcastle.edu.au:8086/mint/orgunit/opensearch/lookup"
     },
     "watcher" : {
         "path": "${INSTALL_PATH}/watcher"
     },
     "subscriber": {
         "solr": {
-            "uri": "http://localhost:9997/solr/eventlog",
+            "uri": "http://localhost:${jetty.port}/solr/eventlog",
             "buffer": {
                 "docLimit" : "200",
                 "sizeLimit" : "204800",
