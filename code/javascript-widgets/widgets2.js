@@ -1084,7 +1084,7 @@ var widgets={forms:[], globalObject:this};
           if(e.size()==0){return null;}
           v = e.val();
           if(e.attr("type")==="checkbox"){
-            if(!e.attr("checked"))v="";
+            if(!e.attr("checked")){v="";}
           } else if(e.attr("type")==="radio"){
             v = e.filter(":checked").val();
           }
@@ -1179,6 +1179,7 @@ var widgets={forms:[], globalObject:this};
                       }
                       if(input.attr("type")=="checkbox"){
                         input.attr("checked", !!data[v]);
+                        input.change();
                       }else{
                         input.val(data[v]);
                       }

@@ -78,7 +78,7 @@
                             callback(false);
                           }
                         });
-        //dialog.dialog("option", "position", [position.left, position.top]);
+        // //dialog.dialog("option", "position", [position.left, position.top]);
         dialog.dialog("open");
         //dialog.parent().css("top", position.top+"px").css("left", position.left+"px");
     }
