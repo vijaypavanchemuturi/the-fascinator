@@ -10,6 +10,7 @@ $(function() {
         tagList: ".video-result-list",
         uriAttr: "anotar-uri",
         replyLabel: "<img src='$portalPath/images/icons/comments_add.png' title='Reply to this comment' />",
+        clientUri: "http://www.purl.org/anotar/client/0.2",
         #if("$!creator" != "")creator: "$creator",#end
         #if("$!creatorUri" != "")creatorUri: "$creatorUri",#end
         interfaceLabel: videoAnoLabel,

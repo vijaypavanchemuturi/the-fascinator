@@ -6,6 +6,7 @@ function setupTagging(docRoot, pageUri) {
         #if("$!creator" != "")creator: "$creator",#end
         #if("$!creatorUri" != "")creatorUri: "$creatorUri",#end
         tagList: ".object-tag-list:not([anotar-hash])",
+        clientUri: "http://www.purl.org/anotar/client/0.2",
         contentInput: "#object-tag-input",
         uriAttr: "rel",
         outputInChild: ".object-tags",

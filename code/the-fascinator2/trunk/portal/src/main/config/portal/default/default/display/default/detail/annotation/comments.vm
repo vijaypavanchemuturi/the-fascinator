@@ -3,6 +3,7 @@ function setupCommenting(pageUri, tagList, visible) {
     var commentConfig = {
         pageUri: pageUri,
         tagList: tagList,
+        clientUri: "http://www.purl.org/anotar/client/0.2",
         #if("$!creator" != "")creator: "$creator",#end
         #if("$!creatorUri" != "")creatorUri: "$creatorUri",#end
         interfaceLabel: " <img src='$portalPath/images/icons/comment_add.png' title='Add new comment' /> Comments:",
