@@ -607,7 +607,7 @@ public class SolrIndexer implements Indexer {
 
             String doc = index(object, payload, null, ANOTAR_RULES_OID, props);
             if (doc != null) {
-                log.info("XXXXXXXXX: {}", doc);
+                doc = "<add>" + doc + "</add>";
                 anotar.request(new DirectXmlRequest("/update", doc));
                 if (anotarAutoCommit) {
                     anotar.commit();
