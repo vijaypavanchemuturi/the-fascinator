@@ -1,15 +1,17 @@
 <script type="text/javascript" src="$portalPath/js/anotar/video.annotate.js"></script>
 <script type="text/javascript">
-$(function() {
-    // Audio/Video Tags annotation
+
+function setupVideoAnnotation(oid) {
+        // Audio/Video Tags annotation
     var videoAnoLabel = "<img src='$portalPath/images/icons/comment_add.png' title='Add new comment' />&#160;Comment on this media:";
     videoConfig = {
         label: videoAnoLabel,
-        pageUri: "$oid",
+        pageUri: oid,
         docRoot: ".video-results-list",
         tagList: ".video-result-list",
         uriAttr: "anotar-uri",
         replyLabel: "<img src='$portalPath/images/icons/comments_add.png' title='Reply to this comment' />",
+        clientUri: "http://www.purl.org/anotar/client/0.2",
         #if("$!creator" != "")creator: "$creator",#end
         #if("$!creatorUri" != "")creatorUri: "$creatorUri",#end
         interfaceLabel: videoAnoLabel,
@@ -27,6 +29,7 @@ $(function() {
         onFormDisplay: function(node){
             $("#annotate_all").click();
         },
+        annoType: "comment",
         disableReply: false,
         loadAnnotations: function() { loadAnnotations(this, "$oid") },
         submitAnnotation: function(data, annotateDiv) { submitAnnotation(this, "$oid", data, annotateDiv) }
@@ -46,7 +49,12 @@ $(function() {
     if ((window.disableVideoAnotar === undefined) || !disableVideoAnotar) {
         anotarFactory(jQuery, videoConfig);
     }
+}
+
+$(window).load(function() {
+    ##setupVideoAnnotation("$oid");
 });
+
 </script>
 
 <script type="text/html" id="media_clip_form">

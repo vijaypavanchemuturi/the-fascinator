@@ -18,6 +18,8 @@ class AnotarData:
         # This gets called a lot
         self.fd = self.vc("formData").get
 
+        print "******************* sefl.fd: ", self.fd
+
         self.action = self.fd("action")
         self.rootUri = self.fd("rootUri")
         self.json = self.fd("json")
@@ -270,7 +272,7 @@ class AnotarData:
     def save_image(self):
         jsonTemplate = """
 {
-  "clientVersionUri": "http://www.purl.org/anotar/client/0.1",
+  "clientVersionUri": "http://www.purl.org/anotar/client/0.2",
   "type" : "http://www.purl.org/anotar/ns/type/0.1#Tag",
   "title" : {
     "literal" : null,
