@@ -24,26 +24,26 @@ package au.edu.usq.fascinator.api;
  * 
  * @author Greg Pendlebury
  */
-@SuppressWarnings("serial")
 public class PluginDescription {
     /** Plugin id */
-    private String plugin_id;
+    private String id;
 
     /** Plugin name */
-    private String plugin_name;
+    private String name;
 
     /** Plugin metadata */
-    private String plugin_metadata;
+    private String metadata;
 
     /**
      * Plugin Description Constructor
      * 
-     * @param p Plugin object
+     * @param plugin Plugin object
      */
-    public PluginDescription(Plugin p) {
-        plugin_id = p.getId();
-        plugin_name = p.getName();
-        plugin_metadata = null;
+    public PluginDescription(Plugin plugin) {
+        id = plugin.getId();
+        name = plugin.getName();
+        metadata = "{ \"resources\": { \"about\": \"/plugin/" + id
+                + "/about.html\" } }";
     }
 
     /**
@@ -52,7 +52,7 @@ public class PluginDescription {
      * @return plugin id String
      */
     public String getId() {
-        return plugin_id;
+        return id;
     }
 
     /**
@@ -61,7 +61,7 @@ public class PluginDescription {
      * @return plugin name String
      */
     public String getName() {
-        return plugin_name;
+        return name;
     }
 
     /**
@@ -70,7 +70,7 @@ public class PluginDescription {
      * @return plugin metadata String
      */
     public String getMetadata() {
-        return plugin_metadata;
+        return metadata;
     }
 
     /**
@@ -79,6 +79,6 @@ public class PluginDescription {
      * @param newMetadata metadata String
      */
     public void setMetadata(String newMetadata) {
-        plugin_metadata = newMetadata;
+        metadata = newMetadata;
     }
 }
