@@ -97,11 +97,11 @@ var widgets={forms:[], globalObject:this};
   };
 
   function any(c, func){
-    var flag=false;
-    $.each(c, function(k, v){
-      if(func(v)) flag=true;
-    });
-    return flag;
+    var k;
+    for(k in c){
+        if(func(k, c[k])) return true;
+    }
+    return false;
   };
 
   function isFunction(func){
@@ -260,6 +260,8 @@ var widgets={forms:[], globalObject:this};
           }
           v="/^.{0,"+(n-1)+"}$/"; }
       if(vl=="notempty"){expr="(v!='')";}
+      else if(vl=="checked"){expr='target.attr("checked")';}
+      else if(vl=="notchecked"){expr='!target.attr("checked")';}
       else if(v=="="){expr="(v=="+reader.next()+")";}
       else if(v=="!="){expr="(v!="+reader.next()+")";}
       else if(v[0]=="/"){expr="("+v+".test(v))";}
@@ -367,7 +369,8 @@ var widgets={forms:[], globalObject:this};
                       reader = iterReader(d.test.match(reg2));
                       testStr = getExpr(reader);
                       try{
-                        func="func=function(){var v=getValue();return showValidationMessage(!("+testStr+"));};";
+                        func="func=function(){var v=getValue();showValidationMessage(!("+
+                            testStr+"));return true;};";
                         eval(func);
                         d._testFunc = func;
                       } catch(e){
@@ -564,7 +567,7 @@ var widgets={forms:[], globalObject:this};
           tmp = displayRowTemplate.clone().show().addClass("count-this");
           visibleItems = xfind(displaySelector+".count-this");
           if(!force){
-              if(!any(values, function(v){ return v[0]!==""; })) return;
+              if(!any(values, function(_, v){ return v[0]!==""; })) return;
               if(addUniqueOnly){
                 // Check that this entry is unique
                 var unique=true;
@@ -933,7 +936,7 @@ var widgets={forms:[], globalObject:this};
   function formWidget(ctx, globalObject, validator){
       // functions
       var addListener, removeListener, removeListeners, raiseEvents
-      var onSubmit, onSave, onRestore, onReset
+      var onSubmit, onSave, onRestore, onReset, hasChanges, lastData={};
       var submit, save, submitSave, getFormData, restore
       var reset, setupFileUploader, getFileUploadInfo, createFileSubmitter, init
       // variables
@@ -949,16 +952,16 @@ var widgets={forms:[], globalObject:this};
               listeners[name]=l;
           }
           l.push(func);
-      }
+      };
       removeListener=function(name, func){
           var l, i;
           l=listeners[name]||[];
           i=$.inArray(name, l);
           if(i>-1)l.splice(i, 1);
-      }
+      };
       removeListeners=function(name){
           delete listeners[name];
-      }
+      };
       raiseEvents=function(name){
           var l=listeners[name]||[];
           for(var k in l){
@@ -967,7 +970,7 @@ var widgets={forms:[], globalObject:this};
                   if(f()===false) return false; // cancel event
               }catch(e){}
           }
-      }
+      };
 
       onSubmit=function(){
         if(raiseEvents("onSubmit")==false){
@@ -975,37 +978,49 @@ var widgets={forms:[], globalObject:this};
         }
         submit();
         return true;
-      }
+      };
       onSave=function(){
         if(raiseEvents("onSave")==false){
             return false;
         }
         save();
         return true;
-      }
+      };
       onRestore=function(data){
         if(raiseEvents("onRestore")==false){
             return false;
         }
         //messageBox(JSON.stringify(data))
         restore(data);
+        lastData = getFormData();
         return true;
-      }
+      };
       onReset=function(data){
         if(raiseEvents("onReset")==false){
             return false;
         }
         reset(data);
         return true;
-      }
+      };
+
+      hasChanges=function(){
+          var cData, u, lv;
+          cData=getFormData();
+          return any(cData, function(k,v){
+              lv=lastData[k];
+              if(v===lv)return false;
+              if(lv===u || v===u)return true;   // if either is undefined
+              return v.toString()!=lv.toString();
+          });
+      };
 
       submit=function(){
           submitSave("submit");
-      }
+      };
 
       save=function(){
           submitSave("save");
-      }
+      };
 
       submitSave=function(stype){
         var data, url;
@@ -1046,6 +1061,7 @@ var widgets={forms:[], globalObject:this};
                     ctx.findx(".submit-result").text("Submitted OK").
                         css("color", "green").show().fadeOut(4000);
                 }
+                lastData = getFormData();
             }
         };
         if(data.title===null)data.title=data["dc:title"];
@@ -1082,7 +1098,7 @@ var widgets={forms:[], globalObject:this};
         }else{
             completed();
         }
-      }
+      };
 
       getFormData=function(){
         var data={}, s, v, e, formFields;
@@ -1141,7 +1157,7 @@ var widgets={forms:[], globalObject:this};
             if(data.metaDataList=="[]"){ data.metaDataList=s; }
         }
         return data;
-      }
+      };
 
       restore=function(data){
           var keys=[], skeys=[], input, t, formFields, regAll, regLast;
@@ -1202,12 +1218,12 @@ var widgets={forms:[], globalObject:this};
                   alert("Error in restore() - "+e.message);
               }
           });
-      }
+      };
 
       reset=function(data){
           if(!data)data={};
           //
-      }
+      };
 
       setupFileUploader=function(fileUploadSections, onChange){
         if(!fileUploadSections) fileUploadSections=ctx.findx(".file-upload-section");
@@ -1251,7 +1267,7 @@ var widgets={forms:[], globalObject:this};
                 fileUploadSection[0].addEventListener("drop", handleFileDrop, false);
             }
         });
-      }
+      };
 
       getFileUploadInfo=function(file){
         var fileInfo = {};
@@ -1285,7 +1301,7 @@ var widgets={forms:[], globalObject:this};
             fileInfo.typeName = "File";
         }
         return fileInfo;
-      }
+      };
 
       createFileSubmitter=function(){
           var iframe, getBody, submit;
@@ -1321,7 +1337,7 @@ var widgets={forms:[], globalObject:this};
           //    elems = 'input' elements to be submitted (cloned)
           //    callback = function(textResult, iframeBody)
           return {submit:submit, iframe:iframe, getBody:getBody};
-      }
+      };
 
       init=function(_ctx, validator){
         var id;
@@ -1350,12 +1366,13 @@ var widgets={forms:[], globalObject:this};
         ctx.findx(".form-fields-restore").click(onRestore);
         ctx.findx(".form-fields-reset").click(onReset);
         widgetForm.ctx = ctx;
-      }
+      };
 
       widgetForm.submit=onSubmit;
       widgetForm.save=onSave;
       widgetForm.restore=onRestore;
       widgetForm.reset=onReset;
+      widgetForm.hasChanges=hasChanges;
       widgetForm.addListener=addListener;
       widgetForm.removeListener=removeListener;
       widgetForm.removeListeners=removeListeners;
@@ -1416,7 +1433,11 @@ var widgets={forms:[], globalObject:this};
         });
         ctx.find('input.dateY').datepicker({
             changeMonth: false, changeYear: true, showButtonPanel: true, dateFormat: 'yy',
-            onClose: datepickerOnClose,
+            //onClose: datepickerOnClose,
+            onClose: function(dateText){  // for IE7
+                var year = $("#ui-datepicker-div .ui-datepicker-year :selected").val();
+                $(this).val(year);
+            },
             beforeShow:datepickerBeforeShow,
             onChangeMonthYear:function(year, month, inst){ datepickerBeforeShow(null, inst); },
             onSelect:function(dateText, inst){}
@@ -1475,7 +1496,7 @@ var widgets={forms:[], globalObject:this};
         });
     }
 
-    //widgets.forms=[];
+    widgets.forms=[];
     widgets.formsById={};
     widgets.messageBox = messageBox;
     widgets.changeToTabLayout = changeToTabLayout;
