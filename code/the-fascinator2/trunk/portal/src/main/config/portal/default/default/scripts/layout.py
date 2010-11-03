@@ -8,6 +8,7 @@ class LayoutData:
         pass
     
     def __activate__(self, context):
+        self.sessionState = context["sessionState"]
         self.services = context["Services"]
         self.security = context["security"]
         self.request = context["request"]
@@ -18,7 +19,6 @@ class LayoutData:
         self.authentication.__activate__(context)
         
         #self.formData = context["formData"]
-        #self.sessionState = context["sessionState"]
         #if self.formData is not None:
         #    for field in self.formData.getFormFields():
         #        log.debug("Form Data: '{}' => '{}'", field, self.formData.get(field))
@@ -40,7 +40,14 @@ class LayoutData:
     
     def getPortalName(self):
         return self.getPortal().getDescription()
-    
+
+    def getQuery(self):
+        query = self.sessionState.get("query")
+        if query is None:
+            return ""
+        else:
+            return self.escapeHtml(query)
+
     def escapeXml(self, text):
         return StringEscapeUtils.escapeXml(text)
     

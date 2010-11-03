@@ -1,3 +1,4 @@
+#set($query = $page.getQuery())
 <script type="text/javascript">
 $(function() {
     addActionParam("query", "$!query");
