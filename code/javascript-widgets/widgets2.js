@@ -474,6 +474,9 @@ var widgets={forms:[], globalObject:this};
                 e.change(function(){
                     t.toggle(e.attr("checked"));
                 });
+                e.click(function(){     // required for IE7
+                    t.toggle(e.attr("checked"));
+                });
                 break;
             }
             p = p.parent();
@@ -830,6 +833,15 @@ var widgets={forms:[], globalObject:this};
             function removeSelects(s){
                 if(s.size()==0)return;
                 removeSelects(s.next("select"));
+                try{
+                    // IE7 fixup - remove excess spaces (padding)
+                    var p, n;
+                    p=s.parent()[0];
+                    n=p.childNodes[p.childNodes.length-1];
+                    if(n.nodeValue==false){
+                        p.removeChild(n);
+                    }
+                }catch(e){}
                 s.remove();
             }
             removeSelects(s.next("select"));
@@ -837,6 +849,7 @@ var widgets={forms:[], globalObject:this};
         if(child.url){
           jsonGetter(child.url, function(j){
               s.after(buildSelectList(j, child, jsonGetter, onSelection));
+              s.after(" ");     // break point for IE7
               onSelection(child);
           });
         }
@@ -904,6 +917,7 @@ var widgets={forms:[], globalObject:this};
                 selectId=null;
             }
             ds.append(o);
+            ds.append(" "); // line break point of IE7
         }catch(e){
             alert("Error in sourceDropDown onJson function - " + e.message);
             throw e;
