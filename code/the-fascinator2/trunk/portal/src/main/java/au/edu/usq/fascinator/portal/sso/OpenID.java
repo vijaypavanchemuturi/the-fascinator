@@ -44,9 +44,6 @@ public class OpenID implements SSOInterface {
     /** Logging */
     private Logger log = LoggerFactory.getLogger(OpenID.class);
 
-    /** Session data */
-    private JsonSessionState sessionState;
-
     /** The incoming server request */
     private HttpServletRequest request;
 
@@ -156,10 +153,10 @@ public class OpenID implements SSOInterface {
      * @return User A user object containing the current user.
      */
     @Override
-    public User getUserObject() {
-        String username = (String) sessionState.get("oidSsoIdentity");
-        String fullname = (String) sessionState.get("oidSsoDisplayName");
-        String email = (String) sessionState.get("oidSsoEmail");
+    public User getUserObject(JsonSessionState session) {
+        String username = (String) session.get("oidSsoIdentity");
+        String fullname = (String) session.get("oidSsoDisplayName");
+        String email = (String) session.get("oidSsoEmail");
 
         if (username == null) {
             return null;
@@ -179,15 +176,15 @@ public class OpenID implements SSOInterface {
      *
      */
     @Override
-    public void logout() {
-        sessionState.remove("oidAssocicationMac");
-        sessionState.remove("oidEndpointAlias");
-        sessionState.remove("oidRemoteLogonUrl");
-        sessionState.remove("oidReturnAddress");
-        sessionState.remove("oidSsoIdentity");
-        sessionState.remove("oidSsoEmail");
-        sessionState.remove("oidSsoName");
-        sessionState.remove("oidProvider");
+    public void logout(JsonSessionState session) {
+        session.remove("oidAssocicationMac");
+        session.remove("oidEndpointAlias");
+        session.remove("oidRemoteLogonUrl");
+        session.remove("oidReturnAddress");
+        session.remove("oidSsoIdentity");
+        session.remove("oidSsoEmail");
+        session.remove("oidSsoName");
+        session.remove("oidProvider");
     }
 
     /**
@@ -200,7 +197,6 @@ public class OpenID implements SSOInterface {
     @Override
     public void ssoInit(JsonSessionState session, HttpServletRequest request)
             throws Exception {
-        sessionState = session;
         this.request = request;
         manager = new OpenIdManager();
 
@@ -208,12 +204,12 @@ public class OpenID implements SSOInterface {
         String provider = request.getParameter("provider");
         if (provider != null) {
             oidProvider = provider;
-            sessionState.set("oidProvider", oidProvider);
+            session.set("oidProvider", oidProvider);
         }
-        oidProvider = (String) sessionState.get("oidProvider");
+        oidProvider = (String) session.get("oidProvider");
 
         // Make sure our link is up-to-date
-        portalUrl = (String) sessionState.get("ssoPortalUrl");
+        portalUrl = (String) session.get("ssoPortalUrl");
     }
 
     /**
@@ -223,12 +219,12 @@ public class OpenID implements SSOInterface {
      * @throws Exception if any errors occur
      */
     @Override
-    public void ssoPrepareLogin(String returnAddress, String server)
-            throws Exception {
+    public void ssoPrepareLogin(JsonSessionState session, String returnAddress,
+            String server) throws Exception {
         // Set our data
         manager.setReturnTo(returnAddress);
         manager.setRealm(server);
-        sessionState.set("oidReturnAddress", returnAddress);
+        session.set("oidReturnAddress", returnAddress);
     }
 
     /**
@@ -237,7 +233,7 @@ public class OpenID implements SSOInterface {
      * @return String The URL used by the SSO Service for logins
      */
     @Override
-    public String ssoGetRemoteLogonURL() {
+    public String ssoGetRemoteLogonURL(JsonSessionState session) {
         if (oidProvider == null) {
             return null;
         }
@@ -251,9 +247,9 @@ public class OpenID implements SSOInterface {
             oidRemoteLogonUrl = manager.getAuthenticationUrl(endpoint, association);
 
             // Make sure we don't forget it
-            sessionState.set("oidAssocicationMac", oidAssocicationMac);
-            sessionState.set("oidEndpointAlias", oidEndpointAlias);
-            sessionState.set("oidRemoteLogonUrl", oidRemoteLogonUrl);
+            session.set("oidAssocicationMac", oidAssocicationMac);
+            session.set("oidEndpointAlias", oidEndpointAlias);
+            session.set("oidRemoteLogonUrl", oidRemoteLogonUrl);
         } catch (OpenIdException ex) {
             log.error("OpenID Error: ", ex.getMessage());
             return null;
@@ -267,17 +263,17 @@ public class OpenID implements SSOInterface {
      *
      */
     @Override
-    public void ssoCheckUserDetails() {
+    public void ssoCheckUserDetails(JsonSessionState session) {
         // Check if already logged in
-        String username = (String) sessionState.get("oidSsoIdentity");
+        String username = (String) session.get("oidSsoIdentity");
         if (username != null) {
             return;
         }
 
         // SSO Service details
-        oidReturnAddress = (String) sessionState.get("oidReturnAddress");
-        oidAssocicationMac = (byte[]) sessionState.get("oidAssocicationMac");
-        oidEndpointAlias = (String) sessionState.get("oidEndpointAlias");
+        oidReturnAddress = (String) session.get("oidReturnAddress");
+        oidAssocicationMac = (byte[]) session.get("oidAssocicationMac");
+        oidEndpointAlias = (String) session.get("oidEndpointAlias");
         if (oidAssocicationMac == null || oidEndpointAlias == null) {
             return;
         }
@@ -293,21 +289,21 @@ public class OpenID implements SSOInterface {
             log.debug("=== SSO: Provider: '{}', Data: '{}'", oidProvider, authentication.toString());
 
             if (identity != null) {
-                sessionState.set("oidSsoIdentity", identity);
+                session.set("oidSsoIdentity", identity);
             }
             if (email != null && !email.equals("null")) {
-                sessionState.set("oidSsoEmail", email);
+                session.set("oidSsoEmail", email);
             }
             // We try to set the display name as:
             // 1) Name > 2) Email > 3) ID
             if (name != null && !name.equals("nullnull")) {
-                sessionState.set("oidSsoName", name);
-                sessionState.set("oidSsoDisplayName", name);
+                session.set("oidSsoName", name);
+                session.set("oidSsoDisplayName", name);
             } else {
                 if (email != null && !email.equals("null")) {
-                    sessionState.set("oidSsoDisplayName", email);
+                    session.set("oidSsoDisplayName", email);
                 } else {
-                    sessionState.set("oidSsoDisplayName", identity);
+                    session.set("oidSsoDisplayName", identity);
                 }
             }
         } catch (OpenIdException ex) {
@@ -321,7 +317,7 @@ public class OpenID implements SSOInterface {
      * @return List<String> Array of roles.
      */
     @Override
-    public List<String> getRolesList() {
+    public List<String> getRolesList(JsonSessionState session) {
         // Not supported by this provider
         return new ArrayList();
     }

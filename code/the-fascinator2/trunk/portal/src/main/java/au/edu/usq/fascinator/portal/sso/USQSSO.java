@@ -54,9 +54,6 @@ public class USQSSO implements SSOInterface {
     /** Logging */
     private Logger log = LoggerFactory.getLogger(USQSSO.class);
 
-    /** Session data */
-    private JsonSessionState sessionState;
-
     /** URL to redirect to for user logins */
     private String remoteLogonURL = null;
 
@@ -153,10 +150,10 @@ public class USQSSO implements SSOInterface {
      * @return User A user object containing the current user.
      */
     @Override
-    public User getUserObject() {
-        String username = (String) sessionState.get("usqSsoUsername");
-        String fullname = (String) sessionState.get("usqSsoFullName");
-        String groups = (String) sessionState.get("usqSsoGroups");
+    public User getUserObject(JsonSessionState session) {
+        String username = (String) session.get("usqSsoUsername");
+        String fullname = (String) session.get("usqSsoFullName");
+        String groups = (String) session.get("usqSsoGroups");
 
         if (username == null) {
             return null;
@@ -176,13 +173,13 @@ public class USQSSO implements SSOInterface {
      *
      */
     @Override
-    public void logout() {
-        sessionState.remove("usqSsoRemoteLogonId");
-        sessionState.remove("usqSsoResponseKey");
-        sessionState.remove("usqSsoRequestKey");
-        sessionState.remove("usqSsoUsername");
-        sessionState.remove("usqSsoGroups");
-        sessionState.remove("usqSsoRemoteLogonURL");
+    public void logout(JsonSessionState session) {
+        session.remove("usqSsoRemoteLogonId");
+        session.remove("usqSsoResponseKey");
+        session.remove("usqSsoRequestKey");
+        session.remove("usqSsoUsername");
+        session.remove("usqSsoGroups");
+        session.remove("usqSsoRemoteLogonURL");
     }
 
     /**
@@ -195,9 +192,8 @@ public class USQSSO implements SSOInterface {
     @Override
     public void ssoInit(JsonSessionState session, HttpServletRequest request)
             throws Exception {
-        sessionState = session;
         // Make sure our link is up-to-date
-        String portalUrl = (String) sessionState.get("ssoPortalUrl");
+        String portalUrl = (String) session.get("ssoPortalUrl");
         linkText = portalUrl + "/images/UConnect.jpg";
     }
 
@@ -209,10 +205,10 @@ public class USQSSO implements SSOInterface {
      * @throws Exception if any errors occur
      */
     @Override
-    public void ssoPrepareLogin(String returnAddress, String server)
-            throws Exception {
+    public void ssoPrepareLogin(JsonSessionState session, String returnAddress,
+            String server) throws Exception {
         // Read configuration
-        requestKey = this.getRequestKey();
+        requestKey = this.getRequestKey(session);
 
         // Let the SSO Service know we are sending a login to them
         createMessage(WS_LOGON_URI);
@@ -225,7 +221,7 @@ public class USQSSO implements SSOInterface {
         sendMessage();
 
         // Check the output
-        retrieveLogonResult(reply.getSOAPBody());
+        retrieveLogonResult(session, reply.getSOAPBody());
     }
 
     /**
@@ -234,7 +230,7 @@ public class USQSSO implements SSOInterface {
      * @return String The URL used by the SSO Service for logins
      */
     @Override
-    public String ssoGetRemoteLogonURL() {
+    public String ssoGetRemoteLogonURL(JsonSessionState session) {
         return remoteLogonURL;
     }
 
@@ -243,17 +239,17 @@ public class USQSSO implements SSOInterface {
      *
      */
     @Override
-    public void ssoCheckUserDetails() {
+    public void ssoCheckUserDetails(JsonSessionState session) {
         // Check if already logged in
-        String username = (String) sessionState.get("usqSsoUsername");
+        String username = (String) session.get("usqSsoUsername");
         if (username != null) {
             return;
         }
 
         // SSO Service details
-        remoteLogonId = (String) sessionState.get("usqSsoRemoteLogonId");
-        responseKey = (String) sessionState.get("usqSsoResponseKey");
-        requestKey = (String) sessionState.get("usqSsoRequestKey");
+        remoteLogonId = (String) session.get("usqSsoRemoteLogonId");
+        responseKey = (String) session.get("usqSsoResponseKey");
+        requestKey = (String) session.get("usqSsoRequestKey");
 
         // Make sure we've connected to SSO before
         if (remoteLogonId == null || requestKey == null ||
@@ -275,14 +271,14 @@ public class USQSSO implements SSOInterface {
             sendMessage();
 
             // Handle the output
-            parseUserDetails(reply.getSOAPBody());
+            parseUserDetails(session, reply.getSOAPBody());
         } catch(Exception e) {
             log.error("Error retrieving user details from SSO Servivce", e);
 
             // Unset our SSO details. The user can try again later
-            sessionState.remove("usqSsoRemoteLogonId");
-            sessionState.remove("usqSsoResponseKey");
-            sessionState.remove("usqSsoRequestKey");
+            session.remove("usqSsoRemoteLogonId");
+            session.remove("usqSsoResponseKey");
+            session.remove("usqSsoRequestKey");
         }
     }
 
@@ -292,7 +288,7 @@ public class USQSSO implements SSOInterface {
      *
      * @param body The body of the response message.
      */
-    private void retrieveLogonResult(Element body) {
+    private void retrieveLogonResult(JsonSessionState session, Element body) {
         Element response = (Element) body.
                 getElementsByTagName("GetLogonURLResponse").item(0);
         Element result = (Element) response.
@@ -305,9 +301,9 @@ public class USQSSO implements SSOInterface {
         responseKey = readValue(result, "ResponseKey");
 
         // Set it into the session
-        sessionState.set("usqSsoRemoteLogonURL", remoteLogonURL);
-        sessionState.set("usqSsoRemoteLogonId", remoteLogonId);
-        sessionState.set("usqSsoResponseKey", responseKey);
+        session.set("usqSsoRemoteLogonURL", remoteLogonURL);
+        session.set("usqSsoRemoteLogonId", remoteLogonId);
+        session.set("usqSsoResponseKey", responseKey);
     }
 
     /**
@@ -316,7 +312,7 @@ public class USQSSO implements SSOInterface {
      *
      * @param body The body of the response message.
      */
-    private void parseUserDetails(Element body) {
+    private void parseUserDetails(JsonSessionState session, Element body) {
         Element response = (Element) body.
                 getElementsByTagName("GetUserDetailsFullResponse").item(0);
         Element result = (Element) response.
@@ -327,9 +323,9 @@ public class USQSSO implements SSOInterface {
         String username = readValue(result, "UserID");
         String fullname = readValue(result, "FullName");
         String groups = readValue(result, "Groups");
-        sessionState.set("usqSsoUsername", username);
-        sessionState.set("usqSsoFullName", fullname);
-        sessionState.set("usqSsoGroups", groups);
+        session.set("usqSsoUsername", username);
+        session.set("usqSsoFullName", fullname);
+        session.set("usqSsoGroups", groups);
     }
 
     /**
@@ -411,12 +407,12 @@ public class USQSSO implements SSOInterface {
      *
      * @return String The random request key.
      */
-    private String getRequestKey() {
-        String key = (String) sessionState.get("usqSsoRequestKey");
+    private String getRequestKey(JsonSessionState session) {
+        String key = (String) session.get("usqSsoRequestKey");
         if (key == null) {
             key = Long.toHexString(Thread.currentThread().getId()) +
                     Long.toHexString((new Date()).getTime());
-            sessionState.set("usqSsoRequestKey", key);
+            session.set("usqSsoRequestKey", key);
         }
         return key;
     }
@@ -427,9 +423,9 @@ public class USQSSO implements SSOInterface {
      * @return List<String> Array of roles.
      */
     @Override
-    public List<String> getRolesList() {
+    public List<String> getRolesList(JsonSessionState session) {
         // Retrieve the groups from the session and split
-        String groups = (String) sessionState.get("usqSsoGroups");
+        String groups = (String) session.get("usqSsoGroups");
         String[] groupArr = groups.toUpperCase().split(",");
 
         // Clean the data

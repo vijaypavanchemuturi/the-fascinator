@@ -66,21 +66,21 @@ public interface SSOInterface {
      *
      * @return List<String> A list of roles.
      */
-    public List<String> getRolesList();
+    public List<String> getRolesList(JsonSessionState session);
 
     /**
      * Get the current user details in a User object.
      *
      * @return User A user object containing the current user.
      */
-    public User getUserObject();
+    public User getUserObject(JsonSessionState session);
 
     /**
      * Logout the current user, if implementing providers do not support this
      * at least clear Fascinator session data regarding this user.
      *
      */
-    public void logout();
+    public void logout(JsonSessionState session);
 
     /**
      * Initialize the SSO Service
@@ -98,14 +98,14 @@ public interface SSOInterface {
      * have them from a callback.
      *
      */
-    public void ssoCheckUserDetails();
+    public void ssoCheckUserDetails(JsonSessionState session);
 
     /**
      * Retrieve the login URL for redirection.
      *
      * @return String The URL used by the SSO Service for logins
      */
-    public String ssoGetRemoteLogonURL();
+    public String ssoGetRemoteLogonURL(JsonSessionState session);
 
     /**
      * Prepare a login with the SSO provider
@@ -114,6 +114,6 @@ public interface SSOInterface {
      * @param server The server domain
      * @throws Exception if any errors occur
      */
-    public void ssoPrepareLogin(String returnAddress, String server)
-            throws Exception;
+    public void ssoPrepareLogin(JsonSessionState session, String returnAddress,
+            String server) throws Exception;
 }

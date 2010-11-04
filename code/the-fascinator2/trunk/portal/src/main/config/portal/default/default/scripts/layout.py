@@ -70,4 +70,4 @@ class LayoutData:
         return self.services.getHouseKeepingManager().getQueueStats()
     
     def getSsoProviders(self):
-        return self.security.ssoBuildLogonInterface()
+        return self.security.ssoBuildLogonInterface(self.sessionState)
