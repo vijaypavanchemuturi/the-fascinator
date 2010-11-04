@@ -2,7 +2,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>au.edu.usq.fascinator.maven-plugins</groupId>
     <artifactId>schemagen</artifactId>
-    <version>0.0.1</version>
+    <version>0.0.1-SNAPSHOT</version>
     <packaging>maven-plugin</packaging>
     <name>Schemagen plugin</name>
     <parent>
@@ -34,10 +34,10 @@
     <description>This plugin can be used to generate a set of Java classes for accessing RDF via RDF2Go.</description>
     <url>http://fascinator.usq.edu.au/trac/wiki/tf2/contrib/maven/plugins/schemagen</url>
     <scm>
-        <url>http://fascinator.usq.edu.au/svn/code/the-fascinator2/contrib/maven/plugins/schemagen/tags/schemagen-0.0.1</url>
-      <connection>scm:svn:http://fascinator.usq.edu.au/svn/project_meta/tags/schemagen-0.0.1</connection>
-    <developerConnection>scm:svn:https://fascinator.usq.edu.au/svn-auth/project_meta/tags/schemagen-0.0.1</developerConnection>
-  </scm>
+        <url>http://fascinator.usq.edu.au/svn/code/the-fascinator2/contrib/maven/plugins/schemagen</url>
+        <connection>scm:svn:http://fascinator.usq.edu.au/svn/code/the-fascinator2/contrib/maven/plugins/schemagen/trunk</connection>
+        <developerConnection>scm:svn:https://fascinator.usq.edu.au/svn-auth/code/the-fascinator2/contrib/maven/plugins/schemagen/trunk</developerConnection>
+    </scm>
     <build>
         <plugins>
             <plugin>
