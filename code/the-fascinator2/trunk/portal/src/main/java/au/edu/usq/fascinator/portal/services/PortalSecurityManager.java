@@ -63,7 +63,7 @@ public interface PortalSecurityManager {
      * @param user The user object of the current user
      * @return String[] A list of roles
      */
-    public String[] getRolesList(User user);
+    public String[] getRolesList(JsonSessionState session, User user);
 
     /**
      * Retrieve the details of a user by username
@@ -73,15 +73,16 @@ public interface PortalSecurityManager {
      * @return User The user requested
      * @throws AuthenticationException if any errors occur
      */
-    public User getUser(String username, String source)
-            throws AuthenticationException;
+    public User getUser(JsonSessionState session, String username,
+            String source) throws AuthenticationException;
 
     /**
      * Logout the provided user
      *
      * @return user The user to logout
      */
-    public void logout(User user) throws AuthenticationException;
+    public void logout(JsonSessionState session, User user)
+            throws AuthenticationException;
 
     /**
      * Wrapper method for other SSO methods provided by the security manager.
@@ -110,13 +111,13 @@ public interface PortalSecurityManager {
      * @param String The SSO source to use
      * @return String The URL used by the SSO Service for logins
      */
-    public String ssoGetRemoteLogonURL(String source);
+    public String ssoGetRemoteLogonURL(JsonSessionState session, String source);
 
     /**
      * Get user details from SSO connection and set them in the user session.
      *
      */
-    public void ssoCheckUserDetails();
+    public void ssoCheckUserDetails(JsonSessionState session);
 
     /**
      * Build a Map of Maps of on-screen string values for each SSO provider.
@@ -124,7 +125,7 @@ public interface PortalSecurityManager {
      *
      * @return Map Containing the data structure of valid SSO interfaces.
      */
-    public Map<String, Map<String, String>> ssoBuildLogonInterface();
+    public Map<String, Map<String, String>> ssoBuildLogonInterface(JsonSessionState session);
 
     /**
      * Given the provided resource, test whether SSO should be 'aware' of this
@@ -146,5 +147,5 @@ public interface PortalSecurityManager {
      * @param token : The token to validate
      * @return boolean : True if the token is valid, False otherwise
      */
-    public boolean testTrustToken(String token);
+    public boolean testTrustToken(JsonSessionState session, String token);
 }

@@ -221,8 +221,8 @@ public class Dispatch {
         String userSource = (String) sessionState.get("source");
         List<String> roles = null;
         try {
-            User user = security.getUser(username, userSource);
-            String[] roleArray = security.getRolesList(user);
+            User user = security.getUser(sessionState, username, userSource);
+            String[] roleArray = security.getRolesList(sessionState, user);
             roles = Arrays.asList(roleArray);
         } catch (AuthenticationException ex) {
             log.error("Error retrieving user data.");

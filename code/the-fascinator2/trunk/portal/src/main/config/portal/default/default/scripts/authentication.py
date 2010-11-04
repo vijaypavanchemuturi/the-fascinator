@@ -123,7 +123,7 @@ class AuthenticationData:
             role_list = []
             if self.current_user is not None:
                 role_list
-                java_list = self.security.getRolesList(self.current_user)
+                java_list = self.security.getRolesList(self.sessionState, self.current_user)
                 for role in java_list:
                     role_list.append(role)
         except Exception, e:
@@ -151,7 +151,7 @@ class AuthenticationData:
     def get_user(self, username, source):
         try:
             self.active_auth_plugin = source
-            user = self.security.getUser(username, source)
+            user = self.security.getUser(self.sessionState, username, source)
             self.has_error = False
             return user
         except AuthenticationException, e:
@@ -213,7 +213,7 @@ class AuthenticationData:
     def logout(self):
         if self.current_user is not None:
             try:
-                self.security.logout(self.current_user)
+                self.security.logout(self.sessionState, self.current_user)
                 self.current_user = None
                 self.error_message = None
                 self.has_error = False

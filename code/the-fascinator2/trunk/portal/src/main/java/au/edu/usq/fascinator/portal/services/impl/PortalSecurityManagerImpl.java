@@ -63,9 +63,6 @@ public class PortalSecurityManagerImpl implements PortalSecurityManager {
     /** User entry point for SSO logon */
     private String SSO_LOGIN_PAGE = "/sso";
 
-    /** Session data */
-    private JsonSessionState sessionState;
-
     /** Form data */
     private FormData formData;
 
@@ -243,13 +240,13 @@ public class PortalSecurityManagerImpl implements PortalSecurityManager {
      * @return String[] A list of roles
      */
     @Override
-    public String[] getRolesList(User user) {
+    public String[] getRolesList(JsonSessionState session, User user) {
         String source = user.getSource();
         List<String> ssoRoles = new ArrayList();
 
         // SSO Users
         if (sso.containsKey(source)) {
-            ssoRoles = sso.get(source).getRolesList();
+            ssoRoles = sso.get(source).getRolesList(session);
         }
 
         // Standard Users
@@ -275,8 +272,8 @@ public class PortalSecurityManagerImpl implements PortalSecurityManager {
      * @throws AuthenticationException if any errors occur
      */
     @Override
-    public User getUser(String username, String source)
-            throws AuthenticationException {
+    public User getUser(JsonSessionState session, String username,
+            String source) throws AuthenticationException {
         // Sanity check
         if (username == null || username.equals("") ||
                 source == null || source.equals("")) {
@@ -285,7 +282,7 @@ public class PortalSecurityManagerImpl implements PortalSecurityManager {
 
         // SSO Users
         if (sso.containsKey(source)) {
-            GenericUser user = (GenericUser) sso.get(source).getUserObject();
+            GenericUser user = (GenericUser) sso.get(source).getUserObject(session);
             // Sanity check our data
             if (user == null || !user.getUsername().equals(username)) {
                 throw new AuthenticationException(
@@ -296,8 +293,8 @@ public class PortalSecurityManagerImpl implements PortalSecurityManager {
 
         // Trust token users
         if (source.startsWith(TRUST_TOKEN_PREFIX)) {
-            String sUsername = (String) sessionState.get("username");
-            String sSource = (String) sessionState.get("source");
+            String sUsername = (String) session.get("username");
+            String sSource = (String) session.get("source");
 
             // We can't lookup token users so it must match
             if (sUsername == null || !username.equals(sUsername) ||
@@ -324,22 +321,23 @@ public class PortalSecurityManagerImpl implements PortalSecurityManager {
      * @return user The user to logout
      */
     @Override
-    public void logout(User user) throws AuthenticationException {
+    public void logout(JsonSessionState session, User user)
+            throws AuthenticationException {
         String source = user.getSource();
 
         // Clear session
-        sessionState.remove("username");
-        sessionState.remove("source");
+        session.remove("username");
+        session.remove("source");
 
         // SSO Users
         if (sso.containsKey(source)) {
-            sso.get(source).logout();
+            sso.get(source).logout(session);
             return;
         }
 
         // Trust token users
         if (source.startsWith(TRUST_TOKEN_PREFIX)) {
-            sessionState.remove("validToken");
+            session.remove("validToken");
             return;
         }
 
@@ -364,7 +362,7 @@ public class PortalSecurityManagerImpl implements PortalSecurityManager {
 
         // The URL parameters can contain a trust token
         String utoken = request.getParameter("token");
-        String stoken = (String) sessionState.get("validToken");
+        String stoken = (String) session.get("validToken");
         String token = null;
         // Or an 'old' token still in the session
         if (stoken != null) {
@@ -376,7 +374,7 @@ public class PortalSecurityManagerImpl implements PortalSecurityManager {
         }
         if (token != null) {
             // Valid token
-            if (this.testTrustToken(token)) {
+            if (this.testTrustToken(session, token)) {
                 // Dispatch can continue
                 return false;
             }
@@ -400,14 +398,14 @@ public class PortalSecurityManagerImpl implements PortalSecurityManager {
             String ssoId = this.ssoInit(session);
             if (ssoId != null) {
                 // We are logging in, so send them to the SSO portal
-                String ssoUrl = this.ssoGetRemoteLogonURL(ssoId);
+                String ssoUrl = this.ssoGetRemoteLogonURL(session, ssoId);
                 if (ssoUrl != null) {
                     response.sendRedirect(ssoUrl);
                     return true;
                 }
             } else {
                 // Otherwise, check if we have user's details
-                this.ssoCheckUserDetails();
+                this.ssoCheckUserDetails(session);
             }
         } catch (Exception ex) {
             log.error("SSO Error!", ex);
@@ -424,12 +422,9 @@ public class PortalSecurityManagerImpl implements PortalSecurityManager {
      */
     @Override
     public String ssoInit(JsonSessionState session) throws Exception {
-        // Keep track of the session
-        sessionState = session;
-
         // Keep track of the user switching portals for
         // link building in other methods
-        String portalId = (String) sessionState.get("portalId", defaultPortal);
+        String portalId = (String) session.get("portalId", defaultPortal);
         ssoLoginUrl = serverUrlBase + portalId + SSO_LOGIN_PAGE;
 
         // Find out what page we are on
@@ -438,11 +433,11 @@ public class PortalSecurityManagerImpl implements PortalSecurityManager {
 
         // Store the portal URL, might be required by implementers to build
         //  an interface (images etc).
-        sessionState.set("ssoPortalUrl", serverUrlBase + portalId);
+        session.set("ssoPortalUrl", serverUrlBase + portalId);
 
         // Makes sure all SSO plugins get initialised
         for (String ssoId : sso.keySet()) {
-            sso.get(ssoId).ssoInit(sessionState, rg.getHTTPServletRequest());
+            sso.get(ssoId).ssoInit(session, rg.getHTTPServletRequest());
         }
 
         // Are we logging in right now?
@@ -451,7 +446,7 @@ public class PortalSecurityManagerImpl implements PortalSecurityManager {
         // If this isn't the login page...
         if (!currentAddress.contains(SSO_LOGIN_PAGE)) {
             // Store the current address for use later
-            sessionState.set("returnAddress", currentAddress);
+            session.set("returnAddress", currentAddress);
             // We might still be logging in from a deep link
             if (ssoId == null) {
                 // No we're not, finished now
@@ -463,7 +458,7 @@ public class PortalSecurityManagerImpl implements PortalSecurityManager {
                 for (String param : request.getParameterNames()) {
                     if (!param.equals("ssoId")) {
                         // Store all the other parameters
-                        sessionState.set(SSO_STORAGE_PREFIX + param,
+                        session.set(SSO_STORAGE_PREFIX + param,
                                 request.getParameter(param));
                     }
                 }
@@ -471,7 +466,7 @@ public class PortalSecurityManagerImpl implements PortalSecurityManager {
         }
 
         // Get the last address to return the user to
-        String returnAddress = (String) sessionState.get("returnAddress");
+        String returnAddress = (String) session.get("returnAddress");
         if (returnAddress == null) {
             // Or use the home page
             returnAddress = serverUrlBase + portalId + "/home";
@@ -488,7 +483,7 @@ public class PortalSecurityManagerImpl implements PortalSecurityManager {
         }
 
         // The main event... finally
-        sso.get(ssoId).ssoPrepareLogin(returnAddress, serverUrlBase);
+        sso.get(ssoId).ssoPrepareLogin(session, returnAddress, serverUrlBase);
         return ssoId;
     }
 
@@ -497,11 +492,11 @@ public class PortalSecurityManagerImpl implements PortalSecurityManager {
      *
      */
     @Override
-    public void ssoCheckUserDetails() {
+    public void ssoCheckUserDetails(JsonSessionState session) {
         // After the SSO roun-trip, restore any old query parameters we lost
         List<String> currentParams = request.getParameterNames();
         // Cast a copy of keySet() to array to avoid errors as we modify
-        String[] oldParams = sessionState.keySet().toArray(new String[0]);
+        String[] oldParams = session.keySet().toArray(new String[0]);
         // Loop through session data...
         for (String key : oldParams) {
             // ... looking for SSO stored params
@@ -512,21 +507,21 @@ public class PortalSecurityManagerImpl implements PortalSecurityManager {
                 if (!currentParams.contains(oldParam)) {
                     // No it didn't, add it to form data... the parameters are
                     //   already accessible from there in Jython
-                    String data = (String) sessionState.get(key);
+                    String data = (String) session.get(key);
                     formData.set(oldParam, data);
                     // Don't forget to clear it from the session
-                    sessionState.remove(key);
+                    session.remove(key);
                 }
             }
         }
 
         // Check our SSO providers for valid logins
         for (String ssoId : sso.keySet()) {
-            sso.get(ssoId).ssoCheckUserDetails();
-            GenericUser user = (GenericUser) sso.get(ssoId).getUserObject();
+            sso.get(ssoId).ssoCheckUserDetails(session);
+            GenericUser user = (GenericUser) sso.get(ssoId).getUserObject(session);
             if (user != null) {
-                sessionState.set("username", user.getUsername());
-                sessionState.set("source", ssoId);
+                session.set("username", user.getUsername());
+                session.set("source", ssoId);
             }
         }
     }
@@ -538,7 +533,8 @@ public class PortalSecurityManagerImpl implements PortalSecurityManager {
      * @return Map Containing the data structure of valid SSO interfaces.
      */
     @Override
-    public Map<String, Map<String, String>> ssoBuildLogonInterface() {
+    public Map<String, Map<String, String>> ssoBuildLogonInterface(
+            JsonSessionState session) {
         Map<String, Map<String, String>> ssoInterface = new LinkedHashMap();
         for (String ssoId : sso.keySet()) {
             SSOInterface provider = sso.get(ssoId);
@@ -558,11 +554,12 @@ public class PortalSecurityManagerImpl implements PortalSecurityManager {
      * @return String The URL used by the SSO Service for logins
      */
     @Override
-    public String ssoGetRemoteLogonURL(String source) {
+    public String ssoGetRemoteLogonURL(JsonSessionState session, String source)
+    {
         if (!sso.containsKey(source)) {
             return null;
         } else {
-            return sso.get(source).ssoGetRemoteLogonURL();
+            return sso.get(source).ssoGetRemoteLogonURL(session);
         }
     }
 
@@ -580,8 +577,6 @@ public class PortalSecurityManagerImpl implements PortalSecurityManager {
     @Override
     public boolean testForSso(JsonSessionState session, String resource,
             String uri) {
-        sessionState = session;
-
         // The URL parameters can request forced SSO to this URL
         String ssoId = request.getParameter("ssoId");
         if (ssoId != null) {
@@ -590,7 +585,7 @@ public class PortalSecurityManagerImpl implements PortalSecurityManager {
 
         // The URL parameters can contain a trust token
         String utoken = request.getParameter("token");
-        String stoken = (String) sessionState.get("validToken");
+        String stoken = (String) session.get("validToken");
         if (utoken != null || stoken != null) {
             return true;
         }
@@ -619,7 +614,7 @@ public class PortalSecurityManagerImpl implements PortalSecurityManager {
         // Detail screen - specific payload target
         // This is an edge case, where the payload was a deep link,
         //   it's not a subpage we can ignore
-        String returnAddress = (String) sessionState.get("returnAddress");
+        String returnAddress = (String) session.get("returnAddress");
         if (returnAddress != null && returnAddress.endsWith(uri)) {
             return true;
         }
@@ -655,7 +650,7 @@ public class PortalSecurityManagerImpl implements PortalSecurityManager {
      * @return boolean : True if the token is valid, False otherwise
      */
     @Override
-    public boolean testTrustToken(String token) {
+    public boolean testTrustToken(JsonSessionState session, String token) {
         String[] parts = StringUtils.split(token, ":");
 
         // Check the length
@@ -703,10 +698,10 @@ public class PortalSecurityManagerImpl implements PortalSecurityManager {
         String expectedToken = DigestUtils.md5Hex(tokenSeed);
         if (userToken.equals(expectedToken)) {
             // The token is valid
-            sessionState.set("username", username);
-            sessionState.set("source", TRUST_TOKEN_PREFIX + publicKey);
+            session.set("username", username);
+            session.set("source", TRUST_TOKEN_PREFIX + publicKey);
             // Store it in case we redirect later
-            sessionState.set("validToken", token);
+            session.set("validToken", token);
             return true;
         }
 
