@@ -103,11 +103,11 @@ public class SolrIndexer implements Indexer {
     /** Auto-commit flag for anotar core */
     private boolean anotarAutoCommit;
 
-    /** Username for Solr */
-    private String username;
+    /** Usernames for Solr cores */
+    private Map<String, String> usernameMap;
 
-    /** Password for Solr */
-    private String password;
+    /** Passwords for Solr cores */
+    private Map<String, String> passwordMap;
 
     /** Flag if init() has been run before */
     private boolean loaded;
@@ -217,6 +217,10 @@ public class SolrIndexer implements Indexer {
                 throw new IndexerException(pe);
             }
 
+            // Credentials
+            usernameMap = new HashMap<String, String>();
+            passwordMap = new HashMap<String, String>();
+
             solr = initCore("solr");
             anotar = initCore("anotar");
 
@@ -270,12 +274,14 @@ public class SolrIndexer implements Indexer {
             URI solrUri = new URI(config.get("indexer/" + coreName + "/uri"));
             CommonsHttpSolrServer thisCore = new CommonsHttpSolrServer(
                     solrUri.toURL());
-            username = config.get("indexer/" + coreName + "/username");
-            password = config.get("indexer/" + coreName + "/password");
+            String username = config.get("indexer/" + coreName + "/username");
+            String password = config.get("indexer/" + coreName + "/password");
+            usernameMap.put(coreName, username);
+            passwordMap.put(coreName, password);
             if (username != null && password != null) {
                 UsernamePasswordCredentials credentials = new UsernamePasswordCredentials(
                         username, password);
-                HttpClient hc = ((CommonsHttpSolrServer) thisCore).getHttpClient();
+                HttpClient hc = (thisCore).getHttpClient();
                 hc.getParams().setAuthenticationPreemptive(true);
                 hc.getState().setCredentials(AuthScope.ANY, credentials);
             }
@@ -321,6 +327,8 @@ public class SolrIndexer implements Indexer {
             throws IndexerException {
         SolrSearcher searcher = new SolrSearcher(
                 ((CommonsHttpSolrServer) solr).getBaseURL());
+        String username = usernameMap.get("solr");
+        String password = passwordMap.get("solr");
         if (username != null && password != null) {
             searcher.authenticate(username, password);
         }
@@ -630,6 +638,8 @@ public class SolrIndexer implements Indexer {
             throws IndexerException {
         SolrSearcher searcher = new SolrSearcher(
                 ((CommonsHttpSolrServer) anotar).getBaseURL());
+        String username = usernameMap.get("anotar");
+        String password = passwordMap.get("anotar");
         if (username != null && password != null) {
             searcher.authenticate(username, password);
         }
