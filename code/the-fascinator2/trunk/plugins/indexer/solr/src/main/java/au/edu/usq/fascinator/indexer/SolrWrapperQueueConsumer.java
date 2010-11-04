@@ -285,7 +285,7 @@ public class SolrWrapperQueueConsumer implements GenericListener {
                 if (username != null && password != null) {
                     UsernamePasswordCredentials credentials =
                             new UsernamePasswordCredentials(username, password);
-                    HttpClient hc = ((CommonsHttpSolrServer) solr).getHttpClient();
+                    HttpClient hc = ((CommonsHttpSolrServer) thisCore).getHttpClient();
                     hc.getParams().setAuthenticationPreemptive(true);
                     hc.getState().setCredentials(AuthScope.ANY, credentials);
                 }
