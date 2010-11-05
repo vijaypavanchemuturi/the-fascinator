@@ -1,12 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
- xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
  <modelVersion>4.0.0</modelVersion>
  <groupId>au.edu.usq.fascinator</groupId>
  <artifactId>the-fascinator</artifactId>
  <packaging>pom</packaging>
  <name>The Fascinator</name>
- <version>0.7.0-SNAPSHOT</version>
+ <version>0.7.0</version>
  <parent>
   <groupId>au.edu.usq.fascinator</groupId>
   <artifactId>organisation</artifactId>
@@ -25,9 +24,9 @@
   <url>https://build.adfi.usq.edu.au/ci/job/The%20Fascinator/</url>
  </ciManagement>
  <scm>
-  <url>http://fascinator.usq.edu.au/svn/code/the-fascinator2</url>
-  <connection>scm:svn:http://fascinator.usq.edu.au/svn/code/the-fascinator2/trunk</connection>
-  <developerConnection>scm:svn:https://fascinator.usq.edu.au/svn-auth/code/the-fascinator2/trunk</developerConnection>
+  <url>http://fascinator.usq.edu.au/svn/code/the-fascinator2/tags/fascinator-0.7.0</url>
+  <connection>scm:svn:http://fascinator.usq.edu.au/svn/code/the-fascinator2/tags/fascinator-0.7.0</connection>
+  <developerConnection>scm:svn:https://fascinator.usq.edu.au/svn-auth/code/the-fascinator2/tags/fascinator-0.7.0</developerConnection>
  </scm>
  <modules>
   <module>common</module>
