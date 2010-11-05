@@ -626,7 +626,10 @@ public class CachingDynamicPageServiceImpl implements DynamicPageService {
     }
 
     private void cachePythonObject(String path, PyObject pyObject) {
-        scriptCache.put(path, pyObject);
+        // The cache must be thread safe
+        String tid = Long.toString(Thread.currentThread().getId());
+        String index = path + "_tid" + tid;
+        scriptCache.put(index, pyObject);
         // Only cache by modification date if full caching is not active
         if (!cacheFull) {
             scriptCacheLastModified.put(path, getLastModified(path));
@@ -644,7 +647,9 @@ public class CachingDynamicPageServiceImpl implements DynamicPageService {
     }
 
     private PyObject getPythonObject(String path) {
-        if (scriptCache.containsKey(path)) {
+        String tid = Long.toString(Thread.currentThread().getId());
+        String index = path + "_tid" + tid;
+        if (scriptCache.containsKey(index)) {
             // If full caching is not active
             if (!cacheFull) {
                 // Also check the modification date
