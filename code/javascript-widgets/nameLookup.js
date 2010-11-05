@@ -51,7 +51,6 @@
                             if(jdata.error){ alert(jdata.error); }
                             else{
                                 json=jdata; display();
-                                _i = i;
                                 setTimeout(i.focus, 10);
                             }
                         });
