@@ -184,6 +184,7 @@
                     }
                     xUpdate(valueNs, "val");
                     xUpdate(textNs, "text");
+                    alert("onSelected "+result.toSource());
                 }
             };
             // curry getJson
