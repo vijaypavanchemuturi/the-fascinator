@@ -3,7 +3,8 @@ var widgets={forms:[], globalObject:this};
 
 
 (function($){
-  var formClassName = "widget-form";
+  var globalObject=widgets.globalObject;
+  var formClassName="widget-form";
 
   if(!$.fn.dataset){     // if dataset function not defined
       $.fn.dataset=function(name, value){return this.attr("data-"+name, value);};
@@ -42,17 +43,27 @@ var widgets={forms:[], globalObject:this};
 
   function fn(s){ // inline function generator
       // fn("a,b->a+b")(3, 2)   or fn("$1+$2")(3, 2)
-      var a, b, re=/^([\w$,\s]+)-\>/, re2=/;|}/;
+      var a, b, re=/^([\w$,\s]+)-\>/, re2=/;|([^\s\=]\s*\{)/;
       if(re.test(s)){
           b=s.replace(re, function(_, a1){a=a1;return "";});
-          if(!re2.test(b)) b="return "+b;
       }else{
           a="$1,$2,$3,$4";
           b=s;
       }
+      if(!re2.test(b)) b="return "+b;
       return new Function(a, b);
   };
   _fn = fn;
+
+  function log(type, msg){
+      if(globalObject.console){
+          try{ globalObject.console[type](msg); }catch(e){}
+      }
+  }
+  function logInfo(msg){ log("info", msg); }
+  function logError(msg){ log("error", msg); }
+  function logWarning(msg){ log("warn", msg); }
+  function logDebug(msg){ log("debug", msg); }
 
   var _idNum=1;
   function getIdNum(){
@@ -195,7 +206,8 @@ var widgets={forms:[], globalObject:this};
     var reg1=/(\s*(\w+)\s*(\(((('([^'\\]|\\.)*')|("([^"\\]|\\.)*")|(\/([^\/\\]|\\.)*\/)|(([^'"\)\(\/\\]|\\.)*))*)\))\s*(;|$)\s*)|(\s*(;|$))/g; // 2, 4, 14, 15=Err
     var reg2=/(\()|(\))|('([^'\\]|\\.)*')|("([^"\\]|\\.)*")|(\/([^\/\\]|\\.)*\/)|(\w[\w\d\._]*)|(([^\(\)\w\s'"\/\\]|\\.)+)/g;
     var reg3=/(\s*(rule)\s*(\{((('([^'\\]|\\.)*')|("([^"\\]|\\.)*")|(\/([^\/\\]|\\.)*\/)|(([^'"\)\(\/\\]|\\.)*))*)\}))/g; // 4
-    var tests={}, namedTests={};
+    var allTests=[], actionTests={}, namedTests={};
+    var results={};
     iterReader=function(arr){
       var pos=-1; l=arr.length;
       function current(){ return arr[pos]; }
@@ -205,10 +217,13 @@ var widgets={forms:[], globalObject:this};
       return {current:current, next:next, hasMore:hasMore, lookAHead:lookAHead};
     };
     isOkToX=function(x){
-      var e=false;
+      var e=false, r;
       hideAllMessages();
-      $.each(tests[x]||[], function(c,f){
-        e|=f();
+      results[x]=[];
+      $.each(actionTests[x]||[], function(c,f){
+        r=f();
+        if(!!r){results[x].push(f);}
+        e|=r;
       });
       return !e;
     };
@@ -343,6 +358,7 @@ var widgets={forms:[], globalObject:this};
                     namedTests[dict["name"]]=dict;
                 } // no default name
             }
+            allTests.push(dict);
         };
         ctx.find(".validation-rule").each(function(c, v){
             v = $(v).val() || $(v).text();
@@ -350,7 +366,10 @@ var widgets={forms:[], globalObject:this};
         });
         ctx.find(".validation-rules").each(function(c, v){
             v = $(v).text();
-            v.replace(reg3, function(){ var v=arguments[4]; if(v)rule(v); });
+            v.replace(reg3, function(){ 
+                var v=arguments[4]; // from reg3 match
+                if(v)rule(v);
+            });
         });
         $.each(validationsFor, function(f, l){
             var target = $(document.getElementById(f));
@@ -369,10 +388,15 @@ var widgets={forms:[], globalObject:this};
                       reader = iterReader(d.test.match(reg2));
                       testStr = getExpr(reader);
                       try{
-                        func="func=function(){var v=getValue();showValidationMessage(!("+
-                            testStr+"));return true;};";
+                        func="func=function(){var v=getValue();"+
+                            "return showValidationMessage(!("+testStr+"));};";
                         eval(func);
-                        d._testFunc = func;
+                        func.x=d;
+                        d._testFunc=func;
+                        d.getValue=getValue;
+                        d.target=target;
+                        d.showValidationMessage=showValidationMessage;
+                        d.vLabel=vLabel;
                       } catch(e){
                         alert(e + ", func="+func);
                       }
@@ -380,11 +404,11 @@ var widgets={forms:[], globalObject:this};
                       m = d.when.match(reg2);
                       if(m){
                         reader = iterReader(m);
-                        while(w=getWhen(reader)){
+                        while(!!(w=getWhen(reader))){
                           w.target = w.target||target;
-                          w.target.bind(w.action, func);
-                          if(!tests[w.action]) tests[w.action]=[];
-                          tests[w.action].push(func);
+                          w.target.bind(w.action, function(){func();return true;});
+                          if(!actionTests[w.action]) actionTests[w.action]=[];
+                          actionTests[w.action].push(func);
                         }
                       }
                     }
@@ -431,6 +455,10 @@ var widgets={forms:[], globalObject:this};
       test:function(){},
       isOkToSave:function(){return isOkToX("save");},
       isOkToSubmit:function(){return isOkToX("submit");},
+      allTests:allTests,
+      actionTests:actionTests,
+      namedTests:namedTests,
+      results:results,
       hideAllMessages:hideAllMessages,
       parseErrors:{}
     };
@@ -973,14 +1001,14 @@ var widgets={forms:[], globalObject:this};
       };
 
       onSubmit=function(){
-        if(raiseEvents("onSubmit")==false){
+        if(raiseEvents("onSubmit")===false){
             return false;
         }
         submit();
         return true;
       };
       onSave=function(){
-        if(raiseEvents("onSave")==false){
+        if(raiseEvents("onSave")===false){
             return false;
         }
         save();
@@ -1071,6 +1099,7 @@ var widgets={forms:[], globalObject:this};
             return false;
         }
         url = ctx.dataset(stype+"-url") || ctx.findx(".form-fields-"+stype+"-url").val();
+        //logInfo(stype+" url="+url);
         if(url){
             url = url.replace(/{[^}]+}/g, replaceFunc);
             if(widgetForm.hasFileUpload){
@@ -1096,7 +1125,7 @@ var widgets={forms:[], globalObject:this};
                 });
             }
         }else{
-            completed();
+            completed({});
         }
       };
 
