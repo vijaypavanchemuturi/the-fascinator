@@ -1,0 +1,63 @@
+#renderObject($metadata "actions")
+
+
+#if($isPackage)
+  #if($self.canOrganise())
+  #set($menuTitle = "Packaging")
+  #parse($page.getTemplate('wrapping/menu-open.vm'))
+  #set($menuTitle = $nullValue)
+    <ul class="menu" id="packaging">
+      <li><a href="$portalPath/workflow/$oid">Organise...</a></li>
+    </ul>
+  #parse($page.getTemplate('wrapping/menu-close.vm'))
+  #end
+
+    #set($menuTitle = "Publish")
+    #parse($page.getTemplate('wrapping/main-menu-open.vm'))
+    #set($menuTitle = $nullValue)
+      <ul class="menu" id="actions">
+        <li><a href="$portalPath/actions/epub?oid=$oid">Save as EPUB...</a></li>
+        <li><a href="$portalPath/actions/imscp?oid=$oid">Save as IMS Package...</a></li>
+        <li><a id='sword-view' href='#'>Deposit to repository...</a></li>
+        <li><a id='blog-this' href='#'>Publish to blog...</a></li>
+      </ul>
+    #parse($page.getTemplate('wrapping/main-menu-close.vm'))
+
+#else
+
+  #if(!$self.isMetadataOnly() || $page.authentication.is_admin())
+    #set($menuTitle = "Actions")
+    #parse($page.getTemplate('wrapping/main-menu-open.vm'))
+    #set($menuTitle = $nullValue)
+      <ul class="menu" id="actions">
+        #if($self.canOpenFile())
+          <li><a class="open-this" href="$portalPath/detail/$oid">Open file</a></li>
+        #end
+        #if($self.hasHtml())
+          <li><a id='blog-this' href='#'>Publish to blog...</a></li>
+        #end
+        #if($page.authentication.is_admin() && !$self.isPending())
+          <li><a id="reharvest" href="$portalPath/detail/$oid">Reharvest...</a></li>
+        #end
+      </ul>
+    #parse($page.getTemplate('wrapping/main-menu-close.vm'))
+  #end
+
+#end
+
+#if($isPackage || $isImsPackage)
+#set($pageHeader="#parse($page.getTemplate('detail-screen/header.vm'))")
+  #set($menuTitle = "Navigation")
+  #parse($page.getTemplate('wrapping/menu-open.vm'))
+  #set($menuTitle = $nullValue)
+  ## standard menu navigation
+  ##createNavTree($self.getPackageManifest() "menu")
+  ## RVT
+  <div id="package-toc"></div>
+  #parse($page.getTemplate('wrapping/menu-close.vm'))
+#else
+  #parse($page.getTemplate('detail-screen/workflow.vm'))
+#end
+
+#parse($page.getTemplate('detail-screen/metadata.vm'))
+#parse($page.getTemplate('detail-screen/attachments.vm'))
