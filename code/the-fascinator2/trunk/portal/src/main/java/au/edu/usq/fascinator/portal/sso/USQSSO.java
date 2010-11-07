@@ -174,6 +174,7 @@ public class USQSSO implements SSOInterface {
      */
     @Override
     public void logout(JsonSessionState session) {
+        session.remove("usqSsoFullName");
         session.remove("usqSsoRemoteLogonId");
         session.remove("usqSsoResponseKey");
         session.remove("usqSsoRequestKey");
