@@ -41,7 +41,8 @@ class AtomData:
             req.addParam("fq", portalQuery)
         else:
             fq = sessionState.get("fq")
-            req.setParam("fq", fq)
+            if fq is not None:
+                req.setParam("fq", fq)
 
         req.setParam("start", str((pageNum - 1) * recordsPerPage))
 
