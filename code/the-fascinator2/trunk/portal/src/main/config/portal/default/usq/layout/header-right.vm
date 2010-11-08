@@ -1,8 +1,8 @@
 <div class="header_search" id="ctl5">
   <div class="header_right" id="ctl6">
-    <div class="header_links" id="ctl7">
-      <a title="USQ website home" href="/">Home</a>
-      | <a title="Contact USQ" href="/contact/">Contact us</a>
+    <div class="header_links" id="ctl7">USQ:
+      <a title="USQ website home" href="http://www.usq.edu.au/">Home</a>
+      | <a title="Contact USQ" href="http://www.usq.edu.au/contact/">Contact us</a>
       | <a title="Search for USQ staff" href="http://apps.usq.edu.au/usqwebsite/aspnet/staffsearch/default.aspx?action=stafflookup">Staff directory</a>
       | <a title="UConnect (Previously USQConnect)" href="http://uconnect.usq.edu.au"  target="_blank">UConnect</a>
     </div>
