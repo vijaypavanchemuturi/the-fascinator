@@ -1,4 +1,5 @@
 
+var globalObject=this;
 
 (function(){
     var dialog, detailDialog;
@@ -182,9 +183,14 @@
                             });
                         });
                     }
+                    var selectedFunc=globalObject[target.dataset("selected-func")];
+                    if($.isFunction(selectedFunc)){
+                        try{
+                            selectedFunc(target, result);
+                        }catch(e){alert("Error executing selected-func. "+e.message);}
+                    }
                     xUpdate(valueNs, "val");
                     xUpdate(textNs, "text");
-                    //alert("onSelected "+result.toSource());
                 }
             };
             // curry getJson

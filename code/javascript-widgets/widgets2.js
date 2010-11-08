@@ -40,6 +40,9 @@ var widgets={forms:[], globalObject:this};
   if(!$.isEmptyObject){
       $.isEmptyObject=function(a){for(var b in a){return false;}return true;};
   }
+  if(/[native code]/.test($.fn.toString)){
+      $.fn.toString=function(){return "[jQuery object("+this.size()+")]"};
+  }
 
   function fn(s){ // inline function generator
       // fn("a,b->a+b")(3, 2)   or fn("$1+$2")(3, 2)
@@ -995,7 +998,7 @@ var widgets={forms:[], globalObject:this};
           for(var k in l){
               var f = l[k];
               try{
-                  if(f()===false) return false; // cancel event
+                  if(f(ctx)===false) return false; // cancel event
               }catch(e){}
           }
       };
@@ -1015,19 +1018,21 @@ var widgets={forms:[], globalObject:this};
         return true;
       };
       onRestore=function(data){
-        if(raiseEvents("onRestore")==false){
+        if(raiseEvents("preOnRestore")==false){
             return false;
         }
         //messageBox(JSON.stringify(data))
         restore(data);
         lastData = getFormData();
+        raiseEvents("postOnRestore");
         return true;
       };
       onReset=function(data){
-        if(raiseEvents("onReset")==false){
+        if(raiseEvents("preOnReset")==false){
             return false;
         }
         reset(data);
+        raiseEvent("postOnReset");
         return true;
       };
 
@@ -1394,6 +1399,9 @@ var widgets={forms:[], globalObject:this};
         ctx.findx(".form-fields-submit").click(onSubmit);
         ctx.findx(".form-fields-restore").click(onRestore);
         ctx.findx(".form-fields-reset").click(onReset);
+        if(ctx.dataset("on-restored")){
+            addListener("postOnRestore", globalObject[ctx.dataset("post-on-restore")]);
+        }
         widgetForm.ctx = ctx;
       };
 
