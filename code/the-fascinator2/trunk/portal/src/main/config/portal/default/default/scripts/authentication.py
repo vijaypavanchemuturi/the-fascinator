@@ -10,16 +10,17 @@ class AuthenticationData:
     has_error = False
     error_message = None
     GUEST_ROLE = 'guest'
+    roleList = None
 
     def __activate__(self, context):
         self.security = context["security"]
         self.formData = context["formData"]
         self.sessionState = context["sessionState"]
-        
+
         self.access = self.security.getAccessControlManager()
         self.auth = self.security.getAuthManager()
         self.role = self.security.getRoleManager()
-        
+
         self.check_login()
 
     def change_password(self, username, password):
@@ -119,19 +120,23 @@ class AuthenticationData:
         return response
 
     def get_roles_list(self):
-        try:
+        # Use the cache if we can
+        if self.roleList is None:
             role_list = []
-            if self.current_user is not None:
-                role_list
-                java_list = self.security.getRolesList(self.sessionState, self.current_user)
-                for role in java_list:
-                    role_list.append(role)
-        except Exception, e:
-            self.error_message = self.parse_error(e)
+            try:
+                if self.current_user is not None:
+                    # Otherwise retrieve from the plugin
+                    java_list = self.security.getRolesList(self.sessionState, self.current_user)
+                    if java_list is not None:
+                        for role in java_list:
+                            role_list.append(role)
+            except Exception, e:
+                self.error_message = self.parse_error(e)
 
-        role_list.append(self.GUEST_ROLE)
-        self.roleList = role_list
-        return role_list
+            role_list.append(self.GUEST_ROLE)
+            self.roleList = role_list
+
+        return self.roleList
 
     def get_access_roles_list(self, recordId):
         try:
@@ -177,15 +182,18 @@ class AuthenticationData:
         except AccessControlException, e:
             self.error_message = self.parse_error(e)
 
-    def is_admin(self):
+    def has_role(self, role):
         if self.current_user is not None:
             my_roles = self.get_roles_list()
-            if "admin" in my_roles:
+            if role in my_roles:
                 return True
             else:
                 return False
         else:
             return False
+
+    def is_admin(self):
+        return self.has_role("admin")
 
     def is_logged_in(self):
         if self.current_user is not None:
