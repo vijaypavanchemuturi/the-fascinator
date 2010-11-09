@@ -45,14 +45,16 @@ class DetailData:
     def getRawFFmpeg(self):
         return self.makeHtml(self.__ffmpegRaw)
 
-    def getSplashScreen(self, metadata, fallback):
+    def getSplashScreen(self, metadata, preference):
+        #TODO - Proper checking that the prefered payload actually exists
+        if preference is not None and preference != "":
+            return preference
+
+        # Fall back to the thumbnail if no preference was given
         thumbnail = metadata.get("thumbnail")
-        if thumbnail is None:
-            if fallback is not None and fallback != "":
-                return ""
-            else:
-                return fallback
-        return thumbnail
+        if thumbnail is not None:
+            return thumbnail
+        return ""
 
     def getTranscodings(self):
         if self.__ffmpegData is not None:
