@@ -45,6 +45,15 @@ class DetailData:
     def getRawFFmpeg(self):
         return self.makeHtml(self.__ffmpegRaw)
 
+    def getSplashScreen(self, metadata, fallback):
+        thumbnail = metadata.get("thumbnail")
+        if thumbnail is None:
+            if fallback is not None and fallback != "":
+                return ""
+            else:
+                return fallback
+        return thumbnail
+
     def getTranscodings(self):
         if self.__ffmpegData is not None:
             return self.__ffmpegData.keySet()

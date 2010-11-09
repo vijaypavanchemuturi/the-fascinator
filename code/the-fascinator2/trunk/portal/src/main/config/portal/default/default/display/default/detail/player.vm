@@ -6,10 +6,7 @@
 #set($validFFmpeg = $self.parseFFmpeg($parent))
 #set($oid = $metadata.get("id"))
 #set($mimeType = $metadata.getList("dc_format").get(0))
-#set($thumbnail = $metadata.get("thumbnail"))
-#if(!$thumbnail)
-    #set($thumbnail = "")
-#end
+#set($thumbnail = $self.getSplashScreen($metadata, ""))
 #set($preview = $metadata.get("preview"))
 #set($fallbackPreview = $preview)
 #set($previewPid = $parent.getPreviewPid())
@@ -127,7 +124,6 @@ $(function() {
                 flashplayer: "$portalPath/mediaplayer/player.swf",
                 file: filepath,
                 height: height,
-                width: width,
             #if ($thumbnail)
                 width: width,
                 image: thumbnail
