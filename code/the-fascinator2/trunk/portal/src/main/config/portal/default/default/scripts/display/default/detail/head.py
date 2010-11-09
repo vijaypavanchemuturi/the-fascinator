@@ -46,6 +46,15 @@ class HeadData:
     def getRawFFmpeg(self):
         return self.__ffmpegRaw
 
+    def getSplashScreen(self, metadata, fallback):
+        thumbnail = metadata.get("thumbnail")
+        if thumbnail is None:
+            if fallback is not None and fallback != "":
+                return ""
+            else:
+                return fallback
+        return thumbnail
+
     def isAudio(self, mime):
         return mime.startswith("audio/")
 
