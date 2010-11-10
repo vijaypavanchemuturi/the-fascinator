@@ -900,6 +900,10 @@ var widgets={forms:[], globalObject:this};
       var selAdd, selAddNs, selAddId, selAddLabel, addButtonDisableTest;
       var lastSelectionSelectable=false, selectId;
       var onSelection, onJson, jsonDataSrc=ds.find(".json-data-source");
+      if(ds.dataset("delay")>0){
+          ds.dataset("delay", ds.dataset("delay")-1);
+          return;
+      };
       if(ds.dataset("done")){ return; }
       ds.children("*:not(select)").hide();
       selectId=ds.dataset("id");
@@ -954,10 +958,32 @@ var widgets={forms:[], globalObject:this};
             ds.append(" "); // line break point of IE7
         }catch(e){
             alert("Error in sourceDropDown onJson function - " + e.message);
+            _gjson=json;
             throw e;
         }
       };
       jsonGetter("", onJson);
+      if(selAdd.dataset("add-on-click")!=null){
+        addButtonDisableTest = function(){
+            if(ds.parent().find(".selection-add-id").val()){
+                selAdd.attr("disabled", true);
+            }
+        };
+        selAdd.bind("disableTest", addButtonDisableTest);
+        ds.parent().find(".clear-item").click(function(){
+            ds.parent().find(".selection-add-id").val("");
+            ds.parent().find(".selection-add-label").val("");
+            selAdd.attr("disabled", false);
+            selAdd.trigger("disableTest");
+            return false;
+        });
+        selAdd.click(function(){
+            ds.parent().find(".selection-add-id").val(selAddId);
+            ds.parent().find(".selection-add-label").val(selAddLabel);
+            selAdd.trigger("disableTest");
+            return false;
+        });
+      }
       ds.dataset("done", 1);
     }catch(e){
         alert("Error in sourceDropDown() - "+e.message);
