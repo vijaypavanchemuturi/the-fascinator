@@ -86,10 +86,6 @@ import com.Ostermiller.util.CSVParser;
  * 
  * @author Duncan Dickinson
  */
-/**
- * @author dickinso
- * 
- */
 public class CSVHarvester extends GenericHarvester {
 
 	/** logging */
