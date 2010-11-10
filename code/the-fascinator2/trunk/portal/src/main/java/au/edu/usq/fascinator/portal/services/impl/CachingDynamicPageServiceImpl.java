@@ -262,7 +262,7 @@ public class CachingDynamicPageServiceImpl implements DynamicPageService {
             // Check raw resource
             if (Velocity.resourceExists(path)) {
                 // But make sure it's not a directory, resourceExists()
-                ///   will return directories as valid resources.
+                // will return directories as valid resources.
                 File file = new File(portalPath, path);
                 if (!file.isDirectory()) {
                     return path;
@@ -412,8 +412,7 @@ public class CachingDynamicPageServiceImpl implements DynamicPageService {
                 e.printStackTrace(new PrintStream(eOut));
                 String eMsg = eOut.toString();
                 log.error("Failed to run page script ({})!\n=====\n{}\n=====",
-                        isAjax ? "ajax" : isScript ? "script" : "html",
-                        eMsg);
+                        isAjax ? "ajax" : isScript ? "script" : "html", eMsg);
                 String errorMsg = "<pre>Page content template error: "
                         + pageName + "\n" + eMsg + "</pre>";
                 if (isAjax || isScript) {
@@ -449,7 +448,7 @@ public class CachingDynamicPageServiceImpl implements DynamicPageService {
     @SuppressWarnings("unchecked")
     public String renderObject(Context context, String template,
             JsonConfigHelper metadata) {
-        //log.debug("========== START renderObject ==========");
+        // log.debug("========== START renderObject ==========");
 
         // setup script and velocity context
         String portalId = context.get("portalId").toString();
@@ -467,8 +466,8 @@ public class CachingDynamicPageServiceImpl implements DynamicPageService {
         }
         String templateName = "display/" + displayType + "/" + template;
 
-        //log.debug("displayType: '{}'", displayType);
-        //log.debug("templateName: '{}'", templateName);
+        // log.debug("displayType: '{}'", displayType);
+        // log.debug("templateName: '{}'", templateName);
 
         Object parentPageObject = null;
         Context objectContext = new VelocityContext(context);
@@ -477,7 +476,7 @@ public class CachingDynamicPageServiceImpl implements DynamicPageService {
         } else {
             parentPageObject = objectContext.get("self");
         }
-        //log.debug("parentPageObject: '{}'", parentPageObject);
+        // log.debug("parentPageObject: '{}'", parentPageObject);
 
         objectContext.put("pageName", template);
         objectContext.put("displayType", displayType);
@@ -527,7 +526,7 @@ public class CachingDynamicPageServiceImpl implements DynamicPageService {
                     + "\n" + eMsg);
         }
 
-        //log.debug("========== END renderObject ==========");
+        // log.debug("========== END renderObject ==========");
         return content;
     }
 
@@ -569,7 +568,7 @@ public class CachingDynamicPageServiceImpl implements DynamicPageService {
                 scriptObject = python.get("scriptObject");
                 if (scriptObject == null) {
                     useCache = true;
-                    log.debug("isXHR:{}", request.isXHR());
+                    // log.debug("isXHR:{}", request.isXHR());
                     String scriptClassName = StringUtils
                             .capitalize(FilenameUtils.getBaseName(scriptName))
                             + "Data";
@@ -594,7 +593,7 @@ public class CachingDynamicPageServiceImpl implements DynamicPageService {
         if (useCache && scriptObject != null) {
             // try {
             if (scriptObject.__findattr__("__activate__") != null) {
-                //log.debug("Activating cached script:'{}'", path);
+                // log.debug("Activating cached script:'{}'", path);
                 scriptObject.invoke("__activate__", Py.java2py(bindings));
             } else {
                 log.warn("__activate__ not found in '{}'", path);
@@ -632,14 +631,14 @@ public class CachingDynamicPageServiceImpl implements DynamicPageService {
         scriptCache.put(index, pyObject);
         // Only cache by modification date if full caching is not active
         if (!cacheFull) {
-            scriptCacheLastModified.put(path, getLastModified(path));
+            scriptCacheLastModified.put(index, getLastModified(path));
         }
     }
 
     private void cacheSkinPath(String portalId, String resource, String path) {
         String index = portalId + "/" + resource;
         skinCache.put(index, path);
-        //log.debug("Caching '{}' : '{}'", index, path);
+        // log.debug("Caching '{}' : '{}'", index, path);
         // Only cache by modification date if full caching is not active
         if (!cacheFull) {
             skinCacheLastModified.put(index, getLastModified(path));
@@ -653,13 +652,13 @@ public class CachingDynamicPageServiceImpl implements DynamicPageService {
             // If full caching is not active
             if (!cacheFull) {
                 // Also check the modification date
-                Long lastCached = scriptCacheLastModified.get(path);
+                Long lastCached = scriptCacheLastModified.get(index);
                 if (lastCached != null && lastCached < getLastModified(path)) {
                     // expire the object
                     return null;
                 }
             }
-            return scriptCache.get(path);
+            return scriptCache.get(index);
         }
         return null;
     }
@@ -674,11 +673,11 @@ public class CachingDynamicPageServiceImpl implements DynamicPageService {
                 Long lastCached = skinCacheLastModified.get(index);
                 if (lastCached != null && lastCached < getLastModified(path)) {
                     // expire the object
-                    //log.debug("Expired '{}'", index);
+                    // log.debug("Expired '{}'", index);
                     return null;
                 }
             }
-            //log.debug("Cached '{}' : '{}'", index, path);
+            // log.debug("Cached '{}' : '{}'", index, path);
             return path;
         }
         return null;
@@ -687,7 +686,8 @@ public class CachingDynamicPageServiceImpl implements DynamicPageService {
     private long getLastModified(String path) {
         File file = new File(portalPath, path);
         if (file.exists()) {
-            //log.debug("Last modified '{}' : {}", file.getAbsolutePath(), file.lastModified());
+            // log.debug("Last modified '{}' : {}", file.getAbsolutePath(),
+            // file.lastModified());
             return file.lastModified();
         }
         return -1;
