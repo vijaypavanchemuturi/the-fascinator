@@ -733,12 +733,17 @@ var widgets={forms:[], globalObject:this};
       var jsonGetter, pendingWorkDone;
       var jsonBaseUrl, jsonInitUrlId, jsonCache={}, jsonData;
       if(jsonSourceUrl){
-          if(/\//.test(jsonSourceUrl)){
-            jsonInitUrlId=jsonSourceUrl.split(/\/(?=[^\/]*$)/)[1];
-            jsonBaseUrl=jsonSourceUrl.split(/\/(?=[^\/]*$)/)[0]+"/";  // split at the last /
+          if(/\?/.test(jsonSourceUrl)){
+              jsonInitUrlId="";
+              jsonBaseUrl=jsonSourceUrl;
           }else{
-              jsonInitUrlId=jsonSourceUrl;
-              jsonBaseUrl="";
+              if(/\//.test(jsonSourceUrl)){
+                jsonInitUrlId=jsonSourceUrl.split(/\/(?=[^\/]*$)/)[1];
+                jsonBaseUrl=jsonSourceUrl.split(/\/(?=[^\/]*$)/)[0]+"/";  // split at the last /
+              }else{
+                  jsonInitUrlId=jsonSourceUrl;
+                  jsonBaseUrl="";
+              }
           }
       }else{
           jsonBaseUrl="";
@@ -754,8 +759,8 @@ var widgets={forms:[], globalObject:this};
           }
       }
       // root or base json urlId is just an empty string e.g. ""
-      jsonGetter = function(urlId, onJson){
-        var j, url;
+      jsonGetter = function(urlId, onJson, onError, notPending){
+        var j, url, success, error;
         j=jsonCache[urlId];
         if(j){
             if(false){          // false to simulate a delay
@@ -778,9 +783,13 @@ var widgets={forms:[], globalObject:this};
         }else{
             url=jsonBaseUrl+jsonInitUrlId;
         }
-        if(!/\.json$/.test(url)) url+=".json";
-        pendingWorkDone = pendingWorkStart(url);
-        $.getJSON(url, function(data){
+        if(!/\?/.test(url) && !/\.json$/.test(url)) url+=".json";
+        if(notPending===true){
+            pendingWorkDone=function(){};
+        }else{
+            pendingWorkDone = pendingWorkStart(url);
+        }
+        success=function(data){
             if(!urlId){
                 jsonCache=data;
             }
@@ -792,7 +801,13 @@ var widgets={forms:[], globalObject:this};
                 //alert(onJson);
             }
             pendingWorkDone();
-        });
+        };
+        error=function(xhr,status,err){
+            if($.isFunction(onError))onError(status,err);
+            pendingWorkDone();
+        };
+        //$.getJSON(url, success);
+        $.ajax({url:url, dataType:"json", success:success, error:error, timeout:7000});
       }
       return jsonGetter;
   }
@@ -839,7 +854,8 @@ var widgets={forms:[], globalObject:this};
   // Multi-dropdown selection
   // ==============
   function buildSelectList(json, parent, jsonGetter, onSelection){
-      var s, o, children={}, ns, selectable;
+      var s, o, children={}, ns, selectable, loading;
+      var onJson, onError;
       ns = (json.namespace || "") || (parent.namespace || "");
       selectable = (json.selectable==null)?(!!parent.selectable):(!!json.selectable);
       s = $("<select/>");
@@ -880,12 +896,23 @@ var widgets={forms:[], globalObject:this};
             }
             removeSelects(s.next("select"));
         }
+        if(loading && loading.parent().size()){
+          loading.remove();
+        }
         if(child.url){
-          jsonGetter(child.url, function(j){
-              s.after(buildSelectList(j, child, jsonGetter, onSelection));
+          loading=$("<span style='color:green;' title='id="+child.url+"'> [loading&#160;please&#160;wait...] </span>");
+          s.after(loading);
+          onJson=function(j){
+              //s.after(buildSelectList(j, child, jsonGetter, onSelection));
+              loading.replaceWith(buildSelectList(j, child, jsonGetter, onSelection));
               s.after(" ");     // break point for IE7
               onSelection(child);
-          });
+          };
+          onError=function(status){
+            loading.text(" Error loading '"+child.url+"' "+status+" ");
+            loading.css("color", "red");
+          };
+          jsonGetter(child.url, onJson, onError);
         }
         onSelection(child);
       }
@@ -898,19 +925,30 @@ var widgets={forms:[], globalObject:this};
     try{
       var ds=$(dsdd), id=dsdd.id, jsonUrl, jsonDataStr, jsonGetter;
       var selAdd, selAddNs, selAddId, selAddLabel, addButtonDisableTest;
-      var lastSelectionSelectable=false, selectId;
-      var onSelection, onJson, jsonDataSrc=ds.find(".json-data-source");
+      var lastSelectionSelectable=false, selectId, dropDownLocation;
+      var onSelection, onJson, onError, jsonDataSrc, topLevelId;
+      var jsonConverterGetter;
+      var listKey, idKey, labelKey, childrenKey, cmp;
       if(ds.dataset("delay")>0){
           ds.dataset("delay", ds.dataset("delay")-1);
           return;
       };
       if(ds.dataset("done")){ return; }
-      ds.children("*:not(select)").hide();
+      listKey=ds.dataset("list-key");
+      idKey=ds.dataset("id-key");
+      labelKey=ds.dataset("label-key");
+      childrenKey=ds.dataset("children-key");
+      if(ds.find(".drop-down-location").size()){
+          dropDownLocation=ds.find(".drop-down-location");
+      }else{
+        ds.children("*:not(select)").hide();
+      }
       selectId=ds.dataset("id");
       selAdd=ds.parent().find(".selection-add");
       jsonUrl=ds.dataset("json-source-url") || ds.find(".json-data-source-url").val();
-      //jsonDataStr=ds.find(".json-data-source");
+      jsonDataSrc=ds.find(".json-data-source");
       jsonDataStr=ds.dataset("json-data") || jsonDataSrc.val() || jsonDataSrc.text();
+      topLevelId=ds.dataset("top-level-id") || "";
       jsonGetter=getJsonGetter(jsonUrl, jsonDataStr);
 
       addButtonDisableTest = function(){
@@ -946,40 +984,86 @@ var widgets={forms:[], globalObject:this};
         selAdd.find(".selection-add-id").text(selAddId);
         selAdd.find(".selection-add-label").text(selAddLabel);
       };
-      onJson = function(json){
+      jsonConverterGetter=jsonGetter;
+      if(listKey || idKey || labelKey || childrenKey){
+          cmp=fn("a,b->a.label==b.label?0:(a.label>b.label?1:-1)");
+          jsonConverterGetter = function(urlId, onJson, onError, notPending){
+              jsonGetter(urlId, function(j){
+                  // convert json
+                  j.list=j[listKey];
+                  $.each(j.list, function(c, i){
+                      i.id=i[idKey];
+                      i.label=i[labelKey];
+                      if(!$.isEmptyObject(i[childrenKey])){
+                          i.children=escape(escape(i.id));  // where should the double escaping happen?
+                      }
+                  });
+                  j.list.sort(cmp);
+                  onJson(j);
+              }, onError, notPending);
+          };
+      }else{
+          jsonConverterGetter=jsonGetter;
+      }
+      var selLocation=$("<span style='color:green;'> [loading&#160;please&#160;wait...] </span>");
+      if(dropDownLocation){
+        dropDownLocation.prepend(selLocation);
+      }else{
+        ds.append(selLocation);
+        ds.append(" "); // line break point of IE7
+      }
+      onJson=function(json){
         try{
             // OK now build the select-option
-            var o = buildSelectList(json, {}, jsonGetter, onSelection);
+            var o = buildSelectList(json, {"selectable":1}, jsonConverterGetter, onSelection);
             if(selectId){
                 o.attr("id", selectId);
                 selectId=null;
             }
-            ds.append(o);
-            ds.append(" "); // line break point of IE7
+            selLocation.replaceWith(o);
         }catch(e){
             alert("Error in sourceDropDown onJson function - " + e.message);
             _gjson=json;
             throw e;
         }
       };
-      jsonGetter("", onJson);
+      onError=function(status,err){
+        selLocation.text("Error failed to load selection data: "+status);
+        selLocation.css("color", "red");
+        var retry=$("<a href='#'> retry</a>");
+        selLocation.append(retry);
+        retry.click(function(){
+            selLocation.html(" [loading&#160;please&#160;wait...] ").css("color","green");
+            jsonConverterGetter(topLevelId, onJson, onError, true);
+            return false;
+        });
+      }
+      jsonConverterGetter(topLevelId, onJson, onError, true);
+      //setTimeout(function(){jsonConverterGetter(topLevelId, onJson);}, 3000)
       if(selAdd.dataset("add-on-click")!=null){
+        var saLabel, saId;
+        saLabel=ds.parent().find(".selection-added-label");
+        saId=ds.parent().find(".selection-added-id");
+        saLabel.bind("onDataChanged", function(){
+            ds.find(".selection-added").toggle(!!saLabel.val());
+            if(dropDownLocation)dropDownLocation.toggle(!saLabel.val());
+        }); //.trigger("onDataChanged");
         addButtonDisableTest = function(){
-            if(ds.parent().find(".selection-add-id").val()){
+            if(saLabel.val()){
                 selAdd.attr("disabled", true);
             }
         };
         selAdd.bind("disableTest", addButtonDisableTest);
         ds.parent().find(".clear-item").click(function(){
-            ds.parent().find(".selection-add-id").val("");
-            ds.parent().find(".selection-add-label").val("");
+            saId.val("").trigger("onDataChanged");
+            saLabel.val("").trigger("onDataChanged");
             selAdd.attr("disabled", false);
             selAdd.trigger("disableTest");
             return false;
         });
         selAdd.click(function(){
-            ds.parent().find(".selection-add-id").val(selAddId);
-            ds.parent().find(".selection-add-label").val(selAddLabel);
+            saId.val(selAddId).trigger("onDataChanged");
+            saLabel.val(selAddLabel).trigger("onDataChanged");
             selAdd.trigger("disableTest");
             return false;
         });
@@ -1234,7 +1318,7 @@ var widgets={forms:[], globalObject:this};
           _gc = ctxInputs;
           $.each(skeys, function(c, v){
               if($.inArray(v, formFields)!=-1){
-                  ctxInputs.filter("[id="+v+"]").val(data[v]);
+                  ctxInputs.filter("[id="+v+"]").val(data[v]).trigger("onDataChanged");
               }
           });
           // list items
@@ -1269,9 +1353,9 @@ var widgets={forms:[], globalObject:this};
                       }
                       if(input.attr("type")=="checkbox"){
                         input.attr("checked", !!data[v]);
-                        input.change();
+                        input.change().trigger("onDataChanged");
                       }else{
-                        input.val(data[v]);
+                        input.val(data[v]).trigger("onDataChanged");
                       }
                   }
               }catch(e){
