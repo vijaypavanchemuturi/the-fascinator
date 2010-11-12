@@ -1,0 +1,5 @@
+<div class="box" id="$oid">
+    <h2>Preview</h2>
+    <div class="article first" id="content">
+        <div class="article-heading">$title</div>
+        #parseDisplayTemplate("detail/preview/content-header.vm")
