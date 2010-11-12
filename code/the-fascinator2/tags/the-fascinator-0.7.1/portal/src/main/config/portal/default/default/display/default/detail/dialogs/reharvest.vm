@@ -1,0 +1,9 @@
+<div id="reharvest-form" class="box hidden notice">
+  <h2><span id="reharvest-loading" class="right"><img src="$portalPath/images/icons/loading.gif" /></span>Reharvest</h2>
+  <div class="info">
+    <b>PLEASE WAIT</b>
+    <p id="reharvest-in-progress">Reharvest of '$title' in progress...</p>
+    <p class="hidden" id="reharvest-complete">Reharvest completed, please <a href="$portalPath/detail/$oid">refresh</a> to view the latest version</p>
+    ##<ul id="reharvest-progress"></ul>
+  </div>
+</div>
