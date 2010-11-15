@@ -793,9 +793,9 @@ var widgets={forms:[], globalObject:this};
             if(!urlId){
                 jsonCache=data;
             }
-            jsonCache[urlId]=data;
             try{
                 onJson(data);
+                jsonCache[urlId]=data;
             }catch(e){
                 alert("onJson error: "+e.message+"  (for url='"+url+"')");
                 //alert(onJson);
@@ -932,7 +932,7 @@ var widgets={forms:[], globalObject:this};
       if(ds.dataset("delay")>0){
           ds.dataset("delay", ds.dataset("delay")-1);
           return;
-      };
+      }
       if(ds.dataset("done")){ return; }
       listKey=ds.dataset("list-key");
       idKey=ds.dataset("id-key");
@@ -990,6 +990,14 @@ var widgets={forms:[], globalObject:this};
           jsonConverterGetter = function(urlId, onJson, onError, notPending){
               jsonGetter(urlId, function(j){
                   // convert json
+                  if(j.error){
+                      if($.isFunction(onError)){
+                          onError(j.error);
+                      }else{
+                          alert("Error in json: "+ j.error);
+                      }
+                      return;
+                  }
                   j.list=j[listKey];
                   $.each(j.list, function(c, i){
                       i.id=i[idKey];
@@ -1039,7 +1047,7 @@ var widgets={forms:[], globalObject:this};
         });
       }
       jsonConverterGetter(topLevelId, onJson, onError, true);
-      //setTimeout(function(){jsonConverterGetter(topLevelId, onJson);}, 3000)
+      ds.find(".selection-added").hide();
       if(selAdd.dataset("add-on-click")!=null){
         var saLabel, saId;
         saLabel=ds.parent().find(".selection-added-label");
