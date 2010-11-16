@@ -51,12 +51,14 @@ class SearchData:
         return self.__searchField
     
     def __search(self):
+        requireEscape = False
         recordsPerPage = self.__portal.recordsPerPage
         uri = URLDecoder.decode(self.request.getAttribute("RequestURI"))
         query = None
         pagePath = self.__portal.getName() + "/" + self.pageName
         if query is None or query == "":
             query = self.formData.get("query")
+            requireEscape = True
         if query is None or query == "":
             query = "*:*"
         
@@ -64,12 +66,16 @@ class SearchData:
             self.__query = ""
         else:
             self.__query = query
+            if requireEscape:
+                query = self.__escapeQuery(query)
             query = "%s:%s" % (self.__searchField, query)
         self.sessionState.set("query", self.__query)
         
         # find objects with annotations matching the query
         if query != "*:*":
             anotarQuery = self.__query
+            if requireEscape:
+                anotarQuery = self.__escapeQuery(anotarQuery)
             annoReq = SearchRequest(anotarQuery)
             annoReq.setParam("facet", "false")
             annoReq.setParam("rows", str(99999))
@@ -169,6 +175,14 @@ class SearchData:
             self.__paging = Pagination(self.__pageNum,
                                        int(self.__result.get("response/numFound")),
                                        self.__portal.recordsPerPage)
+    
+    def __escapeQuery(self, q):
+        eq = q
+        # escape all solr/lucene special chars
+        # from http://lucene.apache.org/java/2_4_0/queryparsersyntax.html#Escaping%20Special%20Characters
+        for c in "+-&|!(){}[]^\"~*?:\\":
+            eq = eq.replace(c, "\\%s" % c)
+        return eq
     
     def getQueryTime(self):
         return int(self.__result.get("responseHeader/QTime")) / 1000.0;
