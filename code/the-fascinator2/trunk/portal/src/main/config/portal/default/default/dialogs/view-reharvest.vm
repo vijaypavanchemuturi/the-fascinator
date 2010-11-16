@@ -1,3 +1,4 @@
+#if($page.authentication.is_logged_in() && $page.authentication.is_admin())
 <div class="box hidden" id="reharvest-form">
   <h2>Reharvest view</h2>
   <div class="block hidden" id="reharvest-progress">
@@ -76,3 +77,4 @@ $(function() {
     });
 });
 </script>
+#end
