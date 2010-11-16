@@ -18,11 +18,16 @@ class BatchprocessData:
         self.portal = self.page.getPortal()
         self.vc = context["toolkit"]
         self.log = context["log"]
-        func = self.formData.get("func")
         self.writer = self.response.getPrintWriter("text/html; charset=UTF-8")
         print " *** action batchProcess.py: formData=%s" % self.formData
-        self.storage = self.services.getStorage()
-        self.__process()
+        auth = context["page"].authentication
+        if auth.is_admin():
+            self.storage = self.services.getStorage()
+            result = self.__process()
+        else:
+            result = '{ "status": "error", "message": "Only administrative users can access this API" }'
+        self.writer.println(result)
+        self.writer.close()
     
     def __process(self):
         func = self.formData.get("func")
@@ -54,9 +59,8 @@ class BatchprocessData:
                 error = "Batch export failed: %s" % str(ex)
                 self.log.error(error, ex)
                 return '{ status: "failed" }'
-            
-        self.writer.println(result)
-        self.writer.close()
+        
+        return result
         
     def __checkIfScriptFileIsValid(self, scriptFile):
         if scriptFile == "":

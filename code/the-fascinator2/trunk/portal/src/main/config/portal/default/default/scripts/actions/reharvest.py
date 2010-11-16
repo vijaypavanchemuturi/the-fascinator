@@ -2,90 +2,63 @@ from au.edu.usq.fascinator.api.indexer import SearchRequest
 from au.edu.usq.fascinator.common import JsonConfigHelper
 
 from java.io import ByteArrayInputStream, ByteArrayOutputStream
-from java.util import HashSet
 
 class ReharvestData:
-    def __init__(self):
-        pass
-
     def __activate__(self, context):
-        self.velocityContext = context
-
-        print "formData=%s" % self.vc("formData")
-        func = self.vc("formData").get("func")
-        result = "{}"
-        resultType = "text/plain; charset=UTF-8"
-        oid = self.vc("formData").get("oid")
-        portalId = self.vc("formData").get("portalId")
-        portalManager = Services.getPortalManager()
-        if func == "reharvest":
-            if oid:
-                print "Reharvesting single object: %s" % oid
-                portalManager.reharvest(oid)
-                result = '{ status: "ok" }'
-            elif portalId:
-                portal = portalManager.get(portalId)
-                print " Reharvesting portal: %s" % portal.getName()
-                indexer = Services.getIndexer()
-                # TODO security filter
-                # TODO this should loop through the whole portal,
-                #      not just the first page of results
-                if portal.getQuery() == "":
-                    searchRequest = SearchRequest("item_type:object")
+        response = context["response"]
+        writer = response.getPrintWriter("text/plain; charset=UTF-8")
+        auth = context["page"].authentication
+        result = JsonConfigHelper()
+        result.set("status", "error")
+        result.set("message", "An unknown error has occurred")
+        if auth.is_logged_in() and auth.is_admin():
+            services = context["Services"]
+            formData = context["formData"]
+            func = formData.get("func")
+            oid = formData.get("oid")
+            portalId = formData.get("portalId")
+            portalManager = services.portalManager
+            if func == "reharvest":
+                if oid:
+                    print "Reharvesting object '%s'" % oid
+                    portalManager.reharvest("oid")
+                    result.set("status", "ok")
+                    result.set("message", "Object '%s' queued for reharvest")
+                elif portalId:
+                    print " Reharvesting view '%s'" % portalId
+                    # TODO security filter
+                    # TODO this should loop through the whole portal,
+                    #      not just the first page of results
+                    portal = portalManager.get(portalId)
+                    req = SearchRequest(portal.query)
+                    req.setParam("fq", 'item_type:"object"')
+                    out = ByteArrayOutputStream();
+                    services.indexer.search(req, out)
+                    json = JsonConfigHelper(ByteArrayInputStream(out.toByteArray()))
+                    objectIds = json.getList("response/docs//id")
+                    if not objectIds.isEmpty():
+                        portalManager.reharvest(objectIds)
+                    result.set("status", "ok")
+                    result.set("message", "Objects in '%s' queued for reharvest" % portalId)
                 else:
-                    searchRequest = SearchRequest(portal.getQuery())
-                result = ByteArrayOutputStream();
-                Services.getIndexer().search(searchRequest, result)
-                json = JsonConfigHelper(ByteArrayInputStream(result.toByteArray()))
-                objectIds = HashSet()
-                for doc in json.getJsonList("response/docs"):
-                    objectIds.add(doc.get("id"))
-                if not objectIds.isEmpty():
-                    portalManager.reharvest(objectIds)
-                result = '{ status: "ok" }'
+                    response.setStatus(500)
+                    result.set("message", "No object or view specified for reharvest")
+            elif func == "reindex":
+                if oid:
+                    print "Reindexing object '%s'" % oid
+                    services.indexer.index(oid)
+                    services.indexer.commit()
+                    result.set("status", "ok")
+                    result.set("message", "Objects in '%s' queued for reharvest" % portalId)
+                else:
+                    response.setStatus(500)
+                    result.set("message", "No object specified to reindex")
             else:
-                result = '{ status: "failed" }'
-        if func == "reindex":
-            if oid:
-                print "Reindexing single object: %s" % oid
-                Services.indexer.index(oid)
-                Services.indexer.commit()
-                result = '{ status: "ok" }'
-            else:
-                result = '{ status: "failed" }'
-        elif func == "get-state":
-            result = '{ running: "%s", lastResult: "%s" }' % \
-                (self.vc("sessionState").get("reharvest/running"),
-                 self.vc("sessionState").get("reharvest/lastResult"))
-        elif func == "get-log":
-            context = LoggerFactory.getILoggerFactory()
-            logger = context.getLogger("au.edu.usq.fascinator.HarvestClient")
-            appender = logger.getAppender("CYCLIC")
-            layout = HTMLLayout()
-            layout.setContext(context)
-            layout.setPattern("%d%msg")
-            layout.setTitle("Reharvest log")
-            layout.start()
-            result = "<table>"
-            count = appender.getLength()
-            if count == -1:
-                result += "<tr><td>Failed</td></tr>"
-            elif count == 0:
-                result += "<tr><td>No logging events</td></tr>"
-            else:
-                for i in range(0, count):
-                    event = appender.get(i)
-                    result += layout.doLayout(event)
-            result += "</table>"
-            resultType = "text/html; charset=UTF-8"
-        writer = self.vc("response").getPrintWriter(resultType)
-        writer.println(result)
-        writer.close()
-
-    # Get from velocity context
-    def vc(self, index):
-        if self.velocityContext[index] is not None:
-            return self.velocityContext[index]
+                response.setStatus(500)
+                result.set("message", "Unknown action '%s'" % func)
         else:
-            log.error("ERROR: Requested context entry '" + index + "' doesn't exist")
-            return None
+            response.setStatus(500)
+            result.set("message", "Only administrative users can access this API")
+        writer.println(result.toString())
+        writer.close()
+    

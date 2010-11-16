@@ -1,3 +1,4 @@
+#if($page.authentication.is_admin())
 ## reharvest progress
 <div id="reharvest-form" class="box hidden notice">
   <h2><span id="reharvest-loading" class="right"><img src="$portalPath/images/icons/loading.gif" /></span>Reharvest</h2>
@@ -47,10 +48,8 @@ function poll() {
                 $("#reharvest-form").append('<img src="$portalPath/images/icons/exclamation.png" /><span>&nbsp;<b>Error</b>:&nbsp;' + data.error + '</span>');
                 return;
             }
-            console.log(data);
             if (data.meta) {
                 var pending = data.meta["render-pending"];
-                console.log("pending: '" + pending + "'");
                 if (pending == "false") {
                     clearTimeout(pollTimerId);
                     $("#reharvest-loading, #reharvest-in-progress").fadeOut(
@@ -74,3 +73,4 @@ $(function() {
     });
 });
 </script>
+#end

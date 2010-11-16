@@ -8,13 +8,7 @@ class HomeData:
 
     def __activate__(self, context):
         self.velocityContext = context
-
-        action = self.vc("formData").get("verb")
-        portalName = self.vc("formData").get("value")
         self.vc("sessionState").remove("fq")
-        if action == "delete-portal":
-            print " * home.py: delete portal %s" % portalName
-            Services.portalManager.remove(portalName)
         self.__latest = JsonConfigHelper()
         self.__mine = JsonConfigHelper()
         self.__workflows = JsonConfigHelper()

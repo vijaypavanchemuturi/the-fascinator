@@ -18,6 +18,7 @@ class PackagingData:
     def __activate__(self, context):
         self.velocityContext = context
 
+        auth = context["page"].authentication
         print "formData=%s" % self.vc("formData")
 
         result = "{}"
