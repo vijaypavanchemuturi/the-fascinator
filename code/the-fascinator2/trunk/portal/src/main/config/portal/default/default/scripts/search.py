@@ -106,7 +106,7 @@ class SearchData:
         req.setParam("facet", "true")
         req.setParam("rows", str(recordsPerPage))
         req.setParam("facet.field", self.__portal.facetFieldList)
-        req.setParam("facet.sort", str(self.__portal.getFacetSort()))
+        req.setParam("facet.sort", Boolean.toString(self.__portal.getFacetSort()))
         req.setParam("facet.limit", str(self.__portal.facetCount))
         req.setParam("sort", "f_dc_title asc")
         
@@ -208,6 +208,9 @@ class SearchData:
             if (name.find("/") == -1 or self.hasSelectedFacets()) and count > 0:
                 values.put(name, count)
         return values
+    
+    def getFacetDisplay(self):
+        return self.__portal.facetDisplay
     
     def hasSelectedFacets(self):
         return (self.__selected is not None and len(self.__selected) > 1) and \
