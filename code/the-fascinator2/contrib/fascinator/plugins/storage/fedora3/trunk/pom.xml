@@ -7,7 +7,7 @@
     <name>The Fascinator - Plugin - Storage - Fedora Commons 3.x</name>
     <url>http://fascinator.usq.edu.au/trac/wiki/tf2/DeveloperNotes/plugins/storage/fedora3</url>
     <properties>
-        <fascinator.version>0.7.0-SNAPSHOT</fascinator.version>
+        <fascinator.version>0.7.1</fascinator.version>
     </properties>
     <dependencies>
         <dependency>
