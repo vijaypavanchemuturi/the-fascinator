@@ -143,8 +143,10 @@ var widgets={forms:[], globalObject:this};
           msgBox.dialog({title:"Message", hide:"blind",
                 modal:true, autoOpen:false });
       }
+      msgBox.show();
       msgBox.dialog("open").find("span:first").text(msg);
   };
+  _gMessageBox=messageBox;
 
   function changeToTabLayout(elem){
     var h, li, ul = $("<ul></ul>");
