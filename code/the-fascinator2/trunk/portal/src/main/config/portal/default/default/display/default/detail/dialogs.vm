@@ -2,4 +2,6 @@
 #if($page.authentication.is_admin())
     #parseDisplayTemplate("detail/dialogs/reharvest.vm")
 #end
+## TODO fix the blogging
+##parseDisplayTemplate("detail/dialogs/blog.vm")
 #parseDisplayTemplate("detail/dialogs/custom.vm")
