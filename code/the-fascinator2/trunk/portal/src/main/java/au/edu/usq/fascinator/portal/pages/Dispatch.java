@@ -18,21 +18,6 @@
  */
 package au.edu.usq.fascinator.portal.pages;
 
-import au.edu.usq.fascinator.HarvestClient;
-import au.edu.usq.fascinator.api.PluginException;
-import au.edu.usq.fascinator.api.authentication.AuthenticationException;
-import au.edu.usq.fascinator.api.authentication.User;
-import au.edu.usq.fascinator.common.JsonConfig;
-import au.edu.usq.fascinator.common.JsonConfigHelper;
-import au.edu.usq.fascinator.common.MimeTypeUtil;
-import au.edu.usq.fascinator.portal.FormData;
-import au.edu.usq.fascinator.portal.JsonSessionState;
-import au.edu.usq.fascinator.portal.services.DynamicPageService;
-import au.edu.usq.fascinator.portal.services.GenericStreamResponse;
-import au.edu.usq.fascinator.portal.services.HttpStatusCodeResponse;
-import au.edu.usq.fascinator.portal.services.PortalManager;
-import au.edu.usq.fascinator.portal.services.PortalSecurityManager;
-
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -46,6 +31,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
@@ -62,6 +48,21 @@ import org.apache.tapestry5.upload.services.MultipartDecoder;
 import org.apache.tapestry5.upload.services.UploadedFile;
 import org.slf4j.Logger;
 
+import au.edu.usq.fascinator.HarvestClient;
+import au.edu.usq.fascinator.api.PluginException;
+import au.edu.usq.fascinator.api.authentication.AuthenticationException;
+import au.edu.usq.fascinator.api.authentication.User;
+import au.edu.usq.fascinator.common.JsonConfig;
+import au.edu.usq.fascinator.common.JsonConfigHelper;
+import au.edu.usq.fascinator.common.MimeTypeUtil;
+import au.edu.usq.fascinator.portal.FormData;
+import au.edu.usq.fascinator.portal.JsonSessionState;
+import au.edu.usq.fascinator.portal.services.DynamicPageService;
+import au.edu.usq.fascinator.portal.services.GenericStreamResponse;
+import au.edu.usq.fascinator.portal.services.HttpStatusCodeResponse;
+import au.edu.usq.fascinator.portal.services.PortalManager;
+import au.edu.usq.fascinator.portal.services.PortalSecurityManager;
+
 public class Dispatch {
 
     private static final String AJAX_EXT = ".ajax";
@@ -70,7 +71,7 @@ public class Dispatch {
 
     private static final String SCRIPT_EXT = ".script";
 
-    private static final String DEFAULT_RESOURCE = "home";
+    public static final String DEFAULT_RESOURCE = "home";
 
     @Inject
     private Logger log;
@@ -124,8 +125,8 @@ public class Dispatch {
     private Pattern detailPattern;
 
     public StreamResponse onActivate(Object... params) {
-        //log.debug("Dispatch starting : {} {}",
-        //        request.getMethod(), request.getPath());
+        // log.debug("Dispatch starting : {} {}",
+        // request.getMethod(), request.getPath());
 
         try {
             sysConfig = new JsonConfig(JsonConfig.getSystemFile());
@@ -133,7 +134,8 @@ public class Dispatch {
                     PortalManager.DEFAULT_PORTAL_NAME);
         } catch (IOException ex) {
             log.error("Error accessing system config", ex);
-            return new HttpStatusCodeResponse(500, "Sorry, an internal server error has occured");
+            return new HttpStatusCodeResponse(500,
+                    "Sorry, an internal server error has occured");
         }
 
         // Do all our parsing
@@ -141,8 +143,11 @@ public class Dispatch {
 
         // Make sure it's valid
         if (resourceName == null) {
-            return new HttpStatusCodeResponse(404,
-                    "Page not found: " + requestUri);
+            if (response.isCommitted()) {
+                return GenericStreamResponse.noResponse();
+            }
+            return new HttpStatusCodeResponse(404, "Page not found: "
+                    + requestUri);
         }
 
         // Initialise storage for our form data
@@ -154,8 +159,8 @@ public class Dispatch {
             // Make sure it's not a static resource
             if (security.testForSso(sessionState, resourceName, requestUri)) {
                 // Run SSO
-                boolean redirected = security.runSsoIntegration(
-                        sessionState, formDataMap.get(requestId));
+                boolean redirected = security.runSsoIntegration(sessionState,
+                        formDataMap.get(requestId));
                 // Finish here if SSO redirected
                 if (redirected) {
                     return GenericStreamResponse.noResponse();
@@ -202,7 +207,7 @@ public class Dispatch {
         // Make sure we only run for 'real' pages
         if ((resourceName.indexOf(".") == -1) || isSpecial) {
             // Check if formData already exists from a POST redirect
-            //  The requestId will match on a redirect
+            // The requestId will match on a redirect
             FormData formData = formDataMap.get(requestId);
             if (formData == null) {
                 formData = new FormData(request, hsr);
@@ -238,8 +243,8 @@ public class Dispatch {
             log.error("No workflow provided with form data.");
             return;
         }
-        Map<String, JsonConfigHelper> workflows =
-                sysConfig.getJsonMap("uploader");
+        Map<String, JsonConfigHelper> workflows = sysConfig
+                .getJsonMap("uploader");
         JsonConfigHelper workflowConfig = workflows.get(workflowId);
 
         // Roles allowed to upload into this workflow
@@ -317,13 +322,13 @@ public class Dispatch {
         }
         boolean success = file.delete();
         if (!success) {
-            log.error("Error deleting uploaded file from cache: " +
-                    file.getAbsolutePath());
+            log.error("Error deleting uploaded file from cache: "
+                    + file.getAbsolutePath());
         }
 
         // Now create some session data for use later
         Map<String, String> file_details = new LinkedHashMap<String, String>();
-        file_details.put("name",     uploadedFile.getFileName());
+        file_details.put("name", uploadedFile.getFileName());
         if (error != null) {
             // Strip our package/class details from error string
             Pattern pattern = Pattern.compile("au\\..+Exception:");
@@ -333,10 +338,10 @@ public class Dispatch {
         file_details.put("workflow", workflowId);
         file_details.put("template", template);
         file_details.put("location", file_path);
-        file_details.put("size",     String.valueOf(uploadedFile.getSize()));
-        file_details.put("type",     uploadedFile.getContentType());
+        file_details.put("size", String.valueOf(uploadedFile.getSize()));
+        file_details.put("type", uploadedFile.getContentType());
         if (oid != null) {
-            file_details.put("oid",  oid);
+            file_details.put("oid", oid);
         }
         // Helps some browsers (like IE7) resolve the path from the form
         sessionState.set("fileName", uploadedFile.getFileName());
@@ -367,8 +372,8 @@ public class Dispatch {
                     String redirectUri = resourceName;
                     if (path.length > 2) {
                         // Current path but replace "/dispatch" with context
-                        redirectUri = request.getContextPath() +
-                                request.getPath().substring(9);
+                        redirectUri = request.getContextPath()
+                                + request.getPath().substring(9);
                     }
                     log.info("Redirecting to {}...", redirectUri);
                     response.sendRedirect(redirectUri);
@@ -382,13 +387,27 @@ public class Dispatch {
     }
 
     private String resourceProcessing() {
-        portalId = (String) sessionState.get("portalId", defaultPortal);
         requestUri = request.getAttribute("RequestURI").toString();
         path = requestUri.split("/");
-        resourceName = DEFAULT_RESOURCE;
 
+        log.debug("requestUri:'{}', path:'{}'", requestUri, path);
+        log.debug("path.length:{}", path.length);
+        if ("".equals(requestUri) || path.length == 1) {
+            portalId = "".equals(path[0]) ? defaultPortal : path[0];
+            String url = request.getContextPath() + "/" + portalId + "/"
+                    + DEFAULT_RESOURCE;
+            try {
+                response.sendRedirect(url);
+            } catch (IOException ioe) {
+                log.error("Failed to redirect to default URL: {}", url);
+            }
+            return null;
+        }
+
+        portalId = (String) sessionState.get("portalId", defaultPortal);
+        resourceName = DEFAULT_RESOURCE;
         if (path.length > 1) {
-            portalId = path[0].toString();
+            portalId = path[0];
             resourceName = StringUtils.join(path, "/", 1, path.length);
         }
 
@@ -398,7 +417,7 @@ public class Dispatch {
 
         isSpecial = false;
         String match = getBestMatchResource(resourceName);
-        log.trace("resourceName = {}, match = {}", resourceName, match);
+        // log.trace("resourceName = {}, match = {}", resourceName, match);
 
         return match;
     }
