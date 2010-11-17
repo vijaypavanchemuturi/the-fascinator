@@ -390,8 +390,8 @@ public class Dispatch {
         requestUri = request.getAttribute("RequestURI").toString();
         path = requestUri.split("/");
 
-        log.debug("requestUri:'{}', path:'{}'", requestUri, path);
-        log.debug("path.length:{}", path.length);
+        // log.debug("requestUri:'{}', path:'{}'", requestUri, path);
+        // log.debug("path.length:{}", path.length);
         if ("".equals(requestUri) || path.length == 1) {
             portalId = "".equals(path[0]) ? defaultPortal : path[0];
             String url = request.getContextPath() + "/" + portalId + "/"
