@@ -130,8 +130,12 @@
           <input id="view-facet-count" name="view-facet-count" type="text" value="$self.portal.facetCount" />
         </p>
         <p>
+            <label for="view-facet-display">Facet display count (minimum)</label>
+            <input id="view-facet-display" name="view-facet-display" type="text" value="$self.portal.facetDisplay" />
+        </p>
+        <p>
           <label for="view-facet-sort">Sort by facet counts</label>
-          <input id="view-facet-sort" name="view-facet-sort" type="checkbox" value="$self.portal.facetSort" />
+          <input id="view-facet-sort" name="view-facet-sort" type="checkbox"#if($self.portal.facetSort) checked="checked"#end />
         </p>
       </fieldset>
     </form>

@@ -47,9 +47,9 @@ class SettingsData:
             portal.setDescription(self.vc("formData").get("view-description"))
             portal.setQuery(self.vc("formData").get("view-query"))
             portal.setSearchQuery(self.vc("formData").get("view-search-query"))
-            print " *** ", self.vc("formData").get("view-records-per-page")
             portal.setRecordsPerPage(int(self.vc("formData").get("view-records-per-page")))
             portal.setFacetCount(int(self.vc("formData").get("view-facet-count")))
+            portal.setFacetDisplay(int(self.vc("formData").get("view-facet-display")))
             portal.setFacetSort(self.vc("formData").get("view-facet-sort") is not None)
             portalManager.save(portal)
 

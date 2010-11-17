@@ -123,4 +123,12 @@ public class Portal extends JsonConfigHelper {
     public List<String> getFacetFieldList() {
         return new ArrayList<String>(getFacetFields().keySet());
     }
+
+    public int getFacetDisplay() {
+        return Integer.parseInt(get("portal/facet-display", "10"));
+    }
+
+    public void setFacetDisplay(int facetDisplay) {
+        set("portal/facet-display", Integer.toString(facetDisplay));
+    }
 }

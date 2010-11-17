@@ -79,6 +79,14 @@ form.search {
     overflow: hidden;
 }
 
+ul.menu li a.more {
+    font-style: italic;
+}
+
+ul.menu li ul.more li a {
+    padding-left: 10px;
+}
+
 .right {
     float: right;
 }

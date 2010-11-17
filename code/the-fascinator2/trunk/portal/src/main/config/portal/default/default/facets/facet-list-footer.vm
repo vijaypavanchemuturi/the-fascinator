@@ -20,5 +20,18 @@ $(function() {
         doAction("remove_fq", $(this).attr("rel"));
         return false;
     });
+    
+    $("a.more").click(function() {
+        var me = $(this);
+        var rel = me.parent().attr("rel");
+        var facets = $("li[rel='" + rel + "']").find("ul.hidden");
+        if (facets.is(":hidden")) {
+            me.text("less...");
+        } else {
+            me.text("more...");
+        }
+        facets.toggle("blind");
+        return false;
+    });
 });
 </script>
