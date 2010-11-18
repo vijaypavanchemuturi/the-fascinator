@@ -162,7 +162,7 @@ var globalObject=this;
             }
             queryTerm = parent.find(".nameLookup-name").map(function(i, e){return e.value;});
             queryTerm = $.trim($.makeArray(queryTerm).join(" "));
-            if(queryTerm==="") return false;
+            //if(queryTerm==="") return false;
             // Note: double escape the parameter because it is being passed as a parameter inside a parameter
             selectedNameCallback=function(ok, result){
                 debug(ok);
@@ -183,14 +183,14 @@ var globalObject=this;
                             });
                         });
                     }
+                    xUpdate(valueNs, "val");
+                    xUpdate(textNs, "text");
                     var selectedFunc=globalObject[target.dataset("selected-func")];
                     if($.isFunction(selectedFunc)){
                         try{
                             selectedFunc(target, result);
                         }catch(e){alert("Error executing selected-func. "+e.message);}
                     }
-                    xUpdate(valueNs, "val");
-                    xUpdate(textNs, "text");
                 }
             };
             // curry getJson
