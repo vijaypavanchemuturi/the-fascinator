@@ -1051,7 +1051,7 @@ var widgets={forms:[], globalObject:this};
       jsonConverterGetter(topLevelId, onJson, onError, true);
       ds.find(".selection-added").hide();
       if(selAdd.dataset("add-on-click")!=null){
-        var saLabel, saId;
+        var saLabel, saId, saLabelWidth, sTemp, w;
         saLabel=ds.parent().find(".selection-added-label");
         saId=ds.parent().find(".selection-added-id");
         saLabel.bind("onDataChanged", function(){
@@ -1075,6 +1075,14 @@ var widgets={forms:[], globalObject:this};
             saId.val(selAddId).trigger("onDataChanged");
             saLabel.val(selAddLabel).trigger("onDataChanged");
             selAdd.trigger("disableTest");
+            if(!saLabelWidth){saLabelWidth=saLabel.width();}
+            if(saLabelWidth){   // ajust width as required
+                sTemp=$("<span/>");
+                sTemp.text(selAddLabel).hide().insertAfter(saLabel);
+                w=sTemp.width()+4;
+                sTemp.remove();
+                saLabel.width(w>saLabelWidth?w:saLabelWidth);
+            }
             return false;
         });
       }
@@ -1193,20 +1201,20 @@ var widgets={forms:[], globalObject:this};
             return false;
         }
         data = getFormData();
-        completed=function(data){
+        completed=function(data, dataStr){
             if(typeof(data)=="string"){
-                var dataStr=data;
+                dataStr=data;
                 try{
                     data = JSON.parse(data);
                 }catch(e){
                     data = {error:e};
                 }
             }
-            callIfFunction(xResultFunc, widgetForm, data);
             if(data.error || !data.ok){
                 if(!data.ok && !data.error) data.error="Failed to receive an 'ok'!";
-                messageBox("Failed to "+stype+"! (error='"+data.error+"') data='"+dataStr+"'");
+                messageBox("Failed to "+stype+"! (error='"+data.error+"') response='"+dataStr+"'");
             }else{
+                callIfFunction(xResultFunc, widgetForm, data);
                 if(stype=="save"){
                     ctx.findx(".saved-result").text("Saved OK").
                         css("color", "green").show().fadeOut(4000);
@@ -1245,7 +1253,10 @@ var widgets={forms:[], globalObject:this};
                 // data.json = JSON.stringify(data);
                 $.ajax({type:"POST", url:url, data:data,
                     success:completed,
-                    error:function(xhr, status, e){ completed({error:"status='"+status+"'"}); },
+                    error:function(xhr, status, e){
+                        _gxhr=xhr;
+                        completed({error:"status='"+status+"'"}, xhr.responseText);
+                    },
                     dataType:"json"
                 });
             }
