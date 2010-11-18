@@ -54,6 +54,10 @@ form.search {
     overflow-y: hidden;
 }
 
+.facet-list ul.menu {
+    margin-bottom: 0;
+}
+
 .facet-list a, ul.menu a {
     font-weight: normal;
     word-wrap: break-word;

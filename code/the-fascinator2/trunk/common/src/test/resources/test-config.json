@@ -24,6 +24,7 @@
             "autocommit": true
         }
     },
+    "testList": [{"hello":"goodbye"},{"true":"false"}],
     "test": "testing",
     "sample": {
         "property": "${sample.property}"

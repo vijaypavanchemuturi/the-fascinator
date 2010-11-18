@@ -65,7 +65,6 @@ public class JsonConfigHelper {
             }
             return false;
         }
-
     }
 
     /** JSON root node */
@@ -224,8 +223,8 @@ public class JsonConfigHelper {
             for (String key : map.keySet()) {
                 Object value = map.get(key);
                 if (value instanceof String) {
-                    valueMap.put(key, StrSubstitutor
-                            .replaceSystemProperties(value));
+                    valueMap.put(key,
+                            StrSubstitutor.replaceSystemProperties(value));
                 } else {
                     valueMap.put(key, value);
                 }
@@ -269,8 +268,9 @@ public class JsonConfigHelper {
         if (valueNode instanceof Map) {
             Map<String, Object> map = (Map<String, Object>) valueNode;
             for (String key : map.keySet()) {
-                jsonMap.put(key, new JsonConfigHelper((Map<String, Object>) map
-                        .get(key)));
+                jsonMap.put(
+                        key,
+                        new JsonConfigHelper((Map<String, Object>) map.get(key)));
             }
         }
         return jsonMap;
@@ -299,8 +299,8 @@ public class JsonConfigHelper {
     public void setMultiMap(String path, Map<String, Object> json) {
         for (String key : json.keySet()) {
             if (json.get(key) instanceof Map) {
-                setMultiMap(path + "/" + key, (Map<String, Object>) json
-                        .get(key));
+                setMultiMap(path + "/" + key,
+                        (Map<String, Object>) json.get(key));
             } else {
                 getJXPath().createPathAndSetValue(path + "/" + key,
                         json.get(key));
@@ -323,6 +323,23 @@ public class JsonConfigHelper {
                 getJXPath().createPathAndSetValue(path + "/" + key,
                         json.getMap("/"));
             }
+        }
+    }
+
+    /**
+     * Set Map on the specified path
+     * 
+     * @param path XPath to node
+     * @param map node Map
+     */
+    public void setJsonList(String path, List<JsonConfigHelper> jsonList) {
+        Object valueNode = getJXPath().getValue(path);
+        List<Object> valueList = new ArrayList<Object>();
+        if (valueNode == null) {
+            getJXPath().createPathAndSetValue(path, valueList);
+        }
+        for (JsonConfigHelper json : jsonList) {
+            valueList.add(json.getMap("/"));
         }
     }
 

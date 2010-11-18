@@ -4,7 +4,6 @@ from au.edu.usq.fascinator.common import JsonConfigHelper
 from java.io import ByteArrayInputStream, ByteArrayOutputStream
 from java.net import URLEncoder
 from java.util import ArrayList, HashMap
-from authentication import AuthenticationData
 
 class Facet:
     def __init__(self, key, value, count):
@@ -32,6 +31,22 @@ class Facet:
     
     def getSubFacets(self):
         return self.__subFacets
+    
+    def getJson(self, state = "open"):
+        title = "%s (%s)" % (self.getName(), self.getCount())
+        json = JsonConfigHelper()
+        json.set("attributes/id", self.getId())
+        json.set("attributes/fq", self.getFacetQuery())
+        json.set("attributes/title", title)
+        json.set("data", title)
+        hasSubFacets = not self.getSubFacets().isEmpty()
+        if hasSubFacets:
+            json.set("state", state)
+            subFacetList = ArrayList()
+            for subFacet in self.getSubFacets():
+                subFacetList.add(subFacet.getJson("closed"))
+            json.setJsonList("children", subFacetList)
+        return json
 
 class FacetList:
     def __init__(self, name, json):
@@ -48,31 +63,48 @@ class FacetList:
                 if slash == -1:
                     self.__facetList.add(facet)
                 else:
-                    parent = self.getFacet(value[:slash])
+                    parent = self.__getFacet(value[:slash])
                     if parent is not None:
                         parent.addSubFacet(facet)
     
-    def getFacets(self):
-        return self.__facetList
-    
-    def getFacet(self, name):
+    def __getFacet(self, name):
         return self.__facetMap.get(name)
+    
+    def getJsonList(self):
+        jsonList = ArrayList()
+        for facets in self.__facetList:
+            jsonList.add(facets.getJson())
+        return jsonList
 
-class SearchTreeData:
-    def __init__(self):
-        self.authentication = AuthenticationData()
-        self.__search()
+class FacetTreeData:
+    def __activate__(self, context):
+        self.services = context["Services"]
+        self.formData = context["formData"]
+        self.sessionState = context["sessionState"]
+        self.auth = context["page"].authentication
+        
+        result = "{}"
+        try:
+            facetList = self.__search()
+            result = facetList.getJsonList().toString()
+        except Exception, e:
+            print " ERRORRR:: ", str(e)
+        
+        response = context["response"]
+        writer = response.getPrintWriter("text/plain; charset=UTF-8")
+        writer.println(result)
+        writer.close()
     
     def __search(self):
-        query = formData.get("query")
-        searchQuery = sessionState.get("searchQuery")
+        query = self.formData.get("query")
+        searchQuery = self.sessionState.get("searchQuery")
         if query is None or query == "":
             query = "*:*"
         if searchQuery and query == "*:*":
             query = searchQuery
         elif searchQuery:
             query += " AND " + searchQuery
-        facetField = formData.get("facet.field")
+        facetField = self.formData.get("facet.field")
         
         req = SearchRequest(query)
         req.setParam("facet", "true")
@@ -81,27 +113,45 @@ class SearchTreeData:
         req.setParam("facet.limit", "-1")
         req.setParam("facet.field", facetField)
         
-        fq = sessionState.get("fq")
+        fq = self.sessionState.get("fq")
         if fq is not None:
             req.setParam("fq", fq)
         req.addParam("fq", 'item_type:"object"')
         
         # Make sure 'fq' has already been set in the session
-        security_roles = self.authentication.get_roles_list();
+        security_roles = self.auth.get_roles_list();
         security_query = 'security_filter:("' + '" OR "'.join(security_roles) + '")'
         req.addParam("fq", security_query)
 
         out = ByteArrayOutputStream()
-        indexer = Services.getIndexer()
+        indexer = self.services.indexer
         indexer.search(req, out)
         result = JsonConfigHelper(ByteArrayInputStream(out.toByteArray()))
         
-        self.__facetList = FacetList(facetField, result)
-    
-    def getFacetList(self):
-        return self.__facetList
-    
-    def getFacet(self, value):
-        return self.__facetList.get(value)
+        return FacetList(facetField, result)
 
-scriptObject = SearchTreeData()
+"""
+#macro(createFacetNode $facet $state $isLast)
+#set($data = "$facet.name ($facet.count)")
+{
+    "attributes": {
+        "id": "$facet.id",
+        "fq": "$facet.facetQuery",
+        "title": "$data"
+    },
+    "data": "$data"
+    #set($size = $facet.subFacets.size())
+    #if($size > 0)
+        ,
+        "state": "$state",
+        "children": [
+        #foreach($subFacet in $facet.subFacets)
+            #set($isSubLast = $velocityCount == $size)
+            #createFacetNode($subFacet "closed" $isSubLast)
+        #end
+        ]
+    #end
+}
+#if(!$isLast),#end
+#end
+"""    

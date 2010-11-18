@@ -26,7 +26,7 @@
           data: {
               type: "json",
               opts: {
-                  url: "$portalPath/search-tree.ajax?facet.field=" + facetField
+                  url: "$portalPath/facetTree.ajax?facet.field=" + facetField
               }
           },
           selected: $self.selectedFacetIds,
