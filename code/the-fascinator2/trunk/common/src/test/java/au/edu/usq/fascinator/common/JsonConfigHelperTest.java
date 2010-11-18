@@ -18,6 +18,7 @@
  */
 package au.edu.usq.fascinator.common;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -52,10 +53,10 @@ public class JsonConfigHelperTest {
     public void get() throws Exception {
         Assert.assertEquals("testing", config.get("test"));
         Assert.assertEquals("fedora3", config.get("storage/type"));
-        Assert.assertEquals("http://localhost:8080/fedora", config
-                .get("storage/config/uri"));
-        Assert.assertEquals("http://localhost:8080/solr", config
-                .get("indexer/config/uri"));
+        Assert.assertEquals("http://localhost:8080/fedora",
+                config.get("storage/config/uri"));
+        Assert.assertEquals("http://localhost:8080/solr",
+                config.get("indexer/config/uri"));
         Assert.assertEquals("true", config.get("indexer/config/autocommit"));
     }
 
@@ -133,8 +134,8 @@ public class JsonConfigHelperTest {
         Assert.assertEquals("value", config.get("new"));
         Assert.assertEquals("new value", config.get("testing"));
         Assert.assertEquals("!!!", config.get("hello/world"));
-        Assert.assertEquals("http://localhost:9000/fedora3", config
-                .get("storage/config/uri"));
+        Assert.assertEquals("http://localhost:9000/fedora3",
+                config.get("storage/config/uri"));
     }
 
     @Test
@@ -146,10 +147,9 @@ public class JsonConfigHelperTest {
 
     @Test
     public void moveBefore() throws Exception {
-        config
-                .moveBefore(
-                        "manifest//node-a920540f873d7e3956b3700b62614dee",
-                        "manifest/node-69c6cfe6629b6cc11b5919afeae5d991/children/node-6dbebd1c4e463dbb5d91aac897b0a37c");
+        config.moveBefore(
+                "manifest//node-a920540f873d7e3956b3700b62614dee",
+                "manifest/node-69c6cfe6629b6cc11b5919afeae5d991/children/node-6dbebd1c4e463dbb5d91aac897b0a37c");
     }
 
     @Test
@@ -192,5 +192,16 @@ public class JsonConfigHelperTest {
         }
         // System.out.println("iceConfig: {"
         // + StringUtils.substringBeforeLast(json, ",") + "}");
+    }
+
+    @Test
+    public void setJsonList() throws IOException {
+        List<JsonConfigHelper> list = new ArrayList<JsonConfigHelper>();
+        list.add(new JsonConfigHelper("{\"id\":\"1\"}"));
+        list.add(new JsonConfigHelper("{\"id\":\"2\"}"));
+        list.add(new JsonConfigHelper(
+                "{\"id\":\"3\", \"json\":{ \"test\":\"true\"}}"));
+        config.setJsonList("children", list);
+        Assert.assertEquals("true", config.get("children[3]/json/test"));
     }
 }
