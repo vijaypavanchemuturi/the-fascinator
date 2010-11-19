@@ -50,6 +50,7 @@ import au.edu.usq.fascinator.common.harvester.impl.GenericHarvester;
 import au.edu.usq.fascinator.common.storage.StorageUtils;
 
 import com.Ostermiller.util.CSVParser;
+import com.Ostermiller.util.ExcelCSVParser;
 
 /**
  * Harvester for CSV files.
@@ -206,6 +207,13 @@ public class CSVHarvester extends GenericHarvester {
 	public void shutdown() throws HarvesterException {
 	}
 
+	private Boolean validLine(String input) {
+	    Integer numberOfQuotes = input.split("\\Q\"\\E", -1).length - 1;
+	    if (numberOfQuotes%2==0)
+	        return true;
+	    return false;
+	}
+	
 	/**
 	 * Harvest the next set of files, and return their Object IDs
 	 * 
@@ -240,13 +248,18 @@ public class CSVHarvester extends GenericHarvester {
 				// Parse the CSV for this line
 				String[][] values;
 				try {
-					values = CSVParser.parse(new StringReader(line), delimiter);
+				    while (validLine(line)==false){
+				        line += "\n" + br.readLine();
+				    }
+				    values = ExcelCSVParser.parse(new StringReader(line), delimiter);
+				    
+				    //Normal csv parser 
+					//values = CSVParser.parse(new StringReader(line), delimiter);
 				} catch (IOException ex) {
 					log.error("Error parsing CSV file", ex);
 					throw new HarvesterException("Error parsing CSV file: "
 							+ ex.getMessage(), ex);
 				}
-
 				for (String[] columns : values) {
 				    if (!headerRow) {
 				     // If header list is supplied
@@ -277,7 +290,6 @@ public class CSVHarvester extends GenericHarvester {
 
 						titleFlag = true;
 
-                        log.info("xxx done");
 						continue;
 					} else {
 						// Store normal data rows
@@ -353,7 +365,7 @@ public class CSVHarvester extends GenericHarvester {
 			if (includedFields.size() > 0 && !includedFields.contains(colName)) {
 				continue;
 			}
-
+			data.put("recordIDPrefix", recordIDPrefix);
 			data.put(colName, column);
 		}
 
