@@ -1,9 +1,7 @@
 #parseTemplate("facets/facet-list-header.vm")
 
 #if($hasResult)
-    #if(!$facetFields)
-        #set($facetFields = $self.result.getMap("facet_counts/facet_fields"))
-    #end
+    #set($facetFields = $self.result.getMap("facet_counts/facet_fields"))
     #foreach($facetFieldKey in $facetFields.keySet())
         #set($facetField = $self.getFacetField($facetFieldKey))
         #set($facetDisplay = $facetField.get("display"))

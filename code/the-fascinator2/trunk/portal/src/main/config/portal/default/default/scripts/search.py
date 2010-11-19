@@ -10,13 +10,11 @@ from java.net import URLDecoder
 from java.util import ArrayList, LinkedHashMap, HashSet
 
 class SearchData:
-    def __init__(self):
-        self.lastPortalId = ""
-    
     def __activate__(self, context):
         self.services = context["Services"]
         self.page = context["page"]
         self.formData = context["formData"]
+        self.portalId = context["portalId"]
         self.sessionState = context["sessionState"]
         self.request = context["request"]
         self.pageName = context["pageName"]
@@ -33,11 +31,13 @@ class SearchData:
         self.__fqParts = []
         self.__searchField = self.formData.get("searchField", "full_text")
         
-        if self.__portal.getName() != self.lastPortalId:
+        # reset the query and facet selections when changing views
+        lastPortalId = self.sessionState.get("lastPortalId")
+        if lastPortalId != self.portalId:
             self.sessionState.remove("fq")
             self.sessionState.remove("pageNum")
             self.__pageNum = 1
-            self.lastPortalId =  self.__portal.getName()
+            self.sessionState.set("lastPortalId", self.portalId)
         
         self.__search()
     
@@ -205,8 +205,12 @@ class SearchData:
         for i in range(0,len(valueList),2):
             name = valueList[i]
             count = valueList[i+1]
-            if (name.find("/") == -1 or self.hasSelectedFacets()) and count > 0:
-                values.put(name, count)
+            if count > 0:
+                if self.__useSessionNavigation:
+                    values.put(name, count)
+                else:
+                    if name.find("/") == -1 or self.hasSelectedFacets():
+                        values.put(name, count)
         return values
     
     def getFacetDisplay(self):
