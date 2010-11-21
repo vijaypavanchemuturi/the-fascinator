@@ -52,7 +52,12 @@ var globalObject=this;
                             if(jdata.error){ alert(jdata.error); }
                             else{
                                 json=jdata; display();
-                                setTimeout(i.focus, 10);
+                                setTimeout(function(){
+                                    try{
+                                        i.focus();
+                                    }catch(e){      // IE7?
+                                    }
+                                }, 10);
                             }
                         });
                     }
@@ -99,7 +104,7 @@ var globalObject=this;
                             var value=div.find("input[name=name]:checked").val();
                             dialog.dialog("close");
                             detailDialog.dialog("close");
-                            callback(true, JSON.parse(value));
+                            if(value) callback(true, JSON.parse(value));
                           },
                           "Cancel":function(){
                             dialog.dialog("close");

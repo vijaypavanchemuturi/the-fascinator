@@ -858,23 +858,32 @@ var widgets={forms:[], globalObject:this};
   function buildSelectList(json, parent, jsonGetter, onSelection){
       var s, o, children={}, ns, selectable, loading;
       var onJson, onError;
-      ns = (json.namespace || "") || (parent.namespace || "");
-      selectable = (json.selectable==null)?(!!parent.selectable):(!!json.selectable);
-      s = $("<select/>");
-      if(!json["default"]){
-        o = $("<option value=''>Please select one</option>");
-        s.append(o);
+      try{
+          ns = (json.namespace || "") || (parent.namespace || "");
+          selectable = (json.selectable==null)?(!!parent.selectable):(!!json.selectable);
+          s = $("<select/>");
+          if(!json["default"]){
+            o = $("<option value=''>Please select one</option>");
+            s.append(o);
+          }
+          $.each(json.list, function(c, i){
+            if(i){
+                var sel=!!(i.selectable!=null?i.selectable:selectable);
+                children[i.id]={url:(i.children==1?i.id:i.children), label:i.label, id:i.id,
+                            selectable:sel, namespace:ns, parent:parent};
+                o = $("<option/>");
+                o.attr("value", i.id);
+                if(i.id==json["default"]) o.attr("selected", "selected");
+                o.text(i.label);
+                s.append(o);
+            }
+          });
+      }catch(e){
+          _gjson= json;
+          _gparent = parent;
+          alert("Error in buildSelectList - "+e.message);
+          throw e;
       }
-      $.each(json.list, function(c, i){
-        var sel=!!(i.selectable!=null?i.selectable:selectable);
-        children[i.id]={url:(i.children==1?i.id:i.children), label:i.label, id:i.id,
-                        selectable:sel, namespace:ns, parent:parent};
-        o = $("<option/>");
-        o.attr("value", i.id);
-        if(i.id==json["default"]) o.attr("selected", "selected");
-        o.text(i.label);
-        s.append(o);
-      });
       function onChange(){
         var id, child, j;
         id = s.val();
