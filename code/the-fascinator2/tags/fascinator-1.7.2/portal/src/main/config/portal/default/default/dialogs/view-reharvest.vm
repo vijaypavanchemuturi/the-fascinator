@@ -1,0 +1,80 @@
+#if($page.authentication.is_logged_in() && $page.authentication.is_admin())
+<div class="box hidden" id="reharvest-form">
+  <h2>Reharvest view</h2>
+  <div class="block hidden" id="reharvest-progress">
+    <p>Reharvest is currently running... you must wait for it to finish</p>
+    <button id="reharvest-cancel">Close</button>
+    <img id="backup-loading" src="$portalPath/images/icons/loading.gif" />
+  </div>
+  <div class="block" id="reharvest-start">
+    <p>The reharvest process may take a while, do you want to start it now?</p>
+    <button id="reharvest-accept">Start</button>
+    <button id="reharvest-cancel">Close</button>
+  </div>
+  <div class="block hidden" id="reharvest-result">
+    <h5>Last reharvest log (please see the log files for more detail)</h5>
+    <div id="reharvest-log"></div>
+  </div>
+</div>
+<script type="text/javascript">
+$(function() {
+    function getReharvestLog() {
+        jQuery.post("$portalPath/actions/reharvest.ajax", { func: "get-log" },
+            function(data, status) {
+                $("#reharvest-log").html(data);
+            });
+    }
+
+    $("#reharvest-view, #reharvest-cancel").click(function() {
+        $("#reharvest-view").toggleClass("selected");
+        $("#reharvest-form").toggle("blind");
+        jQuery.post("$portalPath/actions/reharvest.ajax",
+            { func: "get-state" },
+            function(data, status) {
+                if (data.running == true) {
+                    $("#reharvest-start").hide();
+                    $("#reharvest-progress, #reharvest-result").show();
+                }
+                if (data.lastResult == "success") {
+                    getReharvestLog();
+                    $("#reharvest-result").toggle();
+                }
+            },
+            "json");
+        return false;
+    });
+
+    $("#reharvest-accept").click(function() {
+        var reharvestLogTimerId;
+        jQuery.post("$portalPath/actions/reharvest.ajax", { func: "get-state" },
+            function(data, status) {
+                if (data.running == true) {
+                    $("#reharvest-start").hide();
+                    $("#reharvest-progress").show();
+                } else {
+                    jQuery.post("$portalPath/actions/state.ajax",
+                        { func: "set", name: "reharvest/running", value: "true" },
+                        function(data, status) {
+                            $("#reharvest-start").hide();
+                            $("#reharvest-progress, #reharvest-result").show();
+                            reharvestLogTimerId = setInterval("getReharvestLog()", 500);
+                        });
+                    jQuery.post("$portalPath/actions/reharvest.ajax",
+                        { func: "reharvest", portalId: "$portalId" },
+                        function(data, status) {
+                            jQuery.post("$portalPath/actions/state.ajax",
+                                { func: "set", name: "reharvest/running", value: "false" },
+                                function(data, status) {
+                                    getReharvestLog();
+                                    $("#reharvest-start").show();
+                                    $("#reharvest-progress").hide();
+                                    clearInterval(reharvestLogTimerId);
+                                });
+                        });
+                }
+            },
+            "json");
+    });
+});
+</script>
+#end

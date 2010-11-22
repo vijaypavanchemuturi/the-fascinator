@@ -1,0 +1,29 @@
+<div id="attachments">
+    #set($menuTitle = '<a href="#">Attachments</a>')
+    #parseTemplate("wrapping/info-box-open.vm")
+    <ul class="menu hidden">
+        #set($object = $parent.getObject())
+        #set($oid = $object.getId())
+        #foreach($pid in $object.getPayloadIdList())
+            #set($payload = $object.getPayload($pid))
+            #set($payloadType = $payload.getType().toString())
+            #set($contentType = $payload.getContentType())
+            <li class="payload" rel="$contentType">
+                <a href="$portalPath/download/$oid/$pid" rel="$payloadType" target="blank" title="$contentType">$pid</a>
+            </li>
+        #end
+    </ul>
+    #parseTemplate("wrapping/info-box-close.vm")
+    <script type="text/javascript">
+    $(function() {
+        $("#attachments h2 a").click(function() {
+            $("#attachments ul")
+                .toggle("blind")
+                .toggleClass("visible")
+                .toggleClass("hidden");
+            $(this).toggleClass("visible");
+            return false;
+        });
+    });
+    </script>
+</div>
