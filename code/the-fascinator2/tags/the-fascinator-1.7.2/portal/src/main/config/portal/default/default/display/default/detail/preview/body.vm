@@ -1,0 +1,17 @@
+<table class="meta">
+#foreach($key in $metaMap.keySet())
+    <tr>
+        <th width="25%">$parent.getFriendlyName($key)</th>
+        <td>
+            #set($valueList = $metaMap.get($key))
+            #if($valueList.size())
+                #foreach($value in $valueList)
+                    <span class="meta-value">$self.escape($value)</span><br/>
+                #end
+            #else
+                $self.escape($valueList)
+            #end
+        </td>
+    </tr>
+#end
+</table>
