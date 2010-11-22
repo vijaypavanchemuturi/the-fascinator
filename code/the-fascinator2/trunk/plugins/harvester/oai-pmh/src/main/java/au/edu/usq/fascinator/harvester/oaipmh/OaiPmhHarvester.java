@@ -22,8 +22,10 @@ import java.io.IOException;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Properties;
 import java.util.Set;
 
@@ -41,6 +43,7 @@ import se.kb.oai.pmh.ResumptionToken;
 import au.edu.usq.fascinator.api.harvester.HarvesterException;
 import au.edu.usq.fascinator.api.storage.DigitalObject;
 import au.edu.usq.fascinator.api.storage.Payload;
+import au.edu.usq.fascinator.api.storage.PayloadType;
 import au.edu.usq.fascinator.api.storage.Storage;
 import au.edu.usq.fascinator.api.storage.StorageException;
 import au.edu.usq.fascinator.common.JsonConfig;
@@ -76,7 +79,8 @@ import au.edu.usq.fascinator.common.storage.StorageUtils;
  * </tr>
  * <tr>
  * <td>metadataPrefix</td>
- * <td>Set the type of metadata records to harvest</td>
+ * <td>Set the type of metadata records to harvest, the first prefix in the list
+ * will be set as the source payload</td>
  * <td>No</td>
  * <td>oai_dc</td>
  * </tr>
@@ -238,26 +242,33 @@ public class OaiPmhHarvester extends GenericHarvester {
             }
         }
         Set<String> items = new HashSet<String>();
-        String metadataPrefix = config.get("harvester/oai-pmh/metadataPrefix",
-                DEFAULT_METADATA_PREFIX);
+        List<Object> metadataPrefixes = config
+                .getList("harvester/oai-pmh/metadataPrefix");
+
+        if (metadataPrefixes == null || metadataPrefixes.isEmpty()) {
+            metadataPrefixes = new ArrayList<Object>();
+            metadataPrefixes.add(DEFAULT_METADATA_PREFIX);
+        }
         String setSpec = config.get("harvester/oai-pmh/setSpec");
-        RecordsList records;
+        RecordsList records = null;
         try {
             numRequests++;
             /** Request for a specific ID */
             if (recordID != null) {
                 log.info("Requesting record {}", recordID);
-                Record record = server.getRecord(recordID, metadataPrefix);
-                try {
-                    items
-                            .add(createOaiPmhDigitalObject(record,
-                                    metadataPrefix));
-                } catch (StorageException se) {
-                    log.error("Failed to create object", se);
-                } catch (IOException ioe) {
-                    log.error("Failed to read object", ioe);
+                for (Object metadataPrefix : metadataPrefixes) {
+                    Record record = server.getRecord(recordID,
+                            metadataPrefix.toString());
+                    try {
+                        items.add(createOaiPmhDigitalObject(record,
+                                metadataPrefix.toString()));
+                    } catch (StorageException se) {
+                        log.error("Failed to create object", se);
+                    } catch (IOException ioe) {
+                        log.error("Failed to read object", ioe);
+                    }
+                    return items;
                 }
-                return items;
 
                 /** Continue an already running request */
             } else if (started) {
@@ -269,14 +280,14 @@ public class OaiPmhHarvester extends GenericHarvester {
                 started = true;
                 if (fromDate == null) {
                     log.info("Harvesting all records");
-                    records = server.listRecords(metadataPrefix, null, null,
-                            setSpec);
+                    records = server.listRecords(metadataPrefixes.get(0)
+                            .toString(), null, null, setSpec);
                 } else {
                     try {
                         log.info("Harvesting records from {} to {}", from,
                                 until == null ? until : " now");
-                        records = server.listRecords(metadataPrefix, from,
-                                until, setSpec);
+                        records = server.listRecords(metadataPrefixes.get(0)
+                                .toString(), from, until, setSpec);
                     } catch (ErrorResponseException ere) {
                         if (ere.getMessage().startsWith("Max granularity")) {
                             log.warn(ere.getMessage());
@@ -285,8 +296,8 @@ public class OaiPmhHarvester extends GenericHarvester {
                         }
                         log.info("Harvesting records from {} to {}", from,
                                 until == null ? until : " now");
-                        records = server.listRecords(metadataPrefix, from,
-                                until, setSpec);
+                        records = server.listRecords(metadataPrefixes.get(0)
+                                .toString(), from, until, setSpec);
                     }
                 }
             }
@@ -295,7 +306,22 @@ public class OaiPmhHarvester extends GenericHarvester {
                     numObjects++;
                     try {
                         items.add(createOaiPmhDigitalObject(record,
-                                metadataPrefix));
+                                metadataPrefixes.get(0).toString()));
+                        // If there is other metadataPrefix, get the record and
+                        // add the record to the payload
+                        if (metadataPrefixes.size() > 1) {
+                            String recordID = record.getHeader()
+                                    .getIdentifier();
+                            for (int count = 1; count < metadataPrefixes.size(); count++) {
+                                Record otherRecord = server.getRecord(recordID,
+                                        metadataPrefixes.get(count).toString());
+
+                                log.info("..... recordId {}", otherRecord
+                                        .getHeader().getIdentifier());
+                                createOaiPmhDigitalObject(otherRecord,
+                                        metadataPrefixes.get(count).toString());
+                            }
+                        }
                     } catch (StorageException se) {
                         log.error("Failed to create object", se);
                     } catch (IOException ioe) {
@@ -326,9 +352,15 @@ public class OaiPmhHarvester extends GenericHarvester {
         oid = DigestUtils.md5Hex(oid);
         DigitalObject object = StorageUtils.getDigitalObject(storage, oid);
         String pid = metadataPrefix + ".xml";
+
         Payload payload = StorageUtils.createOrUpdatePayload(object, pid,
                 IOUtils.toInputStream(record.getMetadataAsString(), "UTF-8"));
         payload.setContentType("text/xml");
+        // Make sure only the first metadataPrefix will be set as source
+        Set<String> payloadIdList = object.getPayloadIdList();
+        if (!payloadIdList.isEmpty()) {
+            payload.setType(PayloadType.Enrichment);
+        }
         payload.close();
 
         // update object metadata
