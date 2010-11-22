@@ -1,7 +1,0 @@
-<div class="mainmenu">
-  <div class="mainmenu-top"></div>
-#if ((!$menuTitle) && ("$!menuTitle" == ""))
-  <div class="mainmenu-heading">&nbsp;</div>
-#else
-  <div class="mainmenu-heading">$menuTitle</div>
-#end
