@@ -1,0 +1,6 @@
+#if($title)
+    #set($pageTitle = $title)
+#else
+    #set($pageTitle = "Detail")
+#end
+<h2 id="page-heading">#if($title)$title#{else}Detail#end</h2>
