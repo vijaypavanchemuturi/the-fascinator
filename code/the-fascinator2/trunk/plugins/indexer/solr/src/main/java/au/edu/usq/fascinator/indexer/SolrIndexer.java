@@ -27,7 +27,6 @@ import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -334,17 +333,9 @@ public class SolrIndexer implements Indexer {
         }
         InputStream result;
         try {
-            StringBuilder extras = new StringBuilder();
-            for (String name : request.getParamsMap().keySet()) {
-                for (String param : request.getParams(name)) {
-                    extras.append(name);
-                    extras.append("=");
-                    extras.append(URLEncoder.encode(param, "UTF-8"));
-                    extras.append("&");
-                }
-            }
-            extras.append("wt=json");
-            result = searcher.get(request.getQuery(), extras.toString(), false);
+            request.addParam("wt", "json");
+            result = searcher.get(request.getQuery(), request.getParamsMap(),
+                    false);
             IOUtils.copy(result, response);
             result.close();
         } catch (IOException ioe) {
@@ -645,17 +636,9 @@ public class SolrIndexer implements Indexer {
         }
         InputStream result;
         try {
-            StringBuilder extras = new StringBuilder();
-            for (String name : request.getParamsMap().keySet()) {
-                for (String param : request.getParams(name)) {
-                    extras.append(name);
-                    extras.append("=");
-                    extras.append(URLEncoder.encode(param, "UTF-8"));
-                    extras.append("&");
-                }
-            }
-            extras.append("wt=json");
-            result = searcher.get(request.getQuery(), extras.toString(), false);
+            request.addParam("wt", "json");
+            result = searcher.get(request.getQuery(), request.getParamsMap(),
+                    false);
             IOUtils.copy(result, response);
             result.close();
         } catch (IOException ioe) {

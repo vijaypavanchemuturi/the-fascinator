@@ -21,10 +21,14 @@ package au.edu.usq.fascinator.indexer;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import org.apache.commons.httpclient.HttpStatus;
-import org.apache.commons.httpclient.methods.GetMethod;
+import org.apache.commons.httpclient.NameValuePair;
+import org.apache.commons.httpclient.methods.PostMethod;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,7 +45,7 @@ public class SolrSearcher {
     private String baseUrl;
 
     public SolrSearcher(String solrBaseUrl) {
-        this.baseUrl = solrBaseUrl;
+        baseUrl = solrBaseUrl;
         client = new BasicHttpClient(solrBaseUrl);
     }
 
@@ -61,16 +65,18 @@ public class SolrSearcher {
         return get(query, null, escape);
     }
 
-    public InputStream get(String query, String extras, boolean escape)
-            throws IOException {
+    public InputStream get(String query, Map<String, Set<String>> extras,
+            boolean escape) throws IOException {
         if (query == null) {
             query = "*:*";
         } else if (!QUERY_ALL.equals(query) && escape) {
             query = query.replaceAll(":", "\\\\:");
         }
-        String queryUrl = getUrl(query, extras);
-        log.debug("Query URL: " + queryUrl);
-        GetMethod method = new GetMethod(queryUrl);
+        String selectUrl = baseUrl + "/select";
+        NameValuePair[] postData = getPostData(query, extras);
+        log.debug("URL:{}, POSTDATA:{}", selectUrl, postData);
+        PostMethod method = new PostMethod(selectUrl);
+        method.setRequestBody(postData);
         int status = client.executeMethod(method, true);
         if (status == HttpStatus.SC_OK) {
             return method.getResponseBodyAsStream();
@@ -78,20 +84,19 @@ public class SolrSearcher {
         return null;
     }
 
-    private String getUrl(String query) throws UnsupportedEncodingException {
-        StringBuilder url = new StringBuilder(baseUrl);
-        url.append("/select?q=");
-        url.append(URLEncoder.encode(query, "UTF-8"));
-        return url.toString();
-    }
-
-    private String getUrl(String query, String extras)
+    private NameValuePair[] getPostData(String query,
+            Map<String, Set<String>> extras)
             throws UnsupportedEncodingException {
-        String url = getUrl(query);
-        if (!"".equals(extras) && extras != null) {
-            int qmark = url.indexOf('?') + 1;
-            url = url.substring(0, qmark) + extras + "&" + url.substring(qmark);
+        List<NameValuePair> params = new ArrayList<NameValuePair>();
+        params.add(new NameValuePair("q", query));
+        if (extras != null) {
+            for (String key : extras.keySet()) {
+                Set<String> values = extras.get(key);
+                for (String value : values) {
+                    params.add(new NameValuePair(key, value));
+                }
+            }
         }
-        return url;
+        return params.toArray(new NameValuePair[] {});
     }
 }
