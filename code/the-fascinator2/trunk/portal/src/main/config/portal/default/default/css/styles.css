@@ -25,6 +25,11 @@ form.search {
     padding-right: 5px;
 }
 
+.sorting {
+    font-size: 0.6em;
+    padding-right: 8px;
+}
+
 .paging {
     font-size: 0.75em;
     margin-left: 0;
@@ -698,8 +703,8 @@ ul.global-topic {
 }
 
 .results-footer span.paging {
-    font-size: 23px;
-    margin: 10px 10px;
+    font-size: 1.6em;
+    margin-right: 10px;
 }
 .rendition-links {
     float: right;

@@ -31,11 +31,23 @@ class SearchData:
         self.__fqParts = []
         self.__searchField = self.formData.get("searchField", "full_text")
         
+        self.__sortField = self.formData.get("sort-field")
+        self.__sortOrder = self.formData.get("sort-order")
+        if not (self.__sortField or self.__sortOrder):
+            # use form data not specified, check session
+            self.__sortField = self.sessionState.get("sortField", "score")
+            self.__sortOrder = self.sessionState.get("sortOrder", "desc")
+        self.sessionState.set("sortField", self.__sortField)
+        self.sessionState.set("sortOrder", self.__sortOrder)
+        self.__sortBy = "%s %s" % (self.__sortField, self.__sortOrder)
+        
         # reset the query and facet selections when changing views
         lastPortalId = self.sessionState.get("lastPortalId")
         if lastPortalId != self.portalId:
             self.sessionState.remove("fq")
             self.sessionState.remove("pageNum")
+            self.sessionState.remove("sortField")
+            self.sessionState.remove("sortOrder")
             self.__pageNum = 1
             self.sessionState.set("lastPortalId", self.portalId)
         
@@ -108,7 +120,7 @@ class SearchData:
         req.setParam("facet.field", self.__portal.facetFieldList)
         req.setParam("facet.sort", Boolean.toString(self.__portal.getFacetSort()))
         req.setParam("facet.limit", str(self.__portal.facetCount))
-        req.setParam("sort", "f_dc_title asc")
+        req.setParam("sort", self.__sortBy)
         
         # setup facets
         if self.__useSessionNavigation:
@@ -265,6 +277,15 @@ class SearchData:
     
     def isSelectableForPackage(self, oid):
         return oid != self.getActiveManifestId()
+    
+    def getSortFields(self):
+        return self.__portal.sortFields
+    
+    def getSortField(self):
+        return self.__sortField
+    
+    def getSortOrder(self):
+        return self.__sortOrder
     
     # RESTful style URL support methods
     def getPageQuery(self, page):
