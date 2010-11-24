@@ -1,7 +1,9 @@
 <script type="text/javascript">
 $(function() {
-    setupVideoAnnotation("$oid");
     setupTagging('div[rel="${oid}-tags"]', "$oid");
-    setupCommenting("$oid", "p, h1, h2, h3, h4, h5, h6, .annotatable", false);
+    
+    ## set delay so other annotation load properly
+    setTimeout("setupVideoAnnotation('$oid')",1500); 
+    
 });
 </script>

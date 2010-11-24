@@ -1,5 +1,6 @@
 #set($metaMap = $parent.getMetadataMap())
 #set($oid = $metadata.get("id"))
 #set($title = $metadata.getList("dc_title").get(0))
+#set($creator = $page.authentication.get_name())
 
 #parseDisplayTemplate("detail/custom-common.vm")
