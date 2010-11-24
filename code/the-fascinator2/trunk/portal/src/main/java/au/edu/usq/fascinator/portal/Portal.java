@@ -21,6 +21,7 @@ package au.edu.usq.fascinator.portal;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -130,5 +131,24 @@ public class Portal extends JsonConfigHelper {
 
     public void setFacetDisplay(int facetDisplay) {
         set("portal/facet-display", Integer.toString(facetDisplay));
+    }
+
+    public Map<String, String> getSortFields() {
+        Map<String, Object> objectFields = getMap("portal/sort-fields");
+        Map<String, String> sortFields = new LinkedHashMap<String, String>();
+        for (String key : objectFields.keySet()) {
+            sortFields.put(key, objectFields.get(key).toString());
+        }
+        return sortFields;
+    }
+
+    public void setSortFields(Map<String, String> sortFields) {
+        Map<String, Object> objectFields = new LinkedHashMap<String, Object>();
+        objectFields.putAll(sortFields);
+        setMap("portal/sort-fields", objectFields);
+    }
+
+    public List<String> getSortFieldList() {
+        return new ArrayList<String>(getSortFields().keySet());
     }
 }

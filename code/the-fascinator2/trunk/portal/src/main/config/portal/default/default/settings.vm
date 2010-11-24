@@ -32,6 +32,18 @@
     </td>
   </tr>
 #end
+#macro(sortRow $id $field $label $extraClass)
+  <tr id="$id" class="sort-row $extraClass">
+    <td>
+      <img class="sort-grip" src="$portalPath/images/icons/grippy.png" />
+      #editableText($id "field" $field)
+    </td>
+    <td>#editableText($id "label" $label)</td>
+    <td>
+      <input class="sort-delete" name="sort-delete" type="checkbox" value="$id" />
+    </td>
+  </tr>
+#end
 #macro(watcherRow $id $stopped $path $fileFilter $dirFilter $extraClass)
   <tr id="$id" class="watcher-row $extraClass">
     <td>
@@ -79,6 +91,7 @@
       #category("general" "General")
       #category("view" "View")
       #category("facets" "Facets")
+      #category("sort" "Sort by")
       #category("watcher" "Watcher")
       #category("housekeeping" "House Keeping")
     </ul>
@@ -172,6 +185,34 @@
       <button class="cancel">Cancel</button>
       <img class="hidden" id="facets-loading" src="$portalPath/images/icons/loading.gif" />
       <span id="facets-message"></span>
+    </div>
+  </div>
+  <div id="sort-section" class="box hidden">
+    <h2>Sort by</h2>
+    <div class="block category-form" id="sort-form">
+      <table>
+        <thead>
+          <tr>
+            <th width="45%">Field</th>
+            <th width="45%">Label</th>
+            <th>Delete</th>
+          </tr>
+          #sortRow("sort-blank" "new_field" "New sort field" "hidden")
+        </thead>
+        <tbody id="sort-table">
+        #set($sortFields = $self.portal.sortFields)
+        #foreach($field in $sortFields.keySet())
+          #set($id = "sort-$velocityCount")
+          #set($label = $sortFields.get($field))
+          #sortRow($id $field $label "")
+        #end
+        </tbody>
+      </table>
+      <button class="add" rel="sort">Add</button>
+      <button class="update">Update</button>
+      <button class="cancel">Cancel</button>
+      <img class="hidden" id="sort-loading" src="$portalPath/images/icons/loading.gif" />
+      <span id="sort-message"></span>
     </div>
   </div>
   <div id="watcher-section" class="box hidden">
@@ -359,7 +400,7 @@ $(function() {
     });
 
     // drag n drop sorting of facets
-    $("#facets-table").sortable({ axis: 'y' });
+    $("#facets-table, #sort-table").sortable({ axis: 'y' });
 
     // save facet settings
     $("#facets-section button.update").removeAttr("disabled").click(function() {
@@ -387,6 +428,34 @@ $(function() {
                 $("#facets-message").text("Updated successfully");
                 setTimeout(function() { $("#facets-message").empty(); }, 3000);
                 $("#facets-section button.update").removeAttr("disabled");
+            },
+            "json");
+    });
+
+    // save sort settings
+    $("#sort-section button.update").removeAttr("disabled").click(function() {
+        $(this).attr("disabled", "disabled");
+        $("#sort-loading").show();
+        var orderArray = $("#sort-table").sortable("toArray");
+        var data = "";
+        for (var i = 0, len = orderArray.length; i < len; i++) {
+            var id = orderArray[i];
+            var fField = $("#" + id + "-field .field-input").val();
+            var fLabel = $("#" + id + "-label .field-input").val();
+            var fDelete = $("#" + id + " .sort-delete").attr("checked");
+            data += "&field=" + fField +
+                    "&label=" + fLabel +
+                    "&delete=" + fDelete;
+        }
+        jQuery.post("$portalPath/actions/settings.ajax?" + data,
+            { func: "sort-update" },
+            function(data, status) {
+                $("#sort-table span").css("font-weight", "normal");
+                $("#sort-loading").hide();
+                $(".sort-delete:checked").parents("tr").remove();
+                $("#sort-message").text("Updated successfully");
+                setTimeout(function() { $("#sort-message").empty(); }, 3000);
+                $("#sort-section button.update").removeAttr("disabled");
             },
             "json");
     });

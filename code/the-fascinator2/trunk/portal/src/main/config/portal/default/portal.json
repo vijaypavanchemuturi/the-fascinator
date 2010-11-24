@@ -5,7 +5,7 @@
     "query" : "",
     "records-per-page" : "25",
     "facet-count" : "100",
-    "facet-sort-by-count" : "false",
+    "facet-sort-by-count" : "true",
     "debug" : "true",
     "use-session-navigation" : "true",
     "facet-displays" : {
@@ -50,6 +50,14 @@
         "display" : "list"
       }
     },
-    "searchQuery" : ""
+    "searchQuery" : "",
+    "facet-display" : "10",
+    "sort-fields" : {
+      "last_modified" : "Last modified",
+      "f_dc_title" : "Title",
+      "f_dc_creator" : "Creator",
+      "f_dc_subject" : "Subject",
+      "f_dc_type" : "Type"
+    }
   }
 }

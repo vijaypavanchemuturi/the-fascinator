@@ -72,9 +72,22 @@ class SettingsData:
             labelKey = "portalFacet_%s_label" % i
             name = self.vc("formData").get(nameKey)
             label = self.vc("formData").get(labelKey)
-            print "key: %s, label: %s" % (name, label)
+            print "facet: key: %s, label: %s" % (name, label)
             if name is not None and label is not None:
                 facetFields.put(name, label)
+        self.__portal.setFacetFields(facetFields)
+        sortFields = self.__portal.sortFields
+        sortFields.clear()
+        size = int(self.vc("formData").get("portalSortSize"))
+        for i in range(1,size+2):
+            nameKey = "portalSort_%s_name" % i
+            labelKey = "portalSort_%s_label" % i
+            name = self.vc("formData").get(nameKey)
+            label = self.vc("formData").get(labelKey)
+            print "sort: key: %s, label: %s" % (name, label)
+            if name is not None and label is not None:
+                sortFields.put(name, label)
+        self.__portal.setSortFields(sortFields)
         Services.portalManager.save(self.__portal)
     
     def getPortal(self):

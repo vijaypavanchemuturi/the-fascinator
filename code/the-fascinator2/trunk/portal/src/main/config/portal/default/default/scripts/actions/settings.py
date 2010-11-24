@@ -81,6 +81,17 @@ class SettingsData:
                     portal.set("portal/facet-fields/%s/display" % field, displays[i])
             portalManager.save(portal)
 
+        elif func == "sort-update":
+            portal.removePath("portal/sort-fields")
+            fields = self.vc("formData").getValues("field")
+            labels = self.vc("formData").getValues("label")
+            deletes = self.vc("formData").getValues("delete")
+            for i in range(0, len(fields)):
+                field = fields[i]
+                if deletes[i] == "false":
+                    portal.set("portal/sort-fields/%s" % field, labels[i])
+            portalManager.save(portal)
+
         elif func == "watcher-update":
             configFile = self.getWatcherFile()
             if configFile is not None:
