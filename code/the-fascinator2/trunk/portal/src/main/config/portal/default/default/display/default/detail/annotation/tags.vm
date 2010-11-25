@@ -12,7 +12,11 @@ function setupTagging(docRoot, pageUri) {
         outputInChild: ".object-tags",
         annotationType: "tag",
         stylePrefix: "tags-",
-        interfaceLabel: " <img src='$portalPath/images/icons/add.png' title='Add tag' />",
+        #if ($page.authentication.is_logged_in())
+            interfaceLabel: " <img src='$portalPath/images/icons/add.png' title='Add tag' />",
+        #else
+            interfaceLabel: "<span/>",
+        #end
         displayCustom: "object_tag_display",
         formPrepend: true,
         interfaceVisible: true,
