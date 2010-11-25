@@ -16,7 +16,11 @@ $(function(){
         displayCustom: "tag_display",
         #if("$!creator" != "")creator: "$creator",#end
         #if("$!creatorUri" != "")creatorUri: "$creatorUri",#end
-        interfaceLabel: " <img src='$portalPath/images/icons/add.png'/>",
+        #if ($page.authentication.is_logged_in())
+            interfaceLabel: " <img src='$portalPath/images/icons/add.png'/>",
+        #else
+            interfaceLabel: " <span/>",
+        #end
         interfaceVisible: true,
         formCustom: "object_tag_form",
         formCancel: ".myTag-cancel",

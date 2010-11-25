@@ -16,64 +16,74 @@ class AnotarData:
     def __activate__(self, context):
         self.velocityContext = context
         
-        auth = context["page"].authentication
-        if auth.is_logged_in():
-            # This gets called a lot
-            self.fd = self.vc("formData").get
-    
-            self.action = self.fd("action")
-            self.rootUri = self.fd("rootUri")
-            self.json = self.fd("json")
-            self.type = self.fd("type")
-            self.rootUriList = self.vc("formData").getValues("rootUriList")
-            self.contextPath = self.vc("contextPath")
-            #print "action:'%s' formData:'%s'" % (self.action, formData)
-    
-            # used so that ajax requests don't cache
-            if self.rootUri and self.rootUri.find("?ticks") > -1:
-                self.rootUri = self.rootUri[:self.rootUri.find("?ticks")]
-    
-            # Portal path info
-            portalPath = self.contextPath + "/" + self.vc("portalId") + "/"
-            self.oid = self.rootUri
-            if self.oid and self.oid.startswith(portalPath):
-                self.oid = self.oid[len(portalPath):]
-    
-            # oid for packaged items
-            if self.oid:
-                hashIndex = self.oid.find("#")
-                if hashIndex > -1:
-                    self.oid = self.oid[hashIndex + 1:]
-    
-            result = ""
-            if self.action == "getList":
-                # Response is a list of object (nested)
-                #print "**** anotar.py : GET_SOLR : " + self.rootUri
-                result = self.search_solr()
-            elif self.action == "put":
+        self.__auth = context["page"].authentication
+        # This gets called a lot
+        self.fd = self.vc("formData").get
+
+        self.action = self.fd("action")
+        self.rootUri = self.fd("rootUri")
+        self.json = self.fd("json")
+        self.type = self.fd("type")
+        self.rootUriList = self.vc("formData").getValues("rootUriList")
+        self.contextPath = self.vc("contextPath")
+        #print "action:'%s' formData:'%s'" % (self.action, formData)
+
+        # used so that ajax requests don't cache
+        if self.rootUri and self.rootUri.find("?ticks") > -1:
+            self.rootUri = self.rootUri[:self.rootUri.find("?ticks")]
+
+        # Portal path info
+        portalPath = self.contextPath + "/" + self.vc("portalId") + "/"
+        self.oid = self.rootUri
+        if self.oid and self.oid.startswith(portalPath):
+            self.oid = self.oid[len(portalPath):]
+
+        # oid for packaged items
+        if self.oid:
+            hashIndex = self.oid.find("#")
+            if hashIndex > -1:
+                self.oid = self.oid[hashIndex + 1:]
+
+        result = ""
+        if self.action == "getList":
+            # Response is a list of object (nested)
+            #print "**** anotar.py : GET_SOLR : " + self.rootUri
+            result = self.search_solr()
+        elif self.action == "put":
+            result = self.__authenticate()
+            if result is None:
                 # Response is an ID
                 #print "**** anotar.py : PUT : " + self.rootUri
                 result = self.put()
-            elif self.action == "delete":
+        elif self.action == "delete":
+            result = self.__authenticate()
+            if result is None:
                 # Response is empty
                 result = self.delete()
                 if result != "":
                     self.vc("response").setStatus(500)
-            elif self.action == "get-image":
-                # Response is the JSON format expected by image annotation plugin
-                result = self.get_image()
-            elif self.action == "save-image":
+        elif self.action == "get-image":
+            # Response is the JSON format expected by image annotation plugin
+            result = self.get_image()
+        elif self.action == "save-image":
+            result = self.__authenticate()
+            if result is None:
                 # Response is anotar JSON
                 result = self.save_image()
-            elif self.action == "delete-image":
+        elif self.action == "delete-image":
+            result = self.__authenticate()
+            if result is None:
                 result = self.delete_image()
-        else:
-            self.vc("response").setStatus(500)
-            result = "Only registered users can access this API"
         
         writer = self.vc("response").getPrintWriter("text/plain; charset=UTF-8")
         writer.println(result)
         writer.close()
+
+    def __authenticate (self):
+        if not self.__auth.is_logged_in():
+            self.vc("response").setStatus(500)
+            return "Only registered users can access this API"
+        return None
 
     # Get from velocity context
     def vc(self, index):

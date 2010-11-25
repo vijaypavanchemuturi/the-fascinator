@@ -6,8 +6,13 @@ function setupCommenting(pageUri, tagList, visible) {
         clientUri: "http://www.purl.org/anotar/client/0.2",
         #if("$!creator" != "")creator: "$creator",#end
         #if("$!creatorUri" != "")creatorUri: "$creatorUri",#end
-        interfaceLabel: " <img src='$portalPath/images/icons/comment_add.png' title='Add new comment' /> Comments:",
-        replyLabel: " <img src='$portalPath/images/icons/comments_add.png' title='Reply to this comment' />",
+        #if ($page.authentication.is_logged_in())
+            interfaceLabel: " <img src='$portalPath/images/icons/comment_add.png' title='Add new comment' /> Comments:",
+            replyLabel: " <img src='$portalPath/images/icons/comments_add.png' title='Reply to this comment' />",
+        #else
+            interfaceLabel: "<span/>",
+            replyLabel: "<span/>",
+        #end
         interfaceVisible: visible,
         displayCustom: "object_comment_display",
         loadAnnotations: function() { loadAnnotations(this, pageUri) },
