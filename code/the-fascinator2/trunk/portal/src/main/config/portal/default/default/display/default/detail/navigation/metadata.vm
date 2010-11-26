@@ -16,6 +16,7 @@
         </tr>
     #end
 #end
+#set($menuClass = "metadata")
 #set($menuTitle = "Metadata")
 #parseTemplate("wrapping/info-box-open.vm")
 <table class="meta">

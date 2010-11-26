@@ -9,7 +9,7 @@
     #end
 #end
 #set($pageTitle = "About")
-<h2 id="page-heading">About</h2>
+<h2 id="page-heading"><span>About</span></h2>
 <div class="grid_16">
     #set($contentTitle = "Description")
     #parseTemplate("wrapping/content-block-open.vm")

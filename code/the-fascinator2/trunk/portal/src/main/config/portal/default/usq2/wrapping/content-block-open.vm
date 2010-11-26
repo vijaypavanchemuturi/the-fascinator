@@ -1,4 +1,4 @@
-<div class="box#if($contentClass) $!contentClass#end"#if($contentId) id="$!contentId"#end>
+<div class="content#if($contentClass) $!contentClass#end"#if($contentId) id="$!contentId"#end>
     <h2>#if($contentTitle)$!contentTitle#{else}&nbsp;#end</h2>
 ## Reset parameters
 #set($contentId = $NULL)

@@ -23,8 +23,8 @@
                     </a>
                 #end
             </li>
-            #if($velocityCount == $self.facetDisplay)
-                <li rel="$facetFieldKey">
+            #if(($velocityCount == $self.facetDisplay) && ($self.facetDisplay != $facetCounts.size()))
+                <li class="more" rel="$facetFieldKey">
                     <ul class="more hidden">
             #end
             #set($last = $velocityCount)

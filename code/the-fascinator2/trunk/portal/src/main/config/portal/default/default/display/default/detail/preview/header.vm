@@ -1,5 +1,6 @@
-<div class="box" id="$oid">
-    <h2>Preview</h2>
-    <div class="article first" id="content">
-        <div class="article-heading">$title</div>
-        #parseDisplayTemplate("detail/preview/content-header.vm")
+#set($contentId = $oid)
+#set($contentTitle = "Preview")
+#parseTemplate("wrapping/content-block-open.vm")
+<div class="article first" id="content">
+    <div class="article-heading">$title</div>
+    #parseDisplayTemplate("detail/preview/content-header.vm")

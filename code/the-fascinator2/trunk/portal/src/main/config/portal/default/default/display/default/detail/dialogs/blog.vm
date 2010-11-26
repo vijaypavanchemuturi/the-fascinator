@@ -1,6 +1,8 @@
-<div class="box hidden" id="blog-form">
-    <h2>Blog</h2>
-    <form id="blog" method="post">
+#set($menuId = "blog-form")
+#set($menuClass = "hidden")
+#set($menuTitle = "Blog")
+#parseTemplate("wrapping/info-box-open.vm")
+<form id="blog" method="post">
         <fieldset class="login">
             <legend>Blog information</legend>
             <p>
@@ -29,7 +31,7 @@
     </form>
     <p>* Note: To use this feature the target blog needs to support the <a href="http://en.wikipedia.org/wiki/Atom_%28standard%29">Atom Publishing Protocol (APP)</a>. Usually this feature must be specifically enabled, and some platforms might not support all content, such as images and attachments.</p>
     <p>For more information on APP support on your blog, consult the documentation (e.g. <a href="http://codex.wordpress.org/AtomPub">WordPress</a>).
-</div>
+#parseTemplate("wrapping/info-box-close.vm")
 <script type="text/javascript" src="$portalPath/js/autocomplete/lib/jquery.ajaxQueue.js"></script>
 <script type="text/javascript" src="$portalPath/js/autocomplete/lib/jquery.bgiframe.min.js"></script>
 <script type="text/javascript" src="$portalPath/js/autocomplete/jquery.autocomplete.pack.js"></script>

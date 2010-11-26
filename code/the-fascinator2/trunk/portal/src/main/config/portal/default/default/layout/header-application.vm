@@ -14,13 +14,18 @@
                 #end
             </ul>
         </li>
-        <li><a href="$portalPath/about">About</a></li>
         #if($page.authentication.is_admin())
-            <li><a href="$portalPath/batchprocess">Batch Process</a></li>
-            <li><a href="$portalPath/settings">Settings</a></li>
-            <li><a href="$portalPath/admin">Admin</a></li>
-            #parse($page.getTemplate('elements/queues.vm'))
+        <li>
+            <a href="#">Admin</a>
+            <ul class="dropdown">
+                <li><a href="$portalPath/settings">Settings</a></li>
+                <li><a href="$portalPath/admin">Security</a></li>
+                <li><a href="$portalPath/batchprocess">Batch</a></li>
+                #parseTemplate("elements/queues.vm")
+            </ul>
+        </li>
         #end
+        <li><a href="$portalPath/about">About</a></li>
         <li class="secondary">
             <a class="search" href="#"><img src="$portalPath/images/icons/magnifier.png" /></a>
         </li>

@@ -57,51 +57,53 @@
 #set ($blockingNotifications = false)
 #if (!$notifications.isEmpty())
     <div class="grid_16">
-        <div id="notifications" class="box articles hidden">
-            <h2>System Notifications</h2>
-            <div class="content">
-                #########################
-                ###  'Blocking'/urgent messages first
+        #set($menuId = "notifications")
+        #set($menuClass = "articles hidden")
+        #set($menuTitle = "System notifications")
+        #parseTemplate("wrapping/info-box-open.vm")
+        <div class="content">
+            #########################
+            ###  'Blocking'/urgent messages first
 
-                #set ($normalMsgs = 0)
-                #foreach($notice in $notifications)
-                    #if ($notice.block)
-                        #set ($blockingNotifications = true)
-                        <div class="blocking">
-                            #if ($notice.message == "out-of-date" || $notice.message == "configure")
-                                #configError("$notice.message" $isAdmin)
-                            #else
-                                $notice.getDate() : $notice.message
-                            #end
-                        </div>
-                    #else
-                        #set ($normalMsgs = $normalMsgs + 1)
-                    #end
-                #end
-
-                #########################
-                ###  Normal messages
-
-                #if ($normalMsgs > 0 && $isAdmin)
-                    <div class="lowHeader">
-                        <b>$normalMsgs low priority message(s)</b>
-                        <span class="lowManage hidden">PURGE ALL</span>
-                        <a class="lowHide hidden" href="#">hide message &raquo;</a>
-                        <a class="lowShow" href="#">show me &raquo;</a>
-                    </div>
-                    <div id="lowMessages" class="hidden">
-                        #foreach($notice in $notifications)
-                            #if (!$notice.block)
-                                <div id="confirm$notice.id" class="normal">
-                                    <div rel="$notice.id" class="confirm">OK</div>
-                                    $notice.getDate() : $notice.message
-                                </div>
-                            #end
+            #set ($normalMsgs = 0)
+            #foreach($notice in $notifications)
+                #if ($notice.block)
+                    #set ($blockingNotifications = true)
+                    <div class="blocking">
+                        #if ($notice.message == "out-of-date" || $notice.message == "configure")
+                            #configError("$notice.message" $isAdmin)
+                        #else
+                            $notice.getDate() : $notice.message
                         #end
                     </div>
+                #else
+                    #set ($normalMsgs = $normalMsgs + 1)
                 #end
-            </div>
+            #end
+
+            #########################
+            ###  Normal messages
+
+            #if ($normalMsgs > 0 && $isAdmin)
+                <div class="lowHeader">
+                    <b>$normalMsgs low priority message(s)</b>
+                    <span class="lowManage hidden">PURGE ALL</span>
+                    <a class="lowHide hidden" href="#">hide message &raquo;</a>
+                    <a class="lowShow" href="#">show me &raquo;</a>
+                </div>
+                <div id="lowMessages" class="hidden">
+                    #foreach($notice in $notifications)
+                        #if (!$notice.block)
+                            <div id="confirm$notice.id" class="normal">
+                                <div rel="$notice.id" class="confirm">OK</div>
+                                $notice.getDate() : $notice.message
+                            </div>
+                        #end
+                    #end
+                </div>
+            #end
         </div>
+        #parseTemplate("wrapping/info-box-close.vm")
     </div>
     <script type="text/javascript">
         $(function() {
