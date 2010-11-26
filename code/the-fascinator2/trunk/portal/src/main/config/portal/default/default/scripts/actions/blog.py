@@ -2,16 +2,21 @@ import htmlentitydefs
 
 from au.edu.usq.fascinator.api.storage import PayloadType
 from au.edu.usq.fascinator.common import FascinatorHome, JsonConfigHelper
+from au.edu.usq.fascinator.api.indexer import SearchRequest
+from au.edu.usq.fascinator.api.storage import StorageException
 
 from com.sun.syndication.feed.atom import Content
 from com.sun.syndication.propono.atom.client import AtomClientFactory, BasicAuthStrategy
 
-from java.io import ByteArrayOutputStream
+from java.io import ByteArrayInputStream, ByteArrayOutputStream
 from java.net import Proxy, ProxySelector, URL, URLDecoder
 from java.lang import Exception
+from java.util import TreeMap
 
 from org.apache.commons.io import FileUtils, IOUtils
 from org.w3c.tidy import Tidy
+
+from org.apache.velocity import VelocityContext
 
 
 class ProxyBasicAuthStrategy(BasicAuthStrategy):
@@ -37,6 +42,9 @@ class BlogData:
 
     def __activate__(self, context):
         self.velocityContext = context
+        self.page = context["page"]
+        self.services = context["Services"]
+        self.log = context["log"]
 
         responseType = "text/html; charset=UTF-8"
         responseMsg = ""
@@ -50,31 +58,30 @@ class BlogData:
                 title = self.vc("formData").get("title")
                 username = self.vc("formData").get("username")
                 password = self.vc("formData").get("password")
+                
+                auth = ProxyBasicAuthStrategy(username, password, url)
+                self.__service = AtomClientFactory.getAtomService(url, auth)
+                
                 try:
-                    auth = ProxyBasicAuthStrategy(username, password, url)
-                    self.__service = AtomClientFactory.getAtomService(url, auth)
                     oid = self.vc("formData").get("oid")
-                    if oid is not None:
-                        self.__object = Services.getStorage().getObject(oid)
-                        sourceId = self.__object.getSourceId()
-                        payload = self.__object.getPayload(sourceId)
-                        print "payload=%s,%s" % (payload, payload.getContentType())
-                        # FIXME see https://fascinator.usq.edu.au/trac/ticket/647
-                        if payload and sourceId.endswith(".tfpackage"): #payload.getContentType() == "application/x-fascinator-package":
-                            jsonManifest = JsonConfigHelper(payload.open())
-                            #print jsonManifest.toString()
-                            content = self.__getManifestContent(jsonManifest)
-                            payload.close()
-                        else:
-                            content = self.__getContent(oid)
-                        self.__object.close()
+                    self.__object = self.__getObject(oid)
+                    self.__readMetadata(oid)
+                    sourceId = self.__object.getSourceId()
+                    sourcePayload = self.__object.getPayload(sourceId)
+                    if sourcePayload and sourcePayload.getContentType() == "application/x-fascinator-package":
+                        jsonManifest = JsonConfigHelper(sourcePayload.open())
+                        content = self.__getManifestContent(jsonManifest)
+                        sourcePayload.close()
                     else:
-                        content = "<div>Object not found!</div>"
+                        content = self.services.pageService.renderObject(self.__convertToVelocityContext(), "detail", self.__metadata)
+                    content, doc = self.__tidy(content)
+                    content = self.__processMedia(oid, doc, content)
                     success, value = self.__post(title, content)
                 except Exception, e:
                     e.printStackTrace()
                     success = False
                     value = e.getMessage()
+                
                 if success:
                     altLinks = value.getAlternateLinks()
                     if altLinks is not None:
@@ -96,8 +103,41 @@ class BlogData:
         if self.velocityContext[index] is not None:
             return self.velocityContext[index]
         else:
-            log.error("ERROR: Requested context entry '" + index + "' doesn't exist")
+            self.log.error("ERROR: Requested context entry '" + index + "' doesn't exist")
             return None
+        
+    def __convertToVelocityContext(self):
+        vc = VelocityContext()
+        for key in self.velocityContext.keySet():
+            vc.put(key, bindings.get(key));
+        vc.put("velocityContext", vc);
+        return vc
+    
+    
+    def __loadSolrData(self, oid):
+        portal = self.page.getPortal()
+        query = 'id:"%s"' % oid
+        if portal.getSearchQuery():
+            query += " AND " + portal.getSearchQuery()
+        req = SearchRequest(query)
+        req.addParam("fq", 'item_type:"object"')
+        req.addParam("fq", portal.getQuery())
+        out = ByteArrayOutputStream()
+        self.services.getIndexer().search(req, out)
+        self.__solrData = JsonConfigHelper(ByteArrayInputStream(out.toByteArray()))
+
+    def __readMetadata(self, oid):
+        self.__loadSolrData(oid)
+        if int(self.__solrData.get("response/numFound"))==1:
+            self.__metadata = self.__solrData.getJsonList("response/docs").get(0)
+            if self.__object is None:
+                # Try again, indexed records might have a special storage_id
+                self.__object = self.__getObject(oid)
+            # Just a more usable instance of metadata
+            self.__json = JsonConfigHelper(self.__solrData.getList("response/docs").get(0))
+            self.__metadataMap = TreeMap(self.__json.getMap("/"))
+        else:
+            self.__metadata.set("id", oid)
 
     def getUrls(self):
         return FileUtils.readLines(self.__getHistoryFile())
@@ -149,7 +189,9 @@ class BlogData:
                     self.__getPayloadAsString(payload)
             else:
                 content = "<div>unsupported content type: %s</div>" % mimeType
+        print "before tidy"
         content, doc = self.__tidy(content)
+        print "after tidy"
         content = self.__processMedia(oid, doc, content)
         return content
     
@@ -175,10 +217,13 @@ class BlogData:
     def __escapeUnicode(self, unicode):
         result = list()
         for char in unicode:
-            if ord(char) < 128:
+            try:
+                if ord(char) < 128:
+                    result.append(char)
+                else:
+                    result.append('&%s;' % htmlentitydefs.codepoint2name[ord(char)])
+            except:
                 result.append(char)
-            else:
-                result.append('&%s;' % htmlentitydefs.codepoint2name[ord(char)])
         return ''.join(result)
 
     def __tidy(self, content):
@@ -207,11 +252,19 @@ class BlogData:
         for i in range(0, links.getLength()):
             elem = links.item(i)
             attrValue = elem.getAttribute(attr)
+            pid = attrValue
+            internalSrc = attrValue
             if attrValue == '' or attrValue.startswith("#") \
                 or attrValue.startswith("mailto:") \
                 or attrValue.find("://") != -1:
                 continue
-            pid = attrValue
+            else:
+                split = attrValue.split("/")
+                pid = split[len(split)-1]
+                if len(split)>1:
+                    # Normally files returned by ice rendition
+                    internalSrc = "%s/%s" % (split[len(split)-2], split[len(split)-1])
+                
             print "uploading '%s' (%s, %s)" % (pid, elem.tagName, attr)
             found = False
             try:
@@ -223,7 +276,12 @@ class BlogData:
                     payload = self.__getObject(oid).getPayload(pid)
                     found = True
                 except Exception, e:
-                    print "payload not found '%s'" % pid
+                    try:
+                        print "trying to get: %s payload" % internalSrc
+                        payload = self.__getObject(oid).getPayload(internalSrc)
+                        found = True
+                    except Exception, e:
+                        print "payload not found '%s'" % pid
             if found:
                 #HACK to upload PDFs
                 contentType = payload.getContentType().replace("application/", "image/")
@@ -268,6 +326,16 @@ class BlogData:
         return False, "An unknown error occured"
     
     def __getObject(self, oid):
-        if self.__object and self.__object.getId() == oid:
-            return self.__object
-        return Services.getStorage().getObject(oid)
+        obj = None
+        try:
+            storage = self.services.getStorage()
+            try:
+                obj = storage.getObject(oid)
+            except StorageException:
+                sid = self.__getStorageId(oid)
+                if sid is not None:
+                    obj = storage.getObject(sid)
+                    print "Object not found: oid='%s', trying sid='%s'" % (oid, sid)
+        except StorageException:
+            print "Object not found: oid='%s'" % oid
+        return obj
