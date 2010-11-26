@@ -1,12 +1,14 @@
 <div class="grid_16">
-    <div id="config-notices" class="box articles notice">
-        <h2>Template error</h2>
-        <div class="warning">
-            <b>ERROR</b> There was an error rendering the page. See details below.<hr />
-            #foreach($msg in $renderMessages)
-                <pre>$msg</pre>
-            #end
-        </div>
+    #set($menuId = "config-notices")
+    #set($menuClass = "articles notice")
+    #set($menuTitle = "Template error")
+    #parseTemplate("wrapping/info-box-open.vm")
+    <div class="warning">
+        <b>ERROR</b> There was an error rendering the page. See details below.<hr />
+        #foreach($msg in $renderMessages)
+            <pre>$msg</pre>
+        #end
     </div>
+    #parseTemplate("wrapping/info-box-close.vm")
 </div>
 <div class="clear"></div>

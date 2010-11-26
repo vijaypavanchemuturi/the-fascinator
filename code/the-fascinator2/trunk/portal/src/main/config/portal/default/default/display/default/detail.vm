@@ -2,12 +2,14 @@
 
 #if($parent.isDetail())
     #if($parent.isPending())
-        <div id="pending" class="box articles notice">
-            <h2>Pending</h2>
-            <div class="warning">
-                <b>IMPORTANT</b>Please note that this object is currently in the render queue. There may be pending changes not visible below.
-            </div>
+        #set($menuId = "pending")
+        #set($menuClass = "articles notice")
+        #set($menuTitle = "Pending")
+        #parseTemplate("wrapping/info-box-open.vm")
+        <div class="warning">
+            <b>IMPORTANT</b>Please note that this object is currently in the render queue. There may be pending changes not visible below.
         </div>
+        #parseTemplate("wrapping/info-box-close.vm")
     #end
     #parseDisplayTemplate("detail/dialogs.vm")
     #parseDisplayTemplate("detail/preview/header.vm")

@@ -51,7 +51,7 @@
       }
     },
     "searchQuery" : "",
-    "facet-display" : "10",
+    "facet-display" : "9",
     "sort-fields" : {
       "last_modified" : "Last modified",
       "f_dc_title" : "Title",

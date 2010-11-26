@@ -3,4 +3,3 @@
 #parseDisplayTemplate("result/actions.vm")
 #parseDisplayTemplate("result/body.vm")
 #parseDisplayTemplate("result/footer.vm")
-<div class="clear"></div>

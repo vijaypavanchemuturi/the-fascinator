@@ -73,7 +73,7 @@
 #if(!$pageTitle)
   #set($pageTitle = "Workflow")
 #end
-<h2 id="page-heading">$pageTitle</h2>
+<h2 id="page-heading"><span>$pageTitle</span></h2>
 <div id="form-section">
 
   ### *********************
@@ -88,12 +88,13 @@
     ### *********************
     #set ($pending = $self.isPending())
     #if ($pending)
-    <div class="box articles notice">
-      <h2>Pending</h2>
+    #set($menuClass = "articles notice")
+    #set($menuTitle = "Pending")
+    #parseTemplate("wrapping/info-box-open.vm")
       <div class="warning">
         <b>IMPORTANT</b>Please note that this object is currently in the render queue. There may be pending data/metadata changes not visible below.
       </div>
-    </div>
+    #parseTemplate("wrapping/info-box-close.vm")
     #end
 
     ### *********************
