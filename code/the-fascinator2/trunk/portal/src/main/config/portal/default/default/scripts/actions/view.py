@@ -38,7 +38,7 @@ class ViewData:
                     result.set("message", str(e))
             elif func == "delete-view":
                 defaultPortal = context["defaultPortal"]
-                portalId = formData.get("portalId")
+                portalId = formData.get("view")
                 if auth.is_admin():
                     if not portalId:
                         response.setStatus(500)
