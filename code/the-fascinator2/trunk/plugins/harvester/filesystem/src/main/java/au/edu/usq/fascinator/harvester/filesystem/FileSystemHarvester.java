@@ -23,6 +23,8 @@ import java.io.FileFilter;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -35,6 +37,7 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.Stack;
 
+import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
@@ -380,7 +383,7 @@ public class FileSystemHarvester extends GenericHarvester {
                 File idFile = new File(parentDir, CACHE_ID_FILE);
                 if (cacheFile != null) {
                     InputStream fis = new FileInputStream(file);
-                    String sha1 = DigestUtils.shaHex(fis);
+                    String sha1 = shaHex(fis);
                     fis.close();
                     if (cacheFile.exists()) {
                         String cachedSha1 = FileUtils
@@ -393,14 +396,14 @@ public class FileSystemHarvester extends GenericHarvester {
                             log.debug("{} has changed", file);
                             changed = true;
                             FileUtils.writeStringToFile(cacheFile, sha1);
-                            FileUtils.writeStringToFile(idFile, file
-                                    .getAbsolutePath());
+                            FileUtils.writeStringToFile(idFile,
+                                    file.getAbsolutePath());
                         }
                     } else {
                         log.debug("Caching checksum for {}", file);
                         FileUtils.writeStringToFile(cacheFile, sha1);
-                        FileUtils.writeStringToFile(idFile, file
-                                .getAbsolutePath());
+                        FileUtils.writeStringToFile(idFile,
+                                file.getAbsolutePath());
                     }
                 }
             } catch (IOException ioe) {
@@ -526,10 +529,10 @@ public class FileSystemHarvester extends GenericHarvester {
         // update object metadata
         Properties props = object.getMetadata();
         props.setProperty("render-pending", "true");
-        props.setProperty("file.path", FilenameUtils.separatorsToUnix(file
-                .getAbsolutePath()));
-        props.setProperty("base.file.path", FilenameUtils
-                .separatorsToUnix(facetBase));
+        props.setProperty("file.path",
+                FilenameUtils.separatorsToUnix(file.getAbsolutePath()));
+        props.setProperty("base.file.path",
+                FilenameUtils.separatorsToUnix(facetBase));
 
         // Store rendition information if we have it
         String ext = FilenameUtils.getExtension(file.getName());
@@ -582,5 +585,26 @@ public class FileSystemHarvester extends GenericHarvester {
         valueSet.addAll(details.get(field));
         String joinedList = StringUtils.join(valueSet, ",");
         props.setProperty(field, joinedList);
+    }
+
+    /*
+     * Sourced from commons-codec-1.4, required since 1.4 contains bug which
+     * affects httpclient request headers
+     */
+    private static final int BUFFER_SIZE = 1024;
+
+    private String shaHex(InputStream data) throws IOException {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA");
+            byte[] buffer = new byte[BUFFER_SIZE];
+            int read = data.read(buffer, 0, BUFFER_SIZE);
+            while (read > -1) {
+                digest.update(buffer, 0, read);
+                read = data.read(buffer, 0, BUFFER_SIZE);
+            }
+            return new String(Hex.encodeHex(digest.digest()));
+        } catch (NoSuchAlgorithmException nsae) {
+            throw new RuntimeException(nsae.getMessage());
+        }
     }
 }
