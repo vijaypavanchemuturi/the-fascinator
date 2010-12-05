@@ -1,7 +1,7 @@
 <div class="box hidden" id="login-form">
   #set($providers = $page.getSsoProviders())
   #foreach($ssoId in $providers.keySet())
-  <form class="ssoLogin" method="post">
+  <form class="ssoLogin" method="post" action="#">
     <fieldset class="search">
       <legend>$providers.get($ssoId).get("label")</legend>
       $providers.get($ssoId).get("interface")
@@ -9,11 +9,11 @@
   </form>
   <div class="or">OR</div>
   #end
-  <form id="login" method="post">
+  <form id="login" method="post" action="#">
     <fieldset class="search">
       <legend>Login details</legend>
       <div class="login-error hidden" id="login-error">
-        <img class="hidden" id="login-loading" src="$portalPath/images/icons/loading.gif" />
+        <img class="hidden" id="login-loading" src="$portalPath/images/icons/loading.gif" alt="Loading" />
         <span id="login-message"></span>
       </div>
       <p>

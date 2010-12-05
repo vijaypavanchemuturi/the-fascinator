@@ -11,9 +11,11 @@
 </div>
 #parseTemplate("wrapping/content-block-close.vm")
 <script type="text/javascript">
-$(function() {
-    $("#search-button").click(function() {
-        $("#search-form").submit();
+<!--
+    $(function() {
+        $("#search-button").click(function() {
+            $("#search-form").submit();
+        });
     });
-});
+-->
 </script>

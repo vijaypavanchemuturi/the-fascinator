@@ -10,16 +10,18 @@
   </div>
 </div>
 <script type="text/javascript">
-$(function() {
-    $("#delete-view, #delete-cancel").click(function() {
-        $("#delete-view").toggleClass("selected");
-        $("#delete-form").toggle("blind");
-        return false;
+<!--
+    $(function() {
+        $("#delete-view, #delete-cancel").click(function() {
+            $("#delete-view").toggleClass("selected");
+            $("#delete-form").toggle("blind");
+            return false;
+        });
+        $("#delete-accept").click(function() {
+            jQuery.post("$portalPath/actions/view.ajax",
+                { func: "delete-view", view: "$portalId" });
+        });
     });
-    $("#delete-accept").click(function() {
-        jQuery.post("$portalPath/actions/view.ajax",
-            { func: "delete-view", view: "$portalId" });
-    });
-});
+-->
 </script>
 #end

@@ -11,6 +11,7 @@
         the web interface.</b>
         #else
         <script type="text/javascript">
+        <!--
             $(function() {
                 $(".restore-default-config").click(function() {
                     jQuery.post("$portalPath/actions/settings.ajax",
@@ -19,6 +20,7 @@
                     return false;
                 });
             });
+        -->
         </script>
         <div class="administrator login-error">
             <b>Administrator information:</b><br/>
@@ -106,6 +108,7 @@
         #parseTemplate("wrapping/info-box-close.vm")
     </div>
     <script type="text/javascript">
+    <!--
         $(function() {
             #if ($blockingNotifications || ($normalMsgs > 0 && $isAdmin))
             $("#notifications").show();
@@ -173,6 +176,7 @@
                 return false;
             });
         });
+    -->
     </script>
     <div class="clear"></div>
 #end

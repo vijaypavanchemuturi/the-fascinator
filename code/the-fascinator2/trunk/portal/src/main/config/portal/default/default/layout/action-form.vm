@@ -1,4 +1,5 @@
 <script type="text/javascript">
+<!--
     function setActionUri(uri) {
         $("#action-form").attr("action", uri);
     }
@@ -13,6 +14,7 @@
         $("#value").val(value);
         $("#action-form").submit();
     }
+-->
 </script>
 <form action="$portalPath/$pageName" id="action-form" method="post">
   <input id="verb" name="verb" type="hidden" />

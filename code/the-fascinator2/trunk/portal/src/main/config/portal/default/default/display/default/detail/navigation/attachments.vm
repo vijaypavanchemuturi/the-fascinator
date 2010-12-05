@@ -1,6 +1,6 @@
 #set($menuClass = "attachments")
 #set($menuTitle = '<a class="collapsible" href="#">Attachments</a>')
-#parseTemplate("wrapping/info-box-open.vm")
+#parseTemplate("wrapping/menu-open.vm")
 <ul class="menu hidden">
     #set($object = $parent.getObject())
     #set($oid = $object.getId())
@@ -13,18 +13,20 @@
         </li>
     #end
 </ul>
-#parseTemplate("wrapping/info-box-close.vm")
+#parseTemplate("wrapping/menu-close.vm")
 <script type="text/javascript">
-function collapsible(container, target) {
-    var trigger = $(container).find(".collapsible");
-    var target = $(container).find(target);
-    trigger.click(function() {
-        target.toggle("blind").toggleClass("visible").toggleClass("hidden");
-        trigger.toggleClass("visible");
-        return false;
+<!--
+    function collapsible(container, target) {
+        var trigger = $(container).find(".collapsible");
+        var target = $(container).find(target);
+        trigger.click(function() {
+            target.toggle("blind").toggleClass("visible").toggleClass("hidden");
+            trigger.toggleClass("visible");
+            return false;
+        });
+    }
+    $(function() {
+        collapsible(".attachments", "ul.menu");
     });
-}
-$(function() {
-    collapsible(".attachments", "ul.menu");
-});
+-->
 </script>

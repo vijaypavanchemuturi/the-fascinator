@@ -33,10 +33,10 @@ class ResultData:
         iconPath = "images/icons/mimetype/%s/icon.png" % format
         resource = self.services.getPageService().resourceExists(self.portalId, iconPath)
         if resource is not None:
-            return "<img src=\"%s/%s\" title=\"%s\" />" % (path, iconPath, altText)
+            return "<img src=\"%s/%s\" title=\"%s\" alt=\"%s\" />" % (path, iconPath, altText, altText)
         elif format.find("/") != -1:
             # check for major type
             return self.getMimeTypeIcon(path, format.split("/")[0], altText)
         # use default icon
         iconPath = "images/icons/mimetype/icon.png"
-        return "<img src=\"%s/%s\" title=\"%s\" />" % (path, iconPath, altText)
+        return "<img src=\"%s/%s\" title=\"%s\" alt=\"%s\" />" % (path, iconPath, altText, altText)

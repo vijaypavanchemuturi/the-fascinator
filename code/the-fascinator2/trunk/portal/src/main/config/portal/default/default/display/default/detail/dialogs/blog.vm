@@ -22,7 +22,7 @@
                 <input type="password" id="blog_password" name="blog_password" />
             </p>
             <p class="message">
-                <img class="hidden" id="blog-loading" src="$portalPath/images/icons/loading.gif" />
+                <img class="hidden" id="blog-loading" src="$portalPath/images/icons/loading.gif" alt="Loading" />
                 <span id="blog-message"></span>
             </p>
             <input class="button" id="blog-accept" type="button" value="Blog" />
@@ -36,30 +36,32 @@
 <script type="text/javascript" src="$portalPath/js/autocomplete/lib/jquery.bgiframe.min.js"></script>
 <script type="text/javascript" src="$portalPath/js/autocomplete/jquery.autocomplete.pack.js"></script>
 <script type="text/javascript">
-$(function() {
-    $("#blog-this, #blog-cancel").click(function() {
-        $("#blog-this").toggleClass("selected");
-        $("#blog-message").empty();
-        $("#blog-form").toggle("blind");
-        return false;
+<!--
+    $(function() {
+        $("#blog-this, #blog-cancel").click(function() {
+            $("#blog-this").toggleClass("selected");
+            $("#blog-message").empty();
+            $("#blog-form").toggle("blind");
+            return false;
+        });
+        $("#blog-accept").click(function() {
+            $("#blog-message").empty();
+            $("#blog-loading").show();
+            jQuery.post("$portalPath/actions/blog.ajax",
+                {
+                    url: $("#blog_url").val(),
+                    title: $("#blog_title").val(),
+                    username: $("#blog_username").val(),
+                    password: $("#blog_password").val(),
+                    oid: "$oid"
+                },
+                function(data, status) {
+                    $("#blog-loading").hide();
+                    $("#blog-message").html(data);
+                }
+            );
+        });
+        $("#blog_url").autocomplete("$portalPath/actions/blog.ajax?func=url-history");
     });
-    $("#blog-accept").click(function() {
-        $("#blog-message").empty();
-        $("#blog-loading").show();
-        jQuery.post("$portalPath/actions/blog.ajax",
-            {
-                url: $("#blog_url").val(),
-                title: $("#blog_title").val(),
-                username: $("#blog_username").val(),
-                password: $("#blog_password").val(),
-                oid: "$oid"
-            },
-            function(data, status) {
-                $("#blog-loading").hide();
-                $("#blog-message").html(data);
-            }
-        );
-    });
-    $("#blog_url").autocomplete("$portalPath/actions/blog.ajax?func=url-history");
-});
+-->
 </script>

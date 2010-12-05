@@ -1,10 +1,12 @@
 <script type="text/javascript">
-$(function() {
-    $(".paging .select-page").click(function() {
-        doAction("select-page", $(this).attr("rel"));
-        return false;
+<!--
+    $(function() {
+        $(".paging .select-page").click(function() {
+            doAction("select-page", $(this).attr("rel"));
+            return false;
+        });
     });
-});
+-->
 </script>
 #set($paging = $self.paging)
 #set($currentPage = $paging.page)

@@ -32,7 +32,7 @@
       <li>
         <a href="#" id="package-add-custom">
           Add custom item
-          <img class="hidden right" id="package-add-custom-loading" src="$portalPath/images/icons/loading.gif" />
+          <img class="hidden right" id="package-add-custom-loading" src="$portalPath/images/icons/loading.gif" alt="Loading" />
         </a>
       </li>
     </ul>
@@ -69,7 +69,7 @@
         </p>
         <input class="button" id="update-item" type="button" value="Update" />
         <input class="button" id="delete-item" type="button" value="Remove" />
-        <img class="hidden" id="item-loading" src="$portalPath/images/icons/loading.gif" />
+        <img class="hidden" id="item-loading" src="$portalPath/images/icons/loading.gif" alt="Loading" />
       </fieldset>
     </div>
   </div>
@@ -93,187 +93,189 @@
 </div>
 <script type="text/javascript" src="$portalPath/js/tree/jquery.tree.min.js"></script>
 <script type="text/javascript">
-$(function() {
-##  #if($self.getFormData("auto-complete"))
-##    $("#package-form").submit();
-##  #end
-    function getParentIds(node) {
-        var parents = "";
-        $(node).parents("li").each(function() {
-            parents = "," + $(this).attr("id") + parents;
-        });
-        if (parents != "") {
-            parents = parents.substring(1);
-        }
-        return parents;
-    }
-    
-    $("#toc").tree({
-        ui: {
-            animation: 250,
-            dots: false,
-            theme_name: "classic"
-        },
-        plugins: {
-            checkbox: {}
-        },
-        callback: {
-            check_move : function(node, refNode, type, tree) {
-                var rel = $(refNode).prev(".mime-type").attr("rel");
-                return (rel != "application/x-fascinator-package");
-            },
-            onmove: function(node, refNode, type, tree, rollback) {
-                jQuery.post("$portalPath/actions/manifest.ajax",
-                    {
-                        func: "move",
-                        oid: "$oid",
-                        id: "$portalId",
-                        nodeId: $(node).attr("id"),
-                        refNodeId: $(refNode).attr("id"),
-                        parents: getParentIds(node),
-                        refParents: getParentIds(refNode),
-                        type: type
-                    });
-            },
-            onselect: function(node, tree) {
-                var node = $(node);
-                var id = node.attr("rel");
-                if (id == "blank") {
-                    $("#preview").hide();
-                } else {
-                    $("#content").load(
-                        "$portalPath/preview?oid=" + escape(id) + " div.body",
-                        function(data, status, xhr) {
-                            function fixLinks(selector, attrName) {
-                                $(selector).each(function() {
-                                    var attr = $(this).attr(attrName);
-                                    if (attr != null) {
-                                        // fix for IE7 attr() returning resolved URLs - strip base URL
-                                        var href = window.location.href;
-                                        hrefBase = href.substring(0, href.lastIndexOf("/"));
-                                        attrBase = attr.substring(0, hrefBase.length);
-                                        if (hrefBase == attrBase) {
-                                            attr = attr.substring(hrefBase.length + 1);
-                                        }
-                                        if (attr.indexOf("#") != 0 && attr.indexOf("://") == -1) {
-                                            var relUrl = "$portalPath/download/" + id + "/";
-                                            $(this).attr(attrName, escape(relUrl + attr));
-                                        }
-                                    }
-                                });
-                            }
-                            fixLinks("#content a", "href");
-                            fixLinks("#content img", "src");
-                            $("#preview:hidden").fadeIn();
-                        });
-                }
-                var item = node.children("a");
-                $("#item-title").val(item.text());
-                $("#item-hidden").attr("checked", item.hasClass("item-hidden"));
-                $("#item-props:hidden").fadeIn(function() {
-                    $("#item-title").focus();
-                });
-            }
-        }
-    });
-    var manifestTree = jQuery.tree.reference("#toc");
-
-    $(".toc.hidden").removeClass("hidden");
-    
-    $("#update-package").click(function() {
-        jQuery.post("$portalPath/actions/manifest.ajax",
-            {   func: "update-package-meta",
-                oid: "$oid",
-                metaList: ["title", "description"],
-                title: $("#package-title").val(),
-                description: $("#package-description").val()
-            },
-            function(data, status) {
-                $("#package-form").submit();
+<!--
+    $(function() {
+    ##  #if($self.getFormData("auto-complete"))
+    ##    $("#package-form").submit();
+    ##  #end
+        function getParentIds(node) {
+            var parents = "";
+            $(node).parents("li").each(function() {
+                parents = "," + $(this).attr("id") + parents;
             });
-        return false;
-    });
-    
-    $("#update-item").click(function() {
-        var item = $("#toc a.clicked");
-        var node = item.parent("li");
-        $("#item-loading").removeClass("hidden");
-        jQuery.post("$portalPath/actions/manifest.ajax",
-            {   func: "update",
-                oid: "$oid",
-                nodeId: $(node).attr("id"),
-                title: $("#item-title").val(),
-                hidden: $("#item-hidden").is(":checked"),
-                parents: getParentIds(node)
+            if (parents != "") {
+                parents = parents.substring(1);
+            }
+            return parents;
+        }
+
+        $("#toc").tree({
+            ui: {
+                animation: 250,
+                dots: false,
+                theme_name: "classic"
             },
-            function(data, status) {
-                item.text(data.title);
-                if (data.hidden == "True") {
-                    item.addClass("item-hidden");
-                } else {
-                    item.removeClass("item-hidden");
+            plugins: {
+                checkbox: {}
+            },
+            callback: {
+                check_move : function(node, refNode, type, tree) {
+                    var rel = $(refNode).prev(".mime-type").attr("rel");
+                    return (rel != "application/x-fascinator-package");
+                },
+                onmove: function(node, refNode, type, tree, rollback) {
+                    jQuery.post("$portalPath/actions/manifest.ajax",
+                        {
+                            func: "move",
+                            oid: "$oid",
+                            id: "$portalId",
+                            nodeId: $(node).attr("id"),
+                            refNodeId: $(refNode).attr("id"),
+                            parents: getParentIds(node),
+                            refParents: getParentIds(refNode),
+                            type: type
+                        });
+                },
+                onselect: function(node, tree) {
+                    var node = $(node);
+                    var id = node.attr("rel");
+                    if (id == "blank") {
+                        $("#preview").hide();
+                    } else {
+                        $("#content").load(
+                            "$portalPath/preview?oid=" + escape(id) + " div.body",
+                            function(data, status, xhr) {
+                                function fixLinks(selector, attrName) {
+                                    $(selector).each(function() {
+                                        var attr = $(this).attr(attrName);
+                                        if (attr != null) {
+                                            // fix for IE7 attr() returning resolved URLs - strip base URL
+                                            var href = window.location.href;
+                                            hrefBase = href.substring(0, href.lastIndexOf("/"));
+                                            attrBase = attr.substring(0, hrefBase.length);
+                                            if (hrefBase == attrBase) {
+                                                attr = attr.substring(hrefBase.length + 1);
+                                            }
+                                            if (attr.indexOf("#") != 0 && attr.indexOf("://") == -1) {
+                                                var relUrl = "$portalPath/download/" + id + "/";
+                                                $(this).attr(attrName, escape(relUrl + attr));
+                                            }
+                                        }
+                                    });
+                                }
+                                fixLinks("#content a", "href");
+                                fixLinks("#content img", "src");
+                                $("#preview:hidden").fadeIn();
+                            });
+                    }
+                    var item = node.children("a");
+                    $("#item-title").val(item.text());
+                    $("#item-hidden").attr("checked", item.hasClass("item-hidden"));
+                    $("#item-props:hidden").fadeIn(function() {
+                        $("#item-title").focus();
+                    });
                 }
-                $("#item-loading").addClass("hidden");
-                $("#item-message").html("<strong>Updated '" + data.title + "' OK</strong>").fadeIn();
-                setTimeout(function() {
-                    $("#item-message").fadeOut(function() { $(this).empty(); });
-                    }, 3000);
-            },
-            "json");
-    });
-    
-    $("#delete-item").click(function() {
-        var item = $("#toc a.clicked");
-        if (confirm("Remove '" + item.text() + "' from this package?\nNote: Any sub-items will also be deleted.")) {
+            }
+        });
+        var manifestTree = jQuery.tree.reference("#toc");
+
+        $(".toc.hidden").removeClass("hidden");
+
+        $("#update-package").click(function() {
+            jQuery.post("$portalPath/actions/manifest.ajax",
+                {   func: "update-package-meta",
+                    oid: "$oid",
+                    metaList: ["title", "description"],
+                    title: $("#package-title").val(),
+                    description: $("#package-description").val()
+                },
+                function(data, status) {
+                    $("#package-form").submit();
+                });
+            return false;
+        });
+
+        $("#update-item").click(function() {
+            var item = $("#toc a.clicked");
             var node = item.parent("li");
             $("#item-loading").removeClass("hidden");
             jQuery.post("$portalPath/actions/manifest.ajax",
-                {   func: "delete",
+                {   func: "update",
                     oid: "$oid",
                     nodeId: $(node).attr("id"),
+                    title: $("#item-title").val(),
+                    hidden: $("#item-hidden").is(":checked"),
                     parents: getParentIds(node)
                 },
                 function(data, status) {
-                    item.fadeOut(function() {
-                        item.remove();
-                        $("#item-loading").addClass("hidden");
-                        $("#item-message").html("<strong>Deleted '" + data.title + "' OK</strong>").fadeIn();
-                        $("#item-props").hide();
-                    });
+                    item.text(data.title);
+                    if (data.hidden == "True") {
+                        item.addClass("item-hidden");
+                    } else {
+                        item.removeClass("item-hidden");
+                    }
+                    $("#item-loading").addClass("hidden");
+                    $("#item-message").html("<strong>Updated '" + data.title + "' OK</strong>").fadeIn();
                     setTimeout(function() {
-                        $("#item-message").fadeOut(function() {
-                            $(this).empty();
-                        });
-                    }, 3000);
+                        $("#item-message").fadeOut(function() { $(this).empty(); });
+                        }, 3000);
                 },
                 "json");
-        }
+        });
+
+        $("#delete-item").click(function() {
+            var item = $("#toc a.clicked");
+            if (confirm("Remove '" + item.text() + "' from this package?\nNote: Any sub-items will also be deleted.")) {
+                var node = item.parent("li");
+                $("#item-loading").removeClass("hidden");
+                jQuery.post("$portalPath/actions/manifest.ajax",
+                    {   func: "delete",
+                        oid: "$oid",
+                        nodeId: $(node).attr("id"),
+                        parents: getParentIds(node)
+                    },
+                    function(data, status) {
+                        item.fadeOut(function() {
+                            item.remove();
+                            $("#item-loading").addClass("hidden");
+                            $("#item-message").html("<strong>Deleted '" + data.title + "' OK</strong>").fadeIn();
+                            $("#item-props").hide();
+                        });
+                        setTimeout(function() {
+                            $("#item-message").fadeOut(function() {
+                                $(this).empty();
+                            });
+                        }, 3000);
+                    },
+                    "json");
+            }
+        });
+
+        $("#package-modify").click(function() {
+            jQuery.post("$portalPath/actions/packaging.ajax",
+                { func: "modify", oid: "$oid" },
+                function(data, status) {
+                    window.location.href = "$contextPath/$self.getManifestViewId()/search";
+                });
+            return false;
+        });
+
+        $("#package-add-custom").click(function() {
+            $("#package-add-custom-loading").show();
+            jQuery.post("$portalPath/actions/packaging.ajax",
+                { func: "add-custom", oid: "$oid" },
+                function(data, status) {
+                    var node = manifestTree.create(data, -1, "before");
+                    node.find("ins").remove();
+                    manifestTree.select_branch(node);
+                    $("#package-add-custom-loading").hide();
+                },
+                "json");
+            return false;
+        });
+
+        $("#package-title").focus();
     });
-    
-    $("#package-modify").click(function() {
-        jQuery.post("$portalPath/actions/packaging.ajax",
-            { func: "modify", oid: "$oid" },
-            function(data, status) {
-                window.location.href = "$contextPath/$self.getManifestViewId()/search";
-            });
-        return false;
-    });
-    
-    $("#package-add-custom").click(function() {
-        $("#package-add-custom-loading").show();
-        jQuery.post("$portalPath/actions/packaging.ajax",
-            { func: "add-custom", oid: "$oid" },
-            function(data, status) {
-                var node = manifestTree.create(data, -1, "before");
-                node.find("ins").remove();
-                manifestTree.select_branch(node);
-                $("#package-add-custom-loading").hide();
-            },
-            "json");
-        return false;
-    });
-    
-    $("#package-title").focus();
-});
+-->
 </script>
 #end

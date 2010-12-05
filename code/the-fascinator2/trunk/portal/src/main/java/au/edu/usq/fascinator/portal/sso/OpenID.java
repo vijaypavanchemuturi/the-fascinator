@@ -108,21 +108,21 @@ public class OpenID implements SSOInterface {
         // Google
         html += "<a href=\"" + ssoUrl + "&provider=Google\">" +
                 "<img title=\"Google\" src=\"" + portalUrl +
-                "/images/google.png\"/></a>";
+                "/images/google.png\"/ alt=\"Google\"></a>";
 
         html += "&nbsp;&nbsp;&nbsp; OR &nbsp;&nbsp;&nbsp;";
 
         // Yahoo
         html += "<a href=\"" + ssoUrl + "&provider=Yahoo\">" +
                 "<img title=\"Yahoo\" src=\"" + portalUrl +
-                "/images/yahoo.png\"/></a>";
+                "/images/yahoo.png\" alt=\"Yahoo\"/></a>";
 
         html += "<hr/>OR<br/>";
 
         // Custom OpenID
         String txt = " My own OpenID provider ";
-        html += "<img title=\"Yahoo\" src=\"" + portalUrl +
-                "/images/openid.png\"/> " +
+        html += "<img title=\"OpenID\" src=\"" + portalUrl +
+                "/images/openid.png\" alt=\"OpenID\"/> " +
                 "<input class=\"custom\" type=\"text\" id=\"ssoProvider\"" +
                 " onblur=\"blurOpenId(this);\" onfocus=\"focusOpenId(this);\"" +
                 " value=\""+txt+"\"/> " +

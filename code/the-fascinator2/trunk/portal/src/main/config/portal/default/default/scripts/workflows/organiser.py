@@ -75,13 +75,13 @@ class OrganiserData:
         iconPath = "images/icons/mimetype/%s/icon.png" % format
         resource = Services.getPageService().resourceExists(self.vc("portalId"), iconPath)
         if resource is not None:
-            return "<img class=\"mime-type\" src=\"%s/%s\" title=\"%s\" />" % (path, iconPath, altText)
+            return "<img class=\"mime-type\" src=\"%s/%s\" title=\"%s\" alt=\"%s\" />" % (path, iconPath, altText, altText)
         elif format.find("/") != -1:
             # check for major type
             return self.__getMimeTypeIcon(path, format.split("/")[0], altText)
         # use default icon
         iconPath = "images/icons/mimetype/icon.png"
-        return "<img class=\"mime-type\" src=\"%s/%s\" title=\"%s\" />" % (path, iconPath, altText)
+        return "<img class=\"mime-type\" src=\"%s/%s\" title=\"%s\" alt=\"%s\" />" % (path, iconPath, altText, altText)
 
     def __getContentType(self, oid):
         #print " *** __getContentType(%s)" % oid

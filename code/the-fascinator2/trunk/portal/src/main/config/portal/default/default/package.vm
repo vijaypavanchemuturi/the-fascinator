@@ -17,7 +17,7 @@ $self.json
       #end
       <li>
         <a href="#" id="create-new-package">
-            <img src="$portalPath/images/icons/loading.gif" class="hidden right" id="package-selected-loading" />
+            <img src="$portalPath/images/icons/loading.gif" class="hidden right" id="package-selected-loading" alt="Loading" />
             Create new package
         </a>
        </li>
@@ -88,36 +88,38 @@ $self.json
 </div>
 
 <script type='text/javascript'>
-$(function(){
-    var jQ=$;
-    jQ("#package-type-select").change(function(){
-        jQ("#pp-form").submit();
-    });
+<!--
+    $(function(){
+        var jQ=$;
+        jQ("#package-type-select").change(function(){
+            jQ("#pp-form").submit();
+        });
 
-    jQ("#create-new-package2,#create-new-package").click(function(){
-        $("#package-selected-loading").show();
-        jQ.ajax({type:"POST", url: "$portalPath/actions/packaging.ajax",
-            data:{ajax:1, func:"create-new",
-                packageType:$("#package-type-select").val(),
-                metaList:["title", "description"],
-                title:$("#package-title").val(),
-                description:$("#package-description").val()},
-            success:function(data){
-                $("#package-selected-loading").hide();
-                if(data.status=="ok"){
-                    window.location.href = data.url;
-                }else{
+        jQ("#create-new-package2,#create-new-package").click(function(){
+            $("#package-selected-loading").show();
+            jQ.ajax({type:"POST", url: "$portalPath/actions/packaging.ajax",
+                data:{ajax:1, func:"create-new",
+                    packageType:$("#package-type-select").val(),
+                    metaList:["title", "description"],
+                    title:$("#package-title").val(),
+                    description:$("#package-description").val()},
+                success:function(data){
+                    $("#package-selected-loading").hide();
+                    if(data.status=="ok"){
+                        window.location.href = data.url;
+                    }else{
+                        alert("Failed to create package!");
+                    }
+                },
+                error:function(xhr, status, e){
+                    $("#package-selected-loading").hide();
                     alert("Failed to create package!");
-                }
-            },
-            error:function(xhr, status, e){
-                $("#package-selected-loading").hide();
-                alert("Failed to create package!");
-            },
-            dataType:"json"});
-        return false;
+                },
+                dataType:"json"});
+            return false;
+        });
     });
-});
+-->
 </script>
 
 #end

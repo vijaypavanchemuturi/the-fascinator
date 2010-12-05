@@ -25,6 +25,13 @@ form.search {
     padding-right: 5px;
 }
 
+div.page-heading {
+    padding: 10px 0 10px 10px;
+}
+.page-heading h2#page-heading {
+    padding: 0.2em;
+}
+
 .sorting {
     font-size: 0.6em;
     padding-right: 8px;
@@ -76,6 +83,11 @@ form.search {
 
 .menu .selected:hover, .facet-list .selected:hover {
     color: black;
+}
+
+.menu ol {
+    margin-top: 10px;
+    margin-bottom: 10px;
 }
 
 .facet-list .portal-facet, .facet-list .portal-facet:hover {
@@ -223,6 +235,28 @@ ul.nav li.label {
     padding: 0 1em;
 }
 
+#result-list ul.nav {
+    margin: 0px -10px;
+    max-width: none !important;
+}
+
+#result-list ul.nav li {
+    background-color: #666666;
+}
+
+#result-list ul.nav ul.packaging li a {
+    background-position: 5px 50%;
+    width: 15em;
+}
+
+#result-list ul.nav ul.packaging li a {
+    background-position: 8px 50% !important;
+}
+
+a.inactive {
+    cursor: default;
+}
+
 .inline input {
     width:60%;
 }
@@ -358,6 +392,10 @@ div.article-heading, #package-content div.title {
     font-weight: bold;
     font-size: 1.6em;
     margin-bottom: 4px;
+}
+
+ul.packaging li a {
+    padding-left: 30px;
 }
 
 .package-description {
@@ -590,6 +628,11 @@ li img.workflow, .mime-icon {
     padding: 5px 10px 5px 10px;
 }
 
+#result-list .results-total {
+    color: white;
+    padding: 5px 10px;
+}
+
 #package-toc a {
     font-weight: normal;
 }
@@ -702,8 +745,7 @@ ul.global-topic {
     font-weight: normal;
 }
 
-.results-footer span.paging {
-    font-size: 1.6em;
+.results-footer div.paging {
     margin-right: 10px;
 }
 .rendition-links {

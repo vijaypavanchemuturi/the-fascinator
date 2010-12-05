@@ -1,7 +1,7 @@
-<div class="mainmenu">
+<div class="mainmenu#if($menuClass) $!menuClass#end"#if($menuId) id="$!menuId"#end>
   <div class="mainmenu-top"></div>
-#if ((!$menuTitle) && ("$!menuTitle" == ""))
-  <div class="mainmenu-heading">&nbsp;</div>
-#else
-  <div class="mainmenu-heading">$menuTitle</div>
-#end
+  <div class="mainmenu-heading">#if($menuTitle)$!menuTitle#{else}&nbsp;#end</div>
+## Reset parameters
+#set($menuId = $NULL)
+#set($menuClass = $NULL)
+#set($menuTitle = $NULL)

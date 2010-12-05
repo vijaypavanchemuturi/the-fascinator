@@ -65,7 +65,9 @@
     #parseTemplate("wrapping/content-block-close.vm")
 </div>
 <script type="text/javascript">
-$(function() {
-    $("#plugin-tabs").tabs();
-});
+<!--
+    $(function() {
+        $("#plugin-tabs").tabs();
+    });
+-->
 </script>

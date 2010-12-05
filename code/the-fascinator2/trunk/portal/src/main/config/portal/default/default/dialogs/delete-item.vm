@@ -14,61 +14,63 @@
 </div>
 
 <script type="text/javascript">
-$(function() {
-    var dialogOpts = {
-        autoOpen: false,
-        hide: "blind",
-        width: 330,
-        modal: true
-    }
-    $("#delete-dialog").dialog(dialogOpts);
-    $("#delete-dialog").dialog('option', 'title', 'Delete Object');
+<!--
+    $(function() {
+        var dialogOpts = {
+            autoOpen: false,
+            hide: "blind",
+            width: 330,
+            modal: true
+        }
+        $("#delete-dialog").dialog(dialogOpts);
+        $("#delete-dialog").dialog('option', 'title', 'Delete Object');
 
-    var recordId = "";
-    var refresh_link;
-    var me = null;
-    $(".admin-delete-link").click(function() {
-        recordId = $(this).attr("rel");
-        title = $(this).attr("title");
-        me = $(this);
-        $("#delete-message").empty();
-        $("#delete-error").hide();
-        $("#delete-dialog").dialog('open');
-        $("#delete-legend").html(title);
-        return false;
-    });
-
-    $("#delete-cancel").click(function() {
-        $("#delete-message").empty();
-        $("#delete-error").hide();
-        $("#delete-dialog").dialog('close');
-        return false;
-    });
-
-    $("#delete-submit").click(function() {
-        $("#delete-message").empty();
-        $("#delete-error").hide();
-        $("#delete-dialog").dialog('open');
-
-        jQuery.ajax({
-            type : "POST",
-            url : "$portalPath/actions/delete.ajax",
-            success:
-                function (data, status) {
-                    me.parent().parent().hide();
-                    $("#delete-dialog").dialog('close');
-                },
-            error:
-                function (req, status, e) {
-                    $("#delete-error").show();
-                    $("#delete-message").html(req.responseText);
-                },
-            data: {
-                record: recordId
-            }
+        var recordId = "";
+        var refresh_link;
+        var me = null;
+        $(".admin-delete-link").click(function() {
+            recordId = $(this).attr("rel");
+            title = $(this).attr("title");
+            me = $(this);
+            $("#delete-message").empty();
+            $("#delete-error").hide();
+            $("#delete-dialog").dialog('open');
+            $("#delete-legend").html(title);
+            return false;
         });
 
-        return false;
+        $("#delete-cancel").click(function() {
+            $("#delete-message").empty();
+            $("#delete-error").hide();
+            $("#delete-dialog").dialog('close');
+            return false;
+        });
+
+        $("#delete-submit").click(function() {
+            $("#delete-message").empty();
+            $("#delete-error").hide();
+            $("#delete-dialog").dialog('open');
+
+            jQuery.ajax({
+                type : "POST",
+                url : "$portalPath/actions/delete.ajax",
+                success:
+                    function (data, status) {
+                        me.parent().parent().hide();
+                        $("#delete-dialog").dialog('close');
+                    },
+                error:
+                    function (req, status, e) {
+                        $("#delete-error").show();
+                        $("#delete-message").html(req.responseText);
+                    },
+                data: {
+                    record: recordId
+                }
+            });
+
+            return false;
+        });
     });
-});
+-->
 </script>

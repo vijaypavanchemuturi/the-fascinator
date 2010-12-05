@@ -113,10 +113,6 @@ ul.dropdown li a {
 }
 
 /* headings */
-h2#page-heading {
-    padding: 10px 0px 10px 10px;
-}
-
 #page-heading span {
     font-size: 1.45em;
 }
@@ -172,6 +168,10 @@ ul.menu li a {
 
 .packaging li {
     background: transparent;
+}
+
+ul.packaging li a {
+    padding-left: 30px;
 }
 
 /* home page search */
@@ -265,23 +265,23 @@ div.paging {
     font-size: 0.6em;
 }
 
-span.paging {
+div.paging {
     margin-top: 2px;
 }
 
-span.paging ul {
+div.paging ul {
     margin-bottom: 4px;
 }
 
-span.paging ul:before {
+div.paging ul:before {
     content: "Page ";
 }
 
-span.paging li a {
+div.paging li a {
     color: #0066FF;
 }
 
-span.paging .selected-page,span.paging li a:hover {
+div.paging .selected-page, div.paging li a:hover {
     background: none;
     color: #A90A08;
     font-weight: normal;
@@ -378,4 +378,79 @@ tbody th, tbody td {
 
 .attachments li a {
     color: black;
+}
+.relatedlinks-bodytext .block ol {
+    list-style: decimal outside none;
+}
+.relatedlinks-bodytext .block ol li {
+    background: transparent;
+    list-style: decimal outside none;
+    padding-left: 0px;
+}
+.relatedlinks-bodytext .block ol li.owner {
+    background: url("../images/icons/user.png") no-repeat scroll 0 50% transparent;
+    padding-left: 20px;
+}
+.relatedlinks-headingtext a {
+    color: #FFFFFF;
+}
+#result-list .content h2, #preview .article-heading {
+  margin: 0px;
+  background-color: #FFF5D2;
+  border: 1px solid #BBBBBB;
+  padding: 5px 10px;
+  font-size: 150%;
+}
+#result-list .content .no-result {
+  background-color: transparent;
+  font-size: 150%;
+}
+#result-list .article {
+  padding: 5px 10px;
+}
+#result-list .article h3 {
+  margin-top: 3px;
+}
+#result-list ul.nav {
+    margin: 0px;
+    background-color: #FFF5D2;
+    border: 1px solid #BBBBBB;
+    border-top: 0px;
+    padding-bottom: 5px;
+}
+#result-list ul.nav li {
+    background-color: #FFF5D2;
+}
+#result-list ul.nav li a {
+    background-color: #FFF5D2;
+    color: black;
+}
+#result-list ul li a {
+    padding-top: 4px;
+}
+#result-list ul li a:hover {
+    background-color: #FFE794;
+    border-left: 0 solid #FFE794;
+    border-right: 0 solid #FFE794;
+    border-top: 4px solid #FFCB00;
+    text-decoration: none;
+    padding-top: 0px;
+}
+#result-list ul li ul a {
+    border: 1px solid #BBBBBB;
+}
+#result-list ul li ul a:hover {
+    border: 1px solid #BBBBBB;
+}
+#result-list ul li a.inactive:hover {
+    background-color: #FFF5D2;
+    border: 0px;
+    text-decoration: none;
+    padding-top: 4px;
+}
+#result-list .results-total {
+    color: black;
+}
+.header_search fieldset {
+    padding: 2px;
 }
