@@ -1,7 +1,0 @@
-<div class="mainmenu#if($menuClass) $!menuClass#end"#if($menuId) id="$!menuId"#end>
-  <div class="mainmenu-top"></div>
-  <div class="mainmenu-heading">#if($menuTitle)$!menuTitle#{else}&nbsp;#end</div>
-## Reset parameters
-#set($menuId = $NULL)
-#set($menuClass = $NULL)
-#set($menuTitle = $NULL)
