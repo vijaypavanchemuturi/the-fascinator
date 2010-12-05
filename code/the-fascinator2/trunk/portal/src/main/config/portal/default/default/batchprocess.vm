@@ -86,7 +86,7 @@
     <h2>Update</h2>
     <div class="box" id="update-script-file-form">
         $self.renderUpdateForm()
-        <img class="hidden" id="update-loading" src="$portalPath/images/icons/loading.gif" />
+        <img class="hidden" id="update-loading" src="$portalPath/images/icons/loading.gif" alt="Loading" />
         <span id="update-message"></span>
     </div>
   </div>
@@ -97,7 +97,7 @@
     <div class="box" id="export-script-file-form">
         $self.renderExportForm()
         <strong>Number of modified record: <span id="num-modified">$self.numberOfModifiedRecord()</span></strong>
-        <img class="hidden" id="export-loading" src="$portalPath/images/icons/loading.gif" />
+        <img class="hidden" id="export-loading" src="$portalPath/images/icons/loading.gif" alt="Loading" />
         <span id="export-message"></span>
     </div>
   </div>
@@ -105,94 +105,96 @@
 <script type="text/javascript" src="$portalPath/js/jquery-ui-1.7.2.custom.min.js"></script>
 <script type="text/javascript" src="$portalPath/js/jquery.cookie.js"></script>
 <script type="text/javascript">
-$(function() {
-    // change category
-    $(".category").click(function() {
-        var category = $(this);
-        if (!category.hasClass("selected")) {
-            $(".category").removeClass("selected");
-            category.addClass("selected");
-            $("#form-section > div").addClass("hidden")
-            var formId = category.attr("rel");
-            $("#" + formId + "-section").removeClass("hidden");
-            jQuery.cookie("category", formId, { path: "$portalPath/settings" });
-        }
-        return false;
-    });
-
-    var selected = "update";
-    ##if($page.isConfigured())
-        // restore selected category
-    ##    selected = jQuery.cookie("category") || selected;
-    ##end
-    $("#" + selected + "-category").click();
-
-    // cancel form changes
-    $("input#update-cancel input#update-export").click(function() {
-        window.location.reload();
-        return false;
-    });
-
-    // batch update category
-    $("#update-section input#update-upload").removeAttr("disabled").click(function() {
-        $(this).attr("disabled", "disabled");
-        $("#update-loading").show();
-        var data = $("#update-form").serialize();
-        jQuery.ajax({
-            type : "POST",
-            url : "$portalPath/actions/batchprocess.ajax?" + data,
-            success:
-                function(data, status) {
-                    $("#update-loading").hide();
-                    $("#update-message").text("Updated successfully");
-                    setTimeout(function() { $("#update-message").empty(); }, 3000);
-                    $("#update-section input#update-upload").removeAttr("disabled");
-                },
-            error:
-                function (req, status, e) {
-                    $("#update-loading").hide();
-                    $("#update-message").text(req.responseText);
-                    setTimeout(function() { $("#update-message").empty(); }, 3000);
-                    $("#update-section input#update-upload").removeAttr("disabled");
-                },
-            data: {
-                func: "batch-update"
+<!--
+    $(function() {
+        // change category
+        $(".category").click(function() {
+            var category = $(this);
+            if (!category.hasClass("selected")) {
+                $(".category").removeClass("selected");
+                category.addClass("selected");
+                $("#form-section > div").addClass("hidden")
+                var formId = category.attr("rel");
+                $("#" + formId + "-section").removeClass("hidden");
+                jQuery.cookie("category", formId, { path: "$portalPath/settings" });
             }
+            return false;
+        });
+
+        var selected = "update";
+        ##if($page.isConfigured())
+            // restore selected category
+        ##    selected = jQuery.cookie("category") || selected;
+        ##end
+        $("#" + selected + "-category").click();
+
+        // cancel form changes
+        $("input#update-cancel input#update-export").click(function() {
+            window.location.reload();
+            return false;
+        });
+
+        // batch update category
+        $("#update-section input#update-upload").removeAttr("disabled").click(function() {
+            $(this).attr("disabled", "disabled");
+            $("#update-loading").show();
+            var data = $("#update-form").serialize();
+            jQuery.ajax({
+                type : "POST",
+                url : "$portalPath/actions/batchprocess.ajax?" + data,
+                success:
+                    function(data, status) {
+                        $("#update-loading").hide();
+                        $("#update-message").text("Updated successfully");
+                        setTimeout(function() { $("#update-message").empty(); }, 3000);
+                        $("#update-section input#update-upload").removeAttr("disabled");
+                    },
+                error:
+                    function (req, status, e) {
+                        $("#update-loading").hide();
+                        $("#update-message").text(req.responseText);
+                        setTimeout(function() { $("#update-message").empty(); }, 3000);
+                        $("#update-section input#update-upload").removeAttr("disabled");
+                    },
+                data: {
+                    func: "batch-update"
+                }
+            });
+        });
+
+        // batch export category
+        $("#export-section input#export-upload").removeAttr("disabled").click(function() {
+            $(this).attr("disabled", "disabled");
+            $("#export-loading").show();
+            var data = $("#export-form").serialize();
+            jQuery.ajax({
+                type : "POST",
+                url : "$portalPath/actions/batchprocess.ajax?" + data,
+                success:
+                    function(data, status) {
+                        $("#export-loading").hide();
+                        $("#export-message").text("Exported successfully");
+                        setTimeout(function() { $("#export-message").empty(); }, 3000);
+                        $("#export-section input#export-upload").removeAttr("disabled");
+                        $("#num-modified").text("0");
+                    },
+                error:
+                    function (req, status, e) {
+                        $("#export-loading").hide();
+                        $("#export-message").text(req.responseText);
+                        setTimeout(function() { $("#export-message").empty(); }, 3000);
+                        $("#export-section input#export-upload").removeAttr("disabled");
+                    },
+                data: {
+                    func: "batch-export"
+                }
+            });
+        });
+        $("#export-category").click(function() {
+            $("#num-modified").load("$portalPath/batchprocess.ajax?func=num-modified");
         });
     });
-    
-    // batch export category
-    $("#export-section input#export-upload").removeAttr("disabled").click(function() {
-        $(this).attr("disabled", "disabled");
-        $("#export-loading").show();
-        var data = $("#export-form").serialize();
-        jQuery.ajax({
-            type : "POST",
-            url : "$portalPath/actions/batchprocess.ajax?" + data,
-            success:
-                function(data, status) {
-                    $("#export-loading").hide();
-                    $("#export-message").text("Exported successfully");
-                    setTimeout(function() { $("#export-message").empty(); }, 3000);
-                    $("#export-section input#export-upload").removeAttr("disabled");
-                    $("#num-modified").text("0");
-                },
-            error:
-                function (req, status, e) {
-                    $("#export-loading").hide();
-                    $("#export-message").text(req.responseText);
-                    setTimeout(function() { $("#export-message").empty(); }, 3000);
-                    $("#export-section input#export-upload").removeAttr("disabled");
-                },
-            data: {
-                func: "batch-export"
-            }
-        });
-    });
-    $("#export-category").click(function() {
-        $("#num-modified").load("$portalPath/batchprocess.ajax?func=num-modified");
-    });
-});
+-->
 </script>
 
 #end

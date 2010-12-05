@@ -27,7 +27,7 @@
         #end
         <li><a href="$portalPath/about">About</a></li>
         <li class="secondary">
-            <a class="search" href="#"><img src="$portalPath/images/icons/magnifier.png" /></a>
+            <a class="search" href="#"><img src="$portalPath/images/icons/magnifier.png" alt="Search" /></a>
         </li>
         <li class="secondary">
             <form action="$portalPath/search" class="search" method="get">
@@ -48,10 +48,12 @@
     </ul>
 </div>
 <script type="text/javascript">
-$(function() {
-    $("a.search").click(function() {
-        $("form.search").submit();
-        return false;
+<!--
+    $(function() {
+        $("a.search").click(function() {
+            $("form.search").submit();
+            return false;
+        });
     });
-});
+-->
 </script>

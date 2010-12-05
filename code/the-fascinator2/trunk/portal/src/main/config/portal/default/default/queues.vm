@@ -95,24 +95,26 @@
 </div>
 
 <script type="text/javascript">
-$(function() {
-    $("#hide-descriptions").click(function() {
-        $("#hide-descriptions").hide();
-        $("#show-descriptions").show();
-        $(".queue-stats td.description").hide();
-    });
-    $("#show-descriptions").click(function() {
-        $("#hide-descriptions").show();
-        $("#show-descriptions").hide();
-        $(".queue-stats td.description").show();
-    });
-    $("#sendMessage").click(function() {
-        jQuery.post("$portalPath/queues.ajax",
-        {   queueName: $("#queueName").val(),
-            queueMessage: $("#queueMessage").val()
+<!--
+    $(function() {
+        $("#hide-descriptions").click(function() {
+            $("#hide-descriptions").hide();
+            $("#show-descriptions").show();
+            $(".queue-stats td.description").hide();
+        });
+        $("#show-descriptions").click(function() {
+            $("#hide-descriptions").show();
+            $("#show-descriptions").hide();
+            $(".queue-stats td.description").show();
+        });
+        $("#sendMessage").click(function() {
+            jQuery.post("$portalPath/queues.ajax",
+            {   queueName: $("#queueName").val(),
+                queueMessage: $("#queueMessage").val()
+            });
         });
     });
-});
+-->
 </script>
 ## activemq ajax disabled due to instability
 #*
@@ -133,6 +135,7 @@ $(function() {
   <script type="text/javascript" src="$portalPath/js/amq/amq_jquery_adapter.js"></script>
   <script type="text/javascript" src="$portalPath/js/amq/amq.js"></script>
   <script type="text/javascript">
+  <!--
       var amq = org.activemq.Amq;
       var clientId = "queue_screen";
       var clientTopic = "topic://message";
@@ -142,6 +145,7 @@ $(function() {
       }
       amq.init({ uri: "$contextPath/amq/", timeout: 10 });
       amq.addListener(clientId, clientTopic, waitRender);
+  -->
   </script>
 *#
   #else

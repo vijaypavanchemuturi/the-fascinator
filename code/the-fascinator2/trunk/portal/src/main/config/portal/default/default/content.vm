@@ -1,61 +1,63 @@
 #set($pageTitle = 'Content')
 #set($harvesters = $self.harvesters)
 <script type="text/javascript">
-$(function() {
-    $('#add-content-dialog').dialog({
-        autoOpen: false,
-        bgiframe: true,
-        draggable: false,
-        modal: true,
-        resizable: false,
-        width: 500,
-        buttons: {
-            'Add': function() {
-                // TODO checking
-                $('#contents tbody:first').append('<tr>' +
-                '<td>' + $('#id').val() + '</td>' +
-                '<td>' + $('#description').val() + '</td>' +
-                '<td>' + $('#harvester').val() + '</td>' +
-                '<td>* * * * *</td>' +
-                '</tr>');
-                $(this).dialog('close');
+<!--
+    $(function() {
+        $('#add-content-dialog').dialog({
+            autoOpen: false,
+            bgiframe: true,
+            draggable: false,
+            modal: true,
+            resizable: false,
+            width: 500,
+            buttons: {
+                'Add': function() {
+                    // TODO checking
+                    $('#contents tbody:first').append('<tr>' +
+                    '<td>' + $('#id').val() + '</td>' +
+                    '<td>' + $('#description').val() + '</td>' +
+                    '<td>' + $('#harvester').val() + '</td>' +
+                    '<td>* * * * *</td>' +
+                    '</tr>');
+                    $(this).dialog('close');
+                },
+                'Cancel': function() {
+                    $(this).dialog('close');
+                }
             },
-            'Cancel': function() {
-                $(this).dialog('close');
+            close: function() {
             }
-        },
-        close: function() {
-        }
-    });
+        });
 
-    $('#selected').attr('value', $('#harvesters > div:first').attr('id'));
-    
-    // prefix each field with its parent plugin
-    $('#harvestForm input').each(function() {
-      this.name = $(this).closest('div').attr('id') + ":" + this.name;
+        $('#selected').attr('value', $('#harvesters > div:first').attr('id'));
+
+        // prefix each field with its parent plugin
+        $('#harvestForm input').each(function() {
+          this.name = $(this).closest('div').attr('id') + ":" + this.name;
+        });
+
+        // populate harvester options
+        $('#addButton').click(function() {
+            $('#add-content-dialog').dialog('open');
+        })
+
+        $('button').hover(function() { $(this).addClass('ui-state-hover'); },
+                          function() { $(this).removeClass('ui-state-hover'); })
+
+        $('#contents tbody tr[id]').click(function() {
+          // show harvester config
+          $('#contents tbody tr[id]').removeClass('ui-state-highlight').attr('selected', 'false');
+          $(this).addClass('ui-state-highlight').attr('selected', 'true');
+          $('#harvesterConfig div').hide();
+          $('#' + this.id + '-config').show('blind');
+        });
+
+        $("#content-toolbar li").addClass("ui-state-default ui-corner-all");
+        $("#content-toolbar li").hover(
+                function() { $(this).addClass("ui-state-hover"); },
+                function() { $(this).removeClass("ui-state-hover"); });
     });
-    
-    // populate harvester options
-    $('#addButton').click(function() {
-        $('#add-content-dialog').dialog('open');
-    })
-    
-    $('button').hover(function() { $(this).addClass('ui-state-hover'); },
-                      function() { $(this).removeClass('ui-state-hover'); })  
-    
-    $('#contents tbody tr[id]').click(function() {
-      // show harvester config
-      $('#contents tbody tr[id]').removeClass('ui-state-highlight').attr('selected', 'false');
-      $(this).addClass('ui-state-highlight').attr('selected', 'true');
-      $('#harvesterConfig div').hide();
-      $('#' + this.id + '-config').show('blind');
-    });
-    
-    $("#content-toolbar li").addClass("ui-state-default ui-corner-all");
-    $("#content-toolbar li").hover(
-            function() { $(this).addClass("ui-state-hover"); },
-            function() { $(this).removeClass("ui-state-hover"); });
-});
+-->
 </script>
 <h2>Content</h2>
 <p>Get some Fascinating stuff!</p>

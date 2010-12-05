@@ -1,22 +1,6 @@
-#set($query = $sessionState.get("query"))
-#if("$!query" != "" || $self.hasSelectedFacets())
-    #set($menuTitle = "Actions")
-    #parseTemplate("wrapping/main-menu-open.vm")
-    <ul class="menu">
-        #if($createViewEnabled)
-            <li><a href="#" id="create-view">Create view...</a></li>
-        #end
-        #if ($self.hasSelectedFacets())
-            <li><a href="#" id="clear-facets">Clear selection</a></li>
-        #end
-        #if("$!query" != "")
-            <li><a href="$portalPath/search">Clear search query</a></li>
-        #end
-    </ul>
-    #parseTemplate("wrapping/main-menu-close.vm")
-#end
 <script type="text/javascript" src="$portalPath/js/tree/jquery.tree.min.js"></script>
 <script type="text/javascript">
+<!--
   // hierarchical facet trees
   function createTree(selector, facetField) {
       var tree = jQuery.tree.create();
@@ -66,4 +50,5 @@
       });
       return tree;
   }
+-->
 </script>

@@ -18,11 +18,11 @@
 #end
 #set($menuClass = "metadata")
 #set($menuTitle = "Metadata")
-#parseTemplate("wrapping/info-box-open.vm")
+#parseTemplate("wrapping/menu-open.vm")
 <table class="meta">
     #displayField("dc_title")
     #displayField("dc_creator")
     #displayField("dc_description")
 </table>
 #parseDisplayTemplate("detail/navigation/custom-metadata.vm")
-#parseTemplate("wrapping/info-box-close.vm")
+#parseTemplate("wrapping/menu-close.vm")

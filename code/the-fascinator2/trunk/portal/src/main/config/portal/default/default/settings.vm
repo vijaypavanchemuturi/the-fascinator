@@ -112,7 +112,7 @@
     </form>
     <button class="update">Update</button>
     <button class="cancel">Cancel</button>
-    <img class="hidden" id="general-loading" src="$portalPath/images/icons/loading.gif" />
+    <img class="hidden" id="general-loading" src="$portalPath/images/icons/loading.gif" alt="Loading" />
     <span id="general-message"></span>
     #parseTemplate("wrapping/info-box-close.vm")
     #set($menuId = "view-section")
@@ -157,7 +157,7 @@
     </form>
     <button class="update">Update</button>
     <button class="cancel">Cancel</button>
-    <img class="hidden" id="view-loading" src="$portalPath/images/icons/loading.gif" />
+    <img class="hidden" id="view-loading" src="$portalPath/images/icons/loading.gif" alt="Loading" />
     <span id="view-message"></span>
     #parseTemplate("wrapping/info-box-close.vm")
     #set($menuId = "facets-section")
@@ -188,7 +188,7 @@
         <button class="add" rel="facets">Add</button>
         <button class="update">Update</button>
         <button class="cancel">Cancel</button>
-        <img class="hidden" id="facets-loading" src="$portalPath/images/icons/loading.gif" />
+        <img class="hidden" id="facets-loading" src="$portalPath/images/icons/loading.gif" alt="Loading" />
         <span id="facets-message"></span>
     </div>
     #parseTemplate("wrapping/info-box-close.vm")
@@ -218,7 +218,7 @@
         <button class="add" rel="sort">Add</button>
         <button class="update">Update</button>
         <button class="cancel">Cancel</button>
-        <img class="hidden" id="sort-loading" src="$portalPath/images/icons/loading.gif" />
+        <img class="hidden" id="sort-loading" src="$portalPath/images/icons/loading.gif" alt="Loading" />
         <span id="sort-message"></span>
     </div>
     #parseTemplate("wrapping/info-box-close.vm")
@@ -256,7 +256,7 @@
             <button class="add" rel="watcher">Add</button>
             <button class="update">Update</button>
             <button class="cancel">Cancel</button>
-            <img class="hidden" id="watcher-loading" src="$portalPath/images/icons/loading.gif" />
+            <img class="hidden" id="watcher-loading" src="$portalPath/images/icons/loading.gif" alt="Loading" />
             <span id="watcher-message"></span>
         </fieldset>
         #else
@@ -278,7 +278,7 @@
     </form>
     <button class="update">Update</button>
     <button class="cancel">Cancel</button>
-    <img class="hidden" id="housekeeping-loading" src="$portalPath/images/icons/loading.gif" />
+    <img class="hidden" id="housekeeping-loading" src="$portalPath/images/icons/loading.gif" alt="Loading" />
     <span id="housekeeping-message"></span>
     <hr/>
     <p><b>NOTE:</b> You can use 'Update' to cause the House Keeping process to fire now, even without any changes.</p>
@@ -288,242 +288,244 @@
 <script type="text/javascript" src="$portalPath/js/jquery-ui-1.7.2.custom.min.js"></script>
 <script type="text/javascript" src="$portalPath/js/jquery.cookie.js"></script>
 <script type="text/javascript">
-$(function() {
-    // change category
-    $(".category").click(function() {
-        var category = $(this);
-        if (!category.hasClass("selected")) {
-            $(".category").removeClass("selected");
-            category.addClass("selected");
-            $("#form-section > div").addClass("hidden")
-            var formId = category.attr("rel");
-            $("#" + formId + "-section").removeClass("hidden");
-            jQuery.cookie("category", formId, { path: "$portalPath/settings" });
-        }
-        return false;
-    });
-
-    $("#general-category").click();
-
-    // make text fields editable
-    $(".field-text").live("click", function() {
-        $(this).toggleClass("hidden").toggleClass("visible")
-            .next().toggleClass("hidden").toggleClass("inline");
-        return false;
-    });
-
-    // submit editable fields
-    $(".field-form").submit(function() {
-        $(this).find(".accept").click();
-        return false;
-    });
-
-    // accept editable fields
-    $(".field-form .accept").live("click", function() {
-        var parentEl = $(this).parent(".field-form");
-        var textEl = parentEl.prev(".field-text");
-        var inputEl = $(this).prev(".field-input");
-        parentEl.toggleClass("hidden").toggleClass("inline");
-        textEl.toggleClass("hidden").toggleClass("visible");
-        var oldValue = textEl.text();
-        var newValue = inputEl.val();
-        if (oldValue != newValue) {
-            textEl.css("font-weight", "bold").text(newValue);
-        }
-        return false;
-    });
-
-    // cancel editable fields
-    $(".field-form .cancel").live("click", function() {
-        $(this)
-            .parent().toggleClass("hidden").toggleClass("inline")
-                .prev().toggleClass("hidden").toggleClass("visible");
-        return false;
-    });
-
-    // add new table row
-    $("button.add").click(function() {
-        var rel = $(this).attr("rel");
-        var blankRowId = rel + "-blank";
-        var tableId = rel + "-table";
-        var newRow = $("#" + blankRowId).clone(true).appendTo($("#" + tableId));
-        newRow.removeClass("hidden");
-        newRow.find(".field-text").css("font-weight", "bold");
-        var newId = rel + "-" + ($("#" + tableId + " tr").length);
-        newRow.attr("id", newId);
-        newRow.find(".field-form").each(function() {
-            var id = $(this).attr("id");
-            $(this).attr("id", id.replace(blankRowId, newId));
-        });
-        newRow.find(":input").each(function() {
-            var name = $(this).attr("name");
-            $(this).attr("name", name.replace(blankRowId, newId));
-            $(this).filter("input:checkbox").attr("value", newId);
-        });
-        newRow.find(".field-text:first").click();
-        newRow.find(".field-input:first").focus();
-        return false;
-    });
-
-    // cancel form changes
-    $("button.cancel").click(function() {
-        window.location.reload();
-        return false;
-    });
-
-    // update general category
-    $("#general-section button.update").removeAttr("disabled").click(function() {
-        $(this).attr("disabled", "disabled");
-        $("#general-loading").show();
-        var data = $("#general-form").serialize();
-        jQuery.ajax({
-            type : "POST",
-            url : "$portalPath/actions/settings.ajax?" + data,
-            success:
-                function(data, status) {
-                    $("#general-loading").hide();
-                    $("#general-message").text("Updated successfully");
-                    setTimeout(function() { $("#general-message").empty(); }, 3000);
-                    $("#general-section button.update").removeAttr("disabled");
-                },
-            error:
-                function (req, status, e) {
-                    $("#general-loading").hide();
-                    $("#general-message").text(req.responseText);
-                    setTimeout(function() { $("#general-message").empty(); }, 3000);
-                    $("#general-section button.update").removeAttr("disabled");
-                },
-            data: {
-                func: "general-update"
+<!--
+    $(function() {
+        // change category
+        $(".category").click(function() {
+            var category = $(this);
+            if (!category.hasClass("selected")) {
+                $(".category").removeClass("selected");
+                category.addClass("selected");
+                $("#form-section > div").addClass("hidden")
+                var formId = category.attr("rel");
+                $("#" + formId + "-section").removeClass("hidden");
+                jQuery.cookie("category", formId, { path: "$portalPath/settings" });
             }
+            return false;
         });
-    });
 
-    // update view category
-    $("#view-section button.update").removeAttr("disabled").click(function() {
-        $(this).attr("disabled", "disabled");
-        $("#view-loading").show();
-        var data = $("#view-form").serialize();
-        jQuery.post("$portalPath/actions/settings.ajax?" + data,
-            { func: "view-update" },
-            function(data, status) { window.location.reload(); },
-            "json");
-    });
+        $("#general-category").click();
 
-    // drag n drop sorting of facets
-    $("#facets-table, #sort-table").sortable({ axis: 'y' });
+        // make text fields editable
+        $(".field-text").live("click", function() {
+            $(this).toggleClass("hidden").toggleClass("visible")
+                .next().toggleClass("hidden").toggleClass("inline");
+            return false;
+        });
 
-    // save facet settings
-    $("#facets-section button.update").removeAttr("disabled").click(function() {
-        $(this).attr("disabled", "disabled");
-        $("#facets-loading").show();
-        var orderArray = $("#facets-table").sortable("toArray");
-        var data = "";
-        for (var i = 0, len = orderArray.length; i < len; i++) {
-            var id = orderArray[i];
-            var fField = $("#" + id + "-field .field-input").val();
-            var fLabel = $("#" + id + "-label .field-input").val();
-            var fDisplay = $("#" + id + "-display .field-input option:selected").attr("name");
-            var fDelete = $("#" + id + " .facets-delete").attr("checked");
-            data += "&field=" + fField +
-                    "&label=" + fLabel +
-                    "&display=" + fDisplay +
-                    "&delete=" + fDelete;
-        }
-        jQuery.post("$portalPath/actions/settings.ajax?" + data,
-            { func: "facets-update" },
-            function(data, status) {
-                $("#facets-table span").css("font-weight", "normal");
-                $("#facets-loading").hide();
-                $(".facets-delete:checked").parents("tr").remove();
-                $("#facets-message").text("Updated successfully");
-                setTimeout(function() { $("#facets-message").empty(); }, 3000);
-                $("#facets-section button.update").removeAttr("disabled");
-            },
-            "json");
-    });
+        // submit editable fields
+        $(".field-form").submit(function() {
+            $(this).find(".accept").click();
+            return false;
+        });
 
-    // save sort settings
-    $("#sort-section button.update").removeAttr("disabled").click(function() {
-        $(this).attr("disabled", "disabled");
-        $("#sort-loading").show();
-        var orderArray = $("#sort-table").sortable("toArray");
-        var data = "";
-        for (var i = 0, len = orderArray.length; i < len; i++) {
-            var id = orderArray[i];
-            var fField = $("#" + id + "-field .field-input").val();
-            var fLabel = $("#" + id + "-label .field-input").val();
-            var fDelete = $("#" + id + " .sort-delete").attr("checked");
-            data += "&field=" + fField +
-                    "&label=" + fLabel +
-                    "&delete=" + fDelete;
-        }
-        jQuery.post("$portalPath/actions/settings.ajax?" + data,
-            { func: "sort-update" },
-            function(data, status) {
-                $("#sort-table span").css("font-weight", "normal");
-                $("#sort-loading").hide();
-                $(".sort-delete:checked").parents("tr").remove();
-                $("#sort-message").text("Updated successfully");
-                setTimeout(function() { $("#sort-message").empty(); }, 3000);
-                $("#sort-section button.update").removeAttr("disabled");
-            },
-            "json");
-    });
+        // accept editable fields
+        $(".field-form .accept").live("click", function() {
+            var parentEl = $(this).parent(".field-form");
+            var textEl = parentEl.prev(".field-text");
+            var inputEl = $(this).prev(".field-input");
+            parentEl.toggleClass("hidden").toggleClass("inline");
+            textEl.toggleClass("hidden").toggleClass("visible");
+            var oldValue = textEl.text();
+            var newValue = inputEl.val();
+            if (oldValue != newValue) {
+                textEl.css("font-weight", "bold").text(newValue);
+            }
+            return false;
+        });
 
-    // save watcher settings
-    $("#watcher-section button.update").removeAttr("disabled").click(function() {
-        $(this).attr("disabled", "disabled");
-        $("#watcher-loading").show();
-        var data = $("#watcher-table :input").serialize();
-        var ids = "";
-        jQuery.each($("#watcher-table tr:not(:has(.watcher-delete:checked))"),
-            function(i, tr) {
-                ids += $(tr).attr("id") + ",";
+        // cancel editable fields
+        $(".field-form .cancel").live("click", function() {
+            $(this)
+                .parent().toggleClass("hidden").toggleClass("inline")
+                    .prev().toggleClass("hidden").toggleClass("visible");
+            return false;
+        });
+
+        // add new table row
+        $("button.add").click(function() {
+            var rel = $(this).attr("rel");
+            var blankRowId = rel + "-blank";
+            var tableId = rel + "-table";
+            var newRow = $("#" + blankRowId).clone(true).appendTo($("#" + tableId));
+            newRow.removeClass("hidden");
+            newRow.find(".field-text").css("font-weight", "bold");
+            var newId = rel + "-" + ($("#" + tableId + " tr").length);
+            newRow.attr("id", newId);
+            newRow.find(".field-form").each(function() {
+                var id = $(this).attr("id");
+                $(this).attr("id", id.replace(blankRowId, newId));
             });
-        ids = ids.substring(ids, ids.length-1);
-        jQuery.post("$portalPath/actions/settings.ajax?" + data,
-            { func: "watcher-update", pathIds: ids },
-            function(data, status) {
-                $("#watcher-table span").css("font-weight", "normal");
-                $("#watcher-loading").hide();
-                $(".watcher-delete:checked").parents("tr").remove();
-                $("#watcher-message").text("Updated successfully");
-                setTimeout(function() { $("#watcher-message").empty(); }, 3000);
-                $("#watcher-section button.update").removeAttr("disabled");
-            },
-            "json");
-    });
-
-    // update housekeeping category
-    $("#housekeeping-section button.update").removeAttr("disabled").click(function() {
-        $(this).attr("disabled", "disabled");
-        $("#housekeeping-loading").show();
-        var data = $("#housekeeping-form").serialize();
-        jQuery.ajax({
-            type : "POST",
-            url : "$portalPath/actions/settings.ajax?" + data,
-            success:
-                function(data, status) {
-                    $("#housekeeping-loading").hide();
-                    $("#housekeeping-message").text("Updated successfully");
-                    setTimeout(function() { $("#housekeeping-message").empty(); }, 3000);
-                    $("#housekeeping-section button.update").removeAttr("disabled");
-                },
-            error:
-                function (req, status, e) {
-                    $("#housekeeping-loading").hide();
-                    $("#housekeeping-message").text(req.responseText);
-                    setTimeout(function() { $("#housekeeping-message").empty(); }, 3000);
-                    $("#housekeeping-section button.update").removeAttr("disabled");
-                },
-            data: {
-                func: "housekeeping-update"
-            }
+            newRow.find(":input").each(function() {
+                var name = $(this).attr("name");
+                $(this).attr("name", name.replace(blankRowId, newId));
+                $(this).filter("input:checkbox").attr("value", newId);
+            });
+            newRow.find(".field-text:first").click();
+            newRow.find(".field-input:first").focus();
+            return false;
         });
-    });
 
-});
+        // cancel form changes
+        $("button.cancel").click(function() {
+            window.location.reload();
+            return false;
+        });
+
+        // update general category
+        $("#general-section button.update").removeAttr("disabled").click(function() {
+            $(this).attr("disabled", "disabled");
+            $("#general-loading").show();
+            var data = $("#general-form").serialize();
+            jQuery.ajax({
+                type : "POST",
+                url : "$portalPath/actions/settings.ajax?" + data,
+                success:
+                    function(data, status) {
+                        $("#general-loading").hide();
+                        $("#general-message").text("Updated successfully");
+                        setTimeout(function() { $("#general-message").empty(); }, 3000);
+                        $("#general-section button.update").removeAttr("disabled");
+                    },
+                error:
+                    function (req, status, e) {
+                        $("#general-loading").hide();
+                        $("#general-message").text(req.responseText);
+                        setTimeout(function() { $("#general-message").empty(); }, 3000);
+                        $("#general-section button.update").removeAttr("disabled");
+                    },
+                data: {
+                    func: "general-update"
+                }
+            });
+        });
+
+        // update view category
+        $("#view-section button.update").removeAttr("disabled").click(function() {
+            $(this).attr("disabled", "disabled");
+            $("#view-loading").show();
+            var data = $("#view-form").serialize();
+            jQuery.post("$portalPath/actions/settings.ajax?" + data,
+                { func: "view-update" },
+                function(data, status) { window.location.reload(); },
+                "json");
+        });
+
+        // drag n drop sorting of facets
+        $("#facets-table, #sort-table").sortable({ axis: 'y' });
+
+        // save facet settings
+        $("#facets-section button.update").removeAttr("disabled").click(function() {
+            $(this).attr("disabled", "disabled");
+            $("#facets-loading").show();
+            var orderArray = $("#facets-table").sortable("toArray");
+            var data = "";
+            for (var i = 0, len = orderArray.length; i < len; i++) {
+                var id = orderArray[i];
+                var fField = $("#" + id + "-field .field-input").val();
+                var fLabel = $("#" + id + "-label .field-input").val();
+                var fDisplay = $("#" + id + "-display .field-input option:selected").attr("name");
+                var fDelete = $("#" + id + " .facets-delete").attr("checked");
+                data += "&field=" + fField +
+                        "&label=" + fLabel +
+                        "&display=" + fDisplay +
+                        "&delete=" + fDelete;
+            }
+            jQuery.post("$portalPath/actions/settings.ajax?" + data,
+                { func: "facets-update" },
+                function(data, status) {
+                    $("#facets-table span").css("font-weight", "normal");
+                    $("#facets-loading").hide();
+                    $(".facets-delete:checked").parents("tr").remove();
+                    $("#facets-message").text("Updated successfully");
+                    setTimeout(function() { $("#facets-message").empty(); }, 3000);
+                    $("#facets-section button.update").removeAttr("disabled");
+                },
+                "json");
+        });
+
+        // save sort settings
+        $("#sort-section button.update").removeAttr("disabled").click(function() {
+            $(this).attr("disabled", "disabled");
+            $("#sort-loading").show();
+            var orderArray = $("#sort-table").sortable("toArray");
+            var data = "";
+            for (var i = 0, len = orderArray.length; i < len; i++) {
+                var id = orderArray[i];
+                var fField = $("#" + id + "-field .field-input").val();
+                var fLabel = $("#" + id + "-label .field-input").val();
+                var fDelete = $("#" + id + " .sort-delete").attr("checked");
+                data += "&field=" + fField +
+                        "&label=" + fLabel +
+                        "&delete=" + fDelete;
+            }
+            jQuery.post("$portalPath/actions/settings.ajax?" + data,
+                { func: "sort-update" },
+                function(data, status) {
+                    $("#sort-table span").css("font-weight", "normal");
+                    $("#sort-loading").hide();
+                    $(".sort-delete:checked").parents("tr").remove();
+                    $("#sort-message").text("Updated successfully");
+                    setTimeout(function() { $("#sort-message").empty(); }, 3000);
+                    $("#sort-section button.update").removeAttr("disabled");
+                },
+                "json");
+        });
+
+        // save watcher settings
+        $("#watcher-section button.update").removeAttr("disabled").click(function() {
+            $(this).attr("disabled", "disabled");
+            $("#watcher-loading").show();
+            var data = $("#watcher-table :input").serialize();
+            var ids = "";
+            jQuery.each($("#watcher-table tr:not(:has(.watcher-delete:checked))"),
+                function(i, tr) {
+                    ids += $(tr).attr("id") + ",";
+                });
+            ids = ids.substring(ids, ids.length-1);
+            jQuery.post("$portalPath/actions/settings.ajax?" + data,
+                { func: "watcher-update", pathIds: ids },
+                function(data, status) {
+                    $("#watcher-table span").css("font-weight", "normal");
+                    $("#watcher-loading").hide();
+                    $(".watcher-delete:checked").parents("tr").remove();
+                    $("#watcher-message").text("Updated successfully");
+                    setTimeout(function() { $("#watcher-message").empty(); }, 3000);
+                    $("#watcher-section button.update").removeAttr("disabled");
+                },
+                "json");
+        });
+
+        // update housekeeping category
+        $("#housekeeping-section button.update").removeAttr("disabled").click(function() {
+            $(this).attr("disabled", "disabled");
+            $("#housekeeping-loading").show();
+            var data = $("#housekeeping-form").serialize();
+            jQuery.ajax({
+                type : "POST",
+                url : "$portalPath/actions/settings.ajax?" + data,
+                success:
+                    function(data, status) {
+                        $("#housekeeping-loading").hide();
+                        $("#housekeeping-message").text("Updated successfully");
+                        setTimeout(function() { $("#housekeeping-message").empty(); }, 3000);
+                        $("#housekeeping-section button.update").removeAttr("disabled");
+                    },
+                error:
+                    function (req, status, e) {
+                        $("#housekeeping-loading").hide();
+                        $("#housekeeping-message").text(req.responseText);
+                        setTimeout(function() { $("#housekeeping-message").empty(); }, 3000);
+                        $("#housekeeping-section button.update").removeAttr("disabled");
+                    },
+                data: {
+                    func: "housekeeping-update"
+                }
+            });
+        });
+
+    });
+-->
 </script>
 
 #end

@@ -9,8 +9,10 @@
     <!--Search Start-->
     <!-- Google CSE Search Box Begins -->
     <script type="text/javascript">
+    <!--
       function focusSearch(obj) {if (obj.value == " Search USQ ") {obj.value = "";}}
       function blurSearch(obj) {if (obj.value == "") {obj.value = " Search USQ ";}}
+    -->
     </script>
     <form name="gs" action="http://websearch.usq.edu.au/search" method="get">
       <fieldset>

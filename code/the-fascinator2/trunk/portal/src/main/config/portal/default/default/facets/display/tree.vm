@@ -5,6 +5,8 @@
     <div id="$facetFieldKey" class="menu facet-list clearfix"></div>
   #parse($page.getTemplate('wrapping/menu-close.vm'))
   <script type="text/javascript">
-  $(function() { createTree("#$facetFieldKey", "$facetFieldKey"); });
+  <!--
+      $(function() { createTree("#$facetFieldKey", "$facetFieldKey"); });
+  -->
   </script>
 </div>

@@ -16,7 +16,7 @@
       </tfoot>
       <tbody>
         <tr><th>Roles current granted access:</th></tr>
-        <tr id="security-loading-$plugin.getId()"><td><img src="$portalPath/images/icons/loading.gif" /></td></tr>
+        <tr id="security-loading-$plugin.getId()"><td><img src="$portalPath/images/icons/loading.gif" alt="Loading" /></td></tr>
         <tr id="security-empty-$plugin.getId()" class="hidden"><td>None yet...</td></tr>
       </tbody>
       <tbody id="security-rows-$plugin.getId()">
@@ -52,204 +52,206 @@
 </div>
 
 <script type="text/javascript">
-$(function() {
-    var dialogOpts = {
-        autoOpen: false,
-        hide: "blind",
-        width: 330,
-        modal: true
-    }
-    $("#security-form").dialog(dialogOpts);
-    $("#security-form").dialog('option', 'title', 'Manage Security');
+<!--
+    $(function() {
+        var dialogOpts = {
+            autoOpen: false,
+            hide: "blind",
+            width: 330,
+            modal: true
+        }
+        $("#security-form").dialog(dialogOpts);
+        $("#security-form").dialog('option', 'title', 'Manage Security');
 
-    $(".add-role-button").click(function() {
-        pluginId = $(this).attr("rel");
-        $("#security-message").empty();
-        $("#security-error").hide();
-        $("#security-new-" + pluginId).show();
-        return false;
-    });
-
-    $(".security-new-submit").click(function() {
-        var pluginId = $(this).attr("rel");
-        $("#security-message").empty();
-        $("#security-error").hide();
-        $("#security-new-" + pluginId).hide();
-        $("#security-loading-" + pluginId).show();
-
-        jQuery.ajax({
-            type : "POST",
-            url : "$portalPath/actions/admin.ajax",
-            success:
-                function(data, status) {
-                    addRow(pluginId, data);
-                    $("#security-empty-" + pluginId).hide();
-                    $("#security-loading-" + pluginId).hide();
-                },
-            error:
-                function (req, status, e) {
-                    $("#security-error").show();
-                    $("#security-message").html(req.responseText);
-                    $("#security-loading-" + pluginId).hide();
-                },
-            data: {
-                record: recordId,
-                role: $("#security-new-role-" + pluginId).val(),
-                source: pluginId,
-                verb: "grant-access"
-            }
+        $(".add-role-button").click(function() {
+            pluginId = $(this).attr("rel");
+            $("#security-message").empty();
+            $("#security-error").hide();
+            $("#security-new-" + pluginId).show();
+            return false;
         });
 
-        return false;
-    });
+        $(".security-new-submit").click(function() {
+            var pluginId = $(this).attr("rel");
+            $("#security-message").empty();
+            $("#security-error").hide();
+            $("#security-new-" + pluginId).hide();
+            $("#security-loading-" + pluginId).show();
 
-    var recordId = "";
-    var refresh_link;
-    $(".admin-security-link").click(function() {
-        refresh_link = $(this);
-        recordId = $(this).attr("rel");
-        $("#security-message").empty();
-        $("#security-error").hide();
-        $("#security-form").dialog('open');
-        $("#security-legend").html(recordId);
+            jQuery.ajax({
+                type : "POST",
+                url : "$portalPath/actions/admin.ajax",
+                success:
+                    function(data, status) {
+                        addRow(pluginId, data);
+                        $("#security-empty-" + pluginId).hide();
+                        $("#security-loading-" + pluginId).hide();
+                    },
+                error:
+                    function (req, status, e) {
+                        $("#security-error").show();
+                        $("#security-message").html(req.responseText);
+                        $("#security-loading-" + pluginId).hide();
+                    },
+                data: {
+                    record: recordId,
+                    role: $("#security-new-role-" + pluginId).val(),
+                    source: pluginId,
+                    verb: "grant-access"
+                }
+            });
 
-        jQuery.ajax({
-            type : "POST",
-            url : "$portalPath/actions/admin.ajax",
-            success: securityQuery,
-            error:
-                function (req, status, e) {
-                    $("#security-error").show();
-                    $("#security-message").html(req.responseText);
-                },
-            data: {
-                record: recordId,
-                verb: "get-current-access"
-            }
+            return false;
         });
 
-        return false;
-    });
+        var recordId = "";
+        var refresh_link;
+        $(".admin-security-link").click(function() {
+            refresh_link = $(this);
+            recordId = $(this).attr("rel");
+            $("#security-message").empty();
+            $("#security-error").hide();
+            $("#security-form").dialog('open');
+            $("#security-legend").html(recordId);
 
-    $("#wfOverride").click(function() {
-        var checked = $(this).attr("checked");
+            jQuery.ajax({
+                type : "POST",
+                url : "$portalPath/actions/admin.ajax",
+                success: securityQuery,
+                error:
+                    function (req, status, e) {
+                        $("#security-error").show();
+                        $("#security-message").html(req.responseText);
+                    },
+                data: {
+                    record: recordId,
+                    verb: "get-current-access"
+                }
+            });
 
-        // Notify the server
-        jQuery.ajax({
-            type : "POST",
-            url : "$portalPath/actions/admin.ajax",
-            success:
-                function(data, status) {
-                    // Change the UI
-                    if (checked) {
-                        $("#customSecurity").show();
-                    } else {
-                        $("#customSecurity").hide();
-                    }
-                },
-            error:
-                function (req, status, e) {
-                    $("#security-error").show();
-                    $("#security-message").html(req.responseText);
-                    // Reverse the UI change
-                    if (checked) {
-                        $("#wfOverride").attr("checked", !checked);
-                    }
-                },
-            data: {
-                record: recordId,
-                wfOverride: checked,
-                verb: "workflow-override"
-            }
+            return false;
         });
-    });
 
-    function securityQuery(data, status) {
-        var response = eval("(" + data + ")");
+        $("#wfOverride").click(function() {
+            var checked = $(this).attr("checked");
 
-        // Workflow override
-        var workflow = response.workflow;
-        if (workflow.hasWf) {
-            // We have a workflow
-            $("#workflowSecurity").show();
-            if (workflow.useWf) {
-                // And we are still using it
-                $("#wfOverride").attr("checked", false);
-                $("#customSecurity").hide();
+            // Notify the server
+            jQuery.ajax({
+                type : "POST",
+                url : "$portalPath/actions/admin.ajax",
+                success:
+                    function(data, status) {
+                        // Change the UI
+                        if (checked) {
+                            $("#customSecurity").show();
+                        } else {
+                            $("#customSecurity").hide();
+                        }
+                    },
+                error:
+                    function (req, status, e) {
+                        $("#security-error").show();
+                        $("#security-message").html(req.responseText);
+                        // Reverse the UI change
+                        if (checked) {
+                            $("#wfOverride").attr("checked", !checked);
+                        }
+                    },
+                data: {
+                    record: recordId,
+                    wfOverride: checked,
+                    verb: "workflow-override"
+                }
+            });
+        });
+
+        function securityQuery(data, status) {
+            var response = eval("(" + data + ")");
+
+            // Workflow override
+            var workflow = response.workflow;
+            if (workflow.hasWf) {
+                // We have a workflow
+                $("#workflowSecurity").show();
+                if (workflow.useWf) {
+                    // And we are still using it
+                    $("#wfOverride").attr("checked", false);
+                    $("#customSecurity").hide();
+                } else {
+                    // But we've been told to ignore it
+                    $("#wfOverride").attr("checked", true);
+                    $("#customSecurity").show();
+                }
             } else {
-                // But we've been told to ignore it
-                $("#wfOverride").attr("checked", true);
+                // No workflow
+                $("#workflowSecurity").hide();
                 $("#customSecurity").show();
             }
-        } else {
-            // No workflow
-            $("#workflowSecurity").hide();
-            $("#customSecurity").show();
-        }
 
-        // Plugin data
-        var plugins = response.plugins;
-        for (var i in plugins) {
-            $("#security-rows-" + i).html("");
-            if (plugins[i].length == 0) {
-                $("#security-empty-" + i).show();
-                $("#security-loading-" + i).hide();
-            } else {
-                $("#security-empty-" + i).hide();
-                len = plugins[i].length;
-                for (var j = 0; j < len; j++) {
-                    addRow(i, plugins[i][j]);
+            // Plugin data
+            var plugins = response.plugins;
+            for (var i in plugins) {
+                $("#security-rows-" + i).html("");
+                if (plugins[i].length == 0) {
+                    $("#security-empty-" + i).show();
+                    $("#security-loading-" + i).hide();
+                } else {
+                    $("#security-empty-" + i).hide();
+                    len = plugins[i].length;
+                    for (var j = 0; j < len; j++) {
+                        addRow(i, plugins[i][j]);
+                    }
+                    $("#security-loading-" + i).hide();
                 }
-                $("#security-loading-" + i).hide();
             }
+            $(".remove-role-link").click(revoke_access);
         }
-        $(".remove-role-link").click(revoke_access);
-    }
 
-    function addRow(pluginId, value) {
-        var data = $("#security-rows-" + pluginId).html();
-        data += "<tr><td>" + value;
-        data += " <a class='remove-role-link' rel='" + pluginId + "' value='" + value + "' href='#'>";
-        data += "<img src='$portalPath/images/icons/cross.png'/></a>";
-        data += "</td></tr>";
-        $("#security-rows-" + pluginId).html(data);
-    }
+        function addRow(pluginId, value) {
+            var data = $("#security-rows-" + pluginId).html();
+            data += "<tr><td>" + value;
+            data += " <a class='remove-role-link' rel='" + pluginId + "' value='" + value + "' href='#'>";
+            data += "<img src='$portalPath/images/icons/cross.png'/></a>";
+            data += "</td></tr>";
+            $("#security-rows-" + pluginId).html(data);
+        }
 
-    function revoke_access() {
-        var pluginId = $(this).attr("rel");
-        $("#security-message").empty();
-        $("#security-error").hide();
-        $("#security-loading-" + pluginId).show();
+        function revoke_access() {
+            var pluginId = $(this).attr("rel");
+            $("#security-message").empty();
+            $("#security-error").hide();
+            $("#security-loading-" + pluginId).show();
 
-        jQuery.ajax({
-            type : "POST",
-            url : "$portalPath/actions/admin.ajax",
-            success:
-                function(data, status) {
-                    refresh_link.click();
-                },
-            error:
-                function (req, status, e) {
-                    $("#security-error").show();
-                    $("#security-message").html(req.responseText);
-                    $("#security-loading-" + pluginId).hide();
-                },
-            data: {
-                record: recordId,
-                role: $(this).attr("value"),
-                source: pluginId,
-                verb: "revoke-access"
-            }
+            jQuery.ajax({
+                type : "POST",
+                url : "$portalPath/actions/admin.ajax",
+                success:
+                    function(data, status) {
+                        refresh_link.click();
+                    },
+                error:
+                    function (req, status, e) {
+                        $("#security-error").show();
+                        $("#security-message").html(req.responseText);
+                        $("#security-loading-" + pluginId).hide();
+                    },
+                data: {
+                    record: recordId,
+                    role: $(this).attr("value"),
+                    source: pluginId,
+                    verb: "revoke-access"
+                }
+            });
+
+            return false;
+        }
+
+        $("#security-cancel").click(function() {
+            $("#security-message").empty();
+            $("#security-error").hide();
+            $("#security-form").dialog('close');
+            return false;
         });
-
-        return false;
-    }
-
-    $("#security-cancel").click(function() {
-        $("#security-message").empty();
-        $("#security-error").hide();
-        $("#security-form").dialog('close');
-        return false;
     });
-});
+-->
 </script>

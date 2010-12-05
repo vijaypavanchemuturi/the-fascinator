@@ -12,6 +12,12 @@ $!pageContent
     <script type="text/javascript" src="http://www.usq.edu.au/Migration.Standard.Website/Scripts/swfobject.js"></script>
     <link rel="stylesheet" type="text/css" href="$portalPath/css/usq-skin.css" />
     <link rel="stylesheet" type="text/css" href="$portalPath/css/local-style.css" />
+    #if($pageName=="home")
+    <style type="text/css" media="all">
+        .mainbannerimage {background-image: url("http://www.usq.edu.au/~/media/USQ/SiteBanners/20081290decbansljpg.ashx");}
+        .mainbannerimageleft {background-image: url("http://www.usq.edu.au/~/media/USQ/SiteBanners/20081290decbanjpg.ashx");}
+    </style>
+    #end
   </head>
   <body>
 #parse($page.getTemplate('layout/page-structure.vm'))

@@ -106,7 +106,7 @@
         <button id="indexer-param-add">Add</button>
         <button id="indexer-param-update">Update</button>
         <button id="indexer-param-cancel">Cancel</button>
-        <img class="hidden" id="indexer-param-loading" src="$portalPath/images/icons/loading.gif" />
+        <img class="hidden" id="indexer-param-loading" src="$portalPath/images/icons/loading.gif" alt="Loading" />
         <span id="indexer-param-message"></span>
       </fieldset>
     </div>
@@ -124,32 +124,34 @@
   </div>
 </div>
 <script type="text/javascript">
-$(function() {
-    $("#source-new").click(function() {
-        
-    });
-    
-    $(".category").click(function() {
-        if (!$(this).hasClass("selected")) {
-            $(".category").removeClass("selected");
-            $(this).addClass("selected");
-            $("#form-section > div.section").addClass("hidden")
-            var formId = $(this).attr("rel");
-            $("#" + formId + "-section").removeClass("hidden");
-            jQuery.post("$portalPath/actions/state.ajax",
-                { func: "set", name: "harvest/category", value: formId });
+<!--
+    $(function() {
+        $("#source-new").click(function() {
+
+        });
+
+        $(".category").click(function() {
+            if (!$(this).hasClass("selected")) {
+                $(".category").removeClass("selected");
+                $(this).addClass("selected");
+                $("#form-section > div.section").addClass("hidden")
+                var formId = $(this).attr("rel");
+                $("#" + formId + "-section").removeClass("hidden");
+                jQuery.post("$portalPath/actions/state.ajax",
+                    { func: "set", name: "harvest/category", value: formId });
+            }
+            return false;
+        });
+
+        var selected = "$sessionState.get('harvest/category')";
+        if (selected) {
+            $("#" + selected + "-category").click();
         }
-        return false;
+
+        var config = $self.content;
+        console.log(config);
     });
-    
-    var selected = "$sessionState.get('harvest/category')";
-    if (selected) {
-        $("#" + selected + "-category").click();
-    }
-    
-    var config = $self.content;
-    console.log(config);
-});
+-->
 </script>
 
 
@@ -161,61 +163,63 @@ $(function() {
 #*
 #set($harvesters = $self.harvesters)
 <script type="text/javascript">
-$(function() {
-    $('#add-content-dialog').dialog({
-        autoOpen: false,
-        bgiframe: true,
-        draggable: false,
-        modal: true,
-        resizable: false,
-        width: 500,
-        buttons: {
-            'Add': function() {
-                // TODO checking
-                $('#contents tbody:first').append('<tr>' +
-                '<td>' + $('#id').val() + '</td>' +
-                '<td>' + $('#description').val() + '</td>' +
-                '<td>' + $('#harvester').val() + '</td>' +
-                '<td>* * * * *</td>' +
-                '</tr>');
-                $(this).dialog('close');
+<!--
+    $(function() {
+        $('#add-content-dialog').dialog({
+            autoOpen: false,
+            bgiframe: true,
+            draggable: false,
+            modal: true,
+            resizable: false,
+            width: 500,
+            buttons: {
+                'Add': function() {
+                    // TODO checking
+                    $('#contents tbody:first').append('<tr>' +
+                    '<td>' + $('#id').val() + '</td>' +
+                    '<td>' + $('#description').val() + '</td>' +
+                    '<td>' + $('#harvester').val() + '</td>' +
+                    '<td>* * * * *</td>' +
+                    '</tr>');
+                    $(this).dialog('close');
+                },
+                'Cancel': function() {
+                    $(this).dialog('close');
+                }
             },
-            'Cancel': function() {
-                $(this).dialog('close');
+            close: function() {
             }
-        },
-        close: function() {
-        }
-    });
+        });
 
-    $('#selected').attr('value', $('#harvesters > div:first').attr('id'));
-    
-    // prefix each field with its parent plugin
-    $('#harvestForm input').each(function() {
-      this.name = $(this).closest('div').attr('id') + ":" + this.name;
+        $('#selected').attr('value', $('#harvesters > div:first').attr('id'));
+
+        // prefix each field with its parent plugin
+        $('#harvestForm input').each(function() {
+          this.name = $(this).closest('div').attr('id') + ":" + this.name;
+        });
+
+        // populate harvester options
+        $('#addButton').click(function() {
+            $('#add-content-dialog').dialog('open');
+        })
+
+        $('button').hover(function() { $(this).addClass('ui-state-hover'); },
+                          function() { $(this).removeClass('ui-state-hover'); })
+
+        $('#contents tbody tr[id]').click(function() {
+          // show harvester config
+          $('#contents tbody tr[id]').removeClass('ui-state-highlight').attr('selected', 'false');
+          $(this).addClass('ui-state-highlight').attr('selected', 'true');
+          $('#harvesterConfig div:first').hide();
+          $('#' + this.id + '-config').toggle('blind');
+        });
+
+        $("#content-toolbar li").addClass("ui-state-default ui-corner-all");
+        $("#content-toolbar li").hover(
+                function() { $(this).addClass("ui-state-hover"); },
+                function() { $(this).removeClass("ui-state-hover"); });
     });
-    
-    // populate harvester options
-    $('#addButton').click(function() {
-        $('#add-content-dialog').dialog('open');
-    })
-    
-    $('button').hover(function() { $(this).addClass('ui-state-hover'); },
-                      function() { $(this).removeClass('ui-state-hover'); })  
-    
-    $('#contents tbody tr[id]').click(function() {
-      // show harvester config
-      $('#contents tbody tr[id]').removeClass('ui-state-highlight').attr('selected', 'false');
-      $(this).addClass('ui-state-highlight').attr('selected', 'true');
-      $('#harvesterConfig div:first').hide();
-      $('#' + this.id + '-config').toggle('blind');
-    });
-    
-    $("#content-toolbar li").addClass("ui-state-default ui-corner-all");
-    $("#content-toolbar li").hover(
-            function() { $(this).addClass("ui-state-hover"); },
-            function() { $(this).removeClass("ui-state-hover"); });
-});
+-->
 </script>
 <h2>Harvest</h2>
 <p>Get some Fascinating stuff!</p>

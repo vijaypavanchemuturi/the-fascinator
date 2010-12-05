@@ -139,7 +139,8 @@ public class USQSSO implements SSOInterface {
     @Override
     public String getInterface(String ssoUrl) {
         String html = "<a href=\"" + ssoUrl + "\">" +
-                "<img title=\"" + getLabel() + "\" src=\"" + linkText + "\"/>" +
+                "<img title=\"" + getLabel() +
+                "\" alt=\"" + getLabel() + "\" src=\"" + linkText + "\"/>" +
                 "</a>";
         return html;
     }

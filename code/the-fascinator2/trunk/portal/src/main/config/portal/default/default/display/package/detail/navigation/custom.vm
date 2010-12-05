@@ -6,175 +6,176 @@
 <script type="text/javascript" src="$portalPath/js/tree/jquery.tree.min.js"></script>
 <script type="text/javascript" src="$portalPath/js/rvt.js"></script>
 <script type="text/javascript">
-
-function fixLinks(baseUrl, selector, attrName, oid) {
-    $(selector).each(function() {
-        var attr = $(this).attr(attrName);
-        if (attr != null) {
-            // fix for IE7 attr() returning resolved URLs - strip base URL
-            var href = window.location.href;
-            hrefBase = href.substring(0, href.lastIndexOf("/"));
-            attrBase = attr.substring(0, hrefBase.length);
-            if (hrefBase == attrBase) {
-                attr = attr.substring(hrefBase.length + 1);
+<!--
+    function fixLinks(baseUrl, selector, attrName, oid) {
+        $(selector).each(function() {
+            var attr = $(this).attr(attrName);
+            if (attr != null) {
+                // fix for IE7 attr() returning resolved URLs - strip base URL
+                var href = window.location.href;
+                hrefBase = href.substring(0, href.lastIndexOf("/"));
+                attrBase = attr.substring(0, hrefBase.length);
+                if (hrefBase == attrBase) {
+                    attr = attr.substring(hrefBase.length + 1);
+                }
+                if (attr.indexOf("tfObject:") == 0) {
+                    // First class objects (links only, not images)
+                    var relUrl = "$portalPath/detail/";
+                    var tmpUrl = attr.substring(9);
+                    $(this).attr(attrName, escape(relUrl + tmpUrl));
+                } else {
+                    // Payloads, images and links
+                    if (attr.indexOf("#") != 0 && attr.indexOf("://") == -1 && attr.indexOf("/") != 0) {
+                        var relUrl = "$portalPath/detail/" + oid + "/";
+                        var tmpUrl = baseUrl.substring(baseUrl.indexOf("/", 8));
+                        tmpUrl = tmpUrl.replace(relUrl, "");
+                        tmpUrl = tmpUrl.substring(0, tmpUrl.lastIndexOf("/")+1);
+                        $(this).attr(attrName, escape(relUrl + tmpUrl + attr));
+                    }
+                }
             }
-            if (attr.indexOf("tfObject:") == 0) {
-                // First class objects (links only, not images)
-                var relUrl = "$portalPath/detail/";
-                var tmpUrl = attr.substring(9);
-                $(this).attr(attrName, escape(relUrl + tmpUrl));
+        });
+    }
+
+    $(function() {
+        // remove the default actions
+        $("#open-this, #reharvest-this").parent().remove();
+        if ($("#actions-menu ul.menu li").length == 0) {
+            $("#actions-menu").hide();
+        }
+
+        // clone the tree for toc (blank/package) content pages
+        var isTocPage = /^(blank|package)-/;
+        function setupTocPage(id, node) {
+            var rawId = id.replace(isTocPage, "");
+            var dest = $("#" + rawId + "-content");
+            // create the div if not there already
+            if (dest.length == 0) {
+                $(".package-content").append('<div id="' + rawId + '-content"></div>');
+                dest = $("#" + rawId + "-content");
+            }
+            if (dest.length > 0) {
+                var source = $(node).find(" > ul");
+                source.clone(true).appendTo(dest);
+                $(dest).find("ul li a").each(function(count, item) {
+                    $(item).attr("href", "#" + $(item).parent().attr("id"));
+                });
+                $(dest).find("ul").show();
+            }
+        }
+
+        // RVT
+        var rvt = rvtFactory(jQuery);
+        rvt.tocSelector = "#package-toc";
+        rvt.contentSelector = ".package-content";
+        rvt.contentScrollToTop = function() { alert($(window).offset()); };
+        rvt.fixRelativeLinks = false;
+        rvt.contentBaseUrl = "$portalPath/detail/";
+        rvt.contentLoadedCallback = function(rvt) {
+            var oid = window.location.hash.substring(1);
+
+            fixLinks("", ".package-content a", "href", oid);
+            fixLinks("", ".package-content img", "src", oid);
+
+            $(".article-heading").html($(window.location.hash).children("a").text());
+
+            var tree = jQuery.tree.reference(rvt.tocSelector);
+            tree.select_branch("#" + oid + " > a");
+
+            if (isTocPage.test(oid)) {
+                setupTocPage(oid, $("#" + oid));
             } else {
-                // Payloads, images and links
-                if (attr.indexOf("#") != 0 && attr.indexOf("://") == -1 && attr.indexOf("/") != 0) {
-                    var relUrl = "$portalPath/detail/" + oid + "/";
-                    var tmpUrl = baseUrl.substring(baseUrl.indexOf("/", 8));
-                    tmpUrl = tmpUrl.replace(relUrl, "");
-                    tmpUrl = tmpUrl.substring(0, tmpUrl.lastIndexOf("/")+1);
-                    $(this).attr(attrName, escape(relUrl + tmpUrl + attr));
+                var docCommentNode = $(".package-content > div:visible > .annotatable");
+                if (docCommentNode.length == 0) {
+                    $(".package-content > div:visible")
+                        .append('<div class="object-comments"><div class="annotatable"><span class="hidden">' + oid + '</span>Comment on this item:</div></div>');
                 }
-            }
-        }
-    });
-}
 
-$(function() {
-    // remove the default actions
-    $("#open-this, #reharvest-this").parent().remove();
-    if ($("#actions-menu ul.menu li").length == 0) {
-        $("#actions-menu").hide();
-    }
-    
-    // clone the tree for toc (blank/package) content pages
-    var isTocPage = /^(blank|package)-/;
-    function setupTocPage(id, node) {
-        var rawId = id.replace(isTocPage, "");
-        var dest = $("#" + rawId + "-content");
-        // create the div if not there already
-        if (dest.length == 0) {
-            $(".package-content").append('<div id="' + rawId + '-content"></div>');
-            dest = $("#" + rawId + "-content");
-        }
-        if (dest.length > 0) {
-            var source = $(node).find(" > ul");
-            source.clone(true).appendTo(dest);
-            $(dest).find("ul li a").each(function(count, item) {
-                $(item).attr("href", "#" + $(item).parent().attr("id"));
-            });
-            $(dest).find("ul").show();
-        }
-    }
-    
-    // RVT
-    var rvt = rvtFactory(jQuery);
-    rvt.tocSelector = "#package-toc";
-    rvt.contentSelector = ".package-content";
-    rvt.contentScrollToTop = function() { alert($(window).offset()); };
-    rvt.fixRelativeLinks = false;
-    rvt.contentBaseUrl = "$portalPath/detail/";
-    rvt.contentLoadedCallback = function(rvt) {
-        var oid = window.location.hash.substring(1);
-        
-        fixLinks("", ".package-content a", "href", oid);
-        fixLinks("", ".package-content img", "src", oid);
-        
-        $(".article-heading").html($(window.location.hash).children("a").text());
-        
-        var tree = jQuery.tree.reference(rvt.tocSelector);
-        tree.select_branch("#" + oid + " > a");
-        
-        if (isTocPage.test(oid)) {
-            setupTocPage(oid, $("#" + oid));
-        } else {
-            var docCommentNode = $(".package-content > div:visible > .annotatable");
-            if (docCommentNode.length == 0) {
-                $(".package-content > div:visible")
-                    .append('<div class="object-comments"><div class="annotatable"><span class="hidden">' + oid + '</span>Comment on this item:</div></div>');
+                var tagNode = $("div[rel='" + oid + "-tags']");
+                if (tagNode.length == 0) {
+                    var tagTemplate = '<div rel="' + oid + '-tags">' +
+                        '<div class="object-tag-list">Tags: <span class="object-tags"></span></div>' +
+                        //'<div class="location-tag-list">Location: <span class="location-tags"></span></div>' +
+                      '</div>';
+                    $(".package-content > div:visible > :first").before(tagTemplate);
+                }
+
+                $("#object-tag-list, #location-tag-list, .annotatable").show();
             }
-            
-            var tagNode = $("div[rel='" + oid + "-tags']");
-            if (tagNode.length == 0) {
-                var tagTemplate = '<div rel="' + oid + '-tags">' +
-                    '<div class="object-tag-list">Tags: <span class="object-tags"></span></div>' +
-                    //'<div class="location-tag-list">Location: <span class="location-tags"></span></div>' +
-                  '</div>';
-                $(".package-content > div:visible > :first").before(tagTemplate);
+            setupTagging('div[rel="' + oid + '-tags"]', "$oid#" + oid);
+            setupCommenting("$oid#" + oid,
+                            "p:not([anotar-hash])," +
+                            "h1:not([anotar-hash])," +
+                            "h2:not([anotar-hash])," +
+                            "h3:not([anotar-hash])," +
+                            "h4:not([anotar-hash])," +
+                            "h5:not([anotar-hash])," +
+                            "h6:not([anotar-hash])," +
+                            ".annotatable:not([anotar-hash])",
+                            false);
+
+            //setupAnotarLocationTags();
+
+            var imageNode = $("div[rel='" + oid + "'] > img");
+            if (imageNode.length > 0 && imageNode.attr("rel") != "loaded") {
+                // need to wait for image to load before calling the image annotation plugin
+                var imageObj = new Image();
+                imageObj.src = imageNode.attr("src");
+                $(imageObj).load(function() {
+                    imageNode.attr("rel", "loaded");
+                    setupImageTagging("div[rel='" + oid + "'] > img", "$oid%23" + oid);
+                });
             }
-            
-            $("#object-tag-list, #location-tag-list, .annotatable").show();
-        }
-        setupTagging('div[rel="' + oid + '-tags"]', "$oid#" + oid);
-        setupCommenting("$oid#" + oid,
-                        "p:not([anotar-hash])," +
-                        "h1:not([anotar-hash])," +
-                        "h2:not([anotar-hash])," +
-                        "h3:not([anotar-hash])," +
-                        "h4:not([anotar-hash])," +
-                        "h5:not([anotar-hash])," +
-                        "h6:not([anotar-hash])," +
-                        ".annotatable:not([anotar-hash])",
-                        false);
-        
-        //setupAnotarLocationTags();
-        
-        var imageNode = $("div[rel='" + oid + "'] > img");
-        if (imageNode.length > 0 && imageNode.attr("rel") != "loaded") {
-            // need to wait for image to load before calling the image annotation plugin
-            var imageObj = new Image();
-            imageObj.src = imageNode.attr("src");
-            $(imageObj).load(function() {
-                imageNode.attr("rel", "loaded");
-                setupImageTagging("div[rel='" + oid + "'] > img", "$oid%23" + oid);
-            });
-        }
-        return false;
-    };
-    rvt.displayTOC = function(nodes) {
-        var opts = {
-            data: {
-                type: "json",
-                opts: { static: nodes }
-            },
-            ui: { dots: false },
-            types: {
-                "default": { draggable: false }
-            },
-            callback: {
-                onselect: function(node, tree) {
-                    var id = $(node).attr("id");
-                    if (isTocPage.test(id)) {
-                        setupTocPage(id, node);
-                    } else {
-                        $("#object-tag-list, #location-tag-list, .annotatable").show();
-                    }
-                    
-                    window.location.hash = "#" + id;
-                    var itemTitle = jQuery.trim($(node).children("a").text());
-                    $(".article-heading").html(itemTitle);
-                    
-                    /*
-                    var openOriginal = $("#open-original");
-                    var openTitle = "Open '" + itemTitle + "'";
-                    if (id.match(/^blank-/) || id.match(/^package/)) {
-                        if (openOriginal.length > 0) {
-                            openOriginal.fadeOut();
+            return false;
+        };
+        rvt.displayTOC = function(nodes) {
+            var opts = {
+                data: {
+                    type: "json",
+                    opts: { static: nodes }
+                },
+                ui: { dots: false },
+                types: {
+                    "default": { draggable: false }
+                },
+                callback: {
+                    onselect: function(node, tree) {
+                        var id = $(node).attr("id");
+                        if (isTocPage.test(id)) {
+                            setupTocPage(id, node);
+                        } else {
+                            $("#object-tag-list, #location-tag-list, .annotatable").show();
                         }
-                    } else {
-                        if (openOriginal.length == 0) {
-                            $("#packaging").append('<li id="open-original"><a href="#"></a></li>');
-                            openOriginal = $("#open-original");
+
+                        window.location.hash = "#" + id;
+                        var itemTitle = jQuery.trim($(node).children("a").text());
+                        $(".article-heading").html(itemTitle);
+
+                        /*
+                        var openOriginal = $("#open-original");
+                        var openTitle = "Open '" + itemTitle + "'";
+                        if (id.match(/^blank-/) || id.match(/^package/)) {
+                            if (openOriginal.length > 0) {
+                                openOriginal.fadeOut();
+                            }
+                        } else {
+                            if (openOriginal.length == 0) {
+                                $("#packaging").append('<li id="open-original"><a href="#"></a></li>');
+                                openOriginal = $("#open-original");
+                            }
+                            openOriginal.find("a").attr("href", "$portalPath/detail/" + id);
+                            openOriginal.find("a").text(openTitle);
+                            openOriginal.fadeIn();
                         }
-                        openOriginal.find("a").attr("href", "$portalPath/detail/" + id);
-                        openOriginal.find("a").text(openTitle);
-                        openOriginal.fadeIn();
+                        */
+
+                        return false;
                     }
-                    */
-                    
-                    return false;
                 }
             }
+            $(rvt.tocSelector).tree(opts);
         }
-        $(rvt.tocSelector).tree(opts);
-    }
-    rvt.getManifestJson("$portalPath/workflows/organiser.ajax?func=get-rvt-manifest&oid=$oid");
-});
+        rvt.getManifestJson("$portalPath/workflows/organiser.ajax?func=get-rvt-manifest&oid=$oid");
+    });
+-->
 </script>

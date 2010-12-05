@@ -8,12 +8,12 @@
         #end
         $self.getMimeTypeIcon($portalPath, $format)
         #if($wfStep && $wfStep != "" && $wfStep != "live")
-            <img class="workflow" src="$portalPath/images/icons/wf_${wfStep}.png" />
+            <img class="workflow" src="$portalPath/images/icons/wf_${wfStep}.png" alt="Workflow Step" />
         #end
         #if($self.canManage())
             <span class="wfMan">
                 <a href="$portalPath/workflow/$id">
-                    <img class="workflow" src="$portalPath/images/icons/application_go.png" />
+                    <img class="workflow" src="$portalPath/images/icons/application_go.png" alt="Manage Workflow" />
                 </a>
             </span>
         #end
