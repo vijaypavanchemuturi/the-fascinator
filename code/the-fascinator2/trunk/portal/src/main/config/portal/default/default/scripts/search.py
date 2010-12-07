@@ -1,12 +1,16 @@
-import md5, os.path
+import md5
+import os.path
 
 from au.edu.usq.fascinator.api.indexer import SearchRequest
 from au.edu.usq.fascinator.common import JsonConfigHelper
 from au.edu.usq.fascinator.portal import Pagination
 
-from java.io import ByteArrayInputStream, ByteArrayOutputStream
+from java.io import ByteArrayInputStream
+from java.io import ByteArrayOutputStream
+from java.io import UnsupportedEncodingException
 from java.lang import Boolean
 from java.net import URLDecoder
+from java.net import URLEncoder
 from java.util import ArrayList, LinkedHashMap, HashSet
 
 class SearchData:
@@ -52,7 +56,7 @@ class SearchData:
             self.sessionState.set("lastPortalId", self.portalId)
         
         self.__search()
-    
+
     def usingSessionNavigation(self):
         return self.__restful
     
@@ -194,7 +198,12 @@ class SearchData:
         # from http://lucene.apache.org/java/2_4_0/queryparsersyntax.html#Escaping%20Special%20Characters
         for c in "+-&|!(){}[]^\"~*?:\\":
             eq = eq.replace(c, "\\%s" % c)
-        return eq
+        ## Escape UTF8
+        try:
+            return URLEncoder.encode(eq, "UTF-8")
+        except UnsupportedEncodingException, e:
+            print "Error during UTF8 escape! ", repr(eq)
+            return eq
     
     def getQueryTime(self):
         return int(self.__result.get("responseHeader/QTime")) / 1000.0;
