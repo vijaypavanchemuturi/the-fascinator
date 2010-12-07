@@ -1,7 +1,12 @@
-from au.edu.usq.fascinator.common import JsonConfigHelper
-from au.edu.usq.fascinator.api.indexer import SearchRequest
-from java.io import ByteArrayInputStream, ByteArrayOutputStream
 import os
+
+from au.edu.usq.fascinator.api.indexer import SearchRequest
+from au.edu.usq.fascinator.common import JsonConfigHelper
+
+from java.io import ByteArrayInputStream
+from java.io import ByteArrayOutputStream
+from java.io import UnsupportedEncodingException
+from java.net import URLEncoder
 
 class AtomData:
     def __init__(self):
@@ -27,6 +32,7 @@ class AtomData:
         query = "*:*"
         if self.vc("formData").get("query"):
             query = self.vc("formData").get("query")
+            query = self.__escapeQuery(query)
 
         req = SearchRequest(query)
         req.setParam("facet", "true")
@@ -65,3 +71,16 @@ class AtomData:
 
     def getFileName(self, path):
         return os.path.split(path)[1]
+
+    def __escapeQuery(self, q):
+        eq = q
+        # escape all solr/lucene special chars
+        # from http://lucene.apache.org/java/2_4_0/queryparsersyntax.html#Escaping%20Special%20Characters
+        for c in "+-&|!(){}[]^\"~*?:\\":
+            eq = eq.replace(c, "\\%s" % c)
+        ## Escape UTF8
+        try:
+            return URLEncoder.encode(eq, "UTF-8")
+        except UnsupportedEncodingException, e:
+            print "Error during UTF8 escape! ", repr(eq)
+            return eq
