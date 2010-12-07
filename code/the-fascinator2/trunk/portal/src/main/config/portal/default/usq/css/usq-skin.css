@@ -261,8 +261,8 @@ ul.packaging li a {
 }
 
 /* paging */
-div.paging {
-    font-size: 0.6em;
+div.paging, .sorting {
+    font-size: 13px;
 }
 
 div.paging {
