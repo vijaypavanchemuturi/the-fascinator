@@ -40,12 +40,19 @@ import au.edu.usq.fascinator.common.storage.impl.GenericPayload;
 
 public class FileSystemPayload extends GenericPayload {
 
+    /** Logger */
     private Logger log = LoggerFactory.getLogger(FileSystemPayload.class);
 
+    /** Default type to use if not specified */
     private static PayloadType DEFAULT_PAYLOAD_TYPE = PayloadType.Enrichment;
+
+    /** File extension to use storing metadata */
     private static String METADATA_SUFFIX = ".meta";
 
+    /** The file on disk holding real data */
     private File dataFile;
+
+    /** The file on disk holding metadata */
     private File metaFile;
 
     public FileSystemPayload(String id, File payloadFile) {
@@ -56,6 +63,10 @@ public class FileSystemPayload extends GenericPayload {
         //log.debug("Payload instantiation complete : " + id);
     }
 
+    /**
+     * Read metadata from disk into memory if it exists
+     *
+     */
     public void readExistingMetadata() {
         if (metaFile.exists()) {
             Properties props = new Properties();
@@ -109,6 +120,10 @@ public class FileSystemPayload extends GenericPayload {
         }
     }
 
+    /**
+     * Write metadata to disk, calculating/retrieving if it is not known yet
+     *
+     */
     public void writeMetadata() {
         if (getLabel() == null) {
             setLabel(dataFile.getName());
@@ -144,6 +159,12 @@ public class FileSystemPayload extends GenericPayload {
         }
     }
 
+    /**
+     * Gets the input stream to access the content for this payload
+     *
+     * @return an input stream
+     * @throws IOException if there was an error reading the stream
+     */
     @Override
     public InputStream open() throws StorageException {
         // Linked files
@@ -172,11 +193,74 @@ public class FileSystemPayload extends GenericPayload {
         }
     }
 
+    /**
+     * Close the input stream for this payload
+     *
+     * @throws StorageException if there was an error closing the stream
+     */
     @Override
     public void close() throws StorageException {
         super.close();
         if (hasMetaChanged()) {
             writeMetadata();
+        }
+    }
+
+    /**
+     * Return the timestamp when the payload was last modified
+     *
+     * @returns Long: The last modified date of the payload, or NULL if unknown
+     */
+    @Override
+    public Long lastModified() {
+        // Linked files
+        if (isLinked()) {
+            try {
+                String linkPath = FileUtils.readFileToString(dataFile);
+                File linkFile = new File(linkPath);
+                if (!linkFile.exists()) {
+                    log.error("Error! File does not exist: '{}'",
+                            linkFile.getAbsolutePath());
+                    return null;
+                }
+                return linkFile.lastModified();
+            } catch (IOException ex) {
+                log.error("Error reading file from disk: ", ex);
+                return null;
+            }
+
+        // Stored files
+        } else {
+            return dataFile.lastModified();
+        }
+    }
+
+    /**
+     * Return the size of the payload in byte
+     *
+     * @returns Integer: The file size in bytes, or NULL if unknown
+     */
+    @Override
+    public Long size() {
+        // Linked files
+        if (isLinked()) {
+            try {
+                String linkPath = FileUtils.readFileToString(dataFile);
+                File linkFile = new File(linkPath);
+                if (!linkFile.exists()) {
+                    log.error("Error! File does not exist: '{}'",
+                            linkFile.getAbsolutePath());
+                    return null;
+                }
+                return linkFile.length();
+            } catch (IOException ex) {
+                log.error("Error reading file from disk: ", ex);
+                return null;
+            }
+
+        // Stored files
+        } else {
+            return dataFile.length();
         }
     }
 }

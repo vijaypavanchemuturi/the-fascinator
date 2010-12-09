@@ -333,4 +333,26 @@ public class GenericPayload implements Payload {
     public String toString() {
         return getId();
     }
+
+    /**
+     * Return the timestamp when the payload was last modified
+     *
+     * @returns Long: The last modified date of the payload, or NULL if unknown
+     */
+    @Override
+    public Long lastModified() {
+        // No support, should be overwritten by real plugins
+        return null;
+    }
+
+    /**
+     * Return the size of the payload in byte
+     *
+     * @returns Integer: The file size in bytes, or NULL if unknown
+     */
+    @Override
+    public Long size() {
+        // No support, should be overwritten by real plugins
+        return null;
+    }
 }

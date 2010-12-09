@@ -27,4 +27,18 @@ public class FileSystemPayloadTest {
                 fsp.getContentType());
         Assert.assertEquals("ICE Sample Document", fsp.getLabel());
     }
+
+    @Test
+    public void checkFileData() throws Exception {
+        // Create a test file
+        File sampleOdtFile =
+                new File(getClass().getResource("/sample.odt").toURI());
+        Long original = sampleOdtFile.lastModified();
+
+        // Create a payload
+        FileSystemPayload fsp = new FileSystemPayload("test", sampleOdtFile);
+
+        Assert.assertEquals(fsp.size().longValue(), 165276);
+        Assert.assertEquals(fsp.lastModified().longValue(), original.longValue());
+    }
 }
