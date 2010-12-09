@@ -105,4 +105,18 @@ public interface Payload {
      * @throws StorageException if there was an error closing the stream
      */
     public void close() throws StorageException;
+
+    /**
+     * Return the timestamp when the payload was last modified
+     *
+     * @returns Long: The last modified date of the payload, or NULL if unknown
+     */
+    public Long lastModified();
+
+    /**
+     * Return the size of the payload in byte
+     *
+     * @returns Long: The file size in bytes, or NULL if unknown
+     */
+    public Long size();
 }
