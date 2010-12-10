@@ -22,6 +22,7 @@ import org.apache.tapestry5.ioc.annotations.Inject;
 
 import au.edu.usq.fascinator.api.indexer.Indexer;
 import au.edu.usq.fascinator.api.storage.Storage;
+import au.edu.usq.fascinator.portal.services.ByteRangeRequestCache;
 import au.edu.usq.fascinator.portal.services.DatabaseServices;
 import au.edu.usq.fascinator.portal.services.DynamicPageService;
 import au.edu.usq.fascinator.portal.services.HarvestManager;
@@ -51,6 +52,9 @@ public class ScriptingServicesImpl implements ScriptingServices {
 
     @Inject
     private PortalManager portalManager;
+
+    @Inject
+    private ByteRangeRequestCache byteRangeCache;
 
     @Override
     public DatabaseServices getDatabase() {
@@ -85,5 +89,10 @@ public class ScriptingServicesImpl implements ScriptingServices {
     @Override
     public PortalManager getPortalManager() {
         return portalManager;
+    }
+
+    @Override
+    public ByteRangeRequestCache getByteRangeCache() {
+        return byteRangeCache;
     }
 }

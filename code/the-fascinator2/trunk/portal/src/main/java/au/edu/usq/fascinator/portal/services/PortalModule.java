@@ -18,6 +18,7 @@
  */
 package au.edu.usq.fascinator.portal.services;
 
+import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.codec.digest.DigestUtils;
@@ -51,7 +52,9 @@ import au.edu.usq.fascinator.api.indexer.Indexer;
 import au.edu.usq.fascinator.api.roles.RolesManager;
 import au.edu.usq.fascinator.api.storage.Storage;
 import au.edu.usq.fascinator.common.JsonConfig;
+import au.edu.usq.fascinator.common.JsonConfigHelper;
 import au.edu.usq.fascinator.portal.JsonSessionState;
+import au.edu.usq.fascinator.portal.services.impl.ByteRangeRequestCacheImpl;
 import au.edu.usq.fascinator.portal.services.impl.CachingDynamicPageServiceImpl;
 import au.edu.usq.fascinator.portal.services.impl.DatabaseServicesImpl;
 import au.edu.usq.fascinator.portal.services.impl.HarvestManagerImpl;
@@ -81,6 +84,8 @@ public class PortalModule {
         binder.bind(ScriptingServices.class, ScriptingServicesImpl.class);
         binder.bind(PortalSecurityManager.class,
                 PortalSecurityManagerImpl.class);
+        binder.bind(ByteRangeRequestCache.class,
+                ByteRangeRequestCacheImpl.class);
     }
 
     public static DatabaseServices buildDatabaseServices(RegistryShutdownHub hub) {
@@ -145,6 +150,30 @@ public class PortalModule {
                     "storage/type", DEFAULT_STORAGE_TYPE));
             storage.init(JsonConfig.getSystemFile());
             return storage;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * Modify the configuration of the ResponseCompressionAnalyzer Tapestry
+     * service. The service is responsible for deciding which MIME type
+     * should be automatically GZIP'd on the way back to the client.
+     *
+     * Adding formats to this configuration will exclude them from compression
+     *
+     * @param configuration: Unordered configuration from Tapestry
+     */
+    public static void contributeResponseCompressionAnalyzer(
+            Configuration<String> configuration) {
+        try {
+            JsonConfigHelper config = new JsonConfigHelper(
+                    JsonConfig.getSystemFile());
+            List<Object> formats = config.getList("portal/compression/ignore");
+            for (Object format : formats) {
+                log.info("Tapestry : Exclude from GZIP '{}'", (String) format);
+                configuration.add((String) format);
+            }
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
