@@ -37,4 +37,5 @@ public interface ScriptingServices {
 
     public PortalManager getPortalManager();
 
+    public ByteRangeRequestCache getByteRangeCache();
 }

@@ -57,6 +57,13 @@ class DownloadData:
             self.response.sendRedirect(self.contextPath + "/" + self.portalId + "/detail/" + object.getId())
             return
 
+        ## The byte range cache will check for byte range requests first
+        self.cache = self.services.getByteRangeCache()
+        processed = self.cache.processRequest(self.request, self.response, payload)
+        if processed:
+            # We don't need to return data, the cache took care of it.
+            return
+
         if payload is not None:
             filename = os.path.split(payload.getId())[1]
             mimeType = payload.getContentType()
