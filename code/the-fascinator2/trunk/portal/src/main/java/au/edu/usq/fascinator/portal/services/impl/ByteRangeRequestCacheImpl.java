@@ -38,9 +38,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Wraps the logic required to parse, process and respond to HTTP byte-range
- * requests around a caching mechanism that attempts to predict usage patterns
- * in order to reduce disk I/O.
+ * Contains the logic required to parse, process and respond to HTTP byte-range
+ * requests.
  *
  * @author Greg Pendlebury
  */
@@ -257,14 +256,14 @@ public class ByteRangeRequestCacheImpl implements ByteRangeRequestCache {
             response.setHeader("Content-Description", "File Transfer");
             response.setHeader("Content-Disposition", disposition);
             response.setHeader("Content-Transfer-Encoding", "binary");
-            log.debug("HEADER 'Content-Type': '{}'", mimeType);
+            //log.debug("HEADER 'Content-Type': '{}'", mimeType);
             response.setHeader("Content-Type", mimeType);
             OutputStream out = response.getOutputStream(mimeType);
 
             // Send valid headers describing our data:  If these headers aren't
             // set before the data starts streaming some clients have been
             // known to terminate the connection early
-            log.debug("HEADER 'Content-Range': '{}'", rangeResponse);
+            //log.debug("HEADER 'Content-Range': '{}'", rangeResponse);
             response.setHeader("Content-Range", rangeResponse);
             //log.debug("HEADER 'Content-Length': '{}'", dataLength);
             response.setContentLength((int) dataLength);
@@ -316,7 +315,7 @@ public class ByteRangeRequestCacheImpl implements ByteRangeRequestCache {
                     return false;
                 }
             }
-            log.debug("Content Read : {} bytes", read);
+            //log.debug("Content Read : {} bytes", read);
             payload.close();
             return success;
 

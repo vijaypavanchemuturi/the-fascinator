@@ -24,9 +24,8 @@ import org.apache.tapestry5.services.Request;
 import org.apache.tapestry5.services.Response;
 
 /**
- * Wraps the logic required to parse, process and respond to HTTP byte-range
- * requests around a caching mechanism that attempts to predict usage patterns
- * in order to reduce disk I/O.
+ * Contains the logic required to parse, process and respond to HTTP byte-range
+ * requests.
  *
  * @author Greg Pendlebury
  */
