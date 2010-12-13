@@ -120,7 +120,7 @@ public class ByteRangeRequestCacheImpl implements ByteRangeRequestCache {
         // Check the HTTP request for a byte range header
         String byteHeader = request.getHeader("Range");
         if (byteHeader == null) {
-            log.debug("#### No byte header");
+            //log.debug("#### No byte header");
             return false;
         }
 
