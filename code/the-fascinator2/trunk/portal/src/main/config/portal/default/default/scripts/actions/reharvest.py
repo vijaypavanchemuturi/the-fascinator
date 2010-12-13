@@ -21,7 +21,7 @@ class ReharvestData:
             if func == "reharvest":
                 if oid:
                     print "Reharvesting object '%s'" % oid
-                    portalManager.reharvest("oid")
+                    portalManager.reharvest(oid)
                     result.set("status", "ok")
                     result.set("message", "Object '%s' queued for reharvest")
                 elif portalId:
@@ -49,7 +49,7 @@ class ReharvestData:
                     services.indexer.index(oid)
                     services.indexer.commit()
                     result.set("status", "ok")
-                    result.set("message", "Objects in '%s' queued for reharvest" % portalId)
+                    result.set("message", "Object '%s' queued for reindex" % portalId)
                 else:
                     response.setStatus(500)
                     result.set("message", "No object specified to reindex")
