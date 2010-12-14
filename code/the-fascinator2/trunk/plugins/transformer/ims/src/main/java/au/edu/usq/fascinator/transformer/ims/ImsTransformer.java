@@ -34,6 +34,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Enumeration;
+import java.util.Properties;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
@@ -83,7 +84,7 @@ public class ImsTransformer implements Transformer {
             config = new JsonConfigHelper(jsonFile);
             reset();
         } catch (IOException e) {
-            e.printStackTrace();
+            log.error("Error reading config: ", e);
         }
     }
 
@@ -100,7 +101,7 @@ public class ImsTransformer implements Transformer {
             config = new JsonConfigHelper(jsonString);
             reset();
         } catch (IOException e) {
-            e.printStackTrace();
+            log.error("Error reading config: ", e);
         }
     }
 
@@ -168,13 +169,13 @@ public class ImsTransformer implements Transformer {
         }
 
         if (inFile.exists()) {
-            log.info("unpacking ims");
+            log.info("Unpacking IMS Package: '{}'", inFile.getName());
             try {
                 in = createImsPayload(in, inFile);
             } catch (StorageException e) {
-                e.printStackTrace();
+                log.error("Error accessing storage: ", e);
             } catch (IOException e) {
-                e.printStackTrace();
+                log.error("Error reading ZIP: ", e);
             } finally {
                 inFile.delete();
             }
@@ -195,6 +196,8 @@ public class ImsTransformer implements Transformer {
      */
     public DigitalObject createImsPayload(DigitalObject object, File file)
             throws StorageException, IOException {
+        boolean htmlPreview = false;
+
         ZipFile zipFile = new ZipFile(file);
         ZipEntry manifestEntry = zipFile.getEntry(manifestFile);
         if (manifestEntry != null) {
@@ -206,13 +209,30 @@ public class ImsTransformer implements Transformer {
                     Payload imsPayload = StorageUtils
                             .createOrUpdatePayload(object, name, zipFile
                                     .getInputStream(entry));
-                    // Set to enrichment
-                    imsPayload.setType(PayloadType.Enrichment);
+                    // Look for our preview
+                    if (name.startsWith("index.htm")) {
+                        imsPayload.setType(PayloadType.Preview);
+                        log.info("New preview found: '{}'", name);
+                        htmlPreview = true;
+                    // Everything else is an 'enrichment'
+                    } else {
+                        imsPayload.setType(PayloadType.Enrichment);
+                    }
                     imsPayload.setLabel(name);
-                    imsPayload.setContentType(MimeTypeUtil
-                            .getMimeType(name));
+                    imsPayload.setContentType(MimeTypeUtil.getMimeType(name));
+                    // Trigger write on metadata
+                    imsPayload.close();
                 }
             }
+
+            if (htmlPreview) {
+                Properties prop = object.getMetadata();
+                prop.setProperty("displayType", "html");
+                prop.setProperty("previewType", "html");
+                object.close();
+            }
+        } else {
+            log.debug("No manifest entry: '{}'", manifestFile);
         }
         return object;
     }
