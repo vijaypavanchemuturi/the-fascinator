@@ -183,7 +183,7 @@ public class GenericPayload implements Payload {
      */
     @Override
     public void setId(String id) {
-        metaChanged = (this.id != id);
+        metaChanged = metaChanged || (this.id != id);
         this.id = id;
     }
 
@@ -213,7 +213,7 @@ public class GenericPayload implements Payload {
      * @param newLinked True if linked, otherwise false
      */
     public void setLinked(boolean newLinked) {
-        metaChanged = (linked != newLinked);
+        metaChanged = metaChanged || (linked != newLinked);
         linked = newLinked;
     }
 
@@ -224,7 +224,7 @@ public class GenericPayload implements Payload {
      */
     @Override
     public void setType(PayloadType type) {
-        metaChanged = (this.type != type);
+        metaChanged = metaChanged || (this.type != type);
         this.type = type;
     }
 
@@ -245,7 +245,7 @@ public class GenericPayload implements Payload {
      */
     @Override
     public void setLabel(String label) {
-        metaChanged = (this.label != label);
+        metaChanged = metaChanged || (this.label != label);
         this.label = label;
     }
 
@@ -266,7 +266,7 @@ public class GenericPayload implements Payload {
      */
     @Override
     public void setContentType(String contentType) {
-        metaChanged = (this.contentType != contentType);
+        metaChanged = metaChanged || (this.contentType != contentType);
         this.contentType = contentType;
     }
 
