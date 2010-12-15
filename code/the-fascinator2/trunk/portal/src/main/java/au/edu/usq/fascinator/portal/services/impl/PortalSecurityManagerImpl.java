@@ -360,6 +360,15 @@ public class PortalSecurityManagerImpl implements PortalSecurityManager {
             FormData formData) {
         this.formData = formData;
 
+        // Used in integrating with thrid party systems. They can send us a
+        // user, we will log them in via a SSO round-trip, then send them back
+        // to the external system
+        String returnUrl = request.getParameter("returnUrl");
+        if (returnUrl != null) {
+            log.info("External redirect requested: '{}'", returnUrl);
+            session.set("ssoReturnUrl", returnUrl);
+        }
+
         // The URL parameters can contain a trust token
         String utoken = request.getParameter("token");
         String stoken = (String) session.get("validToken");
@@ -405,7 +414,18 @@ public class PortalSecurityManagerImpl implements PortalSecurityManager {
                 }
             } else {
                 // Otherwise, check if we have user's details
-                this.ssoCheckUserDetails(session);
+                boolean valid = this.ssoCheckUserDetails(session);
+                // If we validly logged in an SSO user, check for an
+                // external redirect to third party systems
+                if (valid) {
+                    returnUrl = (String) session.get("ssoReturnUrl");
+                    if (returnUrl != null) {
+                        log.info("Redirect to external URL: '{}'", returnUrl);
+                        session.remove("ssoReturnUrl");
+                        response.sendRedirect(returnUrl);
+                        return true;
+                    }
+                }
             }
         } catch (Exception ex) {
             log.error("SSO Error!", ex);
@@ -490,9 +510,10 @@ public class PortalSecurityManagerImpl implements PortalSecurityManager {
     /**
      * Get user details from SSO connection and set them in the user session.
      *
+     * @return boolean: Flag whether a user was actually logged in or not.
      */
     @Override
-    public void ssoCheckUserDetails(JsonSessionState session) {
+    public boolean ssoCheckUserDetails(JsonSessionState session) {
         // After the SSO roun-trip, restore any old query parameters we lost
         List<String> currentParams = request.getParameterNames();
         // Cast a copy of keySet() to array to avoid errors as we modify
@@ -522,8 +543,10 @@ public class PortalSecurityManagerImpl implements PortalSecurityManager {
             if (user != null) {
                 session.set("username", user.getUsername());
                 session.set("source", ssoId);
+                return true;
             }
         }
+        return false;
     }
 
     /**
