@@ -12,6 +12,7 @@ class HeadData:
         self.__urlBase = None
         self.__ffmpegRaw = None
         self.__ffmpegData = None
+        self.__ffmpegOutputs = None
 
     # Get from velocity context
     def vc(self, index):
@@ -21,9 +22,16 @@ class HeadData:
             log.error("ERROR: Requested context entry '" + index + "' doesn't exist")
             return None
 
-    def getFFmpegData(self, pid, index):
+    def getBasicFFmpegData(self, index):
         if self.__ffmpegData is not None:
-            output = self.__ffmpegData.get(pid).get("/" + index)
+            output = self.__ffmpegData.get("/" + index)
+            if output is not None:
+                return output
+        return ""
+
+    def getFFmpegData(self, pid, index):
+        if self.__ffmpegOutputs is not None:
+            output = self.__ffmpegOutputs.get(pid).get("/" + index)
             if output is not None:
                 return output
         return ""
@@ -85,11 +93,11 @@ class HeadData:
                     out.close()
                     payload.close()
                     # And parse it
-                    jsonData = JsonConfigHelper(self.__ffmpegRaw)
-                    if jsonData is None:
+                    self.__ffmpegData = JsonConfigHelper(self.__ffmpegRaw)
+                    if self.__ffmpegData is None:
                         return False
                     else:
-                        self.__ffmpegData = jsonData.getJsonMap("/outputs")
+                        self.__ffmpegOutputs = self.__ffmpegData.getJsonMap("/outputs")
                         return True
                 except:
                     if payload is not None:
