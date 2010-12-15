@@ -36,18 +36,17 @@ import org.junit.After;
 import org.junit.Before;
 
 /**
- * NOTE: Count not perform the test to talk to ffmpeg directly as ffmpeg might
- * not be installed locally
- * 
+ * Unit tests for the IMS Transformer. Should unpack and process IMS packages,
+ * making their contents accessible inside The Fascinator.
+ *
  * @author Ron Ward, Linda Octalina
- * 
  */
 
 public class ImsTransformerTest {
 
     private Storage ram;
-	private DigitalObject zipObject, imsDigitalObject;
-	private ImsTransformer imsTransformer = new ImsTransformer();
+    private DigitalObject zipObject, imsDigitalObject;
+    private ImsTransformer imsTransformer = new ImsTransformer();
 
     @Before
     public void setup() throws Exception {
@@ -65,34 +64,33 @@ public class ImsTransformerTest {
         }
     }
 
-	@Test
-	public void testCheckIfZipIsImsPackage() throws URISyntaxException,
-			StorageException, IOException {
-		File zipFile = new File(getClass().getResource("/mybook.zip").toURI());
+    @Test
+    public void testCheckIfZipIsImsPackage() throws URISyntaxException,
+            StorageException, IOException {
+        File zipFile = new File(getClass().getResource("/mybook.zip").toURI());
+                zipObject = StorageUtils.storeFile(ram, zipFile);
+
+        imsDigitalObject = imsTransformer.createImsPayload(zipObject, zipFile);
+        // Assert.assertTrue(imsDigitalObject.getIsImsPackage());
+        Assert.assertEquals(196, imsDigitalObject.getPayloadIdList().size());
+    }
+
+    @Test
+    public void testGetExt() throws URISyntaxException {
+        ImsTransformer imsTransformer = new ImsTransformer();
+        File zipFile = new File("mybook...zip");
+        Assert.assertEquals(".zip", imsTransformer.getFileExt(zipFile));
+    }
+
+    @Test
+    public void testTransform() throws URISyntaxException,
+            TransformerException, PluginException {
+        ImsTransformer imsTransformer = new ImsTransformer();
+        File zipFile = new File(getClass().getResource("/mybook.zip").toURI());
         zipObject = StorageUtils.storeFile(ram, zipFile);
 
-		imsDigitalObject = imsTransformer.createImsPayload(zipObject, zipFile);
-		// Assert.assertTrue(imsDigitalObject.getIsImsPackage());
-		Assert.assertEquals(imsDigitalObject.getPayloadIdList().size(), 195);
-	}
-
-	@Test
-	public void testGetExt() throws URISyntaxException {
-		ImsTransformer imsTransformer = new ImsTransformer();
-		File zipFile = new File("mybook...zip");
-		Assert.assertEquals(".zip", imsTransformer.getFileExt(zipFile));
-	}
-
-	@Test
-	public void testTransform() throws URISyntaxException,
-			TransformerException, PluginException {
-		ImsTransformer imsTransformer = new ImsTransformer();
-		File zipFile = new File(getClass().getResource("/mybook.zip").toURI());
-        zipObject = StorageUtils.storeFile(ram, zipFile);
-
-		imsTransformer.init("{}");
-		DigitalObject object = imsTransformer.transform(zipObject, "{}");
-		//System.out.println("000 " + object.getPayloadIdList());
-	}
-
+        imsTransformer.init("{}");
+        DigitalObject object = imsTransformer.transform(zipObject, "{}");
+        //System.out.println("000 " + object.getPayloadIdList());
+    }
 }
