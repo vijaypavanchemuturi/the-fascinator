@@ -22,6 +22,11 @@ class DetailData:
             log.error("ERROR: Requested context entry '" + index + "' doesn't exist")
             return None
 
+    def frameContent(self, objectPath):
+        objectLink = '<a class="iframe-link-alt" href="%s">View outside the frame</a>' % objectPath
+        objectFrame = '<iframe class="iframe-preview" src="%s"></iframe>' % objectPath
+        return objectLink + "<br/>" + objectFrame
+
     def pageContent(self):
         # Object ID
         oid = self.metadata.get("id")
@@ -36,23 +41,30 @@ class DetailData:
         if mimeType == "text/html":
             objectPath = "http://%s:%s%s/%s/download/%s/" % \
             (self.req.serverName, self.serverPort, self.contextPath, self.portalId, oid)
-            objectLink = '<a class="iframe-link-alt" href="%s">View outside the frame</a>' % objectPath
-            objectFrame = '<iframe class="iframe-preview" src="%s"></iframe>' % objectPath
-            return objectLink + "<br/>" + objectFrame
+            return self.frameContent(objectPath)
 
-        # We are just rendering a HTML preview
+        # We are rendering a HTML preview...
         else:
             preview = self.metadata.get("preview")
-            try:
-                object = Services.getStorage().getObject(oid)
-                payload = object.getPayload(preview)
-                out = ByteArrayOutputStream()
-                IOUtils.copy(payload.open(), out)
-                payload.close()
-                return out.toString("UTF-8")
 
-            except StorageException, e:
-                return
+            # ... of an IMS package or zipped website. Treat as per html above.
+            if mimeType == "application/zip":
+                objectPath = "http://%s:%s%s/%s/download/%s/%s" % \
+                (self.req.serverName, self.serverPort, self.contextPath, self.portalId, oid, preview)
+                return self.frameContent(objectPath)
+
+            # ... of an HTML excerpt, such as an ICE rendition. Render in page.
+            else:
+                try:
+                    object = Services.getStorage().getObject(oid)
+                    payload = object.getPayload(preview)
+                    out = ByteArrayOutputStream()
+                    IOUtils.copy(payload.open(), out)
+                    payload.close()
+                    return out.toString("UTF-8")
+
+                except StorageException, e:
+                    return
 """
 <h4 class="error">No preview available</h4>
 <p>You can always <a class="open-this" href="#">access the original source file</a>.</p>
