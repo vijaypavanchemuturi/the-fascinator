@@ -11,21 +11,29 @@ class DetailData:
     def __activate__(self, context):
         self.__ffmpegRaw = None
         self.__ffmpegData = None
+        self.__ffmpegOutputs = None
         self.__urlBase = context["urlBase"]
     
     def escape(self, text):
         return StringEscapeUtils.escapeHtml(text)
 
-    def getFFmpegData(self, pid, index):
+    def getBasicFFmpegData(self, index):
         if self.__ffmpegData is not None:
-            output = self.__ffmpegData.get(pid).get("/" + index)
+            output = self.__ffmpegData.get("/" + index)
+            if output is not None:
+                return output
+        return ""
+
+    def getFFmpegData(self, pid, index):
+        if self.__ffmpegOutputs is not None:
+            output = self.__ffmpegOutputs.get(pid).get("/" + index)
             if output is not None:
                 return output
         return ""
 
     def getFFmpegDebugging(self, pid):
-        if self.__ffmpegData is not None:
-            output = self.__ffmpegData.get(pid).get("/debugOutput")
+        if self.__ffmpegOutputs is not None:
+            output = self.__ffmpegOutputs.get(pid).get("/debugOutput")
             return self.makeHtml(output)
         else:
             return "Not found!"
@@ -57,8 +65,8 @@ class DetailData:
         return ""
 
     def getTranscodings(self):
-        if self.__ffmpegData is not None:
-            return self.__ffmpegData.keySet()
+        if self.__ffmpegOutputs is not None:
+            return self.__ffmpegOutputs.keySet()
         else:
             return ArrayList()
 
@@ -121,11 +129,11 @@ class DetailData:
                     out.close()
                     payload.close()
                     # And parse it
-                    jsonData = JsonConfigHelper(self.__ffmpegRaw)
-                    if jsonData is None:
+                    self.__ffmpegData = JsonConfigHelper(self.__ffmpegRaw)
+                    if self.__ffmpegData is None:
                         return False
                     else:
-                        self.__ffmpegData = jsonData.getJsonMap("/outputs")
+                        self.__ffmpegOutputs = self.__ffmpegData.getJsonMap("/outputs")
                         return True
                 except:
                     if payload is not None:
@@ -134,4 +142,3 @@ class DetailData:
     
     def getUrlBase(self):
         return self.__urlBase
-

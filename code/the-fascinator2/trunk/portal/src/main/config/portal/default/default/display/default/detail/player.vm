@@ -19,6 +19,10 @@
 #set($width = $self.getFFmpegData($preview, "width"))
 #set($height = $self.getFFmpegData($preview, "height"))
 #set($urlBase = $self.getUrlBase())
+#set($duration = $self.getBasicFFmpegData("duration"))
+#if ($duration == "")
+    #set($duration = "0")
+#end
 
 <script type="text/javascript">
 <!--
@@ -39,6 +43,7 @@
         var player = {};
         var width = $width + 10;
         var height = $height + 10;
+        var duration = $duration;
         if (width == 10) {
             width = 410;
             height = 234;
@@ -124,6 +129,7 @@
                 jwplayer("player").setup({
                     flashplayer: "$portalPath/mediaplayer/player.swf",
                     file: filepath,
+                    duration: duration,
                     height: height,
                 #if ($thumbnail)
                     width: width,
