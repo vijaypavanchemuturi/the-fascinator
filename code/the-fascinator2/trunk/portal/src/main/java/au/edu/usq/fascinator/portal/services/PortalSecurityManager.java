@@ -116,8 +116,9 @@ public interface PortalSecurityManager {
     /**
      * Get user details from SSO connection and set them in the user session.
      *
+     * @return boolean: Flag whether a user was actually logged in or not.
      */
-    public void ssoCheckUserDetails(JsonSessionState session);
+    public boolean ssoCheckUserDetails(JsonSessionState session);
 
     /**
      * Build a Map of Maps of on-screen string values for each SSO provider.
