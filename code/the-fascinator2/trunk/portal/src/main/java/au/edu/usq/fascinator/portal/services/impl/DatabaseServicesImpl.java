@@ -341,6 +341,10 @@ public class DatabaseServicesImpl implements DatabaseServices {
             results = sql.executeQuery();
             // Process the results
             columns = results.getMetaData();
+            if (results.isClosed()) {
+                log.error("!!! ResultSet is closed");
+                return response;
+            }
             while (results.next()) {
                 Map<String, String> row = new HashMap();
                 for (int i = 1; i <= columns.getColumnCount(); i++) {
@@ -388,7 +392,16 @@ public class DatabaseServicesImpl implements DatabaseServices {
         }
 
         // Build our query
-        PreparedStatement statement = prepare(database, index, sql);
+        //PreparedStatement statement = prepare(database, index, sql);
+        PreparedStatement statement = null;
+        //*********************
+        try {
+            statement = database.prepareStatement(sql);
+        } catch (SQLException ex) {
+            log.error("Error preparing statement:", ex);
+            throw new Exception("Error preparing statement:", ex);
+        }
+        //*********************
         if (fields != null) {
             for (int i = 1; i <= fields.size(); i++) {
                 bindParam(statement, i, fields.get(i-1));
@@ -396,7 +409,10 @@ public class DatabaseServicesImpl implements DatabaseServices {
         }
 
         // Done
-        return getResults(statement);
+        List<Map<String, String>> response = getResults(statement);
+        close(statement);
+        return response;
+        //return getResults(statement);
     }
 
     /**
