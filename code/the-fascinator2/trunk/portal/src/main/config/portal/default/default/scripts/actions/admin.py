@@ -254,8 +254,9 @@ class AdminData:
         switch.get(action, self.unknown_action)()
 
     def reindex_record(self, recordId):
-        portalManager = Services.getPortalManager()
-        portalManager.reharvest(recordId)
+        # Re-index the object
+        Services.indexer.index(recordId)
+        Services.indexer.commit()
 
     def remove_user(self):
         username = self.vc("formData").get("username")
