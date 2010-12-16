@@ -5,5 +5,13 @@
 <div class="grid_16">
     <div class="box">
         <p>Sorry $page.authentication.get_name(), but you don't have access to view this item.</p>
+        #if (!$page.authentication.is_logged_in())
+        <p>Would you like to <a class="login-now" href="#">login now</a>?</p>
+        <script type="text/javascript">
+            <!--
+                $(function() {$(".login-now").click();});
+            -->
+        </script>
+        #end
     </div>
 </div>
