@@ -357,8 +357,10 @@ public class OaiPmhHarvester extends GenericHarvester {
                 IOUtils.toInputStream(record.getMetadataAsString(), "UTF-8"));
         payload.setContentType("text/xml");
         // Make sure only the first metadataPrefix will be set as source
-        Set<String> payloadIdList = object.getPayloadIdList();
-        if (!payloadIdList.isEmpty()) {
+        if (object.getSourceId() == null) {
+            payload.setType(PayloadType.Source);
+            object.setSourceId(pid);
+        } else {
             payload.setType(PayloadType.Enrichment);
         }
         payload.close();
