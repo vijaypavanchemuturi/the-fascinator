@@ -53,18 +53,102 @@ import au.edu.usq.fascinator.common.harvester.impl.GenericHarvester;
 import au.edu.usq.fascinator.common.storage.StorageUtils;
 
 /**
- * Harvests files in a specified directory on the local file system
+ * Harvests files in a specified directory or a specified file on the local file
+ * system.
  * <p>
- * Configuration options:
- * <ul>
- * <li>baseDir: directory to harvest</li>
- * <li>recursive: set true to recurse into sub-directories (default: false)</li>
- * <li>ignoreFilter: wildcard patterns of files to ignore separated by '|'
- * (default: .svn)</li>
- * <li>cacheDir: location for cache files</li>
- * <li>force: set true to force harvest of all files (ignore cache)</li>
- * <li>link: set true to link to original files, false to create copies</li>
- * </ul>
+ * <h3>Configuration</h3>
+ * </p>
+ * 
+ * <table border="1">
+ * <tr>
+ * <th>Option</th>
+ * <th>Description</th>
+ * <th>Required</th>
+ * <th>Default</th>
+ * </tr>
+ * 
+ * <tr>
+ * <td>baseDir</td>
+ * <td>Path of directory or file to be harvested</td>
+ * <td><b>Yes</b></td>
+ * <td>${user.home}/Documents/public/</td>
+ * </tr>
+ * 
+ * <tr>
+ * <td>facetDir</td>
+ * <td>Used to specify the top level directory for the file_path facet</td>
+ * <td>No</td>
+ * <td>${user.home}/Documents/public/</td>
+ * </tr>
+ * 
+ * <tr>
+ * <td>ignoreFilter</td>
+ * <td>Pipe-separated ('|') list of filename patterns to ignore</td>
+ * <td>No</td>
+ * <td>.svn|.ice|.*|~*|Thumbs.db|.DS_Store</td>
+ * </tr>
+ * 
+ * <tr>
+ * <td>recursive</td>
+ * <td>Set true to harvest files recursively</td>
+ * <td>No</td>
+ * <td>true</td>
+ * </tr>
+ * 
+ * <tr>
+ * <td>force</td>
+ * <td>Force harvest the specified directory or file again even when it's not
+ * modified (ignore cache)</td>
+ * <td>No</td>
+ * <td>false</td>
+ * </tr>
+ * 
+ * <tr>
+ * <td>link</td>
+ * <td>Store the digital object as a link in the storage and point to the
+ * original file in the file system</td>
+ * <td>No</td>
+ * <td>true</td>
+ * </tr>
+ * 
+ * <tr>
+ * <td>cacheDir</td>
+ * <td>Path of cache directory</td>
+ * <td>No</td>
+ * <td>"${fascinator.home}/cache"</td>
+ * </tr>
+ * </table>
+ * 
+ * <h3>Examples</h3>
+ * <ol>
+ * <li>
+ * Harvesting ${user.home}/Documents/public/ directory recursively. Ignore files
+ * with the filename match the pattern specified in the ignoreFilter. The
+ * harvest includes the files in the subdirectory, and do not re-harvest
+ * unmodified file if the file exist in the cache directory.
+ * 
+ * <pre>
+ *   "harvester": {
+ *      "type": "file-system",
+ *      "file-system": {
+ *          "targets": [
+ *              {
+ *                  "baseDir": "${user.home}/Documents/public/",
+ *                  "facetDir": "${user.home}/Documents/public/",
+ *                  "ignoreFilter": ".svn|.ice|.*|~*|Thumbs.db|.DS_Store",
+ *                  "recursive": true,
+ *                  "force": false,
+ *                  "link": true
+ *              }
+ *          ],
+ *          "cacheDir": "${fascinator.home}/cache"
+ *      }
+ *  }
+ * </pre>
+ * 
+ * </li>
+ * </ol>
+ * 
  * 
  * @author Oliver Lucido
  */
