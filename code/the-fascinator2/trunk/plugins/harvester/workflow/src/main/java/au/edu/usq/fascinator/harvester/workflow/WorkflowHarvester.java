@@ -50,6 +50,40 @@ import au.edu.usq.fascinator.common.storage.StorageUtils;
  * 
  * Doesn't need recursion or caching.
  * 
+ * 
+ * <h3>Examples</h3>
+ * <ol>
+ * <li>
+ * Below is the example of workflow stages:
+ * 
+ * <pre>
+ *   "stages": [
+ *         {
+ *             "name": "pending",
+ *             "label": "Pending",
+ *             "security": ["metadata", "admin"],
+ *             "visibility": ["metadata", "editor", "admin"]
+ *         },
+ *         {
+ *             "name": "metadata",
+ *             "label": "Basic Metadata Check",
+ *             "security": ["editor", "admin"],
+ *             "visibility": ["metadata", "editor", "admin"],
+ *             "template": "workflows/basic-init"
+ *         },
+ *         {
+ *             "name": "live",
+ *             "label": "Live",
+ *             "security": ["editor", "admin"],
+ *             "visibility": ["guest"],
+ *             "template": "workflows/basic-live"
+ *         }
+ *     ]
+ * </pre>
+ * 
+ * </li>
+ * </ol>
+ * 
  * @author Greg Pendlebury
  */
 public class WorkflowHarvester extends GenericHarvester {
@@ -62,7 +96,7 @@ public class WorkflowHarvester extends GenericHarvester {
 
     /** flag for forcing local update */
     private boolean forceUpdate;
-    
+
     /** Render chains */
     private Map<String, Map<String, List<String>>> renderChains;
 
@@ -76,11 +110,11 @@ public class WorkflowHarvester extends GenericHarvester {
                 "harvester/workflow-harvester/force-storage", "true"));
         forceUpdate = Boolean.parseBoolean(getJsonConfig().get(
                 "harvester/workflow-harvester/force-update", "false"));
-        
+
         // Order is significant
         renderChains = new LinkedHashMap();
-        Map<String, JsonConfigHelper> renderTypes = getJsonConfig()
-                .getJsonMap("renderTypes");
+        Map<String, JsonConfigHelper> renderTypes = getJsonConfig().getJsonMap(
+                "renderTypes");
         for (String name : renderTypes.keySet()) {
             Map<String, List<String>> details = new HashMap();
             JsonConfigHelper chain = renderTypes.get(name);
@@ -133,16 +167,16 @@ public class WorkflowHarvester extends GenericHarvester {
             } else {
                 object.createLinkedPayload(pid, file.getAbsolutePath());
             }
-            
+
         }
         // update object metadata
         Properties props = object.getMetadata();
         props.setProperty("render-pending", "true");
-        props.setProperty("file.path", FilenameUtils.separatorsToUnix(file
-                .getAbsolutePath()));
+        props.setProperty("file.path",
+                FilenameUtils.separatorsToUnix(file.getAbsolutePath()));
         objectId = object.getId();
-        
-     // Store rendition information if we have it
+
+        // Store rendition information if we have it
         String ext = FilenameUtils.getExtension(file.getName());
         for (String chain : renderChains.keySet()) {
             Map<String, List<String>> details = renderChains.get(chain);
@@ -152,11 +186,11 @@ public class WorkflowHarvester extends GenericHarvester {
                 storeList(props, details, "renderQueue");
             }
         }
-        
+
         object.close();
         return objectId;
     }
-    
+
     /**
      * Get a list of strings from configuration
      * 
@@ -172,7 +206,7 @@ public class WorkflowHarvester extends GenericHarvester {
         }
         return result;
     }
-    
+
     /**
      * Take a list of strings from a Java Map, concatenate the values together
      * and store them in a Properties object using the Map's original key.
