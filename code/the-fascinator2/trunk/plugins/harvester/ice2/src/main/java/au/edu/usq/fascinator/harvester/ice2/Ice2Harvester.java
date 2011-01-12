@@ -93,7 +93,7 @@ import org.slf4j.LoggerFactory;
  * <tr>
  * <td>targetCourses</td>
  * <td>Courses list to be harvested</td>
- * <td>'''Yes'''</td>
+ * <td><b>Yes</b></td>
  * <td></td>
  * </tr>
  * 
@@ -118,6 +118,7 @@ import org.slf4j.LoggerFactory;
  * <td>No</td>
  * <td>false</td>
  * </tr>
+ * </table>
  * 
  * <h3>Examples</h3>
  * <ol>
