@@ -46,9 +46,24 @@ import au.edu.usq.fascinator.common.harvester.impl.GenericHarvester;
 import au.edu.usq.fascinator.common.storage.StorageUtils;
 
 /**
- * A trimmed down version of the file-system harvester.
+ * <h3>Introduction</h3>
+ * <p>
+ * This plugin is a basic harvester for ingesting uploaded content into
+ * workflows. It creates the DigitalObject of a source object for the standard
+ * harvest/transform/index stack.
+ * </p>
  * 
- * Doesn't need recursion or caching.
+ * <p>
+ * A trimmed down version of the file-system harvester but doesn't need
+ * recursion or caching.
+ * </p>
+ * 
+ * <h3>Configuration</h3>
+ * <p>
+ * Sample configuration file for workflow harvester: <a href=
+ * "https://fascinator.usq.edu.au/trac/browser/code/the-fascinator2/trunk/plugins/harvester/workflow/src/main/resources/harvest/workflows/workflow-harvester.json"
+ * >workflow-harvester.json</a>
+ * </p>
  * 
  * 
  * <h3>Examples</h3>
@@ -83,6 +98,21 @@ import au.edu.usq.fascinator.common.storage.StorageUtils;
  * 
  * </li>
  * </ol>
+ * 
+ * <h3>Rule file</h3>
+ * <p>
+ * Sample rule file for the workflow harvester: <a href=
+ * "https://fascinator.usq.edu.au/trac/browser/code/the-fascinator2/trunk/plugins/harvester/workflow/src/main/resources/harvest/workflows/workflow-harvester.py"
+ * >workflow-harvester.py</a>
+ * </p>
+ * 
+ * <h3>Wiki Link</h3>
+ * <p>
+ * <a href=
+ * "https://fascinator.usq.edu.au/trac/wiki/Fascinator/Documents/Plugins/Harvester/Workflow"
+ * >https://fascinator.usq.edu.au/trac/wiki/Fascinator/Documents/Plugins/
+ * Harvester/Workflow</a>
+ * </p>
  * 
  * @author Greg Pendlebury
  */

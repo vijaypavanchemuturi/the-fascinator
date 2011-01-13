@@ -51,12 +51,21 @@ import au.edu.usq.fascinator.common.harvester.impl.GenericHarvester;
 import au.edu.usq.fascinator.common.storage.StorageUtils;
 
 /**
- * Harvests metadata records from an OAI-PMH compatible repository. If the
+ * <h3>Introduction</h3>
+ * <p>
+ * This plugin harvests metadata records from an OAI-PMH compatible repository
+ * using <a href="http://www.openarchives.org/pmh/">OAI-PMH</a> protocol. If the
  * repository returns a 503, the HTTP headers are checked for Retry-After value,
  * in an effort not to hammer the server.
- * <p>
- * <h3>Configuration</h3>
  * </p>
+ * 
+ * <h3>Configuration</h3>
+ * <p>
+ * Sample configuration file for OAI PMH harvester: <a href=
+ * "https://fascinator.usq.edu.au/trac/browser/code/the-fascinator2/trunk/plugins/harvester/oai-pmh/src/main/resources/harvest/usq.json"
+ * >usq.json</a>
+ * </p>
+ * 
  * <table border="1">
  * <tr>
  * <th>Option</th>
@@ -150,6 +159,18 @@ import au.edu.usq.fascinator.common.storage.StorageUtils;
  * 
  * </li>
  * </ol>
+ * 
+ * <h3>Rule file</h3>
+ * <p>
+ * Sample rule file for the OAI PMH harvester: <a href=
+ * "https://fascinator.usq.edu.au/trac/browser/code/the-fascinator2/trunk/plugins/harvester/oai-pmh/src/main/resources/harvest/usq.py"
+ * >usq.py</a>
+ * </p>
+ * 
+ * <h3>Wiki Link</h3>
+ * <p>
+ * <b>None</b>
+ * </p>
  * 
  * @author Oliver Lucido
  */

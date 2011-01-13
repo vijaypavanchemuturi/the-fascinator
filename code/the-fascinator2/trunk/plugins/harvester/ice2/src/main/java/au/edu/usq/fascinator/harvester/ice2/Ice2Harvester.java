@@ -59,13 +59,21 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * A harvester for ingesting ICE2 courses directly from ICE. This harvester
+ * <h3>Introduction</h3>
+ * <p>
+ * This plugin ingests ICE2 courses directly from ICE. This harvester
  * understand the ICE specific content such as packaging and media objects.
- * 
- * For accessing the ICE rendering API see the ICE2 Transformer instead.
+ * </p>
  * 
  * <p>
+ * For accessing the ICE rendering API see the ICE2 Transformer instead.
+ * </p>
+ * 
  * <h3>Configuration</h3>
+ * <p>
+ * Sample configuration file for ICE2 harvester: <a href=
+ * "https://fascinator.usq.edu.au/trac/browser/code/the-fascinator2/trunk/plugins/harvester/ice2/src/main/resources/harvest/ice2.json"
+ * >ice2.json</a>
  * </p>
  * 
  * <table border="1">
@@ -142,6 +150,18 @@ import org.slf4j.LoggerFactory;
  * 
  * </li>
  * </ol>
+ * 
+ * <h3>Rule file</h3>
+ * <p>
+ * Sample rule file for the ICE2 harvester: <a href=
+ * "https://fascinator.usq.edu.au/trac/browser/code/the-fascinator2/trunk/plugins/harvester/ice2/src/main/resources/harvest/ice2.py"
+ * >ice2.py</a>
+ * </p>
+ * 
+ * <h3>Wiki Link</h3>
+ * <p>
+ * <b>None</b>
+ * </p>
  * 
  * @author Greg Pendlebury
  */
