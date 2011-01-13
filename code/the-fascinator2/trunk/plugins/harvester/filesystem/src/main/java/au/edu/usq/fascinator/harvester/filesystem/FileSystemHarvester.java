@@ -53,10 +53,18 @@ import au.edu.usq.fascinator.common.harvester.impl.GenericHarvester;
 import au.edu.usq.fascinator.common.storage.StorageUtils;
 
 /**
- * Harvests files in a specified directory or a specified file on the local file
- * system.
+ * <h3>Introduction</h3>
  * <p>
+ * This plugin harvests files in a specified directory or a specified file on
+ * the local file system. it can use a cache to do incremental harvests, which
+ * only harvests files that have changed since the last time it was run. system.
+ * </p>
+ * 
  * <h3>Configuration</h3>
+ * <p>
+ * Sample configuration file for file system harvester: <a href=
+ * "https://fascinator.usq.edu.au/trac/browser/code/the-fascinator2/trunk/plugins/harvester/filesystem/src/main/resources/harvest/local-files.json"
+ * >local-files.json</a>
  * </p>
  * 
  * <table border="1">
@@ -149,6 +157,17 @@ import au.edu.usq.fascinator.common.storage.StorageUtils;
  * </li>
  * </ol>
  * 
+ * <h3>Rule file</h3>
+ * <p>
+ * Sample rule file for the file system harvester: <a href=
+ * "https://fascinator.usq.edu.au/trac/browser/code/the-fascinator2/trunk/plugins/harvester/filesystem/src/main/resources/harvest/local-files.py"
+ * >local-files.py</a>
+ * </p>
+ * 
+ * <h3>Wiki Link</h3>
+ * <p>
+ * <b>None</b>
+ * </p>
  * 
  * @author Oliver Lucido
  */
