@@ -64,18 +64,69 @@ import au.edu.usq.fascinator.common.storage.StorageUtils;
 import au.edu.usq.fascinator.vocabulary.SKOS;
 
 /**
- * Harvests SKOs
+ * <h3>Introduction</h3>
  * <p>
- * Configuration options:
- * <ul>
- * <li>baseDir: directory to harvest</li>
- * <li>recursive: set true to recurse into sub-directories (default: false)</li>
- * <li>ignoreFilter: wildcard patterns of files to ignore separated by '|'
- * (default: .svn)</li>
- * <li>cacheDir: location for cache files</li>
- * <li>force: set true to force harvest of all files (ignore cache)</li>
- * <li>link: set true to link to original files, false to create copies</li>
- * </ul>
+ * This plugin harvest <a
+ * href="http://www.w3.org/TR/2009/NOTE-skos-primer-20090818/">SKOS</a> rdf/xml
+ * Concept Scheme. Sample of rdf/xml file for concept can be downloaded from <a
+ * href
+ * ="http://namespace.adfi.usq.edu.au/anzsrc/">http://namespace.adfi.usq.edu.
+ * au/anzsrc/</a>
+ * 
+ * <h3>Configuration</h3>
+ * <p>
+ * Sample configuration file for SKOS harvester: <a href=
+ * "https://fascinator.usq.edu.au/trac/browser/code/the-fascinator2/contrib/fascinator/plugins/harvester/skos/trunk/src/main/resources/harvest/anzsrc-for.json"
+ * >anzsrc-for.json</a> and <a href=
+ * "https://fascinator.usq.edu.au/trac/browser/code/the-fascinator2/contrib/fascinator/plugins/harvester/skos/trunk/src/main/resources/harvest/anzsrc-seo.json"
+ * >anzsrc-seo.json</a>.
+ * </p>
+ * 
+ * <table border="1">
+ * <tr>
+ * <th>Option</th>
+ * <th>Description</th>
+ * <th>Required</th>
+ * <th>Default</th>
+ * </tr>
+ * 
+ * <tr>
+ * <td>baseFile</td>
+ * <td>File of the rdf/xml skos scheme</td>
+ * <td><b>Yes</b></td>
+ * <td>${fascinator.home}/skos/for.rdf</td>
+ * </tr>
+ * 
+ * </table>
+ * 
+ * <h3>Examples</h3>
+ * <ol>
+ * <li>
+ * Harvesting for concept scheme
+ * 
+ * <pre>
+ *    "harvester": {
+ *         "type": "skos",
+ *         "skos": {
+ *             "baseFile": "${fascinator.home}/skos/for.rdf"
+ *         }
+ *     }
+ * </pre>
+ * 
+ * </li>
+ * </ol>
+ * 
+ * <h3>Rule file</h3>
+ * <p>
+ * Sample rule file for the Geonames harvester: <a href=
+ * "https://fascinator.usq.edu.au/trac/browser/code/the-fascinator2/contrib/fascinator/plugins/harvester/skos/trunk/src/main/resources/harvest/skos.py"
+ * >skos.py</a>
+ * </p>
+ * 
+ * <h3>Wiki Link</h3>
+ * <p>
+ * <b>None</b>
+ * </p>
  * 
  * @author Linda Octalina
  */
@@ -247,6 +298,7 @@ public class SkosHarvester extends GenericHarvester {
 
     /**
      * Create skos digital object and the payload
+     * 
      * @param conceptUri concept to be created
      * @param newConceptUri new uri to be used in fascinator
      * @return created object id
@@ -280,6 +332,7 @@ public class SkosHarvester extends GenericHarvester {
 
     /**
      * Serialize the node found
+     * 
      * @param uri uri of the concept
      * @return serialized concept in String
      */
@@ -292,7 +345,6 @@ public class SkosHarvester extends GenericHarvester {
         m.addAll(iterator);
         return m.serialize(Syntax.RdfXml);
     }
-
 
     /*****
      * Parse RDF data from an inputstream
@@ -322,5 +374,5 @@ public class SkosHarvester extends GenericHarvester {
         }
         return model;
     }
-    
+
 }
