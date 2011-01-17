@@ -4,9 +4,27 @@
         <requiredProperty key="fascinatorVersion">
             <defaultValue>0.7.2</defaultValue>
         </requiredProperty>
-        <requiredProperty key="pluginId" />
-        <requiredProperty key="pluginBaseName" />
-        <requiredProperty key="pluginName" />
+        <requiredProperty key="groupId">
+            <defaultValue>au.edu.usq.fascinator.plugins.contrib</defaultValue>
+        </requiredProperty>
+        <requiredProperty key="artifactId">
+            <defaultValue>plugin-harvester-basic</defaultValue>
+        </requiredProperty>
+        <requiredProperty key="version">
+            <defaultValue>0.1.0-SNAPSHOT</defaultValue>
+        </requiredProperty>
+        <requiredProperty key="package">
+            <defaultValue>au.edu.usq.fascinator.plugins.contrib</defaultValue>
+        </requiredProperty>
+        <requiredProperty key="pluginId">
+            <defaultValue>basic</defaultValue>
+        </requiredProperty>
+        <requiredProperty key="pluginBaseName">
+            <defaultValue>Basic</defaultValue>
+        </requiredProperty>
+        <requiredProperty key="pluginName">
+            <defaultValue>Basic Harvester</defaultValue>
+        </requiredProperty>
     </requiredProperties>
     <fileSets>
         <fileSet filtered="true" packaged="true" encoding="UTF-8">
