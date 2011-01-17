@@ -997,6 +997,10 @@ var widgets={forms:[], globalObject:this};
       };
       jsonConverterGetter=jsonGetter;
       if(listKey || idKey || labelKey || childrenKey){
+          listKey=listKey || "list";
+          idKey=idKey || "id";
+          labelKey=labelKey || "label";
+          childrenKey=childrenKey || "children";
           cmp=fn("a,b->a.label==b.label?0:(a.label>b.label?1:-1)");
           jsonConverterGetter = function(urlId, onJson, onError, notPending){
               jsonGetter(urlId, function(j){
@@ -1220,6 +1224,7 @@ var widgets={forms:[], globalObject:this};
                 }
             }
             if(data.error || !data.ok){
+                 ctx.findx(".saved-result").html("");
                 if(!data.ok && !data.error) data.error="Failed to receive an 'ok'!";
                 messageBox("Failed to "+stype+"! (error='"+data.error+"') response='"+dataStr+"'");
             }else{
