@@ -1,6 +1,6 @@
 /*
  * The Fascinator - File Upload Listener
- * Copyright (C) 2010 University of Southern Queensland
+ * Copyright (C) 2010-2011 University of Southern Queensland
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,8 +21,14 @@ package au.edu.usq.fascinator.portal.guitoolkit;
 import org.apache.commons.fileupload.ProgressListener;
 
 /**
+ * <p>
  * A listener object to be used in ajax queries for
  * updating upload progress bars.
+ * <p>
+ *
+ * <strong>Currently this should be considered deprecated code. We found it not
+ * possible to integrate with Tapestry in the time scoped for this task. It may
+ * not be possible at all.</strong>
  *
  * @author Greg Pendlebury
  */

@@ -1,6 +1,6 @@
 /* 
  * The Fascinator - Portal
- * Copyright (C) 2008-2009 University of Southern Queensland
+ * Copyright (C) 2008-2011 University of Southern Queensland
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -47,9 +47,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Starts an embedded ActiveMQ message broker, harvest and render queue
- * consumers.
- * 
+ * <h3>Introduction</h3>
+ * <p>
+ * This Servlet is mainly just a shell, because its doGet() and doPost() methods are empty. We are relying on Tapestry to do the true web server work later. What we do want here however is to instantiate anything we require to start with the server. Because Tapestry services are instantiated and injected on demand, we can't rely on them for some of our system components.
+ * </p>
+ *
+ * <h3>Wiki Link</h3>
+ * <p>
+ * <b>https://fascinator.usq.edu.au/trac/wiki/Fascinator/Documents/Portal/JavaCore#OurWebServlet</b>
+ * </p>
+ *
  * @author Oliver Lucido
  */
 @SuppressWarnings("serial")
@@ -81,7 +88,7 @@ public class IndexerServlet extends HttpServlet {
     private BrokerService broker;
 
     /**
-     * Initialise the Servlet
+     * Initialise the Servlet, called at Server startup
      *
      * @throws ServletException If it found errors during startup
      */
@@ -227,7 +234,7 @@ public class IndexerServlet extends HttpServlet {
      * @param id Listener identifier
      * @return GenericMessageListener implementation matching the ID, if found
      */
-    public GenericListener getListener(String id) {
+    private GenericListener getListener(String id) {
         ServiceLoader<GenericListener> listeners =
                 ServiceLoader.load(GenericListener.class);
         for (GenericListener listener : listeners) {
@@ -239,7 +246,9 @@ public class IndexerServlet extends HttpServlet {
     }
 
     /**
-     * Process an incoming GET request. We don't need to do anything.
+     * Empty method. Process an incoming GET request.
+     *
+     * We don't need to do anything as Tapestry will handle this.
      *
      * @param request The incoming request
      * @param response The response object
@@ -253,7 +262,9 @@ public class IndexerServlet extends HttpServlet {
     }
 
     /**
-     * Process an incoming POST request. We don't need to do anything.
+     * Empty method. Process an incoming POST request.
+     *
+     * We don't need to do anything as Tapestry will handle this.
      *
      * @param request The incoming request
      * @param response The response object
