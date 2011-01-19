@@ -6,7 +6,7 @@ class ObjectMetaData:
         response = context["response"]
         json = JsonConfigHelper()
         auth = context["page"].authentication
-        if auth.is_admin():
+        if auth.is_logged_in():
             formData = context["formData"]
             oid = formData.get("oid")
             if oid:
@@ -23,7 +23,7 @@ class ObjectMetaData:
                 json.set("error", "An object identifier is required")
         else:
             response.setStatus(500)
-            json.set("error", "Only administrative users can access this API")
+            json.set("error", "Only registered users can access this API")
         
         writer = response.getPrintWriter("text/plain; charset=UTF-8")
         writer.println(json.toString())
