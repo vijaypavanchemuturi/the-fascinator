@@ -59,11 +59,27 @@ import au.edu.usq.fascinator.common.MimeTypeUtil;
 import au.edu.usq.fascinator.common.storage.StorageUtils;
 
 /**
- * Converts audio and video media to web friendly versions using the FFMPEG
- * library.
+ * 
+ * <h3>Introduction</h3>
+ * <p>
+ * This plugin is used for converting audio and video media to web-friendly
+ * versions using FFmpeg library.
+ * </p>
+ * 
+ * <h3>Configuration</h3> Please refer to below wiki link for more information
+ * about the configuration options
+ * 
+ * <h3>Wiki Link</h3>
+ * <p>
+ * <a href=
+ * "https://fascinator.usq.edu.au/trac/wiki/Fascinator/Documents/Plugins/Transformer/Ffmpeg"
+ * >https://fascinator.usq.edu.au/trac/wiki/Fascinator/Documents/Plugins/
+ * Transformer/Ffmpeg</a>
+ * </p>
  * 
  * @author Oliver Lucido, Linda Octalina
  */
+
 public class FfmpegTransformer implements Transformer {
 
     /** Error Payload */

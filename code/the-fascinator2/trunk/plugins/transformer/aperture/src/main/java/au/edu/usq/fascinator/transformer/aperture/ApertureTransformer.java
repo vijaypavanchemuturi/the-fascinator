@@ -61,7 +61,62 @@ import au.edu.usq.fascinator.common.MimeTypeUtil;
 import au.edu.usq.fascinator.common.storage.StorageUtils;
 
 /**
- * Provides static methods for extracting RDF metadata from a given file.
+ * <h3>Introduction</h3>
+ * <p>
+ * In this plugin <a href="http://aperture.sourceforge.net/">Aperture
+ * Framework</a> is utilised to extract RDF metadata and full-text from the
+ * DigitalObject.
+ * </p>
+ * 
+ * <h3>Configuration</h3>
+ * 
+ * <table border="1">
+ * <tr>
+ * <th>Option</th>
+ * <th>Description</th>
+ * <th>Required</th>
+ * <th>Default</th>
+ * </tr>
+ * 
+ * <tr>
+ * <td>id</td>
+ * <td>Transformer Id</td>
+ * <td><b>Yes</b></td>
+ * <td>aperture</td>
+ * </tr>
+ * 
+ * <tr>
+ * <td>outputPath</td>
+ * <td>Path where the aperture will store the temporary files</td>
+ * <td><b>Yes</b></td>
+ * <td>${java.io.tmpdir}/${user.name}/ice2-output</td>
+ * </tr>
+ * 
+ * </table>
+ * 
+ * <h3>Examples</h3>
+ * <ol>
+ * <li>
+ * Aperture transformer with "${java.io.tmpdir}/${user.name}/ice2-output"
+ * specified as the outputPath
+ * 
+ * <pre>
+ * "aperture": {
+ *     "id": "aperture",
+ *     "outputPath": "${java.io.tmpdir}/${user.name}/ice2-output"
+ * }
+ * </pre>
+ * 
+ * </li>
+ * </ol>
+ * 
+ * <h3>Wiki Link</h3>
+ * <p>
+ * <a href=
+ * "https://fascinator.usq.edu.au/trac/wiki/Fascinator/Documents/Plugins/Transformer/Aperture"
+ * >https://fascinator.usq.edu.au/trac/wiki/Fascinator/Documents/Plugins/
+ * Transformer/Aperture</a>
+ * </p>
  * 
  * Presently, only local files are accessible.
  * 
@@ -175,8 +230,8 @@ public class ApertureTransformer implements Transformer {
             firstRun = false;
             log.info("--Initializing Extractor plugin--");
             // Cache directory
-            outputPath = config.get("aperture/outputPath", System
-                    .getProperty("java.io.tmpdir"));
+            outputPath = config.get("aperture/outputPath",
+                    System.getProperty("java.io.tmpdir"));
         }
     }
 
@@ -425,8 +480,10 @@ public class ApertureTransformer implements Transformer {
                 RDFContainer rdf = extractRDF(inFile, "urn:oid:" + in.getId());
                 if (rdf != null) {
                     log.info("Done extraction: " + rdf.getClass());
-                    Payload rdfPayload = StorageUtils.createOrUpdatePayload(in,
-                            "aperture.rdf", new ByteArrayInputStream(
+                    Payload rdfPayload = StorageUtils.createOrUpdatePayload(
+                            in,
+                            "aperture.rdf",
+                            new ByteArrayInputStream(
                                     stripNonValidXMLCharacters(rdf).getBytes(
                                             "UTF-8")));
                     rdfPayload.setLabel("Aperture rdf");
