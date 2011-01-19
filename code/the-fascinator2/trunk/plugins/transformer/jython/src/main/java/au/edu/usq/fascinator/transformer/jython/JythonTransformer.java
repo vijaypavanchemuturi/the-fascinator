@@ -38,7 +38,49 @@ import au.edu.usq.fascinator.common.JsonConfigHelper;
 import au.edu.usq.fascinator.common.PythonUtils;
 
 /**
- * Provides methods for batch processing of digital objects
+ * 
+ * <h3>Introduction</h3>
+ * <p>
+ * This plugin provides method for batch processing the DigitalObjects
+ * </p>
+ * 
+ * <h3>Configuration</h3> Standard configuration table:
+ * <table border="1">
+ * <tr>
+ * <th>Option</th>
+ * <th>Description</th>
+ * <th>Required</th>
+ * <th>Default</th>
+ * </tr>
+ * 
+ * <tr>
+ * <td>id</td>
+ * <td>Transformer Id</td>
+ * <td><b>Yes</b></td>
+ * <td>jython</td>
+ * </tr>
+ * 
+ * </table>
+ * 
+ * <h3>Examples</h3>
+ * <ol>
+ * <li>
+ * Jython transformer attached to the transformer list in The Fascinator
+ * 
+ * <pre>
+ *      "jython": {
+ *             "id": "jython"
+ *         }
+ * </pre>
+ * 
+ * </li>
+ * </ol>
+ * 
+ * <h3>Wiki Link</h3>
+ * <p>
+ * None
+ * </p>
+ * 
  * 
  * @author Linda Octalina
  */

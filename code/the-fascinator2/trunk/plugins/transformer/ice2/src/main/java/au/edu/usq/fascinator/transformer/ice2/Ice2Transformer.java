@@ -1,20 +1,5 @@
 package au.edu.usq.fascinator.transformer.ice2;
 
-import au.edu.usq.fascinator.api.PluginDescription;
-import au.edu.usq.fascinator.api.PluginException;
-import au.edu.usq.fascinator.api.storage.DigitalObject;
-import au.edu.usq.fascinator.api.storage.Payload;
-import au.edu.usq.fascinator.api.storage.PayloadType;
-import au.edu.usq.fascinator.api.storage.StorageException;
-import au.edu.usq.fascinator.api.transformer.Transformer;
-import au.edu.usq.fascinator.api.transformer.TransformerException;
-import au.edu.usq.fascinator.common.BasicHttpClient;
-import au.edu.usq.fascinator.common.JsonConfig;
-import au.edu.usq.fascinator.common.JsonConfigHelper;
-import au.edu.usq.fascinator.common.MimeTypeUtil;
-import au.edu.usq.fascinator.common.sax.SafeSAXReader;
-import au.edu.usq.fascinator.common.storage.StorageUtils;
-
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -47,34 +32,190 @@ import org.dom4j.Node;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import au.edu.usq.fascinator.api.PluginDescription;
+import au.edu.usq.fascinator.api.PluginException;
+import au.edu.usq.fascinator.api.storage.DigitalObject;
+import au.edu.usq.fascinator.api.storage.Payload;
+import au.edu.usq.fascinator.api.storage.PayloadType;
+import au.edu.usq.fascinator.api.storage.StorageException;
+import au.edu.usq.fascinator.api.transformer.Transformer;
+import au.edu.usq.fascinator.api.transformer.TransformerException;
+import au.edu.usq.fascinator.common.BasicHttpClient;
+import au.edu.usq.fascinator.common.JsonConfig;
+import au.edu.usq.fascinator.common.JsonConfigHelper;
+import au.edu.usq.fascinator.common.MimeTypeUtil;
+import au.edu.usq.fascinator.common.sax.SafeSAXReader;
+import au.edu.usq.fascinator.common.storage.StorageUtils;
+
 /**
- * Transformer Class will send a file to ice-service to get the renditions of
- * the file
  * 
- * Configuration options:
- * <ul>
- * <li>url: ICE service url (default:
- * http://ec2-75-101-136-199.compute-1.amazonaws.com/api/convert/)</li>
- * <li>outputPath: Output Directory to store the ICE rendition zip file
- * (default: ${java.io.tmpdir}/ice2-output)</li>
- * <li>excludeRenditionExt: type of file extension to be ignored (default:
- * txt,mp3,m4a)</li>
- * <li>resize: Image resizing option (default: thumbnail and preview resize
- * option)
- * <ul>
- * <li>option: resize mode (default: fixedWidth)</li>
- * <li>ratio: resize ratio percentage if using ratio mode (default: -90)</li>
- * <li>fixedWidth: resize width if using fixedWidth mode (default: 160 for
- * thumbnail, 600 for preview)</li>
- * <li>enlarge: option to enlarge the image if the image is smaller than the
- * given width (default: false)</li>
- * </ul>
+ * <h3>Introduction</h3>
+ * <p>
+ * This plugin uses <a href="http://ice.usq.edu.au">Integrated Content
+ * Environment (ICE)</a> conversion services to get the rendition version of a
+ * file.
+ * </p>
+ * 
+ * <h3>Configuration</h3> Standard configuration table:
+ * <table border="1">
+ * <tr>
+ * <th>Option</th>
+ * <th>Description</th>
+ * <th>Required</th>
+ * <th>Default</th>
+ * </tr>
+ * 
+ * <tr>
+ * <td>id</td>
+ * <td>Transformer Id</td>
+ * <td><b>Yes</b></td>
+ * <td>ice2</td>
+ * </tr>
+ * 
+ * <tr>
+ * <td>url</td>
+ * <td>Address of where the ICE service located</td>
+ * <td><b>Yes</b></td>
+ * <td>http://ice-service.usq.edu.au/api/convert/</td>
+ * </tr>
+ * 
+ * <tr>
+ * <td>outputPath</td>
+ * <td>Path where the aperture will store the temporary files</td>
+ * <td><b>Yes</b></td>
+ * <td>${java.io.tmpdir}/${user.name}/ice2-output</td>
+ * </tr>
+ * 
+ * <tr>
+ * <td>excludeRenditionExt</td>
+ * <td>The list of renditions to be excluded</td>
+ * <td>No</td>
+ * <td>txt,mp3,m4a,mov,mp4,wav,wma,wmv,mpg,flv</td>
+ * </tr>
+ * 
+ * <tr>
+ * <td>priority</td>
+ * <td>TPriority of ICE transformer</td>
+ * <td>No</td>
+ * <td>true</td>
+ * </tr>
+ * 
+ * </table>
+ * 
+ * Customise configuration for resizing the image for both thumbnail and preview
+ * 
+ * <table border="1">
+ * <tr>
+ * <th>Option</th>
+ * <th>Description</th>
+ * <th>Required</th>
+ * <th>Default</th>
+ * </tr>
+ * 
+ * <tr>
+ * <td>resize/thumbnail/option</td>
+ * <td>Resizing option, possible mode: fixedWidth and ratio</td>
+ * <td><b>Yes</b></td>
+ * <td>fixedWidth</td>
+ * </tr>
+ * 
+ * <tr>
+ * <td>resize/thumbnail/ratio</td>
+ * <td>Image will be resized based on provided ratio if ratio mode is selected</td>
+ * <td><b>Yes</b></td>
+ * <td>-90</td>
+ * </tr>
+ * 
+ * <tr>
+ * <td>resize/thumbnail/fixedWidth</td>
+ * <td>Image will be resized based on the width if fixedWidth mode is selected</td>
+ * <td><b>Yes</b></td>
+ * <td>160</td>
+ * </tr>
+ * 
+ * <tr>
+ * <td>resize/thumbnail/enlarge</td>
+ * <td>keep image size if image width is less than the fixedWidth value</td>
+ * <td><b>Yes</b></td>
+ * <td>false</td>
+ * </tr>
+ * 
+ * <tr>
+ * <td>resize/preview/option</td>
+ * <td>Resizing option, possible mode: fixedWidth and ratio</td>
+ * <td><b>Yes</b></td>
+ * <td>fixedWidth</td>
+ * </tr>
+ * 
+ * <tr>
+ * <td>resize/preview/ratio</td>
+ * <td>Image will be resized based on provided ratio if ratio mode is selected</td>
+ * <td><b>Yes</b></td>
+ * <td>-90</td>
+ * </tr>
+ * 
+ * <tr>
+ * <td>resize/preview/fixedWidth</td>
+ * <td>Image will be resized based on the width if fixedWidth mode is selected</td>
+ * <td><b>600</b></td>
+ * <td>160</td>
+ * </tr>
+ * 
+ * <tr>
+ * <td>resize/preview/enlarge</td>
+ * <td>keep image size if image width is less than the fixedWidth value</td>
+ * <td><b>Yes</b></td>
+ * <td>false</td>
+ * </tr>
+ * 
+ * </table>
+ * 
+ * For further information about Image resizing service provided by ICE, please
+ * refer to <a
+ * href="https://ice.usq.edu.au/trac/wiki/ICEService/ResizeImage">https
+ * ://ice.usq.edu.au/trac/wiki/ICEService/ResizeImage</a>
+ * 
+ * <h3>Examples</h3>
+ * <ol>
+ * <li>
+ * ICE2 transformer connected to ice service for rendition with the specified
+ * image resize options
+ * 
+ * <pre>
+ * "ice2": {
+ *             "id": "ice2",
+ *             "url": "http://ice-service.usq.edu.au/api/convert/",
+ *             "outputPath": "${java.io.tmpdir}/${user.name}/ice2-output",
+ *             "excludeRenditionExt": "txt,mp3,m4a,mov,mp4,wav,wma,wmv,mpg,flv",
+ *             "priority": "true",
+ *             "resize": {
+ *                 "thumbnail": {
+ *                     "option": "fixedWidth",
+ *                     "ratio": "-90",
+ *                     "fixedWidth": "160",
+ *                     "enlarge": "false"
+ *                 },
+ *                 "preview": {
+ *                     "option": "fixedWidth",
+ *                     "ratio": "-90",
+ *                     "fixedWidth": "600",
+ *                     "enlarge": "false"
+ *                 }
+ *             }
+ *         }
+ * </pre>
+ * 
  * </li>
- * </ul>
+ * </ol>
  * 
- * @see http 
- *      ://fascinator.usq.edu.au/trac/wiki/tf2/DeveloperNotes/plugins/transformer
- *      /ice2
+ * <h3>Wiki Link</h3>
+ * <p>
+ * <a href=
+ * "https://fascinator.usq.edu.au/trac/wiki/Fascinator/Documents/Plugins/Transformer/ICE2"
+ * >https://fascinator.usq.edu.au/trac/wiki/Fascinator/Documents/Plugins/
+ * Transformer/ICE2</a>
+ * </p>
+ * 
  * @author Linda Octalina, Oliver Lucido
  * 
  */
@@ -175,8 +316,8 @@ public class Ice2Transformer implements Transformer {
             outputDir.mkdirs();
 
             // Rendition exclusions
-            excludeList = Arrays.asList(StringUtils.split(config
-                    .get("excludeRenditionExt"), ','));
+            excludeList = Arrays.asList(StringUtils.split(
+                    config.get("excludeRenditionExt"), ','));
 
             // Conversion Service URL
             convertUrl = config.get("url");
@@ -283,8 +424,7 @@ public class Ice2Transformer implements Transformer {
      * @throws UnsupportedEncodingException
      */
     public DigitalObject createErrorPayload(DigitalObject object, String file,
-            Exception ex) throws StorageException,
-            UnsupportedEncodingException {
+            Exception ex) throws StorageException, UnsupportedEncodingException {
         String name = file + "_ice_error.htm";
         String message = ex.getMessage();
         if (message == null) {
@@ -376,8 +516,8 @@ public class Ice2Transformer implements Transformer {
             try {
                 pt = assignType(object, name, mimeType);
             } catch (TransformerException ex) {
-                throw new Exception(
-                        "Error examining object to assign type: ", ex);
+                throw new Exception("Error examining object to assign type: ",
+                        ex);
             }
             if (pt == null) {
                 // We're done, this file is not being stored
@@ -398,7 +538,7 @@ public class Ice2Transformer implements Transformer {
     /**
      * After assessing the existing object and what needs to be added, return a
      * PayloadType to use for new payloads.
-     *
+     * 
      * @param object: The object to add a payload to
      * @param pid: The new payload ID that will be used
      * @param mimeType: The MIME type of the content being added
@@ -421,8 +561,9 @@ public class Ice2Transformer implements Transformer {
         }
 
         // Previews
-        if (mimeType.equals(HTML_MIME_TYPE) ||
-           ((mimeType.contains(IMG_MIME_TYPE) && pid.contains("_preview")))) {
+        if (mimeType.equals(HTML_MIME_TYPE)
+                || ((mimeType.contains(IMG_MIME_TYPE) && pid
+                        .contains("_preview")))) {
             // Existing previews?
             if (!previews.isEmpty()) {
                 // Do we have priority?
@@ -446,8 +587,7 @@ public class Ice2Transformer implements Transformer {
         }
 
         // Thumbnails
-        if ((mimeType.contains(IMG_MIME_TYPE) &&
-                pid.contains("_thumbnail.jpg"))) {
+        if ((mimeType.contains(IMG_MIME_TYPE) && pid.contains("_thumbnail.jpg"))) {
             // Existing previews?
             if (!thumbnails.isEmpty()) {
                 // Do we have priority?
@@ -476,7 +616,7 @@ public class Ice2Transformer implements Transformer {
 
     /**
      * Remove extraneous thumbnails and previews from the object if found
-     *
+     * 
      * @param object: The object to clean
      */
     private void cleanObject(DigitalObject object) throws TransformerException {
@@ -485,7 +625,7 @@ public class Ice2Transformer implements Transformer {
         // Validate thumbnails
         if (thumbnails.size() > 1) {
             // TODO: We could could some complicated logic here guessing where
-            //  things came from... or we could just keep the first one.
+            // things came from... or we could just keep the first one.
             String keeper = thumbnails.get(0);
             // Avoid concurrent modification
             String[] loop = thumbnails.toArray(new String[0]);
@@ -493,8 +633,9 @@ public class Ice2Transformer implements Transformer {
                 if (!pid.equals(keeper)) {
                     success = changeType(object, pid, PayloadType.Enrichment);
                     if (!success) {
-                        throw new TransformerException("Object has multiple " +
-                             "thumbnails, error accessing payloads to correct");
+                        throw new TransformerException(
+                                "Object has multiple "
+                                        + "thumbnails, error accessing payloads to correct");
                     }
                     thumbnails.remove(pid);
                 }
@@ -504,15 +645,16 @@ public class Ice2Transformer implements Transformer {
         // Validate previews
         if (previews.size() > 1) {
             // TODO: We could could some complicated logic here guessing where
-            //  things came from... or we could just keep the first one.
+            // things came from... or we could just keep the first one.
             String keeper = previews.get(0);
             String[] loop = previews.toArray(new String[0]);
             for (String pid : loop) {
                 if (!pid.equals(keeper)) {
                     success = changeType(object, pid, PayloadType.AltPreview);
                     if (!success) {
-                        throw new TransformerException("Object has multiple " +
-                               "previews, error accessing payloads to correct");
+                        throw new TransformerException(
+                                "Object has multiple "
+                                        + "previews, error accessing payloads to correct");
                     }
                     previews.remove(pid);
                 }
@@ -522,7 +664,7 @@ public class Ice2Transformer implements Transformer {
 
     /**
      * Change the type of an existing payload in the object.
-     *
+     * 
      * @param object: The object containing the payload
      * @param pid: The payload ID of the payload to change
      * @param newType: The new type to allocate
@@ -592,8 +734,8 @@ public class Ice2Transformer implements Transformer {
             BasicHttpClient client = new BasicHttpClient(convertUrl);
             log.debug("Using conversion URL: {}", convertUrl);
             status = client.executeMethod(post);
-            log.debug("HTTP status: {} {}", status, HttpStatus
-                    .getStatusText(status));
+            log.debug("HTTP status: {} {}", status,
+                    HttpStatus.getStatusText(status));
         } catch (IOException ioe) {
             throw new TransformerException(
                     "Failed to send ICE conversion request", ioe);
@@ -703,7 +845,7 @@ public class Ice2Transformer implements Transformer {
 
     /**
      * Get data from item JSON, falling back to system JSON if not found
-     *
+     * 
      * @param key path to the data in the config file
      * @return String containing the config data
      */
@@ -735,7 +877,7 @@ public class Ice2Transformer implements Transformer {
      * Retrieve a list of payloads that have the type 'Thumbnail' or 'Preview'.
      * In theory this should only ever be zero or one of each, but we are going
      * to also validate 'broken' objects.
-     *
+     * 
      * @param object: The object to retrieve thumbnails for
      */
     private void getThumbAndPreviews(DigitalObject object) {

@@ -44,7 +44,52 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Unzip Ims package and store the files
+ * 
+ * <h3>Introduction</h3>
+ * <p>
+ * This plugin is used for harvesting <a
+ * href="http://en.wikipedia.org/wiki/IMS_Global">IMS packages</a> by relying on
+ * imsmanifest.xml file. The content of the file will be unzipped and displayed
+ * by using <a
+ * href="https://fascinator.usq.edu.au/trac/wiki/Paquete">Paquete</a>.
+ * </p>
+ * 
+ * <h3>Configuration</h3> Standard configuration table:
+ * <table border="1">
+ * <tr>
+ * <th>Option</th>
+ * <th>Description</th>
+ * <th>Required</th>
+ * <th>Default</th>
+ * </tr>
+ * 
+ * <tr>
+ * <td>id</td>
+ * <td>Transformer Id</td>
+ * <td><b>Yes</b></td>
+ * <td>ims</td>
+ * </tr>
+ * 
+ * </table>
+ * 
+ * <h3>Examples</h3>
+ * <ol>
+ * <li>
+ * IMS transformer attached to the transformer list in The Fascinator
+ * 
+ * <pre>
+ *      "ims": {
+ *             "id": "ims"
+ *         }
+ * </pre>
+ * 
+ * </li>
+ * </ol>
+ * 
+ * <h3>Wiki Link</h3>
+ * <p>
+ * None
+ * </p>
  * 
  * @author Ron Ward, Linda Octalina
  */
@@ -73,7 +118,7 @@ public class ImsTransformer implements Transformer {
 
     /**
      * Init method to initialise Ims transformer
-     *
+     * 
      * @param jsonFile
      * @throws IOException
      * @throws PluginException
@@ -90,7 +135,7 @@ public class ImsTransformer implements Transformer {
 
     /**
      * Init method to initialise Ims transformer
-     *
+     * 
      * @param jsonString
      * @throws IOException
      * @throws PluginException
@@ -206,15 +251,14 @@ public class ImsTransformer implements Transformer {
                 ZipEntry entry = entries.nextElement();
                 if (!entry.isDirectory()) {
                     String name = entry.getName();
-                    Payload imsPayload = StorageUtils
-                            .createOrUpdatePayload(object, name, zipFile
-                                    .getInputStream(entry));
+                    Payload imsPayload = StorageUtils.createOrUpdatePayload(
+                            object, name, zipFile.getInputStream(entry));
                     // Look for our preview
                     if (name.startsWith("index.htm")) {
                         imsPayload.setType(PayloadType.Preview);
                         log.info("New preview found: '{}'", name);
                         htmlPreview = true;
-                    // Everything else is an 'enrichment'
+                        // Everything else is an 'enrichment'
                     } else {
                         imsPayload.setType(PayloadType.Enrichment);
                     }
@@ -259,7 +303,7 @@ public class ImsTransformer implements Transformer {
 
     /**
      * Gets a PluginDescription object relating to this plugin.
-     *
+     * 
      * @return a PluginDescription
      */
     @Override
