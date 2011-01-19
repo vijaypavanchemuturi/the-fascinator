@@ -44,7 +44,51 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * A Fascinator access control plugin using Derby
+ * 
+ * <h3>Introduction</h3>
+ * <p>
+ * This plugin is a Fascinator access control plugin using Derby database
+ * </p>
+ * 
+ * <h3>Configuration</h3> Standard configuration table:
+ * <table border="1">
+ * <tr>
+ * <th>Option</th>
+ * <th>Description</th>
+ * <th>Required</th>
+ * <th>Default</th>
+ * </tr>
+ * 
+ * <tr>
+ * <td>derbyHome</td>
+ * <td>Path in which derby database will be created and used</td>
+ * <td><b>Yes</b></td>
+ * <td>${fascinator.home}/database</td>
+ * </tr>
+ * 
+ * </table>
+ * 
+ * <h3>Examples</h3>
+ * <ol>
+ * <li>
+ * Using Derby access control as the plugin in the Fascinator
+ * 
+ * <pre>
+ *      "accesscontrol": {
+            "type" : "derby",
+            "derby" : {
+                "derbyHome" : "${fascinator.home}/database"
+            }
+        }
+ * </pre>
+ * 
+ * </li>
+ * </ol>
+ * 
+ * <h3>Wiki Link</h3>
+ * <p>
+ * None
+ * </p>
  *
  * @author Greg Pendlebury
  */
