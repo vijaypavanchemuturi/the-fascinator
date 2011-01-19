@@ -1,6 +1,6 @@
 /*
  * The Fascinator - GUI File Uploader
- * Copyright (C) 2010 University of Southern Queensland
+ * Copyright (C) 2010-2011 University of Southern Queensland
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -38,6 +38,13 @@ public class GUIFileUploader {
     private Map<String, String> harvesters;
     private static Logger log = LoggerFactory.getLogger(GUIFileUploader.class);
 
+    /**
+     * Constructor. Access to system configuration and a list of the user's
+     * security roles is required.
+     *
+     * @param config : System configuration
+     * @param user_roles : An array with the list of roles the current user has
+     */
     public GUIFileUploader(JsonConfig config, List<String> user_roles) {
         // Init our form renderer
         fr = new GUIFormRenderer(config);
@@ -58,6 +65,11 @@ public class GUIFileUploader {
         }
     }
 
+    /**
+     * Render the form required for file uploads.
+     *
+     * @return String : The rendered form
+     */
     public String renderForm() {
         if (harvesters.isEmpty()) {
             return "Sorry, but your current security permissions don't allow for file uploading.";

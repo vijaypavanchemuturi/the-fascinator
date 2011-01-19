@@ -1,6 +1,6 @@
 /* 
  * The Fascinator - Portal
- * Copyright (C) 2008-2009 University of Southern Queensland
+ * Copyright (C) 2008-2011 University of Southern Queensland
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -64,6 +64,25 @@ import au.edu.usq.fascinator.portal.services.HttpStatusCodeResponse;
 import au.edu.usq.fascinator.portal.services.PortalManager;
 import au.edu.usq.fascinator.portal.services.PortalSecurityManager;
 
+/**
+ * <h3>Introduction</h3>
+ * <p>
+ * Dispatch is the only Tapestry Page object, and it is responsible for three tasks:
+ * </p>
+ *
+ * <ul>
+ * <li><strong>Resource routing</strong>, mostly URL parsing according to some basic rules, but also looking for special cases.</li>
+ * <li><strong>Security</strong>, particularly focusing on Single Sign-On.</li>
+ * <li><strong>File upload</strong> handling and storage. Files need to grabbed from the Tapestry framework and moved into our storage and the transformation tool chain.</li>
+ * </ul>
+ *
+ * <h3>Wiki Link</h3>
+ * <p>
+ * <b>https://fascinator.usq.edu.au/trac/wiki/Fascinator/Documents/Portal/JavaCore#TapestryPages</b>
+ * </p>
+ *
+ * @author Oliver Lucido
+ */
 public class Dispatch {
 
     private static final String AJAX_EXT = ".ajax";
@@ -72,6 +91,7 @@ public class Dispatch {
 
     private static final String SCRIPT_EXT = ".script";
 
+    /** The default resource if none is specified. The home page, generally */
     public static final String DEFAULT_RESOURCE = "home";
 
     @Inject
@@ -125,6 +145,12 @@ public class Dispatch {
     // detailSubPage detection
     private Pattern detailPattern;
 
+    /**
+     * Entry point for Tapestry to send page requests.
+     *
+     * @param params : An array of request parameters from Tapestry
+     * @returns StreamResponse : Tapestry object to return streamed response
+     */
     public StreamResponse onActivate(Object... params) {
         // log.debug("Dispatch starting : {} {}",
         // request.getMethod(), request.getPath());
@@ -423,6 +449,15 @@ public class Dispatch {
         return match;
     }
 
+    /**
+     * Parse the request URL to find the best matching resource from the portal.
+     *
+     * This method will recursively call itself if required to break the URL
+     * down into constituent parts.
+     *
+     * @param resource : The resource we are looking for
+     * @returns String : The best matching resource
+     */
     public String getBestMatchResource(String resource) {
         String searchable = resource;
         String ext = "";

@@ -1,6 +1,6 @@
 /*
  * The Fascinator - GUI Toolkit
- * Copyright (C) 2010 University of Southern Queensland
+ * Copyright (C) 2010-2011 University of Southern Queensland
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -33,18 +33,42 @@ import java.util.List;
 public class GUIToolkit {
     private JsonConfig sysConfig;
 
+    /**
+     * A basic constructor. Simply reads system configuration.
+     *
+     */
     public GUIToolkit() throws IOException {
         sysConfig = new JsonConfig(JsonConfig.getSystemFile());
     }
 
+    /**
+     * Instantiate and return a new GUIDisplay component.
+     *
+     * @param renderer : The page service to use for rendering
+     * @return GUIDisplay : The new component
+     *
+     */
     public GUIDisplay getDisplayComponent(DynamicPageService renderer) {
         return new GUIDisplay(sysConfig, renderer);
     }
 
+    /**
+     * Instantiate and return a new GUIFileUploader component.
+     *
+     * @param user_roles : An array with the list of roles the current user has
+     * @return GUIFileUploader : The new component
+     *
+     */
     public GUIFileUploader getFileUploader(List<String> user_roles) {
         return new GUIFileUploader(sysConfig, user_roles);
     }
 
+    /**
+     * Instantiate and return a new GUIFormRenderer component.
+     *
+     * @return GUIFormRenderer : The new component
+     *
+     */
     public GUIFormRenderer getFormRenderer() {
         return new GUIFormRenderer(sysConfig);
     }

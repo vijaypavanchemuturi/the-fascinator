@@ -1,6 +1,6 @@
 /* 
  * The Fascinator - Portal
- * Copyright (C) 2008-2009 University of Southern Queensland
+ * Copyright (C) 2008-2011 University of Southern Queensland
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -63,6 +63,18 @@ import au.edu.usq.fascinator.portal.services.impl.PortalManagerImpl;
 import au.edu.usq.fascinator.portal.services.impl.PortalSecurityManagerImpl;
 import au.edu.usq.fascinator.portal.services.impl.ScriptingServicesImpl;
 
+/**
+ * <p>
+ * A Tapestry Module which controls service instantiation and configuration.
+ * </p>
+ *
+ * <h3>Wiki Link</h3>
+ * <p>
+ * <b>https://fascinator.usq.edu.au/trac/wiki/Fascinator/Documents/Portal/JavaCore#TapestryServices</b>
+ * </p>
+ *
+ * @author Oliver Lucido
+ */
 public class PortalModule {
 
     private static final String DEFAULT_INDEXER_TYPE = "solr";
@@ -76,6 +88,12 @@ public class PortalModule {
         MDC.put("name", "main");
     }
 
+    /**
+     * Use the ServiceBinder to bind Tapestry Service implementations
+     * to their interfaces.
+     *
+     * @param binder : Tapestry service binder
+     */
     public static void bind(ServiceBinder binder) {
         binder.bind(HarvestManager.class, HarvestManagerImpl.class);
         binder.bind(DynamicPageService.class,
@@ -88,12 +106,26 @@ public class PortalModule {
                 ByteRangeRequestCacheImpl.class);
     }
 
+    /**
+     * Instantiate and return the DatabaseService, making sure Tapestry notifies
+     * the Service at system shutdown.
+     *
+     * @param hub : Tapestry shutdown hub
+     * @return DatabaseServices : The Database Tapestry Service
+     */
     public static DatabaseServices buildDatabaseServices(RegistryShutdownHub hub) {
         DatabaseServices database = new DatabaseServicesImpl();
         hub.addRegistryShutdownListener(database);
         return database;
     }
 
+    /**
+     * Instantiate and return the House Keeper, making sure Tapestry notifies
+     * the Service at system shutdown.
+     *
+     * @param hub : Tapestry shutdown hub
+     * @return HouseKeepingManager : The House Keeping Service
+     */
     public static HouseKeepingManager buildHouseKeepingManager(
             RegistryShutdownHub hub) {
         HouseKeepingManager houseKeeping = new HouseKeepingManagerImpl();
@@ -101,6 +133,11 @@ public class PortalModule {
         return houseKeeping;
     }
 
+    /**
+     * Instantiate and return the Manager object for Access Control plugins.
+     *
+     * @return AccessControlManager : The Access Control Manager
+     */
     public static AccessControlManager buildAccessManager() {
         try {
             AccessManager access = new AccessManager();
@@ -111,6 +148,11 @@ public class PortalModule {
         }
     }
 
+    /**
+     * Instantiate and return the Manager object for Authentication plugins.
+     *
+     * @return AuthManager : The Authentication Manager
+     */
     public static AuthManager buildAuthManager() {
         try {
             AuthenticationManager auth = new AuthenticationManager();
@@ -121,6 +163,11 @@ public class PortalModule {
         }
     }
 
+    /**
+     * Instantiate and return an Indexer plugin.
+     *
+     * @return Indexer : An Indexer plugin
+     */
     public static Indexer buildIndexer() {
         try {
             JsonConfig config = new JsonConfig();
@@ -133,6 +180,11 @@ public class PortalModule {
         }
     }
 
+    /**
+     * Instantiate and return the Manager object for security Roles plugins.
+     *
+     * @return RolesManager : The Roles Manager
+     */
     public static RolesManager buildRoleManager() {
         try {
             RoleManager roles = new RoleManager();
@@ -143,6 +195,11 @@ public class PortalModule {
         }
     }
 
+    /**
+     * Instantiate and return a Storage plugin.
+     *
+     * @return Storage : A Storage plugin
+     */
     public static Storage buildStorage() {
         try {
             JsonConfig config = new JsonConfig();
@@ -179,6 +236,12 @@ public class PortalModule {
         }
     }
 
+    /**
+     * Modify the configuration of the ApplicationStateManager Tapestry
+     * service. We want it to use our JsonSessionState object for session data.
+     *
+     * @param configuration: Configuration from Tapestry
+     */
     public static void contributeApplicationStateManager(
             MappedConfiguration<Class<?>, ApplicationStateContribution> configuration) {
         ApplicationStateCreator<JsonSessionState> creator = new ApplicationStateCreator<JsonSessionState>() {
@@ -192,12 +255,28 @@ public class PortalModule {
         configuration.add(JsonSessionState.class, contribution);
     }
 
+    /**
+     * Modify the Tapestry URL encoding/decoding to ensure URLs are left
+     * exactly as received before they reach our code.
+     *
+     * @param configuration: Configuration from Tapestry
+     */
     public static void contributeAlias(
             Configuration<AliasContribution<URLEncoder>> configuration) {
         configuration.add(AliasContribution.create(URLEncoder.class,
                 new NullURLEncoderImpl()));
     }
 
+    /**
+     * Ensure Tapestry routes all URLs to our Dispatch object.
+     *
+     * The sole except is 'asset*' URLs which Tapestry will handle, although
+     * we don't use at this time
+     *
+     * @param configuration: Configuration from Tapestry
+     * @param requestGlobals: Request information
+     * @param urlEncoder: The URL encoder
+     */
     public static void contributeURLRewriter(
             OrderedConfiguration<URLRewriterRule> configuration,
             @Inject final RequestGlobals requestGlobals,
