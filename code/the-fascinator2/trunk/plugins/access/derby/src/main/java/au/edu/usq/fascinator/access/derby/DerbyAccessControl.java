@@ -50,7 +50,8 @@ import org.slf4j.LoggerFactory;
  * This plugin is a Fascinator access control plugin using Derby database
  * </p>
  * 
- * <h3>Configuration</h3> Standard configuration table:
+ * <h3>Configuration</h3> 
+ * <p>Standard configuration table:</p>
  * <table border="1">
  * <tr>
  * <th>Option</th>
