@@ -56,7 +56,10 @@ import au.edu.usq.fascinator.common.storage.StorageUtils;
  * file.
  * </p>
  * 
- * <h3>Configuration</h3> Standard configuration table:
+ * <h3>Configuration</h3>
+ * <p>
+ * Standard configuration table:
+ * </p>
  * <table border="1">
  * <tr>
  * <th>Option</th>
@@ -102,7 +105,10 @@ import au.edu.usq.fascinator.common.storage.StorageUtils;
  * 
  * </table>
  * 
+ * <br/>
+ * <p>
  * Customise configuration for resizing the image for both thumbnail and preview
+ * </p>
  * 
  * <table border="1">
  * <tr>
@@ -170,10 +176,12 @@ import au.edu.usq.fascinator.common.storage.StorageUtils;
  * 
  * </table>
  * 
+ * <p>
  * For further information about Image resizing service provided by ICE, please
  * refer to <a
  * href="https://ice.usq.edu.au/trac/wiki/ICEService/ResizeImage">https
  * ://ice.usq.edu.au/trac/wiki/ICEService/ResizeImage</a>
+ * </p>
  * 
  * <h3>Examples</h3>
  * <ol>

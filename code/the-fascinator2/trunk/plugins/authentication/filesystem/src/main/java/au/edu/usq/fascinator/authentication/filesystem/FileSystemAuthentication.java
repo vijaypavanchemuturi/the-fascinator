@@ -39,12 +39,65 @@ import java.util.Properties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+
 /**
- * Example plugin on how to manage authentication
+ * 
+ * <h3>Introduction</h3>
+ * <p>
+ * This plugin is a sample plugin on how to manage authentication
  * against basic files on the filesystem.
+ * 
+ * <bold>Note:</bold> Since the 
+ * <a href="http://build.adfi.usq.edu.au/hudson/the-fascinator-full/apidocs/au/edu/usq/fascinator/authentication/internal/InternalAuthentication.html">internal authentication user plugin</a> 
+ * is essentially the same thing this plugin has no real purpose at this time and is just a copy. 
+ * When the internal plugin evolves to be more sophisticated this plugin is 
+ * expected to remain as an example to users of a basic filesystem implementation. 
+ * </p>
+ * 
+ * <h3>Configuration</h3> 
+ * <p>Standard configuration table:</p>
+ * <table border="1">
+ * <tr>
+ * <th>Option</th>
+ * <th>Description</th>
+ * <th>Required</th>
+ * <th>Default</th>
+ * </tr>
+ * 
+ * <tr>
+ * <td>internal/path</td>
+ * <td>File path in wich the userbase information is stored</td>
+ * <td><b>Yes</b></td>
+ * <td>${user.home}/.fascinator/users.properties</td>
+ * </tr>
+ * 
+ * </table>
+ * 
+ * <h3>Examples</h3>
+ * <ol>
+ * <li>
+ * Using Internal authentication plugin in The Fascinator
+ * 
+ * <pre>
+ *      "authentication": {
+ *         "type": "filesystem",
+ *         "internal": {
+ *            "path": "${user.home}/.fascinator/users.properties"
+ *         }
+ *      }
+ * </pre>
+ * 
+ * </li>
+ * </ol>
+ * 
+ * <h3>Wiki Link</h3>
+ * <p>
+ * None
+ * </p>
  *
  * @author Greg Pendlebury
  */
+
 public class FileSystemAuthentication implements Authentication {
 
 	/** Default file name for storing user properties*/

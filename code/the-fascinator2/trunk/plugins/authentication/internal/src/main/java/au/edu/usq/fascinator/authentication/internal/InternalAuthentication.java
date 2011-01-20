@@ -42,27 +42,74 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * A plugin to implement the Fascinators default
- * internal userbase.
- *
- * Mostly a direct port from Fascinator IR code.
  * 
+ * <h3>Introduction</h3>
+ * <p>
+ * This plugin implements the Fascinator default internal userbase.
+ * This plugin mostly a direct port from Fascinator IR code and is a very minimal 
+ * proof-of-concept implemetation of authentication. 
+ * Currently it only authenticates from a userbase stored in a local file.
+ * </p>
+ * 
+ * <h3>Configuration</h3> 
+ * <p>Standard configuration table:</p>
+ * <table border="1">
+ * <tr>
+ * <th>Option</th>
+ * <th>Description</th>
+ * <th>Required</th>
+ * <th>Default</th>
+ * </tr>
+ * 
+ * <tr>
+ * <td>internal/path</td>
+ * <td>File path in wich the userbase information is stored</td>
+ * <td><b>Yes</b></td>
+ * <td>${user.home}/.fascinator/users.properties</td>
+ * </tr>
+ * 
+ * </table>
+ * 
+ * <h3>Examples</h3>
+ * <ol>
+ * <li>
+ * Using Internal authentication plugin in The Fascinator
+ * 
+ * <pre>
+ *      "authentication": {
+ *         "type": "internal",
+ *         "internal": {
+ *            "path": "${user.home}/.fascinator/users.properties"
+ *         }
+ *       }
+ * </pre>
+ * 
+ * </li>
+ * </ol>
+ * 
+ * <h3>Wiki Link</h3>
+ * <p>
+ * None
+ * </p>
+ *
  * @author Greg Pendlebury
  */
+
 public class InternalAuthentication implements Authentication {
 
-	/** Default file name for storing user properties*/
+    /** Default file name for storing user properties */
     private static String DEFAULT_FILE_NAME = "users.properties";
-    
+
     /** Loggin */
-    private final Logger log = LoggerFactory.getLogger(InternalAuthentication.class);
-    
+    private final Logger log = LoggerFactory
+            .getLogger(InternalAuthentication.class);
+
     /** User object */
     private InternalUser user_object;
-    
-    /** File path where user properties is stored*/
+
+    /** File path where user properties is stored */
     private String file_path;
-    
+
     /** Property file for user properties */
     private Properties file_store;
 
@@ -78,7 +125,7 @@ public class InternalAuthentication implements Authentication {
 
     /**
      * Gets a PluginDescription object relating to this plugin.
-     *
+     * 
      * @return a PluginDescription
      */
     @Override
@@ -123,17 +170,17 @@ public class InternalAuthentication implements Authentication {
     private void setConfig(JsonConfig config) throws IOException {
         // Get the basics
         user_object = new InternalUser();
-        file_path   = config.get("authentication/internal/path", null);
+        file_path = config.get("authentication/internal/path", null);
         loadUsers();
     }
-    
+
     /**
      * Load users from the file
      * 
      * @throws IOException if fail to load from file
      */
     private void loadUsers() throws IOException {
-        file_store  = new Properties();
+        file_store = new Properties();
 
         // Load our userbase from disk
         try {
@@ -141,13 +188,15 @@ public class InternalAuthentication implements Authentication {
             if (!user_file.exists()) {
                 user_file.getParentFile().mkdirs();
                 OutputStream out = new FileOutputStream(user_file);
-                IOUtils.copy(getClass().getResourceAsStream("/" + DEFAULT_FILE_NAME), out);
+                IOUtils.copy(
+                        getClass().getResourceAsStream("/" + DEFAULT_FILE_NAME),
+                        out);
                 out.close();
             }
 
             file_store.load(new FileInputStream(file_path));
         } catch (Exception e) {
-            throw new IOException (e);
+            throw new IOException(e);
         }
     }
 
@@ -161,11 +210,11 @@ public class InternalAuthentication implements Authentication {
             try {
                 file_store.store(new FileOutputStream(file_path), "");
             } catch (Exception e) {
-                throw new IOException (e);
+                throw new IOException(e);
             }
         }
     }
-    
+
     /**
      * Password encryption method
      * 
@@ -173,7 +222,8 @@ public class InternalAuthentication implements Authentication {
      * @return encrypted password
      * @throws AuthenticationException if fail to encrypt
      */
-    private String encryptPassword(String password) throws AuthenticationException {
+    private String encryptPassword(String password)
+            throws AuthenticationException {
         byte[] passwordBytes = password.getBytes();
 
         try {
@@ -189,7 +239,8 @@ public class InternalAuthentication implements Authentication {
                 password = "0" + password;
             }
         } catch (Exception e) {
-            throw new AuthenticationException("Internal password encryption failure: " + e.getMessage());
+            throw new AuthenticationException(
+                    "Internal password encryption failure: " + e.getMessage());
         }
         return password;
     }
@@ -201,7 +252,7 @@ public class InternalAuthentication implements Authentication {
 
     /**
      * Tests the user's username/password validity.
-     *
+     * 
      * @param username The username of the user logging in.
      * @param password The password of the user logging in.
      * @return A user object for the newly logged in user.
@@ -213,7 +264,8 @@ public class InternalAuthentication implements Authentication {
         // Find our user
         String uPwd = file_store.getProperty(username);
         if (uPwd == null) {
-            throw new AuthenticationException("User '" + username + "' not found.");
+            throw new AuthenticationException("User '" + username
+                    + "' not found.");
         }
         // Encrypt the password given by the user
         String ePwd = encryptPassword(password);
@@ -226,9 +278,9 @@ public class InternalAuthentication implements Authentication {
     }
 
     /**
-     * Optional logout method if the implementing class wants
-     * to do any post-processing.
-     *
+     * Optional logout method if the implementing class wants to do any
+     * post-processing.
+     * 
      * @param username The username of the logging out user.
      * @throws AuthenticationException if there was an error logging out.
      */
@@ -238,9 +290,9 @@ public class InternalAuthentication implements Authentication {
     }
 
     /**
-     * Method for testing if the implementing plugin allows
-     * the creation, deletion and modification of users.
-     *
+     * Method for testing if the implementing plugin allows the creation,
+     * deletion and modification of users.
+     * 
      * @return true/false reponse.
      */
     @Override
@@ -249,11 +301,10 @@ public class InternalAuthentication implements Authentication {
     }
 
     /**
-     * Describe the metadata the implementing class
-     * needs/allows for a user.
-     *
+     * Describe the metadata the implementing class needs/allows for a user.
+     * 
      * TODO: This is a placeholder of possible later SQUIRE integration.
-     *
+     * 
      * @return TODO: possibly a JSON string.
      */
     @Override
@@ -263,7 +314,7 @@ public class InternalAuthentication implements Authentication {
 
     /**
      * Create a user.
-     *
+     * 
      * @param username The username of the new user.
      * @param password The password of the new user.
      * @return A user object for the newly created in user.
@@ -274,14 +325,15 @@ public class InternalAuthentication implements Authentication {
             throws AuthenticationException {
         String user = file_store.getProperty(username);
         if (user != null) {
-            throw new AuthenticationException("User '" + username + "' already exists.");
+            throw new AuthenticationException("User '" + username
+                    + "' already exists.");
         }
         // Encrypt the new password
         String ePwd = encryptPassword(password);
         file_store.put(username, ePwd);
         try {
             saveUsers();
-        } catch(IOException e) {
+        } catch (IOException e) {
             throw new AuthenticationException("Error changing password: ", e);
         }
 
@@ -290,7 +342,7 @@ public class InternalAuthentication implements Authentication {
 
     /**
      * Delete a user.
-     *
+     * 
      * @param username The username of the user to delete.
      * @throws AuthenticationException if there was an error during deletion.
      */
@@ -298,80 +350,91 @@ public class InternalAuthentication implements Authentication {
     public void deleteUser(String username) throws AuthenticationException {
         String user = file_store.getProperty(username);
         if (user == null) {
-            throw new AuthenticationException("User '" + username + "' not found.");
+            throw new AuthenticationException("User '" + username
+                    + "' not found.");
         }
         file_store.remove(username);
         try {
             saveUsers();
-        } catch(IOException e) {
+        } catch (IOException e) {
             throw new AuthenticationException("Error deleting user: ", e);
         }
     }
 
     /**
      * Change a user's password.
-     *
+     * 
      * @param username The user changing their password.
      * @param password The new password for the user.
-     * @throws AuthenticationException if there was an error changing the password.
+     * @throws AuthenticationException if there was an error changing the
+     * password.
      */
     @Override
     public void changePassword(String username, String password)
             throws AuthenticationException {
         String user = file_store.getProperty(username);
         if (user == null) {
-            throw new AuthenticationException("User '" + username + "' not found.");
+            throw new AuthenticationException("User '" + username
+                    + "' not found.");
         }
         // Encrypt the new password
         String ePwd = encryptPassword(password);
         file_store.put(username, ePwd);
         try {
             saveUsers();
-        } catch(IOException e) {
+        } catch (IOException e) {
             throw new AuthenticationException("Error changing password: ", e);
         }
     }
 
     /**
-     * Modify one of the user's properties. Available properties should match
-     * up with the return value of describeUser().
-     *
+     * Modify one of the user's properties. Available properties should match up
+     * with the return value of describeUser().
+     * 
      * @param username The user being modified.
      * @param property The user property being modified.
      * @param newValue The new value to be assigned to the property.
      * @return An updated user object for the modifed user.
-     * @throws AuthenticationException if there was an error during modification.
+     * @throws AuthenticationException if there was an error during
+     * modification.
      */
     @Override
     public User modifyUser(String username, String property, String newValue)
             throws AuthenticationException {
-        throw new AuthenticationException("This class does not support user modification.");
+        throw new AuthenticationException(
+                "This class does not support user modification.");
     }
+
     @Override
     public User modifyUser(String username, String property, int newValue)
             throws AuthenticationException {
-        throw new AuthenticationException("This class does not support user modification.");
+        throw new AuthenticationException(
+                "This class does not support user modification.");
     }
+
     @Override
     public User modifyUser(String username, String property, boolean newValue)
             throws AuthenticationException {
-        throw new AuthenticationException("This class does not support user modification.");
+        throw new AuthenticationException(
+                "This class does not support user modification.");
     }
 
     /**
-     * Returns a User object if the implementing class supports
-     * user queries without authentication.
-     *
+     * Returns a User object if the implementing class supports user queries
+     * without authentication.
+     * 
      * @param username The username of the user required.
      * @return An user object of the requested user.
-     * @throws AuthenticationException if there was an error retrieving the object.
+     * @throws AuthenticationException if there was an error retrieving the
+     * object.
      */
     @Override
     public User getUser(String username) throws AuthenticationException {
         // Find our user
         String user = file_store.getProperty(username);
         if (user == null) {
-            throw new AuthenticationException("User '" + username + "' not found.");
+            throw new AuthenticationException("User '" + username
+                    + "' not found.");
         }
         // Purge any old data and init()
         user_object = new InternalUser();
@@ -382,16 +445,16 @@ public class InternalAuthentication implements Authentication {
 
     /**
      * Returns a list of users matching the search.
-     *
+     * 
      * @param search The search string to execute.
      * @return A list of usernames (String) that match the search.
      * @throws AuthenticationException if there was an error searching.
      */
     @Override
-    public List<User> searchUsers(String search)
-            throws AuthenticationException {
+    public List<User> searchUsers(String search) throws AuthenticationException {
         // Complete list of users
-        String[] users = file_store.keySet().toArray(new String[file_store.size()]);
+        String[] users = file_store.keySet().toArray(
+                new String[file_store.size()]);
         List<User> found = new ArrayList();
 
         // Look through the list for anyone who matches
