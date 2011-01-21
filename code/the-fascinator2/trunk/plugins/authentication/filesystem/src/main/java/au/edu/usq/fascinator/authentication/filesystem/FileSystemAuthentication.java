@@ -46,8 +46,9 @@ import org.slf4j.LoggerFactory;
  * <p>
  * This plugin is a sample plugin on how to manage authentication
  * against basic files on the filesystem.
- * 
- * <bold>Note:</bold> Since the 
+ * </p>
+ * <p>
+ * <b>Note:</b> Since the 
  * <a href="http://build.adfi.usq.edu.au/hudson/the-fascinator-full/apidocs/au/edu/usq/fascinator/authentication/internal/InternalAuthentication.html">internal authentication user plugin</a> 
  * is essentially the same thing this plugin has no real purpose at this time and is just a copy. 
  * When the internal plugin evolves to be more sophisticated this plugin is 
