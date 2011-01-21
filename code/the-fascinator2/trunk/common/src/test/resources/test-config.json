@@ -53,7 +53,16 @@
             }
         }
     },
-    
+    "map-list": [
+        {
+            "name": "map-one",
+            "sub-list": ["1", "2", 3, 4]
+        },
+        {
+            "name": "map-two",
+            "sub-list": ["1", "2", false, "true"]
+        }
+    ],
   "portal" : {
     "name" : "default",
     "description" : "Everything",
