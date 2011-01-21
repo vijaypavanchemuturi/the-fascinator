@@ -42,11 +42,54 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * A plugin to implement the Fascinators default
- * internal roles.
+ * <h3>Introduction</h3>
+ * <p>
+ * This plugin implements the Fascinator default internal roles. 
+ * </p>
+ * 
+ * <h3>Configuration</h3> 
+ * <p>Standard configuration table:</p>
+ * <table border="1">
+ * <tr>
+ * <th>Option</th>
+ * <th>Description</th>
+ * <th>Required</th>
+ * <th>Default</th>
+ * </tr>
+ * 
+ * <tr>
+ * <td>internal/path</td>
+ * <td>File path in wich the roles information is stored</td>
+ * <td><b>Yes</b></td>
+ * <td>${user.home}/.fascinator/roles.properties</td>
+ * </tr>
+ * 
+ * </table>
+ * 
+ * <h3>Examples</h3>
+ * <ol>
+ * <li>
+ * Using Internal role plugin in The Fascinator
+ * 
+ * <pre>
+ *      "roles": {
+ *          "type": "internal",
+ *          "internal": {
+ *              "path": "${user.home}/.fascinator/roles.properties"
+ *      }
+ * </pre>
+ * 
+ * </li>
+ * </ol>
+ * 
+ * <h3>Wiki Link</h3>
+ * <p>
+ * None
+ * </p>
  *
  * @author Greg Pendlebury
  */
+
 public class InternalRoles implements Roles {
 
     private static String DEFAULT_FILE_NAME = "roles.properties";
