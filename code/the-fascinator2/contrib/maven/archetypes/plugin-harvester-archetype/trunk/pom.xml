@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>au.edu.usq.fascinator.plugins</groupId>
     <artifactId>plugin-harvester-archetype</artifactId>
-    <version>0.7.3-SNAPSHOT</version>
+    <version>0.7.3</version>
     <packaging>maven-archetype</packaging>
     <name>plugin-harvester-archetype</name>
     <description>Archetype from Harvester API v0.7.3</description>
@@ -25,9 +25,9 @@
         </pluginManagement>
     </build>
     <scm>
-        <url>http://fascinator.usq.edu.au/svn/code/the-fascinator2</url>
-        <connection>scm:svn:http://fascinator.usq.edu.au/svn/code/the-fascinator2/contrib/maven/archetypes/plugin-harvester-archetype</connection>
-        <developerConnection>scm:svn:https://fascinator.usq.edu.au/svn-auth/code/the-fascinator2/contrib/maven/archetypes/plugin-harvester-archetype</developerConnection>
+        <url>http://fascinator.usq.edu.au/svn/code/the-fascinator2/tags/plugin-harvester-archetype-0.7.3</url>
+        <connection>scm:svn:http://fascinator.usq.edu.au/svn/code/the-fascinator2/contrib/maven/archetypes/plugin-harvester-archetype/tags/plugin-harvester-archetype-0.7.3</connection>
+        <developerConnection>scm:svn:https://fascinator.usq.edu.au/svn-auth/code/the-fascinator2/contrib/maven/archetypes/plugin-harvester-archetype/tags/plugin-harvester-archetype-0.7.3</developerConnection>
     </scm>
     <distributionManagement>
         <repository>
