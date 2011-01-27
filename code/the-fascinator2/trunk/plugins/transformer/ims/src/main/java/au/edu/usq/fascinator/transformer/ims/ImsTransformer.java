@@ -44,8 +44,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * 
- * <h3>Introduction</h3>
  * <p>
  * This plugin is used for harvesting <a
  * href="http://en.wikipedia.org/wiki/IMS_Global">IMS packages</a> by relying on

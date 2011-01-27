@@ -41,8 +41,6 @@ import org.slf4j.LoggerFactory;
 
 
 /**
- * 
- * <h3>Introduction</h3>
  * <p>
  * This plugin is a sample plugin on how to manage authentication
  * against basic files on the filesystem.

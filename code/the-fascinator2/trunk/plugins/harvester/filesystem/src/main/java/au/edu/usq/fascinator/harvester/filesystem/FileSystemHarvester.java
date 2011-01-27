@@ -53,7 +53,6 @@ import au.edu.usq.fascinator.common.harvester.impl.GenericHarvester;
 import au.edu.usq.fascinator.common.storage.StorageUtils;
 
 /**
- * <h3>Introduction</h3>
  * <p>
  * This plugin harvests files in a specified directory or a specified file on
  * the local file system. it can use a cache to do incremental harvests, which

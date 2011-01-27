@@ -44,8 +44,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * 
- * <h3>Introduction</h3>
  * <p>
  * This plugin is a Fascinator access control plugin using Derby database
  * </p>

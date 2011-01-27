@@ -51,7 +51,6 @@ import au.edu.usq.fascinator.common.harvester.impl.GenericHarvester;
 import au.edu.usq.fascinator.common.storage.StorageUtils;
 
 /**
- * <h3>Introduction</h3>
  * <p>
  * This plugin harvests metadata records from an OAI-PMH compatible repository
  * using <a href="http://www.openarchives.org/pmh/">OAI-PMH</a> protocol. If the
