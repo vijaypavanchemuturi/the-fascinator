@@ -1,6 +1,6 @@
 /* 
  * The Fascinator - Fedora Commons 3.x storage plugin
- * Copyright (C) 2009 University of Southern Queensland
+ * Copyright (C) 2009-2011 University of Southern Queensland
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -37,9 +37,64 @@ import au.edu.usq.fedora.types.ObjectFieldType;
 import au.edu.usq.fedora.types.ResultType;
 
 /**
- * Fedora3 storage to store DigitalObject
- * 
- * @author Linda Octalina & Oliver Lucido
+ * This plugin uses the Fedora Commons 3.x software for storage of Fascinator
+ * DigitalObjects.
+ *
+ * <h3>Configuration</h3>
+ * <table border="1">
+ * <tr>
+ * <th>Option</th>
+ * <th>Description</th>
+ * <th>Required</th>
+ * <th>Default</th>
+ * </tr>
+ * <tr>
+ * <td>url</td>
+ * <td>Base URL of a Fedora Commons server</td>
+ * <td><b>Yes</b></td>
+ * <td>http://localhost:8080/fedora</td>
+ * </tr>
+ * <td>username</td>
+ * <td>Fedora user account with read/write access</td>
+ * <td><b>Yes</b> (depending on server setup)</td>
+ * <td>fedoraAdmin</td>
+ * </tr>
+ * </tr>
+ * <td>password</td>
+ * <td>Password for the above user account</td>
+ * <td><b>Yes</b> (depending on server setup)</td>
+ * <td>fedoraAdmin</td>
+ * </tr>
+ * <td>namespace</td>
+ * <td>Namespace to use for Fedora Object PIDs</td>
+ * <td>No</td>
+ * <td>uuid</td>
+ * </tr>
+ * </table>
+ *
+ * <h3>Sample configuration</h3>
+ * <pre>
+ * {
+ *     "storage": {
+ *         "type": "fedora3",
+ *         "fedora3": {
+ *             "url": "http://localhost:8080/fedora",
+ *             "username": "fedoraAdmin",
+ *             "password": "fedoraAdmin",
+ *             "namespace": "uuid"
+ *         }
+ *     }
+ * }
+ * </pre>
+ *
+ * <h3>Further reading</h3>
+ * <p>
+ * See https://fascinator.usq.edu.au/trac/wiki/Fascinator/Documents/Plugins/Storage/Fedora3
+ * for a more detailed description of this plugin.
+ * </p>
+ *
+ * @author Linda Octalina
+ * @author Oliver Lucido
  */
 public class Fedora3Storage implements Storage {
 
