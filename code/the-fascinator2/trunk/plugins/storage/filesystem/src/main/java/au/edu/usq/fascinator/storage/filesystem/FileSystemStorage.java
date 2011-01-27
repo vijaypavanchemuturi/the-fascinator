@@ -44,8 +44,6 @@ import au.edu.usq.fascinator.common.FascinatorHome;
 import au.edu.usq.fascinator.common.JsonConfig;
 
 /**
- * 
- * <h3>Introduction</h3>
  * <p>
  * This plugin is implemeted based on Dflat/Pairtree which storaes the
  * DigitalObjects in the local file system.

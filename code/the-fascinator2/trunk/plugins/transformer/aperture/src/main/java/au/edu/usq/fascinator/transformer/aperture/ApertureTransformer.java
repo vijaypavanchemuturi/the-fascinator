@@ -61,7 +61,6 @@ import au.edu.usq.fascinator.common.MimeTypeUtil;
 import au.edu.usq.fascinator.common.storage.StorageUtils;
 
 /**
- * <h3>Introduction</h3>
  * <p>
  * In this plugin <a href="http://aperture.sourceforge.net/">Aperture
  * Framework</a> is utilised to extract RDF metadata and full-text from the

@@ -46,7 +46,6 @@ import au.edu.usq.fascinator.common.harvester.impl.GenericHarvester;
 import au.edu.usq.fascinator.common.storage.StorageUtils;
 
 /**
- * <h3>Introduction</h3>
  * <p>
  * This plugin is a basic harvester for ingesting uploaded content into
  * workflows. It creates the DigitalObject of a source object for the standard

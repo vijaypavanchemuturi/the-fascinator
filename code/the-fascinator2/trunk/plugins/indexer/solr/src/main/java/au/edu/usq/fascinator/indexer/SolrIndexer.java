@@ -65,8 +65,6 @@ import au.edu.usq.fascinator.common.MessagingServices;
 import au.edu.usq.fascinator.common.PythonUtils;
 
 /**
- * 
- * <h3>Introduction</h3>
  * <p>
  * This plugin provides indexing services for DigitalObjects and payloads in The
  * Fascinator through <a href="http://lucene.apache.org/solr/">Apache Solr</a>.

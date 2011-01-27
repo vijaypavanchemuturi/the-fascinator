@@ -38,8 +38,6 @@ import au.edu.usq.fascinator.common.JsonConfigHelper;
 import au.edu.usq.fascinator.common.PythonUtils;
 
 /**
- * 
- * <h3>Introduction</h3>
  * <p>
  * This plugin provides method for batch processing the DigitalObjects
  * </p>
