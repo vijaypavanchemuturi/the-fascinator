@@ -64,7 +64,6 @@ import au.edu.usq.fascinator.common.storage.StorageUtils;
 import au.edu.usq.fascinator.vocabulary.SKOS;
 
 /**
- * <h3>Introduction</h3>
  * <p>
  * This plugin harvest <a
  * href="http://www.w3.org/TR/2009/NOTE-skos-primer-20090818/">SKOS</a> rdf/xml
