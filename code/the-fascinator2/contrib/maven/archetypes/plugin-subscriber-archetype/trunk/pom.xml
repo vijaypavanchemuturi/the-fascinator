@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>au.edu.usq.fascinator.plugins</groupId>
     <artifactId>plugin-subscriber-archetype</artifactId>
-    <version>0.7.3-SNAPSHOT</version>
+    <version>0.7.3</version>
     <packaging>maven-archetype</packaging>
     <name>plugin-subscriber-archetype</name>
     <description>Archetype from Subscriber API v0.7.3</description>
@@ -25,9 +25,9 @@
         </pluginManagement>
     </build>
     <scm>
-        <url>http://fascinator.usq.edu.au/svn/code/the-fascinator2</url>
-        <connection>scm:svn:http://fascinator.usq.edu.au/svn/code/the-fascinator2/contrib/maven/archetypes/plugin-subscriber-archetype</connection>
-        <developerConnection>scm:svn:https://fascinator.usq.edu.au/svn-auth/code/the-fascinator2/contrib/maven/archetypes/plugin-subscriber-archetype</developerConnection>
+        <url>http://fascinator.usq.edu.au/svn/code/the-fascinator2/tags/plugin-subscriber-archetype-0.7.3</url>
+        <connection>scm:svn:http://fascinator.usq.edu.au/svn/code/the-fascinator2/contrib/maven/archetypes/plugin-subscriber-archetype/tags/plugin-subscriber-archetype-0.7.3</connection>
+        <developerConnection>scm:svn:https://fascinator.usq.edu.au/svn-auth/code/the-fascinator2/contrib/maven/archetypes/plugin-subscriber-archetype/tags/plugin-subscriber-archetype-0.7.3</developerConnection>
     </scm>
     <distributionManagement>
         <repository>
