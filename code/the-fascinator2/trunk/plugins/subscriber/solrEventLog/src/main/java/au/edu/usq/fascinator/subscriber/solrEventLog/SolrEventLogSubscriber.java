@@ -45,10 +45,79 @@ import org.apache.commons.lang.StringEscapeUtils;
 import org.slf4j.MDC;
 
 /**
- * A Fascinator Subscriber plugin implementation using a security solr core
+ * <p>
+ * This plugin implements Event log subscriber using security solr 
+ * core within the Fascinator.
  * 
+ * <h3>Configuration</h3> 
+ * <p>Standard configuration table:</p>
+ * <table border="1">
+ * <tr>
+ * <th>Option</th>
+ * <th>Description</th>
+ * <th>Required</th>
+ * <th>Default</th>
+ * </tr>
+ * 
+ * <tr>
+ * <td>uri</td>
+ * <td>The URI of the Solr event log service</td>
+ * <td><b>Yes</b></td>
+ * <td>http://localhost:9997/solr/eventlog</td>
+ * </tr>
+ * 
+ * <tr>
+ * <td>docLimit</td>
+ * <td>Document Limit before commit to Solr</td>
+ * <td></td>
+ * <td>200</td>
+ * </tr>
+ * 
+ * <tr>
+ * <td>sizeLimit</td>
+ * <td>Size Limit before commit to Solr</td>
+ * <td></td>
+ * <td>204800</td>
+ * </tr>
+ * 
+ * <tr>
+ * <td>timeLimit</td>
+ * <td>Time Limit in minutes before commit to Solr</td>
+ * <td></td>
+ * <td>30</td>
+ * </tr>
+ * 
+ * </table>
+ * 
+ * <h3>Examples</h3>
+ * <ol>
+ * <li>
+ * Using Solr event subscriber plugin in The Fascinator
+ * 
+ * <pre>
+ *      "subscriber": {
+ *      "solr": {
+ *          "uri": "http://localhost:9997/solr/eventlog",
+ *          "buffer": {
+ *              "docLimit" : "200",
+ *              "sizeLimit" : "204800",
+ *              "timeLimit" : "30"
+ *          }
+ *      }
+ *  }
+ * </pre>
+ * 
+ * </li>
+ * </ol>
+ * 
+ * <h3>Wiki Link</h3>
+ * <p>
+ * None
+ * </p>
+ *
  * @author Linda Octalina
  */
+
 public class SolrEventLogSubscriber implements Subscriber {
 
     /** Logging */
