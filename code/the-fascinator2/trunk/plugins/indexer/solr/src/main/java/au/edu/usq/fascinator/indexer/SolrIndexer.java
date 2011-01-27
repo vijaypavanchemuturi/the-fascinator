@@ -64,6 +64,93 @@ import au.edu.usq.fascinator.common.JsonConfigHelper;
 import au.edu.usq.fascinator.common.MessagingServices;
 import au.edu.usq.fascinator.common.PythonUtils;
 
+/**
+ * 
+ * <h3>Introduction</h3>
+ * <p>
+ * This plugin provides indexing services for DigitalObjects and payloads in The
+ * Fascinator through <a href="http://lucene.apache.org/solr/">Apache Solr</a>.
+ * </p>
+ * 
+ * <h3>Configuration</h3>
+ * <p>
+ * Standard configuration table:
+ * </p>
+ * <table border="1">
+ * <tr>
+ * <th>Option</th>
+ * <th>Description</th>
+ * <th>Required</th>
+ * <th>Default</th>
+ * </tr>
+ * 
+ * <tr>
+ * <td>uri</td>
+ * <td>The URI of the Solr service</td>
+ * <td><b>Yes</b></td>
+ * <td>http://localhost:9997/solr/fascinator</td>
+ * </tr>
+ * 
+ * <tr>
+ * <td>coreName</td>
+ * <td>The name of the indexer</td>
+ * <td><b>Yes</b></td>
+ * <td>fascinator</td>
+ * </tr>
+ * 
+ * <tr>
+ * <td>autocommit</td>
+ * <td>If true, solr will commit any changes for every object update</td>
+ * <td><b>Yes</b></td>
+ * <td>false</td>
+ * </tr>
+ * 
+ * <tr>
+ * <td>embedded</td>
+ * <td>If false, Solr is started as a separate web application. If true, Solr
+ * will start in embedded mode which is non-HTTP accessible. <b>Note:</b> that
+ * the current version of Solr (1.4) has bugs when running as embedded, version
+ * 1.3 is more stable, so it's recommended to keep this option set to false.</td>
+ * <td><b>Yes</b></td>
+ * <td>false</td>
+ * </tr>
+ * 
+ * </table>
+ * 
+ * <h3>Examples</h3>
+ * <ol>
+ * <li>
+ * Using Internal authentication plugin in The Fascinator
+ * 
+ * <pre>
+ *         "solr": {
+ *             "uri": "http://localhost:9997/solr/fascinator",
+ *             "coreName": "fascinator",
+ *             "autocommit": false,
+ *             "embedded": true
+ *         }
+ * </pre>
+ * 
+ * </li>
+ * </ol>
+ * 
+ * <h3>Rule file</h3>
+ * <p>
+ * The Solr Indexer takes a rules file to assist it in indexing various content.
+ * This allows you to set up indexing rules for individual harvests. For
+ * example, harvests that are transformed by the Aperture plugin need indexing
+ * on RDF whereas OAI-PMH Harvests probably don't need transforming and the XML
+ * DC is indexed.
+ * </p>
+ * 
+ * <h3>Wiki Link</h3>
+ * <p>
+ * None
+ * </p>
+ * 
+ * @author Greg Pendlebury
+ */
+
 public class SolrIndexer implements Indexer {
 
     /** A fake OID for Anotar - Used in caching/execution */
