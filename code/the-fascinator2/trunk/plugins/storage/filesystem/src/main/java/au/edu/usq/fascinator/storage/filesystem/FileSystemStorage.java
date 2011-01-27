@@ -44,10 +44,62 @@ import au.edu.usq.fascinator.common.FascinatorHome;
 import au.edu.usq.fascinator.common.JsonConfig;
 
 /**
- * File system storage plugin based on Dflat/Pairtree
+ * 
+ * <h3>Introduction</h3>
+ * <p>
+ * This plugin is implemeted based on Dflat/Pairtree which storaes the
+ * DigitalObjects in the local file system.
+ * 
+ * </p>
+ * 
+ * <h3>Configuration</h3>
+ * <p>
+ * Standard configuration table:
+ * </p>
+ * <table border="1">
+ * <tr>
+ * <th>Option</th>
+ * <th>Description</th>
+ * <th>Required</th>
+ * <th>Default</th>
+ * </tr>
+ * 
+ * <tr>
+ * <td>home</td>
+ * <td>Location where the files are stored</td>
+ * <td><b>Yes</b></td>
+ * <td>${fascinator.home}/storage</td>
+ * </tr>
+ * 
+ * </table>
+ * 
+ * <h3>Examples</h3>
+ * <ol>
+ * <li>
+ * Using Filesystem Storage plugin in The Fascinator
+ * 
+ * <pre>
+ *      {
+ *     "storage": {
+ *         "type": "file-system",
+ *         "file-system": {
+ *             "home": "${fascinator.home}/storage"
+ *         }
+ * }
+ * 
+ * </pre>
+ * 
+ * </li>
+ * </ol>
+ * 
+ * <h3>Wiki Link</h3>
+ * <p>
+ * None
+ * </p>
  * 
  * @author Oliver Lucido
  */
+
 public class FileSystemStorage implements Storage {
 
     private static final String DEFAULT_HOME_DIR = FascinatorHome
