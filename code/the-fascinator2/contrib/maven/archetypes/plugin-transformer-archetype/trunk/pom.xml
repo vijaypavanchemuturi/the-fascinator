@@ -26,8 +26,8 @@
     </build>
     <scm>
         <url>http://fascinator.usq.edu.au/svn/code/the-fascinator2</url>
-        <connection>scm:svn:http://fascinator.usq.edu.au/svn/code/the-fascinator2/contrib/maven/archetypes/plugin-harvester-archetype</connection>
-        <developerConnection>scm:svn:https://fascinator.usq.edu.au/svn-auth/code/the-fascinator2/contrib/maven/archetypes/plugin-harvester-archetype</developerConnection>
+        <connection>scm:svn:http://fascinator.usq.edu.au/svn/code/the-fascinator2/contrib/maven/archetypes/plugin-transformer-archetype</connection>
+        <developerConnection>scm:svn:https://fascinator.usq.edu.au/svn-auth/code/the-fascinator2/contrib/maven/archetypes/plugin-transformer-archetype</developerConnection>
     </scm>
     <distributionManagement>
         <repository>
