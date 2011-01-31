@@ -75,7 +75,7 @@ import au.edu.usq.fascinator.common.storage.StorageUtils;
  * Transformer/Ffmpeg</a>
  * </p>
  * 
- * @author Oliver Lucido, Linda Octalina
+ * @author Oliver Lucido, Linda Octalina, Greg Pendlebury
  */
 
 public class FfmpegTransformer implements Transformer {
