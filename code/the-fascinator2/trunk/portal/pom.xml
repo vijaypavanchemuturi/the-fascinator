@@ -457,6 +457,7 @@
                     </execution>
                 </executions>
                 <configuration>
+                    <attachClasses>true</attachClasses>
                     <webResources>
                         <resource>
                             <directory>src/main/config</directory>
