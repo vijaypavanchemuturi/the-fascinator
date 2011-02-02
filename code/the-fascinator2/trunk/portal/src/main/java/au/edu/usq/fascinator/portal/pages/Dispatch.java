@@ -181,6 +181,15 @@ public class Dispatch {
         // if there's no persistant data found.
         prepareFormData();
 
+        // Set session timeout (defaults to 2 hours)
+        try {
+            int timeoutMins;
+            timeoutMins = Integer.parseInt(sysConfig.get("portal/sessionTimeout", "120"));
+        } catch (Exception e){
+            log.error("sessionTimeout value is invalid! (It must be an integer string only)");
+        }
+
+
         // SSO Integration - Ignore AJAX and such
         if (!isSpecial) {
             // Make sure it's not a static resource
