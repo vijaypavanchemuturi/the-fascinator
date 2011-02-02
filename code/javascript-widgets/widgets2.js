@@ -1229,13 +1229,15 @@ var widgets={forms:[], globalObject:this};
                 messageBox("Failed to "+stype+"! (error='"+data.error+"') response='"+dataStr+"'");
             }else{
                 callIfFunction(xResultFunc, widgetForm, data);
+                var sr;
                 if(stype=="save"){
-                    ctx.findx(".saved-result").text("Saved OK").
+                    sr=ctx.findx(".saved-result").text("Saved OK").
                         css("color", "green").show().fadeOut(4000);
                 }else if(stype=="submit"){
-                    ctx.findx(".submit-result").text("Submitted OK").
+                    sr=ctx.findx(".submit-result").text("Submitted OK").
                         css("color", "green").show().fadeOut(4000);
                 }
+                setTimeout(function(){sr.hide();}, 4100);  // work around for bug in fadeOut not hiding invisible items
                 lastData = getFormData();
             }
         };
