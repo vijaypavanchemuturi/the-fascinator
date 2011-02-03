@@ -185,6 +185,7 @@ public class Dispatch {
         try {
             int timeoutMins;
             timeoutMins = Integer.parseInt(sysConfig.get("portal/sessionTimeout", "120"));
+            hsr.getSession().setMaxInactiveInterval(timeoutMins*60);
         } catch (Exception e){
             log.error("sessionTimeout value is invalid! (It must be an integer string only)");
         }
