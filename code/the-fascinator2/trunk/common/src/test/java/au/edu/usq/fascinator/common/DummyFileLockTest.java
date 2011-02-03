@@ -80,6 +80,8 @@ public class DummyFileLockTest {
                 @Override
                 public Boolean call() throws Exception {
                     int delay = generator.nextInt(1000);
+                    // TODO : Some rare occurances of two threads getting the
+                    //  the same values from 'complexI'. Need a better idea
                     int i = complexI++;
 
                     try {
