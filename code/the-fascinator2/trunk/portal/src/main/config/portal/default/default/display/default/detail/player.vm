@@ -86,8 +86,20 @@
                 var link = '<a href="' + fallback + '" target="_blank">$fallbackPreview</a>';
                 var html = '<p>' + message + '<br/><br/>Redirecting: ' + link + '</p>';
                 $("#player-container").html(html);
-                ## When we redirect, check for a preview flag
-                window.location = fallback + window.location.search;
+
+                ## Some query parameters are in session from SSO round-trip
+                ##   or they may be there as part of a normal GET request. This
+                ##   method gets both and avoids duplication
+                #set ($ssoQuery = "")
+                #set ($qPreview = $velocityContext.get('formData').get('preview'))
+                #if ($qPreview != $nullValue)
+                    #set($ssoQuery = $ssoQuery + "&preview=" + $qPreview)
+                #end
+                #set ($qDownload = $velocityContext.get('formData').get('download'))
+                #if ($qDownload != $nullValue)
+                    #set($ssoQuery = $ssoQuery + "&download=" + $qDownload)
+                #end
+                window.location = fallback + "?$ssoQuery";
 
             ## We're done
             } else {
