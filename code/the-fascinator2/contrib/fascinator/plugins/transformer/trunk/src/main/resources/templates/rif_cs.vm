@@ -1,0 +1,69 @@
+#macro(showElement $tag $field $attr $label $anzsrc)
+    #set($valueMap = $util.getList($item, $field))
+    #foreach($key in $valueMap.keySet())
+        #set($value = $valueMap.get($key))
+    #if ($label != "")
+    #set($labelVal = $value.get($label))
+    #if ($anzsrc == "anzsrc")
+        #set($labelVal = $labelVal.split("-").get(0).trim())
+    #end
+    <$tag$attr>$labelVal</$tag>
+    #else
+    <$tag$attr>$value.get($key)</$tag>
+    #end
+    #end
+#end
+
+#set($quote='"')
+#set($lang = "xml:lang=${quote}$item.get('dc:language')${quote}")
+<registryObjects xmlns="http://ands.org.au/standards/rif-cs/registryObjects" 
+            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+            xsi:schemaLocation="http://ands.org.au/standards/rif-cs/registryObjects http://services.ands.org.au/home/orca/schemata/1.2.0/registryObjects.xsd"> 
+    <registryObject group="University of Newcastle"> 
+        <key>$urlBase/detail/$oid</key> 
+        <originatingSource type="authoritative">$urlBase/detail/$oid</originatingSource>
+        <collection type="$item.get("dc:type")" dateModified="$util.getW3CDateTime($item.get("dc:modified"))" dateAccessioned="$util.getW3CDateTime($item.get("dc:created"))">
+            <identifier type="uri">$urlBase/detail/$oid</identifier>
+            <name type="primary" $lang>
+                <namePart type="full">$item.get("dc:title")</namePart>
+            </name>
+            
+            <description type="full" $lang>$item.get("dc:description")</description>
+            <description type="accessRights" $lang>$item.get("access_conditions")</description>
+            
+            <location>
+                <address>
+                    <electronic type="url">
+                        <value>$urlBase/detail/$oid</value>
+                    </electronic>
+                </address>
+            </location>
+            
+            <coverage>
+                <temporal>
+                    <date type="dateFrom" dateFormat="W3CDTF">$util.getW3CDateTime($item.get("dc:coverage.from"))</date>
+                    <date type="dateTo" dateFormat="W3CDTF">$util.getW3CDateTime($item.get("dc:coverage.to"))</date>
+                </temporal>
+                <temporal>
+                    <text>$item.get("time_period")</text>
+                </temporal>
+##                <spatial type="{}" $lang>
+##                    {co-ords}
+##                </spatial>
+            </coverage>
+            
+            #showElement("subject" "dc:subject.keywords", " type=${quote}local${quote} $lang", "", "")
+            #showElement("subject" "dc:subject.anzsrc:for", " type=${quote}local${quote} $lang", "skos:prefLabel", "anzsrc")
+            #showElement("subject" "dc:subject.anzsrc:seo", " type=${quote}local${quote} $lang", "skos:prefLabel", "anzsrc")
+            
+            #showElement("relatedInfo" "citations", "", "", "")
+            <relatedInfo>$item.get("website")<relatedInfo>
+            
+            <relatedOwner>
+                <key>$item.get("data_owner")</key>
+                <relation type="isOwnedBy"/>
+            </relatedOwner>
+            
+        </collection>
+    </registryObject> 
+</registryObjects>
