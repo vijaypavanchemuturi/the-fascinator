@@ -1,0 +1,50 @@
+#macro(showElement $tag $field $attr $label)
+    #set($valueMap = $util.getList($item, $field))
+    #foreach($key in $valueMap.keySet())
+        #set($value = $valueMap.get($key))
+    #if ($label != "")
+<$tag$attr>$value.get($label)</$tag>
+    #else
+<$tag$attr>$value.get($key)</$tag>
+    #end
+    #end
+#end
+
+#macro(showSingleElement $map $tag $field $attr)
+    #set($value = $map.get($field))
+    #if ($value != "")
+<$tag$attr>$value</$tag>
+    #end
+#end
+
+#macro(showCreator $tag $field $attr)
+    #set($creatorList = $util.getList($item, $field))
+    #foreach($key in $creatorList.keySet())
+        #set($creator = $creatorList.get($key))
+<$tag$attr>$creator.get("foaf:givenName")&nbsp;$creator.get("foaf:familyName")</$tag>
+    #end 
+#end
+
+<oai_dc:dc xsi:schemaLocation="http://www.openarchives.org/OAI/2.0/oai_dc/ http://www.openarchives.org/OAI/2.0/oai_dc.xsd" xmlns:oai_dc="http://www.openarchives.org/OAI/2.0/oai_dc/" xmlns:dc="http://purl.org/dc/elements/1.1/">
+#showSingleElement($item, "dc:title" "dc:title", "")
+#showSingleElement($item, "dc:description" "dc:description", "")
+#showSingleElement($item, "dc:type" "dc:type", "")
+#showSingleElement($item, "dc:created" "dc:created", "")
+#showSingleElement($item, "dc:modified" "dc:modified", "")
+#showSingleElement($item, "dc:language" "dc:language", "")
+    
+#showElement("dc:subject" "dc:subject.keywords", "", "")
+#showElement("dc:subject" "dc:subject.anzsrc:for", "", "skos:prefLabel")
+#showElement("dc:subject" "dc:subject.anzsrc:seo", "", "skos:prefLabel")
+    
+##showCreator("dc:creator", "dc:creator.foaf:Person", "")
+#set($creatorList = $util.getList($item, "dc:creator.foaf:Person"))
+#foreach($key in $creatorList.keySet())
+        #set($creator = $creatorList.get($key))
+        <dc:creator>$creator.get("foaf:givenName")&nbsp;$creator.get("foaf:familyName")</dc:creator>
+#showSingleElement($creator, "dc:relation", "dc:identifier", "")
+#showSingleElement($creator, "dc:relation", "association", "")
+#showSingleElement($creator, "dc:relation", "association.skos:prefLabel", "")
+#end 
+
+</oai_dc:dc>
