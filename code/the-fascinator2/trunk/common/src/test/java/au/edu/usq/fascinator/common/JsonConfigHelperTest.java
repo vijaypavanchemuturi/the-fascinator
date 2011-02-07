@@ -20,6 +20,7 @@ package au.edu.usq.fascinator.common;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -204,4 +205,61 @@ public class JsonConfigHelperTest {
         config.setJsonList("children", list);
         Assert.assertEquals("true", config.get("children[3]/json/test"));
     }
+
+    /*
+     * Written as part of a speed comparison with new JSON Library. Uncomment
+     * to execute. Benchmarks from my laptop for reference:
+     *
+     * === JsonConfigHelper : Parsing : 1000 @ 798ms
+     * === JsonConfigHelper : Reading : 1000 @ 30ms
+     * === JsonConfigHelper : Objects : 1000 @ 14ms
+     * === JsonConfigHelper : Writing : 1000 @ 8ms
+     * === JsonConfigHelper : Searching : 1000 @ 355ms
+     *
+    @Test
+    public void speedTest() throws Exception {
+        int limit = 1000;
+
+        // Parse speed
+        long startTime = new Date().getTime();
+        for (int i = 0; i < limit; i++) {
+            config = new JsonConfigHelper(getClass().getResourceAsStream("/test-config.json"));
+        }
+        long endTime = new Date().getTime();
+        System.out.println("=== JsonConfigHelper : Parsing : " + limit + " @ " + (endTime - startTime) + "ms");
+
+        // Basic retrieval speed
+        startTime = new Date().getTime();
+        for (int i = 0; i < limit; i++) {
+            int output = Integer.parseInt(config.get("transformer/ice2/resize/thumbnail/resize.image.fixedWidth", null));
+        }
+        endTime = new Date().getTime();
+        System.out.println("=== JsonConfigHelper : Reading : " + limit + " @ " + (endTime - startTime) + "ms");
+
+        // Object retrieval speed
+        startTime = new Date().getTime();
+        for (int i = 0; i < limit; i++) {
+            Map<String, JsonConfigHelper> resizeMap = config.getJsonMap("/transformer/ice2/resize");
+        }
+        endTime = new Date().getTime();
+        System.out.println("=== JsonConfigHelper : Objects : " + limit + " @ " + (endTime - startTime) + "ms");
+
+        // Write speed
+        startTime = new Date().getTime();
+        for (int i = 0; i < limit; i++) {
+            config.set("some/random/path/key", "value");
+        }
+        endTime = new Date().getTime();
+        System.out.println("=== JsonConfigHelper : Writing : " + limit + " @ " + (endTime - startTime) + "ms");
+
+        // Search speed
+        startTime = new Date().getTime();
+        for (int i = 0; i < limit; i++) {
+            List<Object> subLists = config.getList("/map-list//sub-list");
+            List<Object> labels = config.getList("/portal/facet-fields//label");
+        }
+        endTime = new Date().getTime();
+        System.out.println("=== JsonConfigHelper : Searching : " + limit + " @ " + (endTime - startTime) + "ms");
+    }
+    */
 }
