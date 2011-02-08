@@ -1,0 +1,12 @@
+#parseTemplate("facets/facet-list-header.vm")
+
+#if($hasResult)
+    #set($facetFields = $self.result.getMap("facet_counts/facet_fields"))
+    #foreach($facetFieldKey in $facetFields.keySet())
+        #set($facetField = $self.getFacetField($facetFieldKey))
+        #set($facetDisplay = $facetField.get("display"))
+        #parseTemplate("facets/display/${facetDisplay}.vm")
+    #end
+#end
+
+#parseTemplate("facets/facet-list-footer.vm")
