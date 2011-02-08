@@ -192,6 +192,8 @@ var widgets={forms:[], globalObject:this};
         (                                   12
           ( [^'"\)\(\/\\] | \\. )*              anything but ' " ) ( \ /  13
         )
+        |
+        (?: \( [^\)]* \) )                      do not capture ( ... )
       )*
     )
     \)                                          )
@@ -208,7 +210,7 @@ var widgets={forms:[], globalObject:this};
     //var reg1=/(\s*(\w+)\s*(\(((('([^'\\]|\\.)*')|("([^"\\]|\\.)*")|(\/([^\/\\]|\\.)*\/)|(([^'"\/\\]|\\.)*?))*?)\))\s*(;|$)\s*)|(\s*(;|$))/g; // 2, 4, 14, 15=Err
     //var reg2=/(\()|(\))|('([^'\\]|\\.)*')|("([^"\\]|\\.)*")|(\/([^\/\\]|\\.)*\/)|(\w[\w\d\._]*)|(([^\(\)\w\s'"\/\\]|\\.)+)/g;
     //var reg3=/(\s*(rule)\s*(\{((('([^'\\]|\\.)*')|("([^"\\]|\\.)*")|(\/([^\/\\]|\\.)*\/)|(([^'"\/\\]|\\.)*?))*?)\}))/g; // 4
-    var reg1=/(\s*(\w+)\s*(\(((('([^'\\]|\\.)*')|("([^"\\]|\\.)*")|(\/([^\/\\]|\\.)*\/)|(([^'"\)\(\/\\]|\\.)*))*)\))\s*(;|$)\s*)|(\s*(;|$))/g; // 2, 4, 14, 15=Err
+    var reg1=/(\s*(\w+)\s*(\(((('([^'\\]|\\.)*')|("([^"\\]|\\.)*")|(\/([^\/\\]|\\.)*\/)|(([^'"\)\(\/\\]|\\.)*)|(?:\([^\)]*\)))*)\))\s*(;|$)\s*)|(\s*(;|$))/g; // 2, 4, 14, 15=Err
     var reg2=/(\()|(\))|('([^'\\]|\\.)*')|("([^"\\]|\\.)*")|(\/([^\/\\]|\\.)*\/)|(\w[\w\d\._]*)|(([^\(\)\w\s'"\/\\]|\\.)+)/g;
     var reg3=/(\s*(rule)\s*(\{((('([^'\\]|\\.)*')|("([^"\\]|\\.)*")|(\/([^\/\\]|\\.)*\/)|(([^'"\)\(\/\\]|\\.)*))*)\}))/g; // 4
     var allTests=[], actionTests={}, namedTests={};
@@ -253,8 +255,8 @@ var widgets={forms:[], globalObject:this};
           if(v=="("){v=reader.next();if(reader.lookAHead()==")")reader.next();}
           return v*1;
       }
+      // macros
       if(vl=="email"){v="/.+?\\@.+\\..+?/";}
-      else if(vl=="empty"){expr="(v=='')";}
       else if(vl=="yyyy"){    v="/^[12]\\d{3}$/";}
       else if(vl=="yyyymm"){  v="/^[12]\\d{3}([\\/\\\\\\-](0?[1-9]|1[012])|((0[1-9])|(1[012])))$/";}
       else if(vl=="yyyymmdd"){v="/^[12]\\d{3}([\\/\\\\\\-](0?[1-9]|1[012])|((0[1-9])|(1[012])))([\\/\\\\\\-](0?[1-9]|[12]\\d|3[01])|((0[1-9])|[12]\\d|(3[01])))$/";}
@@ -279,7 +281,9 @@ var widgets={forms:[], globalObject:this};
             return "";
           }
           v="/^.{0,"+(n-1)+"}$/"; }
-      if(vl=="notempty"){expr="(v!='')";}
+      //
+      if(vl=="empty"){expr="(v=='')";}
+      else if(vl=="notempty"){expr="(v!='')";}
       else if(vl=="checked"){expr='target.attr("checked")';}
       else if(vl=="notchecked"){expr='!target.attr("checked")';}
       else if(v=="="){expr="(v=="+reader.next()+")";}
@@ -287,6 +291,7 @@ var widgets={forms:[], globalObject:this};
       else if(v[0]=="/"){expr="("+v+".test(v))";}
       else if(v.substr(0,2)=="!/"){expr="("+v+".test(v))";}
       else if(v=="("){expr+="("+getExpr(reader)+")";if(reader.next()!=")"){alert("expected a ')'!");}; }
+      else if(v.toLowerCase()=="not"){expr+="!"+getExpr(reader);}
       else if(/^[\w\d\._]+$/.test(v)){expr+="testTest('"+v+"')";}
       v=reader.lookAHead();
       if(v){
@@ -365,6 +370,10 @@ var widgets={forms:[], globalObject:this};
             }
             allTests.push(dict);
         };
+        vLabels.each(function(c, v){
+            v = $(v).dataset("rule");
+            if(v){rule(v);}
+        });
         ctx.find(".validation-rule").each(function(c, v){
             v = $(v).val() || $(v).text();
             rule(v);
@@ -384,7 +393,9 @@ var widgets={forms:[], globalObject:this};
                 var vLabel=vLabels.filter("[for="+f+"]");
                 getValue=function(){ return target.val(); };
                 showValidationMessage=function(show){
-                    show?vLabel.show():vLabel.hide();
+                    try{
+                        show?vLabel.show():vLabel.hide();
+                    }catch(e){}
                     return show;
                 };
                 $.each(l, function(c, d){
@@ -411,6 +422,7 @@ var widgets={forms:[], globalObject:this};
                         reader = iterReader(m);
                         while(!!(w=getWhen(reader))){
                           w.target = w.target||target;
+                          if(!w.action) continue;
                           w.target.bind(w.action, function(){func();return true;});
                           if(!actionTests[w.action]) actionTests[w.action]=[];
                           actionTests[w.action].push(func);
@@ -470,28 +482,39 @@ var widgets={forms:[], globalObject:this};
   };
 
   function helpWidget(e){
-    var helpContent, showText, hideText, url;
+    var helpContent, showText, hideText, url, p, t;
     var showLink, hideLink, doNext;
     var show, hide;
-    helpContent = $("#" + e.dataset("help-content-id"));
+    if(e.dataset("help-content-id")){
+        helpContent = $("#" + e.dataset("help-content-id"));
+    }else{
+        helpContent = e.dataset("help-content-class");
+        while(p = e.parent()){
+            t = p.find("."+helpContent);
+            if(t.size()){helpContent=t; break;}
+        }
+        if(!p){alert("help-content-class '"+helpContent+"' not found!"); return;}
+    }
     helpContent.hide();
     url=e.dataset("help-content-url");
-    showLink = e.find(".helpWidget-show");
-    hideLink = e.find(".helpWidget-hide").hide();
+    showLink = e.dataset("show-text") || e.find(".helpWidget-show")["0"];
+    hideLink = e.dataset("hide-text") || e.find(".helpWidget-hide")["0"];
+    //##
     show=function(){
         if($.trim(helpContent.text())=="" && url){
             helpContent.text("Loading help. Please wait...");
             helpContent.load(url);
         }
-        helpContent.slideDown();
-        showLink.hide(); hideLink.show();
+        helpContent.hasClass("inline")?helpContent.fadeIn():helpContent.slideDown();
+        if(hideLink)e.html(hideLink);
         doNext=hide;
     };
     hide=function(){
-        helpContent.slideUp();
-        showLink.show(); hideLink.hide();
+        helpContent.hasClass("inline")?helpContent.fadeOut():helpContent.slideUp();
+        if(showLink)e.html(showLink);
         doNext=show;
     };
+    if(showLink)e.html(showLink);
     doNext=show;
     e.click(function(){
         doNext();
