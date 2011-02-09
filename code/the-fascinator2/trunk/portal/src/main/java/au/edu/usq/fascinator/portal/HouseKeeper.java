@@ -1,6 +1,6 @@
 /*
  * The Fascinator - Portal - House Keeper
- * Copyright (C) 2010 University of Southern Queensland
+ * Copyright (C) 2010-2011 University of Southern Queensland
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,10 +25,12 @@ import au.edu.usq.fascinator.api.indexer.Indexer;
 import au.edu.usq.fascinator.api.storage.DigitalObject;
 import au.edu.usq.fascinator.api.storage.Storage;
 import au.edu.usq.fascinator.api.storage.StorageException;
-import au.edu.usq.fascinator.common.JsonConfig;
-import au.edu.usq.fascinator.common.JsonConfigHelper;
+import au.edu.usq.fascinator.common.JsonObject;
+import au.edu.usq.fascinator.common.JsonSimple;
+import au.edu.usq.fascinator.common.JsonSimpleConfig;
 import au.edu.usq.fascinator.common.storage.StorageUtils;
 import au.edu.usq.fascinator.portal.quartz.ExternalJob;
+import au.edu.usq.fascinator.portal.quartz.HarvestJob;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -53,7 +55,6 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.logging.Level;
 
 import javax.jms.DeliveryMode;
 import javax.jms.Destination;
@@ -88,7 +89,7 @@ public class HouseKeeper implements GenericListener {
     public static final String QUEUE_ID = "houseKeeping";
 
     /** Default timeout = 5 mins */
-    public static final long DEFAULT_TIMEOUT = 300;
+    public static final Integer DEFAULT_TIMEOUT = 300;
 
     /** JDBC Driver */
     private static String DERBY_DRIVER = "org.apache.derby.jdbc.EmbeddedDriver";
@@ -109,7 +110,7 @@ public class HouseKeeper implements GenericListener {
     private Logger log = LoggerFactory.getLogger(HouseKeeper.class);
 
     /** System configuration */
-    private JsonConfig globalConfig;
+    private JsonSimpleConfig globalConfig;
 
     /** Database home directory */
     private String derbyHome;
@@ -125,9 +126,6 @@ public class HouseKeeper implements GenericListener {
 
     /** JMS Session - Consumer */
     private Session cSession;
-
-    /** Desktop installation */
-    private boolean desktop;
 
     /** Indexer object */
     private Indexer indexer;
@@ -169,7 +167,7 @@ public class HouseKeeper implements GenericListener {
     private Scheduler scheduler;
 
     /** Config for scheduled jobs */
-    private List<JsonConfigHelper> jobConfig;
+    private List<JsonSimple> jobConfig;
 
     /**
      * Switch log file
@@ -204,10 +202,11 @@ public class HouseKeeper implements GenericListener {
     public void run() {
         openLog();
         try {
-            globalConfig = new JsonConfig();
+            globalConfig = new JsonSimpleConfig();
             // Get a connection to the broker
-            String brokerUrl = globalConfig.get("messaging/url",
-                    ActiveMQConnectionFactory.DEFAULT_BROKER_BIND_URL);
+            String brokerUrl = globalConfig.getString(
+                    ActiveMQConnectionFactory.DEFAULT_BROKER_BIND_URL,
+                    "messaging", "url");
             ActiveMQConnectionFactory connectionFactory =
                     new ActiveMQConnectionFactory(brokerUrl);
             connection = connectionFactory.createConnection();
@@ -291,20 +290,32 @@ public class HouseKeeper implements GenericListener {
      */
     private void quartzScheduling() {
         // Loop through each job
-        for (JsonConfigHelper thisJob : jobConfig) {
-            String name = thisJob.get("name");
+        for (JsonSimple thisJob : jobConfig) {
+            String name = thisJob.getString(null, "name");
             if (name == null) {
                 log.error("Configuration error. " +
                         "All jobs must have a 'name' value.");
                 continue;
             }
 
-            // Step 1 - Do we have a valid trigger?
+            // Step 1 - What type of job?
+            String type = thisJob.getString(null, "type");
+            if (type == null) {
+                // External is the default, also provides legacy support
+                type = "external";
+            }
+            if (!(type.equals("external") || type.equals("harvest"))) {
+                log.error("Unknown job type provided ('{}')", type);
+                continue;
+            }
+
+            // Step 2 - Do we have a valid trigger?
             CronTrigger trigger = null;
             try {
-                trigger = new CronTrigger(name, null, thisJob.get("timing"));
+                trigger = new CronTrigger(name, null,
+                        thisJob.getString(null, "timing"));
                 log.info("Scheduling Job: '{}' => '{}'",
-                        name, thisJob.get("timing"));
+                        name, thisJob.getString(null, "timing"));
                 //log.debug("Job timing: \n===\n{}\n===\n",
                 //        trigger.getExpressionSummary());
             } catch (ParseException ex) {
@@ -312,27 +323,41 @@ public class HouseKeeper implements GenericListener {
                 continue;
             }
 
-            // Step 2 - Prepare the job
-            JobDetail job = new JobDetail(name, null, ExternalJob.class);
-            String token = thisJob.get("token");
-            String urlString = thisJob.get("url");
-            if (urlString == null) {
-                log.error("No job URL in config ('{}')", name);
-                continue;
-            }
-            try {
-                // Make sure the URL is valid... we don't need it though
-                URL url = new URL(urlString);
-                job.getJobDataMap().put("url", urlString);
-                if (token != null) {
-                    job.getJobDataMap().put("token", token);
+            // Step 3 - Prepare the job
+            JobDetail job = null;
+            // External jobs
+            if (type.equals("external")) {
+                job = new JobDetail(name, null, ExternalJob.class);
+                String token = thisJob.getString(null, "token");
+                String urlString = thisJob.getString(null, "url");
+                if (urlString == null) {
+                    log.error("No job URL in config ('{}')", name);
+                    continue;
                 }
-            } catch (MalformedURLException ex) {
-                log.error("Invalid URL: '{}'", urlString, ex);
-                continue;
+                try {
+                    // Make sure the URL is valid... we don't need it though
+                    URL url = new URL(urlString);
+                    job.getJobDataMap().put("url", urlString);
+                    if (token != null) {
+                        job.getJobDataMap().put("token", token);
+                    }
+                } catch (MalformedURLException ex) {
+                    log.error("Invalid URL: '{}'", urlString, ex);
+                    continue;
+                }
+            }
+            // Harvest jobs
+            if (type.equals("harvest")) {
+                job = new JobDetail(name, null, HarvestJob.class);
+                String configFile = thisJob.getString(null, "configFile");
+                if (configFile == null) {
+                    log.error("No config path provided ('{}')", configFile);
+                    continue;
+                }
+                job.getJobDataMap().put("configFile", configFile);
             }
 
-            // Step 3 - Schedule the job
+            // Step 4 - Schedule the job
             try {
                 scheduler.scheduleJob(job, trigger);
             } catch (SchedulerException ex) {
@@ -348,18 +373,15 @@ public class HouseKeeper implements GenericListener {
      * @throws Exception for any failure
      */
     @Override
-    public void init(JsonConfigHelper config) throws Exception {
+    public void init(JsonSimpleConfig config) throws Exception {
         openLog();
         try {
             log.info("=================");
             log.info("Starting House Keeping object");
             // Configuration
-            globalConfig = new JsonConfig();
-            desktop = Boolean.parseBoolean(
-                    config.get("config/desktop", "true"));
-            timeout = Long.valueOf(config.get("config/frequency",
-                    String.valueOf(DEFAULT_TIMEOUT)));
-            derbyHome = config.get("config/derbyHome");
+            globalConfig = new JsonSimpleConfig();
+            timeout = config.getInteger(DEFAULT_TIMEOUT, "config", "frequency");
+            derbyHome = config.getString(null, "config", "derbyHome");
             if (derbyHome == null) {
                 throw new Exception("No database home directory configured!");
             }
@@ -377,11 +399,12 @@ public class HouseKeeper implements GenericListener {
                             "' does not exist and could not be created!");
                 }
             }
-            File sysFile = JsonConfig.getSystemFile();
+            File sysFile = JsonSimpleConfig.getSystemFile();
             stats = new LinkedHashMap();
 
             // Quartz Scheduler properties file
-            String quartzConfig = config.get("config/quartzConfig");
+            String quartzConfig = config.getString(null,
+                    "config", "quartzConfig");
             if (quartzConfig == null) {
                 throw new Exception(
                     "No scheduling config provided: 'config/quartzConfig'!");
@@ -403,14 +426,15 @@ public class HouseKeeper implements GenericListener {
             }
 
             /** Get the config for scheduled jobs */
-            jobConfig = config.getJsonList("config/jobs");
+            jobConfig = JsonSimple.toJavaList(
+                    config.getArray("config", "jobs"));
 
             // Initialise plugins
             indexer = PluginManager.getIndexer(
-                    globalConfig.get("indexer/type", "solr"));
+                    globalConfig.getString("solr", "indexer", "type"));
             indexer.init(sysFile);
             storage = PluginManager.getStorage(
-                    globalConfig.get("storage/type", "file-system"));
+                    globalConfig.getString("file-system", "storage", "type"));
             storage.init(sysFile);
 
         } catch (IOException ioe) {
@@ -591,12 +615,11 @@ public class HouseKeeper implements GenericListener {
                 Thread.currentThread().setPriority(thread.getPriority());
             }
 
-            // Doesn't really do anything yet
             String text = ((TextMessage) message).getText();
-            JsonConfigHelper msgJson = new JsonConfigHelper(text);
+            JsonSimple msgJson = new JsonSimple(text);
             //log.debug("Message\n{}", msgJson.toString());
 
-            String msgType = msgJson.get("type");
+            String msgType = msgJson.getString(null, "type");
             if (msgType == null) {
                 log.error("No message type set!");
                 closeLog();
@@ -623,7 +646,7 @@ public class HouseKeeper implements GenericListener {
 
             // Harvest file update
             if (msgType.equals("harvest-update")) {
-                String oid = msgJson.get("oid");
+                String oid = msgJson.getString(null, "oid");
                 if (oid != null) {
                     UserAction ua = new UserAction();
                     ua.block = false;
@@ -637,7 +660,7 @@ public class HouseKeeper implements GenericListener {
 
             // User notications
             if (msgType.equals("user-notice")) {
-                String messageText = msgJson.get("message");
+                String messageText = msgJson.getString(null, "message");
                 if (messageText != null) {
                     UserAction ua = new UserAction();
                     ua.block = false;
@@ -650,20 +673,22 @@ public class HouseKeeper implements GenericListener {
 
             // Statistics update from Broker Monitor
             if (msgType.equals("broker-update")) {
-                Map<String, JsonConfigHelper> queues =
-                        msgJson.getJsonMap("stats");
+                Map<String, JsonSimple> queues = JsonSimple.toJavaMap(
+                        msgJson.getObject("stats"));
                 for (String q : queues.keySet()) {
-                    JsonConfigHelper qData = queues.get(q);
+                    JsonSimple qData = queues.get(q);
                     Map<String, String> qStats = new HashMap();
-                    qStats.put("total",   qData.get("total"));
-                    qStats.put("lost",    qData.get("lost"));
-                    qStats.put("memory",  qData.get("memory"));
-                    qStats.put("size",    qData.get("size"));
+                    qStats.put("total",  qData.getString(null, "total"));
+                    qStats.put("lost",   qData.getString(null, "lost"));
+                    qStats.put("memory", qData.getString(null, "memory"));
+                    qStats.put("size",   qData.getString(null, "size"));
                     // Round to an integer value
-                    int spd = Float.valueOf(qData.get("speed")).intValue();
+                    int spd = Float.valueOf(
+                            qData.getString(null, "speed")).intValue();
                     qStats.put("speed",   String.valueOf(spd));
                     // Change from milliseconds to seconds
-                    float avg = Float.valueOf(qData.get("average")) / 1000;
+                    float avg = Float.valueOf(
+                            qData.getString(null, "average")) / 1000;
                     // Round to two digits
                     avg = Math.round(avg * 100)/100;
                     qStats.put("average", String.valueOf(avg));
@@ -671,13 +696,12 @@ public class HouseKeeper implements GenericListener {
                 }
             }
 
-            // 'Refresh' received, check config and rest timer
+            // 'Refresh' received, check config and reset timer
             if (msgType.equals("refresh")) {
                 log.info("Refreshing House Keeping");
-                globalConfig = new JsonConfig();
-                timeout = Long.valueOf(globalConfig.get(
-                        "portal/houseKeeping/config/frequency",
-                        String.valueOf(DEFAULT_TIMEOUT)));
+                globalConfig = new JsonSimpleConfig();
+                timeout = globalConfig.getInteger(DEFAULT_TIMEOUT,
+                        "portal", "houseKeeping", "config", "frequency");
                 log.info("Starting callback timer. Timeout = {}s", timeout);
                 timer.cancel();
                 timer = new Timer("HouseKeeping", true);
@@ -829,7 +853,8 @@ public class HouseKeeper implements GenericListener {
      */
     private void syncHarvestFiles() {
         // Get the harvest files directory
-        String harvestPath = globalConfig.get("portal/harvestFiles");
+        String harvestPath = globalConfig.getString(null,
+                "portal", "harvestFiles");
         if (harvestPath == null) {
             return;
         }
@@ -854,9 +879,9 @@ public class HouseKeeper implements GenericListener {
                 // Generate a message to ourself. This merges with other places
                 //   where the update occurs (like the HarvestClient).
                 log.debug("Harvest file updated: '{}'", file.getAbsolutePath());
-                JsonConfigHelper message = new JsonConfigHelper();
-                message.set("type", "harvest-update");
-                message.set("oid", object.getId());
+                JsonObject message = new JsonObject();
+                message.put("type", "harvest-update");
+                message.put("oid",  object.getId());
                 try {
                     sendMessage(destHouseKeeping, message.toString());
                 } catch (JMSException ex) {
