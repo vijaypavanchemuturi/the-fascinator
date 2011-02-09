@@ -20,8 +20,8 @@ package au.edu.usq.fascinator.portal.servlet;
 
 import au.edu.usq.fascinator.common.GenericListener;
 import au.edu.usq.fascinator.common.FascinatorHome;
-import au.edu.usq.fascinator.common.JsonConfig;
-import au.edu.usq.fascinator.common.JsonConfigHelper;
+import au.edu.usq.fascinator.common.JsonSimple;
+import au.edu.usq.fascinator.common.JsonSimpleConfig;
 import au.edu.usq.fascinator.portal.BrokerMonitor;
 
 import java.io.IOException;
@@ -76,7 +76,7 @@ public class IndexerServlet extends HttpServlet {
     private List<GenericListener> messageQueues;
 
     /** Config */
-    private JsonConfigHelper config;
+    private JsonSimpleConfig config;
 
     /** AMQ Broker Monitor */
     private BrokerMonitor monitor;
@@ -96,15 +96,16 @@ public class IndexerServlet extends HttpServlet {
     public void init() throws ServletException {
         // configure the broker
         try {
-            config = new JsonConfigHelper(JsonConfig.getSystemFile());
+            config = new JsonSimpleConfig();
 
-            String dataDir = config.get("messaging/home",
-                    DEFAULT_MESSAGING_HOME);
+            String dataDir = config.getString(DEFAULT_MESSAGING_HOME,
+                    "messaging", "home");
             broker = new BrokerService();
             broker.setDataDirectory(dataDir);
-            broker.addConnector(config.get("messaging/url",
-                    ActiveMQConnectionFactory.DEFAULT_BROKER_BIND_URL));
-            String stompUrl = config.get("messaging/stompUrl");
+            broker.addConnector(config.getString(
+                    ActiveMQConnectionFactory.DEFAULT_BROKER_BIND_URL,
+                    "messaging", "url"));
+            String stompUrl = config.getString(null, "messaging", "stompUrl");
             if (stompUrl != null) {
                 broker.addConnector(stompUrl);
             }
@@ -112,6 +113,7 @@ public class IndexerServlet extends HttpServlet {
             broker.start();
         } catch (Exception e) {
             log.error("Failed to start broker: {}", e);
+            throw new ServletException("Error starting AMQ Broker: ", e);
         }
 
         // add jars for jython to scan for packages
@@ -173,8 +175,8 @@ public class IndexerServlet extends HttpServlet {
         if (messageQueues == null) {
             messageQueues = new ArrayList();
         }
-        List<JsonConfigHelper> threadConfig =
-                config.getJsonList("messaging/threads");
+        List<JsonSimple> threadConfig =
+                config.getJsonSimpleList("messaging", "threads");
 
         try {
             // Start the AMQ monitor
@@ -186,16 +188,16 @@ public class IndexerServlet extends HttpServlet {
             }
 
             // Start our configurable queues
-            for (JsonConfigHelper thread : threadConfig) {
-                String classId = thread.get("id");
-                String priority = thread.get("priority");
+            for (JsonSimple thread : threadConfig) {
+                String classId = thread.getString(null, "id");
+                String priority = thread.getString(null, "priority");
                 if (classId != null) {
                     GenericListener queue = getListener(classId);
                     if (queue != null) {
                         if (priority != null) {
                             queue.setPriority(Integer.valueOf(priority));
                         }
-                        queue.init(thread);
+                        queue.init(new JsonSimpleConfig(thread.toString()));
                         queue.start();
                         messageQueues.add(queue);
                     } else {

@@ -1,6 +1,6 @@
 /*
  * The Fascinator - Plugin - Transformer - Aperture
- * Copyright (C) 2009  University of Southern Queensland
+ * Copyright (C) 2009-2011  University of Southern Queensland
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,6 +17,18 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 package au.edu.usq.fascinator.transformer.aperture;
+
+import au.edu.usq.fascinator.api.PluginDescription;
+import au.edu.usq.fascinator.api.PluginException;
+import au.edu.usq.fascinator.api.storage.DigitalObject;
+import au.edu.usq.fascinator.api.storage.Payload;
+import au.edu.usq.fascinator.api.storage.PayloadType;
+import au.edu.usq.fascinator.api.storage.StorageException;
+import au.edu.usq.fascinator.api.transformer.Transformer;
+import au.edu.usq.fascinator.api.transformer.TransformerException;
+import au.edu.usq.fascinator.common.JsonSimpleConfig;
+import au.edu.usq.fascinator.common.MimeTypeUtil;
+import au.edu.usq.fascinator.common.storage.StorageUtils;
 
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
@@ -47,18 +59,6 @@ import org.semanticdesktop.aperture.rdf.impl.RDFContainerImpl;
 import org.semanticdesktop.aperture.vocabulary.NIE;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import au.edu.usq.fascinator.api.PluginDescription;
-import au.edu.usq.fascinator.api.PluginException;
-import au.edu.usq.fascinator.api.storage.DigitalObject;
-import au.edu.usq.fascinator.api.storage.Payload;
-import au.edu.usq.fascinator.api.storage.PayloadType;
-import au.edu.usq.fascinator.api.storage.StorageException;
-import au.edu.usq.fascinator.api.transformer.Transformer;
-import au.edu.usq.fascinator.api.transformer.TransformerException;
-import au.edu.usq.fascinator.common.JsonConfigHelper;
-import au.edu.usq.fascinator.common.MimeTypeUtil;
-import au.edu.usq.fascinator.common.storage.StorageUtils;
 
 /**
  * <p>
@@ -132,7 +132,7 @@ public class ApertureTransformer implements Transformer {
             .getLogger(ApertureTransformer.class);
 
     /** Json config file **/
-    private JsonConfigHelper config;
+    private JsonSimpleConfig config;
 
     /** Caching directory **/
     private String outputPath = "";
@@ -192,7 +192,7 @@ public class ApertureTransformer implements Transformer {
     @Override
     public void init(String jsonString) throws PluginException {
         try {
-            config = new JsonConfigHelper(jsonString);
+            config = new JsonSimpleConfig(jsonString);
             reset();
         } catch (IOException e) {
             throw new PluginException(e);
@@ -214,7 +214,7 @@ public class ApertureTransformer implements Transformer {
     @Override
     public void init(File jsonFile) throws PluginException {
         try {
-            config = new JsonConfigHelper(jsonFile);
+            config = new JsonSimpleConfig(jsonFile);
             reset();
         } catch (IOException e) {
             throw new PluginException(e);
@@ -229,8 +229,8 @@ public class ApertureTransformer implements Transformer {
             firstRun = false;
             log.info("--Initializing Extractor plugin--");
             // Cache directory
-            outputPath = config.get("aperture/outputPath",
-                    System.getProperty("java.io.tmpdir"));
+            outputPath = config.getString(System.getProperty("java.io.tmpdir"),
+                    "aperture", "outputPath");
         }
     }
 

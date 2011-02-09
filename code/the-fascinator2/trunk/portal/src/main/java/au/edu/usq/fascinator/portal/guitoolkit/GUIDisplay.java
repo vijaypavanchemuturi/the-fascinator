@@ -18,12 +18,12 @@
  */
 package au.edu.usq.fascinator.portal.guitoolkit;
 
-import java.io.ByteArrayOutputStream;
-
-import au.edu.usq.fascinator.common.JsonConfig;
+import au.edu.usq.fascinator.common.JsonSimpleConfig;
 import au.edu.usq.fascinator.portal.FormData;
 import au.edu.usq.fascinator.portal.JsonSessionState;
 import au.edu.usq.fascinator.portal.services.DynamicPageService;
+
+import java.io.ByteArrayOutputStream;
 
 /**
  * Displays arbitrary content in the portal.
@@ -40,7 +40,7 @@ public class GUIDisplay {
      * @param config : System configuration
      * @param renderer : The page service to use for rendering
      */
-    public GUIDisplay(JsonConfig config, DynamicPageService renderer) {
+    public GUIDisplay(JsonSimpleConfig config, DynamicPageService renderer) {
         pageService = renderer;
     }
 

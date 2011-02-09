@@ -1,6 +1,6 @@
 /*
  * The Fascinator - Generic Schema
- * Copyright (C) 2008-2010 University of Southern Queensland
+ * Copyright (C) 2008-2011 University of Southern Queensland
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,10 +19,11 @@
 
 package au.edu.usq.fascinator.common.access;
 
-import au.edu.usq.fascinator.common.JsonConfigHelper;
 import au.edu.usq.fascinator.api.access.AccessControlSchema;
+import au.edu.usq.fascinator.common.JsonObject;
 
 import java.lang.reflect.Field;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,7 +36,7 @@ import org.slf4j.LoggerFactory;
  */
 public class GenericSchema implements AccessControlSchema {
     private Logger log = LoggerFactory.getLogger(GenericSchema.class);
-    private JsonConfigHelper response;
+    private JsonObject response;
     private String recordId;
     private String securitySource;
 
@@ -53,14 +54,14 @@ public class GenericSchema implements AccessControlSchema {
         try {
             Class ref_class = Class.forName(class_name);
             Field field_list[] = ref_class.getDeclaredFields();
-            response = new JsonConfigHelper();
+            response = new JsonObject();
 
             // Arbitrarily set recordId first, as its a private field
             // of GenericSchema inheriting classes can't access it.
-            response.set("recordId", "String");
+            response.put("recordId", "String");
 
             for (int i = 0; i < field_list.length; i++) {
-                response.set(field_list[i].getName(), field_list[i].getType().getSimpleName());
+                response.put(field_list[i].getName(), field_list[i].getType().getSimpleName());
             }
             return response.toString();
         } catch (ClassNotFoundException ex) {

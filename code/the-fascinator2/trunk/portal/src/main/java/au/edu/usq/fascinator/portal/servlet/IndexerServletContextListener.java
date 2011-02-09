@@ -1,15 +1,14 @@
 package au.edu.usq.fascinator.portal.servlet;
 
-import java.io.IOException;
+import au.edu.usq.fascinator.common.JsonSimpleConfig;
 
+import java.io.IOException;
 import javax.jms.ConnectionFactory;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 
 import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.activemq.web.WebClient;
-
-import au.edu.usq.fascinator.common.JsonConfig;
 
 /**
  * Context listener to dynamically set the embedded broker URL from
@@ -21,11 +20,11 @@ public class IndexerServletContextListener implements ServletContextListener {
 
     @Override
     public void contextInitialized(ServletContextEvent sce) {
-        JsonConfig config = null;
+        JsonSimpleConfig config = null;
         String brokerUrl = ActiveMQConnectionFactory.DEFAULT_BROKER_BIND_URL;
         try {
-            config = new JsonConfig();
-            brokerUrl = config.get("messaging/url", brokerUrl);
+            config = new JsonSimpleConfig();
+            brokerUrl = config.getString(brokerUrl, "messaging", "url");
         } catch (IOException e) {
             // use default broker url
         }

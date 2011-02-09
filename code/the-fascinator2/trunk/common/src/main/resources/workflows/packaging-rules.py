@@ -1,7 +1,7 @@
 import time
 
 from au.edu.usq.fascinator.api.storage import StorageException
-from au.edu.usq.fascinator.common import JsonConfigHelper
+from au.edu.usq.fascinator.common import JsonSimple
 from au.edu.usq.fascinator.common.storage import StorageUtils
 
 from java.io import ByteArrayInputStream
@@ -307,13 +307,13 @@ class IndexData:
             ffmpegPayload.close()
             if ffmpeg is not None:
                 # Dimensions
-                width = ffmpeg.get("video/width")
-                height = ffmpeg.get("video/height")
+                width = ffmpeg.getString(None, ["video", "width"])
+                height = ffmpeg.getString(None, ["video", "height"])
                 if width is not None and height is not None:
                     self.utils.add(self.index, "dc_size", width + " x " + height)
 
                 # Duration
-                duration = ffmpeg.get("duration")
+                duration = ffmpeg.getString(None, ["duration"])
                 if duration is not None and int(duration) > 0:
                     if int(duration) > 59:
                         secs = int(duration) % 60
@@ -323,13 +323,13 @@ class IndexData:
                         self.utils.add(self.index, "dc_duration", duration + " second(s)")
 
                 # Format
-                media = ffmpeg.get("format/label")
+                media = ffmpeg.getString(None, ["format", "label"])
                 if media is not None:
                     self.utils.add(self.index, "dc_media_format", media)
 
                 # Video
-                codec = ffmpeg.get("video/codec/simple")
-                label = ffmpeg.get("video/codec/label")
+                codec = ffmpeg.getString(None, ["video", "codec", "simple"])
+                label = ffmpeg.getString(None, ["video", "codec", "label"])
                 if codec is not None and label is not None:
                     self.utils.add(self.index, "video_codec_simple", codec)
                     self.utils.add(self.index, "video_codec_label", label)
@@ -341,13 +341,13 @@ class IndexData:
                     if label is not None:
                         self.utils.add(self.index, "video_codec_label", label)
                         self.utils.add(self.index, "meta_video_codec", label)
-                pixel_format = ffmpeg.get("video/pixel_format")
+                pixel_format = ffmpeg.getString(None, ["video", "pixel_format"])
                 if pixel_format is not None:
                     self.utils.add(self.index, "meta_video_pixel_format", pixel_format)
 
                 # Audio
-                codec = ffmpeg.get("audio/codec/simple")
-                label = ffmpeg.get("audio/codec/label")
+                codec = ffmpeg.getString(None, ["audio", "codec", "simple"])
+                label = ffmpeg.getString(None, ["audio", "codec", "label"])
                 if codec is not None and label is not None:
                     self.utils.add(self.index, "audio_codec_simple", codec)
                     self.utils.add(self.index, "audio_codec_label", label)
@@ -359,10 +359,10 @@ class IndexData:
                     if label is not None:
                         self.utils.add(self.index, "audio_codec_label", label)
                         self.utils.add(self.index, "meta_audio_codec", label)
-                sample_rate = ffmpeg.get("audio/sample_rate")
+                sample_rate = ffmpeg.getString(None, ["audio", "sample_rate"])
                 if sample_rate is not None:
                     sample_rate = "%.1f KHz" % (int(sample_rate) / 1000)
-                channels = ffmpeg.get("audio/channels")
+                channels = ffmpeg.getString(None, ["audio", "channels"])
                 if channels is not None:
                     channels += " Channel(s)"
                 if sample_rate is not None and channels is not None:
@@ -384,78 +384,80 @@ class IndexData:
         self.message_list = None
         try:
             wfPayload = self.object.getPayload("workflow.metadata")
-            wfMeta = JsonConfigHelper(wfPayload.open())
+            wfMeta = self.utils.getJsonObject(wfPayload.open())
             wfPayload.close()
 
             # Are we indexing because of a workflow progression?
-            targetStep = wfMeta.get("targetStep")
-            if targetStep is not None and targetStep != wfMeta.get("step"):
+            targetStep = wfMeta.getString(None, ["targetStep"])
+            if targetStep is not None and targetStep != wfMeta.getString(None, ["step"]):
                 wfChanged = True
                 # Step change
-                wfMeta.set("step", targetStep)
-                wfMeta.removePath("targetStep")
+                wfMeta.getJsonObject().put("step", targetStep)
+                wfMeta.getJsonObject().remove("targetStep")
 
             # This must be a re-index then
             else:
-                targetStep = wfMeta.get("step")
+                targetStep = wfMeta.getString(None, ["step"])
 
             # Security change
-            stages = self.config.getJsonList("stages")
+            stages = self.config.getJsonSimpleList(["stages"])
             for stage in stages:
-                if stage.get("name") == targetStep:
-                    wfMeta.set("label", stage.get("label"))
-                    self.item_security = stage.getList("visibility")
-                    workflow_security = stage.getList("security")
+                if stage.getString(None, ["name"]) == targetStep:
+                    wfMeta.getJsonObject().put("label", stage.getString(None, ["label"]))
+                    self.item_security = stage.getStringList(["visibility"])
+                    workflow_security = stage.getStringList(["security"])
                     if wfChanged == True:
-                        self.message_list = stage.getList("message")
+                        self.message_list = stage.getStringList(["message"])
 
             # Form processing
-            formData = wfMeta.getJsonList("formData")
-            if formData.size() > 0:
-                formData = formData[0]
+            formData = wfMeta.getObject(["formData"])
+            if formData is not None:
+                formData = JsonSimple(formData)
             else:
                 formData = None
+
             coreFields = ["title", "creator", "contributor", "description", "format", "creationDate"]
             if formData is not None:
                 # Core fields
-                title = formData.getList("title")
+                title = formData.getStringList(["title"])
                 if title:
                     self.titleList = title
-                creator = formData.getList("creator")
+                creator = formData.getStringList(["creator"])
                 if creator:
                     self.creatorList = creator
-                contributor = formData.getList("contributor")
+                contributor = formData.getStringList(["contributor"])
                 if contributor:
                     self.contributorList = contributor
-                description = formData.getList("description")
+                description = formData.getStringList(["description"])
                 if description:
                     self.descriptionList = description
-                format = formData.getList("format")
+                format = formData.getStringList(["format"])
                 if format:
                     self.formatList = format
-                creation = formData.getList("creationDate")
+                creation = formData.getStringList(["creationDate"])
                 if creation:
                     self.creationDate = creation
                 # Non-core fields
-                data = formData.getMap("/")
+                data = formData.getJsonObject()
                 for field in data.keySet():
                     if field not in coreFields:
-                        self.customFields[field] = formData.getList(field)
+                        self.customFields[field] = formData.getStringList([field])
 
         except StorageException, e:
             # No workflow payload, time to create
             wfChanged = True
-            wfMeta = JsonConfigHelper()
-            wfMeta.set("id", WORKFLOW_ID)
-            wfMeta.set("step", "pending")
-            wfMeta.set("pageTitle", "Uploaded Files - Management")
-            stages = self.config.getJsonList("stages")
+            wfMeta = JsonSimple()
+            wfMetaObj = wfMeta.getJsonObject()
+            wfMetaObj.put("id", WORKFLOW_ID)
+            wfMetaObj.put("step", "pending")
+            wfMetaObj.put("pageTitle", "Uploaded Files - Management")
+            stages = self.config.getJsonSimpleList(["stages"])
             for stage in stages:
-                if stage.get("name") == "pending":
-                    wfMeta.set("label", stage.get("label"))
-                    self.item_security = stage.getList("visibility")
-                    workflow_security = stage.getList("security")
-                    self.message_list = stage.getList("message")
+                if stage.getString(None, ["name"]) == "pending":
+                    wfMetaObj.put("label", stage.getString(None, ["label"]))
+                    self.item_security = stage.getStringList(["visibility"])
+                    workflow_security = stage.getStringList(["security"])
+                    self.message_list = stage.getStringList(["message"])
 
         # Has the workflow metadata changed?
         if wfChanged == True:
@@ -464,11 +466,11 @@ class IndexData:
             try:
                 StorageUtils.createOrUpdatePayload(self.object, "workflow.metadata", inStream)
             except StorageException, e:
-                print " * packaging-rules.py : Error updating workflow payload"
+                print " * workflow-harvester.py : Error updating workflow payload"
 
-        self.utils.add(self.index, "workflow_id", wfMeta.get("id"))
-        self.utils.add(self.index, "workflow_step", wfMeta.get("step"))
-        self.utils.add(self.index, "workflow_step_label", wfMeta.get("label"))
+        self.utils.add(self.index, "workflow_id", wfMeta.getString(None, ["id"]))
+        self.utils.add(self.index, "workflow_step", wfMeta.getString(None, ["step"]))
+        self.utils.add(self.index, "workflow_step_label", wfMeta.getString(None, ["label"]))
         for group in workflow_security:
             self.utils.add(self.index, "workflow_security", group)
             if self.owner is not None:
@@ -488,8 +490,8 @@ class IndexData:
 
     def __messages(self):
         if self.message_list is not None and len(self.message_list) > 0:
-            msg = JsonConfigHelper()
-            msg.set("oid", self.oid)
+            msg = JsonSimple()
+            msg.getJsonObject().put("oid", self.oid)
             message = msg.toString()
             for target in self.message_list:
                 self.utils.sendMessage(target, message)

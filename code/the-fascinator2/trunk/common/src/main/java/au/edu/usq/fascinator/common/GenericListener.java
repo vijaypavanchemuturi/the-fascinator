@@ -1,6 +1,6 @@
 /*
  * The Fascinator - Common - GenericListener
- * Copyright (C) 2009-10 University of Southern Queensland
+ * Copyright (C) 2009-2011 University of Southern Queensland
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -37,7 +37,7 @@ public interface GenericListener extends MessageListener, Runnable {
      * @param config Configuration to use
      * @throws IOException if the configuration file not found
      */
-    public void init(JsonConfigHelper config) throws Exception;
+    public void init(JsonSimpleConfig config) throws Exception;
 
     /**
      * Return the ID string for this listener

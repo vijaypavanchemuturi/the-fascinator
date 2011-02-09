@@ -1,6 +1,6 @@
 /* 
  * The Fascinator - Portal
- * Copyright (C) 2008-2009 University of Southern Queensland
+ * Copyright (C) 2008-2011 University of Southern Queensland
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,6 +18,10 @@
  */
 package au.edu.usq.fascinator.portal;
 
+import au.edu.usq.fascinator.common.JsonObject;
+import au.edu.usq.fascinator.common.JsonSimple;
+import au.edu.usq.fascinator.common.JsonSimpleConfig;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -28,14 +32,12 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import au.edu.usq.fascinator.common.JsonConfigHelper;
-
 /**
  * Portal configuration
  * 
  * @author Linda Octalina
  */
-public class Portal extends JsonConfigHelper {
+public class Portal extends JsonSimpleConfig {
 
     public static final String PORTAL_JSON = "portal.json";
 
@@ -44,7 +46,7 @@ public class Portal extends JsonConfigHelper {
     /**
      * Construct a portal instance with the specified name
      */
-    public Portal(String portalName) {
+    public Portal(String portalName) throws IOException {
         setName(portalName);
     }
 
@@ -58,67 +60,77 @@ public class Portal extends JsonConfigHelper {
     }
 
     public String getName() {
-        return get("portal/name", "undefined");
+        return getString("undefined", "portal", "name");
     }
 
     public void setName(String name) {
-        set("portal/name", name.replace(' ', '_'));
+        JsonObject portal = writeObject("portal");
+        portal.put("name", name.replace(' ', '_'));
     }
 
     public String getDescription() {
-        return get("portal/description", "Undefined");
+        return getString("Undefined", "portal", "description");
     }
 
     public void setDescription(String description) {
-        set("portal/description", description);
+        JsonObject portal = writeObject("portal");
+        portal.put("description", description);
     }
 
     public String getQuery() {
-        return get("portal/query", "");
+        return getString("", "portal", "query");
     }
 
     public void setQuery(String query) {
-        set("portal/query", query);
+        JsonObject portal = writeObject("portal");
+        portal.put("query", query);
     }
 
     public String getSearchQuery() {
-        return get("portal/searchQuery", "");
+        return getString("", "portal", "searchQuery");
     }
 
     public void setSearchQuery(String query) {
-        set("portal/searchQuery", query);
+        JsonObject portal = writeObject("portal");
+        portal.put("searchQuery", query);
     }
 
     public int getRecordsPerPage() {
-        return Integer.parseInt(get("portal/records-per-page", "10"));
+        return getInteger(10, "portal", "records-per-page");
     }
 
     public void setRecordsPerPage(int recordsPerPage) {
-        set("portal/records-per-page", Integer.toString(recordsPerPage));
+        JsonObject portal = writeObject("portal");
+        portal.put("records-per-page", recordsPerPage);
     }
 
     public int getFacetCount() {
-        return Integer.parseInt(get("portal/facet-count", "25"));
+        return getInteger(25, "portal", "facet-count");
     }
 
     public void setFacetCount(int facetCount) {
-        set("portal/facet-count", Integer.toString(facetCount));
+        JsonObject portal = writeObject("portal");
+        portal.put("facet-count", facetCount);
     }
 
     public boolean getFacetSort() {
-        return Boolean.parseBoolean(get("portal/facet-sort-by-count", "false"));
+        return getBoolean(false, "portal", "facet-sort-by-count");
     }
 
     public void setFacetSort(boolean facetSort) {
-        set("portal/facet-sort-by-count", Boolean.toString(facetSort));
+        JsonObject portal = writeObject("portal");
+        portal.put("facet-sort-by-count", facetSort);
     }
 
-    public Map<String, JsonConfigHelper> getFacetFields() {
-        return getJsonMap("portal/facet-fields");
+    public Map<String, JsonSimple> getFacetFields() {
+        return JsonSimple.toJavaMap(getObject("portal", "facet-fields"));
     }
 
-    public void setFacetFields(Map<String, JsonConfigHelper> map) {
-        setJsonMap("portal/facet-fields", map);
+    public void setFacetFields(Map<String, JsonSimple> map) {
+        JsonObject facets = writeObject("portal", "facet-fields");
+        for (String key : map.keySet()) {
+            facets.put(key, map.get(key).getJsonObject());
+        }
     }
 
     public List<String> getFacetFieldList() {
@@ -126,26 +138,28 @@ public class Portal extends JsonConfigHelper {
     }
 
     public int getFacetDisplay() {
-        return Integer.parseInt(get("portal/facet-display", "10"));
+        return getInteger(10, "portal", "facet-display");
     }
 
     public void setFacetDisplay(int facetDisplay) {
-        set("portal/facet-display", Integer.toString(facetDisplay));
+        JsonObject portal = writeObject("portal");
+        portal.put("facet-display", facetDisplay);
     }
 
     public Map<String, String> getSortFields() {
-        Map<String, Object> objectFields = getMap("portal/sort-fields");
+        JsonObject object = getObject("portal", "sort-fields");
         Map<String, String> sortFields = new LinkedHashMap<String, String>();
-        for (String key : objectFields.keySet()) {
-            sortFields.put(key, objectFields.get(key).toString());
+        for (Object key : object.keySet()) {
+            sortFields.put((String) key, (String) object.get(key));
         }
         return sortFields;
     }
 
     public void setSortFields(Map<String, String> sortFields) {
-        Map<String, Object> objectFields = new LinkedHashMap<String, Object>();
-        objectFields.putAll(sortFields);
-        setMap("portal/sort-fields", objectFields);
+        JsonObject object = getObject("portal", "sort-fields");
+        for (String key : sortFields.keySet()) {
+            object.put(key, sortFields.get(key));
+        }
     }
 
     public List<String> getSortFieldList() {

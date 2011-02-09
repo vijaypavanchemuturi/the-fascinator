@@ -1,4 +1,4 @@
-from au.edu.usq.fascinator.common import JsonConfigHelper
+from au.edu.usq.fascinator.common import JsonSimple
 from java.io import ByteArrayOutputStream
 from java.util import ArrayList
 from org.apache.commons.io import IOUtils
@@ -19,21 +19,21 @@ class DetailData:
 
     def getBasicFFmpegData(self, index):
         if self.__ffmpegData is not None:
-            output = self.__ffmpegData.get("/" + index)
+            output = self.__ffmpegData.getString(None, [index])
             if output is not None:
                 return output
         return ""
 
     def getFFmpegData(self, pid, index):
         if self.__ffmpegOutputs is not None:
-            output = self.__ffmpegOutputs.get(pid).get("/" + index)
+            output = self.__ffmpegOutputs.get(pid).getString(None, [index])
             if output is not None:
                 return output
         return ""
 
     def getFFmpegDebugging(self, pid):
         if self.__ffmpegOutputs is not None:
-            output = self.__ffmpegOutputs.get(pid).get("/debugOutput")
+            output = self.__ffmpegOutputs.get(pid).getString(None, ["debugOutput"])
             return self.makeHtml(output)
         else:
             return "Not found!"
@@ -129,11 +129,11 @@ class DetailData:
                     out.close()
                     payload.close()
                     # And parse it
-                    self.__ffmpegData = JsonConfigHelper(self.__ffmpegRaw)
+                    self.__ffmpegData = JsonSimple(self.__ffmpegRaw)
                     if self.__ffmpegData is None:
                         return False
                     else:
-                        self.__ffmpegOutputs = self.__ffmpegData.getJsonMap("/outputs")
+                        self.__ffmpegOutputs = self.__ffmpegData.getJsonSimpleMap("outputs")
                         return True
                 except:
                     if payload is not None:

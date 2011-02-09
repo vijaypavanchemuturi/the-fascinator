@@ -1,6 +1,6 @@
 /* 
  * The Fascinator - Core
- * Copyright (C) 2009 University of Southern Queensland
+ * Copyright (C) 2010-2011 University of Southern Queensland
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,7 +18,17 @@
  */
 package au.edu.usq.fascinator;
 
+import au.edu.usq.fascinator.api.PluginException;
+import au.edu.usq.fascinator.api.PluginManager;
+import au.edu.usq.fascinator.api.indexer.Indexer;
+import au.edu.usq.fascinator.api.indexer.IndexerException;
+import au.edu.usq.fascinator.api.storage.Storage;
+import au.edu.usq.fascinator.api.storage.StorageException;
+import au.edu.usq.fascinator.common.GenericListener;
+import au.edu.usq.fascinator.common.JsonSimpleConfig;
 import au.edu.usq.fascinator.common.MessagingServices;
+import au.edu.usq.fascinator.common.storage.StorageUtils;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.LinkedHashMap;
@@ -37,17 +47,6 @@ import org.apache.activemq.ActiveMQConnectionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
-
-import au.edu.usq.fascinator.api.PluginException;
-import au.edu.usq.fascinator.api.PluginManager;
-import au.edu.usq.fascinator.api.indexer.Indexer;
-import au.edu.usq.fascinator.api.indexer.IndexerException;
-import au.edu.usq.fascinator.api.storage.Storage;
-import au.edu.usq.fascinator.api.storage.StorageException;
-import au.edu.usq.fascinator.common.GenericListener;
-import au.edu.usq.fascinator.common.JsonConfig;
-import au.edu.usq.fascinator.common.JsonConfigHelper;
-import au.edu.usq.fascinator.common.storage.StorageUtils;
 
 /**
  * Consumer for Ingest Queue. Jobs in this queue should be short running
@@ -70,7 +69,7 @@ public class IngestQueueConsumer implements GenericListener {
     private String name;
 
     /** JSON configuration */
-    private JsonConfig globalConfig;
+    private JsonSimpleConfig globalConfig;
 
     /** JMS connection */
     private Connection connection;
@@ -120,10 +119,11 @@ public class IngestQueueConsumer implements GenericListener {
             log.info("Starting {}", name);
 
             // Get a connection to the broker
-            String brokerUrl = globalConfig.get("messaging/url",
-                    ActiveMQConnectionFactory.DEFAULT_BROKER_BIND_URL);
-            ActiveMQConnectionFactory connectionFactory = new ActiveMQConnectionFactory(
-                    brokerUrl);
+            String brokerUrl = globalConfig.getString(
+                    ActiveMQConnectionFactory.DEFAULT_BROKER_BIND_URL,
+                    "messaging", "url");
+            ActiveMQConnectionFactory connectionFactory =
+                    new ActiveMQConnectionFactory(brokerUrl);
             connection = connectionFactory.createConnection();
 
             session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
@@ -152,19 +152,19 @@ public class IngestQueueConsumer implements GenericListener {
      * @throws IOException if the configuration file not found
      */
     @Override
-    public void init(JsonConfigHelper config) throws Exception {
+    public void init(JsonSimpleConfig config) throws Exception {
         try {
-            name = config.get("config/name");
+            name = config.getString(null, "config", "name");
             QUEUE_ID = name;
             thread.setName(name);
 
-            globalConfig = new JsonConfig();
-            File sysFile = JsonConfig.getSystemFile();
-            indexer = PluginManager.getIndexer(globalConfig.get("indexer/type",
-                    "solr"));
+            globalConfig = new JsonSimpleConfig();
+            File sysFile = JsonSimpleConfig.getSystemFile();
+            indexer = PluginManager.getIndexer(
+                    globalConfig.getString("solr", "indexer", "type"));
             indexer.init(sysFile);
-            storage = PluginManager.getStorage(globalConfig.get("storage/type",
-                    "file-system"));
+            storage = PluginManager.getStorage(
+                    globalConfig.getString("file-system", "storage", "type"));
             storage.init(sysFile);
 
             try {
@@ -276,15 +276,14 @@ public class IngestQueueConsumer implements GenericListener {
         try {
             // Incoming message
             String text = ((TextMessage) message).getText();
-            JsonConfigHelper config = new JsonConfigHelper(text);
-            String oid = config.get("oid");
+            JsonSimpleConfig config = new JsonSimpleConfig(text);
+            String oid = config.getString(null, "oid");
             log.info("Received job, object id={}, text={}", oid, text);
 
-            File configFile = new File(config.get("configFile"));
+            File configFile = new File(config.getString(null, "configFile"));
             File uploadedFile = new File(oid);
 
-            Boolean deleted = Boolean.parseBoolean(config.get("deleted",
-                    "false"));
+            Boolean deleted = config.getBoolean(false, "deleted");
             try {
                 HarvestClient harvestClient = new HarvestClient(configFile,
                         uploadedFile, "guest");

@@ -1,6 +1,6 @@
 /* 
- * The Fascinator - Common Library
- * Copyright (C) 2008-2009 University of Southern Queensland
+ * The Fascinator - Common Library - MIME Type Indentifier
+ * Copyright (C) 2008-2011 University of Southern Queensland
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,7 +19,6 @@
 package au.edu.usq.fascinator.common;
 
 import java.io.IOException;
-import java.util.Map;
 
 import org.apache.commons.io.FilenameUtils;
 import org.ontoware.rdf2go.model.node.URI;
@@ -35,19 +34,16 @@ import org.slf4j.LoggerFactory;
  * @author Oliver Lucido
  */
 public class MagicMimeTypeIdentifierWrapper implements MimeTypeIdentifier {
-
-    private Logger log = LoggerFactory
-            .getLogger(MagicMimeTypeIdentifierWrapper.class);
-
-    private Map<String, Object> mimeTypes;
-
+    private Logger log = LoggerFactory.getLogger(
+            MagicMimeTypeIdentifierWrapper.class);
+    private JsonSimple mimeTypes;
     private MagicMimeTypeIdentifier identifier;
 
     public MagicMimeTypeIdentifierWrapper() {
         super();
         try {
-            JsonConfig config = new JsonConfig();
-            mimeTypes = config.getMap("mime-types");
+            JsonSimpleConfig config = new JsonSimpleConfig();
+            mimeTypes = new JsonSimple(config.getObject("mime-types"));
             identifier = new MagicMimeTypeIdentifier();
         } catch (IOException e) {
             log.warn("Failed to load custom MIME types");
@@ -62,8 +58,9 @@ public class MagicMimeTypeIdentifierWrapper implements MimeTypeIdentifier {
     @Override
     public String identify(byte[] firstBytes, String fileName, URI uri) {
         String ext = FilenameUtils.getExtension(fileName);
-        if (mimeTypes.containsKey(ext)) {
-            return mimeTypes.get(ext).toString();
+        String mimeType = mimeTypes.getString(null, ext);
+        if (mimeType != null) {
+            return mimeType;
         }
         return identifier.identify(firstBytes, fileName, uri);
     }

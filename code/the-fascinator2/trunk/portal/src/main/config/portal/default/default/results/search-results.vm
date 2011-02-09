@@ -8,8 +8,8 @@
     #parseTemplate("wrapping/content-block-open.vm")
     #parseTemplate('results/search-results-actions.vm')
 
-    #foreach($item in $self.result.getJsonList("response/docs"))
-        #renderObject($item "result")
+    #foreach($item in $self.result.getResults())
+        #renderObject($item, "result")
     #end
     <script type="text/javascript" src="$portalPath/js/jquery.condense.min.js"></script>
     <script type="text/javascript">

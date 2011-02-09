@@ -1,6 +1,6 @@
 /*
  * The Fascinator - Plugin - Transformer - FFMPEG
- * Copyright (C) 2010 University of Southern Queensland
+ * Copyright (C) 2010-2011 University of Southern Queensland
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,7 +18,8 @@
  */
 package au.edu.usq.fascinator.transformer.ffmpeg;
 
-import au.edu.usq.fascinator.common.JsonConfigHelper;
+import au.edu.usq.fascinator.common.JsonObject;
+import au.edu.usq.fascinator.common.JsonSimple;
 
 import java.io.File;
 import java.io.IOException;
@@ -65,16 +66,16 @@ public class FfmpegInfo {
     private int height;
 
     /** Format data */
-    private JsonConfigHelper format = new JsonConfigHelper();
+    private JsonObject format = new JsonObject();
 
     /** Raw stream data */
-    private List<JsonConfigHelper> streams = new ArrayList();
+    private List<JsonObject> streams = new ArrayList();
 
     /** Processed video stream data */
-    private JsonConfigHelper videoStream = new JsonConfigHelper();
+    private JsonObject videoStream = new JsonObject();
 
     /** Processed video stream data */
-    private JsonConfigHelper audioStream = new JsonConfigHelper();
+    private JsonObject audioStream = new JsonObject();
 
     /**
      * Extract metadata from the given file using the provided FFmpeg object
@@ -101,8 +102,8 @@ public class FfmpegInfo {
         // FFmpeg
         } else {
             parseFFmpegMetadata(rawMediaData);
-            JsonConfigHelper mData = new JsonConfigHelper();
-            mData.set("duration", "" + duration);
+            JsonObject mData = new JsonObject();
+            mData.put("duration", "" + duration);
             metadata = mData.toString();
         }
     }
@@ -114,8 +115,8 @@ public class FfmpegInfo {
      * @param path where the data should be stored
      * @return String containing the cleaned output
      */
-    private String getCleanValue(JsonConfigHelper json, String path) {
-        String result = json.get(path);
+    private String getCleanValue(JsonObject json, String path) {
+        String result = new JsonSimple(json).getString(null, path);
         if (result != null) result = result.trim();
         return result;
     }
@@ -126,14 +127,14 @@ public class FfmpegInfo {
      * @param rawMetaData to parse
      */
     private void parseFFprobeMetadata(String rawMetaData) {
-        JsonConfigHelper stream = null;
+        JsonObject stream = null;
         int eq;
 
         // Parse the output from FFprobe
         for (String line : rawMetaData.split("\r\n|\r|\n")) {
             // Section wrappers
             if (line.equals("[STREAM]")) {
-                stream = new JsonConfigHelper();
+                stream = new JsonObject();
                 continue;
             }
             if (line.equals("[/STREAM]")) {
@@ -158,9 +159,9 @@ public class FfmpegInfo {
                 String value = line.substring(eq + 1);
 
                 if (stream == null) {
-                    format.set(key, value);
+                    format.put(key, value);
                 } else {
-                    stream.set(key, value);
+                    stream.put(key, value);
                 }
             }
         }
@@ -207,7 +208,7 @@ public class FfmpegInfo {
      */
     private void processFFprobeMetadata() {
         getPrimaryStreams();
-        JsonConfigHelper mData = new JsonConfigHelper();
+        JsonObject mData = new JsonObject();
 
         //log.debug("\n========\nFORMAT:\n\n{}\n", format.toString());
         //for (JsonConfigHelper stream : streams) {
@@ -216,64 +217,97 @@ public class FfmpegInfo {
 
         // Duration
         String dString = getCleanValue(format, "duration");
-        mData.set("duration_float", dString);
+        mData.put("duration_float", dString);
         duration = Float.valueOf(dString).intValue();
-        mData.set("duration", "" + duration);
+        mData.put("duration", duration);
 
         // Generic format data
-        mData.set("format/simple", getCleanValue(format, "format_name"));
-        mData.set("format/label", getCleanValue(format, "format_long_name"));
+        JsonObject formatData = new JsonObject();
+        formatData.put("simple", getCleanValue(format, "format_name"));
+        formatData.put("label", getCleanValue(format, "format_long_name"));
+        mData.put("format", formatData);
 
         // Decode Video
         width = 0;
         height = 0;
         if (videoStream != null) {
+            JsonObject videoData = new JsonObject();
             String codec = getCleanValue(videoStream, "codec_name");
-            if (codec != null) video = true;
+            if (codec != null) {
+                video = true;
+            }
 
             // Language, two options
             String lang = getCleanValue(videoStream, "language");
-            if (lang == null) lang = getCleanValue(videoStream, "tags/language");
-            mData.set("video/language", lang);
+            if (lang == null) {
+                lang = getCleanValue(videoStream, "tags/language");
+            }
+            videoData.put("language", lang);
 
             // Dimensions
             String widthStr = getCleanValue(videoStream, "width");
             if (widthStr != null) {
                 width = Integer.valueOf(widthStr);
-                mData.set("video/width", widthStr);
+                videoData.put("width", widthStr);
             }
             String heightStr = getCleanValue(videoStream, "height");
             if (heightStr != null) {
                 height = Integer.valueOf(heightStr);
-                mData.set("video/height", heightStr);
+                videoData.put("height", heightStr);
             }
 
-            mData.set("video/codec/tag",        getCleanValue(videoStream, "codec_tag"));
-            mData.set("video/codec/tag_string", getCleanValue(videoStream, "codec_tag_string"));
-            mData.set("video/codec/simple",     getCleanValue(videoStream, "codec_name"));
-            mData.set("video/codec/label",      getCleanValue(videoStream, "codec_long_name"));
-            mData.set("video/pixel_format",     getCleanValue(videoStream, "pix_fmt"));
+            // Codec
+            JsonObject videoCodec = new JsonObject();
+            videoCodec.put("tag", getCleanValue(videoStream, "codec_tag"));
+            videoCodec.put("tag_string",
+                    getCleanValue(videoStream, "codec_tag_string"));
+            videoCodec.put("simple", getCleanValue(videoStream, "codec_name"));
+            videoCodec.put("label",
+                    getCleanValue(videoStream, "codec_long_name"));
+            videoData.put("codec", videoCodec);
+            videoData.put("pixel_format",
+                    getCleanValue(videoStream, "pix_fmt"));
+
+            // Add video to metadata
+            mData.put("video", videoData);
         }
 
         // Decode Audio
         if (audioStream != null) {
+            JsonObject audioData = new JsonObject();
             String codec = getCleanValue(audioStream, "codec_name");
-            if (codec != null) audio = true;
+            if (codec != null) {
+                audio = true;
+            }
 
             // Language, two options
             String lang = getCleanValue(audioStream, "language");
-            if (lang == null) lang = getCleanValue(audioStream, "tags/language");
-            mData.set("audio/language", lang);
+            if (lang == null) {
+                lang = getCleanValue(audioStream, "tags/language");
+            }
+            audioData.put("language", lang);
 
-            mData.set("audio/codec/tag",        getCleanValue(audioStream, "codec_tag"));
-            mData.set("audio/codec/tag_string", getCleanValue(audioStream, "codec_tag_string"));
-            mData.set("audio/codec/simple",     getCleanValue(audioStream, "codec_name"));
-            mData.set("audio/codec/label",      getCleanValue(audioStream, "codec_long_name"));
+            // Codec
+            JsonObject audioCodec = new JsonObject();
+            audioCodec.put("tag", getCleanValue(audioStream, "codec_tag"));
+            audioCodec.put("tag_string",
+                    getCleanValue(audioStream, "codec_tag_string"));
+            audioCodec.put("simple", getCleanValue(audioStream, "codec_name"));
+            audioCodec.put("label",
+                    getCleanValue(audioStream, "codec_long_name"));
+            audioData.put("codec", audioCodec);
+
+            // Sample rate
             String sample_rate = getCleanValue(audioStream, "sample_rate");
             if (sample_rate != null) {
-                mData.set("audio/sample_rate",  "" + Float.valueOf(sample_rate).intValue());
+                audioData.put("sample_rate",
+                        Float.valueOf(sample_rate).intValue());
             }
-            mData.set("audio/channels",         getCleanValue(audioStream, "channels"));
+            // Channels
+            audioData.put("channels", getCleanValue(audioStream, "channels"));
+
+            // Add audio to metadata
+            mData.put("audio", audioData);
         }
         metadata = mData.toString();
     }
@@ -284,8 +318,10 @@ public class FfmpegInfo {
      *
      */
     private void getPrimaryStreams() {
-        for (JsonConfigHelper stream : streams) {
-            String type = stream.get("codec_type");
+        for (JsonObject stream : streams) {
+            String type = (String) stream.get("codec_type");
+            if (type == null) continue;
+
             // The highest index video stream should be considered primary
             if (type.equals("video") && videoStream != null) {
                 videoStream = stream;

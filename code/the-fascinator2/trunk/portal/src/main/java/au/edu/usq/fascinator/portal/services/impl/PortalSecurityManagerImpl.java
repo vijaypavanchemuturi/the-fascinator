@@ -1,3 +1,21 @@
+/*
+ * The Fascinator - Portal
+ * Copyright (C) 2010-2011 University of Southern Queensland
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
 package au.edu.usq.fascinator.portal.services.impl;
 
 import au.edu.usq.fascinator.api.access.AccessControlManager;
@@ -5,8 +23,8 @@ import au.edu.usq.fascinator.api.authentication.AuthenticationException;
 import au.edu.usq.fascinator.api.authentication.AuthManager;
 import au.edu.usq.fascinator.api.authentication.User;
 import au.edu.usq.fascinator.api.roles.RolesManager;
-import au.edu.usq.fascinator.common.JsonConfig;
-import au.edu.usq.fascinator.common.JsonConfigHelper;
+import au.edu.usq.fascinator.common.JsonSimple;
+import au.edu.usq.fascinator.common.JsonSimpleConfig;
 import au.edu.usq.fascinator.common.authentication.GenericUser;
 import au.edu.usq.fascinator.portal.FormData;
 import au.edu.usq.fascinator.portal.JsonSessionState;
@@ -28,8 +46,8 @@ import java.util.ServiceLoader;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.servlet.http.HttpServletResponse;
-import org.apache.commons.codec.digest.DigestUtils;
 
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.tapestry5.ioc.annotations.Inject;
 import org.apache.tapestry5.services.Request;
@@ -90,6 +108,9 @@ public class PortalSecurityManagerImpl implements PortalSecurityManager {
     @Inject
     private RequestGlobals rg;
 
+    /** System Configuration */
+    private JsonSimpleConfig config;
+
     /** Single Sign-On providers */
     private Map<String, SSOInterface> sso;
 
@@ -126,43 +147,42 @@ public class PortalSecurityManagerImpl implements PortalSecurityManager {
      */
     public PortalSecurityManagerImpl() throws IOException {
         // Get system configuration
-        JsonConfigHelper config = new JsonConfigHelper(
-                JsonConfig.getSystemFile());
+        config = new JsonSimpleConfig();
 
         // For all SSO providers configured
         sso = new LinkedHashMap();
-        List<Object> ssoProviders = config.getList("sso/plugins");
-        for (Object ssoId : ssoProviders) {
+        for (String ssoId : config.getStringList("sso", "plugins")) {
             // Instantiate from the ServiceLoader
-            SSOInterface valid = getSSOProvider((String) ssoId);
+            SSOInterface valid = getSSOProvider(ssoId);
             if (valid == null) {
-                log.error("Invalid SSO Implementation requested: '{}'", (String) ssoId);
+                log.error("Invalid SSO Implementation requested: '{}'", ssoId);
             } else {
                 // Store valid implementations
-                sso.put((String) ssoId, valid);
+                sso.put(ssoId, valid);
                 log.info("SSO Provider instantiated: '{}'", ssoId);
             }
         }
 
-        defaultPortal = config.get("portal/defaultView",
-                    PortalManager.DEFAULT_PORTAL_NAME);
-        serverUrlBase = config.get("urlBase");
+        defaultPortal = config.getString(PortalManager.DEFAULT_PORTAL_NAME,
+                "portal", "defaultView");
+        serverUrlBase = config.getString(null, "urlBase");
         ssoLoginUrl = serverUrlBase + defaultPortal + SSO_LOGIN_PAGE;
 
         // Get exclusions Strings from config
-        excStarts = castList(config.getList("sso/urlExclusions/startsWith"));
-        excEnds = castList(config.getList("sso/urlExclusions/endsWith"));
-        excEquals = castList(config.getList("sso/urlExclusions/equals"));
+        excStarts = config.getStringList("sso", "urlExclusions", "startsWith");
+        excEnds = config.getStringList("sso", "urlExclusions", "endsWith");
+        excEquals = config.getStringList("sso", "urlExclusions", "equals");
 
         // Trust tokens
-        Map<String, JsonConfigHelper> tokenMap =
-                config.getJsonMap("sso/trustTokens");
+        Map<String, JsonSimple> tokenMap = config.getJsonSimpleMap(
+                "sso", "trustTokens");
         tokens = new HashMap();
         tokenExpiry = new HashMap();
         for (String key : tokenMap.keySet()) {
-            String publicKey = tokenMap.get(key).get("publicKey");
-            String privateKey = tokenMap.get(key).get("privateKey");
-            String expiry = tokenMap.get(key).get("expiry", TRUST_TOKEN_EXPIRY);
+            JsonSimple tok = tokenMap.get(key);
+            String publicKey = tok.getString(null, "publicKey");
+            String privateKey = tok.getString(null, "privateKey");
+            String expiry = tok.getString(TRUST_TOKEN_EXPIRY, "expiry");
             if (publicKey != null && privateKey != null) {
                 // Valid key
                 tokens.put(publicKey, privateKey);
@@ -171,19 +191,6 @@ public class PortalSecurityManagerImpl implements PortalSecurityManager {
                 log.error("Invalid token data: '{}'", key);
             }
         }
-    }
-
-    /**
-     * Cast a list of objects into strings
-     *
-     * @param data : The object list to cast into strings
-     */
-    private List<String> castList(List<Object> data) {
-        List<String> result = new ArrayList();
-        for (Object item : data) {
-            result.add((String) item);
-        }
-        return result;
     }
 
     /**

@@ -18,6 +18,21 @@
  */
 package au.edu.usq.fascinator.portal.pages;
 
+import au.edu.usq.fascinator.HarvestClient;
+import au.edu.usq.fascinator.api.PluginException;
+import au.edu.usq.fascinator.api.authentication.AuthenticationException;
+import au.edu.usq.fascinator.api.authentication.User;
+import au.edu.usq.fascinator.common.JsonSimple;
+import au.edu.usq.fascinator.common.JsonSimpleConfig;
+import au.edu.usq.fascinator.common.MimeTypeUtil;
+import au.edu.usq.fascinator.portal.FormData;
+import au.edu.usq.fascinator.portal.JsonSessionState;
+import au.edu.usq.fascinator.portal.services.DynamicPageService;
+import au.edu.usq.fascinator.portal.services.GenericStreamResponse;
+import au.edu.usq.fascinator.portal.services.HttpStatusCodeResponse;
+import au.edu.usq.fascinator.portal.services.PortalManager;
+import au.edu.usq.fascinator.portal.services.PortalSecurityManager;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -26,13 +41,11 @@ import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
@@ -45,24 +58,10 @@ import org.apache.tapestry5.ioc.util.TimeInterval;
 import org.apache.tapestry5.services.Request;
 import org.apache.tapestry5.services.RequestGlobals;
 import org.apache.tapestry5.services.Response;
+import org.apache.tapestry5.services.Session;
 import org.apache.tapestry5.upload.services.MultipartDecoder;
 import org.apache.tapestry5.upload.services.UploadedFile;
 import org.slf4j.Logger;
-
-import au.edu.usq.fascinator.HarvestClient;
-import au.edu.usq.fascinator.api.PluginException;
-import au.edu.usq.fascinator.api.authentication.AuthenticationException;
-import au.edu.usq.fascinator.api.authentication.User;
-import au.edu.usq.fascinator.common.JsonConfig;
-import au.edu.usq.fascinator.common.JsonConfigHelper;
-import au.edu.usq.fascinator.common.MimeTypeUtil;
-import au.edu.usq.fascinator.portal.FormData;
-import au.edu.usq.fascinator.portal.JsonSessionState;
-import au.edu.usq.fascinator.portal.services.DynamicPageService;
-import au.edu.usq.fascinator.portal.services.GenericStreamResponse;
-import au.edu.usq.fascinator.portal.services.HttpStatusCodeResponse;
-import au.edu.usq.fascinator.portal.services.PortalManager;
-import au.edu.usq.fascinator.portal.services.PortalSecurityManager;
 
 /**
  * <h3>Introduction</h3>
@@ -140,10 +139,7 @@ public class Dispatch {
     private String mimeType;
     private InputStream stream;
 
-    private JsonConfig sysConfig;
-
-    // detailSubPage detection
-    private Pattern detailPattern;
+    private JsonSimpleConfig sysConfig;
 
     /**
      * Entry point for Tapestry to send page requests.
@@ -156,9 +152,9 @@ public class Dispatch {
         // request.getMethod(), request.getPath());
 
         try {
-            sysConfig = new JsonConfig(JsonConfig.getSystemFile());
-            defaultPortal = sysConfig.get("portal/defaultView",
-                    PortalManager.DEFAULT_PORTAL_NAME);
+            sysConfig = new JsonSimpleConfig();
+            defaultPortal = sysConfig.getString(
+                    PortalManager.DEFAULT_PORTAL_NAME, "portal", "defaultView");
         } catch (IOException ex) {
             log.error("Error accessing system config", ex);
             return new HttpStatusCodeResponse(500,
@@ -182,14 +178,8 @@ public class Dispatch {
         prepareFormData();
 
         // Set session timeout (defaults to 2 hours)
-        try {
-            int timeoutMins;
-            timeoutMins = Integer.parseInt(sysConfig.get("portal/sessionTimeout", "120"));
-            hsr.getSession().setMaxInactiveInterval(timeoutMins*60);
-        } catch (Exception e){
-            log.error("sessionTimeout value is invalid! (It must be an integer string only)");
-        }
-
+        int timeoutMins = sysConfig.getInteger(120, "portal", "sessionTimeout");
+        hsr.getSession().setMaxInactiveInterval(timeoutMins * 60);
 
         // SSO Integration - Ignore AJAX and such
         if (!isSpecial) {
@@ -280,14 +270,13 @@ public class Dispatch {
             log.error("No workflow provided with form data.");
             return;
         }
-        Map<String, JsonConfigHelper> workflows = sysConfig
-                .getJsonMap("uploader");
-        JsonConfigHelper workflowConfig = workflows.get(workflowId);
+        JsonSimple workflowConfig = sysConfig.getJsonSimpleMap("uploader").
+                get(workflowId);
 
         // Roles allowed to upload into this workflow
         boolean security_check = false;
-        for (Object role : workflowConfig.getList("security")) {
-            if (roles.contains(role.toString())) {
+        for (String role : workflowConfig.getStringList("security")) {
+            if (roles.contains(role)) {
                 security_check = true;
             }
         }
@@ -297,7 +286,7 @@ public class Dispatch {
         }
 
         // Get the workflow's file directory
-        String file_path = workflowConfig.get("upload-path");
+        String file_path = workflowConfig.getString(null, "upload-path");
 
         // Get the uploaded file
         for (String param : reqParams) {
@@ -327,15 +316,19 @@ public class Dispatch {
         uploadedFile.write(file);
 
         // Make sure the new file gets harvested
-        File harvestFile = new File(workflowConfig.get("json-config"));
+        String configPath = workflowConfig.getString(null, "json-config");
+        if (configPath == null) {
+            log.error("No harvest configuration file provided!");
+            return;
+        }
+        File harvestFile = new File(configPath);
         // Get the workflow template needed for stage 1
         String template = "";
         try {
-            JsonConfigHelper harvestConfig = new JsonConfigHelper(harvestFile);
-            List<JsonConfigHelper> stages = harvestConfig.getJsonList("stages");
+            JsonSimple harvestConfig = new JsonSimple(harvestFile);
+            List<JsonSimple> stages = harvestConfig.getJsonSimpleList("stages");
             if (stages.size() > 0) {
-                JsonConfigHelper stage = stages.get(0);
-                template = stage.get("template");
+                template = stages.get(0).getString(null, "template");
             }
         } catch (IOException ex) {
             log.error("Unable to access workflow config : ", ex);

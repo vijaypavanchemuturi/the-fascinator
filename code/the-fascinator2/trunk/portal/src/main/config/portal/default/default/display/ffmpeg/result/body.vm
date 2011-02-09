@@ -1,4 +1,4 @@
-#set($thumbnail = $self.get("thumbnail"))
+#set($thumbnail = $self.getFirst("thumbnail"))
 #if($thumbnail)
     <a class="image" href="$portalPath/detail/$id/">
         <img src="$portalPath/download/$id/$thumbnail" title="Thumbnail of $title" alt="Thumbnail" />

@@ -1,6 +1,6 @@
 #set($facetCounts = $self.getFacetCounts($facetFieldKey))
 #if($facetCounts.size() > 0)
-    #set($menuTitle = $facetField.get("label"))
+    #set($menuTitle = $facetField.getString($nullValue, "label"))
     #parseTemplate("wrapping/menu-open.vm")
     <div class="facet-list" id="$facetFieldKey">
         <ul class="menu">

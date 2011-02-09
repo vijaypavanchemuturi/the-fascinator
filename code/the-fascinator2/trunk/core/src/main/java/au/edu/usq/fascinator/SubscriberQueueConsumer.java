@@ -1,6 +1,6 @@
 /* 
  * The Fascinator - Common - Subscriber Queue Consumer
- * Copyright (C) 2010 University of Southern Queensland
+ * Copyright (C) 2010-2011 University of Southern Queensland
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,6 +17,13 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 package au.edu.usq.fascinator;
+
+import au.edu.usq.fascinator.api.PluginManager;
+import au.edu.usq.fascinator.api.subscriber.Subscriber;
+import au.edu.usq.fascinator.api.subscriber.SubscriberException;
+import au.edu.usq.fascinator.common.GenericListener;
+import au.edu.usq.fascinator.common.JsonObject;
+import au.edu.usq.fascinator.common.JsonSimpleConfig;
 
 import java.io.File;
 import java.io.IOException;
@@ -43,13 +50,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 
-import au.edu.usq.fascinator.api.PluginManager;
-import au.edu.usq.fascinator.api.subscriber.Subscriber;
-import au.edu.usq.fascinator.api.subscriber.SubscriberException;
-import au.edu.usq.fascinator.common.GenericListener;
-import au.edu.usq.fascinator.common.JsonConfig;
-import au.edu.usq.fascinator.common.JsonConfigHelper;
-
 /**
  * Consumer for Subscribers. Jobs in this queue should be short running
  * processes as they are run when object is modified/deleted.
@@ -75,7 +75,7 @@ public class SubscriberQueueConsumer implements GenericListener {
     private Logger log = LoggerFactory.getLogger(SubscriberQueueConsumer.class);
 
     /** JSON configuration */
-    private JsonConfig globalConfig;
+    private JsonSimpleConfig globalConfig;
 
     /** JMS connection */
     private Connection connection;
@@ -118,10 +118,11 @@ public class SubscriberQueueConsumer implements GenericListener {
             log.info("Starting {}...", name);
 
             // Get a connection to the broker
-            String brokerUrl = globalConfig.get("messaging/url",
-                    ActiveMQConnectionFactory.DEFAULT_BROKER_BIND_URL);
-            ActiveMQConnectionFactory connectionFactory = new ActiveMQConnectionFactory(
-                    brokerUrl);
+            String brokerUrl = globalConfig.getString(
+                    ActiveMQConnectionFactory.DEFAULT_BROKER_BIND_URL,
+                    "messaging", "url");
+            ActiveMQConnectionFactory connectionFactory =
+                    new ActiveMQConnectionFactory(brokerUrl);
             connection = connectionFactory.createConnection();
 
             session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
@@ -146,19 +147,19 @@ public class SubscriberQueueConsumer implements GenericListener {
      * @throws IOException if the configuration file not found
      */
     @Override
-    public void init(JsonConfigHelper config) throws Exception {
-        name = config.get("config/name");
+    public void init(JsonSimpleConfig config) throws Exception {
+        name = config.getString(null, "config", "name");
         QUEUE_ID = name;
         thread.setName(name);
 
         try {
             subscriberList = new ArrayList<Subscriber>();
-            globalConfig = new JsonConfig();
-            File sysFile = JsonConfig.getSystemFile();
-            List<Object> subscribers = config.getList("config/subscribers");
-            if (!subscribers.isEmpty()) {
-                for (Object object : subscribers) {
-                    String sid = object.toString();
+            globalConfig = new JsonSimpleConfig();
+            File sysFile = JsonSimpleConfig.getSystemFile();
+            List<String> subscribers = config.getStringList(
+                    "config", "subscribers");
+            if (subscribers != null && !subscribers.isEmpty()) {
+                for (String sid : subscribers) {
                     if (!sid.equals("")) {
                         Subscriber subscriber = PluginManager
                                 .getSubscriber(sid);
@@ -252,9 +253,9 @@ public class SubscriberQueueConsumer implements GenericListener {
 
             // Get the message details
             String text = ((TextMessage) message).getText();
-            JsonConfigHelper config = new JsonConfigHelper(text);
-            String oid = config.get("oid");
-            String context = config.get("context", "");
+            JsonSimpleConfig config = new JsonSimpleConfig(text);
+            String oid = config.getString(null, "oid");
+            String context = config.getString("", "context");
 
             log.info(" *** Received event, object id={}, from={}", oid, context);
 
@@ -269,9 +270,9 @@ public class SubscriberQueueConsumer implements GenericListener {
             String id = DigestUtils.md5Hex(oid + now);
             param.put("id", id);
             param.put("oid", oid);
-            param.put("eventType", config.get("eventType"));
+            param.put("eventType", config.getString(null, "eventType"));
             param.put("context", context);
-            param.put("user", config.get("user", "guest"));
+            param.put("user", config.getString("guest", "user"));
             param.put("eventTime", now);
 
             for (Subscriber subscriber : subscriberList) {
@@ -299,11 +300,11 @@ public class SubscriberQueueConsumer implements GenericListener {
      */
     private void sendNotification(String oid, String status, String message)
             throws JMSException {
-        JsonConfigHelper jsonMessage = new JsonConfigHelper();
-        jsonMessage.set("id", oid);
-        jsonMessage.set("idType", "object");
-        jsonMessage.set("status", status);
-        jsonMessage.set("message", message);
+        JsonObject jsonMessage = new JsonObject();
+        jsonMessage.put("id", oid);
+        jsonMessage.put("idType", "object");
+        jsonMessage.put("status", status);
+        jsonMessage.put("message", message);
 
         TextMessage msg = session.createTextMessage(jsonMessage.toString());
         // producer.send(broadcast, msg);

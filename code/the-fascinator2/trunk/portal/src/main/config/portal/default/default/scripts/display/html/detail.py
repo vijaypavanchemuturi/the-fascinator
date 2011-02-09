@@ -29,7 +29,7 @@ class DetailData:
 
     def pageContent(self):
         # Object ID
-        oid = self.metadata.get("id")
+        oid = self.metadata.getFirst("id")
         # Determine MIME Type
         mimeType = "Unknown"
         mimeList = self.metadata.getList("dc_format")
@@ -45,7 +45,7 @@ class DetailData:
 
         # We are rendering a HTML preview...
         else:
-            preview = self.metadata.get("preview")
+            preview = self.metadata.getFirst("preview")
 
             # ... of an IMS package or zipped website. Treat as per html above.
             if mimeType == "application/zip":

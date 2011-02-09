@@ -1,6 +1,6 @@
 /* 
  * The Fascinator - Portal
- * Copyright (C) 2008-2009 University of Southern Queensland
+ * Copyright (C) 2008-2011 University of Southern Queensland
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,6 +18,18 @@
  */
 package au.edu.usq.fascinator.portal.services.impl;
 
+import au.edu.usq.fascinator.common.JsonSimpleConfig;
+import au.edu.usq.fascinator.common.solr.SolrDoc;
+import au.edu.usq.fascinator.portal.FormData;
+import au.edu.usq.fascinator.portal.JsonSessionState;
+import au.edu.usq.fascinator.portal.guitoolkit.GUIToolkit;
+import au.edu.usq.fascinator.portal.services.DynamicPageService;
+import au.edu.usq.fascinator.portal.services.HouseKeepingManager;
+import au.edu.usq.fascinator.portal.services.PortalManager;
+import au.edu.usq.fascinator.portal.services.PortalSecurityManager;
+import au.edu.usq.fascinator.portal.services.ScriptingServices;
+import au.edu.usq.fascinator.portal.velocity.JythonLogger;
+
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.InputStream;
@@ -27,7 +39,6 @@ import java.io.OutputStreamWriter;
 import java.io.PrintStream;
 import java.io.StringWriter;
 import java.io.Writer;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -57,18 +68,6 @@ import org.python.core.imp;
 import org.python.util.PythonInterpreter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import au.edu.usq.fascinator.common.JsonConfig;
-import au.edu.usq.fascinator.common.JsonConfigHelper;
-import au.edu.usq.fascinator.portal.FormData;
-import au.edu.usq.fascinator.portal.JsonSessionState;
-import au.edu.usq.fascinator.portal.guitoolkit.GUIToolkit;
-import au.edu.usq.fascinator.portal.services.DynamicPageService;
-import au.edu.usq.fascinator.portal.services.HouseKeepingManager;
-import au.edu.usq.fascinator.portal.services.PortalManager;
-import au.edu.usq.fascinator.portal.services.PortalSecurityManager;
-import au.edu.usq.fascinator.portal.services.ScriptingServices;
-import au.edu.usq.fascinator.portal.velocity.JythonLogger;
 
 public class DynamicPageServiceImpl implements DynamicPageService {
 
@@ -120,32 +119,29 @@ public class DynamicPageServiceImpl implements DynamicPageService {
 
     public DynamicPageServiceImpl() {
         try {
-            JsonConfig config = new JsonConfig();
-            nativeJython = Boolean.parseBoolean(config.get(
-                    "portal/nativeJython", "true"));
-            layoutName = config.get("portal/layout", DEFAULT_LAYOUT_TEMPLATE);
-            engineName = config.get("portal/scriptEngine",
-                    DEFAULT_SCRIPT_ENGINE);
+            JsonSimpleConfig config = new JsonSimpleConfig();
+            nativeJython = config.getBoolean(true, "portal", "nativeJython");
+            layoutName = config.getString(DEFAULT_LAYOUT_TEMPLATE,
+                    "portal", "layout");
+            engineName = config.getString(DEFAULT_SCRIPT_ENGINE,
+                    "portal", "scriptEngine");
             toolkit = new GUIToolkit();
 
             // Default templates
-            defaultPortal = config.get("portal/defaultView",
-                    PortalManager.DEFAULT_PORTAL_NAME);
-            defaultSkin = config.get("portal/skins/default", DEFAULT_SKIN);
+            defaultPortal = config.getString(PortalManager.DEFAULT_PORTAL_NAME,
+                    "portal", "defaultView");
+            defaultSkin = config.getString(DEFAULT_SKIN,
+                    "portal", "skins", "default");
 
             // Skin customisations
-            skinPriority = new ArrayList<String>();
-            List<Object> skins = config.getList("portal/skins/order");
-            for (Object object : skins) {
-                skinPriority.add(object.toString());
-            }
+            skinPriority = config.getStringList("portal", "skins", "order");
             if (!skinPriority.contains(defaultSkin)) {
                 skinPriority.add(defaultSkin);
             }
 
             // Template directory
-            String home = config.get("portal/home",
-                    PortalManager.DEFAULT_PORTAL_HOME_DIR);
+            String home = config.getString(
+                    PortalManager.DEFAULT_PORTAL_HOME_DIR, "portal", "home");
             File homePath = new File(home);
             if (!homePath.exists()) {
                 home = PortalManager.DEFAULT_PORTAL_HOME_DIR_DEV;
@@ -386,14 +382,15 @@ public class DynamicPageServiceImpl implements DynamicPageService {
         return mimeType;
     }
 
+    @Override
     public String renderObject(Context context, String template,
-            JsonConfigHelper metadata) {
+            SolrDoc metadata) {
         log.debug("========== START renderObject ==========");
 
         // setup script and velocity context
         String portalId = context.get("portalId").toString();
 
-        String displayType = metadata.get("display_type", "default");
+        String displayType = metadata.getString("default", "display_type");
         if ("".equals(displayType)) {
             displayType = "default"; // TODO configurable
         }

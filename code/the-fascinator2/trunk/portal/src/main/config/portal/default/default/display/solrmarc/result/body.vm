@@ -1,6 +1,6 @@
-#set($marc_id = $self.get("storage_id"))
+#set($marc_id = $self.getFirst("storage_id"))
 #set($formats = $self.getList("dc_format"))
-#set($url = $self.get("url"))
+#set($url = $self.getFirst("url"))
 
 <strong>ID:</strong> $marc_id
 #foreach ($format in $formats)

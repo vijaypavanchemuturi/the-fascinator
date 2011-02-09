@@ -2,7 +2,8 @@ import re, time, json2 as json
 
 from au.edu.usq.fascinator.api.indexer import SearchRequest
 from au.edu.usq.fascinator.api.storage import StorageException
-from au.edu.usq.fascinator.common import JsonConfigHelper
+from au.edu.usq.fascinator.common import JsonSimple
+from au.edu.usq.fascinator.common.solr import SolrResult
 from au.edu.usq.fascinator.common.storage import StorageUtils
 
 from java.io import ByteArrayInputStream, ByteArrayOutputStream
@@ -105,17 +106,17 @@ class AnotarData:
 
     def modify_json(self):
         #print "**** anotar.py : add_json() : adding json : " + json
-        jsonObj = JsonConfigHelper(self.json)
-        jsonObj.set("id", self.pid)
-        rootUri = jsonObj.get("annotates/rootUri")
+        jsonSimple = JsonSimple(self.json)
+        jsonObj = jsonSimple.getJsonObject()
+        jsonObj.put("id", self.pid)
+        rootUri = jsonSimple.getString(None, ["annotates", "rootUri"])
         if rootUri is not None:
             baseUrl = "http://%s:%s/" % (self.vc("request").serverName, self.vc("serverPort"))
             myUri = baseUrl + rootUri + "#" + self.pid
-            jsonObj.set("uri", myUri)
+            jsonObj.put("uri", myUri)
 
-        jsonObj.set("schemaVersionUri", "http://www.purl.org/anotar/schema/0.1")
-
-        self.json = jsonObj.toString(False)
+        jsonObj.put("schemaVersionUri", "http://www.purl.org/anotar/schema/0.1")
+        self.json = jsonSimple.toString()
 
     def process_response(self, result):
         #print " ******** result =", result
@@ -151,22 +152,30 @@ class AnotarData:
         tagsDict = {}
         # Build a dictionary of the tags
         for doc in result:
-            doc = JsonConfigHelper(doc.get("jsonString"))
-            tag = doc.get("content/literal")
-            locs = doc.getJsonList("annotates/locators").size()
+            # Get Anotar data from Solr data
+            doc = JsonSimple(doc.get("jsonString"))
+            # Get actual tag text
+            tag = doc.getString(None, ["content", "literal"])
+            # Find out if they have locators
+            locs = doc.getJsonSimpleList(["annotates", "locators"]).size()
             if locs == 0:
+                # Basic tags, just aggregate counts
                 if tag in tagsDict:
-                    d = tagsDict[tag]
-                    d.set("tagCount", str(int(d.get("tagCount")) + 1))
+                    # We've seen it before, just increment the counter
+                    existing = tagsDict[tag]
+                    count = existing.getInteger(0, ["tagCount"])
+                    existing.getJsonObject().put("tagCount", str(count + 1))
                 else:
-                    doc.set("tagCount", str(1))
+                    # First time, store this object
+                    doc.getJsonObject().put("tagCount", str(1))
                     tagsDict[tag] = doc
             else:
+                # Tags with a locator, special case for images etc.
                 tags.append(doc.toString())
 
+        # Push all the 'basic' counts into the list to return
         for tag in tagsDict:
             tags.append(tagsDict[tag].toString())
-
         return "[" + ",".join(tags) + "]"
 
     def put(self, pid=None):
@@ -183,8 +192,8 @@ class AnotarData:
         self.modify_json()
 
         try:
-            p = StorageUtils.createOrUpdatePayload(self.obj, self.pid,
-                                                   IOUtils.toInputStream(self.json, "UTF-8"))
+            p = StorageUtils.createOrUpdatePayload(
+                    self.obj, self.pid, IOUtils.toInputStream(self.json, "UTF-8"))
         except StorageException, e:
             print " * anotar.py : Error creating payload :", e
             return e.getMessage()
@@ -246,8 +255,7 @@ class AnotarData:
 
         out = ByteArrayOutputStream()
         Services.indexer.annotateSearch(req, out)
-        result = JsonConfigHelper(ByteArrayInputStream(out.toByteArray()))
-        result = result.getJsonList("response/docs")
+        result = SolrResult(ByteArrayInputStream(out.toByteArray())).getResults()
 
         # Every annotation for this URI
         if self.type == "http://www.purl.org/anotar/ns/type/0.1#Tag":
@@ -261,25 +269,28 @@ class AnotarData:
         result = '{"result":' + self.search_solr() + '}'
         if result:
             imageTagList = []
-            imageTags = JsonConfigHelper(result).getJsonList("result")
+            imageTags = JsonSimple(result).getJsonSimpleList(["result"])
             for imageTag in imageTags:
-                imageAno = JsonConfigHelper()
-                if imageTag.getJsonList("annotates/locators"):
-                    locatorValue = imageTag.getJsonList("annotates/locators").get(0).get("value")
-                    locatorType = imageTag.getJsonList("annotates/locators").get(0).get("type")
+                imageAno = JsonSimple()
+                # We only want tags with locators, not basic tags
+                locators = imageTag.getJsonSimpleList(["annotates", "locators"])
+                if locators and not locators.isEmpty():
+                    locatorValue = locators.get(0).getString(None, ["value"])
+                    locatorType = locators.get(0).get(None, ["type"])
                     if locatorValue and locatorValue.find("#xywh=")>-1 and locatorType == mediaFragType:
                         _, locatorValue = locatorValue.split("#xywh=")
                         left, top, width, height = locatorValue.split(",")
-                        imageAno.set("top", top)
-                        imageAno.set("left", left)
-                        imageAno.set("width", width)
-                        imageAno.set("height", height)
-                        imageAno.set("creator", imageTag.get("creator/literal"))
-                        imageAno.set("creatorUri", imageTag.get("creator/uri"))
-                        imageAno.set("id", imageTag.get("id"))
-                        #tagCount = imageTag.get("tagCount")
-                        imageAno.set("text", imageTag.get("content/literal"))
-                        imageAno.set("editable", "true");
+                        object = imageAno.getJsonObject()
+                        object.put("top", top)
+                        object.put("left", left)
+                        object.put("width", width)
+                        object.put("height", height)
+                        object.put("creator", imageTag.getString(None, ["creator", "literal"]))
+                        object.put("creatorUri", imageTag.getString(None, ["creator", "uri"]))
+                        object.put("id", imageTag.getString(None, ["id"]))
+                        #tagCount = imageTag.getString(None, ["tagCount"])
+                        object.put("text", imageTag.getString(None, ["content", "literal"]))
+                        object.put("editable", "true");
                         imageTagList.append(imageAno.toString())
             result = "[" + ",".join(imageTagList) + "]"
         return result

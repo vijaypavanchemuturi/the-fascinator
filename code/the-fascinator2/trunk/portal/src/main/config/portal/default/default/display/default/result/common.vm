@@ -1,6 +1,6 @@
-#set($id = $self.get("id"))
-#set($title = $self.get("dc_title"))
-#set($description = $self.get("dc_description"))
+#set($id = $self.getFirst("id"))
+#set($title = $self.getFirst("dc_title"))
+#set($description = $self.getFirst("dc_description"))
 #set($format = $self.get("dc_format"))
 
 #set($itemClass = "article")
@@ -12,4 +12,4 @@
 
 #set($isPackage = "$!format" == "application/x-fascinator-package")
 #set($manifestItemTitle = $parent.getManifestItemTitle($id, $title))
-#set($wfStep = $self.get("workflow_step"))
+#set($wfStep = $self.getFirst("workflow_step"))

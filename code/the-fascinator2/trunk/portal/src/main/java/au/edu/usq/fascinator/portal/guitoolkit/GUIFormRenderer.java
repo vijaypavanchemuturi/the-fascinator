@@ -18,9 +18,9 @@
  */
 package au.edu.usq.fascinator.portal.guitoolkit;
 
-import java.util.Map;
+import au.edu.usq.fascinator.common.JsonSimpleConfig;
 
-import au.edu.usq.fascinator.common.JsonConfig;
+import java.util.Map;
 
 /**
  * Render web form elements based on descriptive metadata.
@@ -34,7 +34,7 @@ public class GUIFormRenderer {
      *
      * @param config : System configuration
      */
-    public GUIFormRenderer(JsonConfig config) {
+    public GUIFormRenderer(JsonSimpleConfig config) {
     }
 
     /**
@@ -66,9 +66,8 @@ public class GUIFormRenderer {
      * @return String : The html for the element
      */
     public String ajaxProgressLoader(String prefix) {
-        return "<img class='hidden' id='"
-                + prefix
-                + "-loading' src='images/loading-progress.gif' alt='Loading'/>\n";
+        return "<img class='hidden' id='" + prefix + "-loading'" +
+                " src='images/loading-progress.gif' alt='Loading'/>\n";
     }
 
     /**

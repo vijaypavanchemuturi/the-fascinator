@@ -35,18 +35,18 @@ class AgreementData:
 
     def acceptButton(self):
         defaultLabel = "I Accept"
-        return self.__metadata.get("user_agreement_accept", defaultLabel)
+        return self.__metadata.getString(defaultLabel, "user_agreement_accept")
 
     def cancelButton(self):
         defaultLabel = "No Thanks"
-        return self.__metadata.get("user_agreement_cancel", defaultLabel)
+        return self.__metadata.getString(defaultLabel, "user_agreement_cancel")
 
     def getText(self):
         return StringEscapeUtils.escapeHtml(self.__metadata.get("user_agreement_text"))
 
     def getTitle(self):
         defaultTitle = "User Agreement"
-        return self.__metadata.get("user_agreement_title", defaultTitle)
+        return self.__metadata.getString(defaultTitle, "user_agreement_title")
 
     def getUser(self):
         return self.__auth.get_username()

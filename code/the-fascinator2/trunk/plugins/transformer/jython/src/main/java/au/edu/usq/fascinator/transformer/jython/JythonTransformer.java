@@ -1,6 +1,6 @@
 /*
  * The Fascinator - Plugin - Transformer - Jython
- * Copyright (C) 2009  University of Southern Queensland
+ * Copyright (C) 2010-2011  University of Southern Queensland
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,6 +18,15 @@
  */
 package au.edu.usq.fascinator.transformer.jython;
 
+import au.edu.usq.fascinator.api.PluginDescription;
+import au.edu.usq.fascinator.api.PluginException;
+import au.edu.usq.fascinator.api.storage.DigitalObject;
+import au.edu.usq.fascinator.api.transformer.Transformer;
+import au.edu.usq.fascinator.api.transformer.TransformerException;
+import au.edu.usq.fascinator.common.JsonSimple;
+import au.edu.usq.fascinator.common.JsonSimpleConfig;
+import au.edu.usq.fascinator.common.PythonUtils;
+
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
@@ -27,15 +36,6 @@ import java.util.Properties;
 import org.python.util.PythonInterpreter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import au.edu.usq.fascinator.api.PluginDescription;
-import au.edu.usq.fascinator.api.PluginException;
-import au.edu.usq.fascinator.api.storage.DigitalObject;
-import au.edu.usq.fascinator.api.transformer.Transformer;
-import au.edu.usq.fascinator.api.transformer.TransformerException;
-import au.edu.usq.fascinator.common.JsonConfig;
-import au.edu.usq.fascinator.common.JsonConfigHelper;
-import au.edu.usq.fascinator.common.PythonUtils;
 
 /**
  * <p>
@@ -88,9 +88,9 @@ public class JythonTransformer implements Transformer {
             .getLogger(JythonTransformer.class);
 
     /** Json config file **/
-    private JsonConfigHelper config;
+    private JsonSimpleConfig config;
 
-    private JsonConfig jsonConfig;
+    private JsonSimple itemConfig;
 
     private PythonUtils pyUtils;
 
@@ -109,8 +109,7 @@ public class JythonTransformer implements Transformer {
     @Override
     public void init(String jsonString) throws PluginException {
         try {
-            config = new JsonConfigHelper(jsonString);
-            jsonConfig = new JsonConfig(jsonString);
+            config = new JsonSimpleConfig(jsonString);
             reset();
         } catch (IOException e) {
             throw new PluginException(e);
@@ -126,8 +125,7 @@ public class JythonTransformer implements Transformer {
     @Override
     public void init(File jsonFile) throws PluginException {
         try {
-            config = new JsonConfigHelper(jsonFile);
-            jsonConfig = new JsonConfig(jsonFile);
+            config = new JsonSimpleConfig(jsonFile);
             reset();
         } catch (IOException e) {
             throw new PluginException(e);
@@ -138,11 +136,15 @@ public class JythonTransformer implements Transformer {
      * Reset the transformer in preparation for a new object
      */
     private void reset() throws TransformerException {
-        log.info("--Initializing Extractor plugin--");
-        try {
-            pyUtils = new PythonUtils(jsonConfig);
-        } catch (PluginException e) {
-            log.error("Fail to initialise pyUtils");
+        if (pyUtils == null) {
+            log.info("--Initializing Extractor plugin--");
+            try {
+                pyUtils = new PythonUtils(new JsonSimpleConfig());
+            } catch (IOException e) {
+                log.error("Fail to initialise pyUtils : ", e);
+            } catch (PluginException e) {
+                log.error("Fail to initialise pyUtils : ", e);
+            }
         }
     }
 
@@ -195,10 +197,15 @@ public class JythonTransformer implements Transformer {
     public DigitalObject transform(DigitalObject in, String jsonConfig)
             throws TransformerException {
         // Purge old data
+        try {
+            itemConfig = new JsonSimple(jsonConfig);
+        } catch (IOException ex) {
+            throw new TransformerException("Invalid configuration provided.");
+        }
         reset();
+
         try {
             Properties props = in.getMetadata();
-            JsonConfigHelper json = new JsonConfigHelper(jsonConfig);
             //String scriptFile = json.get("transformer/jython/script",
             //        props.getProperty("jythonScript"));
             String scriptFile = props.getProperty("jythonScript");
@@ -214,7 +221,7 @@ public class JythonTransformer implements Transformer {
                 // Run the script
                 PythonInterpreter python = new PythonInterpreter();
                 python.set("object", in);
-                python.set("config", json);
+                python.set("config", itemConfig);
                 python.set("pyUtils", pyUtils);
                 python.set("log", log);
                 python.execfile(scriptFile);

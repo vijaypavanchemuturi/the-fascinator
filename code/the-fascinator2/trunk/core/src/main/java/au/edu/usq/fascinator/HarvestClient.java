@@ -1,6 +1,6 @@
 /* 
  * The Fascinator - Core
- * Copyright (C) 2009 University of Southern Queensland
+ * Copyright (C) 2009-2011 University of Southern Queensland
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,7 +18,21 @@
  */
 package au.edu.usq.fascinator;
 
+import au.edu.usq.fascinator.api.PluginException;
+import au.edu.usq.fascinator.api.PluginManager;
+import au.edu.usq.fascinator.api.harvester.Harvester;
+import au.edu.usq.fascinator.api.harvester.HarvesterException;
+import au.edu.usq.fascinator.api.storage.DigitalObject;
+import au.edu.usq.fascinator.api.storage.Payload;
+import au.edu.usq.fascinator.api.storage.Storage;
+import au.edu.usq.fascinator.api.storage.StorageException;
+import au.edu.usq.fascinator.api.transformer.TransformerException;
+import au.edu.usq.fascinator.common.JsonObject;
+import au.edu.usq.fascinator.common.JsonSimple;
+import au.edu.usq.fascinator.common.JsonSimpleConfig;
 import au.edu.usq.fascinator.common.MessagingServices;
+import au.edu.usq.fascinator.common.storage.StorageUtils;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -37,19 +51,6 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import au.edu.usq.fascinator.api.PluginException;
-import au.edu.usq.fascinator.api.PluginManager;
-import au.edu.usq.fascinator.api.harvester.Harvester;
-import au.edu.usq.fascinator.api.harvester.HarvesterException;
-import au.edu.usq.fascinator.api.storage.DigitalObject;
-import au.edu.usq.fascinator.api.storage.Payload;
-import au.edu.usq.fascinator.api.storage.Storage;
-import au.edu.usq.fascinator.api.storage.StorageException;
-import au.edu.usq.fascinator.api.transformer.TransformerException;
-import au.edu.usq.fascinator.common.JsonConfig;
-import au.edu.usq.fascinator.common.JsonConfigHelper;
-import au.edu.usq.fascinator.common.storage.StorageUtils;
 
 /**
  * 
@@ -93,7 +94,7 @@ public class HarvestClient {
     private String fileOwner;
 
     /** Json configuration */
-    private JsonConfig config;
+    private JsonSimpleConfig config;
 
     /** Storage to store the digital object */
     private Storage storage;
@@ -136,11 +137,12 @@ public class HarvestClient {
 
         try {
             if (configFile == null) {
-                config = new JsonConfig();
+                config = new JsonSimpleConfig();
             } else {
-                config = new JsonConfig(configFile);
-                rulesFile = new File(configFile.getParent(),
-                        config.get("indexer/script/rules"));
+                config = new JsonSimpleConfig(configFile);
+                String rules = config.getString(null,
+                        "indexer", "script", "rules");
+                rulesFile = new File(configFile.getParent(), rules);
             }
         } catch (IOException ioe) {
             throw new HarvesterException("Failed to read configuration file: '"
@@ -148,7 +150,8 @@ public class HarvestClient {
         }
 
         // initialise storage system
-        String storageType = config.get("storage/type", DEFAULT_STORAGE_TYPE);
+        String storageType = config.getString(DEFAULT_STORAGE_TYPE,
+                "storage", "type");
         storage = PluginManager.getStorage(storageType);
         if (storage == null) {
             throw new HarvesterException("Storage plugin '" + storageType
@@ -178,18 +181,18 @@ public class HarvestClient {
     private DigitalObject updateHarvestFile(File file) throws StorageException {
         // Check the file in storage
         DigitalObject object = StorageUtils.checkHarvestFile(storage, file);
-        log.info("=== Check harvest file: '{}'=> '{}'", file.getName(), object);
+        //log.info("=== Check harvest file: '{}'=> '{}'", file.getName(), object);
         if (object != null) {
             // If we got an object back its new or updated
-            JsonConfigHelper message = new JsonConfigHelper();
-            message.set("type", "harvest-update");
-            message.set("oid", object.getId());
+            JsonObject message = new JsonObject();
+            message.put("type", "harvest-update");
+            message.put("oid", object.getId());
             messaging.queueMessage("houseKeeping", message.toString());
         } else {
             // Otherwise grab the existing object
             String oid = StorageUtils.generateOid(file);
             object = StorageUtils.getDigitalObject(storage, oid);
-            log.info("=== Try again: '{}'=> '{}'", file.getName(), object);
+            //log.info("=== Try again: '{}'=> '{}'", file.getName(), object);
         }
         return object;
     }
@@ -211,7 +214,7 @@ public class HarvestClient {
 
         // initialise the harvester
         Harvester harvester = null;
-        String harvesterType = config.get("harvester/type");
+        String harvesterType = config.getString(null, "harvester", "type");
         harvester = PluginManager.getHarvester(harvesterType, storage);
         if (harvester == null) {
             throw new HarvesterException("Harvester plugin '" + harvesterType
@@ -298,9 +301,9 @@ public class HarvestClient {
         boolean usingTempFile = false;
         if (configOid == null) {
             log.warn("No harvest config for '{}', using defaults...");
-            configFile = JsonConfig.getSystemFile();
+            configFile = JsonSimpleConfig.getSystemFile();
         } else {
-            log.debug("Using config from '{}'", configOid);
+            log.info("Using config from '{}'", configOid);
             DigitalObject configObj = storage.getObject(configOid);
             Payload payload = configObj.getPayload(configObj.getSourceId());
             configFile = File.createTempFile("reharvest", ".json");
@@ -368,7 +371,8 @@ public class HarvestClient {
         Properties props = object.getMetadata();
         // TODO - objectId is redundant now?
         props.setProperty("objectId", object.getId());
-        props.setProperty("scriptType", config.get("indexer/script/type"));
+        props.setProperty("scriptType", config.getString(null,
+                "indexer", "script", "type"));
         if (props.getProperty("rulesOid") == null) {
             props.setProperty("rulesOid", rulesObject.getId());
             props.setProperty("rulesPid", rulesObject.getSourceId());
@@ -380,9 +384,9 @@ public class HarvestClient {
         if (fileOwner != null) {
             props.setProperty("owner", fileOwner);
         }
-        Map<String, Object> params = config.getMap("indexer/params");
-        for (String key : params.keySet()) {
-            props.setProperty(key, params.get(key).toString());
+        JsonObject params = config.getObject("indexer", "params");
+        for (Object key : params.keySet()) {
+            props.setProperty(key.toString(), params.get(key).toString());
         }
 
         // done with the object
@@ -417,10 +421,10 @@ public class HarvestClient {
     private void queueHarvest(String oid, File jsonFile, boolean commit,
             String queueName) {
         try {
-            JsonConfigHelper json = new JsonConfigHelper(jsonFile);
-            json.set("oid", oid);
+            JsonObject json = new JsonSimple(jsonFile).getJsonObject();
+            json.put("oid", oid);
             if (commit) {
-                json.set("commit", "true");
+                json.put("commit", "true");
             }
             messaging.queueMessage(queueName, json.toString());
         } catch (IOException ioe) {
@@ -436,9 +440,9 @@ public class HarvestClient {
      */
     private void queueDelete(String oid, File jsonFile) {
         try {
-            JsonConfigHelper json = new JsonConfigHelper(jsonFile);
-            json.set("oid", oid);
-            json.set("deleted", "true");
+            JsonObject json = new JsonSimple(jsonFile).getJsonObject();
+            json.put("oid", oid);
+            json.put("deleted", "true");
             messaging.queueMessage(HarvestQueueConsumer.HARVEST_QUEUE,
                     json.toString());
         } catch (IOException ioe) {

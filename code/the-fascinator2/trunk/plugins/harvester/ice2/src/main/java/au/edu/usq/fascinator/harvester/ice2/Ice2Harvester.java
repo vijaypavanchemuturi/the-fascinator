@@ -24,8 +24,9 @@ import au.edu.usq.fascinator.api.storage.Payload;
 import au.edu.usq.fascinator.api.storage.PayloadType;
 import au.edu.usq.fascinator.api.storage.StorageException;
 import au.edu.usq.fascinator.common.FascinatorHome;
-import au.edu.usq.fascinator.common.JsonConfig;
-import au.edu.usq.fascinator.common.JsonConfigHelper;
+import au.edu.usq.fascinator.common.JsonObject;
+import au.edu.usq.fascinator.common.JsonSimple;
+import au.edu.usq.fascinator.common.JsonSimpleConfig;
 import au.edu.usq.fascinator.common.harvester.impl.GenericHarvester;
 import au.edu.usq.fascinator.common.storage.StorageUtils;
 
@@ -244,9 +245,6 @@ public class Ice2Harvester extends GenericHarvester {
 
     @Override
     public void init() throws HarvesterException {
-        // Harvest config
-        JsonConfig config = getJsonConfig();
-
         // Init stats
         objectsCreated = 0;
         filesProcessed = 0;
@@ -259,31 +257,33 @@ public class Ice2Harvester extends GenericHarvester {
         }
 
         // Base directory of harvested content
-        baseDir = new File(config.get("harvester/ice2-harvester/baseDir", "."));
+        baseDir = new File(getJsonConfig().getString(".",
+                "harvester", "ice2-harvester", "baseDir"));
         // File to ignore inside directory
-        ignoreFilter = new IgnoreFilter(config.get(
-                "harvester/ice2-harvester/ignoreFilter",
-                DEFAULT_IGNORE_PATTERNS).split("\\|"));
+        ignoreFilter = new IgnoreFilter(getJsonConfig().getString(
+                DEFAULT_IGNORE_PATTERNS, "harvester", "ice2-harvester",
+                "ignoreFilter").split("\\|"));
 
         // Course to specifically look for
-        String courseList = config
-                .get("harvester/ice2-harvester/targetCourses");
+        String courseList = getJsonConfig().getString(null,
+                "harvester", "ice2-harvester", "targetCourses");
         if (courseList != null && !courseList.isEmpty()) {
             targetCourses = Arrays.asList(StringUtils.split(courseList, ','));
         }
 
         // Courses we are ignoring
-        courseList = config.get("harvester/ice2-harvester/ignoreCourses");
+        courseList = getJsonConfig().getString(null,
+                "harvester", "ice2-harvester", "ignoreCourses");
         if (courseList != null && !courseList.isEmpty()) {
             ignoreCourses = Arrays.asList(StringUtils.split(courseList, ','));
         }
 
         // Harvest completely into storage or harvest a link back to disk?
-        link = Boolean.parseBoolean(config.get("harvester/ice2-harvester/link",
-                "false"));
+        link = getJsonConfig().getBoolean(false,
+                "harvester", "ice2-harvester", "link");
         // If the testRun flag is on, we're not really harvesting
-        testRun = Boolean.parseBoolean(config.get(
-                "harvester/ice2-harvester/testRun", "false"));
+        testRun = getJsonConfig().getBoolean(false,
+                "harvester", "ice2-harvester", "testRun");
 
         // Directory traversal variables
         currentDir = baseDir;
@@ -481,24 +481,25 @@ public class Ice2Harvester extends GenericHarvester {
 
         // Get the 'manifest' node of the metadata and
         //   parse it into a useful object.
-        JsonConfigHelper jsonManifest;
+        JsonSimple jsonManifest;
         try {
-            jsonManifest = new JsonConfigHelper(responseJson);
+            jsonManifest = new JsonSimple(responseJson);
         } catch (IOException ex) {
             log.error("Error in manifest JSON : ", ex);
             return new HashSet<String>();
         }
 
         // Top level metadata
-        String title = jsonManifest.get("title");
-        String home = jsonManifest.get("homePage");
-        List<JsonConfigHelper> children = new ArrayList<JsonConfigHelper>();
-        List<JsonConfigHelper> toc = jsonManifest.getJsonList("toc");
+        String title = jsonManifest.getString(null, "title");
+        String home = jsonManifest.getString(null, "homePage");
+        List<JsonSimple> children = new ArrayList<JsonSimple>();
+        List<JsonSimple> toc = JsonSimple.toJavaList(
+                jsonManifest.getArray("toc"));
 
         // We only want 'visible' children. A (potentially) enormous number
         //  of non-visible media objects can be listed as top-level children.
-        for (JsonConfigHelper entry : toc) {
-            boolean visible = Boolean.parseBoolean(entry.get("visible"));
+        for (JsonSimple entry : toc) {
+            boolean visible = entry.getBoolean(false, "visible");
             if (visible) {
                 children.add(entry);
             }
@@ -507,13 +508,13 @@ public class Ice2Harvester extends GenericHarvester {
         // *** Harvesting
         // Convert responses from the functions below into a simple list of IDs
         Map<String, String> responseMap = new HashMap<String, String>();
-        JsonConfigHelper icePackage = prepareObject(title, home, children,
+        JsonSimple icePackage = prepareObject(title, home, children,
                 responseMap);
         //log.debug("\n *** ICE2 : Package -\n{}", icePackage.toString());
 
         // *** Packaging
         // Make sure it's not empty
-        if (!icePackage.toString(false).equals("{}")) {
+        if (!icePackage.toString().equals("{}")) {
             if (title == null) {
                 title = "Untitled";
             }
@@ -569,8 +570,8 @@ public class Ice2Harvester extends GenericHarvester {
         return fileObjectIdList;
     }
 
-    private JsonConfigHelper prepareObject(String title, String rootDoc,
-            List<JsonConfigHelper> children, Map<String, String> objectIdMap)
+    private JsonSimple prepareObject(String title, String rootDoc,
+            List<JsonSimple> children, Map<String, String> objectIdMap)
             throws HarvesterException {
         return prepareObject(title, rootDoc, children, objectIdMap, 0);
     }
@@ -590,13 +591,13 @@ public class Ice2Harvester extends GenericHarvester {
      * during recursion of children
      * @throws HarvesterException for any errors
      */
-    private JsonConfigHelper prepareObject(String title, String rootDoc,
-            List<JsonConfigHelper> children, Map<String, String> objectIdMap,
+    private JsonSimple prepareObject(String title, String rootDoc,
+            List<JsonSimple> children, Map<String, String> objectIdMap,
             int level) throws HarvesterException {
         // This object
         DigitalObject object = null;
-        JsonConfigHelper objectData = new JsonConfigHelper();
-        Map<String, JsonConfigHelper> allChildren = new LinkedHashMap();
+        JsonObject objectData = new JsonObject();
+        Map<String, JsonSimple> allChildren = new LinkedHashMap();
         if (title == null) {
             title = "Untitled";
         }
@@ -604,23 +605,24 @@ public class Ice2Harvester extends GenericHarvester {
 
         // Child variables - Harvesting
         String childTitle, childHome = null;
-        List<JsonConfigHelper> grandChildren = null;
+        List<JsonSimple> grandChildren = null;
 
         // Child variables - Packaging
-        JsonConfigHelper childData;
-        Map<String, JsonConfigHelper> childManifest;
+        JsonSimple childData;
+        Map<String, JsonSimple> childManifest;
 
         // Process the manifest children first
-        for (JsonConfigHelper child : children) {
+        for (JsonSimple child : children) {
             // Prepare metadata
-            childTitle = child.get("title");
-            childHome = child.get("relPath");
-            grandChildren = child.getJsonList("children");
+            childTitle = child.getString(null, "title");
+            childHome = child.getString(null, "relPath");
+            grandChildren = JsonSimple.toJavaList(child.getArray("children"));
 
             // Process the childen
             childData = prepareObject(childTitle, childHome, grandChildren,
                     objectIdMap, level + 1);
-            childManifest = childData.getJsonMap("manifest");
+            childManifest = JsonSimple.toJavaMap(
+                    childData.getObject("manifest"));
 
             // Remember them for later
             for (String key : childManifest.keySet()) {
@@ -652,8 +654,8 @@ public class Ice2Harvester extends GenericHarvester {
         if (level == 0) {
             // Pointless if we didn't harvest anything
             if (allChildren.size() > 0) {
-                objectData.set("title", title);
-                objectData.setJsonMap("manifest", allChildren);
+                objectData.put("title", title);
+                objectData.put("manifest", JsonSimple.fromJavaMap(allChildren));
             }
             //log.debug(objectData.toString());
 
@@ -662,23 +664,25 @@ public class Ice2Harvester extends GenericHarvester {
         } else {
             if (object != null || testRun) {
                 String md5, oid = null;
-                objectData.set("title", title);
+                objectData.put("title", title);
                 if (testRun) {
                     oid = "testRunObject:" + title;
                 } else {
                     oid = object.getId();
                 }
                 md5 = DigestUtils.md5Hex(oid);
-                objectData.set("manifest/node-" + md5 + "/id", oid);
-                objectData.set("manifest/node-" + md5 + "/title", title);
-
+                JsonObject t2Data = new JsonObject();
+                t2Data.put("id", oid);
+                t2Data.put("title", title);
                 if (allChildren.size() > 0) {
-                    objectData.setJsonMap("manifest/node-" + md5 + "/children",
-                            allChildren);
+                    t2Data.put("children", JsonSimple.fromJavaMap(allChildren));
                 }
+                JsonObject t1Data = new JsonObject();
+                t1Data.put("node-" + md5, t2Data);
+                objectData.put("manifest", t1Data);
             }
         }
-        return objectData;
+        return new JsonSimple(objectData);
     }
 
     private DigitalObject harvestHtml(File rootFile, File htmlDir,

@@ -1,6 +1,6 @@
 /* 
  * The Fascinator - Plugin - Harvester - OAI-PMH
- * Copyright (C) 2008-2009 University of Southern Queensland
+ * Copyright (C) 2008-2011 University of Southern Queensland
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,6 +17,17 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 package au.edu.usq.fascinator.harvester.oaipmh;
+
+import au.edu.usq.fascinator.api.harvester.HarvesterException;
+import au.edu.usq.fascinator.api.storage.DigitalObject;
+import au.edu.usq.fascinator.api.storage.Payload;
+import au.edu.usq.fascinator.api.storage.PayloadType;
+import au.edu.usq.fascinator.api.storage.Storage;
+import au.edu.usq.fascinator.api.storage.StorageException;
+import au.edu.usq.fascinator.common.JsonObject;
+import au.edu.usq.fascinator.common.JsonSimple;
+import au.edu.usq.fascinator.common.harvester.impl.GenericHarvester;
+import au.edu.usq.fascinator.common.storage.StorageUtils;
 
 import java.io.IOException;
 import java.text.DateFormat;
@@ -40,15 +51,6 @@ import se.kb.oai.pmh.OaiPmhServer;
 import se.kb.oai.pmh.Record;
 import se.kb.oai.pmh.RecordsList;
 import se.kb.oai.pmh.ResumptionToken;
-import au.edu.usq.fascinator.api.harvester.HarvesterException;
-import au.edu.usq.fascinator.api.storage.DigitalObject;
-import au.edu.usq.fascinator.api.storage.Payload;
-import au.edu.usq.fascinator.api.storage.PayloadType;
-import au.edu.usq.fascinator.api.storage.Storage;
-import au.edu.usq.fascinator.api.storage.StorageException;
-import au.edu.usq.fascinator.common.JsonConfig;
-import au.edu.usq.fascinator.common.harvester.impl.GenericHarvester;
-import au.edu.usq.fascinator.common.storage.StorageUtils;
 
 /**
  * <p>
@@ -214,26 +216,53 @@ public class OaiPmhHarvester extends GenericHarvester {
     /** Existing protocol handlers */
     private String protocolHandlerPkgs;
 
+    /** Date limits */
+    private String dateFrom;
+    private String dateUntil;
+
+    /** Metadata prefix list */
+    private List<String> metadataPrefixes;
+
+    /** OAI-PMH Set */
+    private String setSpec;
+
+    /**
+     * Basic constructor.
+     *
+     */
     public OaiPmhHarvester() {
+        // Just provide GenericHarvester our identity.
         super("oai-pmh", "OAI-PMH Harvester");
     }
 
+    /**
+     * Basic init() function. Notice the lack of parameters. This is not part
+     * of the Plugin API but from the GenericHarvester implementation. It will
+     * be called following the constructor verifies configuration is available.
+     *
+     * @throws HarvesterException : If there are problems during instantiation
+     */
     @Override
     public void init() throws HarvesterException {
-        JsonConfig config = getJsonConfig();
-        server = new OaiPmhServer(config.get("harvester/oai-pmh/url"));
+        String url = getJsonConfig().getString(null,
+                "harvester", "oai-pmh", "url");
+        if (url == null) {
+            throw new HarvesterException("OAI-PMH : No server URL provided!");
+        }
+        server = new OaiPmhServer(url);
 
         /** Check for request on a specific ID */
-        recordID = config.get("harvester/oai-pmh/recordID", null);
+        recordID = getJsonConfig().getString(null,
+                "harvester", "oai-pmh", "recordID");
 
         /** Check for any specified result set size limits */
-        maxRequests = Integer.parseInt(config.get(
-                "harvester/oai-pmh/maxRequests", "-1"));
+        maxRequests = getJsonConfig().getInteger(-1,
+                "harvester", "oai-pmh", "maxRequests");
         if (maxRequests == -1) {
             maxRequests = Integer.MAX_VALUE;
         }
-        maxObjects = Integer.parseInt(config.get(
-                "harvester/oai-pmh/maxObjects", "-1"));
+        maxObjects = getJsonConfig().getInteger(-1,
+                "harvester", "oai-pmh", "maxObjects");
         if (maxObjects == -1) {
             maxObjects = Integer.MAX_VALUE;
         }
@@ -241,47 +270,108 @@ public class OaiPmhHarvester extends GenericHarvester {
         started = false;
         numRequests = 0;
         numObjects = 0;
+
+        // Check for data range requests
+        dateFrom = validDate(getJsonConfig().getString(null,
+                "harvester", "oai-pmh", "from"));
+        dateUntil = validDate(getJsonConfig().getString(null,
+                "harvester", "oai-pmh", "until"));
+        if (dateFrom == null) {
+            log.info("Harvesting all records");
+        } else {
+            log.info("Harvesting records from {} to {}", dateFrom,
+                    dateUntil == null ? dateUntil : " now");
+        }
+
+        // Metadata prefixes
+        JsonObject configNode = getJsonConfig().getObject(
+                "harvester", "oai-pmh");
+        metadataPrefixes = JsonSimple.getStringList(configNode,
+                "metadataPrefix");
+        if (metadataPrefixes == null || metadataPrefixes.isEmpty()) {
+            metadataPrefixes = new ArrayList();
+            metadataPrefixes.add(DEFAULT_METADATA_PREFIX);
+        }
+
+        setSpec = getJsonConfig().getString(null,
+                "harvester", "oai-pmh", "setSpec");
     }
 
+    /**
+     * Confirm that the data time string provided is valid and reduce the
+     * granularity to a basic date. Can be used to assign values by return
+     * value since it will convert invalid dates to null.
+     *
+     * @param date : The basic string to parse
+     * @return String : The date without time if valid, otherwise null
+     */
+    private String basicDate(String date) {
+        // We except full date time strings
+        DateFormat format = new SimpleDateFormat(DATETIME_FORMAT);
+        if (date != null) {
+            try {
+                Date objDate = format.parse(date);
+                // But we are only sending basic dates to the server
+                format = new SimpleDateFormat(DATE_FORMAT);
+                return format.format(objDate);
+            } catch (ParseException pe) {
+                log.warn("Failed to parse date: '{}'", date, pe);
+                return null;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Confirm that the data time string provided is valid. Can be used to
+     * assign values by return value since it will convert invalid dates
+     * to null.
+     *
+     * @param date : The basic string to parse
+     * @return String : The same string if valid, otherwise null
+     */
+    private String validDate(String date) {
+        // We except full date time strings
+        DateFormat format = new SimpleDateFormat(DATETIME_FORMAT);
+        if (date != null) {
+            try {
+                // It's valid if it parses
+                format.parse(date);
+                return date;
+            } catch (ParseException pe) {
+                log.warn("Failed to parse date: '{}'", date, pe);
+                return null;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Gets a list of digital object IDs. If there are no objects, this method
+     * should return an empty list, not null.
+     *
+     * @return a list of object IDs, possibly empty
+     * @throws HarvesterException if there was an error retrieving the objects
+     */
     @Override
     public Set<String> getObjectIdList() throws HarvesterException {
         // set to use our custom http url handler
         System.setProperty(PROTOCOL_HANDLER_KEY, getClass().getPackage()
                 .getName());
 
-        JsonConfig config = getJsonConfig();
-        DateFormat df = new SimpleDateFormat(DATETIME_FORMAT);
-        String from = config.get("harvester/oai-pmh/from");
-        String until = config.get("harvester/oai-pmh/until");
-        Date fromDate = null;
-        if (from != null) {
-            try {
-                fromDate = df.parse(from);
-            } catch (ParseException pe) {
-                log.warn("Failed to parse date {}", from, pe);
-            }
-        }
         Set<String> items = new HashSet<String>();
-        List<Object> metadataPrefixes = config
-                .getList("harvester/oai-pmh/metadataPrefix");
 
-        if (metadataPrefixes == null || metadataPrefixes.isEmpty()) {
-            metadataPrefixes = new ArrayList<Object>();
-            metadataPrefixes.add(DEFAULT_METADATA_PREFIX);
-        }
-        String setSpec = config.get("harvester/oai-pmh/setSpec");
         RecordsList records = null;
         try {
             numRequests++;
             /** Request for a specific ID */
             if (recordID != null) {
                 log.info("Requesting record {}", recordID);
-                for (Object metadataPrefix : metadataPrefixes) {
-                    Record record = server.getRecord(recordID,
-                            metadataPrefix.toString());
+                for (String metadataPrefix : metadataPrefixes) {
+                    Record record = server.getRecord(recordID, metadataPrefix);
                     try {
-                        items.add(createOaiPmhDigitalObject(record,
-                                metadataPrefix.toString()));
+                        items.add(createOaiPmhDigitalObject(
+                                record, metadataPrefix));
                     } catch (StorageException se) {
                         log.error("Failed to create object", se);
                     } catch (IOException ioe) {
@@ -298,27 +388,21 @@ public class OaiPmhHarvester extends GenericHarvester {
                 /** Start a new request */
             } else {
                 started = true;
-                if (fromDate == null) {
-                    log.info("Harvesting all records");
-                    records = server.listRecords(metadataPrefixes.get(0)
-                            .toString(), null, null, setSpec);
-                } else {
-                    try {
-                        log.info("Harvesting records from {} to {}", from,
-                                until == null ? until : " now");
-                        records = server.listRecords(metadataPrefixes.get(0)
-                                .toString(), from, until, setSpec);
-                    } catch (ErrorResponseException ere) {
-                        if (ere.getMessage().startsWith("Max granularity")) {
-                            log.warn(ere.getMessage());
-                            df = new SimpleDateFormat(DATE_FORMAT);
-                            from = df.format(fromDate);
-                        }
-                        log.info("Harvesting records from {} to {}", from,
-                                until == null ? until : " now");
-                        records = server.listRecords(metadataPrefixes.get(0)
-                                .toString(), from, until, setSpec);
+                try {
+                    records = server.listRecords(metadataPrefixes.get(0),
+                            dateFrom, dateUntil, setSpec);
+                } catch (ErrorResponseException ere) {
+                    // Some providers will not accept a full datetime
+                    if (ere.getMessage().startsWith("Max granularity")) {
+                        log.warn(ere.getMessage());
+                        dateFrom = basicDate(dateFrom);
+                        dateUntil = basicDate(dateUntil);
                     }
+                    // Try again
+                    log.info("Harvesting records from {} to {}", dateFrom,
+                            dateUntil == null ? dateUntil : " now");
+                    records = server.listRecords(metadataPrefixes.get(0),
+                            dateFrom, dateUntil, setSpec);
                 }
             }
             for (Record record : records.asList()) {
@@ -326,20 +410,18 @@ public class OaiPmhHarvester extends GenericHarvester {
                     numObjects++;
                     try {
                         items.add(createOaiPmhDigitalObject(record,
-                                metadataPrefixes.get(0).toString()));
+                                metadataPrefixes.get(0)));
                         // If there is other metadataPrefix, get the record and
                         // add the record to the payload
                         if (metadataPrefixes.size() > 1) {
-                            String recordID = record.getHeader()
-                                    .getIdentifier();
+                            String id = record.getHeader().getIdentifier();
                             for (int count = 1; count < metadataPrefixes.size(); count++) {
-                                Record otherRecord = server.getRecord(recordID,
-                                        metadataPrefixes.get(count).toString());
-
+                                Record otherRecord = server.getRecord(id,
+                                        metadataPrefixes.get(count));
                                 log.info("..... recordId {}", otherRecord
                                         .getHeader().getIdentifier());
                                 createOaiPmhDigitalObject(otherRecord,
-                                        metadataPrefixes.get(count).toString());
+                                        metadataPrefixes.get(count));
                             }
                         }
                     } catch (StorageException se) {
@@ -364,6 +446,20 @@ public class OaiPmhHarvester extends GenericHarvester {
         return items;
     }
 
+    /**
+     * Store the payload specified by the metadata prefix in the given record.
+     *
+     * This method will create a new DigitalObject if the record has never been
+     * seen before with this payload as the source, otherwise it will add the
+     * payload to an existing object as an enrichment.
+     *
+     * @param record : The OAI-PMH record with the data
+     * @param metadataPrefix : The metadata prefix we are interested in
+     * @return String : The OID of the stored object
+     * @throws HarvesterException : if there was an error accessing storage
+     * @throws IOException : if there was an error accessing or parsing the data
+     * @throws StorageException : if there was an error writing to storage
+     */
     private String createOaiPmhDigitalObject(Record record,
             String metadataPrefix) throws HarvesterException, IOException,
             StorageException {
@@ -393,6 +489,12 @@ public class OaiPmhHarvester extends GenericHarvester {
         return object.getId();
     }
 
+    /**
+     * Tests whether there are more objects to retrieve. This method should
+     * return true if called before getObjects.
+     *
+     * @return true if there are more objects to retrieve, false otherwise
+     */
     @Override
     public boolean hasMoreObjects() {
         return token != null && numRequests < maxRequests

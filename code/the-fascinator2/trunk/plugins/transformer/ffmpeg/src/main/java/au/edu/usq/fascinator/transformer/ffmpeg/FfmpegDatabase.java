@@ -19,7 +19,7 @@
 
 package au.edu.usq.fascinator.transformer.ffmpeg;
 
-import au.edu.usq.fascinator.common.JsonConfigHelper;
+import au.edu.usq.fascinator.common.JsonSimple;
 
 import java.io.File;
 import java.sql.Connection;
@@ -88,9 +88,9 @@ public class FfmpegDatabase {
     /** Select statement - Hashes */
     private PreparedStatement selectHash;
 
-    public FfmpegDatabase(JsonConfigHelper config) throws Exception {
+    public FfmpegDatabase(JsonSimple config) throws Exception {
         // Find our database home directory
-        derbyHome = config.get("database/derbyHome");
+        derbyHome = config.getString(null, "database", "derbyHome");
         if (derbyHome == null) {
             throw new Exception("Database home not specified!");
 

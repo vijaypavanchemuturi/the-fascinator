@@ -1,5 +1,5 @@
 <div class="facet-list-container hidden">
-  #set($menuTitle = $facetField.get("label"))
+  #set($menuTitle = $facetField.getString($nullValue, "label"))
   #parse($page.getTemplate('wrapping/menu-open.vm'))
   #set($menuTitle = $nullValue)
     <div id="$facetFieldKey" class="menu facet-list clearfix"></div>

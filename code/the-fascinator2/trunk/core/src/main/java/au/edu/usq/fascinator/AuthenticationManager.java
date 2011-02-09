@@ -1,6 +1,6 @@
 /*
  * The Fascinator - Authentication Manager
- * Copyright (C) 2008-2010 University of Southern Queensland
+ * Copyright (C) 2008-2011 University of Southern Queensland
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,6 +18,17 @@
  */
 package au.edu.usq.fascinator;
 
+import au.edu.usq.fascinator.api.PluginDescription;
+import au.edu.usq.fascinator.api.PluginException;
+import au.edu.usq.fascinator.api.PluginManager;
+import au.edu.usq.fascinator.api.access.AccessControlException;
+import au.edu.usq.fascinator.api.authentication.AuthManager;
+import au.edu.usq.fascinator.api.authentication.Authentication;
+import au.edu.usq.fascinator.api.authentication.AuthenticationException;
+import au.edu.usq.fascinator.api.authentication.User;
+import au.edu.usq.fascinator.common.JsonSimpleConfig;
+import au.edu.usq.fascinator.common.authentication.GenericUser;
+
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
@@ -30,17 +41,6 @@ import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import au.edu.usq.fascinator.api.PluginDescription;
-import au.edu.usq.fascinator.api.PluginException;
-import au.edu.usq.fascinator.api.PluginManager;
-import au.edu.usq.fascinator.api.access.AccessControlException;
-import au.edu.usq.fascinator.api.authentication.AuthManager;
-import au.edu.usq.fascinator.api.authentication.Authentication;
-import au.edu.usq.fascinator.api.authentication.AuthenticationException;
-import au.edu.usq.fascinator.api.authentication.User;
-import au.edu.usq.fascinator.common.JsonConfig;
-import au.edu.usq.fascinator.common.authentication.GenericUser;
 
 /**
  * Authentication and management of users.
@@ -95,12 +95,8 @@ public class AuthenticationManager implements AuthManager {
     @Override
     public void init(String jsonString) throws AuthenticationException {
         try {
-            JsonConfig config = new JsonConfig(new ByteArrayInputStream(
-                    jsonString.getBytes("UTF-8")));
-            setConfig(config);
+            setConfig(new JsonSimpleConfig(jsonString));
         } catch (AuthenticationException e) {
-            throw new AuthenticationException(e);
-        } catch (UnsupportedEncodingException e) {
             throw new AuthenticationException(e);
         } catch (IOException e) {
             throw new AuthenticationException(e);
@@ -110,8 +106,7 @@ public class AuthenticationManager implements AuthManager {
     @Override
     public void init(File jsonFile) throws AuthenticationException {
         try {
-            JsonConfig config = new JsonConfig(jsonFile);
-            setConfig(config);
+            setConfig(new JsonSimpleConfig(jsonFile));
         } catch (AuthenticationException e) {
             throw new AuthenticationException(e);
         } catch (IOException ioe) {
@@ -125,13 +120,14 @@ public class AuthenticationManager implements AuthManager {
      * @param config JSON Configuration
      * @throws AccessControlException if plugin fail to initialise
      */
-    public void setConfig(JsonConfig config) throws AuthenticationException {
+    public void setConfig(JsonSimpleConfig config)
+            throws AuthenticationException {
         // Initialise our local properties
         user_object = new GenericUser();
         plugins = new LinkedHashMap<String, Authentication>();
         // Get and parse the config
-        String plugin_string = config.get("authentication/type",
-                INTERNAL_AUTH_PLUGIN);
+        String plugin_string = config.getString(INTERNAL_AUTH_PLUGIN,
+                "authentication", "type");
         String[] plugin_list = plugin_string.split(",");
         // Now start each required plugin
         for (String element : plugin_list) {

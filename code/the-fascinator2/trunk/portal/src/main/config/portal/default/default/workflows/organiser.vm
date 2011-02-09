@@ -1,14 +1,16 @@
-#macro(createNavTree $root $class)
+#macro(createNavTree $nodeList $class)
 <ul class="$class">
-  #foreach($key in $root.keySet())
-    #set($item = $root.get($key))
-    #set($id = $item.get("id", "blank"))
-    #set($children = $item.getJsonMap("children"))
-    #set($numChildren = $children.keySet().size())
-    #set($hidden = "false")
-    #set($hidden = $item.get("hidden"))
-    #set($itemTitle = $item.get("title"))
-    <li id="$key" rel="$!id">
+  #foreach($node in $nodeList)
+    #set($id = $node.getId())
+    #if ($id == $nullValue)
+        #set ($id = "blank")
+    #end
+    #set($children = $node.getChildren())
+    #set($numChildren = $children.size())
+    #set($hidden = $node.getHidden())
+    #set($itemTitle = $node.getTitle())
+    #set($itemKey = $node.getKey())
+    <li id="$itemKey" rel="$!id">
       $self.getMimeTypeIcon($portalPath, $id)
       <a class="#if($id == $oid)clicked#end #if("$!hidden" == "True")item-hidden#end" href="#"><ins></ins>$itemTitle</a>
       #if($numChildren > 0)
@@ -81,7 +83,7 @@
     <p>Drag and drop the items to organise the package or select an item to change its properties</p>
     <p id="item-message"></p>
     <div id="toc">
-      #createNavTree($self.manifest "toc")
+      #createNavTree($self.manifest.getTopNodes() "toc")
     </div>
   </div>
   <div class="box hidden" id="preview">
@@ -262,7 +264,7 @@
 
         $("#package-add-custom").click(function() {
             $("#package-add-custom-loading").show();
-            jQuery.post("$portalPath/actions/packaging.ajax",
+            jQuery.post("$portalPath/actions/manifest.ajax",
                 { func: "add-custom", oid: "$oid" },
                 function(data, status) {
                     var node = manifestTree.create(data, -1, "before");

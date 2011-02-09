@@ -1,6 +1,6 @@
 /*
  * The Fascinator - Role Manager
- * Copyright (C) 2008-2010 University of Southern Queensland
+ * Copyright (C) 2010-2011 University of Southern Queensland
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,10 +19,16 @@
 
 package au.edu.usq.fascinator;
 
-import java.io.ByteArrayInputStream;
+import au.edu.usq.fascinator.api.PluginDescription;
+import au.edu.usq.fascinator.api.PluginException;
+import au.edu.usq.fascinator.api.PluginManager;
+import au.edu.usq.fascinator.api.roles.Roles;
+import au.edu.usq.fascinator.api.roles.RolesException;
+import au.edu.usq.fascinator.api.roles.RolesManager;
+import au.edu.usq.fascinator.common.JsonSimpleConfig;
+
 import java.io.File;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -31,14 +37,6 @@ import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import au.edu.usq.fascinator.api.PluginDescription;
-import au.edu.usq.fascinator.api.PluginException;
-import au.edu.usq.fascinator.api.PluginManager;
-import au.edu.usq.fascinator.api.roles.Roles;
-import au.edu.usq.fascinator.api.roles.RolesException;
-import au.edu.usq.fascinator.api.roles.RolesManager;
-import au.edu.usq.fascinator.common.JsonConfig;
 
 /**
  * Search and management of roles.
@@ -88,12 +86,8 @@ public class RoleManager implements RolesManager {
     @Override
     public void init(String jsonString) throws RolesException {
         try {
-            JsonConfig config = new JsonConfig(new ByteArrayInputStream(
-                    jsonString.getBytes("UTF-8")));
-            setConfig(config);
+            setConfig(new JsonSimpleConfig(jsonString));
         } catch (RolesException e) {
-            throw new RolesException(e);
-        } catch (UnsupportedEncodingException e) {
             throw new RolesException(e);
         } catch (IOException e) {
             throw new RolesException(e);
@@ -103,8 +97,7 @@ public class RoleManager implements RolesManager {
     @Override
     public void init(File jsonFile) throws RolesException {
         try {
-            JsonConfig config = new JsonConfig(jsonFile);
-            setConfig(config);
+            setConfig(new JsonSimpleConfig(jsonFile));
         } catch (RolesException e) {
             throw new RolesException(e);
         } catch (IOException ioe) {
@@ -118,11 +111,12 @@ public class RoleManager implements RolesManager {
      * @param config JSON configuration
      * @throws RolesException if plugin initialisation fail
      */
-    public void setConfig(JsonConfig config) throws RolesException {
+    public void setConfig(JsonSimpleConfig config) throws RolesException {
         // Initialise our local properties
         plugins = new LinkedHashMap<String, Roles>();
         // Get and parse the config
-        String plugin_string = config.get("roles/type", INTERNAL_ROLES_PLUGIN);
+        String plugin_string = config.getString(INTERNAL_ROLES_PLUGIN,
+                "roles", "type");
         String[] plugin_list = plugin_string.split(",");
         // Now start each required plugin
         for (String element : plugin_list) {

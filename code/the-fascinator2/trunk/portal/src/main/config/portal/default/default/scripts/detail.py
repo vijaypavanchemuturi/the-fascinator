@@ -3,14 +3,14 @@ import os, re
 from download import DownloadData
 from userAgreement import AgreementData
 
+from au.edu.usq.fascinator.api.indexer import SearchRequest
+from au.edu.usq.fascinator.api.storage import StorageException
+from au.edu.usq.fascinator.common import JsonSimple
+from au.edu.usq.fascinator.common.solr import SolrDoc, SolrResult
+
 from java.io import ByteArrayInputStream, ByteArrayOutputStream
 from java.lang import Boolean
 from java.net import URLDecoder, URLEncoder
-from java.util import TreeMap
-
-from au.edu.usq.fascinator.api.indexer import SearchRequest
-from au.edu.usq.fascinator.api.storage import StorageException
-from au.edu.usq.fascinator.common import JsonConfigHelper
 
 class DetailData:
     def __init__(self):
@@ -34,12 +34,12 @@ class DetailData:
         uri = URLDecoder.decode(self.request.getAttribute("RequestURI"))
         matches = re.match("^(.*?)/(.*?)/(?:(.*?)/)?(.*)$", uri)
         if matches and matches.group(3):
-            oid = matches.group(3)
+            self.__oid = matches.group(3)
             pid = matches.group(4)
 
-            self.__metadata = JsonConfigHelper()
-            self.__object = self.__getObject(oid)
-            self.__oid = oid
+            self.__metadata = SolrDoc(None)
+            self.__object = None
+            self.__readMetadata()
 
             # If we have a PID
             if pid:
@@ -50,11 +50,9 @@ class DetailData:
                     download.__activate__(context)
                 else:
                     # Render the detail screen with the alternative preview
-                    self.__readMetadata(oid)
                     self.__previewPid = pid
             # Otherwise, render the detail screen
             else:
-                self.__readMetadata(oid)
                 self.__previewPid = self.getPreview()
 
             if self.__previewPid:
@@ -99,9 +97,6 @@ class DetailData:
     def getMetadata(self):
         return self.__metadata
 
-    def getMetadataMap(self):
-        return self.__metadataMap
-
     def getObject(self):
         return self.__object
 
@@ -109,7 +104,7 @@ class DetailData:
         return self.__oid
 
     def getPreview(self):
-        return self.__metadata.get("preview")
+        return self.__metadata.getFirst("preview")
 
     def getPreviewPid(self):
         return self.__previewPid
@@ -134,6 +129,8 @@ class DetailData:
     def isAccessDenied(self):
         myRoles = self.page.authentication.get_roles_list()
         allowedRoles = self.getAllowedRoles()
+        if myRoles is None or allowedRoles is None:
+            return True
         for role in myRoles:
             if role in allowedRoles:
                 return False
@@ -143,7 +140,8 @@ class DetailData:
         return not (self.request.isXHR() or self.__isPreview)
 
     def isIndexed(self):
-        return self.__getNumFound() == 1
+        found = self.__solrData.getNumFound()
+        return (found is not None) and (found == 1)
 
     def isPending(self):
         meta = self.getObject().getMetadata()
@@ -153,30 +151,32 @@ class DetailData:
     def setStatus(self, status):
         self.response.setStatus(status)
 
-    def __getNumFound(self):
-        return int(self.__solrData.get("response/numFound"))
+    def __getObject(self):
+        self.__loadSolrData()
 
-    def __getObject(self, oid):
-        obj = None
+        if not self.isIndexed():
+            print "WARNING: Object '%s' not found in index" % self.__oid
+            sid = None
+        else:
+            # Query storage for this object
+            sid = self.__solrData.getResults().get(0).getFirst("storage_id")
+
         try:
-            storage = self.services.getStorage()
-            try:
-                obj = storage.getObject(oid)
-            except StorageException:
-                sid = self.__getStorageId(oid)
-                if sid is not None:
-                    obj = storage.getObject(sid)
-                    print "Object not found: oid='%s', trying sid='%s'" % (oid, sid)
-        except StorageException:
-            print "Object not found: oid='%s'" % oid
-        return obj
+            if sid is None:
+                # Use the URL OID
+                object = self.services.getStorage().getObject(self.__oid)
+            else:
+                # We have a special storage ID from the index
+                object = self.services.getStorage().getObject(sid)
+        except StorageException, e:
+            print "Failed to access object: %s" % (str(e))
+            return None
 
-    def __getStorageId(self, oid):
-        return self.__metadata.get("storage_id")
+        return object
 
-    def __loadSolrData(self, oid):
+    def __loadSolrData(self):
         portal = self.page.getPortal()
-        query = 'id:"%s"' % oid
+        query = 'id:"%s"' % self.__oid
         if self.isDetail() and portal.getSearchQuery():
             query += " AND " + portal.getSearchQuery()
         req = SearchRequest(query)
@@ -185,18 +185,14 @@ class DetailData:
             req.addParam("fq", portal.getQuery())
         out = ByteArrayOutputStream()
         self.services.getIndexer().search(req, out)
-        self.__solrData = JsonConfigHelper(ByteArrayInputStream(out.toByteArray()))
+        self.__solrData = SolrResult(ByteArrayInputStream(out.toByteArray()))
 
-    def __readMetadata(self, oid):
-        self.__loadSolrData(oid)
+    def __readMetadata(self):
+        self.__loadSolrData()
         if self.isIndexed():
-            self.__metadata = self.__solrData.getJsonList("response/docs").get(0)
+            self.__metadata = self.__solrData.getResults().get(0)
             if self.__object is None:
                 # Try again, indexed records might have a special storage_id
-                self.__object = self.__getObject(oid)
-            # Just a more usable instance of metadata
-            self.__json = JsonConfigHelper(self.__solrData.getList("response/docs").get(0))
-            self.__metadataMap = TreeMap(self.__json.getMap("/"))
+                self.__object = self.__getObject()
         else:
-            self.__metadata.set("id", oid)
-
+            self.__metadata.getJsonObject().put("id", self.__oid)

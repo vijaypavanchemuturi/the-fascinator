@@ -1,6 +1,6 @@
 /*
  * The Fascinator - Indexer - SolrWrapper
- * Copyright (C) 2010 University of Southern Queensland
+ * Copyright (C) 2010-2011 University of Southern Queensland
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,8 +20,8 @@ package au.edu.usq.fascinator.indexer;
 
 import au.edu.usq.fascinator.common.FascinatorHome;
 import au.edu.usq.fascinator.common.GenericListener;
-import au.edu.usq.fascinator.common.JsonConfig;
-import au.edu.usq.fascinator.common.JsonConfigHelper;
+import au.edu.usq.fascinator.common.JsonSimple;
+import au.edu.usq.fascinator.common.JsonSimpleConfig;
 
 import java.io.File;
 import java.io.IOException;
@@ -69,13 +69,13 @@ public class SolrWrapperQueueConsumer implements GenericListener {
             FascinatorHome.getPath("solr");
 
     /** Buffer Limit : Document count */
-    private static String BUFFER_LIMIT_DOCS = "200";
+    private static Integer BUFFER_LIMIT_DOCS = 200;
 
     /** Buffer Limit : Size */
-    private static String BUFFER_LIMIT_SIZE = "204800";
+    private static Integer BUFFER_LIMIT_SIZE = 1024 * 200;
 
     /** Buffer Limit : Time */
-    private static String BUFFER_LIMIT_TIME = "30";
+    private static Integer BUFFER_LIMIT_TIME = 30;
 
     /** Queue name */
     public static final String QUEUE_ID = "solrwrapper";
@@ -84,7 +84,7 @@ public class SolrWrapperQueueConsumer implements GenericListener {
     private Logger log = LoggerFactory.getLogger(SolrWrapperQueueConsumer.class);
 
     /** JSON configuration */
-    private JsonConfig globalConfig;
+    private JsonSimpleConfig globalConfig;
 
     /** JMS connection */
     private Connection connection;
@@ -165,8 +165,9 @@ public class SolrWrapperQueueConsumer implements GenericListener {
             log.info("Starting {}...", name);
 
             // Get a connection to the broker
-            String brokerUrl = globalConfig.get("messaging/url",
-                    ActiveMQConnectionFactory.DEFAULT_BROKER_BIND_URL);
+            String brokerUrl = globalConfig.getString(
+                    ActiveMQConnectionFactory.DEFAULT_BROKER_BIND_URL,
+                    "messaging", "url");
             ActiveMQConnectionFactory connectionFactory =
                     new ActiveMQConnectionFactory(brokerUrl);
             connection = connectionFactory.createConnection();
@@ -194,28 +195,31 @@ public class SolrWrapperQueueConsumer implements GenericListener {
      * Initialization method
      *
      * @param config Configuration to use
-     * @throws IOException if the configuration file not found
+     * @throws Exception if any errors occur
      */
     @Override
-    public void init(JsonConfigHelper config) throws Exception {
-        name = config.get("config/name");
+    public void init(JsonSimpleConfig config) throws Exception {
+        name = config.getString(null, "config", "name");
+        if (name == null) {
+            throw new Exception("Name name provided in queue configuration");
+        }
         thread.setName(name);
 
         try {
-            globalConfig = new JsonConfig();
-            autoCommit = Boolean.parseBoolean(globalConfig.get(
-                    "indexer/solr/autocommit", "true"));
+            globalConfig = new JsonSimpleConfig();
+            autoCommit = globalConfig.getBoolean(true,
+                    "indexer", "solr", "autocommit");
 
             // Buffering
             docBuffer = new LinkedHashMap();
             bufferSize = 0;
             bufferOldest = 0;
-            bufferDocLimit = Integer.parseInt(globalConfig.get(
-                    "indexer/buffer/docLimit", BUFFER_LIMIT_DOCS));
-            bufferSizeLimit = Integer.parseInt(globalConfig.get(
-                    "indexer/buffer/sizeLimit", BUFFER_LIMIT_SIZE));
-            bufferTimeLimit = Integer.parseInt(globalConfig.get(
-                    "indexer/buffer/timeLimit", BUFFER_LIMIT_TIME));
+            bufferDocLimit = globalConfig.getInteger(BUFFER_LIMIT_DOCS,
+                    "indexer", "buffer", "docLimit");
+            bufferSizeLimit = globalConfig.getInteger(BUFFER_LIMIT_SIZE,
+                    "indexer", "buffer", "sizeLimit");
+            bufferTimeLimit = globalConfig.getInteger(BUFFER_LIMIT_TIME,
+                    "indexer", "buffer", "timeLimit");
 
         } catch (IOException ioe) {
             log.error("Failed to read configuration: {}", ioe.getMessage());
@@ -230,31 +234,39 @@ public class SolrWrapperQueueConsumer implements GenericListener {
      * @return SolrServer : The initialized core
      */
     private SolrServer initCore(String core) {
-        boolean isEmbedded = Boolean.parseBoolean(
-                globalConfig.get("indexer/" + core + "/embedded"));
+        boolean isEmbedded = globalConfig.getBoolean(false,
+                "indexer", core, "embedded");
         try {
             // Embedded Solr
             if (isEmbedded) {
                 // Solr over HTTP - Needed to run commits
                 //   so the core web server sees them.
-                URI solrUri = new URI(
-                        globalConfig.get("indexer/" + core + "/uri"));
+                String uri = globalConfig.getString(null,
+                        "indexer", core, "uri");
+                if (uri == null) {
+                    log.error("No URI provided for core: '{}'", core);
+                    return null;
+                }
+                URI solrUri = new URI(uri);
                 commit = new CommonsHttpSolrServer(
                         solrUri.toURL());
-                username = globalConfig.get("indexer/" + core + "/username");
-                password = globalConfig.get("indexer/" + core + "/password");
+                username = globalConfig.getString(null,
+                        "indexer", core, "username");
+                password = globalConfig.getString(null,
+                        "indexer", core, "password");
                 if (username != null && password != null) {
                     UsernamePasswordCredentials credentials =
                             new UsernamePasswordCredentials(username, password);
-                    HttpClient hc = ((CommonsHttpSolrServer) solr).getHttpClient();
+                    HttpClient hc =
+                            ((CommonsHttpSolrServer) solr).getHttpClient();
                     hc.getParams().setAuthenticationPreemptive(true);
                     hc.getState().setCredentials(AuthScope.ANY, credentials);
                 }
 
                 // First time execution
                 if (coreContainer == null) {
-                    String home = globalConfig.get(
-                            "indexer/home", DEFAULT_SOLR_HOME);
+                    String home = globalConfig.getString(DEFAULT_SOLR_HOME,
+                            "indexer", "home");
                     log.info("Embedded Solr Home = {}", home);
                     File homeDir = new File(home);
                     if (!homeDir.exists()) {
@@ -270,18 +282,30 @@ public class SolrWrapperQueueConsumer implements GenericListener {
                         log.info("Loaded core: {}", aCore.getName());
                     }
                 }
-                String coreName =
-                        globalConfig.get("indexer/" + core + "/coreName");
+                String coreName = globalConfig.getString(null,
+                        "indexer", core, "coreName");
+                if (coreName == null) {
+                    log.error("No 'coreName' node for core: '{}'", core);
+                    return null;
+                }
                 return new EmbeddedSolrServer(coreContainer, coreName);
 
             // Solr over HTTP
             } else {
-                URI solrUri = new URI(
-                        globalConfig.get("indexer/" + core + "/uri"));
+                String uri = globalConfig.getString(null,
+                        "indexer", core, "uri");
+                if (uri == null) {
+                    log.error("No URI provided for core: '{}'", core);
+                    return null;
+                }
+
+                URI solrUri = new URI(uri);
                 CommonsHttpSolrServer thisCore = new CommonsHttpSolrServer(
                         solrUri.toURL());
-                username = globalConfig.get("indexer/" + core + "/username");
-                password = globalConfig.get("indexer/" + core + "/password");
+                username = globalConfig.getString(null,
+                        "indexer", core, "username");
+                password = globalConfig.getString(null,
+                        "indexer", core, "password");
                 if (username != null && password != null) {
                     UsernamePasswordCredentials credentials =
                             new UsernamePasswordCredentials(username, password);
@@ -378,8 +402,8 @@ public class SolrWrapperQueueConsumer implements GenericListener {
 
             // Get the message details
             String text = ((TextMessage) message).getText();
-            JsonConfigHelper config = new JsonConfigHelper(text);
-            String event = config.get("event");
+            JsonSimple config = new JsonSimple(text);
+            String event = config.getString(null, "event");
             if (event == null) {
                 log.error("Invalid message received: '{}'", text);
                 return;
@@ -392,8 +416,8 @@ public class SolrWrapperQueueConsumer implements GenericListener {
             }
             // Index the incoming document
             if (event.equals("index")) {
-                String index = config.get("index");
-                String document = config.get("document");
+                String index = config.getString(null, "index");
+                String document = config.getString(null, "document");
                 if (index == null || document == null) {
                     log.error("Invalid message received: '{}'", text);
                     return;

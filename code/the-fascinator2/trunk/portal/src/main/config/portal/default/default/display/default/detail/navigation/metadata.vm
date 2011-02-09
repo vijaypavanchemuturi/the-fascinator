@@ -1,16 +1,16 @@
-#macro(displayField $key)
-    #set($valueList = $metaMap.get($key))
+#macro(displayField $metadata $key)
+    #set($valueList = $metadata.getList($key))
     #if($valueList)
         <tr><th>$parent.getFriendlyName($key)</th></tr>
         <tr>
             <td>
-                #if($valueList.size())
+                #if($valueList.size() > 1)
                     #foreach($value in $valueList)
                         <span class="meta-value condense">$value</span>
                         <br />
                     #end
                 #else
-                    <span class="meta-value condense">$valueList</span>
+                    <span class="meta-value condense">$valueList.get(0)</span>
                 #end
             </td>
         </tr>
@@ -20,9 +20,9 @@
 #set($menuTitle = "Metadata")
 #parseTemplate("wrapping/menu-open.vm")
 <table class="meta">
-    #displayField("dc_title")
-    #displayField("dc_creator")
-    #displayField("dc_description")
+    #displayField($metadata, "dc_title")
+    #displayField($metadata, "dc_creator")
+    #displayField($metadata, "dc_description")
 </table>
 #parseDisplayTemplate("detail/navigation/custom-metadata.vm")
 #parseTemplate("wrapping/menu-close.vm")

@@ -1,4 +1,4 @@
-from au.edu.usq.fascinator.common import JsonConfig, JsonConfigHelper
+from au.edu.usq.fascinator.common import JsonSimpleConfig
 from au.edu.usq.fascinator.common import MessagingServices
 
 class QueuesData:
@@ -19,14 +19,14 @@ class QueuesData:
             out.println(self.formData)
             out.close()
 
-        self.config = JsonConfigHelper(JsonConfig.getSystemFile())
-        self.threads = self.config.getJsonList("messaging/threads")
+        self.config = JsonSimpleConfig()
+        self.threads = self.config.getJsonSimpleList(["messaging", "threads"])
 
     def getDescription(self, queue):
         for thread in self.threads:
-            name = thread.get("config/name")
+            name = thread.getString(None, ["config", "name"])
             if name == queue:
-                return thread.get("description")
+                return thread.getString(None, ["description"])
 
     def queueMessage(self, queue, msg):
         ms = MessagingServices.getInstance()

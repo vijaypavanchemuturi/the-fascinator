@@ -1,6 +1,6 @@
 /* 
  * The Fascinator - Core
- * Copyright (C) 2009 University of Southern Queensland
+ * Copyright (C) 2009-2011 University of Southern Queensland
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,8 +24,8 @@ import au.edu.usq.fascinator.api.storage.DigitalObject;
 import au.edu.usq.fascinator.api.storage.StorageException;
 import au.edu.usq.fascinator.api.transformer.Transformer;
 import au.edu.usq.fascinator.api.transformer.TransformerException;
-import au.edu.usq.fascinator.common.JsonConfig;
-import au.edu.usq.fascinator.common.JsonConfigHelper;
+import au.edu.usq.fascinator.common.JsonSimple;
+import au.edu.usq.fascinator.common.JsonSimpleConfig;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -59,7 +59,7 @@ public class ConveyerBelt {
     public static final String CRITICAL_USER_SELECTOR = "userPriority";
 
     /** Json configuration */
-    private JsonConfigHelper sysConfig;
+    private JsonSimpleConfig sysConfig;
 
     /** Type of the transformer to be process e.g: harvest or render */
     private String type;
@@ -79,7 +79,7 @@ public class ConveyerBelt {
      * @return List<String> A list of names for instantiated transformers.
      */
     public static List<String> getTransformList(DigitalObject object,
-            JsonConfigHelper config, String thisType, boolean routing)
+            JsonSimpleConfig config, String thisType, boolean routing)
             throws StorageException {
         List<String> plugins = new ArrayList();
         Properties props = object.getMetadata();
@@ -106,8 +106,8 @@ public class ConveyerBelt {
         } else {
             // The harvester specified none, fallback to the
             //  default list for this harvest source.
-            for (Object obj : config.getList("transformer/" + thisType)) {
-                plugins.add(StringUtils.trim(obj.toString()));
+            for (String entry : config.getStringList("transformer", thisType)) {
+                plugins.add(StringUtils.trim(entry));
             }
         }
         return plugins;
@@ -121,16 +121,16 @@ public class ConveyerBelt {
      */
     public ConveyerBelt(String newType) throws TransformerException {
         try {
-            sysConfig = new JsonConfigHelper(JsonConfig.getSystemFile());
+            sysConfig = new JsonSimpleConfig();
             type = newType;
             // More than meets the eye
             transformers = new LinkedHashMap();
             // Loop through all the system's transformers
-            Map<String, JsonConfigHelper> map =
-                    sysConfig.getJsonMap("transformerDefaults");
+            Map<String, JsonSimple> map = sysConfig.getJsonSimpleMap(
+                    "transformerDefaults");
             if (map != null && map.size() > 0) {
                 for (String name : map.keySet()) {
-                    String id = map.get(name).get("id");
+                    String id = map.get(name).getString(null, "id");
                     if (id != null) {
                         // Instantiate the transformer
                         Transformer transformer =
@@ -169,9 +169,9 @@ public class ConveyerBelt {
      * @throws TransformerException if transformation fails
      */
     public DigitalObject transform(DigitalObject object,
-            JsonConfigHelper config) throws TransformerException {
-        Map<String, JsonConfigHelper> itemConfigs;
-        JsonConfigHelper itemConfig;
+            JsonSimpleConfig config) throws TransformerException {
+        Map<String, JsonSimple> itemConfigs;
+        JsonSimple itemConfig;
 
         // Get the list of transformers to run
         List<String> pluginList;
@@ -188,11 +188,12 @@ public class ConveyerBelt {
                     log.info("Starting '{}' on '{}'...", name, object.getId());
 
                     // Grab any overriding transformer config this item has
-                    itemConfigs = config.getJsonMap("transformerOverrides");
+                    itemConfigs = config.getJsonSimpleMap(
+                            "transformerOverrides");
                     if (itemConfigs != null && itemConfigs.containsKey(name)) {
                         itemConfig = itemConfigs.get(name);
                     } else {
-                        itemConfig = new JsonConfigHelper();
+                        itemConfig = new JsonSimple();
                     }
 
                     // Perform the transformation

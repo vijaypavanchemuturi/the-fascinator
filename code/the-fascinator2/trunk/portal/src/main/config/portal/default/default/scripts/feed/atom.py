@@ -1,7 +1,7 @@
 import os
 
 from au.edu.usq.fascinator.api.indexer import SearchRequest
-from au.edu.usq.fascinator.common import JsonConfigHelper
+from au.edu.usq.fascinator.common import JsonSimpleConfig
 
 from java.io import ByteArrayInputStream
 from java.io import ByteArrayOutputStream
@@ -58,7 +58,7 @@ class AtomData:
 
         out = ByteArrayOutputStream()
         Services.indexer.search(req, out)
-        self.__result = JsonConfigHelper(ByteArrayInputStream(out.toByteArray()))
+        self.__result = JsonSimpleConfig(ByteArrayInputStream(out.toByteArray()))
 
     def cleanUp(self, value):
         return value.replace("<", "&lt;").replace(">", "&gt;").replace("&", "&amp;")

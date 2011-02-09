@@ -23,12 +23,10 @@ import au.edu.usq.fascinator.api.access.AccessControl;
 import au.edu.usq.fascinator.api.access.AccessControlException;
 import au.edu.usq.fascinator.api.access.AccessControlSchema;
 import au.edu.usq.fascinator.api.authentication.AuthenticationException;
-import au.edu.usq.fascinator.common.JsonConfig;
+import au.edu.usq.fascinator.common.JsonSimple;
 
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.DriverManager;
@@ -178,11 +176,7 @@ public class DerbyAccessControl implements AccessControl {
     @Override
     public void init(String jsonString) throws AccessControlException {
         try {
-            JsonConfig config = new JsonConfig(new ByteArrayInputStream(
-                    jsonString.getBytes("UTF-8")));
-            setConfig(config);
-        } catch (UnsupportedEncodingException e) {
-            throw new AccessControlException(e);
+            setConfig(new JsonSimple(jsonString));
         } catch (IOException e) {
             throw new AccessControlException(e);
         }
@@ -197,8 +191,7 @@ public class DerbyAccessControl implements AccessControl {
     @Override
     public void init(File jsonFile) throws AccessControlException {
         try {
-            JsonConfig config = new JsonConfig(jsonFile);
-            setConfig(config);
+            setConfig(new JsonSimple(jsonFile));
         } catch (IOException ioe) {
             throw new AccessControlException(ioe);
         }
@@ -210,9 +203,10 @@ public class DerbyAccessControl implements AccessControl {
      * @param config The configuration to use
      * @throws AuthenticationException if fails to initialize
      */
-    private void setConfig(JsonConfig config) throws AccessControlException {
+    private void setConfig(JsonSimple config) throws AccessControlException {
         // Find our database home directory
-        derbyHome = config.get("accesscontrol/derby/derbyHome");
+        derbyHome = config.getString(null,
+                "accesscontrol", "derby", "derbyHome");
         if (derbyHome == null) {
             throw new AccessControlException("Database home not specified!");
 

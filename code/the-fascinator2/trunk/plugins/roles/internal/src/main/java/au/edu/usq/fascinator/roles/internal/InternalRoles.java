@@ -21,14 +21,12 @@ package au.edu.usq.fascinator.roles.internal;
 import au.edu.usq.fascinator.api.PluginDescription;
 import au.edu.usq.fascinator.api.roles.Roles;
 import au.edu.usq.fascinator.api.roles.RolesException;
-import au.edu.usq.fascinator.common.JsonConfig;
+import au.edu.usq.fascinator.common.JsonSimpleConfig;
 
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -121,11 +119,7 @@ public class InternalRoles implements Roles {
     @Override
     public void init(String jsonString) throws RolesException {
         try {
-            JsonConfig config = new JsonConfig(new ByteArrayInputStream(
-                    jsonString.getBytes("UTF-8")));
-            setConfig(config);
-        } catch (UnsupportedEncodingException e) {
-            throw new RolesException(e);
+            setConfig(new JsonSimpleConfig(jsonString));
         } catch (IOException e) {
             throw new RolesException(e);
         }
@@ -134,16 +128,15 @@ public class InternalRoles implements Roles {
     @Override
     public void init(File jsonFile) throws RolesException {
         try {
-            JsonConfig config = new JsonConfig(jsonFile);
-            setConfig(config);
+            setConfig(new JsonSimpleConfig(jsonFile));
         } catch (IOException ioe) {
             throw new RolesException(ioe);
         }
     }
 
-    public void setConfig(JsonConfig config) throws IOException {
+    public void setConfig(JsonSimpleConfig config) throws IOException {
         // Get the basics
-        file_path   = config.get("roles/internal/path", null);
+        file_path   = config.getString(null, "roles", "internal", "path");
         loadRoles();
     }
 

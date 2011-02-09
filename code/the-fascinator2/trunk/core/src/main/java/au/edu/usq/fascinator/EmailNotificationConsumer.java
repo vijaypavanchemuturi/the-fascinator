@@ -1,6 +1,6 @@
 /* 
  * The Fascinator - Core
- * Copyright (C) 2009 University of Southern Queensland
+ * Copyright (C) 2009-2011 University of Southern Queensland
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,8 +18,13 @@
  */
 package au.edu.usq.fascinator;
 
+import au.edu.usq.fascinator.common.GenericListener;
+import au.edu.usq.fascinator.common.JsonObject;
+import au.edu.usq.fascinator.common.JsonSimple;
+import au.edu.usq.fascinator.common.JsonSimpleConfig;
+import au.edu.usq.fascinator.common.MessagingServices;
+
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -41,11 +46,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 
-import au.edu.usq.fascinator.common.GenericListener;
-import au.edu.usq.fascinator.common.JsonConfig;
-import au.edu.usq.fascinator.common.JsonConfigHelper;
-import au.edu.usq.fascinator.common.MessagingServices;
-
 /**
  * Consumer for sending email notifications.
  * 
@@ -64,7 +64,7 @@ public class EmailNotificationConsumer implements GenericListener {
             .getLogger(EmailNotificationConsumer.class);
 
     /** JSON configuration */
-    private JsonConfig globalConfig;
+    private JsonSimpleConfig globalConfig;
 
     /** JMS connection */
     private Connection connection;
@@ -123,10 +123,11 @@ public class EmailNotificationConsumer implements GenericListener {
             log.info("Starting {}...", name);
 
             // Get a connection to the broker
-            String brokerUrl = globalConfig.get("messaging/url",
-                    ActiveMQConnectionFactory.DEFAULT_BROKER_BIND_URL);
-            ActiveMQConnectionFactory connectionFactory = new ActiveMQConnectionFactory(
-                    brokerUrl);
+            String brokerUrl = globalConfig.getString(
+                    ActiveMQConnectionFactory.DEFAULT_BROKER_BIND_URL,
+                    "messaging", "url");
+            ActiveMQConnectionFactory connectionFactory =
+                    new ActiveMQConnectionFactory(brokerUrl);
             connection = connectionFactory.createConnection();
 
             session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
@@ -151,33 +152,32 @@ public class EmailNotificationConsumer implements GenericListener {
      * @throws IOException if the configuration file not found
      */
     @Override
-    public void init(JsonConfigHelper config) throws Exception {
-        name = config.get("config/name");
+    public void init(JsonSimpleConfig config) throws Exception {
+        name = config.getString(null, "config", "name");
         QUEUE_ID = name;
         thread.setName(name);
 
         try {
-            globalConfig = new JsonConfig();
+            globalConfig = new JsonSimpleConfig();
 
-            debug = Boolean.parseBoolean(config.get("config/debug", "false"));
+            debug = config.getBoolean(false, "config", "debug");
 
-            smtpHost = config.get("config/smtp/host");
-            smtpPort = Integer.parseInt(config.get("config/smtp/port", "25"));
-            smtpSslPort = config.get("config/smtp/sslPort", "465");
-            smtpSsl = Boolean.parseBoolean(config.get("config/smtp/ssl",
-                    "false"));
-            smtpTls = Boolean.parseBoolean(config.get("config/smtp/tls",
-                    "false"));
-            smtpUsername = config.get("config/smtp/username");
-            smtpPassword = config.get("config/smtp/password");
+            smtpHost = config.getString("null", "config", "smtp", "host");
+            smtpPort = config.getInteger(25, "config", "smtp", "port");
+            smtpSslPort = config.getString("465", "config", "smtp", "sslPort");
+            smtpSsl = config.getBoolean(false, "config", "smtp", "ssl");
+            smtpTls = config.getBoolean(false, "config", "smtp", "tls");
+            smtpUsername = config.getString(null, "config", "smtp", "username");
+            smtpPassword = config.getString(null, "config", "smtp", "password");
 
-            defaultSubject = config.get("config/defaults/subject",
-                    "Notification");
-            defaultBody = config.get("config/defaults/body", "nt");
+            defaultSubject = config.getString("Notification",
+                    "config", "defaults", "subject");
+            defaultBody = config.getString("nt", "config", "defaults", "body");
 
-            fromAddress = config.get("config/from/email",
-                    "fascinator@usq.edu.au");
-            fromName = config.get("config/from/name", "The Fascinator");
+            fromAddress = config.getString("fascinator@usq.edu.au",
+                    "config", "from", "email");
+            fromName = config.getString("The Fascinator",
+                    "config", "from", "name");
 
         } catch (IOException ioe) {
             log.error("Failed to read configuration: {}", ioe.getMessage());
@@ -265,20 +265,16 @@ public class EmailNotificationConsumer implements GenericListener {
 
             // Get the message details
             String text = ((TextMessage) message).getText();
-            JsonConfigHelper config = new JsonConfigHelper(text);
-            String oid = config.get("oid");
+            JsonSimple config = new JsonSimple(text);
+            String oid = config.getString(null, "oid");
             log.info("Received notification request, object id={}", oid);
 
-            List<String> toList = new ArrayList<String>();
-            for (Object address : config.getList("to")) {
-                toList.add(address.toString());
-            }
-            List<String> ccList = new ArrayList<String>();
-            for (Object address : config.getList("cc")) {
-                ccList.add(address.toString());
-            }
-            String subject = config.get("subject", defaultSubject);
-            String body = config.get("body", defaultBody);
+            // Addresses
+            List<String> toList = config.getStringList("to");
+            List<String> ccList = config.getStringList("cc");
+
+            String subject = config.getString(defaultSubject, "subject");
+            String body = config.getString(defaultBody, "body");
             sendEmails(toList, ccList, subject, body);
 
             // Log event
@@ -330,11 +326,11 @@ public class EmailNotificationConsumer implements GenericListener {
      */
     private void sendNotification(String oid, String status, String message)
             throws JMSException {
-        JsonConfigHelper jsonMessage = new JsonConfigHelper();
-        jsonMessage.set("id", oid);
-        jsonMessage.set("idType", "object");
-        jsonMessage.set("status", status);
-        jsonMessage.set("message", message);
+        JsonObject jsonMessage = new JsonObject();
+        jsonMessage.put("id", oid);
+        jsonMessage.put("idType", "object");
+        jsonMessage.put("status", status);
+        jsonMessage.put("message", message);
 
         TextMessage msg = session.createTextMessage(jsonMessage.toString());
         // producer.send(broadcast, msg);

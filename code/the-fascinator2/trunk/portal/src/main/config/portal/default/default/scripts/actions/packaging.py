@@ -1,11 +1,11 @@
-import md5, uuid
+import uuid
 
 from au.edu.usq.fascinator import HarvestClient
 from au.edu.usq.fascinator.api.storage import StorageException
-from au.edu.usq.fascinator.common import FascinatorHome, JsonConfigHelper, JsonConfig
+from au.edu.usq.fascinator.common import FascinatorHome, JsonSimpleConfig, Manifest
 from au.edu.usq.fascinator.common.storage import StorageUtils
 
-from java.io import File, FileOutputStream, InputStreamReader, OutputStreamWriter
+from java.io import File, FileOutputStream, OutputStreamWriter
 from java.lang import Exception
 
 from org.apache.commons.io import FileUtils, IOUtils
@@ -17,7 +17,6 @@ class PackagingData:
 
     def __activate__(self, context):
         self.velocityContext = context
-
         auth = context["page"].authentication
         print "formData=%s" % self.vc("formData")
 
@@ -29,13 +28,13 @@ class PackagingData:
             result = self.__createFromSelected()
         elif func == "update":
             result = self.__update()
+        elif func == "deselect":
+            result = self.__deselect()
         elif func == "clear":
             result = self.__clear()
         elif func == "modify":
             result = self.__modify()
-        elif func == "add-custom":
-            result = self.__addCustom()
-        
+
         writer = self.vc("response").getPrintWriter("application/json; charset=UTF-8")
         writer.println(result)
         writer.close()
@@ -64,16 +63,17 @@ class PackagingData:
 
         self.vc("sessionState").set("package/active", None)
         manifest = self.__getActiveManifest()
-        manifest.set("packageType", packageType)
+        manifest.setType(packageType)
         metaList = list(self.vc("formData").getValues("metaList"))
+        jsonObj = manifest.getJsonObject()
         for metaName in metaList:
             value = self.vc("formData").get(metaName)
-            manifest.set(metaName, value)
-        #
+            jsonObj.put(metaName, value)
+
         print "------"
         print manifest
         print "------"
-        manifest.store(outWriter, True)
+        outWriter.write(manifest.toString(True))
         outWriter.close()
 
         try:
@@ -98,17 +98,16 @@ class PackagingData:
                 harvester.shutdown()
             return '{ status: "failed" }'
         # clean up
-        self.__clear()
+        self.__deselect()
         # return url to workflow screen
         return '{"status": "ok", "url": "%s/workflow/%s" }' % (portalPath, manifestId)
 
-    
     def __createFromSelected(self):
         print "Creating package from selected..."
         packageType, jsonConfigFile = self.__getPackageTypeAndJsonConfigFile()
         #print "packageType='%s'" % packageType
         #print "jsonConfigFile='%s'" % jsonConfigFile
-        
+
         # if modifying existing manifest, we already have an identifier,
         # otherwise create a new one
         manifestId = self.__getActiveManifestId()
@@ -116,7 +115,7 @@ class PackagingData:
             manifestHash = "%s.tfpackage" % uuid.uuid4()
         else:
             manifestHash = self.__getActiveManifestPid()
-        
+
         # store the manifest file for harvesting
         packageDir = FascinatorHome.getPathFile("packages")
         packageDir.mkdirs()
@@ -124,12 +123,17 @@ class PackagingData:
         outStream = FileOutputStream(manifestFile)
         outWriter = OutputStreamWriter(outStream, "UTF-8")
         manifest = self.__getActiveManifest()
-        manifest.set("packageType", manifest.get("packageType", packageType))
+        oldType = manifest.getType()
+        if oldType is None:
+            manifest.setType(packageType)
+        else:
+            manifest.setType(oldType)
+
         #print manifest
         #print "----"
-        manifest.store(outWriter, True)
+        outWriter.write(manifest.toString(True))
         outWriter.close()
-        
+
         try:
             if manifestId is None:
                 # harvest the package as an object
@@ -161,10 +165,10 @@ class PackagingData:
             return '{ status: "failed" }'
         # clean up
         ##manifestFile.delete()
-        self.__clear()
+        self.__deselect()
         # return url to workflow screen
         return '{ status: "ok", url: "%s/workflow/%s" }' % (portalPath, manifestId)
-    
+
     def __update(self):
         print "Updating package selection..."
         activeManifest = self.__getActiveManifest()
@@ -174,30 +178,37 @@ class PackagingData:
             for i in range(len(added)):
                 id = added[i]
                 title = titles[i]
-                node = activeManifest.get("manifest//node-%s" % id)
+                node = activeManifest.getNode("node-%s" % id)
                 if node is None:
                     print "adding:", id, title.encode("UTF-8")
-                    activeManifest.set("manifest/node-%s/id" % id, id)
-                    activeManifest.set("manifest/node-%s/title" % id, title)
+                    activeManifest.addTopNode(id, title)
                 else:
                     print "%s already exists" % id
         removed = self.vc("formData").getValues("removed")
         if removed:
             for id in removed:
-                node = activeManifest.get("manifest//node-%s" % id)
+                node = activeManifest.getNode("node-%s" % id)
                 if node is not None:
                     print "removing:", id
-                    activeManifest.removePath("manifest//node-%s" % id)
+                    activeManifest.delete("node-%s" % id)
         print "activeManifest: %s" % activeManifest
-        return '{ count: %s }' % self.__getCount()
-    
-    def __clear(self):
+        return '{ count: %s }' % activeManifest.size()
+
+    def __deselect(self):
         print "Clearing package selection..."
         self.vc("sessionState").remove("package/active")
         self.vc("sessionState").remove("package/active/id")
         self.vc("sessionState").remove("package/active/pid")
         return "{}"
-    
+
+    def __clear(self):
+        print "Removing all nodes from manifest..."
+        activeManifest = self.__getActiveManifest()
+        nodeList = activeManifest.getTopNodes()
+        for node in nodeList:
+            activeManifest.delete(node.getKey())
+        return "{}"
+
     def __modify(self):
         print "Set active package..."
         oid = self.vc("formData").get("oid")
@@ -205,9 +216,7 @@ class PackagingData:
             object = Services.getStorage().getObject(oid)
             sourceId = object.getSourceId()
             payload = object.getPayload(sourceId)
-            payloadReader = InputStreamReader(payload.open(), "UTF-8")
-            manifest = JsonConfigHelper(payloadReader)
-            payloadReader.close()
+            manifest = Manifest(payload.open())
             payload.close()
             object.close()
             self.vc("sessionState").set("package/active", manifest)
@@ -216,46 +225,37 @@ class PackagingData:
         except StorageException, e:
             self.vc("response").setStatus(500)
             return '{ error: %s }' % str(e)
-        return '{ count: %s }' % self.__getCount()
+        return '{ count: %s }' % manifest.size()
 
     def __getPackageTypeAndJsonConfigFile(self):
         try:
             packageType = self.vc("formData").get("packageType", "default")
             if packageType == "":
                 packageType = "default"
-            json = JsonConfigHelper(JsonConfig.getSystemFile())
-            pt = json.getMap("portal/packageTypes/" + packageType)
-            jsonConfigFile = pt.get("jsonconfig")
-            if jsonConfigFile is None:
-                jsonConfigFile = "packaging-config.json"
+            pt = JsonSimpleConfig().getObject(["portal", "packageTypes", packageType])
+            if pt is None:
+                configFile = "packaging-config.json"
+            else:
+                configFile = pt.getString("packaging-config.json", ["jsonconfig"])
         except Exception, e:
-            jsonConfigFile = "packaging-config.json"
-        return (packageType, jsonConfigFile)
+            configFile = "packaging-config.json"
+        return (packageType, configFile)
 
-    def __addCustom(self):
-        id = md5.new(str(uuid.uuid4())).hexdigest()
-        return '{ attributes: { id: "node-%s", rel: "blank" }, data: "Untitled" }' % id
-    
     def __getActiveManifestId(self):
         return self.vc("sessionState").get("package/active/id")
-    
+
     def __getActiveManifestPid(self):
         return self.vc("sessionState").get("package/active/pid")
-    
+
     def __getActiveManifest(self):
         activeManifest = self.vc("sessionState").get("package/active")
         if not activeManifest:
-            activeManifest = JsonConfigHelper()
-            activeManifest.set("title", "New package")
-            activeManifest.set("viewId", portalId)
+            activeManifest = Manifest(None)
+            activeManifest.setTitle("New package")
+            activeManifest.setViewId(portalId)
             self.vc("sessionState").set("package/active", activeManifest)
         return activeManifest
-    
-    def __getCount(self):
-        count = self.__getActiveManifest().getList("manifest//id").size()
-        print "count:", count
-        return count
-    
+
     def __getFile(self, packageDir, filename):
         file = File(packageDir, filename)
         if not file.exists():

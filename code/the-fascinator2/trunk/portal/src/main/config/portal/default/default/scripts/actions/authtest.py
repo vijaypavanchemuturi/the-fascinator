@@ -1,4 +1,4 @@
-from au.edu.usq.fascinator.common import JsonConfigHelper
+from au.edu.usq.fascinator.common import JsonSimple
 
 class AuthtestData:
 
@@ -9,7 +9,7 @@ class AuthtestData:
         request = context["request"]
         response = context["response"]
         writer = response.getPrintWriter("text/javascript; charset=UTF-8")
-        result = JsonConfigHelper()
+        result = JsonSimple()
 
         ## Look for the JSONP callback to use
         jsonpCallback = request.getParameter("callback")
@@ -22,9 +22,9 @@ class AuthtestData:
                 return
 
         if context["page"].authentication.is_logged_in():
-            result.set("isAuthenticated", "true")
+            result.getJsonObject().put("isAuthenticated", "true")
         else:
-            result.set("isAuthenticated", "false")
+            result.getJsonObject().put("isAuthenticated", "false")
 
         writer.println(jsonpCallback + "(" + result.toString() + ")")
         writer.close()

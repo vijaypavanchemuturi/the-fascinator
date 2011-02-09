@@ -1,6 +1,6 @@
 /*
  * The Fascinator - Plugin - Transformer - Solrmarc
- * Copyright (C) 2010 University of Southern Queensland
+ * Copyright (C) 2010-2011 University of Southern Queensland
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,14 +25,12 @@ import au.edu.usq.fascinator.api.storage.Payload;
 import au.edu.usq.fascinator.api.storage.StorageException;
 import au.edu.usq.fascinator.api.transformer.Transformer;
 import au.edu.usq.fascinator.api.transformer.TransformerException;
-import au.edu.usq.fascinator.common.JsonConfigHelper;
+import au.edu.usq.fascinator.common.JsonSimpleConfig;
 import java.io.ByteArrayInputStream;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import org.marc4j.marc.Record;
 import org.slf4j.Logger;
@@ -60,7 +58,7 @@ public class SolrmarcTransformer implements Transformer {
     private static Logger log = LoggerFactory.getLogger(SolrmarcTransformer.class);
 
     /** Json config file **/
-    private JsonConfigHelper config;
+    private JsonSimpleConfig config;
 
     /** Solrmarc **/
     private MarcImporter solrmarc;
@@ -87,7 +85,7 @@ public class SolrmarcTransformer implements Transformer {
     @Override
     public void init(File jsonFile) throws PluginException {
         try {
-            config = new JsonConfigHelper(jsonFile);
+            config = new JsonSimpleConfig(jsonFile);
             reset();
         } catch (IOException e) {
             throw new PluginException("Error reading config: ", e);
@@ -104,7 +102,7 @@ public class SolrmarcTransformer implements Transformer {
     @Override
     public void init(String jsonString) throws PluginException {
         try {
-            config = new JsonConfigHelper(jsonString);
+            config = new JsonSimpleConfig(jsonString);
             reset();
         } catch (IOException e) {
             throw new PluginException("Error reading config: ", e);
@@ -118,7 +116,7 @@ public class SolrmarcTransformer implements Transformer {
         if (firstRun) {
             firstRun = false;
             // Read solrmarc config
-            configPath = config.get("configPath");
+            configPath = config.getString(null, "configPath");
             if (configPath == null) {
                 throw new TransformerException(
                         "No valid Solrmarc configuration provided");

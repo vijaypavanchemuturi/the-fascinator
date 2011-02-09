@@ -1,6 +1,6 @@
 /* 
  * The Fascinator - Portal
- * Copyright (C) 2008-2009 University of Southern Queensland
+ * Copyright (C) 2008-2011 University of Southern Queensland
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,6 +18,11 @@
  */
 package au.edu.usq.fascinator.portal.services.impl;
 
+import au.edu.usq.fascinator.HarvestClient;
+import au.edu.usq.fascinator.common.JsonSimpleConfig;
+import au.edu.usq.fascinator.portal.Portal;
+import au.edu.usq.fascinator.portal.services.PortalManager;
+
 import java.io.File;
 import java.io.FileFilter;
 import java.io.FileWriter;
@@ -28,11 +33,6 @@ import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import au.edu.usq.fascinator.HarvestClient;
-import au.edu.usq.fascinator.common.JsonConfig;
-import au.edu.usq.fascinator.portal.Portal;
-import au.edu.usq.fascinator.portal.services.PortalManager;
 
 public class PortalManagerImpl implements PortalManager {
 
@@ -52,14 +52,15 @@ public class PortalManagerImpl implements PortalManager {
 
     public PortalManagerImpl() {
         try {
-            JsonConfig config = new JsonConfig();
+            JsonSimpleConfig config = new JsonSimpleConfig();
 
             // The name of the default view
-            defaultPortal = config.get("portal/defaultView",
-                    PortalManager.DEFAULT_PORTAL_NAME);
+            defaultPortal = config.getString(PortalManager.DEFAULT_PORTAL_NAME,
+                    "portal", "defaultView");
 
             // Path to the files on disk
-            String home = config.get("portal/home", DEFAULT_PORTAL_HOME_DIR);
+            String home = config.getString(DEFAULT_PORTAL_HOME_DIR,
+                    "portal", "home");
             File homeDir = new File(home);
             if (!homeDir.exists()) {
                 home = DEFAULT_PORTAL_HOME_DIR_DEV;
@@ -143,7 +144,7 @@ public class PortalManagerImpl implements PortalManager {
         portalFile.getParentFile().mkdirs();
         try {
             FileWriter writer = new FileWriter(portalFile);
-            portal.store(writer, true);
+            writer.write(portal.toString(true));
             writer.close();
         } catch (IOException ioe) {
 

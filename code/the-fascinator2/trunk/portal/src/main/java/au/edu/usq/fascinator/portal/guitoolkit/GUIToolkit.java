@@ -18,8 +18,9 @@
  */
 package au.edu.usq.fascinator.portal.guitoolkit;
 
-import au.edu.usq.fascinator.common.JsonConfig;
+import au.edu.usq.fascinator.common.JsonSimpleConfig;
 import au.edu.usq.fascinator.portal.services.DynamicPageService;
+
 import java.io.IOException;
 import java.util.List;
 
@@ -31,14 +32,14 @@ import java.util.List;
  * @author Greg Pendlebury
  */
 public class GUIToolkit {
-    private JsonConfig sysConfig;
+    private JsonSimpleConfig sysConfig;
 
     /**
      * A basic constructor. Simply reads system configuration.
      *
      */
     public GUIToolkit() throws IOException {
-        sysConfig = new JsonConfig(JsonConfig.getSystemFile());
+        sysConfig = new JsonSimpleConfig();
     }
 
     /**

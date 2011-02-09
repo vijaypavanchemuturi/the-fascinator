@@ -18,12 +18,14 @@
  */
 package au.edu.usq.fascinator.portal.guitoolkit;
 
-import au.edu.usq.fascinator.common.JsonConfig;
-import au.edu.usq.fascinator.common.JsonConfigHelper;
+import au.edu.usq.fascinator.common.JsonObject;
+import au.edu.usq.fascinator.common.JsonSimple;
+import au.edu.usq.fascinator.common.JsonSimpleConfig;
 
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,21 +47,23 @@ public class GUIFileUploader {
      * @param config : System configuration
      * @param user_roles : An array with the list of roles the current user has
      */
-    public GUIFileUploader(JsonConfig config, List<String> user_roles) {
+    public GUIFileUploader(JsonSimpleConfig config, List<String> user_roles) {
         // Init our form renderer
         fr = new GUIFormRenderer(config);
 
         // Get our workflow config
-        Map<String, JsonConfigHelper> workflows = config.getJsonMap("uploader");
+        JsonObject object = config.getObject("uploader");
+        Map<String, JsonSimple> workflows = JsonSimple.toJavaMap(object);
+
         harvesters = new LinkedHashMap();
         // Foreach workflow
         for (String workflow : workflows.keySet()) {
             // Check this user is allowed to upload files for it
-            for (Object role : workflows.get(workflow).getList("security")) {
+            for (Object role : workflows.get(workflow).getArray("security")) {
                 if (user_roles.contains(role.toString())) {
                     // Add it to the list
-                    harvesters.put(workflow,
-                            workflows.get(workflow).get("screen-label"));
+                    harvesters.put(workflow, workflows.get(workflow).
+                            getString(null, "screen-label"));
                 }
             }
         }
@@ -72,11 +76,13 @@ public class GUIFileUploader {
      */
     public String renderForm() {
         if (harvesters.isEmpty()) {
-            return "Sorry, but your current security permissions don't allow for file uploading.";
+            return "Sorry, but your current security permissions don't" +
+                    " allow for file uploading.";
         }
 
         String form_string = "" +
-            "<form enctype='multipart/form-data' id='upload-file' method='post' action='workflow'>\n" +
+            "<form enctype='multipart/form-data' id='upload-file'" +
+            " method='post' action='workflow'>\n" +
               "<fieldset class='login'>\n" +
                 "<legend>File Upload</legend>\n" +
                 fr.ajaxFluidErrorHolder("upload-file") +

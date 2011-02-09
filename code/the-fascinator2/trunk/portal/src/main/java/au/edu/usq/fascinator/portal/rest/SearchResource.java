@@ -1,6 +1,6 @@
 /* 
  * The Fascinator - Portal
- * Copyright (C) 2009 University of Southern Queensland
+ * Copyright (C) 2009-2011 University of Southern Queensland
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,6 +18,13 @@
  */
 package au.edu.usq.fascinator.portal.rest;
 
+import au.edu.usq.fascinator.api.PluginException;
+import au.edu.usq.fascinator.api.PluginManager;
+import au.edu.usq.fascinator.api.indexer.Indexer;
+import au.edu.usq.fascinator.api.indexer.IndexerException;
+import au.edu.usq.fascinator.api.indexer.SearchRequest;
+import au.edu.usq.fascinator.common.JsonSimpleConfig;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
@@ -27,22 +34,15 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Response;
 
-import au.edu.usq.fascinator.api.PluginException;
-import au.edu.usq.fascinator.api.PluginManager;
-import au.edu.usq.fascinator.api.indexer.Indexer;
-import au.edu.usq.fascinator.api.indexer.IndexerException;
-import au.edu.usq.fascinator.api.indexer.SearchRequest;
-import au.edu.usq.fascinator.common.JsonConfig;
-
 @Path("/search")
 public class SearchResource {
 
-    private JsonConfig config;
+    private JsonSimpleConfig config;
 
     public SearchResource() {
         try {
-            config = new JsonConfig(getClass().getResourceAsStream(
-                    "/config.json"));
+            config = new JsonSimpleConfig(
+                    getClass().getResourceAsStream("/config.json"));
         } catch (IOException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
@@ -55,9 +55,9 @@ public class SearchResource {
     public Response get(@PathParam("id") String id,
             @PathParam("query") String query) {
         try {
-            Indexer indexer = PluginManager.getIndexer(config
-                    .get("indexer/type"));
-            indexer.init(config.getSystemFile());
+            Indexer indexer = PluginManager.getIndexer(
+                    config.getString(null, "indexer", "type"));
+            indexer.init(JsonSimpleConfig.getSystemFile());
 
             ByteArrayOutputStream result = new ByteArrayOutputStream();
             SearchRequest request = new SearchRequest(query);

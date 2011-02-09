@@ -1,4 +1,6 @@
-from au.edu.usq.fascinator.common import JsonConfigHelper
+import md5, uuid
+
+from au.edu.usq.fascinator.common import Manifest
 
 from java.io import ByteArrayInputStream
 from java.lang import String
@@ -20,69 +22,83 @@ class ManifestData:
             func = self.fd("func")
             oid = self.fd("oid")
     
-            if func != "update-package-meta":
-                nodeId = self.fd("nodeId")
-                nodePath = self.__getNodePath(self.fd("parents"), nodeId)
-                originalPath = "manifest//%s" % nodeId
-    
             self.__object = Services.getStorage().getObject(oid)
             sourceId = self.__object.getSourceId()
             payload = self.__object.getPayload(sourceId)
-            self.__manifest = JsonConfigHelper(payload.open())
+            self.__manifest = Manifest(payload.open())
             payload.close()
-    
+
+            # Add a new custom node at the top leve
+            if func == "add-custom":
+                id = md5.new(str(uuid.uuid4())).hexdigest()
+                self.__manifest.addTopNode(id, "Untitled")
+                # We gave an ID for the Library to use in storage, but as
+                #  metadata we want it to say 'blank'
+                node = self.__manifest.getNode("node-%s" % id)
+                node.setId("blank")
+                print "Adding blank node: '%s'" % id
+                self.__saveManifest()
+                result = '{ attributes: { id: "node-%s", rel: "blank" }, data: "Untitled" }' % id
+
+            # Update top-level package metadata
             if func == "update-package-meta":
-                print "*********  update-package-meta ***************"
                 metaList = list(self.vc("formData").getValues("metaList"))
+                jsonObj = self.__manifest.getJsonObject()
                 for metaName in metaList:
                     value = self.fd(metaName)
-                    self.__manifest.set(metaName, value)
+                    jsonObj.put(metaName, value)
                 #title = formData.get("title")
                 #self.__manifest.set("title", StringEscapeUtils.escapeHtml(title))
                 self.__saveManifest()
+
+            # Rename the indicated node
             if func == "rename":
-                title = self.fd("title")
-                self.__manifest.set("%s/title" % nodePath, title)
+                node = self.__manifest.getNode(self.fd("nodeId"))
+                node.setTitle(self.fd("title"))
                 self.__saveManifest()
+
+            # Move a node from one location to another
             elif func == "move":
-                refNodeId = self.fd("refNodeId")
-                refNodePath = self.__getNodePath(self.fd("refParents"),
-                                                 self.fd("refNodeId"));
                 moveType = self.fd("type")
                 if moveType == "before":
-                    self.__manifest.moveBefore(originalPath, refNodePath)
+                    self.__manifest.moveBefore(self.fd("nodeId"), self.fd("refNodeId"))
                 elif moveType == "after":
-                    self.__manifest.moveAfter(originalPath, refNodePath)
+                    self.__manifest.moveAfter(self.fd("nodeId"), self.fd("refNodeId"))
                 elif moveType == "inside":
-                    self.__manifest.move(originalPath, nodePath)
+                    self.__manifest.move(self.fd("nodeId"), self.fd("refNodeId"))
                 self.__saveManifest()
+
+            # Update the metadata of the indicated node
             elif func == "update":
                 title = StringEscapeUtils.escapeHtml(self.fd("title"))
                 hidden = self.fd("hidden")
                 hidden = hidden == "true"
-                self.__manifest.set("%s/title" % nodePath, title)
-                self.__manifest.set("%s/hidden" % nodePath, str(hidden))
-                #if self.__manifest.get("%s/id" % nodePath) is None:
-                #    print "blank node!"
+
+                node = self.__manifest.getNode(self.fd("nodeId"))
+                node.setTitle(title)
+                node.setHidden(hidden)
                 self.__saveManifest()
                 result = '{ title: "%s", hidden: "%s" }' % (title, hidden)
+
+            # Update the metadata of the indicated node
             elif func == "delete":
-                title = self.__manifest.get("%s/title" % nodePath)
+                node = self.__manifest.getNode(self.fd("nodeId"))
+                title = node.getTitle()
                 if title:
-                    self.__manifest.removePath(nodePath)
+                    self.__manifest.delete(self.fd("nodeId"))
                     self.__saveManifest()
                 else:
                     title = "Untitled"
                 result = '{ title: "%s" }' % title
-            
             self.__object.close()
+
         else:
             result = '{ "status": "error", "message": "Only registered users can access this API" }'
-        
+
         writer = self.vc("response").getPrintWriter("text/plain; charset=UTF-8")
         writer.println(result)
         writer.close()
-    
+
     # Get from velocity context
     def vc(self, index):
         if self.velocityContext[index] is not None:
@@ -91,20 +107,7 @@ class ManifestData:
             log.error("ERROR: Requested context entry '" + index + "' doesn't exist")
             return None
 
-    def __getNodePath(self, parents, nodeId):
-        parents = [p for p in parents.split(",") if p != ""]
-        nodePath = "manifest/%s" % nodeId
-        if len(parents) > 0:
-            nodePath = ""
-            for parent in parents:
-                if nodePath == "":
-                    nodePath = "manifest/%s"  % parent
-                else:
-                    nodePath += "/children/%s" % parent
-            nodePath += "/children/%s" % nodeId
-        return nodePath
-    
     def __saveManifest(self):
-        manifestStr = String(self.__manifest.toString())
+        manifestStr = String(self.__manifest.toString(True))
         self.__object.updatePayload(self.__object.getSourceId(),
                                     ByteArrayInputStream(manifestStr.getBytes("UTF-8")))

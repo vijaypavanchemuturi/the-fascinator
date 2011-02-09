@@ -1,5 +1,5 @@
 from au.edu.usq.fascinator.api import PluginManager
-from au.edu.usq.fascinator.common import JsonConfig, JsonConfigHelper
+from au.edu.usq.fascinator.common import JsonSimpleConfig
 from au.edu.usq.fascinator.portal import Portal
 
 from java.io import File
@@ -8,7 +8,7 @@ from java.util import HashMap
 class SettingsData:
 
     def __init__(self):
-        pass
+        self.sysConfig = JsonSimpleConfig()
 
     def __activate__(self, context):
         self.velocityContext = context
@@ -106,21 +106,20 @@ class SettingsData:
         return PluginManager.getTransformerPlugins()
     
     def getWatcherConfig(self):
-        json = JsonConfig()
-        watcherPath = json.get("watcher/path", "${fascinator.home}/watcher)")
+        watcherPath = self.sysConfig.getString("${fascinator.home}/watcher)", ["watcher", "path"])
         configFile = File("%s/app/config.json" % watcherPath)
         if configFile.exists():
-            return JsonConfigHelper(configFile)
+            return JsonSimpleConfig(configFile)
         return None
     
     def getEmail(self):
-        return JsonConfig().get("email")
+        return self.sysConfig.getString(None, ["email"])
     
     def getTimeout(self):
-        return JsonConfig().get("portal/houseKeeping/config/frequency")
+        return self.sysConfig.getString(None, ["portal", "houseKeeping", "config", "frequency"])
     
     def getFacetDisplays(self):
-        facetDisplays = self.__portal.getMap("portal/facet-displays")
+        facetDisplays = self.__portal.getObject(["portal", "facet-displays"])
         if facetDisplays is None or facetDisplays.isEmpty():
             facetDisplays = HashMap()
             facetDisplays.put("list", "List menu")

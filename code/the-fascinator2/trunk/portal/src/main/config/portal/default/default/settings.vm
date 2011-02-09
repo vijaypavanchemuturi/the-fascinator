@@ -176,11 +176,12 @@
                 #facetRow("facets-blank" "f_new_facet" "New facet" "list" "hidden")
             </thead>
             <tbody id="facets-table">
-            #foreach($field in $self.portal.facetFields.keySet())
+            #set($fields = $self.getPortal().getFacetFields())
+            #foreach($field in $fields.keySet())
                 #set($id = "facets-$velocityCount")
-                #set($facet = $self.getPortal().getFacetFields().get($field))
-                #set($label = $facet.get("label"))
-                #set($display = $facet.get("display"))
+                #set($facet = $fields.get($field))
+                #set($label = $facet.getString($nullValue, "label"))
+                #set($display = $facet.getString($nullValue, "display"))
                 #facetRow($id $field $label $display "")
             #end
             </tbody>

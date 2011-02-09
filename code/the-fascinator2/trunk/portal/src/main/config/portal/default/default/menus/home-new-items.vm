@@ -8,9 +8,10 @@
     #else
       <ol>
       #foreach($item in $self.latest)
-        #set($itemId = $item.get('id'))
-        #set($itemTitle = $item.get("dc_title").get(0))
-        #set($owner = $item.get("owner"))
+        #set($itemId = $item.getFirst('id'))
+        #set($itemTitle = $item.getFirst('dc_title'))
+        #set($owner = $item.getFirst('owner'))
+        #set($wfStep = $item.getFirst('workflow_step'))
         #if ("$!owner" != "" && $owner == $page.authentication.get_username())
             #set ($class = " class='owner'")
         #else
@@ -18,7 +19,6 @@
         #end
         <li$class>
           <a href="$portalPath/detail/$itemId">$itemTitle</a>
-          #set($wfStep = $item.get("workflow_step").get(0))
           #if ("$!wfStep" != "" && $wfStep != "" && $wfStep != "live")
           <img class="workflow" src="$portalPath/images/icons/wf_${wfStep}.png" alt="Workflow: $wfStep" title="Workflow: $wfStep"/>
           #end

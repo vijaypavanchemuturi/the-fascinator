@@ -11,7 +11,7 @@
         #set($message = $self.error.message)
         <error code="$code">$message</error>
     #else
-        #set($itemList = $self.result.getList("response/docs"))
+        #set($itemList = $self.result.getResults())
         #parseTemplate("feed/oai-pmh/${self.verb}.vm")
     #end
 </OAI-PMH>

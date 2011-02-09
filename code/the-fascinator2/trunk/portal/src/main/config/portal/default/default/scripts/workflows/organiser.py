@@ -1,7 +1,6 @@
 from au.edu.usq.fascinator.api.storage import StorageException
-from au.edu.usq.fascinator.common import JsonConfigHelper
+from au.edu.usq.fascinator.common import Manifest, JsonObject
 
-from java.io import InputStreamReader
 from java.lang import Exception
 from java.util import ArrayList, HashMap
 
@@ -23,10 +22,13 @@ class OrganiserData:
             # check if we need to do processing
             func = self.vc("formData").get("func")
             if func == "get-rvt-manifest":
+                print "Getting RVT Manifest!"
                 result = self.__getRvtManifest(self.getManifest())
+                print "Result: ", result
         except Exception, e:
             log.error("Failed to load manifest", e);
             result = '{ status: "error", message: "%s" }' % str(e)
+
         if result is not None:
             writer = self.vc("response").getPrintWriter("application/json; charset=UTF-8")
             writer.println(result)
@@ -41,19 +43,21 @@ class OrganiserData:
             return None
 
     def getManifest(self):
-        return self.__manifest.getJsonMap("manifest")
+        return self.__manifest
     
     def getFormData(self, field):
         return StringEscapeUtils.escapeHtml(self.vc("formData").get(field, ""))
     
     def getPackageTitle(self):
-        return StringEscapeUtils.escapeHtml(self.vc("formData").get("title", self.__manifest.get("title")))
+        return StringEscapeUtils.escapeHtml(self.vc("formData").get("title", self.__manifest.getTitle()))
     
     def getMeta(self, metaName):
-        return StringEscapeUtils.escapeHtml(self.vc("formData").get(metaName, self.__manifest.get(metaName)))
+        return StringEscapeUtils.escapeHtml(self.vc("formData").get(metaName, self.__manifest.getString(None, [metaName])))
     
     def getManifestViewId(self):
-        searchPortal = self.__manifest.get("viewId", defaultPortal)
+        searchPortal = self.__manifest.getViewId()
+        if searchPortal is None:
+            searchPortal = defaultPortal
         if Services.portalManager.exists(searchPortal):
             return searchPortal
         else:
@@ -104,47 +108,44 @@ class OrganiserData:
         object = Services.getStorage().getObject(oid)
         sourceId = object.getSourceId()
         payload = object.getPayload(sourceId)
-        payloadReader = InputStreamReader(payload.open(), "UTF-8")
-        manifest = JsonConfigHelper(payloadReader)
-        payloadReader.close()
+        manifest = Manifest(payload.open())
         payload.close()
         object.close()
         return manifest
     
     def __getRvtManifest(self, manifest):
         rvtMap = HashMap()
-        rvtMap.put("title", self.__manifest.get("title"))
-        rvtMap.put("toc", self.__getRvtNodes(manifest))
-        rvtManifest = JsonConfigHelper(rvtMap)
-        return rvtManifest.toString()
+        rvtMap.put("title", manifest.getTitle())
+        rvtMap.put("toc", self.__getRvtNodes(manifest.getTopNodes()))
+        json = JsonObject(rvtMap)
+        print json.toString()
+        return json.toString()
     
     def __getRvtNodes(self, manifest):
         rvtNodes = ArrayList()
         #print "manifest=%s" % manifest
-        for key in manifest.keySet():
+        for node in manifest:
             package = False
-            node = manifest.get(key)
             try:
                 # add the node
                 rvtNode = HashMap()
-                if node.get("hidden") != "True":
-                    relPath = node.get("id")
+                if not node.getHidden():
+                    oid = node.getId()
                     # check if node is a package
-                    if relPath:
-                        package = (self.__getContentType(relPath) == "application/x-fascinator-package")
+                    if oid is not None:
+                        package = (self.__getContentType(oid) == "application/x-fascinator-package")
                     else:
-                        relPath = key.replace("node", "blank")
+                        oid = node.getKey().replace("node", "blank")
                     rvtNode.put("visible", True)
-                    rvtNode.put("title", node.get("title"))
+                    rvtNode.put("title", node.getTitle())
                     if package:
-                        subManifest = self.__readManifest(relPath)
-                        if subManifest:
-                            subManifest = subManifest.getJsonMap("manifest")
-                            rvtNode.put("children", self.__getRvtNodes(subManifest))
-                        relPath = key.replace("node", "package")
+                        subManifest = self.__readManifest(oid)
+                        if subManifest is not None:
+                            rvtNode.put("children", self.__getRvtNodes(subManifest.getTopNodes()))
+                        oid = node.getKey().replace("node", "package")
                     else:
-                        rvtNode.put("children", self.__getRvtNodes(node.getJsonMap("children")))
-                    rvtNode.put("relPath", relPath)
+                        rvtNode.put("children", self.__getRvtNodes(node.getChildren()))
+                    rvtNode.put("relPath", oid)
                     rvtNodes.add(rvtNode)
             except Exception, e:
                 log.error("Failed to process node '%s': '%s'" % (node.toString(), str(e)))

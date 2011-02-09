@@ -1,9 +1,11 @@
 import md5
 from au.edu.usq.fascinator.api.indexer import SearchRequest
-from au.edu.usq.fascinator.common import JsonConfigHelper
+from au.edu.usq.fascinator.common import JsonSimple
+from au.edu.usq.fascinator.common.solr import SolrResult
 from java.io import ByteArrayInputStream, ByteArrayOutputStream
 from java.net import URLEncoder
 from java.util import ArrayList, HashMap
+from org.json.simple import JSONArray
 
 class Facet:
     def __init__(self, key, value, count):
@@ -13,63 +15,71 @@ class Facet:
         self.__id = md5.new(fq).hexdigest()
         self.__count = count
         self.__subFacets = ArrayList()
-    
+
     def getId(self):
         return self.__id
-    
+
     def getName(self):
         return self.__name
-    
+
     def getCount(self):
         return self.__count
-    
+
     def getFacetQuery(self):
         return self.__facetQuery
-    
+
     def addSubFacet(self, facet):
         self.__subFacets.add(facet)
-    
+
     def getSubFacets(self):
         return self.__subFacets
-    
+
     def getJson(self, state = "open"):
         title = "%s (%s)" % (self.getName(), self.getCount())
-        json = JsonConfigHelper()
-        json.set("attributes/id", self.getId())
-        json.set("attributes/fq", self.getFacetQuery())
-        json.set("attributes/title", title)
-        json.set("data", title)
+        json = JsonSimple()
+        jsonObj = json.getJsonObject()
+        attributes = JsonSimple().writeObject(["attributes"])
+        attributes.put("id", self.getId())
+        attributes.put("fq", self.getFacetQuery())
+        attributes.put("title", title)
+        jsonObj.put("data", title)
         hasSubFacets = not self.getSubFacets().isEmpty()
         if hasSubFacets:
-            json.set("state", state)
+            jsonObj.put("state", state)
             subFacetList = ArrayList()
             for subFacet in self.getSubFacets():
                 subFacetList.add(subFacet.getJson("closed"))
-            json.setJsonList("children", subFacetList)
+            children = JSONArray()
+            children.addAll(subFacetList)
+            jsonObj.put("children", children)
         return json
 
 class FacetList:
-    def __init__(self, name, json):
+    def __init__(self, name, results):
         self.__facetMap = HashMap()
         self.__facetList = ArrayList()
-        entries = json.getList("facet_counts/facet_fields/" + name)
-        for i in range(0, len(entries), 2):
-            value = entries[i]
-            count = entries[i+1]
-            if count > 0:
-                facet = Facet(name, value, count)
-                self.__facetMap.put(value, facet)
-                slash = value.rfind("/")
-                if slash == -1:
-                    self.__facetList.add(facet)
-                else:
-                    parent = self.__getFacet(value[:slash])
-                    if parent is not None:
-                        parent.addSubFacet(facet)
-    
+        facets = results.getFacets()
+        if facets is None:
+            return
+        facet = facets.get(name)
+        if facet is None:
+            return
+        facetData = facet.values()
+        for value in facetData.keySet():
+            count = facetData.get(value)
+            facet = Facet(name, value, count)
+            self.__facetMap.put(value, facet)
+            slash = value.rfind("/")
+            if slash == -1:
+                self.__facetList.add(facet)
+            else:
+                parent = self.__getFacet(value[:slash])
+                if parent is not None:
+                    parent.addSubFacet(facet)
+
     def __getFacet(self, name):
         return self.__facetMap.get(name)
-    
+
     def getJsonList(self):
         jsonList = ArrayList()
         for facets in self.__facetList:
@@ -82,19 +92,19 @@ class FacetTreeData:
         self.formData = context["formData"]
         self.sessionState = context["sessionState"]
         self.auth = context["page"].authentication
-        
+
         result = "{}"
         try:
             facetList = self.__search()
             result = facetList.getJsonList().toString()
         except Exception, e:
-            print " ERRORRR:: ", str(e)
-        
+            print " ERROR:: ", str(e)
+
         response = context["response"]
         writer = response.getPrintWriter("text/plain; charset=UTF-8")
         writer.println(result)
         writer.close()
-    
+
     def __search(self):
         query = self.formData.get("query")
         searchQuery = self.sessionState.get("searchQuery")
@@ -105,19 +115,19 @@ class FacetTreeData:
         elif searchQuery:
             query += " AND " + searchQuery
         facetField = self.formData.get("facet.field")
-        
+
         req = SearchRequest(query)
         req.setParam("facet", "true")
         req.setParam("fl", "id")
         req.setParam("rows", "0")
         req.setParam("facet.limit", "-1")
         req.setParam("facet.field", facetField)
-        
+
         fq = self.sessionState.get("fq")
         if fq is not None:
             req.setParam("fq", fq)
         req.addParam("fq", 'item_type:"object"')
-        
+
         # Make sure 'fq' has already been set in the session
         security_roles = self.auth.get_roles_list();
         security_query = 'security_filter:("' + '" OR "'.join(security_roles) + '")'
@@ -126,8 +136,8 @@ class FacetTreeData:
         out = ByteArrayOutputStream()
         indexer = self.services.indexer
         indexer.search(req, out)
-        result = JsonConfigHelper(ByteArrayInputStream(out.toByteArray()))
-        
+        result = SolrResult(ByteArrayInputStream(out.toByteArray()))
+
         return FacetList(facetField, result)
 
 """

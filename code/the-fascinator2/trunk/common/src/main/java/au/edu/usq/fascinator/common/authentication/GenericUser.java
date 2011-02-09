@@ -1,6 +1,6 @@
 /*
  * The Fascinator - Generic User
- * Copyright (C) 2008-2010 University of Southern Queensland
+ * Copyright (C) 2008-2011 University of Southern Queensland
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,13 +19,13 @@
 
 package au.edu.usq.fascinator.common.authentication;
 
+import au.edu.usq.fascinator.api.authentication.User;
+import au.edu.usq.fascinator.common.JsonObject;
+
 import java.lang.reflect.Field;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import au.edu.usq.fascinator.api.authentication.User;
-import au.edu.usq.fascinator.common.JsonConfigHelper;
 
 /**
  * A basic user object, does not define its metadata schema, that is left to
@@ -35,7 +35,7 @@ import au.edu.usq.fascinator.common.JsonConfigHelper;
  */
 public class GenericUser implements User {
     private Logger log = LoggerFactory.getLogger(GenericUser.class);
-    private JsonConfigHelper response;
+    private JsonObject response;
     private String username;
     private String authenticationSource;
 
@@ -52,14 +52,14 @@ public class GenericUser implements User {
         try {
             Class ref_class = Class.forName(class_name);
             Field field_list[] = ref_class.getDeclaredFields();
-            response = new JsonConfigHelper();
+            response = new JsonObject();
 
             // Arbitrarily set username first, as its a private field
             // of GenericUser inheriting classes can't access it.
-            response.set("username", "String");
+            response.put("username", "String");
 
             for (Field element : field_list) {
-                response.set(element.getName(), element.getType()
+                response.put(element.getName(), element.getType()
                         .getSimpleName());
             }
             return response.toString();

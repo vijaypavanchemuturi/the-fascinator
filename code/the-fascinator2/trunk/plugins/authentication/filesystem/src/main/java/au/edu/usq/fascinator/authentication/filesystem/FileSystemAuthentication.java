@@ -22,9 +22,8 @@ import au.edu.usq.fascinator.api.PluginDescription;
 import au.edu.usq.fascinator.api.authentication.Authentication;
 import au.edu.usq.fascinator.api.authentication.AuthenticationException;
 import au.edu.usq.fascinator.api.authentication.User;
-import au.edu.usq.fascinator.common.JsonConfig;
+import au.edu.usq.fascinator.common.JsonSimpleConfig;
 
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -142,9 +141,7 @@ public class FileSystemAuthentication implements Authentication {
     @Override
     public void init(String jsonString) throws AuthenticationException {
         try {
-            JsonConfig config = new JsonConfig(new ByteArrayInputStream(
-                    jsonString.getBytes("UTF-8")));
-            setConfig(config);
+            setConfig(new JsonSimpleConfig(jsonString));
         } catch (UnsupportedEncodingException e) {
             throw new AuthenticationException(e);
         } catch (IOException e) {
@@ -155,8 +152,7 @@ public class FileSystemAuthentication implements Authentication {
     @Override
     public void init(File jsonFile) throws AuthenticationException {
         try {
-            JsonConfig config = new JsonConfig(jsonFile);
-            setConfig(config);
+            setConfig(new JsonSimpleConfig(jsonFile));
         } catch (IOException ioe) {
             throw new AuthenticationException(ioe);
         }
@@ -168,9 +164,10 @@ public class FileSystemAuthentication implements Authentication {
      * @param config JSON configuration
      * @throws IOException if fails to initialise
      */
-    private void setConfig(JsonConfig config) throws IOException {
+    private void setConfig(JsonSimpleConfig config) throws IOException {
         user_object = new FileSystemUser();
-        file_path = config.get("authentication/file-system/path", null);
+        file_path = config.getString(null, "authentication", "file-system",
+                "path");
         loadUsers();
     }
 

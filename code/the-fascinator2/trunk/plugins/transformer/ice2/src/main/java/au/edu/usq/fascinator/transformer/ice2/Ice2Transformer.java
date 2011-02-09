@@ -1,4 +1,38 @@
+/*
+ * The Fascinator - Plugin - Transformer - ICE2
+ * Copyright (C) 2010-2011 University of Southern Queensland
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
 package au.edu.usq.fascinator.transformer.ice2;
+
+import au.edu.usq.fascinator.api.PluginDescription;
+import au.edu.usq.fascinator.api.PluginException;
+import au.edu.usq.fascinator.api.storage.DigitalObject;
+import au.edu.usq.fascinator.api.storage.Payload;
+import au.edu.usq.fascinator.api.storage.PayloadType;
+import au.edu.usq.fascinator.api.storage.StorageException;
+import au.edu.usq.fascinator.api.transformer.Transformer;
+import au.edu.usq.fascinator.api.transformer.TransformerException;
+import au.edu.usq.fascinator.common.BasicHttpClient;
+import au.edu.usq.fascinator.common.JsonObject;
+import au.edu.usq.fascinator.common.JsonSimple;
+import au.edu.usq.fascinator.common.JsonSimpleConfig;
+import au.edu.usq.fascinator.common.MimeTypeUtil;
+import au.edu.usq.fascinator.common.sax.SafeSAXReader;
+import au.edu.usq.fascinator.common.storage.StorageUtils;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -31,21 +65,6 @@ import org.dom4j.DocumentException;
 import org.dom4j.Node;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import au.edu.usq.fascinator.api.PluginDescription;
-import au.edu.usq.fascinator.api.PluginException;
-import au.edu.usq.fascinator.api.storage.DigitalObject;
-import au.edu.usq.fascinator.api.storage.Payload;
-import au.edu.usq.fascinator.api.storage.PayloadType;
-import au.edu.usq.fascinator.api.storage.StorageException;
-import au.edu.usq.fascinator.api.transformer.Transformer;
-import au.edu.usq.fascinator.api.transformer.TransformerException;
-import au.edu.usq.fascinator.common.BasicHttpClient;
-import au.edu.usq.fascinator.common.JsonConfig;
-import au.edu.usq.fascinator.common.JsonConfigHelper;
-import au.edu.usq.fascinator.common.MimeTypeUtil;
-import au.edu.usq.fascinator.common.sax.SafeSAXReader;
-import au.edu.usq.fascinator.common.storage.StorageUtils;
 
 /**
  * <p>
@@ -231,10 +250,10 @@ public class Ice2Transformer implements Transformer {
     private Logger log = LoggerFactory.getLogger(Ice2Transformer.class);
 
     /** System config file **/
-    private JsonConfig config;
+    private JsonSimpleConfig config;
 
     /** Item config file */
-    private JsonConfigHelper itemConfig;
+    private JsonSimple itemConfig;
 
     /** ICE rendition output directory **/
     private File outputDir;
@@ -283,7 +302,8 @@ public class Ice2Transformer implements Transformer {
     @Override
     public void init(File jsonFile) throws PluginException {
         try {
-            config = new JsonConfig(jsonFile);
+            config = new JsonSimpleConfig(jsonFile);
+            itemConfig = new JsonSimple();
             reset();
         } catch (IOException ioe) {
             throw new PluginException(ioe);
@@ -300,7 +320,8 @@ public class Ice2Transformer implements Transformer {
     @Override
     public void init(String jsonString) throws PluginException {
         try {
-            config = new JsonConfig(jsonString);
+            config = new JsonSimpleConfig(jsonString);
+            itemConfig = new JsonSimple();
             reset();
         } catch (IOException ioe) {
             throw new PluginException(ioe);
@@ -314,7 +335,7 @@ public class Ice2Transformer implements Transformer {
         if (firstRun) {
             firstRun = false;
             // Output directory
-            String outputPath = config.get("outputPath");
+            String outputPath = config.getString(null, "outputPath");
             if (outputPath == null) {
                 throw new TransformerException("Output path not specified!");
             }
@@ -323,17 +344,24 @@ public class Ice2Transformer implements Transformer {
 
             // Rendition exclusions
             excludeList = Arrays.asList(StringUtils.split(
-                    config.get("excludeRenditionExt"), ','));
+                    config.getString(null, "excludeRenditionExt"), ','));
 
             // Conversion Service URL
-            convertUrl = config.get("url");
+            convertUrl = config.getString(null, "url");
             if (convertUrl == null) {
                 throw new TransformerException("No ICE URL provided!");
             }
         }
 
         // Priority
-        priority = Boolean.parseBoolean(get("priority", "true"));
+        Boolean testResponse = itemConfig.getBoolean(null, "priority");
+        if (testResponse != null) {
+            // We found it in item config
+            priority = testResponse;
+        } else {
+            // Try system config
+            priority = config.getBoolean(true, "priority");
+        }
 
         // Clear the old SAX reader
         reader = new SafeSAXReader();
@@ -357,7 +385,7 @@ public class Ice2Transformer implements Transformer {
     public DigitalObject transform(DigitalObject object, String jsonConfig)
             throws TransformerException {
         try {
-            itemConfig = new JsonConfigHelper(jsonConfig);
+            itemConfig = new JsonSimple(jsonConfig);
         } catch (IOException ex) {
             throw new TransformerException("Invalid configuration! '{}'", ex);
         }
@@ -704,11 +732,13 @@ public class Ice2Transformer implements Transformer {
         int status = HttpStatus.SC_OK;
 
         // Grab our config
-        Map<String, JsonConfigHelper> resizeConfig = itemConfig
-                .getJsonMap("resize");
+        JsonObject object = itemConfig.getObject("resize");
+        Map<String, JsonSimple> resizeConfig = JsonSimple.toJavaMap(object);
+
         if (resizeConfig == null || resizeConfig.isEmpty()) {
             // Try system config instead
-            resizeConfig = config.getJsonMap("resize");
+            object = config.getObject("resize");
+            resizeConfig = JsonSimple.toJavaMap(object);
             if (resizeConfig == null || resizeConfig.isEmpty()) {
                 throw new TransformerException(
                         "No resizing configuration found.");
@@ -717,7 +747,7 @@ public class Ice2Transformer implements Transformer {
 
         String resizeJson = "";
         for (String key : resizeConfig.keySet()) {
-            JsonConfigHelper j = resizeConfig.get(key);
+            JsonSimple j = resizeConfig.get(key);
             resizeJson += "\"" + key + "\":" + j.toString() + ",";
         }
 
@@ -847,36 +877,6 @@ public class Ice2Transformer implements Transformer {
      */
     @Override
     public void shutdown() throws PluginException {
-    }
-
-    /**
-     * Get data from item JSON, falling back to system JSON if not found
-     * 
-     * @param key path to the data in the config file
-     * @return String containing the config data
-     */
-    private String get(String key) {
-        return get(key, null);
-    }
-
-    /**
-     * Get data from item JSON, falling back to system JSON, then to provided
-     * default value if not found
-     * 
-     * @param json Config object containing the json data
-     * @param key path to the data in the config file
-     * @param value default to use if not found
-     * @return String containing the config data
-     */
-    private String get(String key, String value) {
-        String configEntry = null;
-        if (itemConfig != null) {
-            configEntry = itemConfig.get(key, null);
-        }
-        if (configEntry == null) {
-            configEntry = config.get(key, value);
-        }
-        return configEntry;
     }
 
     /**

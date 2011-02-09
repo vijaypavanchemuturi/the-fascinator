@@ -1,5 +1,5 @@
 from au.edu.usq.fascinator.api.storage import Payload
-from au.edu.usq.fascinator.common import JsonConfigHelper
+from au.edu.usq.fascinator.common import JsonSimple
 
 from java.io import ByteArrayOutputStream
 from java.lang import Exception, String
@@ -33,11 +33,11 @@ class Epub:
             object = Services.getStorage().getObject(oid)
             sourceId = object.getSourceId()
             payload = object.getPayload(sourceId)
-            self.__manifest = JsonConfigHelper(payload.open())
+            self.__manifest = JsonSimple(payload.open())
             payload.close()
             object.close()
             # create the epub
-            self.__getDigitalItems(self.__manifest.getJsonMap("manifest"))
+            self.__getDigitalItems(self.__manifest.getJsonSimpleMap("manifest"))
             self.__createEpub()
         except Exception, e:
             log.error("Failed to create epub", e)
@@ -55,7 +55,7 @@ class Epub:
             return None
 
     def __createEpub(self):
-        title = self.__manifest.get("title")
+        title = self.__manifest.getString(None, "title")
 
         self.vc("response").setHeader("Content-Disposition", "attachment; filename=%s.epub" %  urllib.quote(title))
         out = self.vc("response").getOutputStream("application/epub+zip")
@@ -272,14 +272,14 @@ class Epub:
     def __getDigitalItems(self, manifest):
         for itemHash in manifest.keySet():
             payloadDict = {}
-            item = manifest[itemHash]
-            id = item.get("id")
-            title = item.get("title")
-            hidden = item.get("hidden", "False")
-            if hidden == "True":
+            item = manifest.get(itemHash)
+            id = item.getString(None, "id")
+            title = item.getString(None, "title")
+            hidden = item.getBoolean(False, "hidden")
+            if hidden:
                 print "Skipping hidden item: %s (%s)" % (title, id)
                 continue
-            children = item.getJsonMap("children")
+            children = item.getJsonSimpleMap("children")
 
             isImage=False
             object = Services.storage.getObject(id)

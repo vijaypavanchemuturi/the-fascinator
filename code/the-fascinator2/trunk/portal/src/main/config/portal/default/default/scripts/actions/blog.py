@@ -1,7 +1,7 @@
 import htmlentitydefs
 
 from au.edu.usq.fascinator.api.storage import PayloadType
-from au.edu.usq.fascinator.common import FascinatorHome, JsonConfigHelper
+from au.edu.usq.fascinator.common import FascinatorHome, JsonSimple, JsonSimpleConfig
 from au.edu.usq.fascinator.api.indexer import SearchRequest
 from au.edu.usq.fascinator.api.storage import StorageException
 
@@ -69,7 +69,7 @@ class BlogData:
                     sourceId = self.__object.getSourceId()
                     sourcePayload = self.__object.getPayload(sourceId)
                     if sourcePayload and sourcePayload.getContentType() == "application/x-fascinator-package":
-                        jsonManifest = JsonConfigHelper(sourcePayload.open())
+                        jsonManifest = JsonSimpleConfig(sourcePayload.open())
                         content = self.__getManifestContent(jsonManifest)
                         sourcePayload.close()
                     else:
@@ -97,7 +97,7 @@ class BlogData:
         writer = self.vc("response").getPrintWriter(responseType)
         writer.println(responseMsg)
         writer.close()
-    
+
     # Get from velocity context
     def vc(self, index):
         if self.velocityContext[index] is not None:
@@ -105,7 +105,7 @@ class BlogData:
         else:
             self.log.error("ERROR: Requested context entry '" + index + "' doesn't exist")
             return None
-        
+
     def __convertToVelocityContext(self):
         vc = VelocityContext()
         for key in self.velocityContext.keySet():
@@ -124,20 +124,20 @@ class BlogData:
         req.addParam("fq", portal.getQuery())
         out = ByteArrayOutputStream()
         self.services.getIndexer().search(req, out)
-        self.__solrData = JsonConfigHelper(ByteArrayInputStream(out.toByteArray()))
+        self.__solrData = JsonSimpleConfig(ByteArrayInputStream(out.toByteArray()))
 
     def __readMetadata(self, oid):
         self.__loadSolrData(oid)
-        if int(self.__solrData.get("response/numFound"))==1:
-            self.__metadata = self.__solrData.getJsonList("response/docs").get(0)
+        if int(self.__solrData.getString(None, "response", "numFound")) == 1:
+            self.__metadata = self.__solrData.getJsonSimpleList("response", "docs").get(0)
             if self.__object is None:
                 # Try again, indexed records might have a special storage_id
                 self.__object = self.__getObject(oid)
             # Just a more usable instance of metadata
-            self.__json = JsonConfigHelper(self.__solrData.getList("response/docs").get(0))
-            self.__metadataMap = TreeMap(self.__json.getMap("/"))
+            self.__json = self.__solrData.getJsonSimpleList("response", "docs").get(0)
+            self.__metadataMap = JsonSimple.toJavaMap(self.__json.getJsonObject())
         else:
-            self.__metadata.set("id", oid)
+            self.__metadata.getJsonObject().put("id", oid)
 
     def getUrls(self):
         return FileUtils.readLines(self.__getHistoryFile())
@@ -157,13 +157,13 @@ class BlogData:
         return f
     
     def __getManifestContent(self, jsonManifest):
-        manifest = jsonManifest.getJsonMap("manifest")
+        manifest = jsonManifest.getJsonSimpleMap("manifest")
         contentStr = "<div>"
         for key in manifest.keySet():
             item = manifest.get(key)
-            if item.get("hidden", "False") == "False":
-                contentStr += "<div><h2>%s</h2>" % item.get("title")
-                contentStr += self.__getContent(item.get("id"))
+            if not item.getBoolean(False, "hidden"):
+                contentStr += "<div><h2>%s</h2>" % item.getString(None, "title")
+                contentStr += self.__getContent(item.getString(None, "id"))
                 contentStr += "</div>"
         contentStr += "</div>"
         return contentStr

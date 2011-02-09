@@ -16,7 +16,7 @@ class DetailData:
             return ""
 
         # Get the preview/source payload
-        pid = metadata.get("preview")
+        pid = metadata.getFirst("preview")
         if pid is None:
             pid = object.getSourceId()
         if pid is None:
