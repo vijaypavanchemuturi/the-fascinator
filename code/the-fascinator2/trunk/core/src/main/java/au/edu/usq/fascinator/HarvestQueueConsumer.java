@@ -305,7 +305,7 @@ public class HarvestQueueConsumer implements GenericListener {
             String text = ((TextMessage) message).getText();
             JsonSimpleConfig config = new JsonSimpleConfig(text);
             String oid = config.getString(null, "oid");
-            log.info("Received job, object id='{}' : {}", oid, text);
+            log.info("Received job, object id='{}'", oid);
 
             // Simple scenario, delete object
             boolean deleted = config.getBoolean(false, "deleted");
