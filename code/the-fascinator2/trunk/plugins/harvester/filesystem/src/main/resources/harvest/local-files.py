@@ -1,11 +1,6 @@
 import time
 
 from au.edu.usq.fascinator.api.storage import StorageException
-from au.edu.usq.fascinator.common import JsonConfigHelper
-from au.edu.usq.fascinator.common.storage import StorageUtils
-
-from java.io import ByteArrayInputStream
-from java.lang import String
 
 class IndexData:
     def __init__(self):
@@ -269,13 +264,13 @@ class IndexData:
             ffmpegPayload.close()
             if ffmpeg is not None:
                 # Dimensions
-                width = ffmpeg.get("video/width")
-                height = ffmpeg.get("video/height")
+                width = ffmpeg.getString(None, ["video", "width"])
+                height = ffmpeg.getString(None, ["video", "height"])
                 if width is not None and height is not None:
                     self.utils.add(self.index, "dc_size", width + " x " + height)
 
                 # Duration
-                duration = ffmpeg.get("duration")
+                duration = ffmpeg.getString(None, ["duration"])
                 if duration is not None and int(duration) > 0:
                     if int(duration) > 59:
                         secs = int(duration) % 60
@@ -285,13 +280,13 @@ class IndexData:
                         self.utils.add(self.index, "dc_duration", duration + " second(s)")
 
                 # Format
-                media = ffmpeg.get("format/label")
+                media = ffmpeg.getString(None, ["format", "label"])
                 if media is not None:
                     self.utils.add(self.index, "dc_media_format", media)
 
                 # Video
-                codec = ffmpeg.get("video/codec/simple")
-                label = ffmpeg.get("video/codec/label")
+                codec = ffmpeg.getString(None, ["video", "codec", "simple"])
+                label = ffmpeg.getString(None, ["video", "codec", "label"])
                 if codec is not None and label is not None:
                     self.utils.add(self.index, "video_codec_simple", codec)
                     self.utils.add(self.index, "video_codec_label", label)
@@ -303,13 +298,13 @@ class IndexData:
                     if label is not None:
                         self.utils.add(self.index, "video_codec_label", label)
                         self.utils.add(self.index, "meta_video_codec", label)
-                pixel_format = ffmpeg.get("video/pixel_format")
+                pixel_format = ffmpeg.getString(None, ["video", "pixel_format"])
                 if pixel_format is not None:
                     self.utils.add(self.index, "meta_video_pixel_format", pixel_format)
 
                 # Audio
-                codec = ffmpeg.get("audio/codec/simple")
-                label = ffmpeg.get("audio/codec/label")
+                codec = ffmpeg.getString(None, ["audio", "codec", "simple"])
+                label = ffmpeg.getString(None, ["audio", "codec", "label"])
                 if codec is not None and label is not None:
                     self.utils.add(self.index, "audio_codec_simple", codec)
                     self.utils.add(self.index, "audio_codec_label", label)
@@ -321,10 +316,10 @@ class IndexData:
                     if label is not None:
                         self.utils.add(self.index, "audio_codec_label", label)
                         self.utils.add(self.index, "meta_audio_codec", label)
-                sample_rate = ffmpeg.get("audio/sample_rate")
+                sample_rate = ffmpeg.getString(None, ["audio", "sample_rate"])
                 if sample_rate is not None:
                     sample_rate = "%.1f KHz" % (int(sample_rate) / 1000)
-                channels = ffmpeg.get("audio/channels")
+                channels = ffmpeg.getString(None, ["audio", "channels"])
                 if channels is not None:
                     channels += " Channel(s)"
                 if sample_rate is not None and channels is not None:

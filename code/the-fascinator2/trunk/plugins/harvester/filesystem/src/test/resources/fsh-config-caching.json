@@ -5,7 +5,9 @@
             "targets": [ {
                 "baseDir": "${test.dir}"
             } ],
-            "cacheDir": "${test.cache.dir}"
+            "caching": "basic",
+            "cacheId": "config-caching",
+            "derbyHome" : "${test.cache.dir}"
         }
     }
 }
