@@ -53,7 +53,7 @@ class IndexData:
         for payloadId in self.object.getPayloadIdList():
             try:
                 payload = self.object.getPayload(payloadId)
-                print "TYPE:", payload.getType()
+                #print "TYPE:", payload.getType()
                 if str(payload.getType())=="Thumbnail":
                     self.utils.add(self.index, "thumbnail", payload.getId())
                 elif str(payload.getType())=="Preview":
