@@ -373,14 +373,12 @@ public class HarvestClient {
         props.setProperty("objectId", object.getId());
         props.setProperty("scriptType", config.getString(null,
                 "indexer", "script", "type"));
-        if (props.getProperty("rulesOid") == null) {
-            props.setProperty("rulesOid", rulesObject.getId());
-            props.setProperty("rulesPid", rulesObject.getSourceId());
-        }
-        if (props.getProperty("jsonConfigOid") == null) {
-            props.setProperty("jsonConfigOid", configObject.getId());
-            props.setProperty("jsonConfigPid", configObject.getSourceId());
-        }
+        // Set our config and rules data as properties on the object
+        props.setProperty("rulesOid", rulesObject.getId());
+        props.setProperty("rulesPid", rulesObject.getSourceId());
+        props.setProperty("jsonConfigOid", configObject.getId());
+        props.setProperty("jsonConfigPid", configObject.getSourceId());
+
         if (fileOwner != null) {
             props.setProperty("owner", fileOwner);
         }
