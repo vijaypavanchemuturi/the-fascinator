@@ -198,7 +198,8 @@ class OaiData:
         print " * portalQuery=%s" % portalQuery
         if portalQuery:
             req.addParam("fq", portalQuery)
-
+        req.addParam("fq", "item_type:object")
+        
         #Check if there's resumption token exist in the formData
         if self.__currentToken:
             start = self.__currentToken.getStart()
