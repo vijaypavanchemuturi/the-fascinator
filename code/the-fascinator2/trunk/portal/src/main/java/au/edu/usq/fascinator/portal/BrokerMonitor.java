@@ -1,6 +1,6 @@
 /*
  * The Fascinator - Core
- * Copyright (C) 2009 University of Southern Queensland
+ * Copyright (C) 2010-2011 University of Southern Queensland
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,8 +19,9 @@
 package au.edu.usq.fascinator.portal;
 
 import au.edu.usq.fascinator.common.GenericListener;
-import au.edu.usq.fascinator.common.JsonConfig;
-import au.edu.usq.fascinator.common.JsonConfigHelper;
+import au.edu.usq.fascinator.common.JsonObject;
+import au.edu.usq.fascinator.common.JsonSimple;
+import au.edu.usq.fascinator.common.JsonSimpleConfig;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -74,7 +75,7 @@ public class BrokerMonitor implements GenericListener {
     private Logger log = LoggerFactory.getLogger(BrokerMonitor.class);
 
     /** Global Configuration */
-    private JsonConfigHelper globalConfig;
+    private JsonSimpleConfig globalConfig;
 
     /** JMS connection */
     private Connection connection;
@@ -163,11 +164,12 @@ public class BrokerMonitor implements GenericListener {
     @Override
     public void run() {
         try {
-            globalConfig = new JsonConfigHelper(JsonConfig.getSystemFile());
+            globalConfig = new JsonSimpleConfig();
 
             // Get a connection to the broker
-            String brokerUrl = globalConfig.get("messaging/url",
-                    ActiveMQConnectionFactory.DEFAULT_BROKER_BIND_URL);
+            String brokerUrl = globalConfig.getString(
+                    ActiveMQConnectionFactory.DEFAULT_BROKER_BIND_URL,
+                    "messaging", "url");
             ActiveMQConnectionFactory connectionFactory =
                     new ActiveMQConnectionFactory(brokerUrl);
             connection = connectionFactory.createConnection();
@@ -191,10 +193,11 @@ public class BrokerMonitor implements GenericListener {
 
             // Display statistics in the order found in config
             statsOrder = new ArrayList();
-            List<JsonConfigHelper> queueConfig =
-                    globalConfig.getJsonList("messaging/threads");
-            for (JsonConfigHelper q : queueConfig) {
-                String name = q.get("config/name");
+
+            List<JsonSimple> qConfig = globalConfig.getJsonSimpleList(
+                    "messaging", "threads");
+            for (JsonSimple q : qConfig) {
+                String name = q.getString(null, "config", "name");
                 if (name != null) {
                     statsOrder.add(name);
                 }
@@ -246,7 +249,7 @@ public class BrokerMonitor implements GenericListener {
      * @throws Exception if an error occurred
      */
     @Override
-    public void init(JsonConfigHelper config) throws Exception {
+    public void init(JsonSimpleConfig config) throws Exception {
         // Doesn't matter for this class since
         //  the ServiceLoader doesn't see it
     }
@@ -317,12 +320,14 @@ public class BrokerMonitor implements GenericListener {
 
         // Build a stats message. Whilst we're at
         // it, check to see if anything changed.
-        JsonConfigHelper msgJson = new JsonConfigHelper();
+        JsonObject msgJson = new JsonObject();
+        JsonObject queueStats = new JsonObject();
         for (String queue : stats.keySet()) {
+            JsonObject thisQueue = new JsonObject();
             Map<String, String> map = stats.get(queue);
             for (String key : map.keySet()) {
                 String value = map.get(key);
-                msgJson.set("stats/" + queue + "/" + key, value);
+                thisQueue.put(key, value);
 
                 // Make sure we don't check housekeeping for
                 // the send flag, it causes an infinite loop
@@ -333,7 +338,9 @@ public class BrokerMonitor implements GenericListener {
                     if (key.equals("change") && !value.equals("0")) send = true;
                 }
             }
+            queueStats.put(queue, thisQueue);
         }
+        msgJson.put("stats", queueStats);
 
         // Update housekeeping
         if (send) {
@@ -345,7 +352,7 @@ public class BrokerMonitor implements GenericListener {
             }
 
             try {
-                msgJson.set("type", "broker-update");
+                msgJson.put("type", "broker-update");
                 sendUpdate(msgJson.toString());
             } catch (JMSException ex) {
                 log.error("Failed messaging House Keeping!", ex);

@@ -1,7 +1,8 @@
 from au.edu.usq.fascinator.api.indexer import SearchRequest
 from au.edu.usq.fascinator.api.storage import StorageException
 from au.edu.usq.fascinator import HarvestClient
-from au.edu.usq.fascinator.common import JsonConfigHelper
+from au.edu.usq.fascinator.common import JsonSimpleConfig
+
 from java.io import File, ByteArrayInputStream, ByteArrayOutputStream
 
 from org.apache.commons.lang import StringUtils
@@ -133,14 +134,18 @@ class BatchprocessData:
             
             out = ByteArrayOutputStream()
             indexer.search(req, out)
-            result = JsonConfigHelper(ByteArrayInputStream(out.toByteArray()))
-            
-            docs = result.getList("response/docs/storage_id")
-            
+            result = JsonSimpleConfig(ByteArrayInputStream(out.toByteArray()))
+
+            docs = result.getJsonList("response", "docs")
+            docIds = []
+            for doc in docs:
+                docId = doc.getString(None, "storage_id")
+                if docId is not None:
+                    docIds.append(docId)
             objectIdList.extend(docs)
-            
+
             startRow += numPerPage
-            numFound = int(result.get("response/numFound"))
+            numFound = int(result.getString(None, "response", "numFound"))
             
             if (startRow > numFound):
                 break

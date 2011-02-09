@@ -1,6 +1,6 @@
 /* 
  * The Fascinator - Indexer
- * Copyright (C) 2009-2010 University of Southern Queensland
+ * Copyright (C) 2009-2011 University of Southern Queensland
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,12 +18,26 @@
  */
 package au.edu.usq.fascinator.indexer;
 
-import java.io.ByteArrayInputStream;
+import au.edu.usq.fascinator.api.PluginDescription;
+import au.edu.usq.fascinator.api.PluginException;
+import au.edu.usq.fascinator.api.PluginManager;
+import au.edu.usq.fascinator.api.indexer.Indexer;
+import au.edu.usq.fascinator.api.indexer.IndexerException;
+import au.edu.usq.fascinator.api.indexer.SearchRequest;
+import au.edu.usq.fascinator.api.indexer.rule.RuleException;
+import au.edu.usq.fascinator.api.storage.DigitalObject;
+import au.edu.usq.fascinator.api.storage.Payload;
+import au.edu.usq.fascinator.api.storage.Storage;
+import au.edu.usq.fascinator.api.storage.StorageException;
+import au.edu.usq.fascinator.common.JsonObject;
+import au.edu.usq.fascinator.common.JsonSimpleConfig;
+import au.edu.usq.fascinator.common.MessagingServices;
+import au.edu.usq.fascinator.common.PythonUtils;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -31,7 +45,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-
 import javax.jms.JMSException;
 
 import org.apache.commons.httpclient.HttpClient;
@@ -47,22 +60,6 @@ import org.python.core.PyObject;
 import org.python.util.PythonInterpreter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import au.edu.usq.fascinator.api.PluginDescription;
-import au.edu.usq.fascinator.api.PluginException;
-import au.edu.usq.fascinator.api.PluginManager;
-import au.edu.usq.fascinator.api.indexer.Indexer;
-import au.edu.usq.fascinator.api.indexer.IndexerException;
-import au.edu.usq.fascinator.api.indexer.SearchRequest;
-import au.edu.usq.fascinator.api.indexer.rule.RuleException;
-import au.edu.usq.fascinator.api.storage.DigitalObject;
-import au.edu.usq.fascinator.api.storage.Payload;
-import au.edu.usq.fascinator.api.storage.Storage;
-import au.edu.usq.fascinator.api.storage.StorageException;
-import au.edu.usq.fascinator.common.JsonConfig;
-import au.edu.usq.fascinator.common.JsonConfigHelper;
-import au.edu.usq.fascinator.common.MessagingServices;
-import au.edu.usq.fascinator.common.PythonUtils;
 
 /**
  * <p>
@@ -170,7 +167,7 @@ public class SolrIndexer implements Indexer {
     private Logger log = LoggerFactory.getLogger(SolrIndexer.class);
 
     /** Configuration */
-    private JsonConfig config;
+    private JsonSimpleConfig config;
 
     /** Storage API */
     private Storage storage;
@@ -206,7 +203,7 @@ public class SolrIndexer implements Indexer {
     private HashMap<String, PyObject> scriptCache;
 
     /** Cache of instantiated config files */
-    private HashMap<String, JsonConfigHelper> configCache;
+    private HashMap<String, JsonSimpleConfig> configCache;
 
     /** Flag for use of the cache */
     private boolean useCache;
@@ -257,11 +254,8 @@ public class SolrIndexer implements Indexer {
     @Override
     public void init(String jsonString) throws IndexerException {
         try {
-            config = new JsonConfig(new ByteArrayInputStream(
-                    jsonString.getBytes("UTF-8")));
+            config = new JsonSimpleConfig(jsonString);
             init();
-        } catch (UnsupportedEncodingException e) {
-            throw new IndexerException(e);
         } catch (IOException e) {
             throw new IndexerException(e);
         }
@@ -276,7 +270,7 @@ public class SolrIndexer implements Indexer {
     @Override
     public void init(File jsonFile) throws IndexerException {
         try {
-            config = new JsonConfig(jsonFile);
+            config = new JsonSimpleConfig(jsonFile);
             init();
         } catch (IOException ioe) {
             throw new IndexerException(ioe);
@@ -293,7 +287,7 @@ public class SolrIndexer implements Indexer {
         if (!loaded) {
             loaded = true;
 
-            String storageType = config.get("storage/type");
+            String storageType = config.getString(null, "storage", "type");
             try {
                 storage = PluginManager.getStorage(storageType);
                 storage.init(config.toString());
@@ -308,12 +302,12 @@ public class SolrIndexer implements Indexer {
             solr = initCore("solr");
             anotar = initCore("anotar");
 
-            autoCommit = Boolean.parseBoolean(config.get(
-                    "indexer/solr/autocommit", "true"));
-            anotarAutoCommit = Boolean.parseBoolean(config.get(
-                    "indexer/anotar/autocommit", "true"));
-            propertiesId = config.get("indexer/propertiesId",
-                    DEFAULT_METADATA_PAYLOAD);
+            autoCommit = config.getBoolean(true,
+                    "indexer", "solr", "autocommit");
+            anotarAutoCommit = config.getBoolean(true,
+                    "indexer", "anotar", "autocommit");
+            propertiesId = config.getString(DEFAULT_METADATA_PAYLOAD,
+                    "indexer", "propertiesId");
 
             customParams = new HashMap<String, String>();
 
@@ -324,9 +318,8 @@ public class SolrIndexer implements Indexer {
             }
             // Caching
             scriptCache = new HashMap<String, PyObject>();
-            configCache = new HashMap<String, JsonConfigHelper>();
-            useCache = Boolean.parseBoolean(config.get("indexer/useCache",
-                    "true"));
+            configCache = new HashMap<String, JsonSimpleConfig>();
+            useCache = config.getBoolean(true, "indexer", "useCache");
 
             try {
                 messaging = MessagingServices.getInstance();
@@ -355,16 +348,23 @@ public class SolrIndexer implements Indexer {
      */
     private SolrServer initCore(String coreName) {
         try {
-            URI solrUri = new URI(config.get("indexer/" + coreName + "/uri"));
+            String uri = config.getString(null, "indexer", coreName, "uri");
+            if (uri == null) {
+                log.error("No URI provided for core: '{}'", coreName);
+                return null;
+            }
+            URI solrUri = new URI(uri);
             CommonsHttpSolrServer thisCore = new CommonsHttpSolrServer(
                     solrUri.toURL());
-            String username = config.get("indexer/" + coreName + "/username");
-            String password = config.get("indexer/" + coreName + "/password");
+            String username = config.getString(null,
+                    "indexer", coreName, "username");
+            String password = config.getString(null,
+                    "indexer", coreName, "password");
             usernameMap.put(coreName, username);
             passwordMap.put(coreName, password);
             if (username != null && password != null) {
-                UsernamePasswordCredentials credentials = new UsernamePasswordCredentials(
-                        username, password);
+                UsernamePasswordCredentials credentials =
+                        new UsernamePasswordCredentials(username, password);
                 HttpClient hc = (thisCore).getHttpClient();
                 hc.getParams().setAuthenticationPreemptive(true);
                 hc.getState().setCredentials(AuthScope.ANY, credentials);
@@ -374,8 +374,6 @@ public class SolrIndexer implements Indexer {
             log.error(coreName + " : Malformed URL", mue);
         } catch (URISyntaxException urise) {
             log.error(coreName + " : Invalid URI", urise);
-        } catch (IOException ioe) {
-            log.error(coreName + " : Failed to read Solr configuration", ioe);
         }
         return null;
     }
@@ -620,10 +618,10 @@ public class SolrIndexer implements Indexer {
      * @param document : The Solr document to add to the buffer.
      */
     private void addToBuffer(String index, String document) {
-        JsonConfigHelper message = new JsonConfigHelper();
-        message.set("event", "index");
-        message.set("index", index);
-        message.set("document", document);
+        JsonObject message = new JsonObject();
+        message.put("event", "index");
+        message.put("index", index);
+        message.put("document", document);
         sendToIndex(message.toString());
     }
 
@@ -748,7 +746,7 @@ public class SolrIndexer implements Indexer {
             String rulesOid, Properties props) throws IOException,
             RuleException {
         try {
-            JsonConfigHelper jsonConfig = getConfigFile(confOid);
+            JsonSimpleConfig jsonConfig = getConfigFile(confOid);
 
             // Get our data ready
             Map<String, Object> bindings = new HashMap();
@@ -825,16 +823,16 @@ public class SolrIndexer implements Indexer {
      * If caching is configured the instantiated config object will be cached to
      * speed up subsequent access.
      * 
-     * @param oid : The rules OID to retrieve if cached
-     * @return PyObject : The cached object, null if not found
+     * @param oid : The config OID to retrieve from storage or cache
+     * @return JsonSimple : The parsed or cached JSON object
      */
-    private JsonConfigHelper getConfigFile(String oid) {
+    private JsonSimpleConfig getConfigFile(String oid) {
         if (oid == null) {
             return null;
         }
 
         // Try the cache first
-        JsonConfigHelper configFile = deCacheConfig(oid);
+        JsonSimpleConfig configFile = deCacheConfig(oid);
         if (configFile != null) {
             return configFile;
         }
@@ -843,7 +841,7 @@ public class SolrIndexer implements Indexer {
             DigitalObject object = storage.getObject(oid);
             Payload payload = object.getPayload(object.getSourceId());
             log.debug("First time parsing config file: '{}'", oid);
-            configFile = new JsonConfigHelper(payload.open());
+            configFile = new JsonSimpleConfig(payload.open());
             payload.close();
             cacheConfig(oid, configFile);
             return configFile;
@@ -904,7 +902,7 @@ public class SolrIndexer implements Indexer {
      * @param oid : The config OID to use as an index
      * @param config : The instantiated JsonConfigHelper to cache
      */
-    private void cacheConfig(String oid, JsonConfigHelper config) {
+    private void cacheConfig(String oid, JsonSimpleConfig config) {
         if (useCache && config != null) {
             configCache.put(oid, config);
         }
@@ -916,7 +914,7 @@ public class SolrIndexer implements Indexer {
      * @param oid : The config OID to retrieve if cached
      * @return JsonConfigHelper : The cached config, null if not found
      */
-    private JsonConfigHelper deCacheConfig(String oid) {
+    private JsonSimpleConfig deCacheConfig(String oid) {
         if (useCache && configCache.containsKey(oid)) {
             return configCache.get(oid);
         }

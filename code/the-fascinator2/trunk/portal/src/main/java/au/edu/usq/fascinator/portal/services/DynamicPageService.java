@@ -1,6 +1,6 @@
 /* 
  * The Fascinator - Portal
- * Copyright (C) 2008-2009 University of Southern Queensland
+ * Copyright (C) 2008-2011 University of Southern Queensland
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,14 +18,14 @@
  */
 package au.edu.usq.fascinator.portal.services;
 
+import au.edu.usq.fascinator.common.solr.SolrDoc;
+import au.edu.usq.fascinator.portal.FormData;
+import au.edu.usq.fascinator.portal.JsonSessionState;
+
 import java.io.InputStream;
 import java.io.OutputStream;
 
 import org.apache.velocity.context.Context;
-
-import au.edu.usq.fascinator.common.JsonConfigHelper;
-import au.edu.usq.fascinator.portal.FormData;
-import au.edu.usq.fascinator.portal.JsonSessionState;
 
 public interface DynamicPageService {
 
@@ -42,6 +42,5 @@ public interface DynamicPageService {
             FormData formData, JsonSessionState sessionState);
 
     public String renderObject(Context context, String template,
-            JsonConfigHelper metadata);
-
+            SolrDoc metadata);
 }

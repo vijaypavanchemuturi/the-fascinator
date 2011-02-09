@@ -1,6 +1,6 @@
 /* 
  * The Fascinator - Core
- * Copyright (C) 2009 University of Southern Queensland
+ * Copyright (C) 2009-2011 University of Southern Queensland
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,8 +27,8 @@ import au.edu.usq.fascinator.api.storage.Storage;
 import au.edu.usq.fascinator.api.storage.StorageException;
 import au.edu.usq.fascinator.api.transformer.TransformerException;
 import au.edu.usq.fascinator.common.GenericListener;
-import au.edu.usq.fascinator.common.JsonConfig;
-import au.edu.usq.fascinator.common.JsonConfigHelper;
+import au.edu.usq.fascinator.common.JsonObject;
+import au.edu.usq.fascinator.common.JsonSimpleConfig;
 import au.edu.usq.fascinator.common.MessagingServices;
 
 import java.io.File;
@@ -70,7 +70,7 @@ public class RenderQueueConsumer implements GenericListener {
     private Logger log = LoggerFactory.getLogger(RenderQueueConsumer.class);
 
     /** JSON configuration */
-    private JsonConfig globalConfig;
+    private JsonSimpleConfig globalConfig;
 
     /** JMS connection */
     private Connection connection;
@@ -129,8 +129,9 @@ public class RenderQueueConsumer implements GenericListener {
             log.info("Starting {}...", name);
 
             // Get a connection to the broker
-            String brokerUrl = globalConfig.get("messaging/url",
-                    ActiveMQConnectionFactory.DEFAULT_BROKER_BIND_URL);
+            String brokerUrl = globalConfig.getString(
+                    ActiveMQConnectionFactory.DEFAULT_BROKER_BIND_URL,
+                    "messaging", "url");
             ActiveMQConnectionFactory connectionFactory =
                     new ActiveMQConnectionFactory(brokerUrl);
             connection = connectionFactory.createConnection();
@@ -157,8 +158,8 @@ public class RenderQueueConsumer implements GenericListener {
      * @throws IOException if the configuration file not found
      */
     @Override
-    public void init(JsonConfigHelper config) throws Exception {
-        name = config.get("config/name");
+    public void init(JsonSimpleConfig config) throws Exception {
+        name = config.getString(null, "config", "name");
         QUEUE_ID = name;
         thread.setName(name);
 
@@ -170,13 +171,13 @@ public class RenderQueueConsumer implements GenericListener {
         }
 
         try {
-            globalConfig = new JsonConfig();
-            File sysFile = JsonConfig.getSystemFile();
-            indexer = PluginManager.getIndexer(globalConfig.get("indexer/type",
-                    "solr"));
+            globalConfig = new JsonSimpleConfig();
+            File sysFile = JsonSimpleConfig.getSystemFile();
+            indexer = PluginManager.getIndexer(
+                    globalConfig.getString("solr", "indexer", "type"));
             indexer.init(sysFile);
-            storage = PluginManager.getStorage(globalConfig.get("storage/type",
-                    "file-system"));
+            storage = PluginManager.getStorage(
+                    globalConfig.getString("file-system", "storage", "type"));
             storage.init(sysFile);
 
             conveyer = new ConveyerBelt(ConveyerBelt.RENDER);
@@ -286,8 +287,8 @@ public class RenderQueueConsumer implements GenericListener {
 
             // Get the message deatils
             String text = ((TextMessage) message).getText();
-            JsonConfigHelper config = new JsonConfigHelper(text);
-            String oid = config.get("oid");
+            JsonSimpleConfig config = new JsonSimpleConfig(text);
+            String oid = config.getString(null, "oid");
             log.info("Received job, object id={}", oid);
 
             // Get our object from storage
@@ -302,8 +303,7 @@ public class RenderQueueConsumer implements GenericListener {
             // Index the object
             log.info("Indexing object...");
             indexer.index(object.getId());
-            if (autoCommit || Boolean.parseBoolean(
-                    config.get("commit", "false"))) {
+            if (autoCommit || config.getBoolean(false, "commit")) {
                 indexer.commit();
             }
 
@@ -339,11 +339,11 @@ public class RenderQueueConsumer implements GenericListener {
      */
     private void sendNotification(String oid, String status, String message)
             throws JMSException {
-        JsonConfigHelper jsonMessage = new JsonConfigHelper();
-        jsonMessage.set("id", oid);
-        jsonMessage.set("idType", "object");
-        jsonMessage.set("status", status);
-        jsonMessage.set("message", message);
+        JsonObject jsonMessage = new JsonObject();
+        jsonMessage.put("id", oid);
+        jsonMessage.put("idType", "object");
+        jsonMessage.put("status", status);
+        jsonMessage.put("message", message);
 
         TextMessage msg = session.createTextMessage(jsonMessage.toString());
         // producer.send(broadcast, msg);

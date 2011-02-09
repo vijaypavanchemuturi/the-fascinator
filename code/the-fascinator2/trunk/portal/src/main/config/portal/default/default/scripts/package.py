@@ -1,5 +1,4 @@
-from au.edu.usq.fascinator.common import JsonConfigHelper, JsonConfig
-from json2 import write as jsonWriter
+from au.edu.usq.fascinator.common import JsonObject, JsonSimple, JsonSimpleConfig
 
 ##### Debugging
 #from java.awt import FlowLayout
@@ -23,19 +22,24 @@ class PackageData(object):
         pass
 
     def __activate__(self, context):
+        self.sysConfig = JsonSimpleConfig()
         self.velocityContext = context
-
-        print "formData=%s" % self.vc("formData")
         self.__meta = {}
-        self.json = ""
+        formData = self.vc("formData")
+
         self.isAjax = self.vc("formData").get("ajax") != None
         if self.isAjax:
-            self.__sendJsonAjaxResult({"ok":"OK"})
+            ok = JsonObject()
+            ok.put("ok", "OK")
+            self.json = ok.toString()
+        else:
+            self.json = ""
 
-        self.__selectedPackageType = self.vc("formData").get("packageType", "default")
-        print "selectedPackageType='%s'" % self.__selectedPackageType
-        self.__meta["packageType"] = self.vc("formData").get("packageType", "default")
-        self.__meta["description"] = self.vc("formData").get("description", "")
+        self.__selectedPackageType = formData.get("packageType", "default")
+        #print "formData=%s" % self.vc("formData")
+        #print "selectedPackageType='%s'" % self.__selectedPackageType
+        self.__meta["packageType"] = formData.get("packageType", "default")
+        self.__meta["description"] = formData.get("description", "")
 
     # Get from velocity context
     def vc(self, index):
@@ -44,6 +48,9 @@ class PackageData(object):
         else:
             log.error("ERROR: Requested context entry '" + index + "' doesn't exist")
             return None
+
+    def getIsAjax(self):
+        return self.isAjax
 
     def popupDebugMessage(self, msg):
         try:
@@ -67,19 +74,19 @@ class PackageData(object):
         return self.getFormData("oid")
 
     def getPackageTypes(self):
-        pt = self.__getPackageTypes().keys()
-        pt.sort()
+        pt = self.__getPackageTypes().keySet()
         return pt
 
     def getSelectedPackageType(self):
         return self.__selectedPackageType
 
     def __getPackageTypes(self):
-        json = JsonConfigHelper(JsonConfig.getSystemFile())
-        packageTypes = json.getMap("portal/packageTypes")
-        packageTypes = dict(packageTypes)
-        if packageTypes == {}:
-            packageTypes["default"] = {"jsonconfig":"packaging-config.json"}
+        object = self.sysConfig.getObject(["portal", "packageTypes"])
+        packageTypes = JsonSimple.toJavaMap(object)
+        if packageTypes.isEmpty():
+            defaultPackage = JsonObject()
+            defaultPackage.put("jsonconfig", "packaging-config.json")
+            packageTypes.put("default", JsonSimple(defaultPackage))
         return packageTypes
 
     def __encoded(self, text):
@@ -89,17 +96,10 @@ class PackageData(object):
 
     def test(self):
         s = "data "
-        json = JsonConfigHelper()
         try:
-            l = json.getList("test")
+            l = self.sysConfig.getStringList(["test"])
             s += str(l.size())
-            s += " '%s' " % json.get("test1")
+            s += " '%s' " % json.getString(None, ["test1"])
         except Exception, e:
             s += "Error '%s'" % str(e)
         return s
-
-    def __sendJsonAjaxResult(self, data):
-        self.json = "(%s)" % jsonWriter(data)
-        #writer = self.vc("response").getPrintWriter("application/json; charset=UTF-8")
-        #writer.println(self.json)
-        #writer.close()

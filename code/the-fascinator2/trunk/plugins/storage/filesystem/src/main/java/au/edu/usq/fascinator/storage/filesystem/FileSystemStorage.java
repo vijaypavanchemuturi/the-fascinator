@@ -1,6 +1,6 @@
 /* 
  * The Fascinator - File System storage plugin
- * Copyright (C) 2009 University of Southern Queensland
+ * Copyright (C) 2009-2011 University of Southern Queensland
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,13 +18,11 @@
  */
 package au.edu.usq.fascinator.storage.filesystem;
 
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -41,7 +39,7 @@ import au.edu.usq.fascinator.api.storage.DigitalObject;
 import au.edu.usq.fascinator.api.storage.Storage;
 import au.edu.usq.fascinator.api.storage.StorageException;
 import au.edu.usq.fascinator.common.FascinatorHome;
-import au.edu.usq.fascinator.common.JsonConfig;
+import au.edu.usq.fascinator.common.JsonSimpleConfig;
 
 /**
  * <p>
@@ -142,11 +140,7 @@ public class FileSystemStorage implements Storage {
     @Override
     public void init(String jsonString) throws StorageException {
         try {
-            JsonConfig config = new JsonConfig(new ByteArrayInputStream(
-                    jsonString.getBytes("UTF-8")));
-            setVariable(config);
-        } catch (UnsupportedEncodingException e) {
-            throw new StorageException(e);
+            setVariable(new JsonSimpleConfig(jsonString));
         } catch (IOException e) {
             throw new StorageException(e);
         }
@@ -155,17 +149,17 @@ public class FileSystemStorage implements Storage {
     @Override
     public void init(File jsonFile) throws StorageException {
         try {
-            JsonConfig config = new JsonConfig(jsonFile);
-            setVariable(config);
+            setVariable(new JsonSimpleConfig(jsonFile));
         } catch (IOException ioe) {
             throw new StorageException(ioe);
         }
     }
 
-    private void setVariable(JsonConfig config) {
-        email = config.get("email", DEFAULT_EMAIL);
-        homeDir = new File(config.get("storage/file-system/home",
-                DEFAULT_HOME_DIR), DigestUtils.md5Hex(email));
+    private void setVariable(JsonSimpleConfig config) {
+        email = config.getString(DEFAULT_EMAIL, "email");
+        String home = config.getString(DEFAULT_HOME_DIR,
+                "storage", "file-system", "home");
+        homeDir = new File(home, DigestUtils.md5Hex(email));
         if (!homeDir.exists()) {
             homeDir.mkdirs();
         }
@@ -184,7 +178,8 @@ public class FileSystemStorage implements Storage {
 
         String dir = oid.substring(0, 2) + File.separator + oid.substring(2, 4)
                 + File.separator + oid.substring(4, 6) + File.separator;
-        return new File(homeDir, dir + oid);
+        File file = new File(homeDir, dir + oid);
+        return file;
     }
 
     @Override

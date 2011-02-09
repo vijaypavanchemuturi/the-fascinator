@@ -18,9 +18,12 @@ class ResultData(DefaultResultData):
         else:
             return string + "<strong>%s</strong>: %s<br/>" % (label, value)
 
-    def get(self, field):
-        result = self.md.getList(field)
-        if result is not None and not result.isEmpty():
-            return result.get(0)
-        else:
-            return None
+    def get(self, name):
+        return self.md.get(name)
+
+    def getFirst(self, name):
+        return self.md.getFirst(name)
+
+    def getList(self, name):
+        return self.md.getList(name)
+

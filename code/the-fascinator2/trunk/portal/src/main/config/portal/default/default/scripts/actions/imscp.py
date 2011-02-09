@@ -1,6 +1,6 @@
 import os.path, urllib
 
-from au.edu.usq.fascinator.common import JsonConfigHelper
+from au.edu.usq.fascinator.common import JsonSimple
 from au.edu.usq.fascinator.api.storage import PayloadType
 from au.edu.usq.fascinator.ims import FileType, ItemType, ManifestType, \
     MetadataType, ObjectFactory, OrganizationType, OrganizationsType, \
@@ -26,7 +26,7 @@ class ImscpData:
             object = Services.getStorage().getObject(oid)
             sourceId = object.getSourceId()
             payload = object.getPayload(sourceId)
-            self.__manifest = JsonConfigHelper(payload.open())
+            self.__manifest = JsonSimple(payload.open())
             payload.close()
             object.close()
             # create the package
@@ -47,7 +47,7 @@ class ImscpData:
             return None
 
     def __createPackage(self, outputFile=None):
-        title = self.__manifest.get("title")
+        title = self.__manifest.getString(None, "title")
         manifest = self.__createManifest()
         context = JAXBContext.newInstance("au.edu.usq.fascinator.ims")
         m = context.createMarshaller()
@@ -72,7 +72,7 @@ class ImscpData:
         IOUtils.write(writer.toString(), zipOut)
         zipOut.closeEntry()
 
-        oidList = self.__manifest.getList("manifest//id")
+        oidList = self.__manifest.search("id")
         for oid in oidList:
             obj = Services.getStorage().getObject(oid)
             for pid in obj.getPayloadIdList():
@@ -93,12 +93,12 @@ class ImscpData:
         meta.setSchemaversion("1.1.4")
         manifest.setMetadata(meta)
 
-        jsonManifest = self.__manifest.getJsonMap("manifest")
+        jsonManifest = self.__manifest.getJsonSimpleMap("manifest")
 
         orgs = OrganizationsType()
         org = OrganizationType()
         org.setIdentifier("default")
-        org.setTitle(self.__manifest.get("title"))
+        org.setTitle(self.__manifest.getString(None, "title"))
         orgs.getOrganization().add(org)
         orgs.setDefault(org)
         manifest.setOrganizations(orgs)
@@ -114,7 +114,7 @@ class ImscpData:
             jsonRes = jsonManifest.get(key)
             try:
                 item, webRes = self.__createItemAndResource(key, jsonRes)
-                children = jsonRes.getJsonMap("children")
+                children = jsonRes.getJsonSimpleMap("children")
                 if not children.isEmpty():
                     self.__createItems(item, resources, children)
                 parent.getItem().add(item)
@@ -123,18 +123,18 @@ class ImscpData:
                 print "Failed to create item for '%s': %s" % (key, str(e))
 
     def __createItemAndResource(self, key, jsonRes):
-        hidden = jsonRes.get("hidden", "False")
+        hidden = jsonRes.getBoolean(False, "hidden")
         # organization item
         item = ItemType()
         item.setIdentifier("default-%s" % key)
         item.setIdentifierref(key)
-        item.setIsvisible(hidden == "False")
-        item.setTitle(jsonRes.get("title"))
+        item.setIsvisible(not hidden)
+        item.setTitle(jsonRes.getString(None, "title"))
         # resource
         webRes = ResourceType()
         webRes.setIdentifier(key)
         webRes.setType("webcontent")
-        oid = jsonRes.get("id")
+        oid = jsonRes.getString(None, "id")
         obj = Services.getStorage().getObject(oid)
         baseName = os.path.splitext(obj.getSourceId())[0]
         webRes.setHref("resources/%s/%s.htm" % (oid, baseName))

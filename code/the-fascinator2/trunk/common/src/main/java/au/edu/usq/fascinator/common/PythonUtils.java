@@ -1,6 +1,6 @@
 /*
  * The Fascinator - Python Utils
- * Copyright (C) 2008-2010 University of Southern Queensland
+ * Copyright (C) 2008-2011 University of Southern Queensland
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -91,7 +91,7 @@ public class PythonUtils {
     private MessageProducer producer;
     private Map<String, Destination> destinations;
 
-    public PythonUtils(JsonConfig config) throws PluginException {
+    public PythonUtils(JsonSimpleConfig config) throws PluginException {
         // Security
         String accessControlType = "accessmanager";
         access = PluginManager.getAccessManager(accessControlType);
@@ -104,8 +104,9 @@ public class PythonUtils {
         saxReader = new SAXReader(docFactory);
 
         // Message Queues
-        String brokerUrl = config.get("messaging/url",
-                ActiveMQConnectionFactory.DEFAULT_BROKER_BIND_URL);
+        String brokerUrl = config.getString(
+                ActiveMQConnectionFactory.DEFAULT_BROKER_BIND_URL,
+                "messaging", "url");
         connectionFactory = new ActiveMQConnectionFactory(brokerUrl);
         try {
             connection = connectionFactory.createConnection();
@@ -326,9 +327,9 @@ public class PythonUtils {
      * @param in, the inputstream to read and parse
      * @return JsonConfigHelper object after parsing
      */
-    public JsonConfigHelper getJsonObject(InputStream in) {
+    public JsonSimple getJsonObject(InputStream in) {
         try {
-            return new JsonConfigHelper(in);
+            return new JsonSimple(in);
         } catch (IOException ex) {
             log.error("Failure during stream access", ex);
             return null;

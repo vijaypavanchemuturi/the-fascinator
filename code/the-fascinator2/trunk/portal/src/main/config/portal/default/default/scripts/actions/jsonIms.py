@@ -1,6 +1,7 @@
 
 from au.edu.usq.fascinator.api.storage import StorageException
-from au.edu.usq.fascinator.common import JsonConfigHelper
+from au.edu.usq.fascinator.common import JsonSimple
+from au.edu.usq.fascinator.common import JsonObject
 
 from java.lang import Exception
 from java.util import ArrayList, HashMap
@@ -28,7 +29,7 @@ class JsonImsData(object):
             return None
 
     def __getJson(self):
-        rvtMap = HashMap()
+        rvtMap = JsonObject()
         try:
             oid = self.vc("formData").get("oid")
             object = Services.storage.getObject(oid)
@@ -58,7 +59,7 @@ class JsonImsData(object):
         except StorageException, e:
             data["DEBUG"] = str(e.getMessage())
 
-        rvtManifest = JsonConfigHelper(rvtMap)
+        rvtManifest = JsonSimple(rvtMap)
         return rvtManifest.toString()
 
     def __getJsonItems(self, ns, items, resources):

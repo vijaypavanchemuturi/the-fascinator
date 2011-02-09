@@ -1,6 +1,6 @@
 /*
  * The Fascinator - Plugin - Transformer - Ims
- * Copyright (C) 2010 University of Southern Queensland
+ * Copyright (C) 2010-2011 University of Southern Queensland
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,7 +26,8 @@ import au.edu.usq.fascinator.api.storage.PayloadType;
 import au.edu.usq.fascinator.api.storage.StorageException;
 import au.edu.usq.fascinator.api.transformer.Transformer;
 import au.edu.usq.fascinator.api.transformer.TransformerException;
-import au.edu.usq.fascinator.common.JsonConfigHelper;
+import au.edu.usq.fascinator.common.JsonSimple;
+import au.edu.usq.fascinator.common.JsonSimpleConfig;
 import au.edu.usq.fascinator.common.MimeTypeUtil;
 import au.edu.usq.fascinator.common.storage.StorageUtils;
 
@@ -97,7 +98,7 @@ public class ImsTransformer implements Transformer {
     private static Logger log = LoggerFactory.getLogger(ImsTransformer.class);
 
     /** Json config file **/
-    private JsonConfigHelper config;
+    private JsonSimpleConfig config;
 
     /** ims Manifest file **/
     private String manifestFile = "imsmanifest.xml";
@@ -124,7 +125,7 @@ public class ImsTransformer implements Transformer {
     @Override
     public void init(File jsonFile) throws PluginException {
         try {
-            config = new JsonConfigHelper(jsonFile);
+            config = new JsonSimpleConfig(jsonFile);
             reset();
         } catch (IOException e) {
             log.error("Error reading config: ", e);
@@ -141,7 +142,7 @@ public class ImsTransformer implements Transformer {
     @Override
     public void init(String jsonString) throws PluginException {
         try {
-            config = new JsonConfigHelper(jsonString);
+            config = new JsonSimpleConfig(jsonString);
             reset();
         } catch (IOException e) {
             log.error("Error reading config: ", e);
@@ -172,9 +173,9 @@ public class ImsTransformer implements Transformer {
         // Purge old data
         reset();
 
-        JsonConfigHelper itemConfig;
+        JsonSimple itemConfig;
         try {
-            itemConfig = new JsonConfigHelper(jsonConfig);
+            itemConfig = new JsonSimple(jsonConfig);
         } catch (IOException ex) {
             throw new TransformerException("Invalid configuration! '{}'", ex);
         }
@@ -188,7 +189,7 @@ public class ImsTransformer implements Transformer {
         }
 
         File inFile;
-        String filePath = itemConfig.get("sourceFile");
+        String filePath = itemConfig.getString(null, "sourceFile");
         if (filePath != null) {
             inFile = new File(filePath);
         } else {

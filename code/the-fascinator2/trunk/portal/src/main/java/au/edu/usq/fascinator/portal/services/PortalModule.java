@@ -18,7 +18,27 @@
  */
 package au.edu.usq.fascinator.portal.services;
 
+import au.edu.usq.fascinator.AccessManager;
+import au.edu.usq.fascinator.AuthenticationManager;
+import au.edu.usq.fascinator.RoleManager;
+import au.edu.usq.fascinator.api.PluginManager;
+import au.edu.usq.fascinator.api.access.AccessControlManager;
+import au.edu.usq.fascinator.api.authentication.AuthManager;
+import au.edu.usq.fascinator.api.indexer.Indexer;
+import au.edu.usq.fascinator.api.roles.RolesManager;
+import au.edu.usq.fascinator.api.storage.Storage;
+import au.edu.usq.fascinator.common.JsonSimpleConfig;
+import au.edu.usq.fascinator.portal.JsonSessionState;
+import au.edu.usq.fascinator.portal.services.impl.ByteRangeRequestCacheImpl;
+import au.edu.usq.fascinator.portal.services.impl.CachingDynamicPageServiceImpl;
+import au.edu.usq.fascinator.portal.services.impl.DatabaseServicesImpl;
+import au.edu.usq.fascinator.portal.services.impl.HarvestManagerImpl;
+import au.edu.usq.fascinator.portal.services.impl.HouseKeepingManagerImpl;
+import au.edu.usq.fascinator.portal.services.impl.PortalManagerImpl;
+import au.edu.usq.fascinator.portal.services.impl.PortalSecurityManagerImpl;
+import au.edu.usq.fascinator.portal.services.impl.ScriptingServicesImpl;
 import java.util.List;
+
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.codec.digest.DigestUtils;
@@ -41,27 +61,6 @@ import org.apache.tapestry5.urlrewriter.URLRewriterRule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
-
-import au.edu.usq.fascinator.AccessManager;
-import au.edu.usq.fascinator.AuthenticationManager;
-import au.edu.usq.fascinator.RoleManager;
-import au.edu.usq.fascinator.api.PluginManager;
-import au.edu.usq.fascinator.api.access.AccessControlManager;
-import au.edu.usq.fascinator.api.authentication.AuthManager;
-import au.edu.usq.fascinator.api.indexer.Indexer;
-import au.edu.usq.fascinator.api.roles.RolesManager;
-import au.edu.usq.fascinator.api.storage.Storage;
-import au.edu.usq.fascinator.common.JsonConfig;
-import au.edu.usq.fascinator.common.JsonConfigHelper;
-import au.edu.usq.fascinator.portal.JsonSessionState;
-import au.edu.usq.fascinator.portal.services.impl.ByteRangeRequestCacheImpl;
-import au.edu.usq.fascinator.portal.services.impl.CachingDynamicPageServiceImpl;
-import au.edu.usq.fascinator.portal.services.impl.DatabaseServicesImpl;
-import au.edu.usq.fascinator.portal.services.impl.HarvestManagerImpl;
-import au.edu.usq.fascinator.portal.services.impl.HouseKeepingManagerImpl;
-import au.edu.usq.fascinator.portal.services.impl.PortalManagerImpl;
-import au.edu.usq.fascinator.portal.services.impl.PortalSecurityManagerImpl;
-import au.edu.usq.fascinator.portal.services.impl.ScriptingServicesImpl;
 
 /**
  * <p>
@@ -113,7 +112,8 @@ public class PortalModule {
      * @param hub : Tapestry shutdown hub
      * @return DatabaseServices : The Database Tapestry Service
      */
-    public static DatabaseServices buildDatabaseServices(RegistryShutdownHub hub) {
+    public static DatabaseServices buildDatabaseServices(
+            RegistryShutdownHub hub) {
         DatabaseServices database = new DatabaseServicesImpl();
         hub.addRegistryShutdownListener(database);
         return database;
@@ -141,7 +141,7 @@ public class PortalModule {
     public static AccessControlManager buildAccessManager() {
         try {
             AccessManager access = new AccessManager();
-            access.init(JsonConfig.getSystemFile());
+            access.init(JsonSimpleConfig.getSystemFile());
             return access;
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -156,7 +156,7 @@ public class PortalModule {
     public static AuthManager buildAuthManager() {
         try {
             AuthenticationManager auth = new AuthenticationManager();
-            auth.init(JsonConfig.getSystemFile());
+            auth.init(JsonSimpleConfig.getSystemFile());
             return auth;
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -170,10 +170,10 @@ public class PortalModule {
      */
     public static Indexer buildIndexer() {
         try {
-            JsonConfig config = new JsonConfig();
-            Indexer indexer = PluginManager.getIndexer(config.get(
-                    "indexer/type", DEFAULT_INDEXER_TYPE));
-            indexer.init(JsonConfig.getSystemFile());
+            JsonSimpleConfig config = new JsonSimpleConfig();
+            Indexer indexer = PluginManager.getIndexer(
+                    config.getString(DEFAULT_INDEXER_TYPE, "indexer", "type"));
+            indexer.init(JsonSimpleConfig.getSystemFile());
             return indexer;
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -188,7 +188,7 @@ public class PortalModule {
     public static RolesManager buildRoleManager() {
         try {
             RoleManager roles = new RoleManager();
-            roles.init(JsonConfig.getSystemFile());
+            roles.init(JsonSimpleConfig.getSystemFile());
             return roles;
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -202,10 +202,10 @@ public class PortalModule {
      */
     public static Storage buildStorage() {
         try {
-            JsonConfig config = new JsonConfig();
-            Storage storage = PluginManager.getStorage(config.get(
-                    "storage/type", DEFAULT_STORAGE_TYPE));
-            storage.init(JsonConfig.getSystemFile());
+            JsonSimpleConfig config = new JsonSimpleConfig();
+            Storage storage = PluginManager.getStorage(
+                    config.getString(DEFAULT_STORAGE_TYPE, "storage", "type"));
+            storage.init(JsonSimpleConfig.getSystemFile());
             return storage;
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -224,12 +224,14 @@ public class PortalModule {
     public static void contributeResponseCompressionAnalyzer(
             Configuration<String> configuration) {
         try {
-            JsonConfigHelper config = new JsonConfigHelper(
-                    JsonConfig.getSystemFile());
-            List<Object> formats = config.getList("portal/compression/ignore");
-            for (Object format : formats) {
-                log.info("Tapestry : Exclude from GZIP '{}'", (String) format);
-                configuration.add((String) format);
+            JsonSimpleConfig config = new JsonSimpleConfig();
+            List<String> ignoreList =
+                    config.getStringList("portal", "compression", "ignore");
+            if (ignoreList != null && !ignoreList.isEmpty()) {
+                for (String format : ignoreList) {
+                    log.info("Exclude from GZIP '{}'", format);
+                    configuration.add(format);
+                }
             }
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -244,14 +246,15 @@ public class PortalModule {
      */
     public static void contributeApplicationStateManager(
             MappedConfiguration<Class<?>, ApplicationStateContribution> configuration) {
-        ApplicationStateCreator<JsonSessionState> creator = new ApplicationStateCreator<JsonSessionState>() {
+        ApplicationStateCreator<JsonSessionState> creator =
+                new ApplicationStateCreator<JsonSessionState>() {
             @Override
             public JsonSessionState create() {
                 return new JsonSessionState();
             }
         };
-        ApplicationStateContribution contribution = new ApplicationStateContribution(
-                "session", creator);
+        ApplicationStateContribution contribution =
+                new ApplicationStateContribution("session", creator);
         configuration.add(JsonSessionState.class, contribution);
     }
 

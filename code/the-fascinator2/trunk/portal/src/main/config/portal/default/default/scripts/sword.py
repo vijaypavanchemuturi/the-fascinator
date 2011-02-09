@@ -1,18 +1,20 @@
 #from org.purl.sword.client.Client import *
 #import org.apache.commons.httpclient.auth.AuthChallengeProcessor as AuthChallengeProcessor
 #import org.apache.commons.httpclient.HttpMethodDirector as HttpMethodDirector
-import au.edu.usq.fascinator.portal.SwordSimpleServer as SwordSimpleServer
-import java.io.FileOutputStream as FileOutputStream
-import org.apache.commons.io.IOUtils as IOUtils
+
+from au.edu.usq.fascinator import QueueStorage
 from au.edu.usq.fascinator.api import PluginManager
-import au.edu.usq.fascinator.common.JsonConfig as JsonConfig
-import au.edu.usq.fascinator.common.JsonConfigHelper as JsonConfigHelper
-import au.edu.usq.fascinator.common.storage.impl.GenericDigitalObject as GenericDigitalObject
-import au.edu.usq.fascinator.common.storage.impl.FilePayload as FilePayload
-import java.io.File as File;
-import au.edu.usq.fascinator.QueueStorage as QueueStorage
-import java.io.FileWriter as FileWriter
+from au.edu.usq.fascinator.common import JsonConfig
+from au.edu.usq.fascinator.common import JsonConfigHelper
+from au.edu.usq.fascinator.common.storage.impl import GenericDigitalObject
+from au.edu.usq.fascinator.common.storage.impl import FilePayload
+from au.edu.usq.fascinator.portal import SwordSimpleServer
+
+from java.io import File
+from java.io import FileOutputStream
+from java.io import FileWriter
 from java.lang import Exception
+from org.apache.commons.io import IOUtils
 
 class SwordData(object):
     def __init__(self):

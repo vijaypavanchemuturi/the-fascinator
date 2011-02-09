@@ -1,5 +1,6 @@
 from au.edu.usq.fascinator.api.indexer import SearchRequest
-from au.edu.usq.fascinator.common import JsonConfigHelper
+from au.edu.usq.fascinator.common import JsonSimpleConfig
+
 from java.io import ByteArrayInputStream, ByteArrayOutputStream
 
 import os
@@ -85,8 +86,8 @@ class BatchprocessData:
         out = ByteArrayOutputStream()
         indexer.search(req, out)
         
-        self.__result = JsonConfigHelper(ByteArrayInputStream(out.toByteArray()))
-        return self.__result.get("response/numFound")
+        self.__result = JsonSimpleConfig(ByteArrayInputStream(out.toByteArray()))
+        return self.__result.getString(None, "response", "numFound")
     
     #http://localhost:9997/solr/fascinator/select?start=0&fq=item_type%3A%22object%22&rows=25&q=modified:true
 

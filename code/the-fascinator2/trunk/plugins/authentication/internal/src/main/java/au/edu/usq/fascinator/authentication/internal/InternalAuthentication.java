@@ -1,6 +1,6 @@
 /* 
  * The Fascinator - Internal Authentication plugin
- * Copyright (C) 2008-2010 University of Southern Queensland
+ * Copyright (C) 2008-2011 University of Southern Queensland
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,7 +22,7 @@ import au.edu.usq.fascinator.api.PluginDescription;
 import au.edu.usq.fascinator.api.authentication.Authentication;
 import au.edu.usq.fascinator.api.authentication.AuthenticationException;
 import au.edu.usq.fascinator.api.authentication.User;
-import au.edu.usq.fascinator.common.JsonConfig;
+import au.edu.usq.fascinator.common.JsonSimpleConfig;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -139,9 +139,7 @@ public class InternalAuthentication implements Authentication {
     @Override
     public void init(String jsonString) throws AuthenticationException {
         try {
-            JsonConfig config = new JsonConfig(new ByteArrayInputStream(
-                    jsonString.getBytes("UTF-8")));
-            setConfig(config);
+            setConfig(new JsonSimpleConfig(jsonString));
         } catch (UnsupportedEncodingException e) {
             throw new AuthenticationException(e);
         } catch (IOException e) {
@@ -152,8 +150,7 @@ public class InternalAuthentication implements Authentication {
     @Override
     public void init(File jsonFile) throws AuthenticationException {
         try {
-            JsonConfig config = new JsonConfig(jsonFile);
-            setConfig(config);
+            setConfig(new JsonSimpleConfig(jsonFile));
         } catch (IOException ioe) {
             throw new AuthenticationException(ioe);
         }
@@ -165,10 +162,11 @@ public class InternalAuthentication implements Authentication {
      * @param config JSON configuration
      * @throws IOException if fails to initialise
      */
-    private void setConfig(JsonConfig config) throws IOException {
+    private void setConfig(JsonSimpleConfig config) throws IOException {
         // Get the basics
         user_object = new InternalUser();
-        file_path = config.get("authentication/internal/path", null);
+        file_path = config.getString(null, "authentication", "internal",
+                "path");
         loadUsers();
     }
 

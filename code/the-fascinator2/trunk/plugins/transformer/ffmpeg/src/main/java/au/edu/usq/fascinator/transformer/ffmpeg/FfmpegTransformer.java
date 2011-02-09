@@ -1,6 +1,6 @@
 /*
  * The Fascinator - Plugin - Transformer - FFMPEG
- * Copyright (C) 2010 University of Southern Queensland
+ * Copyright (C) 2010-2011 University of Southern Queensland
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,6 +17,20 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 package au.edu.usq.fascinator.transformer.ffmpeg;
+
+import au.edu.usq.fascinator.api.PluginDescription;
+import au.edu.usq.fascinator.api.PluginException;
+import au.edu.usq.fascinator.api.storage.DigitalObject;
+import au.edu.usq.fascinator.api.storage.Payload;
+import au.edu.usq.fascinator.api.storage.PayloadType;
+import au.edu.usq.fascinator.api.storage.StorageException;
+import au.edu.usq.fascinator.api.transformer.Transformer;
+import au.edu.usq.fascinator.api.transformer.TransformerException;
+import au.edu.usq.fascinator.common.JsonObject;
+import au.edu.usq.fascinator.common.JsonSimple;
+import au.edu.usq.fascinator.common.JsonSimpleConfig;
+import au.edu.usq.fascinator.common.MimeTypeUtil;
+import au.edu.usq.fascinator.common.storage.StorageUtils;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -45,18 +59,6 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import au.edu.usq.fascinator.api.PluginDescription;
-import au.edu.usq.fascinator.api.PluginException;
-import au.edu.usq.fascinator.api.storage.DigitalObject;
-import au.edu.usq.fascinator.api.storage.Payload;
-import au.edu.usq.fascinator.api.storage.PayloadType;
-import au.edu.usq.fascinator.api.storage.StorageException;
-import au.edu.usq.fascinator.api.transformer.Transformer;
-import au.edu.usq.fascinator.api.transformer.TransformerException;
-import au.edu.usq.fascinator.common.JsonConfigHelper;
-import au.edu.usq.fascinator.common.MimeTypeUtil;
-import au.edu.usq.fascinator.common.storage.StorageUtils;
 
 /**
  * <p>
@@ -96,10 +98,10 @@ public class FfmpegTransformer implements Transformer {
     private FfmpegDatabase stats;
 
     /** System config file */
-    private JsonConfigHelper config;
+    private JsonSimpleConfig config;
 
     /** Item config file */
-    private JsonConfigHelper itemConfig;
+    private JsonSimple itemConfig;
 
     /** FFMPEG output directory */
     private File outputDir;
@@ -120,13 +122,13 @@ public class FfmpegTransformer implements Transformer {
     private FfmpegInfo info;
 
     /** Metadata storage */
-    private Map<String, JsonConfigHelper> metadata;
+    private Map<String, JsonObject> metadata;
 
     /** Old Metadata */
-    private Map<String, JsonConfigHelper> oldMetadata;
+    private Map<String, JsonSimple> oldMetadata;
 
     /** Error messages */
-    private Map<String, JsonConfigHelper> errors;
+    private Map<String, JsonObject> errors;
 
     /** Object ID */
     private String oid;
@@ -167,7 +169,7 @@ public class FfmpegTransformer implements Transformer {
     @Override
     public void init(File jsonFile) throws PluginException {
         try {
-            config = new JsonConfigHelper(jsonFile);
+            config = new JsonSimpleConfig(jsonFile);
             reset();
         } catch (IOException ioe) {
             throw new PluginException(ioe);
@@ -184,7 +186,7 @@ public class FfmpegTransformer implements Transformer {
     @Override
     public void init(String jsonString) throws PluginException {
         try {
-            config = new JsonConfigHelper(jsonString);
+            config = new JsonSimpleConfig(jsonString);
             reset();
         } catch (IOException ioe) {
             throw new PluginException(ioe);
@@ -200,13 +202,17 @@ public class FfmpegTransformer implements Transformer {
             testExecLevel();
 
             // Prep output area
-            String outputPath = config.get("outputPath");
+            String outputPath = config.getString(null, "outputPath");
+            if (outputPath == null) {
+                log.error("No output path provided!");
+                return;
+            }
             outputRoot = new File(outputPath);
             outputRoot.mkdirs();
 
             // Database
-            String useDB = config.get("database/enabled", "false");
-            if (Boolean.parseBoolean(useDB)) {
+            boolean useDB = config.getBoolean(false, "database", "enabled");
+            if (useDB) {
                 try {
                     stats = new FfmpegDatabase(config);
                 } catch (Exception ex) {
@@ -215,7 +221,7 @@ public class FfmpegTransformer implements Transformer {
             }
 
             // Set system variable for presets location
-            String presetsPath = config.get("presetsPath");
+            String presetsPath = config.getString(null, "presetsPath");
             if (presetsPath != null) {
                 File presetDir = new File(presetsPath);
                 // Make sure it's valid
@@ -252,8 +258,8 @@ public class FfmpegTransformer implements Transformer {
         // Drop to the log files too
         log.error(message);
         // Create JSON version of the message
-        JsonConfigHelper msg = new JsonConfigHelper();
-        msg.set("/message", message);
+        JsonObject msg = new JsonObject();
+        msg.put("message", message);
         addError(index, msg);
     }
 
@@ -273,15 +279,15 @@ public class FfmpegTransformer implements Transformer {
         // Drop to the log files too
         log.error(message, ex);
         // Create JSON version of the message
-        JsonConfigHelper msg = new JsonConfigHelper();
-        msg.set("/message", message);
+        JsonObject msg = new JsonObject();
+        msg.put("message", message);
         if (ex != null) {
-            msg.set("/exception", ex.getMessage());
+            msg.put("exception", ex.getMessage());
             // Turn the stacktrace into a string
             StringWriter sw = new StringWriter();
             PrintWriter pw = new PrintWriter(sw);
             ex.printStackTrace(pw);
-            msg.set("/stacktrace", sw.toString());
+            msg.put("stacktrace", sw.toString());
         }
         addError(index, msg);
     }
@@ -292,7 +298,7 @@ public class FfmpegTransformer implements Transformer {
      * @param index: The index to use in the Map
      * @param message: The error message to record
      */
-    private void addError(String index, JsonConfigHelper message) {
+    private void addError(String index, JsonObject message) {
         // Sanity check
         if (message == null || index == null) {
             return;
@@ -317,8 +323,9 @@ public class FfmpegTransformer implements Transformer {
     private String testExecLevel() {
         // Make sure we can start
         if (ffmpeg == null) {
-            ffmpeg = new FfmpegImpl(get(config, "binaries/transcoding"), get(
-                    config, "binaries/metadata"));
+            ffmpeg = new FfmpegImpl(
+                    get(null, null, "binaries", "transcoding"),
+                    get(null, null, "binaries", "metadata"));
         }
         return ffmpeg.testAvailability();
     }
@@ -344,15 +351,15 @@ public class FfmpegTransformer implements Transformer {
         outputDir.mkdirs();
 
         try {
-            itemConfig = new JsonConfigHelper(jsonConfig);
+            itemConfig = new JsonSimple(jsonConfig);
         } catch (IOException ex) {
             throw new TransformerException("Invalid configuration! '{}'", ex);
         }
 
         // Resolve multi-segment files first
-        mergeRate = get(itemConfig, "merging/mpegFrameRate", "25");
-        finalRate = get(itemConfig, "merging/finalFrameRate", "10");
-        finalFormat = get(itemConfig, "merging/finalFormat", "avi");
+        mergeRate = get(itemConfig, "25", "merging", "mpegFrameRate");
+        finalRate = get(itemConfig, "10", "merging", "finalFrameRate");
+        finalFormat = get(itemConfig, "avi", "merging", "finalFormat");
         mergeSegments(object);
 
         // Find the format 'group' this file is in
@@ -410,7 +417,7 @@ public class FfmpegTransformer implements Transformer {
         // readMetadata(object);
 
         // Check for a custom display type
-        String display = get(itemConfig, "displayTypes/" + format);
+        String display = get(itemConfig, null, "displayTypes", format);
         if (display != null) {
             try {
                 Properties prop = object.getMetadata();
@@ -437,26 +444,25 @@ public class FfmpegTransformer implements Transformer {
         }
 
         // What conversions are required for this format?
-        List<JsonConfigHelper> conversions = getJsonList(itemConfig,
-                "transcodings/" + format);
-        for (JsonConfigHelper conversion : conversions) {
-            String name = conversion.get("alias");
+        List<JsonSimple> conversions = getJsonList(itemConfig,
+                "transcodings", format);
+        for (JsonSimple conversion : conversions) {
+            String name = conversion.getString(null, "alias");
             // And what/how many renditions does it have?
-            List<JsonConfigHelper> renditions = conversion
-                    .getJsonList("renditions");
+            List<JsonSimple> renditions = getJsonList(conversion, "renditions");
             if (renditions == null || renditions.isEmpty()) {
                 addError("transcodings", "Invalid or missing transcoding data:"
                         + " '/transcodings/" + format + "'");
             } else {
                 // Config look valid, lets give it a try
                 // log.debug("Starting renditions for '{}'", name);
-                for (JsonConfigHelper render : renditions) {
+                for (JsonSimple render : renditions) {
                     File converted = null;
                     // Render the output
                     try {
                         converted = convert(file, render, info);
                     } catch (Exception ex) {
-                        String outputFile = render.get("name");
+                        String outputFile = render.getString(null, "name");
                         if (outputFile != null) {
                             addError(jsonKey(outputFile),
                                     "Error converting file", ex);
@@ -474,7 +480,8 @@ public class FfmpegTransformer implements Transformer {
                             // TODO: Type checking needs more work
                             // Indexing fails silently if you add two thumbnails
                             // or two previews
-                            payload.setType(resolveType(render.get("type")));
+                            payload.setType(resolveType(
+                                    render.getString(null, "type")));
                             payload.close();
                         } catch (Exception ex) {
                             addError(jsonKey(converted.getName()),
@@ -721,7 +728,6 @@ public class FfmpegTransformer implements Transformer {
         File sourceFile = cacheFile(object, pid);
         String ext = FilenameUtils.getExtension(pid);
         String output = pid.substring(0, pid.length() - ext.length()) + "mpg";
-        log.debug("=== OUT: '{}'", output);
         File outputFile = new File(outputDir, "output_" + output);
         if (outputFile.exists()) {
             FileUtils.deleteQuietly(outputFile);
@@ -787,17 +793,16 @@ public class FfmpegTransformer implements Transformer {
     }
 
     /**
-     * Determine the format group use in transcoding
+     * Determine the format group to use in transcoding
      * 
      * @param extension The file extension
      * @param String The format group, NULL if not found
      */
     private String getFormat(String extension) {
-        List<JsonConfigHelper> formatList = config
-                .getJsonList("supportedFormats");
-        for (JsonConfigHelper json : formatList) {
-            String group = json.get("group");
-            List<String> extensions = getList(json, "extensions");
+        List<JsonSimple> formatList = getJsonList(null, "supportedFormats");
+        for (JsonSimple json : formatList) {
+            String group = json.getString(null, "group");
+            List<String> extensions = getList(json, ",", "extensions");
             for (String ext : extensions) {
                 if (extension.equalsIgnoreCase(ext)) {
                     return group;
@@ -816,8 +821,10 @@ public class FfmpegTransformer implements Transformer {
         try {
             createFfmpegErrorPayload(object);
         } catch (Exception ex) {
-            JsonConfigHelper content = new JsonConfigHelper();
-            content.setJsonMap("/", errors);
+            JsonObject content = new JsonObject();
+            for (String key : errors.keySet()) {
+                content.put(key, errors.get(key));
+            }
             log.error("Unable to write error payload, {}", ex);
             log.error("Errors:\n{}", content.toString());
         } finally {
@@ -856,9 +863,9 @@ public class FfmpegTransformer implements Transformer {
         }
 
         // Get base metadata of source
-        JsonConfigHelper fullMetadata = null;
+        JsonObject fullMetadata = null;
         try {
-            fullMetadata = new JsonConfigHelper(info.toString());
+            fullMetadata = new JsonSimple(info.toString()).getJsonObject();
         } catch (IOException ex) {
             addError("metadata", "Error parsing metadata output", ex);
             return false;
@@ -866,7 +873,11 @@ public class FfmpegTransformer implements Transformer {
 
         // Add individual conversion(s) metadata
         if (!metadata.isEmpty()) {
-            fullMetadata.setJsonMap("outputs", metadata);
+            JsonObject metadataObject = new JsonObject();
+            for (String key : metadata.keySet()) {
+                metadataObject.put(key, metadata.get(key));
+            }
+            fullMetadata.put("outputs", metadataObject);
         }
 
         // Write the file to disk
@@ -911,8 +922,10 @@ public class FfmpegTransformer implements Transformer {
             throws StorageException, FileNotFoundException,
             UnsupportedEncodingException {
         // Compile our error data
-        JsonConfigHelper content = new JsonConfigHelper();
-        content.setJsonMap("/", errors);
+        JsonObject content = new JsonObject();
+        for (String key : errors.keySet()) {
+            content.put(key, errors.get(key));
+        }
         log.debug("\nErrors:\n{}", content.toString());
         InputStream data = new ByteArrayInputStream(content.toString()
                 .getBytes("UTF-8"));
@@ -954,9 +967,9 @@ public class FfmpegTransformer implements Transformer {
         if (pids.contains(METADATA_PAYLOAD)) {
             try {
                 Payload payload = object.getPayload(METADATA_PAYLOAD);
-                JsonConfigHelper data = new JsonConfigHelper(payload.open());
+                JsonSimple data = new JsonSimple(payload.open());
                 payload.close();
-                oldMetadata = data.getJsonMap("outputs");
+                oldMetadata = JsonSimple.toJavaMap(data.getObject("outputs"));
                 // for (String k : oldMetadata.keySet()) {
                 // log.debug("\n====\n{}\n===\n{}", k, oldMetadata.get(k));
                 // }
@@ -998,9 +1011,8 @@ public class FfmpegTransformer implements Transformer {
      * @return File containing converted media
      * @throws TransformerException if the conversion failed
      */
-    private File convert(File sourceFile, JsonConfigHelper render,
-            FfmpegInfo info) throws TransformerException {
-
+    private File convert(File sourceFile, JsonSimple render, FfmpegInfo info)
+            throws TransformerException {
         // Statistics variables
         long startTime, timeSpent;
         String resolution;
@@ -1009,7 +1021,7 @@ public class FfmpegTransformer implements Transformer {
         List<String> params = new ArrayList<String>();
 
         // Prepare the output location
-        String outputName = render.get("name");
+        String outputName = render.getString(null, "name");
         if (outputName == null) {
             return null;
         }
@@ -1021,15 +1033,15 @@ public class FfmpegTransformer implements Transformer {
                 outputFile.getName());
 
         // Get metadata ready
-        JsonConfigHelper renderMetadata = new JsonConfigHelper();
+        JsonObject renderMetadata = new JsonObject();
         String key = jsonKey(outputName);
-        String formatString = render.get("formatMetadata");
+        String formatString = render.getString(null, "formatMetadata");
         if (formatString != null) {
-            renderMetadata.set("format", formatString);
+            renderMetadata.put("format", formatString);
         }
-        String codecString = render.get("codecMetadata");
+        String codecString = render.getString(null, "codecMetadata");
         if (codecString != null) {
-            renderMetadata.set("codec", codecString);
+            renderMetadata.put("codec", codecString);
         }
 
         try {
@@ -1044,7 +1056,7 @@ public class FfmpegTransformer implements Transformer {
             // *************
             // 2) Configurable options
             // *************
-            String optionStr = render.get("options", "");
+            String optionStr = render.getString("", "options");
             List<String> options = split(optionStr, " ");
             // Replace the offset placeholder now that we know the duration
             long start = 0;
@@ -1064,7 +1076,7 @@ public class FfmpegTransformer implements Transformer {
             // *************
             // 3) Video resolution / padding
             // *************
-            String audioStr = render.get("audioOnly");
+            String audioStr = render.getString(null, "audioOnly");
             boolean audio = Boolean.parseBoolean(audioStr);
 
             // Non-audio files need some resolution work
@@ -1079,8 +1091,8 @@ public class FfmpegTransformer implements Transformer {
                 params.addAll(dimensions);
             }
             // Statistics
-            String width = renderMetadata.get("width");
-            String height = renderMetadata.get("height");
+            String width = (String) renderMetadata.get("width");
+            String height = (String) renderMetadata.get("height");
             if (width == null || height == null) {
                 // Audio... or an error
                 resolution = "0x0";
@@ -1091,7 +1103,7 @@ public class FfmpegTransformer implements Transformer {
             // *************
             // 4) Output options
             // *************
-            optionStr = render.get("output", "");
+            optionStr = render.getString("", "output");
             options = split(optionStr, " ");
             // Merge option parameters into standard parameters
             if (!options.isEmpty()) {
@@ -1107,15 +1119,15 @@ public class FfmpegTransformer implements Transformer {
             String stderr = ffmpeg.transform(params, outputDir);
             timeSpent = (new Date().getTime()) - startTime;
 
-            renderMetadata.set("timeSpent", String.valueOf(timeSpent));
-            renderMetadata.set("debugOutput", stderr);
+            renderMetadata.put("timeSpent", String.valueOf(timeSpent));
+            renderMetadata.put("debugOutput", stderr);
             if (outputFile.exists()) {
                 long fileSize = outputFile.length();
                 if (fileSize == 0) {
                     throw new TransformerException(
                             "File conversion failed!\n=====\n" + stderr);
                 } else {
-                    renderMetadata.set("size", String.valueOf(fileSize));
+                    renderMetadata.put("size", String.valueOf(fileSize));
                 }
             } else {
                 throw new TransformerException(
@@ -1172,13 +1184,13 @@ public class FfmpegTransformer implements Transformer {
      * @param stats : The list of parameters to keep for statistics
      * @return List<String> : A list of parameters
      */
-    private List<String> getPaddedParams(JsonConfigHelper renderConfig,
-            FfmpegInfo info, JsonConfigHelper renderMetadata, List<String> stats) {
+    private List<String> getPaddedParams(JsonSimple renderConfig,
+            FfmpegInfo info, JsonObject renderMetadata, List<String> stats) {
         List<String> response = new ArrayList();
 
         // Get the output dimensions to use for the actual video
-        int maxX = Integer.valueOf(renderConfig.get("maxWidth", "-1"));
-        int maxY = Integer.valueOf(renderConfig.get("maxHeight", "-1"));
+        int maxX = renderConfig.getInteger(-1, "maxWidth");
+        int maxY = renderConfig.getInteger(-1, "maxHeight");
         String size = getSize(info.getWidth(), info.getHeight(), maxX, maxY);
         if (size == null) {
             return null;
@@ -1188,8 +1200,8 @@ public class FfmpegTransformer implements Transformer {
         int i = size.indexOf("x");
         int x = makeEven(Integer.parseInt(size.substring(0, i)));
         int y = makeEven(Integer.parseInt(size.substring(i + 1)));
-        String paddingConfig = renderConfig.get("padding", "none");
-        String paddingColor = renderConfig.get("paddingColor", "black");
+        String paddingConfig = renderConfig.getString("none", "padding");
+        String paddingColor = renderConfig.getString("black", "paddingColor");
 
         // No padding is requested or we don't have both X and Y constraints...
         if (paddingConfig.equalsIgnoreCase("none") || maxX == -1 || maxY == -1) {
@@ -1197,8 +1209,8 @@ public class FfmpegTransformer implements Transformer {
             response.add("-s");
             response.add(size);
             // Don't forget metadata
-            renderMetadata.set("width", String.valueOf(x));
-            renderMetadata.set("height", String.valueOf(y));
+            renderMetadata.put("width", String.valueOf(x));
+            renderMetadata.put("height", String.valueOf(y));
             // or stats
             stats.add("padding");
             stats.add("{none}");
@@ -1214,8 +1226,8 @@ public class FfmpegTransformer implements Transformer {
         // Record overall dimensions
         String width = String.valueOf(padXleft + x + padXright);
         String height = String.valueOf(padYtop + y + padYbottom);
-        renderMetadata.set("width", width);
-        renderMetadata.set("height", height);
+        renderMetadata.put("width", width);
+        renderMetadata.put("height", height);
         // Debugging
         // log.debug("WIDTH: " + padXleft + " + " + x + " + " + padXright +
         // " = " + width);
@@ -1359,18 +1371,21 @@ public class FfmpegTransformer implements Transformer {
     @Override
     public PluginDescription getPluginDetails() {
         PluginDescription pd = new PluginDescription(this);
-        JsonConfigHelper details = null;
+        JsonSimple details = null;
         String availability = "Unknown";
         if (config == null) {
             try {
-                details = new JsonConfigHelper(pd.getMetadata());
+                details = new JsonSimple(pd.getMetadata());
             } catch (IOException ioe) {
+                log.error("Error parsing plugin description JSON");
             }
+
         } else {
-            details = new JsonConfigHelper();
+            details = new JsonSimple();
             availability = testExecLevel();
         }
-        details.set("debug/availability", availability);
+
+        details.writeObject("debug").put("availability", availability);
         pd.setMetadata(details.toString());
         return pd;
     }
@@ -1383,28 +1398,22 @@ public class FfmpegTransformer implements Transformer {
      * @param key path to the data in the config file
      * @return List<JsonConfigHelper> containing the config data
      */
-    private List<JsonConfigHelper> getJsonList(JsonConfigHelper json, String key) {
-        // We can't tell the difference between NULL and empty from
-        // getJsonList(), so get the entry as a basic string first.
-        String test = json.get(key);
-        if (test == null) {
-            // It doesn't exist in item config
-            return config.getJsonList(key);
+    private List<JsonSimple> getJsonList(JsonSimple json, Object... path) {
+        List<JsonSimple> response = null;
+
+        // Try item config if provided
+        if (json != null) {
+            response = json.getJsonSimpleList(path);
         }
-
-        // We found SOMETHING in the item config, now let's get it properly
-        return json.getJsonList(key);
-    }
-
-    /**
-     * Get a list from item JSON, falling back to system JSON if not found
-     * 
-     * @param json Config object containing the json data
-     * @param key path to the data in the config file
-     * @return List<String> containing the config data
-     */
-    private List<String> getList(JsonConfigHelper json, String key) {
-        return getList(json, key, ",");
+        // Then try system config if not found
+        if (response == null) {
+            response = config.getJsonSimpleList(path);
+        }
+        // Return an empty list otherwise
+        if (response == null) {
+            response = new ArrayList();
+        }
+        return response;
     }
 
     /**
@@ -1415,9 +1424,9 @@ public class FfmpegTransformer implements Transformer {
      * @param separator The separator to use in splitting the string to a list
      * @return List<String> containing the config data
      */
-    private List<String> getList(JsonConfigHelper json, String key,
-            String separator) {
-        String configEntry = get(json, key);
+    private List<String> getList(JsonSimple json, String separator,
+            Object... path) {
+        String configEntry = get(json, null, path);
         if (configEntry == null) {
             return new ArrayList();
         } else {
@@ -1430,35 +1439,26 @@ public class FfmpegTransformer implements Transformer {
      * default value if not found
      * 
      * @param json Config object containing the json data
-     * @param key path to the data in the config file
      * @param value default to use if not found
+     * @param path to the data in the config file
      * @return String containing the config data
      */
-    private String get(JsonConfigHelper json, String key, String value) {
-        String configEntry = json.get(key, null);
+    private String get(JsonSimple json, String value, Object... path) {
+        String configEntry = null;
+        // Try item config if provided
+        if (json != null) {
+            configEntry = json.getString(null, path);
+        }
+        // Fallback to system config
         if (configEntry == null) {
-            configEntry = config.get(key, value);
+            // This time specify our default value
+            configEntry = config.getString(value, path);
         }
         return configEntry;
     }
 
     /**
-     * Get data from item JSON, falling back to system JSON if not found
-     * 
-     * @param json Config object containing the json data
-     * @param key path to the data in the config file
-     * @return String containing the config data
-     */
-    private String get(JsonConfigHelper json, String key) {
-        String configEntry = json.get(key, null);
-        if (configEntry == null) {
-            configEntry = config.get(key, null);
-        }
-        return configEntry;
-    }
-
-    /**
-     * Simple wrapper for commonly used function, use StrinUtils to split a
+     * Simple wrapper for commonly used function, use StringUtils to split a
      * string in an array and then transform it into a list.
      * 
      * @param original : The original string to split

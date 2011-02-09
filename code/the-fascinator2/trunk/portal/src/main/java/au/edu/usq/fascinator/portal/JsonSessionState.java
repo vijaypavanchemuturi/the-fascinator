@@ -1,6 +1,6 @@
 /* 
  * The Fascinator - Portal
- * Copyright (C) 2008-2009 University of Southern Queensland
+ * Copyright (C) 2008-2011 University of Southern Queensland
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,26 +25,26 @@ import java.util.HashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import au.edu.usq.fascinator.common.JsonConfig;
+import au.edu.usq.fascinator.common.JsonSimpleConfig;
 
 public class JsonSessionState extends HashMap<String, Object> {
 
     private Logger log = LoggerFactory.getLogger(JsonSessionState.class);
 
-    private JsonConfig config;
+    private JsonSimpleConfig config;
 
     private Date created;
 
     public JsonSessionState() {
         created = new Date();
         try {
-            config = new JsonConfig();
+            config = new JsonSimpleConfig();
         } catch (IOException ioe) {
             log.warn("Failed to load system config: {}", ioe.getMessage());
         }
     }
 
-    public JsonConfig getSystemConfig() {
+    public JsonSimpleConfig getSystemConfig() {
         return config;
     }
 

@@ -65,7 +65,7 @@ class IndexData:
             print "Could not find marc data (%s)" % str(e)
 
     def __mapVuFind(self, ourField, theirField, map):
-        for value in map.getList(theirField):
+        for value in map.geStringtList(theirField):
             self.utils.add(self.index, ourField, value)
 
     def __newDoc(self):

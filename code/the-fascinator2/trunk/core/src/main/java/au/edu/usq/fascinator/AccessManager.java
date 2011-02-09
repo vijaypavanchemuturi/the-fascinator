@@ -1,6 +1,6 @@
 /*
  * The Fascinator - Access Manager
- * Copyright (C) 2008-2010 University of Southern Queensland
+ * Copyright (C) 2010-2011 University of Southern Queensland
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,6 +18,15 @@
  */
 package au.edu.usq.fascinator;
 
+import au.edu.usq.fascinator.api.PluginDescription;
+import au.edu.usq.fascinator.api.PluginException;
+import au.edu.usq.fascinator.api.PluginManager;
+import au.edu.usq.fascinator.api.access.AccessControl;
+import au.edu.usq.fascinator.api.access.AccessControlException;
+import au.edu.usq.fascinator.api.access.AccessControlManager;
+import au.edu.usq.fascinator.api.access.AccessControlSchema;
+import au.edu.usq.fascinator.common.JsonSimpleConfig;
+
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
@@ -31,28 +40,19 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import au.edu.usq.fascinator.api.PluginDescription;
-import au.edu.usq.fascinator.api.PluginException;
-import au.edu.usq.fascinator.api.PluginManager;
-import au.edu.usq.fascinator.api.access.AccessControl;
-import au.edu.usq.fascinator.api.access.AccessControlException;
-import au.edu.usq.fascinator.api.access.AccessControlManager;
-import au.edu.usq.fascinator.api.access.AccessControlSchema;
-import au.edu.usq.fascinator.common.JsonConfig;
-
 /**
  * Management of security.
  * 
  * This object manages one or more access control plugins based on
- * configuration. The portal doesn't need to know the details of talking to each
- * data source.
+ * configuration. The portal doesn't need to know the details of talking
+ * to each data source.
  * 
  * @author Greg Pendlebury
  */
 public class AccessManager implements AccessControlManager {
 
     /** Default aceess plugin */
-    private static final String DEFAULT_ACCESS_PLUGIN = "simple";
+    private static final String DEFAULT_ACCESS_PLUGIN = "derby";
 
     /** Logging */
     private final Logger log = LoggerFactory.getLogger(AccessManager.class);
@@ -89,12 +89,8 @@ public class AccessManager implements AccessControlManager {
     @Override
     public void init(String jsonString) throws AccessControlException {
         try {
-            JsonConfig config = new JsonConfig(new ByteArrayInputStream(
-                    jsonString.getBytes("UTF-8")));
-            setConfig(config);
+            setConfig(new JsonSimpleConfig(jsonString));
         } catch (AccessControlException e) {
-            throw new AccessControlException(e);
-        } catch (UnsupportedEncodingException e) {
             throw new AccessControlException(e);
         } catch (IOException e) {
             throw new AccessControlException(e);
@@ -104,8 +100,7 @@ public class AccessManager implements AccessControlManager {
     @Override
     public void init(File jsonFile) throws AccessControlException {
         try {
-            JsonConfig config = new JsonConfig(jsonFile);
-            setConfig(config);
+            setConfig(new JsonSimpleConfig(jsonFile));
         } catch (AccessControlException e) {
             throw new AccessControlException(e);
         } catch (IOException ioe) {
@@ -119,11 +114,12 @@ public class AccessManager implements AccessControlManager {
      * @param config JSON Configuration
      * @throws AccessControlException
      */
-    public void setConfig(JsonConfig config) throws AccessControlException {
+    public void setConfig(JsonSimpleConfig config)
+            throws AccessControlException {
         plugins = new LinkedHashMap<String, AccessControl>();
         // Get and parse the config
-        String plugin_string = config.get("accesscontrol/type",
-                DEFAULT_ACCESS_PLUGIN);
+        String plugin_string = config.getString(DEFAULT_ACCESS_PLUGIN,
+                "accesscontrol", "type");
         String[] plugin_list = plugin_string.split(",");
         // Now start each required plugin
         for (String element : plugin_list) {

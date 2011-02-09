@@ -1,6 +1,6 @@
 /* 
  * The Fascinator - Core
- * Copyright (C) 2009 University of Southern Queensland
+ * Copyright (C) 2009-2011 University of Southern Queensland
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,6 +19,17 @@
 
 package au.edu.usq.fascinator;
 
+import au.edu.usq.fascinator.api.PluginManager;
+import au.edu.usq.fascinator.api.indexer.Indexer;
+import au.edu.usq.fascinator.api.indexer.IndexerException;
+import au.edu.usq.fascinator.api.indexer.SearchRequest;
+import au.edu.usq.fascinator.api.storage.DigitalObject;
+import au.edu.usq.fascinator.api.storage.Payload;
+import au.edu.usq.fascinator.api.storage.Storage;
+import au.edu.usq.fascinator.api.storage.StorageException;
+import au.edu.usq.fascinator.common.JsonObject;
+import au.edu.usq.fascinator.common.JsonSimpleConfig;
+
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -30,23 +41,11 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import au.edu.usq.fascinator.api.PluginManager;
-import au.edu.usq.fascinator.api.indexer.Indexer;
-import au.edu.usq.fascinator.api.indexer.IndexerException;
-import au.edu.usq.fascinator.api.indexer.SearchRequest;
-import au.edu.usq.fascinator.api.storage.DigitalObject;
-import au.edu.usq.fascinator.api.storage.Payload;
-import au.edu.usq.fascinator.api.storage.Storage;
-import au.edu.usq.fascinator.api.storage.StorageException;
-import au.edu.usq.fascinator.common.JsonConfig;
-import au.edu.usq.fascinator.common.JsonConfigHelper;
 
 /**
  * Index Client class to Re-index the storage
@@ -74,7 +73,7 @@ public class IndexClient {
     private File configFile;
 
     /** JsonConfiguration for the configuration file **/
-    private JsonConfig config;
+    private JsonSimpleConfig config;
 
     /** rules file **/
     private File rulesFile;
@@ -92,8 +91,8 @@ public class IndexClient {
      * @throws IOException If initialisation fail
      */
     public IndexClient() throws IOException {
-        config = new JsonConfig();
-        configFile = config.getSystemFile();
+        config = new JsonSimpleConfig();
+        configFile = JsonSimpleConfig.getSystemFile();
         setSetting();
     }
 
@@ -104,8 +103,8 @@ public class IndexClient {
      * @throws IOException If initialisation fail
      */
     public IndexClient(File jsonFile) throws IOException {
+        config = new JsonSimpleConfig(jsonFile);
         configFile = jsonFile;
-        config = new JsonConfig(jsonFile);
         setSetting();
     }
 
@@ -115,11 +114,11 @@ public class IndexClient {
     public void setSetting() {
         // Get the storage type to be indexed...
         try {
-            storage = PluginManager.getStorage(config.get("storage/type",
-                    DEFAULT_STORAGE_TYPE));
+            storage = PluginManager.getStorage(config.getString(
+                    DEFAULT_STORAGE_TYPE, "storage", "type"));
             storage.init(configFile);
-            indexer = PluginManager.getIndexer(config.get("indexer/type",
-                    DEFAULT_INDEXER_TYPE));
+            indexer = PluginManager.getIndexer(config.getString(
+                    DEFAULT_INDEXER_TYPE, "indexer", "type"));
             indexer.init(configFile);
             rulesList = new ArrayList<String>();
             log.info("Loaded {} and {}", realStorage.getName(), indexer
@@ -139,8 +138,8 @@ public class IndexClient {
         long start = System.currentTimeMillis();
         log.info("Started at " + now);
 
-        rulesFile = new File(configFile.getParentFile(), config
-                .get("indexer/script/rules"));
+        rulesFile = new File(configFile.getParentFile(), config.getString(
+                null, "indexer", "script", "rules"));
         log.debug("rulesFile=" + rulesFile);
 
         // Check storage for our rules file
@@ -153,7 +152,7 @@ public class IndexClient {
             try {
                 DigitalObject object = realStorage.getObject(objectId);
                 processObject(object, rulesOid,
-                        config.getMap("indexer/params"), false);
+                        config.getObject("indexer", "params"), false);
             } catch (StorageException ex) {
                 log.error("Error getting rules file", ex);
             } catch (IOException ex) {
@@ -224,13 +223,11 @@ public class IndexClient {
 
             try {
                 indexer.search(request, result);
-                JsonConfigHelper js;
-
-                js = new JsonConfigHelper(result.toString());
-                for (Object oid : js.getList("response/docs/id")) {
+                JsonSimpleConfig js = new JsonSimpleConfig(result.toString());
+                for (String oid : js.getStringList("response", "docs", "id")) {
                     DigitalObject object = null;
                     try {
-                        object = realStorage.getObject(oid.toString());
+                        object = realStorage.getObject(oid);
                     } catch (StorageException ex) {
                         log.error("Error getting object", ex);
                     }
@@ -249,7 +246,7 @@ public class IndexClient {
                 }
 
                 startRow += numPerPage;
-                numFound = Integer.parseInt(js.get("response/numFound"));
+                numFound = js.getInteger(0, "response", "numFound");
 
             } catch (IndexerException e) {
                 e.printStackTrace();
@@ -273,7 +270,7 @@ public class IndexClient {
      * @throws IOException If object file not found
      */
     private String processObject(DigitalObject object, String rulesOid,
-            Map<String, Object> indexerParams, boolean commit)
+            JsonObject indexerParams, boolean commit)
             throws StorageException, IOException {
         String oid = object.getId();
         String sid = null;

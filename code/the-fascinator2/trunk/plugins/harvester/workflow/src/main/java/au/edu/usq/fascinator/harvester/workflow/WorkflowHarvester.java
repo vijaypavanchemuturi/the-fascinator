@@ -1,6 +1,6 @@
 /*
  * The Fascinator - Plugin - Harvester - Workflows
- * Copyright (C) 2010 University of Southern Queensland
+ * Copyright (C) 2010-2011 University of Southern Queensland
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,10 +18,17 @@
  */
 package au.edu.usq.fascinator.harvester.workflow;
 
+import au.edu.usq.fascinator.api.harvester.HarvesterException;
+import au.edu.usq.fascinator.api.storage.DigitalObject;
+import au.edu.usq.fascinator.api.storage.StorageException;
+import au.edu.usq.fascinator.common.JsonObject;
+import au.edu.usq.fascinator.common.JsonSimple;
+import au.edu.usq.fascinator.common.harvester.impl.GenericHarvester;
+import au.edu.usq.fascinator.common.storage.StorageUtils;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -37,13 +44,6 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import au.edu.usq.fascinator.api.harvester.HarvesterException;
-import au.edu.usq.fascinator.api.storage.DigitalObject;
-import au.edu.usq.fascinator.api.storage.StorageException;
-import au.edu.usq.fascinator.common.JsonConfigHelper;
-import au.edu.usq.fascinator.common.harvester.impl.GenericHarvester;
-import au.edu.usq.fascinator.common.storage.StorageUtils;
 
 /**
  * <p>
@@ -129,37 +129,68 @@ public class WorkflowHarvester extends GenericHarvester {
     /** Render chains */
     private Map<String, Map<String, List<String>>> renderChains;
 
+    /**
+     * Basic constructor.
+     *
+     */
     public WorkflowHarvester() {
+        // Just provide GenericHarvester our identity.
         super("workflow-harvester", "Workflow Harvester");
     }
 
+    /**
+     * Basic init() function. Notice the lack of parameters. This is not part
+     * of the Plugin API but from the GenericHarvester implementation. It will
+     * be called following the constructor verifies configuration is available.
+     *
+     * @throws HarvesterException : If there are problems during instantiation
+     */
     @Override
     public void init() throws HarvesterException {
-        forceLocalStorage = Boolean.parseBoolean(getJsonConfig().get(
-                "harvester/workflow-harvester/force-storage", "true"));
-        forceUpdate = Boolean.parseBoolean(getJsonConfig().get(
-                "harvester/workflow-harvester/force-update", "false"));
+        forceLocalStorage = getJsonConfig().getBoolean(true,
+                "harvester", "workflow-harvester", "force-storage");
+        forceUpdate = getJsonConfig().getBoolean(false,
+                "harvester", "workflow-harvester", "force-update");
 
         // Order is significant
         renderChains = new LinkedHashMap();
-        Map<String, JsonConfigHelper> renderTypes = getJsonConfig().getJsonMap(
-                "renderTypes");
-        for (String name : renderTypes.keySet()) {
-            Map<String, List<String>> details = new HashMap();
-            JsonConfigHelper chain = renderTypes.get(name);
-            details.put("fileTypes", getList(chain, "fileTypes"));
-            details.put("harvestQueue", getList(chain, "harvestQueue"));
-            details.put("indexOnHarvest", getList(chain, "indexOnHarvest"));
-            details.put("renderQueue", getList(chain, "renderQueue"));
-            renderChains.put(name, details);
+        JsonObject renderTypes = getJsonConfig().getObject("renderTypes");
+        if (renderTypes != null) {
+            for (Object name : renderTypes.keySet()) {
+                Map<String, List<String>> details = new HashMap();
+                JsonObject chain = (JsonObject) renderTypes.get(name);
+                details.put("fileTypes",
+                        JsonSimple.getStringList(chain, "fileTypes"));
+                details.put("harvestQueue",
+                        JsonSimple.getStringList(chain, "harvestQueue"));
+                details.put("indexOnHarvest",
+                        JsonSimple.getStringList(chain, "indexOnHarvest"));
+                details.put("renderQueue",
+                        JsonSimple.getStringList(chain, "renderQueue"));
+                renderChains.put((String) name, details);
+            }
         }
     }
 
+    /**
+     * Gets a list of digital object IDs. If there are no objects, this method
+     * should return an empty list, not null.
+     *
+     * @return a list of object IDs, possibly empty
+     * @throws HarvesterException if there was an error retrieving the objects
+     */
     @Override
     public Set<String> getObjectIdList() throws HarvesterException {
         return Collections.emptySet();
     }
 
+    /**
+     * Get an individual uploaded file as a digital object. For consistency this
+     * should be in a list.
+     *
+     * @return a list of one object ID
+     * @throws HarvesterException if there was an error retrieving the objects
+     */
     @Override
     public Set<String> getObjectId(File uploadedFile) throws HarvesterException {
         Set<String> objectIds = new HashSet<String>();
@@ -171,11 +202,26 @@ public class WorkflowHarvester extends GenericHarvester {
         return objectIds;
     }
 
+    /**
+     * Tests whether there are more objects to retrieve. This method should
+     * return true if called before getObjects.
+     *
+     * @return true if there are more objects to retrieve, false otherwise
+     */
     @Override
     public boolean hasMoreObjects() {
         return false;
     }
 
+    /**
+     * Store the provided file in storage. Ensure proper queue routing is set
+     * in object properties.
+     *
+     * @param file : The file to store
+     * @return String : The OID of the stored object
+     * @throws HarvesterException : if there was an error accessing storage
+     * @throws StorageException : if there was an error writing to storage
+     */
     private String createDigitalObject(File file) throws HarvesterException,
             StorageException {
         String objectId;
@@ -221,28 +267,12 @@ public class WorkflowHarvester extends GenericHarvester {
     }
 
     /**
-     * Get a list of strings from configuration
-     * 
-     * @param json Configuration object to retrieve from
-     * @param field The path to the list
-     * @return List<String> The resulting list
-     */
-    private List<String> getList(JsonConfigHelper json, String field) {
-        List<String> result = new ArrayList();
-        List<Object> list = json.getList(field);
-        for (Object object : list) {
-            result.add((String) object);
-        }
-        return result;
-    }
-
-    /**
      * Take a list of strings from a Java Map, concatenate the values together
      * and store them in a Properties object using the Map's original key.
      * 
-     * @param props Properties object to store into
-     * @param details The full Java Map
-     * @param field The key to use in both objects
+     * @param props : Properties object to store into
+     * @param details : The full Java Map
+     * @param field : The key to use in both objects
      */
     private void storeList(Properties props, Map<String, List<String>> details,
             String field) {

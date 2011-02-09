@@ -1,6 +1,6 @@
 /* 
  * The Fascinator - Portal - Dynamic Page Service
- * Copyright (C) 2008-2010 University of Southern Queensland
+ * Copyright (C) 2008-2011 University of Southern Queensland
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,6 +18,18 @@
  */
 package au.edu.usq.fascinator.portal.services.impl;
 
+import au.edu.usq.fascinator.common.JsonSimpleConfig;
+import au.edu.usq.fascinator.common.solr.SolrDoc;
+import au.edu.usq.fascinator.portal.FormData;
+import au.edu.usq.fascinator.portal.JsonSessionState;
+import au.edu.usq.fascinator.portal.guitoolkit.GUIToolkit;
+import au.edu.usq.fascinator.portal.services.DynamicPageService;
+import au.edu.usq.fascinator.portal.services.HouseKeepingManager;
+import au.edu.usq.fascinator.portal.services.PortalManager;
+import au.edu.usq.fascinator.portal.services.PortalSecurityManager;
+import au.edu.usq.fascinator.portal.services.ScriptingServices;
+import au.edu.usq.fascinator.portal.velocity.JythonLogger;
+
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.InputStream;
@@ -26,7 +38,6 @@ import java.io.OutputStreamWriter;
 import java.io.PrintStream;
 import java.io.StringWriter;
 import java.io.Writer;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -56,18 +67,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.StringUtils;
 
-import au.edu.usq.fascinator.common.JsonConfig;
-import au.edu.usq.fascinator.common.JsonConfigHelper;
-import au.edu.usq.fascinator.portal.FormData;
-import au.edu.usq.fascinator.portal.JsonSessionState;
-import au.edu.usq.fascinator.portal.guitoolkit.GUIToolkit;
-import au.edu.usq.fascinator.portal.services.DynamicPageService;
-import au.edu.usq.fascinator.portal.services.HouseKeepingManager;
-import au.edu.usq.fascinator.portal.services.PortalManager;
-import au.edu.usq.fascinator.portal.services.PortalSecurityManager;
-import au.edu.usq.fascinator.portal.services.ScriptingServices;
-import au.edu.usq.fascinator.portal.velocity.JythonLogger;
-
 public class CachingDynamicPageServiceImpl implements DynamicPageService {
 
     private static final String CACHING_LEVEL_DATE = "dynamic";
@@ -87,7 +86,7 @@ public class CachingDynamicPageServiceImpl implements DynamicPageService {
     private Logger log = LoggerFactory
             .getLogger(CachingDynamicPageServiceImpl.class);
 
-    private JsonConfig config;
+    private JsonSimpleConfig config;
 
     private String urlBase;
 
@@ -137,31 +136,29 @@ public class CachingDynamicPageServiceImpl implements DynamicPageService {
 
     public CachingDynamicPageServiceImpl() {
         try {
-            config = new JsonConfig();
-            urlBase = config.get("urlBase");
-            layoutName = config.get("portal/layout", DEFAULT_LAYOUT_TEMPLATE);
+            config = new JsonSimpleConfig();
+            urlBase = config.getString(null, "urlBase");
+            layoutName = config.getString(DEFAULT_LAYOUT_TEMPLATE,
+                    "portal", "layout");
             toolkit = new GUIToolkit();
 
             // Default templates
-            defaultPortal = config.get("portal/defaultView",
-                    PortalManager.DEFAULT_PORTAL_NAME);
-            defaultSkin = config.get("portal/skins/default", DEFAULT_SKIN);
-            defaultDisplay = config.get("portal/displays/default",
-                    DEFAULT_DISPLAY);
+            defaultPortal = config.getString(PortalManager.DEFAULT_PORTAL_NAME,
+                    "portal", "defaultView");
+            defaultSkin = config.getString(DEFAULT_SKIN,
+                    "portal", "skins", "default");
+            defaultDisplay = config.getString(DEFAULT_DISPLAY,
+                    "portal", "displays", "default");
 
             // Skin customisations - implement using resource loader logic?
-            skinPriority = new ArrayList<String>();
-            List<Object> skins = config.getList("portal/skins/order");
-            for (Object object : skins) {
-                skinPriority.add(object.toString());
-            }
+            skinPriority = config.getStringList("portal", "skins", "order");
             if (!skinPriority.contains(defaultSkin)) {
                 skinPriority.add(defaultSkin);
             }
 
             // Template directory
-            String home = config.get("portal/home",
-                    PortalManager.DEFAULT_PORTAL_HOME_DIR);
+            String home = config.getString(
+                    PortalManager.DEFAULT_PORTAL_HOME_DIR, "portal", "home");
             File homePath = new File(home);
             if (!homePath.exists()) {
                 home = PortalManager.DEFAULT_PORTAL_HOME_DIR_DEV;
@@ -180,8 +177,8 @@ public class CachingDynamicPageServiceImpl implements DynamicPageService {
             scriptCacheLastModified = new HashMap<String, Long>();
             skinCache = new HashMap<String, String>();
             skinCacheLastModified = new HashMap<String, Long>();
-            String cacheLevel = config.get("portal/cachingLevel",
-                    CACHING_LEVEL_DATE);
+            String cacheLevel = config.getString(CACHING_LEVEL_DATE,
+                    "portal", "cachingLevel");
             cacheDate = false;
             cacheFull = false;
             if (cacheLevel.equals(CACHING_LEVEL_FULL)) {
@@ -447,18 +444,18 @@ public class CachingDynamicPageServiceImpl implements DynamicPageService {
     @Override
     @SuppressWarnings("unchecked")
     public String renderObject(Context context, String template,
-            JsonConfigHelper metadata) {
+            SolrDoc metadata) {
         // log.debug("========== START renderObject ==========");
 
         // setup script and velocity context
         String portalId = context.get("portalId").toString();
-        String displayType = metadata.get("display_type", defaultDisplay);
+        String displayType = metadata.getString(defaultDisplay, "display_type");
         if ("".equals(displayType)) {
             displayType = defaultDisplay;
         }
         // On the detail page, check for a preview template too
         if (template.startsWith("detail")) {
-            String previewType = metadata.get("preview_type");
+            String previewType = metadata.getString(null, "preview_type");
             if (previewType != null && !"".equals(previewType)) {
                 log.debug("Preview template found: '{}'", previewType);
                 displayType = previewType;

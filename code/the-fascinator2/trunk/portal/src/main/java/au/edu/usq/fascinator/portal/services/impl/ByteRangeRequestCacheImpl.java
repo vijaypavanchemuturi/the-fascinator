@@ -1,6 +1,6 @@
 /*
  * The Fascinator - Portal - Byte Range Request Cache
- * Copyright (C) 2010 University of Southern Queensland
+ * Copyright (C) 2010-2011 University of Southern Queensland
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,8 +23,7 @@ import au.edu.usq.fascinator.api.PluginManager;
 import au.edu.usq.fascinator.api.storage.Payload;
 import au.edu.usq.fascinator.api.storage.Storage;
 import au.edu.usq.fascinator.api.storage.StorageException;
-import au.edu.usq.fascinator.common.JsonConfig;
-import au.edu.usq.fascinator.common.JsonConfigHelper;
+import au.edu.usq.fascinator.common.JsonSimpleConfig;
 import au.edu.usq.fascinator.portal.services.ByteRangeRequestCache;
 
 import java.io.IOException;
@@ -52,7 +51,7 @@ public class ByteRangeRequestCacheImpl implements ByteRangeRequestCache {
     private Logger log = LoggerFactory.getLogger(HouseKeepingManagerImpl.class);
 
     /** System Configuration */
-    private JsonConfigHelper sysConfig;
+    private JsonSimpleConfig sysConfig;
 
     /** Storage layer */
     private Storage storage;
@@ -69,7 +68,7 @@ public class ByteRangeRequestCacheImpl implements ByteRangeRequestCache {
 
         // System configuration
         try {
-            sysConfig = new JsonConfigHelper(JsonConfig.getSystemFile());
+            sysConfig = new JsonSimpleConfig();
         } catch (IOException ex) {
             isValid = false;
             log.error("Failed to access system config", ex);
@@ -77,8 +76,8 @@ public class ByteRangeRequestCacheImpl implements ByteRangeRequestCache {
         }
 
         // Check if we even want byte range support
-        boolean configured = Boolean.parseBoolean(
-                sysConfig.get("portal/byteRangeSupported", "false"));
+        boolean configured = sysConfig.getBoolean(false,
+                "portal", "byteRangeSupported");
         if (!configured) {
             log.info("Byte range support disabled by configuration!");
             isValid = false;
@@ -87,7 +86,7 @@ public class ByteRangeRequestCacheImpl implements ByteRangeRequestCache {
 
         // Storage plugin
         try {
-            String storageType = sysConfig.get("storage/type");
+            String storageType = sysConfig.getString(null, "storage", "type");
             if (storageType == null) {
                 log.error("Invalid system configuration. No storage type!");
             } else {

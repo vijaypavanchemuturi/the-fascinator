@@ -1,6 +1,6 @@
 /* 
- * The Fascinator - Core
- * Copyright (C) 2009 University of Southern Queensland
+ * The Fascinator - Common Library - Messaging Services
+ * Copyright (C) 2009-2011 University of Southern Queensland
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -96,11 +96,12 @@ public class MessagingServices {
             log.debug("Starting message queue services...");
 
             // create activemq connection and session
-            JsonConfig config = new JsonConfig();
-            String brokerUrl = config.get("messaging/url",
-                    ActiveMQConnectionFactory.DEFAULT_BROKER_BIND_URL);
-            ActiveMQConnectionFactory connectionFactory = new ActiveMQConnectionFactory(
-                    brokerUrl);
+            JsonSimpleConfig config = new JsonSimpleConfig();
+            String brokerUrl = config.getString(
+                    ActiveMQConnectionFactory.DEFAULT_BROKER_BIND_URL,
+                    "messaging", "url");
+            ActiveMQConnectionFactory connectionFactory =
+                    new ActiveMQConnectionFactory(brokerUrl);
             connection = connectionFactory.createConnection();
             connection.start();
             session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
@@ -251,15 +252,15 @@ public class MessagingServices {
      * @param jsonFile Configuration file
      */
     public void onEvent(Map<String, String> param) {
-        JsonConfigHelper json = new JsonConfigHelper();
+        JsonObject json = new JsonObject();
         String username = param.get("username");
         if (username == null) {
             username = "guest";
         }
-        json.set("oid", param.get("oid"));
-        json.set("eventType", param.get("eventType"));
-        json.set("context", param.get("context"));
-        json.set("user", username);
+        json.put("oid", param.get("oid"));
+        json.put("eventType", param.get("eventType"));
+        json.put("context", param.get("context"));
+        json.put("user", username);
         queueMessage(SUBSCRIBER_QUEUE, json.toString());
     }
 }

@@ -2,7 +2,8 @@ import md5
 import os.path
 
 from au.edu.usq.fascinator.api.indexer import SearchRequest
-from au.edu.usq.fascinator.common import JsonConfigHelper
+from au.edu.usq.fascinator.common import Manifest
+from au.edu.usq.fascinator.common.solr import SolrResult
 from au.edu.usq.fascinator.portal import Pagination
 
 from java.io import ByteArrayInputStream
@@ -24,9 +25,8 @@ class SearchData:
         self.pageName = context["pageName"]
         
         self.__portal = context["page"].getPortal()
-        sessionNav = self.__portal.get("portal/use-session-navigation", "true")
-        self.__useSessionNavigation = Boolean.parseBoolean(sessionNav)
-        self.__result = JsonConfigHelper()
+        self.__useSessionNavigation = self.__portal.getBoolean(True, ["portal", "use-session-navigation"])
+        self.__result = None
         if self.__useSessionNavigation:
             self.__pageNum = self.sessionState.get("pageNum", 1)
         else:
@@ -99,11 +99,11 @@ class SearchData:
             annoReq.setParam("start", str(0))
             anotarOut = ByteArrayOutputStream()
             self.services.indexer.annotateSearch(annoReq, anotarOut)
-            resultForAnotar = JsonConfigHelper(ByteArrayInputStream(anotarOut.toByteArray()))
-            resultForAnotar = resultForAnotar.getJsonList("response/docs")
+            resultForAnotar = SolrResults(ByteArrayInputStream(anotarOut.toByteArray()))
+            resultForAnotar = resultForAnotar.getResults()
             ids = HashSet()
             for annoDoc in resultForAnotar:
-                annotatesUri = annoDoc.get("annotatesUri")
+                annotatesUri = annoDoc.getFirst("annotatesUri")
                 ids.add(annotatesUri)
                 print "Found annotation for %s" % annotatesUri
             # add annotation ids to query
@@ -182,14 +182,14 @@ class SearchData:
         
         req.setParam("start", str((self.__pageNum - 1) * recordsPerPage))
         
-        print " * search.py:", req.toString(), self.__pageNum
+        #print " * search.py:", req.toString(), self.__pageNum
         
         out = ByteArrayOutputStream()
         self.services.indexer.search(req, out)
-        self.__result = JsonConfigHelper(ByteArrayInputStream(out.toByteArray()))
+        self.__result = SolrResult(ByteArrayInputStream(out.toByteArray()))
         if self.__result is not None:
             self.__paging = Pagination(self.__pageNum,
-                                       int(self.__result.get("response/numFound")),
+                                       self.__result.getNumFound(),
                                        self.__portal.recordsPerPage)
     
     def __escapeQuery(self, q):
@@ -206,7 +206,7 @@ class SearchData:
             return eq
     
     def getQueryTime(self):
-        return int(self.__result.get("responseHeader/QTime")) / 1000.0;
+        return int(self.__result.getQueryTime()) / 1000.0;
     
     def getPaging(self):
         return self.__paging
@@ -218,21 +218,21 @@ class SearchData:
         return self.__portal.facetFields.get(key)
     
     def getFacetName(self, key):
-        return self.__portal.facetFields.get(key).get("label")
+        return self.__portal.facetFields.get(key).getString(None, ["label"])
     
     def getFacetCounts(self, key):
-        values = LinkedHashMap()
-        valueList = self.__result.getList("facet_counts/facet_fields/%s" % key)
-        for i in range(0,len(valueList),2):
-            name = valueList[i]
-            count = valueList[i+1]
-            if count > 0:
-                if self.__useSessionNavigation:
-                    values.put(name, count)
-                else:
-                    if name.find("/") == -1 or self.hasSelectedFacets():
-                        values.put(name, count)
-        return values
+        if self.__useSessionNavigation:
+            facetData = self.__result.getFacets()
+            if facetData is None:
+                return LinkedHashMap()
+            if not facetData.containsKey(key):
+                return LinkedHashMap()
+            return facetData.get(key).values()
+        else:
+            return LinkedHashMap()
+        # TODO : What were these doing? Hiding file path facets unless some facets are selected?
+        #if name.find("/") == -1 or self.hasSelectedFacets():
+        #    values.put(name, count)
     
     def getFacetDisplay(self):
         return self.__portal.facetDisplay
@@ -261,29 +261,33 @@ class SearchData:
     
     # Packaging support
     def getActiveManifestTitle(self):
-        return self.__getActiveManifest().get("title")
+        return self.__getActiveManifest().getTitle()
     
     def getActiveManifestId(self):
         return self.sessionState.get("package/active/id")
     
     def getSelectedItemsCount(self):
-        return self.__getActiveManifest().getList("manifest//id").size()
+        return self.__getActiveManifest().size()
     
     def isSelectedForPackage(self, oid):
-        return self.__getActiveManifest().get("manifest//node-%s" % oid) is not None
+        result = self.__getActiveManifest().getNode("node-%s" % oid)
+        return (result is not None)
     
     def getManifestItemTitle(self, oid, defaultValue):
-        return self.__getActiveManifest().get("manifest//node-%s/title" % oid, defaultValue)
+        result = self.__getActiveManifest().getNode("node-%s" % oid)
+        if result is None:
+            return defaultValue
+        return result.getTitle()
     
     def __getActiveManifest(self):
         activeManifest = self.sessionState.get("package/active")
         if not activeManifest:
-            activeManifest = JsonConfigHelper()
-            activeManifest.set("title", "New package")
-            activeManifest.set("viewId", self.__portal.getName())
+            activeManifest = Manifest(None)
+            activeManifest.setTitle("New package")
+            activeManifest.setViewId(self.__portal.getName())
             self.sessionState.set("package/active", activeManifest)
         return activeManifest
-    
+
     def isSelectableForPackage(self, oid):
         return oid != self.getActiveManifestId()
     

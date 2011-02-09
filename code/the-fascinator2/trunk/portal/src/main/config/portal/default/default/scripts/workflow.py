@@ -1,5 +1,5 @@
 from au.edu.usq.fascinator.api.storage import StorageException
-from au.edu.usq.fascinator.common import JsonConfigHelper
+from au.edu.usq.fascinator.common import JsonSimple
 from au.edu.usq.fascinator.portal import FormData
 
 from java.io import ByteArrayInputStream
@@ -99,7 +99,7 @@ class WorkflowData:
             if self.getObject() is not None:
                 try:
                     wfPayload = self.object.getPayload("workflow.metadata")
-                    self.metadata = JsonConfigHelper(wfPayload.open())
+                    self.metadata = JsonSimple(wfPayload.open())
                     wfPayload.close()
                 except StorageException, e:
                     pass
@@ -164,7 +164,7 @@ class WorkflowData:
             objMeta = self.getObjectMetadata()
             jsonObject = Services.storage.getObject(objMeta.get("jsonConfigOid"))
             jsonPayload = jsonObject.getPayload(jsonObject.getSourceId())
-            config = JsonConfigHelper(jsonPayload.open())
+            config = JsonSimple(jsonPayload.open())
             jsonPayload.close()
         except Exception, e:
             self.errorMsg = "Error retrieving workflow configuration"
@@ -175,13 +175,13 @@ class WorkflowData:
         if meta is None:
             self.errorMsg = "Error retrieving workflow metadata"
             return False
-        currentStep = meta.get("step") # Names
+        currentStep = meta.getString(None, ["step"]) # Names
         nextStep = ""
         currentStage = None # Objects
         nextStage = None
 
         # Find next workflow stage
-        stages = config.getJsonList("stages")
+        stages = config.getJsonSimpleList(["stages"])
         if stages.size() == 0:
             self.errorMsg = "Invalid workflow configuration"
             return False
@@ -197,7 +197,7 @@ class WorkflowData:
                 nextFlag = False
                 nextStage = stage
             # We've found the current stage
-            if stage.get("name") == currentStep:
+            if stage.getString(None, ["name"]) == currentStep:
                 nextFlag = True
                 currentStage = stage
 
@@ -211,10 +211,10 @@ class WorkflowData:
                 return False
             else:
                 nextStage = currentStage
-        nextStep = nextStage.get("name")
+        nextStep = nextStage.getString(None, ["name"])
 
         # Security check
-        workflow_security = currentStage.getList("security")
+        workflow_security = currentStage.getStringList(["security"])
         user_roles = self.vc("page").authentication.get_roles_list()
         valid = False
         for role in user_roles:
@@ -229,13 +229,12 @@ class WorkflowData:
 #            autoComplete = currentStage.get("auto-complete", "")
 #            self.localFormData.set("auto-complete", autoComplete)
 #        except: pass
+
         # Check for existing data
-        oldFormData = meta.getJsonList("formData")
-        if oldFormData.size() > 0:
-            oldFormData = oldFormData.get(0)
-            fields = oldFormData.getMap("/")
-            for field in fields.keySet():
-                self.localFormData.set(field, fields.get(field))
+        oldJson = meta.getObject(["formData"])
+        if oldJson is not None:
+            for field in oldJson.keySet():
+                self.localFormData.set(field, oldJson.get(field))
 
         # Get data ready for progression
         self.localFormData.set("oid", self.getOid())
@@ -243,10 +242,10 @@ class WorkflowData:
         if currentStep == "pending":
             self.localFormData.set("currentStepLabel", "Pending")
         else:
-            self.localFormData.set("currentStepLabel", currentStage.get("label"))
+            self.localFormData.set("currentStepLabel", currentStage.getString(None, ["label"]))
         self.localFormData.set("nextStep", nextStep)
-        self.localFormData.set("nextStepLabel", nextStage.get("label"))
-        self.template = nextStage.get("template")
+        self.localFormData.set("nextStepLabel", nextStage.getString(None, ["label"]))
+        self.template = nextStage.getString(None, ["template"])
         return True
 
     def processForm(self):
@@ -256,11 +255,11 @@ class WorkflowData:
             self.errorMsg = "Error retrieving workflow metadata"
             return
         # From the payload get any old form data
-        oldFormData = meta.getJsonList("formData")
-        if oldFormData.size() > 0:
-            oldFormData = oldFormData.get(0)
+        oldFormData = meta.getObject(["formData"])
+        if oldFormData is not None:
+            oldFormData = JsonSimple(oldFormData)
         else:
-            oldFormData = JsonConfigHelper()
+            oldFormData = JsonSimple()
 
         # Quick filter, we may or may not use these fields
         #    below, but they are not metadata
@@ -273,17 +272,18 @@ class WorkflowData:
             if field in specialFields:
                 print " *** Special Field : '" + field + "' => '" + repr(self.vc("formData").get(field)) + "'"
                 if field == "targetStep":
-                    meta.set(field, self.vc("formData").get(field))
+                    meta.getJsonObject().put(field, self.vc("formData").get(field))
 
             # Everything else... metadata
             else:
                 print " *** Metadata Field : '" + field + "' => '" + repr(self.vc("formData").get(field)) + "'"
-                oldFormData.set(field, self.vc("formData").get(field))
+                oldFormData.getJsonObject().put(field, self.vc("formData").get(field))
 
         # Write the form data back into the workflow metadata
-        data = oldFormData.getMap("/")
+        data = oldFormData.getJsonObject()
+        metaObject = meta.writeObject(["formData"])
         for field in data.keySet():
-            meta.set("formData/" + field, data.get(field))
+            metaObject.put(field, data.get(field))
 
         # Write the workflow metadata back into the payload
         response = self.setWorkflowMetadata(meta)

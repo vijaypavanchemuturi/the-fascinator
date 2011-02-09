@@ -1,6 +1,6 @@
 /*
  * The Fascinator - Solr Event Log Subscriber
- * Copyright (C) 2010 University of Southern Queensland
+ * Copyright (C) 2010-2011 University of Southern Queensland
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,30 +18,28 @@
  */
 package au.edu.usq.fascinator.subscriber.solrEventLog;
 
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.net.URI;
-import java.util.Map;
-
-import org.apache.solr.client.solrj.impl.CommonsHttpSolrServer;
-import org.apache.solr.client.solrj.request.DirectXmlRequest;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import au.edu.usq.fascinator.api.PluginDescription;
 import au.edu.usq.fascinator.api.PluginException;
 import au.edu.usq.fascinator.api.authentication.AuthenticationException;
 import au.edu.usq.fascinator.api.subscriber.Subscriber;
 import au.edu.usq.fascinator.api.subscriber.SubscriberException;
-import au.edu.usq.fascinator.common.JsonConfig;
+import au.edu.usq.fascinator.common.JsonSimpleConfig;
+
+import java.io.File;
+import java.io.IOException;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
+
 import org.apache.commons.lang.StringEscapeUtils;
+import org.apache.solr.client.solrj.impl.CommonsHttpSolrServer;
+import org.apache.solr.client.solrj.request.DirectXmlRequest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 
 /**
@@ -125,13 +123,13 @@ public class SolrEventLogSubscriber implements Subscriber {
             .getLogger(SolrEventLogSubscriber.class);
 
     /** Buffer Limit : Document count */
-    private static String BUFFER_LIMIT_DOCS = "200";
+    private static Integer BUFFER_LIMIT_DOCS = 200;
 
     /** Buffer Limit : Size */
-    private static String BUFFER_LIMIT_SIZE = "204800";
+    private static Integer BUFFER_LIMIT_SIZE = 1024 * 200;
 
     /** Buffer Limit : Time */
-    private static String BUFFER_LIMIT_TIME = "30";
+    private static Integer BUFFER_LIMIT_TIME = 30;
 
     /** Solr URI */
     private URI uri;
@@ -206,11 +204,7 @@ public class SolrEventLogSubscriber implements Subscriber {
     @Override
     public void init(String jsonString) throws SubscriberException {
         try {
-            JsonConfig config = new JsonConfig(new ByteArrayInputStream(
-                    jsonString.getBytes("UTF-8")));
-            setConfig(config);
-        } catch (UnsupportedEncodingException e) {
-            throw new SubscriberException(e);
+            setConfig(new JsonSimpleConfig(jsonString));
         } catch (IOException e) {
             throw new SubscriberException(e);
         }
@@ -225,8 +219,7 @@ public class SolrEventLogSubscriber implements Subscriber {
     @Override
     public void init(File jsonFile) throws SubscriberException {
         try {
-            JsonConfig config = new JsonConfig(jsonFile);
-            setConfig(config);
+            setConfig(new JsonSimpleConfig(jsonFile));
         } catch (IOException ioe) {
             throw new SubscriberException(ioe);
         }
@@ -238,10 +231,13 @@ public class SolrEventLogSubscriber implements Subscriber {
      * @param config The configuration to use
      * @throws AuthenticationException if fails to initialize
      */
-    private void setConfig(JsonConfig config) throws SubscriberException {
+    private void setConfig(JsonSimpleConfig config) throws SubscriberException {
         try {
             // Find our solr index
-            uri = new URI(config.get("subscriber/solr/uri"));
+            uri = new URI(config.getString(null, "subscriber", "solr", "uri"));
+            if (uri == null) {
+                throw new SubscriberException("No Solr URI provided");
+            }
             core = new CommonsHttpSolrServer(uri.toURL());
 
             // Small sleep whilst the solr index is still coming online
@@ -253,12 +249,12 @@ public class SolrEventLogSubscriber implements Subscriber {
             docBuffer = new ArrayList();
             bufferSize = 0;
             bufferOldest = 0;
-            bufferDocLimit = Integer.parseInt(config.get(
-                    "subscriber/solr/buffer/docLimit", BUFFER_LIMIT_DOCS));
-            bufferSizeLimit = Integer.parseInt(config.get(
-                    "subscriber/solr/buffer/sizeLimit", BUFFER_LIMIT_SIZE));
-            bufferTimeLimit = Integer.parseInt(config.get(
-                    "subscriber/solr/buffer/timeLimit", BUFFER_LIMIT_TIME));
+            bufferDocLimit = config.getInteger(BUFFER_LIMIT_DOCS,
+                    "subscriber", "solr", "buffer", "docLimit");
+            bufferSizeLimit = config.getInteger(BUFFER_LIMIT_SIZE,
+                    "subscriber", "solr", "buffer", "sizeLimit");
+            bufferTimeLimit = config.getInteger(BUFFER_LIMIT_TIME,
+                    "subscriber", "solr", "buffer", "timeLimit");
 
             // Timeout 'tick' for buffer (10s)
             timer = new Timer("SolrEventLog:" + this.toString(), true);

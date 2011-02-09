@@ -1,6 +1,6 @@
 /* 
- * The Fascinator - Common Library
- * Copyright (C) 2008 University of Southern Queensland
+ * The Fascinator - Common Library - Generic Harvester
+ * Copyright (C) 2008-2011 University of Southern Queensland
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,7 +23,7 @@ import au.edu.usq.fascinator.api.PluginException;
 import au.edu.usq.fascinator.api.harvester.Harvester;
 import au.edu.usq.fascinator.api.harvester.HarvesterException;
 import au.edu.usq.fascinator.api.storage.Storage;
-import au.edu.usq.fascinator.common.JsonConfig;
+import au.edu.usq.fascinator.common.JsonSimpleConfig;
 
 import java.io.File;
 import java.io.IOException;
@@ -42,7 +42,7 @@ public abstract class GenericHarvester implements Harvester {
     private String id, name;
 
     /** Config file */
-    private JsonConfig config;
+    private JsonSimpleConfig config;
 
     /** Storage instance that the Harvester will use to manage objects */
     private Storage storage;
@@ -159,7 +159,7 @@ public abstract class GenericHarvester implements Harvester {
     @Override
     public void init(File jsonFile) throws PluginException {
         try {
-            config = new JsonConfig(jsonFile);
+            config = new JsonSimpleConfig(jsonFile);
             init();
         } catch (IOException ioe) {
             throw new HarvesterException(ioe);
@@ -175,7 +175,7 @@ public abstract class GenericHarvester implements Harvester {
     @Override
     public void init(String jsonString) throws PluginException {
         try {
-            config = new JsonConfig(jsonString);
+            config = new JsonSimpleConfig(jsonString);
             init();
         } catch (IOException ioe) {
             throw new HarvesterException(ioe);
@@ -205,10 +205,10 @@ public abstract class GenericHarvester implements Harvester {
      * @return config file
      * @throws HarvesterException if there was an error during retrieval
      */
-    public JsonConfig getJsonConfig() throws HarvesterException {
+    public JsonSimpleConfig getJsonConfig() throws HarvesterException {
         if (config == null) {
             try {
-                config = new JsonConfig();
+                config = new JsonSimpleConfig();
             } catch (IOException ioe) {
                 throw new HarvesterException(ioe);
             }

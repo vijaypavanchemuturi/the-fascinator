@@ -16,11 +16,11 @@ class ResultData:
         return False
     
     def get(self, name):
-        valueList = self.metadata.getList(name)
-        if valueList.size() > 0:
-            return valueList.get(0)
-        return ""
-    
+        return self.metadata.get(name)
+
+    def getFirst(self, name):
+        return self.metadata.getFirst(name)
+
     def getList(self, name):
         return self.metadata.getList(name)
 

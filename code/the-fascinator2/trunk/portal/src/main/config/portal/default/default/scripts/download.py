@@ -2,12 +2,11 @@ import os
 
 from au.edu.usq.fascinator.api.indexer import SearchRequest
 from au.edu.usq.fascinator.api.storage import StorageException
-from au.edu.usq.fascinator.common import JsonConfigHelper
+from au.edu.usq.fascinator.common.solr import SolrDoc, SolrResult
 
 from java.io import ByteArrayInputStream, ByteArrayOutputStream
 from java.lang import Boolean
 from java.net import URLDecoder
-from java.util import TreeMap
 
 from org.apache.commons.io import IOUtils
 
@@ -25,33 +24,31 @@ class DownloadData:
         self.formData = context["formData"]
         self.page = context["page"]
 
-        self.__metadata = JsonConfigHelper()
+        self.__metadata = SolrDoc(None)
         object = None
         payload = None
 
+        # URL basics
         basePath = self.portalId + "/" + self.pageName
         fullUri = URLDecoder.decode(self.request.getAttribute("RequestURI"))
         uri = fullUri[len(basePath)+1:]
-        try:
-            object, payload = self.__resolve(uri)
-            if object is None:
-                print " *** redirecting because object not found: '%s'" % uri
-                self.response.sendRedirect(self.contextPath + "/" + fullUri + "/")
-                return
-            else:
-                oid = object.getId()
-                self.__loadSolrData(oid)
-                if self.isIndexed():
-                    self.__metadata = self.__solrData.getJsonList("response/docs").get(0)
-                    self.__json = JsonConfigHelper(self.__solrData.getList("response/docs").get(0))
-                    self.__metadataMap = TreeMap(self.__json.getMap("/"))
-                else:
-                    self.__metadata.set("id", oid)
-            #print "URI='%s' OID='%s' PID='%s'" % (uri, object.getId(), payload.getId())
-        except StorageException, e:
-            payload = None
-            print "Failed to get object: %s" % (str(e))
 
+        # Turn our URL into objects
+        object, payload = self.__resolve(uri)
+        if object is None:
+            print " *** redirecting because object not found: '%s'" % uri
+            self.response.sendRedirect(self.contextPath + "/" + fullUri + "/")
+            return
+
+        # Ensure solr metadata is useable
+        oid = object.getId()
+        if self.isIndexed():
+            self.__metadata = self.__solrData.getResults().get(0)
+        else:
+            self.__metadata.getJsonObject().put("id", oid)
+        #print "URI='%s' OID='%s' PID='%s'" % (uri, object.getId(), payload.getId())
+
+        # Security check
         if self.isAccessDenied():
             # Redirect to the object page for standard access denied error
             self.response.sendRedirect(self.contextPath + "/" + self.portalId + "/detail/" + object.getId())
@@ -64,6 +61,7 @@ class DownloadData:
             # We don't need to return data, the cache took care of it.
             return
 
+        # Now the 'real' work of payload retrieval
         if payload is not None:
             filename = os.path.split(payload.getId())[1]
             mimeType = payload.getContentType()
@@ -114,6 +112,8 @@ class DownloadData:
         # Check for normal access
         myRoles = self.page.authentication.get_roles_list()
         allowedRoles = self.getAllowedRoles()
+        if myRoles is None or allowedRoles is None:
+            return True
         for role in myRoles:
             if role in allowedRoles:
                 return  False
@@ -124,35 +124,51 @@ class DownloadData:
         return not (self.request.isXHR() or preview)
 
     def isIndexed(self):
-        return self.__getNumFound() == 1
+        found = self.__solrData.getNumFound()
+        return (found is not None) and (found == 1)
 
     def __resolve(self, uri):
+        # Grab OID from the URL
         slash = uri.find("/")
         if slash == -1:
             return None, None
         oid = uri[:slash]
+
+        # Query solr for this object
+        self.__loadSolrData(oid)
+        if not self.isIndexed():
+            print "WARNING: Object '%s' not found in index" % oid
+            sid = None
+        else:
+            # Query storage for this object
+            sid = self.__solrData.getResults().get(0).getFirst("storage_id")
+
         try:
-            object = self.services.getStorage().getObject(oid)
-        except StorageException:
-            # not found check if oid's are mapped differently, use storage_id
-            sid = self.__getStorageId(oid)
-            object = self.services.getStorage().getObject(sid)
+            if sid is None:
+                # Use the URL OID
+                object = self.services.getStorage().getObject(oid)
+            else:
+                # We have a special storage ID from the index
+                object = self.services.getStorage().getObject(sid)
+        except StorageException, e:
+            print "Failed to access object: %s" % (str(e))
+            return None, None
+
+        # Grab the payload from the rest of the URL
         pid = uri[slash+1:]
         if pid == "":
+            # We want the source
             pid = object.getSourceId()
-        payload = object.getPayload(pid)
+
+        # Now get the payload from storage
+        try:
+            payload = object.getPayload(pid)
+        except StorageException, e:
+            print "Failed to access payload: %s" % (str(e))
+            return None, None
+
+        # We're done
         return object, payload
-
-    def __getNumFound(self):
-        return int(self.__solrData.get("response/numFound"))
-
-    def __getStorageId(self, oid):
-        req = SearchRequest('id:"%s"' % oid)
-        req.addParam("fl", "storage_id")
-        out = ByteArrayOutputStream()
-        self.services.getIndexer().search(req, out)
-        json = JsonConfigHelper(ByteArrayInputStream(out.toByteArray()))
-        return json.getList("response/docs").get(0).get("storage_id")
 
     def __loadSolrData(self, oid):
         portal = self.page.getPortal()
@@ -165,4 +181,4 @@ class DownloadData:
             req.addParam("fq", portal.getQuery())
         out = ByteArrayOutputStream()
         self.services.getIndexer().search(req, out)
-        self.__solrData = JsonConfigHelper(ByteArrayInputStream(out.toByteArray()))
+        self.__solrData = SolrResult(ByteArrayInputStream(out.toByteArray()))

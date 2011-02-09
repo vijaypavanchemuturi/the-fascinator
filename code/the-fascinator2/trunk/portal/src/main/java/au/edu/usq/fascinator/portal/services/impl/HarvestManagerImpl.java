@@ -1,5 +1,9 @@
 package au.edu.usq.fascinator.portal.services.impl;
 
+import au.edu.usq.fascinator.common.JsonSimpleConfig;
+import au.edu.usq.fascinator.portal.HarvestContent;
+import au.edu.usq.fascinator.portal.services.HarvestManager;
+
 import java.io.File;
 import java.io.FileFilter;
 import java.io.FileWriter;
@@ -9,10 +13,6 @@ import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import au.edu.usq.fascinator.common.JsonConfig;
-import au.edu.usq.fascinator.portal.HarvestContent;
-import au.edu.usq.fascinator.portal.services.HarvestManager;
 
 public class HarvestManagerImpl implements HarvestManager {
 
@@ -24,8 +24,9 @@ public class HarvestManagerImpl implements HarvestManager {
 
     public HarvestManagerImpl() {
         try {
-            JsonConfig config = new JsonConfig();
-            contentDir = new File(config.get("portal/contentDir"));
+            JsonSimpleConfig config = new JsonSimpleConfig();
+            contentDir = new File(
+                    config.getString(null, "portal", "contentDir"));
             load();
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -62,7 +63,7 @@ public class HarvestManagerImpl implements HarvestManager {
     public void save(HarvestContent content) throws IOException {
         FileWriter writer = new FileWriter(
                 new File(contentDir, content.getId()));
-        content.store(writer);
+        writer.write(content.toString());
         writer.close();
     }
 

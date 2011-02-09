@@ -1,4 +1,4 @@
-from au.edu.usq.fascinator.common import JsonConfigHelper
+from au.edu.usq.fascinator.common import JsonSimple
 from java.io import ByteArrayOutputStream
 from org.apache.commons.io import IOUtils
 
@@ -24,14 +24,14 @@ class HeadData:
 
     def getBasicFFmpegData(self, index):
         if self.__ffmpegData is not None:
-            output = self.__ffmpegData.get("/" + index)
+            output = self.__ffmpegData.getString(None, [index])
             if output is not None:
                 return output
         return ""
 
     def getFFmpegData(self, pid, index):
         if self.__ffmpegOutputs is not None:
-            output = self.__ffmpegOutputs.get(pid).get("/" + index)
+            output = self.__ffmpegOutputs.get(pid).getString(None, [index])
             if output is not None:
                 return output
         return ""
@@ -60,7 +60,7 @@ class HeadData:
             return preference
 
         # Fall back to the thumbnail if no preference was given
-        thumbnail = metadata.get("thumbnail")
+        thumbnail = metadata.getFirst("thumbnail")
         if thumbnail is not None:
             return thumbnail
         return ""
@@ -93,11 +93,11 @@ class HeadData:
                     out.close()
                     payload.close()
                     # And parse it
-                    self.__ffmpegData = JsonConfigHelper(self.__ffmpegRaw)
+                    self.__ffmpegData = JsonSimple(self.__ffmpegRaw)
                     if self.__ffmpegData is None:
                         return False
                     else:
-                        self.__ffmpegOutputs = self.__ffmpegData.getJsonMap("/outputs")
+                        self.__ffmpegOutputs = self.__ffmpegData.getJsonSimpleMap("outputs")
                         return True
                 except:
                     if payload is not None:
@@ -108,6 +108,6 @@ class HeadData:
         if self.__urlBase is None:
             portal = self.vc("portalPath")
             page = self.vc("pageName")
-            id = self.__metadata.get("id")
+            id = self.__metadata.getFirst("id")
             self.__urlBase = portal + "/" + page + "/" + id + "/"
         return self.__urlBase + payload

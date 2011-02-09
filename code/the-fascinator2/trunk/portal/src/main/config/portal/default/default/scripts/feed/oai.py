@@ -1,35 +1,10 @@
-import random, time, os
+import random, time
 from au.edu.usq.fascinator.api.indexer import SearchRequest
-from au.edu.usq.fascinator.common import JsonConfig, JsonConfigHelper
-from java.io import ByteArrayInputStream, ByteArrayOutputStream, InputStreamReader
-from java.lang import Boolean, System, Long
+from au.edu.usq.fascinator.common import JsonSimpleConfig
+from au.edu.usq.fascinator.common.solr import SolrResult
+from java.io import ByteArrayInputStream, ByteArrayOutputStream
+from java.lang import System
 from org.apache.commons.lang import StringEscapeUtils
-
-class SolrDoc:
-    def __init__(self, json):
-        self.json = json
-
-    def getField(self, name):
-        return self.json.getList("response/docs/%s" % name).get(0)
-
-    def getFieldText(self, name):
-        return self.json.get("response/docs/%s" % name)
-
-    def getFieldList(self, name):
-        return self.json.getList("response/docs/%s" % name)
-
-    def getDublinCore(self):
-        dc = self.json.getList("response/docs").get(0)
-        remove = ["dc_title", "dc_description"]
-        for entry in dc:
-            if not entry.startswith("dc_"):
-                remove.append(entry)
-        for key in remove:
-            dc.remove(key)
-        return JsonConfigHelper(dc).getMap("/")
-
-    def toString(self):
-        return self.json.toString()
 
 class OaiPmhError:
     def __init__(self, code, message):
@@ -48,7 +23,7 @@ class OaiPmhVerb:
         self.__verb = formData.get("verb")
         self.__metadataFormats = self.__metadataFormatList()
         print " * verb=%s" % self.__verb
-        
+
         if self.__verb is None:
             self.__error = OaiPmhError("badVerb", "No verb was specified")
         elif self.__verb in ["GetRecord", "ListIdentifiers", "ListRecords"]:
@@ -59,12 +34,12 @@ class OaiPmhVerb:
                     if currentToken.getExpiry() > System.currentTimeMillis():
                         self.__metadataPrefix = currentToken.getMetadataPrefix()
                     else:
-                        self.__error=OaiPmhError("badResumptionToken", "Token has expired")
+                        self.__error = OaiPmhError("badResumptionToken", "Token has expired")
                         tokenList = sessionState.get("resumptionTokenList")
                         tokenList.pop(currentToken.getToken())
                         sessionState.set("resumptionTokenList", tokenList)
                 else:
-                    self.__error=OaiPmhError("badResumptionToken", "Invalid token")
+                    self.__error = OaiPmhError("badResumptionToken", "Invalid token")
             elif self.__metadataPrefix not in self.__metadataFormatList():
                 self.__error = OaiPmhError("cannotDisseminateFormat",
                                            "Record not available as metadata type: %s" % self.__metadataPrefix)
@@ -74,7 +49,8 @@ class OaiPmhVerb:
             self.__error = OaiPmhError("badVerb", "Unknown verb: '%s'" % self.__verb)
 
     def __metadataFormatList(self):
-        metadataFormats = JsonConfig().getMap("portal/oai-pmh/metadataFormats")
+        systemConfig = JsonSimpleConfig()
+        metadataFormats = systemConfig.getObject(["portal", "oai-pmh", "metadataFormats"])
         metadataList = []
         for format in metadataFormats.keySet():
             metadataList.append(str(format))
@@ -126,6 +102,8 @@ class OaiData:
         pass
 
     def __activate__(self, context):
+        self.systemConfig = JsonSimpleConfig()
+
         self.velocityContext = context
         self.services = context["Services"]
         self.log = context["log"]
@@ -133,43 +111,40 @@ class OaiData:
         self.portalDir = context["portalDir"]
         self.__result = None
         self.__token = None
-        
         self.__portalName = context["page"].getPortal().getName()
-        
         self.__enabledInAllViews = False
         self.__enabledInViews = []
-        
         self.__metadataPrefix = ""
-        
-        self.__sessionExpiry = Long.parseLong(JsonConfig().get("portal/oai-pmh/sessionExpiry"))
-        
+        self.__sessionExpiry = self.systemConfig.getInteger(None, ["portal", "oai-pmh", "sessionExpiry"])
+
         self.__resumptionTokenList = self.sessionState.get("resumptionTokenList")
         if self.__resumptionTokenList == None:
             self.__resumptionTokenList = {}
         #Check if there's resumption token exist in the formData
         self.__currentToken = None
-        
+
         resumptionToken = self.vc("formData").get("resumptionToken")
         if resumptionToken:
             if self.__resumptionTokenList.has_key(resumptionToken):
                 self.__currentToken = self.__resumptionTokenList[resumptionToken]
-        
+
         print " * oai.py: formData=%s" % self.vc("formData")
         self.vc("request").setAttribute("Content-Type", "text/xml")
         self.__request = OaiPmhVerb(self.vc("formData"), self.__currentToken, self.sessionState)
+
         if self.getError() is None and \
                 self.getVerb() in ["GetRecord", "ListIdentifiers", "ListRecords"]:
-            
+
             ## Only list those data if the metadata format is enabled
             self.__metadataPrefix = self.vc("formData").get("metadataPrefix")
             if self.__metadataPrefix is None:
                 self.__metadataPrefix = self.__currentToken.getMetadataPrefix()
-            
-            self.__enabledInAllViews = Boolean.parseBoolean(JsonConfig().get("portal/oai-pmh/metadataFormats/%s/enabledInAllViews" % self.__metadataPrefix, "false"))
+
+            self.__enabledInAllViews = self.systemConfig.getBoolean(False, ["portal", "oai-pmh", "metadataFormats", self.__metadataPrefix, "enabledInAllViews"])
             if self.__enabledInAllViews:
                 self.__search()
             else:
-                self.__enabledInViews = JsonConfig().getList("portal/oai-pmh/metadataFormats/%s/enabledViews" % self.__metadataPrefix)
+                self.__enabledInViews = self.systemConfig.getStringList(["portal", "oai-pmh", "metadataFormats", self.__metadataPrefix, "enabledViews"])
                 if self.__portalName in self.__enabledInViews:
                     self.__search()
 
@@ -204,7 +179,7 @@ class OaiData:
         return elementStr
 
     def __search(self):
-        self.__result = JsonConfigHelper()
+        self.__result = SolrResult(None)
 
         portal = self.services.getPortalManager().get(self.vc("portalId"))
         recordsPerPage = portal.recordsPerPage
@@ -223,7 +198,7 @@ class OaiData:
         print " * portalQuery=%s" % portalQuery
         if portalQuery:
             req.addParam("fq", portalQuery)
-        
+
         #Check if there's resumption token exist in the formData
         if self.__currentToken:
             start = self.__currentToken.getStart()
@@ -235,16 +210,16 @@ class OaiData:
             start = 0
             metadataPrefix = self.vc("formData").get("metadataPrefix")
             self.__token = ResumptionToken(start=recordsPerPage, metadataPrefix=self.__metadataPrefix, sessionExpiry=self.__sessionExpiry)
-        
+
         req.setParam("start", str(start))
-        
+
         print " * oai.py:", req.toString()
 
         out = ByteArrayOutputStream()
         self.services.indexer.search(req, out)
-        self.__result = JsonConfigHelper(ByteArrayInputStream(out.toByteArray()))
-        
-        totalFound = int(self.__result.get("response/numFound"))
+        self.__result = SolrResult(ByteArrayInputStream(out.toByteArray()))
+
+        totalFound = self.__result.getNumFound()
         if totalFound == 0:
             self.__token = None
         elif self.__token:
@@ -252,24 +227,20 @@ class OaiData:
                 self.__token.setTotalFound(totalFound)
             else:
                 self.__token = None
-        
+
         #Storing the resumptionToken to session
         if self.__token:
             self.__resumptionTokenList[self.__token.getToken()] = self.__token #(totalFound, self.__token.getConstructedToken())
             #Need to know how long the server need to store this token
             self.sessionState.set("resumptionTokenList", self.__resumptionTokenList)
-    
+
     def getToken(self):
         if self.__enabledInAllViews or self.__portalName in self.__enabledInViews:
             return self.__token
         return None
 
     def getMetadataFormats(self):
-        conf = JsonConfig()
-        formats = conf.getMap("portal/oai-pmh/metadataFormats")
-        return formats
-    
+        return self.systemConfig.getJsonSimpleMap(["portal", "oai-pmh", "metadataFormats"])
+
     def encodeXml(self, string):
         return StringEscapeUtils.escapeXml(string);
-
-

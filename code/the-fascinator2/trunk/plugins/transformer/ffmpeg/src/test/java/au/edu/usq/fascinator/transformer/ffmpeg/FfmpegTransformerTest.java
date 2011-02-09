@@ -18,24 +18,23 @@
  */
 package au.edu.usq.fascinator.transformer.ffmpeg;
 
-import java.io.File;
-
-import junit.framework.Assert;
-
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-
 import au.edu.usq.fascinator.api.PluginManager;
 import au.edu.usq.fascinator.api.storage.DigitalObject;
 import au.edu.usq.fascinator.api.storage.Payload;
 import au.edu.usq.fascinator.api.storage.PayloadType;
 import au.edu.usq.fascinator.api.storage.Storage;
 import au.edu.usq.fascinator.api.transformer.Transformer;
-import au.edu.usq.fascinator.common.JsonConfigHelper;
+import au.edu.usq.fascinator.common.JsonSimpleConfig;
 import au.edu.usq.fascinator.common.storage.StorageUtils;
+
+import java.io.File;
 import java.io.InputStream;
 import java.util.Properties;
+
+import junit.framework.Assert;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 
 /**
  * Test a variety of small media files against FFmpeg
@@ -57,7 +56,7 @@ public class FfmpegTransformerTest {
     private File file;
 
     /** Configuration */
-    private JsonConfigHelper config;
+    private JsonSimpleConfig config;
 
     /** Input object */
     private DigitalObject inputObject;
@@ -77,7 +76,7 @@ public class FfmpegTransformerTest {
 
         // Read config
         InputStream in = getClass().getResourceAsStream("/ffmpeg-config.json");
-        config = new JsonConfigHelper(in);
+        config = new JsonSimpleConfig(in);
 
         // Start the transformer
         transformer = new FfmpegTransformer();
@@ -99,7 +98,7 @@ public class FfmpegTransformerTest {
         if (outputObject != null) outputObject.close();
         // Cleanup temp space
         if (transformer != null) transformer.shutdown();
-        String path = config.get("outputPath");
+        String path = config.getString(null, "outputPath");
         if (!delete(new File(path))) {
             throw new Exception("Delete failed, something is still locked!");
         }
@@ -143,8 +142,8 @@ public class FfmpegTransformerTest {
      */
     private void execTest() throws Exception {
         String rawMetadata = transformer.getPluginDetails().getMetadata();
-        JsonConfigHelper metadata = new JsonConfigHelper(rawMetadata);
-        execLevel = metadata.get("debug/availability");
+        JsonSimpleConfig metadata = new JsonSimpleConfig(rawMetadata);
+        execLevel = metadata.getString(null, "debug", "availability");
     }
 
     /**
@@ -218,41 +217,54 @@ public class FfmpegTransformerTest {
 
         // Get extracted metadata
         Payload ffMetadata = outputObject.getPayload("ffmpeg.info");
-        JsonConfigHelper metadata = new JsonConfigHelper(ffMetadata.open());
+        JsonSimpleConfig metadata = new JsonSimpleConfig(ffMetadata.open());
         ffMetadata.close();
 
         // Check some output data
-        Assert.assertEquals(metadata.get("outputs/ffmpegThumbnail.jpg/width"),  "90");
-        Assert.assertEquals(metadata.get("outputs/ffmpegThumbnail.jpg/height"), "120");
-        Assert.assertEquals(metadata.get("outputs/ffmpegPreview.jpg/width"),    "600");
-        Assert.assertEquals(metadata.get("outputs/ffmpegPreview.jpg/height"),   "800");
+        Assert.assertEquals(metadata.getString(null,
+                "outputs", "ffmpegThumbnail.jpg", "width"),  "90");
+        Assert.assertEquals(metadata.getString(null,
+                "outputs", "ffmpegThumbnail.jpg", "height"), "120");
+        Assert.assertEquals(metadata.getString(null,
+                "outputs", "ffmpegPreview.jpg", "width"),    "600");
+        Assert.assertEquals(metadata.getString(null,
+                "outputs", "ffmpegPreview.jpg", "height"),   "800");
 
         // And some rough file sizes (don't want to be too specific
         //  incase there are slight variations on systems)
-        String tSize = metadata.get("outputs/ffmpegThumbnail.jpg/size");
+        String tSize = metadata.getString(null,
+                "outputs", "ffmpegThumbnail.jpg", "size");
         int thumbSize = Integer.valueOf(tSize);
         // Thumbnails in particular, just test for larger then zero, since we
         //   pick a random frame each execution.
         Assert.assertTrue(thumbSize > 0);
-        String pSize = metadata.get("outputs/ffmpegPreview.jpg/size");
+        String pSize = metadata.getString(null,
+                "outputs", "ffmpegPreview.jpg", "size");
         int previewSize = Integer.valueOf(pSize);
         Assert.assertTrue(previewSize > 42000);
 
         // FFmpeg
         if (execLevel.equals(Ffmpeg.DEFAULT_BIN_TRANSCODE)) {
-            Assert.assertEquals(metadata.get("duration"), "0");
+            Assert.assertEquals(metadata.getString(null, "duration"), "0");
         }
 
         // FFprobe
         if (execLevel.equals(Ffmpeg.DEFAULT_BIN_METADATA)) {
             // Verify the metadata we expected came out
-            Assert.assertNull(metadata.get("audio/codec/simple"));
-            Assert.assertEquals(metadata.get("format/simple"),      "image2");
-            Assert.assertEquals(metadata.get("video/codec/simple"), "mjpeg");
-            Assert.assertEquals(metadata.get("video/pixel_format"), "yuvj420p");
-            Assert.assertEquals(metadata.get("video/width"),        "1704");
-            Assert.assertEquals(metadata.get("video/height"),       "2272");
-            Assert.assertEquals(metadata.get("duration"),           "0");
+            Assert.assertNull(metadata.getString(null,
+                    "audio", "codec", "simple"));
+            Assert.assertEquals(metadata.getString(null,
+                    "format", "simple"),         "image2");
+            Assert.assertEquals(metadata.getString(null,
+                    "video", "codec", "simple"), "mjpeg");
+            Assert.assertEquals(metadata.getString(null,
+                    "video", "pixel_format"),    "yuvj420p");
+            Assert.assertEquals(metadata.getString(null,
+                    "video", "width"),           "1704");
+            Assert.assertEquals(metadata.getString(null,
+                    "video", "height"),          "2272");
+            Assert.assertEquals(metadata.getString(null,
+                    "duration"),                 "0");
         }
     }
 
@@ -276,40 +288,53 @@ public class FfmpegTransformerTest {
         outputObject = transform("/diagram.png");
 
         Payload ffMetadata = outputObject.getPayload("ffmpeg.info");
-        JsonConfigHelper metadata = new JsonConfigHelper(ffMetadata.open());
+        JsonSimpleConfig metadata = new JsonSimpleConfig(ffMetadata.open());
         ffMetadata.close();
 
         // Check some output data
-        Assert.assertEquals(metadata.get("outputs/ffmpegThumbnail.jpg/width"),  "120");
-        Assert.assertEquals(metadata.get("outputs/ffmpegThumbnail.jpg/height"), "120");
-        Assert.assertEquals(metadata.get("outputs/ffmpegPreview.jpg/width"),    "600");
-        Assert.assertEquals(metadata.get("outputs/ffmpegPreview.jpg/height"),   "602");
+        Assert.assertEquals(metadata.getString(null,
+                "outputs", "ffmpegThumbnail.jpg", "width"),  "120");
+        Assert.assertEquals(metadata.getString(null,
+                "outputs", "ffmpegThumbnail.jpg", "height"), "120");
+        Assert.assertEquals(metadata.getString(null,
+                "outputs", "ffmpegPreview.jpg", "width"),    "600");
+        Assert.assertEquals(metadata.getString(null,
+                "outputs", "ffmpegPreview.jpg", "height"),   "602");
 
         // And some rough file sizes (don't want to be too specific
         //  incase there are slight variations on systems)
-        String tSize = metadata.get("outputs/ffmpegThumbnail.jpg/size");
+        String tSize = metadata.getString(null,
+                "outputs", "ffmpegThumbnail.jpg", "size");
         int thumbSize = Integer.valueOf(tSize);
         // Thumbnails in particular, just test for larger then zero, since we
         //   pick a random frame each execution.
         Assert.assertTrue(thumbSize > 0);
-        String pSize = metadata.get("outputs/ffmpegPreview.jpg/size");
+        String pSize = metadata.getString(null,
+                "outputs", "ffmpegPreview.jpg", "size");
         int previewSize = Integer.valueOf(pSize);
         Assert.assertTrue(previewSize > 37000);
 
         // FFmpeg
         if (execLevel.equals(Ffmpeg.DEFAULT_BIN_TRANSCODE)) {
-            Assert.assertEquals(metadata.get("duration"), "0");
+            Assert.assertEquals(metadata.getString(null, "duration"), "0");
         }
 
         // FFprobe
         if (execLevel.equals(Ffmpeg.DEFAULT_BIN_METADATA)) {
-            Assert.assertNull(metadata.get("audio/codec/simple"));
-            Assert.assertEquals(metadata.get("format/simple"),      "image2");
-            Assert.assertEquals(metadata.get("video/codec/simple"), "png");
-            Assert.assertEquals(metadata.get("video/pixel_format"), "rgb24");
-            Assert.assertEquals(metadata.get("video/width"),        "643");
-            Assert.assertEquals(metadata.get("video/height"),       "645");
-            Assert.assertEquals(metadata.get("duration"),           "0");
+            Assert.assertNull(metadata.getString(null,
+                    "audio", "codec", "simple"));
+            Assert.assertEquals(metadata.getString(null,
+                    "format", "simple"),         "image2");
+            Assert.assertEquals(metadata.getString(null,
+                    "video", "codec", "simple"), "png");
+            Assert.assertEquals(metadata.getString(null,
+                    "video", "pixel_format"),    "rgb24");
+            Assert.assertEquals(metadata.getString(null,
+                    "video", "width"),           "643");
+            Assert.assertEquals(metadata.getString(null,
+                    "video", "height"),          "645");
+            Assert.assertEquals(metadata.getString(null,
+                    "duration"),                 "0");
         }
     }
 
@@ -333,46 +358,63 @@ public class FfmpegTransformerTest {
         outputObject = transform("/ipod.m4v");
 
         Payload ffMetadata = outputObject.getPayload("ffmpeg.info");
-        JsonConfigHelper metadata = new JsonConfigHelper(ffMetadata.open());
+        JsonSimpleConfig metadata = new JsonSimpleConfig(ffMetadata.open());
         ffMetadata.close();
 
         // Check some output data
-        Assert.assertEquals(metadata.get("outputs/ffmpegThumbnail.jpg/width"),  "120");
-        Assert.assertEquals(metadata.get("outputs/ffmpegThumbnail.jpg/height"), "90");
-        Assert.assertEquals(metadata.get("outputs/ffmpegPreview.flv/width"),    "298");
-        Assert.assertEquals(metadata.get("outputs/ffmpegPreview.flv/height"),   "224");
+        Assert.assertEquals(metadata.getString(null,
+                "outputs", "ffmpegThumbnail.jpg", "width"),  "120");
+        Assert.assertEquals(metadata.getString(null,
+                "outputs", "ffmpegThumbnail.jpg", "height"), "90");
+        Assert.assertEquals(metadata.getString(null,
+                "outputs", "ffmpegPreview.flv", "width"),    "298");
+        Assert.assertEquals(metadata.getString(null,
+                "outputs", "ffmpegPreview.flv", "height"),   "224");
 
         // And some rough file sizes (don't want to be too specific
         //  incase there are slight variations on systems)
-        String tSize = metadata.get("outputs/ffmpegThumbnail.jpg/size");
+        String tSize = metadata.getString(null,
+                "outputs", "ffmpegThumbnail.jpg", "size");
         int thumbSize = Integer.valueOf(tSize);
         // Thumbnails in particular, just test for larger then zero, since we
         //   pick a random frame each execution.
         Assert.assertTrue(thumbSize > 0);
-        String pSize = metadata.get("outputs/ffmpegPreview.flv/size");
+        String pSize = metadata.getString(null,
+                "outputs", "ffmpegPreview.flv", "size");
         int previewSize = Integer.valueOf(pSize);
         Assert.assertTrue(previewSize > 2400000);
 
         // FFmpeg
         if (execLevel.equals(Ffmpeg.DEFAULT_BIN_TRANSCODE)) {
-            Assert.assertEquals(metadata.get("duration"), "85");
+            Assert.assertEquals(metadata.getString(null, "duration"), "85");
         }
 
         // FFprobe
         if (execLevel.equals(Ffmpeg.DEFAULT_BIN_METADATA)) {
-            Assert.assertEquals(metadata.get("format/simple"),      "mov,mp4,m4a,3gp,3g2,mj2");
-            Assert.assertEquals(metadata.get("duration"),           "85");
+            Assert.assertEquals(metadata.getString(null,
+                    "format", "simple"),         "mov,mp4,m4a,3gp,3g2,mj2");
+            Assert.assertEquals(metadata.getString(null,
+                    "duration"),                 "85");
 
-            Assert.assertEquals(metadata.get("video/codec/simple"), "h264");
-            Assert.assertEquals(metadata.get("video/pixel_format"), "yuv420p");
-            Assert.assertEquals(metadata.get("video/width"),        "320");
-            Assert.assertEquals(metadata.get("video/height"),       "240");
-            Assert.assertEquals(metadata.get("video/language"),     "eng");
+            Assert.assertEquals(metadata.getString(null,
+                    "video", "codec", "simple"), "h264");
+            Assert.assertEquals(metadata.getString(null,
+                    "video", "pixel_format"),    "yuv420p");
+            Assert.assertEquals(metadata.getString(null,
+                    "video", "width"),           "320");
+            Assert.assertEquals(metadata.getString(null,
+                    "video", "height"),          "240");
+            Assert.assertEquals(metadata.getString(null,
+                    "video", "language"),        "eng");
 
-            Assert.assertEquals(metadata.get("audio/codec/simple"), "aac");
-            Assert.assertEquals(metadata.get("audio/sample_rate"),  "44100");
-            Assert.assertEquals(metadata.get("audio/channels"),     "2");
-            Assert.assertEquals(metadata.get("audio/language"),     "eng");
+            Assert.assertEquals(metadata.getString(null,
+                    "audio", "codec", "simple"), "aac");
+            Assert.assertEquals(metadata.getString(null,
+                    "audio", "sample_rate"),     "44100");
+            Assert.assertEquals(metadata.getString(null,
+                    "audio", "channels"),        "2");
+            Assert.assertEquals(metadata.getString(null,
+                    "audio", "language"),        "eng");
         }
 
         // Verify custom display type is set
@@ -401,46 +443,63 @@ public class FfmpegTransformerTest {
         outputObject = transform("/quicktime.mp4");
 
         Payload ffMetadata = outputObject.getPayload("ffmpeg.info");
-        JsonConfigHelper metadata = new JsonConfigHelper(ffMetadata.open());
+        JsonSimpleConfig metadata = new JsonSimpleConfig(ffMetadata.open());
         ffMetadata.close();
 
         // Check some output data
-        Assert.assertEquals(metadata.get("outputs/ffmpegThumbnail.jpg/width"),  "70");
-        Assert.assertEquals(metadata.get("outputs/ffmpegThumbnail.jpg/height"), "90");
-        Assert.assertEquals(metadata.get("outputs/ffmpegPreview.flv/width"),    "176");
-        Assert.assertEquals(metadata.get("outputs/ffmpegPreview.flv/height"),   "224");
+        Assert.assertEquals(metadata.getString(null,
+                "outputs", "ffmpegThumbnail.jpg", "width"),  "70");
+        Assert.assertEquals(metadata.getString(null,
+                "outputs", "ffmpegThumbnail.jpg", "height"), "90");
+        Assert.assertEquals(metadata.getString(null,
+                "outputs", "ffmpegPreview.flv", "width"),    "176");
+        Assert.assertEquals(metadata.getString(null,
+                "outputs", "ffmpegPreview.flv", "height"),   "224");
 
         // And some rough file sizes (don't want to be too specific
         //  incase there are slight variations on systems)
-        String tSize = metadata.get("outputs/ffmpegThumbnail.jpg/size");
+        String tSize = metadata.getString(null,
+                "outputs", "ffmpegThumbnail.jpg", "size");
         int thumbSize = Integer.valueOf(tSize);
         // Thumbnails in particular, just test for larger then zero, since we
         //   pick a random frame each execution.
         Assert.assertTrue(thumbSize > 0);
-        String pSize = metadata.get("outputs/ffmpegPreview.flv/size");
+        String pSize = metadata.getString(null,
+                "outputs", "ffmpegPreview.flv", "size");
         int previewSize = Integer.valueOf(pSize);
         Assert.assertTrue(previewSize > 250000);
 
         // FFmpeg
         if (execLevel.equals(Ffmpeg.DEFAULT_BIN_TRANSCODE)) {
-            Assert.assertEquals(metadata.get("duration"), "4");
+            Assert.assertEquals(metadata.getString(null, "duration"), "4");
         }
 
         // FFprobe
         if (execLevel.equals(Ffmpeg.DEFAULT_BIN_METADATA)) {
-            Assert.assertEquals(metadata.get("format/simple"),      "mov,mp4,m4a,3gp,3g2,mj2");
-            Assert.assertEquals(metadata.get("duration"),           "4");
+            Assert.assertEquals(metadata.getString(null,
+                    "format", "simple"), "mov,mp4,m4a,3gp,3g2,mj2");
+            Assert.assertEquals(metadata.getString(null,
+                    "duration"), "4");
 
-            Assert.assertEquals(metadata.get("video/codec/simple"), "mpeg4");
-            Assert.assertEquals(metadata.get("video/pixel_format"), "yuv420p");
-            Assert.assertEquals(metadata.get("video/width"),        "190");
-            Assert.assertEquals(metadata.get("video/height"),       "240");
-            Assert.assertEquals(metadata.get("video/language"),     "eng");
+            Assert.assertEquals(metadata.getString(null,
+                    "video", "codec", "simple"), "mpeg4");
+            Assert.assertEquals(metadata.getString(null,
+                    "video", "pixel_format"),    "yuv420p");
+            Assert.assertEquals(metadata.getString(null,
+                    "video", "width"),           "190");
+            Assert.assertEquals(metadata.getString(null,
+                    "video", "height"),          "240");
+            Assert.assertEquals(metadata.getString(null,
+                    "video", "language"),        "eng");
 
-            Assert.assertEquals(metadata.get("audio/codec/simple"), "aac");
-            Assert.assertEquals(metadata.get("audio/sample_rate"),  "32000");
-            Assert.assertEquals(metadata.get("audio/channels"),     "2");
-            Assert.assertEquals(metadata.get("audio/language"),     "eng");
+            Assert.assertEquals(metadata.getString(null,
+                    "audio", "codec", "simple"), "aac");
+            Assert.assertEquals(metadata.getString(null,
+                    "audio", "sample_rate"),     "32000");
+            Assert.assertEquals(metadata.getString(null,
+                    "audio", "channels"),        "2");
+            Assert.assertEquals(metadata.getString(null,
+                    "audio", "language"),        "eng");
         }
 
         // Verify custom display type is set
@@ -469,44 +528,58 @@ public class FfmpegTransformerTest {
         outputObject = transform("/nasa.mp4");
 
         Payload ffMetadata = outputObject.getPayload("ffmpeg.info");
-        JsonConfigHelper metadata = new JsonConfigHelper(ffMetadata.open());
+        JsonSimpleConfig metadata = new JsonSimpleConfig(ffMetadata.open());
         ffMetadata.close();
 
         // Check some output data
-        Assert.assertEquals(metadata.get("outputs/ffmpegThumbnail.jpg/width"),  "160");
-        Assert.assertEquals(metadata.get("outputs/ffmpegThumbnail.jpg/height"), "90");
-        Assert.assertEquals(metadata.get("outputs/ffmpegPreview.flv/width"),    "398");
-        Assert.assertEquals(metadata.get("outputs/ffmpegPreview.flv/height"),   "224");
+        Assert.assertEquals(metadata.getString(null,
+                "outputs", "ffmpegThumbnail.jpg", "width"),  "160");
+        Assert.assertEquals(metadata.getString(null,
+                "outputs", "ffmpegThumbnail.jpg", "height"), "90");
+        Assert.assertEquals(metadata.getString(null,
+                "outputs", "ffmpegPreview.flv", "width"),    "398");
+        Assert.assertEquals(metadata.getString(null,
+                "outputs", "ffmpegPreview.flv", "height"),   "224");
 
         // And some rough file sizes (don't want to be too specific
         //  incase there are slight variations on systems)
-        String tSize = metadata.get("outputs/ffmpegThumbnail.jpg/size");
+        String tSize = metadata.getString(null,
+                "outputs", "ffmpegThumbnail.jpg", "size");
         int thumbSize = Integer.valueOf(tSize);
         // Thumbnails in particular, just test for larger then zero, since we
         //   pick a random frame each execution.
         Assert.assertTrue(thumbSize > 0);
-        String pSize = metadata.get("outputs/ffmpegPreview.flv/size");
+        String pSize = metadata.getString(null,
+                "outputs", "ffmpegPreview.flv", "size");
         int previewSize = Integer.valueOf(pSize);
         Assert.assertTrue(previewSize > 2700000);
 
         // FFmpeg
         if (execLevel.equals(Ffmpeg.DEFAULT_BIN_TRANSCODE)) {
-            Assert.assertEquals(metadata.get("duration"), "109");
+            Assert.assertEquals(metadata.getString(null, "duration"), "109");
         }
 
         // FFprobe
         if (execLevel.equals(Ffmpeg.DEFAULT_BIN_METADATA)) {
-            Assert.assertEquals(metadata.get("format/simple"),      "mov,mp4,m4a,3gp,3g2,mj2");
-            Assert.assertEquals(metadata.get("duration"),           "109");
+            Assert.assertEquals(metadata.getString(null,
+                    "format", "simple"), "mov,mp4,m4a,3gp,3g2,mj2");
+            Assert.assertEquals(metadata.getString(null,
+                    "duration"), "109");
 
-            Assert.assertEquals(metadata.get("video/codec/simple"), "mpeg4");
-            Assert.assertEquals(metadata.get("video/pixel_format"), "yuv420p");
-            Assert.assertEquals(metadata.get("video/width"),        "380");
-            Assert.assertEquals(metadata.get("video/height"),       "214");
-            Assert.assertEquals(metadata.get("video/language"),     "eng");
+            Assert.assertEquals(metadata.getString(null,
+                    "video", "codec", "simple"), "mpeg4");
+            Assert.assertEquals(metadata.getString(null,
+                    "video", "pixel_format"),    "yuv420p");
+            Assert.assertEquals(metadata.getString(null,
+                    "video", "width"),           "380");
+            Assert.assertEquals(metadata.getString(null,
+                    "video", "height"),          "214");
+            Assert.assertEquals(metadata.getString(null,
+                    "video", "language"),        "eng");
 
             // This video has no audio
-            Assert.assertNull(metadata.get("audio/codec/simple"));
+            Assert.assertNull(metadata.getString(null,
+                    "audio", "codec", "simple"));
         }
 
         // Verify custom display type is set
@@ -536,31 +609,38 @@ public class FfmpegTransformerTest {
         outputObject = transform("/african_drum.aif");
 
         Payload ffMetadata = outputObject.getPayload("ffmpeg.info");
-        JsonConfigHelper metadata = new JsonConfigHelper(ffMetadata.open());
+        JsonSimpleConfig metadata = new JsonSimpleConfig(ffMetadata.open());
         ffMetadata.close();
 
         // And some rough file sizes (don't want to be too specific
         //  incase there are slight variations on systems)
-        String pSize = metadata.get("outputs/ffmpegPreview.mp3/size");
+        String pSize = metadata.getString(null,
+                "outputs", "ffmpegPreview.mp3", "size");
         int previewSize = Integer.valueOf(pSize);
         Assert.assertTrue(previewSize > 2700);
 
         // FFmpeg
         if (execLevel.equals(Ffmpeg.DEFAULT_BIN_TRANSCODE)) {
-            Assert.assertEquals(metadata.get("duration"), "0");
+            Assert.assertEquals(metadata.getString(null, "duration"), "0");
         }
 
         // FFprobe
         if (execLevel.equals(Ffmpeg.DEFAULT_BIN_METADATA)) {
-            Assert.assertEquals(metadata.get("format/simple"),      "aiff");
-            Assert.assertEquals(metadata.get("duration"),           "0");
+            Assert.assertEquals(metadata.getString(null,
+                    "format", "simple"),         "aiff");
+            Assert.assertEquals(metadata.getString(null,
+                    "duration"),                 "0");
 
-            Assert.assertEquals(metadata.get("audio/codec/simple"), "pcm_s24be");
-            Assert.assertEquals(metadata.get("audio/sample_rate"),  "44100");
-            Assert.assertEquals(metadata.get("audio/channels"),     "1");
+            Assert.assertEquals(metadata.getString(null,
+                    "audio", "codec", "simple"), "pcm_s24be");
+            Assert.assertEquals(metadata.getString(null,
+                    "audio", "sample_rate"),     "44100");
+            Assert.assertEquals(metadata.getString(null,
+                    "audio", "channels"),        "1");
 
             // Audio only
-            Assert.assertNull(metadata.get("video/codec/simple"));
+            Assert.assertNull(metadata.getString(null,
+                    "video", "codec", "simple"));
         }
     }
 
@@ -584,46 +664,63 @@ public class FfmpegTransformerTest {
         outputObject = transform("/quicktime.mov");
 
         Payload ffMetadata = outputObject.getPayload("ffmpeg.info");
-        JsonConfigHelper metadata = new JsonConfigHelper(ffMetadata.open());
+        JsonSimpleConfig metadata = new JsonSimpleConfig(ffMetadata.open());
         ffMetadata.close();
 
         // Check some output data
-        Assert.assertEquals(metadata.get("outputs/ffmpegThumbnail.jpg/width"),  "70");
-        Assert.assertEquals(metadata.get("outputs/ffmpegThumbnail.jpg/height"), "90");
-        Assert.assertEquals(metadata.get("outputs/ffmpegPreview.flv/width"),    "176");
-        Assert.assertEquals(metadata.get("outputs/ffmpegPreview.flv/height"),   "224");
+        Assert.assertEquals(metadata.getString(null,
+                "outputs", "ffmpegThumbnail.jpg", "width"),  "70");
+        Assert.assertEquals(metadata.getString(null,
+                "outputs", "ffmpegThumbnail.jpg", "height"), "90");
+        Assert.assertEquals(metadata.getString(null,
+                "outputs", "ffmpegPreview.flv", "width"),    "176");
+        Assert.assertEquals(metadata.getString(null,
+                "outputs", "ffmpegPreview.flv", "height"),   "224");
 
         // And some rough file sizes (don't want to be too specific
         //  incase there are slight variations on systems)
-        String tSize = metadata.get("outputs/ffmpegThumbnail.jpg/size");
+        String tSize = metadata.getString(null,
+                "outputs", "ffmpegThumbnail.jpg", "size");
         int thumbSize = Integer.valueOf(tSize);
         // Thumbnails in particular, just test for larger then zero, since we
         //   pick a random frame each execution.
         Assert.assertTrue(thumbSize > 0);
-        String pSize = metadata.get("outputs/ffmpegPreview.flv/size");
+        String pSize = metadata.getString(null,
+                "outputs", "ffmpegPreview.flv", "size");
         int previewSize = Integer.valueOf(pSize);
         Assert.assertTrue(previewSize > 190000);
 
         // FFmpeg
         if (execLevel.equals(Ffmpeg.DEFAULT_BIN_TRANSCODE)) {
-            Assert.assertEquals(metadata.get("duration"), "5");
+            Assert.assertEquals(metadata.getString(null, "duration"), "5");
         }
 
         // FFprobe
         if (execLevel.equals(Ffmpeg.DEFAULT_BIN_METADATA)) {
-            Assert.assertEquals(metadata.get("format/simple"),      "mov,mp4,m4a,3gp,3g2,mj2");
-            Assert.assertEquals(metadata.get("duration"),           "5");
+            Assert.assertEquals(metadata.getString(null,
+                    "format", "simple"), "mov,mp4,m4a,3gp,3g2,mj2");
+            Assert.assertEquals(metadata.getString(null,
+                    "duration"), "5");
 
-            Assert.assertEquals(metadata.get("video/codec/simple"), "svq1");
-            Assert.assertEquals(metadata.get("video/pixel_format"), "yuv410p");
-            Assert.assertEquals(metadata.get("video/width"),        "190");
-            Assert.assertEquals(metadata.get("video/height"),       "240");
-            Assert.assertEquals(metadata.get("video/language"),     "eng");
+            Assert.assertEquals(metadata.getString(null,
+                    "video", "codec", "simple"), "svq1");
+            Assert.assertEquals(metadata.getString(null,
+                    "video", "pixel_format"),    "yuv410p");
+            Assert.assertEquals(metadata.getString(null,
+                    "video", "width"),           "190");
+            Assert.assertEquals(metadata.getString(null,
+                    "video", "height"),          "240");
+            Assert.assertEquals(metadata.getString(null,
+                    "video", "language"),        "eng");
 
-            Assert.assertEquals(metadata.get("audio/codec/simple"), "qdm2");
-            Assert.assertEquals(metadata.get("audio/sample_rate"),  "22050");
-            Assert.assertEquals(metadata.get("audio/channels"),     "2");
-            Assert.assertEquals(metadata.get("audio/language"),     "eng");
+            Assert.assertEquals(metadata.getString(null,
+                    "audio", "codec", "simple"), "qdm2");
+            Assert.assertEquals(metadata.getString(null,
+                    "audio", "sample_rate"),     "22050");
+            Assert.assertEquals(metadata.getString(null,
+                    "audio", "channels"),        "2");
+            Assert.assertEquals(metadata.getString(null,
+                    "audio", "language"),        "eng");
         }
 
         // Verify custom display type is set
@@ -647,44 +744,59 @@ public class FfmpegTransformerTest {
         outputObject = transform("/relay sample.avi");
 
         Payload ffMetadata = outputObject.getPayload("ffmpeg.info");
-        JsonConfigHelper metadata = new JsonConfigHelper(ffMetadata.open());
+        JsonSimpleConfig metadata = new JsonSimpleConfig(ffMetadata.open());
         ffMetadata.close();
 
         // Check some output data
-        Assert.assertEquals(metadata.get("outputs/ffmpegThumbnail.jpg/width"),  "112");
-        Assert.assertEquals(metadata.get("outputs/ffmpegThumbnail.jpg/height"), "90");
-        Assert.assertEquals(metadata.get("outputs/ffmpegPreview.flv/width"),    "280");
-        Assert.assertEquals(metadata.get("outputs/ffmpegPreview.flv/height"),   "224");
+        Assert.assertEquals(metadata.getString(null,
+                "outputs", "ffmpegThumbnail.jpg", "width"),  "112");
+        Assert.assertEquals(metadata.getString(null,
+                "outputs", "ffmpegThumbnail.jpg", "height"), "90");
+        Assert.assertEquals(metadata.getString(null,
+                "outputs", "ffmpegPreview.flv", "width"),    "280");
+        Assert.assertEquals(metadata.getString(null,
+                "outputs", "ffmpegPreview.flv", "height"),   "224");
 
         // And some rough file sizes (don't want to be too specific
         //  incase there are slight variations on systems)
-        String tSize = metadata.get("outputs/ffmpegThumbnail.jpg/size");
+        String tSize = metadata.getString(null,
+                "outputs", "ffmpegThumbnail.jpg", "size");
         int thumbSize = Integer.valueOf(tSize);
         // Thumbnails in particular, just test for larger then zero, since we
         //   pick a random frame each execution.
         Assert.assertTrue(thumbSize > 0);
-        String pSize = metadata.get("outputs/ffmpegPreview.flv/size");
+        String pSize = metadata.getString(null,
+                "outputs", "ffmpegPreview.flv", "size");
         int previewSize = Integer.valueOf(pSize);
         Assert.assertTrue(previewSize > 250000);
 
         // FFmpeg
         if (execLevel.equals(Ffmpeg.DEFAULT_BIN_TRANSCODE)) {
-            Assert.assertEquals(metadata.get("duration"), "10");
+            Assert.assertEquals(metadata.getString(null, "duration"), "10");
         }
 
         // FFprobe
         if (execLevel.equals(Ffmpeg.DEFAULT_BIN_METADATA)) {
-            Assert.assertEquals(metadata.get("format/simple"),      "avi");
-            Assert.assertEquals(metadata.get("duration"),           "10");
+            Assert.assertEquals(metadata.getString(null,
+                    "format", "simple"),         "avi");
+            Assert.assertEquals(metadata.getString(null,
+                    "duration"),                 "10");
 
-            Assert.assertEquals(metadata.get("video/codec/simple"), "camtasia");
-            Assert.assertEquals(metadata.get("video/pixel_format"), "bgr24");
-            Assert.assertEquals(metadata.get("video/width"),        "1280");
-            Assert.assertEquals(metadata.get("video/height"),       "1024");
+            Assert.assertEquals(metadata.getString(null,
+                    "video", "codec", "simple"), "camtasia");
+            Assert.assertEquals(metadata.getString(null,
+                    "video", "pixel_format"),    "bgr24");
+            Assert.assertEquals(metadata.getString(null,
+                    "video", "width"),           "1280");
+            Assert.assertEquals(metadata.getString(null,
+                    "video", "height"),          "1024");
 
-            Assert.assertEquals(metadata.get("audio/codec/simple"), "pcm_s16le");
-            Assert.assertEquals(metadata.get("audio/sample_rate"),  "22050");
-            Assert.assertEquals(metadata.get("audio/channels"),     "1");
+            Assert.assertEquals(metadata.getString(null,
+                    "audio", "codec", "simple"), "pcm_s16le");
+            Assert.assertEquals(metadata.getString(null,
+                    "audio", "sample_rate"),     "22050");
+            Assert.assertEquals(metadata.getString(null,
+                    "audio", "channels"),        "1");
         }
 
         // Verify custom display type is set
@@ -720,18 +832,20 @@ public class FfmpegTransformerTest {
         outputObject = transformer.transform(inputObject, "{}");
 
         Payload ffMetadata = outputObject.getPayload("ffmpeg.info");
-        JsonConfigHelper metadata = new JsonConfigHelper(ffMetadata.open());
+        JsonSimpleConfig metadata = new JsonSimpleConfig(ffMetadata.open());
         ffMetadata.close();
 
         // FFmpeg
         if (execLevel.equals(Ffmpeg.DEFAULT_BIN_TRANSCODE)) {
-            Assert.assertEquals(metadata.get("duration"), "8");
+            Assert.assertEquals(metadata.getString(null, "duration"), "8");
         }
 
         // FFprobe
         if (execLevel.equals(Ffmpeg.DEFAULT_BIN_METADATA)) {
-            Assert.assertEquals(metadata.get("format/simple"),      "avi");
-            Assert.assertEquals(metadata.get("duration"),           "8");
+            Assert.assertEquals(metadata.getString(null,
+                    "format", "simple"),      "avi");
+            Assert.assertEquals(metadata.getString(null,
+                    "duration"),              "8");
         }
     }
 }

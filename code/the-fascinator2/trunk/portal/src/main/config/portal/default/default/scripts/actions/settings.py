@@ -1,9 +1,5 @@
-from au.edu.usq.fascinator.common import JsonConfig, JsonConfigHelper
-
+from au.edu.usq.fascinator.common import JsonSimpleConfig, JsonSimple, JsonObject
 from java.io import FileWriter
-from java.util import HashMap
-
-from org.apache.commons.io.output import NullWriter
 from org.apache.commons.lang import StringUtils
 
 class SettingsData:
@@ -32,7 +28,7 @@ class SettingsData:
     def getWatcherFile(self):
         configFile = FascinatorHome.getPathFile("watcher/config.json")
         if configFile.exists():
-            return JsonConfigHelper(configFile)
+            return JsonSimpleConfig(configFile)
         return None
 
     def process(self):
@@ -54,14 +50,14 @@ class SettingsData:
             portalManager.save(portal)
 
         elif func == "general-update":
-            config = JsonConfig()
+            config = JsonSimpleConfig()
             email = StringUtils.trimToEmpty(self.vc("formData").get("general-email"))
-            systemEmail = StringUtils.trimToEmpty(config.get("email"))
-            print email, systemEmail
+            systemEmail = StringUtils.trimToEmpty(config.getString(None, ["email"]))
             if systemEmail != email:
-                config.set("email", self.vc("formData").get("general-email"), True)
-                config.set("configured", "true", True)
-                config.store(NullWriter(), True)
+                obj = config.writableSystemConfig()
+                obj.put("email", self.vc("formData").get("general-email"))
+                obj.put("configured", "true")
+                config.storeSystemConfig()
                 # mark restart
                 Services.getHouseKeepingManager().requestUrgentRestart()
             else:
@@ -69,7 +65,7 @@ class SettingsData:
                 self.throw_error("Email address is the same! No change saved.")
 
         elif func == "facets-update":
-            portal.removePath("portal/facet-fields")
+            portal.getObject(["portal"]).remove("facet-fields")
             fields = self.vc("formData").getValues("field")
             labels = self.vc("formData").getValues("label")
             displays = self.vc("formData").getValues("display")
@@ -77,24 +73,27 @@ class SettingsData:
             for i in range(0, len(fields)):
                 field = fields[i]
                 if deletes[i] == "false":
-                    portal.set("portal/facet-fields/%s/label" % field, labels[i])
-                    portal.set("portal/facet-fields/%s/display" % field, displays[i])
+                    node = portal.writeObject(["portal", "facet-fields", field])
+                    node.put("label", labels[i])
+                    node.put("display", displays[i])
             portalManager.save(portal)
 
         elif func == "sort-update":
-            portal.removePath("portal/sort-fields")
+            portal.getObject(["portal"]).remove("sort-fields")
             fields = self.vc("formData").getValues("field")
             labels = self.vc("formData").getValues("label")
             deletes = self.vc("formData").getValues("delete")
             for i in range(0, len(fields)):
                 field = fields[i]
                 if deletes[i] == "false":
-                    portal.set("portal/sort-fields/%s" % field, labels[i])
+                    node = portal.writeObject(["portal", "sort-fields"])
+                    node.put(field, labels[i])
             portalManager.save(portal)
 
         elif func == "watcher-update":
             configFile = self.getWatcherFile()
             if configFile is not None:
+                json = JsonSimpleConfig(configFile)
                 pathIds = self.vc("formData").get("pathIds").split(",")
                 actives = self.vc("formData").getValues("watcher-active")
                 if actives is None:
@@ -102,45 +101,48 @@ class SettingsData:
                 deletes = self.vc("formData").getValues("watcher-delete")
                 if deletes is None:
                     deletes = []
-                watchDirs = HashMap()
                 for pathId in pathIds:
                     if pathId not in deletes:
                         path = self.vc("formData").get("%s-path" % pathId)
                         stopped = str(pathId not in actives).lower()
-                        watchDir = HashMap()
+                        watchDir = json.writeObject(["watcher", "watchDirs", path])
                         watchDir.put("ignoreFileFilter", self.vc("formData").get("%s-file" % pathId))
                         watchDir.put("ignoreDirectories", self.vc("formData").get("%s-dir" % pathId))
-                        watchDir.put("cxtTags", [])
                         watchDir.put("stopped", stopped)
-                        watchDirs.put(path, watchDir)
-                json = JsonConfigHelper(self.getWatcherFile())
-                json.setMap("watcher/watchDirs", watchDirs)
-                json.store(FileWriter(configFile), True)
+                        json.writeArray(["watcher", "watchDirs", path, "cxtTags"])
+                writer = FileWriter(configFile)
+                writer.write(json.toString(True))
+                writer.close()
             else:
                 result = "The Watcher is not installed properly."
 
         elif func == "restore-default-config":
             # backup the file
-            JsonConfig.backupSystemFile()
+            JsonSimpleConfig.backupSystemFile()
             # delete the file
-            JsonConfig.getSystemFile().delete()
+            JsonSimpleConfig.getSystemFile().delete()
             # restore default
-            JsonConfig.getSystemFile()
+            JsonSimpleConfig.getSystemFile()
             # mark restart
             Services.getHouseKeepingManager().requestUrgentRestart()
 
         elif func == "housekeeping-update":
-            config = JsonConfig()
+            config = JsonSimpleConfig()
             freq = StringUtils.trimToEmpty(self.vc("formData").get("housekeeping-timeout"))
-            systemFreq = StringUtils.trimToEmpty(config.get("portal/houseKeeping/config/frequency"))
+            systemFreq = StringUtils.trimToEmpty(config.getString(None, ["portal", "houseKeeping", "config", "frequency"]))
             result = "House Keeper refreshed"
             if systemFreq != freq:
-                config.set("portal/houseKeeping/config/frequency", freq, True)
-                config.store(NullWriter(), True)
+                # Get writeable access to underlying system
+                sysConfig = JsonSimple(config.writableSystemConfig())
+                # Modify the house keeping node
+                hkConfig = sysConfig.writeObject(["portal", "houseKeeping", "config"])
+                hkConfig.put("frequency", freq)
+                # Write the underlying config back to disk
+                config.storeSystemConfig()
                 result = "Frequency updated, refreshing House Keeper"
             # Refresh the HouseKeeper
-            message = JsonConfigHelper()
-            message.set("type", "refresh")
+            message = JsonObject()
+            message.put("type", "refresh")
             Services.getHouseKeepingManager().sendMessage(message.toString())
 
         self.writer.println(result)

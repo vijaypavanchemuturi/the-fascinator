@@ -8,11 +8,11 @@
     #else
       <ol>
       #foreach($item in $self.workflows)
-        #set($itemId = $item.get('id'))
-        #set($itemTitle = $item.get("dc_title").get(0))
-        <li class='wf-$item.get('workflow_step').get(0)'>
+        #set($itemId = $item.getFirst('id'))
+        #set($itemTitle = $item.getFirst('dc_title'))
+        #set($wfStep = $item.getFirst("workflow_step"))
+        <li class='wf-${wfStep}'>
           <a href="$portalPath/workflow/$itemId">$itemTitle</a>
-          #set($wfStep = $item.get("workflow_step").get(0))
           #if ($wfStep != "" && $wfStep != "live")
           <img class="workflow" src="$portalPath/images/icons/wf_${wfStep}.png" alt="Workflow: $wfStep" title="Workflow: $wfStep"/>
           #end

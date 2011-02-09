@@ -1,5 +1,5 @@
 #macro(showElement $tag $field $attr)
-    #set($valueList = $item.get($field))
+    #set($valueList = $item.getList($field))
     #foreach($value in $valueList)
         <$tag $attr>$self.encodeXml($value)</$tag>
     #end

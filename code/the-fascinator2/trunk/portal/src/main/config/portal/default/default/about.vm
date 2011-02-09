@@ -3,7 +3,7 @@
         <div id="$plugin.id">
             <h3>$plugin.name</h3>
             #if($self.hasMetadata($plugin))
-                $self.getResourceContent($plugin, "resources/about")
+                $self.getAboutPage($plugin)
             #end
         </div>
     #end

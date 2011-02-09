@@ -37,6 +37,20 @@
             });
         }
 
+        function deselectPackage() {
+            $(".package-select").removeAttr("checked");
+            var selectedItems = $("#package-selected-items");
+            jQuery.post("$portalPath/actions/packaging.ajax",
+                { func: "deselect" },
+                function(data, status) {
+                    selectedItems.attr("rel", 0).html("Package deselected!");
+                    setTimeout(function() {
+                        selectedItems.html("No items selected");
+                    }, 3000);
+                },
+                "json");
+        }
+
         function clearPackage() {
             $(".package-select").removeAttr("checked");
             var selectedItems = $("#package-selected-items");
@@ -59,7 +73,7 @@
         }
 
         $("#deselect-package").click(function() {
-            clearPackage();
+            deselectPackage();
             $("#deselect-package").hide();
             $("#package-create-selected").html("Package selected items...");
             return false;
@@ -95,7 +109,7 @@
                         if (data.status == "ok") {
                             window.location.href = data.url;
                         } else {
-                            alert("Failed to create package!");
+                            alert("Failed to create/update package!");
                         }
                     },
                     dataType: "json"

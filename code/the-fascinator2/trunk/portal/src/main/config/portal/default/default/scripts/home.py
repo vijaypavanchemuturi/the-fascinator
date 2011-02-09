@@ -1,5 +1,5 @@
 from au.edu.usq.fascinator.api.indexer import SearchRequest
-from au.edu.usq.fascinator.common import JsonConfigHelper
+from au.edu.usq.fascinator.common.solr import SolrResult
 from java.io import ByteArrayInputStream, ByteArrayOutputStream
 
 class HomeData:
@@ -9,10 +9,10 @@ class HomeData:
     def __activate__(self, context):
         self.velocityContext = context
         self.vc("sessionState").remove("fq")
-        self.__latest = JsonConfigHelper()
-        self.__mine = JsonConfigHelper()
-        self.__workflows = JsonConfigHelper()
-        self.__result = JsonConfigHelper()
+        self.__latest = None
+        self.__mine = None
+        self.__workflows = None
+        self.__result = None
         self.__search()
 
     # Get from velocity context
@@ -49,7 +49,7 @@ class HomeData:
             req.addParam("fq", security_query)
         out = ByteArrayOutputStream()
         indexer.search(req, out)
-        self.__latest = JsonConfigHelper(ByteArrayInputStream(out.toByteArray()))
+        self.__latest = SolrResult(ByteArrayInputStream(out.toByteArray()))
         
         req = SearchRequest(owner_query)
         req.setParam("fq", 'item_type:"object"')
@@ -63,7 +63,7 @@ class HomeData:
             req.addParam("fq", security_query)
         out = ByteArrayOutputStream()
         indexer.search(req, out)
-        self.__mine = JsonConfigHelper(ByteArrayInputStream(out.toByteArray()))
+        self.__mine = SolrResult(ByteArrayInputStream(out.toByteArray()))
 
         req = SearchRequest('workflow_security:"' + current_user + '"')
         req.setParam("fq", 'item_type:"object"')
@@ -77,7 +77,7 @@ class HomeData:
             req.addParam("fq", security_query)
         out = ByteArrayOutputStream()
         indexer.search(req, out)
-        self.__workflows = JsonConfigHelper(ByteArrayInputStream(out.toByteArray()))
+        self.__workflows = SolrResult(ByteArrayInputStream(out.toByteArray()))
 
         req = SearchRequest("*:*")
         req.setParam("fq", 'item_type:"object"')
@@ -95,16 +95,16 @@ class HomeData:
         self.vc("sessionState").set("fq", 'item_type:"object"')
         #sessionState.set("query", portalQuery.replace("\"", "'"))
         
-        self.__result = JsonConfigHelper(ByteArrayInputStream(out.toByteArray()))
+        self.__result = SolrResult(ByteArrayInputStream(out.toByteArray()))
     
     def getLatest(self):
-        return self.__latest.getList("response/docs")
+        return self.__latest.getResults()
     
     def getMine(self):
-        return self.__mine.getList("response/docs")
+        return self.__mine.getResults()
 
     def getWorkflows(self):
-        return self.__workflows.getList("response/docs")
+        return self.__workflows.getResults()
 
     def getItemCount(self):
-        return self.__result.get("response/numFound")
+        return self.__result.getNumFound()

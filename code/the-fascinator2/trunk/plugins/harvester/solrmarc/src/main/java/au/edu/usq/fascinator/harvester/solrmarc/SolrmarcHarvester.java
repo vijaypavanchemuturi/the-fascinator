@@ -1,6 +1,6 @@
 /*
  * The Fascinator - Solrmarc Harvester Plugin
- * Copyright (C) 2010 University of Southern Queensland
+ * Copyright (C) 2010-2011 University of Southern Queensland
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,15 +22,13 @@ import au.edu.usq.fascinator.api.harvester.HarvesterException;
 import au.edu.usq.fascinator.api.storage.DigitalObject;
 import au.edu.usq.fascinator.api.storage.Payload;
 import au.edu.usq.fascinator.api.storage.StorageException;
-import au.edu.usq.fascinator.common.JsonConfigHelper;
 import au.edu.usq.fascinator.common.harvester.impl.GenericHarvester;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.util.HashSet;
@@ -52,11 +50,10 @@ import org.solrmarc.marc.MarcImporter;
 public class SolrmarcHarvester extends GenericHarvester {
 
     /** Process marc file in batches */
-    private static String DEFAULT_BATCH_SIZE = "100";
+    private static Integer DEFAULT_BATCH_SIZE = 100;
 
     /** Limit the number of records imported */
-    private static String DEFAULT_RECORD_LIMIT =
-            String.valueOf(Integer.MAX_VALUE);
+    private static Integer DEFAULT_RECORD_LIMIT = Integer.MAX_VALUE;
 
     /** PID for binary marc payload **/
     private static String BINARY_PAYLOAD = "binary.marc";
@@ -89,26 +86,22 @@ public class SolrmarcHarvester extends GenericHarvester {
      * Constructor
      */
     public SolrmarcHarvester() {
+        // Just provide GenericHarvester our identity.
         super("solrmarc", "Solrmarc Harvester");
     }
 
     /**
-     * Initialisation of plugin
+     * Basic init() function. Notice the lack of parameters. This is not part
+     * of the Plugin API but from the GenericHarvester implementation. It will
+     * be called following the constructor verifies configuration is available.
      *
-     * @throws HarvesterException if fails to initialise
+     * @throws HarvesterException : If there are problems during instantiation
      */
     @Override
     public void init() throws HarvesterException {
-        // Read harvester config
-        JsonConfigHelper config;
-        try {
-            config = new JsonConfigHelper(getJsonConfig().toString());
-        } catch (IOException ex) {
-            throw new HarvesterException("Failed reading configuration", ex);
-        }
-
         // Read solrmarc config
-        String configPath = config.get("harvester/solrmarc/configPath");
+        String configPath = getJsonConfig().getString(null,
+                "harvester", "solrmarc", "configPath");
         if (configPath == null) {
             throw new HarvesterException(
                     "No valid Solrmarc configuration provided");
@@ -116,7 +109,8 @@ public class SolrmarcHarvester extends GenericHarvester {
         log.debug("Using Solrmarc config: '{}'", configPath);
 
         // Find our marc data to import
-        String marcPath = config.get("harvester/solrmarc/marcFile");
+        String marcPath = getJsonConfig().getString(null,
+                "harvester", "solrmarc", "marcFile");
         if (marcPath == null) {
             throw new HarvesterException("No marc data provided to import");
         }
@@ -135,13 +129,13 @@ public class SolrmarcHarvester extends GenericHarvester {
         log.debug("MARC File confirmed: '{}'", marcPath);
 
         // Find the parameters for processing batches etc.
-        batchSize = Integer.parseInt(
-                config.get("harvester/solrmarc/batchSize", DEFAULT_BATCH_SIZE));
-        recordLimit = Integer.parseInt(
-                config.get("harvester/solrmarc/limit", DEFAULT_RECORD_LIMIT));
+        batchSize = getJsonConfig().getInteger(DEFAULT_BATCH_SIZE,
+                "harvester", "solrmarc", "batchSize");
+        recordLimit = getJsonConfig().getInteger(DEFAULT_RECORD_LIMIT,
+                "harvester", "solrmarc", "limit");
         // In-case '-1' or similar is used to set no limit
         if (recordLimit < 0) {
-            recordLimit = Integer.parseInt(DEFAULT_RECORD_LIMIT);
+            recordLimit = DEFAULT_RECORD_LIMIT;
         }
         recordCount = 0;
 

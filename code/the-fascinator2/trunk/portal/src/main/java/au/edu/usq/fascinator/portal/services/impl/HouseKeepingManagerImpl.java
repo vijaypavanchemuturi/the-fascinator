@@ -1,6 +1,6 @@
 /*
  * The Fascinator - Portal
- * Copyright (C) 2010 University of Southern Queensland
+ * Copyright (C) 2010-2011 University of Southern Queensland
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,10 +18,11 @@
  */
 package au.edu.usq.fascinator.portal.services.impl;
 
+import au.edu.usq.fascinator.common.JsonObject;
+import au.edu.usq.fascinator.common.JsonSimple;
+import au.edu.usq.fascinator.common.JsonSimpleConfig;
 import au.edu.usq.fascinator.common.MessagingServices;
 import au.edu.usq.fascinator.portal.HouseKeeper;
-import au.edu.usq.fascinator.common.JsonConfig;
-import au.edu.usq.fascinator.common.JsonConfigHelper;
 import au.edu.usq.fascinator.portal.UserAction;
 import au.edu.usq.fascinator.portal.services.HouseKeepingManager;
 
@@ -46,7 +47,7 @@ public class HouseKeepingManagerImpl implements HouseKeepingManager {
     private Logger log = LoggerFactory.getLogger(HouseKeepingManagerImpl.class);
 
     /** System Configuration */
-    private JsonConfigHelper sysConfig;
+    private JsonSimpleConfig sysConfig;
 
     /** House Keeper object */
     private HouseKeeper houseKeeper;
@@ -61,22 +62,26 @@ public class HouseKeepingManagerImpl implements HouseKeepingManager {
     public HouseKeepingManagerImpl() {
         try {
             services = MessagingServices.getInstance();
-            sysConfig = new JsonConfigHelper(JsonConfig.getSystemFile());
-            List<JsonConfigHelper> configList =
-                    sysConfig.getJsonList("portal/houseKeeping");
-            if (configList.size() != 1) {
+            sysConfig = new JsonSimpleConfig();
+
+            JsonObject object = sysConfig.getObject("portal", "houseKeeping");
+            JsonSimpleConfig config = new JsonSimpleConfig();
+            if (object != null) {
+                // We need a JsonSimpleConfig Object to instantiate
+                //  HouseKeeping and it lacks a JsonObject constructor
+                JsonSimple json = new JsonSimple(object);
+                config = new JsonSimpleConfig(json.toString());
+            } else {
                 log.warn("Invalid config for house keeping!");
                 // We really need housekeeper to start, so
-                // fake up some empty config
-                configList = new ArrayList();
-                configList.add(new JsonConfigHelper());
+                // some fake, empty config is fine
             }
 
             // Create
             houseKeeper = new HouseKeeper();
             houseKeeper.setPriority(Thread.MAX_PRIORITY);
             // Initialise
-            houseKeeper.init(configList.get(0));
+            houseKeeper.init(config);
             houseKeeper.start();
 
         } catch (IOException ex) {
@@ -146,8 +151,8 @@ public class HouseKeepingManagerImpl implements HouseKeepingManager {
     @Override
     public void requestRestart() {
         log.info("System restart has been requested");
-        JsonConfigHelper msg = new JsonConfigHelper();
-        msg.set("type", "basic-restart");
+        JsonObject msg = new JsonObject();
+        msg.put("type", "basic-restart");
         sendMessage(msg.toString());
     }
 
@@ -160,8 +165,8 @@ public class HouseKeepingManagerImpl implements HouseKeepingManager {
     @Override
     public void requestUrgentRestart() {
         log.info("Urgent system restart has been requested");
-        JsonConfigHelper msg = new JsonConfigHelper();
-        msg.set("type", "blocking-restart");
+        JsonObject msg = new JsonObject();
+        msg.put("type", "blocking-restart");
         sendMessage(msg.toString());
     }
 

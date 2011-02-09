@@ -1,7 +1,7 @@
 import au.edu.usq.fascinator.common.BasicHttpClient as BasicHttpClient
 import org.apache.commons.httpclient.methods.GetMethod as GetMethod
 
-from au.edu.usq.fascinator.common import JsonConfigHelper
+from au.edu.usq.fascinator.common import JsonSimple
 
 class GeonamesData:
     def __init__(self):
@@ -21,9 +21,9 @@ class GeonamesData:
                 get = GetMethod(url)
                 statusInt = client.executeMethod(get)
                 r = str(statusInt)
-                jsonConfigHelper = JsonConfigHelper(get.getResponseBodyAsString().strip())
-                for geoName in jsonConfigHelper.getJsonList("geonames"):
-                    responseMsg += "%s, %s|%s \n" % (geoName.get("name"), geoName.get("countryName"), geoName.get("geonameId"))
+                json = JsonSimple(get.getResponseBodyAsString().strip())
+                for geoName in json.getJsonSimpleList("geonames"):
+                    responseMsg += "%s, %s|%s \n" % (geoName.getString(None, "name"), geoName.getString(None, "countryName"), geoName.getString(None, "geonameId"))
             except Exception, e:
                 print "exception: ", str(e)
                 r = str(e), None

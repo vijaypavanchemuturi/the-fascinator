@@ -1,6 +1,6 @@
 /*
  * The Fascinator - Portal - Database Services
- * Copyright (C) 2010 University of Southern Queensland
+ * Copyright (C) 2010-2011 University of Southern Queensland
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,8 +18,7 @@
  */
 package au.edu.usq.fascinator.portal.services.impl;
 
-import au.edu.usq.fascinator.common.JsonConfig;
-import au.edu.usq.fascinator.common.JsonConfigHelper;
+import au.edu.usq.fascinator.common.JsonSimpleConfig;
 import au.edu.usq.fascinator.portal.services.DatabaseServices;
 
 import java.io.IOException;
@@ -58,7 +57,7 @@ public class DatabaseServicesImpl implements DatabaseServices {
     private Logger log = LoggerFactory.getLogger(DatabaseServicesImpl.class);
 
     /** System Configuration */
-    private JsonConfigHelper sysConfig;
+    private JsonSimpleConfig sysConfig;
 
     /** Database data directory */
     private String derbyHome;
@@ -81,9 +80,10 @@ public class DatabaseServicesImpl implements DatabaseServices {
         hasErrors = false;
 
         try {
-            sysConfig = new JsonConfigHelper(JsonConfig.getSystemFile());
+            sysConfig = new JsonSimpleConfig();
             // Find data directory
-            derbyHome = sysConfig.get("database-service/derbyHome");
+            derbyHome = sysConfig.getString(null,
+                    "database-service", "derbyHome");
             String oldHome = System.getProperty("derby.system.home");
 
             // Derby's data directory has already been configured
