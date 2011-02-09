@@ -12,7 +12,9 @@
                     "link": true
                 }
             ],
-            "cacheDir": "${fascinator.home}/cache"
+            "caching": "basic",
+            "cacheId": "default",
+            "derbyHome" : "${fascinator.home}/database"
         }
     },
 

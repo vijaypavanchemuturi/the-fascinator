@@ -35,6 +35,13 @@
       <artifactId>plugin-storage-ram</artifactId>
       <scope>test</scope>
     </dependency>
+    <!-- Database -->
+    <dependency>
+      <groupId>org.apache.derby</groupId>
+      <artifactId>derby</artifactId>
+      <!-- 10.5.3.0 has a buggy POM -->
+      <version>10.5.3.0_1</version>
+    </dependency>
   </dependencies>
 </project>
  
