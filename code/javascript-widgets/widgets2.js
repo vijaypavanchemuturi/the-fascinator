@@ -235,7 +235,7 @@ var widgets={forms:[], globalObject:this};
       return !e;
     };
     hideAllMessages=function(){$(".validation-err-msg").hide();};
-    testTest=function(name){
+    testTest=function(name){            // run a test
         var test=namedTests[name];
         if(test && test._testFunc){
             try{
@@ -245,7 +245,7 @@ var widgets={forms:[], globalObject:this};
         }
         return false;
     };
-    getExpr=function(reader){
+    getExpr=function(reader){           // get a complete test expression string
       // tests: !=str, =str, /regex/, !/regex/, empty, notEmpty, email, date, [>1], (), ex1 AND ex2, ex1 OR ex2,
       var v=reader.next(), expr="", getNumber;
       var vl=v.toLowerCase();
@@ -260,6 +260,7 @@ var widgets={forms:[], globalObject:this};
       else if(vl=="yyyy"){    v="/^[12]\\d{3}$/";}
       else if(vl=="yyyymm"){  v="/^[12]\\d{3}([\\/\\\\\\-](0?[1-9]|1[012])|((0[1-9])|(1[012])))$/";}
       else if(vl=="yyyymmdd"){v="/^[12]\\d{3}([\\/\\\\\\-](0?[1-9]|1[012])|((0[1-9])|(1[012])))([\\/\\\\\\-](0?[1-9]|[12]\\d|3[01])|((0[1-9])|[12]\\d|(3[01])))$/";}
+      else if(vl=="yyyy_mm_dd"){v="/^[12]\\d{3}([\\/\\\\\\-](0?[1-9]|1[012]))([\\/\\\\\\-](0?[1-9]|[12]\\d|3[01]))$/";}
       else if(vl=="leneq" || vl=="lengtheq"){
           var n = getNumber();
           if(isNaN(n)){
@@ -301,7 +302,7 @@ var widgets={forms:[], globalObject:this};
       }
       return expr;
     };
-    getWhen=function(reader){
+    getWhen=function(reader){               // get a signal when(/action) & target
         var d, action, target;
         if(!reader.hasMore()) return null;
         d=reader.next();
@@ -326,19 +327,24 @@ var widgets={forms:[], globalObject:this};
     };
     setup=function(ctx, onLoadTest){
         var rule, match;
-        var m, w, va, f, a, t;
-        var validationsFor={}, validationsForClass={};
+        var m, w, va, f, a, lf, addValidationFor;
+        var validationsFor={}, liveValidationsFor={};
         //var matchQuotedStr = '("([^"\\]|\\.)*")';     // continues matching until closing (unescaped) quote
-        var vLabels=ctx.find("label.validation-err-msg");
-        $(".validation-err-msg").hide();
+        var vLabels=ctx.find("label.validation-err-msg, label[data-rule],label[data-validation-rule]");
+        vLabels.hide();
         //value="for('dc:title');test(notEmpty);when(onChange)"
-        rule=function(v){
-            var dict={};
+        addValidationFor=function(f, dict){
+            a=validationsFor[f]||(validationsFor[f]=[]);
+            a.push(dict);
+        }
+        rule=function(r){
+            var dict, reader, l, lfc;
+            dict={};
             match=function(){
                 m=arguments;     //2, 4, 14, 15=Err
                 if(m[0].length==0)return "";
                 if(m[15]){
-                    alert("Error: '"+m[15]+"' in '"+v+"'");
+                    alert("Error: '"+m[15]+"' in '"+r+"'");
                     return "";
                 }
                 w=m[2].toLowerCase();
@@ -346,37 +352,55 @@ var widgets={forms:[], globalObject:this};
                 dict[w]=va;
                 return "";
             };
-            v.replace(reg1, match);
+            r.replace(reg1, match);
+            //
+            lf=dict.livefor;
+            if(lf){
+                liveValidationsFor[lf]=dict;
+                dict["for"]=null;
+            }
             f=dict["for"];
-            dict["when"]=(dict["when"]||"");
             if(f){
-                a = validationsFor[f];
-                if(!a) a=validationsFor[f]=[];
-                a.push(dict);
-                if(dict["name"]){
-                    namedTests[dict["name"]]=dict;
-                }else if(!namedTests[f]){   // default name is 'for' id
-                    namedTests[f]=dict;
+                addValidationFor(f, dict);
+            }
+            if(dict["name"]){
+                namedTests[dict["name"]]=dict;
+            }
+            if(dict.test){
+              reader = iterReader(dict.test.match(reg2));
+              dict.testStr = getExpr(reader);
+            }
+            dict.when=(dict.when||"");
+            dict.whenList=[];
+            m = dict.when.match(reg2);
+            if(m){
+                reader = iterReader(m);
+                while(!!(w=getWhen(reader))){
+                    dict.whenList.push(w);      // w.action & w.target
                 }
             }
-            f=dict["forclass"];
-            if(f){
-                a = validationsForClass[f];
-                if(!a) a=validationsForClass[f]=[];
-                a.push(dict);
-                if(dict["name"]){
-                    namedTests[dict["name"]]=dict;
-                } // no default name
-            }
             allTests.push(dict);
+            return dict;
         };
         vLabels.each(function(c, v){
-            v = $(v).dataset("rule");
-            if(v){rule(v);}
+            var r, dict;
+            v=$(v);
+            r = v.dataset("rule")||v.dataset("validation-rule");
+            if(r){
+                dict=rule(r);
+                if(!dict["for"] && !dict.livefor){
+                    f=v.attr("for");
+                    if(f){
+                        dict["for"]=f
+                        addValidationFor(f, dict);
+                    }
+                }
+            }
         });
         ctx.find(".validation-rule").each(function(c, v){
+            var dict;
             v = $(v).val() || $(v).text();
-            rule(v);
+            dict=rule(v);
         });
         ctx.find(".validation-rules").each(function(c, v){
             v = $(v).text();
@@ -385,86 +409,86 @@ var widgets={forms:[], globalObject:this};
                 if(v)rule(v);
             });
         });
-        $.each(validationsFor, function(f, l){
-            var target = $(document.getElementById(f));
-            var reader, getValue, showValidationMessage;
-            var testStr, func;
-            if(true){
-                var vLabel=vLabels.filter("[for="+f+"]");
-                getValue=function(){ return target.val(); };
-                showValidationMessage=function(show){
-                    try{
-                        show?vLabel.show():vLabel.hide();
-                    }catch(e){}
-                    return show;
-                };
-                $.each(l, function(c, d){
-                    testStr="";
-                    if(d.test){
-                      reader = iterReader(d.test.match(reg2));
-                      testStr = getExpr(reader);
-                      try{
-                        func="func=function(){var v=getValue();"+
-                            "return showValidationMessage(!("+testStr+"));};";
-                        eval(func);
-                        func.x=d;
-                        d._testFunc=func;
-                        d.getValue=getValue;
-                        d.target=target;
-                        d.showValidationMessage=showValidationMessage;
-                        d.vLabel=vLabel;
-                      } catch(e){
-                        alert(e + ", func="+func);
-                      }
-                      //if(onLoadTest){func();}
-                      m = d.when.match(reg2);
-                      if(m){
-                        reader = iterReader(m);
-                        while(!!(w=getWhen(reader))){
-                          w.target = w.target||target;
-                          if(!w.action) continue;
-                          w.target.bind(w.action, function(){func();return true;});
-                          if(!actionTests[w.action]) actionTests[w.action]=[];
-                          actionTests[w.action].push(func);
-                        }
-                      }
-                    }
-                });
-            }
+        ctx.find("input[data-validation-rule], textarea[data-validation-rule]").each(function(c, v){
+            var r, dict;
+            r =$(v).dataset("validation-rule");
+            if(!/;$/)r+=";";
+            r +="for("+v.id+");"
+            dict=rule(r);
         });
-        // forClass(test)
-        $.each(validationsForClass, function(fc, l){
+        $.each(validationsFor, function(f, l){
+            var target, getValue, showValidationMessage;
+            var func, vLabel;
+            target = $(document.getElementById(f));
+            vLabel=vLabels.filter("[for="+f+"]");
+            getValue=function(){ return target.val(); };
+            showValidationMessage=function(show){
+                try{
+                    show?vLabel.show():vLabel.hide();
+                }catch(e){}
+                return show;
+            };
             $.each(l, function(c, d){
-              var cls, m, reader, testStr, testCode;
-              cls = d.forclass;
-              if(d.test){
-                reader = iterReader(d.test.match(reg2));
-                testStr = getExpr(reader);
-                testCode="showValidationMessage(!("+testStr+"));";
-                m = d.when.match(reg2);
-                if(m){
-                  reader = iterReader(m);
-                  while(!!(w=getWhen(reader))){
-                    var checkFunc=function(){
-                      var target, id, v, vLabel, showValidationMessage;
-                      target = $(this);
-                      id = target.attr("id");
-                      v = target.val();
-                      vLabel=ctx.find("label.validation-err-msg[for="+id+"]");
-                      showValidationMessage=function(show){
-                          show?vLabel.show():vLabel.hide(); return show;
-                      };
-                      try{
-                          eval(testCode);
-                      }catch(e){
-                          alert("ERROR executing testCode: " +e.message);
-                      }
-                    }
-                    ctx.find("."+cls).die().live(w.action, checkFunc);
+                if(d.testStr){
+                  try{
+                    func="func=function(){var v=getValue();"+
+                        "return showValidationMessage(!("+d.testStr+"));};";
+                    eval(func);
+                    func.x=d;
+                    d._testFunc=func;
+                    d.getValue=getValue;
+                    d.target=target;
+                    d.showValidationMessage=showValidationMessage;
+                    d.vLabel=vLabel;
+                  } catch(e){
+                    alert(e + ", func="+func);
                   }
+                  $.each(d.whenList, function(c, w){
+                      w.target = w.target||target;
+                      if(w.action){
+                        w.target.bind(w.action, function(){func();return true;});
+                        actionTests[w.action]||(actionTests[w.action]=[]);
+                        actionTests[w.action].push(func);
+                      }
+                  });
                 }
-              }
             });
+        });
+        $.each(liveValidationsFor, function(lf, dict){
+            var target, showValidationMessage;
+            var testFunc, liveResult;
+            if(dict.testStr){
+              try{
+                target = ctx.find(lf);
+                testFunc = "testFunc=function(){var r,e,zid,v=$(this).val();"+
+                    "if(/\\.0(\\.|$)/.test(this.id))return false;"+   // do not validate inputs with an id containing .0.
+                    "r=!("+dict.testStr+");"+
+                    "liveResult|=r;"+
+                    "e=ctx.find('label.validation-err-msg, label[data-rule],label[data-validation-rule]');"+
+                    "zid=this.id.replace(/\\.\\d+(?=\\.|$)/g,'.0');"+
+                    "e=e.filter('[for='+this.id+'],[for='+zid+']');"+
+                    "r?e.show():e.hide();"+                 // r==show
+                    "return r;}";
+                eval(testFunc);
+                testFunc.x=dict;
+                dict._testFunc=testFunc;
+                dict.target=target;
+              } catch(e){
+                alert(e + ", testFunc="+testFunc);
+              }
+              $.each(dict.whenList, function(c, w){
+                  if(w.action){
+                      // ignore w.target for now
+                      target.live(w.action, testFunc);
+                      actionTests[w.action]||(actionTests[w.action]=[]);
+                      actionTests[w.action].push(function(){
+                          liveResult=false;
+                          target.trigger(w.action);
+                          return liveResult;
+                      });
+                  }
+              });
+            }
         });
     };
     return {
