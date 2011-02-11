@@ -2,7 +2,7 @@ import htmlentitydefs
 
 from au.edu.usq.fascinator.api.storage import PayloadType, StorageException
 from au.edu.usq.fascinator.api.indexer import SearchRequest
-from au.edu.usq.fascinator.common import FascinatorHome, JsonSimple, JsonSimpleConfig
+from au.edu.usq.fascinator.common import FascinatorHome, Manifest, JsonSimple, JsonSimpleConfig
 from au.edu.usq.fascinator.common.solr import SolrResult
 
 from com.sun.syndication.feed.atom import Content
@@ -69,8 +69,8 @@ class BlogData:
                     sourceId = self.__object.getSourceId()
                     sourcePayload = self.__object.getPayload(sourceId)
                     if sourcePayload and sourcePayload.getContentType() == "application/x-fascinator-package":
-                        jsonManifest = JsonSimpleConfig(sourcePayload.open())
-                        content = self.__getManifestContent(jsonManifest)
+                        manifest = Manifest(sourcePayload.open())
+                        content = self.__getManifestContent(manifest)
                         sourcePayload.close()
                     else:
                         content = self.services.pageService.renderObject(self.__convertToVelocityContext(), "detail", self.__metadata)
@@ -156,14 +156,12 @@ class BlogData:
             f.createNewFile()
         return f
 
-    def __getManifestContent(self, jsonManifest):
-        manifest = jsonManifest.getJsonSimpleMap("manifest")
+    def __getManifestContent(self, manifest):
         contentStr = "<div>"
-        for key in manifest.keySet():
-            item = manifest.get(key)
-            if not item.getBoolean(False, "hidden"):
-                contentStr += "<div><h2>%s</h2>" % item.getString(None, "title")
-                contentStr += self.__getContent(item.getString(None, "id"))
+        for node in manifest.getTopNodes():
+            if not node.getHidden():
+                contentStr += "<div><h2>%s</h2>" % node.getTitle()
+                contentStr += self.__getContent(node.getId())
                 contentStr += "</div>"
         contentStr += "</div>"
         return contentStr
