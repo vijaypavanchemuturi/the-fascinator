@@ -98,7 +98,7 @@ public class HouseKeeper implements GenericListener {
     private static String DERBY_PROTOCOL = "jdbc:derby:";
 
     /** HouseKeeping database name */
-    private static String SECURITY_DATABASE = "housekeeping";
+    private static String HK_DATABASE = "housekeeping";
 
     /** Notifications table */
     private static String NOTIFICATIONS_TABLE = "notifications";
@@ -116,7 +116,7 @@ public class HouseKeeper implements GenericListener {
     private String derbyHome;
 
     /** Database connection */
-    private java.sql.Connection db;
+    private java.sql.Connection dbConnection;
 
     /** JMS connection */
     private javax.jms.Connection connection;
@@ -157,9 +157,6 @@ public class HouseKeeper implements GenericListener {
     /** Queue data */
     private Map<String, Map<String, String>> stats;
 
-    /** Map of SQL statements */
-    private Map<String, PreparedStatement> statements;
-
     /** Startup flag for completion */
     private boolean renderReady = false;
 
@@ -190,7 +187,6 @@ public class HouseKeeper implements GenericListener {
      *
      */
     public HouseKeeper() {
-        statements = new HashMap();
         thread = new Thread(this, QUEUE_ID);
     }
 
@@ -227,21 +223,8 @@ public class HouseKeeper implements GenericListener {
 
             connection.start();
 
-            // Set the system property to match, the DriverManager will look here
-            System.setProperty("derby.system.home", derbyHome);
-            // Load the JDBC driver
-            try {
-                Class.forName(DERBY_DRIVER).newInstance();
-            } catch (Exception ex) {
-                log.error("JDBC Driver load failed: ", ex);
-            }
-
             // Database prep work
-            Properties props = new Properties();
             try {
-                // Establish a database connection, create the database if needed
-                db = DriverManager.getConnection(DERBY_PROTOCOL +
-                        SECURITY_DATABASE + ";create=true", props);
                 // Look for our table
                 checkTable(NOTIFICATIONS_TABLE);
                 // Sync in-memory actions to database
@@ -282,6 +265,36 @@ public class HouseKeeper implements GenericListener {
             log.error("Error starting message thread!", ex);
         }
         closeLog();
+    }
+
+    private java.sql.Connection dbConnection() throws SQLException {
+        if (dbConnection == null || !dbConnection.isValid(1)) {
+            // At least try to close if not null... even though its not valid
+            if (dbConnection != null) {
+                log.error("!!! Database connection has failed, recreating.");
+                try {
+                    dbConnection.close();
+                } catch (SQLException ex) {
+                    log.error("Error closing invalid connection, ignoring: {}",
+                            ex.getMessage());
+                }
+            }
+
+            // Open a new connection
+            Properties props = new Properties();
+            // Load the JDBC driver
+            try {
+                Class.forName(DERBY_DRIVER).newInstance();
+            } catch (Exception ex) {
+                log.error("Driver load failed: ", ex);
+                throw new SQLException("Driver load failed: ", ex);
+            }
+
+            // Establish a database connection
+            dbConnection = DriverManager.getConnection(DERBY_PROTOCOL +
+                    HK_DATABASE + ";create=true", props);
+        }
+        return dbConnection;
     }
 
     /**
@@ -381,24 +394,49 @@ public class HouseKeeper implements GenericListener {
             // Configuration
             globalConfig = new JsonSimpleConfig();
             timeout = config.getInteger(DEFAULT_TIMEOUT, "config", "frequency");
-            derbyHome = config.getString(null, "config", "derbyHome");
-            if (derbyHome == null) {
-                throw new Exception("No database home directory configured!");
-            }
-            // Find database directory, create if necessary
-            File file = new File(derbyHome);
-            if (file.exists()) {
-                if (!file.isDirectory()) {
-                    throw new Exception("Database home '" + derbyHome +
-                            "' is not a directory!");
+
+            // Find data directory
+            derbyHome = config.getString(null,
+                    "database-service", "derbyHome");
+            String oldHome = System.getProperty("derby.system.home");
+
+            // Derby's data directory has already been configured
+            if (oldHome != null) {
+                if (derbyHome != null) {
+                    // Use the existing one, but throw a warning
+                    log.warn("Using previously specified data directory:" +
+                            " '{}', provided value has been ignored: '{}'",
+                            oldHome, derbyHome);
+                } else {
+                    // This is ok, no configuration conflicts
+                    log.info("Using existing data directory: '{}'", oldHome);
                 }
+
+            // We don't have one, config MUST have one
             } else {
-                file.mkdirs();
-                if (!file.exists()) {
-                    throw new Exception("Database home '" + derbyHome +
-                            "' does not exist and could not be created!");
+                if (derbyHome == null) {
+                    log.error("No database home directory configured!");
+                    return;
+                } else {
+                    // Establish its validity and existance, create if necessary
+                    File file = new File(derbyHome);
+                    if (file.exists()) {
+                        if (!file.isDirectory()) {
+                            throw new Exception("Database home '" +
+                                    derbyHome + "' is not a directory!");
+                        }
+                    } else {
+                        file.mkdirs();
+                        if (!file.exists()) {
+                            throw new Exception("Database home '" +
+                                    derbyHome +
+                                    "' does not exist and could not be created!");
+                        }
+                    }
+                    System.setProperty("derby.system.home", derbyHome);
                 }
             }
+
             File sysFile = JsonSimpleConfig.getSystemFile();
             stats = new LinkedHashMap();
 
@@ -525,11 +563,6 @@ public class HouseKeeper implements GenericListener {
             }
         }
 
-        // Release all our queries
-        for (String key : statements.keySet()) {
-            close(statements.get(key));
-        }
-
         // Derby can only be shutdown from one thread,
         //    we'll catch errors from the rest.
         String threadedShutdownMessage = DERBY_DRIVER
@@ -558,9 +591,9 @@ public class HouseKeeper implements GenericListener {
         } finally {
             try {
                 // Close our connection
-                if (db != null) {
-                    db.close();
-                    db = null;
+                if (dbConnection != null) {
+                    dbConnection.close();
+                    dbConnection = null;
                 }
             } catch (SQLException ex) {
                 log.warn("Error closing connection:", ex);
@@ -965,11 +998,12 @@ public class HouseKeeper implements GenericListener {
     private void removeAction(int id) throws SQLException {
         log.debug("Removing action: '{}'", id);
         // Prepare our query
-        PreparedStatement delete = prepare("deleteAction",
+        PreparedStatement sql = dbConnection().prepareCall(
                 "DELETE FROM " + NOTIFICATIONS_TABLE + " WHERE id = ?");
         // Run the query
-        delete.setInt(1, id);
-        delete.executeUpdate();
+        sql.setInt(1, id);
+        sql.executeUpdate();
+        close(sql);
         // Update memory cache
         syncActionList();
     }
@@ -992,14 +1026,15 @@ public class HouseKeeper implements GenericListener {
         try {
             log.debug("Storing action: '{}'", action.message);
             // Prepare our query
-            PreparedStatement store = prepare("storeAction", "INSERT INTO " +
-                    NOTIFICATIONS_TABLE + " (block, message, datetime)" +
-                    " VALUES (?, ?, ?)");
+            PreparedStatement sql = dbConnection().prepareCall(
+                    "INSERT INTO " + NOTIFICATIONS_TABLE +
+                    " (block, message, datetime) VALUES (?, ?, ?)");
             // Run the query
-            store.setBoolean(1, action.block);
-            store.setString(2, action.message);
-            store.setTimestamp(3, new Timestamp(action.date.getTime()));
-            store.executeUpdate();
+            sql.setBoolean(1, action.block);
+            sql.setString(2, action.message);
+            sql.setTimestamp(3, new Timestamp(action.date.getTime()));
+            sql.executeUpdate();
+            close(sql);
             // Update memory cache
             syncActionList();
         } catch (SQLException ex) {
@@ -1016,10 +1051,11 @@ public class HouseKeeper implements GenericListener {
         actions = new ArrayList();
         try {
             // Prepare our query
-            PreparedStatement select = prepare("syncActions", "SELECT * FROM " +
-                    NOTIFICATIONS_TABLE + " ORDER BY block DESC, id");
+            PreparedStatement sql = dbConnection().prepareCall(
+                    "SELECT * FROM " + NOTIFICATIONS_TABLE +
+                    " ORDER BY block DESC, id");
             // Run the query
-            ResultSet result = select.executeQuery();
+            ResultSet result = sql.executeQuery();
             // Build our list
             while (result.next()) {
                 UserAction ua = new UserAction();
@@ -1031,27 +1067,10 @@ public class HouseKeeper implements GenericListener {
             }
             // Release the resultset
             close(result);
+            close(sql);
         } catch (SQLException ex) {
             log.error("Error accessing database: ", ex);
         }
-    }
-
-    /**
-     * Prepare a statement and return it. The statement will be recorded in the
-     * plugin's map of statements to be released at shutdown.
-     *
-     * @param index The index to file the statement under in the hashmap
-     * @param sql The sql statement to prepare
-     * @return PreparedStatement The statement that was prepared
-     */
-    private PreparedStatement prepare(String index, String sql)
-            throws SQLException {
-        PreparedStatement statement = statements.get(index);
-        if (statement == null) {
-            statement = db.prepareStatement(sql);
-            statements.put(index, statement);
-        }
-        return statement;
     }
 
     /**
@@ -1087,7 +1106,7 @@ public class HouseKeeper implements GenericListener {
      */
     private boolean findTable(String table) throws SQLException {
         boolean tableFound = false;
-        DatabaseMetaData meta = db.getMetaData();
+        DatabaseMetaData meta = dbConnection().getMetaData();
         ResultSet result = (ResultSet) meta.getTables(null, null, null, null);
         while (result.next() && !tableFound) {
             if (result.getString("TABLE_NAME").equalsIgnoreCase(table)) {
@@ -1106,8 +1125,8 @@ public class HouseKeeper implements GenericListener {
      *                      or an unknown table was specified.
      */
     private void createTable(String table) throws SQLException {
-        Statement sql = db.createStatement();
         if (table.equals(NOTIFICATIONS_TABLE)) {
+            Statement sql = dbConnection().createStatement();
             sql.execute(
                     "CREATE TABLE " + NOTIFICATIONS_TABLE +
                     "(id INTEGER NOT NULL GENERATED ALWAYS AS " +
@@ -1119,7 +1138,6 @@ public class HouseKeeper implements GenericListener {
             close(sql);
             return;
         }
-        close(sql);
         throw new SQLException("Unknown table '" + table + "' requested!");
     }
 

@@ -113,28 +113,7 @@ public class DerbyAccessControl implements AccessControl {
     private String derbyHome;
 
     /** Database connection */
-    private Connection conn;
-
-    /** SQL Statement */
-    private Statement sql;
-
-    /** Result set */
-    private ResultSet result;
-
-    /** Delete statement */
-    private PreparedStatement delete;
-
-    /** Insert statement (record) */
-    private PreparedStatement insertRecord;
-
-    /** Insert statement (role) */
-    private PreparedStatement insertRole;
-
-    /** Select statement (record) */
-    private PreparedStatement selectRecord;
-
-    /** Select statement (roles) */
-    private PreparedStatement selectRoles;
+    private Connection connection;
 
     /**
      * Gets an identifier for this type of plugin. This should be a simple name
@@ -204,49 +183,50 @@ public class DerbyAccessControl implements AccessControl {
      * @throws AuthenticationException if fails to initialize
      */
     private void setConfig(JsonSimple config) throws AccessControlException {
-        // Find our database home directory
+        // Find data directory
         derbyHome = config.getString(null,
-                "accesscontrol", "derby", "derbyHome");
-        if (derbyHome == null) {
-            throw new AccessControlException("Database home not specified!");
+                "database-service", "derbyHome");
+        String oldHome = System.getProperty("derby.system.home");
 
-        } else {
-            // Establish its validity and existance, create if necessary
-            File file = new File(derbyHome);
-            if (file.exists()) {
-                if (!file.isDirectory()) {
-                    throw new AccessControlException("Database home '" +
-                            derbyHome + "' is not a directory!");
-                }
+        // Derby's data directory has already been configured
+        if (oldHome != null) {
+            if (derbyHome != null) {
+                // Use the existing one, but throw a warning
+                log.warn("Using previously specified data directory:" +
+                        " '{}', provided value has been ignored: '{}'",
+                        oldHome, derbyHome);
             } else {
-                file.mkdirs();
-                if (!file.exists()) {
-                    throw new AccessControlException("Database home '" +
-                            derbyHome +
-                            "' does not exist and could not be created!");
-                }
+                // This is ok, no configuration conflicts
+                log.info("Using existing data directory: '{}'", oldHome);
             }
-        }
-        // Set the system property to match, the DriverManager will look here
-        System.setProperty("derby.system.home", derbyHome);
 
-        // Load the JDBC driver
-        try {
-            Class.forName(DERBY_DRIVER).newInstance();
-        } catch (Exception ex) {
-            log.error("Driver load failed: ", ex);
-            throw new AccessControlException("Driver load failed: ", ex);
+        // We don't have one, config MUST have one
+        } else {
+            if (derbyHome == null) {
+                log.error("No database home directory configured!");
+                return;
+            } else {
+                // Establish its validity and existance, create if necessary
+                File file = new File(derbyHome);
+                if (file.exists()) {
+                    if (!file.isDirectory()) {
+                        throw new AccessControlException("Database home '" +
+                                derbyHome + "' is not a directory!");
+                    }
+                } else {
+                    file.mkdirs();
+                    if (!file.exists()) {
+                        throw new AccessControlException("Database home '" +
+                                derbyHome +
+                                "' does not exist and could not be created!");
+                    }
+                }
+                System.setProperty("derby.system.home", derbyHome);
+            }
         }
 
         // Database prep work
-        Properties props = new Properties();
         try {
-            // Establish a database connection, create the database if needed
-            conn = DriverManager.getConnection(DERBY_PROTOCOL +
-                    SECURITY_DATABASE + ";create=true", props);
-            sql = conn.createStatement();
-
-            // Look for our tables
             checkTable(RECORD_TABLE);
             checkTable(ROLE_TABLE);
         } catch (SQLException ex) {
@@ -257,6 +237,36 @@ public class DerbyAccessControl implements AccessControl {
         log.debug("Derby security database online!");
     }
 
+    private Connection connection() throws SQLException {
+        if (connection == null || !connection.isValid(1)) {
+            // At least try to close if not null... even though its not valid
+            if (connection != null) {
+                log.error("!!! Database connection has failed, recreating.");
+                try {
+                    connection.close();
+                } catch (SQLException ex) {
+                    log.error("Error closing invalid connection, ignoring: {}",
+                            ex.getMessage());
+                }
+            }
+
+            // Open a new connection
+            Properties props = new Properties();
+            // Load the JDBC driver
+            try {
+                Class.forName(DERBY_DRIVER).newInstance();
+            } catch (Exception ex) {
+                log.error("Driver load failed: ", ex);
+                throw new SQLException("Driver load failed: ", ex);
+            }
+
+            // Establish a database connection
+            connection = DriverManager.getConnection(DERBY_PROTOCOL +
+                    SECURITY_DATABASE + ";create=true", props);
+        }
+        return connection;
+    }
+
     /**
      * Shuts down the plugin
      *
@@ -264,14 +274,6 @@ public class DerbyAccessControl implements AccessControl {
      */
     @Override
     public void shutdown() throws AccessControlException {
-        // Release all our queries
-        close(sql);
-        close(delete);
-        close(insertRecord);
-        close(insertRole);
-        close(selectRecord);
-        close(selectRoles);
-
         // Derby can only be shutdown from one thread,
         //    we'll catch errors from the rest.
         String threadedShutdownMessage = DERBY_DRIVER
@@ -302,14 +304,12 @@ public class DerbyAccessControl implements AccessControl {
         } finally {
             try {
                 // Close our connection
-                if (conn != null) {
-                    conn.close();
-                    conn = null;
+                if (connection != null) {
+                    connection.close();
+                    connection = null;
                 }
             } catch (SQLException ex) {
                 log.error("Error closing connection:", ex);
-                throw new AccessControlException(
-                        "Error closing connection:", ex);
             }
         }
     }
@@ -527,8 +527,8 @@ public class DerbyAccessControl implements AccessControl {
      */
     private boolean findTable(String table) throws SQLException {
         boolean tableFound = false;
-        DatabaseMetaData meta = conn.getMetaData();
-        result = (ResultSet) meta.getTables(null, null, null, null);
+        DatabaseMetaData meta = connection().getMetaData();
+        ResultSet result = (ResultSet) meta.getTables(null, null, null, null);
         while (result.next() && !tableFound) {
             if (result.getString("TABLE_NAME").equalsIgnoreCase(table)) {
                 tableFound = true;
@@ -547,18 +547,22 @@ public class DerbyAccessControl implements AccessControl {
      */
     private void createTable(String table) throws SQLException {
         if (table.equals(RECORD_TABLE)) {
+            Statement sql = connection().createStatement();
             sql.execute(
                     "CREATE TABLE " + RECORD_TABLE +
                     "(recordId VARCHAR(255) NOT NULL, " +
                     "PRIMARY KEY (recordId))");
+            close(sql);
             return;
         }
         if (table.equals(ROLE_TABLE)) {
+            Statement sql = connection().createStatement();
             sql.execute(
                     "CREATE TABLE " + ROLE_TABLE +
                     "(recordId VARCHAR(255) NOT NULL, " +
                     "role VARCHAR(255) NOT NULL, " +
                     "PRIMARY KEY (recordId, role))");
+            close(sql);
             return;
         }
         throw new SQLException("Unknown table '" + table + "' requested!");
@@ -573,17 +577,15 @@ public class DerbyAccessControl implements AccessControl {
      */
     private void revokeAccess(String recordId, String role)
             throws SQLException {
-        // First run
-        if (delete == null) {
-            delete = conn.prepareStatement(
-                    "DELETE FROM " + ROLE_TABLE +
-                    " WHERE recordId = ? AND role = ?");
-        }
+        PreparedStatement sql = connection().prepareStatement(
+                "DELETE FROM " + ROLE_TABLE +
+                " WHERE recordId = ? AND role = ?");
 
         // Prepare and execute
-        delete.setString(1, recordId);
-        delete.setString(2, role);
-        delete.executeUpdate();
+        sql.setString(1, recordId);
+        sql.setString(2, role);
+        sql.executeUpdate();
+        close(sql);
     }
 
     /**
@@ -594,16 +596,14 @@ public class DerbyAccessControl implements AccessControl {
      * @throws SQLException if there were database errors making the change
      */
     private void grantAccess(String recordId, String role) throws SQLException {
-        // First run
-        if (insertRole == null) {
-            insertRole = conn.prepareStatement(
+        PreparedStatement sql = connection().prepareStatement(
                     "INSERT INTO " + ROLE_TABLE + " VALUES (?, ?)");
-        }
 
         // Prepare and execute
-        insertRole.setString(1, recordId);
-        insertRole.setString(2, role);
-        insertRole.executeUpdate();
+        sql.setString(1, recordId);
+        sql.setString(2, role);
+        sql.executeUpdate();
+        close(sql);
     }
 
     /**
@@ -613,15 +613,13 @@ public class DerbyAccessControl implements AccessControl {
      * @throws SQLException if there were database errors making the change
      */
     private void newRecord(String recordId) throws SQLException {
-        // First run
-        if (insertRecord == null) {
-            insertRecord = conn.prepareStatement(
+        PreparedStatement sql = connection().prepareStatement(
                     "INSERT INTO " + RECORD_TABLE + " VALUES (?)");
-        }
 
         // Prepare and execute
-        insertRecord.setString(1, recordId);
-        insertRecord.executeUpdate();
+        sql.setString(1, recordId);
+        sql.executeUpdate();
+        close(sql);
     }
 
     /**
@@ -635,21 +633,19 @@ public class DerbyAccessControl implements AccessControl {
     private List<String> search(String recordId) throws SQLException {
         List<String> roles = new ArrayList();
 
-        // First run
-        if (selectRoles == null) {
-            selectRoles = conn.prepareStatement(
+        PreparedStatement sql = connection().prepareStatement(
                     "SELECT * FROM " + ROLE_TABLE + " WHERE recordId = ?");
-        }
 
         // Prepare and execute
-        selectRoles.setString(1, recordId);
-        result = selectRoles.executeQuery();
+        sql.setString(1, recordId);
+        ResultSet result = sql.executeQuery();
 
         // Build response
         while (result.next()) {
             roles.add(result.getString("role"));
         }
         close(result);
+        close(sql);
 
         // Do we even have this record on file?
         if (roles.isEmpty()) {
@@ -670,16 +666,13 @@ public class DerbyAccessControl implements AccessControl {
      * @throws SQLException if there were database errors during the search
      */
     private boolean checkRecord(String recordId) throws SQLException {
-        // First run
-        if (selectRecord == null) {
-            selectRecord = conn.prepareStatement(
+        PreparedStatement sql = connection().prepareStatement(
                     "SELECT count(*) as total FROM " + RECORD_TABLE +
                     " WHERE recordId = ?");
-        }
 
         // Prepare and execute
-        selectRecord.setString(1, recordId);
-        result = selectRecord.executeQuery();
+        sql.setString(1, recordId);
+        ResultSet result = sql.executeQuery();
 
         // Build response
         boolean response = false;
@@ -689,6 +682,8 @@ public class DerbyAccessControl implements AccessControl {
             }
         }
         close(result);
+        close(sql);
+
         return response;
     }
 

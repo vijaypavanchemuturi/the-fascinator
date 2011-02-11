@@ -20,6 +20,7 @@ package au.edu.usq.fascinator.portal.services.impl;
 
 import au.edu.usq.fascinator.common.JsonSimpleConfig;
 import au.edu.usq.fascinator.portal.services.DatabaseServices;
+import java.io.File;
 
 import java.io.IOException;
 import java.sql.Connection;
@@ -66,7 +67,7 @@ public class DatabaseServicesImpl implements DatabaseServices {
     private boolean hasErrors;
 
     /** List of databases opened */
-    private Map<String, Connection> databases;
+    private Map<String, Connection> dbConnections;
 
     /** List of statements opened */
     private Map<String, PreparedStatement> statements;
@@ -105,6 +106,24 @@ public class DatabaseServicesImpl implements DatabaseServices {
                     hasErrors = true;
                     return;
                 } else {
+                    // Establish its validity and existance, create if necessary
+                    File file = new File(derbyHome);
+                    if (file.exists()) {
+                        if (!file.isDirectory()) {
+                            log.error("Database home '" +
+                                    derbyHome + "' is not a directory!");
+                            hasErrors = true;
+                            return;
+                        }
+                    } else {
+                        file.mkdirs();
+                        if (!file.exists()) {
+                            log.error("Database home '" + derbyHome +
+                                 "' does not exist and could not be created!");
+                            hasErrors = true;
+                            return;
+                        }
+                    }
                     System.setProperty("derby.system.home", derbyHome);
                 }
             }
@@ -119,12 +138,60 @@ public class DatabaseServicesImpl implements DatabaseServices {
             }
 
             // Instantiate holding maps
-            databases = new HashMap();
+            dbConnections = new HashMap();
             statements = new HashMap();
 
         } catch (IOException ex) {
             log.error("Failed to access system config", ex);
         }
+    }
+
+    private java.sql.Connection connection(String database, boolean create)
+            throws SQLException {
+
+        // Has it already been instantiated this session?
+        Connection thisDatabase = null;
+        if (dbConnections.containsKey(database)) {
+            thisDatabase = dbConnections.get(database);
+        }
+
+        if (thisDatabase == null || !thisDatabase.isValid(1)) {
+            // At least try to close if not null... even though its not valid
+            if (thisDatabase != null) {
+                log.error("Database connection '{}' has failed, recreating.",
+                        database);
+                try {
+                    thisDatabase.close();
+                } catch (SQLException ex) {
+                    log.error("Error closing invalid connection, ignoring: {}",
+                            ex.getMessage());
+                }
+            }
+
+            // Open a new connection
+            Properties props = new Properties();
+            // Load the JDBC driver
+            try {
+                Class.forName(DERBY_DRIVER).newInstance();
+            } catch (Exception ex) {
+                log.error("Driver load failed: ", ex);
+                throw new SQLException("Driver load failed: ", ex);
+            }
+
+            // Connection string
+            String connection = DERBY_PROTOCOL + database;
+            if (create) {
+                //log.debug("connect() '{}' SETTING CREATION FLAG", database);
+                connection += ";create=true";
+            }
+            // Try to connect
+            //log.debug("connect() '{}' ATTEMPTING CONNECTION", connection);
+            thisDatabase = DriverManager.getConnection(
+                    connection, new Properties());
+            dbConnections.put(database, thisDatabase);
+        }
+
+        return thisDatabase;
     }
 
     /**
@@ -141,9 +208,9 @@ public class DatabaseServicesImpl implements DatabaseServices {
         }
 
         // Shutdown database connections
-        for (String key : databases.keySet()) {
+        for (String key : dbConnections.keySet()) {
             try {
-                databases.get(key).close();
+                dbConnections.get(key).close();
             } catch (SQLException ex) {
                 log.error("Error closing database: ", ex);
             }
@@ -183,7 +250,7 @@ public class DatabaseServicesImpl implements DatabaseServices {
     public Connection checkConnection(String database) throws Exception {
         try {
             //log.debug("checkConnection() '{}'", database);
-            return this.connect(database, false);
+            return connection(database, false);
         } catch (Exception ex) {
             //log.debug("checkConnection() '{}' FAIL", database);
             throw new Exception("Database does not exist", ex);
@@ -202,50 +269,11 @@ public class DatabaseServicesImpl implements DatabaseServices {
     public Connection getConnection(String database) throws Exception {
         try {
             //log.debug("getConnection() '{}'", database);
-            return this.connect(database, true);
+            return connection(database, true);
         } catch (Exception ex) {
             //log.debug("getConnection() '{}' FAIL", database);
             log.error("Error during database creation:", ex);
             throw ex;
-        }
-    }
-
-    /**
-     * Private worker method to create the connection.
-     *
-     * @param database The name of the database to connect to.
-     * @param create Flag whether to create the database if it doesn't exist.
-     * @param Connection The instantiated database connection, NULL possible.
-     * @throws Exception if there is a connection error.
-     */
-    private Connection connect(String database, boolean create)
-            throws Exception {
-        // Has it already been instantiated this session?
-        //log.debug("connect() '{}'", database);
-        if (databases.containsKey(database) &&
-                databases.get(database) != null) {
-            //log.debug("connect() '{}' RETURNING FROM CACHE", database);
-            return databases.get(database);
-        }
-
-        try {
-            // Connection string
-            String connection = DERBY_PROTOCOL + database;
-            if (create) {
-                //log.debug("connect() '{}' SETTING CREATION FLAG", database);
-                connection += ";create=true";
-            }
-            // Try to connect
-            //log.debug("connect() '{}' ATTEMPTING CONNECTION", connection);
-            Connection db = DriverManager.getConnection(
-                    connection, new Properties());
-            // Store and return
-            //log.debug("connect() '{}' SUCCESS", database);
-            databases.put(database, db);
-            return db;
-        } catch (SQLException ex) {
-            //log.debug("connect() '{}' FAIL", database);
-            throw new Exception(ex);
         }
     }
 

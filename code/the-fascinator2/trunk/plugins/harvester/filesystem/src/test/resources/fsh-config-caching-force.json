@@ -7,8 +7,10 @@
                 "force": true
             } ],
             "caching": "basic",
-            "cacheId": "config-caching",
-            "derbyHome" : "${test.cache.dir}"
+            "cacheId": "config-caching"
         }
+    },
+    "database-service": {
+        "derbyHome" : "${test.cache.dir}"
     }
 }
