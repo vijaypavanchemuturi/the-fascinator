@@ -133,7 +133,7 @@ class DetailData:
                     if self.__ffmpegData is None:
                         return False
                     else:
-                        self.__ffmpegOutputs = self.__ffmpegData.getJsonSimpleMap("outputs")
+                        self.__ffmpegOutputs = self.__ffmpegData.getJsonSimpleMap(["outputs"])
                         return True
                 except:
                     if payload is not None:

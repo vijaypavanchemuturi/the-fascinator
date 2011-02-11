@@ -1,5 +1,5 @@
 #set($oid = $metadata.get("id"))
-#set($mimeType = $metadata.getList("dc_format").get(0))
+#set($mimeType = $metadata.getFirst("dc_format"))
 #set($thumbnail = $metadata.get("thumbnail"))
 #set($preview = $metadata.get("preview"))
 
