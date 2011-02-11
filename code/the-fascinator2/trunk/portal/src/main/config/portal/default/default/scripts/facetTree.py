@@ -38,11 +38,12 @@ class Facet:
         title = "%s (%s)" % (self.getName(), self.getCount())
         json = JsonSimple()
         jsonObj = json.getJsonObject()
-        attributes = JsonSimple().writeObject(["attributes"])
+        attributes = JsonObject()
         attributes.put("id", self.getId())
         attributes.put("fq", self.getFacetQuery())
         attributes.put("title", title)
         jsonObj.put("data", title)
+        jsonObj.put("attributes", attributes)
         hasSubFacets = not self.getSubFacets().isEmpty()
         if hasSubFacets:
             jsonObj.put("state", state)
