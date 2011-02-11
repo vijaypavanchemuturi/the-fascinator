@@ -68,68 +68,53 @@ public class FfmpegDatabase {
     private String derbyHome;
 
     /** Database connection */
-    private Connection conn;
-
-    /** SQL Statement */
-    private Statement sql;
-
-    /** Result set */
-    private ResultSet result;
-
-    /** Insert statement */
-    private PreparedStatement insert;
-
-    /** Select statement */
-    private PreparedStatement select;
-
-    /** Insert statement - Hashes */
-    private PreparedStatement insertHash;
-
-    /** Select statement - Hashes */
-    private PreparedStatement selectHash;
+    private Connection connection;
 
     public FfmpegDatabase(JsonSimple config) throws Exception {
-        // Find our database home directory
-        derbyHome = config.getString(null, "database", "derbyHome");
-        if (derbyHome == null) {
-            throw new Exception("Database home not specified!");
+        // Find data directory
+        derbyHome = config.getString(null,
+                "database-service", "derbyHome");
+        String oldHome = System.getProperty("derby.system.home");
 
-        } else {
-            // Establish its validity and existance, create if necessary
-            File file = new File(derbyHome);
-            if (file.exists()) {
-                if (!file.isDirectory()) {
-                    throw new Exception("Database home '" + derbyHome +
-                            "' is not a directory!");
-                }
+        // Derby's data directory has already been configured
+        if (oldHome != null) {
+            if (derbyHome != null) {
+                // Use the existing one, but throw a warning
+                log.warn("Using previously specified data directory:" +
+                        " '{}', provided value has been ignored: '{}'",
+                        oldHome, derbyHome);
             } else {
-                file.mkdirs();
-                if (!file.exists()) {
-                    throw new Exception("Database home '" + derbyHome +
-                            "' does not exist and could not be created!");
-                }
+                // This is ok, no configuration conflicts
+                log.info("Using existing data directory: '{}'", oldHome);
             }
-        }
-        // Set the system property to match, the DriverManager will look here
-        System.setProperty("derby.system.home", derbyHome);
 
-        // Load the JDBC driver
-        try {
-            Class.forName(DERBY_DRIVER).newInstance();
-        } catch (Exception ex) {
-            log.error("Driver load failed: ", ex);
-            throw new Exception("Driver load failed: ", ex);
+        // We don't have one, config MUST have one
+        } else {
+            if (derbyHome == null) {
+                log.error("No database home directory configured!");
+                return;
+            } else {
+                // Establish its validity and existance, create if necessary
+                File file = new File(derbyHome);
+                if (file.exists()) {
+                    if (!file.isDirectory()) {
+                        throw new Exception("Database home '" +
+                                derbyHome + "' is not a directory!");
+                    }
+                } else {
+                    file.mkdirs();
+                    if (!file.exists()) {
+                        throw new Exception("Database home '" +
+                                derbyHome +
+                                "' does not exist and could not be created!");
+                    }
+                }
+                System.setProperty("derby.system.home", derbyHome);
+            }
         }
 
         // Database prep work
-        Properties props = new Properties();
         try {
-            // Establish a database connection, create the database if needed
-            conn = DriverManager.getConnection(DERBY_PROTOCOL +
-                    FFMPEG_DATABASE + ";create=true", props);
-            sql = conn.createStatement();
-
-            // Look for our tables
             checkTable(STATS_TABLE);
             checkTable(HASH_TABLE);
         } catch (SQLException ex) {
@@ -140,17 +125,42 @@ public class FfmpegDatabase {
         log.debug("Derby security database online!");
     }
 
+    private java.sql.Connection connection() throws SQLException {
+        if (connection == null || !connection.isValid(1)) {
+            // At least try to close if not null... even though its not valid
+            if (connection != null) {
+                log.error("!!! Database connection has failed, recreating.");
+                try {
+                    connection.close();
+                } catch (SQLException ex) {
+                    log.error("Error closing invalid connection, ignoring: {}",
+                            ex.getMessage());
+                }
+            }
+
+            // Open a new connection
+            Properties props = new Properties();
+            // Load the JDBC driver
+            try {
+                Class.forName(DERBY_DRIVER).newInstance();
+            } catch (Exception ex) {
+                log.error("Driver load failed: ", ex);
+                throw new SQLException("Driver load failed: ", ex);
+            }
+
+            // Establish a database connection
+            connection = DriverManager.getConnection(DERBY_PROTOCOL +
+                    FFMPEG_DATABASE + ";create=true", props);
+        }
+        return connection;
+    }
+
     /**
      * Shutdown the database connections and cleanup.
      *
      * @throws Exception if there are errors
      */
     public void shutdown() throws Exception {
-        // Release all our queries
-        close(sql);
-        close(insert);
-        close(select);
-
         // Derby can only be shutdown from one thread,
         //    we'll catch errors from the rest.
         String threadedShutdownMessage = DERBY_DRIVER
@@ -179,9 +189,9 @@ public class FfmpegDatabase {
         } finally {
             try {
                 // Close our connection
-                if (conn != null) {
-                    conn.close();
-                    conn = null;
+                if (connection != null) {
+                    connection.close();
+                    connection = null;
                 }
             } catch (SQLException ex) {
                 throw new Exception("Error closing connection:", ex);
@@ -206,20 +216,18 @@ public class FfmpegDatabase {
         String hash = DigestUtils.md5Hex(render);
 
         try {
-            // First run
-            if (select == null) {
-                select = conn.prepareStatement("SELECT MAX(datetime)as time FROM " +
-                        STATS_TABLE + " WHERE oid = ? AND renderhash = ? " +
-                        "AND infile = ? AND outfile = ? AND resolution = ?");
-            }
+            PreparedStatement sql = connection().prepareStatement(
+                    "SELECT MAX(datetime)as time FROM " + STATS_TABLE +
+                    " WHERE oid = ? AND renderhash = ?" +
+                    " AND infile = ? AND outfile = ? AND resolution = ?");
 
             // Prepare and execute
-            select.setString(1, oid);
-            select.setString(2, hash);
-            select.setString(3, source);
-            select.setString(4, output);
-            select.setString(5, resolution);
-            result = select.executeQuery();
+            sql.setString(1, oid);
+            sql.setString(2, hash);
+            sql.setString(3, source);
+            sql.setString(4, output);
+            sql.setString(5, resolution);
+            ResultSet result = sql.executeQuery();
 
             // Build response
             Timestamp ts = null;
@@ -227,6 +235,7 @@ public class FfmpegDatabase {
                 ts = result.getTimestamp("time");
             }
             close(result);
+            close(sql);
 
             if (ts == null) {
                 return -1;
@@ -258,27 +267,26 @@ public class FfmpegDatabase {
         String infile = data.get("infile");
         String outfile = data.get("outfile");
 
-        // First run
-        if (insert == null) {
-            insert = conn.prepareStatement("INSERT INTO " + STATS_TABLE +
-                    " (oid, datetime, timespent, mediaduration, renderhash, " +
-                    "inresolution, outresolution, insize, outsize, infile, " +
-                    "outfile) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-        }
+        PreparedStatement sql = connection().prepareStatement(
+                "INSERT INTO " + STATS_TABLE +
+                " (oid, datetime, timespent, mediaduration, renderhash, " +
+                "inresolution, outresolution, insize, outsize, infile, " +
+                "outfile) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
 
         // Prepare and execute
-        insert.setString(1, oid);
-        insert.setTimestamp(2, timestamp);
-        insert.setInt(3, timespent);
-        insert.setInt(4, mediaduration);
-        insert.setString(5, renderhash);
-        insert.setString(6, inresolution);
-        insert.setString(7, outresolution);
-        insert.setString(8, insize);
-        insert.setString(9, outsize);
-        insert.setString(10, infile);
-        insert.setString(11, outfile);
-        insert.executeUpdate();
+        sql.setString(1, oid);
+        sql.setTimestamp(2, timestamp);
+        sql.setInt(3, timespent);
+        sql.setInt(4, mediaduration);
+        sql.setString(5, renderhash);
+        sql.setString(6, inresolution);
+        sql.setString(7, outresolution);
+        sql.setString(8, insize);
+        sql.setString(9, outsize);
+        sql.setString(10, infile);
+        sql.setString(11, outfile);
+        sql.executeUpdate();
+        close(sql);
     }
 
     /**
@@ -293,15 +301,13 @@ public class FfmpegDatabase {
         String hash = DigestUtils.md5Hex(renderString);
 
         try {
-            // First run
-            if (selectHash == null) {
-                selectHash = conn.prepareStatement("SELECT count(*) as total FROM "
-                        + HASH_TABLE + " WHERE hash = ?");
-            }
+            PreparedStatement sql = connection().prepareStatement(
+                    "SELECT count(*) as total FROM " + HASH_TABLE +
+                    " WHERE hash = ?");
 
             // Prepare and execute
-            selectHash.setString(1, hash);
-            result = selectHash.executeQuery();
+            sql.setString(1, hash);
+            ResultSet result = sql.executeQuery();
 
             // Check response
             boolean stored = false;
@@ -311,6 +317,7 @@ public class FfmpegDatabase {
                 }
             }
             close(result);
+            close(sql);
 
             // If the hash is already in the database we are done
             if (stored) {
@@ -336,16 +343,15 @@ public class FfmpegDatabase {
      * @throws SQLException if there were database errors during storage
      */
     private void storeHash(String hash, String string) throws SQLException {
-        // First run
-        if (insertHash == null) {
-            insertHash = conn.prepareStatement("INSERT INTO " + HASH_TABLE +
-                    " (hash, renderstring) VALUES (?, ?)");
-        }
+        PreparedStatement sql = connection().prepareStatement(
+                "INSERT INTO " + HASH_TABLE +
+                " (hash, renderstring) VALUES (?, ?)");
 
         // Prepare and execute
-        insertHash.setString(1, hash);
-        insertHash.setString(2, string);
-        insertHash.executeUpdate();
+        sql.setString(1, hash);
+        sql.setString(2, string);
+        sql.executeUpdate();
+        close(sql);
     }
 
     /**
@@ -381,8 +387,8 @@ public class FfmpegDatabase {
      */
     private boolean findTable(String table) throws SQLException {
         boolean tableFound = false;
-        DatabaseMetaData meta = conn.getMetaData();
-        result = (ResultSet) meta.getTables(null, null, null, null);
+        DatabaseMetaData meta = connection().getMetaData();
+        ResultSet result = (ResultSet) meta.getTables(null, null, null, null);
         while (result.next() && !tableFound) {
             if (result.getString("TABLE_NAME").equalsIgnoreCase(table)) {
                 tableFound = true;
@@ -401,6 +407,7 @@ public class FfmpegDatabase {
      */
     private void createTable(String table) throws SQLException {
         if (table.equals(STATS_TABLE)) {
+            Statement sql = connection().createStatement();
             sql.execute(
                     "CREATE TABLE " + STATS_TABLE +
                     "(id INT NOT NULL GENERATED ALWAYS AS IDENTITY, " +
@@ -432,14 +439,17 @@ public class FfmpegDatabase {
             // History of transcodings for this object
             sql.execute(
                     "CREATE INDEX c ON " + STATS_TABLE + "(oid)");
+            close(sql);
             return;
         }
         if (table.equals(HASH_TABLE)) {
+            Statement sql = connection().createStatement();
             sql.execute(
                     "CREATE TABLE " + HASH_TABLE +
                     "(hash VARCHAR(255) NOT NULL, " +
                     "renderstring VARCHAR(255) NOT NULL, " +
                     "PRIMARY KEY (hash))");
+            close(sql);
             return;
         }
         throw new SQLException("Unknown table '" + table + "' requested!");

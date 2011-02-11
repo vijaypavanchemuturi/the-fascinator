@@ -91,29 +91,7 @@ public class DerbyCache {
     private String derbyHome;
 
     /** Database connection */
-    private Connection conn;
-
-    /** SQL Statement */
-    private Statement sql;
-
-    /** Result set */
-    private ResultSet result;
-
-    /** Basic cache statements */
-    private PreparedStatement insertBasic;
-    private PreparedStatement selectBasic;
-    private PreparedStatement updateBasic;
-    private PreparedStatement resetBasic;
-    private PreparedStatement unchangedBasic;
-    private PreparedStatement cleanBasic;
-
-    /** Basic cache statements */
-    private PreparedStatement insertHashed;
-    private PreparedStatement selectHashed;
-    private PreparedStatement updateHashed;
-    private PreparedStatement resetHashed;
-    private PreparedStatement unchangedHashed;
-    private PreparedStatement cleanHashed;
+    private Connection connection;
 
     /** Are we using the database cache */
     private boolean useCache;
@@ -137,48 +115,50 @@ public class DerbyCache {
     }
 
     private void startDatabase(JsonSimpleConfig config) throws Exception {
-        // Find our database home directory
+        // Find data directory
         derbyHome = config.getString(null,
-                "harvester", "file-system", "derbyHome");
-        if (derbyHome == null) {
-            throw new Exception("Database home not specified!");
+                "database-service", "derbyHome");
+        String oldHome = System.getProperty("derby.system.home");
 
-        } else {
-            // Establish its validity and existance, create if necessary
-            File file = new File(derbyHome);
-            if (file.exists()) {
-                if (!file.isDirectory()) {
-                    throw new Exception("Database home '" + derbyHome +
-                            "' is not a directory!");
-                }
+        // Derby's data directory has already been configured
+        if (oldHome != null) {
+            if (derbyHome != null) {
+                // Use the existing one, but throw a warning
+                log.warn("Using previously specified data directory:" +
+                        " '{}', provided value has been ignored: '{}'",
+                        oldHome, derbyHome);
             } else {
-                file.mkdirs();
-                if (!file.exists()) {
-                    throw new Exception("Database home '" + derbyHome +
-                            "' does not exist and could not be created!");
-                }
+                // This is ok, no configuration conflicts
+                log.info("Using existing data directory: '{}'", oldHome);
             }
-        }
-        // Set the system property to match, the DriverManager will look here
-        System.setProperty("derby.system.home", derbyHome);
 
-        // Load the JDBC driver
-        try {
-            Class.forName(DERBY_DRIVER).newInstance();
-        } catch (Exception ex) {
-            log.error("Driver load failed: ", ex);
-            throw new Exception("Driver load failed: ", ex);
+        // We don't have one, config MUST have one
+        } else {
+            if (derbyHome == null) {
+                log.error("No database home directory configured!");
+                return;
+            } else {
+                // Establish its validity and existance, create if necessary
+                File file = new File(derbyHome);
+                if (file.exists()) {
+                    if (!file.isDirectory()) {
+                        throw new Exception("Database home '" +
+                                derbyHome + "' is not a directory!");
+                    }
+                } else {
+                    file.mkdirs();
+                    if (!file.exists()) {
+                        throw new Exception("Database home '" +
+                                derbyHome +
+                                "' does not exist and could not be created!");
+                    }
+                }
+                System.setProperty("derby.system.home", derbyHome);
+            }
         }
 
         // Database prep work
-        Properties props = new Properties();
         try {
-            // Establish a database connection, create the database if needed
-            conn = DriverManager.getConnection(DERBY_PROTOCOL +
-                    DATABASE_NAME + ";create=true", props);
-            sql = conn.createStatement();
-
-            // Look for our tables
             checkTable(BASIC_TABLE);
             checkTable(HASH_TABLE);
         } catch (SQLException ex) {
@@ -187,6 +167,36 @@ public class DerbyCache {
                     "Error during database preparation:", ex);
         }
         //log.debug("Derby caching database online!");
+    }
+
+    private Connection connection() throws SQLException {
+        if (connection == null || !connection.isValid(1)) {
+            // At least try to close if not null... even though its not valid
+            if (connection != null) {
+                log.error("!!! Database connection has failed, recreating.");
+                try {
+                    connection.close();
+                } catch (SQLException ex) {
+                    log.error("Error closing invalid connection, ignoring: {}",
+                            ex.getMessage());
+                }
+            }
+
+            // Open a new connection
+            Properties props = new Properties();
+            // Load the JDBC driver
+            try {
+                Class.forName(DERBY_DRIVER).newInstance();
+            } catch (Exception ex) {
+                log.error("Driver load failed: ", ex);
+                throw new SQLException("Driver load failed: ", ex);
+            }
+
+            // Establish a database connection
+            connection = DriverManager.getConnection(DERBY_PROTOCOL +
+                    DATABASE_NAME + ";create=true", props);
+        }
+        return connection;
     }
 
     /**
@@ -246,23 +256,22 @@ public class DerbyCache {
         //log.debug("resetFlags()");
         if (useCache) {
             try {
-                // First run
-                if (resetBasic == null || resetHashed == null) {
-                    resetBasic = conn.prepareStatement(
+                // Run whichever update is required
+                PreparedStatement sql = null;
+                if (cacheType.equals("basic")) {
+                    sql = connection().prepareStatement(
                             "UPDATE " + BASIC_TABLE + " SET changeFlag = 0" +
-                            " WHERE cacheId = '" + cacheId + "'");
-                    resetHashed = conn.prepareStatement(
-                            "UPDATE " + HASH_TABLE + " SET changeFlag = 0" +
                             " WHERE cacheId = '" + cacheId + "'");
                 }
 
-                // Run whichever update is required
-                if (cacheType.equals("basic")) {
-                    resetBasic.executeUpdate();
-                }
                 if (cacheType.equals("hashed")) {
-                    resetHashed.executeUpdate();
+                    sql = connection().prepareStatement(
+                            "UPDATE " + HASH_TABLE + " SET changeFlag = 0" +
+                            " WHERE cacheId = '" + cacheId + "'");
                 }
+                sql.executeUpdate();
+                close(sql);
+
             } catch (Exception ex) {
                 log.error("Error updating cache to reset flags: ", ex);
             }
@@ -284,27 +293,26 @@ public class DerbyCache {
 
         if (useCache) {
             try {
-                // First run
-                if (unchangedBasic == null || unchangedHashed == null) {
-                    unchangedBasic = conn.prepareStatement("SELECT oid FROM " +
-                            BASIC_TABLE + " WHERE changeFlag = 0" +
-                            " AND cacheId = '" + cacheId + "'");
-                    unchangedHashed = conn.prepareStatement("SELECT oid FROM " +
-                            HASH_TABLE + " WHERE changeFlag = 0" +
+                // Run whichever update is required
+                ResultSet result = null;
+                PreparedStatement sql = null;
+                if (cacheType.equals("basic")) {
+                    sql = connection().prepareStatement(
+                            "SELECT oid FROM " + BASIC_TABLE +
+                            " WHERE changeFlag = 0" +
                             " AND cacheId = '" + cacheId + "'");
                 }
 
-                // Run whichever update is required
-                result = null;
-                if (cacheType.equals("basic")) {
-                    result = unchangedBasic.executeQuery();
-                }
                 if (cacheType.equals("hashed")) {
-                    result = unchangedHashed.executeQuery();
+                    sql = connection().prepareStatement(
+                            "SELECT oid FROM " + HASH_TABLE +
+                            " WHERE changeFlag = 0" +
+                            " AND cacheId = '" + cacheId + "'");
                 }
 
                 // Build response
                 response = new HashSet();
+                result = sql.executeQuery();
                 while (result.next()) {
                     String oid = result.getString("oid");
                     if (oid != null) {
@@ -312,6 +320,7 @@ public class DerbyCache {
                     }
                 }
                 close(result);
+                close(sql);
 
             } catch (Exception ex) {
                 log.error("Error updating cache to reset flags: ", ex);
@@ -332,23 +341,24 @@ public class DerbyCache {
         //log.debug("purgeUnsetFlags()");
         if (useCache) {
             try {
-                // First run
-                if (cleanBasic == null || cleanHashed == null) {
-                    cleanBasic = conn.prepareStatement("DELETE FROM " +
-                            BASIC_TABLE + " WHERE changeFlag = 0" +
-                            " AND cacheId = '" + cacheId + "'");
-                    cleanHashed = conn.prepareStatement("DELETE FROM " +
-                            HASH_TABLE + " WHERE changeFlag = 0" +
+                // Run whichever update is required
+                PreparedStatement sql = null;
+                if (cacheType.equals("basic")) {
+                    sql = connection().prepareStatement(
+                            "DELETE FROM " + BASIC_TABLE +
+                            " WHERE changeFlag = 0" +
                             " AND cacheId = '" + cacheId + "'");
                 }
 
-                // Run whichever update is required
-                if (cacheType.equals("basic")) {
-                    cleanBasic.executeUpdate();
-                }
                 if (cacheType.equals("hashed")) {
-                    cleanHashed.executeUpdate();
+                    sql = connection().prepareStatement(
+                            "DELETE FROM " + HASH_TABLE +
+                            " WHERE changeFlag = 0" +
+                            " AND cacheId = '" + cacheId + "'");
                 }
+
+                sql.executeUpdate();
+                close(sql);
             } catch (Exception ex) {
                 log.error("Error updating cache to delete data: ", ex);
             }
@@ -419,23 +429,6 @@ public class DerbyCache {
      * @throws Exception if there are errors
      */
     public void shutdown() throws Exception {
-        // Release all our queries
-        close(sql);
-
-        close(insertBasic);
-        close(selectBasic);
-        close(updateBasic);
-        close(resetBasic);
-        close(unchangedBasic);
-        close(cleanBasic);
-
-        close(insertHashed);
-        close(selectHashed);
-        close(updateHashed);
-        close(resetHashed);
-        close(unchangedHashed);
-        close(cleanHashed);
-
         // Derby can only be shutdown from one thread,
         //    we'll catch errors from the rest.
         String threadedShutdownMessage = DERBY_DRIVER
@@ -464,9 +457,9 @@ public class DerbyCache {
         } finally {
             try {
                 // Close our connection
-                if (conn != null) {
-                    conn.close();
-                    conn = null;
+                if (connection != null) {
+                    connection.close();
+                    connection = null;
                 }
             } catch (SQLException ex) {
                 throw new Exception("Error closing connection:", ex);
@@ -476,17 +469,14 @@ public class DerbyCache {
 
     private long getLastModified(String oid) {
         try {
-            // First run
-            if (selectBasic == null) {
-                selectBasic = conn.prepareStatement(
-                        "SELECT lastModified FROM " + BASIC_TABLE +
-                        " WHERE oid = ? AND cacheId = ?");
-            }
+            PreparedStatement sql = connection().prepareStatement(
+                    "SELECT lastModified FROM " + BASIC_TABLE +
+                    " WHERE oid = ? AND cacheId = ?");
 
             // Prepare and execute
-            selectBasic.setString(1, oid);
-            selectBasic.setString(2, cacheId);
-            result = selectBasic.executeQuery();
+            sql.setString(1, oid);
+            sql.setString(2, cacheId);
+            ResultSet result = sql.executeQuery();
 
             // Build response
             Timestamp ts = null;
@@ -494,6 +484,7 @@ public class DerbyCache {
                 ts = result.getTimestamp("lastModified");
             }
             close(result);
+            close(sql);
 
             if (ts == null) {
                 return -1;
@@ -508,49 +499,44 @@ public class DerbyCache {
 
     private void insertLastModified(String oid, long lastModified)
             throws Exception {
-        // First run
-        if (insertBasic == null) {
-            insertBasic = conn.prepareStatement("INSERT INTO " + BASIC_TABLE +
-                    " (oid, cacheId, lastModified, changeFlag)" +
-                    " VALUES (?, ?, ?, 1)");
-        }
+        PreparedStatement sql = connection().prepareStatement(
+                "INSERT INTO " + BASIC_TABLE +
+                " (oid, cacheId, lastModified, changeFlag)" +
+                " VALUES (?, ?, ?, 1)");
 
         // Prepare and execute
-        insertBasic.setString(1, oid);
-        insertBasic.setString(2, cacheId);
-        insertBasic.setTimestamp(3, new Timestamp(lastModified));
-        insertBasic.executeUpdate();
+        sql.setString(1, oid);
+        sql.setString(2, cacheId);
+        sql.setTimestamp(3, new Timestamp(lastModified));
+        sql.executeUpdate();
+        close(sql);
     }
 
     private void updateLastModified(String oid, long lastModified)
             throws Exception {
-        // First run
-        if (updateBasic == null) {
-            updateBasic = conn.prepareStatement("UPDATE " + BASIC_TABLE +
-                    " SET lastModified = ?, changeFlag = 1" +
-                    " WHERE oid = ? and cacheId = ?");
-        }
+        PreparedStatement sql = connection().prepareStatement(
+                "UPDATE " + BASIC_TABLE +
+                " SET lastModified = ?, changeFlag = 1" +
+                " WHERE oid = ? and cacheId = ?");
 
         // Prepare and execute
-        updateBasic.setTimestamp(1, new Timestamp(lastModified));
-        updateBasic.setString(2, oid);
-        updateBasic.setString(3, cacheId);
-        updateBasic.executeUpdate();
+        sql.setTimestamp(1, new Timestamp(lastModified));
+        sql.setString(2, oid);
+        sql.setString(3, cacheId);
+        sql.executeUpdate();
+        close(sql);
     }
 
     private String getHash(String oid) {
         try {
-            // First run
-            if (selectHashed == null) {
-                selectHashed = conn.prepareStatement(
-                        "SELECT hash FROM " + HASH_TABLE +
-                        " WHERE oid = ? AND cacheId = ?");
-            }
+            PreparedStatement sql = connection().prepareStatement(
+                    "SELECT hash FROM " + HASH_TABLE +
+                    " WHERE oid = ? AND cacheId = ?");
 
             // Prepare and execute
-            selectHashed.setString(1, oid);
-            selectHashed.setString(2, cacheId);
-            result = selectHashed.executeQuery();
+            sql.setString(1, oid);
+            sql.setString(2, cacheId);
+            ResultSet result = sql.executeQuery();
 
             // Build response
             String response = null;
@@ -558,6 +544,8 @@ public class DerbyCache {
                 response = result.getString("hash");
             }
             close(result);
+            close(sql);
+
             return response;
         } catch(SQLException ex) {
             log.error("Error querying last hash: ", ex);
@@ -567,33 +555,31 @@ public class DerbyCache {
 
     private void insertHash(String oid, String hash)
             throws Exception {
-        // First run
-        if (insertHashed == null) {
-            insertHashed = conn.prepareStatement("INSERT INTO " + HASH_TABLE +
-                    " (oid, cacheId, hash, changeFlag) VALUES (?, ?, ?, 1)");
-        }
+        PreparedStatement sql = connection().prepareStatement(
+                "INSERT INTO " + HASH_TABLE +
+                " (oid, cacheId, hash, changeFlag) VALUES (?, ?, ?, 1)");
 
         // Prepare and execute
-        insertHashed.setString(1, oid);
-        insertHashed.setString(2, cacheId);
-        insertHashed.setString(3, hash);
-        insertHashed.executeUpdate();
+        sql.setString(1, oid);
+        sql.setString(2, cacheId);
+        sql.setString(3, hash);
+        sql.executeUpdate();
+        close(sql);
     }
 
     private void updateHash(String oid, String hash)
             throws Exception {
-        // First run
-        if (updateHashed == null) {
-            updateHashed = conn.prepareStatement("UPDATE " + HASH_TABLE +
-                    " SET hash = ?, changeFlag = 1" +
-                    " WHERE oid = ? AND cacheId = ?");
-        }
+        PreparedStatement sql = connection().prepareStatement(
+                "UPDATE " + HASH_TABLE +
+                " SET hash = ?, changeFlag = 1" +
+                " WHERE oid = ? AND cacheId = ?");
 
         // Prepare and execute
-        updateHashed.setString(1, hash);
-        updateHashed.setString(2, oid);
-        updateHashed.setString(3, cacheId);
-        updateHashed.executeUpdate();
+        sql.setString(1, hash);
+        sql.setString(2, oid);
+        sql.setString(3, cacheId);
+        sql.executeUpdate();
+        close(sql);
     }
 
     /**
@@ -629,8 +615,8 @@ public class DerbyCache {
      */
     private boolean findTable(String table) throws SQLException {
         boolean tableFound = false;
-        DatabaseMetaData meta = conn.getMetaData();
-        result = (ResultSet) meta.getTables(null, null, null, null);
+        DatabaseMetaData meta = connection().getMetaData();
+        ResultSet result = (ResultSet) meta.getTables(null, null, null, null);
         while (result.next() && !tableFound) {
             if (result.getString("TABLE_NAME").equalsIgnoreCase(table)) {
                 tableFound = true;
@@ -649,6 +635,7 @@ public class DerbyCache {
      */
     private void createTable(String table) throws SQLException {
         if (table.equals(BASIC_TABLE)) {
+            Statement sql = connection().createStatement();
             sql.execute(
                     "CREATE TABLE " + BASIC_TABLE +
                     "(oid VARCHAR(255) NOT NULL, " +
@@ -656,9 +643,11 @@ public class DerbyCache {
                     "lastModified TIMESTAMP NOT NULL, " +
                     "changeFlag SMALLINT NOT NULL, " +
                     "PRIMARY KEY (oid, cacheId))");
+            close(sql);
             return;
         }
         if (table.equals(HASH_TABLE)) {
+            Statement sql = connection().createStatement();
             sql.execute(
                     "CREATE TABLE " + HASH_TABLE +
                     "(oid VARCHAR(255) NOT NULL, " +
@@ -666,6 +655,7 @@ public class DerbyCache {
                     "hash VARCHAR(50) NOT NULL, " +
                     "changeFlag SMALLINT NOT NULL, " +
                     "PRIMARY KEY (oid, cacheId))");
+            close(sql);
             return;
         }
         throw new SQLException("Unknown table '" + table + "' requested!");

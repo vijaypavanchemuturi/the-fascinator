@@ -8,7 +8,6 @@
 
     "database": {
         "enabled": "false",
-        "derbyHome": "${java.io.tmpdir}/${user.name}/ffmpeg-output/unitTests/derby"
     },
 
     "supportedFormats": [
@@ -110,5 +109,8 @@
                 ]
             }
         ]
+    },
+    "database-service": {
+        "derbyHome" : "${fascinator.home}/database"
     }
 }

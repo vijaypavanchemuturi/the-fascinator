@@ -13,8 +13,7 @@
                 }
             ],
             "caching": "basic",
-            "cacheId": "default",
-            "derbyHome" : "${fascinator.home}/database"
+            "cacheId": "default"
         }
     },
 

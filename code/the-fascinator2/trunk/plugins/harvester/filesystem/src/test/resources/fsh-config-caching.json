@@ -9,5 +9,8 @@
             "cacheId": "config-caching",
             "derbyHome" : "${test.cache.dir}"
         }
+    },
+    "database-service": {
+        "derbyHome" : "${test.cache.dir}"
     }
 }
