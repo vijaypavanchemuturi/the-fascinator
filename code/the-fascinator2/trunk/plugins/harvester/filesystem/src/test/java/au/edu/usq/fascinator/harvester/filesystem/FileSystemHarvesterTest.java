@@ -32,6 +32,8 @@ import au.edu.usq.fascinator.api.PluginManager;
 import au.edu.usq.fascinator.api.harvester.Harvester;
 import au.edu.usq.fascinator.api.storage.DigitalObject;
 import au.edu.usq.fascinator.api.storage.Storage;
+import java.sql.DriverManager;
+import java.sql.SQLException;
 
 /**
  * Unit tests for the file system harvester plugin
@@ -69,6 +71,12 @@ public class FileSystemHarvesterTest {
 
     @After
     public void cleanup() throws Exception {
+        try {
+            Class.forName("org.apache.derby.jdbc.EmbeddedDriver").newInstance();
+            DriverManager.getConnection("jdbc:derby:;shutdown=true");
+        } catch (SQLException ex) {
+            // Expected, derby throws exceptions even during success
+        }
         FileUtils.deleteQuietly(testFile);
         FileUtils.deleteQuietly(cacheDir);
     }

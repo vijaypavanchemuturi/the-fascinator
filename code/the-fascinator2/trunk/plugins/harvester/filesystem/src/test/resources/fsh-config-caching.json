@@ -6,8 +6,7 @@
                 "baseDir": "${test.dir}"
             } ],
             "caching": "basic",
-            "cacheId": "config-caching",
-            "derbyHome" : "${test.cache.dir}"
+            "cacheId": "config-caching"
         }
     },
     "database-service": {
