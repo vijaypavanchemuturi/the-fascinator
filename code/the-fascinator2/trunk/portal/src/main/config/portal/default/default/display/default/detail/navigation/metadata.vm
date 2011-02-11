@@ -1,6 +1,6 @@
 #macro(displayField $metadata $key)
     #set($valueList = $metadata.getList($key))
-    #if($valueList)
+    #if($valueList && $valueList.size() > 0)
         <tr><th>$parent.getFriendlyName($key)</th></tr>
         <tr>
             <td>

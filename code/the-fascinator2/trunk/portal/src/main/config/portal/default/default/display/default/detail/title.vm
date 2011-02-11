@@ -1,7 +1,6 @@
-#set($title = $metadata.getList("dc_title"))
+#set($title = $metadata.getFirst("dc_title"))
 #if($title)
-    #set($title = $title.get(0))
-    #set($pageTitle = $title.get(0))
+    #set($pageTitle = $title)
 #else
     #set($pageTitle = "Detail")
 #end

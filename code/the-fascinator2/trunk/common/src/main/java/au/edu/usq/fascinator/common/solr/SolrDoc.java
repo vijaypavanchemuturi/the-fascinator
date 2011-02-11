@@ -125,9 +125,9 @@ public class SolrDoc extends JsonSimple {
      * Gets the list of String values of the specified field.
      *
      * <ul>
-     *   <li>Fields that are not found will always return null.</li>
      *   <li>Single valued fields will be added to a new List.</li>
      *   <li>Multi valued fields will all be returned in a List.</li>
+     *   <li>Fields that are not found will return an empty list.</li>
      * </ul>
      *
      * @param field : The field name to query
@@ -137,7 +137,7 @@ public class SolrDoc extends JsonSimple {
         Object object = this.getPath(field);
 
         // Doesn't exist
-        if (object == null) return null;
+        if (object == null) return new LinkedList();
 
         // An array = easy
         if (object instanceof JSONArray) {
