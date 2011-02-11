@@ -1,9 +1,9 @@
 import htmlentitydefs
 
-from au.edu.usq.fascinator.api.storage import PayloadType
-from au.edu.usq.fascinator.common import FascinatorHome, JsonSimple, JsonSimpleConfig
+from au.edu.usq.fascinator.api.storage import PayloadType, StorageException
 from au.edu.usq.fascinator.api.indexer import SearchRequest
-from au.edu.usq.fascinator.api.storage import StorageException
+from au.edu.usq.fascinator.common import FascinatorHome, JsonSimple, JsonSimpleConfig
+from au.edu.usq.fascinator.common.solr import SolrResult
 
 from com.sun.syndication.feed.atom import Content
 from com.sun.syndication.propono.atom.client import AtomClientFactory, BasicAuthStrategy
@@ -23,7 +23,7 @@ class ProxyBasicAuthStrategy(BasicAuthStrategy):
     def __init__(self, username, password, baseUrl):
         BasicAuthStrategy.__init__(self, username, password)
         self.__baseUrl = baseUrl
-    
+
     def addAuthentication(self, httpClient, method):
         BasicAuthStrategy.addAuthentication(self, httpClient, method)
         url = URL(self.__baseUrl)
@@ -58,10 +58,10 @@ class BlogData:
                 title = self.vc("formData").get("title")
                 username = self.vc("formData").get("username")
                 password = self.vc("formData").get("password")
-                
+
                 auth = ProxyBasicAuthStrategy(username, password, url)
                 self.__service = AtomClientFactory.getAtomService(url, auth)
-                
+
                 try:
                     oid = self.vc("formData").get("oid")
                     self.__object = self.__getObject(oid)
@@ -81,7 +81,7 @@ class BlogData:
                     e.printStackTrace()
                     success = False
                     value = e.getMessage()
-                
+
                 if success:
                     altLinks = value.getAlternateLinks()
                     if altLinks is not None:
@@ -112,8 +112,8 @@ class BlogData:
             vc.put(key, bindings.get(key));
         vc.put("velocityContext", vc);
         return vc
-    
-    
+
+
     def __loadSolrData(self, oid):
         portal = self.page.getPortal()
         query = 'id:"%s"' % oid
@@ -124,38 +124,38 @@ class BlogData:
         req.addParam("fq", portal.getQuery())
         out = ByteArrayOutputStream()
         self.services.getIndexer().search(req, out)
-        self.__solrData = JsonSimpleConfig(ByteArrayInputStream(out.toByteArray()))
+        self.__solrResult = SolrResult(ByteArrayInputStream(out.toByteArray()))
 
     def __readMetadata(self, oid):
         self.__loadSolrData(oid)
-        if int(self.__solrData.getString(None, "response", "numFound")) == 1:
-            self.__metadata = self.__solrData.getJsonSimpleList("response", "docs").get(0)
+        if self.__solrResult.getNumFound() == 1:
+            self.__metadata = self.__solrResult.getResults().get(0)
             if self.__object is None:
                 # Try again, indexed records might have a special storage_id
                 self.__object = self.__getObject(oid)
             # Just a more usable instance of metadata
-            self.__json = self.__solrData.getJsonSimpleList("response", "docs").get(0)
-            self.__metadataMap = JsonSimple.toJavaMap(self.__json.getJsonObject())
+            ##self.__json = self.__solrResult.getJsonSimpleList(["response", "docs"]).get(0)
+            ##self.__metadataMap = JsonSimple.toJavaMap(self.__json.getJsonObject())
         else:
-            self.__metadata.getJsonObject().put("id", oid)
+            self.__metadata = SolrResult('{"id":"%s"}' % oid)
 
     def getUrls(self):
         return FileUtils.readLines(self.__getHistoryFile())
-    
+
     def saveUrl(self, url):
         historyFile = self.__getHistoryFile()
         if historyFile.exists():
             urls = FileUtils.readLines(historyFile)
             urls.add(url)
         FileUtils.writeLines(historyFile, [url])
-    
+
     def __getHistoryFile(self):
         f = FascinatorHome.getPathFile("blog/history.txt")
         if not f.exists():
             f.getParentFile().mkdirs()
             f.createNewFile()
         return f
-    
+
     def __getManifestContent(self, jsonManifest):
         manifest = jsonManifest.getJsonSimpleMap("manifest")
         contentStr = "<div>"
@@ -167,7 +167,7 @@ class BlogData:
                 contentStr += "</div>"
         contentStr += "</div>"
         return contentStr
-    
+
     def __getContent(self, oid):
         print "getting content for '%s'" % oid
         content = "<div>Content not found!</div>"
@@ -194,7 +194,7 @@ class BlogData:
         print "after tidy"
         content = self.__processMedia(oid, doc, content)
         return content
-    
+
     def __getPreviewPayload(self, oid):
         object = self.__getObject(oid)
         payloadIdList = object.getPayloadIdList()
@@ -207,7 +207,7 @@ class BlogData:
             except Exception, e:
                 pass
         return None
-    
+
     def __getPayloadAsString(self, payload):
         out = ByteArrayOutputStream()
         IOUtils.copy(payload.open(), out)
@@ -241,12 +241,12 @@ class BlogData:
         doc = tidy.parseDOM(IOUtils.toInputStream(content, "UTF-8"), out)
         content = out.toString("UTF-8")
         return content, doc
-    
+
     def __processMedia(self, oid, doc, content):
         content = self.__uploadMedia(oid, doc, content, "a", "href")
         content = self.__uploadMedia(oid, doc, content, "img", "src")
         return content
-    
+
     def __uploadMedia(self, oid, doc, content, elem, attr):
         links = doc.getElementsByTagName(elem)
         for i in range(0, links.getLength()):
@@ -264,7 +264,7 @@ class BlogData:
                 if len(split)>1:
                     # Normally files returned by ice rendition
                     internalSrc = "%s/%s" % (split[len(split)-2], split[len(split)-1])
-                
+
             print "uploading '%s' (%s, %s)" % (pid, elem.tagName, attr)
             found = False
             try:
@@ -297,13 +297,13 @@ class BlogData:
                 else:
                     print "failed to upload %s" % pid
         return content
-    
+
     def __getCollection(self, type):
         workspaces = self.__service.getWorkspaces()
         if len(workspaces) > 0:
             return workspaces[0].findCollection(None, type)
         return None
-    
+
     def __postMedia(self, slug, type, media):
         print "uploading media %s, %s" % (slug, type)
         collection = self.__getCollection(type)
@@ -312,7 +312,7 @@ class BlogData:
             collection.addEntry(entry)
             return entry
         return None
-    
+
     def __post(self, title, content):
         collection = self.__getCollection("application/atom+xml;type=entry")
         if collection is not None:
@@ -324,7 +324,7 @@ class BlogData:
         else:
             return False, "No valid collection found"
         return False, "An unknown error occured"
-    
+
     def __getObject(self, oid):
         obj = None
         try:
