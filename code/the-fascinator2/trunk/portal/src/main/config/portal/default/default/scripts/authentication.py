@@ -10,6 +10,7 @@ class AuthenticationData:
     has_error = False
     error_message = None
     GUEST_ROLE = 'guest'
+    GUEST_USER = 'guest'
     roleList = None
 
     def __activate__(self, context):
@@ -164,13 +165,23 @@ class AuthenticationData:
 
     def get_username(self):
         if self.current_user is None:
-            return "guest"
+            return self.GUEST_USER
 
         user = self.current_user.getUsername()
         if user is None:
-            return "guest"
+            return self.GUEST_USER
         else:
             return user
+
+    def get_user_source(self):
+        if self.current_user is None:
+            return self.GUEST_ROLE
+
+        source = self.current_user.getSource()
+        if source is None:
+            return self.GUEST_ROLE
+        else:
+            return source
 
     def grant_access(self, recordId, newRole):
         try:
