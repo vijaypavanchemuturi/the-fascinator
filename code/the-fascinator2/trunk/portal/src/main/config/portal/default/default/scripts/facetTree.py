@@ -1,6 +1,6 @@
 import md5
 from au.edu.usq.fascinator.api.indexer import SearchRequest
-from au.edu.usq.fascinator.common import JsonSimple
+from au.edu.usq.fascinator.common import JsonSimple, JsonObject
 from au.edu.usq.fascinator.common.solr import SolrResult
 from java.io import ByteArrayInputStream, ByteArrayOutputStream
 from java.net import URLEncoder
