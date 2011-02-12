@@ -245,6 +245,7 @@ public class OpenID implements SSOInterface {
             oidAssocicationMac = association.getRawMacKey();
             oidEndpointAlias = endpoint.getAlias();
             oidRemoteLogonUrl = manager.getAuthenticationUrl(endpoint, association);
+            log.info("OpenID Logon URL: '{}'", oidRemoteLogonUrl);
 
             // Make sure we don't forget it
             session.set("oidAssocicationMac", oidAssocicationMac);
