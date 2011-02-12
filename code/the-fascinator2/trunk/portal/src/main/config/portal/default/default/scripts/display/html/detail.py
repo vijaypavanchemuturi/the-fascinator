@@ -13,6 +13,7 @@ class DetailData:
         self.contextPath = context["contextPath"]
         self.portalId = context["portalId"]
         self.metadata = context["metadata"]
+        self.config = context["systemConfig"]
 
     # Get from velocity context
     def vc(self, index):
@@ -39,8 +40,10 @@ class DetailData:
         # The HTML payload is the real object, display in a frame because we
         #  have no idea what kind of object it is.
         if mimeType == "text/html":
-            objectPath = "http://%s:%s%s/%s/download/%s/" % \
-            (self.req.serverName, self.serverPort, self.contextPath, self.portalId, oid)
+            urlBase = self.config.getString(None, ["urlBase"])
+            if urlBase is None:
+                "http://%s:%s%s/" % (self.req.serverName, self.serverPort, self.contextPath)
+            objectPath = "%s%s/download/%s/" % (urlBase, self.portalId, oid)
             return self.frameContent(objectPath)
 
         # We are rendering a HTML preview...
@@ -49,8 +52,10 @@ class DetailData:
 
             # ... of an IMS package or zipped website. Treat as per html above.
             if mimeType == "application/zip":
-                objectPath = "http://%s:%s%s/%s/download/%s/%s" % \
-                (self.req.serverName, self.serverPort, self.contextPath, self.portalId, oid, preview)
+                urlBase = self.config.getString(None, ["urlBase"])
+                if urlBase is None:
+                    "http://%s:%s%s/" % (self.req.serverName, self.serverPort, self.contextPath)
+                objectPath = "%s%s/download/%s/%s" % (urlBase, self.portalId, oid, preview)
                 return self.frameContent(objectPath)
 
             # ... of an HTML excerpt, such as an ICE rendition. Render in page.
