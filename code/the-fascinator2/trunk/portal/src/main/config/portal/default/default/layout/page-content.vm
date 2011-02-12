@@ -2,6 +2,9 @@
 <div class="grid_16">
     #parseTemplate("dialogs/notice.vm")
     #parseTemplate("dialogs/login.vm")
+    #if($page.authentication.is_logged_in())
+        #parseTemplate("dialogs/user-data.vm")
+    #end
     #if(!$blockingNotifications && $hasRenderMessages)
         #parseTemplate("layout/error-screen.vm")
     #else
