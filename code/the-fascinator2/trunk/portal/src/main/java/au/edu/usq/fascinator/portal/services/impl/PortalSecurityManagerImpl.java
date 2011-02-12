@@ -416,6 +416,7 @@ public class PortalSecurityManagerImpl implements PortalSecurityManager {
                 // We are logging in, so send them to the SSO portal
                 String ssoUrl = this.ssoGetRemoteLogonURL(session, ssoId);
                 if (ssoUrl != null) {
+                    log.info("Redirect to external URL: '{}'", ssoUrl);
                     response.sendRedirect(ssoUrl);
                     return true;
                 }
