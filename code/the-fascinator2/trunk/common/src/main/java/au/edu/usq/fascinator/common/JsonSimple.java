@@ -420,9 +420,14 @@ public class JsonSimple {
      * @return List<String> : A list of Strings, null if the node is not found
      */
     public List<String> getStringList(Object... path) {
-        JSONArray array = getArray(path);
-        if (isArray(array)) {
-            return JsonSimple.getStringList(array);
+        Object target = getPath(path);
+        if (isArray(target)) {
+            return JsonSimple.getStringList((JSONArray) target);
+        }
+        if (isString(target)) {
+            List<String> response = new LinkedList();
+            response.add((String) target);
+            return response;
         }
         return null;
     }
