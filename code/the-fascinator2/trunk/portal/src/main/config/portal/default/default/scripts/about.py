@@ -1,14 +1,10 @@
 from au.edu.usq.fascinator.api import PluginManager
-from au.edu.usq.fascinator.common import JsonSimpleConfig
 from java.io import StringWriter
 from org.apache.commons.io import IOUtils
 
 class AboutData:
     def __activate__(self, context):
         self.pageService = context["Services"].pageService
-
-    def hasMetadata(self, plugin):
-        return plugin.pluginDetails.metadata is not None
 
     def getAccessControlPlugins(self):
         return PluginManager.getAccessControlPlugins()
@@ -34,28 +30,15 @@ class AboutData:
     def getTransformerPlugins(self):
         return PluginManager.getTransformerPlugins()
 
-    def getAboutPage(self, plugin):
-        return self.getResourceContent(plugin, ["resources", "about"])
-
-    def getMetadata(self, plugin, field):
-        metadata = plugin.pluginDetails.metadata
-        if metadata:
-            json = JsonSimpleConfig(plugin.pluginDetails.metadata)
-            return json.getString(None, field)
-        return None
-
-    def getAbout(self):
-        return self.getResourceContent()
-
-    def getResourcePath(self, plugin, field):
-        return self.getMetadata(plugin, field)
-
-    def getResourceContent(self, plugin, field):
-        resource = self.getMetadata(plugin, field)
+    def getAboutPage(self, plugin, type):
+        if type is None or plugin is None:
+            return "<em>'plugin/%s/%s/about.html' not found!</em>" % (type, plugin)
+        pid = plugin.replace("-", "_")
+        resource = "plugin/%s/%s/about.html" % (type, pid)
         stream = self.pageService.getResource(resource)
         if stream:
             writer = StringWriter()
             IOUtils.copy(stream, writer, "UTF-8")
             html = writer.toString()
             return html
-        return "<em>'%s' not found!</em>" % (field)
+        return "<em>'plugin/%s/%s/about.html' not found!</em>" % (type, pid)

@@ -1,10 +1,8 @@
-#macro(pluginList $plugins)
+#macro(pluginList $plugins $type)
     #foreach($plugin in $plugins)
-        <div id="$plugin.id">
+        <div class="pluginAbout" id="$plugin.id">
             <h3>$plugin.name</h3>
-            #if($self.hasMetadata($plugin))
-                $self.getAboutPage($plugin)
-            #end
+            $self.getAboutPage($plugin.id, $type)
         </div>
     #end
 #end
@@ -38,28 +36,28 @@
             <li><a href="#subscriber">Subscriber</a></li>
         </ul>
         <div id="indexer">
-            #pluginList($self.indexerPlugins)
+            #pluginList($self.indexerPlugins, "indexer")
         </div>
         <div id="storage">
-            #pluginList($self.storagePlugins)
+            #pluginList($self.storagePlugins, "storage")
         </div>
         <div id="harvester">
-            #pluginList($self.harvesterPlugins)
+            #pluginList($self.harvesterPlugins, "harvester")
         </div>
         <div id="transformer">
-            #pluginList($self.transformerPlugins)
+            #pluginList($self.transformerPlugins, "transformer")
         </div>
         <div id="access-control">
-            #pluginList($self.accessControlPlugins)
+            #pluginList($self.accessControlPlugins, "access")
         </div>
         <div id="authentication">
-            #pluginList($self.authenticationPlugins)
+            #pluginList($self.authenticationPlugins, "authentication")
         </div>
         <div id="roles">
-            #pluginList($self.rolesPlugins)
+            #pluginList($self.rolesPlugins, "roles")
         </div>
         <div id="subscriber">
-            #pluginList($self.subscriberPlugins)
+            #pluginList($self.subscriberPlugins, "subscriber")
         </div>
     </div>
     #parseTemplate("wrapping/content-block-close.vm")

@@ -1,6 +1,6 @@
 /* 
  * The Fascinator - Internal Authentication plugin
- * Copyright (C) 2008-2011 University of Southern Queensland
+ * Copyright (C) 2010-2011 University of Southern Queensland
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
