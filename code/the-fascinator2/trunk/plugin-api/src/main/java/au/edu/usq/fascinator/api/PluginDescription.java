@@ -42,8 +42,6 @@ public class PluginDescription {
     public PluginDescription(Plugin plugin) {
         id = plugin.getId();
         name = plugin.getName();
-        metadata = "{ \"resources\": { \"about\": \"/plugin/" + id
-                + "/about.html\" } }";
     }
 
     /**

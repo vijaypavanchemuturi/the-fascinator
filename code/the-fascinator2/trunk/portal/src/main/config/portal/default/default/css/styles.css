@@ -856,3 +856,11 @@ legend span.legend {
     font-size: 125%;
     margin-bottom: 2px;
 }
+.pluginAbout {
+    border: 1px solid black;
+    padding: 5px 10px;
+    margin-bottom: 10px;
+}
+.pluginAbout h3 {
+    font-size: 200%;
+}
