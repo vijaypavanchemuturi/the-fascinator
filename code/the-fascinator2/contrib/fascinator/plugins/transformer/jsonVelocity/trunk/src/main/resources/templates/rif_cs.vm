@@ -1,4 +1,4 @@
-#macro(showElement $tag $field $attr $label $anzsrc)
+#macro(showElementRifCS $tag $field $attr $label $anzsrc)
     #set($valueMap = $util.getList($item, $field))
     #foreach($key in $valueMap.keySet())
         #set($value = $valueMap.get($key))
@@ -14,9 +14,17 @@
     #end
 #end
 
+#macro(showRelatedInfo $field, $relatedInfoType, $identifierType)
+#set($valueMap = $util.getList($item, $field))
+    #foreach($key in $valueMap.keySet())
+        #set($value = $valueMap.get($key))
+        <relatedInfo type="$relatedInfoType"><identifier type="$identifierType">$value.get($key)</identifier></relatedInfo>
+    #end
+#end
+
 #set($quote='"')
 #set($lang = "xml:lang=${quote}$item.get('dc:language')${quote}")
-<registryObjects xmlns="http://ands.org.au/standards/rif-cs/registryObjects" 
+<registryObjects xmlns="http://ands.org.au/standards/rif-cs/registryObjects"
             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
             xsi:schemaLocation="http://ands.org.au/standards/rif-cs/registryObjects http://services.ands.org.au/home/orca/schemata/1.2.0/registryObjects.xsd"> 
     <registryObject group="University of Newcastle"> 
@@ -30,15 +38,14 @@
             
             <description type="full" $lang>$item.get("dc:description")</description>
             <description type="accessRights" $lang>$item.get("access_conditions")</description>
-            
-            <location>
-                <address>
-                    <electronic type="url">
-                        <value>$urlBase/detail/$oid</value>
-                    </electronic>
-                </address>
-            </location>
-            
+            <description type="rights" $lang>$item.get("restrictions")</description>
+            ##<location>
+            ##    <address>
+            ##        <electronic type="url">
+            ##            <value>$item.get("url")</value>
+            ##        </electronic>
+            ##    </address>
+            ##</location>
             <coverage>
                 <temporal>
                     <date type="dateFrom" dateFormat="W3CDTF">$util.getW3CDateTime($item.get("dc:coverage.from"))</date>
@@ -52,17 +59,29 @@
 ##                </spatial>
             </coverage>
             
-            #showElement("subject" "dc:subject.keywords", " type=${quote}local${quote} $lang", "", "")
-            #showElement("subject" "dc:subject.anzsrc:for", " type=${quote}local${quote} $lang", "skos:prefLabel", "anzsrc")
-            #showElement("subject" "dc:subject.anzsrc:seo", " type=${quote}local${quote} $lang", "skos:prefLabel", "anzsrc")
+            #showElementRifCS("subject" "dc:subject.keywords", " type=${quote}local${quote} $lang", "", "")
+            #showElementRifCS("subject" "dc:subject.anzsrc:for", " type=${quote}anzsrc-for${quote} $lang", "skos:prefLabel", "anzsrc")
+            #showElementRifCS("subject" "dc:subject.anzsrc:seo", " type=${quote}anzsrc-seo${quote} $lang", "skos:prefLabel", "anzsrc")
+            <subject type="anzsrc-toa">$item.get("research_activity")</subject>
             
-            #showElement("relatedInfo" "citations", "", "", "")
-            <relatedInfo>$item.get("website")<relatedInfo>
+            #showRelatedInfo("citations", "publication", "local")
+            <relatedInfo type="website"><identifier type="local">$item.get("website")</identifier></relatedInfo>
             
-            <relatedOwner>
+            <relatedObject>
                 <key>$item.get("data_owner")</key>
                 <relation type="isOwnedBy"/>
-            </relatedOwner>
+            </relatedObject>
+            
+            <relatedObject>
+                <key>$item.get("data_custodian")</key>
+                <relation type="isCustodianOf"/>
+            </relatedObject>
+            
+            <relatedObject>
+                <key>$item.get("primary_contact_name")</key>
+                <relation type="isPrimaryContactFor"/>
+            </relatedObject>
+            
             
         </collection>
     </registryObject> 

@@ -89,21 +89,23 @@ public class JsonVelocityTransformerTest {
 
         Set<String> payloadIdList = outputObject.getPayloadIdList();
         for (String payloadId : payloadIdList) {
-            Payload p = sourceObject.getPayload(payloadId);
+            if (!payloadId.equals("object.tfpackage")) {
+                Payload p = sourceObject.getPayload(payloadId);
 
-            System.out.println(IOUtils.toString(p.open()));
+                System.out.println(IOUtils.toString(p.open()));
 
-            p.close();
+                p.close();
+            }
         }
 
     }
 
     @Test
     public void getSingleValue() throws IOException, URISyntaxException {
-        Assert.assertEquals(tfpackage.getMap("/").get("dc:title"), "Test title");
+        Assert.assertEquals(tfpackage.getMap("/").get("dc:title"), "title1");
         Assert.assertEquals(tfpackage.getMap("/").get("dc:language"), "eng");
         Assert.assertEquals(tfpackage.getMap("/").get("dc:description"),
-                "Testing description");
+                "description");
     }
 
     @Test
@@ -115,10 +117,10 @@ public class JsonVelocityTransformerTest {
         // Keyword == 5
         Map<String, Object> keywords = (Map<String, Object>) subjectMap
                 .get("keywords");
-        Assert.assertEquals(5, keywords.size());
+        Assert.assertEquals(2, keywords.size());
         Map<String, Object> keywords2 = jsonVelocityTransformer.util.getList(
                 tfpackage.getMap("/"), "dc:subject.keywords");
-        Assert.assertEquals(5, keywords2.size());
+        Assert.assertEquals(2, keywords2.size());
 
         // anzsrc:for == 2
         Map<String, Object> anzsrcFor = (Map<String, Object>) subjectMap
@@ -136,5 +138,5 @@ public class JsonVelocityTransformerTest {
                 tfpackage.getMap("/"), "dc:subject.anzsrc:seo");
         Assert.assertEquals(1, anzsrcSeo2.size());
     }
-    
+
 }
