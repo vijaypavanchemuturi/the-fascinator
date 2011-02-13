@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
+import org.apache.commons.lang.StringEscapeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -78,5 +79,9 @@ public class Util {
         
         Date date = sdf.parse(dateTime);
         return odf.format(date);
+    }
+    
+    public String encodeXml(String value) {
+        return StringEscapeUtils.escapeXml(value);
     }
 }
