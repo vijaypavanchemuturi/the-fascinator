@@ -232,7 +232,10 @@ class PackagingData:
             packageType = self.vc("formData").get("packageType", "default")
             if packageType == "":
                 packageType = "default"
-            pt = JsonSimpleConfig().getObject(["portal", "packageTypes", packageType])
+            types = JsonSimpleConfig().getJsonSimpleMap(["portal", "packageTypes"])
+            pt = None
+            if types is not None and not types.isEmpty():
+                pt = types.get(packageType)
             if pt is None:
                 configFile = "packaging-config.json"
             else:
