@@ -11,7 +11,7 @@ from java.lang import Exception
 from org.apache.commons.io import FileUtils, IOUtils
 
 class PackagingData:
-    
+
     def __init__(self):
         pass
 
@@ -70,9 +70,6 @@ class PackagingData:
             value = self.vc("formData").get(metaName)
             jsonObj.put(metaName, value)
 
-        print "------"
-        print manifest
-        print "------"
         outWriter.write(manifest.toString(True))
         outWriter.close()
 

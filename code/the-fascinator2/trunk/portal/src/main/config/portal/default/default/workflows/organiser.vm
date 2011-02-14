@@ -126,8 +126,22 @@
                     return (rel != "application/x-fascinator-package");
                 },
                 onmove: function(node, refNode, type, tree, rollback) {
-                    jQuery.post("$portalPath/actions/manifest.ajax",
-                        {
+                    jQuery.ajax({
+                        type : "POST",
+                        url : "$portalPath/actions/manifest.ajax",
+                        success:
+                            function(data, status) {
+                                // We don't do anything on success
+                            },
+                        error:
+                            function (req, status, e) {
+                                var data = eval("(" + req.responseText + ")");
+                                if (data.message == "Only registered users can access this API") {
+                                    alert("Please login first!");
+                                }
+                                alert("Error during move: " + data.message);
+                            },
+                        data: {
                             func: "move",
                             oid: "$oid",
                             id: "$portalId",
@@ -136,7 +150,8 @@
                             parents: getParentIds(node),
                             refParents: getParentIds(refNode),
                             type: type
-                        });
+                        }
+                    });
                 },
                 onselect: function(node, tree) {
                     var node = $(node);
@@ -145,7 +160,7 @@
                         $("#preview").hide();
                     } else {
                         $("#content").load(
-                            "$portalPath/preview?oid=" + escape(id) + " div.body",
+                            "$portalPath/detail/" + escape(id) + "/?preview=true&inPackage=true",
                             function(data, status, xhr) {
                                 function fixLinks(selector, attrName) {
                                     $(selector).each(function() {
@@ -158,7 +173,7 @@
                                             if (hrefBase == attrBase) {
                                                 attr = attr.substring(hrefBase.length + 1);
                                             }
-                                            if (attr.indexOf("#") != 0 && attr.indexOf("://") == -1) {
+                                            if (attr.indexOf("#") != 0 && attr.indexOf("://") == -1 && attr.indexOf("/") != 0) {
                                                 var relUrl = "$portalPath/download/" + id + "/";
                                                 $(this).attr(attrName, escape(relUrl + attr));
                                             }
@@ -184,72 +199,114 @@
         $(".toc.hidden").removeClass("hidden");
 
         $("#update-package").click(function() {
-            jQuery.post("$portalPath/actions/manifest.ajax",
-                {   func: "update-package-meta",
+            jQuery.ajax({
+                type : "POST",
+                url : "$portalPath/actions/manifest.ajax",
+                success:
+                    function(data, status) {
+                        $("#package-form").submit();
+                    },
+                error:
+                    function (req, status, e) {
+                        var data = eval("(" + req.responseText + ")");
+                        if (data.message == "Only registered users can access this API") {
+                            alert("Please login first!");
+                        }
+                        alert("Error during move: " + data.message);
+                    },
+                data: {
+                    func: "update-package-meta",
                     oid: "$oid",
                     metaList: ["title", "description"],
                     title: $("#package-title").val(),
                     description: $("#package-description").val()
-                },
-                function(data, status) {
-                    $("#package-form").submit();
-                });
+                }
+            });
             return false;
         });
 
         $("#update-item").click(function() {
             var item = $("#toc a.clicked");
             var node = item.parent("li");
-            $("#item-loading").removeClass("hidden");
-            jQuery.post("$portalPath/actions/manifest.ajax",
-                {   func: "update",
+            $("#item-loading").show();
+            jQuery.ajax({
+                type : "POST",
+                dataType : "json",
+                url : "$portalPath/actions/manifest.ajax",
+                success:
+                    function(data, status) {
+                        item.text(data.title);
+                        if (data.hidden == "True") {
+                            item.addClass("item-hidden");
+                        } else {
+                            item.removeClass("item-hidden");
+                        }
+                        $("#item-loading").hide();
+                        $("#item-message").html("<strong>Updated '" + data.title + "' OK</strong>").fadeIn();
+                        setTimeout(function() {
+                            $("#item-message").fadeOut(function() { $(this).empty(); });
+                            }, 3000);
+                    },
+                error:
+                    function (req, status, e) {
+                        $("#item-loading").hide();
+                        var data = eval("(" + req.responseText + ")");
+                        if (data.message == "Only registered users can access this API") {
+                            alert("Please login first!");
+                        }
+                        alert("Error during move: " + data.message);
+                    },
+                data: {
+                    func: "update",
                     oid: "$oid",
                     nodeId: $(node).attr("id"),
                     title: $("#item-title").val(),
                     hidden: $("#item-hidden").is(":checked"),
                     parents: getParentIds(node)
-                },
-                function(data, status) {
-                    item.text(data.title);
-                    if (data.hidden == "True") {
-                        item.addClass("item-hidden");
-                    } else {
-                        item.removeClass("item-hidden");
-                    }
-                    $("#item-loading").addClass("hidden");
-                    $("#item-message").html("<strong>Updated '" + data.title + "' OK</strong>").fadeIn();
-                    setTimeout(function() {
-                        $("#item-message").fadeOut(function() { $(this).empty(); });
-                        }, 3000);
-                },
-                "json");
+                }
+            });
         });
 
         $("#delete-item").click(function() {
             var item = $("#toc a.clicked");
             if (confirm("Remove '" + item.text() + "' from this package?\nNote: Any sub-items will also be deleted.")) {
                 var node = item.parent("li");
-                $("#item-loading").removeClass("hidden");
-                jQuery.post("$portalPath/actions/manifest.ajax",
-                    {   func: "delete",
+                $("#item-loading").show();
+                jQuery.ajax({
+                    type : "POST",
+                    dataType : "json",
+                    url : "$portalPath/actions/manifest.ajax",
+                    success:
+                        function(data, status) {
+                            item.fadeOut(function() {
+                                item.remove();
+                                $("#item-loading").hide();
+                                $("#item-message").html("<strong>Deleted '" + data.title + "' OK</strong>").fadeIn();
+                                $("#item-props").hide();
+                            });
+                            setTimeout(function() {
+                                $("#item-message").fadeOut(function() {
+                                    $(this).empty();
+                                });
+                            }, 3000);
+                        },
+                    error:
+                        function (req, status, e) {
+                            $("#item-loading").hide();
+                            var data = eval("(" + req.responseText + ")");
+                            if (data.message == "Only registered users can access this API") {
+                                alert("Please login first!");
+                            }
+                            alert("Error during move: " + data.message);
+                        },
+                    data: {
+                        func: "delete",
+                        oid: "$oid",
                         oid: "$oid",
                         nodeId: $(node).attr("id"),
                         parents: getParentIds(node)
-                    },
-                    function(data, status) {
-                        item.fadeOut(function() {
-                            item.remove();
-                            $("#item-loading").addClass("hidden");
-                            $("#item-message").html("<strong>Deleted '" + data.title + "' OK</strong>").fadeIn();
-                            $("#item-props").hide();
-                        });
-                        setTimeout(function() {
-                            $("#item-message").fadeOut(function() {
-                                $(this).empty();
-                            });
-                        }, 3000);
-                    },
-                    "json");
+                    }
+                });
             }
         });
 
@@ -264,16 +321,31 @@
 
         $("#package-add-custom").click(function() {
             $("#package-add-custom-loading").show();
-            jQuery.post("$portalPath/actions/manifest.ajax",
-                { func: "add-custom", oid: "$oid" },
-                function(data, status) {
-                    var node = manifestTree.create(data, -1, "before");
-                    node.find("ins").remove();
-                    manifestTree.select_branch(node);
-                    $("#package-add-custom-loading").hide();
-                },
-                "json");
-            return false;
+            jQuery.ajax({
+                type : "POST",
+                dataType : "json",
+                url : "$portalPath/actions/manifest.ajax",
+                success:
+                    function(data, status) {
+                        var node = manifestTree.create(data, -1, "before");
+                        node.find("ins").remove();
+                        manifestTree.select_branch(node);
+                        $("#package-add-custom-loading").hide();
+                    },
+                error:
+                    function (req, status, e) {
+                        $("#package-add-custom-loading").hide();
+                        var data = eval("(" + req.responseText + ")");
+                        if (data.message == "Only registered users can access this API") {
+                            alert("Please login first!");
+                        }
+                        alert("Error during move: " + data.message);
+                    },
+                data: {
+                    func: "add-custom",
+                    oid: "$oid"
+                }
+            });
         });
 
         $("#package-title").focus();

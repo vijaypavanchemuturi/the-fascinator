@@ -13,7 +13,7 @@ class OrganiserData:
     def __activate__(self, context):
         self.velocityContext = context
 
-        print "formData: %s" % self.vc("formData")
+        #print "formData: %s" % self.vc("formData")
         self.__oid = self.vc("formData").get("oid")
         result = None
         try:
@@ -22,9 +22,8 @@ class OrganiserData:
             # check if we need to do processing
             func = self.vc("formData").get("func")
             if func == "get-rvt-manifest":
-                print "Getting RVT Manifest!"
                 result = self.__getRvtManifest(self.getManifest())
-                print "Result: ", result
+                #print "Result: ", result
         except Exception, e:
             log.error("Failed to load manifest", e);
             result = '{ status: "error", message: "%s" }' % str(e)
@@ -33,7 +32,7 @@ class OrganiserData:
             writer = self.vc("response").getPrintWriter("application/json; charset=UTF-8")
             writer.println(result)
             writer.close()
-    
+
     # Get from velocity context
     def vc(self, index):
         if self.velocityContext[index] is not None:
@@ -44,16 +43,16 @@ class OrganiserData:
 
     def getManifest(self):
         return self.__manifest
-    
+
     def getFormData(self, field):
         return StringEscapeUtils.escapeHtml(self.vc("formData").get(field, ""))
-    
+
     def getPackageTitle(self):
         return StringEscapeUtils.escapeHtml(self.vc("formData").get("title", self.__manifest.getTitle()))
-    
+
     def getMeta(self, metaName):
         return StringEscapeUtils.escapeHtml(self.vc("formData").get(metaName, self.__manifest.getString(None, [metaName])))
-    
+
     def getManifestViewId(self):
         searchPortal = self.__manifest.getViewId()
         if searchPortal is None:
@@ -62,10 +61,10 @@ class OrganiserData:
             return searchPortal
         else:
             return defaultPortal
-    
+
     def getMimeType(self, oid):
         return self.__getContentType(oid) or ""
-    
+
     def getMimeTypeIcon(self, path, oid, altText = None):
         format = self.__getContentType(oid)
         return self.__getMimeTypeIcon(path, format, altText)
@@ -103,7 +102,7 @@ class OrganiserData:
             except StorageException, e:
                 log.error("Error during getObject()", e)
         return contentType
-    
+
     def __readManifest(self, oid):
         object = Services.getStorage().getObject(oid)
         sourceId = object.getSourceId()
@@ -112,15 +111,15 @@ class OrganiserData:
         payload.close()
         object.close()
         return manifest
-    
+
     def __getRvtManifest(self, manifest):
         rvtMap = HashMap()
         rvtMap.put("title", manifest.getTitle())
         rvtMap.put("toc", self.__getRvtNodes(manifest.getTopNodes()))
         json = JsonObject(rvtMap)
-        print json.toString()
+        #print json.toString()
         return json.toString()
-    
+
     def __getRvtNodes(self, manifest):
         rvtNodes = ArrayList()
         #print "manifest=%s" % manifest
@@ -132,7 +131,7 @@ class OrganiserData:
                 if not node.getHidden():
                     oid = node.getId()
                     # check if node is a package
-                    if oid is not None:
+                    if oid != "blank":
                         package = (self.__getContentType(oid) == "application/x-fascinator-package")
                     else:
                         oid = node.getKey().replace("node", "blank")

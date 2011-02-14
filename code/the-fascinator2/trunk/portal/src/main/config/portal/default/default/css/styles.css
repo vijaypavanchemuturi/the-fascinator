@@ -676,10 +676,13 @@ li img.workflow, .mime-icon {
 #package-selected-items {
     font-size: 1.2em;
 }
-.content-preview iframe {
+.content-preview iframe, .package-content iframe {
     width: 99%;
     height: 600px;
     border: 1px solid black;
+}
+.package-content iframe.video {
+    border: 0px;
 }
 .iframe-link-alt {
     background-image: url('../images/icons/application_go.png');
