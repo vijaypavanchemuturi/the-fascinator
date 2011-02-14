@@ -38,7 +38,7 @@ class ManifestData:
                 node.setId("blank")
                 print "Adding blank node: '%s'" % id
                 self.__saveManifest()
-                result = '{ attributes: { id: "node-%s", rel: "blank" }, data: "Untitled" }' % id
+                result = '{ "attributes": { "id": "node-%s", "rel": "blank" }, "data": "Untitled" }' % id
 
             # Update top-level package metadata
             if func == "update-package-meta":
@@ -78,7 +78,7 @@ class ManifestData:
                 node.setTitle(title)
                 node.setHidden(hidden)
                 self.__saveManifest()
-                result = '{ title: "%s", hidden: "%s" }' % (title, hidden)
+                result = '{ "title": "%s", "hidden": "%s" }' % (title, hidden)
 
             # Update the metadata of the indicated node
             elif func == "delete":
@@ -89,7 +89,7 @@ class ManifestData:
                     self.__saveManifest()
                 else:
                     title = "Untitled"
-                result = '{ title: "%s" }' % title
+                result = '{ "title": "%s" }' % title
             self.__object.close()
 
         else:

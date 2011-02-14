@@ -7,6 +7,7 @@ $!pageContent
 #parse($page.getTemplate('layout/html-head.vm'))
   </head>
   <body>
+#parse($page.getTemplate('layout/jquery-settings.vm'))
 #parse($page.getTemplate('layout/page-structure.vm'))
 #parse($page.getTemplate('layout/action-form.vm'))
   </body>
