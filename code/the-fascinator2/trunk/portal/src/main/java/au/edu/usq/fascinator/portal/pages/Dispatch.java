@@ -424,8 +424,13 @@ public class Dispatch {
         // log.debug("path.length:{}", path.length);
         if ("".equals(requestUri) || path.length == 1) {
             portalId = "".equals(path[0]) ? defaultPortal : path[0];
-            String url = request.getContextPath() + "/" + portalId + "/"
-                    + DEFAULT_RESOURCE;
+            String url = sysConfig.getString(null, "urlBase");
+            if (url == null) {
+                url += portalId + "/" + DEFAULT_RESOURCE;
+            } else {
+                url = request.getContextPath() + "/" + portalId + "/"
+                        + DEFAULT_RESOURCE;
+            }
             try {
                 response.sendRedirect(url);
             } catch (IOException ioe) {

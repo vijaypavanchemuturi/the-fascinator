@@ -227,8 +227,8 @@ class OrganiseData:
         contentStr = ""
         if mimeType.startswith("text/"):
             if mimeType == "text/html":
-                contentStr = '<iframe class="iframe-preview" src="%s/%s/download/%s"></iframe>' % \
-                    (contextPath, portalId, oid)
+                contentStr = '<iframe class="iframe-preview" src="%s/download/%s"></iframe>' % \
+                    (portalPath, oid)
             else:
                 sw = StringWriter()
                 sw.write("<pre>")

@@ -143,7 +143,7 @@
           var json = this.JSON.parse(message.nodeValue);
           $("#message-list").append("<li>" + json.message + "</li>");
       }
-      amq.init({ uri: "$contextPath/amq/", timeout: 10 });
+      amq.init({ uri: "${urlBase}amq/", timeout: 10 });
       amq.addListener(clientId, clientTopic, waitRender);
   -->
   </script>

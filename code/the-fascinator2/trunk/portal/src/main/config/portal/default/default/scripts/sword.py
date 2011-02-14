@@ -33,8 +33,7 @@ class SwordData(object):
             return None
 
     def __processRequest(self):
-        baseUrl = "http://%s:%s%s/%s" % (self.vc("request").serverName, self.vc("serverPort"), self.vc("contextPath"), self.vc("portalId"))
-        depositUrl = "%s/sword/deposit.post" % baseUrl
+        depositUrl = "%s/sword/deposit.post" % portalPath
         sword = SwordSimpleServer(depositUrl)
         try:
             p =  self.vc("request").path.split(self.vc("portalId")+"/"+self.vc("pageName")+"/")[1]  # portalPath

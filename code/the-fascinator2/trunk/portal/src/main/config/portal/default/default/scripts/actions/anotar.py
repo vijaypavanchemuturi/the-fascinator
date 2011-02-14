@@ -26,7 +26,7 @@ class AnotarData:
         self.json = self.fd("json")
         self.type = self.fd("type")
         self.rootUriList = self.vc("formData").getValues("rootUriList")
-        self.contextPath = self.vc("contextPath")
+        self.portalPath = self.vc("portalPath")
         #print "action:'%s' formData:'%s'" % (self.action, formData)
 
         # used so that ajax requests don't cache
@@ -34,7 +34,7 @@ class AnotarData:
             self.rootUri = self.rootUri[:self.rootUri.find("?ticks")]
 
         # Portal path info
-        portalPath = self.contextPath + "/" + self.vc("portalId") + "/"
+        portalPath = self.portalPath + "/"
         self.oid = self.rootUri
         if self.oid and self.oid.startswith(portalPath):
             self.oid = self.oid[len(portalPath):]

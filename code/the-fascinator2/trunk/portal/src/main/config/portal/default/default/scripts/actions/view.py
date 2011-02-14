@@ -14,7 +14,6 @@ class ViewData:
         if auth.is_logged_in():
             services = context["Services"]
             formData = context["formData"]
-            contextPath = context["contextPath"]
             sessionState = context["sessionState"]
             func = formData.get("func")
             portalManager = services.portalManager
@@ -33,7 +32,7 @@ class ViewData:
                     portalManager.save(portal)
                     obj.put("status", "ok")
                     obj.put("message", "View '%s' successfully created" % id)
-                    obj.put("url", "%s/%s/home" % (contextPath, id))
+                    obj.put("url", "%s/%s/home" % (urlBase, id))
                 except Exception, e:
                     response.setStatus(500)
                     obj.put("message", str(e))
@@ -51,7 +50,7 @@ class ViewData:
                             portalManager.remove(portalId)
                             obj.put("status", "ok")
                             obj.put("message", "View '%s' successfully removed" % portalId)
-                            obj.put("url", "%s/%s/home" % (contextPath, defaultPortal))
+                            obj.put("url", "%s/%s/home" % (urlBase, defaultPortal))
                         except Exception, e:
                             obj.put("message", str(e))
                     else:
