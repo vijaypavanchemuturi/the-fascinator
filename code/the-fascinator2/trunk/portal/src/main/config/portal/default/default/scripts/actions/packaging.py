@@ -93,7 +93,7 @@ class PackagingData:
             log.error(error, ex)
             if harvester is not None:
                 harvester.shutdown()
-            return '{ status: "failed" }'
+            return '{ "status": "failed" }'
         # clean up
         self.__deselect()
         # return url to workflow screen
@@ -159,12 +159,12 @@ class PackagingData:
             log.error(error, ex)
             if harvester is not None:
                 harvester.shutdown()
-            return '{ status: "failed" }'
+            return '{ "status": "failed" }'
         # clean up
         ##manifestFile.delete()
         self.__deselect()
         # return url to workflow screen
-        return '{ status: "ok", url: "%s/workflow/%s" }' % (portalPath, manifestId)
+        return '{ "status": "ok", "url": "%s/workflow/%s" }' % (portalPath, manifestId)
 
     def __update(self):
         print "Updating package selection..."
@@ -189,7 +189,7 @@ class PackagingData:
                     print "removing:", id
                     activeManifest.delete("node-%s" % id)
         print "activeManifest: %s" % activeManifest
-        return '{ count: %s }' % activeManifest.size()
+        return '{ "count": %s }' % activeManifest.size()
 
     def __deselect(self):
         print "Clearing package selection..."
@@ -222,7 +222,7 @@ class PackagingData:
         except StorageException, e:
             self.vc("response").setStatus(500)
             return '{ error: %s }' % str(e)
-        return '{ count: %s }' % manifest.size()
+        return '{ "count": %s }' % manifest.size()
 
     def __getPackageTypeAndJsonConfigFile(self):
         try:
