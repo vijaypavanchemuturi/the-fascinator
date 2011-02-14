@@ -18,18 +18,18 @@
 #set($valueMap = $util.getList($item, $field))
     #foreach($key in $valueMap.keySet())
         #set($value = $valueMap.get($key))
-        <relatedInfo type="$relatedInfoType"><identifier type="$identifierType">$value.get($key)</identifier></relatedInfo>
+        <rif:relatedInfo type="$relatedInfoType"><rif:identifier type="$identifierType">$value.get($key)</rif:identifier></rif:relatedInfo>
     #end
 #end
 
 #set($quote='"')
 #set($lang = "xml:lang=${quote}$item.get('dc:language')${quote}")
-<registryObjects xmlns="http://ands.org.au/standards/rif-cs/registryObjects"
+<rif:registryObjects xmlns:rif="http://ands.org.au/standards/rif-cs/registryObjects"
             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
             xsi:schemaLocation="http://ands.org.au/standards/rif-cs/registryObjects http://services.ands.org.au/home/orca/schemata/1.2.0/registryObjects.xsd"> 
-    <registryObject group="University of Newcastle"> 
-        <key>$urlBase/detail/$oid</key> 
-        <originatingSource type="authoritative">$urlBase/detail/$oid</originatingSource>
+    <rif:registryObject group="University of Newcastle"> 
+        <rif:key>$urlBase/detail/$oid</rif:key> 
+        <rif:originatingSource type="authoritative">$urlBase/detail/$oid</rif:originatingSource>
         
         #set($dateModified="")
         #if ($item.get("dc:modified")!="")
@@ -41,24 +41,24 @@
             #set($dateAccessioned="dateAccessioned=${quote}$util.getW3CDateTime($item.get('dc:created'))$quote")
         #end
 
-        <collection type="$item.get("dc:type")" $dateModified $dateAccessioned>
+        <rif:collection type="$item.get("dc:type")" $dateModified $dateAccessioned>
 
-            <identifier type="uri">$urlBase/detail/$oid</identifier>
-            <name type="primary" $lang>
-                <namePart type="full">$item.get("dc:title")</namePart>
-            </name>
+            <rif:identifier type="uri">$urlBase/detail/$oid</rif:identifier>
+            <rif:name type="primary" $lang>
+                <rif:namePart type="full">$item.get("dc:title")</rif:namePart>
+            </rif:name>
             
-            <description type="full" $lang>$item.get("dc:description")</description>
-            <description type="accessRights" $lang>$item.get("access_conditions")</description>
-            <description type="rights" $lang>$item.get("restrictions")</description>
-            ##<location>
-            ##    <address>
-            ##        <electronic type="url">
-            ##            <value>$item.get("url")</value>
-            ##        </electronic>
-            ##    </address>
-            ##</location>
-            <coverage>
+            <rif:description type="full" $lang>$item.get("dc:description")</rif:description>
+            <rif:description type="accessRights" $lang>$item.get("access_conditions")</rif:description>
+            <rif:description type="rights" $lang>$item.get("restrictions")</rif:description>
+            ##<rif:location>
+            ##    <rif:address>
+            ##        <rif:electronic type="url">
+            ##            <rif:value>$item.get("url")</rif:value>
+            ##        </rif:electronic>
+            ##    </rif:address>
+            ##</rif:location>
+            <rif:coverage>
                  #set($coverageFrom="")
                  #if ($item.get("dc:coverage.from")!="")
                     #set($coverageFrom=$util.getW3CDateTime($item.get("dc:coverage.from")))
@@ -68,43 +68,42 @@
                  #if ($item.get("dc:coverage.to")!="")
                     #set($coverageTo=$util.getW3CDateTime($item.get("dc:coverage.to")))
                  #end
-                <temporal>
-                    <date type="dateFrom" dateFormat="W3CDTF">$coverageFrom</date>
-                    <date type="dateTo" dateFormat="W3CDTF">$coverageTo</date>
-                </temporal>
+                <rif:temporal>
+                    <rif:date type="dateFrom" dateFormat="W3CDTF">$coverageFrom</rif:date>
+                    <rif:date type="dateTo" dateFormat="W3CDTF">$coverageTo</rif:date>
+                </rif:temporal>
 
-                <temporal>
-                    <text>$item.get("time_period")</text>
-                </temporal>
-##                <spatial type="{}" $lang>
+                <rif:temporal>
+                    <rif:text>$item.get("time_period")</rif:text>
+                </rif:temporal>
+##                <rif:spatial type="{}" $lang>
 ##                    {co-ords}
-##                </spatial>
-            </coverage>
+##                </rif:spatial>
+            </rif:coverage>
             
-            #showElementRifCS("subject" "dc:subject.keywords", " type=${quote}local${quote} $lang", "", "")
-            #showElementRifCS("subject" "dc:subject.anzsrc:for", " type=${quote}anzsrc-for${quote} $lang", "skos:prefLabel", "anzsrc")
-            #showElementRifCS("subject" "dc:subject.anzsrc:seo", " type=${quote}anzsrc-seo${quote} $lang", "skos:prefLabel", "anzsrc")
-            <subject type="anzsrc-toa">$item.get("research_activity")</subject>
+            #showElementRifCS("rif:subject" "dc:subject.keywords", " type=${quote}local${quote} $lang", "", "")
+            #showElementRifCS("rif:subject" "dc:subject.anzsrc:for", " type=${quote}anzsrc-for${quote} $lang", "skos:prefLabel", "anzsrc")
+            #showElementRifCS("rif:subject" "dc:subject.anzsrc:seo", " type=${quote}anzsrc-seo${quote} $lang", "skos:prefLabel", "anzsrc")
+            <rif:subject type="anzsrc-toa">$item.get("research_activity")</rif:subject>
             
             #showRelatedInfo("citations", "publication", "local")
-            <relatedInfo type="website"><identifier type="local">$item.get("website")</identifier></relatedInfo>
+            <rif:relatedInfo type="website"><rif:identifier type="local">$item.get("website")</rif:identifier></rif:relatedInfo>
             
-            <relatedObject>
-                <key>$item.get("data_owner")</key>
-                <relation type="isOwnedBy"/>
-            </relatedObject>
+            <rif:relatedObject>
+                <rif:key>$item.get("data_owner")</rif:key>
+                <rif:relation type="isOwnedBy"/>
+            </rif:relatedObject>
             
-            <relatedObject>
-                <key>$item.get("data_custodian")</key>
-                <relation type="isCustodianOf"/>
-            </relatedObject>
+            <rif:relatedObject>
+                <rif:key>$item.get("data_custodian")</rif:key>
+                <rif:relation type="isCustodianOf"/>
+            </rif:relatedObject>
             
-            <relatedObject>
-                <key>$item.get("primary_contact_name")</key>
-                <relation type="isPrimaryContactFor"/>
-            </relatedObject>
+            <rif:relatedObject>
+                <rif:key>$item.get("primary_contact_name")</rif:key>
+                <rif:relation type="isPrimaryContactFor"/>
+            </rif:relatedObject>
             
-            
-        </collection>
-    </registryObject> 
-</registryObjects>
+        </rif:collection>
+    </rif:registryObject> 
+</rif:registryObjects>
