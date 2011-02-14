@@ -172,8 +172,9 @@ var widgets={forms:[], globalObject:this};
   };
 
   function validator(){
-    var iterReader, isOkToX, testTest, getExpr, getWhen
-    var hideAllMessages, setup
+    var iterReader, isOkToX, testTest, getExpr, getWhen;
+    var hideAllMessages, setup;
+    var onValidationListeners=[];
 /*
 (                                           1
   \s*                                           any white spaces
@@ -325,12 +326,12 @@ var widgets={forms:[], globalObject:this};
         }
         return {action:action, target:target};
     };
-    setup=function(ctx, onLoadTest){
-        var rule, match;
+    setup=function(ctx){
+        var rule, match, onValidation;
         var m, w, va, f, a, lf, addValidationFor;
         var validationsFor={}, liveValidationsFor={};
         //var matchQuotedStr = '("([^"\\]|\\.)*")';     // continues matching until closing (unescaped) quote
-        var vLabels=ctx.find("label.validation-err-msg, label[data-rule],label[data-validation-rule]");
+        var vLabels=ctx.find(".validation-err-msg, label[data-rule],label[data-validation-rule]");
         vLabels.hide();
         //value="for('dc:title');test(notEmpty);when(onChange)"
         addValidationFor=function(f, dict){
@@ -416,6 +417,15 @@ var widgets={forms:[], globalObject:this};
             r +="for("+v.id+");"
             dict=rule(r);
         });
+        onValidation=function(r){       // called from the validation test functions
+            try{
+                $.each(onValidationListeners, function(c, l){
+                    try{
+                        l(r);
+                    }catch(e){}
+                });
+            }catch(e){}
+        };
         $.each(validationsFor, function(f, l){
             var target, getValue, showValidationMessage;
             var func, vLabel;
@@ -432,7 +442,8 @@ var widgets={forms:[], globalObject:this};
                 if(d.testStr){
                   try{
                     func="func=function(){var v=getValue();"+
-                        "return showValidationMessage(!("+d.testStr+"));};";
+                        "r =showValidationMessage(!("+d.testStr+"));"+
+                        "onValidation(r); return r;};";
                     eval(func);
                     func.x=d;
                     d._testFunc=func;
@@ -455,8 +466,7 @@ var widgets={forms:[], globalObject:this};
             });
         });
         $.each(liveValidationsFor, function(lf, dict){
-            var target, showValidationMessage;
-            var testFunc, liveResult;
+            var target, testFunc, liveResult;
             if(dict.testStr){
               try{
                 target = ctx.find(lf);
@@ -464,11 +474,11 @@ var widgets={forms:[], globalObject:this};
                     "if(/\\.0(\\.|$)/.test(this.id))return false;"+   // do not validate inputs with an id containing .0.
                     "r=!("+dict.testStr+");"+
                     "liveResult|=r;"+
-                    "e=ctx.find('label.validation-err-msg, label[data-rule],label[data-validation-rule]');"+
+                    "e=ctx.find('.validation-err-msg, label[data-rule],label[data-validation-rule]');"+
                     "zid=this.id.replace(/\\.\\d+(?=\\.|$)/g,'.0');"+
                     "e=e.filter('[for='+this.id+'],[for='+zid+']');"+
                     "r?e.show():e.hide();"+                 // r==show
-                    "return r;}";
+                    "onValidation(r); return r;}";
                 eval(testFunc);
                 testFunc.x=dict;
                 dict._testFunc=testFunc;
@@ -483,7 +493,7 @@ var widgets={forms:[], globalObject:this};
                       actionTests[w.action]||(actionTests[w.action]=[]);
                       actionTests[w.action].push(function(){
                           liveResult=false;
-                          target.trigger(w.action);
+                          ctx.find(lf).trigger(w.action);
                           return liveResult;
                       });
                   }
@@ -501,6 +511,7 @@ var widgets={forms:[], globalObject:this};
       namedTests:namedTests,
       results:results,
       hideAllMessages:hideAllMessages,
+      onValidationListeners:onValidationListeners,
       parseErrors:{}
     };
   };
@@ -570,6 +581,7 @@ var widgets={forms:[], globalObject:this};
   }
 
   function listInput(c, i){
+    try{
       var liSect, count, tmp, visibleItems, displayRowTemplate, displaySelector;
       var add, del, getDelFuncFor, reorder, addUniqueOnly=false;
       var maxSize, minSize, addButton, addButtonDisableTest;
@@ -583,7 +595,6 @@ var widgets={forms:[], globalObject:this};
         // return liSect.find(selector);
         return liSect.find(selector).not(liSect.find(".input-list").find(selector));
       };
-      
       maxSize = liSect.dataset("max-size")*1;
       if(isNaN(maxSize)){
           maxSize=100;
@@ -701,7 +712,8 @@ var widgets={forms:[], globalObject:this};
         displayRowTemplate=tmp.eq(0);
         contentDisable(displayRowTemplate);
         add=function(){
-          tmp = displayRowTemplate.clone(true).show().addClass("count-this");
+          // NOTE: IE8 & jQuery 1.4.2 .clone(true) - causes stack overflow!
+          tmp = displayRowTemplate.clone(false).show().addClass("count-this");
           visibleItems = xfind(displaySelector+".count-this");
           count = visibleItems.size()+1;
           tmp.find("*[id]").each(function(c, i){
@@ -724,11 +736,12 @@ var widgets={forms:[], globalObject:this};
           tmp.find(".delete-item").not(tmp.find(".input-list .delete-item")).click(getDelFuncFor(tmp));
           if(count>=maxSize){addButton.attr("disabled", true);}
           contentSetup(tmp);
+        };
+        for(var x=0;x<minSize;x++){
+            add();
         }
-        for(var x=0;x<minSize;x++){add();}
         addButton.click(add);
       }
-
       reorder=function(){
         var xf, regFirst = /\.\d+(?=\.|$)/;
         // reorder last digit only in our direct input-list only
@@ -756,7 +769,10 @@ var widgets={forms:[], globalObject:this};
                 xf(".sort-number").text(c+1);
             }catch(e){alert(e.message)}
         });
-      }
+      };
+    }catch(ee){
+        alert("error in listInput() - "+ee.message);
+    }
   }
 
   var pendingWork = {};
@@ -1634,7 +1650,7 @@ var widgets={forms:[], globalObject:this};
         }
     }
     function contentSetup(ctx, completedCallback){
-        //
+      //
       try{
         ctx.find(".helpWidget").each(function(c, e){
             helpWidget($(e));
