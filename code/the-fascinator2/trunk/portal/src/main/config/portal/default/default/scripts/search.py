@@ -99,7 +99,7 @@ class SearchData:
             annoReq.setParam("start", str(0))
             anotarOut = ByteArrayOutputStream()
             self.services.indexer.annotateSearch(annoReq, anotarOut)
-            resultForAnotar = SolrResults(ByteArrayInputStream(anotarOut.toByteArray()))
+            resultForAnotar = SolrResult(ByteArrayInputStream(anotarOut.toByteArray()))
             resultForAnotar = resultForAnotar.getResults()
             ids = HashSet()
             for annoDoc in resultForAnotar:
