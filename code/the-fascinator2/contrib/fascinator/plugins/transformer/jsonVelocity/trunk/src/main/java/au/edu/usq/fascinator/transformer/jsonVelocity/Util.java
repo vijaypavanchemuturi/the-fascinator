@@ -75,12 +75,21 @@ public class Util {
     
     public String getW3CDateTime (String dateTime) throws ParseException {
         if (!dateTime.equals(null) && !dateTime.equals("")) {
+            if (dateTime.indexOf("-")==-1) {
+                dateTime = dateTime + "-01-01";
+            } else {
+                String[] part = dateTime.trim().split("-");
+                if (part.length == 2) {
+                    dateTime = dateTime + "-01";
+                }
+            }
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
             SimpleDateFormat odf = new SimpleDateFormat(
                     "yyyy-MM-dd'T'HH:mm:ssZ");
-
+            
             Date date = sdf.parse(dateTime);
-        return odf.format(date);
+            log.info("{}", odf.format(date));
+            return odf.format(date);
         } return "";
     }
     

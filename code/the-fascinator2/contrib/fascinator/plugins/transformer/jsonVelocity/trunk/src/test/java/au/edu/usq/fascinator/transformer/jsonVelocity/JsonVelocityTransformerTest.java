@@ -21,6 +21,7 @@ package au.edu.usq.fascinator.transformer.jsonVelocity;
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.text.ParseException;
 import java.util.Map;
 import java.util.Set;
 
@@ -28,6 +29,7 @@ import org.apache.commons.io.IOUtils;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import au.edu.usq.fascinator.api.PluginManager;
@@ -79,7 +81,6 @@ public class JsonVelocityTransformerTest {
         }
     }
 
-    //@Ignore
     @Test
     public void transformFormat() throws Exception {
         File file = new File(getClass().getResource("/object.tfpackage")
@@ -139,4 +140,19 @@ public class JsonVelocityTransformerTest {
         Assert.assertEquals(1, anzsrcSeo2.size());
     }
 
+    @Test
+    public void testDate() {
+        try {
+            String date = jsonVelocityTransformer.util.getW3CDateTime("2010");
+            Assert.assertEquals(date, "2010-01-01T00:00:00+1000");
+            
+            date = jsonVelocityTransformer.util.getW3CDateTime("2010-10");
+            Assert.assertEquals(date, "2010-10-01T00:00:00+1000");
+            
+            date = jsonVelocityTransformer.util.getW3CDateTime("2010-10-28");
+            Assert.assertEquals(date, "2010-10-28T00:00:00+1000");
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+    }
 }
