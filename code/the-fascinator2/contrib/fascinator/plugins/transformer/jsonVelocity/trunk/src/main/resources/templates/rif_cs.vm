@@ -30,7 +30,19 @@
     <registryObject group="University of Newcastle"> 
         <key>$urlBase/detail/$oid</key> 
         <originatingSource type="authoritative">$urlBase/detail/$oid</originatingSource>
-        <collection type="$item.get("dc:type")" dateModified="$util.getW3CDateTime($item.get("dc:modified"))" dateAccessioned="$util.getW3CDateTime($item.get("dc:created"))">
+        
+        #set($dateModified="")
+        #if ($item.get("dc:modified")!="")
+            #set($dateModified="dateModified=${quote}$util.getW3CDateTime($item.get('dc:modified'))$quote")
+        #end
+
+        #set($dateAccessioned="")
+        #if ($item.get("dc:created")!="")
+            #set($dateAccessioned="dateAccessioned=${quote}$util.getW3CDateTime($item.get('dc:created'))$quote")
+        #end
+
+        <collection type="$item.get("dc:type")" $dateModified $dateAccessioned>
+
             <identifier type="uri">$urlBase/detail/$oid</identifier>
             <name type="primary" $lang>
                 <namePart type="full">$item.get("dc:title")</namePart>
@@ -47,10 +59,20 @@
             ##    </address>
             ##</location>
             <coverage>
+                 #set($coverageFrom="")
+                 #if ($item.get("dc:coverage.from")!="")
+                    #set($coverageFrom=$util.getW3CDateTime($item.get("dc:coverage.from")))
+                 #end
+
+                 #set($coverageTo="")
+                 #if ($item.get("dc:coverage.to")!="")
+                    #set($coverageTo=$util.getW3CDateTime($item.get("dc:coverage.to")))
+                 #end
                 <temporal>
-                    <date type="dateFrom" dateFormat="W3CDTF">$util.getW3CDateTime($item.get("dc:coverage.from"))</date>
-                    <date type="dateTo" dateFormat="W3CDTF">$util.getW3CDateTime($item.get("dc:coverage.to"))</date>
+                    <date type="dateFrom" dateFormat="W3CDTF">$coverageFrom</date>
+                    <date type="dateTo" dateFormat="W3CDTF">$coverageTo</date>
                 </temporal>
+
                 <temporal>
                     <text>$item.get("time_period")</text>
                 </temporal>
