@@ -212,7 +212,7 @@
                         if (data.message == "Only registered users can access this API") {
                             alert("Please login first!");
                         }
-                        alert("Error during move: " + data.message);
+                        alert("Error updating package: " + data.message);
                     },
                 data: {
                     func: "update-package-meta",
@@ -254,7 +254,7 @@
                         if (data.message == "Only registered users can access this API") {
                             alert("Please login first!");
                         }
-                        alert("Error during move: " + data.message);
+                        alert("Error updating package: " + data.message);
                     },
                 data: {
                     func: "update",
@@ -297,7 +297,7 @@
                             if (data.message == "Only registered users can access this API") {
                                 alert("Please login first!");
                             }
-                            alert("Error during move: " + data.message);
+                            alert("Error deleting item: " + data.message);
                         },
                     data: {
                         func: "delete",
@@ -314,7 +314,7 @@
             jQuery.post("$portalPath/actions/packaging.ajax",
                 { func: "modify", oid: "$oid" },
                 function(data, status) {
-                    window.location.href = "$contextPath/$self.getManifestViewId()/search";
+                    window.location.href = "$urlBase$self.getManifestViewId()/search";
                 });
             return false;
         });
@@ -339,7 +339,7 @@
                         if (data.message == "Only registered users can access this API") {
                             alert("Please login first!");
                         }
-                        alert("Error during move: " + data.message);
+                        alert("Error adding custom node: " + data.message);
                     },
                 data: {
                     func: "add-custom",

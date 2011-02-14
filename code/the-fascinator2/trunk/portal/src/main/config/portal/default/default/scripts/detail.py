@@ -21,7 +21,6 @@ class DetailData:
         self.services = context["Services"]
         self.request = context["request"]
         self.response = context["response"]
-        self.contextPath = context["contextPath"]
         self.formData = context["formData"]
         self.page = context["page"]
 
@@ -63,7 +62,7 @@ class DetailData:
             q = ""
             if self.__isPreview:
                 q = "?preview=true"
-            self.response.sendRedirect("%s/%s/%s" % (self.contextPath, uri, q))
+            self.response.sendRedirect("%s%s/%s" % (context["urlBase"], uri, q))
 
     def getAllowedRoles(self):
         metadata = self.getMetadata()

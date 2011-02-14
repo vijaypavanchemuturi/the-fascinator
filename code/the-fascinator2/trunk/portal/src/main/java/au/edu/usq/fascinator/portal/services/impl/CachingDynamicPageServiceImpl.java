@@ -334,11 +334,11 @@ public class CachingDynamicPageServiceImpl implements DynamicPageService {
         bindings.put("scriptsPath", portalPath + "/" + portalId + "/scripts");
         bindings.put("portalDir", portalPath + "/" + portalId);
         bindings.put("portalId", portalId);
-        bindings.put("portalPath", contextPath + "/" + portalId);
+        bindings.put("urlBase", urlBase);
+        bindings.put("portalPath", urlBase + portalId);
         bindings.put("defaultPortal", defaultPortal);
         bindings.put("pageName", pageName);
         bindings.put("responseOutput", out);
-        bindings.put("urlBase", urlBase);
         bindings.put("serverPort", requestGlobals.getHTTPServletRequest()
                 .getServerPort());
         bindings.put("toolkit", toolkit);

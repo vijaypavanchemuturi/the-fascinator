@@ -32,7 +32,7 @@
                 <ul>
                     #foreach($portal in $page.portals)
                         #if($portal.name != $portalId)
-                            <li><a href="$contextPath/$portal.name/$page.getRelativePath()">$portal.description</a></li>
+                            <li><a href="$urlBase$portal.name/$page.getRelativePath()">$portal.description</a></li>
                         #end
                     #end
                 </ul>

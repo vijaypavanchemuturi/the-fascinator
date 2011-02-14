@@ -214,8 +214,8 @@ class OrganiseData:
         contentStr = ""
         if mimeType.startswith("text/"):
             if mimeType == "text/html":
-                contentStr = '<iframe class="iframe-preview" src="%s/%s/download/%s"></iframe>' % \
-                    (contextPath, portalId, self.__oid)
+                contentStr = '<iframe class="iframe-preview" src="%s/download/%s"></iframe>' % \
+                    (portalPath, self.__oid)
             else:
                 pid = self.__oid[self.__oid.rfind("/")+1:]
                 payload = self.__storage.getPayload(self.__oid, pid)
@@ -231,8 +231,8 @@ class OrganiseData:
             # get the html version if exist...
             pid = os.path.splitext(self.__pid)[0] + ".htm"
             print " * single.py: pid=%s" % pid
-            #contentStr = '<iframe class="iframe-preview" src="%s/%s/download/%s/%s"></iframe>' % \
-            #    (contextPath, portalId, self.__oid, pid)
+            #contentStr = '<iframe class="iframe-preview" src="%s/download/%s/%s"></iframe>' % \
+            #    (portalPath, self.__oid, pid)
             payload = self.__storage.getPayload(self.__oid, pid)
             saxReader = SAXReader(Boolean.parseBoolean("false"))
             try:

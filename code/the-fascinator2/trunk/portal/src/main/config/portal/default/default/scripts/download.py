@@ -37,7 +37,7 @@ class DownloadData:
         object, payload = self.__resolve(uri)
         if object is None:
             print " *** redirecting because object not found: '%s'" % uri
-            self.response.sendRedirect(self.contextPath + "/" + fullUri + "/")
+            self.response.sendRedirect(context["urlBase"] + fullUri + "/")
             return
 
         # Ensure solr metadata is useable
@@ -51,7 +51,7 @@ class DownloadData:
         # Security check
         if self.isAccessDenied():
             # Redirect to the object page for standard access denied error
-            self.response.sendRedirect(self.contextPath + "/" + self.portalId + "/detail/" + object.getId())
+            self.response.sendRedirect(context["portalPath"] + "/detail/" + object.getId())
             return
 
         ## The byte range cache will check for byte range requests first

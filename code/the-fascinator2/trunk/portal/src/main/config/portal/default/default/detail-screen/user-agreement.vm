@@ -7,7 +7,7 @@
             <p>$page.authentication.get_name()... access to this object requires acceptance of the following agreement:</p>
             <pre>$ua.getText()</pre>
             <p>Please indicate your acceptance of the above terms.</p>
-            <form method="post" action="$contextPath/$self.request.getAttribute("RequestURI")">
+            <form method="post" action="$urlBase/$self.request.getAttribute("RequestURI")">
                 <input type="hidden" name="accept" value="true" />
                 <input type="submit" value="$ua.acceptButton()" />
                 <input type="button" id="agreement-cancel" value="$ua.cancelButton()" />

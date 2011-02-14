@@ -1,6 +1,6 @@
 <Identify>
     <repositoryName>The Fascinator</repositoryName>
-    <baseURL>http://localhost:9997$contextPath/$portalId</baseURL>  ## use system-config urlBase?
+    <baseURL>$urlBase$portalId</baseURL>
     <protocolVersion>2.0</protocolVersion>
     <adminEmail>fascinator@usq.edu.au</adminEmail>  ## use system-config email?
     <earliestDatestamp>0001-01-01T00:00:00Z</earliestDatestamp>
