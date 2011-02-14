@@ -28,6 +28,7 @@ class DetailData:
         self.uaActivated = False
         useDownload = Boolean.parseBoolean(self.formData.get("download", "true"))
         self.__isPreview = Boolean.parseBoolean(self.formData.get("preview", "false"))
+        self.__inPackage = Boolean.parseBoolean(self.formData.get("inPackage", "false"))
         self.__previewPid = None
         self.__hasPid = False
 
@@ -125,6 +126,9 @@ class DetailData:
 
     def hasPid(self):
         return self.__hasPid
+
+    def inPackage(self):
+        return self.__inPackage
 
     def isAccessDenied(self):
         myRoles = self.page.authentication.get_roles_list()

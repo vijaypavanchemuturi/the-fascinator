@@ -1,11 +1,11 @@
-#if($parent.isDetail())
+#if($parent.isDetail() || !$parent.inPackage())
     <table>
         <tbody>
             <tr>
                 <td id="player-container">
                     <div id="player"></div>
                 </td>
-                
+
                 <td style="vertical-align: top">
                     <button class="player_reset" disabled="disabled">Reset player</button>
                     <div class="video-results-list">

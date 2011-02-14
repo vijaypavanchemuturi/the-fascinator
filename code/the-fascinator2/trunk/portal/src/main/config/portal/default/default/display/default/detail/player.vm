@@ -29,6 +29,21 @@
     var disableVideoAnotar = false;
 
     $(function() {
+        function sizeFrame(width, height) {
+          #if (!$parent.isDetail())
+          ### Fix for living inside an iframe.
+          ### The player needs to resize the iframe after the video loads.
+            // Check if we are even in a frame
+            var iframe = $(parent.document.getElementById('iframe-video-player'));
+            if (iframe) {
+                iframe.height(height + 20);
+                iframe.width(width + 20);
+            }
+          #else
+            // We aren't living in an iframe this render
+          #end
+        }
+
         function getStyle(width, height) {
             return "width: " + width + "px; height: " + height + "px;";
         }
@@ -52,6 +67,7 @@
             height = 20;
         }
         var style = getStyle(width, height);
+        sizeFrame(width, height);
 
         ## Establish support for the codec in this browser
         var format = "$format";
