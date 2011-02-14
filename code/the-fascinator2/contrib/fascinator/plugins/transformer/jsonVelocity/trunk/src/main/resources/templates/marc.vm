@@ -103,7 +103,7 @@ http://www.loc.gov/standards/marcxml/schema/MARC21slim.xsd">
 #set($creator = $creatorList.get($key))
 #if($creator.get("pi") == 1)
         <marc:datafield tag="100" ind1=" " ind2=" ">
-            <marc:subfield code="a">$creator.get("foaf:givenName")&nbsp;$creator.get("foaf:familyName")</marc:subfield>
+            <marc:subfield code="a">$creator.get("foaf:givenName")&amp;nbsp;$creator.get("foaf:familyName")</marc:subfield>
         </marc:datafield>
 #end
 #end
