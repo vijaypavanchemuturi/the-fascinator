@@ -401,10 +401,15 @@ public class Dispatch {
                 if (isSpecial == false) {
                     String redirectUri = resourceName;
                     if (path.length > 2) {
-                        // Current path but replace "/dispatch" with context
-                        redirectUri = request.getContextPath()
-                                + request.getPath().substring(9);
+                        String url = sysConfig.getString(null, "urlBase");
+                        if (url != null) {
+                            url += portalId + "/";
+                        } else {
+                            url = request.getContextPath() + "/";
+                        }
+                        redirectUri = url + request.getPath().substring(9);
                     }
+
                     log.info("Redirecting to {}...", redirectUri);
                     response.sendRedirect(redirectUri);
                     return true;
@@ -425,13 +430,14 @@ public class Dispatch {
         if ("".equals(requestUri) || path.length == 1) {
             portalId = "".equals(path[0]) ? defaultPortal : path[0];
             String url = sysConfig.getString(null, "urlBase");
-            if (url == null) {
+            if (url != null) {
                 url += portalId + "/" + DEFAULT_RESOURCE;
             } else {
                 url = request.getContextPath() + "/" + portalId + "/"
                         + DEFAULT_RESOURCE;
             }
             try {
+                log.debug("REDIRECT : '{}'", url);
                 response.sendRedirect(url);
             } catch (IOException ioe) {
                 log.error("Failed to redirect to default URL: {}", url);
