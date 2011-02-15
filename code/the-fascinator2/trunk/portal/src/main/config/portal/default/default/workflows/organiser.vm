@@ -346,6 +346,7 @@
                     oid: "$oid"
                 }
             });
+            return false;
         });
 
         $("#package-title").focus();
