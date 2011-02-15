@@ -93,6 +93,7 @@ class ManifestData:
             self.__object.close()
 
         else:
+            self.vc("response").setStatus(403)
             result = '{ "status": "error", "message": "Only registered users can access this API" }'
 
         writer = self.vc("response").getPrintWriter("text/plain; charset=UTF-8")
