@@ -4,7 +4,6 @@ $!pageContent
 <!DOCTYPE html>
 <html>
   <head>
-    <base href="$urlBase" />
 #parse($page.getTemplate('layout/html-head.vm'))
   </head>
   <body>
