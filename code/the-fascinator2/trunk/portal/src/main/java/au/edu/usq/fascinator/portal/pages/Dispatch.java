@@ -399,19 +399,14 @@ public class Dispatch {
         if ("POST".equalsIgnoreCase(request.getMethod()) && !isPost) {
             try {
                 if (isSpecial == false) {
-                    String redirectUri = resourceName;
-                    if (path.length > 2) {
-                        String url = sysConfig.getString(null, "urlBase");
-                        if (url != null) {
-                            url += portalId + "/";
-                        } else {
-                            url = request.getContextPath() + "/";
-                        }
-                        redirectUri = url + request.getPath().substring(9);
+                    String url = sysConfig.getString(null, "urlBase");
+                    if (url == null) {
+                        url = request.getContextPath();
                     }
+                    url += request.getPath().substring(10);
 
-                    log.info("Redirecting to {}...", redirectUri);
-                    response.sendRedirect(redirectUri);
+                    log.info("Redirecting to {}...", url);
+                    response.sendRedirect(url);
                     return true;
                 }
             } catch (IOException ioe) {
