@@ -270,13 +270,13 @@ class WorkflowData:
         for field in newFormFields:
             # Special fields - we are expecting them
             if field in specialFields:
-                print " *** Special Field : '" + field + "' => '" + repr(self.vc("formData").get(field)) + "'"
+                #print " *** Special Field : '" + field + "' => '" + repr(self.vc("formData").get(field)) + "'"
                 if field == "targetStep":
                     meta.getJsonObject().put(field, self.vc("formData").get(field))
 
             # Everything else... metadata
             else:
-                print " *** Metadata Field : '" + field + "' => '" + repr(self.vc("formData").get(field)) + "'"
+                #print " *** Metadata Field : '" + field + "' => '" + repr(self.vc("formData").get(field)) + "'"
                 oldFormData.getJsonObject().put(field, self.vc("formData").get(field))
 
         # Write the form data back into the workflow metadata

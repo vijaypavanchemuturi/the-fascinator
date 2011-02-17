@@ -172,7 +172,7 @@ class DetailData:
                 # We have a special storage ID from the index
                 object = self.services.getStorage().getObject(sid)
         except StorageException, e:
-            print "Failed to access object: %s" % (str(e))
+            #print "Failed to access object: %s" % (str(e))
             return None
 
         return object
