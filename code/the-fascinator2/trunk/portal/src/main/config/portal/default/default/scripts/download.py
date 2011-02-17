@@ -13,7 +13,7 @@ from org.apache.commons.io import IOUtils
 class DownloadData:
     def __init__(self):
         pass
-    
+
     def __activate__(self, context):
         self.services = context["Services"]
         self.contextPath = context["contextPath"]
@@ -23,6 +23,7 @@ class DownloadData:
         self.response = context["response"]
         self.formData = context["formData"]
         self.page = context["page"]
+        self.log = context["log"]
 
         self.__metadata = SolrDoc(None)
         object = None
@@ -36,9 +37,18 @@ class DownloadData:
         # Turn our URL into objects
         object, payload = self.__resolve(uri)
         if object is None:
-            print " *** redirecting because object not found: '%s'" % uri
-            self.response.sendRedirect(context["urlBase"] + fullUri + "/")
-            return
+            if uri.endswith("/"):
+                self.log.error("Object 404: '{}'", uri)
+                self.response.setStatus(404);
+                writer = self.response.getPrintWriter("text/plain; charset=UTF-8")
+                writer.println("Object not found")
+                writer.close()
+                return
+            else:
+                # Sometimes adding a slash to the end will resolve the problem
+                self.log.error("Redirecting, object 404: '{}'", uri)
+                self.response.sendRedirect(context["urlBase"] + fullUri + "/")
+                return
 
         # Ensure solr metadata is useable
         oid = object.getId()
@@ -151,7 +161,7 @@ class DownloadData:
                 # We have a special storage ID from the index
                 object = self.services.getStorage().getObject(sid)
         except StorageException, e:
-            print "Failed to access object: %s" % (str(e))
+            #print "Failed to access object: %s" % (str(e))
             return None, None
 
         # Grab the payload from the rest of the URL
@@ -164,7 +174,7 @@ class DownloadData:
         try:
             payload = object.getPayload(pid)
         except StorageException, e:
-            print "Failed to access payload: %s" % (str(e))
+            #print "Failed to access payload: %s" % (str(e))
             return None, None
 
         # We're done
