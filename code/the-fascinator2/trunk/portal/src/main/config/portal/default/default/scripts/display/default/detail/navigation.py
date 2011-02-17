@@ -5,7 +5,7 @@ class NavigationData:
         self.metadata = context["metadata"]
     
     def hasWorkflow(self):
-        print self.metadata
+        #print self.metadata
         self.__workflowStep = self.metadata.getList("workflow_step_label")
         if self.__workflowStep is None or self.__workflowStep.isEmpty():
             return False

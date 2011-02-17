@@ -17,8 +17,7 @@ class PackagingData:
 
     def __activate__(self, context):
         self.velocityContext = context
-        auth = context["page"].authentication
-        print "formData=%s" % self.vc("formData")
+        #self.vc("log").debug("formData = {}", self.vc("formData"))
 
         result = "{}"
         func = self.vc("formData").get("func")
@@ -48,10 +47,10 @@ class PackagingData:
             return None
 
     def __createNew(self):
-        print "Creating a new package..."
+        self.vc("log").debug("Creating a new package...")
         packageType, jsonConfigFile = self.__getPackageTypeAndJsonConfigFile()
-        print "packageType='%s'" % packageType
-        print "jsonConfigFile='%s'" % jsonConfigFile
+        #self.vc("log").debug("packageType = '{}'", packageType)
+        #self.vc("log").debug("jsonConfigFile = '{}'", jsonConfigFile)
 
         manifestHash = "%s.tfpackage" % uuid.uuid4()
         # store the manifest file for harvesting
@@ -100,10 +99,10 @@ class PackagingData:
         return '{"status": "ok", "url": "%s/workflow/%s" }' % (portalPath, manifestId)
 
     def __createFromSelected(self):
-        print "Creating package from selected..."
+        self.vc("log").debug("Creating package from selected...")
         packageType, jsonConfigFile = self.__getPackageTypeAndJsonConfigFile()
-        #print "packageType='%s'" % packageType
-        #print "jsonConfigFile='%s'" % jsonConfigFile
+        #self.vc("log").debug("packageType = '{}'", packageType)
+        #self.vc("log").debug("jsonConfigFile = '{}'", jsonConfigFile)
 
         # if modifying existing manifest, we already have an identifier,
         # otherwise create a new one
@@ -126,8 +125,7 @@ class PackagingData:
         else:
             manifest.setType(oldType)
 
-        #print manifest
-        #print "----"
+        #self.vc("log").debug("Manifest: {}", manifest)
         outWriter.write(manifest.toString(True))
         outWriter.close()
 
@@ -167,7 +165,7 @@ class PackagingData:
         return '{ "status": "ok", "url": "%s/workflow/%s" }' % (portalPath, manifestId)
 
     def __update(self):
-        print "Updating package selection..."
+        self.vc("log").debug("Updating package selection...")
         activeManifest = self.__getActiveManifest()
         added = self.vc("formData").getValues("added")
         if added:
@@ -177,29 +175,29 @@ class PackagingData:
                 title = titles[i]
                 node = activeManifest.getNode("node-%s" % id)
                 if node is None:
-                    print "adding:", id, title.encode("UTF-8")
+                    self.vc("log").debug("adding: '{}', '{}'", id, title.encode("UTF-8"))
                     activeManifest.addTopNode(id, title)
                 else:
-                    print "%s already exists" % id
+                    self.vc("log").debug("'{}' already in manifest", id)
         removed = self.vc("formData").getValues("removed")
         if removed:
             for id in removed:
                 node = activeManifest.getNode("node-%s" % id)
                 if node is not None:
-                    print "removing:", id
+                    self.vc("log").debug("removing: '{}'", id)
                     activeManifest.delete("node-%s" % id)
-        print "activeManifest: %s" % activeManifest
+        #self.vc("log").debug("activeManifest: {}", activeManifest)
         return '{ "count": %s }' % activeManifest.size()
 
     def __deselect(self):
-        print "Clearing package selection..."
+        self.vc("log").debug("Clearing package selection...")
         self.vc("sessionState").remove("package/active")
         self.vc("sessionState").remove("package/active/id")
         self.vc("sessionState").remove("package/active/pid")
         return "{}"
 
     def __clear(self):
-        print "Removing all nodes from manifest..."
+        self.vc("log").debug("Removing all nodes from manifest...")
         activeManifest = self.__getActiveManifest()
         nodeList = activeManifest.getTopNodes()
         for node in nodeList:
@@ -207,7 +205,7 @@ class PackagingData:
         return "{}"
 
     def __modify(self):
-        print "Set active package..."
+        self.vc("log").debug("Set active package...")
         oid = self.vc("formData").get("oid")
         try:
             object = Services.getStorage().getObject(oid)

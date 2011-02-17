@@ -17,7 +17,7 @@ class ManifestData:
         if auth.is_logged_in():
             self.fd = self.vc("formData").get
 
-            print "formData=%s" % self.vc("formData")
+            #print "formData=%s" % self.vc("formData")
             result = "{}"
             func = self.fd("func")
             oid = self.fd("oid")

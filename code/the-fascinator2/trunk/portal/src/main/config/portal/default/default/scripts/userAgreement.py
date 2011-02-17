@@ -88,7 +88,7 @@ class AgreementData:
         return False
 
     def processForm(self, form):
-        self.__log.debug("===== processForm()")
+        #self.__log.debug("===== processForm()")
         if form is not None:
             accept = form.get("accept")
             if accept is None or accept != "true":
@@ -107,7 +107,7 @@ class AgreementData:
 ###########
 
     def __dbInit(self):
-        self.__log.debug("===== __dbInit()")
+        #self.__log.debug("===== __dbInit()")
         # Does the database already exist?
         check = self.__dbCheck()
         if check is None and not self.__dbHasError():
@@ -118,7 +118,7 @@ class AgreementData:
                 self.__dbCreateTable()
 
     def __dbCheck(self):
-        self.__log.debug("===== __dbCheck()")
+        #self.__log.debug("===== __dbCheck()")
         try:
             return self.__db.checkConnection(self.__dbName)
         except JavaException, e:
@@ -134,7 +134,7 @@ class AgreementData:
                 return None;
 
     def __dbCreate(self):
-        self.__log.debug("===== __dbCreate()")
+        #self.__log.debug("===== __dbCreate()")
         try:
             return self.__db.getConnection(self.__dbName)
         except JavaException, e:
@@ -144,7 +144,7 @@ class AgreementData:
             return None;
 
     def __dbCreateTable(self):
-        self.__log.debug("===== __dbCreateTable()")
+        #self.__log.debug("===== __dbCreateTable()")
         try:
             sql = """
 CREATE TABLE agreements
@@ -181,7 +181,7 @@ PRIMARY KEY (objectId, username))
         self.__dbErrorMsg = ""
 
     def __dbAgree(self, username, objectId):
-        self.__log.debug("===== __dbAgree('{}', '{}')", username, objectId)
+        #self.__log.debug("===== __dbAgree('{}', '{}')", username, objectId)
         self.__dbResetErrors()
         index = "userAgreements-STORE"
         table = "agreements"
@@ -204,7 +204,7 @@ PRIMARY KEY (objectId, username))
             self.__dbErrorMsg = msg
 
     def __dbRemove(self, username, objectId):
-        self.__log.debug("===== __dbRemove('{}', '{}')", username, objectId)
+        #self.__log.debug("===== __dbRemove('{}', '{}')", username, objectId)
         self.__dbResetErrors()
         index = "userAgreements-DELETE"
         table = "agreements"
@@ -223,7 +223,7 @@ PRIMARY KEY (objectId, username))
             self.__dbErrorMsg = self.__dbParseError(e)
 
     def __dbVerify(self, username, objectId):
-        self.__log.debug("===== __dbVerify('{}', '{}')", username, objectId)
+        #self.__log.debug("===== __dbVerify('{}', '{}')", username, objectId)
         self.__dbResetErrors()
         index = "userAgreements-CHECK"
         sql = """
