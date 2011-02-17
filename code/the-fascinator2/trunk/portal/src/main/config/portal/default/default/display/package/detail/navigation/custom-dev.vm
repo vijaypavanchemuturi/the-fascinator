@@ -12,47 +12,6 @@
 ###<script type="text/javascript" src="$portalPath/js/rvt.min.js"></script>
 <script type="text/javascript">
 <!--
-    // ====================================
-    // Fix relative links inside the content.
-    // ====================================
-    function fixLinks(baseUrl, selector, attrName, oid) {
-        // Find every matching element
-        $(selector).each(function() {
-            // Make sure the target attribute exists
-            var attr = $(this).attr(attrName);
-            if (attr != null) {
-
-                // ====================================
-                // fix for IE7 attr() returning resolved URLs - strip base URL
-                var href = window.location.href;
-                hrefBase = href.substring(0, href.lastIndexOf("/"));
-                attrBase = attr.substring(0, hrefBase.length);
-                if (hrefBase == attrBase) {
-                    attr = attr.substring(hrefBase.length + 1);
-                }
-
-                // ====================================
-                // Some object may be linked by application ID
-                if (attr.indexOf("tfObject:") == 0) {
-                    var relUrl = "$portalPath/detail/";
-                    var tmpUrl = attr.substring(9);
-                    $(this).attr(attrName, escape(relUrl + tmpUrl));
-                } else {
-
-                    // ====================================
-                    // Everything else... payloads, images and links
-                    if (attr.indexOf("#") != 0 && attr.indexOf("://") == -1 && attr.indexOf("/") != 0) {
-                        var relUrl = "$portalPath/detail/" + oid + "/";
-                        var tmpUrl = baseUrl.substring(baseUrl.indexOf("/", 8));
-                        tmpUrl = tmpUrl.replace(relUrl, "");
-                        tmpUrl = tmpUrl.substring(0, tmpUrl.lastIndexOf("/")+1);
-                        $(this).attr(attrName, escape(relUrl + tmpUrl + attr));
-                    }
-                }
-            }
-        });
-    }
-
     $(function() {
         // remove the default actions
         $("#open-this, #reharvest-this").parent().remove();
@@ -78,6 +37,45 @@
             });
         }
 
+        // ====================================
+        // Fix relative links inside the content.
+        // ====================================
+        function fixLinks(content, selector, attrName, oid) {
+            // Find every matching element
+            content.find(selector).each(function(count, item) {
+                item = jQ(item);
+                // Make sure the target attribute exists
+                var attr = item.attr(attrName);
+                if (attr != null) {
+
+                    // ====================================
+                    // fix for IE7 attr() returning resolved URLs - strip base URL
+                    var href = window.location.href;
+                    hrefBase = href.substring(0, href.lastIndexOf("/"));
+                    attrBase = attr.substring(0, hrefBase.length);
+                    if (hrefBase == attrBase) {
+                        attr = attr.substring(hrefBase.length + 1);
+                    }
+
+                    // ====================================
+                    // Some object may be linked by application ID
+                    if (attr.indexOf("tfObject:") == 0) {
+                        var relUrl = "$portalPath/detail/";
+                        var tmpUrl = attr.substring(9);
+                        item.attr(attrName, escape(relUrl + tmpUrl));
+                    } else {
+
+                        // ====================================
+                        // Everything else... payloads, images and links
+                        if (attr.indexOf("#") != 0 && attr.indexOf("://") == -1 && attr.indexOf("/") != 0) {
+                            var relUrl = "$portalPath/detail/" + oid + "/";
+                            item.attr(attrName, relUrl + escape(attr));
+                        }
+                    }
+                }
+            });
+        }
+
         // RVT
         var rvt = rvtFactory(jQuery);
         // Basic parameters related to our page structure
@@ -99,6 +97,20 @@
         };
 
         // ====================================
+        // Specify the callback function we want executed BEFORE
+        // a page change to fix any content.
+        // ====================================
+        rvt.contentParser = function(content) {
+            // We want to fix image links and such here. If they are fixed
+            // after the page loads a lot of dead requests could hit the server.
+
+            // Fix all relative links on the page
+            var oid = window.location.hash.substring(1);
+            fixLinks(content, "a", "href", oid);
+            fixLinks(content, "img", "src", oid);
+        };
+
+        // ====================================
         // Specify the callback function we want executed after
         // a page change to add our own custom actions.
         // ====================================
@@ -106,10 +118,6 @@
             var oid = window.location.hash.substring(1);
             var title = $(window.location.hash).children("a").text();
             $(".article-heading").html(title);
-
-            // Fix all relative links on the page
-            fixLinks("", ".package-content a", "href", oid);
-            fixLinks("", ".package-content img", "src", oid);
 
             // Change highlighting in the TOC
             var tree = jQuery.tree.reference(rvt.tocSelector);
