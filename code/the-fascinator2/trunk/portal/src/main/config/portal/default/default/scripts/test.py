@@ -39,3 +39,9 @@ class TestData:
         javaMap.put("two", 2)
         javaMap.put("three", 3)
         return javaMap
+
+    def getTextFromFormData(self):
+        return self.vc["formData"].get("text")
+
+    def getTextFromRequest(self):
+        return self.vc["request"].getParameter("text")
