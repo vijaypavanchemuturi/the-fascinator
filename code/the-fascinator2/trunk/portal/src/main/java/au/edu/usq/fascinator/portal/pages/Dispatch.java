@@ -114,25 +114,22 @@ public class Dispatch {
     @Inject
     private Response response;
 
-    @Persist
-    private Map<String, FormData> formDataMap;
-
     @Inject
     private MultipartDecoder decoder;
 
     @Inject
     private RequestGlobals rg;
 
+    private FormData formData;
+
     // Resource Processing variable
     private String resourceName;
     private String portalId;
     private String defaultPortal;
     private String requestUri;
-    private String requestId;
     private String[] path;
     private HttpServletRequest hsr;
     private boolean isFile;
-    private boolean isPost;
     private boolean isSpecial;
 
     // Rendering variables
@@ -187,7 +184,7 @@ public class Dispatch {
             if (security.testForSso(sessionState, resourceName, requestUri)) {
                 // Run SSO
                 boolean redirected = security.runSsoIntegration(sessionState,
-                        formDataMap.get(requestId));
+                        formData);
                 // Finish here if SSO redirected
                 if (redirected) {
                     return GenericStreamResponse.noResponse();
@@ -208,38 +205,19 @@ public class Dispatch {
             fileProcessing();
         }
 
-        // Redirection?
-        if (redirectTest()) {
-            return GenericStreamResponse.noResponse();
-        }
-
         // Page render time
         renderProcessing();
-
-        // Clear formData
-        formDataMap.remove(requestId);
 
         return new GenericStreamResponse(mimeType, stream);
     }
 
     private void prepareFormData() {
-        if (formDataMap == null) {
-            formDataMap = Collections
-                    .synchronizedMap(new HashMap<String, FormData>());
-        }
-
         hsr = rg.getHTTPServletRequest();
-        requestId = request.getAttribute("RequestID").toString();
-
-        // Make sure we only run for 'real' pages
         if ((resourceName.indexOf(".") == -1) || isSpecial) {
-            // Check if formData already exists from a POST redirect
-            // The requestId will match on a redirect
-            FormData formData = formDataMap.get(requestId);
             if (formData == null) {
                 formData = new FormData(request, hsr);
+                //log.debug("created FormData:{}", formData);
             }
-            formDataMap.put(requestId, formData);
         }
     }
 
@@ -383,37 +361,12 @@ public class Dispatch {
         if ((resourceName.indexOf(".") == -1) || isSpecial) {
             ByteArrayOutputStream out = new ByteArrayOutputStream();
             mimeType = pageService.render(portalId, resourceName, out,
-                    formDataMap.get(requestId), sessionState);
+                    formData, sessionState);
             stream = new ByteArrayInputStream(out.toByteArray());
         } else {
             mimeType = MimeTypeUtil.getMimeType(resourceName);
             stream = pageService.getResource(portalId, resourceName);
         }
-    }
-
-    private boolean redirectTest() {
-        // save form data for POST requests, since we redirect after POSTs
-
-        // 'isPost' in particular allows special cases to
-        // override and prevent redirection.
-        if ("POST".equalsIgnoreCase(request.getMethod()) && !isPost) {
-            try {
-                if (isSpecial == false) {
-                    String url = sysConfig.getString(null, "urlBase");
-                    if (url == null) {
-                        url = request.getContextPath();
-                    }
-                    url += request.getPath().substring(10);
-
-                    log.info("Redirecting to {}...", url);
-                    response.sendRedirect(url);
-                    return true;
-                }
-            } catch (IOException ioe) {
-                log.warn("Failed to redirect after POST", ioe);
-            }
-        }
-        return false;
     }
 
     private String resourceProcessing() {
@@ -470,7 +423,6 @@ public class Dispatch {
     public String getBestMatchResource(String resource) {
         String searchable = resource;
         String ext = "";
-        isPost = requestUri.endsWith(POST_EXT);
         // Look for AJAX
         if (resource.endsWith(AJAX_EXT)) {
             isSpecial = true;

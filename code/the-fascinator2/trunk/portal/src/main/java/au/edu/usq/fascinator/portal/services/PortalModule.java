@@ -293,9 +293,6 @@ public class PortalModule {
                 String uri = req.getRequestURI();
                 request.setAttribute("RequestURI",
                         uri.substring(ctxPath.length() + 1));
-                request.setAttribute("RequestID",
-                        DigestUtils.md5Hex(uri + req.getQueryString()));
-
                 // forward all requests to the main dispatcher
                 String path = request.getPath();
                 String[] parts = path.substring(1).split("/");

@@ -58,3 +58,12 @@ $!self.noSuchMethod()
 
 <h3>define</h3>
 $!test
+
+<h3>form data</h3>
+<form action="$portalPath/test" method="post">
+    <input type="text" name="text" value="$!self.getTextFromFormData()" />
+    <input type="submit" />
+</form>
+<p>Text from Request : [$!self.getTextFromRequest()]</p>
+<p>Text from FormData: [$!self.getTextFromFormData()]</p>
+
