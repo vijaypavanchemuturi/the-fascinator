@@ -46,7 +46,6 @@ import org.apache.velocity.exception.ParseErrorException;
 import org.apache.velocity.exception.ResourceNotFoundException;
 
 /**
- * <h3>Introduction</h3>
  * <p>
  * This plugin transform Json Payload to another format based on the provided
  * Velocity templates. The transformed format will then be stored as Payload.
