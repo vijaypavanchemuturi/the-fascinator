@@ -42,7 +42,7 @@ class Epub:
         except Exception, e:
             log.error("Failed to create epub", e)
             self.vc("response").setStatus(500)
-            writer = self.vc("response").getPrintWriter("text/plain")
+            writer = self.vc("response").getPrintWriter("text/plain; charset=UTF-8")
             writer.println(str(e))
             writer.close()
 

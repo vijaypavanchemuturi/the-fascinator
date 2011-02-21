@@ -15,7 +15,7 @@ class QueuesData:
             queue = self.formData.get("queueName")
             msg = self.formData.get("queueMessage")
             self.queueMessage(queue, msg);
-            out = self.response.getPrintWriter("text/plain")
+            out = self.response.getPrintWriter("text/plain; charset=UTF-8")
             out.println(self.formData)
             out.close()
 

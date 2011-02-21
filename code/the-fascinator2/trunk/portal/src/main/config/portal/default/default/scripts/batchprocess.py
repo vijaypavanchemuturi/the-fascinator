@@ -19,7 +19,7 @@ class BatchprocessData:
         self.vc = context["toolkit"]
         func = self.formData.get("func")
         if func == "num-modified":
-            writer = self.response.getPrintWriter("text/plain")
+            writer = self.response.getPrintWriter("text/plain; charset=UTF-8")
             writer.println(self.numberOfModifiedRecord())
             writer.close()
 
