@@ -128,8 +128,9 @@ var widgets={forms:[], globalObject:this};
       }
   };
 
-  function messageBox(msg){
+  function messageBox(msg, cb){
       var msgBox=messageBox.msgBox;
+      if(msgBox){msgBox.html(""); msgBox.remove(); msgBox=null;}
       if(!msgBox){  // setup
           var div, i;
           msgBox = $("<div class='box hidden' style='text-align:center;'/>");
@@ -139,7 +140,10 @@ var widgets={forms:[], globalObject:this};
           i = $("<input type='button' value='OK'/>");
           div.append(i);
           messageBox.msgBox=msgBox;
-          i.click(function(){msgBox.dialog("close");});
+          i.click(function(){
+              msgBox.dialog("close");
+              if($.isFunction(cb)){cb();}
+          });
           msgBox.dialog({title:"Message", hide:"blind",
                 modal:true, autoOpen:false });
       }
@@ -389,10 +393,11 @@ var widgets={forms:[], globalObject:this};
             r = v.dataset("rule")||v.dataset("validation-rule");
             if(r){
                 dict=rule(r);
+                dict.label=v;
                 if(!dict["for"] && !dict.livefor){
                     f=v.attr("for");
                     if(f){
-                        dict["for"]=f
+                        dict["for"]=f;
                         addValidationFor(f, dict);
                     }
                 }
@@ -417,6 +422,7 @@ var widgets={forms:[], globalObject:this};
             r +="for("+v.id+");"
             dict=rule(r);
         });
+        //
         onValidation=function(r){       // called from the validation test functions
             try{
                 $.each(onValidationListeners, function(c, l){
@@ -432,17 +438,22 @@ var widgets={forms:[], globalObject:this};
             target = $(document.getElementById(f));
             vLabel=vLabels.filter("[for="+f+"]");
             getValue=function(){ return target.val(); };
-            showValidationMessage=function(show){
+            showValidationMessage=function(show, label){
                 try{
                     show?vLabel.show():vLabel.hide();
+                    if(label){
+                        show?label.show():label.hide();
+                    }
                 }catch(e){}
                 return show;
             };
             $.each(l, function(c, d){
                 if(d.testStr){
                   try{
-                    func="func=function(){var v=getValue();"+
-                        "r =showValidationMessage(!("+d.testStr+"));"+
+                    //var test;
+                    //eval("test=function(v){return ("+d.testStr+")}");
+                    func="func=function(){var v=$.trim(getValue());"+
+                        "r=showValidationMessage(!("+d.testStr+"),d.label);"+
                         "onValidation(r); return r;};";
                     eval(func);
                     func.x=d;
@@ -466,19 +477,35 @@ var widgets={forms:[], globalObject:this};
             });
         });
         $.each(liveValidationsFor, function(lf, dict){
-            var target, testFunc, liveResult;
+            var target, testFunc, liveResult, label, t="";
             if(dict.testStr){
               try{
                 target = ctx.find(lf);
-                testFunc = "testFunc=function(){var r,e,zid,v=$(this).val();"+
+                label=dict.label;
+                if(label){
+                    t="r?label.show():label.hide();"
+                }
+                testFunc = "testFunc=function(){var r,e,zid,v;"+
+                    "v=$.trim($(this).val());"+
                     "if(/\\.0(\\.|$)/.test(this.id))return false;"+   // do not validate inputs with an id containing .0.
                     "r=!("+dict.testStr+");"+
                     "liveResult|=r;"+
                     "e=ctx.find('.validation-err-msg, label[data-rule],label[data-validation-rule]');"+
                     "zid=this.id.replace(/\\.\\d+(?=\\.|$)/g,'.0');"+
                     "e=e.filter('[for='+this.id+'],[for='+zid+']');"+
-                    "r?e.show():e.hide();"+                 // r==show
+                    "r?e.show():e.hide();"+t+                 // r==show
                     "onValidation(r); return r;}";
+                if(dict.jstest){
+                    testFunc="testFunc=function(){var r=false,id=this.id,e,zid,v,t,jQ=$;"+
+                    "if(/\\.0(\\.|$)/.test(id))return false;"+   // do not validate inputs with an id containing .0.
+                    dict.jstest+";"+
+                    "liveResult|=r;"+
+                    "e=ctx.find('.validation-err-msg, label[data-rule],label[data-validation-rule]');"+
+                    "zid=id.replace(/\\.\\d+(?=\\.|$)/g,'.0');"+
+                    "e=e.filter('[for='+id+'],[for='+zid+']');"+
+                    "r?e.show():e.hide();"+t+                 // r==show
+                    "onValidation(r); return r;}";
+                }
                 eval(testFunc);
                 testFunc.x=dict;
                 dict._testFunc=testFunc;
@@ -524,11 +551,13 @@ var widgets={forms:[], globalObject:this};
         helpContent = $("#" + e.dataset("help-content-id"));
     }else{
         helpContent = e.dataset("help-content-class");
-        while(p = e.parent()){
-            t = p.find("."+helpContent);
+        p=e.parent();
+        while(p.size()){
+            t=p.find("."+helpContent);
             if(t.size()){helpContent=t; break;}
+            p=p.parent();
         }
-        if(!p){alert("help-content-class '"+helpContent+"' not found!"); return;}
+        if(!p.size()){alert("help-content-class '"+helpContent+"' not found!"); return;}
     }
     helpContent.hide();
     url=e.dataset("help-content-url");
@@ -1053,10 +1082,10 @@ var widgets={forms:[], globalObject:this};
         }else{
           selAddNs=""; selAddId=""; selAddLabel="";
         }
-        ds.find(".selection-add-id").val(selAddId);
-        ds.find(".selection-add-label").val(selAddLabel);
-        selAdd.find(".selection-add-id").text(selAddId);
-        selAdd.find(".selection-add-label").text(selAddLabel);
+        ds.find(".selection-added-id").val(selAddId);
+        ds.find(".selection-added-label").val(selAddLabel);
+        selAdd.find(".selection-added-id").text(selAddId);
+        selAdd.find(".selection-added-label").text(selAddLabel);
       };
       jsonConverterGetter=jsonGetter;
       if(listKey || idKey || labelKey || childrenKey){
@@ -1135,9 +1164,9 @@ var widgets={forms:[], globalObject:this};
             if(dropDownLocation)dropDownLocation.toggle(!saLabel.val());
         }); //.trigger("onDataChanged");
         addButtonDisableTest = function(){
-            if(saLabel.val()){
-                selAdd.attr("disabled", true);
-            }
+            //if(saLabel.val()){
+            //    selAdd.attr("disabled", true);
+            //}
         };
         selAdd.bind("disableTest", addButtonDisableTest);
         ds.parent().find(".clear-item").click(function(){
@@ -1340,7 +1369,7 @@ var widgets={forms:[], globalObject:this};
                 });
             }
         }else{
-            completed({});
+            completed({"ok":true});
         }
       };
 
@@ -1418,7 +1447,17 @@ var widgets={forms:[], globalObject:this};
           _gc = ctxInputs;
           $.each(skeys, function(c, v){
               if($.inArray(v, formFields)!=-1){
-                  ctxInputs.filter("[id="+v+"]").val(data[v]).trigger("onDataChanged");
+                  t=ctxInputs.filter("[id="+v+"]");
+                  if(t.size()){
+                    if(t.attr("type")!="checkbox"){
+                        t.val(data[v]).trigger("onDataChanged");
+                    }else{
+                        t.attr("checked", data[v]);
+                    }
+                  }else{
+                      t=ctxInputs.filter("[type=radio][name="+v+"][value="+data[v]+"]");
+                      t.attr("checked", true);
+                  }
               }
           });
           // list items
@@ -1584,7 +1623,7 @@ var widgets={forms:[], globalObject:this};
       };
 
       init=function(_ctx, validator){
-        var id;
+        var id, idu;
         if(!_ctx)_ctx=$("body");
         ctx = _ctx;
         id=ctx.attr("id");
@@ -1613,6 +1652,12 @@ var widgets={forms:[], globalObject:this};
             addListener("postOnRestore", globalObject[ctx.dataset("post-on-restore")]);
         }
         widgetForm.ctx = ctx;
+        idu=ctx.dataset("init-data-url");
+        if(idu){
+            $.getJSON(idu, function(j){
+                widgetForm.restore(j);
+            });
+        }
       };
 
       widgetForm.submit=onSubmit;
