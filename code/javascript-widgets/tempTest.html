@@ -10,7 +10,8 @@
     <script type="text/javascript">
      //<!--
         $(widgets.contentLoaded);
-        function subFormSubmitted(){ $("#result-msg").text("subForm Submitted function called ok"); }
+        function subFormSubmitted(){
+            $("#result-msg").text("subForm Submitted function called ok"); }
         function subFormSubmittedResult(form, data){
             $("#result-msg").text(JSON.stringify(data));
         }
@@ -42,6 +43,7 @@
            savedData = data;
            //alert("testSave data="+data.toSource());
            alert("Saved OK");
+           return false;
        }
        function testRestore(){
            widgetForm = widgets.forms[0];
@@ -54,7 +56,9 @@
     </script>
   </head>
   <body>
-   <div class="widget-form" data-pre-save-func=""  data-url=""
+   <div class="widget-form" 
+            data-pre-save-func=""
+            data-url=""
             data-save-func="testSave" 
             data-form-fields="usq:role, dc:creator.foaf:Person.0.usq:role,
                                 dc:creator.foaf:Person.0.usq:role.0"
