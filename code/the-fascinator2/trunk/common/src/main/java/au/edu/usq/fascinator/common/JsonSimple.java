@@ -90,7 +90,7 @@ public class JsonSimple {
             jsonObject = new JsonObject();
         } else {
             InputStream is = new FileInputStream(jsonFile);
-            String json = IOUtils.toString(is);
+            String json = IOUtils.toString(is, "UTF-8");
             parse(json);
         }
     }
@@ -107,7 +107,7 @@ public class JsonSimple {
             jsonObject = new JsonObject();
         } else {
             // Stream the data into a string
-            parse(IOUtils.toString(jsonIn));
+            parse(IOUtils.toString(jsonIn, "UTF-8"));
         }
     }
 
