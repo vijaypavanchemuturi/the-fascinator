@@ -34,7 +34,7 @@ class ProxyBasicAuthStrategy(BasicAuthStrategy):
             proxyHost = address.getHostName()
             proxyPort = address.getPort()
             httpClient.getHostConfiguration().setProxy(proxyHost, proxyPort)
-            print "Using proxy '%s:%s'" % (proxyHost, proxyPort)
+            #self.vc("log").debug("Using proxy '{}:{}'", proxyHost, proxyPort)
 
 class BlogData:
     def __init__(self):
@@ -46,42 +46,82 @@ class BlogData:
         self.services = context["Services"]
         self.log = context["log"]
 
+        self.buildTOC = False
+        self.separator = None
+
         responseType = "text/html; charset=UTF-8"
         responseMsg = ""
+
         func = self.vc("formData").get("func")
+
+        ## AJAX query for URL history
         if func == "url-history":
             responseType = "text/plain; charset=UTF-8"
             responseMsg = "\n".join(self.getUrls())
+
+        ## The proper form submission
         else:
             try:
+                ## Get all the form data
+                oid = self.vc("formData").get("oid")
                 url = self.vc("formData").get("url")
                 title = self.vc("formData").get("title")
                 username = self.vc("formData").get("username")
                 password = self.vc("formData").get("password")
+                self.separator = self.vc("formData").get("separator")
+                if self.separator is None:
+                    self.separator = ""
+                toc = self.vc("formData").get("toc")
+                if toc is not None and toc == "true":
+                    self.buildTOC = True
+                preamble = self.vc("formData").get("preamble")
 
+                ## Setup our Atom client with proxied and authenticated HTTP
                 auth = ProxyBasicAuthStrategy(username, password, url)
                 self.__service = AtomClientFactory.getAtomService(url, auth)
 
                 try:
-                    oid = self.vc("formData").get("oid")
+                    ## Get our object from storage and the index
                     self.__object = self.__getObject(oid)
                     self.__readMetadata(oid)
                     sourceId = self.__object.getSourceId()
                     sourcePayload = self.__object.getPayload(sourceId)
+
+                    ## Packages are special
                     if sourcePayload and sourcePayload.getContentType() == "application/x-fascinator-package":
                         manifest = Manifest(sourcePayload.open())
                         content = self.__getManifestContent(manifest)
+                        toc = ""
+                        if self.buildTOC:
+                            toc = self.__buildTableOfContents(manifest)
+                        if preamble != "":
+                            preamble = "<div class='tf-preamble'>\n%s\n</div>" % preamble
+                            content = toc + preamble + content
+                        else:
+                            content = toc + content
                         sourcePayload.close()
+
+                    ## Normal objects
                     else:
                         content = self.services.pageService.renderObject(self.__convertToVelocityContext(), "detail", self.__metadata)
+                        content = "<div class='tf-content-block'>\n%s\n</div>" % self.__escapeUnicode(content)
+                        if preamble != "":
+                            content = "<div class='tf-content-holder'>\n%s\n</div>" % content
+                            preamble = "<div class='tf-preamble'>\n%s\n</div>" % preamble
+                            content = preamble + content
+
+                    # Tidy our HTML and fix relative links before sending
                     content, doc = self.__tidy(content)
                     content = self.__processMedia(oid, doc, content)
+                    # Now POST to server
                     success, value = self.__post(title, content)
+
                 except Exception, e:
-                    e.printStackTrace()
+                    self.vc("log").error("Error retrieving object: ", e)
                     success = False
                     value = e.getMessage()
 
+                # Build a response for the front end
                 if success:
                     altLinks = value.getAlternateLinks()
                     if altLinks is not None:
@@ -91,9 +131,13 @@ class BlogData:
                         responseMsg = "<p class='warning'>The server did not return a valid link!</p>"
                 else:
                     responseMsg = "<p class='error'>%s</p>" % value
+
+            ## Failed to connect to AtomPub server?
             except Exception, e:
-                print "Failed to post: %s" % e.getMessage()
+                self.vc("log").error("Failed to post: ", e)
                 responseMsg = "<p class='error'>%s</p>"  % e.getMessage()
+
+        # Send the response back
         writer = self.vc("response").getPrintWriter(responseType)
         writer.println(responseMsg)
         writer.close()
@@ -133,9 +177,6 @@ class BlogData:
             if self.__object is None:
                 # Try again, indexed records might have a special storage_id
                 self.__object = self.__getObject(oid)
-            # Just a more usable instance of metadata
-            ##self.__json = self.__solrResult.getJsonSimpleList(["response", "docs"]).get(0)
-            ##self.__metadataMap = JsonSimple.toJavaMap(self.__json.getJsonObject())
         else:
             self.__metadata = SolrResult('{"id":"%s"}' % oid)
 
@@ -146,8 +187,9 @@ class BlogData:
         historyFile = self.__getHistoryFile()
         if historyFile.exists():
             urls = FileUtils.readLines(historyFile)
-            urls.add(url)
-        FileUtils.writeLines(historyFile, [url])
+            if not url in urls:
+                urls.add(url)
+        FileUtils.writeLines(historyFile, urls)
 
     def __getHistoryFile(self):
         f = FascinatorHome.getPathFile("blog/history.txt")
@@ -156,27 +198,39 @@ class BlogData:
             f.createNewFile()
         return f
 
-    def __getManifestContent(self, manifest):
-        contentStr = "<div>"
+    def __buildTableOfContents(self, manifest):
+        entries = []
         for node in manifest.getTopNodes():
             if not node.getHidden():
-                contentStr += "<div><h2>%s</h2>" % node.getTitle()
-                contentStr += self.__getContent(node.getId())
-                contentStr += "</div>"
-        contentStr += "</div>"
-        return contentStr
+                title = node.getTitle()
+                key = node.getKey()
+                entries.append("<li><a href='#%s'>%s</a></li>" % (key, title))
+        return "<div id='tf-toc'>\n<ul>\n%s\n</ul>\n</div>" % "\n".join(entries)
+
+    def __getManifestContent(self, manifest):
+        entries = []
+        for node in manifest.getTopNodes():
+            if not node.getHidden():
+                title = node.getTitle()
+                if self.buildTOC:
+                    key = node.getKey()
+                    title = "<h2 class='content-heading' id='%s'>%s <span>(<a href='#tf-toc'>TOC</a>)</span></h2>" % (key, title)
+                else:
+                    title = "<h2 class='content-heading'>%s</h2>" % title
+                content = self.__getContent(node.getId())
+                entries.append("<div class='tf-content-block'>\n%s\n%s\n</div>" % (title, content))
+        return "<div class='tf-content-holder'>\n%s\n</div>" % self.separator.join(entries)
 
     def __getContent(self, oid):
-        print "getting content for '%s'" % oid
+        #self.vc("log").debug("Getting content for '{}'", oid)
         content = "<div>Content not found!</div>"
-        slash = oid.rfind("/")
         payload = self.__getPreviewPayload(oid)
-        pid = payload.getId()
-        print "preview payload: %s" % payload
+        #self.vc("log").debug("Preview payload '{}'", pid)
         if payload is None:
-            print "Failed to get content: %s" % oid
+            self.vc("log").error("Failed to get content: '{}'" , oid)
             return ""
         else:
+            pid = payload.getId()
             mimeType = payload.getContentType()
             if mimeType.startswith("image/"):
                 content = '<img alt="%s" title="%s" src="%s" />' % (pid, pid, pid)
@@ -187,9 +241,7 @@ class BlogData:
                     self.__getPayloadAsString(payload)
             else:
                 content = "<div>unsupported content type: %s</div>" % mimeType
-        print "before tidy"
         content, doc = self.__tidy(content)
-        print "after tidy"
         content = self.__processMedia(oid, doc, content)
         return content
 
@@ -199,7 +251,7 @@ class BlogData:
         for payloadId in payloadIdList:
             try:
                 payload = object.getPayload(payloadId)
-                #print "%s: %s" % (payloadId, payload.getType())
+                #self.vc("log").debug("{}: {}", payloadId, payload.getType())
                 if PayloadType.Preview == payload.getType():
                     return payload
             except Exception, e:
@@ -263,7 +315,7 @@ class BlogData:
                     # Normally files returned by ice rendition
                     internalSrc = "%s/%s" % (split[len(split)-2], split[len(split)-1])
 
-            print "uploading '%s' (%s, %s)" % (pid, elem.tagName, attr)
+            #self.vc("log").debug("Uploading '{}' ({})", pid, elem.tagName + ", " + attr)
             found = False
             try:
                 payload = self.__getObject(oid).getPayload(pid)
@@ -275,11 +327,11 @@ class BlogData:
                     found = True
                 except Exception, e:
                     try:
-                        print "trying to get: %s payload" % internalSrc
+                        #self.vc("log").debug("Trying to get: '{}' payload", internalSrc)
                         payload = self.__getObject(oid).getPayload(internalSrc)
                         found = True
                     except Exception, e:
-                        print "payload not found '%s'" % pid
+                        self.vc("log").error("Payload not found '{}'", pid)
             if found:
                 #HACK to upload PDFs
                 contentType = payload.getContentType().replace("application/", "image/")
@@ -287,13 +339,13 @@ class BlogData:
                 payload.close()
                 if entry is not None:
                     id = entry.getId()
-                    print "replacing %s with %s" % (attrValue, id)
+                    #self.vc("log").debug("Replacing '{}' with '{}'", attrValue, id)
                     content = content.replace('%s="%s"' % (attr, attrValue),
                                               '%s="%s"' % (attr, id))
                     content = content.replace("%s='%s'" % (attr, attrValue),
                                               "%s='%s'" % (attr, id))
                 else:
-                    print "failed to upload %s" % pid
+                    self.vc("log").error("Failed to upload '{}'", pid)
         return content
 
     def __getCollection(self, type):
@@ -303,7 +355,7 @@ class BlogData:
         return None
 
     def __postMedia(self, slug, type, media):
-        print "uploading media %s, %s" % (slug, type)
+        #self.vc("log").debug("Uploading media '{}', '{}'", slug, type)
         collection = self.__getCollection(type)
         if collection is not None:
             entry = collection.createMediaEntry(slug, slug, type, media)
@@ -333,7 +385,7 @@ class BlogData:
                 sid = self.__getStorageId(oid)
                 if sid is not None:
                     obj = storage.getObject(sid)
-                    print "Object not found: oid='%s', trying sid='%s'" % (oid, sid)
+                    self.vc("log").error("Failed to upload '{}'", pid)
         except StorageException:
-            print "Object not found: oid='%s'" % oid
+            self.vc("log").error("Object not found '{}'", pid)
         return obj
