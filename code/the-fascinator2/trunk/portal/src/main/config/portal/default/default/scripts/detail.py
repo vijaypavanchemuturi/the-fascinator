@@ -23,6 +23,7 @@ class DetailData:
         self.response = context["response"]
         self.formData = context["formData"]
         self.page = context["page"]
+        self.fileAccess = None
 
         self.uaActivated = False
         useDownload = Boolean.parseBoolean(self.formData.get("download", "true"))
@@ -119,9 +120,18 @@ class DetailData:
         return self.userAgreement
 
     def hasLocalFile(self):
-        # get original file.path from object properties
-        filePath = self.getProperty("file.path")
-        return filePath and os.path.exists(filePath)
+        if self.fileAccess is None:
+            self.fileAccess = False
+            config = self.velocityContext["systemConfig"]
+            if config is not None:
+                self.fileAccess = config.getBoolean(False, ["portal", "file-access", "enabled"])
+
+        if self.fileAccess:
+            # get original file.path from object properties
+            filePath = self.getProperty("file.path")
+            return filePath and os.path.exists(filePath)
+        else:
+            return False
 
     def hasPid(self):
         return self.__hasPid
