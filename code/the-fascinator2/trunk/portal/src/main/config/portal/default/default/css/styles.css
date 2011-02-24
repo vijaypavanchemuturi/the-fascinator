@@ -867,3 +867,16 @@ legend span.legend {
 .pluginAbout h3 {
     font-size: 200%;
 }
+.ac_results {
+    border: 1px solid black;
+    background-color: #FFFFFF;
+    padding: 2px 5px;
+}
+.ac_results ul {
+    margin: 0px;
+}
+.ac_results li {
+    list-style-type: none;
+    margin: 0px 0px 2px 0px;
+    cursor: pointer;
+}
