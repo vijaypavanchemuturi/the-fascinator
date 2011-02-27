@@ -581,6 +581,8 @@ var widgets={forms:[], globalObject:this};
     if(showLink)e.html(showLink);
     doNext=show;
     e.click(function(){
+        _doNext=doNext;
+        _helpContent=helpContent;
         doNext();
     });
   }
@@ -664,7 +666,7 @@ var widgets={forms:[], globalObject:this};
 // check all variable names
       if(xfind(".item-display").size()){
         if(xfind(".item-input-display").size()){
-          alert("Error: .input-list can not have both 'item-display' and 'item-input-display' table row classes");
+          alert("Error: .input-list cannot have both 'item-display' and 'item-input-display' table row classes");
           return;
         }
         // For handling 'item-display' (where there is a separate/special row for handling the display of added items)

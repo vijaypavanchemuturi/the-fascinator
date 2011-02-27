@@ -12,7 +12,7 @@
       var msgElem=$("#msg").hide();
       $("#saveBut").click(function(){
         var v=widgets.getValidator();
-        var msg=v.isOkToSave()?"OK to Save":"Save validation failed. Can not save yet!";
+        var msg=v.isOkToSave()?"OK to Save":"Save validation failed. Cannot save yet!";
         msgElem.text(msg).show();
       });
       $("#submitBut").click(function(){
