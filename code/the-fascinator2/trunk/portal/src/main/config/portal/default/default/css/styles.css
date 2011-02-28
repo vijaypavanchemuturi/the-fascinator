@@ -880,3 +880,76 @@ legend span.legend {
     margin: 0px 0px 2px 0px;
     cursor: pointer;
 }
+
+/* FIX TF2 Styles bleeding into ICE documents */
+.content-preview .body a, .block .body a {
+    font-weight: normal;
+    color: #0000FF;
+    text-decoration: underline;
+}
+.content-preview .body h2 a, .content-preview .body h2,
+.block .body h2 a, .block .body h2 {
+    background: transparent;
+}
+.content-preview .body h2, .block .body h2 {
+    color: #000000;
+    font-size: 23px;
+    text-transform: none;
+}
+.content-preview .body .footnote-defined a,
+.block .body .footnote-defined a {
+    margin-right: 1em;
+}
+/* HACK to fix funky ICE footnoes, hide the inline section */
+.content-preview .body .footnote span,
+.block .body .footnote span {
+    display: none;
+}
+
+/* Blogging Styles */
+#tf-toc {
+    background-color: #FFFFDD;
+    border: 1px outset #DDDDCC;
+    float: right;
+    width: 200px;
+    margin: 10px;
+}
+.tf-preamble {
+    margin-bottom: 1em;
+}
+.tf-content-holder {
+}
+.tf-content-holder .tf-content-block {
+    border: 2px outset #AAAA99;
+    padding: 1em;
+    background-color: #F9F9F9;
+}
+.tf-content-block .content-heading {
+    border-bottom: 2px solid #CC0000;
+    padding-bottom: 5px;
+    margin-bottom: 10px;
+}
+.tf-content-block .content-heading span {
+    font-size: 40%;
+    font-weight: normal;
+}
+.tf-content-separator {
+    margin: 1em 0;
+}
+.tf-content-block .center {
+    text-align: center;
+}
+/* Specific to display preview on blog page INSIDE TF2 */
+.box .tf-content-block h2.content-heading a {
+    background: transparent;
+    font-size: 40%;
+    display: inline;
+}
+/* Blogging page */
+#blog-message .error {
+    background-image: url('../images/icons/delete.png');
+    background-position: 0 0.5em;
+    background-repeat: no-repeat;
+    margin-right: 1em;
+    padding: 0.5em 0.5em 0.5em 20px;
+}

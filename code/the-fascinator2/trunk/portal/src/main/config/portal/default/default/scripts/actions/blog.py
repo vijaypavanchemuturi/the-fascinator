@@ -2,7 +2,7 @@ import htmlentitydefs
 
 from au.edu.usq.fascinator.api.storage import PayloadType, StorageException
 from au.edu.usq.fascinator.api.indexer import SearchRequest
-from au.edu.usq.fascinator.common import FascinatorHome, Manifest, JsonSimple, JsonSimpleConfig
+from au.edu.usq.fascinator.common import FascinatorHome, Manifest
 from au.edu.usq.fascinator.common.solr import SolrResult
 
 from com.sun.syndication.feed.atom import Content
@@ -11,7 +11,6 @@ from com.sun.syndication.propono.atom.client import AtomClientFactory, BasicAuth
 from java.io import ByteArrayInputStream, ByteArrayOutputStream
 from java.net import Proxy, ProxySelector, URL, URLDecoder
 from java.lang import Exception
-from java.util import TreeMap
 
 from org.apache.commons.io import FileUtils, IOUtils
 from org.w3c.tidy import Tidy
@@ -59,78 +58,88 @@ class BlogData:
             responseType = "text/plain; charset=UTF-8"
             responseMsg = "\n".join(self.getUrls())
 
-        ## The proper form submission
-        else:
-            try:
-                ## Get all the form data
-                oid = self.vc("formData").get("oid")
-                url = self.vc("formData").get("url")
+        ## DEBUGGING - Probe the APP service
+        elif func == "probe":
+            ## Get all the form data
+            url = self.vc("formData").get("url")
+            if url == "":
+                responseMsg = "<p class='error'>No URL provided!</p>"
+            else:
                 title = self.vc("formData").get("title")
                 username = self.vc("formData").get("username")
                 password = self.vc("formData").get("password")
-                self.separator = self.vc("formData").get("separator")
-                if self.separator is None:
-                    self.separator = ""
-                toc = self.vc("formData").get("toc")
-                if toc is not None and toc == "true":
-                    self.buildTOC = True
-                preamble = self.vc("formData").get("preamble")
 
                 ## Setup our Atom client with proxied and authenticated HTTP
                 auth = ProxyBasicAuthStrategy(username, password, url)
                 self.__service = AtomClientFactory.getAtomService(url, auth)
+                workspaces = self.__service.getWorkspaces()
+                for ws in workspaces:
+                    output = "\nWorkspace Title: '%s'" % ws.getTitle()
+                    collections = ws.getCollections()
+                    for coll in collections:
+                        output += "\n=== Collection Title: '%s'" % coll.getTitle()
+                        output += "\n=== Accepts:"
+                        accepts = coll.getAccepts()
+                        for acc in accepts:
+                            output += "\n=== === '%s'" % acc
+                        categories = coll.getCategories()
+                        output += "\n=== Categories (%s):" % categories.size()
+                        if categories.size() > 0:
+                            for cat in categories:
+                                output += "\n=== === HREF: '%s'" % cat.getHref()
+                                #output += "\n=== === HREF(R): '%s'" % cat.getHrefResolved()
+                                cat.fetchContents()
+                                output += "\n=== === '%s'" % repr(cat)
+                                #romeCategories = cat.getCategories()
+                                #for rCat in romeCategories:
+                                #    output += "\n=== === '%s'" % rCat.toString()
+                    self.vc("log").debug(output)
 
-                try:
-                    ## Get our object from storage and the index
-                    self.__object = self.__getObject(oid)
-                    self.__readMetadata(oid)
-                    sourceId = self.__object.getSourceId()
-                    sourcePayload = self.__object.getPayload(sourceId)
+            responseType = "text/plain; charset=UTF-8"
+            responseMsg = "DEBUG! Check the log for debug data"
 
-                    ## Packages are special
-                    if sourcePayload and sourcePayload.getContentType() == "application/x-fascinator-package":
-                        manifest = Manifest(sourcePayload.open())
-                        content = self.__getManifestContent(manifest)
-                        toc = ""
-                        if self.buildTOC:
-                            toc = self.__buildTableOfContents(manifest)
-                        if preamble != "":
-                            preamble = "<div class='tf-preamble'>\n%s\n</div>" % preamble
-                            content = toc + preamble + content
-                        else:
-                            content = toc + content
-                        sourcePayload.close()
+        ## A preview has been requested
+        elif func == "preview-only":
+            responseType = "text/plain; charset=UTF-8"
+            error, responseMsg = self.getAllContent(self.__previewLinks)
+            if error:
+                responseMsg = "<p class='error'>%s</p>"  % responseMsg
 
-                    ## Normal objects
-                    else:
-                        content = self.services.pageService.renderObject(self.__convertToVelocityContext(), "detail", self.__metadata)
-                        content = "<div class='tf-content-block'>\n%s\n</div>" % self.__escapeUnicode(content)
-                        if preamble != "":
-                            content = "<div class='tf-content-holder'>\n%s\n</div>" % content
-                            preamble = "<div class='tf-preamble'>\n%s\n</div>" % preamble
-                            content = preamble + content
-
-                    # Tidy our HTML and fix relative links before sending
-                    content, doc = self.__tidy(content)
-                    content = self.__processMedia(oid, doc, content)
-                    # Now POST to server
-                    success, value = self.__post(title, content)
-
-                except Exception, e:
-                    self.vc("log").error("Error retrieving object: ", e)
-                    success = False
-                    value = e.getMessage()
-
-                # Build a response for the front end
-                if success:
-                    altLinks = value.getAlternateLinks()
-                    if altLinks is not None:
-                        self.saveUrl(url)
-                        responseMsg = "<p>Success! Visit the <a href='%s' target='_blank'>blog post</a>.</p>" % altLinks[0].href
-                    else:
-                        responseMsg = "<p class='warning'>The server did not return a valid link!</p>"
+        ## The proper form submission
+        else:
+            try:
+                ## Get all the form data
+                url = self.vc("formData").get("url")
+                if url == "":
+                    responseMsg = "<p class='error'>No URL provided!</p>"
                 else:
-                    responseMsg = "<p class='error'>%s</p>" % value
+                    title = self.vc("formData").get("title")
+                    username = self.vc("formData").get("username")
+                    password = self.vc("formData").get("password")
+
+                    ## Setup our Atom client with proxied and authenticated HTTP
+                    auth = ProxyBasicAuthStrategy(username, password, url)
+                    self.__service = AtomClientFactory.getAtomService(url, auth)
+
+                    error, content = self.getAllContent(self.__uploadMedia)
+                    if not error:
+                        # Now POST to server
+                        success, value = self.__post(title, content)
+
+                    else:
+                        success = False
+                        value = content
+
+                    # Build a response for the front end
+                    if success:
+                        altLinks = value.getAlternateLinks()
+                        if altLinks is not None:
+                            self.saveUrl(url)
+                            responseMsg = "<p>Success! Visit the <a href='%s' target='_blank'>blog post</a>.</p>" % altLinks[0].href
+                        else:
+                            responseMsg = "<p class='warning'>The server did not return a valid link!</p>"
+                    else:
+                        responseMsg = "<p class='error'>%s</p>" % value
 
             ## Failed to connect to AtomPub server?
             except Exception, e:
@@ -141,6 +150,66 @@ class BlogData:
         writer = self.vc("response").getPrintWriter(responseType)
         writer.println(responseMsg)
         writer.close()
+
+    def getAllContent(self, method):
+        ## Get all the form data
+        oid = self.vc("formData").get("oid")
+        self.separator = self.vc("formData").get("separator")
+        if self.separator is None:
+            self.separator = ""
+        toc = self.vc("formData").get("toc")
+        if toc is not None and toc == "true":
+            self.buildTOC = True
+        preamble = self.vc("formData").get("preamble")
+        premore = self.vc("formData").get("premore")
+        if premore is not None and premore == "true":
+            premore = True
+            self.vc("log").debug("MORE")
+        else:
+            premore = False
+            self.vc("log").debug("NOT MORE")
+        content = "Error accessing content"
+
+        try:
+            ## Get our object from storage and the index
+            self.__object = self.__getObject(oid)
+            self.__readMetadata(oid)
+            sourceId = self.__object.getSourceId()
+            sourcePayload = self.__object.getPayload(sourceId)
+
+            ## Packages are special
+            if sourcePayload and sourcePayload.getContentType() == "application/x-fascinator-package":
+                manifest = Manifest(sourcePayload.open())
+                content = self.__getManifestContent(manifest, method)
+                toc = ""
+                if self.buildTOC:
+                    toc = self.__buildTableOfContents(manifest)
+                if preamble != "":
+                    preamble = "<div class='tf-preamble'>\n%s\n</div>" % preamble
+                    if premore:
+                        preamble += "<!--more-->"
+                    content = toc + preamble + content
+                else:
+                    content = toc + content
+                sourcePayload.close()
+
+            ## Normal objects
+            else:
+                content = self.__getContent(oid, method)
+                #content = self.services.pageService.renderObject(self.__convertToVelocityContext(), "detail", self.__metadata)
+                content = "<div class='tf-content-block'>\n%s\n</div>" % self.__escapeUnicode(content)
+                if preamble != "":
+                    content = "<div class='tf-content-holder'>\n%s\n</div>" % content
+                    preamble = "<div class='tf-preamble'>\n%s\n</div>" % preamble
+                    if premore:
+                        preamble += "<!--more-->"
+                    content = preamble + content
+
+            return (False, content)
+
+        except Exception, e:
+            self.vc("log").error("Error retrieving object: ", e)
+            return (True, e.getMessage())
 
     # Get from velocity context
     def vc(self, index):
@@ -207,7 +276,7 @@ class BlogData:
                 entries.append("<li><a href='#%s'>%s</a></li>" % (key, title))
         return "<div id='tf-toc'>\n<ul>\n%s\n</ul>\n</div>" % "\n".join(entries)
 
-    def __getManifestContent(self, manifest):
+    def __getManifestContent(self, manifest, method):
         entries = []
         for node in manifest.getTopNodes():
             if not node.getHidden():
@@ -217,11 +286,11 @@ class BlogData:
                     title = "<h2 class='content-heading' id='%s'>%s <span>(<a href='#tf-toc'>TOC</a>)</span></h2>" % (key, title)
                 else:
                     title = "<h2 class='content-heading'>%s</h2>" % title
-                content = self.__getContent(node.getId())
+                content = self.__getContent(node.getId(), method)
                 entries.append("<div class='tf-content-block'>\n%s\n%s\n</div>" % (title, content))
         return "<div class='tf-content-holder'>\n%s\n</div>" % self.separator.join(entries)
 
-    def __getContent(self, oid):
+    def __getContent(self, oid, method):
         #self.vc("log").debug("Getting content for '{}'", oid)
         content = "<div>Content not found!</div>"
         payload = self.__getPreviewPayload(oid)
@@ -242,7 +311,7 @@ class BlogData:
             else:
                 content = "<div>unsupported content type: %s</div>" % mimeType
         content, doc = self.__tidy(content)
-        content = self.__processMedia(oid, doc, content)
+        content = self.__fixLinks(oid, doc, content, method)
         return content
 
     def __getPreviewPayload(self, oid):
@@ -292,60 +361,93 @@ class BlogData:
         content = out.toString("UTF-8")
         return content, doc
 
-    def __processMedia(self, oid, doc, content):
-        content = self.__uploadMedia(oid, doc, content, "a", "href")
-        content = self.__uploadMedia(oid, doc, content, "img", "src")
+    def __fixLinks(self, oid, doc, content, method):
+        content = self.__findMedia(oid, doc, content, "a", "href", method)
+        content = self.__findMedia(oid, doc, content, "img", "src", method)
         return content
 
-    def __uploadMedia(self, oid, doc, content, elem, attr):
+    def __findMedia(self, oid, doc, content, elem, attr, method):
+        # Find all matching elements in the content
         links = doc.getElementsByTagName(elem)
         for i in range(0, links.getLength()):
             elem = links.item(i)
+            # The payload linked to is in the attribute
             attrValue = elem.getAttribute(attr)
             pid = attrValue
             internalSrc = attrValue
+
+            # Skip absolute URLs or anchor links
             if attrValue == '' or attrValue.startswith("#") \
                 or attrValue.startswith("mailto:") \
                 or attrValue.find("://") != -1:
                 continue
+
+            # Skip absolute URLs or anchor links
             else:
                 split = attrValue.split("/")
+                # Some payloads end at the '/', what comes after
+                #   might be query parameters and such
                 pid = split[len(split)-1]
-                if len(split)>1:
+                if len(split) > 1:
+                    # Although some payloads use a directory name inside the PID
                     # Normally files returned by ice rendition
-                    internalSrc = "%s/%s" % (split[len(split)-2], split[len(split)-1])
+                    internalSrc = "%s/%s" % (split[len(split) - 2], split[len(split) - 1])
 
             #self.vc("log").debug("Uploading '{}' ({})", pid, elem.tagName + ", " + attr)
             found = False
             try:
+                # Try and find the basic payload first
                 payload = self.__getObject(oid).getPayload(pid)
                 found = True
             except Exception, e:
+                # We failed to find the payload
+                # Clean out UTF-8 escaped problems and try again
                 pid = URLDecoder.decode(pid, "UTF-8")
                 try:
                     payload = self.__getObject(oid).getPayload(pid)
                     found = True
                 except Exception, e:
                     try:
+                        # Still no luck, lets try to grab two part PID (from ICE)
                         #self.vc("log").debug("Trying to get: '{}' payload", internalSrc)
                         payload = self.__getObject(oid).getPayload(internalSrc)
                         found = True
                     except Exception, e:
                         self.vc("log").error("Payload not found '{}'", pid)
+
+            # If we found something, run it through the requested method
             if found:
-                #HACK to upload PDFs
-                contentType = payload.getContentType().replace("application/", "image/")
-                entry = self.__postMedia(payload.getLabel(), contentType, payload.open())
-                payload.close()
-                if entry is not None:
-                    id = entry.getId()
-                    #self.vc("log").debug("Replacing '{}' with '{}'", attrValue, id)
-                    content = content.replace('%s="%s"' % (attr, attrValue),
-                                              '%s="%s"' % (attr, id))
-                    content = content.replace("%s='%s'" % (attr, attrValue),
-                                              "%s='%s'" % (attr, id))
-                else:
-                    self.vc("log").error("Failed to upload '{}'", pid)
+                content = method(content, oid, payload, attr, attrValue)
+        return content
+
+    def __uploadMedia(self, content, oid, payload, attr, attrValue):
+        # HACK to upload PDFs
+        contentType = payload.getContentType().replace("application/", "image/")
+        # Upload to server
+        entry = self.__postMedia(payload.getLabel(), contentType, payload.open())
+        payload.close()
+        if entry is not None:
+            # The server response has our replacement value
+            id = entry.getId()
+            #self.vc("log").debug("Replacing '{}' with '{}'", attrValue, id)
+            # Replace in page content. Don't forget both " and ' strings
+            content = content.replace('%s="%s"' % (attr, attrValue),
+                                      '%s="%s"' % (attr, id))
+            content = content.replace("%s='%s'" % (attr, attrValue),
+                                      "%s='%s'" % (attr, id))
+        else:
+            self.vc("log").error("Failed to upload '{}'", pid)
+        return content
+
+    def __previewLinks(self, content, oid, payload, attr, attrValue):
+        replacement = "%s%s/download/%s/%s" % \
+            (self.vc("urlBase"), self.vc("portalId"), oid, attrValue)
+        #self.vc("log").debug("Replacing '{}' with \n'{}'", attrValue, replacement)
+        # Replace in page content. Don't forget both " and ' strings
+        content = content.replace('%s="%s"' % (attr, attrValue),
+                                  '%s="%s"' % (attr, replacement))
+        content = content.replace("%s='%s'" % (attr, attrValue),
+                                  "%s='%s'" % (attr, replacement))
         return content
 
     def __getCollection(self, type):

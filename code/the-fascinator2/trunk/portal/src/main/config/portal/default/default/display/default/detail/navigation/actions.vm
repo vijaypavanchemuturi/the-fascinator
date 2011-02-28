@@ -20,7 +20,7 @@
                 </script>
             </li>
         #end
-        <li><a id="blog-this" href="#">Blog...</a></li>
+        <li><a href="$portalPath/blog/$oid">Blog...</a></li>
         #parseDisplayTemplate("detail/navigation/custom-actions.vm")
         #if($page.authentication.is_admin())
             #if(!$parent.isPending())
