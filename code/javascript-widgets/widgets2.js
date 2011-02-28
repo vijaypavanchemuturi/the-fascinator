@@ -1292,7 +1292,7 @@ var widgets={forms:[], globalObject:this};
 
       submitSave=function(stype){
         var data, url;
-        var xPreFunc, xFunc, xResultFunc;
+        var xPreFunc, xFunc, xResultFunc, xErrResultFunc;
         var replaceFunc, completed;
         replaceFunc=function(s){
             s = s.replace(/[{}()]/g, "");   // make it safe - no function calls
@@ -1302,6 +1302,7 @@ var widgets={forms:[], globalObject:this};
             xPreFunc = globalObject[ctx.dataset("pre-"+stype+"-func")];
             xFunc = globalObject[ctx.dataset(stype+"-func")];
             xResultFunc = globalObject[ctx.dataset(stype+"-result-func")];
+            xErrResultFunc = globalObject[ctx.dataset(stype+"-err-result-func")]
         }
         if(callIfFunction(xPreFunc, widgetForm)===false){
             callIfFunction(xResultFunc, widgetForm, {error:"canceled by pre-"+stype+"-func"});
@@ -1318,9 +1319,11 @@ var widgets={forms:[], globalObject:this};
                 }
             }
             if(data.error || !data.ok){
-                 ctx.findx(".saved-result").html("");
-                if(!data.ok && !data.error) data.error="Failed to receive an 'ok'!";
-                messageBox("Failed to "+stype+"! (error='"+data.error+"') response='"+dataStr+"'");
+                ctx.findx(".saved-result").html("");
+                if(callIfFunction(xErrResultFunc, widgetForm, data)!=false){
+                    if(!data.ok && !data.error) data.error="Failed to receive an 'ok'!";
+                    messageBox("Failed to "+stype+"! (error='"+data.error+"') response='"+dataStr+"'");
+                }
             }else{
                 callIfFunction(xResultFunc, widgetForm, data);
                 var sr;
