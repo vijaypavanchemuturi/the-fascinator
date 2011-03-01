@@ -59,7 +59,7 @@ class BlogData:
             responseMsg = "\n".join(self.getUrls())
 
         ## DEBUGGING - Probe the APP service
-        elif func == "probe":
+        elif func == "debug":
             ## Get all the form data
             url = self.vc("formData").get("url")
             if url == "":
