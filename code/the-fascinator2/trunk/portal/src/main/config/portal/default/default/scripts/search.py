@@ -193,17 +193,27 @@ class SearchData:
                                        self.__portal.recordsPerPage)
     
     def __escapeQuery(self, q):
-        eq = q
-        # escape all solr/lucene special chars
-        # from http://lucene.apache.org/java/2_4_0/queryparsersyntax.html#Escaping%20Special%20Characters
-        for c in "+-&|!(){}[]^\"~*?:\\":
-            eq = eq.replace(c, "\\%s" % c)
-        ## Escape UTF8
-        try:
-            return URLEncoder.encode(eq, "UTF-8")
-        except UnsupportedEncodingException, e:
-            print "Error during UTF8 escape! ", repr(eq)
-            return eq
+        temp = ""
+        chars = "+-&|!(){}[]^\"~*?:\\"
+        for c in q:
+           if c in chars:
+             temp += "\%s" % c
+           else:
+             temp += c
+        
+        return temp 
+        
+#        eq = q
+#        # escape all solr/lucene special chars
+#        # from http://lucene.apache.org/java/2_4_0/queryparsersyntax.html#Escaping%20Special%20Characters
+#        for c in "+-&|!(){}[]^\"~*?:\\":
+#            eq = eq.replace(c, "\\%s" % c)
+#        ## Escape UTF8
+#        try:
+#            return URLEncoder.encode(eq, "UTF-8")
+#        except UnsupportedEncodingException, e:
+#            print "Error during UTF8 escape! ", repr(eq)
+#            return eq
     
     def getQueryTime(self):
         return int(self.__result.getQueryTime()) / 1000.0;
