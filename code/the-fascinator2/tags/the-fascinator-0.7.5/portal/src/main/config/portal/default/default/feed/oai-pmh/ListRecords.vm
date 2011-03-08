@@ -1,0 +1,18 @@
+<ListRecords>
+    #foreach($item in $itemList)
+        <record>
+            <header>
+                <identifier>oai:fascinator:$item.getFirst("id")</identifier>
+                <datestamp>$item.getFirst("last_modified")</datestamp>
+                <setSpec>$portalId</setSpec>
+            </header>
+            <metadata>
+                #parseTemplate("feed/oai-pmh/format/${self.request.metadataPrefix}.vm")
+            </metadata>
+        </record>
+    #end
+    
+    #if ($self.token)
+        <resumptionToken>$self.token.getToken()</resumptionToken>
+    #end
+</ListRecords>
