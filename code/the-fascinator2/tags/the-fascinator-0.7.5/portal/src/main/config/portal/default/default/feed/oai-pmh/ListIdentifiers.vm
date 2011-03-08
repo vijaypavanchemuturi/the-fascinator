@@ -1,0 +1,13 @@
+<ListIdentifiers>
+    #foreach($item in $itemList)
+        <header>
+            <identifier>oai:fascinator:$item.getFirst("id")</identifier>
+            <datestamp>$item.getFirst("last_modified")</datestamp>
+            <setSpec>$portalId</setSpec>
+        </header>
+    #end
+    
+    #if ($self.token)
+        <resumptionToken>$self.token.getToken()</resumptionToken>
+    #end
+</ListIdentifiers>
