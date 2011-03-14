@@ -18,6 +18,33 @@
  */
 package au.edu.usq.fascinator.portal.pages;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Arrays;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import javax.servlet.http.HttpServletRequest;
+
+import org.apache.commons.fileupload.servlet.ServletFileUpload;
+import org.apache.commons.lang.StringUtils;
+import org.apache.tapestry5.StreamResponse;
+import org.apache.tapestry5.annotations.SessionState;
+import org.apache.tapestry5.ioc.annotations.Inject;
+import org.apache.tapestry5.ioc.util.TimeInterval;
+import org.apache.tapestry5.services.Request;
+import org.apache.tapestry5.services.RequestGlobals;
+import org.apache.tapestry5.services.Response;
+import org.apache.tapestry5.upload.services.MultipartDecoder;
+import org.apache.tapestry5.upload.services.UploadedFile;
+import org.slf4j.Logger;
+
 import au.edu.usq.fascinator.HarvestClient;
 import au.edu.usq.fascinator.api.PluginException;
 import au.edu.usq.fascinator.api.authentication.AuthenticationException;
@@ -33,53 +60,28 @@ import au.edu.usq.fascinator.portal.services.HttpStatusCodeResponse;
 import au.edu.usq.fascinator.portal.services.PortalManager;
 import au.edu.usq.fascinator.portal.services.PortalSecurityManager;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import javax.servlet.http.HttpServletRequest;
-
-import org.apache.commons.fileupload.servlet.ServletFileUpload;
-import org.apache.commons.lang.StringUtils;
-import org.apache.tapestry5.StreamResponse;
-import org.apache.tapestry5.annotations.Persist;
-import org.apache.tapestry5.annotations.SessionState;
-import org.apache.tapestry5.ioc.annotations.Inject;
-import org.apache.tapestry5.ioc.util.TimeInterval;
-import org.apache.tapestry5.services.Request;
-import org.apache.tapestry5.services.RequestGlobals;
-import org.apache.tapestry5.services.Response;
-import org.apache.tapestry5.services.Session;
-import org.apache.tapestry5.upload.services.MultipartDecoder;
-import org.apache.tapestry5.upload.services.UploadedFile;
-import org.slf4j.Logger;
-
 /**
  * <h3>Introduction</h3>
  * <p>
- * Dispatch is the only Tapestry Page object, and it is responsible for three tasks:
+ * Dispatch is the only Tapestry Page object, and it is responsible for three
+ * tasks:
  * </p>
- *
+ * 
  * <ul>
- * <li><strong>Resource routing</strong>, mostly URL parsing according to some basic rules, but also looking for special cases.</li>
+ * <li><strong>Resource routing</strong>, mostly URL parsing according to some
+ * basic rules, but also looking for special cases.</li>
  * <li><strong>Security</strong>, particularly focusing on Single Sign-On.</li>
- * <li><strong>File upload</strong> handling and storage. Files need to grabbed from the Tapestry framework and moved into our storage and the transformation tool chain.</li>
+ * <li><strong>File upload</strong> handling and storage. Files need to grabbed
+ * from the Tapestry framework and moved into our storage and the transformation
+ * tool chain.</li>
  * </ul>
- *
+ * 
  * <h3>Wiki Link</h3>
  * <p>
- * <b>https://fascinator.usq.edu.au/trac/wiki/Fascinator/Documents/Portal/JavaCore#TapestryPages</b>
+ * <b>https://fascinator.usq.edu.au/trac/wiki/Fascinator/Documents/Portal/
+ * JavaCore#TapestryPages</b>
  * </p>
- *
+ * 
  * @author Oliver Lucido
  */
 public class Dispatch {
@@ -140,7 +142,7 @@ public class Dispatch {
 
     /**
      * Entry point for Tapestry to send page requests.
-     *
+     * 
      * @param params : An array of request parameters from Tapestry
      * @returns StreamResponse : Tapestry object to return streamed response
      */
@@ -216,7 +218,7 @@ public class Dispatch {
         if ((resourceName.indexOf(".") == -1) || isSpecial) {
             if (formData == null) {
                 formData = new FormData(request, hsr);
-                //log.debug("created FormData:{}", formData);
+                // log.debug("created FormData:{}", formData);
             }
         }
     }
@@ -248,8 +250,9 @@ public class Dispatch {
             log.error("No workflow provided with form data.");
             return;
         }
-        JsonSimple workflowConfig = sysConfig.getJsonSimpleMap("uploader").
-                get(workflowId);
+
+        JsonSimple workflowConfig = sysConfig.getJsonSimpleMap("uploader").get(
+                workflowId);
 
         // Roles allowed to upload into this workflow
         boolean security_check = false;
@@ -354,6 +357,8 @@ public class Dispatch {
         // Helps some browsers (like IE7) resolve the path from the form
         sessionState.set("fileName", uploadedFile.getFileName());
         sessionState.set(uploadedFile.getFileName(), file_details);
+        formData.set("fileProcessing", "true");
+        sessionState.set("uploadFormData", formData);
     }
 
     private void renderProcessing() {
@@ -413,10 +418,10 @@ public class Dispatch {
 
     /**
      * Parse the request URL to find the best matching resource from the portal.
-     *
+     * 
      * This method will recursively call itself if required to break the URL
      * down into constituent parts.
-     *
+     * 
      * @param resource : The resource we are looking for
      * @returns String : The best matching resource
      */

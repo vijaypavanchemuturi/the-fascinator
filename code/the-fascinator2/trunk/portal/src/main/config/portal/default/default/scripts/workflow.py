@@ -25,13 +25,25 @@ class WorkflowData:
         self.pageService = Services.getPageService()
         self.renderer = self.vc("toolkit").getDisplayComponent(self.pageService)
         self.template = None
+        self.uploadRequest = None
+        self.fileProcessing = False
 
         # Normal workflow progressions
         if self.fileName is None:
             self.hasUpload = False
             self.fileDetails = None
             oid = self.vc("formData").get("oid")
-            if oid is None:
+            uploadFormData = self.vc("sessionState").get("uploadFormData")
+            if uploadFormData:
+                self.fileProcessing = uploadFormData.get("fileProcessing")
+            
+            if oid is None and uploadFormData:
+                oid = uploadFormData.get("oid")
+            
+            if oid is [] and self.fileProcessing=="true":
+                self.formProcess = True
+            elif oid is None:
+                #for normal workflow progression
                 self.formProcess = False
                 self.template = None
             else:
@@ -45,7 +57,7 @@ class WorkflowData:
                 self.fileName = dispatchFileName
             self.hasUpload = True
             self.fileDetails = self.vc("sessionState").get(self.fileName)
-            print " * workflow.py : Upload details : ", repr(self.fileDetails)
+            print "***** Upload details:", repr(self.fileDetails)
             self.template = self.fileDetails.get("template")
             self.errorMsg = self.fileDetails.get("error")
 
@@ -103,6 +115,11 @@ class WorkflowData:
                     wfPayload.close()
                 except StorageException, e:
                     pass
+                    #self.errorMsg = "Failed to get workflow metadata: %s" % str(e)
+                    #if self.uploadRequest:
+                    #    print "create workflow.metadata for upload request"
+                    #    formData = self.vc("formData")
+                        #{targetStep=[live], upload-file-file=[About Stacks.pdf], title=[About Stacks], submit=[Upload], oid=[], description=[PDF describing the Stacks feature of Mac OS X], upload-file-workflow=[basicUpload]}
         return self.metadata
 
     def getOid(self):
@@ -159,7 +176,6 @@ class WorkflowData:
 
     def prepareTemplate(self):
         # Retrieve our workflow config
-        #print "prepareTemplate()"
         try:
             objMeta = self.getObjectMetadata()
             jsonObject = Services.storage.getObject(objMeta.get("jsonConfigOid"))
@@ -186,10 +202,10 @@ class WorkflowData:
             self.errorMsg = "Invalid workflow configuration"
             return False
 
-        #print "--------------"
-        #print "meta='%s'" % meta        # "workflow.metadata"
-        #print "currentStep='%s'" % currentStep
-        #print "stages='%s'" % stages
+        ##print "--------------"
+        ##print "meta='%s'" % meta        # "workflow.metadata"
+        ##print "currentStep='%s'" % currentStep
+        ##print "stages='%s'" % stages
         nextFlag = False
         for stage in stages:
             # We've found the next stage
@@ -201,9 +217,9 @@ class WorkflowData:
                 nextFlag = True
                 currentStage = stage
 
-        #print "currentStage='%s'" % currentStage
-        #print "nextStage='%s'" % nextStage
-        #print "--------------"
+        ##print "currentStage='%s'" % currentStage
+        ##print "nextStage='%s'" % nextStage
+        ##print "--------------"
 
         if nextStage is None:
             if currentStage is None:
@@ -261,24 +277,11 @@ class WorkflowData:
         else:
             oldFormData = JsonSimple()
 
-        # Quick filter, we may or may not use these fields
-        #    below, but they are not metadata
-        specialFields = ["oid", "targetStep"]
-
         # Process all the new fields submitted
-        newFormFields = self.vc("formData").getFormFields()
-        for field in newFormFields:
-            # Special fields - we are expecting them
-            if field in specialFields:
-                #print " *** Special Field : '" + field + "' => '" + repr(self.vc("formData").get(field)) + "'"
-                if field == "targetStep":
-                    meta.getJsonObject().put(field, self.vc("formData").get(field))
-
-            # Everything else... metadata
-            else:
-                #print " *** Metadata Field : '" + field + "' => '" + repr(self.vc("formData").get(field)) + "'"
-                oldFormData.getJsonObject().put(field, self.vc("formData").get(field))
-
+        self.processFormData(meta, oldFormData, self.vc("formData"))
+        self.processFormData(meta, oldFormData, self.vc("sessionState").get("uploadFormData"))
+        self.vc("sessionState").remove("uploadFormData")
+        
         # Write the form data back into the workflow metadata
         data = oldFormData.getJsonObject()
         metaObject = meta.writeObject(["formData"])
@@ -295,8 +298,29 @@ class WorkflowData:
         Services.indexer.index(self.getOid())
         Services.indexer.commit()
 
+    def processFormData(self, meta, oldFormData, formData):
+        if formData is not None:
+            # Quick filter, we may or may not use these fields
+            #    below, but they are not metadata
+            specialFields = ["oid", "targetStep"]
+            newFormFields = formData.getFormFields()
+            for field in newFormFields:
+                # Special fields - we are expecting them
+                if field in specialFields:
+                    print " *** Special Field : '" + field + "' => '" + repr(formData.get(field)) + "'"
+                    if field == "targetStep":
+                        meta.getJsonObject().put(field, formData.get(field))    
+                # Everything else... metadata
+                else:
+                    print " *** Metadata Field : '" + field + "' => '" + repr(formData.get(field)) + "'"
+                    oldFormData.getJsonObject().put(field, formData.get(field))
+
     def redirectNeeded(self):
-        return self.formProcess
+        redirect = self.formProcess
+        if redirect:
+            if self.fileProcessing == "true":
+                redirect = False
+        return redirect
 
     def renderTemplate(self):
         r = self.renderer.renderTemplate(self.vc("portalId"), self.template, self.localFormData, self.vc("sessionState"))

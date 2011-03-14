@@ -132,9 +132,7 @@
         #else
           #if ($self.redirectNeeded())
         <script type="text/javascript">
-        <!--
             window.location = "$portalPath/detail/$oid";
-        -->
         </script>
           #else
             #if($self.prepareTemplate())
