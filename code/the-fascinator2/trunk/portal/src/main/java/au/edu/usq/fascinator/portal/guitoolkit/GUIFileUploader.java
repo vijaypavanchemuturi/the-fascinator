@@ -18,10 +18,6 @@
  */
 package au.edu.usq.fascinator.portal.guitoolkit;
 
-import au.edu.usq.fascinator.common.JsonObject;
-import au.edu.usq.fascinator.common.JsonSimple;
-import au.edu.usq.fascinator.common.JsonSimpleConfig;
-
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -29,10 +25,14 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import au.edu.usq.fascinator.common.JsonObject;
+import au.edu.usq.fascinator.common.JsonSimple;
+import au.edu.usq.fascinator.common.JsonSimpleConfig;
+
 /**
- * Present a file upload interface to the user for ingesting
- * into various harvest plugins.
- *
+ * Present a file upload interface to the user for ingesting into various
+ * harvest plugins.
+ * 
  * @author Greg Pendlebury
  */
 public class GUIFileUploader {
@@ -43,7 +43,7 @@ public class GUIFileUploader {
     /**
      * Constructor. Access to system configuration and a list of the user's
      * security roles is required.
-     *
+     * 
      * @param config : System configuration
      * @param user_roles : An array with the list of roles the current user has
      */
@@ -59,11 +59,14 @@ public class GUIFileUploader {
         // Foreach workflow
         for (String workflow : workflows.keySet()) {
             // Check this user is allowed to upload files for it
-            for (Object role : workflows.get(workflow).getArray("security")) {
-                if (user_roles.contains(role.toString())) {
-                    // Add it to the list
-                    harvesters.put(workflow, workflows.get(workflow).
-                            getString(null, "screen-label"));
+            if (workflows.get(workflow).getString("", "upload-template")
+                    .equals("")) {
+                for (Object role : workflows.get(workflow).getArray("security")) {
+                    if (user_roles.contains(role.toString())) {
+                        // Add it to the list
+                        harvesters.put(workflow, workflows.get(workflow)
+                                .getString(null, "screen-label"));
+                    }
                 }
             }
         }
@@ -71,31 +74,33 @@ public class GUIFileUploader {
 
     /**
      * Render the form required for file uploads.
-     *
+     * 
      * @return String : The rendered form
      */
     public String renderForm() {
         if (harvesters.isEmpty()) {
-            return "Sorry, but your current security permissions don't" +
-                    " allow for file uploading.";
+            return "Sorry, but your current security permissions don't"
+                    + " allow for file uploading.";
         }
 
-        String form_string = "" +
-            "<form enctype='multipart/form-data' id='upload-file'" +
-            " method='post' action='workflow'>\n" +
-              "<fieldset class='login'>\n" +
-                "<legend>File Upload</legend>\n" +
-                fr.ajaxFluidErrorHolder("upload-file") +
-                "<p>\n" + fr.renderFormElement("upload-file-file", "file",
-                        "Select a file to upload:") + "</p>\n" +
-                "<p>\n" + fr.renderFormSelect("upload-file-workflow",
+        String form_string = ""
+                + "<form enctype='multipart/form-data' id='upload-file'"
+                + " method='post' action='workflow'>\n"
+                + "<fieldset class='login'>\n"
+                + "<legend>File Upload</legend>\n"
+                + fr.ajaxFluidErrorHolder("upload-file")
+                + "<p>\n"
+                + fr.renderFormElement("upload-file-file", "file",
+                        "Select a file to upload:")
+                + "</p>\n"
+                + "<p>\n"
+                + fr.renderFormSelect("upload-file-workflow",
                         "Select the harvester to process the file:", harvesters)
-                        + "</p>\n" +
-                "<div class='center'>" +
-                fr.renderFormElement("upload-file-submit", "button", null,
-                        "Upload") +
-                fr.ajaxProgressLoader("upload-file") +
-                "</div>" +
+                + "</p>\n"
+                + "<div class='center'>"
+                + fr.renderFormElement("upload-file-submit", "button", null,
+                        "Upload") + fr.ajaxProgressLoader("upload-file")
+                + "</div>" +
 
                 /* A real, ajax driven progess bar has been cut since
                  * Tapestry doesn't support setProgressListener().
@@ -107,8 +112,7 @@ public class GUIFileUploader {
                 "</div>" +
                  */
 
-              "</fieldset>\n" +
-            "</form>\n";
+                "</fieldset>\n" + "</form>\n";
 
         return form_string;
     }

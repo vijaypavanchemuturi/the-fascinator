@@ -405,7 +405,6 @@ class IndexData:
             # This must be a re-index then
             else:
                 targetStep = wfMeta.getString(None, ["step"])
-
             # Security change
             stages = self.config.getJsonSimpleList(["stages"])
             for stage in stages:
