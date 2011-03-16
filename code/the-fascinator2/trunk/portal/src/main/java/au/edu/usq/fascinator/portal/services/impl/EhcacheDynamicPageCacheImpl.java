@@ -40,32 +40,49 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Simple wrapper for Ehcache.
- *
+ * Implements a DynamicPageCache using Ehcache.
+ * 
  * @author Oliver Lucido
  */
 public class EhcacheDynamicPageCacheImpl implements DynamicPageCache {
 
+    /** Script cache id */
     private static final String SCRIPT_CACHE_ID = "scriptObjects";
 
+    /** Path lookup cache id */
     private static final String PATH_CACHE_ID = "pathLookup";
 
-    private static final String DEFAULT_PROFILE = "dynamic";
+    /** Default cache profile */
+    private static final String DEFAULT_PROFILE = "default";
 
+    /** Logging */
     private Logger log = LoggerFactory.getLogger(EhcacheDynamicPageCacheImpl.class);
 
+    /** PortalManager instance */
     private PortalManager portalManager;
 
+    /** Ehcache manager */
     private CacheManager cacheManager;
 
+    /** Cache for jython script objects */
     private Ehcache scriptCache;
 
+    /** Cache for path lookups */
     private Ehcache pathCache;
 
+    /** Whether or not to check last modified timestamp on script files */
     private boolean lastModifiedCheck;
 
+    /** Last modified timestamp cache */
     private Map<String, Long> lastModifiedMap;
 
+    /**
+     * Construct and configure the caches.
+     * 
+     * @param portalManager PortalManager instance
+     * @param velocityService VelocityService instance
+     * @param scriptingServices ScriptingServices instance
+     */
     public EhcacheDynamicPageCacheImpl(PortalManager portalManager,
             VelocityService velocityService,
             ScriptingServices scriptingServices) {
@@ -79,7 +96,6 @@ public class EhcacheDynamicPageCacheImpl implements DynamicPageCache {
         try {
             JsonSimpleConfig config = new JsonSimpleConfig();
 
-            int refreshIntervalSeconds = 0;
             Map<String, JsonSimple> cacheProfiles = config.getJsonSimpleMap("portal", "caching", "profiles");
             Map<String, JsonSimple> cacheConfigs = config.getJsonSimpleMap("portal", "caching", "caches");
             for (String cacheId : cacheConfigs.keySet()) {
@@ -118,14 +134,17 @@ public class EhcacheDynamicPageCacheImpl implements DynamicPageCache {
             scriptCache = new SelfPopulatingCache(
                     cacheManager.getCache(SCRIPT_CACHE_ID),
                     new JythonCacheEntryFactory(portalManager, velocityService,
-                    scriptingServices, refreshIntervalSeconds));
+                    scriptingServices));
             pathCache = cacheManager.getCache(PATH_CACHE_ID);
 
         } catch (IOException ioe) {
-            log.warn("Failed to configure caches, using defaults...");
+            log.warn("Failed to configure caches, using defaults...", ioe);
         }
     }
 
+    /**
+     * Shutdown the caches properly when Tapestry shuts down.
+     */
     @Override
     public void registryDidShutdown() {
         if (cacheManager != null) {
@@ -133,6 +152,14 @@ public class EhcacheDynamicPageCacheImpl implements DynamicPageCache {
         }
     }
 
+    /**
+     * Gets the script object with the specified path. If not already cached
+     * the script object will be created by the JythonCacheEntryFactory.
+     *
+     * @param path jython script path - including portal and skin. this should
+     * be a valid Velocity resource
+     * @return a script object or null if an error occurred
+     */
     @Override
     public PyObject getScriptObject(String path) {
         //log.debug("getScriptObject: {} ({})", path, tid);
@@ -159,20 +186,32 @@ public class EhcacheDynamicPageCacheImpl implements DynamicPageCache {
         return null;
     }
 
+    /**
+     * Gets the fully resolved path for the specified path including the skin.
+     * 
+     * @param pathId a path to resolve
+     * @return resolved path
+     */
     @Override
-    public String getPath(String id) {
+    public String getPath(String pathId) {
         //log.debug("getPath: {}", id);
-        Element element = pathCache.get(id);
+        Element element = pathCache.get(pathId);
         if (element != null) {
             return element.getObjectValue().toString();
         }
         return null;
     }
 
+    /**
+     * Puts an entry into the path lookup cache.
+     * 
+     * @param pathId path to resolve
+     * @param path resolved path
+     */
     @Override
-    public void putPath(String id, String path) {
+    public void putPath(String pathId, String path) {
         //log.debug("putPath: {} {}", id, path);
-        pathCache.put(new Element(id, path));
+        pathCache.put(new Element(pathId, path));
     }
 
     /**

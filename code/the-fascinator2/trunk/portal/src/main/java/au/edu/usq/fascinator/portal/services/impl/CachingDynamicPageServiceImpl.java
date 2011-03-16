@@ -56,58 +56,86 @@ import org.python.core.PyObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ *
+ *
+ * @author Oliver Lucido
+ */
 public class CachingDynamicPageServiceImpl implements DynamicPageService {
 
+    /** Default layout template name */
     private static final String DEFAULT_LAYOUT = "layout";
 
+    /** Extension for AJAX resources */
     private static final String AJAX_EXT = ".ajax";
 
+    /** Extension for script resources */
     private static final String SCRIPT_EXT = ".script";
 
+    /** Activation method for jython scripts */
     private static final String SCRIPT_ACTIVATE_METHOD = "__activate__";
 
+    /** Logging */
     private Logger log = LoggerFactory.getLogger(CachingDynamicPageServiceImpl.class);
 
+    /** Tapestry HTTP servlet request support */
     @Inject
     private RequestGlobals requestGlobals;
 
+    /** HTTP Request */
     @Inject
     private Request request;
 
+    /** HTTP Response */
     @Inject
     private Response response;
 
+    /** Services to expose to the jython scripts */
     @Inject
     private ScriptingServices scriptingServices;
 
+    /** House keeping */
     @Inject
     private HouseKeepingManager houseKeeping;
 
+    /** Security manager */
     @Inject
     private PortalSecurityManager security;
 
+    /** Page caching support */
     @Inject
     private DynamicPageCache pageCache;
 
-    @Inject
-    private ApplicationStateManager appStateManager;
-
+    /** Velocity service */
     private VelocityService velocityService;
 
+    /** System configuration */
     private JsonSimpleConfig config;
 
+    /** Layout template name */
     private String layoutName;
 
+    /** Application base URL */
     private String urlBase;
 
+    /** Absolute path to portal base directory */
     private String portalPath;
 
+    /** GUI toolkit */
     private GUIToolkit toolkit;
 
+    /** Default fallback portal id */
     private String defaultPortal;
 
+    /** Default display template */
     private String defaultDisplay;
 
+    /**
+     * Constructs and configures the service.
+     *
+     * @param portalManager PortalManager instance
+     * @param velocityService VelocityService instance
+     */
     public CachingDynamicPageServiceImpl(PortalManager portalManager,
             VelocityService velocityService) {
         this.velocityService = velocityService;
@@ -124,6 +152,13 @@ public class CachingDynamicPageServiceImpl implements DynamicPageService {
         }
     }
 
+    /**
+     * Gets a Velocity resource. This method is deprecated, please use
+     * VelocityService.getResource() instead.
+     *
+     * @param resourcePath valid Velocity resource path
+     * @return resource stream or null if not found
+     */
     @Override
     @Deprecated
     public InputStream getResource(String resourcePath) {
@@ -132,6 +167,14 @@ public class CachingDynamicPageServiceImpl implements DynamicPageService {
         return velocityService.getResource(resourcePath);
     }
 
+    /**
+     * Gets a Velocity resource. This method is deprecated, please use
+     * VelocityService.getResource() instead.
+     * 
+     * @param portalId the portal to get the resource from
+     * @param resourceName the resource to get
+     * @return resource stream or null if not found
+     */
     @Override
     @Deprecated
     public InputStream getResource(String portalId, String resourceName) {
@@ -140,6 +183,15 @@ public class CachingDynamicPageServiceImpl implements DynamicPageService {
         return velocityService.getResource(portalId, resourceName);
     }
 
+    /**
+     * Resolves the given resource to a valid Velocity resource if possible.
+     * This method is deprecated, please use VelocityService.resourceExists()
+     * instead.
+     *
+     * @param portalId the portal to get the resource from
+     * @param resourceName the resource to check
+     * @return a valid Velocity resource path or null if not found
+     */
     @Override
     @Deprecated
     public String resourceExists(String portalId, String resourceName) {
@@ -149,6 +201,16 @@ public class CachingDynamicPageServiceImpl implements DynamicPageService {
         return resourcePath;
     }
 
+    /**
+     * Renders the Velocity template with the specified form data.
+     *
+     * @param portalId the portal to get the template from
+     * @param pageName the page template to render
+     * @param out render results will be written to this output stream
+     * @param formData request form data
+     * @param sessionState current session
+     * @return MIME type of the response
+     */
     @Override
     public String render(String portalId, String pageName, OutputStream out,
             FormData formData, JsonSessionState sessionState) {
@@ -267,6 +329,15 @@ public class CachingDynamicPageServiceImpl implements DynamicPageService {
         return mimeType;
     }
 
+    /**
+     * Renders a display template. This is generally used by calling the
+     * #parseDisplayTemplate() method in the portal-library.vm.
+     * 
+     * @param context Velocity context
+     * @param template display template name
+     * @param metadata Solr metadata
+     * @return rendered content
+     */
     @Override
     public String renderObject(Context context, String template,
             SolrDoc metadata) {
@@ -340,6 +411,17 @@ public class CachingDynamicPageServiceImpl implements DynamicPageService {
         return content;
     }
 
+    /**
+     * Run the jython script with the given context. This method only calls
+     * the activation method on the jython script objects which are retrieved
+     * from the page cache.
+     *
+     * @param portalId portal to get the script from
+     * @param pageName page name that the script is supporting
+     * @param context context for the script
+     * @param messages a list to append error messages to if necessary
+     * @return the jython script object
+     */
     private PyObject evalScript(String portalId, String pageName,
             Map<String, Object> context, Set<String> messages) {
         PyObject scriptObject = null;

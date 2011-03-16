@@ -20,8 +20,10 @@ package au.edu.usq.fascinator.portal.velocity;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import org.apache.commons.lang.StringUtils;
 
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Used to redirect standard out/err for PythonInterpreter.
@@ -30,17 +32,20 @@ import org.slf4j.Logger;
  */
 public class JythonLogger extends OutputStream {
 
-    private Logger log;
+    private Logger log = LoggerFactory.getLogger(JythonLogger.class);
 
-    private String name;
+    private Logger jythonLogger;
 
     private boolean dirty;
 
     private StringBuilder buffer;
 
-    public JythonLogger(Logger log, String name) {
-        this.log = log;
-        this.name = name;
+    public JythonLogger(String name) {
+        String packageName = getClass().getPackage().getName();
+        String scriptName = StringUtils.substringBetween(name, "scripts/", ".py");
+        scriptName = scriptName.replace("/", "$") + "$py";
+        //log.debug("scriptName:{}", scriptName);
+        jythonLogger = LoggerFactory.getLogger(packageName + "." + scriptName);
         dirty = false;
         buffer = new StringBuilder();
     }
@@ -53,7 +58,7 @@ public class JythonLogger extends OutputStream {
     @Override
     public void flush() throws IOException {
         if (dirty) {
-            log.debug("{}: {}", name, buffer.toString());
+            jythonLogger.debug("{}", buffer.toString());
             dirty = false;
             buffer = new StringBuilder();
         }
