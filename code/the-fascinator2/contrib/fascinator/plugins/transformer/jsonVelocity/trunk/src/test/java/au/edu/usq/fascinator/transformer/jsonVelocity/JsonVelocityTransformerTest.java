@@ -1,6 +1,6 @@
 /*
- * Json Velocity Transformer
- * Copyright (C) <your copyright here>
+ * The Fascinator - Plugin - Transformer - JsonVelocity
+ * Copyright (C) 2010-2011 University of Southern Queensland
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,7 +29,6 @@ import org.apache.commons.io.IOUtils;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import au.edu.usq.fascinator.api.PluginManager;
@@ -92,9 +91,7 @@ public class JsonVelocityTransformerTest {
         for (String payloadId : payloadIdList) {
             if (!payloadId.equals("object.tfpackage")) {
                 Payload p = sourceObject.getPayload(payloadId);
-
                 System.out.println(IOUtils.toString(p.open()));
-
                 p.close();
             }
         }

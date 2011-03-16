@@ -1,6 +1,6 @@
 /*
  * The Fascinator - Plugin - Transformer - Json Velocity Transformer
- * Copyright (C) <your copyright here>
+ * Copyright (C) 2010-2011 University of Southern Queensland
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,17 +18,6 @@
  */
 package au.edu.usq.fascinator.transformer.jsonVelocity;
 
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.IOException;
-import java.io.StringWriter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import au.edu.usq.fascinator.api.PluginDescription;
 import au.edu.usq.fascinator.api.PluginException;
 import au.edu.usq.fascinator.api.storage.DigitalObject;
@@ -38,12 +27,23 @@ import au.edu.usq.fascinator.api.transformer.Transformer;
 import au.edu.usq.fascinator.api.transformer.TransformerException;
 import au.edu.usq.fascinator.common.JsonConfigHelper;
 
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.StringWriter;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+
 import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.Velocity;
 import org.apache.velocity.app.VelocityEngine;
 import org.apache.velocity.exception.ParseErrorException;
 import org.apache.velocity.exception.ResourceNotFoundException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * <p>
@@ -239,9 +239,7 @@ public class JsonVelocityTransformer implements Transformer {
     public List<File> getListOfTemplates() {
         List<File> templateList = new ArrayList<File>();
         if (templates.isDirectory()) {
-            for (File template : templates.listFiles()) {
-                templateList.add(template);
-            }
+            templateList.addAll(Arrays.asList(templates.listFiles()));
         } else {
             if (templates.isFile()) {
                 templateList.add(templates);
@@ -286,7 +284,8 @@ public class JsonVelocityTransformer implements Transformer {
                     vc.put("item", sourceMap);
                     vc.put("util", util);
                     vc.put("oid", in.getId());
-                    vc.put("urlBase", config.get("urlBase") + "default"); // For now just hardcode the portal name
+                    // TODO: For now just hardcode the portal name
+                    vc.put("urlBase", config.get("urlBase") + "default");
 
                     // Process individual template
                     Template pageContent = velocity
@@ -314,7 +313,8 @@ public class JsonVelocityTransformer implements Transformer {
                         vc.put("item", sourceMap);
                         vc.put("util", util);
                         vc.put("oid", in.getId());
-                        vc.put("urlBase", config.get("urlBase") + "default"); // For now just hardcode the portal name
+                        // TODO: For now just hardcode the portal name
+                        vc.put("urlBase", config.get("urlBase") + "default");
 
                         log.info("template {}", template.getAbsolutePath());
                         // Process each template
