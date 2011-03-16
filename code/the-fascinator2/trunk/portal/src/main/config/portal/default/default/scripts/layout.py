@@ -17,7 +17,7 @@ class LayoutData:
         self.__relPath = "/".join(uri.split("/")[1:])
         self.authentication = AuthenticationData()
         self.authentication.__activate__(context)
-        
+
         #self.formData = context["formData"]
         #if self.formData is not None:
         #    for field in self.formData.getFormFields():
@@ -64,7 +64,7 @@ class LayoutData:
         return text[0].upper() + text[1:]
     
     def getTemplate(self, templateName):
-        return self.services.pageService.resourceExists(self.portalId, templateName)
+        return self.services.velocityService.resourceExists(self.portalId, templateName)
     
     def getQueueStats(self):
         return self.services.getHouseKeepingManager().getQueueStats()

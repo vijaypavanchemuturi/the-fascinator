@@ -7,12 +7,12 @@
 ## $template : The template to parse
 ##
 #macro(parseTemplate $template)
-    #set($templatePath = $Services.pageService.resourceExists($portalId, $template))
+    #set($templatePath = $Services.velocityService.resourceExists($portalId, $template))
     #parse($templatePath)
 #end
 
 #macro(parseDisplayTemplate $template)
-    #set($templatePath = $Services.pageService.resourceExists($portalId, "display/$displayType/$template"))
+    #set($templatePath = $Services.velocityService.resourceExists($portalId, "display/$displayType/$template"))
     #parse($templatePath)
 #end
 

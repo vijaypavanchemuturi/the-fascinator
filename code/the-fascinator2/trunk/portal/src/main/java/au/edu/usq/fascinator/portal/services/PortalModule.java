@@ -32,16 +32,17 @@ import au.edu.usq.fascinator.portal.JsonSessionState;
 import au.edu.usq.fascinator.portal.services.impl.ByteRangeRequestCacheImpl;
 import au.edu.usq.fascinator.portal.services.impl.CachingDynamicPageServiceImpl;
 import au.edu.usq.fascinator.portal.services.impl.DatabaseServicesImpl;
+import au.edu.usq.fascinator.portal.services.impl.EhcacheDynamicPageCacheImpl;
 import au.edu.usq.fascinator.portal.services.impl.HarvestManagerImpl;
 import au.edu.usq.fascinator.portal.services.impl.HouseKeepingManagerImpl;
 import au.edu.usq.fascinator.portal.services.impl.PortalManagerImpl;
 import au.edu.usq.fascinator.portal.services.impl.PortalSecurityManagerImpl;
 import au.edu.usq.fascinator.portal.services.impl.ScriptingServicesImpl;
+import au.edu.usq.fascinator.portal.services.impl.VelocityServiceImpl;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 
-import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.tapestry5.ioc.Configuration;
 import org.apache.tapestry5.ioc.MappedConfiguration;
 import org.apache.tapestry5.ioc.OrderedConfiguration;
@@ -80,7 +81,6 @@ public class PortalModule {
 
     private static final String DEFAULT_STORAGE_TYPE = "file-system";
 
-    @SuppressWarnings("unused")
     private static Logger log = LoggerFactory.getLogger(PortalModule.class);
 
     static {
@@ -94,15 +94,25 @@ public class PortalModule {
      * @param binder : Tapestry service binder
      */
     public static void bind(ServiceBinder binder) {
-        binder.bind(HarvestManager.class, HarvestManagerImpl.class);
-        binder.bind(DynamicPageService.class,
-                CachingDynamicPageServiceImpl.class);
-        binder.bind(PortalManager.class, PortalManagerImpl.class);
-        binder.bind(ScriptingServices.class, ScriptingServicesImpl.class);
-        binder.bind(PortalSecurityManager.class,
-                PortalSecurityManagerImpl.class);
         binder.bind(ByteRangeRequestCache.class,
                 ByteRangeRequestCacheImpl.class);
+        binder.bind(DynamicPageService.class,
+                CachingDynamicPageServiceImpl.class);
+        binder.bind(HarvestManager.class, HarvestManagerImpl.class);
+        binder.bind(PortalManager.class, PortalManagerImpl.class);
+        binder.bind(PortalSecurityManager.class,
+                PortalSecurityManagerImpl.class);
+        binder.bind(ScriptingServices.class, ScriptingServicesImpl.class);
+        binder.bind(VelocityService.class, VelocityServiceImpl.class);
+    }
+
+    public static DynamicPageCache buildDynamicPageCache(
+            PortalManager portalManager, VelocityService velocityService,
+            ScriptingServices scriptingServices, RegistryShutdownHub hub) {
+        DynamicPageCache cache = new EhcacheDynamicPageCacheImpl(portalManager,
+                velocityService, scriptingServices);
+        hub.addRegistryShutdownListener(cache);
+        return cache;
     }
 
     /**
@@ -248,11 +258,12 @@ public class PortalModule {
             MappedConfiguration<Class<?>, ApplicationStateContribution> configuration) {
         ApplicationStateCreator<JsonSessionState> creator =
                 new ApplicationStateCreator<JsonSessionState>() {
-            @Override
-            public JsonSessionState create() {
-                return new JsonSessionState();
-            }
-        };
+
+                    @Override
+                    public JsonSessionState create() {
+                        return new JsonSessionState();
+                    }
+                };
         ApplicationStateContribution contribution =
                 new ApplicationStateContribution("session", creator);
         configuration.add(JsonSessionState.class, contribution);
@@ -285,6 +296,7 @@ public class PortalModule {
             @Inject final RequestGlobals requestGlobals,
             @Inject final URLEncoder urlEncoder) {
         URLRewriterRule rule = new URLRewriterRule() {
+
             @Override
             public Request process(Request request, URLRewriteContext context) {
                 // set the original request uri - without context
