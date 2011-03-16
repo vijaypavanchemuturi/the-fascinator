@@ -22,14 +22,33 @@ import org.apache.tapestry5.ioc.services.RegistryShutdownListener;
 import org.python.core.PyObject;
 
 /**
+ * Caching support for DynamicPageServices.
  *
  * @author Oliver Lucido
  */
 public interface DynamicPageCache extends RegistryShutdownListener {
 
+    /**
+     * Gets the script object with the specified path.
+     *
+     * @param path script path
+     * @return a script object or null if an error occurred
+     */
     public PyObject getScriptObject(String path);
 
+    /**
+     * Gets the fully resolved path for the specified path.
+     *
+     * @param pathId a path to resolve
+     * @return resolved path
+     */
     public String getPath(String pathId);
 
-    public void putPath(String id, String path);
+    /**
+     * Puts an entry into the path lookup cache.
+     *
+     * @param pathId path to resolve
+     * @param path resolved path
+     */
+    public void putPath(String pathId, String path);
 }

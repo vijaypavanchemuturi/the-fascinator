@@ -1,6 +1,20 @@
 /*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
+ * The Fascinator - Portal
+ * Copyright (C) 2011 University of Southern Queensland
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 package au.edu.usq.fascinator.portal.services.cache;
 
@@ -14,6 +28,7 @@ import au.edu.usq.fascinator.portal.services.HouseKeepingManager;
 import au.edu.usq.fascinator.portal.services.PortalManager;
 import au.edu.usq.fascinator.portal.services.ScriptingServices;
 import au.edu.usq.fascinator.portal.services.VelocityService;
+import au.edu.usq.fascinator.portal.velocity.JythonLogger;
 import java.io.InputStream;
 import java.util.List;
 import net.sf.ehcache.constructs.blocking.CacheEntryFactory;
@@ -27,37 +42,54 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
+ * Factory class for instantiating jython scripts to be cached.
  *
- * @author lucido
+ * @author Oliver Lucido
  */
 public class JythonCacheEntryFactory implements CacheEntryFactory {
 
+    /** Logging */
     private Logger log = LoggerFactory.getLogger(JythonCacheEntryFactory.class);
 
+    /** Velocity service */
     private VelocityService velocityService;
 
+    /** Scripting services */
     private ScriptingServices scriptingServices;
 
+    /** Absolute path to base portal directory */
     private String portalPath;
 
+    /** Default fallback portal id */
     private String defaultPortal;
 
+    /** Skin priority */
     private List<String> skinPriority;
 
-    private int refreshIntervalSeconds;
-
+    /**
+     * Constructs the factory.
+     *
+     * @param portalManager a PortalManager instance
+     * @param velocityService a VelocityService instance
+     * @param scriptingServices a ScriptingServices instance
+     */
     public JythonCacheEntryFactory(PortalManager portalManager,
             VelocityService velocityService,
-            ScriptingServices scriptingServices,
-            int refreshIntervalSeconds) {
+            ScriptingServices scriptingServices) {
         this.velocityService = velocityService;
         this.scriptingServices = new DeprecatedServicesWrapper(scriptingServices);
-        this.refreshIntervalSeconds = refreshIntervalSeconds;
         defaultPortal = portalManager.getDefaultPortal();
         portalPath = portalManager.getHomeDir().toString();
         skinPriority = portalManager.getSkinPriority();
     }
 
+    /**
+     * Creates a jython object instance for the script cache.
+     * 
+     * @param key the path to the jython script
+     * @return an instantiated jython object
+     * @throws Exception if the jython object failed to be instantiated
+     */
     @Override
     public Object createEntry(Object key) throws Exception {
         //log.debug("createEntry({})", key);
@@ -80,9 +112,9 @@ public class JythonCacheEntryFactory implements CacheEntryFactory {
             // expose services for backward compatibility - deprecated
             python.set("Services", scriptingServices);
             //python.setLocals(scriptObject);
-            //JythonLogger jythonLogger = new JythonLogger(path);
-            //python.setOut(jythonLogger);
-            //python.setErr(jythonLogger);
+            JythonLogger jythonLogger = new JythonLogger(path);
+            python.setOut(jythonLogger);
+            python.setErr(jythonLogger);
             python.execfile(in, path);
             String scriptClassName = StringUtils.capitalize(
                     FilenameUtils.getBaseName(path)) + "Data";
@@ -97,6 +129,13 @@ public class JythonCacheEntryFactory implements CacheEntryFactory {
         return scriptObject;
     }
 
+    /**
+     * Add class paths for the jython interpreter to find other modules within
+     * the portal directory structure.
+     *
+     * @param portalId a portal id
+     * @param sys jython system state
+     */
     private void addSysPaths(String portalId, PySystemState sys) {
         for (String skin : skinPriority) {
             String sysPath = portalPath + "/" + portalId + "/" + skin
@@ -108,6 +147,11 @@ public class JythonCacheEntryFactory implements CacheEntryFactory {
         }
     }
 
+    /**
+     * Internal class to wrap used to expose ScriptingServices to the global
+     * jython scope as deprecated. The services should be retrieved from the
+     * provided activation context.
+     */
     private class DeprecatedServicesWrapper implements ScriptingServices {
 
         private ScriptingServices scriptingServices;

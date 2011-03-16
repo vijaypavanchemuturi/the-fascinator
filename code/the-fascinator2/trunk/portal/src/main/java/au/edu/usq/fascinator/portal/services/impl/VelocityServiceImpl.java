@@ -38,20 +38,37 @@ import org.apache.velocity.runtime.RuntimeSingleton;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * Velocity service implementation with skinning support.
+ *
+ * @author Oliver Lucido
+ */
 public class VelocityServiceImpl implements VelocityService {
 
+    /** Logging */
     private Logger log = LoggerFactory.getLogger(VelocityServiceImpl.class);
 
+    /** Absolute path to base portal directory */
     private String portalPath;
 
+    /** Default fallback portal id */
     private String defaultPortal;
 
+    /** Default fallback displate template */
     private String defaultDisplay;
 
+    /** Skin priority */
     private List<String> skinPriority;
 
+    /** Page cache support */
     private DynamicPageCache pageCache;
 
+    /**
+     * Construct and configure the Velocity service.
+     *
+     * @param portalManager PortalManager instance
+     * @param pageCache DynamicPageCache instance
+     */
     public VelocityServiceImpl(PortalManager portalManager,
             DynamicPageCache pageCache) {
         try {
@@ -72,6 +89,12 @@ public class VelocityServiceImpl implements VelocityService {
         }
     }
 
+    /**
+     * Gets a Velocity resource.
+     *
+     * @param resourcePath valid Velocity resource path
+     * @return resource stream or null if not found
+     */
     @Override
     public InputStream getResource(String resourcePath) {
         try {
@@ -82,11 +105,26 @@ public class VelocityServiceImpl implements VelocityService {
         return null;
     }
 
+    /**
+     * Gets a Velocity resource. The resourcePath is resolved given the portalId
+     * and resourceName, as well as taking into account the skin priority.
+     *
+     * @param portalId the portal to get the resource from
+     * @param resourceName the resource to get
+     * @return resource stream or null if not found
+     */
     @Override
     public InputStream getResource(String portalId, String resourceName) {
         return getResource(resourceExists(portalId, resourceName));
     }
 
+    /**
+     * Resolves the given resource to a valid Velocity resource if possible.
+     *
+     * @param portalId the portal to get the resource from
+     * @param resourceName the resource to check
+     * @return a valid Velocity resource path or null if not found
+     */
     @Override
     public String resourceExists(String portalId, String resourceName) {
         String index = portalId + "/" + resourceName;
@@ -126,6 +164,15 @@ public class VelocityServiceImpl implements VelocityService {
         return null;
     }
 
+    /**
+     * Renders a Velocity template with the given context.
+     *
+     * @param portalId the portal to render the resource from
+     * @param templateName the template to render
+     * @param context the Velocity context to render
+     * @param writer a writer to output the render result to
+     * @throws Exception if an error occurred while rendering the template
+     */
     @Override
     public void renderTemplate(String portalId, String templateName,
             Context context, Writer writer) throws Exception {
@@ -134,6 +181,13 @@ public class VelocityServiceImpl implements VelocityService {
         template.merge(context, writer);
     }
 
+    /**
+     * Helper method to resolve resource paths based on skin priority.
+     *
+     * @param portalId the portal to get the resource from
+     * @param resourceName the resource to check
+     * @return a valid Velocity resource path or null if not found
+     */
     private String getSkinPath(String portalId, String resourceName) {
         String path = null;
         // Loop through our skins
