@@ -28,6 +28,7 @@ import java.io.FileFilter;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -50,20 +51,36 @@ public class PortalManagerImpl implements PortalManager {
 
     private String defaultPortal;
 
+    private String defaultSkin;
+
+    private String defaultDisplay;
+
+    private List<String> skinPriority;
+
     public PortalManagerImpl() {
+        log.debug("Creating PortalManagerImpl");
         try {
             JsonSimpleConfig config = new JsonSimpleConfig();
 
-            // The name of the default view
-            defaultPortal = config.getString(PortalManager.DEFAULT_PORTAL_NAME,
+            // Default templates
+            defaultPortal = config.getString(DEFAULT_PORTAL_NAME,
                     "portal", "defaultView");
+            defaultSkin = config.getString(DEFAULT_SKIN,
+                    "portal", "skins", "default");
+            defaultDisplay = config.getString(DEFAULT_DISPLAY,
+                    "portal", "displays", "default");
+
+            skinPriority = config.getStringList("portal", "skins", "order");
+            if (!skinPriority.contains(defaultSkin)) {
+                skinPriority.add(defaultSkin);
+            }
 
             // Path to the files on disk
-            String home = config.getString(DEFAULT_PORTAL_HOME_DIR,
+            String home = config.getString(DEFAULT_PORTAL_HOME,
                     "portal", "home");
             File homeDir = new File(home);
             if (!homeDir.exists()) {
-                home = DEFAULT_PORTAL_HOME_DIR_DEV;
+                home = DEFAULT_PORTAL_HOME_DEV;
             }
             init(home);
         } catch (Exception e) {
@@ -105,8 +122,7 @@ public class PortalManagerImpl implements PortalManager {
         Portal portal = null;
         if (getPortals().containsKey(name)) {
             if (lastModified.containsKey(name)
-                    && lastModified.get(name) < portalFiles.get(name)
-                            .lastModified()) {
+                    && lastModified.get(name) < portalFiles.get(name).lastModified()) {
                 loadPortal(name);
             }
             portal = getPortals().get(name);
@@ -147,12 +163,12 @@ public class PortalManagerImpl implements PortalManager {
             writer.write(portal.toString(true));
             writer.close();
         } catch (IOException ioe) {
-
         }
     }
 
     private void loadPortals() {
         File[] portalDirs = portalsDir.listFiles(new FileFilter() {
+
             @Override
             public boolean accept(File file) {
                 String name = file.getName();
@@ -204,5 +220,20 @@ public class PortalManagerImpl implements PortalManager {
         } catch (Exception e) {
             log.error("Portal reharvest failed", e);
         }
+    }
+
+    @Override
+    public String getDefaultPortal() {
+        return defaultPortal;
+    }
+
+    @Override
+    public String getDefaultDisplay() {
+        return defaultDisplay;
+    }
+
+    @Override
+    public List<String> getSkinPriority() {
+        return skinPriority;
     }
 }

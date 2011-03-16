@@ -29,14 +29,14 @@ import org.apache.velocity.context.Context;
 
 public interface DynamicPageService {
 
-    public String resourceExists(String portalId, String resourceName);
+    @Deprecated
+    public InputStream getResource(String resourcePath);
 
-    public String resourceExists(String portalId, String resourceName,
-            boolean fallback);
-
+    @Deprecated
     public InputStream getResource(String portalId, String resourceName);
 
-    public InputStream getResource(String resourcePath);
+    @Deprecated
+    public String resourceExists(String portalId, String resourceName);
 
     public String render(String portalId, String pageName, OutputStream out,
             FormData formData, JsonSessionState sessionState);

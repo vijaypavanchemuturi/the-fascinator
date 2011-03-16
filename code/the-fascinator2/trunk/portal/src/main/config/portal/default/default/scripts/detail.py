@@ -14,7 +14,7 @@ from java.net import URLDecoder, URLEncoder
 
 class DetailData:
     def __init__(self):
-        self.userAgreement = AgreementData(bindings)
+        self.userAgreement = AgreementData()
 
     def __activate__(self, context):
         self.velocityContext = context

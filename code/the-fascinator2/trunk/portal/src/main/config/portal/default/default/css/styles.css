@@ -33,12 +33,10 @@ div.page-heading {
 }
 
 .sorting {
-    font-size: 0.6em;
     padding-right: 8px;
 }
 
 .paging {
-    font-size: 0.75em;
     margin-left: 0;
     padding-left: 0;
 }
@@ -52,6 +50,12 @@ div.page-heading {
     color: black;
     padding: 0.2em;
     text-decoration: none;
+}
+
+.paging ul {
+    margin-bottom: 0;
+    padding-top: 2px;
+    padding-bottom: 2px;
 }
 
 .paging a:hover, .paging .selected-page {

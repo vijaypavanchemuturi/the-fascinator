@@ -29,6 +29,7 @@ import au.edu.usq.fascinator.portal.services.HarvestManager;
 import au.edu.usq.fascinator.portal.services.HouseKeepingManager;
 import au.edu.usq.fascinator.portal.services.PortalManager;
 import au.edu.usq.fascinator.portal.services.ScriptingServices;
+import au.edu.usq.fascinator.portal.services.VelocityService;
 
 public class ScriptingServicesImpl implements ScriptingServices {
 
@@ -55,6 +56,9 @@ public class ScriptingServicesImpl implements ScriptingServices {
 
     @Inject
     private ByteRangeRequestCache byteRangeCache;
+
+    @Inject
+    private VelocityService velocityService;
 
     @Override
     public DatabaseServices getDatabase() {
@@ -94,5 +98,10 @@ public class ScriptingServicesImpl implements ScriptingServices {
     @Override
     public ByteRangeRequestCache getByteRangeCache() {
         return byteRangeCache;
+    }
+
+    @Override
+    public VelocityService getVelocityService() {
+        return velocityService;
     }
 }

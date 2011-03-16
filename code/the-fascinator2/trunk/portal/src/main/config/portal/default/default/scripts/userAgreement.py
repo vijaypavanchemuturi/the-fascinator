@@ -5,16 +5,20 @@ import java.sql.Timestamp as JavaTimestamp;
 from org.apache.commons.lang import StringEscapeUtils
 
 class AgreementData:
-    def __init__(self, context):
-        # Be very careful not to use request specific bindings from the context
-        self.__log = context["log"]
-        self.__db = context["Services"].database
-        self.__dbName = "userAgreements"
-        self.__dbError = False
-        self.__dbErrorMsg = ""
-        self.__dbInit()
+    def __init__(self):
+        self.__initialised = False
 
     def __activate__(self, context, metadata):
+        if not self.__initialised:
+            # Be very careful not to use request specific bindings from the context
+            self.__log = context["log"]
+            self.__db = context["Services"].database
+            self.__dbName = "userAgreements"
+            self.__dbError = False
+            self.__dbErrorMsg = ""
+            self.__dbInit()
+            self.__initialised = True
+
         self.__metadata = metadata
         self.__object = self.__metadata.get("id")
 

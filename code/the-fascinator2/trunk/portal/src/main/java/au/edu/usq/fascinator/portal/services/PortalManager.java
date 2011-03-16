@@ -23,14 +23,19 @@ import java.util.Map;
 import java.util.Set;
 
 import au.edu.usq.fascinator.portal.Portal;
+import java.util.List;
 
 public interface PortalManager {
 
     public static final String DEFAULT_PORTAL_NAME = "default";
 
-    public static final String DEFAULT_PORTAL_HOME_DIR = "/opt/the-fascinator/config/portal";
+    public static final String DEFAULT_SKIN = "default";
 
-    public static final String DEFAULT_PORTAL_HOME_DIR_DEV = "src/main/config/portal";
+    public static final String DEFAULT_DISPLAY = "default";
+
+    public static final String DEFAULT_PORTAL_HOME = "portal";
+
+    public static final String DEFAULT_PORTAL_HOME_DEV = "src/main/config/portal";
 
     public Map<String, Portal> getPortals();
 
@@ -52,4 +57,9 @@ public interface PortalManager {
 
     public void reharvest(Set<String> objectIds);
 
+    public String getDefaultPortal();
+
+    public String getDefaultDisplay();
+
+    public List<String> getSkinPriority();
 }

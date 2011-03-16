@@ -59,6 +59,7 @@ import au.edu.usq.fascinator.portal.services.GenericStreamResponse;
 import au.edu.usq.fascinator.portal.services.HttpStatusCodeResponse;
 import au.edu.usq.fascinator.portal.services.PortalManager;
 import au.edu.usq.fascinator.portal.services.PortalSecurityManager;
+import au.edu.usq.fascinator.portal.services.VelocityService;
 
 /**
  * <h3>Introduction</h3>
@@ -109,6 +110,9 @@ public class Dispatch {
 
     @Inject
     private PortalSecurityManager security;
+
+    @Inject
+    private VelocityService velocityService;
 
     @Inject
     private Request request;
@@ -185,8 +189,7 @@ public class Dispatch {
             // Make sure it's not a static resource
             if (security.testForSso(sessionState, resourceName, requestUri)) {
                 // Run SSO
-                boolean redirected = security.runSsoIntegration(sessionState,
-                        formData);
+                boolean redirected = security.runSsoIntegration(sessionState, formData);
                 // Finish here if SSO redirected
                 if (redirected) {
                     return GenericStreamResponse.noResponse();
@@ -370,7 +373,7 @@ public class Dispatch {
             stream = new ByteArrayInputStream(out.toByteArray());
         } else {
             mimeType = MimeTypeUtil.getMimeType(resourceName);
-            stream = pageService.getResource(portalId, resourceName);
+            stream = velocityService.getResource(portalId, resourceName);
         }
     }
 
@@ -443,7 +446,7 @@ public class Dispatch {
             searchable = resource.substring(0, resource.lastIndexOf(ext));
         }
         // Return if found
-        if (pageService.resourceExists(portalId, searchable) != null) {
+        if (velocityService.resourceExists(portalId, searchable) != null) {
             return resource;
         }
         // Keep checking

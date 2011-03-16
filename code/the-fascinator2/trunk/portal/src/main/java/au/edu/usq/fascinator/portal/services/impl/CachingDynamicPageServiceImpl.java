@@ -25,13 +25,13 @@ import au.edu.usq.fascinator.portal.JsonSessionState;
 import au.edu.usq.fascinator.portal.guitoolkit.GUIToolkit;
 import au.edu.usq.fascinator.portal.services.DynamicPageService;
 import au.edu.usq.fascinator.portal.services.HouseKeepingManager;
+import au.edu.usq.fascinator.portal.services.DynamicPageCache;
 import au.edu.usq.fascinator.portal.services.PortalManager;
 import au.edu.usq.fascinator.portal.services.PortalSecurityManager;
 import au.edu.usq.fascinator.portal.services.ScriptingServices;
-import au.edu.usq.fascinator.portal.velocity.JythonLogger;
+import au.edu.usq.fascinator.portal.services.VelocityService;
 
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
@@ -40,55 +40,33 @@ import java.io.StringWriter;
 import java.io.Writer;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 import org.apache.commons.io.FilenameUtils;
+
 import org.apache.tapestry5.ioc.annotations.Inject;
+import org.apache.tapestry5.services.ApplicationStateManager;
 import org.apache.tapestry5.services.Request;
 import org.apache.tapestry5.services.RequestGlobals;
 import org.apache.tapestry5.services.Response;
-import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
-import org.apache.velocity.app.Velocity;
 import org.apache.velocity.context.Context;
-import org.apache.velocity.runtime.RuntimeSingleton;
 import org.python.core.Py;
-import org.python.core.PyModule;
 import org.python.core.PyObject;
-import org.python.core.PySystemState;
-import org.python.core.imp;
-import org.python.util.PythonInterpreter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.util.StringUtils;
 
 public class CachingDynamicPageServiceImpl implements DynamicPageService {
 
-    private static final String CACHING_LEVEL_DATE = "dynamic";
-
-    private static final String CACHING_LEVEL_FULL = "full";
-
-    private static final String DEFAULT_LAYOUT_TEMPLATE = "layout";
-
-    private static final String DEFAULT_SKIN = "default";
-
-    private static final String DEFAULT_DISPLAY = "default";
+    private static final String DEFAULT_LAYOUT = "layout";
 
     private static final String AJAX_EXT = ".ajax";
 
     private static final String SCRIPT_EXT = ".script";
 
-    private Logger log = LoggerFactory
-            .getLogger(CachingDynamicPageServiceImpl.class);
+    private static final String SCRIPT_ACTIVATE_METHOD = "__activate__";
 
-    private JsonSimpleConfig config;
-
-    private String urlBase;
+    private Logger log = LoggerFactory.getLogger(CachingDynamicPageServiceImpl.class);
 
     @Inject
     private RequestGlobals requestGlobals;
@@ -108,219 +86,84 @@ public class CachingDynamicPageServiceImpl implements DynamicPageService {
     @Inject
     private PortalSecurityManager security;
 
-    private String defaultPortal;
+    @Inject
+    private DynamicPageCache pageCache;
 
-    private String defaultSkin;
+    @Inject
+    private ApplicationStateManager appStateManager;
 
-    private String defaultDisplay;
+    private VelocityService velocityService;
 
-    private List<String> skinPriority;
+    private JsonSimpleConfig config;
 
     private String layoutName;
+
+    private String urlBase;
 
     private String portalPath;
 
     private GUIToolkit toolkit;
 
-    private HashMap<String, PyObject> scriptCache;
+    private String defaultPortal;
 
-    private HashMap<String, Long> scriptCacheLastModified;
+    private String defaultDisplay;
 
-    private HashMap<String, String> skinCache;
-
-    private HashMap<String, Long> skinCacheLastModified;
-
-    private boolean cacheFull;
-
-    private boolean cacheDate;
-
-    public CachingDynamicPageServiceImpl() {
+    public CachingDynamicPageServiceImpl(PortalManager portalManager,
+            VelocityService velocityService) {
+        this.velocityService = velocityService;
         try {
             config = new JsonSimpleConfig();
+            layoutName = config.getString(DEFAULT_LAYOUT, "portal", "layout");
             urlBase = config.getString(null, "urlBase");
-            layoutName = config.getString(DEFAULT_LAYOUT_TEMPLATE,
-                    "portal", "layout");
             toolkit = new GUIToolkit();
-
-            // Default templates
-            defaultPortal = config.getString(PortalManager.DEFAULT_PORTAL_NAME,
-                    "portal", "defaultView");
-            defaultSkin = config.getString(DEFAULT_SKIN,
-                    "portal", "skins", "default");
-            defaultDisplay = config.getString(DEFAULT_DISPLAY,
-                    "portal", "displays", "default");
-
-            // Skin customisations - implement using resource loader logic?
-            skinPriority = config.getStringList("portal", "skins", "order");
-            if (!skinPriority.contains(defaultSkin)) {
-                skinPriority.add(defaultSkin);
-            }
-
-            // Template directory
-            String home = config.getString(
-                    PortalManager.DEFAULT_PORTAL_HOME_DIR, "portal", "home");
-            File homePath = new File(home);
-            if (!homePath.exists()) {
-                home = PortalManager.DEFAULT_PORTAL_HOME_DIR_DEV;
-                homePath = new File(home);
-            }
-
-            // setup velocity engine
-            portalPath = homePath.getAbsolutePath();
-            Properties props = new Properties();
-            props.load(getClass().getResourceAsStream("/velocity.properties"));
-            props.setProperty(Velocity.FILE_RESOURCE_LOADER_PATH, portalPath);
-            Velocity.init(props);
-
-            // Caching
-            scriptCache = new HashMap<String, PyObject>();
-            scriptCacheLastModified = new HashMap<String, Long>();
-            skinCache = new HashMap<String, String>();
-            skinCacheLastModified = new HashMap<String, Long>();
-            String cacheLevel = config.getString(CACHING_LEVEL_DATE,
-                    "portal", "cachingLevel");
-            cacheDate = false;
-            cacheFull = false;
-            if (cacheLevel.equals(CACHING_LEVEL_FULL)) {
-                cacheDate = true;
-                cacheFull = true;
-                log.info("Full caching active...");
-            } else {
-                if (cacheLevel.equals(CACHING_LEVEL_DATE)) {
-                    cacheDate = true;
-                    cacheFull = false;
-                    log.info("Dynamic caching active...");
-                } else {
-                    log.info("Caching disabled or invalid configuration! '{}'",
-                            cacheLevel);
-                }
-            }
+            portalPath = portalManager.getHomeDir().getAbsolutePath();
+            defaultPortal = portalManager.getDefaultPortal();
+            defaultDisplay = portalManager.getDefaultDisplay();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
     @Override
-    public String resourceExists(String portalId, String resourceName) {
-        return resourceExists(portalId, resourceName, true);
-    }
-
-    @Override
-    public String resourceExists(String portalId, String resourceName,
-            boolean fallback) {
-        // Try the cache
-        String path = getSkinPath(portalId, resourceName);
-        if (path != null) {
-            return path;
-        }
-
-        // Look through the skins of the specified portal
-        path = testSkins(portalId, resourceName);
-        if (path != null) {
-            cacheSkinPath(portalId, resourceName, path);
-            return path;
-        }
-        // Check if it's a display skin
-        Pattern p = Pattern
-                .compile("^(?:(.*)/)?display/(?:([a-zA-Z][^/]*))?/(.*)$");
-        Matcher m = p.matcher(resourceName);
-        if (m.matches()) {
-            String displayType = m.group(2);
-            if (!defaultDisplay.equals(displayType)) {
-                String relPath = m.group(3);
-                String fallbackResourceName = "display/" + defaultDisplay + "/"
-                        + relPath;
-                if (m.group(1) != null) {
-                    fallbackResourceName = "scripts/" + fallbackResourceName;
-                }
-                path = testSkins(portalId, fallbackResourceName);
-                if (path != null) {
-                    cacheSkinPath(portalId, resourceName, path);
-                    return path;
-                }
-            }
-        }
-
-        // Check if we can fall back to default portal
-        if (fallback && !defaultPortal.equals(portalId)) {
-            return resourceExists(defaultPortal, resourceName, false);
-        }
-
-        return null;
-    }
-
-    private String testSkins(String portalId, String resourceName) {
-        String path = null;
-        boolean noExt = resourceName.indexOf('.') == -1;
-        // Loop through our skins
-        for (String skin : skinPriority) {
-            path = portalId + "/" + skin + "/" + resourceName;
-
-            // Check raw resource
-            if (Velocity.resourceExists(path)) {
-                // But make sure it's not a directory, resourceExists()
-                // will return directories as valid resources.
-                File file = new File(portalPath, path);
-                if (!file.isDirectory()) {
-                    return path;
-                }
-            }
-            // Look for templates and scripts if it had no extension
-            if (noExt) {
-                path = path + ".vm";
-                if (Velocity.resourceExists(path)) {
-                    return path;
-                }
-                path = portalId + "/" + skin + "/scripts/" + resourceName
-                        + ".py";
-                if (Velocity.resourceExists(path)) {
-                    return path;
-                }
-            }
-        }
-        // We didn't find it
-        return null;
-    }
-
-    @Override
-    public InputStream getResource(String portalId, String resourceName) {
-        return getResource(resourceExists(portalId, resourceName));
-    }
-
-    @Override
+    @Deprecated
     public InputStream getResource(String resourcePath) {
-        if (!Velocity.resourceExists(resourcePath)) {
-            return null;
-        }
-        try {
-            return RuntimeSingleton.getContent(resourcePath)
-                    .getResourceLoader().getResourceStream(resourcePath);
-        } catch (Exception e) {
-            log.error("Failed to get resource: {}", e.getMessage());
-        }
-        return null;
+        log.warn("getResource() is deprecated, use VelocityService.getResource()  ({})",
+                resourcePath);
+        return velocityService.getResource(resourcePath);
+    }
+
+    @Override
+    @Deprecated
+    public InputStream getResource(String portalId, String resourceName) {
+        log.warn("getResource() is deprecated, use VelocityService.getResource()  ({}/{})",
+                portalId, resourceName);
+        return velocityService.getResource(portalId, resourceName);
+    }
+
+    @Override
+    @Deprecated
+    public String resourceExists(String portalId, String resourceName) {
+        String resourcePath = velocityService.resourceExists(portalId, resourceName);
+        log.warn("resourceExists() is deprecated, use VelocityService.resourceExists() ({})",
+                resourcePath);
+        return resourcePath;
     }
 
     @Override
     public String render(String portalId, String pageName, OutputStream out,
             FormData formData, JsonSessionState sessionState) {
 
-        String mimeType = "text/html";
+        // remove extension for special cases
         boolean isAjax = pageName.endsWith(AJAX_EXT);
-        if (isAjax) {
-            pageName = pageName.substring(0, pageName.lastIndexOf(AJAX_EXT));
-        }
         boolean isScript = pageName.endsWith(SCRIPT_EXT);
-        if (isScript) {
-            pageName = pageName.substring(0, pageName.lastIndexOf(SCRIPT_EXT));
+        if (isAjax || isScript) {
+            pageName = FilenameUtils.removeExtension(pageName);
         }
-        Set<String> renderMessages = new HashSet<String>();
 
         // setup script and velocity context
         String contextPath = request.getContextPath();
+        int serverPort = requestGlobals.getHTTPServletRequest().getServerPort();
 
-        // TODO remove request/session based bindings once all scripts/templates
-        // are using the cacheable format
         Map<String, Object> bindings = new HashMap<String, Object>();
         bindings.put("systemConfig", config);
         bindings.put("Services", scriptingServices);
@@ -338,67 +181,50 @@ public class CachingDynamicPageServiceImpl implements DynamicPageService {
         bindings.put("portalPath", urlBase + portalId);
         bindings.put("defaultPortal", defaultPortal);
         bindings.put("pageName", pageName);
-        bindings.put("responseOutput", out);
-        bindings.put("serverPort", requestGlobals.getHTTPServletRequest()
-                .getServerPort());
+        bindings.put("serverPort", serverPort);
         bindings.put("toolkit", toolkit);
         bindings.put("log", log);
         bindings.put("notifications", houseKeeping.getUserMessages());
         bindings.put("bindings", bindings);
 
         // run page and template scripts
-        PyObject layoutObject = new PyObject();
-        String scriptName = "scripts/" + layoutName + ".py";
-        try {
-            layoutObject = evalScript(portalId, scriptName, bindings);
-        } catch (Exception e) {
-            ByteArrayOutputStream eOut = new ByteArrayOutputStream();
-            e.printStackTrace(new PrintStream(eOut));
-            String eMsg = eOut.toString();
-            log.warn("Failed to run layout script!\n=====\n{}\n=====", eMsg);
-            renderMessages.add("Layout script error: " + scriptName + "\n"
-                    + eMsg);
-        }
-        bindings.put("page", layoutObject);
+        Set<String> messages = new HashSet<String>();
+        bindings.put("page", evalScript(portalId, layoutName, bindings,
+                messages));
+        bindings.put("self", evalScript(portalId, pageName, bindings,
+                messages));
 
-        PyObject pageObject = new PyObject();
-        try {
-            scriptName = "scripts/" + pageName + ".py";
-            pageObject = evalScript(portalId, scriptName, bindings);
-        } catch (Exception e) {
-            ByteArrayOutputStream eOut = new ByteArrayOutputStream();
-            e.printStackTrace(new PrintStream(eOut));
-            String eMsg = eOut.toString();
-            log.warn("Failed to run page script!\n=====\n{}\n=====", eMsg);
-            renderMessages
-                    .add("Page script error: " + scriptName + "\n" + eMsg);
-        }
-        bindings.put("self", pageObject);
+        // try to return the proper MIME type
+        String mimeType = "text/html";
         Object mimeTypeAttr = request.getAttribute("Content-Type");
         if (mimeTypeAttr != null) {
             mimeType = mimeTypeAttr.toString();
         }
 
+        // stop here if the scripts have already sent a response
         boolean committed = response.isCommitted();
-        // log.debug("Response has been sent or redirected");
+        if (committed) {
+            //log.debug("Response has been sent or redirected");
+            return mimeType;
+        }
 
-        if (!committed && resourceExists(portalId, pageName + ".vm") != null) {
+        if (velocityService.resourceExists(portalId, pageName + ".vm") != null) {
             // set up the velocity context
             VelocityContext vc = new VelocityContext();
             for (String key : bindings.keySet()) {
                 vc.put(key, bindings.get(key));
             }
             vc.put("velocityContext", vc);
-            if (!renderMessages.isEmpty()) {
-                vc.put("renderMessages", renderMessages);
+            if (!messages.isEmpty()) {
+                vc.put("renderMessages", messages);
             }
 
             try {
                 // render the page content
                 log.debug("Rendering page {}/{}.vm...", portalId, pageName);
                 StringWriter pageContentWriter = new StringWriter();
-                Template pageContent = getTemplate(portalId, pageName);
-                pageContent.merge(vc, pageContentWriter);
+                velocityService.renderTemplate(portalId, pageName, vc,
+                        pageContentWriter);
                 if (isAjax || isScript) {
                     out.write(pageContentWriter.toString().getBytes());
                 } else {
@@ -408,8 +234,8 @@ public class CachingDynamicPageServiceImpl implements DynamicPageService {
                 ByteArrayOutputStream eOut = new ByteArrayOutputStream();
                 e.printStackTrace(new PrintStream(eOut));
                 String eMsg = eOut.toString();
-                log.error("Failed to run page script ({})!\n=====\n{}\n=====",
-                        isAjax ? "ajax" : isScript ? "script" : "html", eMsg);
+                log.error("Failed to render page ({})!\n=====\n{}\n=====",
+                        isAjax ? "ajax" : (isScript ? "script" : "html"), eMsg);
                 String errorMsg = "<pre>Page content template error: "
                         + pageName + "\n" + eMsg + "</pre>";
                 if (isAjax || isScript) {
@@ -427,10 +253,10 @@ public class CachingDynamicPageServiceImpl implements DynamicPageService {
                 try {
                     // render the page using the layout template
                     log.debug("Rendering layout {}/{}.vm for page {}.vm...",
-                            new Object[] { portalId, layoutName, pageName });
-                    Template page = getTemplate(portalId, layoutName);
+                            new Object[]{portalId, layoutName, pageName});
                     Writer pageWriter = new OutputStreamWriter(out, "UTF-8");
-                    page.merge(vc, pageWriter);
+                    velocityService.renderTemplate(portalId, layoutName, vc,
+                            pageWriter);
                     pageWriter.close();
                 } catch (Exception e) {
                     throw new RuntimeException(e);
@@ -442,7 +268,6 @@ public class CachingDynamicPageServiceImpl implements DynamicPageService {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public String renderObject(Context context, String template,
             SolrDoc metadata) {
         // log.debug("========== START renderObject ==========");
@@ -481,29 +306,17 @@ public class CachingDynamicPageServiceImpl implements DynamicPageService {
         objectContext.put("metadata", metadata);
 
         // evaluate the context script if exists
-        Object pageObject = new Object();
-        String scriptName = "scripts/" + templateName + ".py";
-        Set<String> renderMessages = null;
+        Set<String> messages = null;
         if (objectContext.containsKey("renderMessages")) {
-            renderMessages = (Set<String>) objectContext.get("renderMessages");
+            messages = (Set<String>) objectContext.get("renderMessages");
         } else {
-            renderMessages = new HashSet<String>();
-            context.put("renderMessages", renderMessages);
+            messages = new HashSet<String>();
+            context.put("renderMessages", messages);
         }
-        try {
-            Map<String, Object> bindings = (Map<String, Object>) objectContext
-                    .get("bindings");
-            bindings.put("metadata", metadata);
-            pageObject = evalScript(portalId, scriptName, bindings);
-        } catch (Exception e) {
-            ByteArrayOutputStream eOut = new ByteArrayOutputStream();
-            e.printStackTrace(new PrintStream(eOut));
-            String eMsg = eOut.toString();
-            log.warn("Failed to run display script!\n=====\n{}\n=====", eMsg);
-            renderMessages
-                    .add("Page script error: " + scriptName + "\n" + eMsg);
-        }
-        objectContext.put("self", pageObject);
+        Map<String, Object> bindings = (Map<String, Object>) objectContext.get("bindings");
+        bindings.put("metadata", metadata);
+        objectContext.put("self", evalScript(portalId, templateName, bindings,
+                messages));
 
         String content = "";
         try {
@@ -511,182 +324,49 @@ public class CachingDynamicPageServiceImpl implements DynamicPageService {
             log.debug("Rendering display page {}/{}.vm...", portalId,
                     templateName);
             StringWriter pageContentWriter = new StringWriter();
-            Template pageContent = getTemplate(portalId, templateName);
-            pageContent.merge(objectContext, pageContentWriter);
+            velocityService.renderTemplate(portalId, templateName,
+                    objectContext, pageContentWriter);
             content = pageContentWriter.toString();
         } catch (Exception e) {
             log.error("Failed rendering display page: {}", templateName);
             ByteArrayOutputStream eOut = new ByteArrayOutputStream();
             e.printStackTrace(new PrintStream(eOut));
             String eMsg = eOut.toString();
-            renderMessages.add("Page content template error: " + templateName
-                    + "\n" + eMsg);
+            messages.add("Page content template error: " + templateName + "\n"
+                    + eMsg);
         }
 
         // log.debug("========== END renderObject ==========");
         return content;
     }
 
-    private PyObject evalScript(String portalId, String scriptName,
-            Map<String, Object> bindings) {
-        String path = resourceExists(portalId, scriptName);
-        if (path == null) {
-            log.debug("No script for portalId:'{}' scriptName:'{}'", portalId,
-                    scriptName);
-            return null;
-        }
+    private PyObject evalScript(String portalId, String pageName,
+            Map<String, Object> context, Set<String> messages) {
         PyObject scriptObject = null;
-        if (cacheDate) {
-            scriptObject = getPythonObject(path);
-        }
-        boolean useCache = scriptObject != null;
-        if (scriptObject == null) {
-            log.debug("Loading script '{}'", path);
-            InputStream in = getResource(path);
-            if (in != null) {
-                // add current and default portal directories to python sys.path
-                PySystemState sys = new PySystemState();
-                addClassPaths(portalId, sys);
-                Py.setSystemState(sys);
-                PythonInterpreter python = new PythonInterpreter();
-                // add virtual portal namespace - support context passing
-                // between imported modules
-                // need to add from __main__ import * to jython modules to
-                // access the context
-                PyModule mod = imp.addModule("__main__");
-                python.setLocals(mod.__dict__);
-                for (String key : bindings.keySet()) {
-                    python.set(key, bindings.get(key));
-                }
-                JythonLogger jythonLogger = new JythonLogger(log, scriptName);
-                python.setOut(jythonLogger);
-                python.setErr(jythonLogger);
-                python.execfile(in);
-                scriptObject = python.get("scriptObject");
-                if (scriptObject == null) {
-                    useCache = true;
-                    // log.debug("isXHR:{}", request.isXHR());
-                    String scriptClassName = StringUtils
-                            .capitalize(FilenameUtils.getBaseName(scriptName))
-                            + "Data";
-                    PyObject scriptClass = python.get(scriptClassName);
-                    log.debug("Instantiating object from class '{}'...",
-                            scriptClassName);
-                    if (scriptClass != null) {
-                        scriptObject = scriptClass.__call__();
-                        if (cacheDate) {
-                            cachePythonObject(path, scriptObject);
-                        }
-                    }
+        String scriptName = "scripts/" + pageName + ".py";
+        try {
+            String path = velocityService.resourceExists(portalId, scriptName);
+            if (path == null) {
+                log.debug("No script for portalId:'{}' scriptName:'{}'",
+                        portalId, scriptName);
+            } else {
+                scriptObject = pageCache.getScriptObject(path);
+                if (scriptObject.__findattr__(SCRIPT_ACTIVATE_METHOD) != null) {
+                    //log.debug("activating '{}' within thread '{}'", scriptObject, Thread.currentThread().getId());
+                    scriptObject.invoke(SCRIPT_ACTIVATE_METHOD,
+                            Py.java2py(context));
                 } else {
-                    log.debug("DEPRECATED: script:'{}'", path);
-                    // scriptObject = new PyObject();
+                    log.warn("{} method not found for scriptPath:'{}'",
+                            SCRIPT_ACTIVATE_METHOD, path);
                 }
-                python.cleanup();
-            } else {
-                log.debug("Failed to load script: '{}'", path);
             }
-        }
-        if (useCache && scriptObject != null) {
-            // try {
-            if (scriptObject.__findattr__("__activate__") != null) {
-                // log.debug("Activating cached script:'{}'", path);
-                scriptObject.invoke("__activate__", Py.java2py(bindings));
-            } else {
-                log.warn("__activate__ not found in '{}'", path);
-            }
-            // } catch (Exception e) {
-            // ByteArrayOutputStream eOut = new ByteArrayOutputStream();
-            // e.printStackTrace(new PrintStream(eOut));
-            // String eMsg = eOut.toString();
-            // log.warn("Failed to activate page!\n=====\n{}\n=====", eMsg);
-            // }
+        } catch (Exception e) {
+            ByteArrayOutputStream eOut = new ByteArrayOutputStream();
+            e.printStackTrace(new PrintStream(eOut));
+            String eMsg = eOut.toString();
+            log.warn("Failed to run script!\n=====\n{}\n=====", eMsg);
+            messages.add("Script error: " + scriptName + "\n" + eMsg);
         }
         return scriptObject;
-    }
-
-    private void addClassPaths(String portalId, PySystemState sys) {
-        for (String skin : skinPriority) {
-            sys.path.append(Py.newString(portalPath + "/" + portalId + "/"
-                    + skin + "/scripts"));
-        }
-        if (!defaultPortal.equals(portalId)) {
-            addClassPaths(defaultPortal, sys);
-        }
-    }
-
-    private Template getTemplate(String portalId, String templateName)
-            throws Exception {
-        String path = resourceExists(portalId, templateName + ".vm");
-        return Velocity.getTemplate(path);
-    }
-
-    private void cachePythonObject(String path, PyObject pyObject) {
-        // The cache must be thread safe
-        String tid = Long.toString(Thread.currentThread().getId());
-        String index = path + "_tid" + tid;
-        scriptCache.put(index, pyObject);
-        // Only cache by modification date if full caching is not active
-        if (!cacheFull) {
-            scriptCacheLastModified.put(index, getLastModified(path));
-        }
-    }
-
-    private void cacheSkinPath(String portalId, String resource, String path) {
-        String index = portalId + "/" + resource;
-        skinCache.put(index, path);
-        // log.debug("Caching '{}' : '{}'", index, path);
-        // Only cache by modification date if full caching is not active
-        if (!cacheFull) {
-            skinCacheLastModified.put(index, getLastModified(path));
-        }
-    }
-
-    private PyObject getPythonObject(String path) {
-        String tid = Long.toString(Thread.currentThread().getId());
-        String index = path + "_tid" + tid;
-        if (scriptCache.containsKey(index)) {
-            // If full caching is not active
-            if (!cacheFull) {
-                // Also check the modification date
-                Long lastCached = scriptCacheLastModified.get(index);
-                if (lastCached != null && lastCached < getLastModified(path)) {
-                    // expire the object
-                    return null;
-                }
-            }
-            return scriptCache.get(index);
-        }
-        return null;
-    }
-
-    private String getSkinPath(String portalId, String resource) {
-        String index = portalId + "/" + resource;
-        if (skinCache.containsKey(index)) {
-            String path = skinCache.get(index);
-            // If full caching is not active
-            if (!cacheFull) {
-                // Also check the modification date
-                Long lastCached = skinCacheLastModified.get(index);
-                if (lastCached != null && lastCached < getLastModified(path)) {
-                    // expire the object
-                    // log.debug("Expired '{}'", index);
-                    return null;
-                }
-            }
-            // log.debug("Cached '{}' : '{}'", index, path);
-            return path;
-        }
-        return null;
-    }
-
-    private long getLastModified(String path) {
-        File file = new File(portalPath, path);
-        if (file.exists()) {
-            // log.debug("Last modified '{}' : {}", file.getAbsolutePath(),
-            // file.lastModified());
-            return file.lastModified();
-        }
-        return -1;
     }
 }
