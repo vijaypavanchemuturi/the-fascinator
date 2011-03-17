@@ -1628,15 +1628,17 @@ var widgets={forms:[], globalObject:this};
       };
 
       init=function(_ctx, validator){
-        var id, idu;
+        var id, idu, notCtx;
         if(!_ctx)_ctx=$("body");
         ctx = _ctx;
+        notCtx = ctx.find("."+formClassName);
         id=ctx.attr("id");
         widgetForm.id=id;
         ctx.findx=function(selector){
             // find all selector(ed) elements but not ones that are in a subform
-            var nsel=(","+selector).split(",").join(", ."+formClassName+" ");
-            return ctx.find(selector).not(ctx.find(nsel));
+            //var nsel=(","+selector).split(",").join(", ."+formClassName+" ");
+            //return ctx.find(selector).not(ctx.find(nsel));
+            return $(selector, ctx).not( $(selector, notCtx) );
         };
         ctxInputs=ctx.findx("input, textarea, select");
         //
