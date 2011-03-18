@@ -1,6 +1,6 @@
 /*
- * The Fascinator - CSV Harvester Plugin
- * Copyright (C) 2010 University of Southern Queensland
+ * The Fascinator - Plugin - Harvester - CSV
+ * Copyright (C) 2010-2011 University of Southern Queensland
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,39 +18,32 @@
  */
 package au.edu.usq.fascinator.harvester.csv;
 
-import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
-import java.io.DataInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.StringReader;
-import java.io.UnsupportedEncodingException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Properties;
-import java.util.Set;
-
-import org.apache.commons.codec.digest.DigestUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import au.com.bytecode.opencsv.CSVReader;
 
 import au.edu.usq.fascinator.api.harvester.HarvesterException;
 import au.edu.usq.fascinator.api.storage.DigitalObject;
 import au.edu.usq.fascinator.api.storage.Payload;
-import au.edu.usq.fascinator.api.storage.Storage;
-import au.edu.usq.fascinator.api.storage.StorageException;
-import au.edu.usq.fascinator.common.JsonConfigHelper;
+import au.edu.usq.fascinator.common.JsonObject;
+import au.edu.usq.fascinator.common.JsonSimple;
 import au.edu.usq.fascinator.common.harvester.impl.GenericHarvester;
 import au.edu.usq.fascinator.common.storage.StorageUtils;
 
-import com.Ostermiller.util.CSVParser;
-import com.Ostermiller.util.ExcelCSVParser;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.io.IOUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Harvester for CSV files.
@@ -66,6 +59,9 @@ import com.Ostermiller.util.ExcelCSVParser;
  * <li>delimiter: The csv delimiter. Comma (,) is the default</li>
  * <li>ignoredFields: An array of fields (columns) ignored by the harvest.</li>
  * <li>includedFields: An array of fields (columns) included by the harvest</li>
+ * <li>payloadId: The payload identifier used to store the JSON data (defaults to "metadata.json")</li>
+ * <li>batchSize: The number of rows in the CSV file to process, before being harvested (defaults to 50)</li>
+ * <li>maxRows: The number of rows to process where -1 means harvest all (defaults to -1)</li>
  * </ul>
  * <p>
  * You can select to harvest all columns (fields) or be selective:
@@ -77,10 +73,6 @@ import com.Ostermiller.util.ExcelCSVParser;
  * <li>If you only provide fields in includedFields (and leave ignoredFields blank), only these fields will be harvested</li>
  * </ul>
  * <p>
- * Note: due to limitations in our JSON parser, any fields with a space in the name
- * (e.g. "First Name") will have the space replaced by an underscore (e.g. "First_Name").
- * If you use spaces in items in the ignoredFields or includedFields arrays they'll be converted as well.
- * <p>
  * Fields with repeated names result in only the first value being stored.
  * <p>
  * Based on Greg Pendlebury's CallistaHarvester.
@@ -89,377 +81,227 @@ import com.Ostermiller.util.ExcelCSVParser;
  */
 public class CSVHarvester extends GenericHarvester {
 
-	/** logging */
-	private Logger log = LoggerFactory.getLogger(CSVHarvester.class);
+    /** Default column delimiter */
+    private static final char DEFAULT_DELIMITER = ',';
 
-	/** whether or not there are more files to harvest */
-	private boolean hasMore;
+    /** Default payload ID */
+    private static final String DEFAULT_PAYLOAD_ID = "metadata.json";
 
-	/** Field names (column) */
-	private ArrayList<String> dataFields = null;
+    /** Default batch size */
+    private static final int DEFAULT_BATCH_SIZE = 50;
 
-	/** Data file */
-	private File csvData;
+    /** Logging */
+    private Logger log = LoggerFactory.getLogger(CSVHarvester.class);
 
-	/** Delimiter in the CSV */
-	private char delimiter = ',';
+    /** Field names (columns) */
+    private List<String> dataFields;
 
-	/** Ignored field names (column) */
-	private ArrayList<String> ignoredFields = null;
+    /** Ignored field names (column) */
+    private List<String> ignoredFields;
 
-	/** Included field names (column) */
-	private ArrayList<String> includedFields = null;
+    /** Included field names (column) */
+    private List<String> includedFields;
 
-	/** The name of the column holding the ID */
-	String idColumn = "";
+    /** The name of the column holding the ID */
+    private String idColumn;
 
-	/** A prefix for generating the object's ID */
-	String recordIDPrefix = "";
+    /** A prefix for generating the object's ID */
+    private String idPrefix;
 
-	/** Debugging limit */
-	private int limit;
-	
-	/** If header row is the first line of the file */
-	private boolean headerRow;
-	
-	/** Column header */
-	private ArrayList<String> headerList;
+    /** Debugging limit */
+    private long maxRows;
 
-	/**
-	 * File System Harvester Constructor
-	 */
-	public CSVHarvester() {
-		super("csv", "CSV Harvester");
-	}
+    /** Payload ID */
+    private String payloadId;
 
-	/**
-	 * Initialisation of harvester plugin
-	 * 
-	 * @throws HarvesterException
-	 *             if fails to initialise
-	 */
-	@Override
-	public void init() throws HarvesterException {
-		dataFields = new ArrayList<String>();
-		JsonConfigHelper config;
+    /** Batch size */
+    private int batchSize;
 
-		// Read config
-		try {
-			config = new JsonConfigHelper(getJsonConfig().toString());
-		} catch (IOException ex) {
-			throw new HarvesterException("Failed reading configuration", ex);
-		}
+    /** Current row */
+    private long currentRow;
 
-		String filePath = config.get("harvester/csv/fileLocation");
-		if (filePath == null) {
-			throw new HarvesterException("No data file provided!");
-		}
+    /** Whether or not there are more files to harvest */
+    private boolean hasMore;
 
-		csvData = new File(filePath);
-		if (csvData == null || !csvData.exists()) {
-			throw new HarvesterException("Could not find CSV data file: '"
-					+ filePath + "'");
-		}
+    /** CSV Reader */
+    private CSVReader csvReader;
 
-		delimiter = config.get("harvester/csv/delimiter", ",").charAt(0);
+    /**
+     * Constructs the CSV harvester plugin.
+     */
+    public CSVHarvester() {
+        super("csv", "CSV Harvester");
+    }
 
-		idColumn = convertFieldName(config.get("harvester/csv/idColumn", null));
+    /**
+     * Initialise the CSV harvester plugin.
+     *
+     * @throws HarvesterException if an error occurred
+     */
+    @Override
+    public void init() throws HarvesterException {
+        JsonSimple options = new JsonSimple(getJsonConfig().getObject("harvester", "csv"));
 
-		recordIDPrefix = config.get("harvester/csv/recordIDPrefix", "");
-
-		String limitString = config.get("harvester/csv/limit", "-1");
-		limit = Integer.parseInt(limitString);
-
-		ignoredFields = new ArrayList<String>();
-		List<Object> ignore = config.getList("harvester/csv/ignoreFields");
-		for (Object item : ignore) {
-			String s = convertFieldName((String) item);
-			ignoredFields.add(s);
-			log.debug("Ignoring field: " + s);
-		}
-
-		includedFields = new ArrayList<String>();
-		List<Object> include = config.getList("harvester/csv/includedFields");
-		for (Object item : include) {
-			String s = convertFieldName((String) item);
-			includedFields.add(s);
-			log.debug("Including field: " + s);
-		}
-
-		headerRow = Boolean.parseBoolean(config.get("harvester/csv/headerRow", "true"));
-		headerList = new ArrayList<String>();
-		List<Object> header = config.getList("harvester/csv/headerList");
-		for (Object item : header) {
-            String s = convertFieldName((String) item);
-            headerList.add(s);
-            log.debug("Header field: " + s);
+        String filePath = options.getString(null, "fileLocation");
+        if (filePath == null) {
+            throw new HarvesterException("No data file provided!");
         }
-		hasMore = false;
-	}
+        File csvDataFile = new File(filePath);
+        if (csvDataFile == null || !csvDataFile.exists()) {
+            throw new HarvesterException("Could not find CSV file '" + filePath + "'");
+        }
 
-	/**
-	 * Shutdown the plugin
-	 * 
-	 * @throws HarvesterException
-	 *             is there are errors
-	 */
-	@Override
-	public void shutdown() throws HarvesterException {
-	}
+        idPrefix = options.getString("", "recordIDPrefix");
+        maxRows = options.getInteger(-1, "maxRows");
+        ignoredFields = getStringList(options, "ignoreFields");
+        includedFields = getStringList(options, "includedFields");
+        payloadId = options.getString(DEFAULT_PAYLOAD_ID, "payloadId");
+        batchSize = options.getInteger(DEFAULT_BATCH_SIZE, "batchSize");
+        hasMore = true;
 
-	private Boolean validLine(String input) {
-	    Integer numberOfQuotes = input.split("\\Q\"\\E", -1).length - 1;
-	    if (numberOfQuotes%2==0)
-	        return true;
-	    return false;
-	}
-	
-	/**
-	 * Harvest the next set of files, and return their Object IDs
-	 * 
-	 * @return Set<String> The set of object IDs just harvested
-	 * @throws HarvesterException
-	 *             is there are errors
-	 */
-	@Override
-	public Set<String> getObjectIdList() throws HarvesterException {
-		Set<String> fileObjectIdList = new HashSet<String>();
+        try {
+            // open the CSV file for reading
+            Reader fileReader = new InputStreamReader(new FileInputStream(csvDataFile), "UTF-8");
+            char delimiter = options.getString(String.valueOf(DEFAULT_DELIMITER), "delimiter").charAt(0);
+            csvReader = new CSVReader(fileReader, delimiter);
 
-		// Data streams - get CSV data
-		FileInputStream fstream;
-		try {
-			fstream = new FileInputStream(csvData);
-		} catch (FileNotFoundException ex) {
-			// We tested for this earlier
-			throw new HarvesterException("Could not find file", ex);
-		}
-		DataInputStream in = new DataInputStream(fstream);
-		BufferedReader br = new BufferedReader(new InputStreamReader(in));
+            // configure the data fields
+            if (options.getBoolean(true, "headerRow")) {
+                dataFields = Arrays.asList(csvReader.readNext());
+            } else {
+                dataFields = getStringList(options, "headerList");
+            }
 
-		int i = 0; // Row counter
-		boolean titleFlag = false;
-		boolean stop = false;
-		// Line by line from buffered reader
-		// It is assumed that the first line provides the field names
-		String line;
-		log.info("get object id list...");
-		try {
-			while ((line = br.readLine()) != null && !stop) {
-				// Parse the CSV for this line
-				String[][] values;
-				try {
-				    while (validLine(line)==false){
-				        line += "\n" + br.readLine();
-				    }
-				    values = ExcelCSVParser.parse(new StringReader(line), delimiter);
-				    
-				    //Normal csv parser 
-					//values = CSVParser.parse(new StringReader(line), delimiter);
-				} catch (IOException ex) {
-					log.error("Error parsing CSV file", ex);
-					throw new HarvesterException("Error parsing CSV file: "
-							+ ex.getMessage(), ex);
-				}
-				for (String[] columns : values) {
-				    if (!headerRow) {
-				     // If header list is supplied
-                        for (String header : headerList) {
-                            String col = convertFieldName(header);
-                            dataFields.add(col);
-                            //log.debug("CSV field name - no header: {}", col);
-                        }
-                        titleFlag = true;
-				    }
-					if (!titleFlag) {
-						// Read the field names from the first row
-					    if (headerRow) {
-                            for (String column : columns) {
-                                String col = convertFieldName(column);
-                                dataFields.add(col);
-                                log.debug("CSV field name: {}", col);
-                            }
-                        }
-						// j = 0;
-						if (idColumn != null) {
-							if (!dataFields.contains(idColumn)) {
-								throw new HarvesterException("The ID Column ("
-										+ idColumn
-										+ ") does not appear in the first row");
-							}
-						}
+            // check that the specified id column is valid
+            idColumn = options.getString(null, "idColumn");
+            if (idColumn != null && !dataFields.contains(idColumn)) {
+                throw new HarvesterException("'" + idColumn + "' is invalid!");
+            }
+        } catch (IOException ioe) {
+            throw new HarvesterException(ioe);
+        }
+    }
 
-						titleFlag = true;
+    /**
+     * Gets a string list from a JsonSimple object. Convenience method to return
+     * an empty list instead of null if the node was not found.
+     *
+     * @param json a JsonSimple object
+     * @param path path to the node
+     * @return string list found at node, or empty if not found
+     */
+    private List<String> getStringList(JsonSimple json, Object... path) {
+        List<String> list = json.getStringList(path);
+        if (list == null) {
+            list = Collections.emptyList();
+        }
+        return list;
+    }
 
-						continue;
-					} else {
-						// Store normal data rows
-						if (i % 500 == 0) {
-							log.info("Parsing row {}", i);
-						}
-						fileObjectIdList.add(createRecord(columns, i));
-						i++;
-					}
-				}
+    /**
+     * Shutdown the plugin.
+     * 
+     * @throws HarvesterException if an error occurred
+     */
+    @Override
+    public void shutdown() throws HarvesterException {
+        if (csvReader != null) {
+            try {
+                csvReader.close();
+            } catch (IOException ioe) {
+                log.warn("Failed to close CSVReader!", ioe);
+            }
+            csvReader = null;
+        }
+    }
 
-				// Check our record limit if debugging
-				if (limit != -1 && i >= limit) {
-					stop = true;
-					log.debug("Stopping at debugging limit");
-				}
-			}
-			in.close();
-		} catch (IOException ex) {
-			log.error("Error reading from CSV file", ex);
-			throw new HarvesterException("Error reading from CSV file", ex);
-		}
-		log.info("Object creation complete: {} objects", i);
+    /**
+     * Check if there are more objects to harvest.
+     *
+     * @return <code>true</code> if there are more, <code>false</code> otherwise
+     */
+    @Override
+    public boolean hasMoreObjects() {
+        return hasMore;
+    }
 
-		return fileObjectIdList;
+    /**
+     * Harvest the next batch of rows and return their object IDs.
+     *
+     * @return the set of object IDs just harvested
+     * @throws HarvesterException if an error occurred
+     */
+    @Override
+    public Set<String> getObjectIdList() throws HarvesterException {
+        Set<String> objectIdList = new HashSet<String>();
+        try {
+            String[] row = null;
+            int rowCount = 0;
+            boolean done = false;
+            while (!done && (row = csvReader.readNext()) != null) {
+                rowCount++;
+                currentRow++;
+                objectIdList.add(createRecord(row));
+                if (rowCount % batchSize == 0) {
+                    log.debug("Batch size reached at row {}", currentRow);
+                    break;
+                }
+                done = (maxRows > 0) && (currentRow < maxRows);
+            }
+            hasMore = (row != null);
+        } catch (IOException ioe) {
+            throw new HarvesterException(ioe);
+        }
+        if (objectIdList.size() > 0) {
+            log.debug("Created {} objects", objectIdList.size());
+        }
+        return objectIdList;
+    }
 
-	}
+    private String createRecord(String[] columns) throws HarvesterException {
+        // by default use the row number as the ID
+        String recordId = Long.toString(currentRow);
 
-	/**
-	 * Replaces spaces with an underscore. Workaround as the JSON library balks
-	 * at spaces in the key
-	 * 
-	 * @param str
-	 *            The space to be converted
-	 * @return A string with all spaces converted into underscores
-	 */
-	public static String convertFieldName(String str) {
-		// TODO: workaround as the JSON library balks at spaces in the key
-		if (str == null)
-			return null;
-		return str.replaceAll("\\s", "_");
-	}
+        // create data
+        JsonObject data = new JsonObject();
+        for (int index = 0; index < columns.length; index++) {
+            String field = dataFields.get(index);
+            String value = columns[index];
+            // respect fields to be included and ignored
+            if (includedFields.contains(field) && !ignoredFields.contains(field)) {
+                data.put(field, value);
+            } else if (idColumn != null && idColumn.equals(field)) {
+                recordId = value;
+            }
+        }
 
-	private String createRecord(String[] columns, int rowNumber) {
-		int j = -1;
+        // create metadata
+        JsonObject meta = new JsonObject();
+        meta.put("dc.identifier", idPrefix + recordId);
 
-		JsonConfigHelper json = new JsonConfigHelper();
+        // store JSON to the object
+        JsonObject json = new JsonObject();
+        json.put("recordIDPrefix", idPrefix);
+        json.put("data", data);
+        json.put("metadata", meta);
+        try {
+            // create a new object
+            String oid = DigestUtils.md5Hex(recordId);
+            DigitalObject object = StorageUtils.getDigitalObject(getStorage(), oid);
 
-		HashMap<String, Object> data = new HashMap<String, Object>();
-		HashMap<String, Object> metadata = new HashMap<String, Object>();
+            // add the JSON payload
+            InputStream jsonStream = IOUtils.toInputStream(json.toString(), "UTF-8");
+            Payload payload = StorageUtils.createOrUpdatePayload(object, payloadId, jsonStream);
+            payload.setContentType("application/json");
+            payload.close();
 
-		if (idColumn == null) {
-			// Use the row number as the ID
-			metadata.put("dc.identifier", recordIDPrefix
-					+ Integer.toString(rowNumber));
-		}
+            // set the pending flag
+            object.getMetadata().setProperty("render-pending", "true");
+            object.close();
 
-		for (String column : columns) {
-		    if (column == null)
-		        column = "";
-			j++;
-			String colName = dataFields.get(j);
-
-			if (idColumn != null) {
-				if (idColumn.equals(colName)) {
-					metadata.put("dc.identifier", recordIDPrefix + column);
-				}
-			}
-
-			if (ignoredFields.contains(colName)) {
-				continue;
-			}
-			if (includedFields.size() > 0 && !includedFields.contains(colName)) {
-				continue;
-			}
-			data.put("recordIDPrefix", recordIDPrefix);
-			data.put(colName, column);
-		}
-
-		try {
-			json.setMap("data", data);
-			json.setMap("metadata", metadata);
-		} catch (Exception ex) {
-			log.error("Error parsing record '{}': " + ex.getMessage(), metadata
-					.get("dc.identifier"), ex);
-		}
-
-		if (json != null) {
-			try {
-				return storeJson(json, (String) metadata.get("dc.identifier"));
-			} catch (StorageException ex) {
-				log.error("Error during storage: ", ex);
-			} catch (HarvesterException ex) {
-				log.error("Harvest error: ", ex);
-			}
-		}
-		return null;
-	}
-
-	private String storeJson(JsonConfigHelper jsonData, String recordId)
-			throws HarvesterException, StorageException {
-		Storage storage = getStorage();
-		String oid = DigestUtils.md5Hex(recordId);
-		DigitalObject object = StorageUtils.getDigitalObject(storage, oid);
-		String pid = "metadata.json";
-
-		InputStream stream = getStream(jsonData.toString());
-
-		if (stream == null) {
-			log.error("Failed to create a stream from the JSON Data");
-		}
-
-		Payload payload = StorageUtils.createOrUpdatePayload(object, pid,
-				stream);
-		payload.setContentType("application/json");
-		payload.close();
-
-		// update object metadata
-		Properties props = object.getMetadata();
-		props.setProperty("render-pending", "true");
-
-		object.close();
-		return object.getId();
-	}
-
-	/**
-	 * Turn the String into an inputstream
-	 * 
-	 * @param data
-	 *            The data to read
-	 * @return InputStream of the data
-	 */
-	public static InputStream getStream(String data) {
-		try {
-			return new ByteArrayInputStream(data.getBytes("utf-8"));
-		} catch (UnsupportedEncodingException ex) {
-			return null;
-		}
-	}
-
-	/**
-	 * Check if there are more objects to harvest
-	 * 
-	 * @return <code>true</code> if there are more, <code>false</code> otherwise
-	 */
-	@Override
-	public boolean hasMoreObjects() {
-		return hasMore;
-	}
-
-	/**
-	 * Delete cached references to files which no longer exist and return the
-	 * set of IDs to delete from the system.
-	 * 
-	 * @return Set<String> The set of object IDs deleted
-	 * @throws HarvesterException
-	 *             is there are errors
-	 */
-	@Override
-	public Set<String> getDeletedObjectIdList() throws HarvesterException {
-		return new HashSet<String>();
-	}
-
-	/**
-	 * Check if there are more objects to delete
-	 * 
-	 * @return <code>true</code> if there are more, <code>false</code> otherwise
-	 */
-	@Override
-	public boolean hasMoreDeletedObjects() {
-		return false;
-	}
+            return oid;
+        } catch (Exception e) {
+            throw new HarvesterException("Failed to store metadata", e);
+        }
+    }
 }
