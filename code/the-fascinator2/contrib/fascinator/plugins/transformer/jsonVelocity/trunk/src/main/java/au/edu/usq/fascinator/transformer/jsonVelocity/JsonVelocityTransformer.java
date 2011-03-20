@@ -284,6 +284,7 @@ public class JsonVelocityTransformer implements Transformer {
                     vc.put("item", sourceMap);
                     vc.put("util", util);
                     vc.put("oid", in.getId());
+                    vc.put("object", in);
                     // TODO: For now just hardcode the portal name
                     vc.put("urlBase", config.get("urlBase") + "default");
 
@@ -313,6 +314,7 @@ public class JsonVelocityTransformer implements Transformer {
                         vc.put("item", sourceMap);
                         vc.put("util", util);
                         vc.put("oid", in.getId());
+                        vc.put("object", in);
                         // TODO: For now just hardcode the portal name
                         vc.put("urlBase", config.get("urlBase") + "default");
 
@@ -341,11 +343,11 @@ public class JsonVelocityTransformer implements Transformer {
 
             }
         } catch (ResourceNotFoundException e) {
-            log.error("Template not found");
+            log.error("Template not found: ", e);
         } catch (ParseErrorException e) {
-            log.error("Template parse error");
+            log.error("Template parse error: ", e);
         } catch (Exception e) {
-            log.error("Exception: {}", e.toString());
+            log.error("Unknown error: ", e);
         }
 
         return in;
