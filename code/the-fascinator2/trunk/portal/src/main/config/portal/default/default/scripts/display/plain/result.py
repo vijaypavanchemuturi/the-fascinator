@@ -1,4 +1,5 @@
 from display.default.result import ResultData as DefaultResultData
+from org.apache.commons.lang import StringEscapeUtils
 
 from java.io import ByteArrayOutputStream
 from org.apache.commons.io import IOUtils
@@ -28,3 +29,6 @@ class ResultData(DefaultResultData):
                 return  string
         else:
             return ""
+    
+    def getEncodeHtml(self, value):
+        return StringEscapeUtils.escapeHtml(value)

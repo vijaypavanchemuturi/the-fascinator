@@ -246,6 +246,8 @@ public class Dispatch {
 
         // The workflow we're using
         List<String> reqParams = request.getParameterNames();
+        log.info("REQUEST {}", request);
+        log.info("reqParams {}", reqParams);
         if (reqParams.contains("upload-file-workflow")) {
             workflowId = request.getParameter("upload-file-workflow");
         }
@@ -254,6 +256,7 @@ public class Dispatch {
             return;
         }
 
+		
         JsonSimple workflowConfig = sysConfig.getJsonSimpleMap("uploader").get(
                 workflowId);
 
@@ -361,6 +364,7 @@ public class Dispatch {
         sessionState.set("fileName", uploadedFile.getFileName());
         sessionState.set(uploadedFile.getFileName(), file_details);
         formData.set("fileProcessing", "true");
+        formData.set("oid", oid);
         sessionState.set("uploadFormData", formData);
     }
 

@@ -1,5 +1,5 @@
 #set($id = $self.getFirst("id"))
-#set($title = $self.getFirst("dc_title"))
+#set($title = $self.escapeHtml($self.getFirst("dc_title")))
 #set($description = $self.getFirst("dc_description"))
 #set($format = $self.get("dc_format"))
 
