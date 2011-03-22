@@ -5,5 +5,5 @@ class ResultData(DefaultResultData):
     def __activate__(self, context):
         DefaultResultData.__activate__(self, context)
     
-    def getEncodeHtml(self, value):
+    def getEscapeHtml(self, value):
         return StringEscapeUtils.escapeHtml(value)

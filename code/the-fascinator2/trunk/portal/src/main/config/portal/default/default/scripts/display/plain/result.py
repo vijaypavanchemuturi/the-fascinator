@@ -30,5 +30,5 @@ class ResultData(DefaultResultData):
         else:
             return ""
     
-    def getEncodeHtml(self, value):
+    def getEscapeHtml(self, value):
         return StringEscapeUtils.escapeHtml(value)
