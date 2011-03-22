@@ -27,6 +27,6 @@ class ResultData(DefaultResultData):
     def getList(self, name):
         return self.md.getList(name)
     
-    def getEncodeHtml(self, value):
+    def getEscapeHtml(self, value):
         return StringEscapeUtils.escapeHtml(value)
 
