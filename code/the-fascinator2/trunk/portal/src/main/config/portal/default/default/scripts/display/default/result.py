@@ -1,3 +1,4 @@
+from org.apache.commons.lang import StringEscapeUtils
 
 class ResultData:
     def __activate__(self, context):
@@ -40,3 +41,6 @@ class ResultData:
         # use default icon
         iconPath = "images/icons/mimetype/icon.png"
         return "<img src=\"%s/%s\" title=\"%s\" alt=\"%s\" />" % (path, iconPath, altText, altText)
+    
+    def getEncodeHtml(self, value):
+        return StringEscapeUtils.escapeHtml(value)
