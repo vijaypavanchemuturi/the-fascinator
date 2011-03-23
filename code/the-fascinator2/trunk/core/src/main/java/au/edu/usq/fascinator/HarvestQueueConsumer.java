@@ -340,6 +340,8 @@ public class HarvestQueueConsumer implements GenericListener {
             log.error("Failed to update storage: {}", se.getMessage());
         } catch (IndexerException ie) {
             log.error("Failed to index object: {}", ie.getMessage());
+        } catch (Exception e) {
+            log.error("An unknown error has occurred: {}", e);
         }
     }
 

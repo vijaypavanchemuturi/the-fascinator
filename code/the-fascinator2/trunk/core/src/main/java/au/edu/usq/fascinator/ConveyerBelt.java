@@ -106,8 +106,13 @@ public class ConveyerBelt {
         } else {
             // The harvester specified none, fallback to the
             //  default list for this harvest source.
-            for (String entry : config.getStringList("transformer", thisType)) {
-                plugins.add(StringUtils.trim(entry));
+            List<String> transformerList = config.getStringList("transformer", thisType);
+            if (transformerList != null) {
+                for (String entry : transformerList) {
+                    plugins.add(StringUtils.trim(entry));
+                }
+            } else {
+                log.info("No transformers configured!");
             }
         }
         return plugins;
