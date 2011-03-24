@@ -270,7 +270,8 @@ public class CSVHarvester extends GenericHarvester {
             // respect fields to be included and ignored
             if (includedFields.contains(field) && !ignoredFields.contains(field)) {
                 data.put(field, value);
-            } else if (idColumn != null && idColumn.equals(field)) {
+            }
+            if (field.equals(idColumn)) {
                 recordId = value;
             }
         }
@@ -286,7 +287,7 @@ public class CSVHarvester extends GenericHarvester {
         json.put("metadata", meta);
         try {
             // create a new object
-            String oid = DigestUtils.md5Hex(recordId);
+            String oid = DigestUtils.md5Hex(idPrefix + recordId);
             DigitalObject object = StorageUtils.getDigitalObject(getStorage(), oid);
 
             // add the JSON payload
