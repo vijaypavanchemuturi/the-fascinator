@@ -1,6 +1,6 @@
 /* 
- * The Fascinator - File System Harvester Plugin
- * Copyright (C) 2009 University of Southern Queensland
+ * The Fascinator - SKOS Harvester Plugin
+ * Copyright (C) 2010-2011 University of Southern Queensland
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,10 +18,21 @@
  */
 package au.edu.usq.fascinator.harvester.skos;
 
+import au.edu.usq.fascinator.api.harvester.HarvesterException;
+import au.edu.usq.fascinator.api.storage.DigitalObject;
+import au.edu.usq.fascinator.api.storage.Payload;
+import au.edu.usq.fascinator.api.storage.Storage;
+import au.edu.usq.fascinator.api.storage.StorageException;
+import au.edu.usq.fascinator.common.JsonSimpleConfig;
+import au.edu.usq.fascinator.common.harvester.impl.GenericHarvester;
+import au.edu.usq.fascinator.common.storage.StorageUtils;
+import au.edu.usq.fascinator.vocabulary.SKOS;
+
+import com.hp.hpl.jena.vocabulary.RDF;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -49,19 +60,7 @@ import org.semanticdesktop.aperture.rdf.RDFContainer;
 import org.semanticdesktop.aperture.rdf.impl.RDFContainerImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import org.ontoware.aifbcommons.collection.ClosableIterator;
-import com.hp.hpl.jena.vocabulary.RDF;
-
-import au.edu.usq.fascinator.api.harvester.HarvesterException;
-import au.edu.usq.fascinator.api.storage.DigitalObject;
-import au.edu.usq.fascinator.api.storage.Payload;
-import au.edu.usq.fascinator.api.storage.Storage;
-import au.edu.usq.fascinator.api.storage.StorageException;
-import au.edu.usq.fascinator.common.JsonConfigHelper;
-import au.edu.usq.fascinator.common.harvester.impl.GenericHarvester;
-import au.edu.usq.fascinator.common.storage.StorageUtils;
-import au.edu.usq.fascinator.vocabulary.SKOS;
 
 /**
  * <p>
@@ -153,18 +152,18 @@ public class SkosHarvester extends GenericHarvester {
      */
     @Override
     public void init() throws HarvesterException {
-        JsonConfigHelper config;
+        JsonSimpleConfig config;
         log.info("Initialising Skos harvester");
         // Read config
         try {
-            config = new JsonConfigHelper(getJsonConfig().toString());
+            config = new JsonSimpleConfig(getJsonConfig().toString());
         } catch (IOException ex) {
             throw new HarvesterException("Failed reading configuration", ex);
         }
 
-        String baseFile = config.get("harvester/skos/baseFile", "");
+        String baseFile = config.getString("", "harvester", "skos", "baseFile");
         File skosFile;
-        if (baseFile != "") {
+        if (!baseFile.equals("")) {
             skosFile = new File(baseFile);
         } else {
             throw new HarvesterException("No skos file specified");
