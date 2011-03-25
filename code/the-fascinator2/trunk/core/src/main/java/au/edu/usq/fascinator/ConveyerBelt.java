@@ -202,9 +202,14 @@ public class ConveyerBelt {
                     }
 
                     // Perform the transformation
-                    object = transformers.get(name).
-                            transform(object, itemConfig.toString());
-                    log.info("Finished '{}' on '{}'", name, object.getId());
+                    try {
+                        object = transformers.get(name).
+                                transform(object, itemConfig.toString());
+                        log.info("Finished '{}' on '{}'", name, object.getId());
+                    } catch (Exception ex) {
+                        log.error("Error during transformer '" + name +
+                                "' on object '" + object.getId() + "'", ex);
+                    }
 
                 } else {
                     log.error("Transformer not in conveyer belt! '{}'", name);
