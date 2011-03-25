@@ -3,6 +3,7 @@
         "start": 0,
         "docs": [
             {
+                "score": 1.0,
                 "security_filter": [
                     "admin",
                     "editor",
@@ -87,6 +88,7 @@
                 ]
             },
             {
+                "score": 1.0,
                 "security_filter": [
                     "admin",
                     "editor",
@@ -156,6 +158,7 @@
                 ]
             },
             {
+                "score": 0.89,
                 "security_filter": [
                     "admin",
                     "editor",
@@ -240,6 +243,7 @@
                 ]
             },
             {
+                "score": 0.89,
                 "security_filter": [
                     "admin",
                     "editor",
@@ -311,6 +315,7 @@
                 ]
             },
             {
+                "score": 0.89,
                 "security_filter": [
                     "admin",
                     "editor",
@@ -377,6 +382,7 @@
                 ]
             },
             {
+                "score": 0.75,
                 "security_filter": [
                     "admin",
                     "editor",
@@ -443,6 +449,7 @@
                 ]
             },
             {
+                "score": 0.59,
                 "security_filter": [
                     "admin",
                     "editor",
@@ -509,6 +516,7 @@
                 ]
             },
             {
+                "score": 0.59,
                 "security_filter": [
                     "admin",
                     "editor",
@@ -575,6 +583,7 @@
                 ]
             },
             {
+                "score": 0.59,
                 "security_filter": [
                     "admin",
                     "editor",
@@ -641,6 +650,7 @@
                 ]
             },
             {
+                "score": 0.59,
                 "security_filter": [
                     "admin",
                     "editor",
@@ -707,6 +717,7 @@
                 ]
             },
             {
+                "score": 0.59,
                 "security_filter": [
                     "admin",
                     "editor",
@@ -779,6 +790,7 @@
                 ]
             },
             {
+                "score": 0.59,
                 "security_filter": [
                     "guest"
                 ],
@@ -869,6 +881,7 @@
                 ]
             },
             {
+                "score": 0.59,
                 "security_filter": [
                     "admin",
                     "editor",
@@ -937,6 +950,7 @@
                 ]
             },
             {
+                "score": 0.59,
                 "security_filter": [
                     "admin",
                     "editor",
@@ -1019,6 +1033,7 @@
                 ]
             },
             {
+                "score": 0.59,
                 "security_filter": [
                     "guest"
                 ],
@@ -1085,6 +1100,7 @@
                 ]
             },
             {
+                "score": 0.59,
                 "security_filter": [
                     "guest"
                 ],
@@ -1175,6 +1191,7 @@
                 ]
             },
             {
+                "score": 0.59,
                 "security_filter": [
                     "guest"
                 ],
@@ -1265,6 +1282,7 @@
                 ]
             },
             {
+                "score": 0.59,
                 "security_filter": [
                     "guest"
                 ],
@@ -1355,6 +1373,7 @@
                 ]
             },
             {
+                "score": 0.59,
                 "security_filter": [
                     "guest"
                 ],
@@ -1444,6 +1463,7 @@
                 ]
             },
             {
+                "score": 0.59,
                 "security_filter": [
                     "guest"
                 ],
@@ -1559,7 +1579,8 @@
             ],
             "wt": "json",
             "fq": "item_type:\"object\"",
-            "rows": "25"
+            "rows": "25",
+            "fl": "score"
         }
     },
     "facet_counts": {
