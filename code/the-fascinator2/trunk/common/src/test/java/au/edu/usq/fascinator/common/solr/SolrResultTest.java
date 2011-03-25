@@ -131,4 +131,16 @@ public class SolrResultTest {
         List<String> repsonse = result.getFieldList("id");
         Assert.assertEquals(20, repsonse.size());
     }
+
+    /**
+     * Test getting the score from all documents
+     *
+     * @throws Exception if any error occurs
+     */
+    @Test
+    public void scoreTest() throws Exception {
+        for (SolrDoc doc : result.getResults()) {
+            Assert.assertNotNull("Should not return null!", doc.get("score"));
+        }
+    }
 }

@@ -81,6 +81,11 @@ public class SolrDoc extends JsonSimple {
             return (String) object;
         }
 
+        // Some fields can be float/double such as "score"
+        if (object instanceof Double) {
+            return Double.toString((Double) object);
+        }
+
         // Shouldn't occur in a valid Solr response
         return null;
     }
