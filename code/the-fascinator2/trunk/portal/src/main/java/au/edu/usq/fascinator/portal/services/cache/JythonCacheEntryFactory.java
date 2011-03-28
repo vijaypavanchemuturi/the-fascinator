@@ -162,55 +162,64 @@ public class JythonCacheEntryFactory implements CacheEntryFactory {
 
         @Override
         public DatabaseServices getDatabase() {
-            log.warn("Global scope Services is deprecated, use the context");
+            log.warn("WARN: getDatabase(): " +
+                    "Global scope Services is deprecated, use the context");
             return scriptingServices.getDatabase();
         }
 
         @Override
         public DynamicPageService getPageService() {
-            log.warn("Global scope Services is deprecated, use the context");
+            log.warn("WARN: getPageService(): " +
+                    "Global scope Services is deprecated, use the context");
             return scriptingServices.getPageService();
         }
 
         @Override
         public Indexer getIndexer() {
-            log.warn("Global scope Services is deprecated, use the context");
+            log.warn("WARN: getIndexer(): " +
+                    "Global scope Services is deprecated, use the context");
             return scriptingServices.getIndexer();
         }
 
         @Override
         public Storage getStorage() {
-            log.warn("Global scope Services is deprecated, use the context");
+            log.warn("WARN: getStorage(): " +
+                    "Global scope Services is deprecated, use the context");
             return scriptingServices.getStorage();
         }
 
         @Override
         public HarvestManager getHarvestManager() {
-            log.warn("Global scope Services is deprecated, use the context");
+            log.warn("WARN: getHarvestManager(): " +
+                    "Global scope Services is deprecated, use the context");
             return scriptingServices.getHarvestManager();
         }
 
         @Override
         public HouseKeepingManager getHouseKeepingManager() {
-            log.warn("Global scope Services is deprecated, use the context");
+            log.warn("WARN: getHouseKeepingManager(): " +
+                    "Global scope Services is deprecated, use the context");
             return scriptingServices.getHouseKeepingManager();
         }
 
         @Override
         public PortalManager getPortalManager() {
-            log.warn("Global scope Services is deprecated, use the context");
+            log.warn("WARN: getPortalManager(): " +
+                    "Global scope Services is deprecated, use the context");
             return scriptingServices.getPortalManager();
         }
 
         @Override
         public ByteRangeRequestCache getByteRangeCache() {
-            log.warn("Global scope Services is deprecated, use the context");
+            log.warn("WARN: getByteRangeCache(): " +
+                    "Global scope Services is deprecated, use the context");
             return scriptingServices.getByteRangeCache();
         }
 
         @Override
         public VelocityService getVelocityService() {
-            log.warn("Global scope Services is deprecated, use the context");
+            log.warn("WARN: getVelocityService(): " +
+                    "Global scope Services is deprecated, use the context");
             return scriptingServices.getVelocityService();
         }
     }
