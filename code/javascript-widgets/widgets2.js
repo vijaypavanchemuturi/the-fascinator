@@ -1607,9 +1607,13 @@ var widgets={forms:[], globalObject:this};
               if(!url)url=window.location.href+"";
               form.attr("action", url);
               $.each(elems, function(c, e){
-                  var c=$(e).clone();
-                  if(c.attr("name")===""){c.attr("name", e.id);}
-                  form.append(c);
+                  // need to use the original as the clone doesn't contain
+                  // the file values in browsers such as Chrome and Safari
+                  var source=$(e);
+                  var cloned=source.clone(true);
+                  if(source.attr("name")===""){source.attr("name", e.id);}
+                  cloned.insertAfter(source);
+                  form.append(source);
               });
               getBody().append(form);
               setTimeout(function(){
