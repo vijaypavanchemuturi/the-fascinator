@@ -9,6 +9,7 @@ class HomeData:
     def __activate__(self, context):
         self.velocityContext = context
         self.vc("sessionState").remove("fq")
+        self.services = self.vc("Services")
         self.__latest = None
         self.__mine = None
         self.__workflows = None
@@ -24,9 +25,9 @@ class HomeData:
             return None
 
     def __search(self):
-        indexer = Services.getIndexer()
-        portalQuery = Services.getPortalManager().get(self.vc("portalId")).getQuery()
-        portalSearchQuery = Services.getPortalManager().get(self.vc("portalId")).getSearchQuery()
+        indexer = self.services.getIndexer()
+        portalQuery = self.services.getPortalManager().get(self.vc("portalId")).getQuery()
+        portalSearchQuery = self.services.getPortalManager().get(self.vc("portalId")).getSearchQuery()
         
         # Security prep work
         current_user = self.vc("page").authentication.get_username()
