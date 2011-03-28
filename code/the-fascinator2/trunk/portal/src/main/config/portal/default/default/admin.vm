@@ -270,11 +270,6 @@
             hide: "blind",
             modal: true
         }
-        $("#create-user-form").dialog(dialogOpts);
-        $("#create-user-form").dialog('option', 'title', 'Create User');
-        $("#change-password-form").dialog(dialogOpts);
-        $("#change-password-form").dialog('option', 'title', 'Change Password');
-        $("#simple-dialog").dialog(dialogOpts);
 
         /******************************
          *   Create User
@@ -290,6 +285,8 @@
             $("#create-user-password").val("");
             $("#create-user-password-confirm").val("");
             $("#create-user-source").val(plugin);
+            $("#create-user-form").dialog(dialogOpts);
+            $("#create-user-form").dialog('option', 'title', 'Create User');
             $("#create-user-form").dialog('open');
             return false;
         });
@@ -393,6 +390,8 @@
                 $("#newpassword").val("");
                 $("#password-confirm").val("");
                 $("#change-password-source").val(plugin);
+                $("#change-password-form").dialog(dialogOpts);
+                $("#change-password-form").dialog('option', 'title', 'Change Password');
                 $("#change-password-form").dialog('open');
             }
             return false;
@@ -450,6 +449,7 @@
             $("#simple-form-action").val("create-role");
             $("#simple-form-submit").val("Create Role");
             $("#simple-form-followup").val("create_role");
+            $("#simple-dialog").dialog(dialogOpts);
             $("#simple-dialog").dialog('open');
             return false;
         });

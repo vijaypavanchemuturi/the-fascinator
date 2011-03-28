@@ -3,32 +3,6 @@
 <script type="text/javascript">
 <!--
     $(function() {
-        $('#add-content-dialog').dialog({
-            autoOpen: false,
-            bgiframe: true,
-            draggable: false,
-            modal: true,
-            resizable: false,
-            width: 500,
-            buttons: {
-                'Add': function() {
-                    // TODO checking
-                    $('#contents tbody:first').append('<tr>' +
-                    '<td>' + $('#id').val() + '</td>' +
-                    '<td>' + $('#description').val() + '</td>' +
-                    '<td>' + $('#harvester').val() + '</td>' +
-                    '<td>* * * * *</td>' +
-                    '</tr>');
-                    $(this).dialog('close');
-                },
-                'Cancel': function() {
-                    $(this).dialog('close');
-                }
-            },
-            close: function() {
-            }
-        });
-
         $('#selected').attr('value', $('#harvesters > div:first').attr('id'));
 
         // prefix each field with its parent plugin
@@ -38,6 +12,31 @@
 
         // populate harvester options
         $('#addButton').click(function() {
+            $('#add-content-dialog').dialog({
+                autoOpen: false,
+                bgiframe: true,
+                draggable: false,
+                modal: true,
+                resizable: false,
+                width: 500,
+                buttons: {
+                    'Add': function() {
+                        // TODO checking
+                        $('#contents tbody:first').append('<tr>' +
+                        '<td>' + $('#id').val() + '</td>' +
+                        '<td>' + $('#description').val() + '</td>' +
+                        '<td>' + $('#harvester').val() + '</td>' +
+                        '<td>* * * * *</td>' +
+                        '</tr>');
+                        $(this).dialog('close');
+                    },
+                    'Cancel': function() {
+                        $(this).dialog('close');
+                    }
+                },
+                close: function() {
+                }
+            });
             $('#add-content-dialog').dialog('open');
         })
 

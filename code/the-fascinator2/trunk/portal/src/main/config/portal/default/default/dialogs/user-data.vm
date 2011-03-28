@@ -11,8 +11,8 @@
             modal: true,
             width: "450px"
         }
-        $("#user-data").dialog(dialogOpts);
         $(".user-data").click(function() {
+            $("#user-data").dialog(dialogOpts);
             userData();
             return false;
         });

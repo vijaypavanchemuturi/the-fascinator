@@ -14,8 +14,8 @@
             modal: true,
             width: "450px"
         }
-        $("#login-form").dialog(dialogOpts);
         $(".login-now").click(function() {
+            $("#login-form").dialog(dialogOpts);
             loginNow();
             return false;
         });
