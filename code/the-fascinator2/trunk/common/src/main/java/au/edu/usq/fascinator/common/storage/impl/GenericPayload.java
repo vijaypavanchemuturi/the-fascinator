@@ -183,6 +183,7 @@ public class GenericPayload implements Payload {
      */
     @Override
     public void setId(String id) {
+        id = id.replace("\\", "/");
         metaChanged = metaChanged || (this.id != id);
         this.id = id;
     }
