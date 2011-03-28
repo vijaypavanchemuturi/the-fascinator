@@ -21,6 +21,9 @@
             </li>
         #end
         <li><a href="$portalPath/blog/$oid">Blog...</a></li>
+        #if($self.hasWorkflowAccess())
+          <li><a href="$portalPath/zippackage/$oid">Zip Package...</a></li>
+        #end
         #parseDisplayTemplate("detail/navigation/custom-actions.vm")
         #if($page.authentication.is_admin())
             #if(!$parent.isPending())
