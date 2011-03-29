@@ -576,6 +576,7 @@
             $("#simple-form-action").val("add-user");
             $("#simple-form-submit").val("Add User");
             $("#simple-form-followup").val("add_user");
+            $("#simple-dialog").dialog(dialogOpts);
             $("#simple-dialog").dialog('open');
             return false;
         });
