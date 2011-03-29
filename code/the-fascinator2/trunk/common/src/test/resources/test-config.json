@@ -100,5 +100,6 @@
         "display": "list"
       }
     }
-  }
+  },
+  "nullNode": null
 }

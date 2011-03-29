@@ -771,7 +771,11 @@ public class JsonSimple {
         }
         // Data - Everything else... Strings
         if (dataString == null) {
-            dataString = "\"" + data.toString() + "\"";
+            if (data == null) {
+                dataString = "null";
+            } else {
+                dataString = "\"" + data.toString() + "\"";
+            }
         }
 
         return prefix + labelString + dataString;

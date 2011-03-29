@@ -475,5 +475,16 @@ public class JsonSimpleTest {
         Object[] path3 = {"map-list", 1, "sub-list", 3};
         Assert.assertEquals(
                 newJson.getBoolean(null, path3), json.getBoolean(null, path3));
+
+        // Some null handling issues we want to test for.
+        // Make sure the node existed... and was null beforehand
+        JsonObject raw = json.getJsonObject();
+        Assert.assertTrue(raw.containsKey("nullNode"));
+        Assert.assertNull(raw.get("nullNode"));
+
+        // Make sure it still exists... and is still null
+        raw = newJson.getJsonObject();
+        Assert.assertTrue(raw.containsKey("nullNode"));
+        Assert.assertNull(raw.get("nullNode"));
     }
 }
