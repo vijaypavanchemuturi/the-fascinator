@@ -8,8 +8,12 @@
 #parseTemplate("menus/home-main-menu.vm")
 
 <div class="grid_12">
-    #parseTemplate("dialogs/view-delete.vm")
-    #parseTemplate("dialogs/view-reharvest.vm")
+    #if($page.authentication.is_logged_in())
+        #parseTemplate("dialogs/view-delete.vm")
+    #end
+    #if($page.authentication.is_admin())
+        #parseTemplate("dialogs/view-reharvest.vm")
+    #end
     #parseTemplate("dialogs/basic-search-form.vm")
 </div>
 <div class="clear"></div>
