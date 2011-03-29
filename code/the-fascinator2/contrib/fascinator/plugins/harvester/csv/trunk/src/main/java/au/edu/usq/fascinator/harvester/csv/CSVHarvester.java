@@ -126,6 +126,9 @@ public class CSVHarvester extends GenericHarvester {
     /** CSV Reader */
     private CSVReader csvReader;
 
+    /** File name */
+    private String filename;
+
     /**
      * Constructs the CSV harvester plugin.
      */
@@ -150,6 +153,7 @@ public class CSVHarvester extends GenericHarvester {
         if (csvDataFile == null || !csvDataFile.exists()) {
             throw new HarvesterException("Could not find CSV file '" + filePath + "'");
         }
+        filename = csvDataFile.getName();
 
         idPrefix = options.getString("", "recordIDPrefix");
         maxRows = options.getInteger(-1, "maxRows");
@@ -287,7 +291,7 @@ public class CSVHarvester extends GenericHarvester {
         json.put("metadata", meta);
         try {
             // create a new object
-            String oid = DigestUtils.md5Hex(idPrefix + recordId);
+            String oid = DigestUtils.md5Hex(filename + idPrefix + recordId);
             DigitalObject object = StorageUtils.getDigitalObject(getStorage(), oid);
 
             // add the JSON payload
