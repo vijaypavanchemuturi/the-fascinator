@@ -25,28 +25,10 @@
       </appender>
     </sift>
   </appender>
-  <!-- Cyclic appender for portal background functions -->
-  <appender name="CYCLIC" class="ch.qos.logback.core.read.CyclicBufferAppender">
-    <MaxSize>15</MaxSize>
-  </appender>
+  <!-- Logging levels -->
   <root level="INFO">
     <appender-ref ref="SIFT" />
   </root>
   <logger name="au.edu.usq" level="DEBUG" />
   <logger name="org.apache.activemq" level="INFO" />
-  <logger name="au.edu.usq.fascinator.HarvestClient" level="INFO">
-    <appender-ref ref="CYCLIC" />
-  </logger>
-  <logger name="au.edu.usq.fascinator.HarvestQueueConsumer" level="INFO">
-    <appender-ref ref="CYCLIC" />
-  </logger>
-  <logger name="au.edu.usq.fascinator.IngestQueueConsumer" level="INFO">
-    <appender-ref ref="CYCLIC" />
-  </logger>
-  <logger name="au.edu.usq.fascinator.RenderQueueConsumer" level="INFO">
-    <appender-ref ref="CYCLIC" />
-  </logger>
-  <logger name="au.edu.usq.fascinator.portal.HouseKeeper" level="DEBUG">
-    <appender-ref ref="CYCLIC" />
-  </logger>
 </configuration>

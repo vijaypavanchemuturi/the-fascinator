@@ -1,11 +1,9 @@
-class StateActions:
-    def __init__(self):
-        pass
 
+class StateData:
     def __activate__(self, context):
         self.velocityContext = context
 
-        print " * state.py: formData=%s" % self.vc("formData")
+        #print "formData=%s" % self.vc("formData")
         result = "{}"
         func = self.vc("formData").get("func")
         name = self.vc("formData").get("name")
@@ -26,7 +24,7 @@ class StateActions:
         else:
             result = '{ "error": "Only administrative users have access to this API" }'
         
-        writer = self.vc("response").getPrintWriter("text/plain; charset=UTF-8")
+        writer = self.vc("response").getPrintWriter("application/json; charset=UTF-8")
         writer.println(result)
         writer.close()
 

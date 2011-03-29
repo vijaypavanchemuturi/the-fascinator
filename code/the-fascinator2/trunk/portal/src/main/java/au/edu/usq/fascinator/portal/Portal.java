@@ -20,7 +20,6 @@ package au.edu.usq.fascinator.portal;
 
 import au.edu.usq.fascinator.common.JsonObject;
 import au.edu.usq.fascinator.common.JsonSimple;
-import au.edu.usq.fascinator.common.JsonSimpleConfig;
 
 import java.io.File;
 import java.io.IOException;
@@ -37,7 +36,7 @@ import org.slf4j.LoggerFactory;
  * 
  * @author Linda Octalina
  */
-public class Portal extends JsonSimpleConfig {
+public class Portal extends JsonSimple {
 
     public static final String PORTAL_JSON = "portal.json";
 
@@ -149,8 +148,13 @@ public class Portal extends JsonSimpleConfig {
     public Map<String, String> getSortFields() {
         JsonObject object = getObject("portal", "sort-fields");
         Map<String, String> sortFields = new LinkedHashMap<String, String>();
-        for (Object key : object.keySet()) {
-            sortFields.put((String) key, (String) object.get(key));
+        if (object == null) {
+            sortFields.put("last_modified", "Last modified");
+            sortFields.put("f_dc_title", "Title");
+        } else {
+            for (Object key : object.keySet()) {
+                sortFields.put((String) key, (String) object.get(key));
+            }
         }
         return sortFields;
     }

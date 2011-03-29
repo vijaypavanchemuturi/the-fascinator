@@ -15,6 +15,7 @@ class ViewData:
             services = context["Services"]
             formData = context["formData"]
             sessionState = context["sessionState"]
+            urlBase = context["urlBase"]
             func = formData.get("func")
             portalManager = services.portalManager
             if func == "create-view":
