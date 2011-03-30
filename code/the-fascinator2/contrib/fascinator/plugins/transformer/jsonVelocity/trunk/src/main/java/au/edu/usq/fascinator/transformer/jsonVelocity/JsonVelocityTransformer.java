@@ -391,12 +391,12 @@ public class JsonVelocityTransformer implements Transformer {
                 log.info("Rendering template: '{}'", file.getName());
                 output = renderTemplate(template, vc);
             } catch (Exception ex) {
-                log.error("Error rendering template: '{}': {}",
-                        file.getName(), ex);
+                log.error("Error rendering template: '" +
+                        file.getName() + "': ", ex);
             }
 
             if (output == null) {
-                log.error("Unknonw error rendering template: '{}'",
+                log.error("Unknown error rendering template: '{}'",
                         file.getName());
             } else {
                 // Store the output
@@ -404,8 +404,8 @@ public class JsonVelocityTransformer implements Transformer {
                     String payloadName = payloadName(file.getName());
                     storeData(in, payloadName, output);
                 } catch (Exception ex) {
-                    log.error("Error storing rendered output: '{}': {}",
-                            file.getName(), ex);
+                    log.error("Error storing rendered output: '" +
+                            file.getName() + "'", ex);
                 }
             }
         }
