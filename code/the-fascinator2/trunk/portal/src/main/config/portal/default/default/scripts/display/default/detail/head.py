@@ -1,6 +1,7 @@
 from au.edu.usq.fascinator.common import JsonSimple
 from java.io import ByteArrayOutputStream
 from org.apache.commons.io import IOUtils
+from org.apache.commons.lang import StringEscapeUtils
 
 class HeadData:
     def __init__(self):
@@ -13,6 +14,11 @@ class HeadData:
         self.__ffmpegRaw = None
         self.__ffmpegData = None
         self.__ffmpegOutputs = None
+        
+        self.__codecList = None
+
+    def escape(self, text):
+        return StringEscapeUtils.escapeHtml(text)
 
     # Get from velocity context
     def vc(self, index):
@@ -50,6 +56,13 @@ class HeadData:
 
     def getTranscodings(self):
         pass
+
+    def hasMp4(self):
+        for key in self.__ffmpegOutputs.keySet():
+            list = self.__ffmpegOutputs.get(key)
+            codec = list.getString("", ["codec"])
+            if codec == "h264":
+                return True
 
     def getRawFFmpeg(self):
         return self.__ffmpegRaw
