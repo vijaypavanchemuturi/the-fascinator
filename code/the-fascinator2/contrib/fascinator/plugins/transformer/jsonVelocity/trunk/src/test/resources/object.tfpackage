@@ -4,7 +4,9 @@
     "sources_used":"sources from third party",
     "dc:subject.keywords.2":"keyword2",
     "collaborators.1":"Collaborators1",
-    "manifest":{},
+    "manifest":{
+        "some_random": "unit_test_data"
+    },
     "description":"description",
     "dc:subject.anzsrc:for.1.skos:prefLabel":"010502 - Integrable Systems (Classical and Quantum)",
     "grant.1.uon:internal":"",

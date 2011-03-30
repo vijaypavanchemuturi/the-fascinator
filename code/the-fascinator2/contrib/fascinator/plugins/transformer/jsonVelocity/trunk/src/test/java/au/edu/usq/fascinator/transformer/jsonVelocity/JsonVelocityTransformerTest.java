@@ -18,6 +18,14 @@
  */
 package au.edu.usq.fascinator.transformer.jsonVelocity;
 
+import au.edu.usq.fascinator.api.PluginManager;
+import au.edu.usq.fascinator.api.storage.DigitalObject;
+import au.edu.usq.fascinator.api.storage.Payload;
+import au.edu.usq.fascinator.api.storage.Storage;
+import au.edu.usq.fascinator.common.JsonSimple;
+import au.edu.usq.fascinator.common.JsonSimpleConfig;
+import au.edu.usq.fascinator.common.storage.StorageUtils;
+
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -31,13 +39,6 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import au.edu.usq.fascinator.api.PluginManager;
-import au.edu.usq.fascinator.api.storage.DigitalObject;
-import au.edu.usq.fascinator.api.storage.Payload;
-import au.edu.usq.fascinator.api.storage.Storage;
-import au.edu.usq.fascinator.common.JsonConfigHelper;
-import au.edu.usq.fascinator.common.storage.StorageUtils;
-
 /**
  * Tests the JsonVelocityTransformer
  * 
@@ -47,9 +48,11 @@ public class JsonVelocityTransformerTest {
 
     private JsonVelocityTransformer jsonVelocityTransformer;
 
-    private JsonConfigHelper config;
+    private Util util;
 
-    private JsonConfigHelper tfpackage;
+    private JsonSimpleConfig config;
+
+    private JsonSimple tfpackage;
 
     private Storage ram;
 
@@ -57,16 +60,8 @@ public class JsonVelocityTransformerTest {
 
     @Before
     public void init() throws Exception {
-        ram = PluginManager.getStorage("ram");
-        ram.init("{}");
-
-        File file = new File(getClass().getResource("/test-config.json")
-                .toURI());
-        config = new JsonConfigHelper(file);
-        jsonVelocityTransformer = new JsonVelocityTransformer();
-        jsonVelocityTransformer.init(file);
-
-        tfpackage = new JsonConfigHelper(new File(getClass().getResource(
+        util = new Util();
+        tfpackage = new JsonSimple(new File(getClass().getResource(
                 "/object.tfpackage").toURI()));
     }
 
@@ -80,73 +75,96 @@ public class JsonVelocityTransformerTest {
         }
     }
 
-    @Test
-    public void transformFormat() throws Exception {
-        File file = new File(getClass().getResource("/object.tfpackage")
+    private void transform() throws Exception {
+        // Storage
+        ram = PluginManager.getStorage("ram");
+        ram.init("{}");
+
+        File file = new File(getClass().getResource("/test-config.json")
                 .toURI());
-        sourceObject = StorageUtils.storeFile(ram, file);
+        config = new JsonSimpleConfig(file);
+        jsonVelocityTransformer = new JsonVelocityTransformer();
+        jsonVelocityTransformer.init(file);
+
+        File source = new File(getClass().getResource("/object.tfpackage")
+                .toURI());
+        sourceObject = StorageUtils.storeFile(ram, source);
         outputObject = jsonVelocityTransformer.transform(sourceObject, "{}");
-
-        Set<String> payloadIdList = outputObject.getPayloadIdList();
-        for (String payloadId : payloadIdList) {
-            if (!payloadId.equals("object.tfpackage")) {
-                Payload p = sourceObject.getPayload(payloadId);
-                System.out.println(IOUtils.toString(p.open()));
-                p.close();
-            }
-        }
-
     }
 
     @Test
+    public void transformFormat() throws Exception {
+        transform();
+
+        Set<String> payloadIdList = outputObject.getPayloadIdList();
+        Assert.assertTrue(payloadIdList.contains("marc.xml"));
+        Assert.assertTrue(payloadIdList.contains("oai_dc.xml"));
+        Assert.assertTrue(payloadIdList.contains("rif_cs.xml"));
+        Assert.assertTrue(payloadIdList.contains("vivo.xml"));
+        Assert.assertEquals(payloadIdList.size(), 5);
+
+        // For debugging
+        //for (String payloadId : payloadIdList) {
+        //    if (!payloadId.equals("object.tfpackage")) {
+        //        Payload p = sourceObject.getPayload(payloadId);
+        //        System.out.println(IOUtils.toString(p.open()));
+        //        p.close();
+        //    }
+        //}
+
+    }
+
+    // Base object test
+    @Test
     public void getSingleValue() throws IOException, URISyntaxException {
-        Assert.assertEquals(tfpackage.getMap("/").get("dc:title"), "title1");
-        Assert.assertEquals(tfpackage.getMap("/").get("dc:language"), "eng");
-        Assert.assertEquals(tfpackage.getMap("/").get("dc:description"),
+        Assert.assertEquals(tfpackage.getString(null, "dc:title"), "title1");
+        Assert.assertEquals(tfpackage.getString(null, "dc:language"), "eng");
+        Assert.assertEquals(tfpackage.getString(null, "dc:description"),
                 "description");
     }
 
+    // Utility test
     @Test
     public void getSubjectList() {
-        Map<String, Object> subjectMap = jsonVelocityTransformer.util.getList(
-                tfpackage.getMap("/"), "dc:subject");
+        Map<String, Object> subjectMap = util.getList(tfpackage, "dc:subject");
         Assert.assertEquals(3, subjectMap.size());
 
         // Keyword == 5
         Map<String, Object> keywords = (Map<String, Object>) subjectMap
                 .get("keywords");
         Assert.assertEquals(2, keywords.size());
-        Map<String, Object> keywords2 = jsonVelocityTransformer.util.getList(
-                tfpackage.getMap("/"), "dc:subject.keywords");
+        Map<String, Object> keywords2 = util.getList(
+                tfpackage, "dc:subject.keywords");
         Assert.assertEquals(2, keywords2.size());
 
         // anzsrc:for == 2
         Map<String, Object> anzsrcFor = (Map<String, Object>) subjectMap
                 .get("anzsrc:for");
         Assert.assertEquals(2, anzsrcFor.size());
-        Map<String, Object> anzsrcFor2 = jsonVelocityTransformer.util.getList(
-                tfpackage.getMap("/"), "dc:subject.anzsrc:for");
+        Map<String, Object> anzsrcFor2 = util.getList(
+                tfpackage, "dc:subject.anzsrc:for");
         Assert.assertEquals(1, anzsrcFor2.size());
 
         // anzsrc:seo == 2
         Map<String, Object> anzsrcSeo = (Map<String, Object>) subjectMap
                 .get("anzsrc:seo");
         Assert.assertEquals(2, anzsrcSeo.size());
-        Map<String, Object> anzsrcSeo2 = jsonVelocityTransformer.util.getList(
-                tfpackage.getMap("/"), "dc:subject.anzsrc:seo");
+        Map<String, Object> anzsrcSeo2 = util.getList(
+                tfpackage, "dc:subject.anzsrc:seo");
         Assert.assertEquals(1, anzsrcSeo2.size());
     }
 
+    // Utility test
     @Test
     public void testDate() {
         try {
-            String date = jsonVelocityTransformer.util.getW3CDateTime("2010");
+            String date = util.getW3CDateTime("2010");
             Assert.assertEquals(date, "2010-01-01T00:00:00+1000");
             
-            date = jsonVelocityTransformer.util.getW3CDateTime("2010-10");
+            date = util.getW3CDateTime("2010-10");
             Assert.assertEquals(date, "2010-10-01T00:00:00+1000");
             
-            date = jsonVelocityTransformer.util.getW3CDateTime("2010-10-28");
+            date = util.getW3CDateTime("2010-10-28");
             Assert.assertEquals(date, "2010-10-28T00:00:00+1000");
         } catch (ParseException e) {
             e.printStackTrace();

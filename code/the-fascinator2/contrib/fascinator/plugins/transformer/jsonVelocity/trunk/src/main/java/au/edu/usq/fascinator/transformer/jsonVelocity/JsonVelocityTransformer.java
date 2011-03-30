@@ -25,34 +25,37 @@ import au.edu.usq.fascinator.api.storage.Payload;
 import au.edu.usq.fascinator.api.storage.StorageException;
 import au.edu.usq.fascinator.api.transformer.Transformer;
 import au.edu.usq.fascinator.api.transformer.TransformerException;
-import au.edu.usq.fascinator.common.JsonConfigHelper;
+import au.edu.usq.fascinator.common.JsonSimple;
+import au.edu.usq.fascinator.common.JsonSimpleConfig;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.StringWriter;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 
 import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.Velocity;
 import org.apache.velocity.app.VelocityEngine;
-import org.apache.velocity.exception.ParseErrorException;
-import org.apache.velocity.exception.ResourceNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * <p>
- * This plugin transform Json Payload to another format based on the provided
- * Velocity templates. The transformed format will then be stored as Payload.
+ * This plugin transform a Json Payload to other formats based on the provided
+ * Velocity templates. The transformed formats will then be stored as Payloads.
  * </p>
  * 
  * <h3>Configuration</h3>
- * 
+ *
+ * <p>Keep in mind that each data source can provide overriding configuration.
+ * This transformer currently allows overrides on all fields (except 'id').
+ * </p>
+ *
  * <table border="1">
  * <tr>
  * <th>Option</th>
@@ -70,18 +73,27 @@ import org.slf4j.LoggerFactory;
  * 
  * <tr>
  * <td>sourcePayload</td>
- * <td>Source payload from which the object will be transformed</td>
- * <td><b>Yes</b></td>
+ * <td>Source payload from which the object will be transformed. Currently only
+ * JSON payloads are supported.</td>
+ * <td><b>No</b></td>
  * <td>object.tfpackage</td>
  * </tr>
  * 
  * <tr>
  * <td>templatesPath</td>
- * <td>Velocity template file or directory</td>
+ * <td>Velocity template file or directory.</td>
  * <td><b>Yes</b></td>
- * <td>src/main/resources/templates</td>
+ * <td>N/A - Must be provided</td>
  * </tr>
  * 
+ * <tr>
+ * <td>portalId</td>
+ * <td>The portal to use when generating external URLs inside the templates. The
+ * server's configured URL base will be used as well.</td>
+ * <td><b>No</b></td>
+ * <td>default</td>
+ * </tr>
+ *
  * <h3>Examples</h3>
  * <ol>
  * <li>
@@ -89,10 +101,10 @@ import org.slf4j.LoggerFactory;
  * 
  * <pre>
  * "jsonVelocity": {
- *         "id" : "jsonVelocity",
- *         "sourcePayload" : "object.tfpackage",
- *         "templatesPath" : "src/main/resources/templates"
- *      }
+ *     "id" : "jsonVelocity",
+ *     "sourcePayload" : "object.tfpackage",
+ *     "templatesPath" : "src/main/resources/templates"
+ * }
  * </pre>
  * 
  * </li>
@@ -100,32 +112,53 @@ import org.slf4j.LoggerFactory;
  * 
  * <h3>Wiki Link</h3>
  * <p>
- * None
+ * <a href="https://fascinator.usq.edu.au/trac/wiki/Fascinator/Documents/Plugins/Transformer/JsonVelocity">
+ * https://fascinator.usq.edu.au/trac/wiki/Fascinator/Documents/Plugins/Transformer/JsonVelocity
+ * </a>
  * </p>
  * 
  * @author Linda Octalina
  */
 public class JsonVelocityTransformer implements Transformer {
+    /** Default portal */
+    private static String DEFAULT_PORTAL = "default";
+
+    /** Default payload */
+    private static String DEFAULT_PAYLOAD = "object.tfpackage";
+
     /** Logger */
-    static Logger log = LoggerFactory.getLogger(JsonVelocityTransformer.class);
+    private static Logger log =
+            LoggerFactory.getLogger(JsonVelocityTransformer.class);
 
     /** Json config file **/
-    private JsonConfigHelper config;
+    private JsonSimpleConfig systemConfig;
 
-    /** Template file or folder **/
-    private File templates;
+    /** Default Template file or folder **/
+    private File systemTemplates;
 
     /** Source payload to be transformed **/
-    private String sourcePayload;
+    private String systemPayload;
 
-    /** Individual template to be processed */
-    private String individualTemplate;
+    /** Portal ID */
+    private String systemPortal;
+
+    /** URL Base */
+    private String urlBase;
 
     /** Utility class for json velocity transformer */
     public Util util;
 
     /** VelocityEngine **/
     public VelocityEngine velocity;
+
+    /** Used to store last execution */
+    private File oldTemplates;
+
+    /** Json config file **/
+    private JsonSimple itemConfig;
+
+    /** Template file or folder **/
+    private File itemTemplates;
 
     /**
      * Overridden method init to initialize
@@ -136,8 +169,8 @@ public class JsonVelocityTransformer implements Transformer {
     @Override
     public void init(String jsonString) throws PluginException {
         try {
-            config = new JsonConfigHelper(jsonString);
-            init();
+            systemConfig = new JsonSimpleConfig(jsonString);
+            reset();
         } catch (IOException e) {
             throw new PluginException(e);
         }
@@ -152,47 +185,93 @@ public class JsonVelocityTransformer implements Transformer {
     @Override
     public void init(File jsonFile) throws PluginException {
         try {
-            config = new JsonConfigHelper(jsonFile);
-            init();
+            systemConfig = new JsonSimpleConfig(jsonFile);
+            reset();
         } catch (IOException e) {
             throw new PluginException(e);
         }
     }
 
     /**
-     * Initialise the plugin
+     * Initialise the plugin, also used during subsequent executions
+     *
+     * @throws TransformerException if errors occur
      */
-    private void init() throws TransformerException {
-        templates = new File(config.get(
-                "transformerDefaults/jsonVelocity/templatesPath", "templates"));
-        sourcePayload = config.get(
-                "transformerDefaults/jsonVelocity/sourcePayload",
-                "workflow.metadata");
+    private void reset() throws TransformerException {
+        // Utility Library... and test if this is the first execution
+        if (util == null) {
+            util = new Util();
 
-        individualTemplate = config.get(
-                "transformerDefaults/jsonVelocity/individualTemplate", "");
-        util = new Util();
-
-        try {
-            velocity = new VelocityEngine();
-
-            /*Velocity.setProperty(Velocity.RUNTIME_LOG_LOGSYSTEM_CLASS,
-                    "au.edu.usq.fascinator.portal.velocity.Slf4jLogChute");*/
-            velocity.setProperty(Velocity.RESOURCE_LOADER, "file, class");
-            velocity.setProperty(Velocity.FILE_RESOURCE_LOADER_CACHE, "false");
-            velocity.setProperty("class.resource.loader.class",
-                    "org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader");
-            velocity.setProperty("directive.set.null.allowed", "true");
-
-            File templateDir = templates;
-            if (templates.isFile()) {
-                templateDir = templates.getParentFile();
+            // Find where our templates are
+            String templatePath = systemConfig.getString(null,
+                    "transformerDefaults", "jsonVelocity", "templatesPath");
+            if (templatePath != null) {
+                systemTemplates = new File(templatePath);
+                if (systemTemplates == null || !systemTemplates.exists()) {
+                    throw new TransformerException("Error finding " +
+                            "template path: '" + templatePath + "'");
+                }
             }
-            velocity.setProperty(Velocity.FILE_RESOURCE_LOADER_PATH,
-                    templateDir.getAbsolutePath());
-            velocity.init();
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+
+            // What is our source payload
+            systemPayload = systemConfig.getString(DEFAULT_PAYLOAD,
+                    "transformerDefaults", "jsonVelocity", "sourcePayload");
+
+            // What portal should be used in URLs
+            systemPortal = systemConfig.getString(DEFAULT_PORTAL,
+                    "transformerDefaults", "jsonVelocity", "portalId");
+
+            // URL Base
+            urlBase = systemConfig.getString(null, "urlBase");
+            if (urlBase == null) {
+                throw new TransformerException("No URL base in system config");
+            }
+        }
+
+        // Purge old transformations
+        itemConfig = null;
+        itemTemplates = null;
+    }
+
+    /**
+     * Initialise the Velocity engine, paying attention to whether or not
+     * the template path has changed.
+     *
+     * @throws TransformerException if errors occur
+     */
+    private void initVelocityEngine() throws TransformerException {
+        // Reset out velocity engine... if the path has changed
+        if (velocity == null || oldTemplates == null ||
+                !oldTemplates.getAbsolutePath()
+                    .equals(itemTemplates.getAbsolutePath())) {
+
+            log.info("Velocity engine re-initialising. Templates: '{}'",
+                    itemTemplates.getAbsolutePath());
+
+            try {
+                // Store for later
+                oldTemplates = itemTemplates;
+
+                velocity = new VelocityEngine();
+                velocity.setProperty(Velocity.RESOURCE_LOADER, "file, class");
+                velocity.setProperty(Velocity.FILE_RESOURCE_LOADER_CACHE,
+                        "false");
+                velocity.setProperty("class.resource.loader.class",
+                        "org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader");
+                velocity.setProperty("directive.set.null.allowed", "true");
+
+                File templateDir = itemTemplates;
+                if (itemTemplates.isFile()) {
+                    templateDir = itemTemplates.getParentFile();
+                }
+                velocity.setProperty(Velocity.FILE_RESOURCE_LOADER_PATH,
+                        templateDir.getAbsolutePath());
+                velocity.init();
+            } catch (Exception ex) {
+                velocity = null;
+                throw new TransformerException(
+                        "Error initialising Velocity: ", ex);
+            }
         }
     }
 
@@ -236,123 +315,211 @@ public class JsonVelocityTransformer implements Transformer {
         // clean up any resources if required
     }
 
-    public List<File> getListOfTemplates() {
-        List<File> templateList = new ArrayList<File>();
-        if (templates.isDirectory()) {
-            templateList.addAll(Arrays.asList(templates.listFiles()));
-        } else {
-            if (templates.isFile()) {
-                templateList.add(templates);
-            }
-        }
-        return templateList;
-    }
-
     /**
      * Overridden transform method
      * 
-     * @param in to be processed
-     * @param jsonConfig configuration
-     * @return processed DigitalObject
+     * @param in: The DigitalObject to be processed/transformer
+     * @param jsonConfig: The configuration for this item's harvester
+     * @return processed: The DigitalObject after being transformed
      * 
      * @throws TransformerException if fail to transform
      */
     @Override
     public DigitalObject transform(DigitalObject in, String jsonConfig)
             throws TransformerException {
-
+        // Purge previous transformations
+        reset();
         try {
+            itemConfig = new JsonSimple(jsonConfig);
+        } catch (IOException ex) {
+            throw new TransformerException("Invalid configuration! '{}'", ex);
+        }
+
+        // Source payload
+        String source = itemConfig.getString(systemPayload, "sourcePayload");
+        Payload sourcePayload = null;
+        try {
+            // Sometimes config will be just an extension eg. ".tfpackage"
             for (String payloadId : in.getPayloadIdList()) {
-                if (payloadId.endsWith(sourcePayload) == true) {
-                    sourcePayload = payloadId;
+                if (payloadId.endsWith(source)) {
+                    source = payloadId;
                 }
             }
-            log.info("sourcePayload: {}", sourcePayload);
-            Payload source = in.getPayload(sourcePayload);
-            if (source != null) {
-                log.info("source {}", source);
-                Map<String, Object> sourceMap = new JsonConfigHelper(
-                        source.open()).getMap("/");
-                source.close();
+            log.info("Transforming PID '{}' from OID '{}'", source, in.getId());
+            sourcePayload = in.getPayload(source);
+        } catch (StorageException ex) {
+            log.error("Error accessing payload in storage: '{}'", ex);
+        }
 
-                log.info("individualTemplate {}", individualTemplate);
-                if (!individualTemplate.equals("")) {
-                    //Setup the velocity context
-                    VelocityContext vc = new VelocityContext();
+        // Now read the data out of storage
+        JsonSimple json = null;
+        try {
+            json = new JsonSimple(sourcePayload.open());
+            sourcePayload.close();
+        } catch (Exception ex) {
+            throw new TransformerException(
+                    "Error accessing JSON payload: ", ex);
+        }
 
-                    log.info("sourceMap {}", sourceMap);
-                    vc.put("item", sourceMap);
-                    vc.put("util", util);
-                    vc.put("oid", in.getId());
-                    vc.put("object", in);
-                    // TODO: For now just hardcode the portal name
-                    vc.put("urlBase", config.get("urlBase") + "default");
+        // PortalID
+        String portalId = itemConfig.getString(systemPortal, "portalId");
 
-                    // Process individual template
-                    Template pageContent = velocity
-                            .getTemplate(individualTemplate);
-                    StringWriter pageContentWriter = new StringWriter();
-                    // Transform the source
-                    pageContent.merge(vc, pageContentWriter);
-                    String payloadName = payloadName(individualTemplate);
-                    // Save to payload
-                    try {
-                        in.createStoredPayload(payloadName,
-                                new ByteArrayInputStream(pageContentWriter
-                                        .toString().getBytes()));
-                    } catch (StorageException e) {
-                        in.updatePayload(payloadName,
-                                new ByteArrayInputStream(pageContentWriter
-                                        .toString().getBytes()));
-                    }
-                } else {
-                    for (File template : templates.listFiles()) {
-                        //Setup the velocity context
-                        VelocityContext vc = new VelocityContext();
+        // Find all the templates we are running
+        List<File> templates = getListOfTemplates();
+        if (templates.isEmpty()) {
+            log.info("No templates to execute");
+            return in;
+        }
 
-                        log.info("sourceMap {}", sourceMap);
-                        vc.put("item", sourceMap);
-                        vc.put("util", util);
-                        vc.put("oid", in.getId());
-                        vc.put("object", in);
-                        // TODO: For now just hardcode the portal name
-                        vc.put("urlBase", config.get("urlBase") + "default");
+        // Initialise our velocity engine
+        initVelocityEngine();
 
-                        log.info("template {}", template.getAbsolutePath());
-                        // Process each template
-                        Template pageContent = velocity.getTemplate(template
-                                .getName());
-                        StringWriter pageContentWriter = new StringWriter();
-                        log.info("pageContent {}", pageContent);
-                        // Transform the source
-                        pageContent.merge(vc, pageContentWriter);
+        // Bind all the data we want in the template
+        VelocityContext vc = new VelocityContext();
+        vc.put("item", json);
+        vc.put("util", util);
+        vc.put("oid", in.getId());
+        vc.put("object", in);
+        vc.put("urlBase", urlBase + portalId);
 
-                        log.info("storing to payload {}");
-                        String payloadName = payloadName(template.getName());
-                        // Save to payload
-                        try {
-                            in.createStoredPayload(payloadName, new ByteArrayInputStream(
-                                    pageContentWriter.toString().getBytes()));
-                        } catch (StorageException e) {
-                            in.updatePayload(payloadName,
-                                    new ByteArrayInputStream(pageContentWriter
-                                            .toString().getBytes()));
-                        }
-                    }
-                }
-
+        // Render each template
+        for (File file : templates) {
+            String output = null;
+            // Find and render the template
+            try {
+                Template template = velocity.getTemplate(file.getName());
+                log.info("Rendering template: '{}'", file.getName());
+                output = renderTemplate(template, vc);
+            } catch (Exception ex) {
+                log.error("Error rendering template: '{}': {}",
+                        file.getName(), ex);
             }
-        } catch (ResourceNotFoundException e) {
-            log.error("Template not found: ", e);
-        } catch (ParseErrorException e) {
-            log.error("Template parse error: ", e);
-        } catch (Exception e) {
-            log.error("Unknown error: ", e);
+
+            if (output == null) {
+                log.error("Unknonw error rendering template: '{}'",
+                        file.getName());
+            } else {
+                // Store the output
+                try {
+                    String payloadName = payloadName(file.getName());
+                    storeData(in, payloadName, output);
+                } catch (Exception ex) {
+                    log.error("Error storing rendered output: '{}': {}",
+                            file.getName(), ex);
+                }
+            }
         }
 
         return in;
     }
 
+    /**
+     * Render a velocity template
+     *
+     * @param template: The template to render
+     * @param context: The Velocity context with data
+     * @return String: The rendered output
+     * @throws TransformerException if the render fails
+     */
+    private String renderTemplate(Template template, VelocityContext context)
+            throws TransformerException {
+        StringWriter writer = new StringWriter();
+        try {
+            template.merge(context, writer);
+        } catch (IOException ex) {
+            throw new TransformerException("Error rendering template: ", ex);
+        }
+        return writer.toString();
+    }
+
+    /**
+     * Store the provided data
+     *
+     * @param object: The object to store the data in
+     * @param pid: The payload ID to use in the object
+     * @param data : The data to store
+     * @return Payload: The payload object successfully stored
+     * @throws TransformerException if storage fails
+     */
+    private Payload storeData(DigitalObject object, String pid, String data)
+            throws TransformerException {
+        try {
+            try {
+                return object.createStoredPayload(pid, stream(data));
+            } catch (StorageException ex) {
+                // Already exists, try an update
+                return object.updatePayload(pid, stream(data));
+            }
+        } catch (UnsupportedEncodingException ex) {
+            throw new TransformerException("Error in data encoding: ", ex);
+        } catch (StorageException ex) {
+            throw new TransformerException("Error storing payload: ", ex);
+        }
+    }
+
+    /**
+     * Convert the provided String into an InputStream, assuming UTF8 character
+     * encoding.
+     *
+     * @param string: The String to convert
+     * @return InputStream: The InputStream holding the String's data
+     * @throws UnsupportedEncodingException if the String does not contain UTF8
+     */
+    private InputStream stream(String string)
+            throws UnsupportedEncodingException {
+        return new ByteArrayInputStream(string.getBytes("UTF8"));
+    }
+
+    /**
+     * Find the list of template Files to execute this pass, looking at the
+     * item configuration and the default values.
+     *
+     * @return List<File>: The list of Files, possibly empty
+     */
+    public List<File> getListOfTemplates() {
+        List<File> templateList = new ArrayList<File>();
+
+        // Find where our templates are
+        String templatePath = itemConfig.getString(null, "templatesPath");
+        if (templatePath != null) {
+            itemTemplates = new File(templatePath);
+            if (itemTemplates == null || !itemTemplates.exists()) {
+                log.error("Error finding template path: '{}'", templatePath);
+                itemTemplates = systemTemplates;
+            }
+        } else {
+            itemTemplates = systemTemplates;
+        }
+
+        // Error case
+        if (itemTemplates == null) {
+            log.error("No configured or default templates!");
+            return templateList;
+        }
+
+        // Process directory or individual and return
+        if (itemTemplates.isDirectory()) {
+            // Make sure we only run velocity tempaltes
+            for (File template : itemTemplates.listFiles()) {
+                if (template.getName().endsWith(".vm")) {
+                    templateList.add(template);
+                }
+            }
+        } else {
+            if (itemTemplates.isFile()) {
+                templateList.add(itemTemplates);
+            }
+        }
+        return templateList;
+    }
+
+    /**
+     * Given the name of the provided template, change the extension for use as
+     * a payload ID. At this point in time, this is hardcoded to .xml
+     *
+     * @param templateName: The name of the template file
+     * @return String: The payload ID to use
+     */
     private String payloadName(String templateName) {
         return templateName.substring(0, templateName.indexOf(".")) + ".xml";
     }
