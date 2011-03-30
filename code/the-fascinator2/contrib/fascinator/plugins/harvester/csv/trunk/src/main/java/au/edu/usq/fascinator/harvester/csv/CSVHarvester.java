@@ -294,9 +294,14 @@ public class CSVHarvester extends GenericHarvester {
             String oid = DigestUtils.md5Hex(filename + idPrefix + recordId);
             DigitalObject object = StorageUtils.getDigitalObject(getStorage(), oid);
 
+            // Make our JSON human readable
+            JsonSimple jsonSimple = new JsonSimple(json);
+            String jsonString = jsonSimple.toString(true);
+
             // add the JSON payload
-            InputStream jsonStream = IOUtils.toInputStream(json.toString(), "UTF-8");
-            Payload payload = StorageUtils.createOrUpdatePayload(object, payloadId, jsonStream);
+            InputStream jsonStream = IOUtils.toInputStream(jsonString, "UTF-8");
+            Payload payload = StorageUtils.createOrUpdatePayload(
+                    object, payloadId, jsonStream);
             payload.setContentType("application/json");
             payload.close();
 
