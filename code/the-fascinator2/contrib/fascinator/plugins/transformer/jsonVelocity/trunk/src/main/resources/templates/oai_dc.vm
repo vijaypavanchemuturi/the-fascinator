@@ -12,7 +12,14 @@
     #end
 #end
 
-#macro(showSingleElement $map $tag $field $attr)
+#macro(showSingleElement $json $tag $field $attr)
+    #set($value = $util.get($json, $field))
+    #if ($value != "")
+<$tag$attr>$util.encodeXml($value)</$tag>
+    #end
+#end
+
+#macro(showSingleMapElement $map $tag $field $attr)
     #set($value = $map.get($field))
     #if ($value != "")
 <$tag$attr>$util.encodeXml($value)</$tag>
@@ -39,10 +46,10 @@
         #set($creator = $creatorList.get($key))
         #set($givenName = $creator.get("foaf:givenName").trim())
         #set($familyName = $creator.get("foaf:familyName").trim())
-        <dc:creator>$util.encodeXml("${givenName}&nbsp;${familyName}")</dc:creator>
-#showSingleElement($creator, "dc:relation", "dc:identifier", "")
-#showSingleElement($creator, "dc:relation", "association", "")
-#showSingleElement($creator, "dc:relation", "association.skos:prefLabel", "")
+        <dc:creator>$util.encodeXml("${givenName} ${familyName}")</dc:creator>
+#showSingleMapElement($creator, "dc:relation", "dc:identifier", "")
+#showSingleMapElement($creator, "dc:relation", "association", "")
+#showSingleMapElement($creator, "dc:relation", "association.skos:prefLabel", "")
 #end 
 
 </oai_dc:dc>

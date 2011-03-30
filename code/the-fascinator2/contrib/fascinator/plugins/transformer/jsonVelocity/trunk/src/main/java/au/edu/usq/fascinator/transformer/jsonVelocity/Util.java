@@ -2,6 +2,7 @@ package au.edu.usq.fascinator.transformer.jsonVelocity;
 
 import au.edu.usq.fascinator.api.storage.DigitalObject;
 import au.edu.usq.fascinator.api.storage.StorageException;
+import au.edu.usq.fascinator.common.JsonSimple;
 
 import java.text.DecimalFormat;
 import java.text.ParseException;
@@ -25,10 +26,10 @@ import org.slf4j.LoggerFactory;
  * 
  */
 public class Util {
+
     /** Logger */
-    static Logger log = LoggerFactory
-            .getLogger(JsonVelocityTransformer.class);
-    
+    static Logger log = LoggerFactory.getLogger(JsonVelocityTransformer.class);
+
     /**
      * Getlist method to get the values of key from the sourceMap
      *
@@ -46,35 +47,103 @@ public class Util {
 
         for (String key : sourceMap.keySet()) {
             if (key.startsWith(baseKey)) {
-                
+
                 String value = sourceMap.get(key).toString();
                 String field = baseKey;
-                if (key.length() >= baseKey.length())
+                if (key.length() >= baseKey.length()) {
                     field = key.substring(baseKey.length(), key.length());
-                
+                }
+
                 String index = field;
-                if (field.indexOf(".")>0)
+                if (field.indexOf(".") > 0) {
                     index = field.substring(0, field.indexOf("."));
-                
-                if (valueMap.containsKey(index))
+                }
+
+                if (valueMap.containsKey(index)) {
                     data = (Map<String, Object>) valueMap.get(index);
-                else { 
+                } else {
                     data = new LinkedHashMap<String, Object>();
                     valueMap.put(index, data);
                 }
-                 
-                if (value.length() == 1)
+
+                if (value.length() == 1) {
                     value = String.valueOf(value.charAt(0));
-                
+                }
+
                 data.put(field.substring(field.indexOf(".") + 1, field.length()), value);
-                
+
             }
         }
-        
-        log.info("{}: {}", baseKey, valueMap);
+
         return valueMap;
     }
-    
+
+    /**
+     * Getlist method to get the values of key from the sourceMap
+     *
+     * @param sourceMap Map container
+     * @param baseKey field to search
+     * @return list of value based on baseKey
+     */
+    public Map<String, Object> getList(JsonSimple json, String baseKey) {
+        if (!baseKey.endsWith(".")) {
+            baseKey = baseKey + ".";
+        }
+
+        SortedMap<String, Object> valueMap = new TreeMap<String, Object>();
+        Map<String, Object> data;
+
+        // Look through the top level nodes
+        for (Object oKey : json.getJsonObject().keySet()) {
+            // If the key matches
+            String key = (String) oKey;
+            if (key.startsWith(baseKey)) {
+                // Find our data
+                String value = json.getString(null, key);
+                String field = baseKey;
+
+                if (key.length() >= baseKey.length()) {
+                    field = key.substring(baseKey.length(), key.length());
+                }
+
+                String index = field;
+                if (field.indexOf(".") > 0) {
+                    index = field.substring(0, field.indexOf("."));
+                }
+
+                if (valueMap.containsKey(index)) {
+                    data = (Map<String, Object>) valueMap.get(index);
+                } else {
+                    data = new LinkedHashMap<String, Object>();
+                    valueMap.put(index, data);
+                }
+
+                if (value.length() == 1) {
+                    value = String.valueOf(value.charAt(0));
+                }
+
+                data.put(field.substring(
+                        field.indexOf(".") + 1, field.length()), value);
+
+            }
+        }
+
+        //log.info("{}: {}", baseKey, valueMap);
+        return valueMap;
+    }
+
+    /**
+     * Trivial wrapper for call into JSON Library. Removes the difficulty of
+     * dealing with a null argument and a vararg from Velocity.
+     *
+     * @param json: The JSON object to get from
+     * @param field: The field in the JSON object to get
+     * @return String: The data in the field, possibly NULL
+     */
+    public String get(JsonSimple json, Object... field) {
+        return json.getString(null, field);
+    }
+
     /**
      * Cleanup the supplied datetime value into a W3C format.
      *
@@ -82,9 +151,9 @@ public class Util {
      * @return String The cleaned value
      * @throws ParseException if and incorrect input is supplied
      */
-    public String getW3CDateTime (String dateTime) throws ParseException {
+    public String getW3CDateTime(String dateTime) throws ParseException {
         if (!dateTime.equals(null) && !dateTime.equals("")) {
-            if (dateTime.indexOf("-")==-1) {
+            if (dateTime.indexOf("-") == -1) {
                 dateTime = dateTime + "-01-01";
             } else {
                 String[] part = dateTime.trim().split("-");
@@ -97,9 +166,10 @@ public class Util {
 
             Date date = sdf.parse(dateTime);
             //log.info("ISO8601 Date:  {}", formatDate(date));
-            log.info("W3C Date:  {}", odf.format(date));
+            //log.info("W3C Date:  {}", odf.format(date));
             return odf.format(date);
-        } return "";
+        }
+        return "";
     }
 
     // ISO8601 Dates.   Lifted from this example:
@@ -116,15 +186,15 @@ public class Util {
         int offset = ISO8601Local.getTimeZone().getOffset(input.getTime());
         String sign = "+";
         if (offset < 0) {
-          offset = -offset;
-          sign = "-";
+            offset = -offset;
+            sign = "-";
         }
         int hours = offset / 3600000;
         int minutes = (offset - hours * 3600000) / 60000;
 
         // Put it all together
-        return ISO8601Local.format(input) + sign +
-                twoDigits.format(hours) + ":" + twoDigits.format(minutes);
+        return ISO8601Local.format(input) + sign
+                + twoDigits.format(hours) + ":" + twoDigits.format(minutes);
     }
 
     /**
