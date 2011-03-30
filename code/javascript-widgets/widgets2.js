@@ -1147,6 +1147,7 @@ var widgets={forms:[], globalObject:this};
       onError=function(status,err){
         selLocation.text("Error failed to load selection data: "+status);
         selLocation.css("color", "red");
+        ds.parent().find(".item-add,.selection-add").attr("disabled", "disabled");
         var retry=$("<a href='#'> retry</a>");
         selLocation.append(retry);
         retry.click(function(){
