@@ -260,6 +260,9 @@ public class JsonVelocityTransformer implements Transformer {
                         "org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader");
                 velocity.setProperty("directive.set.null.allowed", "true");
 
+                Velocity.setProperty(Velocity.RUNTIME_LOG_LOGSYSTEM_CLASS,
+                    "au.edu.usq.fascinator.portal.velocity.Slf4jLogChute");
+
                 File templateDir = itemTemplates;
                 if (itemTemplates.isFile()) {
                     templateDir = itemTemplates.getParentFile();
