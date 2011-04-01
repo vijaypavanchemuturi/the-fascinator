@@ -39,11 +39,20 @@ public class Util {
      */
     public Map<String, Object> getList(Map<String, Object> sourceMap,
             String baseKey) {
+        SortedMap<String, Object> valueMap = new TreeMap<String, Object>();
+        Map<String, Object> data;
+
+        if (baseKey == null) {
+            log.error("NULL baseKey provided!");
+            return valueMap;
+        }
         if (!baseKey.endsWith(".")) {
             baseKey = baseKey + ".";
         }
-        SortedMap<String, Object> valueMap = new TreeMap<String, Object>();
-        Map<String, Object> data;
+        if (sourceMap == null) {
+            log.error("NULL sourceMap provided!");
+            return valueMap;
+        }
 
         for (String key : sourceMap.keySet()) {
             if (key.startsWith(baseKey)) {
@@ -86,12 +95,21 @@ public class Util {
      * @return list of value based on baseKey
      */
     public Map<String, Object> getList(JsonSimple json, String baseKey) {
+        SortedMap<String, Object> valueMap = new TreeMap<String, Object>();
+        Map<String, Object> data;
+
+        if (baseKey == null) {
+            log.error("NULL baseKey provided!");
+            return valueMap;
+        }
         if (!baseKey.endsWith(".")) {
             baseKey = baseKey + ".";
         }
 
-        SortedMap<String, Object> valueMap = new TreeMap<String, Object>();
-        Map<String, Object> data;
+        if (json == null) {
+            log.error("NULL JSON object provided!");
+            return valueMap;
+        }
 
         // Look through the top level nodes
         for (Object oKey : json.getJsonObject().keySet()) {
@@ -141,6 +159,11 @@ public class Util {
      * @return String: The data in the field, possibly NULL
      */
     public String get(JsonSimple json, Object... field) {
+        if (json == null) {
+            log.error("NULL JSON object provided!");
+            return "";
+        }
+
         return json.getString(null, field);
     }
 
@@ -207,6 +230,11 @@ public class Util {
      * @return String: The value of the property, or and empty string.
      */
     public String getMetadata(DigitalObject object, String field) {
+        if (object == null) {
+            log.error("NULL object provided!");
+            return "";
+        }
+
         try {
             Properties metadata = object.getMetadata();
             String result = metadata.getProperty(field);
