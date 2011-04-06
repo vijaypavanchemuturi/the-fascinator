@@ -547,8 +547,9 @@ var widgets={forms:[], globalObject:this};
     var helpContent, showText, hideText, url, p, t;
     var showLink, hideLink, doNext;
     var show, hide;
-    if(e.dataset("help-content-id")){
-        helpContent = $("#" + e.dataset("help-content-id"));
+    var helpContentId = e.dataset("help-content-id");
+    if(helpContentId){
+        helpContent = $("#" + helpContentId.replace(/(:|\.)/g,'\\$1'));
     }else{
         helpContent = e.dataset("help-content-class");
         p=e.parent();
@@ -614,7 +615,7 @@ var widgets={forms:[], globalObject:this};
   function listInput(c, i){
     try{
       var liSect, count, tmp, visibleItems, displayRowTemplate, displaySelector;
-      var add, del, getDelFuncFor, reorder, addUniqueOnly=false;
+      var add, del, getDelFuncFor, reorder, addUniqueOnly=false, resetOnAdd=false;
       var maxSize, minSize, addButton, addButtonDisableTest;
       var xfind, regFirst0, regLast;
       regFirst0 = /\.0(?=\.|$)/;
@@ -723,11 +724,15 @@ var widgets={forms:[], globalObject:this};
           addButton.trigger("disableTest");
           if(count>=maxSize){addButton.attr("disabled", true);}
           contentSetup(tmp);
+          if(resetOnAdd){
+              xfind("select:first").val("").change();
+          }
         }
         addButton.click(add);
         addButton[0].forceAdd = function(){add(null, true);};
         addButton[0].add = add;
         addUniqueOnly = addButton.hasClass("add-unique-only");
+        resetOnAdd = addButton.hasClass("reset-on-add");
         xfind(".item-input input[type=text]").last().keypress(function(e){
           if(e.which==13){
             add();
@@ -914,7 +919,7 @@ var widgets={forms:[], globalObject:this};
       var s, o, ns=json.namespace||"", _default=json["default"], list=json.list;
       s = $("<select/>");
       if(!_default){
-        s.append($("<option value=''>Please select one</option>"));
+        s.append($("<option value=''>Please select one...</option>"));
       }
       $.each(list, function(_c, i){
         if(!i)return;
@@ -957,7 +962,7 @@ var widgets={forms:[], globalObject:this};
           selectable = (json.selectable==null)?(!!parent.selectable):(!!json.selectable);
           s = $("<select/>");
           if(!json["default"]){
-            o = $("<option value=''>Please select one</option>");
+            o = $("<option value=''>Please select one...</option>");
             s.append(o);
           }
           $.each(json.list, function(c, i){
@@ -1184,7 +1189,7 @@ var widgets={forms:[], globalObject:this};
             saLabel.val(selAddLabel).trigger("onDataChanged");
             selAdd.trigger("disableTest");
             if(!saLabelWidth){saLabelWidth=saLabel.width();}
-            if(saLabelWidth){   // ajust width as required
+            if(saLabelWidth){   // adjust width as required
                 sTemp=$("<span/>");
                 sTemp.text(selAddLabel).hide().insertAfter(saLabel);
                 w=sTemp.width()+4;
