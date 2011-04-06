@@ -42,6 +42,7 @@
       </p>
       <p>
         <label>Roles</label>
+      </p>
         #set ($roles_list = $page.authentication.get_roles_list())
         <ul>
           #foreach($role in $roles_list)
@@ -49,7 +50,7 @@
           #end
         </ul>
         #parseTemplate("dialogs/user-data-message.vm")
-      </p>
+      
     </fieldset>
   </form>
 </div>

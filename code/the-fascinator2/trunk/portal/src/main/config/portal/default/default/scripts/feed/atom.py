@@ -1,7 +1,8 @@
 import os
 
 from au.edu.usq.fascinator.api.indexer import SearchRequest
-from au.edu.usq.fascinator.common import JsonSimpleConfig
+from au.edu.usq.fascinator.common import JsonSimple
+from au.edu.usq.fascinator.common.solr import SolrResult
 
 from java.io import ByteArrayInputStream
 from java.io import ByteArrayOutputStream
@@ -14,6 +15,10 @@ class AtomData:
 
     def __activate__(self, context):
         self.velocityContext = context
+        self.portalId = self.velocityContext["portalId"]
+        self.sessionState = self.velocityContext["sessionState"]
+        self.portal = Services.getPortalManager().get(self.portalId)
+        self.__result = None
         self.__feed()
 
     # Get from velocity context
@@ -25,9 +30,8 @@ class AtomData:
             return None
 
     def __feed(self):
-        portal = Services.getPortalManager().get(self.vc("portalId"))
-        recordsPerPage = portal.recordsPerPage
-        pageNum = self.vc("sessionState").get("pageNum", 1)
+        recordsPerPage = self.portal.recordsPerPage
+        pageNum = self.sessionState.get("pageNum", 1)
 
         query = "*:*"
         if self.vc("formData").get("query"):
@@ -37,28 +41,28 @@ class AtomData:
         req = SearchRequest(query)
         req.setParam("facet", "true")
         req.setParam("rows", str(recordsPerPage))
-        req.setParam("facet.field", portal.facetFieldList)
+        req.setParam("facet.field", self.portal.facetFieldList)
         req.setParam("facet.sort", "true")
-        req.setParam("facet.limit", str(portal.facetCount))
+        req.setParam("facet.limit", str(self.portal.facetCount))
         req.setParam("sort", "f_dc_title asc")
 
-        portalQuery = portal.query
+        portalQuery = self.portal.query
         if portalQuery:
             req.addParam("fq", portalQuery)
         else:
-            fq = sessionState.get("fq")
+            fq = self.sessionState.get("fq")
             if fq is not None:
                 req.setParam("fq", fq)
-
+        req.addParam("fq", 'item_type:"object"')
         req.setParam("start", str((pageNum - 1) * recordsPerPage))
 
-        print " * query: ", query
-        print " * portalQuery='%s'" % portalQuery
-        print " * feed.py:", req.toString()
+        #print " * query: ", query
+        #print " * portalQuery='%s'" % portalQuery
+        #print " * feed.py:", req.toString()
 
         out = ByteArrayOutputStream()
         Services.indexer.search(req, out)
-        self.__result = JsonSimpleConfig(ByteArrayInputStream(out.toByteArray()))
+        self.__result = SolrResult(ByteArrayInputStream(out.toByteArray()))
 
     def cleanUp(self, value):
         return value.replace("<", "&lt;").replace(">", "&gt;").replace("&", "&amp;")
@@ -71,6 +75,9 @@ class AtomData:
 
     def getFileName(self, path):
         return os.path.split(path)[1]
+    
+    def getBaseUrl(self):
+        return self.velocityContext["urlBase"]
 
     def __escapeQuery(self, q):
         eq = q
