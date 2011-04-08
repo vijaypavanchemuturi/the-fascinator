@@ -908,7 +908,7 @@ var widgets={forms:[], globalObject:this};
             pendingWorkDone();
         };
         //$.getJSON(url, success);
-        $.ajax({url:url, dataType:"json", success:success, error:error, timeout:7000});
+        $.ajax({url:url, dataType:"json", success:success, error:error, timeout:10000});
       }
       return jsonGetter;
   }
@@ -1136,6 +1136,11 @@ var widgets={forms:[], globalObject:this};
       }
       onJson=function(json){
         try{
+            // inject default value if set
+            var _default=ds.dataset("default-value");
+            if(_default){
+                json["default"]=_default;
+            }
             // OK now build the select-option
             var o = buildSelectList(json, {"selectable":1}, jsonConverterGetter, onSelection);
             if(selectId){
