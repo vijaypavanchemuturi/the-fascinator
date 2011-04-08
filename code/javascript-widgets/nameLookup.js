@@ -9,7 +9,7 @@ var globalObject=this;
                   title:"Name lookup",
                   height:350,  maxHeight:600,
                   width:400,
-                  modal:false,
+                  modal:true,
                   resizable:true,
                   position:"center",
                   draggable:true,
@@ -19,10 +19,10 @@ var globalObject=this;
                   title:"Detail information",
                   height:"auto",
                   width:400,
-                  modal:false,
+                  modal:true,
                   resizable:true,
                   position:"center",
-                  draggable:false,
+                  draggable:true,
                   autoOpen:false
                 });
             gdialog = dialog;
@@ -121,11 +121,28 @@ var globalObject=this;
         detailDialog.html("");
         detailDialog.text(name);
         detailDialog.append("<hr/>");
-        $.each(details, function(k, v){
-            var d=$("<div/>");
-            d.text(k+" : "+v);
-            detailDialog.append(d);
-        });
+        data = details["result-metadata"]["all"];
+        console.log(data);
+        if(data){
+            var table=$("<table/>");
+            function addField(term,field){
+                field=field||term;
+                table.append($("<tr ><th>"+term+"</th><td>"+data[field]+"</td></tr>"));
+            }
+            addField("Title", "Honorific");
+            addField("Given Name");
+            addField("Family Name");
+            addField("Email");
+            addField("Division");
+            addField("School");
+            detailDialog.append(table);
+        }else{
+            $.each(details, function(k, v){
+                var d=$("<div/>");
+                d.text(k+" : "+JSON.stringify(v));
+                detailDialog.append(d);
+            });
+        }
         detailDialog.dialog("option", "buttons", {
                             "OK": function(){link.click(); detailDialog.dialog("close");},
                             "Cancel": function(){detailDialog.dialog("close");}
@@ -165,10 +182,13 @@ var globalObject=this;
             while(parent.size() && (parent.find(".nameLookup-name").size()==0)){
                 parent=parent.parent();
             }
+            var progressElem = parent.find(".nameLookup-progress");
             queryTerm = parent.find(".nameLookup-name").map(function(i, e){return e.value;});
             queryTerm = $.trim($.makeArray(queryTerm).join(" "));
             //if(queryTerm==="") return false;
             // Note: double escape the parameter because it is being passed as a parameter inside a parameter
+            progressElem.show();
+            target.hide();
             selectedNameCallback=function(ok, result){
                 debug(ok);
                 if(ok){
@@ -197,6 +217,8 @@ var globalObject=this;
                         }catch(e){alert("Error executing selected-func. "+e.message);}
                     }
                 }
+                progressElem.hide();
+                target.show();
             };
             // curry getJson
             cGetJson=function(queryTerm, callback){
