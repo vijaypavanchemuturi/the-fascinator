@@ -1143,6 +1143,9 @@ var widgets={forms:[], globalObject:this};
                 json["default"]=_default;
             }
             json.restored = ds.find(".selection-added-id").val();
+            if(json.restored){
+                json.restored=(json.restored.trim()=="")?null:json.restored;
+            }
             // OK now build the select-option
             var o = buildSelectList(json, {"selectable":1}, jsonConverterGetter, onSelection);
             if(selectId){
