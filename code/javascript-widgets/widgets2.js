@@ -956,7 +956,7 @@ var widgets={forms:[], globalObject:this};
   // ==============
   function buildSelectList(json, parent, jsonGetter, onSelection){
       var s, o, children={}, ns, selectable, loading;
-      var onJson, onError;
+      var onJson, onError, selected;
       try{
           ns = (json.namespace || "") || (parent.namespace || "");
           selectable = (json.selectable==null)?(!!parent.selectable):(!!json.selectable);
@@ -965,6 +965,7 @@ var widgets={forms:[], globalObject:this};
             o = $("<option value=''>Please select one...</option>");
             s.append(o);
           }
+          selected = json.restored || json["default"];
           $.each(json.list, function(c, i){
             if(i){
                 var sel=!!(i.selectable!=null?i.selectable:selectable);
@@ -972,7 +973,7 @@ var widgets={forms:[], globalObject:this};
                             selectable:sel, namespace:ns, parent:parent};
                 o = $("<option/>");
                 o.attr("value", i.id);
-                if(i.id==json["default"]) o.attr("selected", "selected");
+                if(i.id==selected) o.attr("selected", "selected");
                 o.text(i.label);
                 s.append(o);
             }
@@ -1141,6 +1142,7 @@ var widgets={forms:[], globalObject:this};
             if(_default){
                 json["default"]=_default;
             }
+            json.restored = ds.find(".selection-added-id").val();
             // OK now build the select-option
             var o = buildSelectList(json, {"selectable":1}, jsonConverterGetter, onSelection);
             if(selectId){
