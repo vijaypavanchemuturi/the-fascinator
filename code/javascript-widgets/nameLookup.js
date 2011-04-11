@@ -106,6 +106,11 @@ var globalObject=this;
                             detailDialog.dialog("close");
                             if(value) callback(true, JSON.parse(value));
                           },
+                          "Clear":function(){
+                            dialog.dialog("close");
+                            detailDialog.dialog("close");
+                            callback(false,"clear");
+                          },
                           "Cancel":function(){
                             dialog.dialog("close");
                             detailDialog.dialog("close");
@@ -207,14 +212,20 @@ var globalObject=this;
                                 }
                             });
                         });
-                    }
-                    xUpdate(valueNs, "val");
+                    }                    xUpdate(valueNs, "val");
                     xUpdate(textNs, "text");
                     var selectedFunc=globalObject[target.dataset("selected-func")];
                     if($.isFunction(selectedFunc)){
                         try{
                             selectedFunc(target, result);
                         }catch(e){alert("Error executing selected-func. "+e.message);}
+                    }
+                }else if(result=="clear"){
+                    var clearedFunc=globalObject[target.dataset("cleared-func")];
+                    if($.isFunction(clearedFunc)){
+                        try{
+                            clearedFunc(target, result);
+                        }catch(e){alert("Error executing cleared-func. "+e.message);}
                     }
                 }
                 progressElem.hide();
