@@ -774,7 +774,11 @@ public class JsonSimple {
             if (data == null) {
                 dataString = "null";
             } else {
-                dataString = "\"" + data.toString() + "\"";
+                // Escape quotes and slashes
+                String value = data.toString();
+                value = value.replace("\\", "\\\\");
+                value = value.replace("\"", "\\\"");
+                dataString = "\"" + value + "\"";
             }
         }
 
