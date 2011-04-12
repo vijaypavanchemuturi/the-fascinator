@@ -486,5 +486,13 @@ public class JsonSimpleTest {
         raw = newJson.getJsonObject();
         Assert.assertTrue(raw.containsKey("nullNode"));
         Assert.assertNull(raw.get("nullNode"));
+
+        // Specific test for error observed in #1616
+        JsonObject object = new JsonObject();
+        object.put("quote", "Some \"quoted\" text with \\ escaped characters");
+        newJson = new JsonSimple(object);
+        // Exception will be thrown here re-parsing incorrectly
+        //  escaped quote if error is not fixed
+        JsonSimple testJson = new JsonSimple(newJson.toString(true));
     }
 }
