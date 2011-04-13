@@ -15,6 +15,17 @@ class WorkflowData:
     def __activate__(self, context):
         self.velocityContext = context
 
+        # prepare variables
+        self.setup()
+
+        self.getObject()
+        self.getWorkflowMetadata()
+
+        if self.formProcess:
+            self.processForm()
+        #print "workflow.py - UploadedData.__init__() done."
+
+    def setup(self):
         self.errorMsg = None
         # Test if some actual form data is available
         self.fileName = self.vc("formData").get("upload-file-file")
@@ -36,10 +47,10 @@ class WorkflowData:
             uploadFormData = self.vc("sessionState").get("uploadFormData")
             if uploadFormData:
                 self.fileProcessing = uploadFormData.get("fileProcessing")
-            
+
             if oid is None and uploadFormData:
                 oid = uploadFormData.get("oid")
-            
+
             if oid is [] and self.fileProcessing=="true":
                 self.formProcess = True
             elif oid is None:
@@ -60,13 +71,6 @@ class WorkflowData:
             #print "***** Upload details:", repr(self.fileDetails)
             self.template = self.fileDetails.get("template")
             self.errorMsg = self.fileDetails.get("error")
-
-        self.getObject()
-        self.getWorkflowMetadata()
-
-        if self.formProcess:
-            self.processForm()
-        #print "workflow.py - UploadedData.__init__() done."
 
     # Get from velocity context
     def vc(self, index):
