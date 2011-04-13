@@ -1,15 +1,13 @@
-#if ($noLayout)
-$!pageContent
-#else
+#if($noLayout)$!pageContent#else
 <!DOCTYPE html>
 <html>
-  <head>
-#parse($page.getTemplate('layout/html-head.vm'))
-  </head>
-  <body>
-#parse($page.getTemplate('layout/jquery-settings.vm'))
-#parse($page.getTemplate('layout/page-structure.vm'))
-#parse($page.getTemplate('layout/action-form.vm'))
-  </body>
+    <head>
+        #parseTemplate("layout/html-head.vm")
+    </head>
+    <body>
+        #parseTemplate("layout/jquery-settings.vm")
+        #parseTemplate("layout/page-structure.vm")
+        #parseTemplate("layout/action-form.vm")
+    </body>
 </html>
 #end

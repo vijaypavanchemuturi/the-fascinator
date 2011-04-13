@@ -794,7 +794,7 @@ public class SolrIndexer implements Indexer {
             // Anotar rules
             inStream = getClass().getResourceAsStream("/anotar.py");
             log.debug("First time parsing rules script: 'ANOTAR'");
-            rulesObject = evalScript(inStream);
+            rulesObject = evalScript(inStream, "anotar.py");
             cachePythonObject(oid, rulesObject);
             return rulesObject;
 
@@ -804,10 +804,11 @@ public class SolrIndexer implements Indexer {
             Payload payload;
             try {
                 object = storage.getObject(oid);
-                payload = object.getPayload(object.getSourceId());
+                String scriptName = object.getSourceId();
+                payload = object.getPayload(scriptName);
                 inStream = payload.open();
                 log.debug("First time parsing rules script: '{}'", oid);
-                rulesObject = evalScript(inStream);
+                rulesObject = evalScript(inStream, scriptName);
                 payload.close();
                 cachePythonObject(oid, rulesObject);
                 return rulesObject;
@@ -858,12 +859,13 @@ public class SolrIndexer implements Indexer {
      * Evaluate and return a Python script.
      * 
      * @param inStream : InputStream containing the script to evaluate
+     * @param scriptName : filename of the script (mainly for debugging)
      * @return PyObject : Compiled result
      */
-    private PyObject evalScript(InputStream inStream) {
+    private PyObject evalScript(InputStream inStream, String scriptName) {
         // Execute the script
         PythonInterpreter python = new PythonInterpreter();
-        python.execfile(inStream);
+        python.execfile(inStream, scriptName);
         // Get the result and cleanup
         PyObject scriptClass = python.get(SCRIPT_CLASS_NAME);
         python.cleanup();
