@@ -13,11 +13,8 @@ class WorkflowData:
         pass
 
     def __activate__(self, context):
-        self.velocityContext = context
-
         # prepare variables
-        self.setup()
-
+        self.setup(context)
         self.getObject()
         self.getWorkflowMetadata()
 
@@ -25,7 +22,8 @@ class WorkflowData:
             self.processForm()
         #print "workflow.py - UploadedData.__init__() done."
 
-    def setup(self):
+    def setup(self, context):
+        self.velocityContext = context
         self.errorMsg = None
         # Test if some actual form data is available
         self.fileName = self.vc("formData").get("upload-file-file")
