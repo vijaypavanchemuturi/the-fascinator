@@ -891,6 +891,7 @@ var widgets={forms:[], globalObject:this};
             pendingWorkDone = pendingWorkStart(url);
         }
         success=function(data){
+            if(typeof(pendingWorkDone)==="undefined") { return; }
             if(!urlId){
                 jsonCache=data;
             }
@@ -904,6 +905,7 @@ var widgets={forms:[], globalObject:this};
             pendingWorkDone();
         };
         error=function(xhr,status,err){
+            if(typeof(pendingWorkDone)==="undefined") { return; }
             if($.isFunction(onError))onError(status,err);
             pendingWorkDone();
         };
@@ -1326,6 +1328,7 @@ var widgets={forms:[], globalObject:this};
         }
         data = getFormData();
         completed=function(data, dataStr){
+            if(typeof(getFormData)==="undefined") { return; }
             if(typeof(data)=="string"){
                 dataStr=data;
                 try{
@@ -1383,7 +1386,7 @@ var widgets={forms:[], globalObject:this};
                 $.ajax({type:"POST", url:url, data:data,
                     success:completed,
                     error:function(xhr, status, e){
-                        _gxhr=xhr;
+                        if(typeof(completed)==="undefined") { return; }
                         completed({error:"status='"+status+"'"}, xhr.responseText);
                     },
                     dataType:"json"
@@ -1682,6 +1685,7 @@ var widgets={forms:[], globalObject:this};
         idu=ctx.dataset("init-data-url");
         if(idu){
             $.getJSON(idu, function(j){
+                if(typeof(widgetForm)==="undefined"){ return; }
                 widgetForm.restore(j);
             });
         }
