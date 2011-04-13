@@ -22,7 +22,7 @@ class WorkflowData:
         self.localFormData = None
         self.metadata = None
         self.object = None
-        self.pageService = Services.getPageService()
+        self.pageService = self.vc("Services").getPageService()
         self.renderer = self.vc("toolkit").getDisplayComponent(self.pageService)
         self.template = None
         self.uploadRequest = None
@@ -57,7 +57,7 @@ class WorkflowData:
                 self.fileName = dispatchFileName
             self.hasUpload = True
             self.fileDetails = self.vc("sessionState").get(self.fileName)
-            print "***** Upload details:", repr(self.fileDetails)
+            #print "***** Upload details:", repr(self.fileDetails)
             self.template = self.fileDetails.get("template")
             self.errorMsg = self.fileDetails.get("error")
 
@@ -146,7 +146,7 @@ class WorkflowData:
             # Now get the object
             if oid is not None:
                 try:
-                    self.object = Services.storage.getObject(oid)
+                    self.object = self.vc("Services").storage.getObject(oid)
                     return self.object
                 except StorageException, e:
                     self.errorMsg = "Failed to retrieve object : " + e.getMessage()
@@ -178,7 +178,7 @@ class WorkflowData:
         # Retrieve our workflow config
         try:
             objMeta = self.getObjectMetadata()
-            jsonObject = Services.storage.getObject(objMeta.get("jsonConfigOid"))
+            jsonObject = self.vc("Services").storage.getObject(objMeta.get("jsonConfigOid"))
             jsonPayload = jsonObject.getPayload(jsonObject.getSourceId())
             config = JsonSimple(jsonPayload.open())
             jsonPayload.close()
@@ -295,8 +295,8 @@ class WorkflowData:
             return
 
         # Re-index the object
-        Services.indexer.index(self.getOid())
-        Services.indexer.commit()
+        self.vc("Services").indexer.index(self.getOid())
+        self.vc("Services").indexer.commit()
 
     def processFormData(self, meta, oldFormData, formData):
         if formData is not None:
@@ -307,12 +307,12 @@ class WorkflowData:
             for field in newFormFields:
                 # Special fields - we are expecting them
                 if field in specialFields:
-                    print " *** Special Field : '" + field + "' => '" + repr(formData.get(field)) + "'"
+                    #print " *** Special Field : '" + field + "' => '" + repr(formData.get(field)) + "'"
                     if field == "targetStep":
                         meta.getJsonObject().put(field, formData.get(field))    
                 # Everything else... metadata
                 else:
-                    print " *** Metadata Field : '" + field + "' => '" + repr(formData.get(field)) + "'"
+                    #print " *** Metadata Field : '" + field + "' => '" + repr(formData.get(field)) + "'"
                     oldFormData.getJsonObject().put(field, formData.get(field))
 
     def redirectNeeded(self):

@@ -96,7 +96,7 @@ class PackagingData:
         # clean up
         self.__deselect()
         # return url to workflow screen
-        return '{"status": "ok", "url": "%s/workflow/%s" }' % (portalPath, manifestId)
+        return '{"status": "ok", "url": "%s/workflow/%s" }' % (self.vc("portalPath"), manifestId)
 
     def __createFromSelected(self):
         self.vc("log").debug("Creating package from selected...")
@@ -162,7 +162,7 @@ class PackagingData:
         ##manifestFile.delete()
         self.__deselect()
         # return url to workflow screen
-        return '{ "status": "ok", "url": "%s/workflow/%s" }' % (portalPath, manifestId)
+        return '{ "status": "ok", "url": "%s/workflow/%s" }' % (self.vc("portalPath"), manifestId)
 
     def __update(self):
         self.vc("log").debug("Updating package selection...")
@@ -250,7 +250,7 @@ class PackagingData:
         if not activeManifest:
             activeManifest = Manifest(None)
             activeManifest.setTitle("New package")
-            activeManifest.setViewId(portalId)
+            activeManifest.setViewId(self.vc("portalId"))
             self.vc("sessionState").set("package/active", activeManifest)
         return activeManifest
 
