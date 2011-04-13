@@ -2,12 +2,17 @@
     #foreach($item in $itemList)
         <record>
             <header>
-                <identifier>oai:fascinator:$item.getFirst("id")</identifier>
+                <identifier>$self.getID($item)</identifier>
                 <datestamp>$item.getFirst("last_modified")</datestamp>
-                <setSpec>$portalId</setSpec>
+                <setSpec>$self.getSet($item)</setSpec>
             </header>
             <metadata>
+            #set ($payload = $self.getPayload($item.getFirst("id"), "${self.request.metadataPrefix}.xml"))
+            #if ($payload != $nullValue)
+                $self.getPayloadContent($payload)
+            #else
                 #parseTemplate("feed/oai-pmh/format/${self.request.metadataPrefix}.vm")
+            #end
             </metadata>
         </record>
     #end
