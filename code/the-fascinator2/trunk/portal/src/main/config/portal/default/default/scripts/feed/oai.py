@@ -1,9 +1,18 @@
 import random, time
+
 from au.edu.usq.fascinator.api.indexer import SearchRequest
+from au.edu.usq.fascinator.api.storage import StorageException
 from au.edu.usq.fascinator.common import JsonSimpleConfig
 from au.edu.usq.fascinator.common.solr import SolrResult
-from java.io import ByteArrayInputStream, ByteArrayOutputStream
+
+from java.io import BufferedReader
+from java.io import ByteArrayInputStream
+from java.io import ByteArrayOutputStream
+from java.io import InputStreamReader
+from java.lang import Exception
+from java.lang import StringBuilder
 from java.lang import System
+
 from org.apache.commons.lang import StringEscapeUtils
 
 class OaiPmhError:
@@ -18,14 +27,18 @@ class OaiPmhError:
         return self.__message
 
 class OaiPmhVerb:
-    def __init__(self, formData, currentToken, sessionState):
+    def __init__(self, formData, currentToken, sessionState, context):
+        self.log = context["log"]
+        self.config = JsonSimpleConfig()
+
         self.__error = None
         self.__verb = formData.get("verb")
         self.__metadataFormats = self.__metadataFormatList()
-        print " * verb=%s" % self.__verb
+        self.log.debug(" * OAI Verb = '{}'", self.__verb)
 
         if self.__verb is None:
             self.__error = OaiPmhError("badVerb", "No verb was specified")
+
         elif self.__verb in ["GetRecord", "ListIdentifiers", "ListRecords"]:
             self.__metadataPrefix = formData.get("metadataPrefix")
             if self.__metadataPrefix is None:
@@ -40,7 +53,7 @@ class OaiPmhVerb:
                         sessionState.set("resumptionTokenList", tokenList)
                 else:
                     self.__error = OaiPmhError("badResumptionToken", "Invalid token")
-            elif self.__metadataPrefix not in self.__metadataFormatList():
+            elif self.__metadataPrefix not in self.__metadataFormats:
                 self.__error = OaiPmhError("cannotDisseminateFormat",
                                            "Record not available as metadata type: %s" % self.__metadataPrefix)
         elif self.__verb in ["Identify", "ListMetadataFormats", "ListSets"]:
@@ -49,8 +62,7 @@ class OaiPmhVerb:
             self.__error = OaiPmhError("badVerb", "Unknown verb: '%s'" % self.__verb)
 
     def __metadataFormatList(self):
-        systemConfig = JsonSimpleConfig()
-        metadataFormats = systemConfig.getObject(["portal", "oai-pmh", "metadataFormats"])
+        metadataFormats = self.config.getObject(["portal", "oai-pmh", "metadataFormats"])
         metadataList = []
         for format in metadataFormats.keySet():
             metadataList.append(str(format))
@@ -78,22 +90,22 @@ class ResumptionToken:
         self.__metadataPrefix = metadataPrefix
         self.__totalFound = 0
         self.__expiry = System.currentTimeMillis() + sessionExpiry
-    
+
     def getToken(self):
         return self.__token
-    
+
     def getExpiry(self):
         return self.__expiry
-    
+
     def setTotalFound(self, totalFound):
         self.__totalFound = totalFound
-    
+
     def getTotalFound(self):
         return self.__totalFound
-    
+
     def getMetadataPrefix(self):
         return self.__metadataPrefix
-    
+
     def getStart(self):
         return self.__start
 
@@ -102,18 +114,29 @@ class OaiData:
         pass
 
     def __activate__(self, context):
+        # Set up configuration
         self.systemConfig = JsonSimpleConfig()
+        self.oaiConfig = None
+        self.getMetadataFormats()
 
         self.velocityContext = context
         self.services = context["Services"]
         self.log = context["log"]
         self.sessionState = context["sessionState"]
         self.portalDir = context["portalDir"]
+
         self.__result = None
         self.__token = None
+
+        # Check if the OAI request has an overriding portal ('set') to the URL
+        paramSet = self.vc("formData").get("set")
         self.__portalName = context["page"].getPortal().getName()
-        self.__enabledInAllViews = False
-        self.__enabledInViews = []
+        if paramSet is not None:
+            portals = self.vc("page").getPortals().keySet()
+            if portals.contains(paramSet):
+                self.__portalName = paramSet
+                self.log.debug("=== PORTAL override! : {}", self.__portalName);
+
         self.__metadataPrefix = ""
         self.__sessionExpiry = self.systemConfig.getInteger(None, ["portal", "oai-pmh", "sessionExpiry"])
 
@@ -128,9 +151,8 @@ class OaiData:
             if self.__resumptionTokenList.has_key(resumptionToken):
                 self.__currentToken = self.__resumptionTokenList[resumptionToken]
 
-        print " * oai.py: formData=%s" % self.vc("formData")
         self.vc("request").setAttribute("Content-Type", "text/xml")
-        self.__request = OaiPmhVerb(self.vc("formData"), self.__currentToken, self.sessionState)
+        self.__request = OaiPmhVerb(self.vc("formData"), self.__currentToken, self.sessionState, context)
 
         if self.getError() is None and \
                 self.getVerb() in ["GetRecord", "ListIdentifiers", "ListRecords"]:
@@ -140,13 +162,8 @@ class OaiData:
             if self.__metadataPrefix is None:
                 self.__metadataPrefix = self.__currentToken.getMetadataPrefix()
 
-            self.__enabledInAllViews = self.systemConfig.getBoolean(False, ["portal", "oai-pmh", "metadataFormats", self.__metadataPrefix, "enabledInAllViews"])
-            if self.__enabledInAllViews:
+            if self.isInView(self.__metadataPrefix):
                 self.__search()
-            else:
-                self.__enabledInViews = self.systemConfig.getStringList(["portal", "oai-pmh", "metadataFormats", self.__metadataPrefix, "enabledViews"])
-                if self.__portalName in self.__enabledInViews:
-                    self.__search()
 
     # Get from velocity context
     def vc(self, index):
@@ -155,6 +172,49 @@ class OaiData:
         else:
             self.log.error("ERROR: Requested context entry '" + index + "' doesn't exist")
             return None
+
+    def isInView(self, format, view = None):
+        # Sanity check
+        if format is None or format == "":
+            return False
+        # Default to current poral
+        if view is None:
+            view = self.__portalName
+
+        # Make sure there is some config for this format
+        formatConfig = self.getMetadataFormats().get(format)
+        if formatConfig is None:
+            return False
+        # Is it visible everywhere?
+        allViews = formatConfig.getBoolean(False, ["enabledInAllViews"])
+        if allViews:
+            self.log.debug("=== Format '{}' is in all views", format)
+            return True
+        # Check if it is visible in this view
+        else:
+            allowedViews = formatConfig.getStringList(["enabledViews"])
+            if view in allowedViews:
+                self.log.debug("=== Format '{}' is in view '{}'", format, view)
+                return True
+        # Rejection
+        self.log.debug("=== Format '{}' is NOT in view '{}'", format, view)
+        return False
+
+    def getID(self, item):
+        identifier = item.getFirst("oai_identifier")
+        # Fallback to the default
+        if identifier is None or identifier == "":
+            return "oai:fascinator:" + item.getFirst("id")
+        # Use the indexed value
+        return identifier
+
+    def getSet(self, item):
+        set = item.getFirst("oai_set")
+        # Fallback to the portal name
+        if set is None or set == "":
+            return self.__portalName
+        # Use the required set
+        return set
 
     def getVerb(self):
         return self.getRequest().getVerb()
@@ -179,14 +239,25 @@ class OaiData:
         return elementStr
 
     def __search(self):
+        self.log.debug(" === __search()")
         self.__result = SolrResult(None)
 
-        portal = self.services.getPortalManager().get(self.vc("portalId"))
+        portal = self.services.getPortalManager().get(self.__portalName)
         recordsPerPage = portal.recordsPerPage
 
-        query = self.vc("formData").get("query")
-        if query is None or query == "":
-            query = "*:*"
+        # Resolve our identifier
+        id = self.vc("formData").get("identifier")
+        self.log.debug(" === ID: '{}'", id)
+        query = "*:*"
+        if id is not None and id != "":
+            # A default TF2 OID
+            if id.startswith("oai:fascinator:"):
+                query = "id:" + id.replace("oai:fascinator:", "")
+            # Or a custom OAI ID
+            else:
+                query = "oai_identifier:" + id.replace(":", "\\:")
+
+        self.log.debug(" === QUERY: '{}'", query)
         req = SearchRequest(query)
         req.setParam("facet", "true")
         req.setParam("rows", str(recordsPerPage))
@@ -195,26 +266,30 @@ class OaiData:
         req.setParam("sort", "f_dc_title asc")
 
         portalQuery = portal.query
-        print " * portalQuery=%s" % portalQuery
+        self.log.debug(" * portalQuery={}", portalQuery)
         if portalQuery:
             req.addParam("fq", portalQuery)
         req.addParam("fq", "item_type:object")
-        
-        #Check if there's resumption token exist in the formData
+
+        # Check if there's resumption token exist in the formData
         if self.__currentToken:
             start = self.__currentToken.getStart()
             totalFound = self.__currentToken.getTotalFound()
-            nextTokenStart = start+recordsPerPage
+            nextTokenStart = start + recordsPerPage
             if nextTokenStart < totalFound:
-                self.__token = ResumptionToken(start=nextTokenStart, metadataPrefix=self.__metadataPrefix, sessionExpiry=self.__sessionExpiry)
+                self.__token = ResumptionToken(start = nextTokenStart, \
+                    metadataPrefix = self.__metadataPrefix, \
+                    sessionExpiry = self.__sessionExpiry)
         else:
             start = 0
             metadataPrefix = self.vc("formData").get("metadataPrefix")
-            self.__token = ResumptionToken(start=recordsPerPage, metadataPrefix=self.__metadataPrefix, sessionExpiry=self.__sessionExpiry)
+            self.__token = ResumptionToken(start = recordsPerPage, \
+                metadataPrefix = self.__metadataPrefix, \
+                sessionExpiry = self.__sessionExpiry)
 
         req.setParam("start", str(start))
 
-        print " * oai.py:", req.toString()
+        self.log.debug(" * oai.py:", req.toString())
 
         out = ByteArrayOutputStream()
         self.services.indexer.search(req, out)
@@ -236,12 +311,49 @@ class OaiData:
             self.sessionState.set("resumptionTokenList", self.__resumptionTokenList)
 
     def getToken(self):
-        if self.__enabledInAllViews or self.__portalName in self.__enabledInViews:
+        if self.isInView(self.__metadataPrefix):
             return self.__token
         return None
 
     def getMetadataFormats(self):
-        return self.systemConfig.getJsonSimpleMap(["portal", "oai-pmh", "metadataFormats"])
+        if self.oaiConfig is None:
+            self.oaiConfig = self.systemConfig.getJsonSimpleMap(["portal", "oai-pmh", "metadataFormats"])
+        return self.oaiConfig
 
     def encodeXml(self, string):
         return StringEscapeUtils.escapeXml(string);
+
+    def getPayload(self, oid, metadataFileName):
+        # First get the Object from storage
+        object = None
+        try:
+            object = self.services.getStorage().getObject(oid)
+        except StorageException, e:
+            return None
+
+        # Check whether the payload exists
+        try:
+            return object.getPayload(metadataFileName)
+        except StorageException, e:
+            return None
+
+    def getPayloadContent(self, payload):
+        if payload is None:
+            return ""
+
+        try:
+            sb = StringBuilder()
+            reader = BufferedReader(InputStreamReader(payload.open(), "UTF-8"))
+            line = reader.readLine()
+
+            while line is not None:
+                sb.append(line).append("\n")
+                line = reader.readLine()
+            payload.close()
+
+            if sb:
+                return sb
+            return ""
+
+        except Exception, e:
+            return ""
