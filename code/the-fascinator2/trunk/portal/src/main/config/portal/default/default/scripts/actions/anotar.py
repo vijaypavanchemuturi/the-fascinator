@@ -25,7 +25,7 @@ class AnotarData:
         self.rootUri = self.fd("rootUri")
         self.json = self.fd("json")
         self.type = self.fd("type")
-        self.rootUriList = self.vc("formData").getValues("rootUriList")
+        self.rootUriList = self.vc("formData").getValues("rootUriList[]")
         self.portalPath = self.vc("portalPath")
         #print "action:'%s' formData:'%s'" % (self.action, formData)
 
