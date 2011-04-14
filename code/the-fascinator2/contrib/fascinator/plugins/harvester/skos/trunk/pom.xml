@@ -10,7 +10,7 @@
     <parent>
         <artifactId>organisation</artifactId>
         <groupId>au.edu.usq.fascinator</groupId>
-        <version>0.5.1-SNAPSHOT</version>
+        <version>0.5.2-SNAPSHOT</version>
     </parent>
     <properties>
         <fascinator.version>0.7.6-SNAPSHOT</fascinator.version>
