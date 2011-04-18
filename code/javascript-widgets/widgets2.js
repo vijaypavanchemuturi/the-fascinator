@@ -1182,6 +1182,14 @@ var widgets={forms:[], globalObject:this};
         saLabel.bind("onDataChanged", function(){
             ds.find(".selection-added").toggle(!!saLabel.val());
             if(dropDownLocation)dropDownLocation.toggle(!saLabel.val());
+            if(!saLabelWidth){saLabelWidth=saLabel.width();}
+            if(saLabelWidth){   // adjust width as required
+                sTemp=$("<span/>");
+                sTemp.text(saLabel.val()||"").hide().insertAfter(saLabel);
+                w=sTemp.width()+4;
+                sTemp.remove();
+                saLabel.width(w>saLabelWidth?w:saLabelWidth);
+            }
         }); //.trigger("onDataChanged");
         addButtonDisableTest = function(){
             //if(saLabel.val()){
