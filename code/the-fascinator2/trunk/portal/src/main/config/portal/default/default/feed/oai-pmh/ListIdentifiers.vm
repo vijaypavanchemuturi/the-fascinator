@@ -1,6 +1,6 @@
 <ListIdentifiers>
     #foreach($item in $itemList)
-        <header>
+        <header#if($self.isDeleted($item)) status="deleted"#end>
             <identifier>$self.getID($item)</identifier>
             <datestamp>$item.getFirst("last_modified")</datestamp>
             <setSpec>$self.getSet($item)</setSpec>

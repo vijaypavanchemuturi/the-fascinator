@@ -208,6 +208,9 @@ class OaiData:
         # Use the indexed value
         return identifier
 
+    def isDeleted(self, item):
+        return item.getBoolean(False, ["oai_deleted"])
+
     def getSet(self, item):
         set = item.getFirst("oai_set")
         # Fallback to the portal name
