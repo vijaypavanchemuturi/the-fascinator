@@ -175,7 +175,7 @@ public class Util {
      * @throws ParseException if and incorrect input is supplied
      */
     public String getW3CDateTime(String dateTime) throws ParseException {
-        if (!dateTime.equals(null) && !dateTime.equals("")) {
+        if (dateTime != null && !"".equals(dateTime)) {
             if (dateTime.indexOf("-") == -1) {
                 dateTime = dateTime + "-01-01";
             } else {
