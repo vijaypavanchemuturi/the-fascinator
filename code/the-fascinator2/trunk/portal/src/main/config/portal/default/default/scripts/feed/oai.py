@@ -209,7 +209,7 @@ class OaiData:
         return identifier
 
     def isDeleted(self, item):
-        return item.getBoolean(False, ["oai_deleted"])
+        return bool(item.getFirst("oai_deleted"))
 
     def getSet(self, item):
         set = item.getFirst("oai_set")
