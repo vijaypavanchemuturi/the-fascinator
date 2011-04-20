@@ -1482,7 +1482,7 @@ var widgets={forms:[], globalObject:this};
                   t=ctxInputs.filter("[id="+v+"]");
                   if(t.size()){
                     if(t.attr("type")!="checkbox"){
-                        t.val(data[v]).trigger("onDataChanged");
+                        t.val(data[v].replace(/\\n/g,"\n")).trigger("onDataChanged");
                     }else{
                         t.attr("checked", data[v]);
                     }
