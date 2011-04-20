@@ -128,7 +128,7 @@ var widgets={forms:[], globalObject:this};
       }
   };
 
-  function messageBox(msg, cb){
+  function messageBox(msg, cb, title){
       var msgBox=messageBox.msgBox;
       if(msgBox){msgBox.html(""); msgBox.remove(); msgBox=null;}
       if(!msgBox){  // setup
@@ -142,9 +142,9 @@ var widgets={forms:[], globalObject:this};
           messageBox.msgBox=msgBox;
           i.click(function(){
               msgBox.dialog("close");
-              if($.isFunction(cb)){cb();}
+              if($.isFunction(cb)){cb();}else{title=cb;}
           });
-          msgBox.dialog({title:"Message", hide:"blind",
+          msgBox.dialog({title:title||"Message", hide:"blind",
                 modal:true, autoOpen:false });
       }
       msgBox.show();
