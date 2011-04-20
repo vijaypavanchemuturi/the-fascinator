@@ -180,8 +180,7 @@ PRIMARY KEY (token))
         index = "resumptionTokens-UPDATE"
         sql = """
 UPDATE resumptionTokens
-SET    start = ?
-AND    expiry = ?
+SET    start = ?, expiry = ?
 WHERE  token = ?
 """
         fields = [
