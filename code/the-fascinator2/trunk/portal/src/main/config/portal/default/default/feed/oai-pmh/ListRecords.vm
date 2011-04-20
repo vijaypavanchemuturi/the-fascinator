@@ -20,7 +20,7 @@
         </record>
     #end
     
-    #if ($self.token)
-        <resumptionToken>$self.token.getToken()</resumptionToken>
+    #if ($self.getToken() != $nullValue)
+        <resumptionToken>$self.getToken().getToken()</resumptionToken>
     #end
 </ListRecords>
