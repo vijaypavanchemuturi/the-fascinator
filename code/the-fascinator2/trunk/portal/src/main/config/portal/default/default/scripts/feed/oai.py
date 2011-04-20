@@ -1,5 +1,7 @@
 import random, time
 
+from datetime import datetime
+
 from au.edu.usq.fascinator.api.indexer import SearchRequest
 from au.edu.usq.fascinator.api.storage import StorageException
 from au.edu.usq.fascinator.common import JsonSimpleConfig
@@ -12,8 +14,257 @@ from java.io import InputStreamReader
 from java.lang import Exception
 from java.lang import StringBuilder
 from java.lang import System
+from java.sql import Timestamp
 
 from org.apache.commons.lang import StringEscapeUtils
+
+class ResumptionToken:
+    def __init__(self, token=None, start=0, metadataPrefix="", sessionExpiry=300000):
+        if token is None:
+            random.seed()
+            token = "%016x" % random.getrandbits(128)
+        self.__token = token
+        self.__start = start
+        self.__metadataPrefix = metadataPrefix
+        self.__totalFound = 0
+        self.__expiry = System.currentTimeMillis() + sessionExpiry
+
+    def getExpiry(self):
+        return self.__expiry
+
+    def getMetadataPrefix(self):
+        return self.__metadataPrefix
+
+    def getStart(self):
+        return self.__start
+
+    def getToken(self):
+        return self.__token
+
+    def resetExpiry(self, expiry):
+        self.__expiry = System.currentTimeMillis() + expiry
+
+    def getTotalFound(self):
+        return self.__totalFound
+
+    def setExpiry(self, expiry):
+        self.__expiry = expiry
+
+    def setStart(self, start):
+        self.__start = start
+
+    def setTotalFound(self, totalFound):
+        self.__totalFound = totalFound
+
+class TokensDatabase:
+    def __init__(self, context):
+        self.db = context["Services"].database
+        self.log = context["log"]
+        self.dbName = "oaiTokens"
+        self.error = False
+        self.errorMsg = ""
+
+        # Does the database already exist?
+        check = self.check()
+        if check is None and not self.error:
+            # No, create it now
+            check = self.create()
+            # And create our table
+            if check is not None and not self.error:
+                self.createTable()
+
+        if self.error:
+            self.log.error("Error during database startup: \n", self.errorMsg)
+        else:
+            self.log.info("Token database online")
+
+    def check(self):
+        try:
+            return self.db.checkConnection(self.dbName)
+        except Exception, e:
+            msg = self.parseError(e)
+            if msg == "Database does not exist":
+                # Expected failure
+                return None;
+            else:
+                # Something is wrong
+                self.log.error("ERROR: ", e)
+                self.error = True
+                self.errorMsg = msg
+                return None;
+
+    def create(self):
+        try:
+            return self.db.getConnection(self.dbName)
+        except Exception, e:
+            self.log.error("ERROR: ", e)
+            self.error = True
+            self.errorMsg = self.parseError(e)
+            return None;
+
+    def createTable(self):
+        try:
+            sql = """
+CREATE TABLE resumptionTokens
+(token VARCHAR(50) NOT NULL,
+metadataPrefix VARCHAR(50) NOT NULL,
+expiry TIMESTAMP NOT NULL,
+totalFound INT NOT NULL,
+start INT NOT NULL,
+PRIMARY KEY (token))
+"""
+            index = "resumptionTokens-CREATE"
+            self.db.execute(self.dbName, index, sql, None)
+        except Exception, e:
+            self.log.error("ERROR: ", e)
+            self.error = True
+            self.errorMsg = self.parseError(e)
+
+    def getError(self):
+        return self.errorMsg
+
+    def hasError(self):
+        return self.error
+
+    def storeToken(self, tokenObject):
+        self.resetErrors()
+        index = "resumptionTokens-STORE"
+        table = "resumptionTokens"
+        fields = {
+            "token": tokenObject.getToken(),
+            "metadataPrefix": tokenObject.getMetadataPrefix(),
+            "expiry": Timestamp(tokenObject.getExpiry()),
+            "totalFound": tokenObject.getTotalFound(),
+            "start": tokenObject.getStart()
+        }
+        #self.log.debug("=== storeToken()")
+        #self.log.debug("=== TOKEN: '{}'", tokenObject.getToken())
+        #self.log.debug("=== METADATAPREFIX: '{}'", tokenObject.getMetadataPrefix())
+        #self.log.debug("=== EXPIRY: '{}'", tokenObject.getExpiry())
+        #self.log.debug("=== TOTALFOUND: '{}'", tokenObject.getTotalFound())
+        #self.log.debug("=== START: '{}'", tokenObject.getStart())
+        try:
+            self.db.insert(self.dbName, index, table, fields)
+        except Exception, e:
+            msg = self.parseError(e)
+            if msg == "Duplicate record!":
+                # Expected failure
+                self.log.error("Duplicate record already exists in table!")
+            else:
+                # Something is wrong
+                self.log.error("ERROR: ", e)
+            self.error = True
+            self.errorMsg = msg
+
+    def removeToken(self, tokenObject):
+        self.resetErrors()
+        index = "resumptionTokens-DELETE"
+        table = "resumptionTokens"
+        fields = {
+            "token": tokenObject.getToken()
+        }
+        try:
+            self.db.delete(self.dbName, index, table, fields)
+            self.log.info("Delete successful! TOKEN='{}'", tokenObject.getToken())
+            return True
+        except Exception, e:
+            # Something is wrong
+            self.log.error("Delete failed! TOKEN='{}'", tokenObject.getToken())
+            self.log.error("ERROR: ", e)
+            self.error = True
+            self.errorMsg = self.parseError(e)
+            return False
+
+    def updateToken(self, tokenObject):
+        self.resetErrors()
+        index = "resumptionTokens-UPDATE"
+        sql = """
+UPDATE resumptionTokens
+SET    start = ?
+AND    expiry = ?
+WHERE  token = ?
+"""
+        fields = [
+            tokenObject.getStart(),
+            Timestamp(tokenObject.getExpiry()),
+            tokenObject.getToken()
+        ]
+        try:
+            self.db.execute(self.dbName, index, sql, fields)
+            #self.log.debug("=== updateToken()")
+            #self.log.debug("=== TOKEN: '{}'", tokenObject.getToken())
+            #self.log.debug("=== METADATAPREFIX: '{}'", tokenObject.getMetadataPrefix())
+            #self.log.debug("=== EXPIRY: '{}'", tokenObject.getExpiry())
+            #self.log.debug("=== TOTALFOUND: '{}'", tokenObject.getTotalFound())
+            #self.log.debug("=== START: '{}'", tokenObject.getStart())
+            return True
+        except Exception, e:
+            # Something is wrong
+            self.log.error("ERROR: ", e)
+            self.error = True
+            self.errorMsg = self.parseError(e)
+            return False
+
+    def getToken(self, tokenId):
+        self.resetErrors()
+        index = "resumptionTokens-GET"
+        sql = """
+SELECT *
+FROM   resumptionTokens
+WHERE  token = ?
+"""
+        fields = [tokenId]
+        try:
+            result = self.db.select(self.dbName, index, sql, fields)
+            # Make sure we got a response
+            if result is None or result.isEmpty():
+                return None
+            # Create the new token to return
+            metadataPrefix = result.get(0).get("METADATAPREFIX")
+            expiryStr = result.get(0).get("EXPIRY")
+            # Jython does not support %f microseconds in time parsing, makes
+            # this more awkward then it should be in 2.6+ Python
+            # 1: split into basic time + micro seconds
+            (basicTime, mSecs) = expiryStr.strip().split(".")
+            # 2: Parse the basic time
+            expiryDt = datetime.strptime(basicTime, "%Y-%m-%d %H:%M:%S")
+            # 3: Convert into a 'epoch' long and then to a string (has an extra ".0" on the end)
+            epoch = "%s" % time.mktime(expiryDt.timetuple())
+            # 4: Remove the extraneous trailing zero and re-attach microseconds
+            expiry = "%s%s" % (epoch.replace(".0", ""), mSecs)
+
+            totalFound = result.get(0).get("TOTALFOUND")
+            start = result.get(0).get("START")
+            #self.log.debug("=== getToken()")
+            #self.log.debug("=== TOKEN: '{}'", tokenId)
+            #self.log.debug("=== METADATAPREFIX: '{}'", metadataPrefix)
+            #self.log.debug("=== EXPIRY: '{}'", expiry)
+            #self.log.debug("=== TOTALFOUND: '{}'", totalFound)
+            #self.log.debug("=== START: '{}'", start)
+            token = ResumptionToken(tokenId, start, metadataPrefix)
+            token.setExpiry(expiry)
+            token.setTotalFound(totalFound)
+            return token
+        except Exception, e:
+            # Something is wrong
+            self.log.error("ERROR: ", e)
+            self.error = True
+            self.errorMsg = self.parseError(e)
+            return None
+
+    # Strip out java package names from error strings.
+    def parseError(self, error):
+        self.has_error = True
+        message = error.getMessage()
+        i = message.find(":")
+        if i != -1:
+            return message[i+1:].strip()
+        else:
+            return message.strip()
+
+    def resetErrors(self):
+        self.error = False
+        self.errorMsg = ""
 
 class OaiPmhError:
     def __init__(self, code, message):
@@ -27,38 +278,56 @@ class OaiPmhError:
         return self.__message
 
 class OaiPmhVerb:
-    def __init__(self, formData, currentToken, sessionState, context):
+    def __init__(self, context, tokenDB, currentToken):
         self.log = context["log"]
         self.config = JsonSimpleConfig()
+        formData = context["formData"]
 
         self.__error = None
         self.__verb = formData.get("verb")
         self.__metadataFormats = self.__metadataFormatList()
         self.log.debug(" * OAI Verb = '{}'", self.__verb)
 
+        # No verb provided
         if self.__verb is None:
             self.__error = OaiPmhError("badVerb", "No verb was specified")
 
+        # Some verbs require additional data
         elif self.__verb in ["GetRecord", "ListIdentifiers", "ListRecords"]:
+            # What format metadata is requested?
             self.__metadataPrefix = formData.get("metadataPrefix")
             if self.__metadataPrefix is None:
+                # No metadata supplied, error...
+                #   unless the are resuming an earlier request
                 if currentToken:
-                    #check expiry
+                    # Make sure the resumption token hasn't expired
                     if currentToken.getExpiry() > System.currentTimeMillis():
+                        # And retrieve the metadata prefix from the last request
                         self.__metadataPrefix = currentToken.getMetadataPrefix()
+
+                    # Expired token, make sure it's not in the database anymore
                     else:
                         self.__error = OaiPmhError("badResumptionToken", "Token has expired")
-                        tokenList = sessionState.get("resumptionTokenList")
-                        tokenList.pop(currentToken.getToken())
-                        sessionState.set("resumptionTokenList", tokenList)
+                        success = tokenDB.removeToken(currentToken)
+                        if not success:
+                            self.log.error("Error removing expired token!")
+
+                # No prefix and no token. We're done
                 else:
                     self.__error = OaiPmhError("badResumptionToken", "Invalid token")
+
+            # These verbs require a metadata format... and we must be able to support it
             elif self.__metadataPrefix not in self.__metadataFormats:
                 self.__error = OaiPmhError("cannotDisseminateFormat",
                                            "Record not available as metadata type: %s" % self.__metadataPrefix)
+
+        # Basic verbs we will respond to easily
         elif self.__verb in ["Identify", "ListMetadataFormats", "ListSets"]:
             pass
+
+        # Invalid verb
         else:
+            self.log.error("Invalid verb provided: '{}'", self.__verb)
             self.__error = OaiPmhError("badVerb", "Unknown verb: '%s'" % self.__verb)
 
     def __metadataFormatList(self):
@@ -80,40 +349,14 @@ class OaiPmhVerb:
     def getIdentifier(self):
         return self.__identifier
 
-class ResumptionToken:
-    def __init__(self, token=None, start=0, metadataPrefix="", sessionExpiry=300000):
-        if token is None:
-            random.seed()
-            token = "%016x" % random.getrandbits(128)
-        self.__token = token
-        self.__start = start
-        self.__metadataPrefix = metadataPrefix
-        self.__totalFound = 0
-        self.__expiry = System.currentTimeMillis() + sessionExpiry
-
-    def getToken(self):
-        return self.__token
-
-    def getExpiry(self):
-        return self.__expiry
-
-    def setTotalFound(self, totalFound):
-        self.__totalFound = totalFound
-
-    def getTotalFound(self):
-        return self.__totalFound
-
-    def getMetadataPrefix(self):
-        return self.__metadataPrefix
-
-    def getStart(self):
-        return self.__start
-
 class OaiData:
     def __init__(self):
-        pass
+        self.tokensDB = None
 
     def __activate__(self, context):
+        if self.tokensDB is None:
+            self.tokensDB = TokensDatabase(context)
+
         # Set up configuration
         self.systemConfig = JsonSimpleConfig()
         self.oaiConfig = None
@@ -126,7 +369,6 @@ class OaiData:
         self.portalDir = context["portalDir"]
 
         self.__result = None
-        self.__token = None
 
         # Check if the OAI request has an overriding portal ('set') to the URL
         paramSet = self.vc("formData").get("set")
@@ -135,33 +377,33 @@ class OaiData:
             portals = self.vc("page").getPortals().keySet()
             if portals.contains(paramSet):
                 self.__portalName = paramSet
-                self.log.debug("=== PORTAL override! : {}", self.__portalName);
 
         self.__metadataPrefix = ""
         self.__sessionExpiry = self.systemConfig.getInteger(None, ["portal", "oai-pmh", "sessionExpiry"])
 
-        self.__resumptionTokenList = self.sessionState.get("resumptionTokenList")
-        if self.__resumptionTokenList == None:
-            self.__resumptionTokenList = {}
-        #Check if there's resumption token exist in the formData
+        # Check if there's a resumption token in the formData
         self.__currentToken = None
-
         resumptionToken = self.vc("formData").get("resumptionToken")
-        if resumptionToken:
-            if self.__resumptionTokenList.has_key(resumptionToken):
-                self.__currentToken = self.__resumptionTokenList[resumptionToken]
+        if resumptionToken is not None:
+            # This could still be be null
+            self.__currentToken = self.tokensDB.getToken(resumptionToken)
 
+        # Process/parse the request we've received for validity
         self.vc("request").setAttribute("Content-Type", "text/xml")
-        self.__request = OaiPmhVerb(self.vc("formData"), self.__currentToken, self.sessionState, context)
+        self.__request = OaiPmhVerb(context, self.tokensDB, self.__currentToken)
 
+        # If there are no errors... and the request requires some additional
+        #  data (like a search result) do so now. Everything else can be
+        #  handled in the templates.
         if self.getError() is None and \
                 self.getVerb() in ["GetRecord", "ListIdentifiers", "ListRecords"]:
 
-            ## Only list those data if the metadata format is enabled
+            # Find the metadata prefix requested
             self.__metadataPrefix = self.vc("formData").get("metadataPrefix")
             if self.__metadataPrefix is None:
                 self.__metadataPrefix = self.__currentToken.getMetadataPrefix()
 
+            # Only list records if the metadata format is enabled in this view
             if self.isInView(self.__metadataPrefix):
                 self.__search()
 
@@ -188,16 +430,13 @@ class OaiData:
         # Is it visible everywhere?
         allViews = formatConfig.getBoolean(False, ["enabledInAllViews"])
         if allViews:
-            self.log.debug("=== Format '{}' is in all views", format)
             return True
         # Check if it is visible in this view
         else:
             allowedViews = formatConfig.getStringList(["enabledViews"])
             if view in allowedViews:
-                self.log.debug("=== Format '{}' is in view '{}'", format, view)
                 return True
         # Rejection
-        self.log.debug("=== Format '{}' is NOT in view '{}'", format, view)
         return False
 
     def getID(self, item):
@@ -242,7 +481,6 @@ class OaiData:
         return elementStr
 
     def __search(self):
-        self.log.debug(" === __search()")
         self.__result = SolrResult(None)
 
         portal = self.services.getPortalManager().get(self.__portalName)
@@ -250,7 +488,6 @@ class OaiData:
 
         # Resolve our identifier
         id = self.vc("formData").get("identifier")
-        self.log.debug(" === ID: '{}'", id)
         query = "*:*"
         if id is not None and id != "":
             # A default TF2 OID
@@ -260,7 +497,6 @@ class OaiData:
             else:
                 query = "oai_identifier:" + id.replace(":", "\\:")
 
-        self.log.debug(" === QUERY: '{}'", query)
         req = SearchRequest(query)
         req.setParam("facet", "true")
         req.setParam("rows", str(recordsPerPage))
@@ -269,30 +505,27 @@ class OaiData:
         req.setParam("sort", "f_dc_title asc")
 
         portalQuery = portal.query
-        self.log.debug(" * portalQuery={}", portalQuery)
         if portalQuery:
             req.addParam("fq", portalQuery)
         req.addParam("fq", "item_type:object")
 
         # Check if there's resumption token exist in the formData
-        if self.__currentToken:
-            start = self.__currentToken.getStart()
-            totalFound = self.__currentToken.getTotalFound()
+        newToken = None
+        if self.__currentToken is not None:
+            start = int(self.__currentToken.getStart())
+            totalFound = int(self.__currentToken.getTotalFound())
             nextTokenStart = start + recordsPerPage
             if nextTokenStart < totalFound:
-                self.__token = ResumptionToken(start = nextTokenStart, \
-                    metadataPrefix = self.__metadataPrefix, \
-                    sessionExpiry = self.__sessionExpiry)
+                newToken = self.__currentToken
+                newToken.resetExpiry(self.__sessionExpiry)
+                newToken.setStart(nextTokenStart)
+        # or start a new resumption token
         else:
             start = 0
-            metadataPrefix = self.vc("formData").get("metadataPrefix")
-            self.__token = ResumptionToken(start = recordsPerPage, \
-                metadataPrefix = self.__metadataPrefix, \
-                sessionExpiry = self.__sessionExpiry)
+            newToken = ResumptionToken(None, recordsPerPage, \
+                        self.__metadataPrefix, self.__sessionExpiry)
 
         req.setParam("start", str(start))
-
-        self.log.debug(" * oai.py:", req.toString())
 
         out = ByteArrayOutputStream()
         self.services.indexer.search(req, out)
@@ -300,22 +533,32 @@ class OaiData:
 
         totalFound = self.__result.getNumFound()
         if totalFound == 0:
-            self.__token = None
-        elif self.__token:
-            if self.__token.getStart() < totalFound:
-                self.__token.setTotalFound(totalFound)
+            newToken = None
+        # We need to store this for NEW tokens
+        elif self.__currentToken is None:
+            # Assuming there are enough results to even keep the token
+            if newToken.getStart() < totalFound:
+                newToken.setTotalFound(totalFound)
             else:
-                self.__token = None
+                newToken = None
+        # Check if we need to remove the resumption token
+        else:
+            if self.__result.getResults().size() < recordsPerPage:
+                self.tokensDB.removeToken(self.__currentToken)
 
-        #Storing the resumptionToken to session
-        if self.__token:
-            self.__resumptionTokenList[self.__token.getToken()] = self.__token #(totalFound, self.__token.getConstructedToken())
-            #Need to know how long the server need to store this token
-            self.sessionState.set("resumptionTokenList", self.__resumptionTokenList)
+        # Store/update the resumption token
+        if newToken is not None:
+            # Brand new token
+            if self.__currentToken is None:
+                self.tokensDB.storeToken(newToken)
+            # Or update an old token
+            else:
+                self.tokensDB.updateToken(newToken)
+            self.__currentToken = newToken
 
     def getToken(self):
         if self.isInView(self.__metadataPrefix):
-            return self.__token
+            return self.__currentToken
         return None
 
     def getMetadataFormats(self):
