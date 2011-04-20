@@ -106,7 +106,7 @@
     <h4>File Upload Complete</h4>
     <div class="box">
       <p><b>File Uploaded</b>: '$self.getFileName()' ($self.getFileSize())</p>
-      <p>Please wait. The object is currently being process on the server. The workflow will begin progressing as soon as it has completed.</p>
+      <p>Please wait. The object is currently being processed on the server. The workflow will begin progressing as soon as it has completed.</p>
       <p>If you'd like to come back to this object later, you can visit <a href="$portalPath/detail/$self.getOid()">the detail screen</a>.</p>
       #waitRender($self.getOid())
     </div>
@@ -127,7 +127,7 @@
       #else
 
         #if ($pending)
-        <p>Please wait. The object is currently being process on the server. The workflow will progress as soon as it has completed.</p>
+        <p>Please wait. The object is currently being processed on the server. The workflow will progress as soon as it has completed.</p>
         #waitRender($oid)
         #else
           #if ($self.redirectNeeded())
