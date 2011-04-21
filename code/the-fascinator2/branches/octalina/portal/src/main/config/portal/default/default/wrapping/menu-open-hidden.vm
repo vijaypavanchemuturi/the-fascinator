@@ -1,3 +1,0 @@
-#set($hideMenu = true)
-#parse($page.getTemplate('wrapping/menu-open.vm'))
-#set($hideMenu = false)
