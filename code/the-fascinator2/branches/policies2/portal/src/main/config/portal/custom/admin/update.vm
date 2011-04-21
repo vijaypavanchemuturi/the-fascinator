@@ -1,3 +1,0 @@
-#set($pageTitle = "Update log")
-<h2>Update log</h2>
-<pre>$!self.log</pre>

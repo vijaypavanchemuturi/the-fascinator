@@ -1,3 +1,0 @@
-#!/bin/sh
-TF_HOME=/opt/the-fascinator
-java -cp "$TF_HOME/lib/*" au.edu.usq.fascinator.HarvestClient $TF_HOME/rules/usq-policies.json

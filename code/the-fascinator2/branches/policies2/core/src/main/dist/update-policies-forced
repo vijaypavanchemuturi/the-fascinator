@@ -1,3 +1,0 @@
-#!/bin/sh
-TF_HOME=/opt/the-fascinator
-java -Dhttp.proxyHost=proxy.usq.edu.au -Dhttp.proxyPort=8080 -Dhttp.nonProxyHosts=localhost -cp "$TF_HOME/lib/*" au.edu.usq.fascinator.HarvestClient $TF_HOME/rules/usq-policies-forced.json
