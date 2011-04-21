@@ -3,7 +3,7 @@
   <h2>Delete view</h2>
   <div class="block">
     <p>Are you sure you want to delete this view ($page.portalName)?</p>
-    <a id="delete-accept" href="$urlBase/$defaultPortal/home">
+    <a id="delete-accept" href="$urlBase$defaultPortal/home">
       <img src="$portalPath/images/icons/tick.png" />
     </a>
     <a id="delete-cancel" href="#"><img src="$portalPath/images/icons/cross.png" /></a>
