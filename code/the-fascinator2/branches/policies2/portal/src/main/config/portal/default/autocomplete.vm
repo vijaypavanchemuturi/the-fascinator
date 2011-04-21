@@ -1,4 +1,0 @@
-#set($noLayout=true)
-#foreach($doc in $self.result.getList("response/docs"))
-$!doc.get("dc_title").get(0)
-#end
