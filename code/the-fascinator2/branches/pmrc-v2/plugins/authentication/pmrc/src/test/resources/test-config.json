@@ -1,8 +1,0 @@
-{
-    "authentication": {
-        "type": "pmrc",
-        "pmrc": {
-            "path": "${java.io.tmpdir}/_pmrc_test/users.properties.json"
-        }
-    }
-}
