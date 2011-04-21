@@ -16,6 +16,8 @@ class ViewData:
             formData = context["formData"]
             sessionState = context["sessionState"]
             urlBase = context["urlBase"]
+            if urlBase.endswith("/"):
+                urlBase = urlBase[:-1]
             func = formData.get("func")
             portalManager = services.portalManager
             if func == "create-view":
