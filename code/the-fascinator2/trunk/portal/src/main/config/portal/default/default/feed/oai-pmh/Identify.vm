@@ -9,9 +9,9 @@
     <description>
         <oai-identifier xsi:schemaLocation="http://www.openarchives.org/OAI/2.0/oai-identifier http://www.openarchives.org/OAI/2.0/oai-identifier.xsd" xmlns="http://www.openarchives.org/OAI/2.0/oai-identifier">
             <scheme>oai</scheme>
-            <repositoryIdentifier>fascinator</repositoryIdentifier>
+            <repositoryIdentifier>fascinator.usq.edu.au</repositoryIdentifier>
             <delimiter>:</delimiter>
-            <sampleIdentifier>oai:fascinator:5e8ff9bf55ba3508199d22e984129be6</sampleIdentifier>
+            <sampleIdentifier>oai:fascinator.usq.edu.au:5e8ff9bf55ba3508199d22e984129be6</sampleIdentifier>
         </oai-identifier>
     </description>
 </Identify>
