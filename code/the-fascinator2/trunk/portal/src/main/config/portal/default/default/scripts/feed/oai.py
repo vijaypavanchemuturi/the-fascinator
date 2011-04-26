@@ -442,7 +442,7 @@ class OaiData:
         identifier = item.getFirst("oai_identifier")
         # Fallback to the default
         if identifier is None or identifier == "":
-            return "oai:fascinator:" + item.getFirst("id")
+            return "oai:fascinator.usq.edu.au:" + item.getFirst("id")
         # Use the indexed value
         return identifier
 
@@ -490,8 +490,8 @@ class OaiData:
         query = "*:*"
         if id is not None and id != "":
             # A default TF2 OID
-            if id.startswith("oai:fascinator:"):
-                query = "id:" + id.replace("oai:fascinator:", "")
+            if id.startswith("oai:fascinator.usq.edu.au:"):
+                query = "id:" + id.replace("oai:fascinator.usq.edu.au:", "")
             # Or a custom OAI ID
             else:
                 query = "oai_identifier:" + id.replace(":", "\\:")
