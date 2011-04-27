@@ -5,7 +5,7 @@
     <artifactId>the-fascinator</artifactId>
     <packaging>pom</packaging>
     <name>The Fascinator</name>
-    <version>1.0.1</version>
+    <version>1.0.2-SNAPSHOT</version>
     <parent>
         <groupId>au.edu.usq.fascinator</groupId>
         <artifactId>organisation</artifactId>
