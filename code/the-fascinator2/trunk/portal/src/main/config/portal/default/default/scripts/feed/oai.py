@@ -285,6 +285,8 @@ class OaiPmhVerb:
         self.__error = None
         self.__verb = formData.get("verb")
         self.__metadataFormats = self.__metadataFormatList()
+        self.__fromDate = None
+        self.__untilDate = None
         self.log.debug(" * OAI Verb = '{}'", self.__verb)
 
         # No verb provided
@@ -298,7 +300,7 @@ class OaiPmhVerb:
             if self.__metadataPrefix is None:
                 # No metadata supplied, error...
                 #   unless the are resuming an earlier request
-                if currentToken:
+                if currentToken is not None:
                     # Make sure the resumption token hasn't expired
                     if currentToken.getExpiry() > System.currentTimeMillis():
                         # And retrieve the metadata prefix from the last request
@@ -306,6 +308,7 @@ class OaiPmhVerb:
 
                     # Expired token, make sure it's not in the database anymore
                     else:
+                        self.log.error("Using an expired token")
                         self.__error = OaiPmhError("badResumptionToken", "Token has expired")
                         success = tokenDB.removeToken(currentToken)
                         if not success:
@@ -313,12 +316,78 @@ class OaiPmhVerb:
 
                 # No prefix and no token. We're done
                 else:
-                    self.__error = OaiPmhError("badResumptionToken", "Invalid token")
+                    attemptedToken = context["formData"].get("resumptionToken")
+                    # Either they used an invalid token
+                    if attemptedToken is not None:
+                        self.log.error("Illegal resumption token: '{}'", attemptedToken)
+                        self.__error = OaiPmhError("badResumptionToken", "Illegal resumption token")
+                    # Or were missing their metadata prefix
+                    else:
+                        self.log.error("No metadata prefix supplied, and no token")
+                        self.__error = OaiPmhError("badArgument", "Metadata prefix required")
 
             # These verbs require a metadata format... and we must be able to support it
             elif self.__metadataPrefix not in self.__metadataFormats:
+                self.log.error("Metadata prefix is not valid for this view")
                 self.__error = OaiPmhError("cannotDisseminateFormat",
                                            "Record not available as metadata type: %s" % self.__metadataPrefix)
+
+            # These verbs allow for date limits, validate them if found
+            if self.__verb in ["ListIdentifiers", "ListRecords"]:
+                # From date
+                fromStr = context["formData"].get("from")
+                fromTIndex = None
+                if fromStr is not None:
+                    fromTIndex = fromStr.find("T")
+                    # Basic dates
+                    try:
+                        if fromTIndex == -1:
+                            self.__fromDate = datetime.strptime(fromStr, "%Y-%m-%d")
+                        # Or datetimes
+                        else:
+                            self.__fromDate = datetime.strptime(fromStr, "%Y-%m-%dT%H:%M:%SZ")
+                    except:
+                        self.log.error("Invalid FROM date: '{}'", fromStr)
+                        self.__error = OaiPmhError("badArgument", "From date not in valid format!")
+                        return
+
+                # Until Date
+                untilStr = context["formData"].get("until")
+                if untilStr is not None:
+                    untilTIndex = untilStr.find("T")
+                    # Granularity mismatches
+                    if (fromTIndex is not None) and \
+                            ((fromTIndex == -1 and untilTIndex != -1) or \
+                            (fromTIndex != -1 and untilTIndex == -1)):
+                        self.log.error("Date granularity mismatch: '{}' vs '{}'", fromStr, untilStr)
+                        self.__error = OaiPmhError("badArgument", "Date granularity mismatch")
+                        return
+                    # Basic dates
+                    try:
+                        if untilTIndex == -1:
+                            self.__untilDate = datetime.strptime(untilStr, "%Y-%m-%d")
+                        # Or datetimes
+                        else:
+                            self.__untilDate = datetime.strptime(untilStr, "%Y-%m-%dT%H:%M:%SZ")
+                    except:
+                        self.log.error("Invalid UNTIL date: '{}'", untilStr)
+                        self.__error = OaiPmhError("badArgument", "Until date not in valid format!")
+                        return
+
+                # Sanity check
+                if self.__fromDate is not None and self.__untilDate is not None:
+                    if self.__fromDate > self.__untilDate:
+                        self.log.error("FROM date > UNTIL date: '{}' > '{}'", fromStr, untilStr)
+                        self.__error = OaiPmhError("badArgument", "From date cannot be later then Until date!")
+                        return
+
+            # Check for a valid identifier
+            if self.__verb == "GetRecord":
+                id = context["formData"].get("identifier")
+                if id is None or id == "":
+                    self.log.error("GetRecord missing an identifier")
+                    self.__error = OaiPmhError("badArgument", "Identifier required")
+                    return
 
         # Basic verbs we will respond to easily
         elif self.__verb in ["Identify", "ListMetadataFormats", "ListSets"]:
@@ -339,6 +408,9 @@ class OaiPmhVerb:
     def getError(self):
         return self.__error
 
+    def setError(self, code, message):
+        self.__error = OaiPmhError(code, message)
+
     def getVerb(self):
         return self.__verb
 
@@ -347,6 +419,12 @@ class OaiPmhVerb:
 
     def getIdentifier(self):
         return self.__identifier
+
+    def getFromDate(self):
+        return self.__fromDate
+
+    def getUntilDate(self):
+        return self.__untilDate
 
 class OaiData:
     def __init__(self):
@@ -372,10 +450,13 @@ class OaiData:
         # Check if the OAI request has an overriding portal ('set') to the URL
         paramSet = self.vc("formData").get("set")
         self.__portalName = context["page"].getPortal().getName()
+        illegalSet = False
         if paramSet is not None:
             portals = self.vc("page").getPortals().keySet()
             if portals.contains(paramSet):
                 self.__portalName = paramSet
+            else:
+                illegalSet = True
 
         self.__metadataPrefix = ""
         self.__sessionExpiry = self.systemConfig.getInteger(None, ["portal", "oai-pmh", "sessionExpiry"])
@@ -390,6 +471,8 @@ class OaiData:
         # Process/parse the request we've received for validity
         self.vc("request").setAttribute("Content-Type", "text/xml")
         self.__request = OaiPmhVerb(context, self.tokensDB, self.__currentToken)
+        if self.getError() is None and illegalSet:
+            self.__request.setError("badArgument", "Set '%s' is not valid!" % paramSet)
 
         # If there are no errors... and the request requires some additional
         #  data (like a search result) do so now. Everything else can be
@@ -491,10 +574,13 @@ class OaiData:
         if id is not None and id != "":
             # A default TF2 OID
             if id.startswith("oai:fascinator.usq.edu.au:"):
-                query = "id:" + id.replace("oai:fascinator.usq.edu.au:", "")
+                idString = id.replace("oai:fascinator.usq.edu.au:", "")
+                idString = self.__escapeQuery(idString)
+                query = "id:" + idString
             # Or a custom OAI ID
             else:
-                query = "oai_identifier:" + id.replace(":", "\\:")
+                idString = self.__escapeQuery(id)
+                query = "oai_identifier:" + idString
 
         req = SearchRequest(query)
         req.setParam("facet", "true")
@@ -507,6 +593,28 @@ class OaiData:
         if portalQuery:
             req.addParam("fq", portalQuery)
         req.addParam("fq", "item_type:object")
+
+        # Date data... is supplied
+        fromDate = self.__request.getFromDate()
+        untilDate = self.__request.getUntilDate()
+        if fromDate is not None:
+            fromStr = fromDate.isoformat() + "Z"
+            self.log.debug("From Date: '{}'", fromStr)
+            if untilDate is not None:
+                untilStr = untilDate.isoformat() + "Z"
+                self.log.debug("Until Date: '{}'", untilStr)
+                queryStr = "last_modified:[%s TO %s]" % (fromStr, untilStr)
+            else:
+                queryStr = "last_modified:[%s TO *]" % (fromStr)
+            self.log.debug("Date query: '{}'", queryStr)
+            req.addParam("fq", queryStr)
+        else:
+            if untilDate is not None:
+                untilStr = untilDate.isoformat() + "Z"
+                self.log.debug("Until Date: '{}'", untilDate.isoformat())
+                queryStr = "last_modified:[* TO %s]" % (untilStr)
+                self.log.debug("Date query: '{}'", queryStr)
+                req.addParam("fq", queryStr)
 
         # Check if there's resumption token exist in the formData
         newToken = None
@@ -533,6 +641,12 @@ class OaiData:
         totalFound = self.__result.getNumFound()
         if totalFound == 0:
             newToken = None
+            # If an ID was requested, and not found, this is an error
+            if id is not None and id != "":
+                self.__request.setError("idDoesNotExist", "ID: '%s' not found" % id)
+            else:
+                self.__request.setError("noRecordsMatch", "No records match this request")
+
         # We need to store this for NEW tokens
         elif self.__currentToken is None:
             # Assuming there are enough results to even keep the token
@@ -602,3 +716,13 @@ class OaiData:
 
         except Exception, e:
             return ""
+
+    def __escapeQuery(self, q):
+        temp = ""
+        chars = "+-&|!(){}[]^\"~*?:\\"
+        for c in q:
+           if c in chars:
+             temp += "\%s" % c
+           else:
+             temp += c
+        return temp
