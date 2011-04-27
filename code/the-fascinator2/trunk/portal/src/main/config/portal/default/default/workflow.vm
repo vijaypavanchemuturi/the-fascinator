@@ -70,8 +70,8 @@
     </div>
   </div>
 #end
-#set ($pageTitle = $self.getWorkflowMetadata().getString("Workflow", "pageTitle"))
-<h2 id="page-heading"><span>$pageTitle</span></h2>
+#set($pageTitle = $self.getWorkflowMetadata().getString("Workflow", "pageTitle"))
+<h2 id="page-heading"><span>#if("$!pageTitle"!="")$!pageTitle#{else}Workflow#end</span></h2>
 <div id="form-section">
 
   ### *********************
