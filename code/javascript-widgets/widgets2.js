@@ -294,11 +294,12 @@ var widgets={forms:[], globalObject:this};
       else if(vl=="notchecked"){expr='!target.attr("checked")';}
       else if(v=="="){expr="(v=="+reader.next()+")";}
       else if(v=="!="){expr="(v!="+reader.next()+")";}
-      else if(v[0]=="/"){expr="("+v+".test(v))";}
+      else if(v.charAt(0)=="/"){expr="("+v+".test(v))";}
       else if(v.substr(0,2)=="!/"){expr="("+v+".test(v))";}
       else if(v=="("){expr+="("+getExpr(reader)+")";if(reader.next()!=")"){alert("expected a ')'!");}; }
       else if(v.toLowerCase()=="not"){expr+="!"+getExpr(reader);}
       else if(/^[\w\d\._]+$/.test(v)){expr+="testTest('"+v+"')";}
+      else {alert("failed to match! vl="+vl+",v="+v+",expr="+expr);}
       v=reader.lookAHead();
       if(v){
         v=v.toUpperCase();
@@ -313,7 +314,7 @@ var widgets={forms:[], globalObject:this};
         d=reader.next();
         while(d=="," || d==";")d=reader.next();
         if(!d) return null;
-        if(d[0]=="'" || d[0]=='"'){
+        if(d.charAt(0)=="'" || d.charAt(0)=='"'){
             target=$(eval(d));
             if(reader.lookAHead()=="."){reader.next();d=reader.next();}
             else{
@@ -463,7 +464,7 @@ var widgets={forms:[], globalObject:this};
                     d.showValidationMessage=showValidationMessage;
                     d.vLabel=vLabel;
                   } catch(e){
-                    alert(e + ", func="+func);
+                    alert(e.message + ", for="+d["for"]+"\nfunc="+func);
                   }
                   $.each(d.whenList, function(c, w){
                       w.target = w.target||target;
@@ -690,7 +691,7 @@ var widgets={forms:[], globalObject:this};
           tmp = displayRowTemplate.clone().show().addClass("count-this");
           visibleItems = xfind(displaySelector+".count-this");
           if(!force){
-              if(!any(values, function(_, v){ return v[0]!==""; })) return;
+              if(!any(values, function(_, v){ return v.charAt(0)!==""; })) return;
               if(addUniqueOnly){
                 // Check that this entry is unique
                 var unique=true;
@@ -856,7 +857,7 @@ var widgets={forms:[], globalObject:this};
               jsonCache=jsonData;
               jsonCache[""]=jsonData;
           }catch(e){
-              alert("Not valid json! - "+e);
+              alert("Not valid json! - "+e.message);
           }
       }
       // root or base json urlId is just an empty string e.g. ""
@@ -1030,7 +1031,7 @@ var widgets={forms:[], globalObject:this};
         onSelection(child);
       }
       s.change(onChange);
-      setTimeout(onChange, 10);
+      //setTimeout(onChange, 10);
       return s;
   }
 
