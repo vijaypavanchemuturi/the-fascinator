@@ -1363,6 +1363,8 @@ var widgets={forms:[], globalObject:this};
                         css("color", "green").show().fadeOut(4000);
                 }
                 setTimeout(function(){sr.hide();}, 4100);  // work around for bug in fadeOut not hiding invisible items
+                // update ctxInputs - as fileInputs will now be different
+                ctxInputs=ctx.findx("input, textarea, select");
                 lastData = getFormData();
             }
         };
@@ -1389,7 +1391,7 @@ var widgets={forms:[], globalObject:this};
                 ctx.findx("input[type=file]").each(function(c, f){
                     elems.push(f);
                 });
-                fileSubmitter.submit(url, elems, completed);
+                setTimeout(function(){fileSubmitter.submit(url, elems, completed);}, 10);
             }else{
                 // data.json = JSON.stringify(data);
                 $.ajax({type:"POST", url:url, data:data,
